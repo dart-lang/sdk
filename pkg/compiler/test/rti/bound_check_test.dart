@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import '../helpers/d8_helper.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -28,7 +26,7 @@ main() {
   method3<T extends B>() {}
 
   dynamic m1 = method1;
-  dynamic m2 = new C().method2;
+  dynamic m2 = C().method2;
   dynamic m3 = method3;
 
   m1<A>();

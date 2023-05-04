@@ -1,6 +1,6 @@
 # Garbage Collection
 
-The Dart VM has a generational garbage collector with two generations. The new generation is collected by a parallel, stop-the-world semispace [scavenger](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/scavenger.h). The old generation is collected by concurrent-[mark](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/marker.h)-concurrent-[sweep](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/sweeper.h) or by concurrent-mark-parallel-[compact](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/compactor.h).
+The Dart VM has a generational garbage collector with two generations. The new generation is collected by a parallel, stop-the-world semispace [scavenger](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/scavenger.h). The old generation is collected by concurrent-[mark](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/marker.h)-concurrent-[sweep](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/sweeper.h) or by concurrent-mark-parallel-[compact](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/compactor.h). It supports the one-way version of [become](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/become.h).
 
 ## Object representation
 
@@ -29,7 +29,7 @@ The Dart VM's GC is precise and moving.
 
 A GC is said to be "precise" if when a collection happens it knows exactly what is and is not a pointer into the heap. For example, in compiled Dart code the VM tracks which stack slots contain object pointers and which contain unboxed values. This is opposed to a "conservative" collector that considers any pointer-sized value might be a pointer into the heap, though it might just be an unboxed value.
 
-In a "moving" GC, the address of an object might change, requiring pointers to that object to be updated. In the Dart VM, objects can move during a scavenge or a compaction. A moving GC must be a precise GC: if a conservative GC updates a value that is not guaranteed to be a pointer, it will corrupt execution when the value was not in fact a pointer.
+In a "moving" GC, the address of an object might change, requiring pointers to that object to be updated. In the Dart VM, objects can move during a [scavenge](#scavenge), a [compaction](#mark-compact) or a [become](#become) operation. A moving GC must be a precise GC: if a conservative GC updates a value that is not guaranteed to be a pointer, it will corrupt execution when the value was not in fact a pointer.
 
 The VM does not know which stack slots, globals or object fields in foreign languages contain pointers into the Dart heap, including the VM's own runtime implemented in C++. For the GC to remain precise, foreign languages reference Dart objects indirectly through "handles". Handles can be thought of as pointers to pointers. They are allocated from the VM, and the GC will visit (and possibly update) the pointers contained in handles during collections.
 
@@ -189,15 +189,15 @@ We can eliminate these checks when the compiler can prove these cases cannot hap
 * `container` is the same object as `value`. The GC never needs to retain an additional object if it sees a self-reference, so ignoring a self-reference cannot cause us to free a reachable object.
 * `container` is known to be a new object or known to be an old object that is in the remembered set and is marked if marking is in progress.
 
-We can know that `container` meets the last property if `container` is the result of an allocation (instead of a heap load), and there is no instruction that can trigger a GC between the allocation and the store. This is because the allocation stubs ensure the result of AllocateObject is either a new-space object (common case, bump pointer allocation succeeds), or has been pre-emptively added to the remembered set and marking worklist (uncommon case, entered runtime to allocate object, possibly triggering GC).
+We can know that `container` meets the last property if `container` is the result of an allocation (instead of a heap load), and there is no instruction that can trigger a GC between the allocation and the store. This is because the allocation stubs ensure the result of AllocateObject is either a new-space object (common case, bump pointer allocation succeeds), or has been preemptively added to the remembered set and marking worklist (uncommon case, entered runtime to allocate object, possibly triggering GC).
 
 ```
 container <- AllocateObject
-<intructions that do not trigger GC>
+<instructions that do not trigger GC>
 StoreInstanceField(container, value, NoBarrier)
 ```
 
-We can further eliminate barriers when `container` is the result of an allocation, and there is no instruction that can create an additional Dart frame between the allocation and the store. This is because after a GC, any old-space objects in the frames below an exit frame will be pre-emptively added to the remembered set and marking worklist (Thread::RestoreWriteBarrierInvariant).
+We can further eliminate barriers when `container` is the result of an allocation, and there is no instruction that can create an additional Dart frame between the allocation and the store. This is because after a GC, any old-space objects in the frames below an exit frame will be preemptively added to the remembered set and marking worklist (Thread::RestoreWriteBarrierInvariant).
 
 ```
 container <- AllocateObject
@@ -240,3 +240,11 @@ This would be at the cost of an extra object.
 If the finalizer object itself is GCed, the callback is not run for any of the attachments.
 
 On Isolate shutdown, native finalizers are run, but regular finalizers are not.
+
+## Become
+
+Become is an operation that atomically forwards the identity of a set of objects. A heap walk is performed where every pointer to a _before_ object is replaced with a pointer to an _after_ object, and each after object gains the identity hash of the corresponding before object. In the Dart VM, it is only used during [reload](https://github.com/dart-lang/sdk/wiki/Hot-reload) to map the old program and instances with the old sizes onto the new program and instances with the new sizes.
+
+This operation dates back to the early Smalltalk implementations. It was O(1) because pointers were indirect through an object table and was used to resize collections.
+
+There is also a variant of become that exchanges identities instead of forwarding that is not used by the Dart VM. It is useful if one needs to a install proxies in front of a subgraph and retain references to the objects behind the proxies. Before paging, this was an approach to virtual memory.

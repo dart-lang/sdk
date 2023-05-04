@@ -1,0 +1,5 @@
+class Class {
+  method({int x: 3}) {}
+}
+
+topLevel({int x: 3}) {}

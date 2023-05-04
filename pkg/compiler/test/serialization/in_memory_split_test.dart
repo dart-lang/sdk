@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/serialization/strategies.dart';
@@ -20,16 +18,16 @@ main(List<String> args) {
     ArgResults argResults = argParser.parse(args);
     bool useDataKinds = argResults['kinds'] || argResults['debug'];
     SerializationStrategy strategy =
-        new BytesInMemorySerializationStrategy(useDataKinds: useDataKinds);
+        BytesInMemorySerializationStrategy(useDataKinds: useDataKinds);
     if (argResults['object'] || argResults['debug']) {
       strategy =
-          new ObjectsInMemorySerializationStrategy(useDataKinds: useDataKinds);
+          ObjectsInMemorySerializationStrategy(useDataKinds: useDataKinds);
     }
 
     Uri entryPoint = getEntryPoint(argResults) ??
         Uri.base.resolve('pkg/compiler/test/codesize/swarm/swarm.dart');
-    Uri librariesSpecificationUri = getLibrariesSpec(argResults);
-    Uri packageConfig = getPackages(argResults);
+    Uri? librariesSpecificationUri = getLibrariesSpec(argResults);
+    Uri? packageConfig = getPackages(argResults);
     List<String> options = getOptions(argResults);
     await runTest(
         entryPoint: entryPoint,

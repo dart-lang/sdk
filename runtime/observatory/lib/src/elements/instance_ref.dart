@@ -31,9 +31,6 @@ class InstanceRefElement extends CustomElement implements Renderable {
   factory InstanceRefElement(
       M.IsolateRef isolate, M.InstanceRef instance, M.ObjectRepository objects,
       {RenderingQueue? queue, bool expandable = true}) {
-    assert(isolate != null);
-    assert(instance != null);
-    assert(objects != null);
     InstanceRefElement e = new InstanceRefElement.created();
     e._r = new RenderingScheduler<InstanceRefElement>(e, queue: queue);
     e._isolate = isolate;
@@ -205,8 +202,9 @@ class InstanceRefElement extends CustomElement implements Renderable {
             ..classes = ['emphasize']
             ..text = _instance.clazz!.name
         ];
+      default:
+        throw new Exception('Unknown InstanceKind: ${_instance.kind}');
     }
-    throw new Exception('Unknown InstanceKind: ${_instance.kind}');
   }
 
   bool _hasValue() {

@@ -31,6 +31,7 @@ abstract class _Type implements Type {
   bool get isFunctionTypeParameterType =>
       _testID(ClassID.cidFunctionTypeParameterType);
   bool get isFunction => _testID(ClassID.cidFunctionType);
+  bool get isRecord => _testID(ClassID.cidRecordType);
 
   T as<T>() => unsafeCast<T>(this);
 
@@ -137,41 +138,36 @@ class _InterfaceTypeParameterType extends _Type {
 /// This type only occurs inside generic function types.
 @pragma("wasm:entry-point")
 class _FunctionTypeParameterType extends _Type {
-  /// The nesting depth of the function type declaring this type parameter,
-  /// i.e. the number of function types it is embedded inside.
-  final int depth;
-
-  /// The index of this type parameter in the function type's list of type
-  /// parameters.
   final int index;
 
   @pragma("wasm:entry-point")
-  const _FunctionTypeParameterType(
-      super.isDeclaredNullable, this.depth, this.index);
+  const _FunctionTypeParameterType(super.isDeclaredNullable, this.index);
 
   @override
-  _Type get _asNonNullable => _FunctionTypeParameterType(false, depth, index);
+  _Type get _asNonNullable => _FunctionTypeParameterType(false, index);
 
   @override
-  _Type get _asNullable => _FunctionTypeParameterType(true, depth, index);
+  _Type get _asNullable => _FunctionTypeParameterType(true, index);
 
   @override
   bool operator ==(Object o) {
     if (!(super == o)) return false;
     _FunctionTypeParameterType other =
         unsafeCast<_FunctionTypeParameterType>(o);
-    return depth == other.depth && index == other.index;
+    // References to different type parameters can have the same index and thus
+    // sometimes compare equal even if they are not. However, this can only
+    // happen if the containing types are different in other places, in which
+    // case the comparison as a whole correctly compares unequal.
+    return index == other.index;
   }
 
   @override
   int get hashCode {
     int hash = super.hashCode;
     hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
-    hash = mix64(hash ^ depth.hashCode);
     return mix64(hash ^ index.hashCode);
   }
 
-  // TODO(askesc): Distinguish the depth of function type parameters.
   @override
   String toString() => 'X$index';
 }
@@ -313,7 +309,14 @@ class _NamedParameter {
 }
 
 class _FunctionType extends _Type {
+  // TODO(askesc): The [typeParameterOffset] is 0 except in the rare case where
+  // the function type contains a nested generic function type that contains a
+  // reference to one of this type's type parameters. It seems wasteful to have
+  // an `i64` in every function type object for this. Consider alternative
+  // representations that don't have this overhead in the common case.
+  final int typeParameterOffset;
   final List<_Type> typeParameterBounds;
+  final List<_Type> typeParameterDefaults;
   final _Type returnType;
   final List<_Type> positionalParameters;
   final int requiredParameterCount;
@@ -321,7 +324,9 @@ class _FunctionType extends _Type {
 
   @pragma("wasm:entry-point")
   const _FunctionType(
+      this.typeParameterOffset,
       this.typeParameterBounds,
+      this.typeParameterDefaults,
       this.returnType,
       this.positionalParameters,
       this.requiredParameterCount,
@@ -329,12 +334,26 @@ class _FunctionType extends _Type {
       super.isDeclaredNullable);
 
   @override
-  _Type get _asNonNullable => _FunctionType(typeParameterBounds, returnType,
-      positionalParameters, requiredParameterCount, namedParameters, false);
+  _Type get _asNonNullable => _FunctionType(
+      typeParameterOffset,
+      typeParameterBounds,
+      typeParameterDefaults,
+      returnType,
+      positionalParameters,
+      requiredParameterCount,
+      namedParameters,
+      false);
 
   @override
-  _Type get _asNullable => _FunctionType(typeParameterBounds, returnType,
-      positionalParameters, requiredParameterCount, namedParameters, true);
+  _Type get _asNullable => _FunctionType(
+      typeParameterOffset,
+      typeParameterBounds,
+      typeParameterDefaults,
+      returnType,
+      positionalParameters,
+      requiredParameterCount,
+      namedParameters,
+      true);
 
   bool operator ==(Object o) {
     if (!(super == o)) return false;
@@ -384,15 +403,15 @@ class _FunctionType extends _Type {
   @override
   String toString() {
     StringBuffer s = StringBuffer();
-    s.write(returnType);
-    s.write(" Function");
     if (typeParameterBounds.isNotEmpty) {
       s.write("<");
       for (int i = 0; i < typeParameterBounds.length; i++) {
         if (i > 0) s.write(", ");
-        // TODO(askesc): Distinguish the depth of function type parameters.
-        s.write("X$i extends ");
-        s.write(typeParameterBounds[i]);
+        s.write("X${typeParameterOffset + i}");
+        if (!_TypeUniverse.isTopType(typeParameterBounds[i])) {
+          s.write(" extends ");
+          s.write(typeParameterBounds[i]);
+        }
       }
       s.write(">");
     }
@@ -413,9 +432,84 @@ class _FunctionType extends _Type {
       s.write("}");
     }
     s.write(")");
-    if (isDeclaredNullable) s.write("?");
+    s.write(" => ");
+    s.write(returnType);
     return s.toString();
   }
+}
+
+class _RecordType extends _Type {
+  final List<String> names;
+  final List<_Type> fieldTypes;
+
+  @pragma("wasm:entry-point")
+  _RecordType(this.names, this.fieldTypes, super.isDeclaredNullable);
+
+  @override
+  _Type get _asNonNullable => _RecordType(names, fieldTypes, false);
+
+  @override
+  _Type get _asNullable => _RecordType(names, fieldTypes, true);
+
+  @override
+  String toString() {
+    StringBuffer buffer = StringBuffer('(');
+
+    final int numPositionals = fieldTypes.length - names.length;
+    final int numNames = names.length;
+
+    for (int i = 0; i < numPositionals; i += 1) {
+      buffer.write(fieldTypes[i]);
+      if (i != fieldTypes.length - 1) {
+        buffer.write(', ');
+      }
+    }
+
+    if (names.isNotEmpty) {
+      buffer.write('{');
+      for (int i = 0; i < numNames; i += 1) {
+        final String fieldName = names[i];
+        final _Type fieldType = fieldTypes[numPositionals + i];
+        buffer.write(fieldType);
+        buffer.write(' ');
+        buffer.write(fieldName);
+        if (i != numNames - 1) {
+          buffer.write(', ');
+        }
+      }
+      buffer.write('}');
+    }
+
+    buffer.write(')');
+    if (isDeclaredNullable) {
+      buffer.write('?');
+    }
+    return buffer.toString();
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! _RecordType) {
+      return false;
+    }
+
+    if (!_sameShape(other)) {
+      return false;
+    }
+
+    for (int fieldIdx = 0; fieldIdx < fieldTypes.length; fieldIdx += 1) {
+      if (fieldTypes[fieldIdx] != other.fieldTypes[fieldIdx]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool _sameShape(_RecordType other) =>
+      fieldTypes.length == other.fieldTypes.length &&
+      // Name lists are constants and can be compared with `identical`.
+      identical(names, other.names);
 }
 
 external List<List<int>> _getTypeRulesSupers();
@@ -432,22 +526,38 @@ class _Environment {
   /// outermost function type.
   final _Environment? parent;
 
-  /// The type parameter bounds of the current function type.
-  final List<_Type> bounds;
+  /// The current function type.
+  final _FunctionType type;
 
   /// The nesting depth of the current function type.
   final int depth;
 
-  _Environment(this.parent, this.bounds)
+  _Environment(this.parent, this.type)
       : depth = parent == null ? 0 : parent.depth + 1;
 
   /// Look up the bound of a function type parameter in the environment.
   _Type lookup(_FunctionTypeParameterType param) {
+    return adjust(param).lookupAdjusted(param);
+  }
+
+  /// Adjust the environment to the one where the type parameter is declared.
+  _Environment adjust(_FunctionTypeParameterType param) {
+    // The `typeParameterOffset` of the function types and the `index` of the
+    // function type parameters are assigned such that the function type to
+    // which a type parameter belongs is the innermost function type enclosing
+    // the type parameter type for which the index falls within the type
+    // parameter index range of the function type.
     _Environment env = this;
-    while (env.depth != param.depth) {
+    while (param.index - env.type.typeParameterOffset >=
+        env.type.typeParameterBounds.length) {
       env = env.parent!;
     }
-    return env.bounds[param.index];
+    return env;
+  }
+
+  /// Look up the bound of a type parameter in its adjusted environment.
+  _Type lookupAdjusted(_FunctionTypeParameterType param) {
+    return type.typeParameterBounds[param.index - type.typeParameterOffset];
   }
 }
 
@@ -487,9 +597,9 @@ class _TypeUniverse {
 
   static bool isFunctionType(_Type t) =>
       isSpecificInterfaceType(t, ClassID.cidFunction) ||
-      isSpecificInterfaceType(t, ClassID.cid_Function);
+      isSpecificInterfaceType(t, ClassID.cid_Closure);
 
-  static _Type substituteTypeParameter(
+  static _Type substituteInterfaceTypeParameter(
       _InterfaceTypeParameterType typeParameter, List<_Type> substitutions) {
     // If the type parameter is non-nullable, or the substitution type is
     // nullable, then just return the substitution type. Otherwise, we return
@@ -501,43 +611,105 @@ class _TypeUniverse {
     return substitution;
   }
 
-  static _Type substituteTypeArgument(_Type type, List<_Type> substitutions) {
+  static _Type substituteFunctionTypeParameter(
+      _FunctionTypeParameterType typeParameter,
+      List<_Type> substitutions,
+      _FunctionType? rootFunction) {
+    if (rootFunction != null &&
+        typeParameter.index >= rootFunction.typeParameterOffset) {
+      _Type substitution =
+          substitutions[typeParameter.index - rootFunction.typeParameterOffset];
+      if (typeParameter.isDeclaredNullable) return substitution.asNullable;
+      return substitution;
+    } else {
+      return typeParameter;
+    }
+  }
+
+  @pragma("wasm:entry-point")
+  static _FunctionType substituteFunctionTypeArgument(
+      _FunctionType functionType, List<_Type> substitutions) {
+    return substituteTypeArgument(functionType, substitutions, functionType)
+        .as<_FunctionType>();
+  }
+
+  /// Substitute the type parameters of an interface type or function type.
+  ///
+  /// For interface types, [rootFunction] is always `null`.
+  ///
+  /// For function types, [rootFunction] is the function whose type parameters
+  /// are being substituted, or `null` when inside a nested function type that
+  /// is guaranteed not to contain any type parameter types that are to be
+  /// substituted.
+  static _Type substituteTypeArgument(
+      _Type type, List<_Type> substitutions, _FunctionType? rootFunction) {
     if (type.isNever || type.isDynamic || type.isVoid || type.isNull) {
       return type;
     } else if (type.isFutureOr) {
       return createNormalizedFutureOrType(
           type.isDeclaredNullable,
-          substituteTypeArgument(
-              type.as<_FutureOrType>().typeArgument, substitutions));
+          substituteTypeArgument(type.as<_FutureOrType>().typeArgument,
+              substitutions, rootFunction));
     } else if (type.isInterface) {
       _InterfaceType interfaceType = type.as<_InterfaceType>();
       return _InterfaceType(
           interfaceType.classId,
           interfaceType.isDeclaredNullable,
           interfaceType.typeArguments
-              .map((type) => substituteTypeArgument(type, substitutions))
+              .map((type) =>
+                  substituteTypeArgument(type, substitutions, rootFunction))
               .toList());
     } else if (type.isInterfaceTypeParameterType) {
-      return substituteTypeParameter(
+      assert(rootFunction == null);
+      return substituteInterfaceTypeParameter(
           type.as<_InterfaceTypeParameterType>(), substitutions);
     } else if (type.isFunction) {
       _FunctionType functionType = type.as<_FunctionType>();
+      bool isRoot = identical(type, rootFunction);
+      if (!isRoot &&
+          rootFunction != null &&
+          functionType.typeParameterOffset +
+                  functionType.typeParameterBounds.length >
+              rootFunction.typeParameterOffset) {
+        // The type parameter index range of this nested generic function type
+        // overlaps that of the root function, which means it does not contain
+        // any function type parameter types referring to the root function.
+        // Pass `null` as the `rootFunction` to avoid mis-interpreting enclosed
+        // type parameter types as referring to the root function.
+        rootFunction = null;
+      }
       return _FunctionType(
-          functionType.typeParameterBounds
-              .map((type) => substituteTypeArgument(type, substitutions))
-              .toList(),
-          substituteTypeArgument(functionType.returnType, substitutions),
+          functionType.typeParameterOffset,
+          isRoot
+              ? const []
+              : functionType.typeParameterBounds
+                  .map((type) =>
+                      substituteTypeArgument(type, substitutions, rootFunction))
+                  .toList(),
+          isRoot
+              ? const []
+              : functionType.typeParameterDefaults
+                  .map((type) =>
+                      substituteTypeArgument(type, substitutions, rootFunction))
+                  .toList(),
+          substituteTypeArgument(
+              functionType.returnType, substitutions, rootFunction),
           functionType.positionalParameters
-              .map((type) => substituteTypeArgument(type, substitutions))
+              .map((type) =>
+                  substituteTypeArgument(type, substitutions, rootFunction))
               .toList(),
           functionType.requiredParameterCount,
           functionType.namedParameters
               .map((named) => _NamedParameter(
                   named.name,
-                  substituteTypeArgument(named.type, substitutions),
+                  substituteTypeArgument(
+                      named.type, substitutions, rootFunction),
                   named.isRequired))
               .toList(),
           functionType.isDeclaredNullable);
+    } else if (type.isFunctionTypeParameterType) {
+      return substituteFunctionTypeParameter(
+          type.as<_FunctionTypeParameterType>(), substitutions, rootFunction);
     } else {
       throw 'Type argument substitution not supported for $type';
     }
@@ -545,8 +717,10 @@ class _TypeUniverse {
 
   static List<_Type> substituteTypeArguments(
           List<_Type> types, List<_Type> substitutions) =>
-      List<_Type>.generate(types.length,
-          (int index) => substituteTypeArgument(types[index], substitutions),
+      List<_Type>.generate(
+          types.length,
+          (int index) =>
+              substituteTypeArgument(types[index], substitutions, null),
           growable: false);
 
   static _Type createNormalizedFutureOrType(
@@ -595,7 +769,7 @@ class _TypeUniverse {
     if (sSuperIndexOfT == -1) return false;
     assert(sSuperIndexOfT < typeRulesSubstitutions[sId].length);
 
-    // Return early if we don't have have to check type arguments.
+    // Return early if we don't have to check type arguments.
     List<_Type> sTypeArguments = s.typeArguments;
     List<_Type> substitutions = typeRulesSubstitutions[sId][sSuperIndexOfT];
     if (substitutions.isEmpty && sTypeArguments.isEmpty) {
@@ -622,8 +796,8 @@ class _TypeUniverse {
   bool isFunctionSubtype(_FunctionType s, _Environment? sEnv, _FunctionType t,
       _Environment? tEnv) {
     // Set up environments
-    sEnv = _Environment(sEnv, s.typeParameterBounds);
-    tEnv = _Environment(tEnv, t.typeParameterBounds);
+    sEnv = _Environment(sEnv, s);
+    tEnv = _Environment(tEnv, t);
 
     // Check that [s] and [t] have the same number of type parameters and that
     // their bounds are equivalent.
@@ -704,6 +878,25 @@ class _TypeUniverse {
     return true;
   }
 
+  bool isRecordSubtype(
+      _RecordType s, _Environment? sEnv, _RecordType t, _Environment? tEnv) {
+    // [s] <: [t] iff s and t have the same shape and fields of `s` are
+    // subtypes of the same field in `t` by index.
+    if (!s._sameShape(t)) {
+      return false;
+    }
+
+    final int numFields = s.fieldTypes.length;
+    for (int fieldIdx = 0; fieldIdx < numFields; fieldIdx += 1) {
+      if (!isSubtype(
+          s.fieldTypes[fieldIdx], sEnv, t.fieldTypes[fieldIdx], tEnv)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   // Subtype check based off of sdk/lib/_internal/js_runtime/lib/rti.dart.
   // Returns true if [s] is a subtype of [t], false otherwise.
   bool isSubtype(_Type s, _Environment? sEnv, _Type t, _Environment? tEnv) {
@@ -720,9 +913,23 @@ class _TypeUniverse {
     if (isBottomType(s)) return true;
 
     // Left Type Variable Bound 1:
-    // TODO(joshualitt): Implement for generic function type parameters.
-    if (s.isInterfaceTypeParameterType) {
-      throw 'Unbound type parameter $s';
+    if (s.isFunctionTypeParameterType) {
+      final sTypeParam = s.as<_FunctionTypeParameterType>();
+      _Environment sEnvAdjusted = sEnv!.adjust(sTypeParam);
+      // A function type parameter type is a subtype of another function type
+      // parameter type if they refer to the same type parameter.
+      if (t.isFunctionTypeParameterType) {
+        final tTypeParam = t.as<_FunctionTypeParameterType>();
+        _Environment tEnvAdjusted = tEnv!.adjust(tTypeParam);
+        if (sEnvAdjusted.depth == tEnvAdjusted.depth &&
+            sTypeParam.index - sEnvAdjusted.type.typeParameterOffset ==
+                tTypeParam.index - tEnvAdjusted.type.typeParameterOffset) {
+          return true;
+        }
+      }
+      // Otherwise, compare the bound to the other type.
+      _Type bound = sEnvAdjusted.lookupAdjusted(sTypeParam);
+      return isSubtype(bound, sEnvAdjusted, t, tEnv);
     }
 
     // Left Null:
@@ -776,15 +983,6 @@ class _TypeUniverse {
 
     // Left Promoted Variable does not apply at runtime.
 
-    if (s.isFunctionTypeParameterType) {
-      // A function type parameter type is a subtype of another function type
-      // parameter type if they refer to the same type parameter.
-      if (s == t) return true;
-      // Otherwise, compare the bound to the other type.
-      final sTypeParam = s.as<_FunctionTypeParameterType>();
-      return isSubtype(sEnv!.lookup(sTypeParam), sEnv, t, tEnv);
-    }
-
     // Function Type / Function:
     if (s.isFunction && isFunctionType(t)) {
       return true;
@@ -793,6 +991,18 @@ class _TypeUniverse {
     if (s.isFunction && t.isFunction) {
       return isFunctionSubtype(
           s.as<_FunctionType>(), sEnv, t.as<_FunctionType>(), tEnv);
+    }
+
+    // Records:
+    if (s.isRecord && t.isRecord) {
+      return isRecordSubtype(
+          s.as<_RecordType>(), sEnv, t.as<_RecordType>(), tEnv);
+    }
+
+    // Records are subtypes of the `Record` type:
+    if (s.isRecord && t.isInterface) {
+      final tInterfaceType = t.as<_InterfaceType>();
+      return tInterfaceType.classId == ClassID.cidRecord;
     }
 
     // Interface Compositionality + Super-Interface:
@@ -816,5 +1026,158 @@ _TypeUniverse _typeUniverse = _TypeUniverse.create();
 
 @pragma("wasm:entry-point")
 bool _isSubtype(Object? s, _Type t) {
-  return _typeUniverse.isSubtype(s._runtimeType, null, t, null);
+  return _typeUniverse.isSubtype(
+      _getActualRuntimeTypeNullable(s), null, t, null);
 }
+
+@pragma("wasm:entry-point")
+bool _isTypeSubtype(_Type s, _Type t) {
+  return _typeUniverse.isSubtype(s, null, t, null);
+}
+
+/// Checks that argument lists have expected number of arguments for the
+/// closure.
+///
+/// If the type argument list ([typeArguments]) is empty but the closure has
+/// type parameters, updates [typeArguments] with the default bounds of the
+/// type parameters.
+///
+/// [namedArguments] is a list of `Symbol` and `Object?` pairs.
+@pragma("wasm:entry-point")
+bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
+    List<Object?> positionalArguments, List<dynamic> namedArguments) {
+  // Check type args, add default types to the type list if its empty
+  if (typeArguments.isEmpty) {
+    typeArguments.addAll(functionType.typeParameterDefaults);
+  } else if (typeArguments.length !=
+      functionType.typeParameterDefaults.length) {
+    return false;
+  }
+
+  // Check positional args
+  if (positionalArguments.length < functionType.requiredParameterCount ||
+      positionalArguments.length > functionType.positionalParameters.length) {
+    return false;
+  }
+
+  // Check named args. Both parameters and args are sorted, so we can iterate
+  // them in parallel.
+  int namedParamIdx = 0;
+  int namedArgIdx = 0;
+  while (namedParamIdx < functionType.namedParameters.length) {
+    _NamedParameter param = functionType.namedParameters[namedParamIdx];
+
+    if (namedArgIdx * 2 >= namedArguments.length) {
+      if (param.isRequired) {
+        return false;
+      }
+      namedParamIdx += 1;
+      continue;
+    }
+
+    String argName = _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
+
+    final cmp = argName.compareTo(param.name);
+
+    if (cmp == 0) {
+      // Expected arg passed
+      namedParamIdx += 1;
+      namedArgIdx += 1;
+    } else if (cmp < 0) {
+      // Unexpected arg passed
+      return false;
+    } else if (param.isRequired) {
+      // Required param not passed
+      return false;
+    } else {
+      // Optional param not passed
+      namedParamIdx += 1;
+    }
+  }
+
+  // All named parameters checked, any extra arguments are unexpected
+  if (namedArgIdx * 2 < namedArguments.length) {
+    return false;
+  }
+
+  return true;
+}
+
+/// Checks that values in argument lists have expected types.
+///
+/// Throws [TypeError] when a type check fails.
+///
+/// Assumes that shape check ([_checkClosureShape]) passed and the type list is
+/// adjusted with default bounds if necessary.
+///
+/// [namedArguments] is a list of `Symbol` and `Object?` pairs.
+@pragma("wasm:entry-point")
+void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
+    List<Object?> positionalArguments, List<dynamic> namedArguments) {
+  assert(functionType.typeParameterBounds.length == typeArguments.length);
+
+  if (!typeArguments.isEmpty) {
+    for (int i = 0; i < typeArguments.length; i += 1) {
+      final typeArgument = typeArguments[i];
+      final paramBound = _TypeUniverse.substituteTypeArgument(
+          functionType.typeParameterBounds[i], typeArguments, functionType);
+      if (!_typeUniverse.isSubtype(typeArgument, null, paramBound, null)) {
+        final stackTrace = StackTrace.current;
+        final typeError = _TypeError.fromMessageAndStackTrace(
+            "Type argument '$typeArgument' is not a "
+            "subtype of type parameter bound '$paramBound'",
+            stackTrace);
+        Error._throw(typeError, stackTrace);
+      }
+    }
+
+    functionType = _TypeUniverse.substituteFunctionTypeArgument(
+        functionType, typeArguments);
+  }
+
+  // Check positional arguments
+  for (int i = 0; i < positionalArguments.length; i += 1) {
+    final Object? arg = positionalArguments[i];
+    final _Type paramTy = functionType.positionalParameters[i];
+    if (!_isSubtype(arg, paramTy)) {
+      // TODO(50991): Positional parameter names not available in runtime
+      _TypeError._throwArgumentTypeCheckError(
+          arg, paramTy, '???', StackTrace.current);
+    }
+  }
+
+  // Check named arguments. Since the shape check passed we know that passed
+  // names exist in named parameters of the function.
+  int namedParamIdx = 0;
+  int namedArgIdx = 0;
+  while (namedArgIdx * 2 < namedArguments.length) {
+    final String argName =
+        _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
+    if (argName == functionType.namedParameters[namedParamIdx].name) {
+      final arg = namedArguments[namedArgIdx * 2 + 1];
+      final paramTy = functionType.namedParameters[namedParamIdx].type;
+      if (!_isSubtype(arg, paramTy)) {
+        _TypeError._throwArgumentTypeCheckError(
+            arg, paramTy, argName, StackTrace.current);
+      }
+      namedParamIdx += 1;
+      namedArgIdx += 1;
+    } else {
+      namedParamIdx += 1;
+    }
+  }
+}
+
+@pragma("wasm:entry-point")
+external _Type _getActualRuntimeType(Object object);
+
+@pragma("wasm:prefer-inline")
+_Type _getActualRuntimeTypeNullable(Object? object) =>
+    object == null ? const _NullType() : _getActualRuntimeType(object);
+
+@pragma("wasm:entry-point")
+external _Type _getMasqueradedRuntimeType(Object object);
+
+@pragma("wasm:prefer-inline")
+_Type _getMasqueradedRuntimeTypeNullable(Object? object) =>
+    object == null ? const _NullType() : _getMasqueradedRuntimeType(object);

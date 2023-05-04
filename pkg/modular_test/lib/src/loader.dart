@@ -136,19 +136,19 @@ void _attachDependencies(
     final module = modules[name];
     if (module == null) {
       _invalidTest(
-          "declared dependencies for a non existing module named '$name'");
+          "declared dependencies for a nonexistent module named '$name'");
     }
     if (module.dependencies.isNotEmpty) {
       _invalidTest("Module dependencies have already been declared on $name.");
     }
-    moduleDependencies.forEach((dependencyName) {
+    for (var dependencyName in moduleDependencies) {
       final moduleDependency = modules[dependencyName];
       if (moduleDependency == null) {
-        _invalidTest("'$name' declares a dependency on a non existing module "
+        _invalidTest("'$name' declares a dependency on a nonexistent module "
             "named '$dependencyName'");
       }
       module.dependencies.add(moduleDependency);
-    });
+    }
   });
 }
 
@@ -273,6 +273,7 @@ Never _invalidTest(String message) {
 class InvalidTestError extends Error {
   final String message;
   InvalidTestError(this.message);
+  @override
   String toString() => "Invalid test: $message";
 }
 

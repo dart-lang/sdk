@@ -1035,7 +1035,7 @@ class _MixinGenerator extends _BaseGenerator {
   void generate() {
     String name = cls.name;
     String mixinName = '_${name}Mixin';
-    out('abstract class $mixinName implements ${idlPrefix(name)} {');
+    out('mixin $mixinName implements ${idlPrefix(name)} {');
     indent(() {
       String jsonCondition(idl_model.FieldType type, String name) {
         if (type.isList) {

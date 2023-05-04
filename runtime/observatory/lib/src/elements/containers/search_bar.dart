@@ -54,8 +54,6 @@ class SearchBarElement extends CustomElement implements Renderable {
 
   factory SearchBarElement(SearchBarSearchCallback search,
       {bool isOpen = false, Element? workspace, RenderingQueue? queue}) {
-    assert(search != null);
-    assert(isOpen != null);
     SearchBarElement e = new SearchBarElement.created();
     e._r = new RenderingScheduler<SearchBarElement>(e, queue: queue);
     e._search = search;

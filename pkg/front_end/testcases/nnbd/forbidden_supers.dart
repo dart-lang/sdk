@@ -5,7 +5,7 @@
 // This test checks for compile-time errors in cases when either Never or T? is
 // extended, implemented, or mixed in, where T is a type.
 
-class Aoo {}
+mixin class Aoo {}
 
 class Boo {}
 

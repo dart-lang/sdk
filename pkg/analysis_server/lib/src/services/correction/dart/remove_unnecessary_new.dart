@@ -9,7 +9,12 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class RemoveUnnecessaryNew extends CorrectionProducer {
+class RemoveNew extends _RemoveNew {
+  @override
+  FixKind get fixKind => DartFixKind.REMOVE_NEW;
+}
+
+class RemoveUnnecessaryNew extends _RemoveNew {
   @override
   bool get canBeAppliedInBulk => true;
 
@@ -21,7 +26,9 @@ class RemoveUnnecessaryNew extends CorrectionProducer {
 
   @override
   FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_NEW_MULTI;
+}
 
+class _RemoveNew extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final creation = node;

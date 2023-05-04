@@ -4,9 +4,7 @@
 
 // This file is a reimplementation of the header file mach-o/loader.h, which is
 // part of the Apple system headers. All comments, which detail the format of
-// Mach-O files, have been reproduced from the orginal header.
-
-// ignore_for_file: non_constant_identifier_names, constant_identifier_names
+// Mach-O files, have been reproduced from the original header.
 
 import 'dart:io';
 import 'dart:typed_data';
@@ -187,7 +185,7 @@ enum LoadCommandType {
   /// After MacOS X 10.1 when a new load command is added that is required to be
   /// understood by the dynamic linker for the image to execute properly, this
   /// bit will be or'ed into the load command constant. If the dynamic
-  /// linker sees such a load command it it does not understand will issue a
+  /// linker sees such a load command it does not understand will issue a
   /// "unknown load command required for execution" error and refuse to use the
   /// image.  Other load commands without this bit that are not understood will
   /// simply be ignored.
@@ -1529,8 +1527,9 @@ class MachOFile {
     }
 
     final reserved = reservedSegment;
-    // TODO(49783): Once linker flags are in place in g3, we should throw a
-    // FormatException if the segment used to reserve header space is not found.
+    if (reserved == null) {
+      throw FormatException("$reservedSegmentName segment not found");
+    }
 
     final linkedit = linkEditSegment;
     if (linkedit == null) {
@@ -1551,13 +1550,9 @@ class MachOFile {
         header.cpu,
         header.machine,
         header.type,
-        // If the reserved section exists, we remove it and replace it with
-        // the note.
-        //
-        // TODO(49783): Once linker flags are in place in g3, reserved should
-        // never be null.
-        header.loadCommandsCount + (reserved == null ? 1 : 0),
-        header.loadCommandsSize - (reserved?.size ?? 0) + note.size,
+        // We remove the reserved section and replace it with the note.
+        header.loadCommandsCount,
+        header.loadCommandsSize - reserved.size + note.size,
         header.flags,
         header.reserved);
 
@@ -1584,8 +1579,10 @@ class MachOFile {
 
     final newFile = MachOFile._(newHeader, newCommands, hasCodeSignature);
 
-    // TODO(49783): Once linker flags are in place in g3, we should throw a
-    // FormatException if [newFile.size] is greater than [size].
+    if (newFile.size > size) {
+      throw FormatException("Cannot add new note load command to header: "
+          "new size ${newFile.size} > the old size $size)");
+    }
 
     return newFile;
   }

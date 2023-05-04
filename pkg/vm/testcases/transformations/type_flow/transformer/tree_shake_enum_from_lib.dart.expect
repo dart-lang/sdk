@@ -14,7 +14,7 @@ class UsedEnum extends core::_Enum /*isEnum*/  {
 }
 abstract class UnusedInterface extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  abstract get /*isLegacy*/ usedInterfaceField() → core::int?;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  abstract set /*isLegacy*/ usedInterfaceField(core::int? value) → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  abstract set /*isLegacy*/ usedInterfaceField(synthesized core::int? value) → void;
 }
 class UsedClass extends core::Object implements self::UnusedInterface {
 [@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  field core::int? usedField = null;
@@ -33,7 +33,10 @@ static method main() → dynamic {
   #C3;
   core::List<self::UnusedEnum> list = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::UnusedEnum>] core::_GrowableList::•<self::UnusedEnum>(0);
   if([@vm.direct-call.metadata=dart.core::_GrowableList.isNotEmpty] [@vm.inferred-type.metadata=dart.core::bool] list.{core::Iterable::isNotEmpty}{core::bool}) {
-    [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/tree_shake_enum_from_lib.lib.dart::ConstClass.method] [@vm.inferred-type.metadata=!? (skip check)] new lib::ConstClass::•().{lib::ConstClass::method}(_in::unsafeCast<lib::ConstEnum>(_in::unsafeCast<dynamic>(null))){(lib::ConstEnum) → core::int};
+    block {
+      new lib::ConstClass::•();
+      _in::unsafeCast<dynamic>(null) as{TypeError,ForDynamic,ForNonNullableByDefault} lib::ConstEnum;
+    } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
   }
 }
 constants  {
@@ -51,6 +54,4 @@ class ConstClass extends core::Object {
   synthetic constructor •() → self::ConstClass
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false]  method method([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::ConstEnum e) → core::int
-    return [@vm.inferred-type.metadata=!] e.{core::_Enum::index}{core::int};
 }

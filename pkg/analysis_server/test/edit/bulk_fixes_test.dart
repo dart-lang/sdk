@@ -86,50 +86,6 @@ class A {
     expect(details, isEmpty);
   }
 
-  Future<void> test_lint_notEnabled() async {
-    newAnalysisOptionsYamlFile(testPackageRootPath, '''
-linter:
-  rules:
-    - annotate_overrides
-''');
-    addDiagnosticCode('unnecessary_new');
-
-    addTestFile('''
-class A {
-  A f() => new A();
-}
-
-class B extends A {
-  A f() => new B();
-}
-''');
-
-    var result = await _getBulkFixes();
-    expect(result.details, isEmpty);
-    expect(result.message,
-        "The lint 'unnecessary_new' is not enabled; add it to your analysis options and try again.");
-  }
-
-  Future<void> test_lint_notEnabled_multiple() async {
-    addDiagnosticCode('annotate_overrides');
-    addDiagnosticCode('unnecessary_new');
-
-    addTestFile('''
-class A {
-  A f() => new A();
-}
-
-class B extends A {
-  A f() => new B();
-}
-''');
-
-    var result = await _getBulkFixes();
-    expect(result.details, isEmpty);
-    expect(result.message,
-        "The lints 'annotate_overrides' and 'unnecessary_new' are not enabled; add them to your analysis options and try again.");
-  }
-
   Future<void> test_lint_unnecessaryNew() async {
     newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
@@ -184,30 +140,6 @@ class B extends A {
     var fix = fixes.first;
     expect(fix.code, 'unnecessary_new');
     expect(fix.occurrences, 2);
-  }
-
-  Future<void> test_lint_unnecessaryNew_notEnabled() async {
-    newAnalysisOptionsYamlFile(testPackageRootPath, '''
-linter:
-  rules:
-    - annotate_overrides
-''');
-    addDiagnosticCode('unnecessary_new');
-
-    addTestFile('''
-class A {
-  A f() => new A();
-}
-
-class B extends A {
-  A f() => new B();
-}
-''');
-
-    var result = await _getBulkFixes();
-    expect(result.details, isEmpty);
-    expect(result.message,
-        "The lint 'unnecessary_new' is not enabled; add it to your analysis options and try again.");
   }
 
   Future<void> test_undefinedDiagnostic() async {

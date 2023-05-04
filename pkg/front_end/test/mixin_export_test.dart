@@ -10,7 +10,7 @@ import 'package:front_end/src/api_prototype/front_end.dart';
 void main() {
   asyncTest(() async {
     var sources = <String, dynamic>{
-      'a.dart': 'class A extends Object with M {}  class M {}',
+      'a.dart': 'class A extends Object with M {}  mixin M {}',
       'b.dart': 'import "a.dart"; class B extends Object with M {}',
       'c.dart': 'export "a.dart"; export "b.dart";',
     };

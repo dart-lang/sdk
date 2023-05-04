@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract sealed class _B&A&M extends self::A implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_B&A&M
+    : super self::A::•()
+    ;
+}
+class B extends self::_B&A&M {
+  constructor •() → self::B
+    : super self::_B&A&M::•()
+    ;
+}
+abstract sealed class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+static method main() → dynamic {
+  self::f(new self::B::•());
+}
+static method f(self::A a) → dynamic {
+  #L1:
+  {
+    final synthesized self::A #0#0 = a;
+    {
+      if(#0#0 is{ForNonNullableByDefault} self::B) {
+        {
+          core::print("It's a B");
+        }
+      }
+    }
+  }
+}

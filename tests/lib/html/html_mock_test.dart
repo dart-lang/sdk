@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(51557): Decide if the mixins being applied in this test should be
+// "mixin", "mixin class" or the test should be left at 2.19.
+// @dart=2.19
+
 import 'dart:async';
 import 'dart:html';
 
@@ -15,7 +19,6 @@ class Mock {
   }
 }
 
-@proxy
 class MockBodyElement extends Mock implements BodyElement {
   Node append(Node e) => e;
 }
@@ -24,29 +27,24 @@ class _EventListeners {
   Stream<Event> get onBlur => new Stream.fromIterable([]);
 }
 
-@proxy
 class MockHtmlDocument extends Mock
     with _EventListeners
     implements HtmlDocument {
   BodyElement get body => new MockBodyElement();
 }
 
-@proxy
 class MockWindow extends Mock with _EventListeners implements Window {
   Stream<Event> get onBeforeUnload => new Stream.fromIterable([]);
 
   String? name = "MOCK_NAME";
 }
 
-@proxy
 class MockLocation extends Mock implements Location {
   String href = "MOCK_HREF";
 }
 
-@proxy
 class MockFileList extends Mock implements FileList {}
 
-@proxy
 class MockFile extends Mock implements File {}
 
 main() {

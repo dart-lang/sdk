@@ -2,29 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:test/test.dart';
 
+import 'env.dart';
 import 'utils.dart';
 
 /// Test `subtract()` on combinations of types.
 void main() {
   // Note: In the class diagrams, "(_)" means "sealed". A bare name is unsealed.
-  group('sealed family', () {
+  group('sealed family |', () {
     //     (A)
     //     / \
     //   (B) (C)
     //   / \   \
     //  D   E   F
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', isSealed: true, inherits: [a]);
-    var d = StaticType('D', inherits: [b]);
-    var e = StaticType('E', inherits: [b]);
-    var f = StaticType('F', inherits: [c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', isSealed: true, inherits: [a]);
+    var d = env.createClass('D', inherits: [b]);
+    var e = env.createClass('E', inherits: [b]);
+    var f = env.createClass('F', inherits: [c]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');
     checkExhaustive([b], 'BDE');
     checkExhaustive([c], 'CF');
@@ -51,19 +54,20 @@ void main() {
     checkExhaustive([d, e, f], 'ABCDEF'); // All cases covered.
   });
 
-  group('sealed with many subtypes', () {
+  group('sealed with many subtypes |', () {
     //     (A)
     //    //|\\
     //   / /|\ \
     //  B C D E F
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [a]);
-    var e = StaticType('E', inherits: [a]);
-    var f = StaticType('F', inherits: [a]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [a]);
+    var e = env.createClass('E', inherits: [a]);
+    var f = env.createClass('F', inherits: [a]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');
     checkExhaustive([b], 'B');
     checkExhaustive([c, e], 'CE');
@@ -72,19 +76,20 @@ void main() {
     checkExhaustive([b, c, d, e, f], 'ABCDEF'); // Covers A.
   });
 
-  group('sealed with multiple paths', () {
+  group('sealed with multiple paths |', () {
     //     (A)
     //     / \
     //   (B)  C
     //   / \ /
     //  D   E
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [b]);
-    var e = StaticType('E', inherits: [b, c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [b]);
+    var e = env.createClass('E', inherits: [b, c]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c, d, e]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c, d, e]);
     checkExhaustive([a], 'ABCDE');
     checkExhaustive([b], 'BDE');
     checkExhaustive([c], 'CE');
@@ -94,22 +99,23 @@ void main() {
     checkExhaustive([b, c], 'ABCDE');
     checkExhaustive([b, d], 'BDE');
     checkExhaustive([b, e], 'BDE');
-    checkExhaustive([c, d], 'CDE');
+    checkExhaustive([c, d], 'ABCDE');
     checkExhaustive([d, e], 'BDE');
   });
 
-  group('sealed with unsealed supertype', () {
+  group('sealed with unsealed supertype |', () {
     //    A
     //    |
     //   (B)
     //   / \
     //  C   D
-    var a = StaticType('A');
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', inherits: [b]);
-    var d = StaticType('D', inherits: [b]);
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', inherits: [b]);
+    var d = env.createClass('D', inherits: [b]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c, d]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c, d]);
     checkExhaustive([a], 'ABCD');
     checkExhaustive([b], 'BCD');
     checkExhaustive([c], 'C');
@@ -117,17 +123,18 @@ void main() {
     checkExhaustive([c, d], 'BCD');
   });
 
-  group('sealed with single subclass', () {
+  group('sealed with single subclass |', () {
     // (A)
     //  |
     // (B)
     //  |
     //  C
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', inherits: [b]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', inherits: [b]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c]);
     checkExhaustive([a], 'ABC');
     checkExhaustive([b], 'ABC'); // Every A must be a B, so A is covered.
     checkExhaustive([c], 'ABC'); // Every C must be a B, which must be an A.
@@ -137,20 +144,21 @@ void main() {
     checkExhaustive([a, b, c], 'ABC');
   });
 
-  group('unsealed', () {
+  group('unsealed |', () {
     //      A
     //     / \
     //    B   C
     //   / \ / \
     //  D   E   F
-    var a = StaticType('A');
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [b]);
-    var e = StaticType('E', inherits: [b, c]);
-    var f = StaticType('F', inherits: [c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [b]);
+    var e = env.createClass('E', inherits: [b, c]);
+    var f = env.createClass('F', inherits: [c]);
 
-    var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
+    var checkExhaustive = _makeTestFunction(env, [a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');
     checkExhaustive([b], 'BDE');
     checkExhaustive([d], 'D');
@@ -176,19 +184,19 @@ void main() {
 /// Means that the union of D|E should be exhaustive over B, D, and E and not
 /// exhaustive over the other types in [allTypes].
 Function(List<StaticType>, String) _makeTestFunction(
-    List<StaticType> allTypes) {
+    ObjectPropertyLookup fieldLookup, List<StaticType> allTypes) {
   assert(allTypes.length <= 6, 'Only supports up to six types.');
   var letters = 'ABCDEF';
 
   return (types, covered) {
-    var spaces = types.map((type) => Space(type)).toList();
+    var spaces = types.map((type) => Space(const Path.root(), type)).toList();
 
     for (var i = 0; i < allTypes.length; i++) {
-      var value = Space(allTypes[i]);
+      var value = Space(const Path.root(), allTypes[i]);
       if (covered.contains(letters[i])) {
-        expectExhaustive(value, spaces);
+        expectExhaustive(fieldLookup, value, spaces);
       } else {
-        expectNotExhaustive(value, spaces);
+        expectNotExhaustive(fieldLookup, value, spaces);
       }
     }
   };

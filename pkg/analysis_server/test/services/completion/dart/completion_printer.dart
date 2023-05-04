@@ -25,6 +25,32 @@ class CompletionResponsePrinter {
     _writeSuggestions();
   }
 
+  /// Compares suggestions according to the configuration sorting.
+  int _compareSuggestions(CompletionSuggestion a, CompletionSuggestion b) {
+    int completionThenKind() {
+      final completionDiff = a.completion.compareTo(b.completion);
+      if (completionDiff != 0) {
+        return completionDiff;
+      } else {
+        return a.kind.name.compareTo(b.kind.name);
+      }
+    }
+
+    switch (configuration.sorting) {
+      case Sorting.asIs:
+        return 0;
+      case Sorting.completionThenKind:
+        return completionThenKind();
+      case Sorting.relevanceThenCompletionThenKind:
+        final relevanceDiff = a.relevance - b.relevance;
+        if (relevanceDiff != 0) {
+          return -relevanceDiff;
+        } else {
+          return completionThenKind();
+        }
+    }
+  }
+
   String _escapeMultiLine(String text) {
     return text.replaceAll('\n', r'\n');
   }
@@ -66,12 +92,18 @@ class CompletionResponsePrinter {
         return 'enum';
       } else if (elementKind == ElementKind.ENUM_CONSTANT) {
         return 'enumConstant';
+      } else if (elementKind == ElementKind.EXTENSION) {
+        return 'extension';
       } else if (elementKind == ElementKind.FIELD) {
         return 'field';
       } else if (elementKind == ElementKind.GETTER) {
         return 'getter';
       } else if (elementKind == ElementKind.LIBRARY) {
         return 'library';
+      } else if (elementKind == ElementKind.LOCAL_VARIABLE) {
+        return 'localVariable';
+      } else if (elementKind == ElementKind.MIXIN) {
+        return 'mixin';
       } else if (elementKind == ElementKind.PARAMETER) {
         return 'parameter';
       } else if (elementKind == ElementKind.SETTER) {
@@ -249,21 +281,7 @@ class CompletionResponsePrinter {
 
   void _writeSuggestions() {
     final filtered = response.suggestions.where(configuration.filter);
-    final sorted = filtered.sorted((a, b) {
-      switch (configuration.sorting) {
-        case Sorting.asIs:
-          return 0;
-        case Sorting.completion:
-          return a.completion.compareTo(b.completion);
-        case Sorting.relevanceThenCompletion:
-          final relevanceDiff = a.relevance - b.relevance;
-          if (relevanceDiff != 0) {
-            return -relevanceDiff;
-          } else {
-            return a.completion.compareTo(b.completion);
-          }
-      }
-    });
+    final sorted = filtered.sorted(_compareSuggestions);
 
     _writelnWithIndent('suggestions');
 
@@ -292,7 +310,7 @@ class Configuration {
   bool Function(CompletionSuggestion suggestion) filter;
 
   Configuration({
-    this.sorting = Sorting.relevanceThenCompletion,
+    this.sorting = Sorting.completionThenKind,
     this.withDisplayText = false,
     this.withDocumentation = false,
     this.withElement = false,
@@ -309,6 +327,6 @@ class Configuration {
 
 enum Sorting {
   asIs,
-  completion,
-  relevanceThenCompletion,
+  completionThenKind,
+  relevanceThenCompletionThenKind,
 }

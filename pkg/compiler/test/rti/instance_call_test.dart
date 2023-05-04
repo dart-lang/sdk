@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -51,11 +49,11 @@ call1(c) => c.method1<int>(0);
 
 // A call to A.method1.
 @pragma('dart2js:noInline')
-call1a() => new A().method1<int>(0);
+call1a() => A().method1<int>(0);
 
 // A call to B.method1.
 @pragma('dart2js:noInline')
-call1b() => new B().method1<int>(0);
+call1b() => B().method1<int>(0);
 
 // A call to either A.method2 or B.method2.
 @pragma('dart2js:noInline')
@@ -63,11 +61,11 @@ call2(c) => c.method2<int>(0);
 
 // A call to A.method2.
 @pragma('dart2js:noInline')
-call2a() => new A().method2<int>(0);
+call2a() => A().method2<int>(0);
 
 // A call to B.method2.
 @pragma('dart2js:noInline')
-call2b() => new B().method2<int>(0);
+call2b() => B().method2<int>(0);
 
 // A call to either A.method3 or B.method3.
 @pragma('dart2js:noInline')
@@ -75,11 +73,11 @@ call3(c) => c.method3<int>(0);
 
 // A call to A.method3.
 @pragma('dart2js:noInline')
-call3a() => new A().method3<int>(0);
+call3a() => A().method3<int>(0);
 
 // A call to B.method3.
 @pragma('dart2js:noInline')
-call3b() => new B().method3<int>(0);
+call3b() => B().method3<int>(0);
 
 main() {
   call1(new A());
@@ -105,28 +103,28 @@ main() {
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-    ProgramLookup programLookup = new ProgramLookup(backendStrategy);
+    ProgramLookup programLookup = ProgramLookup(backendStrategy);
 
     js.Name getName(String name, int typeArguments) {
       return backendStrategy.namerForTesting.invocationName(new Selector.call(
-          new PublicName(name),
-          new CallStructure(1, const <String>[], typeArguments)));
+          PublicName(name), CallStructure(1, const <String>[], typeArguments)));
     }
 
     void checkParameters(String name,
-        {int expectedParameterCount, bool needsTypeArguments}) {
-      FunctionEntity function = lookupMember(elementEnvironment, name);
+        {required int expectedParameterCount,
+        required bool needsTypeArguments}) {
+      final function = lookupMember(elementEnvironment, name) as FunctionEntity;
 
       Expect.equals(
           needsTypeArguments,
           rtiNeed.methodNeedsTypeArguments(function),
           "Unexpected type argument need for $function.");
-      Method method = programLookup.getMethod(function);
+      Method method = programLookup.getMethod(function)!;
 
-      js.Fun fun = method.code;
+      final fun = method.code as js.Fun;
       Expect.equals(expectedParameterCount, fun.params.length,
           "Unexpected parameter count on $function: ${js.nodeToString(fun)}");
     }
@@ -146,16 +144,16 @@ main() {
         expectedParameterCount: 1, needsTypeArguments: false);
 
     checkArguments(String name, String targetName,
-        {int expectedTypeArguments}) {
-      FunctionEntity function = lookupMember(elementEnvironment, name);
-      Method method = programLookup.getMethod(function);
+        {required int expectedTypeArguments}) {
+      final function = lookupMember(elementEnvironment, name) as FunctionEntity;
+      Method method = programLookup.getMethod(function)!;
 
-      js.Fun fun = method.code;
+      final fun = method.code as js.Fun;
 
       js.Name selector = getName(targetName, expectedTypeArguments);
       bool callFound = false;
       forEachNode(fun, onCall: (js.Call node) {
-        js.Expression target = js.undefer(node.target);
+        js.Node target = js.undefer(node.target);
         if (target is js.PropertyAccess) {
           js.Node targetSelector = js.undefer(target.selector);
           if (targetSelector is js.Name && targetSelector.key == selector.key) {

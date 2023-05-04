@@ -85,8 +85,8 @@ class OptimizedByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0x7F - i;
     }
-    Expect
-        .listEquals([127, 126, 125, 124, 123, 122, 121, 120, 119, 118], array);
+    Expect.listEquals(
+        [127, 126, 125, 124, 123, 122, 121, 120, 119, 118], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = -0x80 + i;
     }
@@ -922,8 +922,8 @@ class OptimizedByteArrayTest {
     Expect.equals(10, array.length);
     Expect.equals(4, array.elementSizeInBytes);
     Expect.equals(40, array.lengthInBytes);
-    Expect
-        .listEquals([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], array);
+    Expect.listEquals(
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], array);
     Expect.throws(() {
       array[-1] = 0.0;
     }, (e) {
@@ -977,8 +977,8 @@ class OptimizedByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1.0 + i;
     }
-    Expect
-        .listEquals([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], array);
+    Expect.listEquals(
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], array);
     // TODO: min, max, and round
     for (int i = 0; i < array.length; ++i) {
       array[i] = i * 1.0;
@@ -1024,8 +1024,8 @@ class OptimizedByteArrayTest {
     Expect.equals(10, array.length);
     Expect.equals(8, array.elementSizeInBytes);
     Expect.equals(80, array.lengthInBytes);
-    Expect
-        .listEquals([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], array);
+    Expect.listEquals(
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], array);
     Expect.throws(() {
       array[-1] = 0.0;
     }, (e) {
@@ -1079,8 +1079,8 @@ class OptimizedByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1.0 + i;
     }
-    Expect
-        .listEquals([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], array);
+    Expect.listEquals(
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], array);
     // TODO: min, max
     for (int i = 0; i < array.length; ++i) {
       array[i] = i * 1.0;
@@ -4005,8 +4005,8 @@ class OptimizedByteArrayTest {
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1.0 + i;
     }
-    Expect
-        .listEquals([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], view);
+    Expect.listEquals(
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], view);
     Expect.listEquals([
       0xBF800000,
       0x3F800000,
@@ -4170,8 +4170,8 @@ class OptimizedByteArrayTest {
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1.0 + i;
     }
-    Expect
-        .listEquals([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], view);
+    Expect.listEquals(
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], view);
     Expect.listEquals([
       0xBFF0000000000000,
       0x3FF0000000000000,

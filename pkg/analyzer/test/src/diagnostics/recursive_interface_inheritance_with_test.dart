@@ -17,9 +17,9 @@ main() {
 class RecursiveInterfaceInheritanceWithTest extends PubPackageResolutionTest {
   test_classTypeAlias() async {
     await assertErrorsInCode(r'''
-class M = Object with M;
+mixin class M = Object with M;
 ''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH, 6, 1),
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH, 12, 1),
     ]);
   }
 }

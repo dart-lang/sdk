@@ -64,6 +64,7 @@ const Set<String> _interchangeableClasses = const {
   'Constant',
   'DartType',
   'Initializer',
+  'Pattern',
 };
 
 /// Names of subclasses of [NamedNode] that do _not_ have `visitXReference` or
@@ -95,7 +96,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     '_classes': FieldRule(name: 'classes'),
     '_typedefs': FieldRule(name: 'typedefs'),
     '_extensions': FieldRule(name: 'extensions'),
-    '_views': FieldRule(name: 'views'),
+    '_inlineClasses': FieldRule(name: 'inlineClasses'),
     '_fields': FieldRule(name: 'fields'),
     '_procedures': FieldRule(name: 'procedures'),
   },
@@ -116,7 +117,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'Extension': {
     'typeParameters': FieldRule(isDeclaration: true),
   },
-  'View': {
+  'InlineClass': {
     'typeParameters': FieldRule(isDeclaration: true),
   },
   'Field': {
@@ -186,8 +187,30 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'ExtensionType': {
     '_onType': FieldRule(name: 'onType'),
   },
-  'ViewType': {
-    '_representationType': FieldRule(name: 'representationType'),
+  'InlineType': {
+    '_instantiatedRepresentationType':
+        FieldRule(name: 'instantiatedRepresentationType'),
+  },
+  'VariableDeclaration': {
+    '_name': FieldRule(name: 'name'),
+  },
+  'AssignedVariablePattern': {
+    'variable': FieldRule(isDeclaration: false),
+  },
+  'InvalidPattern': {
+    'declaredVariables': FieldRule(isDeclaration: true),
+  },
+  'OrPattern': {
+    'orPatternJointVariables': FieldRule(isDeclaration: false),
+  },
+  'VariablePattern': {
+    'variable': FieldRule(isDeclaration: true),
+  },
+  'PatternSwitchCase': {
+    'jointVariables': FieldRule(isDeclaration: true),
+  },
+  'PatternSwitchStatement': {
+    'cases': FieldRule(isDeclaration: true),
   },
 };
 

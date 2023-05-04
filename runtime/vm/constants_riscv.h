@@ -190,6 +190,20 @@ struct InstantiationABI {
   static constexpr Register kScratchReg = T4;
 };
 
+// Registers in addition to those listed in InstantiationABI used inside the
+// implementation of the InstantiateTypeArguments stubs.
+struct InstantiateTAVInternalRegs {
+  // The set of registers that must be pushed/popped when probing a hash-based
+  // cache due to overlap with the registers in InstantiationABI.
+  static const intptr_t kSavedRegisters = 0;
+
+  // Additional registers used to probe hash-based caches.
+  static const Register kEntryStartReg = S3;
+  static const Register kProbeMaskReg = S4;
+  static const Register kProbeDistanceReg = S5;
+  static const Register kCurrentEntryIndexReg = S6;
+};
+
 // Registers in addition to those listed in TypeTestABI used inside the
 // implementation of type testing stubs that are _not_ preserved.
 struct TTSInternalRegs {
@@ -361,17 +375,16 @@ struct AllocateArrayABI {
 // ABI for AllocateRecordStub.
 struct AllocateRecordABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kNumFieldsReg = T2;
-  static const Register kFieldNamesReg = T1;
-  static const Register kTemp1Reg = T3;
-  static const Register kTemp2Reg = T4;
+  static const Register kShapeReg = T1;
+  static const Register kTemp1Reg = T2;
+  static const Register kTemp2Reg = T3;
 };
 
 // ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
 // AllocateRecord3, AllocateRecord3Named).
 struct AllocateSmallRecordABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kFieldNamesReg = T2;
+  static const Register kShapeReg = T2;
   static const Register kValue0Reg = T3;
   static const Register kValue1Reg = T4;
   static const Register kValue2Reg = A1;
@@ -398,10 +411,11 @@ struct DoubleToIntegerStubABI {
   static constexpr Register kResultReg = A0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub,
+// ABI for SuspendStub (AwaitStub, AwaitWithTypeCheckStub, YieldAsyncStarStub,
 // SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = A0;
+  static const Register kTypeArgsReg = T0;  // Can be the same as kTempReg
   static const Register kTempReg = T0;
   static const Register kFrameSizeReg = T1;
   static const Register kSuspendStateReg = T2;
@@ -479,29 +493,20 @@ constexpr RegList kAbiPreservedCpuRegs = R(S1) | R(S2) | R(S3) | R(S4) | R(S5) |
                                          R(S10) | R(S11);
 constexpr int kAbiPreservedCpuRegCount = 11;
 
-#if defined(DART_TARGET_OS_FUCHSIA)
-// We rely on X18 not being touched by Dart generated assembly or stubs at all.
-// We rely on that any calls into C++ also preserve X18.
+// S2 is reserved as the shadow call stack pointer on Fuchsia and Android.
+// Although it is available on Linux, we mark it as reserved unconditionally to
+// avoid adding another dimenision for OS into the extracted runtime offsets.
 constexpr RegList kReservedCpuRegisters =
     R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
     R(RA) | R(WRITE_BARRIER_STATE) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
-    R(FAR_TMP) | R(18);
-#else
-constexpr RegList kReservedCpuRegisters =
-    R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
-    R(RA) | R(WRITE_BARRIER_STATE) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
-    R(FAR_TMP);
-#endif
+    R(FAR_TMP) | R(S2);
 constexpr intptr_t kNumberOfReservedCpuRegisters =
     Utils::CountOneBits32(kReservedCpuRegisters);
 // CPU registers available to Dart allocator.
 constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
-#if defined(DART_TARGET_OS_FUCHSIA)
-constexpr int kNumberOfDartAvailableCpuRegs = 17;
-#else
-constexpr int kNumberOfDartAvailableCpuRegs = 18;
-#endif
+constexpr int kNumberOfDartAvailableCpuRegs =
+    kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
 // Registers X8-15 (S0-1,A0-5) have more compressed instructions available.
 constexpr int kRegisterAllocationBias = 8;
 // Registers available to Dart that are not preserved by runtime calls.
@@ -542,6 +547,8 @@ class CallingConventions {
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
       kAlignedToWordSize;
+  static constexpr AlignmentStrategy kArgumentRegisterAlignmentVarArgs =
+      kAlignedToWordSizeAndValueSize;
 
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =
@@ -1553,7 +1560,7 @@ static constexpr ExtensionSet RV_G = RV_I | RV_M | RV_A | RV_F | RV_D;
 static constexpr ExtensionSet RV_GC = RV_G | RV_C;
 static constexpr Extension RV_Zba(6);  // Address generation
 static constexpr Extension RV_Zbb(7);  // Basic bit-manipulation
-static constexpr Extension RV_Zbc(8);  // Carry-less multiplicatio
+static constexpr Extension RV_Zbc(8);  // Carry-less multiplication
 static constexpr Extension RV_Zbs(9);  // Single-bit instructions
 static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbc | RV_Zbs;
 static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
 // Test that parameters keep their names in the output.
 
 import "package:expect/expect.dart";
@@ -15,9 +14,9 @@ class B { bar() => 499; }
 class C { gee() => 499; }
 
 void main() {
-  new C().gee();
-  new B().bar();
-  new A().foo();
+  C().gee();
+  B().bar();
+  A().foo();
 }
 """;
 
@@ -27,16 +26,16 @@ class B extends C { bar() => 499; }
 class C { gee() => 499; }
 
 void main() {
-  new C().gee();
-  new B().bar();
-  new A().foo();
+  C().gee();
+  B().bar();
+  A().foo();
 }
 """;
 
 main() {
   // Make sure that class A, B and C are emitted in that order. For simplicity
   // we just verify that their members are in the correct order.
-  RegExp regexp = new RegExp(r"foo\$0?\((.|\n)*bar\$0\((.|\n)*gee\$0\(");
+  RegExp regexp = RegExp(r"foo\$0?\((.|\n)*bar\$0\((.|\n)*gee\$0\(");
 
   runTests() async {
     String generated1 = await compileAll(TEST_ONE);

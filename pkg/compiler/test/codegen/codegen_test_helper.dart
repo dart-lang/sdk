@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
@@ -26,7 +24,7 @@ main(List<String> args) {
   runTests2(args);
 }
 
-runTests(List<String> args, [int shardIndex]) {
+runTests(List<String> args, [int? shardIndex]) {
   runTestsCommon(args,
       shardIndex: shardIndex,
       shards: 2,
@@ -35,7 +33,7 @@ runTests(List<String> args, [int shardIndex]) {
       options: [Flags.soundNullSafety]);
 }
 
-runTests2(List<String> args, [int shardIndex]) {
+runTests2(List<String> args, [int? shardIndex]) {
   runTestsCommon(args,
       shardIndex: shardIndex,
       shards: 2,
@@ -45,11 +43,11 @@ runTests2(List<String> args, [int shardIndex]) {
 }
 
 runTestsCommon(List<String> args,
-    {int shardIndex,
-    int shards,
-    String directory,
-    List<String> options,
-    List<String> skip}) {
+    {int? shardIndex,
+    required int shards,
+    required String directory,
+    required List<String> options,
+    required List<String> skip}) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve(directory));
     await checkTests(dataDir, const CodegenDataComputer(),
@@ -73,7 +71,7 @@ class CodegenDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     CodegenIrComputer(compiler.reporter, actualMap, elementMap, member,
@@ -100,7 +98,7 @@ class CodegenIrComputer extends IrDataExtractor<String> {
       this._closureDataLookup)
       : super(reporter, actualMap);
 
-  String getMemberValue(MemberEntity member) {
+  String? getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
       return _backendStrategy.getGeneratedCodeForTesting(member);
     }
@@ -108,15 +106,16 @@ class CodegenIrComputer extends IrDataExtractor<String> {
   }
 
   @override
-  String computeMemberValue(Id id, ir.Member node) {
+  String? computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod);
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      return getMemberValue(info.callMethod!);
     }
     return null;
   }
@@ -137,7 +136,7 @@ class CodeDataInterpreter implements DataInterpreter<String> {
   static final RegExp _re = RegExp(r'[\n\r]\s*');
 
   @override
-  String isAsExpected(String actualData, String expectedData) {
+  String? isAsExpected(String? actualData, String? expectedData) {
     actualData ??= '';
     expectedData ??= '';
     if (expectedData == 'ignore') return null;
@@ -153,7 +152,7 @@ class CodeDataInterpreter implements DataInterpreter<String> {
   }
 
   @override
-  String getText(String actualData, [String indentation]) {
+  String getText(String actualData, [String? indentation]) {
     return actualData;
   }
 }

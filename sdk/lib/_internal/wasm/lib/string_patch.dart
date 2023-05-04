@@ -13,11 +13,11 @@ const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
 const int _maxUnicode = 0x10ffff;
 
-@pragma("wasm:import", "dart2wasm.toUpperCase")
-external String _toUpperCase(String string);
+String _toUpperCase(String string) => JS<String>(
+    "s => stringToDartString(stringFromDartString(s).toUpperCase())", string);
 
-@pragma("wasm:import", "dart2wasm.toLowerCase")
-external String _toLowerCase(String string);
+String _toLowerCase(String string) => JS<String>(
+    "s => stringToDartString(stringFromDartString(s).toLowerCase())", string);
 
 @patch
 class String {
@@ -60,7 +60,7 @@ class String {
  * [_StringBase] contains common methods used by concrete String
  * implementations, e.g., _OneByteString.
  */
-abstract class _StringBase implements String {
+abstract final class _StringBase implements String {
   bool _isWhitespace(int codeUnit);
 
   // Constants used by replaceAll encoding of string slices between matches.
@@ -1028,7 +1028,7 @@ abstract class _StringBase implements String {
 }
 
 @pragma("wasm:entry-point")
-class _OneByteString extends _StringBase {
+final class _OneByteString extends _StringBase {
   @pragma("wasm:entry-point")
   WasmIntArray<WasmI8> _array;
 
@@ -1050,7 +1050,7 @@ class _OneByteString extends _StringBase {
 
   @override
   int codeUnitAt(int index) {
-    RangeError.checkValueInInterval(index, 0, length);
+    RangeError.checkValueInInterval(index, 0, length - 1);
     return _array.readUnsigned(index);
   }
 
@@ -1364,7 +1364,7 @@ class _OneByteString extends _StringBase {
 }
 
 @pragma("wasm:entry-point")
-class _TwoByteString extends _StringBase {
+final class _TwoByteString extends _StringBase {
   @pragma("wasm:entry-point")
   WasmIntArray<WasmI16> _array;
 
@@ -1415,7 +1415,7 @@ class _TwoByteString extends _StringBase {
 
   @override
   int codeUnitAt(int index) {
-    RangeError.checkValueInInterval(index, 0, length);
+    RangeError.checkValueInInterval(index, 0, length - 1);
     return _array.readUnsigned(index);
   }
 

@@ -35,6 +35,7 @@ class DillClassBuilder extends ClassBuilderImpl {
             null,
             null,
             new Scope(
+                kind: ScopeKind.declaration,
                 local: <String, MemberBuilder>{},
                 setters: <String, MemberBuilder>{},
                 parent: parent.scope,
@@ -58,10 +59,22 @@ class DillClassBuilder extends ClassBuilderImpl {
   bool get isMacro => cls.isMacro;
 
   @override
+  bool get isMixinClass => cls.isMixinClass;
+
+  @override
   bool get isMixinDeclaration => cls.isMixinDeclaration;
 
   @override
   bool get isSealed => cls.isSealed;
+
+  @override
+  bool get isBase => cls.isBase;
+
+  @override
+  bool get isInterface => cls.isInterface;
+
+  @override
+  bool get isFinal => cls.isFinal;
 
   @override
   bool get isAugmentation => false;
@@ -191,19 +204,24 @@ class DillClassBuilder extends ClassBuilderImpl {
   }
 
   @override
-  Iterator<MemberBuilder> get fullConstructorIterator =>
-      constructorScope.unfilteredIterator;
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
+      constructorScope.filteredIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
 
   @override
-  NameIterator<MemberBuilder> get fullConstructorNameIterator =>
-      constructorScope.unfilteredNameIterator;
+  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
+      constructorScope.filteredNameIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
 
   @override
-  Iterator<Builder> get fullMemberIterator => scope.unfilteredIterator;
+  Iterator<T> fullMemberIterator<T extends Builder>() =>
+      scope.filteredIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
 
   @override
-  NameIterator<Builder> get fullMemberNameIterator =>
-      scope.unfilteredNameIterator;
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
+      scope.filteredNameIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
 
   void clearCachedValues() {
     supertypeBuilder = null;

@@ -67,12 +67,6 @@ public class AnalysisOptions {
   private final Boolean enableNullAwareOperators;
 
   /**
-   * True if the client wants to enable support for the proposed "less restricted mixins" proposal
-   * (DEP 34).
-   */
-  private final Boolean enableSuperMixins;
-
-  /**
    * True if hints that are specific to dart2js should be generated. This option is ignored if
    * generateHints is false.
    */
@@ -91,12 +85,11 @@ public class AnalysisOptions {
   /**
    * Constructor for {@link AnalysisOptions}.
    */
-  public AnalysisOptions(Boolean enableAsync, Boolean enableDeferredLoading, Boolean enableEnums, Boolean enableNullAwareOperators, Boolean enableSuperMixins, Boolean generateDart2jsHints, Boolean generateHints, Boolean generateLints) {
+  public AnalysisOptions(Boolean enableAsync, Boolean enableDeferredLoading, Boolean enableEnums, Boolean enableNullAwareOperators, Boolean generateDart2jsHints, Boolean generateHints, Boolean generateLints) {
     this.enableAsync = enableAsync;
     this.enableDeferredLoading = enableDeferredLoading;
     this.enableEnums = enableEnums;
     this.enableNullAwareOperators = enableNullAwareOperators;
-    this.enableSuperMixins = enableSuperMixins;
     this.generateDart2jsHints = generateDart2jsHints;
     this.generateHints = generateHints;
     this.generateLints = generateLints;
@@ -111,7 +104,6 @@ public class AnalysisOptions {
         ObjectUtilities.equals(other.enableDeferredLoading, enableDeferredLoading) &&
         ObjectUtilities.equals(other.enableEnums, enableEnums) &&
         ObjectUtilities.equals(other.enableNullAwareOperators, enableNullAwareOperators) &&
-        ObjectUtilities.equals(other.enableSuperMixins, enableSuperMixins) &&
         ObjectUtilities.equals(other.generateDart2jsHints, generateDart2jsHints) &&
         ObjectUtilities.equals(other.generateHints, generateHints) &&
         ObjectUtilities.equals(other.generateLints, generateLints);
@@ -124,11 +116,10 @@ public class AnalysisOptions {
     Boolean enableDeferredLoading = jsonObject.get("enableDeferredLoading") == null ? null : jsonObject.get("enableDeferredLoading").getAsBoolean();
     Boolean enableEnums = jsonObject.get("enableEnums") == null ? null : jsonObject.get("enableEnums").getAsBoolean();
     Boolean enableNullAwareOperators = jsonObject.get("enableNullAwareOperators") == null ? null : jsonObject.get("enableNullAwareOperators").getAsBoolean();
-    Boolean enableSuperMixins = jsonObject.get("enableSuperMixins") == null ? null : jsonObject.get("enableSuperMixins").getAsBoolean();
     Boolean generateDart2jsHints = jsonObject.get("generateDart2jsHints") == null ? null : jsonObject.get("generateDart2jsHints").getAsBoolean();
     Boolean generateHints = jsonObject.get("generateHints") == null ? null : jsonObject.get("generateHints").getAsBoolean();
     Boolean generateLints = jsonObject.get("generateLints") == null ? null : jsonObject.get("generateLints").getAsBoolean();
-    return new AnalysisOptions(enableAsync, enableDeferredLoading, enableEnums, enableNullAwareOperators, enableSuperMixins, generateDart2jsHints, generateHints, generateLints);
+    return new AnalysisOptions(enableAsync, enableDeferredLoading, enableEnums, enableNullAwareOperators, generateDart2jsHints, generateHints, generateLints);
   }
 
   public static List<AnalysisOptions> fromJsonArray(JsonArray jsonArray) {
@@ -180,14 +171,6 @@ public class AnalysisOptions {
   }
 
   /**
-   * True if the client wants to enable support for the proposed "less restricted mixins" proposal
-   * (DEP 34).
-   */
-  public Boolean getEnableSuperMixins() {
-    return enableSuperMixins;
-  }
-
-  /**
    * True if hints that are specific to dart2js should be generated. This option is ignored if
    * generateHints is false.
    */
@@ -216,7 +199,6 @@ public class AnalysisOptions {
     builder.append(enableDeferredLoading);
     builder.append(enableEnums);
     builder.append(enableNullAwareOperators);
-    builder.append(enableSuperMixins);
     builder.append(generateDart2jsHints);
     builder.append(generateHints);
     builder.append(generateLints);
@@ -236,9 +218,6 @@ public class AnalysisOptions {
     }
     if (enableNullAwareOperators != null) {
       jsonObject.addProperty("enableNullAwareOperators", enableNullAwareOperators);
-    }
-    if (enableSuperMixins != null) {
-      jsonObject.addProperty("enableSuperMixins", enableSuperMixins);
     }
     if (generateDart2jsHints != null) {
       jsonObject.addProperty("generateDart2jsHints", generateDart2jsHints);
@@ -264,8 +243,6 @@ public class AnalysisOptions {
     builder.append(enableEnums + ", ");
     builder.append("enableNullAwareOperators=");
     builder.append(enableNullAwareOperators + ", ");
-    builder.append("enableSuperMixins=");
-    builder.append(enableSuperMixins + ", ");
     builder.append("generateDart2jsHints=");
     builder.append(generateDart2jsHints + ", ");
     builder.append("generateHints=");

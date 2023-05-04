@@ -149,7 +149,7 @@ class DeserializationCluster : public ZoneAllocated {
                         const Array& refs,
                         bool primary) {
     if (!primary && is_canonical()) {
-      FATAL1("%s needs canonicalization but doesn't define PostLoad", name());
+      FATAL("%s needs canonicalization but doesn't define PostLoad", name());
     }
   }
 
@@ -233,6 +233,7 @@ class Serializer : public ThreadStackResource {
   intptr_t GetCodeIndex(CodePtr code);
 
   void Push(ObjectPtr object, intptr_t cid_override = kIllegalCid);
+  void PushWeak(ObjectPtr object);
 
   void AddUntracedRef() { num_written_objects_++; }
 

@@ -27,8 +27,8 @@ final Map<String, List<String>> additionalRequiredClasses = {
   ],
   'dart:_native_typed_data': [],
   'dart:collection': [
-    'ListMixin',
-    'MapMixin',
+    'ListBase',
+    'MapBase',
     'LinkedHashSet',
     '_HashSet',
     '_IdentityHashSet',
@@ -348,7 +348,7 @@ void main() {
     final symbolsSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
-    javaScriptBundler.compile(
+    await javaScriptBundler.compile(
       ClassHierarchy(testComponent, coreTypes),
       coreTypes,
       packageConfig,

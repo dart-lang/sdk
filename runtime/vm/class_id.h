@@ -36,6 +36,7 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
   V(Namespace)                                                                 \
   V(KernelProgramInfo)                                                         \
   V(WeakSerializationReference)                                                \
+  V(WeakArray)                                                                 \
   V(Code)                                                                      \
   V(Instructions)                                                              \
   V(InstructionsSection)                                                       \
@@ -416,6 +417,16 @@ inline bool IsUnmodifiableTypedDataViewClassId(intptr_t index) {
   return is_byte_data_view || (IsTypedDataBaseClassId(index) &&
                                ((index - kTypedDataInt8ArrayCid) % 4) ==
                                    kTypedDataCidRemainderUnmodifiable);
+}
+
+inline bool ShouldHaveImmutabilityBitSet(intptr_t index) {
+  return IsUnmodifiableTypedDataViewClassId(index) || IsStringClassId(index) ||
+         index == kMintCid || index == kNeverCid || index == kSentinelCid ||
+         index == kStackTraceCid || index == kDoubleCid ||
+         index == kFloat32x4Cid || index == kFloat64x2Cid ||
+         index == kInt32x4Cid || index == kSendPortCid ||
+         index == kCapabilityCid || index == kRegExpCid || index == kBoolCid ||
+         index == kNullCid;
 }
 
 inline bool IsFfiTypeClassId(intptr_t index) {

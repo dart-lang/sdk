@@ -6,7 +6,7 @@ part of "core_patch.dart";
 
 // Base class for record instances.
 @pragma("vm:entry-point")
-class _Record implements Record {
+final class _Record implements Record {
   factory _Record._uninstantiable() {
     throw "Unreachable";
   }
@@ -24,12 +24,11 @@ class _Record implements Record {
     }
 
     _Record otherRec = unsafeCast<_Record>(other);
-    final int numFields = _numFields;
-    if (numFields != otherRec._numFields ||
-        !identical(_fieldNames, otherRec._fieldNames)) {
+    if (_shape != otherRec._shape) {
       return false;
     }
 
+    final int numFields = _numFields;
     for (int i = 0; i < numFields; ++i) {
       if (_fieldAt(i) != otherRec._fieldAt(i)) {
         return false;
@@ -42,9 +41,8 @@ class _Record implements Record {
   // record field accesses.
   @pragma("vm:never-inline")
   int get hashCode {
+    int hash = _shape;
     final int numFields = _numFields;
-    int hash = numFields;
-    hash = SystemHash.combine(hash, identityHashCode(_fieldNames));
     for (int i = 0; i < numFields; ++i) {
       hash = SystemHash.combine(hash, _fieldAt(i).hashCode);
     }
@@ -72,6 +70,10 @@ class _Record implements Record {
     buffer.write(")");
     return buffer.toString();
   }
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external int get _shape;
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")

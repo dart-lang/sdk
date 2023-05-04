@@ -32,7 +32,7 @@ static void TraceStrongModeType(const Instruction* instr,
                                 CompileType* compileType) {
   if (FLAG_trace_strong_mode_types) {
     const AbstractType* type = compileType->ToAbstractType();
-    if ((type != NULL) && !type->IsDynamicType()) {
+    if ((type != nullptr) && !type->IsDynamicType()) {
       TraceStrongModeType(instr, *type);
     }
   }
@@ -49,21 +49,21 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     : FlowGraphVisitor(flow_graph->reverse_postorder()),
       flow_graph_(flow_graph),
       is_aot_(CompilerState::Current().is_aot()),
-      visited_blocks_(new (flow_graph->zone())
+      visited_blocks_(new(flow_graph->zone())
                           BitVector(flow_graph->zone(),
                                     flow_graph->reverse_postorder().length())),
       types_(flow_graph->current_ssa_temp_index()),
-      in_worklist_(NULL),
-      asserts_(NULL),
-      collected_asserts_(NULL) {
+      in_worklist_(nullptr),
+      asserts_(nullptr),
+      collected_asserts_(nullptr) {
   for (intptr_t i = 0; i < flow_graph->current_ssa_temp_index(); i++) {
-    types_.Add(NULL);
+    types_.Add(nullptr);
   }
 
   asserts_ = new ZoneGrowableArray<AssertAssignableInstr*>(
       flow_graph->current_ssa_temp_index());
   for (intptr_t i = 0; i < flow_graph->current_ssa_temp_index(); i++) {
-    asserts_->Add(NULL);
+    asserts_->Add(nullptr);
   }
 
   collected_asserts_ = new ZoneGrowableArray<intptr_t>(10);
@@ -104,7 +104,7 @@ void FlowGraphTypePropagator::Propagate() {
         Instruction* instr = it.Current()->instruction();
 
         Definition* use_defn = instr->AsDefinition();
-        if (use_defn != NULL) {
+        if (use_defn != nullptr) {
           AddToWorklist(use_defn);
         }
       }
@@ -143,7 +143,7 @@ void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
   }
 
   GotoInstr* goto_instr = block->last_instruction()->AsGoto();
-  if (goto_instr != NULL) {
+  if (goto_instr != nullptr) {
     JoinEntryInstr* join = goto_instr->successor();
     intptr_t pred_index = join->IndexOfPredecessor(block);
     ASSERT(pred_index >= 0);
@@ -170,9 +170,9 @@ CompileType* FlowGraphTypePropagator::TypeOf(Definition* def) {
   const intptr_t index = def->ssa_temp_index();
 
   CompileType* type = types_[index];
-  if (type == NULL) {
+  if (type == nullptr) {
     type = types_[index] = def->Type();
-    ASSERT(type != NULL);
+    ASSERT(type != nullptr);
   }
   return type;
 }
@@ -271,7 +271,7 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
 void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
   LoadClassIdInstr* load_cid =
       check->value()->definition()->OriginalDefinition()->AsLoadClassId();
-  if (load_cid != NULL && check->cids().IsSingleCid()) {
+  if (load_cid != nullptr && check->cids().IsSingleCid()) {
     SetCid(load_cid->object()->definition(), check->cids().cid_start);
   }
 }
@@ -385,7 +385,7 @@ void FlowGraphTypePropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
 
 void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
   StrictCompareInstr* comparison = instr->comparison()->AsStrictCompare();
-  if (comparison == NULL) return;
+  if (comparison == nullptr) return;
   bool negated = comparison->kind() == Token::kNE_STRICT;
   LoadClassIdInstr* load_cid =
       comparison->InputAt(0)->definition()->AsLoadClassId();
@@ -394,15 +394,15 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
   InstanceOfInstr* instance_of =
       comparison->InputAt(0)->definition()->AsInstanceOf();
   bool is_simple_instance_of =
-      (call != NULL) && call->MatchesCoreName(Symbols::_simpleInstanceOf());
-  if (load_cid != NULL && comparison->InputAt(1)->BindsToConstant()) {
+      (call != nullptr) && call->MatchesCoreName(Symbols::_simpleInstanceOf());
+  if (load_cid != nullptr && comparison->InputAt(1)->BindsToConstant()) {
     intptr_t cid = Smi::Cast(comparison->InputAt(1)->BoundConstant()).Value();
     BlockEntryInstr* true_successor =
         negated ? instr->false_successor() : instr->true_successor();
     EnsureMoreAccurateRedefinition(true_successor,
                                    load_cid->object()->definition(),
                                    CompileType::FromCid(cid));
-  } else if ((is_simple_instance_of || (instance_of != NULL)) &&
+  } else if ((is_simple_instance_of || (instance_of != nullptr)) &&
              comparison->InputAt(1)->BindsToConstant() &&
              comparison->InputAt(1)->BoundConstant().IsBool()) {
     if (comparison->InputAt(1)->BoundConstant().ptr() == Bool::False().ptr()) {
@@ -410,8 +410,8 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
     }
     BlockEntryInstr* true_successor =
         negated ? instr->false_successor() : instr->true_successor();
-    const AbstractType* type = NULL;
-    Definition* left = NULL;
+    const AbstractType* type = nullptr;
+    Definition* left = nullptr;
     if (is_simple_instance_of) {
       ASSERT(call->ArgumentAt(1)->IsConstant());
       const Object& type_obj = call->ArgumentAt(1)->AsConstant()->value();
@@ -507,9 +507,9 @@ void FlowGraphTypePropagator::StrengthenAsserts(BlockEntryInstr* block) {
 
     // If this is the first type assertion checking given value record it.
     AssertAssignableInstr* assert = instr->AsAssertAssignable();
-    if (assert != NULL) {
+    if (assert != nullptr) {
       Definition* defn = assert->value()->definition()->OriginalDefinition();
-      if ((*asserts_)[defn->ssa_temp_index()] == NULL) {
+      if ((*asserts_)[defn->ssa_temp_index()] == nullptr) {
         (*asserts_)[defn->ssa_temp_index()] = assert;
         collected_asserts_->Add(defn->ssa_temp_index());
       }
@@ -517,7 +517,7 @@ void FlowGraphTypePropagator::StrengthenAsserts(BlockEntryInstr* block) {
   }
 
   for (intptr_t i = 0; i < collected_asserts_->length(); i++) {
-    (*asserts_)[(*collected_asserts_)[i]] = NULL;
+    (*asserts_)[(*collected_asserts_)[i]] = nullptr;
   }
 
   collected_asserts_->TruncateTo(0);
@@ -532,26 +532,22 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   Definition* defn = check->InputAt(0)->definition()->OriginalDefinition();
 
   AssertAssignableInstr* assert = (*asserts_)[defn->ssa_temp_index()];
-  if ((assert == NULL) || (assert == kStrengthenedAssertMarker)) {
+  if ((assert == nullptr) || (assert == kStrengthenedAssertMarker)) {
     return;
   }
-  ASSERT(assert->env() != NULL);
+  ASSERT(assert->env() != nullptr);
 
-  Instruction* check_clone = NULL;
+  Instruction* check_clone = nullptr;
   if (check->IsCheckSmi()) {
     check_clone = new CheckSmiInstr(assert->value()->Copy(zone()),
                                     assert->deopt_id(), check->source());
-    check_clone->AsCheckSmi()->set_licm_hoisted(
-        check->AsCheckSmi()->licm_hoisted());
   } else {
     ASSERT(check->IsCheckClass());
     check_clone =
         new CheckClassInstr(assert->value()->Copy(zone()), assert->deopt_id(),
                             check->AsCheckClass()->cids(), check->source());
-    check_clone->AsCheckClass()->set_licm_hoisted(
-        check->AsCheckClass()->licm_hoisted());
   }
-  ASSERT(check_clone != NULL);
+  ASSERT(check_clone != nullptr);
   check_clone->InsertBefore(assert);
   assert->env()->DeepCopyTo(zone(), check_clone);
 
@@ -631,25 +627,36 @@ CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
     return old_type;
   }
 
+  CompileType* preferred_type = nullptr;
+
   // Prefer exact Cid if known.
-  if (new_type->ToCid() != kDynamicCid) {
-    return new_type;
-  }
-  if (old_type->ToCid() != kDynamicCid) {
-    return old_type;
+  const intptr_t new_type_cid = new_type->ToCid();
+  const intptr_t old_type_cid = old_type->ToCid();
+  if (new_type_cid != old_type_cid) {
+    if (new_type_cid != kDynamicCid) {
+      preferred_type = new_type;
+    } else if (old_type_cid != kDynamicCid) {
+      preferred_type = old_type;
+    }
   }
 
-  const AbstractType* old_abstract_type = old_type->ToAbstractType();
-  const AbstractType* new_abstract_type = new_type->ToAbstractType();
+  if (preferred_type == nullptr) {
+    const AbstractType* old_abstract_type = old_type->ToAbstractType();
+    const AbstractType* new_abstract_type = new_type->ToAbstractType();
 
-  CompileType* preferred_type;
-  if (old_abstract_type->IsSubtypeOf(*new_abstract_type, Heap::kOld)) {
-    // Prefer old type, as it is clearly more specific.
-    preferred_type = old_type;
-  } else {
-    // Prefer new type as it is more recent, even though it might be
-    // no better than the old type.
-    preferred_type = new_type;
+    // Prefer 'int' if known.
+    if (old_type->IsNullableInt()) {
+      preferred_type = old_type;
+    } else if (new_type->IsNullableInt()) {
+      preferred_type = new_type;
+    } else if (old_abstract_type->IsSubtypeOf(*new_abstract_type, Heap::kOld)) {
+      // Prefer old type, as it is clearly more specific.
+      preferred_type = old_type;
+    } else {
+      // Prefer new type as it is more recent, even though it might be
+      // no better than the old type.
+      preferred_type = new_type;
+    }
   }
 
   // Refine non-nullability and whether it can be sentinel.
@@ -745,11 +752,11 @@ intptr_t CompileType::ToCid() {
   if (cid_ == kIllegalCid) {
     // Make sure to initialize cid_ for Null type to consistently return
     // kNullCid.
-    if ((type_ != NULL) && type_->IsNullType()) {
+    if ((type_ != nullptr) && type_->IsNullType()) {
       cid_ = kNullCid;
     }
     // Same for sentinel.
-    if ((type_ != NULL) && type_->IsSentinelType()) {
+    if ((type_ != nullptr) && type_->IsSentinelType()) {
       cid_ = kSentinelCid;
     }
   }
@@ -764,7 +771,7 @@ intptr_t CompileType::ToCid() {
 
 intptr_t CompileType::ToNullableCid() {
   if (cid_ == kIllegalCid) {
-    if (type_ == NULL) {
+    if (type_ == nullptr) {
       // Type propagation is turned off or has not yet run.
       return kDynamicCid;
     } else if (type_->IsVoidType()) {
@@ -807,7 +814,7 @@ bool CompileType::IsNull() {
 }
 
 const AbstractType* CompileType::ToAbstractType() {
-  if (type_ == NULL) {
+  if (type_ == nullptr) {
     // Type propagation has not run. Return dynamic-type.
     if (cid_ == kIllegalCid) {
       return &Object::dynamic_type();
@@ -913,7 +920,7 @@ static bool CanPotentiallyBeSmi(const AbstractType& type, bool recurse) {
     return !recurse || CanPotentiallyBeSmi(AbstractType::Handle(param.bound()),
                                            /*recurse=*/false);
   } else if (type.HasTypeClass()) {
-    // If this is an unstantiated type then it can only potentially be a super
+    // If this is an uninstantiated type then it can only potentially be a super
     // type of a Smi if it is either FutureOr<...> or Comparable<...>.
     // In which case we need to look at the type argument to determine whether
     // this location can contain a smi.
@@ -989,7 +996,7 @@ void CompileType::PrintTo(BaseTextBuffer* f) const {
     const Class& cls =
         Class::Handle(IsolateGroup::Current()->class_table()->At(cid_));
     type_name = String::Handle(cls.ScrubbedName()).ToCString();
-  } else if (type_ != NULL) {
+  } else if (type_ != nullptr) {
     type_name = type_->IsDynamicType()
                     ? "*"
                     : String::Handle(type_->ScrubbedName()).ToCString();
@@ -1009,7 +1016,7 @@ const char* CompileType::ToCString() const {
 }
 
 CompileType* Value::Type() {
-  if (reaching_type_ == NULL) {
+  if (reaching_type_ == nullptr) {
     reaching_type_ = definition()->Type();
   }
   return reaching_type_;
@@ -1017,7 +1024,7 @@ CompileType* Value::Type() {
 
 void Value::SetReachingType(CompileType* type) {
   // If [type] is owned but not by the definition which flows into this use
-  // then we need to disconect the type from original owner by cloning it.
+  // then we need to disconnect the type from original owner by cloning it.
   // This is done to prevent situations when [type] is updated by its owner
   // but [owner] is no longer connected to this use through def-use chain
   // and as a result type propagator does not recompute type of the current
@@ -1059,7 +1066,7 @@ bool PhiInstr::RecomputeType() {
 }
 
 CompileType RedefinitionInstr::ComputeType() const {
-  if (constrained_type_ != NULL) {
+  if (constrained_type_ != nullptr) {
     // Check if the type associated with this redefinition is more specific
     // than the type of its input. If yes, return it. Otherwise, fall back
     // to the input's type.
@@ -1143,7 +1150,7 @@ CompileType ParameterInstr::ComputeType() const {
   // However there are parameters that are known to match their declared type:
   // for example receiver.
   GraphEntryInstr* graph_entry = block_->AsGraphEntry();
-  if (graph_entry == NULL) {
+  if (graph_entry == nullptr) {
     if (auto function_entry = block_->AsFunctionEntry()) {
       graph_entry = function_entry->graph_entry();
     } else if (auto osr_entry = block_->AsOsrEntry()) {
@@ -1160,7 +1167,8 @@ CompileType ParameterInstr::ComputeType() const {
   // The code below is not safe for OSR because it doesn't necessarily use
   // the correct scope.
   if (graph_entry->IsCompiledForOsr()) {
-    return CompileType::Dynamic();
+    // Parameter at OSR entry may correspond to a late local variable.
+    return CompileType::DynamicOrSentinel();
   }
 
   const ParsedFunction& pf = graph_entry->parsed_function();
@@ -1169,7 +1177,7 @@ CompileType ParameterInstr::ComputeType() const {
     // In irregexp functions, types of input parameters are known and immutable.
     // Set parameter types here in order to prevent unnecessary CheckClassInstr
     // from being generated.
-    switch (index()) {
+    switch (env_index()) {
       case RegExpMacroAssembler::kParamRegExpIndex:
         return CompileType::FromCid(kRegExpCid);
       case RegExpMacroAssembler::kParamStringIndex:
@@ -1183,29 +1191,18 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
-  // Figure out if this Parameter instruction corresponds to a direct
-  // parameter. See FlowGraph::EnvIndex and initialization of
-  // num_direct_parameters_ in FlowGraph constructor.
-  const bool is_direct_parameter =
-      !function.MakesCopyOfParameters() && (index() < function.NumParameters());
-  // Parameter instructions in a function entry are only used for direct
-  // parameters. Parameter instructions in OsrEntry and CatchBlockEntry
-  // correspond to all local variables, not just direct parameters.
-  // OsrEntry is already checked above.
-  ASSERT(is_direct_parameter || block_->IsCatchBlockEntry());
+  const intptr_t param_index = this->param_index();
+  ASSERT((param_index >= 0) || block_->IsCatchBlockEntry());
 
-  // The code below assumes that env index matches parameter index.
-  // This is true only for direct parameters.
-  if (is_direct_parameter) {
-    const intptr_t param_index = index();
+  if (param_index >= 0) {
     // Parameter is the receiver.
     if ((param_index == 0) &&
         (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
       const AbstractType& type = pf.RawParameterVariable(0)->type();
       if (type.IsObjectType() || type.IsNullType()) {
         // Receiver can be null.
-        return CompileType::FromAbstractType(type, CompileType::kCanBeNull,
-                                             CompileType::kCannotBeSentinel);
+        return CompileType(CompileType::kCanBeNull,
+                           CompileType::kCannotBeSentinel, kIllegalCid, &type);
       }
 
       // Receiver can't be null but can be an instance of a subclass.
@@ -1249,16 +1246,23 @@ CompileType ParameterInstr::ComputeType() const {
                                      ? pf.ParameterVariable(param_index)
                                      : pf.RawParameterVariable(param_index);
     ASSERT(param != nullptr);
-    CompileType* inferred_type = NULL;
+
+    CompileType* inferred_type = nullptr;
+    intptr_t inferred_cid = kDynamicCid;
+    bool inferred_nullable = true;
     if (!block_->IsCatchBlockEntry()) {
       inferred_type = param->parameter_type();
-    }
-    // Best bet: use inferred type if it is a concrete class or int.
-    if ((inferred_type != nullptr) &&
-        ((inferred_type->ToNullableCid() != kDynamicCid) ||
-         inferred_type->IsNullableInt())) {
-      TraceStrongModeType(this, inferred_type);
-      return *inferred_type;
+
+      if (inferred_type != nullptr) {
+        // Use inferred type if it is an int.
+        if (inferred_type->IsNullableInt()) {
+          TraceStrongModeType(this, inferred_type);
+          return *inferred_type;
+        }
+        // Otherwise use inferred cid and nullability.
+        inferred_cid = inferred_type->ToNullableCid();
+        inferred_nullable = inferred_type->is_nullable();
+      }
     }
     // If parameter type was checked by caller, then use Dart type annotation,
     // plus non-nullability from inferred type if known.
@@ -1269,15 +1273,17 @@ CompileType ParameterInstr::ComputeType() const {
         (param->was_type_checked_by_caller() ||
          (is_unchecked_entry_param &&
           !param->is_explicit_covariant_parameter()))) {
-      const bool is_nullable =
-          (inferred_type == NULL) || inferred_type->is_nullable();
-      TraceStrongModeType(this, param->type());
-      return CompileType::FromAbstractType(
-          param->type(), is_nullable,
-          block_->IsCatchBlockEntry() && param->is_late());
+      const AbstractType& static_type = param->type();
+      CompileType result(
+          inferred_nullable && !static_type.IsStrictlyNonNullable(),
+          block_->IsCatchBlockEntry() && param->is_late(),
+          inferred_cid == kDynamicCid ? kIllegalCid : inferred_cid,
+          &static_type);
+      TraceStrongModeType(this, &result);
+      return result;
     }
-    // Last resort: use inferred non-nullability.
-    if (inferred_type != NULL) {
+    // Last resort: use inferred type as is.
+    if (inferred_type != nullptr) {
       TraceStrongModeType(this, inferred_type);
       return *inferred_type;
     }
@@ -1291,7 +1297,7 @@ CompileType ParameterInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
-CompileType PushArgumentInstr::ComputeType() const {
+CompileType MoveArgumentInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
@@ -1413,11 +1419,15 @@ CompileType InstanceCallBaseInstr::ComputeType() const {
   // TODO(alexmarkov): calculate type of InstanceCallInstr eagerly
   // (in optimized mode) and avoid keeping separate result_type.
   CompileType* inferred_type = result_type();
-  if ((inferred_type != nullptr) &&
-      ((inferred_type->ToNullableCid() != kDynamicCid) ||
-       (!inferred_type->ToAbstractType()->IsDynamicType()))) {
-    TraceStrongModeType(this, inferred_type);
-    return *inferred_type;
+  intptr_t inferred_cid = kDynamicCid;
+  bool is_nullable = CompileType::kCanBeNull;
+  if (inferred_type != nullptr) {
+    if (inferred_type->IsNullableInt()) {
+      TraceStrongModeType(this, inferred_type);
+      return *inferred_type;
+    }
+    inferred_cid = inferred_type->ToNullableCid();
+    is_nullable = inferred_type->is_nullable();
   }
 
   // Include special cases of type inference for int operations.
@@ -1453,16 +1463,18 @@ CompileType InstanceCallBaseInstr::ComputeType() const {
     // 1. receiver type inferred by the front-end is not passed to VM.
     // 2. VM collects type arguments through the chain of superclasses but
     // not through implemented interfaces.
-    // So treat non-instantiated generic types as dynamic to avoid pretending
-    // the type is known.
     // TODO(dartbug.com/30480): instantiate generic result_type
-    if (result_type.IsInstantiated()) {
-      TraceStrongModeType(this, result_type);
-      const bool is_nullable =
-          (inferred_type == NULL) || inferred_type->is_nullable();
-      return CompileType::FromAbstractType(result_type, is_nullable,
-                                           CompileType::kCannotBeSentinel);
-    }
+    CompileType result(is_nullable && !result_type.IsStrictlyNonNullable(),
+                       CompileType::kCannotBeSentinel,
+                       inferred_cid == kDynamicCid ? kIllegalCid : inferred_cid,
+                       &result_type);
+    TraceStrongModeType(this, &result);
+    return result;
+  }
+
+  if (inferred_type != nullptr) {
+    TraceStrongModeType(this, inferred_type);
+    return *inferred_type;
   }
 
   return CompileType::Dynamic();
@@ -1532,14 +1544,17 @@ CompileType StaticCallInstr::ComputeType() const {
     return ComputeListFactoryType(inferred_type, ArgumentValueAt(0));
   }
 
-  if ((inferred_type != nullptr) &&
-      ((inferred_type->ToNullableCid() != kDynamicCid) ||
-       (!inferred_type->ToAbstractType()->IsDynamicType()))) {
-    TraceStrongModeType(this, inferred_type);
-    return *inferred_type;
+  intptr_t inferred_cid = kDynamicCid;
+  bool is_nullable = CompileType::kCanBeNull;
+  if (inferred_type != nullptr) {
+    if (inferred_type->IsNullableInt()) {
+      TraceStrongModeType(this, inferred_type);
+      return *inferred_type;
+    }
+    inferred_cid = inferred_type->ToNullableCid();
+    is_nullable = inferred_type->is_nullable();
   }
 
-  bool is_nullable = CompileType::kCanBeNull;
   if (function_.has_pragma()) {
     const intptr_t cid = MethodRecognizer::ResultCidFromPragma(function_);
     if (cid != kDynamicCid) {
@@ -1552,18 +1567,12 @@ CompileType StaticCallInstr::ComputeType() const {
 
   const AbstractType& result_type =
       AbstractType::ZoneHandle(function().result_type());
-  // TODO(dartbug.com/30480): instantiate generic result_type if possible.
-  // Also, consider fixing AbstractType::IsSubtypeOf to handle
-  // non-instantiated types properly.
-  if (result_type.IsInstantiated()) {
-    TraceStrongModeType(this, result_type);
-    is_nullable = is_nullable &&
-                  (inferred_type == nullptr || inferred_type->is_nullable());
-    return CompileType::FromAbstractType(result_type, is_nullable,
-                                         CompileType::kCannotBeSentinel);
-  }
-
-  return CompileType::Dynamic();
+  CompileType result(is_nullable && !result_type.IsStrictlyNonNullable(),
+                     CompileType::kCannotBeSentinel,
+                     inferred_cid == kDynamicCid ? kIllegalCid : inferred_cid,
+                     &result_type);
+  TraceStrongModeType(this, &result);
+  return result;
 }
 
 CompileType LoadLocalInstr::ComputeType() const {
@@ -1669,6 +1678,26 @@ CompileType LoadClassIdInstr::ComputeType() const {
 }
 
 CompileType LoadFieldInstr::ComputeType() const {
+  if (slot().IsRecordField()) {
+    const intptr_t index = compiler::target::Record::field_index_at_offset(
+        slot().offset_in_bytes());
+    if (auto* alloc = instance()->definition()->AsAllocateSmallRecord()) {
+      if (index < alloc->num_fields()) {
+        return *(alloc->InputAt(index)->Type());
+      }
+    }
+    const AbstractType* instance_type = instance()->Type()->ToAbstractType();
+    if (instance_type->IsRecordType()) {
+      const auto& record_type = RecordType::Cast(*instance_type);
+      if (index < record_type.NumFields()) {
+        const auto& field_type =
+            AbstractType::ZoneHandle(record_type.FieldTypeAt(index));
+        return CompileType::FromAbstractType(field_type,
+                                             CompileType::kCanBeNull,
+                                             CompileType::kCannotBeSentinel);
+      }
+    }
+  }
   CompileType type = slot().ComputeCompileType();
   if (calls_initializer()) {
     type = type.CopyNonSentinel();

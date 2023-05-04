@@ -29,12 +29,14 @@ import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/feature.dart';
 import '../universe/member_usage.dart';
+import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import 'closure.dart';
 import 'elements.dart';
 import 'element_map_impl.dart';
 import 'js_to_frontend_map.dart';
 import 'js_world.dart';
+import 'records.dart';
 
 class JClosedWorldBuilder {
   final JsKernelToElementMap _elementMap;
@@ -42,12 +44,18 @@ class JClosedWorldBuilder {
       ClassHierarchyNodesMap();
   final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
   final ClosureDataBuilder _closureDataBuilder;
+  final RecordDataBuilder _recordDataBuilder;
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
   final AbstractValueStrategy _abstractValueStrategy;
 
-  JClosedWorldBuilder(this._elementMap, this._closureDataBuilder, this._options,
-      this._reporter, this._abstractValueStrategy);
+  JClosedWorldBuilder(
+      this._elementMap,
+      this._closureDataBuilder,
+      this._recordDataBuilder,
+      this._options,
+      this._reporter,
+      this._abstractValueStrategy);
 
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
@@ -136,6 +144,11 @@ class JClosedWorldBuilder {
 
     List<FunctionEntity> callMethods = <FunctionEntity>[];
     ClosureData closureData;
+    RecordData recordData;
+
+    final recordTypes = Set<RecordType>.from(
+        map.toBackendTypeSet(closedWorld.instantiatedRecordTypes));
+
     if (_options.disableRtiOptimization) {
       rtiNeed = TrivialRuntimeTypesNeed(_elementMap.elementEnvironment);
       closureData = _closureDataBuilder.createClosureEntities(
@@ -143,6 +156,7 @@ class JClosedWorldBuilder {
           map.toBackendMemberMap(closureModels, identity),
           const TrivialClosureRtiNeed(),
           callMethods);
+      recordData = _recordDataBuilder.createRecordData(this, recordTypes);
     } else {
       RuntimeTypesNeedImpl kernelRtiNeed =
           closedWorld.rtiNeed as RuntimeTypesNeedImpl;
@@ -170,6 +184,8 @@ class JClosedWorldBuilder {
               localFunctionsNodesNeedingSignature),
           callMethods);
 
+      recordData = _recordDataBuilder.createRecordData(this, recordTypes);
+
       List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
       for (ir.LocalFunction node in localFunctionsNodesNeedingSignature) {
         callMethodsNeedingSignature
@@ -188,6 +204,7 @@ class JClosedWorldBuilder {
     }
 
     (map as JsToFrontendMapImpl)._registerClosureData(closureData);
+    //(map as JsToFrontendMapImpl)._registerRecordData(recordData);
 
     BackendUsage backendUsage =
         _convertBackendUsage(map, closedWorld.backendUsage as BackendUsageImpl);
@@ -239,6 +256,7 @@ class JClosedWorldBuilder {
         _abstractValueStrategy,
         annotationsData,
         closureData,
+        recordData,
         outputUnitData,
         memberAccess);
   }
@@ -363,6 +381,27 @@ class JClosedWorldBuilder {
     // Note that the base closure class has specialized metadata for the common
     // case of single-argument functions.
     return _commonElements.closureClass;
+  }
+
+  /// Called once per [shape]. The class can be used for a record with the
+  /// specified shape, or subclassed to provide specialized methods. [getters]
+  /// is an out parameter that gathers all the getters created for this shape.
+  ClassEntity buildRecordShapeClass(
+      RecordShape shape, List<MemberEntity> getters) {
+    ClassEntity superclass = _commonElements.recordArityClass(shape.fieldCount);
+    IndexedClass recordClass = _elementMap.generateRecordShapeClass(
+        shape, _dartTypes.interfaceType(superclass, const []), getters);
+
+    // Tell the hierarchy about the superclass so we can use
+    // .getSupertypes(class)
+    ClassHierarchyNode parentNode = _classHierarchyNodes[superclass]!;
+    ClassHierarchyNode node = ClassHierarchyNode(
+        parentNode, recordClass, parentNode.hierarchyDepth + 1);
+    _classHierarchyNodes[recordClass] = node;
+    _classSets[recordClass] = ClassSet(node);
+    node.isDirectlyInstantiated = true;
+
+    return recordClass;
   }
 
   OutputUnitData _convertOutputUnitData(JsToFrontendMapImpl map,
@@ -775,12 +814,22 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     Map<FieldEntity, ConstantValue> fields = {};
     constant.fields.forEach((f, v) {
-      // TODO(48820): remove the extra '!'. It was only added to get early
-      // signals of the null assertion before we enable sound null safety.
-      FieldEntity backendField = toBackendEntity(f)! as FieldEntity;
+      FieldEntity backendField = toBackendEntity(f) as FieldEntity;
       fields[backendField] = v.accept(this, null);
     });
     return ConstructedConstantValue(type as InterfaceType, fields);
+  }
+
+  @override
+  ConstantValue visitRecord(RecordConstantValue constant, _) {
+    // TODO(50081): An alternative is to lower the record to
+    // ConstructedConstantValue with possible a ListConstantValue argument. One
+    // way to do this would be to have two constant_systems - a K-system and a
+    // J-system. The K-system would produce a RecordConstantValue, the J-system
+    // the lowered form.
+    List<ConstantValue> values = _handleValues(constant.values);
+    if (identical(values, constant.values)) return constant;
+    return RecordConstantValue(constant.shape, values);
   }
 
   @override

@@ -6,7 +6,7 @@ abstract class M extends core::Object /*isMixinDeclaration*/  {
   method toString() → core::String
     return "M";
 }
-abstract class A extends core::Object {
+abstract mixin class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
@@ -160,12 +160,12 @@ org-dartlang-testcase:///issue49236.dart:
 - _E1&_Enum&M. (from org-dartlang-testcase:///issue49236.dart:17:6)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- E2. (from org-dartlang-testcase:///issue49236.dart:21:6)
-- _E2&_Enum&M. (from org-dartlang-testcase:///issue49236.dart:21:6)
-- E3. (from org-dartlang-testcase:///issue49236.dart:27:6)
-- E4. (from org-dartlang-testcase:///issue49236.dart:33:6)
-- E5. (from org-dartlang-testcase:///issue49236.dart:37:6)
-- E6. (from org-dartlang-testcase:///issue49236.dart:43:6)
-- _E6&_Enum&A. (from org-dartlang-testcase:///issue49236.dart:43:6)
-- E7. (from org-dartlang-testcase:///issue49236.dart:47:6)
-- _E7&_Enum&A. (from org-dartlang-testcase:///issue49236.dart:47:6)
+- E2. (from org-dartlang-testcase:///issue49236.dart:19:6)
+- _E2&_Enum&M. (from org-dartlang-testcase:///issue49236.dart:19:6)
+- E3. (from org-dartlang-testcase:///issue49236.dart:25:6)
+- E4. (from org-dartlang-testcase:///issue49236.dart:31:6)
+- E5. (from org-dartlang-testcase:///issue49236.dart:33:6)
+- E6. (from org-dartlang-testcase:///issue49236.dart:39:6)
+- _E6&_Enum&A. (from org-dartlang-testcase:///issue49236.dart:39:6)
+- E7. (from org-dartlang-testcase:///issue49236.dart:41:6)
+- _E7&_Enum&A. (from org-dartlang-testcase:///issue49236.dart:41:6)

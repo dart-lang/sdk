@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: implementation_imports
+
 import 'dart:async';
 
 import 'package:devtools_shared/devtools_server.dart';
@@ -147,7 +149,7 @@ class ClientManager {
         }
       };
 
-  /// Checks whether two VM Services are equiavlent.
+  /// Checks whether two VM Services are equivalent.
   ///
   /// Checking the whole URI will fail if DevTools converted it from HTTP to
   /// WS, so just checks the host, port and first segment of path (token).
@@ -186,7 +188,7 @@ class DevToolsClient {
         print('DevTools SSE request: $e');
         return e;
       });
-      sink = LoggingMiddlewareSink(sink);
+      sink = LoggingMiddlewareSink<String>(sink);
     }
 
     _devToolsPeer = json_rpc.Peer(

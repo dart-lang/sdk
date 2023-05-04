@@ -113,14 +113,13 @@ intptr_t ObjectHash(const Object& obj) {
     return Instance::Cast(obj).CanonicalizeHash();
   }
   if (obj.IsCode()) {
-    // Instructions don't move during compaction.
-    return Code::Cast(obj).PayloadStart();
+    return Code::Cast(obj).Hash();
   }
   if (obj.IsFunction()) {
     return Function::Cast(obj).Hash();
   }
   if (obj.IsField()) {
-    return dart::String::HashRawSymbol(Field::Cast(obj).name());
+    return Field::Cast(obj).Hash();
   }
   if (obj.IsICData()) {
     return ICData::Cast(obj).Hash();
@@ -350,7 +349,7 @@ uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
          dart::UntaggedObject::ClassIdTag::encode(cid) |
          dart::UntaggedObject::NewBit::encode(true) |
          dart::UntaggedObject::ImmutableBit::encode(
-             IsUnmodifiableTypedDataViewClassId(cid));
+             ShouldHaveImmutabilityBitSet(cid));
 }
 
 word Object::tags_offset() {
@@ -488,9 +487,9 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
         return handle.target_instance_size();
       }
   }
-  FATAL3("Unsupported class for size translation: %s (id=%" Pd
-         ", kNumPredefinedCids=%" Pd ")\n",
-         handle.ToCString(), handle.id(), kNumPredefinedCids);
+  FATAL("Unsupported class for size translation: %s (id=%" Pd
+        ", kNumPredefinedCids=%" Pd ")\n",
+        handle.ToCString(), handle.id(), kNumPredefinedCids);
   return -1;
 }
 
@@ -1117,6 +1116,13 @@ namespace target {
 const word Array::kMaxElements = Array_kMaxElements;
 const word Context::kMaxElements = Context_kMaxElements;
 const word Record::kMaxElements = Record_kMaxElements;
+
+const word RecordShape::kNumFieldsMask = RecordShape_kNumFieldsMask;
+const word RecordShape::kMaxNumFields = RecordShape_kMaxNumFields;
+const word RecordShape::kFieldNamesIndexShift =
+    RecordShape_kFieldNamesIndexShift;
+const word RecordShape::kFieldNamesIndexMask = RecordShape_kFieldNamesIndexMask;
+const word RecordShape::kMaxFieldNamesIndex = RecordShape_kMaxFieldNamesIndex;
 
 }  // namespace target
 }  // namespace compiler

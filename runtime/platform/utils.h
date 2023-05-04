@@ -461,7 +461,7 @@ class Utils {
 
   // dart2js represents integers as double precision floats, which can
   // represent anything in the range -2^53 ... 2^53.
-  static bool IsJavascriptInt(int64_t value) {
+  static bool IsJavaScriptInt(int64_t value) {
     return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
   }
 
@@ -512,7 +512,7 @@ class Utils {
   // output has been truncated.  The return value is never negative.
   //
   // The buffer will always be terminated by a '\0', unless the buffer
-  // is of size 0.  The buffer might be NULL if the size is 0.
+  // is of size 0.  The buffer might be nullptr if the size is 0.
   //
   // This specification conforms to C99 standard which is implemented
   // by glibc 2.1+ with one exception: the C99 standard allows a

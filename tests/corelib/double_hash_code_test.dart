@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--intrinsify
-// VMOptions=--no_intrinsify
+// VMOptions=--intrinsify --use_sse41
+// VMOptions=--no_intrinsify --use_sse41
+// VMOptions=--intrinsify --no_use_sse41
+// VMOptions=--no_intrinsify --no_use_sse41
 
 import 'package:expect/expect.dart';
 

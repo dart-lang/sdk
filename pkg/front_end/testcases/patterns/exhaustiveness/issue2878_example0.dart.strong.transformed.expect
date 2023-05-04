@@ -1,0 +1,76 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  core::List<core::int> list = core::_GrowableList::_literal3<core::int>(1, 2, 3);
+  block {
+    core::int #t1;
+    final synthesized core::List<core::int> #0#0 = list;
+    #L1:
+    {
+      {
+        if(true) {
+          #t1 = 1;
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+  block {
+    core::int #t2;
+    final synthesized core::List<core::int> #1#0 = list;
+    function ##1#1#initializer() → core::int
+      return #1#0.{core::List::length}{core::int};
+    late final synthesized core::int #1#1 = ##1#1#initializer(){() → core::int};
+    #L2:
+    {
+      {
+        if(#1#1.{core::num::<=}(#C1){(core::num) → core::bool}) {
+          #t2 = 1;
+          break #L2;
+        }
+      }
+      {
+        if(#1#1.{core::num::>=}(#C2){(core::num) → core::bool}) {
+          #t2 = 2;
+          break #L2;
+        }
+      }
+    }
+  } =>#t2;
+  block {
+    core::int #t3;
+    final synthesized core::List<core::int> #2#0 = list;
+    function ##2#1#initializer() → core::int
+      return #2#0.{core::List::length}{core::int};
+    late final synthesized core::int #2#1 = ##2#1#initializer(){() → core::int};
+    #L3:
+    {
+      {
+        if(#2#1.{core::num::<=}(#C1){(core::num) → core::bool}) {
+          #t3 = 1;
+          break #L3;
+        }
+      }
+      {
+        if(#2#1 =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t3 = 2;
+          break #L3;
+        }
+      }
+      {
+        if(#2#1.{core::num::>=}(#C3){(core::num) → core::bool}) {
+          #t3 = 3;
+          break #L3;
+        }
+      }
+    }
+  } =>#t3;
+}
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+  #C3 = 2
+}

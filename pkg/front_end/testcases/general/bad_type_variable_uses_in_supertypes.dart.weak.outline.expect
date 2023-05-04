@@ -115,11 +115,9 @@ import "dart:core" as core;
 
 typedef ContravariantUse<contravariant T extends core::Object? = dynamic> = (T%) → dynamic;
 typedef InvariantUse<invariant T extends core::Object? = dynamic> = (T%) → T%;
-class Empty extends core::Object {
-  synthetic constructor •() → self::Empty
-    ;
+abstract class Empty extends core::Object /*isMixinDeclaration*/  {
 }
-class A<T extends core::Object? = dynamic> extends core::Object {
+mixin class A<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::T%>
     ;
 }

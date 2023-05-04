@@ -16,6 +16,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 
@@ -24,7 +25,7 @@ import 'src/utilities/mock_packages.dart';
 class AbstractContextTest with ResourceProviderMixin {
   static bool _lintRulesAreRegistered = false;
 
-  final ByteStore _byteStore = MemoryByteStore();
+  static final ByteStore _byteStore = MemoryByteStore();
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
@@ -41,19 +42,14 @@ class AbstractContextTest with ResourceProviderMixin {
 
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
-  @deprecated
-  AnalysisDriver get driver {
-    throw 0;
-  }
-
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
   List<String> get experiments => [
-        EnableString.enhanced_enums,
+        EnableString.class_modifiers,
         EnableString.macros,
-        EnableString.named_arguments_anywhere,
+        EnableString.patterns,
         EnableString.records,
-        EnableString.super_parameters,
+        EnableString.sealed_class,
       ];
 
   String get latestLanguageVersion =>
@@ -66,6 +62,10 @@ class AbstractContextTest with ResourceProviderMixin {
   Folder get sdkRoot => newFolder('/sdk');
 
   Future<AnalysisSession> get session => sessionFor(testPackageRootPath);
+
+  /// The path for `analysis_options.yaml` in [testPackageRootPath].
+  String get testAnalysisOptionsPath =>
+      convertPath('$testPackageRootPath/analysis_options.yaml');
 
   String? get testPackageLanguageVersion => latestLanguageVersion;
 
@@ -216,6 +216,7 @@ class AbstractContextTest with ResourceProviderMixin {
   void setupResourceProvider() {}
 
   void tearDown() {
+    noSoundNullSafety = true;
     AnalysisEngine.instance.clearCaches();
   }
 

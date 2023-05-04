@@ -13,6 +13,7 @@ import 'adapters/dart.dart';
 import 'exceptions.dart';
 import 'protocol_generated.dart';
 import 'utils.dart';
+import 'variables.dart';
 
 /// Manages state of Isolates (called Threads by the DAP protocol).
 ///
@@ -67,11 +68,11 @@ class IsolateManager {
 
   /// Tracks breakpoints last provided by the client so they can be sent to new
   /// isolates that appear after initial breakpoints were sent.
-  final Map<String, List<SourceBreakpoint>> _clientBreakpointsByUri = {};
+  final Map<String, List<ClientBreakpoint>> _clientBreakpointsByUri = {};
 
   /// Tracks client breakpoints by the ID assigned by the VM so we can look up
   /// conditions/logpoints when hitting breakpoints.
-  final Map<String, SourceBreakpoint> _clientBreakpointsByVmId = {};
+  final Map<String, ClientBreakpoint> _clientBreakpointsByVmId = {};
 
   /// Tracks breakpoints created in the VM so they can be removed when the
   /// editor sends new breakpoints (currently the editor just sends a new list
@@ -102,7 +103,7 @@ class IsolateManager {
   ///
   /// Stored data is thread-scoped but the client will not provide the thread
   /// when asking for data so it's all stored together here.
-  final _storedData = <int, _StoredData>{};
+  final _storedData = <int, StoredData>{};
 
   /// A pattern that matches an opening brace `{` that was not preceded by a
   /// dollar.
@@ -148,7 +149,7 @@ class IsolateManager {
 
   /// Retrieves some basic data indexed by an integer for use in "reference"
   /// fields that are round-tripped to the client.
-  _StoredData? getStoredData(int id) {
+  StoredData? getStoredData(int id) {
     return _storedData[id];
   }
 
@@ -177,6 +178,11 @@ class IsolateManager {
       await _handlePause(event);
     } else if (eventKind == vm.EventKind.kResume) {
       _handleResumed(event);
+    } else if (eventKind == vm.EventKind.kInspect) {
+      _handleInspect(event);
+    } else if (eventKind == vm.EventKind.kBreakpointAdded ||
+        eventKind == vm.EventKind.kBreakpointResolved) {
+      _handleBreakpointAddedOrResolved(event);
     }
   }
 
@@ -289,7 +295,7 @@ class IsolateManager {
   /// before.
   Future<void> setBreakpoints(
     String uri,
-    List<SourceBreakpoint> breakpoints,
+    List<ClientBreakpoint> breakpoints,
   ) async {
     // Track the breakpoints to get sent to any new isolates that start.
     _clientBreakpointsByUri[uri] = breakpoints;
@@ -326,7 +332,7 @@ class IsolateManager {
   /// that are round-tripped to the client.
   int storeData(ThreadInfo thread, Object data) {
     final id = _nextStoredDataId++;
-    _storedData[id] = _StoredData(thread, data);
+    _storedData[id] = StoredData(thread, data);
     return id;
   }
 
@@ -479,7 +485,7 @@ class IsolateManager {
         // we hit. It's possible some of these may be missing because we could
         // hit a breakpoint that was set before we were attached.
         final clientBreakpoints = event.pauseBreakpoints!
-            .map((bp) => _clientBreakpointsByVmId[bp.id!])
+            .map((bp) => _clientBreakpointsByVmId[bp.id!]?.breakpoint)
             .toSet();
 
         // Split into logpoints (which just print messages) and breakpoints.
@@ -534,6 +540,59 @@ class IsolateManager {
       thread.pauseEvent = null;
       thread.exceptionReference = null;
     }
+  }
+
+  /// Handles an inspect event from the VM, sending the value/variable to the
+  /// debugger.
+  void _handleInspect(vm.Event event) {
+    final isolate = event.isolate!;
+    final thread = _threadsByIsolateId[isolate.id!];
+    final inspectee = event.inspectee;
+
+    if (thread != null && inspectee != null) {
+      final ref = thread.storeData(InspectData(inspectee));
+      _adapter.sendOutput(
+        'console',
+        '', // Not shown by the client because it fetches the variable.
+        variablesReference: ref,
+      );
+    }
+  }
+
+  /// Handles 'BreakpointAdded'/'BreakpointResolved' events from the VM,
+  /// informing the client of updated information about the breakpoint.
+  void _handleBreakpointAddedOrResolved(vm.Event event) {
+    final breakpoint = event.breakpoint!;
+    final breakpointId = breakpoint.id!;
+
+    final existingBreakpoint = _clientBreakpointsByVmId[breakpointId];
+    if (existingBreakpoint == null) {
+      // If we can't match this breakpoint up, we cannot get its ID or send
+      // events for it. This can happen if a breakpoint is being resolved just
+      // as a user changes breakpoints, so we have replaced our collection with
+      // a new set before we processed this event.
+      return;
+    }
+
+    // Location may be [SourceLocation] or [UnresolvedSourceLocaion] depending
+    // on whether this is an Added or Resolved event.
+    final location = breakpoint.location;
+    final resolvedLocation = location is vm.SourceLocation ? location : null;
+    final unresolvedLocation =
+        location is vm.UnresolvedSourceLocation ? location : null;
+    final updatedBreakpoint = Breakpoint(
+      id: existingBreakpoint.id,
+      line: resolvedLocation?.line ?? unresolvedLocation?.line,
+      column: resolvedLocation?.column ?? unresolvedLocation?.column,
+      verified: breakpoint.resolved ?? false,
+    );
+    // Ensure we don't send the breakpoint event until the client has been
+    // given the breakpoint ID.
+    existingBreakpoint.queueAction(
+      () => _adapter.sendEvent(
+        BreakpointEventBody(breakpoint: updatedBreakpoint, reason: 'changed'),
+      ),
+    );
   }
 
   /// Attempts to resolve [uris] to file:/// URIs via the VM Service.
@@ -655,7 +714,7 @@ class IsolateManager {
 
       // Set new breakpoints.
       final newBreakpoints = _clientBreakpointsByUri[uri] ?? const [];
-      await Future.forEach<SourceBreakpoint>(newBreakpoints, (bp) async {
+      await Future.forEach<ClientBreakpoint>(newBreakpoints, (bp) async {
         try {
           // Some file URIs (like SDK sources) need to be converted to
           // appropriate internal URIs to be able to set breakpoints.
@@ -668,8 +727,8 @@ class IsolateManager {
           }
 
           final vmBp = await service.addBreakpointWithScriptUri(
-              isolateId, vmUri.toString(), bp.line,
-              column: bp.column);
+              isolateId, vmUri.toString(), bp.breakpoint.line,
+              column: bp.breakpoint.column);
           existingBreakpointsForIsolateAndUri[vmBp.id!] = vmBp;
           _clientBreakpointsByVmId[vmBp.id!] = bp;
         } catch (e) {
@@ -722,12 +781,18 @@ class IsolateManager {
 
     await Future.wait(libraries.map((library) async {
       final libraryUri = library.uri;
-      final isDebuggable = libraryUri != null
+      final isDebuggableNew = libraryUri != null
           ? await _adapter.libraryIsDebuggable(thread, Uri.parse(libraryUri))
           : false;
+      final isDebuggableCurrent =
+          thread.getIsLibraryCurrentlyDebuggable(library);
+      thread.setIsLibraryCurrentlyDebuggable(library, isDebuggableNew);
+      if (isDebuggableNew == isDebuggableCurrent) {
+        return;
+      }
       try {
         await service.setLibraryDebuggable(
-            isolateId, library.id!, isDebuggable);
+            isolateId, library.id!, isDebuggableNew);
       } on vm.RPCError catch (e) {
         // DWDS does not currently support `setLibraryDebuggable` so instead of
         // failing (because this code runs in a VM event handler where there's
@@ -928,7 +993,7 @@ class ThreadInfo {
         // Don't rethrow here, because it will cause these completers futures
         // to not have error handlers attached which can cause their errors to
         // go unhandled. Instead, these completers futures will be returned
-        // below and awaited by the caller (which will propogate the errors).
+        // below and awaited by the caller (which will propagate the errors).
       }
     }
 
@@ -943,6 +1008,46 @@ class ThreadInfo {
     });
     return Future.wait(futures);
   }
+
+  /// Returns whether [library] is currently debuggable according to the VM
+  /// (or there is a request in-flight to set it).
+  bool getIsLibraryCurrentlyDebuggable(vm.LibraryRef library) {
+    return _libraryIsDebuggableById[library.id!] ??
+        _getIsLibraryDebuggableByDefault(library);
+  }
+
+  /// Records whether [library] is currently debuggable for this isolate.
+  ///
+  /// This should be called whenever a `setLibraryDebuggable` request is made
+  /// to the VM.
+  void setIsLibraryCurrentlyDebuggable(
+    vm.LibraryRef library,
+    bool isDebuggable,
+  ) {
+    if (isDebuggable == _getIsLibraryDebuggableByDefault(library)) {
+      _libraryIsDebuggableById.remove(library.id!);
+    } else {
+      _libraryIsDebuggableById[library.id!] = isDebuggable;
+    }
+  }
+
+  /// Returns whether [library] is debuggable by default.
+  ///
+  /// This value is _assumed_ to avoid having to fetch each library for each
+  /// isolate.
+  bool _getIsLibraryDebuggableByDefault(vm.LibraryRef library) {
+    final isSdkLibrary = library.uri?.startsWith('dart:') ?? false;
+    return !isSdkLibrary;
+  }
+
+  /// Tracks whether libraries are currently marked as debuggable in the VM.
+  ///
+  /// If a library ID is not in the map, it is set to the default (which is
+  /// debuggable for non-SDK sources, and not-debuggable for SDK sources).
+  ///
+  /// This can be used to avoid calling setLibraryDebuggable where the value
+  /// would not be changed.
+  final _libraryIsDebuggableById = <String, bool>{};
 
   /// Resolves a source URI to a file path for the lib folder of its package.
   ///
@@ -1035,9 +1140,47 @@ class ThreadInfo {
   }
 }
 
-class _StoredData {
+/// A wrapper over the client-provided [SourceBreakpoint] with a unique ID.
+///
+/// In order to tell clients about breakpoint changes (such as resolution) we
+/// must assign them an ID. If the VM does not have any running Isolates at the
+/// time initial breakpoints are set we cannot yet send the breakpoints (and
+/// therefore cannot get IDs from the VM). So we generate our own IDs and hold
+/// them with the breakpoint here. When we get a 'BreakpointResolved' event we
+/// can look up this [ClientBreakpoint] and use the ID to send an update to the
+/// client.
+class ClientBreakpoint {
+  /// The next number to use as a client ID for breakpoints.
+  ///
+  /// To slightly improve debugging, we start this at 100000 so it doesn't
+  /// initially overlap with VM-produced breakpoint numbers so it's more obvious
+  /// in log files which numbers are DAP-client and which are VM.
+  static int _nextId = 100000;
+
+  final SourceBreakpoint breakpoint;
+  final int id;
+
+  /// A [Future] that completes with the last action that sends breakpoint
+  /// information to the client, to ensure breakpoint events are always sent
+  /// in-order and after the initial response sending the IDs to the client.
+  Future<void> _lastActionFuture;
+
+  ClientBreakpoint(this.breakpoint, Future<void> setBreakpointResponse)
+      : id = _nextId++,
+        _lastActionFuture = setBreakpointResponse;
+
+  /// Queues an action to run after all previous actions that sent breakpoint
+  /// information to the client.
+  FutureOr<T> queueAction<T>(FutureOr<T> Function() action) {
+    final actionFuture = _lastActionFuture.then((_) => action());
+    _lastActionFuture = actionFuture;
+    return actionFuture;
+  }
+}
+
+class StoredData {
   final ThreadInfo thread;
   final Object data;
 
-  _StoredData(this.thread, this.data);
+  StoredData(this.thread, this.data);
 }

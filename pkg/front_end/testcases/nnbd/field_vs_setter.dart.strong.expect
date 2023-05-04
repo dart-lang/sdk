@@ -1068,17 +1068,17 @@ extension Extension on core::int? {
 static field core::int? topLevelFieldAndSetter;
 static field core::int? topLevelFieldAndDuplicateSetter;
 static field core::int? duplicateTopLevelFieldAndSetter1;
-static final field core::int? duplicateTopLevelFieldAndSetter2;
+static final field core::int? duplicateTopLevelFieldAndSetter2 = null;
 late static final [setter] field core::int? topLevelLateFinalFieldAndSetter;
 late static final [setter] field core::int? topLevelLateFinalFieldAndDuplicateSetter;
 static field core::int? Extension|extensionInstanceFieldAndSetter;
 static field core::int? Extension|extensionInstanceFieldAndDuplicateSetter;
 static field core::int? Extension|duplicateExtensionInstanceFieldAndSetter1;
-static final field core::int? Extension|duplicateExtensionInstanceFieldAndSetter2;
+static final field core::int? Extension|duplicateExtensionInstanceFieldAndSetter2 = null;
 static field core::int? Extension|extensionStaticFieldAndSetter;
 static field core::int? Extension|extensionStaticFieldAndDuplicateSetter;
 static field core::int? Extension|duplicateExtensionStaticFieldAndSetter1;
-static final field core::int? Extension|duplicateExtensionStaticFieldAndSetter2;
+static final field core::int? Extension|duplicateExtensionStaticFieldAndSetter2 = null;
 late static final [setter] field core::int? Extension|extensionStaticLateFinalFieldAndSetter;
 late static final [setter] field core::int? Extension|extensionStaticLateFinalFieldAndDuplicateSetter;
 static field core::int? Extension|extensionStaticFieldAndInstanceSetter;
@@ -1086,9 +1086,9 @@ static field core::int? Extension|extensionStaticFieldAndInstanceDuplicateSetter
 static field core::int? Extension|extensionInstanceFieldAndStaticSetter;
 static field core::int? Extension|extensionInstanceFieldAndStaticDuplicateSetter;
 static field core::int? Extension|duplicateExtensionInstanceFieldAndStaticSetter1;
-static final field core::int? Extension|duplicateExtensionInstanceFieldAndStaticSetter2;
+static final field core::int? Extension|duplicateExtensionInstanceFieldAndStaticSetter2 = null;
 static field core::int? Extension|duplicateExtensionStaticFieldAndInstanceSetter1;
-static final field core::int? Extension|duplicateExtensionStaticFieldAndInstanceSetter2;
+static final field core::int? Extension|duplicateExtensionStaticFieldAndInstanceSetter2 = null;
 static const field dynamic _exports# = #C1 /*isLegacy*/;
 static method test() → dynamic {
   self::topLevelFieldAndSetter = self::topLevelFieldAndSetter;

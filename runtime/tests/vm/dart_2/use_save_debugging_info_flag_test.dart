@@ -34,8 +34,8 @@ main(List<String> args) async {
   if (!await testExecutable(genSnapshot)) {
     throw "Cannot run test as $genSnapshot not available";
   }
-  if (!await testExecutable(aotRuntime)) {
-    throw "Cannot run test as $aotRuntime not available";
+  if (!await testExecutable(dartPrecompiledRuntime)) {
+    throw "Cannot run test as $dartPrecompiledRuntime not available";
   }
   if (!File(platformDill).existsSync()) {
     throw "Cannot run test as $platformDill does not exist";
@@ -49,6 +49,7 @@ main(List<String> args) async {
 
     // Compile script to Kernel IR.
     await run(genKernel, <String>[
+      '--no-sound-null-safety',
       '--aot',
       '--platform=$platformDill',
       '-o',
@@ -61,6 +62,7 @@ main(List<String> args) async {
     // information.
     final scriptWholeSnapshot = path.join(tempDir, 'whole.so');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--dwarf-stack-traces',
       '--snapshot-kind=app-aot-elf',
       '--elf=$scriptWholeSnapshot',
@@ -70,6 +72,7 @@ main(List<String> args) async {
 
     final scriptStrippedOnlySnapshot = path.join(tempDir, 'stripped_only.so');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--dwarf-stack-traces',
       '--snapshot-kind=app-aot-elf',
       '--elf=$scriptStrippedOnlySnapshot',
@@ -81,6 +84,7 @@ main(List<String> args) async {
     final scriptStrippedSnapshot = path.join(tempDir, 'stripped.so');
     final scriptDebuggingInfo = path.join(tempDir, 'debug.so');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--dwarf-stack-traces',
       '--snapshot-kind=app-aot-elf',
       '--elf=$scriptStrippedSnapshot',
@@ -92,19 +96,19 @@ main(List<String> args) async {
     checkElf(scriptDebuggingInfo);
 
     // Run the resulting scripts, saving the stack traces.
-    final wholeTrace = await runError(aotRuntime, <String>[
+    final wholeTrace = await runError(dartPrecompiledRuntime, <String>[
       scriptWholeSnapshot,
       scriptDill,
     ]);
     final wholeOffsets = collectPCOffsets(wholeTrace);
 
-    final strippedOnlyTrace = await runError(aotRuntime, <String>[
+    final strippedOnlyTrace = await runError(dartPrecompiledRuntime, <String>[
       scriptStrippedOnlySnapshot,
       scriptDill,
     ]);
     final strippedOnlyOffsets = collectPCOffsets(strippedOnlyTrace);
 
-    final strippedTrace = await runError(aotRuntime, <String>[
+    final strippedTrace = await runError(dartPrecompiledRuntime, <String>[
       scriptStrippedSnapshot,
       scriptDill,
     ]);

@@ -28,7 +28,7 @@ import 'package:meta/meta.dart';
 class X {
 }
 ''', [
-      error(HintCode.INVALID_FACTORY_ANNOTATION, 33, 8),
+      error(WarningCode.INVALID_FACTORY_ANNOTATION, 33, 8),
     ]);
   }
 
@@ -40,7 +40,7 @@ class X {
   int x = 0;
 }
 ''', [
-      error(HintCode.INVALID_FACTORY_ANNOTATION, 45, 8),
+      error(WarningCode.INVALID_FACTORY_ANNOTATION, 45, 8),
     ]);
   }
 
@@ -50,7 +50,7 @@ import 'package:meta/meta.dart';
 @factory
 main() { }
 ''', [
-      error(HintCode.INVALID_FACTORY_ANNOTATION, 33, 8),
+      error(WarningCode.INVALID_FACTORY_ANNOTATION, 33, 8),
     ]);
   }
 }

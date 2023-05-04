@@ -512,9 +512,7 @@ main() {
 
     test('equalityOp_end does not set reachability for `this`', () {
       h.thisType = 'C';
-      h.addSubtype('Null', 'C', false);
-      h.addFactor('C', 'Null', 'C');
-      h.addSubtype('C', 'Object', true);
+      h.addSuperInterfaces('C', (_) => [Type('Object')]);
       h.run([
         if_(this_.is_('Null'), [
           if_(this_.eq(nullLiteral), [
@@ -1062,6 +1060,17 @@ main() {
       ]);
     });
 
+    test('handleBreak handles null target', () {
+      h.run([
+        while_(booleanLiteral(true), [
+          checkReachable(true),
+          break_(Label.unbound()),
+          checkReachable(false),
+        ]),
+        checkReachable(false),
+      ]);
+    });
+
     test('handleContinue handles deep nesting', () {
       h.run([
         do_([
@@ -1089,6 +1098,18 @@ main() {
           continue_(),
           checkReachable(false),
         ], checkReachable(true).thenExpr(booleanLiteral(true))),
+        checkReachable(false),
+      ]);
+    });
+
+    test('handleContinue handles null target', () {
+      h.run([
+        for_(null, booleanLiteral(true),
+            checkReachable(false).thenExpr(expr('Object?')), [
+          checkReachable(true),
+          continue_(Label.unbound()),
+          checkReachable(false),
+        ]),
         checkReachable(false),
       ]);
     });
@@ -1303,9 +1324,7 @@ main() {
     group('initialize() promotes implicitly typed vars to type parameter types',
         () {
       test('when not final', () {
-        h.addSubtype('T&int', 'T', true);
-        h.addSubtype('T&int', 'Object', true);
-        h.addFactor('T', 'T&int', 'T');
+        h.addTypeVariable('T');
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('T&int')),
@@ -1314,9 +1333,7 @@ main() {
       });
 
       test('when final', () {
-        h.addSubtype('T&int', 'T', true);
-        h.addSubtype('T&int', 'Object', true);
-        h.addFactor('T', 'T&int', 'T');
+        h.addTypeVariable('T');
         var x = Var('x');
         h.run([
           declare(x,
@@ -1333,7 +1350,7 @@ main() {
         'parameter types', () {
       test('when not final', () {
         var x = Var('x');
-        h.addSubtype('T&int', 'T', true);
+        h.addTypeVariable('T');
         h.run([
           declare(x, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
@@ -1342,7 +1359,7 @@ main() {
 
       test('when final', () {
         var x = Var('x');
-        h.addSubtype('T&int', 'T', true);
+        h.addTypeVariable('T');
         h.run([
           declare(x, isFinal: true, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
@@ -1557,8 +1574,6 @@ main() {
 
     test('isExpression_end() sets reachability for `this`', () {
       h.thisType = 'C';
-      h.addSubtype('Never', 'C', true);
-      h.addFactor('C', 'Never', 'C');
       h.run([
         if_(this_.is_('Never'), [
           checkReachable(false),
@@ -1869,7 +1884,7 @@ main() {
       var x = Var('x');
       var y = Var('y');
       var z = Var('z');
-      var w = Var('w', errorId: 'w');
+      var w = Var('w');
       h.run([
         declare(x, type: 'int'),
         declare(y, type: 'int'),
@@ -1877,11 +1892,11 @@ main() {
         ifCase(
           expr('num'),
           w.pattern(type: 'int'),
-          ifTrue: [
+          [
             x.write(expr('int')).stmt,
             y.write(expr('int')).stmt,
           ],
-          ifFalse: [
+          [
             y.write(expr('int')).stmt,
             z.write(expr('int')).stmt,
           ],
@@ -1899,7 +1914,7 @@ main() {
         ifCase(
           x.expr.notEq(nullLiteral),
           intLiteral(0).pattern,
-          ifTrue: [
+          [
             checkNotPromoted(x),
           ],
         ),
@@ -2000,46 +2015,37 @@ main() {
 
     test('switchStatement throw in scrutinee makes all cases unreachable', () {
       h.run([
-        switch_(
-            throw_(expr('C')),
-            [
-              intLiteral(0).pattern.then([
-                checkReachable(false),
-              ]),
-              intLiteral(1).pattern.then([
-                checkReachable(false),
-              ]),
-            ],
-            isExhaustive: false),
+        switch_(throw_(expr('int')), [
+          intLiteral(0).pattern.then([
+            checkReachable(false),
+          ]),
+          intLiteral(1).pattern.then([
+            checkReachable(false),
+          ]),
+        ]),
         checkReachable(false),
       ]);
     });
 
     test('switchStatement var promotes', () {
-      var x = Var('x')..errorId = 'x';
+      var x = Var('x');
       h.run([
-        switch_(
-            expr('int'),
-            [
-              x.pattern(type: 'int?').then([
-                checkPromoted(x, 'int'),
-              ]),
-            ],
-            isExhaustive: true),
+        switch_(expr('int'), [
+          x.pattern(type: 'int?').then([
+            checkPromoted(x, 'int'),
+          ]),
+        ]),
       ]);
     });
 
     test('switchStatement_afterWhen() promotes', () {
-      var x = Var('x')..errorId = 'x';
+      var x = Var('x');
       h.run([
-        switch_(
-            expr('num'),
-            [
-              x.pattern().when(x.expr.is_('int')).then([
-                checkPromoted(x, 'int'),
-              ]),
-            ],
-            isExhaustive: true),
+        switch_(expr('num'), [
+          x.pattern().when(x.expr.is_('int')).then([
+            checkPromoted(x, 'int'),
+          ]),
+        ]),
       ]);
     });
 
@@ -2060,21 +2066,18 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
-        switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                checkPromoted(x, 'int'),
-                x.write(expr('int?')).stmt,
-                checkNotPromoted(x),
-              ]),
-              intLiteral(1).pattern.then([
-                checkPromoted(x, 'int'),
-                x.write(expr('int?')).stmt,
-                checkNotPromoted(x),
-              ]),
-            ],
-            isExhaustive: false),
+        switch_(expr('int'), [
+          intLiteral(0).pattern.then([
+            checkPromoted(x, 'int'),
+            x.write(expr('int?')).stmt,
+            checkNotPromoted(x),
+          ]),
+          intLiteral(1).pattern.then([
+            checkPromoted(x, 'int'),
+            x.write(expr('int?')).stmt,
+            checkNotPromoted(x),
+          ]),
+        ]),
       ]);
     });
 
@@ -2083,16 +2086,13 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
-        switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                checkPromoted(x, 'int'),
-                x.write(expr('int?')).stmt,
-                checkNotPromoted(x),
-              ])
-            ],
-            isExhaustive: false),
+        switch_(expr('int'), [
+          intLiteral(0).pattern.then([
+            checkPromoted(x, 'int'),
+            x.write(expr('int?')).stmt,
+            checkNotPromoted(x),
+          ])
+        ]),
       ]);
     });
 
@@ -2113,7 +2113,6 @@ main() {
               checkNotPromoted(x),
             ]),
           ],
-          isExhaustive: false,
         ),
       ]);
     });
@@ -2139,7 +2138,6 @@ main() {
               checkNotPromoted(x),
             ], hasLabels: true),
           ],
-          isExhaustive: false,
         ),
       ]);
     });
@@ -2163,7 +2161,6 @@ main() {
               checkNotPromoted(x),
             ], hasLabels: true),
           ],
-          isExhaustive: false,
         ),
       ]);
     });
@@ -2178,16 +2175,13 @@ main() {
         declare(z, type: 'int?', initializer: expr('int?')),
         y.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
-        switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                x.expr.as_('int').stmt,
-                y.write(expr('int?')).stmt,
-                break_(),
-              ]),
-            ],
-            isExhaustive: false),
+        switch_(expr('int'), [
+          intLiteral(0).pattern.then([
+            x.expr.as_('int').stmt,
+            y.write(expr('int?')).stmt,
+            break_(),
+          ]),
+        ]),
         checkNotPromoted(x),
         checkNotPromoted(y),
         checkPromoted(z, 'int'),
@@ -2207,23 +2201,20 @@ main() {
         x.expr.as_('int').stmt,
         y.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
-        switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                w.expr.as_('int').stmt,
-                y.expr.as_('int').stmt,
-                x.write(expr('int?')).stmt,
-                break_(),
-              ]),
-              default_.then([
-                w.expr.as_('int').stmt,
-                x.expr.as_('int').stmt,
-                y.write(expr('int?')).stmt,
-                break_(),
-              ]),
-            ],
-            isExhaustive: true),
+        switch_(expr('int'), [
+          intLiteral(0).pattern.then([
+            w.expr.as_('int').stmt,
+            y.expr.as_('int').stmt,
+            x.write(expr('int?')).stmt,
+            break_(),
+          ]),
+          default_.then([
+            w.expr.as_('int').stmt,
+            x.expr.as_('int').stmt,
+            y.write(expr('int?')).stmt,
+            break_(),
+          ]),
+        ]),
         checkPromoted(w, 'int'),
         checkNotPromoted(x),
         checkNotPromoted(y),
@@ -2235,23 +2226,21 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                x.expr.as_('int').stmt,
-                break_(),
-              ]),
-              default_.then([]),
-            ],
-            isExhaustive: true),
+        switch_(expr('int'), [
+          intLiteral(0).pattern.then([
+            x.expr.as_('int').stmt,
+            break_(),
+          ]),
+          default_.then([]),
+        ]),
         checkNotPromoted(x),
       ]);
     });
 
     test('switchStatement_endAlternative() joins branches', () {
-      var x1 = Var('x')..errorId = 'x1';
-      var x2 = Var('x')..errorId = 'x2';
+      var x1 = Var('x', identity: 'x1');
+      var x2 = Var('x', identity: 'x2');
+      PatternVariableJoin('x', expectedComponents: [x1, x2]);
       var y = Var('y');
       var z = Var('z');
       h.run([
@@ -2275,7 +2264,6 @@ main() {
               checkNotPromoted(z),
             ]),
           ],
-          isExhaustive: true,
         ),
       ]);
     });
@@ -3934,38 +3922,10 @@ main() {
             // class A {}
             // class B extends A {}
             // class C extends B {}
-            h.addSubtype('Object', 'A', false);
-            h.addSubtype('Object', 'A?', false);
-            h.addSubtype('Object', 'B?', false);
-            h.addSubtype('A', 'Object', true);
-            h.addSubtype('A', 'Object?', true);
-            h.addSubtype('A', 'A?', true);
-            h.addSubtype('A', 'B', false);
-            h.addSubtype('A', 'B?', false);
-            h.addSubtype('A?', 'Object', false);
-            h.addSubtype('A?', 'Object?', true);
-            h.addSubtype('A?', 'A', false);
-            h.addSubtype('A?', 'B?', false);
-            h.addSubtype('B', 'Object', true);
-            h.addSubtype('B', 'A', true);
-            h.addSubtype('B', 'A?', true);
-            h.addSubtype('B', 'B?', true);
-            h.addSubtype('B?', 'Object', false);
-            h.addSubtype('B?', 'Object?', true);
-            h.addSubtype('B?', 'A', false);
-            h.addSubtype('B?', 'A?', true);
-            h.addSubtype('B?', 'B', false);
-            h.addSubtype('C', 'Object', true);
-            h.addSubtype('C', 'A', true);
-            h.addSubtype('C', 'A?', true);
-            h.addSubtype('C', 'B', true);
-            h.addSubtype('C', 'B?', true);
-
-            h.addFactor('Object', 'A?', 'Object');
-            h.addFactor('Object', 'B?', 'Object');
-            h.addFactor('Object?', 'A', 'Object?');
-            h.addFactor('Object?', 'A?', 'Object');
-            h.addFactor('Object?', 'B?', 'Object');
+            h.addSuperInterfaces(
+                'C', (_) => [Type('B'), Type('A'), Type('Object')]);
+            h.addSuperInterfaces('B', (_) => [Type('A'), Type('Object')]);
+            h.addSuperInterfaces('A', (_) => [Type('Object')]);
           });
 
           test('; first', () {
@@ -4431,20 +4391,26 @@ main() {
               finallyModel._infoFor(h, x).promotedTypes, expectedFinallyChain);
         }
 
-        _check(['Object'], ['num', 'int'], ['Iterable', 'List'],
-            ['Object', 'Iterable', 'List']);
-        _check([], ['num', 'int'], ['Iterable', 'List'], ['Iterable', 'List']);
-        _check(['Object'], [], ['Iterable', 'List'],
-            ['Object', 'Iterable', 'List']);
-        _check([], [], ['Iterable', 'List'], ['Iterable', 'List']);
+        _check(
+            ['Object'],
+            ['num', 'int'],
+            ['Iterable<dynamic>', 'List<dynamic>'],
+            ['Object', 'Iterable<dynamic>', 'List<dynamic>']);
+        _check([], ['num', 'int'], ['Iterable<dynamic>', 'List<dynamic>'],
+            ['Iterable<dynamic>', 'List<dynamic>']);
+        _check(['Object'], [], ['Iterable<dynamic>', 'List<dynamic>'],
+            ['Object', 'Iterable<dynamic>', 'List<dynamic>']);
+        _check([], [], ['Iterable<dynamic>', 'List<dynamic>'],
+            ['Iterable<dynamic>', 'List<dynamic>']);
         _check(['Object'], ['num', 'int'], [], ['Object', 'num', 'int']);
         _check([], ['num', 'int'], [], ['num', 'int']);
         _check(['Object'], [], [], ['Object']);
         _check([], [], [], []);
-        _check(
-            [], ['num', 'int'], ['Object', 'Iterable'], ['Object', 'Iterable']);
+        _check([], ['num', 'int'], ['Object', 'Iterable<dynamic>'],
+            ['Object', 'Iterable<dynamic>']);
         _check([], ['num', 'int'], ['Object'], ['Object', 'num', 'int']);
-        _check([], ['Object', 'Iterable'], ['num', 'int'], ['num', 'int']);
+        _check([], ['Object', 'Iterable<dynamic>'], ['num', 'int'],
+            ['num', 'int']);
         _check([], ['Object'], ['num', 'int'], ['num', 'int']);
         _check([], ['num'], ['Object', 'int'], ['Object', 'int']);
         _check([], ['int'], ['Object', 'num'], ['Object', 'num', 'int']);
@@ -4533,22 +4499,23 @@ main() {
       var D = Type('D');
       var E = Type('E');
       var F = Type('F');
-      h.addSubtype('A', 'B', false);
-      h.addSubtype('B', 'A', true);
-      h.addSubtype('B', 'C', false);
-      h.addSubtype('B', 'D', false);
-      h.addSubtype('C', 'B', true);
-      h.addSubtype('C', 'D', false);
-      h.addSubtype('C', 'E', false);
-      h.addSubtype('D', 'B', true);
-      h.addSubtype('D', 'C', true);
-      h.addSubtype('D', 'E', false);
-      h.addSubtype('D', 'F', false);
-      h.addSubtype('E', 'C', true);
-      h.addSubtype('E', 'D', true);
-      h.addSubtype('E', 'F', false);
-      h.addSubtype('F', 'D', true);
-      h.addSubtype('F', 'E', true);
+      h.addSuperInterfaces(
+          'F',
+          (_) => [
+                Type('E'),
+                Type('D'),
+                Type('C'),
+                Type('B'),
+                Type('A'),
+                Type('Object')
+              ]);
+      h.addSuperInterfaces('E',
+          (_) => [Type('D'), Type('C'), Type('B'), Type('A'), Type('Object')]);
+      h.addSuperInterfaces(
+          'D', (_) => [Type('C'), Type('B'), Type('A'), Type('Object')]);
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('A'), Type('Object')]);
+      h.addSuperInterfaces('B', (_) => [Type('A'), Type('Object')]);
+      h.addSuperInterfaces('A', (_) => [Type('Object')]);
 
       void check(List<Type> chain1, List<Type> chain2, Matcher matcher) {
         expect(
@@ -5838,6 +5805,26 @@ main() {
       ]);
     });
 
+    test('due to pattern assignment', () {
+      var x = Var('x');
+      late Pattern writePattern;
+      h.run([
+        declare(x, type: 'int?', initializer: expr('int?')),
+        if_(x.expr.eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(x, 'int'),
+        (writePattern = x.pattern()).assign(expr('int?')).stmt,
+        checkNotPromoted(x),
+        x.expr.whyNotPromoted((reasons) {
+          expect(reasons.keys, unorderedEquals([Type('int')]));
+          var nonPromotionReason =
+              reasons.values.single as DemoteViaExplicitWrite<Var>;
+          expect(nonPromotionReason.node, same(writePattern));
+        }).stmt,
+      ]);
+    });
+
     test('preserved in join when one branch unreachable', () {
       var x = Var('x');
       late Expression writeExpression;
@@ -5955,8 +5942,8 @@ main() {
     group('because this', () {
       test('explicit', () {
         h.thisType = 'C';
-        h.addSubtype('D', 'C', true);
-        h.addFactor('C', 'D', 'C');
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
         h.run([
           if_(this_.isNot('D'), [
             return_(),
@@ -5971,8 +5958,8 @@ main() {
 
       test('implicit', () {
         h.thisType = 'C';
-        h.addSubtype('D', 'C', true);
-        h.addFactor('C', 'D', 'C');
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
         h.run([
           if_(this_.isNot('D'), [
             return_(),
@@ -6072,8 +6059,8 @@ main() {
     test('promotion of target breaks field promotion', () {
       h.addMember('B', '_field', 'Object?', promotable: true);
       h.addMember('C', '_field', 'num?', promotable: true);
-      h.addSubtype('C', 'B', true);
-      h.addFactor('B', 'C', 'B');
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+      h.addSuperInterfaces('B', (_) => [Type('Object')]);
       var x = Var('x');
       h.run([
         declare(x, type: 'B', initializer: expr('B')),
@@ -6093,8 +6080,8 @@ main() {
     test('promotion of target does not break field promotion', () {
       h.addMember('B', '_field', 'Object?', promotable: true);
       h.addMember('C', '_field', 'num?', promotable: true);
-      h.addSubtype('C', 'B', true);
-      h.addFactor('B', 'C', 'B');
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+      h.addSuperInterfaces('B', (_) => [Type('Object')]);
       var x = Var('x');
       h.run([
         declare(x, type: 'B', initializer: expr('B')),
@@ -6114,8 +6101,8 @@ main() {
     test('field not promotable after outer variable demoted', () {
       h.addMember('B', '_field', 'Object?', promotable: false);
       h.addMember('C', '_field', 'Object?', promotable: true);
-      h.addSubtype('C', 'B', true);
-      h.addFactor('B', 'C', 'B');
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+      h.addSuperInterfaces('B', (_) => [Type('Object')]);
       var x = Var('x');
       h.run([
         declare(x, type: 'B', initializer: expr('B')),
@@ -6135,8 +6122,8 @@ main() {
     test('field promotable after outer variable promoted', () {
       h.addMember('B', '_field', 'Object?', promotable: false);
       h.addMember('C', '_field', 'Object?', promotable: true);
-      h.addSubtype('C', 'B', true);
-      h.addFactor('B', 'C', 'B');
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+      h.addSuperInterfaces('B', (_) => [Type('Object')]);
       var x = Var('x');
       h.run([
         declare(x, type: 'B', initializer: expr('B')),
@@ -6375,6 +6362,3300 @@ main() {
       ]);
     });
   });
+
+  group('Patterns:', () {
+    group('Assignment:', () {
+      group('Demotion', () {
+        test('Demoting', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            x.expr.nonNullAssert.stmt,
+            checkPromoted(x, 'int'),
+            x.pattern().assign(expr('int?')).stmt,
+            checkNotPromoted(x),
+          ]);
+        });
+
+        test('Non-demoting', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'num?'),
+            x.expr.nonNullAssert.stmt,
+            checkPromoted(x, 'num'),
+            x.pattern().assign(expr('int')).stmt,
+            checkPromoted(x, 'num'),
+          ]);
+        });
+      });
+
+      group('Schema:', () {
+        test('Not promoted', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            x.pattern().assign(expr('int').checkContext('int?')).stmt,
+          ]);
+        });
+
+        test('Promoted', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            x.expr.nonNullAssert.stmt,
+            checkPromoted(x, 'int'),
+            x.pattern().assign(expr('int').checkContext('int')).stmt,
+          ]);
+        });
+      });
+
+      group('Promotion:', () {
+        test('Type of interest', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'num'),
+            if_(x.expr.is_('int'), []),
+            checkNotPromoted(x),
+            x.pattern().assign(expr('int')).stmt,
+            checkPromoted(x, 'int'),
+          ]);
+        });
+
+        test('Not a type of interest', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'num'),
+            x.pattern().assign(expr('int')).stmt,
+            checkNotPromoted(x),
+          ]);
+        });
+
+        test('Promotes matched value', () {
+          // The code below is equivalent to:
+          //     int x;
+          //     (x && _!) = ... as dynamic;
+          // There should be an "unnecessary !" warning, because the `x` pattern
+          // implicitly promotes the matched value to type `int`.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int'),
+            x
+                .pattern()
+                .and(wildcard().nullAssert..errorId = 'NULLASSERT')
+                .assign(expr('dynamic'))
+                .stmt,
+          ], expectedErrors: {
+            'matchedTypeIsStrictlyNonNullable(pattern: NULLASSERT, '
+                'matchedType: int)'
+          });
+        });
+
+        test('Does not promote scrutinee', () {
+          // The code below is equivalent to:
+          //     int x;
+          //     dynamic y = ...;
+          //     (x && _) = y;
+          //     // y is *not* promoted to `int`.
+          // Although the assignment to `x` performs an implicit downcast, we
+          // don't promote `y` because patterns in irrefutable contexts don't
+          // trigger scrutinee promotion.
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, type: 'int'),
+            declare(y, initializer: expr('dynamic')),
+            x
+                .pattern()
+                .and(wildcard()..errorId = 'WILDCARD')
+                .assign(y.expr)
+                .stmt,
+            checkNotPromoted(y),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          });
+        });
+      });
+
+      test('Definite assignment', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          checkAssigned(x, false),
+          x.pattern().assign(expr('int')).stmt,
+          checkAssigned(x, true),
+        ]);
+      });
+
+      group('Boolean condition:', () {
+        test('As main pattern', () {
+          var b = Var('b');
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            declare(b, type: 'bool'),
+            b.pattern().assign(x.expr.notEq(nullLiteral)).stmt,
+            if_(b.expr, [
+              // `x` is promoted because `b` is known to equal `x != null`.
+              checkPromoted(x, 'int'),
+            ]),
+          ]);
+        });
+
+        test('As parenthesized pattern', () {
+          var b = Var('b');
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            declare(b, type: 'bool'),
+            b.pattern().parenthesized.assign(x.expr.notEq(nullLiteral)).stmt,
+            if_(b.expr, [
+              // `x` is promoted because `b` is known to equal `x != null`.
+              checkPromoted(x, 'int'),
+            ]),
+          ]);
+        });
+
+        test('As subpattern', () {
+          h.addMember('bool', 'foo', 'bool');
+          var b = Var('b');
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            declare(b, type: 'bool'),
+            objectPattern(
+                    requiredType: 'bool',
+                    fields: [b.pattern().recordField('foo')])
+                .assign(x.expr.notEq(nullLiteral))
+                .stmt,
+            if_(b.expr, [
+              // Even though the RHS of the pattern is `x != null`, `x` is not
+              // promoted because the pattern for `b` is in a subpattern
+              // position.
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+      });
+
+      group('Demonstrated type:', () {
+        test('Subtype of matched value type', () {
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, initializer: expr('(dynamic,)')),
+            declare(y, type: 'int'),
+            recordPattern([y.pattern().recordField()])
+                .and(wildcard(expectInferredType: '(int,)')
+                  ..errorId = 'WILDCARD')
+                .assign(x.expr)
+                .stmt,
+            checkNotPromoted(x),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)'
+          });
+        });
+
+        test('Supertype of matched value type', () {
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, initializer: expr('(int,)')),
+            declare(y, type: 'num'),
+            recordPattern([y.pattern().recordField()])
+                .and(wildcard(expectInferredType: '(int,)')
+                  ..errorId = 'WILDCARD')
+                .assign(x.expr)
+                .stmt,
+            checkNotPromoted(x),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)'
+          });
+        });
+      });
+    });
+
+    group('Cast pattern:', () {
+      test('Subtype', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object?'),
+          ifCase(x.expr, wildcard(expectInferredType: 'String').as_('String'), [
+            checkPromoted(x, 'String'),
+          ]),
+        ]);
+      });
+
+      test('Supertype', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'num'),
+          ifCase(
+              x.expr,
+              wildcard(expectInferredType: 'Object').as_('Object')
+                ..errorId = 'PATTERN',
+              [
+                checkNotPromoted(x),
+              ]),
+        ], expectedErrors: {
+          'matchedTypeIsSubtypeOfRequired(pattern: PATTERN, '
+              'matchedType: num, requiredType: Object)',
+        });
+      });
+
+      test('Unrelated type', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'num'),
+          ifCase(x.expr, wildcard(expectInferredType: 'String').as_('String'), [
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      test('Inner promotions have no effect', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object?'),
+          ifCase(
+              x.expr,
+              objectPattern(requiredType: 'int', fields: []).as_('num').and(
+                  wildcard(expectInferredType: 'num')..errorId = 'WILDCARD'),
+              [
+                checkPromoted(x, 'num'),
+              ]),
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD, '
+              'kind: logicalAndPatternOperand)',
+        });
+      });
+
+      test('Match failure unreachable', () {
+        // Cast patterns don't fail; they throw exceptions.  So the "match
+        // failure" code path should be unreachable.
+        h.run([
+          ifCase(expr('Object?'), wildcard().as_('int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(wildcard().as_('num')..errorId = 'AS_NUM')
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ], expectedErrors: {
+          'matchedTypeIsSubtypeOfRequired(pattern: AS_NUM, matchedType: int, '
+              'requiredType: num)'
+        });
+      });
+
+      group('Demonstrated type:', () {
+        test('Subtype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr, recordPattern([wildcard().as_('int').recordField()]), [
+              checkPromoted(x, '(int,)'),
+            ]),
+          ]);
+        });
+
+        test('Supertype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  (wildcard().as_('Object')..errorId = 'CAST').recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ], expectedErrors: {
+            'matchedTypeIsSubtypeOfRequired(pattern: CAST, matchedType: num, '
+                'requiredType: Object)'
+          });
+        });
+
+        test('Unrelated to matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(x.expr,
+                recordPattern([wildcard().as_('String').recordField()]), [
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+      });
+    });
+
+    group('Constant pattern:', () {
+      test('Guaranteed match due to Null type', () {
+        h.run([
+          ifCase(expr('Null'), nullLiteral.pattern, [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('Not guaranteed to match due to Null type with old language version',
+          () {
+        h.patternsEnabled = false;
+        h.run([
+          switch_(
+              expr('Null'),
+              [
+                nullLiteral.pattern.then([
+                  checkReachable(true),
+                  break_(),
+                ]),
+                default_.then([
+                  checkReachable(true),
+                  break_(),
+                ]),
+              ],
+              isLegacyExhaustive: true),
+        ]);
+      });
+
+      test('In the general case, may or may not match', () {
+        h.run([
+          ifCase(expr('Object?'), intLiteral(0).pattern, [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('Null pattern promotes unchanged scrutinee', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('int?')),
+          ifCase(x.expr, nullLiteral.pattern, [
+            checkReachable(true),
+            checkNotPromoted(x),
+          ], [
+            checkReachable(true),
+            checkPromoted(x, 'int'),
+          ])
+        ]);
+      });
+
+      test("Null pattern doesn't promote scrutinee with old language version",
+          () {
+        h.patternsEnabled = false;
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('int?')),
+          switch_(
+              x.expr,
+              [
+                nullLiteral.pattern.then([
+                  checkReachable(true),
+                  checkNotPromoted(x),
+                  break_(),
+                ]),
+                default_.then([
+                  checkReachable(true),
+                  checkNotPromoted(x),
+                  break_(),
+                ]),
+              ],
+              isLegacyExhaustive: true),
+        ]);
+      });
+
+      test("Null pattern doesn't promote changed scrutinee", () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('int?')),
+          switch_(x.expr, [
+            wildcard()
+                .when(x.write(expr('int?')).stmt.thenExpr(expr('bool')))
+                .then([
+              break_(),
+            ]),
+            nullLiteral.pattern.then([
+              checkReachable(true),
+              checkNotPromoted(x),
+            ]),
+            wildcard(expectInferredType: 'int').then([
+              checkReachable(true),
+              checkNotPromoted(x),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('Null pattern promotes matched pattern var', () {
+        h.run([
+          ifCase(expr('int?'),
+              nullLiteral.pattern.or(wildcard(expectInferredType: 'int')), []),
+        ]);
+      });
+
+      test('Null pattern can even match non-nullable types', () {
+        // Due to mixed mode unsoundness, attempting to match `null` to a
+        // non-nullable type can still succeed, so in order to avoid unsoundness
+        // escalation, it's important that the matching case is considered
+        // reachable.
+        h.run([
+          ifCase(expr('int'), nullLiteral.pattern, [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('Demonstrated type', () {
+        // The demonstrated type of a constant pattern is the matched value
+        // type.  We don't want to promote to the constant type because doing so
+        // might be unsound if the user overrides `operator==`.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('(Object,)')),
+          ifCase(x.expr, recordPattern([intLiteral(1).pattern.recordField()]), [
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+    });
+
+    group('For-in statement:', () {
+      test('does not promote iterable', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<dynamic>')),
+          patternForIn(
+            wildcard(type: 'int'),
+            x.expr,
+            [],
+          ),
+          checkNotPromoted(x),
+        ]);
+      });
+    });
+
+    group('For-in collection element:', () {
+      test('does not promote iterable', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<dynamic>')),
+          patternForInElement(
+            wildcard(type: 'int'),
+            x.expr,
+            expr('Object').asCollectionElement,
+          ).inContextElementType('Object'),
+          checkNotPromoted(x),
+        ]);
+      });
+    });
+
+    group('If-case element:', () {
+      test('guarded', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int?'),
+          ifCaseElement(
+                  expr('Object'),
+                  wildcard().when(x.expr.notEq(nullLiteral)),
+                  block([
+                    checkReachable(true),
+                    checkPromoted(x, 'int'),
+                  ]).thenExpr(expr('String')).asCollectionElement,
+                  block([
+                    checkReachable(true),
+                    checkNotPromoted(x),
+                  ]).thenExpr(expr('String')).asCollectionElement)
+              .inContextElementType('String'),
+        ]);
+      });
+
+      test('promotes', () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, type: 'num'),
+          ifCaseElement(
+                  x.expr,
+                  y.pattern(type: 'int'),
+                  block([
+                    checkReachable(true),
+                    checkPromoted(x, 'int'),
+                  ]).thenExpr(expr('String')).asCollectionElement,
+                  block([
+                    checkReachable(true),
+                    checkNotPromoted(x),
+                  ]).thenExpr(expr('String')).asCollectionElement)
+              .inContextElementType('String'),
+        ]);
+      });
+    });
+
+    group('If-case statement:', () {
+      test('guarded', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int?'),
+          ifCase(expr('Object'), wildcard().when(x.expr.notEq(nullLiteral)), [
+            checkReachable(true),
+            checkPromoted(x, 'int'),
+          ], [
+            checkReachable(true),
+            checkNotPromoted(x),
+          ])
+        ]);
+      });
+
+      test('promotes', () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, type: 'num'),
+          ifCase(x.expr, y.pattern(type: 'int'), [
+            checkReachable(true),
+            checkPromoted(x, 'int'),
+          ], [
+            checkReachable(true),
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      test('promotion in both pattern and guard', () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, type: 'int?'),
+          declare(y, type: 'String?'),
+          ifCase(
+              x.expr, wildcard(type: 'int').when(y.expr.notEq(nullLiteral)), [
+            checkReachable(true),
+            checkPromoted(x, 'int'),
+            checkPromoted(y, 'String'),
+          ], [
+            checkReachable(true),
+            checkNotPromoted(x),
+            checkNotPromoted(y),
+          ]),
+        ]);
+      });
+    });
+
+    group('Logical-and pattern:', () {
+      group('promotion of matched value type:', () {
+        test('when scrutinee is promotable', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'num'),
+            ifCase(
+                x.expr,
+                wildcard(type: 'int').and(
+                    wildcard(expectInferredType: 'int')..errorId = 'WILDCARD'),
+                [
+                  checkPromoted(x, 'int'),
+                ]),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          });
+        });
+
+        test('when scrutinee is not promotable', () {
+          h.run([
+            ifCase(
+                expr('num'),
+                wildcard(type: 'int').and(
+                    wildcard(expectInferredType: 'int')..errorId = 'WILDCARD'),
+                []),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          });
+        });
+      });
+
+      test('double promotion of matched value type', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object'),
+          ifCase(
+              x.expr,
+              wildcard(type: 'num').and(wildcard(type: 'int').and(
+                  wildcard(expectInferredType: 'int')..errorId = 'WILDCARD')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD, '
+              'kind: logicalAndPatternOperand)',
+        });
+      });
+
+      group('Demonstrated type:', () {
+        test('LHS <: RHS, both could promote', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(Object,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'int')
+                      .and(wildcard(type: 'num')..errorId = 'NUM')
+                      .recordField()
+                ]),
+                [
+                  checkPromoted(x, '(int,)'),
+                ]),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: NUM, '
+                'kind: logicalAndPatternOperand)'
+          });
+        });
+
+        test('RHS <: LHS, both could promote', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(Object,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'num').and(wildcard(type: 'int')).recordField()
+                ]),
+                [
+                  checkPromoted(x, '(int,)'),
+                ]),
+          ]);
+        });
+
+        test('LHS <: RHS, RHS == declared type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'int')
+                      .and(wildcard(type: 'num')..errorId = 'NUM')
+                      .recordField()
+                ]),
+                [
+                  checkPromoted(x, '(int,)'),
+                ]),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: NUM, '
+                'kind: logicalAndPatternOperand)'
+          });
+        });
+
+        test('RHS <: LHS, LHS == declared type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  (wildcard(type: 'num')..errorId = 'NUM')
+                      .and(wildcard(type: 'int'))
+                      .recordField()
+                ]),
+                [
+                  checkPromoted(x, '(int,)'),
+                ]),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: NUM, '
+                'kind: logicalAndPatternOperand)'
+          });
+        });
+
+        test('LHS <: RHS, only LHS could promote', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'int')
+                      .and(wildcard(type: 'Object')..errorId = 'OBJECT')
+                      .recordField()
+                ]),
+                [
+                  checkPromoted(x, '(int,)'),
+                ]),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: OBJECT, '
+                'kind: logicalAndPatternOperand)'
+          });
+        });
+
+        test('RHS <: LHS, only RHS could promote', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  (wildcard(type: 'Object')..errorId = 'OBJECT')
+                      .and(wildcard(type: 'int'))
+                      .recordField()
+                ]),
+                [
+                  checkPromoted(x, '(int,)'),
+                ]),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: OBJECT, '
+                'kind: logicalAndPatternOperand)'
+          });
+        });
+
+        test('LHS <: RHS, neither could promote', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(int,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  (wildcard(type: 'num')..errorId = 'NUM')
+                      .and(wildcard(type: 'Object')..errorId = 'OBJECT')
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: NUM, '
+                'kind: logicalAndPatternOperand)',
+            'unnecessaryWildcardPattern(pattern: OBJECT, '
+                'kind: logicalAndPatternOperand)'
+          });
+        });
+
+        test('RHS <: LHS, neither could promote', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(int,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  (wildcard(type: 'Object')..errorId = 'OBJECT')
+                      .and(wildcard(type: 'num')..errorId = 'NUM')
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: OBJECT, '
+                'kind: logicalAndPatternOperand)',
+            'unnecessaryWildcardPattern(pattern: NUM, '
+                'kind: logicalAndPatternOperand)'
+          });
+        });
+      });
+    });
+
+    group('Logical-or pattern:', () {
+      group('Joins promotions of scrutinee:', () {
+        test('LHS more promoted', () {
+          var x = Var('x');
+          // `(num() && int()) || num()` retains promotion to `num`
+          h.run([
+            declare(x, initializer: expr('Object')),
+            ifCase(
+                x.expr,
+                objectPattern(requiredType: 'num', fields: [])
+                    .and(objectPattern(requiredType: 'int', fields: []))
+                    .or(objectPattern(requiredType: 'num', fields: [])),
+                [
+                  checkPromoted(x, 'num'),
+                ]),
+          ]);
+        });
+
+        test('RHS more promoted', () {
+          var x = Var('x');
+          // `num() || (num() && int())` retains promotion to `num`
+          h.run([
+            declare(x, initializer: expr('Object')),
+            ifCase(
+                x.expr,
+                objectPattern(requiredType: 'num', fields: []).or(
+                    objectPattern(requiredType: 'num', fields: [])
+                        .and(objectPattern(requiredType: 'int', fields: []))),
+                [
+                  checkPromoted(x, 'num'),
+                ]),
+          ]);
+        });
+      });
+
+      group('Joins promotions of implicit temporary match variable:', () {
+        test('LHS more promoted', () {
+          // `(num() && int()) || num()` retains promotion to `num`
+          h.run([
+            ifCase(
+                expr('Object'),
+                objectPattern(requiredType: 'num', fields: [])
+                    .and(objectPattern(requiredType: 'int', fields: []))
+                    .or(objectPattern(requiredType: 'num', fields: []))
+                    .and(wildcard(expectInferredType: 'num')
+                      ..errorId = 'WILDCARD'),
+                []),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          });
+        });
+
+        test('RHS more promoted', () {
+          // `num() || (num() && int())` retains promotion to `num`
+          h.run([
+            ifCase(
+                expr('Object'),
+                objectPattern(requiredType: 'num', fields: [])
+                    .or(objectPattern(requiredType: 'num', fields: [])
+                        .and(objectPattern(requiredType: 'int', fields: [])))
+                    .and(wildcard(expectInferredType: 'num')
+                      ..errorId = 'WILDCARD'),
+                []),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          });
+        });
+      });
+
+      group('Joins explicitly declared variables:', () {
+        test('LHS promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            ifCase(
+                expr('int?'),
+                x1.pattern(type: 'int?').nullCheck.or(x2.pattern(type: 'int?')),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('RHS promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            ifCase(
+                expr('int?'),
+                x1.pattern(type: 'int?').or(x2.pattern(type: 'int?').nullCheck),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('Both sides promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            ifCase(
+                expr('int?'),
+                x1
+                    .pattern(type: 'int?')
+                    .nullCheck
+                    .or(x2.pattern(type: 'int?').nullCheck),
+                [
+                  checkPromoted(x, 'int'),
+                ]),
+          ]);
+        });
+      });
+
+      group(
+          'Sets join variable assigned even if variable appears on only one '
+          'side:', () {
+        test('Variable on LHS only', () {
+          var x1 = Var('x', identity: 'x1')..errorId = 'X1';
+          var x = PatternVariableJoin('x', expectedComponents: [x1]);
+          // `x` is considered assigned inside the `true` branch (even though
+          // it's not actually assigned on both sides of the or-pattern) because
+          // this avoids redundant errors.
+          h.run([
+            ifCase(expr('int?'),
+                (x1.pattern().nullCheck.or(wildcard()))..errorId = 'OR', [
+              checkAssigned(x, true),
+            ]),
+          ], expectedErrors: {
+            'logicalOrPatternBranchMissingVariable(node: OR, hasInLeft: true, '
+                'name: x, variable: X1)'
+          });
+        });
+
+        test('Variable on RHS only', () {
+          var x1 = Var('x', identity: 'x1')..errorId = 'X1';
+          var x = PatternVariableJoin('x', expectedComponents: [x1]);
+          // `x` is considered assigned inside the `true` branch (even though
+          // it's not actually assigned on both sides of the or-pattern) because
+          // this avoids redundant errors.
+          h.run([
+            ifCase(expr('int?'),
+                (wildcard().nullCheck.or(x1.pattern()))..errorId = 'OR', [
+              checkAssigned(x, true),
+            ]),
+          ], expectedErrors: {
+            'logicalOrPatternBranchMissingVariable(node: OR, hasInLeft: false, '
+                'name: x, variable: X1)'
+          });
+        });
+      });
+
+      group('Demonstrated type:', () {
+        test('LHS <: RHS, both could promote', () {
+          // In the circumstance where the LHS and RHS of the logical-or pattern
+          // promote the matched value to different types, we don't retain any
+          // promotion.  This is similar to how we don't retain any promotion
+          // for a test like `if (x is int || x is num)`.
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(Object,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'int').or(wildcard(type: 'num')).recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('RHS <: LHS, both could promote', () {
+          // In the circumstance where the LHS and RHS of the logical-or pattern
+          // promote the matched value to different types, we don't retain any
+          // promotion.  This is similar to how we don't retain any promotion
+          // for a test like `if (x is int || x is num)`.
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(Object,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'num').or(wildcard(type: 'int')).recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('LHS == RHS, could promote', () {
+          // In the circumstance where the LHS and RHS of the logical-or pattern
+          // promote the matched value to the same type, we do retain the
+          // promotion.  This is similar to how we retain the promotion for a
+          // test like `if (x is num || x is num)`.
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(Object,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'num').or(wildcard(type: 'num')).recordField()
+                ]),
+                [
+                  checkPromoted(x, '(num,)'),
+                ]),
+          ]);
+        });
+
+        test('LHS <: RHS, only LHS could promote', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'int')
+                      .or(wildcard(type: 'Object'))
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('RHS <: LHS, only RHS could promote', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'Object')
+                      .or(wildcard(type: 'int'))
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('LHS <: RHS, neither could promote', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(int,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'num')
+                      .or(wildcard(type: 'Object'))
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('RHS <: LHS, neither could promote', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(int,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'Object')
+                      .or(wildcard(type: 'num'))
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('Does not promote to LUB', () {
+          // `if (x case (int _ || double _,)` doesn't promote `x` to `(num,)`.
+          // Rationale: we want to be consistent with the behavior of
+          // `if (x case int _ || double _)`, which doesn't promote to `num`.
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(Object?,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'int')
+                      .or(wildcard(type: 'double'))
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+      });
+    });
+
+    group('List pattern:', () {
+      group('Not guaranteed to match:', () {
+        test('Empty list', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([]).then([break_()]),
+              default_.then([
+                checkReachable(true),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('Single non-rest element', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([wildcard()]).then([break_()]),
+              default_.then([
+                checkReachable(true),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('Rest pattern with subpattern that may fail to match', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([listPatternRestElement(listPattern([]))])
+                  .then([break_()]),
+              default_.then([
+                checkReachable(true),
+              ])
+            ])
+          ]);
+        });
+      });
+
+      group('Guaranteed to match:', () {
+        test('Rest pattern with no subpattern', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([listPatternRestElement()]).then([break_()]),
+              default_.then([
+                checkReachable(false),
+              ])
+            ])
+          ]);
+        });
+
+        test('Rest pattern with subpattern that always matches', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([listPatternRestElement(wildcard())])
+                  .then([break_()]),
+              default_.then([
+                checkReachable(false),
+              ])
+            ])
+          ]);
+        });
+      });
+
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(x.expr, listPattern([wildcard()], elementType: 'int'), [
+            checkPromoted(x, 'List<int>'),
+          ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('List<int>')
+                  .and(listPattern([], elementType: 'num'))
+                  .and(y.pattern(expectInferredType: 'List<int>')),
+              [
+                checkPromoted(x, 'List<int>'),
+              ]),
+        ]);
+      });
+
+      test('Reachability', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<int>')),
+          ifCase(x.expr, listPattern([], elementType: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      group('Demonstrated type:', () {
+        test('Subtype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(Iterable<Object>,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  listPattern([wildcard(type: 'int')], elementType: 'num')
+                      .recordField()
+                ]),
+                [
+                  checkPromoted(x, '(List<num>,)'),
+                ]),
+          ]);
+        });
+
+        test('Supertype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(List<num>,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  listPattern([wildcard(type: 'int')], elementType: 'Object')
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('Unrelated to matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(List<int?>,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  listPattern([wildcard(type: 'int')], elementType: 'num')
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+      });
+    });
+
+    group('Map pattern:', () {
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              mapPattern([mapPatternEntry(intLiteral(0), wildcard())],
+                  keyType: 'int', valueType: 'String'),
+              [
+                checkPromoted(x, 'Map<int, String>'),
+              ]),
+        ]);
+      });
+
+      test('Match failure reachable', () {
+        h.run([
+          ifCase(
+              expr('Object?'),
+              mapPattern([
+                mapPatternEntry(expr('Object'), wildcard()),
+              ]),
+              [
+                checkReachable(true),
+              ],
+              [
+                checkReachable(true),
+              ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('Map<int, int>')
+                  .and(mapPattern([
+                    mapPatternEntry(expr('Object'), wildcard()),
+                  ], keyType: 'num', valueType: 'num'))
+                  .and(y.pattern(expectInferredType: 'Map<int, int>')),
+              [
+                checkPromoted(x, 'Map<int, int>'),
+              ]),
+        ]);
+      });
+
+      test('Reachability', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Map<int, int>')),
+          ifCase(
+              x.expr,
+              mapPattern([
+                mapPatternEntry(expr('Object'), wildcard()),
+              ], keyType: 'int', valueType: 'int'),
+              [
+                checkReachable(true),
+              ],
+              [
+                checkReachable(true),
+              ]),
+        ]);
+      });
+
+      group('Demonstrated type:', () {
+        test('Subtype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(Map<num?, Object>?,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  mapPattern([
+                    mapPatternEntry(intLiteral(0), wildcard(type: 'int'))
+                  ], keyType: 'int?', valueType: 'num')
+                      .recordField()
+                ]),
+                [
+                  checkPromoted(x, '(Map<int?, num>,)'),
+                ]),
+          ]);
+        });
+
+        test('Supertype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(Map<int, num>,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  mapPattern([
+                    mapPatternEntry(intLiteral(0), wildcard(type: 'int'))
+                  ], keyType: 'int', valueType: 'Object')
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('Unrelated to matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(Map<int, int?>,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  mapPattern([
+                    mapPatternEntry(intLiteral(0), wildcard(type: 'int'))
+                  ], keyType: 'int', valueType: 'num')
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+      });
+    });
+
+    group('Null-assert:', () {
+      test('Throws if not null', () {
+        h.run([
+          ifCase(expr('Object?'), wildcard().nullAssert, [], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      group('Scrutinee promotion:', () {
+        test('If changed', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            switch_(x.expr, [
+              wildcard()
+                  .when(x.write(expr('Object?')).stmt.thenExpr(expr('bool')))
+                  .then([
+                break_(),
+              ]),
+              wildcard().nullAssert.then([
+                checkNotPromoted(x),
+              ])
+            ]),
+          ]);
+        });
+
+        test('If unchanged', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            ifCase(x.expr, wildcard().nullAssert, [
+              checkPromoted(x, 'Object'),
+            ], [
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+
+        test('If subpattern', () {
+          // Equivalent Dart code:
+          //     typedef T = int?;
+          //     extension on T {
+          //       dynamic get foo { ... }
+          //     }
+          //     f(Object? x) {
+          //       if (x case T(foo: _!)) {
+          //         // x still might be `null`
+          //       }
+          //     }
+          h.addDownwardInfer(name: 'T', context: 'Object?', result: 'int?');
+          h.addMember('int?', 'foo', 'dynamic');
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            ifCase(
+                x.expr,
+                objectPattern(
+                    requiredType: 'T',
+                    fields: [wildcard().nullAssert.recordField('foo')]),
+                [
+                  checkPromoted(x, 'int?'),
+                ]),
+          ]);
+        });
+      });
+
+      test('Promotes temporary variable', () {
+        h.run([
+          ifCase(
+              expr('Object?'),
+              wildcard().nullAssert.and(
+                  wildcard(expectInferredType: 'Object')..errorId = 'WILDCARD'),
+              []),
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD, '
+              'kind: logicalAndPatternOperand)'
+        });
+      });
+
+      test('Unreachable if null', () {
+        h.run([
+          ifCase(expr('Null'), wildcard().nullAssert, [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('Reachable otherwise', () {
+        h.run([
+          ifCase(expr('Object?'), wildcard().nullAssert, [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int?')
+                  .and(wildcard().nullAssert)
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ]);
+      });
+
+      test('Demonstrated type', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('(int?,)')),
+          ifCase(x.expr, recordPattern([wildcard().nullAssert.recordField()]), [
+            checkPromoted(x, '(int,)'),
+          ]),
+        ]);
+      });
+    });
+
+    group('Null-check:', () {
+      test('Might not match', () {
+        h.run([
+          ifCase(expr('Object?'), wildcard().nullCheck, [], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      group('Scrutinee promotion:', () {
+        test('If changed', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            switch_(x.expr, [
+              wildcard()
+                  .when(x.write(expr('Object?')).stmt.thenExpr(expr('bool')))
+                  .then([
+                break_(),
+              ]),
+              wildcard().nullCheck.then([
+                checkNotPromoted(x),
+              ])
+            ]),
+          ]);
+        });
+
+        test('If unchanged', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            ifCase(x.expr, wildcard().nullCheck, [
+              checkPromoted(x, 'Object'),
+            ], [
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+
+        test('If subpattern', () {
+          // Equivalent Dart code:
+          //     typedef T = int?;
+          //     extension on T {
+          //       dynamic get foo { ... }
+          //     }
+          //     f(Object? x) {
+          //       if (x case T(foo: _?)) {
+          //         // x still might be `null`
+          //       }
+          //     }
+          h.addDownwardInfer(name: 'T', context: 'Object?', result: 'int?');
+          h.addMember('int?', 'foo', 'dynamic');
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            ifCase(
+                x.expr,
+                objectPattern(
+                    requiredType: 'T',
+                    fields: [wildcard().nullCheck.recordField('foo')]),
+                [
+                  checkPromoted(x, 'int?'),
+                ]),
+          ]);
+        });
+      });
+
+      test('Promotes temporary variable', () {
+        h.run([
+          ifCase(
+              expr('Object?'),
+              wildcard().nullCheck.and(
+                  wildcard(expectInferredType: 'Object')..errorId = 'WILDCARD'),
+              []),
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD, '
+              'kind: logicalAndPatternOperand)'
+        });
+      });
+
+      test('Unreachable if null', () {
+        h.run([
+          ifCase(expr('Null'), wildcard().nullCheck, [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('Reachable otherwise', () {
+        h.run([
+          ifCase(expr('Object?'), wildcard().nullCheck, [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int?')
+                  .and(wildcard().nullCheck)
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ]);
+      });
+
+      test('Demonstrated type', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('(int?,)')),
+          ifCase(x.expr, recordPattern([wildcard().nullCheck.recordField()]), [
+            checkPromoted(x, '(int,)'),
+          ]),
+        ]);
+      });
+    });
+
+    group('Object pattern:', () {
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(x.expr, objectPattern(requiredType: 'int', fields: []), [
+            checkPromoted(x, 'int'),
+          ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(objectPattern(requiredType: 'num', fields: []))
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ]);
+      });
+
+      group('Demonstrated type:', () {
+        test('Subtype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  objectPattern(requiredType: 'int', fields: []).recordField()
+                ]),
+                [
+                  checkPromoted(x, '(int,)'),
+                ]),
+          ]);
+        });
+
+        test('Supertype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  objectPattern(requiredType: 'Object', fields: [])
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('Unrelated to matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  objectPattern(requiredType: 'String', fields: [])
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+      });
+    });
+
+    group('Pattern assignment:', () {
+      test('Does not promote RHS', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('num')),
+          wildcard().as_('int').assign(x.expr).stmt,
+          checkNotPromoted(x),
+        ]);
+      });
+    });
+
+    group('Pattern variable declaration:', () {
+      test('Does not promote RHS', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('num')),
+          match(wildcard().as_('int'), x.expr),
+          checkNotPromoted(x),
+        ]);
+      });
+    });
+
+    group('Record pattern:', () {
+      test('Simple promotion', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(x.expr, recordPattern([wildcard().recordField()]), [
+            checkPromoted(x, '(Object?,)'),
+          ]),
+        ]);
+      });
+
+      group('Promote to demonstrated type:', () {
+        test('Unnamed fields', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'int').recordField(),
+                  wildcard(type: 'String').recordField()
+                ]),
+                [
+                  checkPromoted(x, '(int, String)'),
+                ]),
+          ]);
+        });
+
+        test('Named fields', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  wildcard(type: 'int').recordField('i'),
+                  wildcard(type: 'String').recordField('s')
+                ]),
+                [
+                  checkPromoted(x, '({int i, String s})'),
+                ]),
+          ]);
+        });
+      });
+
+      test('Required type is a type of interest', () {
+        // The required type is `(Object?,)`.  Since that's the type used in the
+        // desugared type test, it's considered a type of interest even though
+        // the scrutinee is initially promoted to `(int,)`.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          ifCase(x.expr, recordPattern([wildcard(type: 'int').recordField()]), [
+            checkPromoted(x, '(int,)'),
+            x.write(expr('(num,)')).stmt,
+            checkPromoted(x, '(Object?,)'),
+          ]),
+        ]);
+      });
+
+      test('Promotion to demonstrated type cannot fail', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('(Object?,)')),
+          ifCase(x.expr, recordPattern([wildcard().as_('int').recordField()]), [
+            checkPromoted(x, '(int,)'),
+          ], [
+            checkReachable(
+              false,
+            ),
+          ]),
+        ]);
+      });
+
+      test('Match failure reachable', () {
+        h.run([
+          ifCase(expr('Object?'), recordPattern([wildcard().recordField()]), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('(int,)')
+                  .and(recordPattern([wildcard().recordField()]))
+                  .and(y.pattern(expectInferredType: '(int,)')),
+              [
+                checkPromoted(x, '(int,)'),
+              ]),
+        ]);
+      });
+
+      group('Demonstrated type:', () {
+        test('Subtype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('((num,),)')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  recordPattern([wildcard(type: 'int').recordField()])
+                      .recordField()
+                ]),
+                [
+                  checkPromoted(x, '((int,),)'),
+                ]),
+          ]);
+        });
+
+        test('Supertype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Never')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  recordPattern([wildcard(type: 'num').recordField()])
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('Unrelated to matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('String')),
+            ifCase(
+                x.expr,
+                recordPattern([
+                  recordPattern([wildcard(type: 'num').recordField()])
+                      .recordField()
+                ]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+      });
+    });
+
+    group('Relational pattern:', () {
+      group('==:', () {
+        test('Guaranteed match due to Null type', () {
+          h.run([
+            ifCase(expr('Null'), relationalPattern('==', nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(false),
+            ])
+          ]);
+        });
+
+        test('Guaranteed match due to Null type in subpattern', () {
+          h.run([
+            ifCase(
+                expr('(Null,)'),
+                recordPattern(
+                    [relationalPattern('==', nullLiteral).recordField()]),
+                [
+                  checkReachable(true),
+                ],
+                [
+                  checkReachable(false),
+                ])
+          ]);
+        });
+
+        test('In the general case, may or may not match', () {
+          h.run([
+            ifCase(expr('Object?'), relationalPattern('==', intLiteral(0)), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        test('Null pattern promotes unchanged scrutinee', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int?')),
+            ifCase(x.expr, relationalPattern('==', nullLiteral), [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ], [
+              checkReachable(true),
+              checkPromoted(x, 'int'),
+            ])
+          ]);
+        });
+
+        test("Null pattern doesn't promote changed scrutinee", () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int?')),
+            switch_(x.expr, [
+              wildcard()
+                  .when(x.write(expr('int?')).stmt.thenExpr(expr('bool')))
+                  .then([
+                break_(),
+              ]),
+              relationalPattern('==', nullLiteral).then([
+                checkReachable(true),
+                checkNotPromoted(x),
+              ]),
+              wildcard(expectInferredType: 'int').then([
+                checkReachable(true),
+                checkNotPromoted(x),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('Null pattern promotes matched pattern var', () {
+          h.run([
+            ifCase(
+                expr('int?'),
+                relationalPattern('==', nullLiteral)
+                    .or(wildcard(expectInferredType: 'int')),
+                []),
+          ]);
+        });
+
+        test('Null pattern can even match non-nullable types', () {
+          // Due to mixed mode unsoundness, attempting to match `null` to a
+          // non-nullable type can still succeed, so in order to avoid
+          // unsoundness escalation, it's important that the matching case is
+          // considered reachable.
+          h.run([
+            ifCase(expr('int'), relationalPattern('==', nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        group('Demonstrated type:', () {
+          test('== value', () {
+            // The demonstrated type of a relational pattern using `==` is the
+            // matched value type.
+            var x = Var('x');
+            h.run([
+              declare(x, initializer: expr('(Object?,)')),
+              ifCase(
+                  x.expr,
+                  recordPattern(
+                      [relationalPattern('==', expr('Object')).recordField()]),
+                  [
+                    checkNotPromoted(x),
+                  ]),
+            ]);
+          });
+
+          test('== null', () {
+            // The demonstrated type of a relational pattern using `==` is the
+            // matched value type, even in the case of `== null`, because we
+            // don't promote to the `Null` type.
+            var x = Var('x');
+            h.run([
+              declare(x, initializer: expr('(Object?,)')),
+              ifCase(
+                  x.expr,
+                  recordPattern(
+                      [relationalPattern('==', nullLiteral).recordField()]),
+                  [
+                    checkNotPromoted(x),
+                  ]),
+            ]);
+          });
+        });
+      });
+
+      group('!=:', () {
+        test('Guaranteed mismatch due to Null type', () {
+          h.run([
+            ifCase(expr('Null'), relationalPattern('!=', nullLiteral), [
+              checkReachable(false),
+            ], [
+              checkReachable(true),
+            ])
+          ]);
+        });
+
+        test('In the general case, may or may not match', () {
+          h.run([
+            ifCase(expr('Object?'), relationalPattern('!=', intLiteral(0)), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        test('Null pattern promotes unchanged scrutinee', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int?')),
+            ifCase(x.expr, relationalPattern('!=', nullLiteral), [
+              checkReachable(true),
+              checkPromoted(x, 'int'),
+            ], [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ])
+          ]);
+        });
+
+        test("Null pattern doesn't promote changed scrutinee", () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int?')),
+            switch_(x.expr, [
+              wildcard()
+                  .when(x.write(expr('int?')).stmt.thenExpr(expr('bool')))
+                  .then([
+                break_(),
+              ]),
+              relationalPattern('!=', nullLiteral)
+                  .and(
+                      wildcard(expectInferredType: 'int')..errorId = 'WILDCARD')
+                  .then([
+                checkReachable(true),
+                checkNotPromoted(x),
+              ]),
+            ]),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)'
+          });
+        });
+
+        test('Null pattern promotes matched pattern var', () {
+          h.run([
+            ifCase(
+                expr('int?'),
+                relationalPattern('!=', nullLiteral).and(
+                    wildcard(expectInferredType: 'int')..errorId = 'WILDCARD'),
+                []),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)'
+          });
+        });
+
+        test('Null pattern can even match non-nullable types', () {
+          // Due to mixed mode unsoundness, attempting to match `null` to a
+          // non-nullable type can still succeed, so in order to avoid
+          // unsoundness escalation, it's important that the matching case is
+          // considered reachable.
+          h.run([
+            ifCase(expr('int'), relationalPattern('!=', nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        group('Demonstrated type:', () {
+          test('!= value', () {
+            // The demonstrated type of a relational pattern using `!=` is
+            // usually the matched value type.
+            var x = Var('x');
+            h.run([
+              declare(x, initializer: expr('(Object?,)')),
+              ifCase(
+                  x.expr,
+                  recordPattern(
+                      [relationalPattern('!=', expr('Object')).recordField()]),
+                  [
+                    checkNotPromoted(x),
+                  ]),
+            ]);
+          });
+
+          test('!= null', () {
+            // The demonstrated type of the relational pattern `!= null` is the
+            // matched value type promoted to non-nullable.
+            var x = Var('x');
+            h.run([
+              declare(x, initializer: expr('(Object?,)')),
+              ifCase(
+                  x.expr,
+                  recordPattern(
+                      [relationalPattern('!=', nullLiteral).recordField()]),
+                  [
+                    checkPromoted(x, '(Object,)'),
+                  ]),
+            ]);
+          });
+        });
+      });
+
+      group('other:', () {
+        test('Does not assume anything, even though == or != would', () {
+          // This is a bit of a contrived test case, since it exercises
+          // `null < null`.  But such a thing is possible with extension
+          // methods.
+          h.addMember('Null', '<', 'bool Function(Object?)');
+          h.run([
+            ifCase(expr('Null'), relationalPattern('<', nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ])
+          ]);
+        });
+
+        test('Demonstrated type', () {
+          // The demonstrated type of a relational pattern using a
+          // non-equality operator is the matched value type.
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(int,)')),
+            ifCase(
+                x.expr,
+                recordPattern(
+                    [relationalPattern('>', intLiteral(0)).recordField()]),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+      });
+    });
+
+    group('Switch expression:', () {
+      test('guarded', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int?'),
+          switchExpr(expr('Object'), [
+            wildcard().when(x.expr.notEq(nullLiteral)).thenExpr(block([
+                  checkReachable(true),
+                  checkPromoted(x, 'int'),
+                ]).thenExpr(expr('String'))),
+            wildcard().thenExpr(block([
+              checkReachable(true),
+              checkNotPromoted(x),
+            ]).thenExpr(expr('String'))),
+          ]).stmt,
+        ]);
+      });
+
+      group('guard promotes later cases:', () {
+        test('when pattern fully covers the scrutinee type', () {
+          // `case _ when x == null:` promotes `x` to non-null in later cases,
+          // because the implicit type of `_` fully covers the scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switchExpr(expr('Object?'), [
+              wildcard().when(x.expr.eq(nullLiteral)).thenExpr(intLiteral(0)),
+              wildcard().thenExpr(block([
+                checkPromoted(x, 'int'),
+              ]).thenExpr(intLiteral(1))),
+            ]).stmt,
+          ]);
+        });
+
+        test('when pattern does not fully cover the scrutinee type', () {
+          // `case String _ when x == null:` does not promote `y` to non-null in
+          // later cases, because the type `String` does not fully cover the
+          // scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switchExpr(expr('Object?'), [
+              wildcard(type: 'String')
+                  .when(x.expr.eq(nullLiteral))
+                  .thenExpr(intLiteral(0)),
+              wildcard().thenExpr(block([
+                checkNotPromoted(x),
+              ]).thenExpr(intLiteral(1))),
+            ]).stmt,
+          ]);
+        });
+      });
+
+      test('promotes scrutinee', () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, type: 'num'),
+          switchExpr(x.expr, [
+            y.pattern(type: 'int').thenExpr(block([
+                  checkReachable(true),
+                  checkPromoted(x, 'int'),
+                ]).thenExpr(expr('String'))),
+            wildcard().thenExpr(block([
+              checkReachable(true),
+              checkNotPromoted(x),
+            ]).thenExpr(expr('String'))),
+          ]).stmt,
+        ]);
+      });
+
+      test('reassigned scrutinee var no longer promotes', () {
+        var x = Var('x');
+        // Note that the second `wildcard(type: 'int')` doesn't promote `x`
+        // because it's been reassigned.  But it does still promote the
+        // scrutinee in the RHS of the `&&`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          switchExpr(x.expr, [
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int')..errorId = 'WILDCARD1')
+                .thenExpr(block([
+                  checkPromoted(x, 'int'),
+                ]).thenExpr(intLiteral(0))),
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .thenExpr(intLiteral(1)),
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int')..errorId = 'WILDCARD2')
+                .thenExpr(block([
+                  checkNotPromoted(x),
+                ]).thenExpr(intLiteral(2))),
+            wildcard().thenExpr(intLiteral(3)),
+          ]).stmt,
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD1, '
+              'kind: logicalAndPatternOperand)',
+          'unnecessaryWildcardPattern(pattern: WILDCARD2, '
+              'kind: logicalAndPatternOperand)',
+        });
+      });
+
+      test(
+          'cached scrutinee retains promoted type even if scrutinee var '
+          'reassigned', () {
+        var x = Var('x');
+        var y = Var('y');
+        // `x` is promoted at the time the scrutinee is cached.  Therefore, even
+        // though `case _ where f(x = ...)` de-promotes `x`, the promoted type
+        // is still used for type inference in the later `case var y`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          x.expr.as_('int').stmt,
+          checkPromoted(x, 'int'),
+          switchExpr(x.expr, [
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .thenExpr(intLiteral(0)),
+            y.pattern(expectInferredType: 'int').thenExpr(block([
+                  checkNotPromoted(x),
+                ]).thenExpr(intLiteral(1))),
+          ]).stmt,
+        ]);
+      });
+
+      test('no cases', () {
+        h.run([
+          switchExpr(expr('A'), []).stmt,
+          checkReachable(false),
+        ]);
+      });
+    });
+
+    group('Switch statement:', () {
+      test('guarded', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int?'),
+          switch_(expr('Object'), [
+            switchStatementMember([
+              wildcard().when(x.expr.notEq(nullLiteral)).switchCase
+            ], [
+              checkReachable(true),
+              checkPromoted(x, 'int'),
+            ]),
+            switchStatementMember([
+              default_
+            ], [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ]),
+          ]),
+        ]);
+      });
+
+      group('guard promotes later cases:', () {
+        test('when pattern fully covers the scrutinee type', () {
+          // `case _ when x == null:` promotes `x` to non-null in later cases,
+          // because the implicit type of `_` fully covers the scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switch_(expr('Object?'), [
+              wildcard().when(x.expr.eq(nullLiteral)).then([break_()]),
+              wildcard().then([
+                checkPromoted(x, 'int'),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('when pattern does not fully cover the scrutinee type', () {
+          // `case String _ when x == null:` does not promote `x` to non-null in
+          // later cases, because the type `String` does not fully cover the
+          // scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switch_(expr('Object?'), [
+              wildcard(type: 'String')
+                  .when(x.expr.eq(nullLiteral))
+                  .then([break_()]),
+              wildcard().then([
+                checkNotPromoted(x),
+              ]),
+            ]),
+          ]);
+        });
+      });
+
+      test('promotes scrutinee', () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, type: 'num'),
+          switch_(x.expr, [
+            switchStatementMember([
+              y.pattern(type: 'int').switchCase
+            ], [
+              checkReachable(true),
+              checkPromoted(x, 'int'),
+            ]),
+            switchStatementMember([
+              default_
+            ], [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('implicit break', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object'),
+          switch_(expr('Object'), [
+            switchStatementMember([
+              wildcard(type: 'int').switchCase
+            ], [
+              x.expr.as_('int').stmt,
+            ]),
+            switchStatementMember([default_], [return_()])
+          ]),
+          checkReachable(true),
+          checkPromoted(x, 'int'),
+        ]);
+      });
+
+      group('exhaustiveness:', () {
+        test('exhaustive', () {
+          h.addExhaustiveness('E', true);
+          h.run([
+            switch_(expr('E'), [
+              switchStatementMember([
+                expr('E').pattern.switchCase,
+              ], [
+                return_(),
+              ])
+            ]),
+            checkReachable(false),
+          ]);
+        });
+
+        test('non-exhaustive', () {
+          h.run([
+            switch_(expr('int'), [
+              switchStatementMember([
+                intLiteral(0).pattern.switchCase,
+              ], [
+                return_(),
+              ])
+            ]),
+            checkReachable(true),
+          ]);
+        });
+      });
+
+      group('pre-patterns exhaustiveness:', () {
+        test('exhaustive', () {
+          h.patternsEnabled = false;
+          h.run([
+            switch_(
+                expr('E'),
+                [
+                  switchStatementMember([
+                    expr('E').pattern.switchCase,
+                  ], [
+                    return_(),
+                  ])
+                ],
+                isLegacyExhaustive: true),
+            checkReachable(false),
+          ]);
+        });
+
+        test('non-exhaustive', () {
+          h.patternsEnabled = false;
+          h.run([
+            switch_(
+                expr('E'),
+                [
+                  switchStatementMember([
+                    expr('E').pattern.switchCase,
+                  ], [
+                    return_(),
+                  ])
+                ],
+                isLegacyExhaustive: false),
+            checkReachable(true),
+          ]);
+        });
+      });
+
+      test('empty exhaustive', () {
+        // This can happen if a class is marked `sealed` but has no subclasses.
+        // Note that exhaustiveness checking of "always exhaustive" types is
+        // deferred until a later analysis stage (so that it can take constant
+        // evaluation into account), so flow analysis simply assumes that the
+        // switch is exhaustive without checking, and sets the
+        // `requiresExhaustivenessValidation` flag to let the client know that
+        // exhaustiveness checking must be performed later.  Had this been a
+        // real compilation (and not just a unit test), exhaustiveness checking
+        // would later confirm that the class `C` has no subclasses, or report
+        // a compile-time error.
+        h.addExhaustiveness('C', true);
+        h.run([
+          switch_(expr('C'), [], expectRequiresExhaustivenessValidation: true),
+          checkReachable(false),
+        ]);
+      });
+
+      group('Nested:', () {
+        test('scrutinee type', () {
+          // Verify that the inner switch's matched value type doesn't bleed out
+          // to the next case in the outer switch.
+          h.run([
+            switch_(expr('int'), [
+              wildcard(expectInferredType: 'int').when(expr('bool')).then([
+                switch_(expr('String'), [
+                  wildcard(expectInferredType: 'String').then([]),
+                ]),
+              ]),
+              wildcard(expectInferredType: 'int').then([]),
+            ]),
+          ]);
+        });
+
+        test('scrutinee reference', () {
+          // Verify that the inner switch's scrutinee reference is properly
+          // distinguished from the outer switch's scrutinee reference.
+          var x = Var('x');
+          var y = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object')),
+            declare(y, initializer: expr('Object')),
+            switch_(x.expr, [
+              wildcard(type: 'num').then([
+                checkPromoted(x, 'num'),
+                checkNotPromoted(y),
+                switch_(y.expr, [
+                  wildcard(type: 'int').then([
+                    checkPromoted(x, 'num'),
+                    checkPromoted(y, 'int'),
+                  ]),
+                  default_.then([
+                    return_(),
+                  ]),
+                ]),
+                checkPromoted(x, 'num'),
+                checkPromoted(y, 'int'),
+              ]),
+              wildcard(type: 'String').then([
+                checkPromoted(x, 'String'),
+                checkNotPromoted(y),
+              ]),
+            ]),
+          ]);
+        });
+      });
+
+      test('reassigned scrutinee var no longer promotes', () {
+        var x = Var('x');
+        // Note that the second `wildcard(type: 'int')` doesn't promote `x`
+        // because it's been reassigned.  But it does still promote the
+        // scrutinee in the RHS of the `&&`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          switch_(x.expr, [
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int')..errorId = 'WILDCARD1')
+                .then([
+              checkPromoted(x, 'int'),
+            ]),
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .then([
+              break_(),
+            ]),
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int')..errorId = 'WILDCARD2')
+                .then([
+              checkNotPromoted(x),
+            ])
+          ]),
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD1, '
+              'kind: logicalAndPatternOperand)',
+          'unnecessaryWildcardPattern(pattern: WILDCARD2, '
+              'kind: logicalAndPatternOperand)'
+        });
+      });
+
+      test(
+          'cached scrutinee retains promoted type even if scrutinee var '
+          'reassigned', () {
+        var x = Var('x');
+        var y = Var('y');
+        // `x` is promoted at the time the scrutinee is cached.  Therefore, even
+        // though `case _ where f(x = ...)` de-promotes `x`, the promoted type
+        // is still used for type inference in the later `case var y`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          x.expr.as_('int').stmt,
+          checkPromoted(x, 'int'),
+          switch_(x.expr, [
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .then([break_()]),
+            y.pattern(expectInferredType: 'int').then([
+              checkNotPromoted(x),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('synthetic break inserted even in unreachable cases', () {
+        // In this example, the second case is unreachable, so technically it
+        // doesn't matter whether it ends in a synthetic break.  However, to
+        // avoid confusion on the part of the CFE and back-end developers, we go
+        // ahead and put in the synthetic break anyhow.
+        h.run([
+          switch_(expr('Object'), [
+            wildcard().then([
+              intLiteral(0).stmt,
+            ]),
+            wildcard().then([
+              intLiteral(1).stmt,
+            ]),
+          ]).checkIr('switch(expr(Object), '
+              'case(heads(head(wildcardPattern(matchedType: Object), true, '
+              'variables()), variables()), block(stmt(0), synthetic-break())), '
+              'case(heads(head(wildcardPattern(matchedType: Object), true, '
+              'variables()), variables()), '
+              'block(stmt(1), synthetic-break())))'),
+        ]);
+      });
+
+      group('Joins promotions of scrutinee:', () {
+        test('First case more promoted', () {
+          var x = Var('x');
+          // ` case num() && int(): case num():` retains promotion to `num`
+          h.run([
+            declare(x, initializer: expr('Object')),
+            switch_(x.expr, [
+              switchStatementMember([
+                objectPattern(requiredType: 'num', fields: [])
+                    .and(objectPattern(requiredType: 'int', fields: []))
+                    .switchCase,
+                objectPattern(requiredType: 'num', fields: []).switchCase
+              ], [
+                checkPromoted(x, 'num'),
+              ])
+            ]),
+          ]);
+        });
+
+        test('Second case more promoted', () {
+          var x = Var('x');
+          // `case num(): case num() && int():` retains promotion to `num`
+          h.run([
+            declare(x, initializer: expr('Object')),
+            switch_(x.expr, [
+              switchStatementMember([
+                objectPattern(requiredType: 'num', fields: []).switchCase,
+                objectPattern(requiredType: 'num', fields: [])
+                    .and(objectPattern(requiredType: 'int', fields: []))
+                    .switchCase
+              ], [
+                checkPromoted(x, 'num'),
+              ])
+            ]),
+          ]);
+        });
+      });
+
+      group('Joins explicitly declared variables:', () {
+        test('First var promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            switch_(expr('(int, int?)'), [
+              switchStatementMember([
+                recordPattern([
+                  intLiteral(0).pattern.recordField(),
+                  x1.pattern(type: 'int?').nullCheck.recordField()
+                ]).switchCase,
+                recordPattern([
+                  intLiteral(1).pattern.recordField(),
+                  x2.pattern(type: 'int?').recordField()
+                ]).switchCase
+              ], [
+                checkNotPromoted(x),
+              ])
+            ]),
+          ]);
+        });
+
+        test('Second var promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            switch_(expr('(int, int?)'), [
+              switchStatementMember([
+                recordPattern([
+                  intLiteral(0).pattern.recordField(),
+                  x1.pattern(type: 'int?').recordField()
+                ]).switchCase,
+                recordPattern([
+                  intLiteral(1).pattern.recordField(),
+                  x2.pattern(type: 'int?').nullCheck.recordField()
+                ]).switchCase
+              ], [
+                checkNotPromoted(x),
+              ])
+            ]),
+          ]);
+        });
+
+        test('Both vars promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            switch_(expr('int?'), [
+              switchStatementMember([
+                x1.pattern(type: 'int?').nullCheck.switchCase,
+                x2.pattern(type: 'int?').nullCheck.switchCase
+              ], [
+                checkPromoted(x, 'int'),
+              ])
+            ]),
+          ]);
+        });
+
+        test('Promoted via when clause', () {
+          // Equivalent Dart code:
+          //     switch (... as (int, int?)) {
+          //       case (0, int? x?):
+          //       case (1, int? x) where x != null:
+          //         x; // Should be promoted to non-null
+          //     }
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            switch_(expr('(int, int?)'), [
+              switchStatementMember([
+                recordPattern([
+                  intLiteral(0).pattern.recordField(),
+                  x1.pattern(type: 'int?').nullCheck.recordField()
+                ]).switchCase,
+                recordPattern([
+                  intLiteral(1).pattern.recordField(),
+                  x2.pattern(type: 'int?').recordField()
+                ]).when(x2.expr.notEq(nullLiteral)).switchCase,
+              ], [
+                checkPromoted(x, 'int'),
+              ])
+            ]),
+          ]);
+        });
+
+        test('Complex example', () {
+          // This is based on the code sample from
+          // https://github.com/dart-lang/sdk/issues/51644, except that the type
+          // of the scrutinee has been changed from `dynamic` to `Object?`.
+          var a1 = Var('a', identity: 'a1');
+          var a2 = Var('a', identity: 'a2');
+          var a3 = Var('a', identity: 'a3');
+          var a = PatternVariableJoin('a', expectedComponents: [a1, a2, a3]);
+          h.run([
+            switch_(expr('Object?'), [
+              switchStatementMember([
+                a1
+                    .pattern(type: 'String?')
+                    .nullCheck
+                    .when(a1.expr.is_('Never'))
+                    .switchCase,
+                a2
+                    .pattern(type: 'String?')
+                    .when(a2.expr.notEq(nullLiteral))
+                    .switchCase,
+                a3
+                    .pattern(type: 'String?')
+                    .nullAssert
+                    .when(a3.expr.eq(intLiteral(1)))
+                    .switchCase,
+              ], [
+                checkPromoted(a, 'String'),
+              ]),
+            ]),
+          ]);
+        });
+      });
+
+      group(
+          "Sets join variable assigned even if variable doesn't appear in "
+          "every case", () {
+        test('Variable in first case only', () {
+          var x1 = Var('x', identity: 'x1');
+          var x = PatternVariableJoin('x', expectedComponents: [x1]);
+          // `x` is considered assigned inside the case body (even though it's
+          // not actually assigned by both patterns) because this avoids
+          // redundant errors.
+          h.run([
+            switch_(expr('int?'), [
+              switchStatementMember([
+                x1.pattern().nullCheck.switchCase,
+                wildcard().switchCase
+              ], [
+                checkAssigned(x, true),
+              ])
+            ]),
+          ]);
+        });
+
+        test('Variable in second case only', () {
+          var x1 = Var('x', identity: 'x1');
+          var x = PatternVariableJoin('x', expectedComponents: [x1]);
+          // `x` is considered assigned inside the case body (even though it's
+          // not actually assigned by both patterns) because this avoids
+          // redundant errors.
+          h.run([
+            switch_(expr('int?'), [
+              switchStatementMember([
+                wildcard().nullCheck.switchCase,
+                x1.pattern().switchCase
+              ], [
+                checkAssigned(x, true),
+              ])
+            ]),
+          ]);
+        });
+      });
+
+      group('Trivial exhaustiveness:', () {
+        // Although flow analysis doesn't attempt to do full exhaustiveness
+        // checking on switch statements, it understands that if any single case
+        // fully covers the matched value type, the switch statement is
+        // exhaustive.  (Such a switch is called "trivially exhaustive").
+        //
+        // Note that we don't test all possible patterns, because the flow
+        // analysis logic for detecting trivial exhaustiveness builds on the
+        // logic for tracking the "unmatched" state, which is tested elsewhere.
+        test('exhaustive', () {
+          h.run([
+            switch_(expr('Object'), [
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(false),
+          ]);
+        });
+
+        test('exhaustive but a reachable switch case completes', () {
+          // In this case, even though the switch is trivially exhaustive, the
+          // code after the switch is reachable because one of the reachable
+          // switch cases completes normally.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(true),
+              ]),
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(true),
+          ]);
+        });
+
+        test('exhaustive but an unreachable switch case completes', () {
+          // In this case, even though the `int` case completes normally, that
+          // case is unreachable, so the code after the switch is unreachable.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(false),
+              ]),
+            ]),
+            checkReachable(false),
+          ]);
+        });
+
+        test('exhaustive but a reachable switch case breaks', () {
+          // In this case, even though the switch is trivially exhaustive, the
+          // code after the switch is reachable because one of the reachable
+          // switch cases ends in a break.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(true),
+                break_(),
+              ]),
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(true),
+          ]);
+        });
+
+        test('exhaustive but an unreachable switch case breaks', () {
+          // In this case, even though the `int` case breaks, that case is
+          // unreachable, so the code after the switch is unreachable.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(false),
+                break_(),
+              ]),
+            ]),
+            checkReachable(false),
+          ]);
+        });
+
+        test('not exhaustive', () {
+          h.run([
+            switch_(expr('Object'), [
+              wildcard(type: 'int').switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(true),
+          ]);
+        });
+      });
+    });
+
+    group('Variable pattern:', () {
+      group('covers matched type:', () {
+        test('without promotion candidate', () {
+          // In `if(<some int> case num x) ...`, the `else` branch should be
+          // unreachable because the type `num` fully covers the type `int`.
+          var x = Var('x');
+          h.run([
+            ifCase(expr('int'), x.pattern(type: 'num'), [
+              checkReachable(true),
+            ], [
+              checkReachable(false),
+            ]),
+          ]);
+        });
+
+        test('with promotion candidate', () {
+          // In `if(x case num y) ...`, the `else` branch should be unreachable
+          // because the type `num` fully covers the type `int`.
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, type: 'int'),
+            ifCase(x.expr, y.pattern(type: 'num'), [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ], [
+              checkReachable(false),
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+      });
+
+      group("doesn't cover matched type:", () {
+        test('without promotion candidate', () {
+          // In `if(<some num> case int x) ...`, the `else` branch should be
+          // reachable because the type `int` doesn't fully cover the type
+          // `num`.
+          var x = Var('x');
+          h.run([
+            ifCase(expr('num'), x.pattern(type: 'int'), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        group('with promotion candidate:', () {
+          test('without factor', () {
+            var x = Var('x');
+            var y = Var('y');
+            h.run([
+              declare(x, type: 'num'),
+              ifCase(x.expr, y.pattern(type: 'int'), [
+                checkReachable(true),
+                checkPromoted(x, 'int'),
+              ], [
+                checkReachable(true),
+                checkNotPromoted(x),
+              ]),
+            ]);
+          });
+
+          test('with factor', () {
+            var x = Var('x');
+            var y = Var('y');
+            h.run([
+              declare(x, type: 'int?'),
+              ifCase(x.expr, y.pattern(type: 'Null'), [
+                checkReachable(true),
+                checkPromoted(x, 'Null'),
+              ], [
+                checkReachable(true),
+                checkPromoted(x, 'int'),
+              ]),
+            ]);
+          });
+        });
+      });
+
+      test("Subpattern doesn't promote scrutinee", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          ifCase(
+              x.expr,
+              objectPattern(
+                  requiredType: 'num',
+                  fields: [y.pattern(type: 'int').recordField('sign')]),
+              [
+                checkPromoted(x, 'num'),
+                // TODO(paulberry): should promote `x.sign` to `int`.
+              ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        var z = Var('z');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(y.pattern(type: 'num'))
+                  .and(z.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ]);
+      });
+
+      test('Promotes to non-nullable if matched type is non-nullable', () {
+        // When the matched value type is non-nullable, and the variable's
+        // declared type is nullable, a successful match promotes the variable.
+        // This allows a case pattern of the form `T? x?` to promote `x` to
+        // non-nullable `T`.
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Object'), x.pattern(type: 'int?'), [
+            checkPromoted(x, 'int'),
+          ]),
+        ]);
+      });
+
+      test('Does not promote to non-nullable if matched type is `Null`', () {
+        // Since `Null` is handled specially by `TypeOperations.classifyType`,
+        // make sure that we don't accidentally promote the variable to
+        // non-nullable when the matched value type is `Null`.
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Null'), x.pattern(type: 'int?'), [
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      group('Demonstrated type:', () {
+        test('Subtype of matched value type', () {
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr, recordPattern([y.pattern(type: 'int').recordField()]), [
+              checkPromoted(x, '(int,)'),
+            ]),
+          ]);
+        });
+
+        test('Supertype of matched value type', () {
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(x.expr,
+                recordPattern([y.pattern(type: 'Object').recordField()]), [
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+
+        test('Unrelated to matched value type', () {
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(x.expr,
+                recordPattern([y.pattern(type: 'String').recordField()]), [
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+      });
+    });
+
+    group('Wildcard pattern:', () {
+      group('covers matched type:', () {
+        test('without promotion candidate', () {
+          // In `if(<some int> case num _) ...`, the `else` branch should be
+          // unreachable because the type `num` fully covers the type `int`.
+          h.run([
+            ifCase(expr('int'), wildcard(type: 'num'), [
+              checkReachable(true),
+            ], [
+              checkReachable(false),
+            ]),
+          ]);
+        });
+
+        test('with promotion candidate', () {
+          // In `if(x case num _) ...`, the `else` branch should be unreachable
+          // because the type `num` fully covers the type `int`.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int'),
+            ifCase(x.expr, wildcard(type: 'num'), [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ], [
+              checkReachable(false),
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+      });
+
+      group("doesn't cover matched type:", () {
+        test('without promotion candidate', () {
+          // In `if(<some num> case int _) ...`, the `else` branch should be
+          // reachable because the type `int` doesn't fully cover the type
+          // `num`.
+          h.run([
+            ifCase(expr('num'), wildcard(type: 'int'), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        group('with promotion candidate:', () {
+          test('without factor', () {
+            var x = Var('x');
+            h.run([
+              declare(x, type: 'num'),
+              ifCase(x.expr, wildcard(type: 'int'), [
+                checkReachable(true),
+                checkPromoted(x, 'int'),
+              ], [
+                checkReachable(true),
+                checkNotPromoted(x),
+              ]),
+            ]);
+          });
+
+          test('with factor', () {
+            var x = Var('x');
+            h.run([
+              declare(x, type: 'int?'),
+              ifCase(x.expr, wildcard(type: 'Null'), [
+                checkReachable(true),
+                checkPromoted(x, 'Null'),
+              ], [
+                checkReachable(true),
+                checkPromoted(x, 'int'),
+              ]),
+            ]);
+          });
+        });
+      });
+
+      test("Subpattern doesn't promote scrutinee", () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          ifCase(
+              x.expr,
+              objectPattern(
+                  requiredType: 'num',
+                  fields: [wildcard(type: 'int').recordField('sign')]),
+              [
+                checkPromoted(x, 'num'),
+                // TODO(paulberry): should promote `x.sign` to `int`.
+              ]),
+        ]);
+      });
+
+      test("Doesn't demote", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              wildcard()
+                  .as_('int')
+                  .and(wildcard(type: 'num')..errorId = 'WILDCARD')
+                  .and(y.pattern(expectInferredType: 'int')),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ], expectedErrors: {
+          'unnecessaryWildcardPattern(pattern: WILDCARD, '
+              'kind: logicalAndPatternOperand)',
+        });
+      });
+
+      group('Demonstrated type:', () {
+        test('Subtype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(
+                x.expr, recordPattern([wildcard(type: 'int').recordField()]), [
+              checkPromoted(x, '(int,)'),
+            ]),
+          ]);
+        });
+
+        test('Supertype of matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(x.expr,
+                recordPattern([wildcard(type: 'Object').recordField()]), [
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+
+        test('Unrelated to matched value type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('(num,)')),
+            ifCase(x.expr,
+                recordPattern([wildcard(type: 'String').recordField()]), [
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+      });
+    });
+
+    test('Pattern inside guard', () {
+      // Roughly equivalent Dart code:
+      //     FutureOr<int> x = ...;
+      //     FutureOr<String> y = ...;
+      //     if (x case int _ when f(() {
+      //           if (y case String _) {
+      //             /* x promoted to `int` */
+      //             /* y promoted to `String` */
+      //           } else {
+      //             /* x promoted to `int` */
+      //             /* y promoted to `Future<String>` */
+      //           }
+      //         }, throw ...)) {
+      //       /* unreachable (due to `throw`) */
+      //     } else {
+      //       /* x promoted to `Future<int>` */
+      //     }
+      // For this to be analyzed correctly, flow analysis needs to avoid mixing
+      // up the "unmatched" state from the outer and inner pattern matches.
+      var x = Var('x');
+      var y = Var('y');
+      h.run([
+        declare(x, initializer: expr('FutureOr<int>')),
+        declare(y, initializer: expr('FutureOr<String>')),
+        ifCase(
+            x.expr,
+            wildcard(type: 'int').when(localFunction([
+              ifCase(y.expr, wildcard(type: 'String'), [
+                checkPromoted(x, 'int'),
+                checkPromoted(y, 'String'),
+              ], [
+                checkPromoted(x, 'int'),
+                checkPromoted(y, 'Future<String>'),
+              ]),
+            ]).thenExpr(throw_(expr('Object')))),
+            [
+              checkReachable(false),
+            ],
+            [
+              checkReachable(true),
+              checkPromoted(x, 'Future<int>'),
+            ]),
+      ]);
+    });
+  });
 }
 
 /// Returns the appropriate matcher for expecting an assertion error to be
@@ -6502,12 +9783,7 @@ extension on FlowModel<Type> {
           Var variable,
           Type writtenType,
           SsaNode<Type> newSsaNode) =>
-      write(
-          h,
-          nonPromotionReason,
-          variable,
-          h.promotionKeyStore.keyForVariable(variable),
-          writtenType,
-          newSsaNode,
-          h.typeOperations);
+      write(h, nonPromotionReason, h.promotionKeyStore.keyForVariable(variable),
+          writtenType, newSsaNode, h.typeOperations,
+          unpromotedType: variable.type);
 }

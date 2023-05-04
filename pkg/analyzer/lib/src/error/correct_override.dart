@@ -51,16 +51,23 @@ class CorrectOverrideHelper {
     required ExecutableElement superMember,
     required ErrorReporter errorReporter,
     required SyntacticEntity errorNode,
-    ErrorCode? errorCode,
+    required ErrorCode errorCode,
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
+      var member = _thisMember;
+      var memberName = member.name;
+      if (member is PropertyAccessorElement && member.isSetter) {
+        memberName = memberName.substring(0, memberName.length - 1);
+      }
       errorReporter.reportError(_diagnosticFactory.invalidOverride(
-          errorReporter.source,
-          errorCode,
-          errorNode,
-          _thisMember,
-          superMember));
+        errorReporter.source,
+        errorCode,
+        errorNode,
+        _thisMember,
+        superMember,
+        memberName,
+      ));
     }
   }
 

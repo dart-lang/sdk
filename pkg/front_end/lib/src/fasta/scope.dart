@@ -26,6 +26,70 @@ import 'source/source_library_builder.dart';
 import 'source/source_member_builder.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
 
+enum ScopeKind {
+  /// Scope of pattern switch-case statements
+  ///
+  /// These scopes receive special treatment in that they are end-points of the
+  /// scope stack in presence of multiple heads for the same case, but can have
+  /// nested scopes if it's just a single head. In that latter possibility the
+  /// body of the case is nested into the scope of the case head. And for switch
+  /// expressions that scope includes both the head and the case expression.
+  caseHead,
+
+  /// The declaration-level scope for classes, enums, and similar declarations
+  declaration,
+
+  /// Scope where the formal parameters of a function are declared
+  formals,
+
+  /// Scope of a `for` statement
+  forStatement,
+
+  /// Scope of a function body
+  functionBody,
+
+  /// Scope of the head of the if-case statement
+  ifCaseHead,
+
+  /// Scope of an if-element in a collection
+  ifElement,
+
+  /// Scope for the initializers of generative constructors
+  initializers,
+
+  /// Scope where the joint variables of a switch case are declared
+  jointVariables,
+
+  /// Scope where labels of labelled statements are declared
+  labels,
+
+  /// Top-level scope of a library
+  library,
+
+  /// The special scope of the named function expression
+  ///
+  /// This scope is treated separately because the named function expressions
+  /// are allowed to be recursive, and the name of that function expression
+  /// should be visible in the scope of the function itself.
+  namedFunctionExpression,
+
+  /// Local scope of a statement, such as the body of a while loop
+  statementLocalScope,
+
+  /// Scope for switch cases
+  ///
+  /// This scope kind is used in assertion checks.
+  switchCase,
+
+  /// Scope for switch case bodies
+  ///
+  /// This is used to handle local variables of switch cases.
+  switchCaseBody,
+
+  /// Scope for type parameters of declarations
+  typeParameters,
+}
+
 class MutableScope {
   /// Names declared in this scope.
   Map<String, Builder> _local;
@@ -70,8 +134,10 @@ class MutableScope {
 
   final String classNameOrDebugName;
 
-  MutableScope(this._local, this._setters, this._extensions, this._parent,
-      this.classNameOrDebugName) {
+  final ScopeKind kind;
+
+  MutableScope(this.kind, this._local, this._setters, this._extensions,
+      this._parent, this.classNameOrDebugName) {
     // ignore: unnecessary_null_comparison
     assert(classNameOrDebugName != null);
   }
@@ -79,7 +145,7 @@ class MutableScope {
   Scope? get parent => _parent;
 
   @override
-  String toString() => "Scope($classNameOrDebugName, ${_local.keys})";
+  String toString() => "Scope(${kind}, $classNameOrDebugName, ${_local.keys})";
 }
 
 class Scope extends MutableScope {
@@ -94,31 +160,36 @@ class Scope extends MutableScope {
   Map<String, int>? usedNames;
 
   Scope(
-      {required Map<String, Builder> local,
+      {required ScopeKind kind,
+      required Map<String, Builder> local,
       Map<String, MemberBuilder>? setters,
       Set<ExtensionBuilder>? extensions,
       Scope? parent,
       required String debugName,
       this.isModifiable = true})
-      : super(local, setters = setters ?? const <String, MemberBuilder>{},
+      : super(kind, local, setters = setters ?? const <String, MemberBuilder>{},
             extensions, parent, debugName);
 
-  Scope.top({bool isModifiable = false})
+  Scope.top({required ScopeKind kind, bool isModifiable = false})
       : this(
+            kind: kind,
             local: <String, Builder>{},
             setters: <String, MemberBuilder>{},
             debugName: "top",
             isModifiable: isModifiable);
 
-  Scope.immutable()
+  Scope.immutable({required ScopeKind kind})
       : this(
+            kind: kind,
             local: const <String, Builder>{},
             setters: const <String, MemberBuilder>{},
             debugName: "immutable",
             isModifiable: false);
 
-  Scope.nested(Scope parent, String debugName, {bool isModifiable = true})
+  Scope.nested(Scope parent, String debugName,
+      {bool isModifiable = true, required ScopeKind kind})
       : this(
+            kind: kind,
             local: <String, Builder>{},
             setters: <String, MemberBuilder>{},
             parent: parent,
@@ -201,7 +272,7 @@ class Scope extends MutableScope {
   }
 
   /// Patch up the scope, using the two replacement maps to replace builders in
-  /// scope. The replacement maps maps from old LibraryBuilder to map, mapping
+  /// scope. The replacement maps from old LibraryBuilder to map, mapping
   /// from name to new (replacement) builder.
   void patchUpScope(Map<LibraryBuilder, Map<String, Builder>> replacementMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementMapSetters) {
@@ -340,6 +411,7 @@ class Scope extends MutableScope {
 
   Scope copyWithParent(Scope parent, String debugName) {
     return new Scope(
+        kind: kind,
         local: super._local,
         setters: super._setters,
         extensions: _extensions,
@@ -362,14 +434,18 @@ class Scope extends MutableScope {
     super._extensions = scope._extensions;
   }
 
-  Scope createNestedScope(String debugName, {bool isModifiable = true}) {
-    return new Scope.nested(this, debugName, isModifiable: isModifiable);
+  Scope createNestedScope(
+      {required String debugName,
+      bool isModifiable = true,
+      required ScopeKind kind}) {
+    return new Scope.nested(this, debugName,
+        isModifiable: isModifiable, kind: kind);
   }
 
   Scope withTypeVariables(List<TypeVariableBuilder>? typeVariables) {
     if (typeVariables == null) return this;
-    Scope newScope =
-        new Scope.nested(this, "type variables", isModifiable: false);
+    Scope newScope = new Scope.nested(this, "type variables",
+        isModifiable: false, kind: ScopeKind.typeParameters);
     for (TypeVariableBuilder t in typeVariables) {
       newScope._local[t.name] = t;
     }
@@ -385,6 +461,7 @@ class Scope extends MutableScope {
   ///     print("The answer is $x.");
   Scope createNestedLabelScope() {
     return new Scope(
+        kind: ScopeKind.labels,
         local: _local,
         setters: _setters,
         extensions: _extensions,
@@ -706,8 +783,10 @@ class ConstructorScope {
 
 abstract class LazyScope extends Scope {
   LazyScope(Map<String, Builder> local, Map<String, MemberBuilder> setters,
-      Scope? parent, String debugName, {bool isModifiable = true})
+      Scope? parent, String debugName,
+      {bool isModifiable = true, required ScopeKind kind})
       : super(
+            kind: kind,
             local: local,
             setters: setters,
             parent: parent,
@@ -790,6 +869,9 @@ class AccessErrorBuilder extends ProblemBuilder {
 
   @override
   bool get isExtensionInstanceMember => builder.isExtensionInstanceMember;
+
+  @override
+  bool get isInlineClassInstanceMember => builder.isInlineClassInstanceMember;
 
   @override
   bool get isStatic => builder.isStatic;
@@ -1233,6 +1315,10 @@ extension IteratorExtension<T extends Builder> on Iterator<T> {
     }
     return list;
   }
+
+  Iterator<T> join(Iterator<T> other) {
+    return new IteratorSequence<T>([this, other]);
+  }
 }
 
 extension NameIteratorExtension<T extends Builder> on NameIterator<T> {
@@ -1548,5 +1634,40 @@ extension on Builder {
       self.isConflictingAugmentationMember = value;
     }
     // TODO(johnniwinther): Handle all cases here.
+  }
+}
+
+class IteratorSequence<T> implements Iterator<T> {
+  Iterator<Iterator<T>> _iterators;
+
+  Iterator<T>? _current;
+
+  IteratorSequence(Iterable<Iterator<T>> iterators)
+      : _iterators = iterators.iterator;
+
+  @override
+  T get current {
+    if (_current != null) {
+      return _current!.current;
+    }
+    throw new StateError("No current element");
+  }
+
+  @override
+  bool moveNext() {
+    if (_current != null) {
+      if (_current!.moveNext()) {
+        return true;
+      }
+      _current = null;
+    }
+    while (_iterators.moveNext()) {
+      _current = _iterators.current;
+      if (_current!.moveNext()) {
+        return true;
+      }
+      _current = null;
+    }
+    return false;
   }
 }

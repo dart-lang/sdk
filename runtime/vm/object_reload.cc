@@ -114,7 +114,7 @@ static void FindICData(const Array& ic_data_array,
       lo = mid + 1;
     }
   }
-  FATAL1("Missing deopt id %" Pd "\n", deopt_id);
+  FATAL("Missing deopt id %" Pd "\n", deopt_id);
 }
 
 void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
@@ -146,8 +146,8 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
     descriptors_ = code.pc_descriptors();
     PcDescriptors::Iterator iter(descriptors_, UntaggedPcDescriptors::kIcCall);
     while (iter.MoveNext()) {
-      FATAL1("%s has IC calls but no ic_data_array\n",
-             function.ToFullyQualifiedCString());
+      FATAL("%s has IC calls but no ic_data_array\n",
+            function.ToFullyQualifiedCString());
     }
 #endif
     return;
@@ -271,159 +271,6 @@ class EnumMapTraits {
     return String::Cast(obj).Hash();
   }
 };
-
-// Given an old enum class, add become mappings from old values to new values.
-// Some notes about how we reload enums below:
-//
-// When an enum is reloaded the following three things can happen, possibly
-// simultaneously.
-//
-// 1) A new enum value is added.
-//   This case is handled automatically.
-// 2) Enum values are reordered.
-//   We pair old and new enums and the old enums 'become' the new ones so
-//   the ordering is always correct (i.e. enum indices match slots in values
-//   array)
-// 3) An existing enum value is removed.
-//   Each enum class has a canonical 'deleted' enum sentinel instance.
-//   When an enum value is deleted, we 'become' all references to the 'deleted'
-//   sentinel value. The index value is -1.
-//
-void Class::ReplaceEnum(ProgramReloadContext* reload_context,
-                        const Class& old_enum) const {
-  // We only do this for finalized enum classes.
-  ASSERT(is_enum_class());
-  ASSERT(old_enum.is_enum_class());
-  ASSERT(is_finalized());
-  ASSERT(old_enum.is_finalized());
-
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  ObjectStore* object_store = thread->isolate_group()->object_store();
-
-  Field& field = Field::Handle(zone);
-  String& enum_ident = String::Handle();
-  Instance& old_enum_value = Instance::Handle(zone);
-  Instance& enum_value = Instance::Handle(zone);
-  // The E.values array.
-  Array& old_enum_values = Array::Handle(zone);
-  // The E.values array.
-  Array& enum_values = Array::Handle(zone);
-  // The E._deleted_enum_sentinel instance.
-  Instance& old_deleted_enum_sentinel = Instance::Handle(zone);
-  // The E._deleted_enum_sentinel instance.
-  Instance& deleted_enum_sentinel = Instance::Handle(zone);
-  Array& enum_map_storage =
-      Array::Handle(zone, HashTables::New<UnorderedHashMap<EnumMapTraits> >(4));
-  ASSERT(!enum_map_storage.IsNull());
-
-  TIR_Print("Replacing enum `%s`\n", String::Handle(Name()).ToCString());
-
-  {
-    field = old_enum.LookupStaticField(Symbols::Values());
-    if (!field.IsNull()) {
-      ASSERT(field.is_static() && field.is_const());
-      old_enum_values ^= field.StaticConstFieldValue();
-      ASSERT(!old_enum_values.IsNull());
-    } else {
-      old_enum_values = Array::empty_array().ptr();
-    }
-
-    field = old_enum.LookupStaticField(Symbols::_DeletedEnumSentinel());
-    ASSERT(!field.IsNull() && field.is_static() && field.is_const());
-    old_deleted_enum_sentinel ^= field.StaticConstFieldValue();
-    ASSERT(!old_deleted_enum_sentinel.IsNull());
-
-    field = object_store->enum_name_field();
-    ASSERT(!field.IsNull());
-
-    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.ptr());
-    // Build a map of all enum name -> old enum instance.
-    for (intptr_t i = 0, n = old_enum_values.Length(); i < n; ++i) {
-      old_enum_value ^= old_enum_values.At(i);
-      ASSERT(!old_enum_value.IsNull());
-      enum_ident ^= old_enum_value.GetField(field);
-      VTIR_Print("Element %s being added to mapping\n", enum_ident.ToCString());
-      bool update = enum_map.UpdateOrInsert(enum_ident, old_enum_value);
-      VTIR_Print("Element %s added to mapping\n", enum_ident.ToCString());
-      ASSERT(!update);
-    }
-    // The storage given to the map may have been reallocated, remember the new
-    // address.
-    enum_map_storage = enum_map.Release().ptr();
-  }
-
-  bool enums_deleted = false;
-  {
-    field = LookupStaticField(Symbols::Values());
-    if (!field.IsNull()) {
-      ASSERT(field.is_static() && field.is_const());
-      enum_values ^= field.StaticConstFieldValue();
-      ASSERT(!enum_values.IsNull());
-    } else {
-      enum_values = Array::empty_array().ptr();
-    }
-
-    field = LookupStaticField(Symbols::_DeletedEnumSentinel());
-    ASSERT(!field.IsNull() && field.is_static() && field.is_const());
-    deleted_enum_sentinel ^= field.StaticConstFieldValue();
-    ASSERT(!deleted_enum_sentinel.IsNull());
-
-    field = object_store->enum_name_field();
-    ASSERT(!field.IsNull());
-
-    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.ptr());
-    // Add a become mapping from the old instances to the new instances.
-    for (intptr_t i = 0, n = enum_values.Length(); i < n; ++i) {
-      enum_value ^= enum_values.At(i);
-      ASSERT(!enum_value.IsNull());
-      enum_ident ^= enum_value.GetField(field);
-
-      old_enum_value ^= enum_map.GetOrNull(enum_ident);
-      if (old_enum_value.IsNull()) {
-        VTIR_Print("New element %s was not found in mapping\n",
-                   enum_ident.ToCString());
-      } else {
-        VTIR_Print("Adding element `%s` to become mapping\n",
-                   enum_ident.ToCString());
-        bool removed = enum_map.Remove(enum_ident);
-        ASSERT(removed);
-        reload_context->AddBecomeMapping(old_enum_value, enum_value);
-      }
-    }
-    enums_deleted = enum_map.NumOccupied() > 0;
-    // The storage given to the map may have been reallocated, remember the new
-    // address.
-    enum_map_storage = enum_map.Release().ptr();
-  }
-
-  // Map the old E.values array to the new E.values array.
-  reload_context->AddBecomeMapping(old_enum_values, enum_values);
-
-  // Map the old E._deleted_enum_sentinel to the new E._deleted_enum_sentinel.
-  reload_context->AddBecomeMapping(old_deleted_enum_sentinel,
-                                   deleted_enum_sentinel);
-
-  if (enums_deleted) {
-    // Map all deleted enums to the deleted enum sentinel value.
-    // TODO(johnmccutchan): Add this to the reload 'notices' list.
-    VTIR_Print(
-        "The following enum values were deleted from %s and will become the "
-        "deleted enum sentinel:\n",
-        old_enum.ToCString());
-    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.ptr());
-    UnorderedHashMap<EnumMapTraits>::Iterator it(&enum_map);
-    while (it.MoveNext()) {
-      const intptr_t entry = it.Current();
-      enum_ident = String::RawCast(enum_map.GetKey(entry));
-      ASSERT(!enum_ident.IsNull());
-      old_enum_value ^= enum_map.GetOrNull(enum_ident);
-      VTIR_Print("Element `%s` was deleted\n", enum_ident.ToCString());
-      reload_context->AddBecomeMapping(old_enum_value, deleted_enum_sentinel);
-    }
-    enum_map.Release();
-  }
-}
 
 void Class::PatchFieldsAndFunctions() const {
   // Move all old functions and fields to a patch class so that they
@@ -695,17 +542,18 @@ void Class::CheckReload(const Class& replacement,
       for (intptr_t i = 0, n = old_fields.Length(); i < n; i++) {
         old_field ^= old_fields.At(i);
         new_field ^= new_fields.At(i);
-        if (old_field.IsNull() != new_field.IsNull()) {
+        if (old_field.IsNull()) {
+          continue;
+        }
+        if (new_field.IsNull()) {
           field_removed = true;
           break;
         }
-        if (!old_field.IsNull()) {
-          old_name = old_field.name();
-          new_name = new_field.name();
-          if (!old_name.Equals(new_name)) {
-            field_removed = true;
-            break;
-          }
+        old_name = old_field.name();
+        new_name = new_field.name();
+        if (!old_name.Equals(new_name)) {
+          field_removed = true;
+          break;
         }
       }
     }
@@ -762,6 +610,15 @@ void Class::MarkFieldBoxedDuringReload(ClassTable* class_table,
 
 bool Class::RequiresInstanceMorphing(ClassTable* class_table,
                                      const Class& replacement) const {
+  if (!is_allocate_finalized()) {
+    // No instances of this class exists on the heap - nothing to morph.
+    return false;
+  }
+
+  if (replacement.is_enum_class()) {
+    return true;
+  }
+
   // Get the field maps for both classes. These field maps walk the class
   // hierarchy.
   auto isolate_group = IsolateGroup::Current();

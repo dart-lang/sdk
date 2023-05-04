@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Tool for visualizing the source mapped parts of a generated JS file.
 
 import 'dart:convert';
@@ -54,10 +52,10 @@ class MappingState {
 }
 
 void generateHtml(String jsFileName, String jsMapFileName) {
-  String jsFile = new File(jsFileName).readAsStringSync();
-  String jsMapFile = new File(jsMapFileName).readAsStringSync();
-  SingleMapping mapping = new SingleMapping.fromJson(json.decode(jsMapFile));
-  StringBuffer output = new StringBuffer();
+  String jsFile = File(jsFileName).readAsStringSync();
+  String jsMapFile = File(jsMapFileName).readAsStringSync();
+  SingleMapping mapping = SingleMapping.fromJson(json.decode(jsMapFile));
+  StringBuffer output = StringBuffer();
   output.write('''
 <html>
   <head>
@@ -117,24 +115,24 @@ void generateHtml(String jsFileName, String jsMapFileName) {
 ''');
 
   MappingState state = MappingState.INITIAL;
-  TargetEntry lastEntry;
+  TargetEntry? lastEntry;
 
-  void write(String text, TargetEntry entry) {
+  void write(String text, TargetEntry? entry) {
     output.write('<span class="${state.cssClass}"');
     String prefix = '';
     if (entry == lastEntry) {
       prefix = 'continued: ';
     }
-    lastEntry = entry;
-    if (lastEntry != null) {
-      if (lastEntry.sourceUrlId != null) {
+    final currentEntry = lastEntry = entry;
+    if (currentEntry != null) {
+      if (currentEntry.sourceUrlId != null) {
         output.write(' title="$prefix');
-        output.write(escape(mapping.urls[lastEntry.sourceUrlId]));
+        output.write(escape(mapping.urls[currentEntry.sourceUrlId!]));
         output.write(
-            ':${lastEntry.sourceLine + 1}:${lastEntry.sourceColumn + 1}');
-        if (lastEntry.sourceNameId != null) {
+            ':${currentEntry.sourceLine! + 1}:${currentEntry.sourceColumn! + 1}');
+        if (currentEntry.sourceNameId != null) {
           output.write(' (');
-          output.write(escape(mapping.names[lastEntry.sourceNameId]));
+          output.write(escape(mapping.names[currentEntry.sourceNameId!]));
           output.write(')');
         }
         output.write('"');
@@ -153,7 +151,7 @@ void generateHtml(String jsFileName, String jsMapFileName) {
   for (int lineNo = 0; lineNo < lines.length; lineNo++) {
     output.write(lineNumber(lineNo, width: lineNoWidth));
     String line = lines[lineNo];
-    TargetLineEntry targetLineEntry;
+    TargetLineEntry? targetLineEntry;
     while (nextTargetLineIndex < mapping.lines.length) {
       TargetLineEntry entry = mapping.lines[nextTargetLineIndex];
       if (entry.line == lineNo) {
@@ -192,7 +190,7 @@ void generateHtml(String jsFileName, String jsMapFileName) {
     state = state.continuedState;
   }
   output.write('</pre></body></html>');
-  File outputFile = new File('out.js.map.html');
+  File outputFile = File('out.js.map.html');
   outputFile.writeAsStringSync(output.toString());
   print('Output written to: ${outputFile.absolute.uri}');
 }

@@ -13,7 +13,7 @@ import 'protocol_stream.dart';
 
 typedef _FromJsonHandler<T> = T Function(Map<String, Object?>);
 typedef _NullableFromJsonHandler<T> = T? Function(Map<String, Object?>?);
-typedef _RequestHandler<TArg, TResp> = Future<void> Function(
+typedef RequestHandler<TArg, TResp> = Future<void> Function(
     Request, TArg, void Function(TResp));
 typedef _VoidArgRequestHandler<TArg> = Future<void> Function(
     Request, TArg, void Function(void));
@@ -105,34 +105,34 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   /// If [handler] throws, its exception will be sent as an error response.
   Future<void> handle<TArg, TResp>(
     Request request,
-    _RequestHandler<TArg, TResp> handler,
+    RequestHandler<TArg, TResp> handler,
     TArg Function(Map<String, Object?>) fromJson,
   ) async {
-    final args = request.arguments != null
-        ? fromJson(request.arguments as Map<String, Object?>)
-        // arguments are only valid to be null then TArg is nullable.
-        : null as TArg;
-
-    // Because handlers may need to send responses before they have finished
-    // executing (for example, initializeRequest needs to send its response
-    // before sending InitializedEvent()), we pass in a function `sendResponse`
-    // rather than using a return value.
-    var sendResponseCalled = false;
-    void sendResponse(TResp responseBody) {
-      assert(!sendResponseCalled,
-          'sendResponse was called multiple times by ${request.command}');
-      sendResponseCalled = true;
-      final response = Response(
-        success: true,
-        requestSeq: request.seq,
-        seq: _sequence++,
-        command: request.command,
-        body: responseBody,
-      );
-      _channel.sendResponse(response);
-    }
-
     try {
+      final args = request.arguments != null
+          ? fromJson(request.arguments as Map<String, Object?>)
+          // arguments are only valid to be null then TArg is nullable.
+          : null as TArg;
+
+      // Because handlers may need to send responses before they have finished
+      // executing (for example, initializeRequest needs to send its response
+      // before sending InitializedEvent()), we pass in a function `sendResponse`
+      // rather than using a return value.
+      var sendResponseCalled = false;
+      void sendResponse(TResp responseBody) {
+        assert(!sendResponseCalled,
+            'sendResponse was called multiple times by ${request.command}');
+        sendResponseCalled = true;
+        final response = Response(
+          success: true,
+          requestSeq: request.seq,
+          seq: _sequence++,
+          command: request.command,
+          body: responseBody,
+        );
+        _channel.sendResponse(response);
+      }
+
       await handler(request, args, sendResponse);
       assert(sendResponseCalled,
           'sendResponse was not called in ${request.command}');

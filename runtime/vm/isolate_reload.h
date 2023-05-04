@@ -71,7 +71,8 @@ class InstanceMorpher : public ZoneAllocated {
 
   InstanceMorpher(Zone* zone,
                   classid_t cid,
-                  ClassTable* class_table,
+                  const Class& old_class,
+                  const Class& new_class,
                   FieldMappingArray* mapping,
                   FieldOffsetArray* new_fields_offsets);
   virtual ~InstanceMorpher() {}
@@ -94,7 +95,8 @@ class InstanceMorpher : public ZoneAllocated {
  private:
   Zone* zone_;
   classid_t cid_;
-  ClassTable* class_table_;
+  const Class& old_class_;
+  const Class& new_class_;
   FieldMappingArray* mapping_;
   FieldOffsetArray* new_fields_offsets_;
 
@@ -262,7 +264,7 @@ class IsolateGroupReloadContext {
   BitVector* modified_libs_transitive_ = nullptr;
 
   // A bit vector indicating which of the saved libraries that transitively
-  // depend on a modified libary.
+  // depend on a modified library.
   BitVector* saved_libs_transitive_updated_ = nullptr;
 
   String& root_lib_url_;

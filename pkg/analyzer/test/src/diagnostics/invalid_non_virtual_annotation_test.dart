@@ -28,7 +28,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 class C {}
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
     ]);
   }
 
@@ -41,7 +41,7 @@ abstract class C {
   void m();
 }
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 55, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 55, 11),
     ]);
   }
 
@@ -99,7 +99,7 @@ class C {
    static int f = 0;
 }
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 47, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 47, 11),
     ]);
   }
 
@@ -112,7 +112,7 @@ class C {
    static void m() {}
 }
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 47, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 47, 11),
     ]);
   }
 
@@ -125,7 +125,7 @@ enum E {
   a, b, c
 }
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
     ]);
   }
 
@@ -139,7 +139,7 @@ enum E {
   b, c
 }
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 45, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 45, 11),
     ]);
   }
 
@@ -150,7 +150,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 extension E on Object {}
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
     ]);
   }
 
@@ -163,7 +163,7 @@ extension E on Object {
    void m() {}
 }
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 61, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 61, 11),
     ]);
   }
 
@@ -172,7 +172,7 @@ extension E on Object {
 @nonVirtual
 import 'package:meta/meta.dart';
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 0, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 0, 11),
     ]);
   }
 
@@ -183,7 +183,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 mixin M {}
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
     ]);
   }
 
@@ -207,7 +207,7 @@ mixin M {
   static int f = 0;
 }
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 46, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 46, 11),
     ]);
   }
 
@@ -220,7 +220,7 @@ mixin M {
   static void m() {}
 }
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 46, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 46, 11),
     ]);
   }
 
@@ -231,7 +231,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 m() {}
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
     ]);
   }
 
@@ -242,7 +242,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 int get g =>  0;
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
     ]);
   }
 
@@ -253,7 +253,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 set s(int v) {}
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
     ]);
   }
 
@@ -264,7 +264,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 int x = 0;
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
     ]);
   }
 
@@ -275,7 +275,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 typedef bool predicate(Object o);
 ''', [
-      error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
     ]);
   }
 }

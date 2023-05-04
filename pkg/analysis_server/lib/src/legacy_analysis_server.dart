@@ -3,14 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
-    hide AnalysisOptions;
+    hide AnalysisOptions, MessageType;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
@@ -73,6 +72,7 @@ import 'package:analysis_server/src/handler/legacy/search_get_element_declaratio
 import 'package:analysis_server/src/handler/legacy/search_get_type_hierarchy.dart';
 import 'package:analysis_server/src/handler/legacy/server_cancel_request.dart';
 import 'package:analysis_server/src/handler/legacy/server_get_version.dart';
+import 'package:analysis_server/src/handler/legacy/server_set_client_capabilities.dart';
 import 'package:analysis_server/src/handler/legacy/server_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
@@ -85,12 +85,14 @@ import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
+import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
+import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -105,6 +107,7 @@ import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -117,7 +120,7 @@ import 'package:watcher/watcher.dart';
 
 /// A function that can be executed to create a handler for a request.
 typedef HandlerGenerator = LegacyHandler Function(
-    LegacyAnalysisServer, Request, CancellationToken);
+    LegacyAnalysisServer, Request, CancellationToken, OperationPerformanceImpl);
 
 typedef OptionUpdater = void Function(AnalysisOptionsImpl options);
 
@@ -169,7 +172,7 @@ class AnalysisServerOptions {
 class LegacyAnalysisServer extends AnalysisServer {
   /// A map from the name of a request to a function used to create a request
   /// handler.
-  static final Map<String, HandlerGenerator> handlerGenerators = {
+  static final Map<String, HandlerGenerator> requestHandlerGenerators = {
     ANALYSIS_REQUEST_GET_ERRORS: AnalysisGetErrorsHandler.new,
     ANALYSIS_REQUEST_GET_HOVER: AnalysisGetHoverHandler.new,
     ANALYSIS_REQUEST_GET_IMPORTED_ELEMENTS:
@@ -246,10 +249,12 @@ class LegacyAnalysisServer extends AnalysisServer {
         SearchGetElementDeclarationsHandler.new,
     SEARCH_REQUEST_GET_TYPE_HIERARCHY: SearchGetTypeHierarchyHandler.new,
     //
+    SERVER_REQUEST_CANCEL_REQUEST: ServerCancelRequestHandler.new,
     SERVER_REQUEST_GET_VERSION: ServerGetVersionHandler.new,
+    SERVER_REQUEST_SET_CLIENT_CAPABILITIES:
+        ServerSetClientCapabilitiesHandler.new,
     SERVER_REQUEST_SET_SUBSCRIPTIONS: ServerSetSubscriptionsHandler.new,
     SERVER_REQUEST_SHUTDOWN: ServerShutdownHandler.new,
-    SERVER_REQUEST_CANCEL_REQUEST: ServerCancelRequestHandler.new,
   };
 
   /// The channel from which requests are received and to which responses should
@@ -261,7 +266,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   bool statusAnalyzing = false;
 
   /// A set of the [ServerService]s to send notifications for.
-  Set<ServerService> serverServices = HashSet<ServerService>();
+  Set<ServerService> serverServices = {};
 
   /// A table mapping request ids to cancellation tokens that allow cancelling
   /// the request.
@@ -271,13 +276,16 @@ class LegacyAnalysisServer extends AnalysisServer {
   Map<String, CancelableToken> cancellationTokens = {};
 
   /// A set of the [GeneralAnalysisService]s to send notifications for.
-  Set<GeneralAnalysisService> generalAnalysisServices =
-      HashSet<GeneralAnalysisService>();
+  Set<GeneralAnalysisService> generalAnalysisServices = {};
 
   /// A table mapping [AnalysisService]s to the file paths for which these
   /// notifications should be sent.
-  Map<AnalysisService, Set<String>> analysisServices =
-      HashMap<AnalysisService, Set<String>>();
+  Map<AnalysisService, Set<String>> analysisServices = {};
+
+  /// The most recently registered set of client capabilities. The default is to
+  /// have no registered requests.
+  ServerSetClientCapabilitiesParams clientCapabilities =
+      ServerSetClientCapabilitiesParams([]);
 
   /// A table mapping [FlutterService]s to the file paths for which these
   /// notifications should be sent.
@@ -316,7 +324,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   Set<String>? prevAnalyzedFiles;
 
   /// The controller for [onAnalysisSetChanged].
-  final StreamController _onAnalysisSetChangedController =
+  final StreamController<void> _onAnalysisSetChangedController =
       StreamController.broadcast(sync: true);
 
   /// An optional manager to handle file systems which may not always be
@@ -328,6 +336,14 @@ class LegacyAnalysisServer extends AnalysisServer {
   @visibleForTesting
   final StreamController<Request> discardedRequests =
       StreamController.broadcast(sync: true);
+
+  /// The index of the next request from the server to the client.
+  int nextServerRequestId = 0;
+
+  /// A table mapping the ids of requests sent from the server to the client
+  /// that have not yet received a response, to the completer used to return the
+  /// response when it has been received.
+  Map<String, Completer<Response>> pendingServerRequests = {};
 
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
@@ -351,6 +367,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     this.detachableFileSystemManager,
     // Disable to avoid using this in unit tests.
     bool enableBlazeWatcher = false,
+    DartFixPromptManager? dartFixPromptManager,
   }) : super(
           options,
           sdkManager,
@@ -364,12 +381,13 @@ class LegacyAnalysisServer extends AnalysisServer {
           NotificationManager(channel, baseResourceProvider.pathContext),
           requestStatistics: requestStatistics,
           enableBlazeWatcher: enableBlazeWatcher,
+          dartFixPromptManager: dartFixPromptManager,
         ) {
     var contextManagerCallbacks =
         ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverScheduler.status.listen(sendStatusNotificationNew);
+    analysisDriverScheduler.status.listen(handleAnalysisStatusChange);
     analysisDriverScheduler.start();
 
     onAnalysisStarted.first.then((_) {
@@ -384,7 +402,7 @@ class LegacyAnalysisServer extends AnalysisServer {
       ).toNotification(),
     );
     debounceRequests(channel, discardedRequests)
-        .listen(handleRequest, onDone: done, onError: error);
+        .listen(handleRequestOrResponse, onDone: done, onError: error);
     refactoringWorkspace = RefactoringWorkspace(driverMap.values, searchEngine);
     _newRefactoringManager();
   }
@@ -403,7 +421,8 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// overlay. This means that the resolved world might have changed.
   ///
   /// The type of produced elements is not specified and should not be used.
-  Stream get onAnalysisSetChanged => _onAnalysisSetChangedController.stream;
+  Stream<void> get onAnalysisSetChanged =>
+      _onAnalysisSetChangedController.stream;
 
   /// The stream that is notified with `true` when analysis is started.
   Stream<bool> get onAnalysisStarted {
@@ -425,6 +444,14 @@ class LegacyAnalysisServer extends AnalysisServer {
   String get sdkPath {
     return sdkManager.defaultSdkDirectory;
   }
+
+  @override
+  bool get supportsOpenUriNotification =>
+      clientCapabilities.requests.contains('openUrlRequest');
+
+  @override
+  bool get supportsShowMessageRequest =>
+      clientCapabilities.requests.contains('showMessageRequest');
 
   void cancelRequest(String id) {
     cancellationTokens[id]?.cancel();
@@ -450,22 +477,48 @@ class LegacyAnalysisServer extends AnalysisServer {
     return driver?.getCachedResult(path);
   }
 
+  @override
+  FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
+    super.handleAnalysisStatusChange(status);
+    sendStatusNotificationNew(status);
+  }
+
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
-    analyticsManager.startedRequest(
-        request: request, startTime: DateTime.now());
+    final startTime = DateTime.now();
+    analyticsManager.startedRequest(request: request, startTime: startTime);
     performance.logRequestTiming(request.clientRequestTime);
+
     // Because we don't `await` the execution of the handlers, we wrap the
     // execution in order to have one central place to handle exceptions.
-    runZonedGuarded(() {
-      var cancellationToken = CancelableToken();
-      cancellationTokens[request.id] = cancellationToken;
-      var generator = handlerGenerators[request.method];
-      if (generator != null) {
-        var handler = generator(this, request, cancellationToken);
-        handler.handle();
-      } else {
-        sendResponse(Response.unknownRequest(request));
+    runZonedGuarded(() async {
+      // Record performance information for the request.
+      final rootPerformance = OperationPerformanceImpl('<root>');
+      RequestPerformance? requestPerformance;
+      await rootPerformance.runAsync('request', (performance) async {
+        requestPerformance = RequestPerformance(
+          operation: request.method,
+          performance: performance,
+          requestLatency: request.timeSinceRequest,
+          startTime: startTime,
+        );
+        recentPerformance.requests.add(requestPerformance!);
+
+        var cancellationToken = CancelableToken();
+        cancellationTokens[request.id] = cancellationToken;
+        var generator = requestHandlerGenerators[request.method];
+        if (generator != null) {
+          var handler =
+              generator(this, request, cancellationToken, performance);
+          await handler.handle();
+        } else {
+          sendResponse(Response.unknownRequest(request));
+        }
+      });
+      if (requestPerformance != null &&
+          requestPerformance!.performance.elapsed >
+              ServerRecentPerformance.slowRequestsThreshold) {
+        recentPerformance.slowRequests.add(requestPerformance!);
       }
     }, (exception, stackTrace) {
       if (exception is InconsistentAnalysisException) {
@@ -491,6 +544,23 @@ class LegacyAnalysisServer extends AnalysisServer {
         sendResponse(response);
       }
     });
+  }
+
+  /// Handle a [request] that was read from the communication channel.
+  void handleRequestOrResponse(RequestOrResponse requestOrResponse) {
+    if (requestOrResponse is Request) {
+      handleRequest(requestOrResponse);
+    } else if (requestOrResponse is Response) {
+      handleResponse(requestOrResponse);
+    }
+  }
+
+  /// Handle a [response] that was read from the communication channel.
+  void handleResponse(Response response) {
+    var completer = pendingServerRequests.remove(response.id);
+    if (completer != null) {
+      completer.complete(response);
+    }
   }
 
   /// Return `true` if the [path] is both absolute and normalized.
@@ -520,6 +590,23 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Send the given [notification] to the client.
   void sendNotification(Notification notification) {
     channel.sendNotification(notification);
+  }
+
+  @override
+  Future<void> sendOpenUriNotification(Uri uri) {
+    assert(supportsOpenUriNotification);
+    var requestId = (nextServerRequestId++).toString();
+    var request =
+        ServerOpenUrlRequestParams(uri.toString()).toRequest(requestId);
+    return sendRequest(request);
+  }
+
+  /// Send the given [request] to the client.
+  Future<Response> sendRequest(Request request) {
+    var completer = Completer<Response>();
+    pendingServerRequests[request.id] = completer;
+    channel.sendRequest(request);
+    return completer.future;
   }
 
   /// Send the given [response] to the client.
@@ -572,16 +659,17 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
   void sendStatusNotificationNew(analysis.AnalysisStatus status) {
-    if (status.isAnalyzing) {
+    var isAnalyzing = status.isAnalyzing;
+    if (isAnalyzing) {
       _onAnalysisStartedController.add(true);
     }
     var onAnalysisCompleteCompleter = _onAnalysisCompleteCompleter;
-    if (onAnalysisCompleteCompleter != null && !status.isAnalyzing) {
+    if (onAnalysisCompleteCompleter != null && !isAnalyzing) {
       onAnalysisCompleteCompleter.complete();
       _onAnalysisCompleteCompleter = null;
     }
     // Perform on-idle actions.
-    if (!status.isAnalyzing) {
+    if (!isAnalyzing) {
       if (generalAnalysisServices
           .contains(GeneralAnalysisService.ANALYZED_FILES)) {
         sendAnalysisNotificationAnalyzedFiles(this);
@@ -593,11 +681,15 @@ class LegacyAnalysisServer extends AnalysisServer {
       return;
     }
     // Only send status when it changes
-    if (statusAnalyzing == status.isAnalyzing) {
+    if (statusAnalyzing == isAnalyzing) {
       return;
     }
-    statusAnalyzing = status.isAnalyzing;
-    var analysis = AnalysisStatus(status.isAnalyzing);
+    statusAnalyzing = isAnalyzing;
+    if (!isAnalyzing) {
+      // Only send analysis analytics after analysis is complete.
+      reportAnalysisAnalytics();
+    }
+    var analysis = AnalysisStatus(isAnalyzing);
     channel.sendNotification(
         ServerStatusParams(analysis: analysis).toNotification());
   }
@@ -676,8 +768,24 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   @override
-  Future<void> shutdown() {
-    super.shutdown();
+  Future<String?> showUserPrompt(
+    MessageType type,
+    String message,
+    List<String> actionLabels,
+  ) async {
+    assert(supportsShowMessageRequest);
+    var requestId = (nextServerRequestId++).toString();
+    var actions = actionLabels.map((label) => MessageAction(label)).toList();
+    var request =
+        ServerShowMessageRequestParams(type.forLegacy, message, actions)
+            .toRequest(requestId);
+    final response = await sendRequest(request);
+    return response.result?['action'] as String?;
+  }
+
+  @override
+  Future<void> shutdown() async {
+    await super.shutdown();
 
     pubApi.close();
 
@@ -685,21 +793,21 @@ class LegacyAnalysisServer extends AnalysisServer {
     //  analyticsManager is being correctly initialized.
     var analytics = options.analytics;
     if (analytics != null) {
-      analytics.waitForLastPing(timeout: Duration(milliseconds: 200)).then((_) {
+      unawaited(analytics
+          .waitForLastPing(timeout: Duration(milliseconds: 200))
+          .then((_) {
         analytics.close();
-      });
+      }));
     }
 
     detachableFileSystemManager?.dispose();
 
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
-    Future(() {
+    unawaited(Future(() {
       instrumentationService.shutdown();
       channel.close();
-    });
-
-    return Future.value();
+    }));
   }
 
   /// Implementation for `analysis.updateContent`.
@@ -854,7 +962,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void afterContextsCreated() {
-    analysisServer.addContextsToDeclarationsTracker();
+    analysisServer.afterContextsCreated();
     analysisServer._sendSubscriptions(analysis: true, flutter: true);
   }
 
@@ -883,7 +991,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void broadcastWatchEvent(WatchEvent event) {
     analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    analysisServer.pluginManager.broadcastWatchEvent(event);
+    if (AnalysisServer.supportsPlugins) {
+      analysisServer.pluginManager.broadcastWatchEvent(event);
+    }
   }
 
   @override

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library type_substitution_test;
 
 import 'package:compiler/src/elements/names.dart';
@@ -17,11 +15,11 @@ import '../helpers/type_test_helper.dart';
 
 DartType getType(ElementEnvironment elementEnvironment, String name) {
   ClassEntity cls =
-      elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'Class');
-  FunctionEntity element = elementEnvironment.lookupClassMember(
-      cls, Name(name, cls.library.canonicalUri));
+      elementEnvironment.lookupClass(elementEnvironment.mainLibrary!, 'Class')!;
+  final element = elementEnvironment.lookupClassMember(
+      cls, Name(name, cls.library.canonicalUri)) as FunctionEntity?;
   Expect.isNotNull(element);
-  FunctionType type = elementEnvironment.getFunctionType(element);
+  FunctionType type = elementEnvironment.getFunctionType(element!);
 
   // Function signatures are used to be to provide void types (only occurring as
   // as return types) and (inlined) function types (only occurring as method
@@ -55,40 +53,41 @@ testAsInstanceOf() async {
       class F<T, U> extends B<F<T, String>> implements A<F<B<U>, int>> {}
 
       main() {
-        new A();
-        new B();
-        new C();
-        new D();
-        new E();
-        new F();
+        A();
+        B();
+        C();
+        D();
+        E();
+        F();
       }
       ''', options: [Flags.noSoundNullSafety]);
   var types = env.types;
-  ClassEntity A = env.getElement("A");
-  ClassEntity B = env.getElement("B");
-  ClassEntity C = env.getElement("C");
-  ClassEntity D = env.getElement("D");
-  ClassEntity E = env.getElement("E");
-  ClassEntity F = env.getElement("F");
+  final A = env.getElement("A") as ClassEntity;
+  final B = env.getElement("B") as ClassEntity;
+  final C = env.getElement("C") as ClassEntity;
+  final D = env.getElement("D") as ClassEntity;
+  final E = env.getElement("E") as ClassEntity;
+  final F = env.getElement("F") as ClassEntity;
 
   DartType intType = env['int'];
   DartType stringType = env['String'];
 
-  InterfaceType C_int = env.instantiate(C, [intType]);
+  final C_int = env.instantiate(C, [intType]) as InterfaceType;
   Expect.equals(env.instantiate(C, [intType]), C_int);
   Expect.equals(env.instantiate(A, [intType]), types.asInstanceOf(C_int, A));
 
-  InterfaceType D_int = env.instantiate(D, [stringType]);
+  final D_int = env.instantiate(D, [stringType]) as InterfaceType;
   Expect.equals(env.instantiate(A, [intType]), types.asInstanceOf(D_int, A));
 
-  InterfaceType E_int = env.instantiate(E, [intType]);
+  final E_int = env.instantiate(E, [intType]) as InterfaceType;
   Expect.equals(
       env.instantiate(A, [
         env.instantiate(A, [intType])
       ]),
       types.asInstanceOf(E_int, A));
 
-  InterfaceType F_int_string = env.instantiate(F, [intType, stringType]);
+  final F_int_string =
+      env.instantiate(F, [intType, stringType]) as InterfaceType;
   Expect.equals(
       env.instantiate(B, [
         env.instantiate(F, [intType, stringType])
@@ -124,13 +123,13 @@ testTypeSubstitution() async {
   var env = await TypeEnvironment.create(r"""
       class Class<T,S> {}
 
-      main() => new Class();
+      main() => Class();
       """, options: [Flags.noSoundNullSafety]);
   var types = env.types;
-  InterfaceType Class_T_S = env["Class"];
+  final Class_T_S = env["Class"];
   Expect.isNotNull(Class_T_S);
   Expect.isTrue(Class_T_S is InterfaceType);
-  Expect.equals(2, Class_T_S.typeArguments.length);
+  Expect.equals(2, (Class_T_S as InterfaceType).typeArguments.length);
 
   DartType T = Class_T_S.typeArguments[0];
   Expect.isNotNull(T);
@@ -148,8 +147,8 @@ testTypeSubstitution() async {
   Expect.isNotNull(StringType);
   Expect.isTrue(StringType is InterfaceType);
 
-  ClassEntity ListClass = env.getElement('List');
-  ClassEntity MapClass = env.getElement('Map');
+  final ListClass = env.getElement('List') as ClassEntity;
+  final MapClass = env.getElement('Map') as ClassEntity;
 
   List<DartType> parameters = <DartType>[T, S];
   List<DartType> arguments = <DartType>[intType, StringType];

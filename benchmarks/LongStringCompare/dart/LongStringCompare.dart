@@ -33,7 +33,7 @@ class LongStringCompare extends BenchmarkBase {
   @override
   void run() {
     for (int i = 0; i < reps; i++) {
-      // Make string comparison code hoisiting harder for the compiler to do.
+      // Make string comparison code hoisting harder for the compiler to do.
       bool comparison = s[i % 2] == s[(i + 1) % 2];
       if (comparison) {
         equalCount++;

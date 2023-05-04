@@ -14,9 +14,9 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         optional;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
-    show FixedNullableList, NullValue, ParserRecovery;
-import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
+    show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -51,10 +51,12 @@ import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting, TypeInferenceEngine;
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import 'diet_parser.dart';
+import 'source_class_builder.dart';
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
+import 'source_inline_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'stack_listener_impl.dart';
 
@@ -117,9 +119,9 @@ class DietListener extends StackListenerImpl {
     debugEvent("MetadataStar");
     if (count > 0) {
       discard(count - 1);
-      push(pop(NullValue.Token) ?? NullValue.Token);
+      push(pop(NullValues.Token) ?? NullValues.Token);
     } else {
-      push(NullValue.Token);
+      push(NullValues.Token);
     }
   }
 
@@ -528,13 +530,13 @@ class DietListener extends StackListenerImpl {
   @override
   void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
     debugEvent("ImportPrefix");
-    pushIfNull(asKeyword, NullValue.Prefix);
+    pushIfNull(asKeyword, NullValues.Prefix);
   }
 
   @override
   void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     debugEvent("Import");
-    Object? name = pop(NullValue.Prefix);
+    Object? name = pop(NullValues.Prefix);
 
     Token? metadata = pop() as Token?;
     checkEmpty(importKeyword.charOffset);
@@ -555,7 +557,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void handleRecoverImport(Token? semicolon) {
-    pop(NullValue.Prefix);
+    pop(NullValues.Prefix);
   }
 
   @override
@@ -729,10 +731,9 @@ class DietListener extends StackListenerImpl {
     Token? metadata = pop() as Token?;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
-    SourceFunctionBuilderImpl builder;
+    SourceFunctionBuilder builder;
     if (isConstructor) {
-      builder =
-          lookupConstructor(beginToken, name!) as SourceFunctionBuilderImpl;
+      builder = lookupConstructor(beginToken, name!) as SourceFunctionBuilder;
     } else {
       Builder? memberBuilder =
           lookupBuilder(beginToken, getOrSet, name as String);
@@ -745,7 +746,7 @@ class DietListener extends StackListenerImpl {
         // this point we skip the member.
         return;
       }
-      builder = memberBuilder as SourceFunctionBuilderImpl;
+      builder = memberBuilder as SourceFunctionBuilder;
     }
     buildFunctionBody(
         createFunctionListener(builder),
@@ -758,8 +759,8 @@ class DietListener extends StackListenerImpl {
 
   BodyBuilder createListener(ModifierBuilder builder, Scope memberScope,
       {required bool isDeclarationInstanceMember,
-      VariableDeclaration? extensionThis,
-      List<TypeParameter>? extensionTypeParameters,
+      VariableDeclaration? thisVariable,
+      List<TypeParameter>? thisTypeParameters,
       Scope? formalParameterScope,
       InferenceDataForTesting? inferenceDataForTesting}) {
     // Note: we set thisType regardless of whether we are building a static
@@ -767,7 +768,7 @@ class DietListener extends StackListenerImpl {
     // TODO(johnniwinther): Provide a dummy this on static extension methods
     // for better error recovery?
     InterfaceType? thisType =
-        extensionThis == null ? currentDeclaration?.thisType : null;
+        thisVariable == null ? currentDeclaration?.thisType : null;
     TypeInferrer typeInferrer = typeInferenceEngine.createLocalTypeInferrer(
         uri, thisType, libraryBuilder, inferenceDataForTesting);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
@@ -778,8 +779,8 @@ class DietListener extends StackListenerImpl {
         memberScope,
         formalParameterScope,
         isDeclarationInstanceMember,
-        extensionThis,
-        extensionTypeParameters,
+        thisVariable,
+        thisTypeParameters,
         typeInferrer,
         constantContext);
   }
@@ -789,8 +790,8 @@ class DietListener extends StackListenerImpl {
       Scope memberScope,
       Scope? formalParameterScope,
       bool isDeclarationInstanceMember,
-      VariableDeclaration? extensionThis,
-      List<TypeParameter>? extensionTypeParameters,
+      VariableDeclaration? thisVariable,
+      List<TypeParameter>? thisTypeParameters,
       TypeInferrer typeInferrer,
       ConstantContext constantContext) {
     return new BodyBuilder(
@@ -802,14 +803,14 @@ class DietListener extends StackListenerImpl {
         coreTypes: coreTypes,
         declarationBuilder: currentDeclaration,
         isDeclarationInstanceMember: isDeclarationInstanceMember,
-        extensionThis: extensionThis,
-        extensionTypeParameters: extensionTypeParameters,
+        thisVariable: thisVariable,
+        thisTypeParameters: thisTypeParameters,
         uri: uri,
         typeInferrer: typeInferrer)
       ..constantContext = constantContext;
   }
 
-  BodyBuilder createFunctionListener(SourceFunctionBuilderImpl builder) {
+  BodyBuilder createFunctionListener(SourceFunctionBuilder builder) {
     final Scope typeParameterScope =
         builder.computeTypeParameterScope(memberScope);
     final Scope formalParameterScope =
@@ -820,8 +821,8 @@ class DietListener extends StackListenerImpl {
     assert(formalParameterScope != null);
     return createListener(builder, typeParameterScope,
         isDeclarationInstanceMember: builder.isDeclarationInstanceMember,
-        extensionThis: builder.extensionThis,
-        extensionTypeParameters: builder.extensionTypeParameters,
+        thisVariable: builder.thisVariable,
+        thisTypeParameters: builder.thisTypeParameters,
         formalParameterScope: formalParameterScope,
         inferenceDataForTesting: builder.dataForTesting?.inferenceData);
   }
@@ -832,7 +833,7 @@ class DietListener extends StackListenerImpl {
     try {
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: globalFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         listener.pop(); // Pops metadata constants.
@@ -937,9 +938,13 @@ class DietListener extends StackListenerImpl {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     debugEvent("beginClassDeclaration");
     push(begin);
@@ -953,7 +958,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     push(mixinKeyword);
   }
@@ -967,7 +972,7 @@ class DietListener extends StackListenerImpl {
   @override
   void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
     debugEvent("beginExtensionDeclaration");
-    push(nameToken?.lexeme ?? NullValue.Name);
+    push(nameToken?.lexeme ?? NullValues.Name);
     push(extensionKeyword);
   }
 
@@ -1086,7 +1091,7 @@ class DietListener extends StackListenerImpl {
     try {
       Parser parser = new Parser(bodyBuilder,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: globalFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         bodyBuilder.pop(); // Annotations.
@@ -1122,7 +1127,7 @@ class DietListener extends StackListenerImpl {
     Token token = startToken;
     Parser parser = new Parser(bodyBuilder,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: globalFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled);
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
     } else {
@@ -1166,20 +1171,23 @@ class DietListener extends StackListenerImpl {
   }
 
   Builder? lookupConstructor(Token token, Object nameOrQualified) {
-    assert(currentClass != null);
+    assert(currentDeclaration != null);
+    assert(currentDeclaration is SourceClassBuilder ||
+        currentDeclaration is SourceInlineClassBuilder);
     Builder? declaration;
     String suffix;
     if (nameOrQualified is QualifiedName) {
       suffix = nameOrQualified.name;
     } else {
-      suffix = nameOrQualified == currentClass!.name
+      suffix = nameOrQualified == currentDeclaration!.name
           ? ""
           : nameOrQualified as String;
     }
     if (libraryFeatures.constructorTearoffs.isEnabled) {
       suffix = suffix == "new" ? "" : suffix;
     }
-    declaration = currentClass!.constructorScope.lookupLocalMember(suffix);
+    declaration =
+        currentDeclaration!.constructorScope.lookupLocalMember(suffix);
     declaration = handleDuplicatedName(declaration, token);
     checkBuilder(token, declaration, nameOrQualified);
     return declaration;
@@ -1246,7 +1254,7 @@ class DietListener extends StackListenerImpl {
           isDeclarationInstanceMember: false);
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: globalFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled);
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       return listener.finishMetadata(parent);
     }

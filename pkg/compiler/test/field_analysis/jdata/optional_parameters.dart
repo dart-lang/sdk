@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 main() {
-  var c1a = new Class1a(0);
-  new Class1a(0, 1);
+  var c1a = Class1a(0);
+  Class1a(0, 1);
   c1a.field1 = null;
   c1a.field2 = null;
   c1a.field3 = null;
@@ -14,14 +12,14 @@ main() {
   print(c1a.field2);
   print(c1a.field3);
 
-  var c1b = new Class1b(0);
-  new Class1b(0, 1);
+  var c1b = Class1b(0);
+  Class1b(0, 1);
   print(c1b.field1);
   print(c1b.field2);
   print(c1b.field3);
 
-  var c2a = new Class2a(0);
-  new Class2a(0, field2: 1);
+  var c2a = Class2a(0);
+  Class2a(0, field2: 1);
   c2a.field1 = null;
   c2a.field2 = null;
   c2a.field3 = null;
@@ -29,8 +27,8 @@ main() {
   print(c2a.field2);
   print(c2a.field3);
 
-  var c2b = new Class2b(0);
-  new Class2b(0, field2: 1);
+  var c2b = Class2b(0);
+  Class2b(0, field2: 1);
   print(c2b.field1);
   print(c2b.field2);
   print(c2b.field3);

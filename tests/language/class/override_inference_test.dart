@@ -43,7 +43,7 @@ class INumInt {
   int foo(num x) => x.toInt();
 }
 
-class IIntNum {
+mixin class IIntNum {
   num foo(int x) => x.toInt();
 }
 

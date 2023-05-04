@@ -237,7 +237,7 @@ class PriorityQueue {
     Entry* new_backing = reinterpret_cast<Entry*>(
         realloc(min_heap_, sizeof(Entry) * new_min_heap_size));
 
-    if (new_backing == NULL) FATAL("Cannot allocate memory.");
+    if (new_backing == nullptr) FATAL("Cannot allocate memory.");
 
     min_heap_ = new_backing;
     min_heap_size_ = new_min_heap_size;
@@ -257,7 +257,7 @@ class PriorityQueue {
   //
   // Deletion operations can be performed by replacing the minimum element
   // (first entry) by the last entry (bottom right) and bubbling it down until
-  // the tree invariant is satisified again.
+  // the tree invariant is satisfied again.
   Entry* min_heap_;
   intptr_t min_heap_size_;
   intptr_t size_;

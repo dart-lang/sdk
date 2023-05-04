@@ -222,7 +222,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
   }
 }
 
-class SubListIterable<E> extends ListIterable<E> {
+base class SubListIterable<E> extends ListIterable<E> {
   final Iterable<E> _iterable; // Has efficient length and elementAt.
   final int _start;
   /** If null, represents the length of the iterable. */
@@ -381,7 +381,7 @@ class EfficientLengthMappedIterable<S, T> extends MappedIterable<S, T>
       : super._(iterable, function);
 }
 
-class MappedIterator<S, T> extends Iterator<T> {
+class MappedIterator<S, T> implements Iterator<T> {
   T? _current;
   final Iterator<S> _iterator;
   final _Transformation<S, T> _f;
@@ -405,7 +405,7 @@ class MappedIterator<S, T> extends Iterator<T> {
  *
  * Expects efficient `length` and `elementAt` on the source iterable.
  */
-class MappedListIterable<S, T> extends ListIterable<T> {
+base class MappedListIterable<S, T> extends ListIterable<T> {
   final Iterable<S> _source;
   final _Transformation<S, T> _f;
 
@@ -430,7 +430,7 @@ class WhereIterable<E> extends Iterable<E> {
       MappedIterable<E, T>._(this, toElement);
 }
 
-class WhereIterator<E> extends Iterator<E> {
+class WhereIterator<E> implements Iterator<E> {
   final Iterator<E> _iterator;
   final _ElementPredicate<E> _f;
 
@@ -522,7 +522,7 @@ class EfficientLengthTakeIterable<E> extends TakeIterable<E>
   }
 }
 
-class TakeIterator<E> extends Iterator<E> {
+class TakeIterator<E> implements Iterator<E> {
   final Iterator<E> _iterator;
   int _remaining;
 
@@ -560,7 +560,7 @@ class TakeWhileIterable<E> extends Iterable<E> {
   }
 }
 
-class TakeWhileIterator<E> extends Iterator<E> {
+class TakeWhileIterator<E> implements Iterator<E> {
   final Iterator<E> _iterator;
   final _ElementPredicate<E> _f;
   bool _isFinished = false;
@@ -631,7 +631,7 @@ int _checkCount(int count) {
   return count;
 }
 
-class SkipIterator<E> extends Iterator<E> {
+class SkipIterator<E> implements Iterator<E> {
   final Iterator<E> _iterator;
   int _skipCount;
 
@@ -659,7 +659,7 @@ class SkipWhileIterable<E> extends Iterable<E> {
   }
 }
 
-class SkipWhileIterator<E> extends Iterator<E> {
+class SkipWhileIterator<E> implements Iterator<E> {
   final Iterator<E> _iterator;
   final _ElementPredicate<E> _f;
   bool _hasSkipped = false;
@@ -877,11 +877,160 @@ class WhereTypeIterator<T> implements Iterator<T> {
   T get current => _source.current as T;
 }
 
+/// Implementation of [NullableIterableExtensions.nonNulls].
+///
+/// A filtering iterable, so it doesn't have efficient length
+/// and cannot forward most methods to the underlying [_source].
+class NonNullsIterable<T extends Object> extends Iterable<T> {
+  final Iterable<T?> _source;
+  NonNullsIterable(this._source);
+
+  T? get _firstNonNull {
+    for (var element in _source) {
+      if (element != null) return element;
+    }
+    return null;
+  }
+
+  bool get isEmpty => _firstNonNull == null;
+  bool get isNotEmpty => _firstNonNull != null;
+  T get first => _firstNonNull ?? (throw IterableElementError.noElement());
+
+  Iterator<T> get iterator => NonNullsIterator<T>(_source.iterator);
+}
+
+class NonNullsIterator<T extends Object> implements Iterator<T> {
+  final Iterator<T?> _source;
+  T? _current;
+
+  NonNullsIterator(this._source);
+
+  bool moveNext() {
+    _current = null;
+    while (_source.moveNext()) {
+      var next = _source.current;
+      if (next != null) {
+        _current = next;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  T get current => _current ?? (throw IterableElementError.noElement());
+}
+
+/// Implementation of [IterableExtensions.indexed].
+///
+/// Maps elements of [_source] one-to-one to record values,
+/// so has the same length as the original, and can define many
+/// operations in terms of the underlying source.
+class IndexedIterable<T> extends Iterable<(int, T)> {
+  final Iterable<T> _source;
+
+  /// Offset applied to indices.
+  ///
+  /// Used to implement `skip` efficiently for iterables which can skip
+  /// efficiently.
+  final int _start;
+
+  factory IndexedIterable(Iterable<T> source, int start) {
+    if (source is EfficientLengthIterable<T>) {
+      return EfficientLengthIndexedIterable(source, start);
+    }
+    return IndexedIterable._(source, start);
+  }
+
+  IndexedIterable.nonEfficientLength(Iterable<T> source, int start)
+      : this._(source, start);
+
+  IndexedIterable._(this._source, this._start);
+
+  int get length => _source.length;
+  bool get isEmpty => _source.isEmpty;
+  bool get isNotEmpty => _source.isNotEmpty;
+
+  (int, T) get first => (_start, _source.first);
+  (int, T) get single => (_start, _source.single);
+  (int, T) elementAt(int index) => (index + _start, _source.elementAt(index));
+
+  bool contains(Object? element) {
+    if (element case (int index, Object? other) when index >= _start) {
+      // Try to find the `index`th element without looking at the
+      // intermediate values, and without throwing if there are fewer.
+      var unbiasedIndex = index - _start;
+      var iterator = _source.skip(unbiasedIndex).iterator;
+      return iterator.moveNext() && iterator.current == other;
+    }
+    return false;
+  }
+
+  Iterable<(int, T)> take(int count) => IndexedIterable<T>.nonEfficientLength(
+      _source.take(_checkCount(count)), _start);
+
+  Iterable<(int, T)> skip(int count) => IndexedIterable<T>.nonEfficientLength(
+      _source.skip(_checkCount(count)), count + _start);
+
+  Iterator<(int, T)> get iterator =>
+      IndexedIterator<T>(_source.iterator, _start);
+}
+
+class EfficientLengthIndexedIterable<T> extends IndexedIterable<T>
+    implements EfficientLengthIterable<(int, T)> {
+  EfficientLengthIndexedIterable(super._source, super._start) : super._();
+
+  (int, T) get last {
+    var length = _source.length;
+    if (length <= 0) throw IterableElementError.noElement();
+    var last = _source.last;
+    if (length != this.length) {
+      throw ConcurrentModificationError(this);
+    }
+    return (length - 1 + _start, last);
+  }
+
+  bool contains(Object? element) {
+    if (element case (int index, Object? other) when index >= _start) {
+      var unbiasedIndex = index - _start;
+      return unbiasedIndex < _source.length &&
+          _source.elementAt(unbiasedIndex) == other;
+    }
+    return false;
+  }
+
+  Iterable<(int, T)> take(int count) => EfficientLengthIndexedIterable<T>(
+      _source.take(_checkCount(count)), _start);
+
+  Iterable<(int, T)> skip(int count) => EfficientLengthIndexedIterable<T>(
+      _source.skip(_checkCount(count)), _start + count);
+}
+
+class IndexedIterator<T> implements Iterator<(int, T)> {
+  final Iterator<T> _source;
+  final int _start;
+  int _index = -1;
+
+  IndexedIterator(this._source, this._start);
+
+  bool moveNext() {
+    var index = ++_index;
+    if (index >= 0 && _source.moveNext()) {
+      return true;
+    }
+    _index = -2; // Ensures moveNext won't get called again.
+    return false;
+  }
+
+  (int, T) get current => _index >= 0
+      ? (_start + _index, _source.current)
+      : (throw IterableElementError.noElement());
+}
+
 /**
  * Creates errors throw by [Iterable] when the element count is wrong.
  */
 abstract class IterableElementError {
-  /** Error thrown thrown by, e.g., [Iterable.first] when there is no result. */
+  /** Error thrown by, e.g., [Iterable.first] when there is no result. */
   static StateError noElement() => StateError("No element");
   /** Error thrown by, e.g., [Iterable.single] if there are too many results. */
   static StateError tooMany() => StateError("Too many elements");

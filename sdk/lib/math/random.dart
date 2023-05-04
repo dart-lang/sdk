@@ -28,7 +28,7 @@ part of dart.math;
 /// var boolValue = Random().nextBool(); // true or false, with equal chance.
 /// ```
 ///
-abstract class Random {
+abstract interface class Random {
   /// Creates a random number generator.
   ///
   /// The optional parameter [seed] is used to initialize the

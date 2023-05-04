@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:math" as math;
+
+abstract sealed class Shape extends core::Object {
+  synthetic constructor •() → self::Shape
+    ;
+  abstract method calculateArea() → core::double;
+}
+class Square extends core::Object implements self::Shape {
+  final field core::double length;
+  constructor •(core::double length) → self::Square
+    ;
+  method calculateArea() → core::double
+    ;
+}
+class Circle extends core::Object implements self::Shape {
+  final field core::double radius;
+  constructor •(core::double radius) → self::Circle
+    ;
+  method calculateArea() → core::double
+    ;
+}
+static method calculateArea(self::Shape shape) → core::double
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

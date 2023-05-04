@@ -16,7 +16,13 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddExplicitCast extends CorrectionProducer {
   @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_EXPLICIT_CAST;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.ADD_EXPLICIT_CAST_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -81,10 +87,10 @@ class AddExplicitCast extends CorrectionProducer {
 
     var needsParentheses = target.precedence < Precedence.postfix;
     if (toType is InterfaceType &&
-        (((fromType.isDartCoreIterable || fromType.isDartCoreList) &&
-                toType.isDartCoreList) ||
-            (fromType.isDartCoreIterable || fromType.isDartCoreSet) &&
-                toType.isDartCoreSet)) {
+        (fromType.isDartCoreIterable ||
+            fromType.isDartCoreList ||
+            fromType.isDartCoreSet) &&
+        (toType.isDartCoreList || toType.isDartCoreSet)) {
       final toType_final = toType;
       if (target.isCastMethodInvocation) {
         var typeArguments = (target as MethodInvocation).typeArguments;

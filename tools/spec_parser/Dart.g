@@ -3,8 +3,39 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // CHANGES:
+// v0.32 Remove unused non-terminal `patterns`.
 //
-// v0.23 Change logical pattern rules to || and &&
+// v0.31 Inline `identifierNotFUNCTION` into `identifier`. Replace all
+// other references with `identifier` to match the spec.
+//
+// v0.30 Add support for the class modifiers `sealed`, `final`, `base`,
+// `interface`, and for `mixin class` declarations. Also add support for
+// unnamed libraries (`library;`). Introduce `otherIdentifier` to help
+// maintaining consistency when the grammar is modified to mention any words
+// that weren't previously mentioned, yet are not reserved or built-in.
+//
+// v0.29 Add an alternative in the `primary` rule to enable method invocations
+// of the form `super(...)` and `super<...>(...)`. This was added to the
+// language specification in May 21, b26e7287c318c0112610fe8b7e175289792dfde2,
+// but the corresponding update here wasn't done here at the time.
+//
+// v0.28 Add support for `new` in `enumEntry`, e.g., `enum E { x.new(); }`.
+// Add `identifierOrNew` non-terminal to simplify the grammar.
+//
+// v0.27 Remove unused non-terminals; make handling of interpolation in URIs
+// consistent with the language specification. Make `partDeclaration` a
+// start symbol in addition to `libraryDefinition` (such that no special
+// precautions are needed in order to parse a part file). Corrected spacing
+// in several rules.
+//
+// v0.26 Add missing `metadata` in `partDeclaration`.
+//
+// v0.25 Update pattern rules following changes to the patterns feature
+// specification since v0.24.
+//
+// v0.24 Change constant pattern rules to allow Symbols and negative numbers.
+//
+// v0.23 Change logical pattern rules to || and &&.
 //
 // v0.22 Change pattern rules, following updated feature specification.
 //
@@ -105,7 +136,7 @@ import java.util.Stack;
   public boolean parseLibrary(String filePath) throws RecognitionException {
     this.filePath = filePath;
     errorHasOccurred = false;
-    libraryDefinition();
+    startSymbol();
     return !errorHasOccurred;
   }
 
@@ -122,7 +153,7 @@ import java.util.Stack;
   // neither `async`, `async*`, nor `sync*`.
   void startNonAsyncFunction() { asyncEtcAreKeywords.push(false); }
 
-  // Use this to indicate that we are now leaving any funciton.
+  // Use this to indicate that we are now leaving any function.
   void endFunction() { asyncEtcAreKeywords.pop(); }
 
   // Whether we can recognize AWAIT/YIELD as an identifier/typeIdentifier.
@@ -191,6 +222,11 @@ import java.util.Stack;
 
 // ---------------------------------------- Grammar rules.
 
+startSymbol
+    :    libraryDefinition
+    |    partDeclaration
+    ;
+
 libraryDefinition
     :    FEFF? SCRIPT_TAG?
          libraryName?
@@ -248,12 +284,7 @@ initializedIdentifierList
     ;
 
 functionSignature
-    :    type? identifierNotFUNCTION formalParameterPart
-    ;
-
-functionBodyPrefix
-    :    ASYNC? '=>'
-    |    (ASYNC | ASYNC '*' | SYNC '*')? LBRACE
+    :    type? identifier formalParameterPart
     ;
 
 functionBody
@@ -310,7 +341,7 @@ normalFormalParameterNoMetadata
 
 // NB: It is an anomaly that a functionFormalParameter cannot be FINAL.
 functionFormalParameter
-    :    COVARIANT? type? identifierNotFUNCTION formalParameterPart '?'?
+    :    COVARIANT? type? identifier formalParameterPart '?'?
     ;
 
 simpleFormalParameter
@@ -340,13 +371,24 @@ typeWithParameters
     ;
 
 classDeclaration
-    :    ABSTRACT? CLASS typeWithParameters superclass? mixins? interfaces?
-         LBRACE (metadata classMemberDefinition)* RBRACE
-    |    ABSTRACT? CLASS mixinApplicationClass
+    :    (classModifiers | mixinClassModifiers)
+         CLASS typeWithParameters superclass? interfaces?
+         LBRACE (metadata classMemberDeclaration)* RBRACE
+    |    classModifiers CLASS mixinApplicationClass
+    ;
+
+classModifiers
+    :    SEALED
+    |    ABSTRACT? (BASE | INTERFACE | FINAL)?
+    ;
+
+mixinClassModifiers
+    :    ABSTRACT? BASE? MIXIN
     ;
 
 superclass
-    :    EXTENDS typeNotVoidNotFunction
+    :    EXTENDS typeNotVoidNotFunction mixins?
+    |    mixins
     ;
 
 mixins
@@ -357,7 +399,7 @@ interfaces
     :    IMPLEMENTS typeNotVoidNotFunctionList
     ;
 
-classMemberDefinition
+classMemberDeclaration
     :    methodSignature functionBody
     |    declaration ';'
     ;
@@ -367,14 +409,21 @@ mixinApplicationClass
     ;
 
 mixinDeclaration
-    :    MIXIN typeIdentifier typeParameters?
+    :    mixinModifier? MIXIN typeIdentifier typeParameters?
          (ON typeNotVoidNotFunctionList)? interfaces?
-         LBRACE (metadata mixinMemberDefinition)* RBRACE
+         LBRACE (metadata mixinMemberDeclaration)* RBRACE
     ;
 
-// TODO: We will probably want to make this more strict.
-mixinMemberDefinition
-    :    classMemberDefinition
+mixinModifier
+    :    SEALED
+    |    BASE
+    |    INTERFACE
+    |    FINAL
+    ;
+
+// TODO: We might want to make this more strict.
+mixinMemberDeclaration
+    :    classMemberDeclaration
     ;
 
 extensionDeclaration
@@ -384,7 +433,7 @@ extensionDeclaration
 
 // TODO: We might want to make this more strict.
 extensionMemberDefinition
-    :    classMemberDefinition
+    :    classMemberDeclaration
     ;
 
 methodSignature
@@ -459,11 +508,17 @@ constructorSignature
     ;
 
 constructorName
-    :    typeIdentifier ('.' (identifier | NEW))?
+    :    typeIdentifier ('.' identifierOrNew)?
+    ;
+
+// TODO: Add this in the language specification, use it in grammar rules.
+identifierOrNew
+    :    identifier
+    |    NEW
     ;
 
 redirection
-    :    ':' THIS ('.' (identifier | NEW))? arguments
+    :    ':' THIS ('.' identifierOrNew)? arguments
     ;
 
 initializers
@@ -472,7 +527,7 @@ initializers
 
 initializerListEntry
     :    SUPER arguments
-    |    SUPER '.' (identifier | NEW) arguments
+    |    SUPER '.' identifierOrNew arguments
     |    fieldInitializer
     |    assertion
     ;
@@ -506,13 +561,13 @@ mixinApplication
 enumType
     :    ENUM typeIdentifier typeParameters? mixins? interfaces? LBRACE
          enumEntry (',' enumEntry)* (',')?
-         (';' (metadata classMemberDefinition)*)?
+         (';' (metadata classMemberDeclaration)*)?
          RBRACE
     ;
 
 enumEntry
     :    metadata identifier argumentPart?
-    |    metadata identifier typeArguments? '.' identifier arguments
+    |    metadata identifier typeArguments? '.' identifierOrNew arguments
     ;
 
 typeParameter
@@ -556,13 +611,14 @@ expressionList
 primary
     :    thisExpression
     |    SUPER unconditionalAssignableSelector
-    |    constObjectExpression
-    |    newExpression
-    |    constructorInvocation
+    |    SUPER argumentPart
     |    functionPrimary
-    |    '(' expression ')'
     |    literal
     |    identifier
+    |    newExpression
+    |    constObjectExpression
+    |    constructorInvocation
+    |    '(' expression ')'
     |    constructorTearoff
     |    switchExpression
     ;
@@ -601,11 +657,6 @@ stringLiteral
     :    (multiLineString | singleLineString)+
     ;
 
-// Not used in the specification (needed here for <uri>).
-stringLiteralWithoutInterpolation
-    :    singleStringWithoutInterpolation+
-    ;
-
 setOrMapLiteral
     :    CONST? typeArguments? LBRACE elements? RBRACE
     ;
@@ -630,35 +681,35 @@ recordField
     ;
 
 elements
-    : element (',' element)* ','?
+    :    element (',' element)* ','?
     ;
 
 element
-    : expressionElement
-    | mapElement
-    | spreadElement
-    | ifElement
-    | forElement
+    :    expressionElement
+    |    mapElement
+    |    spreadElement
+    |    ifElement
+    |    forElement
     ;
 
 expressionElement
-    : expression
+    :    expression
     ;
 
 mapElement
-    : expression ':' expression
+    :    expression ':' expression
     ;
 
 spreadElement
-    : ('...' | '...?') expression
+    :    ('...' | '...?') expression
     ;
 
 ifElement
-    : IF '(' expression ')' element (ELSE element)?
+    :    ifCondition element (ELSE element)?
     ;
 
 forElement
-    : AWAIT? FOR '(' forLoopParts ')' element
+    :    AWAIT? FOR '(' forLoopParts ')' element
     ;
 
 constructorTearoff
@@ -667,15 +718,11 @@ constructorTearoff
 
 switchExpression
     :    SWITCH '(' expression ')'
-         LBRACE switchExpressionCase* switchExpressionDefault? RBRACE
+         LBRACE switchExpressionCase (',' switchExpressionCase)* ','? RBRACE
     ;
 
 switchExpressionCase
-    :    caseHead '=>' expression ';'
-    ;
-
-switchExpressionDefault
-    : DEFAULT '=>' expression ';'
+    :    guardedPattern '=>' expression
     ;
 
 throwExpression
@@ -693,10 +740,6 @@ functionExpression
 functionExpressionBody
     :    '=>' { startNonAsyncFunction(); } expression { endFunction(); }
     |    ASYNC '=>' { startAsyncFunction(); } expression { endFunction(); }
-    ;
-
-functionExpressionBodyPrefix
-    :    ASYNC? '=>'
     ;
 
 functionExpressionWithoutCascade
@@ -718,10 +761,6 @@ functionPrimaryBody
     :    { startNonAsyncFunction(); } block { endFunction(); }
     |    (ASYNC | ASYNC '*' | SYNC '*')
          { startAsyncFunction(); } block { endFunction(); }
-    ;
-
-functionPrimaryBodyPrefix
-    : (ASYNC | ASYNC '*' | SYNC '*')? LBRACE
     ;
 
 thisExpression
@@ -962,37 +1001,22 @@ assignableSelector
     |    '?' '[' expression ']'
     ;
 
-identifierNotFUNCTION
+identifier
     :    IDENTIFIER
     |    builtInIdentifier
-    |    ASYNC // Not a built-in identifier.
-    |    HIDE // Not a built-in identifier.
-    |    OF // Not a built-in identifier.
-    |    ON // Not a built-in identifier.
-    |    SHOW // Not a built-in identifier.
-    |    SYNC // Not a built-in identifier.
+    |    otherIdentifier
     |    { asyncEtcPredicate(getCurrentToken().getType()) }? (AWAIT|YIELD)
     ;
 
-identifier
-    :    identifierNotFUNCTION
-    |    FUNCTION // Built-in identifier that can be used as a type.
-    ;
-
 qualifiedName
-    :    typeIdentifier '.' (identifier | NEW)
-    |    typeIdentifier '.' typeIdentifier '.' (identifier | NEW)
+    :    typeIdentifier '.' identifierOrNew
+    |    typeIdentifier '.' typeIdentifier '.' identifierOrNew
     ;
 
 typeIdentifier
     :    IDENTIFIER
     |    DYNAMIC // Built-in identifier that can be used as a type.
-    |    ASYNC // Not a built-in identifier.
-    |    HIDE // Not a built-in identifier.
-    |    OF // Not a built-in identifier.
-    |    ON // Not a built-in identifier.
-    |    SHOW // Not a built-in identifier.
-    |    SYNC // Not a built-in identifier.
+    |    otherIdentifier // Occur in grammar rules, are not built-in.
     |    { asyncEtcPredicate(getCurrentToken().getType()) }? (AWAIT|YIELD)
     ;
 
@@ -1016,10 +1040,6 @@ pattern
     :    logicalOrPattern
     ;
 
-patterns
-    :    pattern (',' pattern)* ','?
-    ;
-
 logicalOrPattern
     :    logicalAndPattern ('||' logicalAndPattern)*
     ;
@@ -1029,7 +1049,7 @@ logicalAndPattern
     ;
 
 relationalPattern
-    :    (equalityOperator | relationalOperator) relationalExpression
+    :    (equalityOperator | relationalOperator) bitwiseOrExpression
     |    unaryPattern
     ;
 
@@ -1065,8 +1085,9 @@ nullAssertPattern
 constantPattern
     :    booleanLiteral
     |    nullLiteral
-    |    numericLiteral
+    |    '-'? numericLiteral
     |    stringLiteral
+    |    symbolLiteral
     |    identifier
     |    qualifiedName
     |    constObjectExpression
@@ -1084,7 +1105,20 @@ parenthesizedPattern
     ;
 
 listPattern
-    :    typeArguments? '[' patterns? ']'
+    :    typeArguments? '[' listPatternElements? ']'
+    ;
+
+listPatternElements
+    :    listPatternElement (',' listPatternElement)* ','?
+    ;
+
+listPatternElement
+    :    pattern
+    |    restPattern
+    ;
+
+restPattern
+    :    '...' pattern?
     ;
 
 mapPattern
@@ -1097,6 +1131,7 @@ mapPatternEntries
 
 mapPatternEntry
     :    expression ':' pattern
+    |    '...'
     ;
 
 recordPattern
@@ -1128,7 +1163,7 @@ outerPattern
     ;
 
 patternAssignment
-    : outerPattern '=' expression
+    :    outerPattern '=' expression
     ;
 
 statements
@@ -1183,7 +1218,11 @@ localFunctionDeclaration
     ;
 
 ifStatement
-    :    IF '(' expression caseHead? ')' statement (ELSE statement)?
+    :    ifCondition statement (ELSE statement)?
+    ;
+
+ifCondition
+    :    IF '(' expression (CASE guardedPattern)? ')'
     ;
 
 forStatement
@@ -1219,11 +1258,11 @@ switchStatement
     ;
 
 switchStatementCase
-    :    label* caseHead ':' statements
+    :    label* CASE guardedPattern ':' statements
     ;
 
-caseHead
-    :    CASE pattern (WHEN expression)?
+guardedPattern
+    :    pattern (WHEN expression)?
     ;
 
 switchStatementDefault
@@ -1289,7 +1328,7 @@ assertion
     ;
 
 libraryName
-    :    metadata LIBRARY dottedIdentifierList ';'
+    :    metadata LIBRARY dottedIdentifierList? ';'
     ;
 
 dottedIdentifierList
@@ -1331,13 +1370,11 @@ partHeader
     ;
 
 partDeclaration
-    :    partHeader topLevelDefinition* EOF
+    :    FEFF? partHeader (metadata topLevelDefinition)* EOF
     ;
 
-// In the specification a plain <stringLiteral> is used.
-// TODO(eernst): Check whether it creates ambiguities to do that.
 uri
-    :    stringLiteralWithoutInterpolation
+    :    stringLiteral
     ;
 
 configurableUri
@@ -1360,18 +1397,18 @@ type
 typeNotVoid
     :    functionType '?'?
     |    recordType '?'?
-    |    typeNotVoidNotFunction
+    |    typeNotVoidNotFunction '?'?
     ;
 
 typeNotFunction
-    :    typeNotVoidNotFunction
+    :    typeNotVoidNotFunction '?'?
     |    recordType '?'?
     |    VOID
     ;
 
 typeNotVoidNotFunction
-    :    typeName typeArguments? '?'?
-    |    FUNCTION '?'?
+    :    typeName typeArguments?
+    |    FUNCTION
     ;
 
 typeName
@@ -1390,7 +1427,7 @@ recordType
     :    '(' ')'
     |    '(' recordTypeFields ',' recordTypeNamedFields ')'
     |    '(' recordTypeFields ','? ')'
-    |    '(' recordTypeNamedFields? ')'
+    |    '(' recordTypeNamedFields ')'
     ;
 
 recordTypeFields
@@ -1481,21 +1518,11 @@ typedIdentifier
 constructorDesignation
     :    typeIdentifier
     |    qualifiedName
-    |    typeName typeArguments ('.' (identifier | NEW))?
+    |    typeName typeArguments ('.' identifierOrNew)?
     ;
 
 symbolLiteral
     :    '#' (operator | (identifier ('.' identifier)*) | VOID)
-    ;
-
-// Not used in the specification (needed here for <uri>).
-singleStringWithoutInterpolation
-    :    RAW_SINGLE_LINE_STRING
-    |    RAW_MULTI_LINE_STRING
-    |    SINGLE_LINE_STRING_DQ_BEGIN_END
-    |    SINGLE_LINE_STRING_SQ_BEGIN_END
-    |    MULTI_LINE_STRING_DQ_BEGIN_END
-    |    MULTI_LINE_STRING_SQ_BEGIN_END
     ;
 
 singleLineString
@@ -1584,6 +1611,18 @@ builtInIdentifier
     |    TYPEDEF
     ;
 
+otherIdentifier
+    :    ASYNC
+    |    BASE
+    |    HIDE
+    |    OF
+    |    ON
+    |    SEALED
+    |    SHOW
+    |    SYNC
+    |    WHEN
+    ;
+
 // ---------------------------------------- Lexer rules.
 
 fragment
@@ -1609,7 +1648,7 @@ HEX_DIGIT
     |    DIGIT
     ;
 
-// Reserved words.
+// Reserved words (if updated, update `reservedWord` as well).
 
 ASSERT
     :    'assert'
@@ -1743,7 +1782,7 @@ WITH
     :    'with'
     ;
 
-// Built-in identifiers.
+// Built-in identifiers (if updated, update `builtInIdentifier` as well).
 
 ABSTRACT
     :    'abstract'
@@ -1847,10 +1886,14 @@ YIELD
     :    'yield'
     ;
 
-// Other words used in the grammar.
+// Other words used in the grammar (if updated, update `otherIdentifier`, too).
 
 ASYNC
     :    'async'
+    ;
+
+BASE
+    :    'base'
     ;
 
 HIDE
@@ -1863,6 +1906,10 @@ OF
 
 ON
     :    'on'
+    ;
+
+SEALED
+    :    'sealed'
     ;
 
 SHOW

@@ -51,7 +51,38 @@ class RemoveReturnedValueTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_returning_null_for_void;
 
-  Future<void> test_simple() async {
+  Future<void> test_expression_function_body() async {
+    await resolveTestCode('''
+void f() => null;
+''');
+    await assertHasFix('''
+void f() {}
+''');
+  }
+
+  Future<void> test_expression_function_body_as_arg() async {
+    await resolveTestCode('''
+void main() {
+  [].forEach((x) => null);
+}
+''');
+    await assertHasFix('''
+void main() {
+  [].forEach((x) {});
+}
+''');
+  }
+
+  Future<void> test_expression_function_body_async() async {
+    await resolveTestCode('''
+Future<void> g() async => null;
+''');
+    await assertHasFix('''
+Future<void> g() async {}
+''');
+  }
+
+  Future<void> test_return_statement() async {
     await resolveTestCode('''
 void f() {
   return null;

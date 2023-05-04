@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -4229,7 +4230,7 @@ class A2 {}
     fileStateFor(a).refresh();
 
     // The augmentation `a.dart` has a different unlinked key, and its
-    // refresh invalidated the library cycle `b.dart`, which has a differrent
+    // refresh invalidated the library cycle `b.dart`, which has a different
     // signature now.
     assertDriverStateString(testFile, r'''
 files
@@ -5749,6 +5750,7 @@ class FileSystemStateTest with ResourceProviderMixin {
       prefetchFiles: null,
       isGenerated: (_) => false,
       testData: null,
+      unlinkedUnitStore: UnlinkedUnitStoreImpl(),
     );
   }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// TODO(johnniwinther): Port this test to use the equivalence framework.
 
 import 'package:async_helper/async_helper.dart';
@@ -41,8 +39,8 @@ class B extends A {
 }
 
 main() {
-  var a = new A(inscrutable(0) == 0 ? 42 : "fish");
-  var b = new B(0, inscrutable(0) == 0 ? 2 : "horse");
+  var a = A(inscrutable(0) == 0 ? 42 : "fish");
+  var b = B(0, inscrutable(0) == 0 ? 2 : "horse");
   var c = inscrutable(0) == 0 ? a : "kurt";
   var d = inscrutable(0) == 0 ? b : "gert";
   if (c == d) {

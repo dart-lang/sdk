@@ -20,7 +20,7 @@ abstract class Allocator {
   void free(Pointer pointer);
 }
 
-class Utf8 extends Opaque {}
+final class Utf8 extends Opaque {}
 
 class _CallocAllocator implements Allocator {
   @override
@@ -84,6 +84,8 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 
 const _Protected protected = _Protected();
 
+const _Reopen reopen = _Reopen();
+
 const Required required = Required();
 
 const _Sealed sealed = _Sealed();
@@ -101,6 +103,14 @@ class Immutable {
   final String reason;
 
   const Immutable([this.reason = '']);
+}
+
+@Target({
+  TargetKind.classType,
+  TargetKind.mixinType,
+})
+class _Reopen {
+  const _Reopen();
 }
 
 class Required {

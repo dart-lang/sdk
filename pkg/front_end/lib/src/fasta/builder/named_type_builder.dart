@@ -31,6 +31,7 @@ import '../fasta_codes.dart'
         templateTypeNotFound;
 import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
 import '../kernel/implicit_field_type.dart';
+import '../kernel/type_algorithms.dart';
 import '../problems.dart' show unhandled;
 import '../scope.dart';
 import '../source/source_library_builder.dart';
@@ -402,7 +403,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     DartType aliasedType = _buildAliasedInternal(library, typeUse, hierarchy);
 
     if (library is SourceLibraryBuilder &&
-        !isRecordAccessAllowed(library.libraryFeatures) &&
+        !isRecordAccessAllowed(library) &&
         isDartCoreRecord(aliasedType)) {
       library.reportFeatureNotEnabled(library.libraryFeatures.records,
           fileUri ?? library.fileUri, charOffset!, nameText.length);
@@ -418,7 +419,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     assert(hierarchy != null || isExplicit, "Cannot build $this.");
     DartType builtType = _buildAliasedInternal(library, typeUse, hierarchy);
     if (library is SourceLibraryBuilder &&
-        !isRecordAccessAllowed(library.libraryFeatures) &&
+        !isRecordAccessAllowed(library) &&
         isDartCoreRecord(builtType)) {
       library.reportFeatureNotEnabled(library.libraryFeatures.records,
           fileUri ?? library.fileUri, charOffset!, nameText.length);
@@ -551,31 +552,12 @@ abstract class NamedTypeBuilder extends TypeBuilder {
 
   @override
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
-    TypeBuilder? result = substitution[declaration];
-    if (result != null) {
-      assert(declaration is TypeVariableBuilder);
-      return result;
-    } else if (this.arguments != null) {
-      List<TypeBuilder>? arguments;
-      int i = 0;
-      for (TypeBuilder argument in this.arguments!) {
-        TypeBuilder type = argument.subst(substitution);
-        if (type != argument) {
-          arguments ??= this.arguments!.toList();
-          arguments[i] = type;
-        }
-        i++;
-      }
-      if (arguments != null) {
-        return new NamedTypeBuilder.fromTypeDeclarationBuilder(
-            declaration!, nullabilityBuilder,
-            arguments: arguments,
-            fileUri: fileUri,
-            charOffset: charOffset,
-            instanceTypeVariableAccess: _instanceTypeVariableAccess);
-      }
-    }
-    return this;
+    List<TypeBuilder> unboundTypes = [];
+    List<TypeVariableBuilder> unboundTypeVariables = [];
+    TypeBuilder result = substitute(this, substitution,
+        unboundTypes: unboundTypes, unboundTypeVariables: unboundTypeVariables);
+    assert(unboundTypes.isEmpty && unboundTypeVariables.isEmpty);
+    return result;
   }
 
   @override

@@ -6,9 +6,11 @@ analyzer:
   errors:
     todo: ignore
     deprecated_member_use: ignore
+    illegal_language_version_override: ignore
 
   exclude:
     - '**/data/*'
+    - '**/inference_data/*'
     - 'rti/emission/*'
     - '**/model_data/*'
     - 'deferred_loading/libs/*'

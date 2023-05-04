@@ -1,0 +1,109 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:test" as test;
+import "dart:extra" as ext;
+import "dart:sub" as sub;
+import "dart:sub2" as sub2;
+import "dart:super1" as sup;
+import "dart:super2" as sup2;
+import "dart:common" as com;
+
+import "dart:test";
+import "dart:extra";
+import "dart:sub";
+import "dart:sub2";
+import "dart:super1";
+import "dart:super2";
+import "dart:common";
+
+static method main() → dynamic {
+  new test::Class::•();
+  new ext::Extra::•();
+  new sub::Sub::•();
+  new sub2::Sub2::•();
+  new sup::Super1::•();
+  new sup2::Super2::•();
+  new com::Common::•();
+}
+
+library /*isNonNullableByDefault*/;
+import self as test;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@#C1
+class Class extends core::Object {
+  synthetic constructor •() → test::Class
+    : super core::Object::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as ext;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@#C1
+class Extra extends core::Object {
+  synthetic constructor •() → ext::Extra
+    : super core::Object::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as sub;
+import "dart:core" as core;
+
+class Sub extends core::Object {
+  synthetic constructor •() → sub::Sub
+    : super core::Object::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as sub2;
+import "dart:core" as core;
+
+class Sub2 extends core::Object {
+  synthetic constructor •() → sub2::Sub2
+    : super core::Object::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as sup;
+import "dart:core" as core;
+
+class Super1 extends core::Object {
+  synthetic constructor •() → sup::Super1
+    : super core::Object::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as sup2;
+import "dart:core" as core;
+
+class Super2 extends core::Object {
+  synthetic constructor •() → sup2::Super2
+    : super core::Object::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as com;
+import "dart:core" as core;
+
+class Common extends core::Object {
+  synthetic constructor •() → com::Common
+    : super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = _in::_Patch {}
+}

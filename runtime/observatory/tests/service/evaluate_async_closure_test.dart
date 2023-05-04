@@ -11,8 +11,6 @@ import 'test_helper.dart';
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    // Silence analyzer on 'dart:async' import.
-    expect(new Future.value(0) != null, isTrue);
     String test = "(){ "
         "  var k = () { return Future.value(3); }; "
         "  var w = () async { return await k(); }; "

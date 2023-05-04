@@ -291,6 +291,9 @@ class Location : public ValueObject {
     return UnallocatedLocation(kPrefersRegister);
   }
 
+  // Blocks a CPU register for the entirety of the IL instruction.
+  //
+  // The register value _must_ be preserved by the machine code.
   static Location RequiresRegister() {
     return UnallocatedLocation(kRequiresRegister);
   }
@@ -299,6 +302,9 @@ class Location : public ValueObject {
     return UnallocatedLocation(kRequiresFpuRegister);
   }
 
+  // Blocks a CPU register for the entirety of the IL instruction.
+  //
+  // The register value does not have to be preserved by the machine code.
   static Location WritableRegister() {
     return UnallocatedLocation(kWritableRegister);
   }
@@ -317,7 +323,10 @@ class Location : public ValueObject {
     return PolicyField::decode(payload());
   }
 
-  // Register locations.
+  // Blocks `reg` for the entirety of the IL instruction.
+  //
+  // The register value does not have to be preserved by the machine code.
+  // TODO(https://dartbug.com/51409): Rename to WritableRegisterLocation.
   static Location RegisterLocation(Register reg) {
     return Location(kRegister, reg);
   }
@@ -491,8 +500,14 @@ Location LocationExceptionLocation();
 Location LocationStackTraceLocation();
 // Constants.
 Location LocationRegisterOrConstant(Value* value);
-Location LocationRegisterOrSmiConstant(Value* value);
-Location LocationWritableRegisterOrSmiConstant(Value* value);
+Location LocationRegisterOrSmiConstant(
+    Value* value,
+    intptr_t min_value = compiler::target::kSmiMin,
+    intptr_t max_value = compiler::target::kSmiMax);
+Location LocationWritableRegisterOrSmiConstant(
+    Value* value,
+    intptr_t min_value = compiler::target::kSmiMin,
+    intptr_t max_value = compiler::target::kSmiMax);
 Location LocationFixedRegisterOrConstant(Value* value, Register reg);
 Location LocationFixedRegisterOrSmiConstant(Value* value, Register reg);
 Location LocationAnyOrConstant(Value* value);
@@ -704,6 +719,10 @@ class RegisterSet : public ValueObject {
   intptr_t CpuRegisterCount() const { return RegisterCount(cpu_registers()); }
   intptr_t FpuRegisterCount() const { return RegisterCount(fpu_registers()); }
 
+  bool IsEmpty() const {
+    return CpuRegisterCount() == 0 && FpuRegisterCount() == 0;
+  }
+
   static intptr_t RegisterCount(intptr_t registers);
   static bool Contains(uintptr_t register_set, intptr_t reg) {
     return (register_set & (static_cast<uintptr_t>(1) << reg)) != 0;
@@ -844,7 +863,7 @@ class LocationSummary : public ZoneAllocated {
 
  private:
   BitmapBuilder& EnsureStackBitmap() {
-    if (stack_bitmap_ == NULL) {
+    if (stack_bitmap_ == nullptr) {
       stack_bitmap_ = new BitmapBuilder();
     }
     return *stack_bitmap_;

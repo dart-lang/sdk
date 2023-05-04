@@ -11,7 +11,7 @@ class A {
   factory A.redirect() = B;
 
   /*member: A.fact:[exact=C]*/
-  factory A.fact() => new C();
+  factory A.fact() => C();
 }
 
 /*member: B.:[exact=B]*/
@@ -28,10 +28,10 @@ main() {
 }
 
 /*member: createGenerative:[exact=A]*/
-createGenerative() => new A.generative();
+createGenerative() => A.generative();
 
 /*member: createRedirecting:[exact=B]*/
-createRedirecting() => new A.redirect();
+createRedirecting() => A.redirect();
 
 /*member: createFactory:[exact=C]*/
-createFactory() => new A.fact();
+createFactory() => A.fact();

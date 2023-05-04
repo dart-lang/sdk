@@ -29,7 +29,7 @@ class Sub1 extends Super1 {
 
 /*member: superFieldAccess:[null]*/
 superFieldAccess() {
-  new Sub1(). /*invoke: [exact=Sub1]*/ method();
+  Sub1(). /*invoke: [exact=Sub1]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ class Sub2 extends Super2 {
 
 /*member: superGetterAccess:[null]*/
 superGetterAccess() {
-  new Sub2(). /*invoke: [exact=Sub2]*/ method();
+  Sub2(). /*invoke: [exact=Sub2]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,5 +71,5 @@ class Sub3 extends Super3 {
 
 /*member: superMethodAccess:[null]*/
 superMethodAccess() {
-  new Sub3(). /*invoke: [exact=Sub3]*/ method();
+  Sub3(). /*invoke: [exact=Sub3]*/ method();
 }

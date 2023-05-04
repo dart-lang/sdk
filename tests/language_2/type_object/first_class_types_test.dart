@@ -40,7 +40,7 @@ main() {
   sameType({}, m);
 
   // Test parameterized lists.
-  sameType(new List<int>(), new List<int>());
-  differentType(new List<int>(), new List<num>());
-  differentType(new List<int>(), new List());
+  sameType(<int>[], <int>[]);
+  differentType(<int>[], <num>[]);
+  differentType(<int>[], []);
 }

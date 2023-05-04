@@ -1168,11 +1168,6 @@ class Foo {
     listener.assertErrors([expectedError(ParserErrorCode.FINAL_AND_VAR, 6, 3)]);
   }
 
-  void test_finalClass() {
-    parseCompilationUnit("final class C {}",
-        errors: [expectedError(ParserErrorCode.FINAL_CLASS, 0, 5)]);
-  }
-
   void test_finalClassMember_modifierOnly() {
     createParser('final');
     ClassMember member = parser.parseClassMember('C');
@@ -1445,7 +1440,6 @@ class Wrong<T> {
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 1),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
     ]);
   }

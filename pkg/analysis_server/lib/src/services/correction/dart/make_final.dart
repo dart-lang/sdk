@@ -40,53 +40,54 @@ class MakeFinal extends CorrectionProducer {
       return;
     }
 
-    final AstNode normalParameter;
-    if (node is DefaultFormalParameter) {
-      normalParameter = node.parameter;
-    } else {
-      normalParameter = node;
-    }
-
-    if (normalParameter is SimpleFormalParameter) {
-      final simpleNode = normalParameter;
+    if (node is SimpleFormalParameter) {
       await builder.addDartFileEdit(file, (builder) {
-        final keyword = simpleNode.keyword;
+        final keyword = node.keyword;
         if (keyword != null && keyword.keyword == Keyword.VAR) {
           builder.addSimpleReplacement(range.token(keyword), 'final');
         } else {
-          final type = simpleNode.type;
+          final type = node.type;
           if (type != null) {
             builder.addSimpleInsertion(type.offset, 'final ');
             return;
           }
-          final identifier = simpleNode.name;
+          final identifier = node.name;
           if (identifier != null) {
             builder.addSimpleInsertion(identifier.offset, 'final ');
           } else {
-            builder.addSimpleInsertion(simpleNode.offset, 'final ');
+            builder.addSimpleInsertion(node.offset, 'final ');
           }
         }
       });
       return;
     }
 
-    if (node is SimpleFormalParameter) {
+    if (node is PatternVariableDeclaration) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleInsertion(node.name!.offset, 'final ');
+        var keyword = node.keyword;
+        if (keyword.keyword == Keyword.VAR) {
+          builder.addSimpleReplacement(range.token(keyword), 'final');
+        }
       });
       return;
     }
 
-    VariableDeclarationList list;
-    if (node is VariableDeclaration && parent is VariableDeclarationList) {
-      list = parent;
-    } else if (node is VariableDeclarationList) {
-      list = node;
-    } else {
+    if (node is DeclaredVariablePattern) {
+      var keyword = node.keyword;
+      if (keyword == null) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleInsertion(node.offset, 'final ');
+        });
+      } else if (node.type == null) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleReplacement(range.token(keyword), 'final');
+        });
+      }
       return;
     }
 
-    if (list.variables.length == 1) {
+    final list = _getVariableDeclarationList(node);
+    if (list != null && list.variables.length == 1) {
       await builder.addDartFileEdit(file, (builder) {
         var keyword = list.keyword;
         var lateKeyword = list.lateKeyword;
@@ -99,5 +100,23 @@ class MakeFinal extends CorrectionProducer {
         }
       });
     }
+  }
+
+  static VariableDeclarationList? _getVariableDeclarationList(AstNode node) {
+    if (node is VariableDeclarationList) {
+      return node;
+    }
+
+    final parent = node.parent;
+    if (node is VariableDeclaration && parent is VariableDeclarationList) {
+      return parent;
+    }
+
+    final parent2 = parent?.parent;
+    if (parent is NamedType && parent2 is VariableDeclarationList) {
+      return parent2;
+    }
+
+    return null;
   }
 }

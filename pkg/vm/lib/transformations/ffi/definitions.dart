@@ -11,15 +11,15 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiCompoundImplementsFinalizable,
         templateFfiEmptyStruct,
         templateFfiFieldAnnotation,
-        templateFfiFieldNull,
         templateFfiFieldCyclic,
-        templateFfiFieldNoAnnotation,
-        templateFfiTypeMismatch,
         templateFfiFieldInitializer,
+        templateFfiFieldNoAnnotation,
+        templateFfiFieldNull,
         templateFfiPackedAnnotation,
         templateFfiSizeAnnotation,
         templateFfiSizeAnnotationDimensions,
-        templateFfiStructGeneric;
+        templateFfiStructGeneric,
+        templateFfiTypeMismatch;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -38,7 +38,7 @@ import 'native_type_cfe.dart';
 /// Checks and elaborates the dart:ffi compounds and their fields.
 ///
 /// Input:
-/// class Coord extends Struct {
+/// final class Coord extends Struct {
 ///   @Double()
 ///   double x;
 ///
@@ -49,7 +49,7 @@ import 'native_type_cfe.dart';
 /// }
 ///
 /// Output:
-/// class Coord extends Struct {
+/// final class Coord extends Struct {
 ///   Coord.#fromTypedDataBase(Pointer<Coord> coord) : super._(coord);
 ///
 ///   set x(double v) => ...;
@@ -134,7 +134,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       return _compoundAnnotatedDependencies(fieldTypes);
     }
 
-    // Non-tranformed classes.
+    // Non-transformed classes.
     final dependencies = <Class>{};
     final membersWithAnnotations =
         _compoundFieldMembers(node, includeSetters: false);
@@ -419,7 +419,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
       final nativeTypeAnnos = _getNativeTypeAnnotations(f).toList();
       final type = _compoundMemberType(f);
-      if (type is NullType) {
+      if (type is NullType ||
+          type.declaredNullability == Nullability.nullable ||
+          type.declaredNullability == Nullability.undetermined) {
         diagnosticReporter.report(
             templateFfiFieldNull.withArguments(f.name.text),
             f.fileOffset,
@@ -440,6 +442,14 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           success = false;
         }
         if (isArrayType(type)) {
+          try {
+            ensureNativeTypeValid(type, f, allowInlineArray: true);
+          } on FfiStaticTypeError {
+            // It's OK to swallow the exception because the diagnostics issued will
+            // cause compilation to fail. By continuing, we can report more
+            // diagnostics before compilation ends.
+            success = false;
+          }
           final sizeAnnotations = _getArraySizeAnnotations(f);
           if (sizeAnnotations.length == 1) {
             final singleElementType = arraySingleElementType(type);
@@ -459,7 +469,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                     f.fileUri);
               }
               for (var dimension in dimensions) {
-                if (dimension < 0) {
+                if (dimension <= 0) {
                   diagnosticReporter.report(messageNonPositiveArrayDimensions,
                       f.fileOffset, f.name.text.length, f.fileUri);
                   success = false;
@@ -538,7 +548,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     /// ```
     final VariableDeclaration typedDataBase = new VariableDeclaration(
         "#typedDataBase",
-        type: coreTypes.objectNonNullableRawType);
+        type: coreTypes.objectNonNullableRawType,
+        isSynthesized: true);
     final name = Name("#fromTypedDataBase");
     final reference = indexedClass?.lookupConstructorReference(name);
     final Constructor ctor = Constructor(
@@ -862,7 +873,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       assert(setterReference == field.setterReference,
           "Unexpected setter reference for ${field}, found $setterReference.");
       final VariableDeclaration argument =
-          VariableDeclaration('#v', type: field.type)
+          VariableDeclaration('#v', type: field.type, isSynthesized: true)
             ..fileOffset = field.fileOffset;
       final setterStatement = type.generateSetterStatement(field.type,
           field.fileOffset, offsets, unalignedAccess, argument, this);

@@ -27,7 +27,6 @@ class CoreTypes {
       'Type',
       'Function',
       'Invocation',
-      'FallThroughError',
       'Record',
     ],
     'dart:_internal': [
@@ -115,6 +114,8 @@ class CoreTypes {
       new Map<Class, InterfaceType>.identity();
   final Map<Class, InterfaceType> _thisInterfaceTypes =
       new Map<Class, InterfaceType>.identity();
+  final Map<InlineClass, InlineType> _thisInlineTypes =
+      new Map<InlineClass, InlineType>.identity();
   final Map<Typedef, TypedefType> _thisTypedefTypes =
       new Map<Typedef, TypedefType>.identity();
   final Map<Class, InterfaceType> _bottomInterfaceTypes =
@@ -155,6 +156,9 @@ class CoreTypes {
   late final Procedure identicalProcedure =
       index.getTopLevelProcedure('dart:core', 'identical');
 
+  late final Procedure printProcedure =
+      index.getTopLevelProcedure('dart:core', 'print');
+
   late final Class intClass = index.getClass('dart:core', 'int');
 
   late final Class internalSymbolClass =
@@ -182,9 +186,6 @@ class CoreTypes {
       index.getProcedure('dart:core', 'Iterator', 'get:current');
 
   late final Class listClass = index.getClass('dart:core', 'List');
-
-  late final Procedure listDefaultConstructor =
-      index.getProcedure('dart:core', 'List', '');
 
   late final Procedure listFromConstructor =
       index.getProcedure('dart:core', 'List', 'from');
@@ -214,6 +215,8 @@ class CoreTypes {
 
   late final Procedure objectEquals =
       index.getProcedure('dart:core', 'Object', '==');
+
+  late final Class? platformClass = index.tryGetClass('dart:io', 'Platform');
 
   late final Class pragmaClass = index.getClass('dart:core', 'pragma');
 
@@ -256,6 +259,9 @@ class CoreTypes {
   late final Procedure boolFromEnvironment =
       index.getProcedure('dart:core', 'bool', 'fromEnvironment');
 
+  late final Procedure intUnaryMinus =
+      index.getProcedure('dart:core', 'int', 'unary-');
+
   late final Procedure createSentinelMethod =
       index.getTopLevelProcedure('dart:_internal', 'createSentinel');
 
@@ -284,6 +290,9 @@ class CoreTypes {
 
   late final Constructor reachabilityErrorConstructor =
       index.getConstructor('dart:_internal', 'ReachabilityError', '');
+
+  late final Constructor stateErrorConstructor =
+      index.getConstructor('dart:core', 'StateError', '');
 
   late final Class cellClass = index.getClass('dart:_late_helper', '_Cell');
 
@@ -1082,6 +1091,19 @@ class CoreTypes {
     return result;
   }
 
+  InlineType thisInlineType(InlineClass klass, Nullability nullability) {
+    InlineType? result = _thisInlineTypes[klass];
+    if (result == null) {
+      return _thisInlineTypes[klass] = new InlineType(klass, nullability,
+          getAsTypeArguments(klass.typeParameters, klass.enclosingLibrary));
+    }
+    if (result.nullability != nullability) {
+      return _thisInlineTypes[klass] =
+          result.withDeclaredNullability(nullability);
+    }
+    return result;
+  }
+
   TypedefType thisTypedefType(Typedef typedef, Nullability nullability) {
     TypedefType? result = _thisTypedefTypes[typedef];
     if (result == null) {
@@ -1139,10 +1161,11 @@ class CoreTypes {
       return isTop(type.typeArgument);
     }
 
-    // If the representation type, R, is a top type then the view type, V0, is a
-    // top type, otherwise V0 is a proper subtype of Object?.
-    if (type is ViewType) {
-      return isTop(type.representationType);
+    // If the instantiated representation type, R, is a top type then the inline
+    // type, V0, is a top type, otherwise V0 is a proper subtype of Object?.
+    // TODO(johnniwinther): Is this correct?
+    if (type is InlineType) {
+      return isTop(type.instantiatedRepresentationType);
     }
 
     return false;

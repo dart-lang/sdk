@@ -843,7 +843,7 @@ class _VTable {
     }
   }
 
-  /// Outputs this VTable to [buf], which is is expected to be aligned to 16-bit
+  /// Outputs this VTable to [buf], which is expected to be aligned to 16-bit
   /// and have at least [numOfUint16] 16-bit words available.
   void output(ByteData buf, int bufOffset) {
     // VTable size.

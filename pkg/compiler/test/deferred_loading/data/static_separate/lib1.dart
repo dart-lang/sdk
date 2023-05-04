@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library lib1;
 
 /*class: ConstClass:
@@ -63,10 +61,10 @@ class C1 {
 */
 class C2 {
   /*member: C2.foo:member_unit=1{lib2}*/
-  static var foo = new Map<int, int>.from({1: 2});
+  static var foo = Map<int, int>.from({1: 2});
 
   /*member: C2.bar:member_unit=3{lib1}*/
-  var bar = new Map<int, int>.from({1: 2});
+  var bar = Map<int, int>.from({1: 2});
 
   /*member: C2.:member_unit=3{lib1}*/
   C2();
@@ -99,10 +97,10 @@ class C3 {
 */
 class C4 {
   /*member: C4.foo:member_unit=1{lib2}*/
-  static final foo = new Map<ConstClass, ConstClass>.from({x: x});
+  static final foo = Map<ConstClass, ConstClass>.from({x: x});
 
   /*member: C4.bar:member_unit=3{lib1}*/
-  final bar = new Map<ConstClass, ConstClass>.from({x: x});
+  final bar = Map<ConstClass, ConstClass>.from({x: x});
 
   /*member: C4.:member_unit=3{lib1}*/
   C4();

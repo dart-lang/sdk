@@ -1,0 +1,9 @@
+import 'main_lib.dart';
+
+class ExtendsInterfaceClassTypedef extends ATypeDef {}
+
+class ExtendsInterfaceClassTypedef2 extends ATypeDef2 {}
+
+typedef AOutsideTypedef = A;
+
+class ExtendsInterfaceClassTypedefOutside extends AOutsideTypedef {}

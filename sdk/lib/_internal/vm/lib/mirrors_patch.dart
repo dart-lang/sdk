@@ -91,3 +91,21 @@ class MirrorSystem {
   @pragma("vm:external-name", "Mirrors_mangleName")
   external static _mangleName(String name, _MirrorReference lib);
 }
+
+@patch
+class AbstractClassInstantiationError {
+  @pragma("vm:entry-point")
+  AbstractClassInstantiationError._create(
+      this._className, this._url, this._line);
+
+  @patch
+  String toString() {
+    return "Cannot instantiate abstract class $_className: "
+        "_url '$_url' line $_line";
+  }
+
+  // These new fields cannot be declared final, because a constructor exists
+  // in the original version of this patched class.
+  String? _url;
+  int _line = 0;
+}

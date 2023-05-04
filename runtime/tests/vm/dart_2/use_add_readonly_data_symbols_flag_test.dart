@@ -31,8 +31,8 @@ main(List<String> args) async {
   if (!await testExecutable(genSnapshot)) {
     throw "Cannot run test as $genSnapshot not available";
   }
-  if (!await testExecutable(aotRuntime)) {
-    throw "Cannot run test as $aotRuntime not available";
+  if (!await testExecutable(dartPrecompiledRuntime)) {
+    throw "Cannot run test as $dartPrecompiledRuntime not available";
   }
   if (!File(platformDill).existsSync()) {
     throw "Cannot run test as $platformDill does not exist";
@@ -46,6 +46,7 @@ main(List<String> args) async {
 
     // Compile script to Kernel IR.
     await run(genKernel, <String>[
+      '--no-sound-null-safety',
       '--aot',
       '--platform=$platformDill',
       '-o',
@@ -56,6 +57,7 @@ main(List<String> args) async {
     final scriptSnapshot = path.join(tempDir, 'dwarf.so');
     final scriptDebuggingInfo = path.join(tempDir, 'debug_info.so');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--add-readonly-data-symbols',
       '--dwarf-stack-traces-mode',
       '--save-debugging-info=$scriptDebuggingInfo',

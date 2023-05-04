@@ -10,19 +10,19 @@ The following is a list of the pages available in this tutorial.
 [Introduction][introduction] -
 What capabilities does the analyzer package support?
 
-[Performing Analysis][analysis]
+[Performing Analysis][analysis] -
 How to set up the objects used to analyze code.
 
-[The Token Model][tokens]
+[The Token Model][tokens] -
 How are tokens represented?
 
-[The AST][ast]
+[The AST][ast] -
 What is an AST?
 
-[The Element Model][element]
+[The Element Model][element] -
 What is the element model?
 
-[The Type Model][type]
+[The Type Model][type] -
 What is the type model?
 
 [analysis]: analysis.md

@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor •() → self::A
+    : super core::Object::•()
+    ;
+  static factory fisk() → self::A
+    return new self::B::•();
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic {
+  new self::B::•();
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::fisk
+}

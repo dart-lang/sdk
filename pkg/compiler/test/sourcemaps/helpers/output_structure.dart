@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library sourcemap.output_structure;
 
 import 'dart:math' as Math;
@@ -15,19 +13,17 @@ const String HEAD = '  var dart = [';
 const String TAIL = '  }], ';
 const String END = '  setupProgram(dart';
 
-final RegExp TOP_LEVEL_VALUE = new RegExp(r'^    (".+?"):');
-final RegExp TOP_LEVEL_FUNCTION =
-    new RegExp(r'^    ([a-zA-Z0-9_$]+): \[?function');
-final RegExp TOP_LEVEL_CLASS = new RegExp(r'^    ([a-zA-Z0-9_$]+): \[?\{');
+final RegExp TOP_LEVEL_VALUE = RegExp(r'^    (".+?"):');
+final RegExp TOP_LEVEL_FUNCTION = RegExp(r'^    ([a-zA-Z0-9_$]+): \[?function');
+final RegExp TOP_LEVEL_CLASS = RegExp(r'^    ([a-zA-Z0-9_$]+): \[?\{');
 
-final RegExp STATICS = new RegExp(r'^      static:');
-final RegExp MEMBER_VALUE = new RegExp(r'^      (".+?"):');
-final RegExp MEMBER_FUNCTION =
-    new RegExp(r'^      ([a-zA-Z0-9_$]+): \[?function');
-final RegExp MEMBER_OBJECT = new RegExp(r'^      ([a-zA-Z0-9_$]+): \[?\{');
+final RegExp STATICS = RegExp(r'^      static:');
+final RegExp MEMBER_VALUE = RegExp(r'^      (".+?"):');
+final RegExp MEMBER_FUNCTION = RegExp(r'^      ([a-zA-Z0-9_$]+): \[?function');
+final RegExp MEMBER_OBJECT = RegExp(r'^      ([a-zA-Z0-9_$]+): \[?\{');
 
 final RegExp STATIC_FUNCTION =
-    new RegExp(r'^        ([a-zA-Z0-9_$]+): \[?function');
+    RegExp(r'^        ([a-zA-Z0-9_$]+): \[?function');
 
 /// Subrange of the JavaScript output.
 abstract class OutputEntity {
@@ -39,10 +35,10 @@ abstract class OutputEntity {
 
   List<OutputEntity> get children;
 
-  CodeSource codeSource;
+  CodeSource? codeSource;
 
   Interval getChildInterval(Interval childIndex) {
-    return new Interval(children[childIndex.from].interval.from,
+    return Interval(children[childIndex.from].interval.from,
         children[childIndex.to - 1].interval.to);
   }
 
@@ -56,7 +52,7 @@ abstract class OutputEntity {
 
   Map toJson(JsonStrategy strategy);
 
-  OutputEntity getEntityForLine(int line);
+  OutputEntity? getEntityForLine(int line);
 }
 
 enum EntityKind {
@@ -86,7 +82,7 @@ abstract class OutputVisitor<R, A> {
 }
 
 abstract class BaseOutputVisitor<R, A> extends OutputVisitor<R, A> {
-  R visitEntity(OutputEntity entity, A arg) => null;
+  R visitEntity(OutputEntity entity, A arg);
 
   @override
   R visitStructure(OutputStructure entity, A arg) => visitEntity(entity, arg);
@@ -151,19 +147,19 @@ class OutputStructure extends OutputEntity {
   EntityKind get kind => EntityKind.STRUCTURE;
 
   @override
-  Interval get interval => new Interval(0, lines.length);
+  Interval get interval => Interval(0, lines.length);
 
   @override
-  Interval get header => new Interval(0, headerEnd);
+  Interval get header => Interval(0, headerEnd);
 
   @override
-  Interval get footer => new Interval(footerStart, lines.length);
+  Interval get footer => Interval(footerStart, lines.length);
 
   @override
   bool get canHaveChildren => true;
 
   @override
-  OutputEntity getEntityForLine(int line) {
+  OutputEntity? getEntityForLine(int line) {
     if (line < headerEnd || line >= footerStart) {
       return this;
     }
@@ -199,7 +195,7 @@ class OutputStructure extends OutputEntity {
       return lines.length;
     }
 
-    String readHeader(CodeLine line) {
+    String? readHeader(CodeLine line) {
       String code = line.code;
       if (code.startsWith(HEAD)) {
         return code.substring(HEAD.length);
@@ -212,14 +208,14 @@ class OutputStructure extends OutputEntity {
     List<LibraryBlock> computeHeaderMap(
         List<CodeLine> lines, int start, int end) {
       List<LibraryBlock> libraryBlocks = <LibraryBlock>[];
-      LibraryBlock current;
+      LibraryBlock? current;
       for (int index = start; index < end; index++) {
-        String header = readHeader(lines[index]);
+        String? header = readHeader(lines[index]);
         if (header != null) {
           if (current != null) {
             current.to = index;
           }
-          libraryBlocks.add(current = new LibraryBlock(header, index));
+          libraryBlocks.add(current = LibraryBlock(header, index));
         }
       }
       if (current != null) {
@@ -236,7 +232,7 @@ class OutputStructure extends OutputEntity {
       block.preprocess(lines);
     }
 
-    return new OutputStructure(lines, headerEnd, footerStart, libraryBlocks);
+    return OutputStructure(lines, headerEnd, footerStart, libraryBlocks);
   }
 
   @override
@@ -260,19 +256,19 @@ class OutputStructure extends OutputEntity {
     List<LibraryBlock> children = json['children']
         .map((j) => AbstractEntity.fromJson(j, strategy))
         .toList();
-    return new OutputStructure(lines, headerEnd, footerStart, children);
+    return OutputStructure(lines, headerEnd, footerStart, children);
   }
 }
 
 abstract class AbstractEntity extends OutputEntity {
   final String name;
   final int from;
-  int to;
+  late final int to;
 
   AbstractEntity(this.name, this.from);
 
   @override
-  Interval get interval => new Interval(from, to);
+  Interval get interval => Interval(from, to);
 
   @override
   Map toJson(JsonStrategy strategy) {
@@ -291,65 +287,64 @@ abstract class AbstractEntity extends OutputEntity {
     String name = json['name'];
     int from = json['from'];
     int to = json['to'];
-    CodeSource codeSource = CodeSource.fromJson(json['codeSource']);
+    CodeSource? codeSource = CodeSource.fromJson(json['codeSource']);
 
     switch (kind) {
       case EntityKind.STRUCTURE:
-        throw new StateError('Unexpected entity kind $kind');
+        throw StateError('Unexpected entity kind $kind');
       case EntityKind.LIBRARY:
-        LibraryBlock lib = new LibraryBlock(name, from)
+        LibraryBlock lib = LibraryBlock(name, from)
           ..to = to
           ..codeSource = codeSource;
-        json['children']
-            .forEach((child) => lib.children.add(fromJson(child, strategy)));
+        json['children'].forEach((child) =>
+            lib.children.add(fromJson(child, strategy) as BasicEntity));
         return lib;
       case EntityKind.CLASS:
-        LibraryClass cls = new LibraryClass(name, from)
+        LibraryClass cls = LibraryClass(name, from)
           ..to = to
           ..codeSource = codeSource;
-        json['children']
-            .forEach((child) => cls.children.add(fromJson(child, strategy)));
+        json['children'].forEach((child) =>
+            cls.children.add(fromJson(child, strategy) as BasicEntity));
         return cls;
       case EntityKind.TOP_LEVEL_FUNCTION:
-        return new TopLevelFunction(name, from)
+        return TopLevelFunction(name, from)
           ..to = to
           ..codeSource = codeSource;
       case EntityKind.TOP_LEVEL_VALUE:
-        return new TopLevelValue(name, from)
+        return TopLevelValue(name, from)
           ..to = to
           ..codeSource = codeSource;
       case EntityKind.MEMBER_FUNCTION:
-        return new MemberFunction(name, from)
+        return MemberFunction(name, from)
           ..to = to
           ..codeSource = codeSource;
       case EntityKind.MEMBER_OBJECT:
-        return new MemberObject(name, from)
+        return MemberObject(name, from)
           ..to = to
           ..codeSource = codeSource;
       case EntityKind.MEMBER_VALUE:
-        return new MemberValue(name, from)
+        return MemberValue(name, from)
           ..to = to
           ..codeSource = codeSource;
       case EntityKind.STATICS:
-        Statics statics = new Statics(from)
+        Statics statics = Statics(from)
           ..to = to
           ..codeSource = codeSource;
-        json['children'].forEach(
-            (child) => statics.children.add(fromJson(child, strategy)));
+        json['children'].forEach((child) =>
+            statics.children.add(fromJson(child, strategy) as BasicEntity));
         return statics;
       case EntityKind.STATIC_FUNCTION:
-        return new StaticFunction(name, from)
+        return StaticFunction(name, from)
           ..to = to
           ..codeSource = codeSource;
     }
-    throw "Unhandled: $kind";
   }
 }
 
 /// A block defining the content of a Dart library.
 class LibraryBlock extends AbstractEntity {
   @override
-  List<BasicEntity> children = <BasicEntity>[];
+  List<BasicEntity> children = [];
   int get headerEnd => from + 2;
   int get footerStart => to /* - 1*/;
 
@@ -359,31 +354,31 @@ class LibraryBlock extends AbstractEntity {
   EntityKind get kind => EntityKind.LIBRARY;
 
   @override
-  Interval get header => new Interval(from, headerEnd);
+  Interval get header => Interval(from, headerEnd);
 
   @override
-  Interval get footer => new Interval(footerStart, to);
+  Interval get footer => Interval(footerStart, to);
 
   @override
   bool get canHaveChildren => true;
 
   void preprocess(List<CodeLine> lines) {
     int index = headerEnd;
-    BasicEntity current;
+    BasicEntity? current;
     while (index < footerStart) {
       String line = lines[index].code;
-      BasicEntity next;
-      Match matchFunction = TOP_LEVEL_FUNCTION.firstMatch(line);
+      BasicEntity? next;
+      Match? matchFunction = TOP_LEVEL_FUNCTION.firstMatch(line);
       if (matchFunction != null) {
-        next = new TopLevelFunction(matchFunction.group(1), index);
+        next = TopLevelFunction(matchFunction.group(1)!, index);
       } else {
-        Match matchClass = TOP_LEVEL_CLASS.firstMatch(line);
+        Match? matchClass = TOP_LEVEL_CLASS.firstMatch(line);
         if (matchClass != null) {
-          next = new LibraryClass(matchClass.group(1), index);
+          next = LibraryClass(matchClass.group(1)!, index);
         } else {
-          Match matchValue = TOP_LEVEL_VALUE.firstMatch(line);
+          Match? matchValue = TOP_LEVEL_VALUE.firstMatch(line);
           if (matchValue != null) {
-            next = new TopLevelValue(matchValue.group(1), index);
+            next = TopLevelValue(matchValue.group(1)!, index);
           }
         }
       }
@@ -411,11 +406,11 @@ class LibraryBlock extends AbstractEntity {
   accept(OutputVisitor visitor, arg) => visitor.visitLibrary(this, arg);
 
   @override
-  OutputEntity getEntityForLine(int line) {
+  OutputEntity? getEntityForLine(int line) {
     if (line < headerEnd || line >= footerStart) {
       return this;
     }
-    for (BasicEntity child in children) {
+    for (AbstractEntity child in children) {
       if (child.interval.contains(line)) {
         return child.getEntityForLine(line);
       }
@@ -429,10 +424,10 @@ abstract class BasicEntity extends AbstractEntity {
   BasicEntity(String name, int from) : super(name, from);
 
   @override
-  Interval get header => new Interval(from, to);
+  Interval get header => Interval(from, to);
 
   @override
-  Interval get footer => new Interval(to, to);
+  Interval get footer => Interval(to, to);
 
   @override
   List<OutputEntity> get children => const <OutputEntity>[];
@@ -440,7 +435,7 @@ abstract class BasicEntity extends AbstractEntity {
   void preprocess(List<CodeLine> lines) {}
 
   @override
-  OutputEntity getEntityForLine(int line) {
+  OutputEntity? getEntityForLine(int line) {
     if (interval.contains(line)) {
       return this;
     }
@@ -485,10 +480,10 @@ class LibraryClass extends BasicEntity {
   EntityKind get kind => EntityKind.CLASS;
 
   @override
-  Interval get header => new Interval(from, headerEnd);
+  Interval get header => Interval(from, headerEnd);
 
   @override
-  Interval get footer => new Interval(footerStart, to);
+  Interval get footer => Interval(footerStart, to);
 
   @override
   bool get canHaveChildren => true;
@@ -496,25 +491,25 @@ class LibraryClass extends BasicEntity {
   @override
   void preprocess(List<CodeLine> lines) {
     int index = headerEnd;
-    BasicEntity current;
+    BasicEntity? current;
     while (index < footerStart) {
       String line = lines[index].code;
-      BasicEntity next;
-      Match match = MEMBER_FUNCTION.firstMatch(line);
+      BasicEntity? next;
+      Match? match = MEMBER_FUNCTION.firstMatch(line);
       if (match != null) {
-        next = new MemberFunction(match.group(1), index);
+        next = MemberFunction(match.group(1)!, index);
       } else {
         match = STATICS.firstMatch(line);
         if (match != null) {
-          next = new Statics(index);
+          next = Statics(index);
         } else {
           match = MEMBER_OBJECT.firstMatch(line);
           if (match != null) {
-            next = new MemberObject(match.group(1), index);
+            next = MemberObject(match.group(1)!, index);
           } else {
             match = MEMBER_VALUE.firstMatch(line);
             if (match != null) {
-              next = new MemberValue(match.group(1), index);
+              next = MemberValue(match.group(1)!, index);
             }
           }
         }
@@ -543,11 +538,11 @@ class LibraryClass extends BasicEntity {
   accept(OutputVisitor visitor, arg) => visitor.visitClass(this, arg);
 
   @override
-  OutputEntity getEntityForLine(int line) {
+  OutputEntity? getEntityForLine(int line) {
     if (line < headerEnd || line >= footerStart) {
       return this;
     }
-    for (BasicEntity child in children) {
+    for (AbstractEntity child in children) {
       if (child.interval.contains(line)) {
         return child.getEntityForLine(line);
       }
@@ -569,10 +564,10 @@ class Statics extends BasicEntity {
   EntityKind get kind => EntityKind.STATICS;
 
   @override
-  Interval get header => new Interval(from, headerEnd);
+  Interval get header => Interval(from, headerEnd);
 
   @override
-  Interval get footer => new Interval(footerStart, to);
+  Interval get footer => Interval(footerStart, to);
 
   @override
   bool get canHaveChildren => true;
@@ -580,13 +575,13 @@ class Statics extends BasicEntity {
   @override
   void preprocess(List<CodeLine> lines) {
     int index = headerEnd;
-    BasicEntity current;
+    BasicEntity? current;
     while (index < footerStart) {
       String line = lines[index].code;
-      BasicEntity next;
-      Match matchFunction = STATIC_FUNCTION.firstMatch(line);
+      BasicEntity? next;
+      Match? matchFunction = STATIC_FUNCTION.firstMatch(line);
       if (matchFunction != null) {
-        next = new MemberFunction(matchFunction.group(1), index);
+        next = MemberFunction(matchFunction.group(1)!, index);
       }
       if (next != null) {
         if (current != null) {
@@ -608,11 +603,11 @@ class Statics extends BasicEntity {
   accept(OutputVisitor visitor, arg) => visitor.visitStatics(this, arg);
 
   @override
-  OutputEntity getEntityForLine(int line) {
+  OutputEntity? getEntityForLine(int line) {
     if (line < headerEnd || line >= footerStart) {
       return this;
     }
-    for (BasicEntity child in children) {
+    for (AbstractEntity child in children) {
       if (child.interval.contains(line)) {
         return child.getEntityForLine(line);
       }
@@ -676,7 +671,7 @@ class Interval {
   }
 
   Interval include(int index) {
-    return new Interval(Math.min(from, index), Math.max(to, index + 1));
+    return Interval(Math.min(from, index), Math.max(to, index + 1));
   }
 
   bool inWindow(int index, {int windowSize = 0}) {
@@ -698,9 +693,7 @@ class CodeLocation {
   final String name;
   final int offset;
 
-  CodeLocation(this.uri, this.name, this.offset) {
-    assert(uri != null);
-  }
+  CodeLocation(this.uri, this.name, this.offset);
 
   @override
   String toString() => '$uri:$name:$offset';
@@ -713,10 +706,9 @@ class CodeLocation {
     };
   }
 
-  static CodeLocation fromJson(Map json, JsonStrategy strategy) {
+  static CodeLocation? fromJson(Map? json, JsonStrategy strategy) {
     if (json == null) return null;
-    return new CodeLocation(
-        Uri.parse(json['uri']), json['name'], json['offset']);
+    return CodeLocation(Uri.parse(json['uri']), json['name'], json['offset']);
   }
 }
 
@@ -726,8 +718,8 @@ class CodeSource {
   final CodeKind kind;
   final Uri uri;
   final String name;
-  final int begin;
-  final int end;
+  final int? begin;
+  final int? end;
   final List<CodeSource> members = <CodeSource>[];
 
   CodeSource(this.kind, this.uri, this.name, this.begin, this.end);
@@ -764,11 +756,11 @@ class CodeSource {
     };
   }
 
-  static CodeSource fromJson(Map json) {
+  static CodeSource? fromJson(Map? json) {
     if (json == null) return null;
-    CodeSource codeSource = new CodeSource(CodeKind.values[json['kind']],
+    CodeSource codeSource = CodeSource(CodeKind.values[json['kind']],
         Uri.parse(json['uri']), json['name'], json['begin'], json['end']);
-    json['members'].forEach((m) => codeSource.members.add(fromJson(m)));
+    json['members'].forEach((m) => codeSource.members.add(fromJson(m)!));
     return codeSource;
   }
 }

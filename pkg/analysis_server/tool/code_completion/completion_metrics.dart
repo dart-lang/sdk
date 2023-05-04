@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This file has commented out code that uses code that otherwise unreachable.
+// ignore_for_file: unreachable_from_main
+
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' show stdout;
@@ -1464,7 +1467,11 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         budget: budget,
         listener: listener,
         notImportedSuggestions: notImportedSuggestions,
-      ).computeSuggestions(dartRequest, performance);
+      ).computeSuggestions(
+        dartRequest,
+        performance,
+        useFilter: true,
+      );
       suggestions = serverSuggestions.map((serverSuggestion) {
         return serverSuggestion.build();
       }).toList();
@@ -1481,7 +1488,11 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
-      ).computeSuggestions(dartRequest, performance);
+      ).computeSuggestions(
+        dartRequest,
+        performance,
+        useFilter: true,
+      );
       suggestions = serverSuggestions.map((serverSuggestion) {
         return serverSuggestion.build();
       }).toList();

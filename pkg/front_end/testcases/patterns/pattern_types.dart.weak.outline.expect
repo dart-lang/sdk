@@ -1,0 +1,108 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/pattern_types.dart:6:1: Error: 'Invalid' is imported from both 'pkg/front_end/testcases/patterns/pattern_types_lib1.dart' and 'pkg/front_end/testcases/patterns/pattern_types_lib2.dart'.
+// import 'pattern_types_lib2.dart';
+// ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///pattern_types_lib1.dart";
+import "org-dartlang-testcase:///pattern_types_lib2.dart";
+
+typedef Dynamic = dynamic;
+typedef Function1 = () → void;
+typedef Function1_ = () →? void;
+typedef Record1 = (core::int, {required named: core::String});
+typedef Record1_ = (core::int, {required named: core::String})?;
+typedef Class_ = self::Class?;
+class Class extends core::Object {
+  field dynamic field;
+  synthetic constructor •() → self::Class
+    ;
+  method method() → void
+    ;
+  operator <(core::int i) → core::bool
+    ;
+  operator >(core::int i) → core::int
+    ;
+  operator ==(core::Object other) → core::bool
+    ;
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    ;
+  operator <(self::Class2 i) → core::bool
+    ;
+  operator ==(covariant-by-declaration self::Class2 other) → core::bool
+    ;
+}
+extension /* unnamed */ _extension#0 on self::Class {
+  get extensionGetter = self::_extension#0|get#extensionGetter;
+  method extensionMethod = self::_extension#0|extensionMethod;
+  tearoff extensionMethod = self::_extension#0|get#extensionMethod;
+  operator <= = self::_extension#0|<=;
+  operator >= = self::_extension#0|>=;
+  get ambiguousField = self::_extension#0|get#ambiguousField;
+}
+extension /* unnamed */ _extension#1 on self::Class {
+  get ambiguousField = self::_extension#1|get#ambiguousField;
+}
+extension /* unnamed */ _extension#2 on core::String {
+  operator <= = self::_extension#2|<=;
+}
+extension /* unnamed */ _extension#3 on core::String {
+  operator <= = self::_extension#3|<=;
+}
+static method _extension#0|get#extensionGetter(lowered final self::Class #this) → core::int
+  ;
+static method _extension#0|extensionMethod(lowered final self::Class #this) → void
+  ;
+static method _extension#0|get#extensionMethod(lowered final self::Class #this) → () → void
+  return () → void => self::_extension#0|extensionMethod(#this);
+static method _extension#0|<=(lowered final self::Class #this, core::int i) → core::bool
+  ;
+static method _extension#0|>=(lowered final self::Class #this, core::int i) → core::int
+  ;
+static method _extension#0|get#ambiguousField(lowered final self::Class #this) → core::int
+  ;
+static method _extension#1|get#ambiguousField(lowered final self::Class #this) → core::String
+  ;
+static method _extension#2|<=(lowered final core::String #this, dynamic other) → core::bool
+  ;
+static method _extension#3|<=(lowered final core::String #this, dynamic other) → core::bool
+  ;
+static method objectPattern(dynamic o) → dynamic
+  ;
+static method relationalPattern(dynamic dyn, Never never, self::Class cls, self::Class? cls_, invalid-type invalid, core::String string, self::Class2 cls2, self::Class2? cls2_) → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+class Invalid extends core::Object {
+  field dynamic field;
+  synthetic constructor •() → self2::Invalid
+    ;
+  operator <(dynamic other) → dynamic
+    ;
+  operator ==(core::Object other) → core::bool
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as self3;
+import "dart:core" as core;
+
+class Invalid extends core::Object {
+  field dynamic field;
+  synthetic constructor •() → self3::Invalid
+    ;
+  operator <(dynamic other) → dynamic
+    ;
+  operator ==(core::Object other) → core::bool
+    ;
+}

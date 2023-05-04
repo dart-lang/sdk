@@ -6,6 +6,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 
 /// A contributor that produces suggestions for variable names based on the
@@ -14,7 +15,9 @@ class VariableNameContributor extends DartCompletionContributor {
   VariableNameContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     var opType = request.opType;
 
     // Collect suggestions from the specific child [AstNode] that contains

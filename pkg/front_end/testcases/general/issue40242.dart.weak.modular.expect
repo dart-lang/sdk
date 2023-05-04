@@ -14,10 +14,6 @@ library /*isNonNullableByDefault*/;
 //   C = Object;
 //   ^
 //
-// pkg/front_end/testcases/general/issue40242.dart:18:6: Error: Can't assign to a parenthesized expression.
-//   (c2) = new C();
-//      ^
-//
 // pkg/front_end/testcases/general/issue40242.dart:20:3: Error: Can't assign to the const variable 'c3'.
 //   c3 = null;
 //   ^^
@@ -50,9 +46,13 @@ static method errors() → dynamic {
   C = Object;
   ^";
   self::C c2;
-  invalid-expression "pkg/front_end/testcases/general/issue40242.dart:18:6: Error: Can't assign to a parenthesized expression.
-  (c2) = new C();
-     ^";
+  block {
+    self::C #t1;
+    final synthesized dynamic #0#0 = new self::C::•();
+    if(!(let final dynamic #t2 = #t1 = #0#0{self::C} in true))
+      throw new core::StateError::•("Pattern matching error");
+    c2 = #t1;
+  } =>#0#0;
   invalid-expression "pkg/front_end/testcases/general/issue40242.dart:20:3: Error: Can't assign to the const variable 'c3'.
   c3 = null;
   ^^";

@@ -45,11 +45,11 @@ Future<void> main() async {
   Map<int, String> vmConstantTagToName = {};
   for (int i = 0; i < vmTagLines.length; i++) {
     String line = vmTagLines[i];
-    if (line.startsWith(supportedVersion)) {
-      vmVersion = int.parse(line
-          .substring(line.indexOf(supportedVersion) + supportedVersion.length)
-          .substring(0, 2) // Assume version < 100 for now.
-          .trim());
+    if (line.contains(supportedVersion)) {
+      int supportedVersionIndex = line.indexOf(supportedVersion);
+      int start = supportedVersionIndex + supportedVersion.length;
+      int end = line.indexOf(";", supportedVersionIndex);
+      vmVersion = int.parse(line.substring(start, end).trim());
     } else if (line.startsWith("#define KERNEL_TAG_LIST(V)")) {
       while (true) {
         RegExpMatch? match = tagParser.firstMatch(line);
@@ -111,7 +111,7 @@ Future<void> main() async {
     for (Field f in compareMe.tagClass.fields) {
       // Class doesn't only contain tag stuff.
       if (f.name.text.endsWith("Mask")) continue;
-      if (f.name.text.endsWith("HighBit")) continue;
+      if (f.name.text.endsWith("HighBits")) continue;
       if (f.name.text.endsWith("Bias")) continue;
       if (f.name.text == "ComponentFile") continue;
       ConstantExpression value = f.initializer as ConstantExpression;

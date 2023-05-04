@@ -4,7 +4,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Tool that consumes the .dill file of an entire dart-sdk and produces the
-/// corresponding Javascript module.
+/// corresponding JavaScript module.
 
 import 'dart:io';
 import 'package:dev_compiler/src/kernel/command.dart';

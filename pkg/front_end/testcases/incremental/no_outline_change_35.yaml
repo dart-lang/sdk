@@ -21,14 +21,14 @@ worlds:
         }
       lib.dart: |
         import 'dart:ffi';
-        class Coordinate extends Struct {
+        final class Coordinate extends Struct {
           @Double()
           external double x;
 
           @Double()
           external double y;
 
-          Pointer<Coordinate>? next;
+          external Pointer<Coordinate> next;
 
           factory Coordinate.allocate(double x, double y, Pointer<Coordinate>? next) {
             throw '';
@@ -61,14 +61,14 @@ worlds:
     sources:
       lib.dart: |
         import 'dart:ffi';
-        class Coordinate extends Struct {
+        final class Coordinate extends Struct {
           @Double()
           external double x;
 
           @Double()
           external double y;
 
-          Pointer<Coordinate>? next;
+          external Pointer<Coordinate> next;
 
           factory Coordinate.allocate(double x, double y, Pointer<Coordinate>? next) {
             print("hello");

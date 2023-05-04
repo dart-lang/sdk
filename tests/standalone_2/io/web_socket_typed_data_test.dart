@@ -202,7 +202,7 @@ void testOutOfRangeServer({bool compression: false}) {
         webSocket.listen((message) => Expect.fail("No message expected"),
             onDone: () => completer.complete(true),
             onError: (e) => completer.completeError(e));
-        webSocket.add(new List()..add(i));
+        webSocket.add([]..add(i));
       });
       return completer.future;
     }

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/error/error.dart';
 
-/// A superclass for error codes that can have a url associated with them.
+/// A superclass for error codes that can have a URL associated with them.
 abstract class AnalyzerErrorCode extends ErrorCode {
   /// Initialize a newly created error code.
   const AnalyzerErrorCode({

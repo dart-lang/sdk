@@ -65,6 +65,7 @@ main(List<String> args) async {
     // Compile source to kernel.
     await run(genKernel, <String>[
       "--aot",
+      '--no-sound-null-safety',
       "--platform=$platformDill",
       "-o",
       dill1,
@@ -72,6 +73,7 @@ main(List<String> args) async {
     ]);
     await run(genKernel, <String>[
       "--aot",
+      '--no-sound-null-safety',
       "--platform=$platformDill",
       "-o",
       dill2,
@@ -81,6 +83,7 @@ main(List<String> args) async {
     // Compile kernel to ELF.
     await run(genSnapshot, <String>[
       "--snapshot-kind=app-aot-elf",
+      '--no-sound-null-safety',
       "--elf=$snapshot1",
       "--loading-unit-manifest=$manifest1",
       dill1,
@@ -96,6 +99,7 @@ main(List<String> args) async {
 
     await run(genSnapshot, <String>[
       "--snapshot-kind=app-aot-elf",
+      '--no-sound-null-safety',
       "--elf=$snapshot2",
       "--loading-unit-manifest=$manifest2",
       dill2,
@@ -109,15 +113,15 @@ main(List<String> args) async {
     Expect.isTrue(await new File(deferredSnapshot2).exists());
 
     // Works when used normally.
-    var lines = await runOutput(aotRuntime, <String>[snapshot1]);
+    var lines = await runOutput(dartPrecompiledRuntime, <String>[snapshot1]);
     Expect.listEquals(["One!"], lines);
 
-    lines = await runOutput(aotRuntime, <String>[snapshot2]);
+    lines = await runOutput(dartPrecompiledRuntime, <String>[snapshot2]);
     Expect.listEquals(["Two!"], lines);
 
     // Fails gracefully when mixing snapshot parts.
     await new File(deferredSnapshot2).rename(deferredSnapshot1);
-    lines = await runError(aotRuntime, <String>[snapshot1]);
+    lines = await runError(dartPrecompiledRuntime, <String>[snapshot1]);
     Expect.equals(
         "DeferredLoadException: 'Deferred loading unit is from a different program than the main loading unit'",
         lines[1]);

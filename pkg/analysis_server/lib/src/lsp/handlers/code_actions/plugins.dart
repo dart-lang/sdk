@@ -100,10 +100,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
       return [];
     }
 
-    final pluginFutures = server.pluginManager.broadcastRequest(
-      requestParams,
-      contextRoot: driver.analysisContext!.contextRoot,
-    );
+    var pluginFutures = server.broadcastRequestToPlugins(requestParams, driver);
 
     return waitForResponses(
       pluginFutures,

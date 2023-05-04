@@ -7,7 +7,6 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
-import '../builder/extension_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -22,8 +21,11 @@ import '../kernel/member_covariance.dart';
 import '../source/name_scheme.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
+import 'source_builder_mixins.dart';
 import 'source_class_builder.dart';
+import 'source_extension_builder.dart';
 import 'source_function_builder.dart';
+import 'source_inline_class_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceProcedureBuilder extends SourceFunctionBuilderImpl
@@ -34,6 +36,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   @override
   final bool isExtensionInstanceMember;
+
+  @override
+  final bool isInlineClassInstanceMember;
 
   @override
   final TypeBuilder returnType;
@@ -85,21 +90,20 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       this._tearOffReference,
       AsyncMarker asyncModifier,
       NameScheme nameScheme,
-      {required bool isExtensionMember,
-      required bool isInstanceMember,
-      String? nativeMethodName,
+      {String? nativeMethodName,
       bool isSynthetic = false})
-      // ignore: unnecessary_null_comparison
-      : assert(isExtensionMember != null),
-        // ignore: unnecessary_null_comparison
-        assert(isInstanceMember != null),
-        assert(kind != ProcedureKind.Factory),
-        this.isExtensionInstanceMember = isInstanceMember && isExtensionMember,
+      : assert(kind != ProcedureKind.Factory),
+        this.isExtensionInstanceMember =
+            nameScheme.isInstanceMember && nameScheme.isExtensionMember,
+        this.isInlineClassInstanceMember =
+            nameScheme.isInstanceMember && nameScheme.isInlineClassMember,
         super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
     _procedure = new Procedure(
         dummyName,
-        isExtensionInstanceMember ? ProcedureKind.Method : kind,
+        isExtensionInstanceMember || isInlineClassInstanceMember
+            ? ProcedureKind.Method
+            : kind,
         new FunctionNode(null),
         fileUri: libraryBuilder.fileUri,
         reference: procedureReference,
@@ -110,11 +114,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
     nameScheme.getProcedureMemberName(kind, name).attachMember(_procedure);
     this.asyncModifier = asyncModifier;
-    if (isExtensionMember && isInstanceMember && kind == ProcedureKind.Method) {
+    if ((isExtensionInstanceMember || isInlineClassInstanceMember) &&
+        kind == ProcedureKind.Method) {
       _extensionTearOff = new Procedure(
           dummyName, ProcedureKind.Method, new FunctionNode(null),
           isStatic: true,
-          isExtensionMember: true,
+          isExtensionMember: isExtensionInstanceMember,
+          isInlineClassMember: isInlineClassInstanceMember,
           reference: _tearOffReference,
           fileUri: fileUri)
         ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
@@ -144,7 +150,11 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   bool get isExtensionMethod {
-    return parent is ExtensionBuilder;
+    return parent is SourceExtensionBuilder;
+  }
+
+  bool get isInlineClassMethod {
+    return parent is SourceInlineClassBuilder;
   }
 
   @override
@@ -266,6 +276,27 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       if (extensionTearOff != null) {
         f(extensionTearOff!, BuiltMemberKind.ExtensionTearOff);
       }
+    } else if (isInlineClassMethod) {
+      switch (kind) {
+        case ProcedureKind.Method:
+          f(_procedure, BuiltMemberKind.InlineClassMethod);
+          break;
+        case ProcedureKind.Getter:
+          f(_procedure, BuiltMemberKind.InlineClassGetter);
+          break;
+        case ProcedureKind.Setter:
+          f(_procedure, BuiltMemberKind.InlineClassSetter);
+          break;
+        case ProcedureKind.Operator:
+          f(_procedure, BuiltMemberKind.InlineClassOperator);
+          break;
+        case ProcedureKind.Factory:
+          f(_procedure, BuiltMemberKind.InlineClassFactory);
+          break;
+      }
+      if (extensionTearOff != null) {
+        f(extensionTearOff!, BuiltMemberKind.InlineClassTearOff);
+      }
     } else {
       f(member, BuiltMemberKind.Method);
     }
@@ -284,11 +315,18 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       if (isExtensionInstanceMember) {
         assert(_procedure.kind == ProcedureKind.Method);
       }
+    } else if (isInlineClassMethod) {
+      _procedure.isInlineClassMember = true;
+      _procedure.isStatic = true;
+      if (isInlineClassInstanceMember) {
+        assert(_procedure.kind == ProcedureKind.Method);
+      }
     } else {
       _procedure.isStatic = isStatic;
     }
     if (extensionTearOff != null) {
-      _buildExtensionTearOff(libraryBuilder, parent as ExtensionBuilder);
+      _buildExtensionTearOff(
+          libraryBuilder, parent as SourceDeclarationBuilderMixin);
     }
   }
 
@@ -312,7 +350,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   ///     }
   ///
   void _buildExtensionTearOff(SourceLibraryBuilder sourceLibraryBuilder,
-      ExtensionBuilder extensionBuilder) {
+      SourceDeclarationBuilderMixin declarationBuilder) {
     assert(
         _extensionTearOff != null, "No extension tear off created for $this.");
 
@@ -322,7 +360,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     int fileEndOffset = _procedure.fileEndOffset;
 
     int extensionTypeParameterCount =
-        extensionBuilder.typeParameters?.length ?? 0;
+        declarationBuilder.typeParameters?.length ?? 0;
 
     List<TypeParameter> typeParameters = <TypeParameter>[];
 

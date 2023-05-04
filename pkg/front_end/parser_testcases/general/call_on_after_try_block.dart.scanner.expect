@@ -9,8 +9,6 @@ try {
 
 
 
-
-
 on(42);
 }
 
@@ -25,8 +23,6 @@ try[KeywordToken] {[BeginToken]
 }[SimpleToken] on[KeywordToken] Foo[StringToken] {[BeginToken]
 ;[SimpleToken]
 }[SimpleToken]
-
-
 
 
 

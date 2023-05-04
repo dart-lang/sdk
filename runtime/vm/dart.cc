@@ -27,7 +27,6 @@
 #include "vm/isolate.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
-#include "vm/malloc_hooks.h"
 #include "vm/message_handler.h"
 #include "vm/metrics.h"
 #include "vm/native_entry.h"
@@ -68,7 +67,8 @@ Dart_FileReadCallback Dart::file_read_callback_ = NULL;
 Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
 Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
 Dart_EntropySource Dart::entropy_source_callback_ = NULL;
-Dart_GCEventCallback Dart::gc_event_callback_ = nullptr;
+Dart_DwarfStackTraceFootnoteCallback Dart::dwarf_stacktrace_footnote_callback_ =
+    nullptr;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -258,6 +258,13 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
       "host");
 #endif
 
+#if defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS)
+  char* error = CheckIsAtLeastMinRequiredMacOSVersion();
+  if (error != nullptr) {
+    return error;
+  }
+#endif
+
   if (!Flags::Initialized()) {
     return Utils::StrDup("VM initialization failed-VM Flags not initialized.");
   }
@@ -285,7 +292,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     }
   }
 
-  UntaggedFrame::Init();
+  FrameLayout::Init();
 
   set_thread_start_callback(params->thread_start);
   set_thread_exit_callback(params->thread_exit);
@@ -327,7 +334,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   NativeSymbolResolver::Init();
   NOT_IN_PRODUCT(Profiler::Init());
   Page::Init();
-  NOT_IN_PRODUCT(Metric::Init());
   StoreBuffer::Init();
   MarkingStack::Init();
   TargetCPUFeatures::Init();
@@ -407,13 +413,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 #else
         StubCode::Init();
         Object::FinishInit(vm_isolate_->group());
-        // MallocHooks can't be initialized until StubCode has been since stack
-        // trace generation relies on stub methods that are generated in
-        // StubCode::Init().
-        // TODO(bkonyi) Split initialization for stack trace collection from the
-        // initialization for the actual malloc hooks to increase accuracy of
-        // memory consumption statistics.
-        MallocHooks::Init();
 #endif
       } else {
         return Utils::StrDup("Invalid vm isolate snapshot seen");
@@ -454,13 +453,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
       vm_snapshot_kind_ = Snapshot::kNone;
       StubCode::Init();
       Object::FinishInit(vm_isolate_->group());
-      // MallocHooks can't be initialized until StubCode has been since stack
-      // trace generation relies on stub methods that are generated in
-      // StubCode::Init().
-      // TODO(bkonyi) Split initialization for stack trace collection from the
-      // initialization for the actual malloc hooks to increase accuracy of
-      // memory consumption statistics.
-      MallocHooks::Init();
       Symbols::Init(vm_isolate_->group());
 #endif
     }
@@ -537,10 +529,10 @@ char* Dart::Init(const Dart_InitializeParams* params) {
 }
 
 static void DumpAliveIsolates(intptr_t num_attempts,
-                              bool only_aplication_isolates) {
+                              bool only_application_isolates) {
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     group->ForEachIsolate([&](Isolate* isolate) {
-      if (!only_aplication_isolates || !Isolate::IsSystemIsolate(isolate)) {
+      if (!only_application_isolates || !Isolate::IsSystemIsolate(isolate)) {
         OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
                      num_attempts, isolate->name());
       }
@@ -707,7 +699,6 @@ char* Dart::Cleanup() {
     }
     bool result = Thread::EnterIsolate(vm_isolate_);
     ASSERT(result);
-    Metric::Cleanup();
     Thread::ExitIsolate();
   }
 #endif
@@ -804,7 +795,6 @@ char* Dart::Cleanup() {
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", UptimeMillis());
   }
-  MallocHooks::Cleanup();
   Flags::Cleanup();
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   IsolateGroupReloadContext::SetFileModifiedCallback(NULL);
@@ -905,59 +895,11 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return ApiError::New(message);
     }
   }
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  I->group()->class_table()->PopulateUserVisibleNames();
+#endif
 
   return Error::null();
-}
-
-bool Dart::DetectNullSafety(const char* script_uri,
-                            const uint8_t* snapshot_data,
-                            const uint8_t* snapshot_instructions,
-                            const uint8_t* kernel_buffer,
-                            intptr_t kernel_buffer_size,
-                            const char* package_config,
-                            const char* original_working_directory) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // Before creating the isolate we first determine the null safety mode
-  // in which the isolate needs to run based on one of these factors :
-  // - if loading from source, based on opt-in status of the source
-  // - if loading from a kernel file, based on the mode used when
-  //   generating the kernel file
-  // - if loading from an appJIT, based on the mode used
-  //   when generating the snapshot.
-  ASSERT(FLAG_sound_null_safety == kNullSafetyOptionUnspecified);
-
-  // If snapshot is not a core snapshot we will figure out the mode by
-  // sniffing the feature string in the snapshot.
-  if (snapshot_data != nullptr) {
-    // Read the snapshot and check for null safety option.
-    const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
-    if (!Snapshot::IsAgnosticToNullSafety(snapshot->kind())) {
-      return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
-    }
-  }
-
-  // If kernel_buffer is specified, it could be a self contained
-  // kernel file or the kernel file of the application,
-  // figure out the null safety mode by sniffing the kernel file.
-  if (kernel_buffer != nullptr) {
-    const char* error = nullptr;
-    std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
-        kernel_buffer, kernel_buffer_size, &error);
-    if (program != nullptr) {
-      return program->compilation_mode() == NNBDCompiledMode::kStrong;
-    }
-    return false;
-  }
-
-  // If we are loading from source, figure out the mode from the source.
-  if (KernelIsolate::GetExperimentalFlag(ExperimentalFeature::non_nullable)) {
-    return KernelIsolate::DetectNullSafety(script_uri, package_config,
-                                           original_working_directory);
-  }
-  return false;
-#else
-  UNREACHABLE();
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // The runtime assumes it can create certain kinds of objects at-will without
@@ -1226,7 +1168,7 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
         buffer.AddString(" no-null-safety");
       }
     } else {
-      if (FLAG_sound_null_safety == kNullSafetyOptionStrong) {
+      if (FLAG_sound_null_safety) {
         buffer.AddString(" null-safety");
       } else {
         buffer.AddString(" no-null-safety");

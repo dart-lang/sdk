@@ -39,7 +39,7 @@ DEFINE_FLAG(int,
     const int kBufferSize = 1024;                                              \
     char error_message[kBufferSize];                                           \
     Utils::StrError(result, error_message, kBufferSize);                       \
-    FATAL2("pthread error: %d (%s)", result, error_message);                   \
+    FATAL("pthread error: %d (%s)", result, error_message);                    \
   }
 
 #if defined(PRODUCT)
@@ -50,7 +50,7 @@ DEFINE_FLAG(int,
     const int kBufferSize = 1024;                                              \
     char error_message[kBufferSize];                                           \
     Utils::StrError(result, error_message, kBufferSize);                       \
-    FATAL3("[%s] pthread error: %d (%s)", name_, result, error_message);       \
+    FATAL("[%s] pthread error: %d (%s)", name_, result, error_message);        \
   }
 #endif
 
@@ -104,12 +104,12 @@ static void* ThreadStart(void* data_ptr) {
     int policy = SCHED_FIFO;
     struct sched_param schedule;
     if (pthread_getschedparam(thread, &policy, &schedule) != 0) {
-      FATAL1("Obtainign sched param failed: errno = %d\n", errno);
+      FATAL("Obtaining sched param failed: errno = %d\n", errno);
     }
     schedule.sched_priority = FLAG_worker_thread_priority;
     if (pthread_setschedparam(thread, policy, &schedule) != 0) {
-      FATAL2("Setting thread priority to %d failed: errno = %d\n",
-             FLAG_worker_thread_priority, errno);
+      FATAL("Setting thread priority to %d failed: errno = %d\n",
+            FLAG_worker_thread_priority, errno);
     }
   }
 
@@ -120,14 +120,18 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
-  // Set the thread name.
+  // Set the thread name. We need to impose a limit on the name length so that
+  // we can know how large of a buffer to use when retrieving the name. We
+  // truncate the name at 16 bytes to be consistent with Android and Linux.
+  char truncated_name[16];
+  snprintf(truncated_name, ARRAY_SIZE(truncated_name), "%s", name);
   pthread_setname_np(name);
 
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
-    thread->set_name(name);
+    thread->SetName(name);
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
   }
@@ -157,9 +161,9 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-const ThreadId OSThread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
+const ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(NULL);
 const ThreadJoinId OSThread::kInvalidThreadJoinId =
-    reinterpret_cast<ThreadJoinId>(NULL);
+    static_cast<ThreadJoinId>(NULL);
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   pthread_key_t key = kUnsetThreadLocalKey;
@@ -196,6 +200,13 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
 }
 #endif  // SUPPORT_TIMELINE
 
+char* OSThread::GetCurrentThreadName() {
+  const intptr_t kNameBufferSize = 16;
+  char* name = static_cast<char*>(malloc(kNameBufferSize));
+  pthread_getname_np(pthread_self(), name, kNameBufferSize);
+  return name;
+}
+
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);
   // Make sure we're filling in the join id for the current thread.
@@ -215,7 +226,7 @@ void OSThread::Join(ThreadJoinId id) {
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
+  COMPILE_ASSERT(sizeof(id) <= sizeof(intptr_t));
   return reinterpret_cast<intptr_t>(id);
 }
 
@@ -287,6 +298,8 @@ Mutex::~Mutex() {
 }
 
 void Mutex::Lock() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_lock(data_.mutex());
   // Specifically check for dead lock to help debugging.
   ASSERT(result != EDEADLK);
@@ -298,6 +311,8 @@ void Mutex::Lock() {
 }
 
 bool Mutex::TryLock() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_trylock(data_.mutex());
   // Return false if the lock is busy and locking failed.
   if ((result == EBUSY) || (result == EDEADLK)) {
@@ -362,6 +377,8 @@ Monitor::~Monitor() {
 }
 
 bool Monitor::TryEnter() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_trylock(data_.mutex());
   // Return false if the lock is busy and locking failed.
   if ((result == EBUSY) || (result == EDEADLK)) {
@@ -377,6 +394,8 @@ bool Monitor::TryEnter() {
 }
 
 void Monitor::Enter() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_lock(data_.mutex());
   VALIDATE_PTHREAD_RESULT(result);
 

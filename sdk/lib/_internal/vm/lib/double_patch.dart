@@ -61,7 +61,7 @@ class double {
       int digit = c ^ _ZERO; // '0'-'9' characters are now 0-9 integers.
       if (digit <= 9) {
         doubleValue = 10.0 * doubleValue + digit;
-        // Doubles at or above this value (2**53) might have lost precission.
+        // Doubles at or above this value (2**53) might have lost precision.
         const double MAX_EXACT_DOUBLE = 9007199254740992.0;
         if (doubleValue >= MAX_EXACT_DOUBLE) return null;
         exponent += exponentDelta;

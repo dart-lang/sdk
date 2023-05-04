@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
@@ -68,6 +69,7 @@ class ContextBuilderImpl implements ContextBuilder {
     })?
         updateAnalysisOptions2,
     FileContentCache? fileContentCache,
+    UnlinkedUnitStore? unlinkedUnitStore,
     MacroKernelBuilder? macroKernelBuilder,
     macro.MultiMacroExecutor? macroExecutor,
   }) {
@@ -142,6 +144,7 @@ class ContextBuilderImpl implements ContextBuilder {
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,
+      unlinkedUnitStore: unlinkedUnitStore,
       macroKernelBuilder: macroKernelBuilder,
       macroExecutor: macroExecutor,
       declaredVariables: declaredVariables,
@@ -172,7 +175,7 @@ class ContextBuilderImpl implements ContextBuilder {
     }
   }
 
-  /// Return the SDK that that should be used to analyze code.
+  /// Return the SDK that should be used to analyze code.
   DartSdk _createSdk({
     required Workspace workspace,
     String? sdkPath,

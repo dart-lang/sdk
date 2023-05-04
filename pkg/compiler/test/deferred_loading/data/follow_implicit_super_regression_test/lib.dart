@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: a:member_unit=1{lib}*/
 a() => print("123");
 
@@ -62,7 +60,7 @@ class A2 extends A {
  class_unit=1{lib},
  type_unit=1{lib}
 */
-class C1 {}
+mixin C1 {}
 
 /*class: C2:
  class_unit=1{lib},
@@ -98,13 +96,13 @@ class C3 extends C2 with C1 {
  class_unit=1{lib},
  type_unit=1{lib}
 */
-class E {}
+mixin E {}
 
 /*class: F:
  class_unit=1{lib},
  type_unit=1{lib}
 */
-class F {}
+mixin F {}
 
 /*class: G:
  class_unit=1{lib},
@@ -117,7 +115,7 @@ class G extends C3 with C1, E, F {}
  class_unit=1{lib},
  type_unit=1{lib}
 */
-class D1 {}
+mixin D1 {}
 
 /*class: D2:
  class_unit=1{lib},

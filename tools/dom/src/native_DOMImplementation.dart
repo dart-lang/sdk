@@ -321,7 +321,7 @@ class _Utils {
     try {
       return new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
     } catch (_) {
-      // TODO(antonnm): treat exceptions properly in bindings and
+      // TODO(antonm): treat exceptions properly in bindings and
       // find out how to treat NaNs.
       return null;
     }
@@ -330,7 +330,7 @@ class _Utils {
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
-    List result = new List(length);
+    List result = new List.filled(length, null);
     result.setRange(0, length, list);
     return result;
   }

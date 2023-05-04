@@ -12,7 +12,7 @@ import '../util/util.dart' show Hashing, Setlet;
 import 'selector.dart' show Selector;
 
 // TODO(kasperl): This actually holds getters and setters just fine
-// too and stricly they aren't functions. Maybe this needs a better
+// too and strictly they aren't functions. Maybe this needs a better
 // name -- something like ElementSet seems a bit too generic.
 class FunctionSet {
   final Map<String, FunctionSetNode> _publicNodes;
@@ -42,17 +42,6 @@ class FunctionSet {
   Iterable<MemberEntity> filter(
       Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
     return query(selector, receiver, domain).functions;
-  }
-
-  /// Returns the mask for the potential receivers of a dynamic call to
-  /// [selector] on [constraint].
-  ///
-  /// This will narrow the constraints of [constraint] to a [TypeMask] of the
-  /// set of classes that actually implement the selected member or implement
-  /// the handling 'noSuchMethod' where the selected member is unimplemented.
-  AbstractValue receiverType(
-      Selector selector, AbstractValue receiver, AbstractValueDomain domain) {
-    return query(selector, receiver, domain).computeMask(domain);
   }
 
   SelectorMask _createSelectorMask(
@@ -256,18 +245,12 @@ class FunctionSetNode {
 abstract class FunctionSetQuery {
   const FunctionSetQuery();
 
-  /// Compute the type of all potential receivers of this function set.
-  AbstractValue computeMask(AbstractValueDomain domain);
-
   /// Returns all potential targets of this function set.
   Iterable<MemberEntity> get functions;
 }
 
 class EmptyFunctionSetQuery implements FunctionSetQuery {
   const EmptyFunctionSetQuery();
-
-  @override
-  AbstractValue computeMask(AbstractValueDomain domain) => domain.emptyType;
 
   @override
   Iterable<MemberEntity> get functions => const [];
@@ -280,15 +263,8 @@ class FullFunctionSetQuery implements FunctionSetQuery {
   @override
   final Iterable<MemberEntity> functions;
 
-  AbstractValue? _receiver;
-
   FullFunctionSetQuery(this.functions);
 
   @override
-  AbstractValue computeMask(AbstractValueDomain domain) {
-    return _receiver ??= domain.computeReceiver(functions);
-  }
-
-  @override
-  String toString() => '$_receiver:$functions';
+  String toString() => 'FunctionSetQuery($functions)';
 }

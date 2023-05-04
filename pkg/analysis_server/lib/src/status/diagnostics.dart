@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show JsonEncoder;
 import 'dart:developer' as developer;
 import 'dart:io';
 
@@ -9,7 +10,6 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
     show LspAnalysisServer;
@@ -34,6 +34,7 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
+import "package:vm_service/vm_service_io.dart" as vm_service;
 
 final String kCustomCss = '''
 .lead, .page-title+.markdown-body>p:first-child {
@@ -167,23 +168,24 @@ class AnalyticsPage extends DiagnosticPageWithNav {
   String? get navDetail => null;
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var manager = server.analyticsManager;
     //
     // Display the standard header.
     //
-    if (manager.analytics is NoopAnalytics) {
+    if (!manager.analytics.telemetryEnabled) {
       p('Analytics reporting disabled. In order to enable it, run:');
       p('&nbsp;&nbsp;<code>dart --enable-analytics</code>');
-      p('If analytics had been enabled, the information below would be '
-          'reported on shutdown.');
+      p('If analytics had been enabled, the information below would have been '
+          'reported.');
     } else {
       p('The Dart tool uses Google Analytics to report feature usage '
           'statistics and to send basic crash reports. This data is used to '
           'help improve the Dart platform and tools over time.');
       p('To disable reporting of analytics, run:');
       p('&nbsp;&nbsp;<code>dart --disable-analytics</code>');
-      p('The information below will be reported on shutdown.');
+      p('The information below will be reported the next time analytics are '
+          'sent.');
     }
     //
     // Display the analytics data that has been gathered.
@@ -240,6 +242,234 @@ class AstPage extends DiagnosticPageWithNav {
   }
 }
 
+class CollectReportPage extends DiagnosticPage {
+  CollectReportPage(DiagnosticsSite site)
+      : super(site, 'collectreport', 'Collect Report',
+            description: 'Collect a shareable report for filing issues.');
+
+  @override
+  String? contentDispositionString(Map<String, String> params) {
+    if (params['collect'] != null) {
+      return 'attachment; filename="dart_analyzer_diagnostics_report.json"';
+    }
+    return super.contentDispositionString(params);
+  }
+
+  @override
+  ContentType contentType(Map<String, String> params) {
+    if (params['collect'] != null) {
+      return ContentType.json;
+    }
+    return super.contentType(params);
+  }
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    p('To download a report click the link below. '
+        'When the report is downloaded you can share it with the '
+        'Dart developers.');
+    p(
+      '<a href="${this.path}?collect=true">Download report</a>.',
+      raw: true,
+    );
+  }
+
+  @override
+  Future<void> generatePage(Map<String, String> params) async {
+    if (params['collect'] != null) {
+      // No added header etc.
+      String data = await _collectAllData();
+      buf.write(data);
+      return;
+    }
+    return await super.generatePage(params);
+  }
+
+  Future<String> _collectAllData() async {
+    Map<String, dynamic> collectedData = {};
+    var server = this.server;
+
+    // General data.
+    collectedData["currentTime"] = DateTime.now().millisecondsSinceEpoch;
+    collectedData["operatingSystem"] = Platform.operatingSystem;
+    collectedData["version"] = Platform.version;
+    collectedData["clientId"] = server.options.clientId;
+    collectedData["clientVersion"] = server.options.clientVersion;
+    collectedData["protocolVersion"] = PROTOCOL_VERSION;
+    collectedData["serverType"] = server.runtimeType.toString();
+    collectedData["uptime"] = server.uptime.toString();
+    if (server is LegacyAnalysisServer) {
+      collectedData["serverServices"] =
+          server.serverServices.map((e) => e.toString()).toList();
+    }
+
+    var profiler = ProcessProfiler.getProfilerForPlatform();
+    UsageInfo? usage;
+    if (profiler != null) {
+      usage = await profiler.getProcessUsage(pid);
+    }
+    collectedData["memoryKB"] = usage?.memoryKB;
+    collectedData["cpuPercentage"] = usage?.cpuPercentage;
+    collectedData["currentRss"] = ProcessInfo.currentRss;
+    collectedData["maxRss"] = ProcessInfo.maxRss;
+
+    // Communication.
+    for (var data in {
+      "startup": server.performanceDuringStartup,
+      if (server.performanceAfterStartup != null)
+        "afterStartup": server.performanceAfterStartup!
+    }.entries) {
+      var perf = data.value;
+      var perfData = {};
+      collectedData[data.key] = perfData;
+
+      var requestCount = perf.requestCount;
+      var latencyCount = perf.latencyCount;
+      var averageLatency =
+          latencyCount > 0 ? (perf.requestLatency ~/ latencyCount) : null;
+      var maximumLatency = perf.maxLatency;
+      var slowRequestCount = perf.slowRequestCount;
+
+      perfData["RequestCount"] = requestCount;
+      perfData["LatencyCount"] = latencyCount;
+      perfData["AverageLatency"] = averageLatency;
+      perfData["MaximumLatency"] = maximumLatency;
+      perfData["SlowRequestCount"] = slowRequestCount;
+    }
+
+    // Contexts.
+    var driverMapEntries = server.driverMap.entries.toList();
+    var contexts = [];
+    collectedData["contexts"] = contexts;
+    Set<String> uniqueKnownFiles = {};
+    for (var entry in driverMapEntries) {
+      var contextData = {};
+      contexts.add(contextData);
+      contextData["name"] = entry.key.shortName;
+      contextData["priorityFiles"] = entry.value.priorityFiles.length;
+      contextData["addedFiles"] = entry.value.addedFiles.length;
+      contextData["knownFiles"] = entry.value.knownFiles.length;
+      uniqueKnownFiles.addAll(entry.value.knownFiles);
+
+      contextData["lints"] =
+          entry.value.analysisOptions.lintRules.map((e) => e.name).toList();
+      contextData["plugins"] =
+          entry.value.analysisOptions.enabledPluginNames.toList();
+    }
+    collectedData["uniqueKnownFiles"] = uniqueKnownFiles.length;
+
+    // Recorded performance data (timing and code completion).
+    void collectPerformance(List<RequestPerformance> items, String type) {
+      var performance = [];
+      collectedData["performance$type"] = performance;
+      for (var item in items) {
+        var itemData = {};
+        performance.add(itemData);
+        itemData["id"] = item.id;
+        itemData["operation"] = item.operation;
+        itemData["requestLatency"] = item.requestLatency;
+        itemData["elapsed"] = item.performance.elapsed.inMilliseconds;
+        itemData["startTime"] = item.startTime?.toIso8601String();
+
+        var buffer = StringBuffer();
+        item.performance.write(buffer: buffer);
+        itemData["performance"] = buffer.toString();
+      }
+    }
+
+    collectPerformance(
+        server.recentPerformance.completion.items.toList(), "Completion");
+    collectPerformance(
+        server.recentPerformance.requests.items.toList(), "Requests");
+    collectPerformance(
+        server.recentPerformance.slowRequests.items.toList(), "SlowRequests");
+
+    // Exceptions.
+    var exceptions = [];
+    collectedData["exceptions"] = exceptions;
+    for (var exception in server.exceptions.items) {
+      exceptions.add({
+        "exception": exception.exception?.toString(),
+        "fatal": exception.fatal,
+        "message": exception.message,
+        "stackTrace": exception.stackTrace.toString(),
+      });
+    }
+
+    // Data from the observatory protocol.
+    var serviceProtocolInfo = await developer.Service.getInfo();
+    var startedServiceProtocol = false;
+    if (serviceProtocolInfo.serverUri == null) {
+      startedServiceProtocol = true;
+      serviceProtocolInfo = await developer.Service.controlWebServer(
+          enable: true, silenceOutput: true);
+    }
+
+    var serverUri = serviceProtocolInfo.serverUri;
+    if (serverUri != null) {
+      var path = serverUri.path;
+      if (!path.endsWith("/")) path += "/";
+      var wsUriString = 'ws://${serverUri.authority}${path}ws';
+      var serviceClient = await vm_service.vmServiceConnectUri(wsUriString);
+      var vm = await serviceClient.getVM();
+      collectedData["vm.architectureBits"] = vm.architectureBits;
+      collectedData["vm.hostCPU"] = vm.hostCPU;
+      collectedData["vm.operatingSystem"] = vm.operatingSystem;
+      collectedData["vm.startTime"] = vm.startTime;
+
+      var processMemoryUsage = await serviceClient.getProcessMemoryUsage();
+      collectedData["processMemoryUsage"] = processMemoryUsage.json;
+
+      var isolateData = [];
+      collectedData["isolates"] = isolateData;
+      var isolates = vm.isolates ?? [];
+      for (var isolate in isolates) {
+        String? id = isolate.id;
+        if (id == null) continue;
+        var thisIsolateData = {};
+        isolateData.add(thisIsolateData);
+        thisIsolateData["id"] = id;
+        thisIsolateData["isolateGroupId"] = isolate.isolateGroupId;
+        thisIsolateData["name"] = isolate.name;
+        var isolateMemoryUsage = await serviceClient.getMemoryUsage(id);
+        thisIsolateData["memory"] = isolateMemoryUsage.json;
+        var allocationProfile = await serviceClient.getAllocationProfile(id);
+        var allocationMembers = allocationProfile.members ?? [];
+        var allocationProfileData = [];
+        thisIsolateData["allocationProfile"] = allocationProfileData;
+        for (var member in allocationMembers) {
+          var bytesCurrent = member.bytesCurrent;
+          // Filter out very small entries to avoid the report becoming too big.
+          if (bytesCurrent == null || bytesCurrent < 1024) continue;
+
+          var memberData = {};
+          allocationProfileData.add(memberData);
+          memberData["bytesCurrent"] = bytesCurrent;
+          memberData["instancesCurrent"] = member.instancesCurrent;
+          memberData["accumulatedSize"] = member.accumulatedSize;
+          memberData["instancesAccumulated"] = member.instancesAccumulated;
+          memberData["className"] = member.classRef?.name;
+          memberData["libraryName"] = member.classRef?.library?.name;
+        }
+        allocationProfileData.sort((a, b) {
+          int bytesCurrentA = a["bytesCurrent"] as int;
+          int bytesCurrentB = b["bytesCurrent"] as int;
+          // Largest first.
+          return bytesCurrentB.compareTo(bytesCurrentA);
+        });
+      }
+    }
+
+    if (startedServiceProtocol) {
+      await developer.Service.controlWebServer(
+          enable: false, silenceOutput: true);
+    }
+
+    const JsonEncoder encoder = JsonEncoder.withIndent('  ');
+    return encoder.convert(collectedData);
+  }
+}
+
 class CommunicationsPage extends DiagnosticPageWithNav {
   CommunicationsPage(DiagnosticsSite site)
       : super(site, 'communications', 'Communications',
@@ -247,7 +477,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
                 'Latency statistics for analysis server communications.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     void writeRow(List<String> data, {List<String?>? classes}) {
       buf.write('<tr>');
       for (var i = 0; i < data.length; i++) {
@@ -333,7 +563,7 @@ class CompletionPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       server.recentPerformance.completion.items.toList();
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var completions = performanceItems;
 
     if (completions.isEmpty) {
@@ -463,7 +693,7 @@ class ContextsPage extends DiagnosticPageWithNav {
   }
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var driverMap = server.driverMap;
     if (driverMap.isEmpty) {
       blankslate('No contexts.');
@@ -550,7 +780,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     addedFiles.sort();
     implicitFiles.sort();
 
-    String lenCounter(List list) {
+    String lenCounter(List<String> list) {
       return '<span class="counter" style="float: right;">${list.length}</span>';
     }
 
@@ -685,6 +915,7 @@ abstract class DiagnosticPage extends Page {
 
       <nav class="masthead-nav">
         <a href="/status" ${isNavPage ? ' class="active"' : ''}>Diagnostics</a>
+        <a href="/collectreport" ${isCurrentPage('/collectreport') ? ' class="active"' : ''}>Collect Report</a>
         <a href="/feedback" ${isCurrentPage('/feedback') ? ' class="active"' : ''}>Feedback</a>
         <a href="https://dart.dev/tools/dart-analyze" target="_blank">Docs</a>
         <a href="https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/api.html" target="_blank">Spec</a>
@@ -723,7 +954,10 @@ abstract class DiagnosticPage extends Page {
 }
 
 abstract class DiagnosticPageWithNav extends DiagnosticPage {
-  DiagnosticPageWithNav(super.site, super.id, super.title, {super.description});
+  final bool indentInNav;
+
+  DiagnosticPageWithNav(super.site, super.id, super.title,
+      {super.description, this.indentInNav = false});
 
   @override
   bool get isNavPage => true;
@@ -736,16 +970,21 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
   Future<void> generateContainer(Map<String, String> params) async {
     buf.writeln('<div class="columns docs-layout">');
 
-    bool shouldShowInNav(Page page) {
-      return page is DiagnosticPageWithNav && page.showInNav;
-    }
+    bool shouldShowInNav(DiagnosticPageWithNav page) => page.showInNav;
 
     buf.writeln('<div class="one-fifth column">');
     buf.writeln('<nav class="menu docs-menu">');
-    for (var page in site.pages.where(shouldShowInNav)) {
-      buf.write('<a class="menu-item ${page == this ? ' selected' : ''}" '
+    var navPages =
+        site.pages.whereType<DiagnosticPageWithNav>().where(shouldShowInNav);
+    for (var page in navPages) {
+      var classes = [
+        'menu-item',
+        if (page == this) 'selected',
+        if (page.indentInNav) 'pl-5',
+      ];
+      buf.write('<a class="${classes.join(' ')}" '
           'href="${page.path}">${escape(page.title)}');
-      var detail = (page as DiagnosticPageWithNav).navDetail;
+      var detail = page.navDetail;
       if (detail != null) {
         buf.write('<span class="counter">$detail</span>');
       }
@@ -767,6 +1006,10 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
 }
 
 class DiagnosticsSite extends Site implements AbstractGetHandler {
+  /// A flag used to control whether developer support should be included when
+  /// building the pages.
+  static const bool includeDeveloperSupport = false;
+
   /// An object that can handle either a WebSocket connection or a connection
   /// to the client over stdio.
   AbstractSocketServer socketServer;
@@ -781,7 +1024,9 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(EnvironmentVariablesPage(this));
     pages.add(ExceptionsPage(this));
     // pages.add(new InstrumentationPage(this));
-    // pages.add(AnalyticsPage(this));
+    if (includeDeveloperSupport) {
+      pages.add(AnalyticsPage(this));
+    }
 
     // Add server-specific pages. Ordering doesn't matter as the items are
     // sorted later.
@@ -793,7 +1038,9 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     if (server is LegacyAnalysisServer) {
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
+      pages.add(LspPage(this, server));
       pages.add(LspCapabilitiesPage(this, server));
+      pages.add(LspRegistrationsPage(this, server));
     }
     pages.add(TimingPage(this));
 
@@ -810,6 +1057,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
 
     // Add non-nav pages.
     pages.add(FeedbackPage(this));
+    pages.add(CollectReportPage(this));
     pages.add(AstPage(this));
     pages.add(ElementModelPage(this));
     pages.add(ContentsPage(this));
@@ -886,7 +1134,7 @@ class EnvironmentVariablesPage extends DiagnosticPageWithNav {
                 'System environment variables as seen from the analysis server.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     buf.writeln('<table>');
     buf.writeln('<tr><th>Variable</th><th>Value</th></tr>');
     for (var key in Platform.environment.keys.toList()..sort()) {
@@ -904,7 +1152,7 @@ class ExceptionPage extends DiagnosticPage {
       : super(site, '', '500 Oops', description: message);
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     p(trace.toString(), style: 'white-space: pre');
   }
 }
@@ -920,7 +1168,7 @@ class ExceptionsPage extends DiagnosticPageWithNav {
   String get navDetail => '${exceptions.length}';
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     if (exceptions.isEmpty) {
       blankslate('No exceptions encountered!');
     } else {
@@ -942,7 +1190,7 @@ class FeedbackPage extends DiagnosticPage {
             description: 'Providing feedback and filing issues.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var issuesUrl = 'https://github.com/dart-lang/sdk/issues';
     p(
       'To file issues or feature requests, see our '
@@ -983,12 +1231,12 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
 
   LspCapabilitiesPage(DiagnosticsSite site, this.server)
       : super(site, 'lsp_capabilities', 'LSP Capabilities',
-            description: 'Client and Server LSP Capabilities.');
+            description: 'Client and Server LSP Capabilities.',
+            indentInNav: true);
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     buf.writeln('<div class="columns">');
-
     buf.writeln('<div class="column one-half">');
     h3('Client Capabilities');
     var clientCapabilities = server.clientCapabilities;
@@ -1009,8 +1257,44 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
     }
     buf.writeln('</div>'); // half for server capabilities
     buf.writeln('</div>'); // columns
+  }
+}
 
-    h3('Current registrations');
+class LspPage extends DiagnosticPageWithNav {
+  @override
+  LspAnalysisServer server;
+
+  LspPage(DiagnosticsSite site, this.server)
+      : super(site, 'lsp', 'LSP',
+            description: 'Information about an LSP client.');
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    h3('LSP Client Info');
+    prettyJson({
+      'Name': server.clientInfo?.name,
+      'Version': server.clientInfo?.version,
+      'Host': server.clientAppHost,
+      'Remote': server.clientRemoteName,
+    });
+
+    h3('Initialization Options');
+    prettyJson(server.initializationOptions.raw);
+  }
+}
+
+class LspRegistrationsPage extends DiagnosticPageWithNav {
+  @override
+  LspAnalysisServer server;
+
+  LspRegistrationsPage(DiagnosticsSite site, this.server)
+      : super(site, 'lsp_registrations', 'LSP Registrations',
+            description: 'Current LSP feature registrations.',
+            indentInNav: true);
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    h3('Current Registrations');
     p('Showing the LSP method name and the registration params sent to the '
         'client.');
     prettyJson(server.capabilitiesComputer.currentRegistrations.toList());
@@ -1061,14 +1345,16 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
             description: 'Memory and CPU usage for the analysis server.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var usage = await profiler.getProcessUsage(pid);
 
     var serviceProtocolInfo = await developer.Service.getInfo();
 
     if (usage != null) {
-      buf.writeln(
-          writeOption('CPU', printPercentage(usage.cpuPercentage / 100.0)));
+      var cpuPercentage = usage.cpuPercentage;
+      if (cpuPercentage != null) {
+        buf.writeln(writeOption('CPU', printPercentage(cpuPercentage / 100.0)));
+      }
       buf.writeln(writeOption('Memory', '${usage.memoryMB.round()} MB'));
 
       h3('VM');
@@ -1101,7 +1387,7 @@ class NotFoundPage extends DiagnosticPage {
       : super(site, '', '404 Not found', description: "'$path' not found.");
 
   @override
-  Future generateContent(Map<String, String> params) async {}
+  Future<void> generateContent(Map<String, String> params) async {}
 }
 
 class PluginsPage extends DiagnosticPageWithNav {
@@ -1112,9 +1398,11 @@ class PluginsPage extends DiagnosticPageWithNav {
       : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     h3('Analysis plugins');
-    var analysisPlugins = server.pluginManager.plugins;
+    var analysisPlugins = AnalysisServer.supportsPlugins
+        ? server.pluginManager.plugins
+        : <PluginInfo>[];
 
     if (analysisPlugins.isEmpty) {
       blankslate('No known analysis plugins.');
@@ -1190,7 +1478,7 @@ class StatusPage extends DiagnosticPageWithNav {
                 'General status and diagnostics for the analysis server.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     buf.writeln('<div class="columns">');
 
     buf.writeln('<div class="column one-half">');
@@ -1240,7 +1528,7 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
             description: 'Registered subscriptions to analysis server events.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     // server domain
     h3('Server domain subscriptions');
     ul(ServerService.VALUES, (item) {
@@ -1277,22 +1565,40 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       : super(site, 'timing', 'Timing', description: 'Timing statistics.');
 
   @override
-  Future generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     var kind = params['kind'];
 
     List<RequestPerformance> items;
+    List<RequestPerformance>? itemsSlow;
     if (kind == 'completion') {
       items = server.recentPerformance.completion.items.toList();
     } else {
       items = server.recentPerformance.requests.items.toList();
+      itemsSlow = server.recentPerformance.slowRequests.items.toList();
     }
 
     var id = int.tryParse(params['id'] ?? '');
     if (id == null) {
-      return _generateList(items);
+      return _generateList(items, itemsSlow);
     } else {
-      return _generateDetails(id, items);
+      return _generateDetails(id, items, itemsSlow);
     }
+  }
+
+  void _emitTable(List<RequestPerformance> items) {
+    buf.writeln('<table>');
+    buf.writeln('<tr><th>Time</th><th>Request</th></tr>');
+    for (var item in items) {
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right"><a href="/timing?id=${item.id}">'
+        '${_formatTiming(item)}'
+        '</a></td>'
+        '<td>${escape(item.operation)}</td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
   }
 
   String _formatTiming(RequestPerformance item) {
@@ -1310,8 +1616,12 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     return buffer.toString();
   }
 
-  void _generateDetails(int id, List<RequestPerformance> items) {
+  void _generateDetails(int id, List<RequestPerformance> items,
+      List<RequestPerformance>? itemsSlow) {
     var item = items.firstWhereOrNull((info) => info.id == id);
+    if (item == null && itemsSlow != null) {
+      item = itemsSlow.firstWhereOrNull((info) => info.id == id);
+    }
 
     if (item == null) {
       blankslate('Unable to find data for $id. '
@@ -1319,6 +1629,17 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       return;
     }
 
+    h3("Request '${item.operation}'");
+    var requestLatency = item.requestLatency;
+    if (requestLatency != null) {
+      buf.writeln("Request latency: $requestLatency ms.");
+      buf.writeln('<p>');
+    }
+    var startTime = item.startTime;
+    if (startTime != null) {
+      buf.writeln("Request start time: ${startTime.toIso8601String()}.");
+      buf.writeln('<p>');
+    }
     var buffer = StringBuffer();
     item.performance.write(buffer: buffer);
     pre(() {
@@ -1328,8 +1649,10 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     });
   }
 
-  void _generateList(List<RequestPerformance> items) {
+  void _generateList(
+      List<RequestPerformance> items, List<RequestPerformance>? itemsSlow) {
     if (items.isEmpty) {
+      assert(itemsSlow == null || itemsSlow.isEmpty);
       blankslate('No requests recorded.');
       return;
     }
@@ -1337,18 +1660,14 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     drawChart(items);
 
     // emit the data as a table
-    buf.writeln('<table>');
-    buf.writeln('<tr><th>Time</th><th>Request</th></tr>');
-    for (var item in items) {
-      buf.writeln(
-        '<tr>'
-        '<td class="pre right"><a href="/timing?id=${item.id}">'
-        '${_formatTiming(item)}'
-        '</a></td>'
-        '<td>${escape(item.operation)}</td>'
-        '</tr>',
-      );
+    if (itemsSlow != null) {
+      h3('Recent requests');
     }
-    buf.writeln('</table>');
+    _emitTable(items);
+
+    if (itemsSlow != null) {
+      h3('Slow requests');
+      _emitTable(itemsSlow);
+    }
   }
 }

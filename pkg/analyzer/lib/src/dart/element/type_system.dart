@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/greatest_lower_bound.dart';
 import 'package:analyzer/src/dart/element/least_greatest_closure.dart';
@@ -31,11 +32,12 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
-import 'package:analyzer/src/dart/error/inference_error_listener.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:meta/meta.dart';
 
 /// Fresh type parameters created to unify two lists of type parameters.
 class RelatedTypeParameters {
-  static final _empty = RelatedTypeParameters._([], []);
+  static final _empty = RelatedTypeParameters._(const [], const []);
 
   final List<TypeParameterElement> typeParameters;
   final List<TypeParameterType> typeParameterTypes;
@@ -137,6 +139,153 @@ class TypeSystemImpl implements TypeSystem {
     return ft.parameters.any((p) => predicate(p.type));
   }
 
+  /// Checks if an instance of [left] could possibly also be an instance of
+  /// [right]. For example, an instance of `num` could be `int`, so
+  /// canBeSubtypeOf(`num`, `int`) would return `true`, even though `num` is
+  /// not a subtype of `int`. More generally, we check if there could be a
+  /// type that implements both [left] and [right], regardless of whether
+  /// [left] is a subtype of [right], or [right] is a subtype of [left].
+  bool canBeSubtypeOf(DartType left, DartType right) {
+    // If one is `Null`, then the other must be nullable.
+    final leftIsNullable = isPotentiallyNullable(left);
+    final rightIsNullable = isPotentiallyNullable(right);
+    if (left.isDartCoreNull) {
+      return rightIsNullable;
+    } else if (right.isDartCoreNull) {
+      return leftIsNullable;
+    }
+
+    // If none is `Null`, but both are nullable, they match at `Null`.
+    if (leftIsNullable && rightIsNullable) {
+      return true;
+    }
+
+    // Could be `void Function() vs. Object`.
+    // Could be `void Function() vs. Function`.
+    if (left is FunctionTypeImpl && right is InterfaceTypeImpl) {
+      return right.isDartCoreFunction || right.isDartCoreObject;
+    }
+
+    // Could be `Object vs. void Function()`.
+    // Could be `Function vs. void Function()`.
+    if (left is InterfaceTypeImpl && right is FunctionTypeImpl) {
+      return left.isDartCoreFunction || left.isDartCoreObject;
+    }
+
+    if (left is InterfaceTypeImpl && right is InterfaceTypeImpl) {
+      final leftElement = left.element;
+      final rightElement = right.element;
+
+      bool canBeSubtypeOfInterfaces(InterfaceType left, InterfaceType right) {
+        assert(left.element == right.element);
+        final leftArguments = left.typeArguments;
+        final rightArguments = right.typeArguments;
+        assert(leftArguments.length == rightArguments.length);
+        for (var i = 0; i < leftArguments.length; i++) {
+          if (!canBeSubtypeOf(leftArguments[i], rightArguments[i])) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      // If the left is enum, we know types of all its instances.
+      if (leftElement is EnumElementImpl) {
+        for (final constant in leftElement.constants) {
+          final constantType = constant.type;
+          if (isSubtypeOf(constantType, right)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      if (leftElement == rightElement) {
+        return canBeSubtypeOfInterfaces(left, right);
+      }
+
+      if (leftElement is ClassElementImpl) {
+        // If the left is final, we know all subtypes, and can check them.
+        final finalSubtypes = leftElement.subtypesOfFinal;
+        if (finalSubtypes != null) {
+          for (final candidate in [left, ...finalSubtypes]) {
+            final asRight = candidate.asInstanceOf(rightElement);
+            if (asRight != null) {
+              if (_canBeEqualArguments(asRight, right)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+      }
+
+      if (rightElement is ClassElementImpl) {
+        // If the right is final, then it or one of its subtypes must
+        // implement the left.
+        final finalSubtypes = rightElement.subtypesOfFinal;
+        if (finalSubtypes != null) {
+          for (final candidate in [right, ...finalSubtypes]) {
+            final asLeft = candidate.asInstanceOf(leftElement);
+            if (asLeft != null) {
+              if (canBeSubtypeOfInterfaces(left, asLeft)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+      }
+    }
+
+    if (left is RecordType) {
+      if (right is FunctionType) {
+        return false;
+      }
+      if (right is InterfaceType) {
+        return right.isDartCoreObject || right.isDartCoreRecord;
+      }
+    }
+
+    if (right is RecordType) {
+      if (left is FunctionType) {
+        return false;
+      }
+      if (left is InterfaceType) {
+        return left.isDartCoreObject || left.isDartCoreRecord;
+      }
+    }
+
+    if (left is RecordType && right is RecordType) {
+      if (left.positionalFields.length != right.positionalFields.length) {
+        return false;
+      }
+      for (var i = 0; i < left.positionalFields.length; i++) {
+        final leftField = left.positionalFields[i];
+        final rightField = right.positionalFields[i];
+        if (!canBeSubtypeOf(leftField.type, rightField.type)) {
+          return false;
+        }
+      }
+
+      if (left.namedFields.length != right.namedFields.length) {
+        return false;
+      }
+      for (var i = 0; i < left.namedFields.length; i++) {
+        final leftField = left.namedFields[i];
+        final rightField = right.namedFields[i];
+        if (leftField.name != rightField.name) {
+          return false;
+        }
+        if (!canBeSubtypeOf(leftField.type, rightField.type)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   /// Returns [type] in which all promoted type variables have been replaced
   /// with their unpromoted equivalents, and, if non-nullable by default,
   /// replaces all legacy types with their non-nullable equivalents.
@@ -236,36 +385,53 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  DartType flatten(DartType type) {
-    if (identical(type, UnknownInferredType.instance)) {
-      return type;
+  DartType flatten(DartType T) {
+    if (identical(T, UnknownInferredType.instance)) {
+      return T;
     }
 
     // if T is S? then flatten(T) = flatten(S)?
     // if T is S* then flatten(T) = flatten(S)*
-    NullabilitySuffix nullabilitySuffix = type.nullabilitySuffix;
+    final nullabilitySuffix = T.nullabilitySuffix;
     if (nullabilitySuffix != NullabilitySuffix.none) {
-      var S = (type as TypeImpl).withNullability(NullabilitySuffix.none);
+      final S = (T as TypeImpl).withNullability(NullabilitySuffix.none);
       return (flatten(S) as TypeImpl).withNullability(nullabilitySuffix);
     }
 
-    // otherwise if T is FutureOr<S> then flatten(T) = S
-    // otherwise if T is Future<S> then flatten(T) = S (shortcut)
-    if (type is InterfaceType) {
-      if (type.isDartAsyncFutureOr || type.isDartAsyncFuture) {
-        return type.typeArguments[0];
+    // If T is X & S for some type variable X and type S then:
+    if (T is TypeParameterTypeImpl) {
+      final S = T.promotedBound;
+      if (S != null) {
+        // * if S has future type U then flatten(T) = flatten(U)
+        final futureType = this.futureType(S);
+        if (futureType != null) {
+          return flatten(futureType);
+        }
+        // * otherwise, flatten(T) = flatten(X)
+        return flatten(
+          TypeParameterTypeImpl(
+            element: T.element,
+            nullabilitySuffix: nullabilitySuffix,
+          ),
+        );
       }
     }
 
-    // otherwise if T <: Future then let S be a type such that T <: Future<S>
-    //   and for all R, if T <: Future<R> then S <: R; then flatten(T) = S
-    var futureType = type.asInstanceOf(typeProvider.futureElement);
-    if (futureType != null) {
-      return futureType.typeArguments[0];
+    // If T has future type Future<S> or FutureOr<S> then flatten(T) = S
+    // If T has future type Future<S>? or FutureOr<S>? then flatten(T) = S?
+    final futureType = this.futureType(T);
+    if (futureType is InterfaceType) {
+      if (futureType.isDartAsyncFuture || futureType.isDartAsyncFutureOr) {
+        final S = futureType.typeArguments[0] as TypeImpl;
+        if (futureType.nullabilitySuffix == NullabilitySuffix.question) {
+          return S.withNullability(NullabilitySuffix.question);
+        }
+        return S;
+      }
     }
 
     // otherwise flatten(T) = T
-    return type;
+    return T;
   }
 
   DartType futureOrBase(DartType type) {
@@ -279,6 +445,23 @@ class TypeSystemImpl implements TypeSystem {
 
     // Otherwise `futureOrBase(T)` = `T`.
     return type;
+  }
+
+  /// We say that S is the future type of a type T in the following cases,
+  /// using the first applicable case:
+  @visibleForTesting
+  DartType? futureType(DartType T) {
+    // T implements S, and there is a U such that S is Future<U>
+    if (T.nullabilitySuffix != NullabilitySuffix.question) {
+      final result = T.asInstanceOf(typeProvider.futureElement);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    // T is S bounded, and there is a U such that S is FutureOr<U>,
+    // Future<U>?, or FutureOr<U>?.
+    return _futureTypeOfBounded(T);
   }
 
   /// Compute "future value type" of [T].
@@ -494,19 +677,13 @@ class TypeSystemImpl implements TypeSystem {
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     var inferrer = GenericInferrer(this, fnType.typeFormals,
-        inferenceErrorListener: errorReporter == null
-            ? null
-            : InferenceErrorReporter(
-                errorReporter,
-                isNonNullableByDefault: isNonNullableByDefault,
-                isGenericMetadataEnabled: genericMetadataIsEnabled,
-              ),
+        errorReporter: errorReporter,
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
-    return inferrer.upwardsInfer();
+    return inferrer.chooseFinalTypes();
   }
 
   @override
@@ -665,8 +842,51 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     List<DartType> orderedArguments =
-        typeFormals.map((p) => defaults[p]!).toList();
+        typeFormals.map((p) => defaults[p]!).toFixedList();
     return orderedArguments;
+  }
+
+  /// https://github.com/dart-lang/language
+  /// accepted/future-releases/0546-patterns/feature-specification.md#exhaustiveness-and-reachability
+  bool isAlwaysExhaustive(DartType type) {
+    if (type is InterfaceType) {
+      if (type.isDartCoreBool) {
+        return true;
+      }
+      if (type.isDartCoreNull) {
+        return true;
+      }
+      final element = type.element;
+      if (element is EnumElement) {
+        return true;
+      }
+      if (element is ClassElement && element.isSealed) {
+        return true;
+      }
+      if (type.isDartAsyncFutureOr) {
+        return isAlwaysExhaustive(type.typeArguments[0]);
+      }
+      return false;
+    } else if (type is TypeParameterTypeImpl) {
+      final promotedBound = type.promotedBound;
+      if (promotedBound != null && isAlwaysExhaustive(promotedBound)) {
+        return true;
+      }
+      final bound = type.element.bound;
+      if (bound != null && isAlwaysExhaustive(bound)) {
+        return true;
+      }
+      return false;
+    } else if (type is RecordType) {
+      for (final field in type.fields) {
+        if (!isAlwaysExhaustive(field.type)) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override
@@ -718,10 +938,10 @@ class TypeSystemImpl implements TypeSystem {
 
     // If the subtype relation goes the other way, allow the implicit downcast.
     if (isSubtypeOf(toType, fromType)) {
-      // TODO(leafp,jmesserly): we emit warnings/hints for these in
-      // src/task/strong/checker.dart, which is a bit inconsistent. That
-      // code should be handled into places that use isAssignableTo, such as
-      // ErrorVerifier.
+      // TODO(leafp,jmesserly): we emit warnings for these in
+      // `src/task/strong/checker.dart`, which is a bit inconsistent. That code
+      // should be handled into places that use `isAssignableTo`, such as
+      // [ErrorVerifier].
       return true;
     }
 
@@ -1024,7 +1244,7 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isNonNullable(DartType type) {
-    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
       return false;
     } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
       return isNonNullable(type.promotedBound!);
@@ -1065,7 +1285,7 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isNullable(DartType type) {
-    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
       return true;
     } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
       return isNullable(type.promotedBound!);
@@ -1107,7 +1327,7 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isStrictlyNonNullable(DartType type) {
-    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
       return false;
     } else if (type.nullabilitySuffix != NullabilitySuffix.none) {
       return false;
@@ -1269,9 +1489,9 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     var inferredTypes = inferrer
-        .upwardsInfer()
+        .chooseFinalTypes()
         .map(_removeBoundsOfGenericFunctionTypes)
-        .toList();
+        .toFixedList();
     var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
 
     for (int i = 0; i < srcTypes.length; i++) {
@@ -1409,7 +1629,7 @@ class TypeSystemImpl implements TypeSystem {
     }
   }
 
-  /// Given two lists of type parameters, check that that they have the same
+  /// Given two lists of type parameters, check that they have the same
   /// number of elements, and their bounds are equal.
   ///
   /// The return value will be a new list of fresh type parameters, that can
@@ -1425,21 +1645,20 @@ class TypeSystemImpl implements TypeSystem {
       return RelatedTypeParameters._empty;
     }
 
-    var freshTypeParameters = <TypeParameterElementImpl>[];
-    var freshTypeParameterTypes = <TypeParameterType>[];
-    for (var i = 0; i < typeParameters1.length; i++) {
-      var freshTypeParameter = TypeParameterElementImpl(
-        typeParameters1[i].name,
+    var length = typeParameters1.length;
+    var freshTypeParameters = List.generate(length, (index) {
+      return TypeParameterElementImpl(
+        typeParameters1[index].name,
         -1,
       );
-      freshTypeParameters.add(freshTypeParameter);
-      freshTypeParameterTypes.add(
-        TypeParameterTypeImpl(
-          element: freshTypeParameter,
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
+    }, growable: false);
+
+    var freshTypeParameterTypes = List.generate(length, (index) {
+      return TypeParameterTypeImpl(
+        element: freshTypeParameters[index],
+        nullabilitySuffix: NullabilitySuffix.none,
       );
-    }
+    }, growable: false);
 
     var substitution1 = Substitution.fromPairs(
       typeParameters1,
@@ -1540,7 +1759,6 @@ class TypeSystemImpl implements TypeSystem {
       required DartType declaredReturnType,
       required DartType? contextReturnType,
       ErrorReporter? errorReporter,
-      InferenceErrorListener? inferenceErrorListener,
       AstNode? errorNode,
       required bool genericMetadataIsEnabled,
       bool isConst = false}) {
@@ -1548,15 +1766,8 @@ class TypeSystemImpl implements TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    if (errorReporter != null) {
-      inferenceErrorListener ??= InferenceErrorReporter(
-        errorReporter,
-        isNonNullableByDefault: isNonNullableByDefault,
-        isGenericMetadataEnabled: genericMetadataIsEnabled,
-      );
-    }
     var inferrer = GenericInferrer(this, typeParameters,
-        inferenceErrorListener: inferenceErrorListener,
+        errorReporter: errorReporter,
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled);
 
@@ -1647,13 +1858,85 @@ class TypeSystemImpl implements TypeSystem {
     this.strictInference = strictInference;
   }
 
+  /// Optimistically estimates, if type arguments of [left] can be equal to
+  /// the type arguments of [right]. Both types must be instantiations of the
+  /// same element.
+  bool _canBeEqualArguments(InterfaceType left, InterfaceType right) {
+    assert(left.element == right.element);
+    final leftArguments = left.typeArguments;
+    final rightArguments = right.typeArguments;
+    assert(leftArguments.length == rightArguments.length);
+    for (var i = 0; i < leftArguments.length; i++) {
+      final leftArgument = leftArguments[i];
+      final rightArgument = rightArguments[i];
+      if (!_canBeEqualTo(leftArgument, rightArgument)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Optimistically estimates, if [left] can be equal to [right].
+  bool _canBeEqualTo(DartType left, DartType right) {
+    if (left is InterfaceType && right is InterfaceType) {
+      if (left.element != right.element) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   List<DartType> _defaultTypeArguments(
     List<TypeParameterElement> typeParameters,
   ) {
     return typeParameters.map((typeParameter) {
       var typeParameterImpl = typeParameter as TypeParameterElementImpl;
       return typeParameterImpl.defaultType!;
-    }).toList();
+    }).toFixedList();
+  }
+
+  /// `S` is the future type of a type `T` in the following cases, using the
+  /// first applicable case:
+  /// * see [futureType].
+  /// * `T` is `S` bounded, and there is a `U` such that `S` is `FutureOr<U>`,
+  /// `Future<U>?`, or `FutureOr<U>?`.
+  ///
+  /// 17.15.3: For a given type `T0`, we introduce the notion of a `T0` bounded
+  /// type: `T0` itself is `T0` bounded; if `B` is `T0` bounded and `X` is a
+  /// type variable with bound `B` then `X` is `T0` bounded; finally, if `B`
+  /// is `T0` bounded and `X` is a type variable then `X&B` is `T0` bounded.
+  DartType? _futureTypeOfBounded(DartType T) {
+    if (T is InterfaceType) {
+      if (T.nullabilitySuffix != NullabilitySuffix.question) {
+        if (T.isDartAsyncFutureOr) {
+          return T;
+        }
+      } else {
+        if (T.isDartAsyncFutureOr || T.isDartAsyncFuture) {
+          return T;
+        }
+      }
+    }
+
+    if (T is TypeParameterTypeImpl) {
+      final bound = T.element.bound;
+      if (bound != null) {
+        final result = _futureTypeOfBounded(bound);
+        if (result != null) {
+          return result;
+        }
+      }
+
+      final promotedBound = T.promotedBound;
+      if (promotedBound != null) {
+        final result = _futureTypeOfBounded(promotedBound);
+        if (result != null) {
+          return result;
+        }
+      }
+    }
+
+    return null;
   }
 
   DartType _refineBinaryExpressionTypeLegacy(DartType leftType,

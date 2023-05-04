@@ -23,5 +23,5 @@ class B<S> {
 }
 
 main() {
-  new B().method();
+  B().method();
 }

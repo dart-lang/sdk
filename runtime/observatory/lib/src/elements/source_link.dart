@@ -29,8 +29,6 @@ class SourceLinkElement extends CustomElement implements Renderable {
   factory SourceLinkElement(
       IsolateRef isolate, SourceLocation location, ScriptRepository repository,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(location != null);
     SourceLinkElement e = new SourceLinkElement.created();
     e._r = new RenderingScheduler<SourceLinkElement>(e, queue: queue);
     e._isolate = isolate;
@@ -44,14 +42,15 @@ class SourceLinkElement extends CustomElement implements Renderable {
   @override
   void attached() {
     super.attached();
-    _repository.get(_isolate, _location.script.id!).then((script) {
+    _repository.get(_isolate, _location.script!.id!).then((script) {
       _script = script;
       _r.dirty();
     }, onError: (e) {
       // The script object has expired, likely due to a hot reload.
       (_isolate as S.Isolate).getScripts().then((scripts) {
+        var uri = _location.script!.uri;
         for (final script in scripts) {
-          if (script.uri == _location.script.uri) {
+          if (script.uri == uri) {
             _script = script;
             _r.dirty();
             return;

@@ -11,7 +11,10 @@ class ClassDeclaration extends DartSnippetProducer {
   static const prefix = 'class';
   static const label = 'class';
 
-  ClassDeclaration(super.request);
+  ClassDeclaration(super.request, {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   @override
   Future<Snippet> compute() async {

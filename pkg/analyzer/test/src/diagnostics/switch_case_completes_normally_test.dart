@@ -17,19 +17,21 @@ main() {
 @reflectiveTest
 class SwitchCaseCompletesNormallyTest extends PubPackageResolutionTest
     with SwitchCaseCompletesNormallyTestCases {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   @override
-  test_completes() {
-    return super.test_completes();
-  }
+  bool get _patternsEnabled => true;
 }
 
 @reflectiveTest
 class SwitchCaseCompletesNormallyTest_Language218
     extends PubPackageResolutionTest
-    with WithLanguage218Mixin, SwitchCaseCompletesNormallyTestCases {}
+    with WithLanguage218Mixin, SwitchCaseCompletesNormallyTestCases {
+  @override
+  bool get _patternsEnabled => false;
+}
 
 mixin SwitchCaseCompletesNormallyTestCases on PubPackageResolutionTest {
+  bool get _patternsEnabled;
+
   test_break() async {
     await assertNoErrorsInCode(r'''
 void f(int a) {
@@ -53,7 +55,8 @@ void f(int a) {
       return;
   }
 }''', [
-      error(CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY, 35, 4),
+      if (!_patternsEnabled)
+        error(CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY, 35, 4),
     ]);
   }
 
@@ -113,6 +116,22 @@ Never neverCompletes() {
   throw 0;
 }
 ''');
+  }
+
+  test_multiple_cases_sharing_a_body() async {
+    await assertErrorsInCode('''
+void f(int a) {
+  switch (a) {
+    case 0:
+    case 1:
+      print(0);
+    default:
+      return;
+  }
+}''', [
+      if (!_patternsEnabled)
+        error(CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY, 35, 4),
+    ]);
   }
 
   test_return() async {

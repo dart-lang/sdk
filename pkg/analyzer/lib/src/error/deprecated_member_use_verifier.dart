@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -63,6 +65,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
     );
   }
 
+  void patternField(PatternField node) {
+    _checkForDeprecated(node.element, node);
+  }
+
   void popInDeprecated() {
     _inDeprecatedMemberStack.removeLast();
   }
@@ -94,8 +100,8 @@ abstract class BaseDeprecatedMemberUseVerifier {
     _invocationArguments(node.staticElement, node.argumentList);
   }
 
-  void reportError(
-      AstNode errorNode, Element element, String displayName, String? message);
+  void reportError(SyntacticEntity errorEntity, Element element,
+      String displayName, String? message);
 
   void simpleIdentifier(SimpleIdentifier node) {
     // Don't report declared identifiers.
@@ -148,29 +154,41 @@ abstract class BaseDeprecatedMemberUseVerifier {
       return;
     }
 
-    var errorNode = node;
+    SyntacticEntity errorEntity = node;
     var parent = node.parent;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       if (node is SimpleIdentifier) {
-        errorNode = node;
+        errorEntity = node;
       } else if (node is PrefixedIdentifier) {
-        errorNode = node.identifier;
+        errorEntity = node.identifier;
       } else if (node is PropertyAccess) {
-        errorNode = node.propertyName;
+        errorEntity = node.propertyName;
       }
     } else if (node is NamedExpression) {
-      errorNode = node.name.label;
+      errorEntity = node.name.label;
+    } else if (node is PatternFieldImpl) {
+      var fieldName = node.name;
+      if (fieldName != null) {
+        var name = fieldName.name;
+        if (name == null) {
+          var variablePattern = node.pattern.variablePattern;
+          if (variablePattern != null) {
+            errorEntity = variablePattern.name;
+          }
+        } else {
+          errorEntity = name;
+        }
+      }
     }
 
     String displayName = element!.displayName;
     if (element is ConstructorElement) {
-      // TODO(jwren) We should modify ConstructorElement.getDisplayName(),
+      // TODO(jwren) We should modify ConstructorElement.displayName,
       // or have the logic centralized elsewhere, instead of doing this logic
       // here.
-      displayName = element.enclosingElement.displayName;
-      if (element.displayName.isNotEmpty) {
-        displayName = "$displayName.${element.displayName}";
-      }
+      displayName = element.name == ''
+          ? '${element.displayName}.new'
+          : element.displayName;
     } else if (element is LibraryElement) {
       displayName = element.definingCompilationUnit.source.uri.toString();
     } else if (node is MethodInvocation &&
@@ -180,7 +198,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
       displayName = "${invokeClass.name}.${element.displayName}";
     }
     var message = _deprecatedMessage(element);
-    reportError(errorNode, element, displayName, message);
+    reportError(errorEntity, element, displayName, message);
   }
 
   void _invocationArguments(Element? element, ArgumentList arguments) {
@@ -303,17 +321,18 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   DeprecatedMemberUseVerifier(this._workspacePackage, this._errorReporter);
 
   @override
-  void reportError(
-      AstNode errorNode, Element element, String displayName, String? message) {
+  void reportError(SyntacticEntity errorEntity, Element element,
+      String displayName, String? message) {
     var library = element is LibraryElement ? element : element.library;
 
     message = message?.trim();
     if (message == null || message.isEmpty || message == '.') {
-      _errorReporter.reportErrorForNode(
+      _errorReporter.reportErrorForOffset(
         _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
             : HintCode.DEPRECATED_MEMBER_USE,
-        errorNode,
+        errorEntity.offset,
+        errorEntity.length,
         [displayName],
       );
     } else {
@@ -322,11 +341,12 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
           !message.endsWith('!')) {
         message = '$message.';
       }
-      _errorReporter.reportErrorForNode(
+      _errorReporter.reportErrorForOffset(
         _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE
             : HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
-        errorNode,
+        errorEntity.offset,
+        errorEntity.length,
         [displayName, message],
       );
     }

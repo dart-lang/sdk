@@ -11,7 +11,10 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddConst_InvalidCasePatternsTest);
+    defineReflectiveTests(AddConst_InvalidCasePatternsBulkTest);
     defineReflectiveTests(AddConst_NonConstGenerativeEnumConstructorTest);
+    defineReflectiveTests(AddConst_PatternExpressionMustBeValidConst);
     defineReflectiveTests(AddConst_PreferConstConstructorsInImmutablesBulkTest);
     defineReflectiveTests(AddConst_PreferConstConstructorsInImmutablesTest);
     defineReflectiveTests(AddConst_PreferConstConstructorsBulkTest);
@@ -20,6 +23,134 @@ void main() {
         AddConst_PreferConstLiteralsToCreateImmutablesBulkTest);
     defineReflectiveTests(AddConst_PreferConstLiteralsToCreateImmutablesTest);
   });
+}
+
+@reflectiveTest
+class AddConst_InvalidCasePatternsBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.invalid_case_patterns;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode(r'''
+//@dart=2.19
+class C {
+  const C();
+}
+
+void f(Object c) {
+  switch (c) {
+    case C():
+    case [1, 2]:
+  }
+}
+''');
+    await assertHasFix(r'''
+//@dart=2.19
+class C {
+  const C();
+}
+
+void f(Object c) {
+  switch (c) {
+    case const C():
+    case const [1, 2]:
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddConst_InvalidCasePatternsTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_CONST;
+
+  @override
+  String get lintCode => LintNames.invalid_case_patterns;
+
+  Future<void> test_constructorCall() async {
+    await resolveTestCode(r'''
+//@dart=2.19
+class C {
+  const C();
+}
+
+void f(Object c) {
+  switch (c) {
+    case C():
+  }
+}
+''');
+    await assertHasFix(r'''
+//@dart=2.19
+class C {
+  const C();
+}
+
+void f(Object c) {
+  switch (c) {
+    case const C():
+  }
+}
+''');
+  }
+
+  Future<void> test_listLiteral() async {
+    await resolveTestCode(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+    case [1, 2]:
+  }
+}
+''');
+    await assertHasFix(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+    case const [1, 2]:
+  }
+}
+''');
+  }
+
+  Future<void> test_mapLiteral() async {
+    await resolveTestCode(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+   case {'k': 'v'}:
+  }
+}
+''');
+    await assertHasFix(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+   case const {'k': 'v'}:
+  }
+}
+''');
+  }
+
+  Future<void> test_setLiteral() async {
+    await resolveTestCode(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+    case {1}:
+  }
+}
+''');
+    await assertHasFix(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+    case const {1}:
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -53,6 +184,237 @@ enum E {
 enum E {
   v;
   const E();
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddConst_PatternExpressionMustBeValidConst extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_CONST;
+
+  Future<void> test_caseBinaryExpression() async {
+    await resolveTestCode('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case (5 * 5): break;
+  }
+}
+''');
+
+    await assertHasFix('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case const (5 * 5): break;
+  }
+}
+''');
+  }
+
+  Future<void> test_caseBinaryExpressionNoParen() async {
+    await resolveTestCode('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case 5 * 5: break;
+  }
+}
+''');
+
+    await assertHasFix('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case const (5 * 5): break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: "https://github.com/dart-lang/sdk/issues/51139")
+  Future<void> test_caseConstConstructorCall() async {
+    await resolveTestCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+void f() {
+  var m = 5;
+  switch(m) {
+    case A(1): break;
+  }
+}
+''');
+
+    await assertHasFix('''
+class A {
+  final int a;
+  const A(this.a);
+}
+void f() {
+  var m = 5;
+  switch(m) {
+    case const A(1): break;
+  }
+}
+''');
+  }
+
+  Future<void> test_caseListExpression() async {
+    await resolveTestCode('''
+class A {}
+void f(Object m) {
+  switch(m) {
+    case List<A>: break;
+  }
+}
+''');
+
+    await assertHasFix('''
+class A {}
+void f(Object m) {
+  switch(m) {
+    case const (List<A>): break;
+  }
+}
+''');
+  }
+
+  Future<void> test_caseListExpression_with_parens() async {
+    await resolveTestCode('''
+class A {}
+void f(Object m) {
+  switch(m) {
+    case (List<A>): break;
+  }
+}
+''');
+
+    await assertHasFix('''
+class A {}
+void f(Object m) {
+  switch(m) {
+    case const (List<A>): break;
+  }
+}
+''');
+  }
+
+  Future<void> test_casePrefixExpression() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  const m = 5;
+  switch(x) {
+    case (-m): break;
+  }
+}
+''');
+
+    await assertHasFix('''
+void f(Object? x) {
+  const m = 5;
+  switch(x) {
+    case const (-m): break;
+  }
+}
+''');
+  }
+
+  Future<void> test_casePrefixExpressionNoParen() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  const m = 5;
+  switch(x) {
+    case -m: break;
+  }
+}
+''');
+
+    await assertHasFix('''
+void f(Object? x) {
+  const m = 5;
+  switch(x) {
+    case const (-m): break;
+  }
+}
+''');
+  }
+
+  Future<void> test_caseWithField() async {
+    await resolveTestCode('''
+int x = 1;
+void f() {
+  var m = 5;
+  switch(m) {
+    case x: break;
+  }
+}
+''');
+
+    await assertNoFix();
+  }
+
+  @FailingTest(reason: "TODO(keertip): Add support for local variables")
+  Future<void> test_caseWithLocalVariable() async {
+    await resolveTestCode('''
+void f() {
+  var m = 5;
+  var x = 1;
+  switch(m) {
+    case x: break;
+  }
+}
+''');
+
+    await assertHasFix('''
+void f() {
+  var m = 5;
+  const x = 1;
+  switch(m) {
+    case x: break;
+  }
+}
+''');
+  }
+
+  Future<void> test_mapKeyConst() async {
+    await resolveTestCode('''
+void f(Object x) {
+  if (x case {A(): 0}) {}
+}
+
+class A {
+  const A();
+}
+''');
+
+    await assertHasFix('''
+void f(Object x) {
+  if (x case {const A(): 0}) {}
+}
+
+class A {
+  const A();
+}
+''');
+  }
+
+  @FailingTest(reason: "TODO(keertip): Add support for local variables")
+  Future<void> test_relationalExpressionConst() async {
+    await resolveTestCode('''
+void f(int x) {
+  final a = 0;
+  if (x case > a) {}
+}
+''');
+
+    await assertHasFix('''
+void f(int x) {
+  const a = 0;
+  if (x case > a) {}
 }
 ''');
   }

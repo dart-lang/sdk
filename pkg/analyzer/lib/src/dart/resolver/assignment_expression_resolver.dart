@@ -119,12 +119,26 @@ class AssignmentExpressionResolver {
     DartType rightType, {
     required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
   }) {
-    if (!writeType.isVoid && _checkForUseOfVoidResult(right)) {
+    if (writeType is! VoidType && _checkForUseOfVoidResult(right)) {
       return;
     }
 
     if (_typeSystem.isAssignableTo(rightType, writeType)) {
       return;
+    }
+
+    if (writeType is RecordType) {
+      if (rightType is! RecordType && writeType.positionalFields.length == 1) {
+        var field = writeType.positionalFields.first;
+        if (_typeSystem.isAssignableTo(field.type, rightType)) {
+          _errorReporter.reportErrorForNode(
+            WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+            right,
+            [],
+          );
+          return;
+        }
+      }
     }
 
     _errorReporter.reportErrorForNode(
@@ -193,7 +207,7 @@ class AssignmentExpressionResolver {
     // Values of the type void cannot be used.
     // Example: `y += 0`, is not allowed.
     if (operatorType != TokenType.EQ) {
-      if (leftType.isVoid) {
+      if (leftType is VoidType) {
         _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.USE_OF_VOID_RESULT,
           operator,
@@ -302,7 +316,8 @@ class AssignmentExpressionShared {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  void checkFinalAlreadyAssigned(Expression left) {
+  void checkFinalAlreadyAssigned(Expression left,
+      {bool isForEachIdentifier = false}) {
     var flowAnalysis = _resolver.flowAnalysis;
 
     var flow = flowAnalysis.flow;
@@ -316,14 +331,14 @@ class AssignmentExpressionShared {
 
         if (element.isFinal) {
           if (element.isLate) {
-            if (assigned) {
+            if (isForEachIdentifier || assigned) {
               _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
                 left,
               );
             }
           } else {
-            if (!unassigned) {
+            if (isForEachIdentifier || !unassigned) {
               _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
                 left,

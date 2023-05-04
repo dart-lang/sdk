@@ -1,3 +1,21 @@
+Problems reported:
+
+parser/general/call_on_after_try_block:12:6: Expected a type, but got '42'.
+  on(42);
+     ^^
+
+parser/general/call_on_after_try_block:12:6: Expected ')' before this.
+  on(42);
+     ^^
+
+parser/general/call_on_after_try_block:12:8: A record type with exactly one positional field requires a trailing comma.
+  on(42);
+       ^
+
+parser/general/call_on_after_try_block:12:8: A catch clause must have a body, even if it is empty.
+  on(42);
+       ^
+
 beginCompilationUnit(void)
   beginMetadataStar(void)
   endMetadataStar(0)
@@ -38,14 +56,27 @@ beginCompilationUnit(void)
             handleEmptyStatement(;)
           endBlock(1, {, }, BlockKind(catch clause))
           handleCatchBlock(on, null, null)
-        endTryStatement(2, try, null)
-        handleIdentifier(on, expression)
-        handleNoTypeArguments(()
-        beginArguments(()
-          handleLiteralInt(42)
-        endArguments(1, (, ))
-        handleSend(on, ;)
-        handleExpressionStatement(;)
+          beginCatchClause(on)
+            beginRecordType(()
+              beginRecordTypeEntry()
+                beginMetadataStar(42)
+                endMetadataStar(0)
+                handleRecoverableError(Message[ExpectedType, Expected a type, but got '42'., null, {lexeme: 42}], 42, 42)
+                handleIdentifier(, typeReference)
+                handleNoTypeArguments(42)
+                handleType(, null)
+                handleNoName(42)
+              endRecordTypeEntry()
+              handleRecoverableError(Message[ExpectedButGot, Expected ')' before this., null, {string: )}], 42, 42)
+              handleRecoverableError(RecordTypeOnePositionalFieldNoTrailingComma, ), ))
+            endRecordType((, null, 1, false)
+          endCatchClause(;)
+          handleRecoverableError(Message[ExpectedClassOrMixinBody, A catch clause must have a body, even if it is empty., Try adding an empty body., {string: catch clause}], ), ))
+          beginBlock({, BlockKind(catch clause))
+          endBlock(0, {, }, BlockKind(catch clause))
+          handleCatchBlock(on, null, null)
+        endTryStatement(3, try, null)
+        handleEmptyStatement(;)
       endBlockFunctionBody(2, {, })
     endTopLevelMethod(void, null, })
   endTopLevelDeclaration(void)

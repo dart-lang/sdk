@@ -10,7 +10,6 @@
 import "dart:_internal" show VMLibraryHooks, patch, unsafeCast;
 
 /// These are the additional parts of this patch library:
-part "deferred_load_patch.dart";
 part "schedule_microtask_patch.dart";
 part "timer_patch.dart";
 
@@ -305,6 +304,33 @@ class _SuspendState {
       _awaitNotFuture(object);
     } else {
       _awaitUserDefinedFuture(object);
+    }
+    return _functionData;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  Object? _awaitWithTypeCheck<T>(Object? object) {
+    if (_thenCallback == null) {
+      _createAsyncCallbacks();
+    }
+    // Declare a new variable to avoid type promotion of 'object' to
+    // 'Future<T>', as it would disable further type promotion to '_Future'.
+    final obj = object;
+    if (obj is Future<T>) {
+      if (object is _Future) {
+        if (object._isComplete) {
+          _awaitCompletedFuture(object);
+        } else {
+          object._thenAwait<dynamic>(
+              unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+              unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+        }
+      } else {
+        _awaitUserDefinedFuture(obj);
+      }
+    } else {
+      _awaitNotFuture(object);
     }
     return _functionData;
   }

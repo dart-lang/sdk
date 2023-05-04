@@ -104,30 +104,35 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
   // TODO(natebiggs): We allow null here to maintain current functionality
   // but we should verify we actually need to allow it.
-  final Setlet<MemberEntity?> analyzedElements = Setlet<MemberEntity?>();
+  final Setlet<MemberEntity?> analyzedElements = Setlet();
 
   TracerVisitor(this.tracedType, this.inferrer);
 
   /// Work list that gets populated with [TypeInformation] that could
   /// contain the container.
-  final List<TypeInformation> workList = <TypeInformation>[];
+  final List<TypeInformation> workList = [];
 
   /// Work list of lists to analyze after analyzing the users of a
   /// [TypeInformation]. We know the [tracedType] has been stored in these
   /// lists and we must check how it escapes from these lists.
-  final List<ListTypeInformation> listsToAnalyze = <ListTypeInformation>[];
+  final List<ListTypeInformation> listsToAnalyze = [];
 
   /// Work list of sets to analyze after analyzing the users of a
   /// [TypeInformation]. We know the [tracedType] has been stored in these sets
   /// and we must check how it escapes from these sets.
-  final List<SetTypeInformation> setsToAnalyze = <SetTypeInformation>[];
+  final List<SetTypeInformation> setsToAnalyze = [];
 
   /// Work list of maps to analyze after analyzing the users of a
   /// [TypeInformation]. We know the [tracedType] has been stored in these
   /// maps and we must check how it escapes from these maps.
-  final List<MapTypeInformation> mapsToAnalyze = <MapTypeInformation>[];
+  final List<MapTypeInformation> mapsToAnalyze = [];
 
-  final Setlet<TypeInformation> flowsInto = Setlet<TypeInformation>();
+  /// Work list of records to analyze after analyzing the users of a
+  /// [TypeInformation]. We know the [tracedType] has been stored in these
+  /// records and we must check how it escapes from these records.
+  final List<RecordTypeInformation> recordsToAnalyze = [];
+
+  final Setlet<TypeInformation> flowsInto = Setlet();
 
   // The current [TypeInformation] in the analysis.
   TypeInformation? currentUser;
@@ -174,6 +179,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       }
       while (!mapsToAnalyze.isEmpty) {
         analyzeStoredIntoMap(mapsToAnalyze.removeLast());
+      }
+      while (!recordsToAnalyze.isEmpty) {
+        analyzeStoredIntoRecord(recordsToAnalyze.removeLast());
       }
       if (!continueAnalyzing) break;
     }
@@ -228,6 +236,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   }
 
   @override
+  void visitRecordFieldAccessTypeInformation(
+      RecordFieldAccessTypeInformation info) {}
+
+  @override
   void visitValueInMapTypeInformation(ValueInMapTypeInformation info) {
     addNewEscapeInformation(info);
   }
@@ -245,6 +257,11 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   @override
   void visitMapTypeInformation(MapTypeInformation info) {
     mapsToAnalyze.add(info);
+  }
+
+  @override
+  void visitRecordTypeInformation(RecordTypeInformation info) {
+    recordsToAnalyze.add(info);
   }
 
   @override
@@ -334,6 +351,22 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
   }
 
+  void analyzeStoredIntoRecord(RecordTypeInformation record) {
+    inferrer.analyzeRecordAndEnqueue(record);
+
+    record.flowsInto.forEach((TypeInformation flow) {
+      flow.users.forEach((TypeInformation user) {
+        if (user is RecordFieldAccessTypeInformation) {
+          final getterIndex =
+              record.recordShape.indexOfGetterName(user.getterName);
+          if (user.receiver != flow ||
+              record.fieldTypes.indexOf(currentUser!) != getterIndex) return;
+          addNewEscapeInformation(user);
+        }
+      });
+    });
+  }
+
   /// Checks whether this is a call to a list adding method. The definition of
   /// what list adding means has to stay in sync with
   /// [isParameterOfListAddingMethod].
@@ -420,7 +453,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Used as key in Map');
     }
 
-    // "a[...] = x" could be a list (container) or map assignemnt.
+    // "a[...] = x" could be a list (container) or map assignment.
     if (isIndexSetValue(info)) {
       var receiverType = info.receiver.type;
       if (inferrer.abstractValueDomain.isContainer(receiverType)) {

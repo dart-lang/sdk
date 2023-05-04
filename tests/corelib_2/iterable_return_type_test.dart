@@ -15,14 +15,14 @@ import 'dart:typed_data';
 main() {
   // Empty lists.
   testList(<int>[]);
-  testList(new List<int>(0));
-  testList(new List<int>());
+  testList(new List<int>.filled(0, null));
+  testList(<int>[]);
   testList(const <int>[]);
   testList(new List<int>.generate(0, (x) => x + 1));
   // Singleton lists.
   testList(<int>[1]);
-  testList(new List<int>(1)..[0] = 1);
-  testList(new List<int>()..add(1));
+  testList(new List<int>.filled(1, null)..[0] = 1);
+  testList(<int>[]..add(1));
   testList(const <int>[1]);
   testList(new List<int>.generate(1, (x) => x + 1));
 

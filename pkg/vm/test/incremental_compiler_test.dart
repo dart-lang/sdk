@@ -13,6 +13,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         DiagnosticMessage,
         ExperimentalFlag,
         IncrementalCompilerResult,
+        NnbdMode,
         computePlatformBinariesLocation;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -36,6 +37,7 @@ main() {
   CompilerOptions getFreshOptions() {
     return new CompilerOptions()
       ..sdkRoot = sdkRoot
+      ..nnbdMode = NnbdMode.Strong
       ..target = new VmTarget(new TargetFlags())
       ..additionalDills = <Uri>[platformKernel]
       ..onDiagnostic = (DiagnosticMessage message) {
@@ -311,7 +313,7 @@ main() {
           print("c1");
         }
       }
-      class C3 {
+      mixin C3 {
         c3method() {
           print("c3");
         }
@@ -1043,7 +1045,7 @@ main() {
             "name": "foo",
             "rootUri": "..",
             "packageUri": "lib",
-            "languageVersion": "2.7",
+            "languageVersion": "2.12",
           },
         ],
       }));
@@ -1059,7 +1061,7 @@ main() {
 
       var barUri = Uri.file('${mytest.path}/lib/bar.dart');
       new File(barUri.toFilePath())
-          .writeAsStringSync("class A { static int a; }\n");
+          .writeAsStringSync("class A { static int a = 0; }\n");
 
       var bazUri = Uri.file('${mytest.path}/lib/baz.dart');
       new File(bazUri.toFilePath()).writeAsStringSync("import 'dart:isolate';\n"
@@ -1095,7 +1097,7 @@ main() {
       }
 
       new File(barUri.toFilePath())
-          .writeAsStringSync("class A { static int b; }\n");
+          .writeAsStringSync("class A { static int b = 0; }\n");
       compiler.invalidate(barUri);
       {
         IncrementalCompilerResult compilerResult =
@@ -1138,7 +1140,7 @@ main() {
       final Uri barUri = Uri.file('${mytest.path}/bar.dart');
       new File.fromUri(barUri).writeAsStringSync("""
         class A {
-          static int a;
+          static int a = 0;
           int b() { return 42; }
         }
         """);
@@ -1185,7 +1187,7 @@ main() {
 
       new File.fromUri(barUri).writeAsStringSync("""
         class A {
-          static int a;
+          static int a = 0;
           int b() { return 84; }
         }
         """);
@@ -1236,6 +1238,85 @@ main() {
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
         procedure.accept(lrc);
         expect(lrc.librariesReferenced, equals(<Library>{barLib}));
+      }
+    });
+
+    test('compile, recompile with new entry, reject, expression compilation',
+        () async {
+      var v1Uri = Uri.file('${mytest.path}/v1.dart');
+      new File(v1Uri.toFilePath()).writeAsStringSync("""import 'dart:isolate';
+          test() => 'apple';
+          main() {
+            RawReceivePort keepAlive = new RawReceivePort();
+            print('spawned isolate running');
+          }
+          """);
+
+      var v2Uri = Uri.file('${mytest.path}/v2.dart');
+      new File(v2Uri.toFilePath()).writeAsStringSync("""import 'dart:isolate';
+          import 'library_isnt_here_man';
+
+          test() => 'apple';
+
+          main() {
+            RawReceivePort keepAlive = new RawReceivePort();
+            print('spawned isolate running');
+          }
+          """);
+
+      CompilerOptions optionsModified = getFreshOptions()
+        ..onDiagnostic = (DiagnosticMessage message) {
+          // sometimes expected on this one.
+          print(message.ansiFormatted);
+        };
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(optionsModified, [v1Uri]);
+
+      print("Compiling v1 uri (should be ok)");
+      await compiler.compile(entryPoints: [v1Uri]);
+
+      print("Accepting.");
+      compiler.accept();
+      {
+        print("Compiling expression.");
+        Procedure? procedure = await compiler.compileExpression(
+            'test()',
+            <String>[],
+            <String>[],
+            <String>[],
+            <String>[],
+            <String>[],
+            v1Uri.toString(),
+            null,
+            null,
+            false);
+        expect(procedure, isNotNull);
+        ReturnStatement returnStmt =
+            procedure!.function.body as ReturnStatement;
+        expect(returnStmt.expression, isA<StaticInvocation>());
+      }
+
+      print("Compiling v2 uri (with error)");
+      await compiler.compile(entryPoints: [v2Uri]);
+      print("Rejecting.");
+      await compiler.reject();
+      {
+        print("Compiling expression.");
+        Procedure? procedure = await compiler.compileExpression(
+            'test()',
+            <String>[],
+            <String>[],
+            <String>[],
+            <String>[],
+            <String>[],
+            v1Uri.toString(),
+            null,
+            null,
+            false);
+        expect(procedure, isNotNull);
+        ReturnStatement returnStmt =
+            procedure!.function.body as ReturnStatement;
+        expect(returnStmt.expression, isA<StaticInvocation>());
       }
     });
   });
@@ -1619,7 +1700,7 @@ main() {
             {
               "name": "foo",
               "rootUri": ".",
-              "languageVersion": "2.7",
+              "languageVersion": "2.12",
             },
           ],
         }));

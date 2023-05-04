@@ -25,23 +25,23 @@ abstract class AbstractNumber {
 
 // library evaluator;
 
-abstract class ExpressionWithEval {
+abstract mixin class ExpressionWithEval {
   int get eval;
 }
 
-abstract class AdditionWithEval<E extends ExpressionWithEval> {
+abstract mixin class AdditionWithEval<E extends ExpressionWithEval> {
   E get operand1;
   E get operand2;
   int get eval => operand1.eval + operand2.eval;
 }
 
-abstract class SubtractionWithEval<E extends ExpressionWithEval> {
+abstract mixin class SubtractionWithEval<E extends ExpressionWithEval> {
   E get operand1;
   E get operand2;
   int get eval => operand1.eval - operand2.eval;
 }
 
-abstract class NumberWithEval {
+abstract mixin class NumberWithEval {
   int get val;
   int get eval => val;
 }
@@ -57,7 +57,7 @@ abstract class AbstractMultiplication<E> {
 
 // import 'evaluator.dart' show ExpressionWithEval;
 
-abstract class MultiplicationWithEval<E extends ExpressionWithEval> {
+abstract mixin class MultiplicationWithEval<E extends ExpressionWithEval> {
   E get operand1;
   E get operand2;
   int get eval => operand1.eval * operand2.eval;
@@ -65,30 +65,30 @@ abstract class MultiplicationWithEval<E extends ExpressionWithEval> {
 
 // library string_converter;
 
-abstract class ExpressionWithStringConversion {
+abstract mixin class ExpressionWithStringConversion {
   String toString();
 }
 
-abstract class AdditionWithStringConversion<
+abstract mixin class AdditionWithStringConversion<
     E extends ExpressionWithStringConversion> {
   E get operand1;
   E get operand2;
   String toString() => '($operand1 + $operand2))';
 }
 
-abstract class SubtractionWithStringConversion<
+abstract mixin class SubtractionWithStringConversion<
     E extends ExpressionWithStringConversion> {
   E get operand1;
   E get operand2;
   String toString() => '($operand1 - $operand2)';
 }
 
-abstract class NumberWithStringConversion {
+abstract mixin class NumberWithStringConversion {
   int get val;
   String toString() => val.toString();
 }
 
-abstract class MultiplicationWithStringConversion<
+abstract mixin class MultiplicationWithStringConversion<
     E extends ExpressionWithStringConversion> {
   E get operand1;
   E get operand2;

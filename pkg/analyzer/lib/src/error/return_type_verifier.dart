@@ -41,7 +41,7 @@ class ReturnTypeVerifier {
 
   void verifyExpressionFunctionBody(ExpressionFunctionBody node) {
     // This enables concise declarations of void functions.
-    if (_flattenedReturnType.isVoid) {
+    if (_flattenedReturnType is VoidType) {
       return;
     }
 
@@ -91,7 +91,7 @@ class ReturnTypeVerifier {
       // It is a compile-time error if the declared return type of
       // a function marked `sync*` or `async*` is `void`.
       if (enclosingExecutable.isGenerator) {
-        if (enclosingExecutable.returnType.isVoid) {
+        if (enclosingExecutable.returnType is VoidType) {
           return reportError();
         }
       }
@@ -156,7 +156,7 @@ class ReturnTypeVerifier {
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
         _errorReporter.reportErrorForNode(
-          HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
           expression,
           [S, T],
         );
@@ -202,7 +202,7 @@ class ReturnTypeVerifier {
     if (enclosingExecutable.isSynchronous) {
       // It is a compile-time error if `T` is `void`,
       // and `S` is neither `void`, `dynamic`, nor `Null`.
-      if (T.isVoid) {
+      if (T is VoidType) {
         if (!_isVoidDynamicOrNull(S)) {
           reportTypeError();
           return;
@@ -210,7 +210,7 @@ class ReturnTypeVerifier {
       }
       // It is a compile-time error if `S` is `void`,
       // and `T` is neither `void`, `dynamic`, nor `Null`.
-      if (S.isVoid) {
+      if (S is VoidType) {
         if (!_isVoidDynamicOrNull(T)) {
           reportTypeError();
           return;
@@ -218,7 +218,7 @@ class ReturnTypeVerifier {
       }
       // It is a compile-time error if `S` is not `void`,
       // and `S` is not assignable to `T`.
-      if (!S.isVoid) {
+      if (S is! VoidType) {
         if (!_typeSystem.isAssignableTo(S, T)) {
           reportTypeError();
           return;
@@ -238,7 +238,7 @@ class ReturnTypeVerifier {
       // implementing it now would be a breaking change. So, the code below
       // intentionally does not implement the specification.
       // https://github.com/dart-lang/sdk/issues/41803#issuecomment-635852474
-      if (T.isVoid) {
+      if (T is VoidType) {
         if (!_isVoidDynamicOrNull(flatten_S)) {
           reportTypeError();
           return;
@@ -246,7 +246,7 @@ class ReturnTypeVerifier {
       }
       // It is a compile-time error if `flatten(S)` is `void`,
       // and `flatten(T)` is neither `void`, `dynamic`, nor `Null`.
-      if (flatten_S.isVoid) {
+      if (flatten_S is VoidType) {
         if (!_isVoidDynamicOrNull(flatten_T)) {
           reportTypeError();
           return;
@@ -254,7 +254,7 @@ class ReturnTypeVerifier {
       }
       // It is a compile-time error if `flatten(S)` is not `void`,
       // and `Future<flatten(S)>` is not assignable to `T`.
-      if (!flatten_S.isVoid) {
+      if (flatten_S is! VoidType) {
         var future_flatten_S = _typeProvider.futureType(flatten_S);
         if (!_typeSystem.isAssignableTo(future_flatten_S, T)) {
           reportTypeError();
@@ -275,7 +275,7 @@ class ReturnTypeVerifier {
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
         _errorReporter.reportErrorForNode(
-          HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
           expression,
           [S, T],
         );
@@ -321,7 +321,7 @@ class ReturnTypeVerifier {
     if (enclosingExecutable.isSynchronous) {
       // It is a compile-time error if `T` is `void`,
       // and `S` is neither `void`, `dynamic`, nor `Null`.
-      if (T.isVoid) {
+      if (T is VoidType) {
         if (!_isVoidDynamicOrNull(S)) {
           reportTypeError();
           return;
@@ -329,7 +329,7 @@ class ReturnTypeVerifier {
       }
       // It is a compile-time error if `S` is `void`,
       // and `T` is neither `void` nor `dynamic`.
-      if (S.isVoid) {
+      if (S is VoidType) {
         if (!_isVoidDynamic(T)) {
           reportTypeError();
           return;
@@ -337,7 +337,21 @@ class ReturnTypeVerifier {
       }
       // It is a compile-time error if `S` is not `void`,
       // and `S` is not assignable to `T`.
-      if (!S.isVoid) {
+      if (S is! VoidType) {
+        if (T is RecordType) {
+          if (S is! RecordType && T.positionalFields.length == 1) {
+            var field = T.positionalFields.first;
+            if (_typeSystem.isAssignableTo(field.type, S)) {
+              _errorReporter.reportErrorForNode(
+                WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+                expression,
+                [],
+              );
+              return;
+            }
+          }
+        }
+
         if (!_typeSystem.isAssignableTo(S, T)) {
           reportTypeError();
           return;
@@ -352,7 +366,7 @@ class ReturnTypeVerifier {
       var flatten_S = _typeSystem.flatten(S);
       // It is a compile-time error if `flatten(T)` is `void`,
       // and `flatten(S)` is neither `void`, `dynamic`, nor `Null`.
-      if (T_v.isVoid) {
+      if (T_v is VoidType) {
         if (!_isVoidDynamicOrNull(flatten_S)) {
           reportTypeError();
           return;
@@ -360,7 +374,7 @@ class ReturnTypeVerifier {
       }
       // It is a compile-time error if `flatten(S)` is `void`,
       // and `flatten(T)` is neither `void`, `dynamic`.
-      if (flatten_S.isVoid) {
+      if (flatten_S is VoidType) {
         if (!_isVoidDynamic(T_v)) {
           reportTypeError();
           return;
@@ -368,7 +382,7 @@ class ReturnTypeVerifier {
       }
       // It is a compile-time error if `flatten(S)` is not `void`,
       // and `Future<flatten(S)>` is not assignable to `T`.
-      if (!flatten_S.isVoid) {
+      if (flatten_S is! VoidType) {
         if (!_typeSystem.isAssignableTo(S, T_v) &&
             !_typeSystem.isSubtypeOf(flatten_S, T_v)) {
           reportTypeError();
@@ -434,10 +448,10 @@ class ReturnTypeVerifier {
   }
 
   static bool _isVoidDynamic(DartType type) {
-    return type.isVoid || type.isDynamic;
+    return type is VoidType || type.isDynamic;
   }
 
   static bool _isVoidDynamicOrNull(DartType type) {
-    return type.isVoid || type.isDynamic || type.isDartCoreNull;
+    return type is VoidType || type.isDynamic || type.isDartCoreNull;
   }
 }

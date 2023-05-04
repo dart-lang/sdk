@@ -138,9 +138,20 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   bool get completeFunctionCalls =>
       _settings['completeFunctionCalls'] as bool? ?? false;
 
-  /// A hidden experimental flag for enabling new refactors during development.
-  bool get experimentalNewRefactors =>
-      _settings['experimentalNewRefactors'] as bool? ?? false;
+  /// A flag for enabling interaactive refactors flagged as experimental.
+  ///
+  /// This flag is likely to be used by both analysis server developers (working
+  /// on new refactors) and users that want to test/provide feedback for
+  /// incomplete refactors.
+  bool get experimentalRefactors =>
+      _settings['experimentalRefactors'] as bool? ?? false;
+
+  /// Whether or not to include dependencies in `textDocument/workspaceSymbols`.
+  ///
+  /// If set to `false`, only analyzed files will be searched.
+  /// Defaults to `true`.
+  bool get includeDependenciesInWorkspaceSymbols =>
+      _settings['includeDependenciesInWorkspaceSymbols'] as bool? ?? true;
 
   /// The users preferred kind of documentation for Hovers, Code Completion and
   /// other related panels in the UI.

@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
+// Other-library declarations used by
+// sealed_class_typedef_used_outside_test.dart.
+
 sealed class SealedClass {
   int foo = 0;
 }

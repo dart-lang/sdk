@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -263,6 +264,7 @@ class A {
   }
 
   Future<void> test_fromPlugins() async {
+    if (!AnalysisServer.supportsPlugins) return;
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
     final pluginResult = plugin.AnalysisGetNavigationResult(
@@ -293,6 +295,21 @@ class A {
     final contents = '''
 [[foo]]() {
   fo^o();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_functionInPattern() async {
+    final contents = '''
+bool [[greater]](int x, int y) => x > y;
+
+foo(int m) {
+  switch (pair) {
+    case (int a, int b) when g^reater(a,b):
+      break;
+  }
 }
 ''';
 
@@ -525,6 +542,18 @@ class [[A]] {}
 
     newFile(mainFilePath, withoutMarkers(contents));
     await testContents(contents, inOpenFile: false);
+  }
+
+  Future<void> test_variableInPattern() async {
+    final contents = '''
+foo() {
+  var m = <String,int>{};
+  const [[str]] = 'h';
+  if (m case {'d':3, s^tr:4, ... }){}
+}
+''';
+
+    await testContents(contents);
   }
 
   Future<void> test_varKeyword() async {

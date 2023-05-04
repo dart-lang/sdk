@@ -32,7 +32,8 @@ class TypeVariableGraph extends Graph<int> {
         // Dummy value.
         -1);
     Map<TypeParameter, int> typeParameterIndices = <TypeParameter, int>{};
-    edges = new List<List<int>>.filled(typeParameters.length,
+    edges = new List<List<int>>.filled(
+        typeParameters.length,
         // Dummy value.
         const []);
     for (int i = 0; i < vertices.length; i++) {
@@ -86,7 +87,7 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   }
 
   @override
-  void visitViewType(ViewType node) {
+  void visitInlineType(InlineType node) {
     for (DartType argument in node.typeArguments) {
       argument.accept(this);
     }
@@ -159,8 +160,8 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   void defaultDartType(DartType node) {}
 }
 
-DartType instantiateToBounds(
-    DartType type, Class objectClass, Library contextLibrary) {
+DartType instantiateToBounds(DartType type, Class objectClass,
+    {required bool isNonNullableByDefault}) {
   if (type is InterfaceType) {
     if (type.typeArguments.isEmpty) return type;
     for (DartType typeArgument in type.typeArguments) {
@@ -174,8 +175,8 @@ DartType instantiateToBounds(
     return new InterfaceType.byReference(
         type.className,
         type.nullability,
-        calculateBounds(
-            type.classNode.typeParameters, objectClass, contextLibrary));
+        calculateBounds(type.classNode.typeParameters, objectClass,
+            isNonNullableByDefault: isNonNullableByDefault));
   }
   if (type is TypedefType) {
     if (type.typeArguments.isEmpty) return type;
@@ -187,8 +188,8 @@ DartType instantiateToBounds(
     return new TypedefType.byReference(
         type.typedefReference,
         type.nullability,
-        calculateBounds(
-            type.typedefNode.typeParameters, objectClass, contextLibrary));
+        calculateBounds(type.typedefNode.typeParameters, objectClass,
+            isNonNullableByDefault: isNonNullableByDefault));
   }
   return type;
 }
@@ -199,10 +200,11 @@ DartType instantiateToBounds(
 /// See the [description]
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
-List<DartType> calculateBounds(List<TypeParameter> typeParameters,
-    Class objectClass, Library contextLibrary) {
+List<DartType> calculateBounds(
+    List<TypeParameter> typeParameters, Class objectClass,
+    {required bool isNonNullableByDefault}) {
   return calculateBoundsInternal(typeParameters, objectClass,
-      isNonNullableByDefault: contextLibrary.isNonNullableByDefault);
+      isNonNullableByDefault: isNonNullableByDefault);
 }
 
 List<DartType> calculateBoundsInternal(
@@ -811,14 +813,14 @@ class VarianceCalculator
   }
 
   @override
-  int visitViewType(
-      ViewType node, Map<TypeParameter, Map<DartType, int>> computedVariances) {
+  int visitInlineType(InlineType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
     int result = Variance.unrelated;
     for (int i = 0; i < node.typeArguments.length; ++i) {
       result = Variance.meet(
           result,
           Variance.combine(
-              node.view.typeParameters[i].variance,
+              node.inlineClass.typeParameters[i].variance,
               computeVariance(typeParameter, node.typeArguments[i],
                   computedVariances: computedVariances)));
     }

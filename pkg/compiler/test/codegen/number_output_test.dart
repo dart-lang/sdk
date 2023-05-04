@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:compiler/compiler_api.dart' as api;
@@ -22,8 +20,8 @@ const MEMORY_SOURCE_FILES = const {
         }'''
 };
 
-Future test({bool minify}) async {
-  OutputCollector collector = new OutputCollector();
+Future test({required bool minify}) async {
+  OutputCollector collector = OutputCollector();
   List<String> options = <String>[];
   if (minify) {
     options.add(Flags.minify);
@@ -34,7 +32,7 @@ Future test({bool minify}) async {
       options: options);
 
   // Check that we use the shorter exponential representations.
-  String jsOutput = collector.getOutput('', api.OutputType.js);
+  String jsOutput = collector.getOutput('', api.OutputType.js)!;
   print(jsOutput);
 
   if (minify) {

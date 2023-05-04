@@ -67,45 +67,9 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
     Map<String, Variable> variables = _variables.removeLast();
 
     if (sharedCaseScopeKey != null) {
-      Map<String, Variable> right = variables;
       _SharedCaseScope<Variable> sharedScope = _sharedCaseScopes.last;
       assert(sharedScope.key == sharedCaseScopeKey);
-      Map<String, Variable>? left = sharedScope.variables;
-      if (left == null) {
-        sharedScope.variables = right;
-      } else {
-        Map<String, Variable> result = {};
-        for (MapEntry<String, Variable> leftEntry in left.entries) {
-          String name = leftEntry.key;
-          Variable leftVariable = leftEntry.value;
-          Variable? rightVariable = right[name];
-          if (rightVariable != null) {
-            result[name] = joinPatternVariables(
-              key: sharedCaseScopeKey,
-              components: [leftVariable, rightVariable],
-              isConsistent: true,
-            );
-          } else {
-            result[name] = joinPatternVariables(
-              key: sharedCaseScopeKey,
-              components: [leftVariable],
-              isConsistent: false,
-            );
-          }
-        }
-        for (MapEntry<String, Variable> rightEntry in right.entries) {
-          String name = rightEntry.key;
-          Variable rightVariable = rightEntry.value;
-          if (!left.containsKey(name)) {
-            result[name] = joinPatternVariables(
-              key: sharedCaseScopeKey,
-              components: [rightVariable],
-              isConsistent: false,
-            );
-          }
-        }
-        sharedScope.variables = result;
-      }
+      sharedScope.addAll(variables);
     }
 
     return variables;
@@ -126,7 +90,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
   Variable joinPatternVariables({
     required Object key,
     required List<Variable> components,
-    required bool isConsistent,
+    required JoinedPatternVariableInconsistency inconsistency,
   });
 
   /// Updates the binder after visiting a logical-or pattern, joins variables
@@ -145,7 +109,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
           joinPatternVariables(
             key: node,
             components: [leftVariable, rightVariable],
-            isConsistent: true,
+            inconsistency: JoinedPatternVariableInconsistency.none,
           ),
         );
       } else {
@@ -160,7 +124,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
           joinPatternVariables(
             key: node,
             components: [leftVariable],
-            isConsistent: false,
+            inconsistency: JoinedPatternVariableInconsistency.logicalOr,
           ),
         );
       }
@@ -179,7 +143,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
         joinPatternVariables(
           key: node,
           components: [rightVariable],
-          isConsistent: false,
+          inconsistency: JoinedPatternVariableInconsistency.logicalOr,
         ),
       );
     }
@@ -201,20 +165,8 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
   void switchStatementSharedCaseScopeEmpty(Object key) {
     _SharedCaseScope<Variable> sharedScope = _sharedCaseScopes.last;
     assert(sharedScope.key == key);
-    Map<String, Variable>? left = sharedScope.variables;
-    if (left != null) {
-      Map<String, Variable> result = {};
-      for (MapEntry<String, Variable> leftEntry in left.entries) {
-        String name = leftEntry.key;
-        Variable leftVariable = leftEntry.value;
-        result[name] = joinPatternVariables(
-          key: key,
-          components: [leftVariable],
-          isConsistent: false,
-        );
-      }
-      sharedScope.variables = result;
-    }
+    sharedScope.hasLabel = true;
+    sharedScope.addAll({});
   }
 
   /// Notifies that computing of the shared case scope was finished, returns
@@ -226,7 +178,27 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
     assert(_variables.isEmpty);
     _SharedCaseScope<Variable> sharedScope = _sharedCaseScopes.removeLast();
     assert(sharedScope.key == key);
-    return sharedScope.variables ?? {};
+
+    Map<String, Variable> result = {};
+    for (MapEntry<String, _SharedCaseScopeVariable<Variable>> entry
+        in sharedScope.variables.entries) {
+      _SharedCaseScopeVariable<Variable> sharedVariable = entry.value;
+      List<Variable> variables = sharedVariable.variables;
+      if (sharedVariable.allCases && variables.length == 1) {
+        result[entry.key] = variables[0];
+      } else {
+        result[entry.key] = joinPatternVariables(
+          key: key,
+          components: variables,
+          inconsistency: sharedVariable.allCases
+              ? JoinedPatternVariableInconsistency.none
+              : sharedScope.hasLabel
+                  ? JoinedPatternVariableInconsistency.sharedCaseHasLabel
+                  : JoinedPatternVariableInconsistency.sharedCaseAbsent,
+        );
+      }
+    }
+    return result;
   }
 
   /// Notifies that computing new shared case scope should be started.
@@ -262,7 +234,52 @@ abstract class VariableBinderErrors<Node extends Object,
 
 class _SharedCaseScope<Variable extends Object> {
   final Object key;
-  Map<String, Variable>? variables;
+  bool isEmpty = true;
+  bool hasLabel = false;
+  Map<String, _SharedCaseScopeVariable<Variable>> variables = {};
 
   _SharedCaseScope(this.key);
+
+  /// Adds [newVariables] to [variables], marking absent variables as not
+  /// consistent. If [isEmpty], just sets given variables as the starting set.
+  void addAll(Map<String, Variable> newVariables) {
+    if (isEmpty) {
+      isEmpty = false;
+      for (MapEntry<String, Variable> entry in newVariables.entries) {
+        String name = entry.key;
+        Variable variable = entry.value;
+        _getVariable(name).variables.add(variable);
+      }
+    } else {
+      for (MapEntry<String, _SharedCaseScopeVariable<Variable>> entry
+          in variables.entries) {
+        String name = entry.key;
+        _SharedCaseScopeVariable<Variable> variable = entry.value;
+        Variable? newVariable = newVariables[name];
+        if (newVariable != null) {
+          variable.variables.add(newVariable);
+        } else {
+          variable.allCases = false;
+        }
+      }
+      for (MapEntry<String, Variable> newEntry in newVariables.entries) {
+        String name = newEntry.key;
+        Variable newVariable = newEntry.value;
+        if (!variables.containsKey(name)) {
+          _getVariable(name)
+            ..allCases = false
+            ..variables.add(newVariable);
+        }
+      }
+    }
+  }
+
+  _SharedCaseScopeVariable _getVariable(String name) {
+    return variables[name] ??= new _SharedCaseScopeVariable();
+  }
+}
+
+class _SharedCaseScopeVariable<Variable extends Object> {
+  bool allCases = true;
+  final List<Variable> variables = [];
 }

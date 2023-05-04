@@ -18,7 +18,7 @@ void testIgnore() {
   });
 
   asyncStart();
-  // Ignored futures can still be listend to.
+  // Ignored futures can still be listened to.
   {
     var c = Completer<int>.sync();
     var f = c.future;

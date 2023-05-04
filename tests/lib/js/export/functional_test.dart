@@ -234,6 +234,13 @@ void testArity() {
   callMethod(arity, 'onePositionalOneOptional', ['', '']);
 }
 
+// Test that the transformation occurs in other js_util calls.
+void testNestedJsUtil() {
+  setProperty(globalThis, 'export', createDartExport(ExportAll.constructor()));
+  expect(hasProperty(globalThis, 'export'), true);
+  expect(hasProperty(getProperty(globalThis, 'export'), 'field'), true);
+}
+
 void main() {
   testExportAll();
   testExportSome();
@@ -242,4 +249,5 @@ void main() {
   testOverrides();
   testShadowed();
   testArity();
+  testNestedJsUtil();
 }

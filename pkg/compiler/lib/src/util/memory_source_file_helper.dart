@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library dart2js.test.memory_source_file_helper;
 
 import 'dart:async' show Future;
@@ -38,33 +36,39 @@ class MemorySourceFileProvider extends CompilerSourceFileProvider {
 
     var source = memorySourceFiles[resourceUri.path];
     if (source == null) {
-      return Future.error(new Exception(
+      return Future.error(Exception(
           'No such memory file $resourceUri in ${memorySourceFiles.keys}'));
     }
     api.Input<List<int>> input;
-    StringSourceFile stringFile;
+    StringSourceFile? stringFile;
+    registerUri(resourceUri);
     if (source is String) {
-      stringFile = new StringSourceFile.fromUri(resourceUri, source);
+      stringFile = StringSourceFile.fromUri(resourceUri, source);
     }
     switch (inputKind) {
       case api.InputKind.UTF8:
-        input = stringFile ?? new Utf8BytesSourceFile(resourceUri, source);
-        utf8SourceFiles[resourceUri] = input;
+        input = stringFile ?? Utf8BytesSourceFile(resourceUri, source);
         break;
       case api.InputKind.binary:
         if (stringFile != null) {
-          utf8SourceFiles[resourceUri] = stringFile;
           source = stringFile.data;
         }
-        input =
-            binarySourceFiles[resourceUri] = new Binary(resourceUri, source);
+        input = Binary(resourceUri, source);
         break;
     }
-    return new Future.value(input);
+    return Future.value(input);
   }
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri resourceUri,
           {api.InputKind inputKind = api.InputKind.UTF8}) =>
       readBytesFromUri(resourceUri, inputKind);
+
+  @override
+  api.Input<List<int>>? getUtf8SourceFile(Uri resourceUri) {
+    var source = memorySourceFiles[resourceUri.path];
+    return source is String
+        ? StringSourceFile.fromUri(resourceUri, source)
+        : Utf8BytesSourceFile(resourceUri, source);
+  }
 }

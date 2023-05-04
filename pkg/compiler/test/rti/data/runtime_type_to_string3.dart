@@ -16,7 +16,7 @@ class Class2<T> {
 }
 
 main() {
-  Class1<int> cls1 = new Class1<int>();
+  Class1<int> cls1 = Class1<int>();
   makeLive(cls1.runtimeType?.toString());
-  new Class2<int>();
+  Class2<int>();
 }

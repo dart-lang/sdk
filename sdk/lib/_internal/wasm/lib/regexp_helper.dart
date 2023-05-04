@@ -6,48 +6,47 @@ part of dart._js_helper;
 
 // TODO(joshualitt): This is a fork of the DDC RegExp class. In the longer term,
 // with careful factoring we may be able to share this code.
-// TODO(joshualitt): We should be able to build this library off of static
-// interop.
 
 /// Returns a string for a RegExp pattern that matches [string]. This is done by
 /// escaping all RegExp metacharacters.
-@pragma('wasm:import', 'dart2wasm.quoteStringForRegExp')
-external String quoteStringForRegExp(String string);
+String quoteStringForRegExp(String string) =>
+    // This method is optimized to test before replacement, which should be
+    // much faster. This might be worth measuring in real world use cases
+    // though.
+    JS<String>(r"""s => {
+      let jsString = stringFromDartString(s);
+      if (/[[\]{}()*+?.\\^$|]/.test(jsString)) {
+          jsString = jsString.replace(/[[\]{}()*+?.\\^$|]/g, '\\$&');
+      }
+      return stringToDartString(jsString);
+    }""", string);
 
+@js.JS()
+@js.staticInterop
 class JSNativeMatch extends JSArray {
-  JSNativeMatch(WasmExternRef ref) : super(ref);
-
-  static JSNativeMatch? box(WasmExternRef? ref) =>
-      isDartNull(ref) ? null : JSNativeMatch(ref!);
-
-  String get input => jsStringToDartString(
-      getPropertyRaw(this.toExternRef(), 'input'.toExternRef())!);
-  int get index =>
-      toDartNumber(getPropertyRaw(this.toExternRef(), 'index'.toExternRef())!)
-          .floor();
-  JSObject? get groups =>
-      JSObject.box(getPropertyRaw(this.toExternRef(), 'groups'.toExternRef()));
+  // This constructor exists just to avoid the `no unnamed constructor` error.
+  external factory JSNativeMatch();
 }
 
-class JSNativeRegExp extends JSValue {
-  JSNativeRegExp(WasmExternRef ref) : super(ref);
+extension JSNativeMatchExtension on JSNativeMatch {
+  external JSString get input;
+  external JSNumber get index;
+  external JSObject? get groups;
+}
 
-  JSNativeMatch? exec(String string) => JSNativeMatch.box(callMethodVarArgsRaw(
-      this.toExternRef(), 'exec'.toExternRef(), [string].toExternRef()));
-  bool test(String string) => toDartBool(callMethodVarArgsRaw(
-      this.toExternRef(), 'test'.toExternRef(), [string].toExternRef())!);
-  String get flags => jsStringToDartString(
-      getPropertyRaw(this.toExternRef(), 'flags'.toExternRef())!);
-  bool get multiline => toDartBool(
-      getPropertyRaw(this.toExternRef(), 'multiline'.toExternRef())!);
-  bool get ignoreCase => toDartBool(
-      getPropertyRaw(this.toExternRef(), 'ignoreCase'.toExternRef())!);
-  bool get unicode =>
-      toDartBool(getPropertyRaw(this.toExternRef(), 'unicode'.toExternRef())!);
-  bool get dotAll =>
-      toDartBool(getPropertyRaw(this.toExternRef(), 'dotAll'.toExternRef())!);
-  set lastIndex(int start) => setPropertyRaw(
-      this.toExternRef(), 'lastIndex'.toExternRef(), intToJSNumber(start));
+@js.JS()
+@js.staticInterop
+class JSNativeRegExp {}
+
+extension JSNativeRegExpExtension on JSNativeRegExp {
+  external JSNativeMatch? exec(JSString string);
+  external JSBoolean test(JSString string);
+  external JSString get flags;
+  external JSBoolean get multiline;
+  external JSBoolean get ignoreCase;
+  external JSBoolean get unicode;
+  external JSBoolean get dotAll;
+  external set lastIndex(JSNumber start);
 }
 
 class JSSyntaxRegExp implements RegExp {
@@ -56,7 +55,7 @@ class JSSyntaxRegExp implements RegExp {
   JSNativeRegExp? _nativeGlobalRegExp;
   JSNativeRegExp? _nativeAnchoredRegExp;
 
-  String toString() => 'RegExp/$pattern/' + _nativeRegExp.flags;
+  String toString() => 'RegExp/$pattern/' + _nativeRegExp.flags.toDart;
 
   JSSyntaxRegExp(String source,
       {bool multiLine = false,
@@ -84,10 +83,10 @@ class JSSyntaxRegExp implements RegExp {
         '$pattern|()', isMultiLine, isCaseSensitive, isUnicode, isDotAll, true);
   }
 
-  bool get isMultiLine => _nativeRegExp.multiline;
-  bool get isCaseSensitive => !_nativeRegExp.ignoreCase;
-  bool get isUnicode => _nativeRegExp.unicode;
-  bool get isDotAll => _nativeRegExp.dotAll;
+  bool get isMultiLine => _nativeRegExp.multiline.toDart;
+  bool get isCaseSensitive => !_nativeRegExp.ignoreCase.toDart;
+  bool get isUnicode => _nativeRegExp.unicode.toDart;
+  bool get isDotAll => _nativeRegExp.dotAll.toDart;
 
   static JSNativeRegExp makeNative(String source, bool multiLine,
       bool caseSensitive, bool unicode, bool dotAll, bool global) {
@@ -99,9 +98,14 @@ class JSSyntaxRegExp implements RegExp {
     String modifiers = '$m$i$u$s$g';
     // The call to create the regexp is wrapped in a try catch so we can
     // reformat the exception if need be.
-    WasmExternRef? result = safeCallConstructorVarArgsRaw(
-        getConstructorRaw('RegExp'), [source, modifiers].toExternRef());
-    if (isJSRegExp(result)) return JSNativeRegExp(result!);
+    WasmExternRef? result = JS<WasmExternRef?>("""(s, m) => {
+          try {
+            return new RegExp(s, m);
+          } catch (e) {
+            return String(e);
+          }
+        }""", source.toExternRef, modifiers.toExternRef);
+    if (isJSRegExp(result)) return JSValue(result!) as JSNativeRegExp;
     // The returned value is the stringified JavaScript exception. Turn it into
     // a Dart exception.
     String errorMessage = jsStringToDartString(result);
@@ -109,13 +113,13 @@ class JSSyntaxRegExp implements RegExp {
   }
 
   RegExpMatch? firstMatch(String string) {
-    JSNativeMatch? m = _nativeRegExp.exec(string);
-    if (m == null) return null;
-    return new _MatchImplementation(this, m);
+    JSNativeMatch? m = _nativeRegExp.exec(string.toJS);
+    if (m.isUndefinedOrNull) return null;
+    return new _MatchImplementation(this, m!);
   }
 
   bool hasMatch(String string) {
-    return _nativeRegExp.test(string);
+    return _nativeRegExp.test(string.toJS).toDart;
   }
 
   String? stringMatch(String string) {
@@ -133,20 +137,20 @@ class JSSyntaxRegExp implements RegExp {
 
   RegExpMatch? _execGlobal(String string, int start) {
     JSNativeRegExp regexp = _nativeGlobalVersion;
-    regexp.lastIndex = start;
-    JSNativeMatch? match = regexp.exec(string);
-    if (match == null) return null;
-    return new _MatchImplementation(this, match);
+    regexp.lastIndex = start.toJS;
+    JSNativeMatch? match = regexp.exec(string.toJS);
+    if (match.isUndefinedOrNull) return null;
+    return new _MatchImplementation(this, match!);
   }
 
   RegExpMatch? _execAnchored(String string, int start) {
     JSNativeRegExp regexp = _nativeAnchoredVersion;
-    regexp.lastIndex = start;
-    JSNativeMatch? match = regexp.exec(string);
-    if (match == null) return null;
+    regexp.lastIndex = start.toJS;
+    JSNativeMatch? match = regexp.exec(string.toJS);
+    if (match.isUndefinedOrNull) return null;
     // If the last capture group participated, the original regexp did not
     // match at the start position.
-    if (match.pop() != null) return null;
+    if (match!.pop() != null) return null;
     return new _MatchImplementation(this, match);
   }
 
@@ -159,7 +163,7 @@ class JSSyntaxRegExp implements RegExp {
 }
 
 class _MatchImplementation implements RegExpMatch {
-  final Pattern pattern;
+  final RegExp pattern;
   // Contains a JS RegExp match object.
   // It is an Array of String values with extra 'index' and 'input' properties.
   // If there were named capture groups, there will also be an extra 'groups'
@@ -169,17 +173,22 @@ class _MatchImplementation implements RegExpMatch {
 
   _MatchImplementation(this.pattern, this._match);
 
-  String get input => _match.input;
+  String get input => _match.input.toDart;
 
-  int get start => _match.index;
+  int get start => _match.index.toDart.toInt();
 
-  int get end => (start + (_match[0].toString()).length);
+  int get end => (start + (_match[0.toJS].toString()).length);
 
-  String? group(int index) => _match[index]?.toString();
+  String? group(int index) {
+    if (index < 0 || index >= _match.length.toDart.toInt()) {
+      throw RangeError("Index $index is out of range ${_match.length}");
+    }
+    return _match[index.toJS]?.toString();
+  }
 
   String? operator [](int index) => group(index);
 
-  int get groupCount => _match.length - 1;
+  int get groupCount => _match.length.toDart.toInt() - 1;
 
   List<String?> groups(List<int> groups) {
     List<String?> out = [];
@@ -191,10 +200,10 @@ class _MatchImplementation implements RegExpMatch {
 
   String? namedGroup(String name) {
     JSObject? groups = _match.groups;
-    if (groups != null) {
-      JSValue? result = groups[name];
+    if (groups.isDefinedAndNotNull) {
+      Object? result = dartifyRaw(groups![name.toJS]?.toExternRef);
       if (result != null ||
-          hasPropertyRaw(groups.toExternRef(), name.toExternRef())) {
+          hasPropertyRaw(groups.toExternRef, name.toExternRef)) {
         return result?.toString();
       }
     }
@@ -203,14 +212,14 @@ class _MatchImplementation implements RegExpMatch {
 
   Iterable<String> get groupNames {
     JSObject? groups = _match.groups;
-    if (groups != null) {
-      return JSArrayIterableAdapter<String>(objectKeys(groups));
+    if (groups.isDefinedAndNotNull) {
+      return JSArrayIterableAdapter<String>(objectKeys(groups!));
     }
     return Iterable.empty();
   }
 }
 
-class _AllMatchesIterable extends IterableBase<RegExpMatch> {
+class _AllMatchesIterable extends Iterable<RegExpMatch> {
   final JSSyntaxRegExp _re;
   final String _string;
   final int _start;

@@ -34,11 +34,6 @@ class IsolateReconnectElement extends CustomElement implements Renderable {
   factory IsolateReconnectElement(M.VM vm, M.EventRepository events,
       M.NotificationRepository notifications, String missing, Uri uri,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(events != null);
-    assert(missing != null);
-    assert(uri != null);
-    assert(notifications != null);
     IsolateReconnectElement e = new IsolateReconnectElement.created();
     e._r = new RenderingScheduler<IsolateReconnectElement>(e, queue: queue);
     e._vm = vm;

@@ -29,7 +29,7 @@ void testSpecialCases() {
   Expect.equals("\xb5", "\xb5".toLowerCase());
   Expect.equals("\u03Bc", //                                    //# 02: continued
                 "\xb5".toUpperCase().toLowerCase()); //         //# 02: continued
-  // Small letter y diaresis.
+  // Small letter y diaeresis.
   Expect.equals("\u0178", "\xff".toUpperCase()); //             //# 03: ok
   Expect.equals("\xff", "\xff".toLowerCase());
   Expect.equals("\xff", "\xff".toUpperCase().toLowerCase()); // //# 03: continued

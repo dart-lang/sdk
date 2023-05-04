@@ -198,14 +198,14 @@ extension Extension on core::int {
   static set staticMethodAndSetter2 = set self::Extension|staticMethodAndSetter2;
 }
 static field dynamic result;
-static field core::int Extension|staticField;
+static field core::int Extension|staticField = 1;
 static field core::int Extension|staticFieldAndSetter1 = 1;
 static field core::int Extension|staticFieldAndSetter2 = 1;
 late static final [setter] field core::int Extension|staticLateFinalFieldAndSetter1;
 late static final [setter] field core::int Extension|staticLateFinalFieldAndSetter2;
-static final field core::int Extension|staticDuplicateFieldAndSetter;
+static final field core::int Extension|staticDuplicateFieldAndSetter = 1;
 static final field core::int Extension|staticFieldAndDuplicateSetter = 1;
-static final field core::int Extension|staticDuplicateFieldAndDuplicateSetter;
+static final field core::int Extension|staticDuplicateFieldAndDuplicateSetter = 1;
 static method Extension|staticMethod() → core::int
   return 1;
 static get Extension|staticGetter() → core::int

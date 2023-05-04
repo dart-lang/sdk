@@ -25,21 +25,21 @@ class AnalysisNotificationClosingLabelsTest
 Widget build(BuildContext context) {
   return /*1*/new Row(
     children: /*2*/<Widget>[
-      new Text('a'),
-      new Text('b'),
+      Text('a'),
+      Text('b'),
     ]/*/2*/,
   )/*/1*/;
 }
 ''';
 
   static final expectedResults = [
-    ClosingLabel(51, 96, 'Row'),
-    ClosingLabel(79, 57, '<Widget>[]')
+    ClosingLabel(51, 88, 'Row'),
+    ClosingLabel(79, 49, '<Widget>[]')
   ];
 
   List<ClosingLabel>? lastLabels;
 
-  late Completer _labelsReceived;
+  late Completer<void> _labelsReceived;
 
   @override
   void processNotification(Notification notification) {
@@ -47,7 +47,7 @@ Widget build(BuildContext context) {
       var params = AnalysisClosingLabelsParams.fromNotification(notification);
       if (params.file == testFile.path) {
         lastLabels = params.labels;
-        _labelsReceived.complete(null);
+        _labelsReceived.complete();
       }
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
       var params = ServerErrorParams.fromNotification(notification);

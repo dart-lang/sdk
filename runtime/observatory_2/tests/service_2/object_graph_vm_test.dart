@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:observatory_2/models.dart' as M;
 import 'package:observatory_2/object_graph.dart';
 import 'package:observatory_2/service_io.dart';
 import 'package:test/test.dart';
@@ -30,10 +29,10 @@ void script() {
   r.right = b;
   a.left = b;
 
-  lst = new List(2);
+  lst = new List<dynamic>.filled(2, null);
   lst[0] = lst; // Self-loop.
   // Larger than any other fixed-size list in a fresh heap.
-  lst[1] = new List(1234569);
+  lst[1] = new List<dynamic>.filled(1234569, null);
 }
 
 var tests = <IsolateTest>[

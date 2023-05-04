@@ -21,9 +21,9 @@ class FfiNativeTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-class NativeFieldWrapperClass1 {}
+base class NativeFieldWrapperClass1 {}
 
-class Paragraph extends NativeFieldWrapperClass1 {
+base class Paragraph extends NativeFieldWrapperClass1 {
   @FfiNative<Double Function(Pointer<Void>)>('Paragraph::ideographicBaseline', isLeaf: true)
   external double get ideographicBaseline;
 
@@ -41,6 +41,7 @@ import 'dart:ffi';
 external int foo();
 ''', [
       error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 10),
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 20, 30),
     ]);
   }
 
@@ -51,6 +52,7 @@ import 'dart:ffi';
 @FfiNative()
 external int foo();
 ''', [
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 20, 32),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
           31, 1),
     ]);
@@ -190,9 +192,9 @@ class NativeTest extends PubPackageResolutionTest {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 
-class NativeFieldWrapperClass1 {}
+base class NativeFieldWrapperClass1 {}
 
-class Paragraph extends NativeFieldWrapperClass1 {
+base class Paragraph extends NativeFieldWrapperClass1 {
   @Native<Double Function(Pointer<Void>)>(isLeaf: true)
   external double get ideographicBaseline;
 
@@ -210,6 +212,7 @@ import 'dart:ffi';
 external int foo();
 ''', [
       error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 7),
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 20, 27),
     ]);
   }
 

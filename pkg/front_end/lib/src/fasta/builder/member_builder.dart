@@ -12,9 +12,9 @@ import 'builder.dart';
 import 'class_builder.dart';
 import 'declaration_builder.dart';
 import 'extension_builder.dart';
+import 'inline_class_builder.dart';
 import 'library_builder.dart';
 import 'modifier_builder.dart';
-import 'view_builder.dart';
 
 abstract class MemberBuilder implements ModifierBuilder {
   @override
@@ -116,9 +116,9 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
     } else if (parent is ExtensionBuilder) {
       ExtensionBuilder extension = parent as ExtensionBuilder;
       return extension.libraryBuilder;
-    } else if (parent is ViewBuilder) {
-      ViewBuilder view = parent as ViewBuilder;
-      return view.libraryBuilder;
+    } else if (parent is InlineClassBuilder) {
+      InlineClassBuilder inlineClass = parent as InlineClassBuilder;
+      return inlineClass.libraryBuilder;
     } else {
       ClassBuilder cls = parent as ClassBuilder;
       return cls.libraryBuilder;
@@ -135,6 +135,9 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   bool get isExtensionInstanceMember => isExtensionMember && !isStatic;
 
   @override
+  bool get isInlineClassInstanceMember => isInlineClassMember && !isStatic;
+
+  @override
   bool get isDeclarationMember => parent is DeclarationBuilder;
 
   @override
@@ -144,7 +147,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   bool get isExtensionMember => parent is ExtensionBuilder;
 
   @override
-  bool get isViewMember => parent is ViewBuilder;
+  bool get isInlineClassMember => parent is InlineClassBuilder;
 
   @override
   bool get isTopLevel => !isDeclarationMember;
@@ -231,6 +234,9 @@ abstract class BuilderClassMember implements ClassMember {
 
   @override
   bool get isInternalImplementation => false;
+
+  @override
+  bool get isNoSuchMethodForwarder => false;
 
   @override
   bool get hasDeclarations => false;

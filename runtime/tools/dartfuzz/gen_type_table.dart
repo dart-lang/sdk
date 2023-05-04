@@ -895,7 +895,7 @@ Set<List<String>> filterOperator(Set<List<String>> op) {
   return newOp;
 }
 
-// See comment on filterOpterator.
+// See comment on filterOperator.
 void filterOperators(Set<InterfaceType> allTypes) {
   for (var tp in allTypes) {
     var typName = typeConstName(tp);
@@ -1394,7 +1394,6 @@ void visitCompilationUnit(
           (classElement.name == 'StackTrace') ||
           (classElement.name == 'NoSuchMethodError') ||
           (classElement.name == 'Comparable') ||
-          (classElement.name == 'BidirectionalIterator') ||
           (classElement.name == 'Iterator') ||
           (classElement.name == 'Stopwatch') ||
           (classElement.name == 'Finalizer') ||

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
@@ -193,7 +194,8 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
     // Dart `null` is implemented by JavaScript `null` and `undefined` which are
     // not strict-equals, so we can't use `===`. We would like to use `==` but
     // need to avoid any cases from ES6 7.2.14 that involve conversions.
-    if (left.isConstantNull() || right.isConstantNull()) {
+    if (_abstractValueDomain.isNull(leftType).isDefinitelyTrue ||
+        _abstractValueDomain.isNull(rightType).isDefinitelyTrue) {
       return '==';
     }
 
@@ -221,6 +223,124 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
   bool _intercepted(AbstractValue type) => _abstractValueDomain
       .isInterceptor(_abstractValueDomain.excludeNull(type))
       .isPotentiallyTrue;
+
+  @override
+  visitBinaryBitOp(HBinaryBitOp node) {
+    node.requiresUintConversion = _requiresUintConversion(node);
+    return node;
+  }
+
+  @override
+  visitShiftRight(HShiftRight node) {
+    // HShiftRight is JavaScript's `>>>` operation so result is always unsigned.
+    node.requiresUintConversion = false;
+    return node;
+  }
+
+  @override
+  visitBitNot(HBitNot node) {
+    node.requiresUintConversion = _requiresUintConversion(node);
+    return node;
+  }
+
+  bool _requiresUintConversion(HInstruction node) {
+    if (node.isUInt31(_abstractValueDomain).isDefinitelyTrue) return false;
+    if (_bitWidth(node) <= 31) return false;
+    // JavaScript bitwise operations generally interpret the input as a signed
+    // 32-bit value, so the conversion to an unsigned value may be avoided if
+    // the value is used only by bitwise operations.
+    return _hasNonBitOpUser(node, Set<HPhi>());
+  }
+
+  Map<HInstruction, int>? _bitWidthCache;
+  static const int _MAX = 32;
+
+  /// Returns the number of bits occupied by the value computed by the
+  /// [instruction].  Returns `32`(_MAX) if the value is negative or does not
+  /// fit as an unsigned integer in a smaller number of bits.
+  //
+  // TODO(sra): Consider making the conversion an explicit new HToUint32
+  // instruction and make HBitAdd be the pure JavaScript signed 32-bit
+  // operation. Lower `a.&(b)` to `HToUint32(HBitAnd(a, b))`. This will require
+  // reworking optimizations that recognize bit operations.
+  int _bitWidth(HInstruction instruction) {
+    int? value = _constantInt(instruction);
+    if (value != null) {
+      if (value < 0) return _MAX;
+      if (value > ((1 << 31) - 1)) return _MAX;
+      return value.bitLength;
+    }
+
+    // For instructions other than constants the width is cached.
+    return (_bitWidthCache ??= {})[instruction] ??=
+        _computeBitWidth(instruction);
+  }
+
+  int _computeBitWidth(HInstruction instruction) {
+    if (instruction is HBitAnd) {
+      return math.min(
+          _bitWidth(instruction.left), _bitWidth(instruction.right));
+    }
+    if (instruction is HBitOr) {
+      int leftWidth = _bitWidth(instruction.left);
+      if (leftWidth == _MAX) return _MAX;
+      return math.max(leftWidth, _bitWidth(instruction.right));
+    }
+    if (instruction is HBitXor) {
+      int leftWidth = _bitWidth(instruction.left);
+      if (leftWidth == _MAX) return _MAX;
+      return math.max(leftWidth, _bitWidth(instruction.right));
+    }
+    if (instruction is HShiftLeft) {
+      int? shiftCount = _constantInt(instruction.right);
+      if (shiftCount == null || shiftCount < 0 || shiftCount > 31) {
+        return _MAX;
+      }
+      int leftWidth = _bitWidth(instruction.left);
+      int width = leftWidth + shiftCount;
+      return math.min(width, _MAX);
+    }
+    if (instruction is HShiftRight) {
+      int? shiftCount = _constantInt(instruction.right);
+      if (shiftCount == null || shiftCount < 0 || shiftCount > 31) return _MAX;
+      int leftWidth = _bitWidth(instruction.left);
+      if (leftWidth >= _MAX) return _MAX;
+      return math.max(leftWidth - shiftCount, 0);
+    }
+    if (instruction is HAdd) {
+      return math.min(
+          1 +
+              math.max(
+                  _bitWidth(instruction.left), _bitWidth(instruction.right)),
+          _MAX);
+    }
+    if (instruction.isUInt31(_abstractValueDomain).isDefinitelyTrue) return 31;
+    return _MAX;
+  }
+
+  int? _constantInt(HInstruction instruction) {
+    if (instruction is HConstant) {
+      ConstantValue constant = instruction.constant;
+      if (constant is IntConstantValue && constant.intValue.isValidInt) {
+        return constant.intValue.toInt();
+      }
+    }
+    return null;
+  }
+
+  bool _hasNonBitOpUser(HInstruction instruction, Set<HPhi> phiSet) {
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HPhi) {
+        if (!phiSet.contains(user)) {
+          phiSet.add(user);
+          if (_hasNonBitOpUser(user, phiSet)) return true;
+        }
+      } else if (user is! HBitNot && user is! HBinaryBitOp) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
   HInstruction? visitFieldSet(HFieldSet setter) {
@@ -302,10 +422,10 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
       return noMatchingRead();
     }
 
-    HInstruction? bitop(String assignOp, HInvokeBinary binary) {
+    HInstruction? bitop(String assignOp, HBinaryBitOp binary) {
       // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
       // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
-      if (op.isUInt31(_abstractValueDomain).isDefinitelyTrue) {
+      if (!binary.requiresUintConversion) {
         return simple(assignOp, binary.left, binary.right);
       }
       return noMatchingRead();

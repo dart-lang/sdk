@@ -110,18 +110,14 @@ void _packageConfig() {
 }
 
 void _project() {
-  late TestProject p;
-
-  tearDown(() async => await p.dispose());
-
   test('hasPubspecFile positive', () {
-    p = project();
+    final p = project();
     Project coreProj = Project.fromDirectory(p.dir);
     expect(coreProj.hasPubspecFile, isTrue);
   });
 
   test('hasPubspecFile negative', () {
-    p = project();
+    final p = project();
     var pubspec = File(path.join(p.dirPath, 'pubspec.yaml'));
     pubspec.deleteSync();
 
@@ -130,7 +126,7 @@ void _project() {
   });
 
   test('hasPackageConfigFile positive', () {
-    p = project();
+    final p = project();
     p.file('.dart_tool/package_config.json', _packageData);
     Project coreProj = Project.fromDirectory(p.dir);
     expect(coreProj.hasPackageConfigFile, isTrue);
@@ -139,7 +135,7 @@ void _project() {
   });
 
   test('hasPackageConfigFile negative', () {
-    p = project();
+    final p = project();
     Project coreProj = Project.fromDirectory(p.dir);
     expect(coreProj.hasPackageConfigFile, isFalse);
   });

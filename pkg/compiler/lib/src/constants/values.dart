@@ -10,6 +10,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../js/js.dart' as js;
+import '../universe/record_shape.dart';
 import '../util/util.dart';
 
 enum ConstantValueKind {
@@ -23,6 +24,7 @@ enum ConstantValueKind {
   SET,
   MAP,
   CONSTRUCTED,
+  RECORD,
   TYPE,
   INTERCEPTOR,
   JS_NAME,
@@ -48,6 +50,7 @@ abstract class ConstantValueVisitor<R, A> {
   R visitMap(covariant MapConstantValue constant, covariant A arg);
   R visitConstructed(
       covariant ConstructedConstantValue constant, covariant A arg);
+  R visitRecord(covariant RecordConstantValue constant, covariant A arg);
   R visitType(covariant TypeConstantValue constant, covariant A arg);
   R visitInterceptor(
       covariant InterceptorConstantValue constant, covariant A arg);
@@ -111,6 +114,14 @@ abstract class ConstantValue {
         "instead of ConstantValue.toString().");
     return toStructuredText(null);
   }
+}
+
+bool _listsEqual(List<ConstantValue> a, List<ConstantValue> b) {
+  if (a.length != b.length) return false;
+  for (int i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }
 
 class FunctionConstantValue extends ConstantValue {
@@ -970,6 +981,76 @@ class ConstructedConstantValue extends ObjectConstantValue {
       sb.write('=');
       sb.write(value.toStructuredText(dartTypes));
       i++;
+    }
+    sb.write('))');
+    return sb.toString();
+  }
+}
+
+class RecordConstantValue extends ConstantValue {
+  final RecordShape shape;
+  final List<ConstantValue> values;
+  @override
+  final int hashCode;
+
+  RecordConstantValue(this.shape, this.values)
+      : assert(shape.fieldCount == values.length),
+        hashCode = Hashing.objectHash(shape, Hashing.listHash(values));
+
+  @override
+  bool operator ==(Object other) {
+    return other is RecordConstantValue &&
+        hashCode == other.hashCode &&
+        shape == other.shape &&
+        _listsEqual(values, other.values);
+  }
+
+  @override
+  DartType getType(CommonElements types) {
+    return types.dartTypes.recordType(
+        shape, values.map((value) => value.getType(types)).toList());
+  }
+
+  @override
+  List<ConstantValue> getDependencies() => values;
+
+  @override
+  accept(ConstantValueVisitor visitor, arg) {
+    return visitor.visitRecord(this, arg);
+  }
+
+  @override
+  ConstantValueKind get kind => ConstantValueKind.RECORD;
+
+  @override
+  String toDartText(DartTypes? dartTypes) {
+    StringBuffer sb = StringBuffer();
+    sb.write('(');
+    for (int i = 0; i < values.length; i++) {
+      if (i > 0) sb.write(',');
+      if (i >= shape.positionalFieldCount) {
+        sb.write(shape.fieldNames[i - shape.positionalFieldCount]);
+        sb.write(': ');
+      }
+      sb.write(values[i].toDartText(dartTypes));
+    }
+    sb.write(')');
+    return sb.toString();
+  }
+
+  @override
+  String toStructuredText(DartTypes? dartTypes) {
+    StringBuffer sb = StringBuffer();
+    sb.write('RecordConstant(');
+    sb.write(shape);
+    sb.write('(');
+    for (int i = 0; i < values.length; i++) {
+      if (i > 0) sb.write(',');
+      if (i >= shape.positionalFieldCount) {
+        sb.write(shape.fieldNames[i - shape.positionalFieldCount]);
+        sb.write(': ');
+      }
+      sb.write(values[i].toStructuredText(dartTypes));
     }
     sb.write('))');
     return sb.toString();

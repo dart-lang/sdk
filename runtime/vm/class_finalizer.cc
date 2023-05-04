@@ -215,6 +215,9 @@ bool ClassFinalizer::ProcessPendingClasses() {
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeTypesInClass(cls);
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+      cls.SetUserVisibleNameInClassTable();
+#endif
     }
 
     // Clear pending classes array.
@@ -796,8 +799,13 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
       // parameterized class.
       const intptr_t offset = parameterized_class.NumTypeArguments() -
                               parameterized_class.NumTypeParameters();
+      const intptr_t index = type_parameter.index() + offset;
+      if (!Utils::IsUint(16, index)) {
+        FATAL("Too many type parameters in %s",
+              parameterized_class.UserVisibleNameCString());
+      }
       type_parameter.set_base(offset);  // Informative, but not needed.
-      type_parameter.set_index(type_parameter.index() + offset);
+      type_parameter.set_index(index);
 
       // Remove the reference to the parameterized class.
       type_parameter.set_parameterized_class_id(kClassCid);
@@ -935,11 +943,6 @@ AbstractTypePtr ClassFinalizer::FinalizeRecordType(
       record.SetFieldTypeAt(i, finalized_type);
     }
   }
-  // Canonicalize field names so they can be compared with pointer comparison.
-  // The field names are already sorted in the front-end.
-  Array& field_names = Array::Handle(zone, record.field_names());
-  field_names ^= field_names.Canonicalize(Thread::Current());
-  record.set_field_names(field_names);
 
   if (FLAG_trace_type_finalization) {
     THR_Print("Marking record type '%s' as finalized\n",
@@ -1082,9 +1085,9 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (FLAG_trace_class_finalization) {
     THR_Print("Finalize types in %s\n", cls.ToCString());
   }
-  bool implements_finalizable =
-      cls.Name() == Symbols::Finalizable().ptr() &&
-      Library::UrlOf(cls.library()) == Symbols::DartFfi().ptr();
+
+  bool has_isolate_unsendable_pragma =
+      cls.is_isolate_unsendable_due_to_pragma();
 
   // Finalize super class.
   Class& super_class = Class::Handle(zone, cls.SuperClass());
@@ -1101,8 +1104,8 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (!super_type.IsNull()) {
     super_type = FinalizeType(super_type);
     cls.set_super_type(super_type);
-    implements_finalizable |=
-        Class::ImplementsFinalizable(super_type.type_class());
+    has_isolate_unsendable_pragma |=
+        Class::IsIsolateUnsendableDueToPragma(super_type.type_class());
   }
   // Finalize interface types (but not necessarily interface classes).
   const auto& interface_types = Array::Handle(zone, cls.interfaces());
@@ -1115,11 +1118,11 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     ASSERT(!interface_class.IsNull());
     FinalizeTypesInClass(interface_class);
     interface_types.SetAt(i, interface_type);
-    implements_finalizable |=
-        Class::ImplementsFinalizable(interface_type.type_class());
+    has_isolate_unsendable_pragma |=
+        Class::IsIsolateUnsendableDueToPragma(interface_type.type_class());
   }
-  cls.set_implements_finalizable(implements_finalizable);
   cls.set_is_type_finalized();
+  cls.set_is_isolate_unsendable_due_to_pragma(has_isolate_unsendable_pragma);
 
   RegisterClassInHierarchy(thread->zone(), cls);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -1149,7 +1152,7 @@ void ClassFinalizer::RegisterClassInHierarchy(Zone* zone, const Class& cls) {
     other_cls.AddDirectImplementor(cls, /* is_mixin = */ i == mixin_index);
   }
 
-  // Propogate known concrete implementors to interfaces.
+  // Propagate known concrete implementors to interfaces.
   if (!cls.is_abstract()) {
     GrowableArray<const Class*> worklist;
     worklist.Add(&cls);
@@ -1218,10 +1221,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     PrintClassInformation(cls);
   }
   FinalizeMemberTypes(cls);
-
-  if (cls.is_enum_class() && !FLAG_precompiled_mode) {
-    AllocateEnumValues(cls);
-  }
 
   // The rest of finalization for non-top-level class has to be done with
   // stopped mutators. It will be done by AllocateFinalizeClass. before new
@@ -1300,57 +1299,6 @@ ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
   } else {
     return Thread::Current()->StealStickyError();
   }
-}
-
-// Eagerly allocate instances for enumeration values by evaluating
-// static const field 'values'. Also, pre-allocate
-// deleted sentinel value. This is needed to correctly
-// migrate enumeration values in case of hot reload.
-void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  ObjectStore* object_store = thread->isolate_group()->object_store();
-
-  const auto& values_field =
-      Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
-  if (!values_field.IsNull()) {
-    ASSERT(values_field.is_static() && values_field.is_const());
-
-    const auto& values =
-        Object::Handle(zone, values_field.StaticConstFieldValue());
-    if (values.IsError()) {
-      ReportError(Error::Cast(values));
-    }
-    ASSERT(values.IsArray());
-  }
-
-  const auto& index_field =
-      Field::Handle(zone, object_store->enum_index_field());
-  ASSERT(!index_field.IsNull());
-
-  const auto& name_field = Field::Handle(zone, object_store->enum_name_field());
-  ASSERT(!name_field.IsNull());
-
-  const auto& enum_name = String::Handle(zone, enum_cls.ScrubbedName());
-
-  const auto& sentinel_ident = String::Handle(
-      zone,
-      Symbols::FromConcat(thread, Symbols::_DeletedEnumPrefix(), enum_name));
-  auto& sentinel_value =
-      Instance::Handle(zone, Instance::New(enum_cls, Heap::kOld));
-  sentinel_value.SetField(index_field, Smi::Handle(zone, Smi::New(-1)));
-  sentinel_value.SetField(name_field, sentinel_ident);
-  sentinel_value = sentinel_value.Canonicalize(thread);
-  ASSERT(!sentinel_value.IsNull());
-  ASSERT(sentinel_value.IsCanonical());
-  const auto& sentinel_field = Field::Handle(
-      zone, enum_cls.LookupStaticField(Symbols::_DeletedEnumSentinel()));
-  ASSERT(!sentinel_field.IsNull());
-
-  // The static const field contains `Object::null()` instead of
-  // `Object::sentinel()` - so it's not considered an initializing store.
-  sentinel_field.SetStaticConstFieldValue(sentinel_value,
-                                          /*assert_initializing_store*/ false);
 }
 
 void ClassFinalizer::PrintClassInformation(const Class& cls) {

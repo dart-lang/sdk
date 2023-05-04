@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 /// Implementations can be used to simulate the deceleration of an element within
@@ -48,12 +46,12 @@ abstract class Momentum {
   /// Returns true if deceleration has been initiated.
   bool start(Coordinate velocity, Coordinate minCoord, Coordinate maxCoord,
       Coordinate initialOffset,
-      [num decelerationFactor]);
+      [num? decelerationFactor]);
 
   /// Calculate the velocity required to transition between coordinates [start]
   /// and [target] optionally specifying a custom [decelerationFactor].
   Coordinate calculateVelocity(Coordinate start, Coordinate target,
-      [num decelerationFactor]);
+      [num? decelerationFactor]);
 
   /// Stop decelerating and return the current velocity. */
   Coordinate stop();
@@ -62,7 +60,7 @@ abstract class Momentum {
   void abort();
 
   /// null if no transition is in progress. */
-  Coordinate get destination;
+  Coordinate? get destination;
 }
 
 /// Momentum Delegate interface.
@@ -86,8 +84,8 @@ class BouncingState {
 class _Move {
   final num x;
   final num y;
-  final num vx;
-  final num vy;
+  final num? vx;
+  final num? vy;
   final num time;
 
   _Move(this.x, this.y, this.vx, this.vy, this.time);
@@ -96,7 +94,7 @@ class _Move {
 /// Secant method root solver helper class.
 /// We use http://en.wikipedia.org/wiki/Secant_method
 /// falling back to the http://en.wikipedia.org/wiki/Bisection_method
-/// if it doesn't appear we are converging properlty.
+/// if it doesn't appear we are converging properly.
 /// TODO(jacobr): simplify the code so we don't have to use this solver
 /// class at all.
 class Solver {
@@ -104,10 +102,10 @@ class Solver {
       [int maxIterations = 50]) {
     num lastX = 0;
     num lastY = fn(lastX);
-    num deltaX;
-    num deltaY;
-    num minX;
-    num maxX;
+    num? deltaX;
+    num? deltaY;
+    num? minX;
+    num? maxX;
     num x = startX;
     num delta = startX;
     for (int i = 0; i < maxIterations; i++) {
@@ -189,15 +187,15 @@ class SingleDimensionPhysics {
   /// Additional deceleration factor to apply for the current move only.  This
   /// is helpful for cases such as scroll wheel scrolling where the default
   /// amount of deceleration is inadequate.
-  num customDecelerationFactor = 1;
-  num _minCoord;
-  num _maxCoord;
+  num? customDecelerationFactor = 1;
+  num? _minCoord;
+  num? _maxCoord;
 
   /// The bouncing state. */
-  int _bouncingState;
+  int? _bouncingState;
 
-  num velocity;
-  num _currentOffset;
+  num? velocity;
+  late num _currentOffset;
 
   /// constant used when guessing at the velocity required to throw to a specific
   /// location. Chosen arbitrarily. All that really matters is that the velocity
@@ -206,8 +204,8 @@ class SingleDimensionPhysics {
 
   SingleDimensionPhysics() : _bouncingState = BouncingState.NOT_BOUNCING;
 
-  void configure(num minCoord, num maxCoord, num initialOffset,
-      num customDecelerationFactor_, num velocity_) {
+  void configure(num? minCoord, num? maxCoord, num initialOffset,
+      num? customDecelerationFactor_, num velocity_) {
     _bouncingState = BouncingState.NOT_BOUNCING;
     _minCoord = minCoord;
     _maxCoord = maxCoord;
@@ -217,7 +215,7 @@ class SingleDimensionPhysics {
   }
 
   num solve(
-      num initialOffset, num targetOffset, num customDecelerationFactor_) {
+      num initialOffset, num targetOffset, num? customDecelerationFactor_) {
     initialOffset = initialOffset.round();
     targetOffset = targetOffset.round();
     if (initialOffset == targetOffset) {
@@ -238,51 +236,53 @@ class SingleDimensionPhysics {
   /// The [velocity] passed here should be in terms of number of
   /// pixels / millisecond. Returns the adjusted x and y velocities.
   void _adjustInitialVelocityAndBouncingState(num v) {
-    velocity = v * _MS_PER_FRAME * _INITIAL_VELOCITY_BOOST_FACTOR;
+    num vel = v * _MS_PER_FRAME * _INITIAL_VELOCITY_BOOST_FACTOR;
 
-    if (velocity.abs() < _MIN_VELOCITY) {
-      if (_minCoord != null && _currentOffset < _minCoord) {
-        velocity = (_minCoord - _currentOffset) * _POST_BOUNCE_COEFFICIENT;
-        velocity = Math.max(velocity, _MIN_STEP_VELOCITY);
+    if (vel.abs() < _MIN_VELOCITY) {
+      if (_minCoord != null && _currentOffset < _minCoord!) {
+        vel = (_minCoord! - _currentOffset) * _POST_BOUNCE_COEFFICIENT;
+        vel = Math.max(vel, _MIN_STEP_VELOCITY);
         _bouncingState = BouncingState.BOUNCING_BACK;
-      } else if (_maxCoord != null && _currentOffset > _maxCoord) {
-        velocity = (_currentOffset - _maxCoord) * _POST_BOUNCE_COEFFICIENT;
-        velocity = -Math.max(velocity, _MIN_STEP_VELOCITY);
+      } else if (_maxCoord != null && _currentOffset > _maxCoord!) {
+        vel = (_currentOffset - _maxCoord!) * _POST_BOUNCE_COEFFICIENT;
+        vel = -Math.max(vel, _MIN_STEP_VELOCITY);
         _bouncingState = BouncingState.BOUNCING_BACK;
       }
     }
+    velocity = vel;
   }
 
   /// Apply deceleration.
   void _adjustVelocity() {
-    num speed = velocity.abs();
-    velocity *= _DECELERATION_FACTOR;
+    var vel = velocity!;
+    num speed = vel.abs();
+    vel *= _DECELERATION_FACTOR;
     if (customDecelerationFactor != null) {
-      velocity *= customDecelerationFactor;
+      vel *= customDecelerationFactor!;
     }
     // This isn't really how static friction works but it is a plausible
     // approximation.
     if (speed < _MAX_VELOCITY_STATIC_FRICTION) {
-      velocity *= _DECELERATION_FACTOR_STATIC_FRICTION;
+      vel *= _DECELERATION_FACTOR_STATIC_FRICTION;
     }
 
-    num stretchDistance;
-    if (_minCoord != null && _currentOffset < _minCoord) {
-      stretchDistance = _minCoord - _currentOffset;
+    num? stretchDistance;
+    if (_minCoord != null && _currentOffset < _minCoord!) {
+      stretchDistance = _minCoord! - _currentOffset;
     } else {
-      if (_maxCoord != null && _currentOffset > _maxCoord) {
-        stretchDistance = _maxCoord - _currentOffset;
+      if (_maxCoord != null && _currentOffset > _maxCoord!) {
+        stretchDistance = _maxCoord! - _currentOffset;
       }
     }
     if (stretchDistance != null) {
-      if (stretchDistance * velocity < 0) {
+      if (stretchDistance * vel < 0) {
         _bouncingState = _bouncingState == BouncingState.BOUNCING_BACK
             ? BouncingState.NOT_BOUNCING
             : BouncingState.BOUNCING_AWAY;
-        velocity += stretchDistance * _PRE_BOUNCE_COEFFICIENT;
+        vel += stretchDistance * _PRE_BOUNCE_COEFFICIENT;
       } else {
         _bouncingState = BouncingState.BOUNCING_BACK;
-        velocity = stretchDistance > 0
+        vel = stretchDistance > 0
             ? Math.max(
                 stretchDistance * _POST_BOUNCE_COEFFICIENT, _MIN_STEP_VELOCITY)
             : Math.min(stretchDistance * _POST_BOUNCE_COEFFICIENT,
@@ -291,13 +291,14 @@ class SingleDimensionPhysics {
     } else {
       _bouncingState = BouncingState.NOT_BOUNCING;
     }
+    velocity = vel;
   }
 
   void step() {
     // It is common for scrolling to be disabled so in these cases we want to
     // avoid needless calculations.
     if (velocity != null) {
-      _currentOffset += velocity;
+      _currentOffset += velocity!;
       _adjustVelocity();
     }
   }
@@ -311,7 +312,7 @@ class SingleDimensionPhysics {
   /// Whether or not the current velocity is above the threshold required to
   /// continue decelerating.
   bool isVelocityAboveThreshold(num threshold) {
-    return velocity.abs() >= threshold;
+    return velocity!.abs() >= threshold;
   }
 
   bool isDone() {
@@ -325,16 +326,16 @@ class SingleDimensionPhysics {
 class TimeoutMomentum implements Momentum {
   SingleDimensionPhysics physicsX;
   SingleDimensionPhysics physicsY;
-  Coordinate _previousOffset;
+  late Coordinate _previousOffset;
   final Queue<_Move> _moves;
-  num _stepTimeout;
+  int? _stepTimeout;
   bool _decelerating;
   final MomentumDelegate _delegate;
-  int _nextY;
-  int _nextX;
-  Coordinate _minCoord;
-  Coordinate _maxCoord;
-  num _customDecelerationFactor;
+  late int _nextY;
+  late int _nextX;
+  late Coordinate _minCoord;
+  late Coordinate _maxCoord;
+  late num _customDecelerationFactor;
   final num _defaultDecelerationFactor;
 
   TimeoutMomentum(this._delegate, [num defaultDecelerationFactor = 1])
@@ -380,7 +381,7 @@ class TimeoutMomentum implements Momentum {
 
   @override
   Coordinate calculateVelocity(Coordinate start_, Coordinate target,
-      [num decelerationFactor]) {
+      [num? decelerationFactor]) {
     return Coordinate(physicsX.solve(start_.x, target.x, decelerationFactor),
         physicsY.solve(start_.y, target.y, decelerationFactor));
   }
@@ -388,14 +389,14 @@ class TimeoutMomentum implements Momentum {
   @override
   bool start(Coordinate velocity, Coordinate minCoord, Coordinate maxCoord,
       Coordinate initialOffset,
-      [num decelerationFactor]) {
+      [num? decelerationFactor]) {
     _customDecelerationFactor = _defaultDecelerationFactor;
     if (decelerationFactor != null) {
       _customDecelerationFactor = decelerationFactor;
     }
 
     if (_stepTimeout != null) {
-      Env.cancelRequestAnimationFrame(_stepTimeout);
+      Env.cancelRequestAnimationFrame(_stepTimeout!);
       _stepTimeout = null;
     }
 
@@ -462,7 +463,7 @@ class TimeoutMomentum implements Momentum {
     _decelerating = false;
     _moves.clear();
     if (_stepTimeout != null) {
-      Env.cancelRequestAnimationFrame(_stepTimeout);
+      Env.cancelRequestAnimationFrame(_stepTimeout!);
       _stepTimeout = null;
     }
   }
@@ -475,16 +476,16 @@ class TimeoutMomentum implements Momentum {
     if (_moves.isNotEmpty) {
       final move = _moves.first;
       // This is a workaround for the ugly hacks that get applied when a user
-      // passed a velocity in to this Momentum implementation.
+      // passed a velocity into this Momentum implementation.
       num velocityScale = SingleDimensionPhysics._MS_PER_FRAME *
           SingleDimensionPhysics._INITIAL_VELOCITY_BOOST_FACTOR;
-      velocity = Coordinate(move.vx / velocityScale, move.vy / velocityScale);
+      velocity = Coordinate(move.vx! / velocityScale, move.vy! / velocityScale);
     } else {
       velocity = Coordinate(0, 0);
     }
     _moves.clear();
     if (_stepTimeout != null) {
-      Env.cancelRequestAnimationFrame(_stepTimeout);
+      Env.cancelRequestAnimationFrame(_stepTimeout!);
       _stepTimeout = null;
     }
     if (wasDecelerating) {
@@ -494,7 +495,7 @@ class TimeoutMomentum implements Momentum {
   }
 
   @override
-  Coordinate get destination {
+  Coordinate? get destination {
     if (_moves.isNotEmpty) {
       final lastMove = _moves.last;
       return Coordinate(lastMove.x, lastMove.y);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library dart2js.constants.expressions.evaluate_test;
 
 import 'dart:async';
@@ -14,14 +12,12 @@ import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/elements/indexed.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/environment.dart';
 import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/visitors.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
-import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
@@ -587,7 +583,7 @@ main(List<String> args) {
 }
 
 Future testData(TestData data) async {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.writeln('${data.declarations}');
   Map<String, ConstantData> constants = {};
   List<String> names = <String>[];
@@ -620,11 +616,10 @@ Future testData(TestData data) async {
     ir.TypeEnvironment typeEnvironment = elementMap.typeEnvironment;
     KElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
-    ConstantValuefier constantValuefier = new ConstantValuefier(elementMap);
-    LibraryEntity library = elementEnvironment.mainLibrary;
+    ConstantValuefier constantValuefier = ConstantValuefier(elementMap);
+    LibraryEntity library = elementEnvironment.mainLibrary!;
     constants.forEach((String name, ConstantData data) {
-      IndexedField field =
-          elementEnvironment.lookupLibraryMember(library, name);
+      final field = elementEnvironment.lookupLibraryMember(library, name)!;
       compiler.reporter.withCurrentElement(field, () {
         var expectedResults = data.expectedResults;
         if (expectedResults is String) {
@@ -632,20 +627,20 @@ Future testData(TestData data) async {
             const <String, String>{}: expectedResults
           };
         }
-        ir.Field node = elementMap.getMemberNode(field);
-        ir.ConstantExpression initializer = node.initializer;
+        final node = elementMap.getMemberNode(field) as ir.Field;
+        final initializer = node.initializer as ir.ConstantExpression;
         print('-- testing $field = ${data.code} --');
         expectedResults
             .forEach((Map<String, String> environment, String expectedText) {
           List<String> errors = [];
-          Dart2jsConstantEvaluator evaluator = new Dart2jsConstantEvaluator(
+          Dart2jsConstantEvaluator evaluator = Dart2jsConstantEvaluator(
               elementMap.env.mainComponent, elementMap.typeEnvironment,
-              (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+              (ir.LocatedMessage message, List<ir.LocatedMessage>? context) {
             // TODO(johnniwinther): Assert that `message.uri != null`. Currently
             // all unevaluated constants have no uri.
             // The actual message is a "constant errors starts here" message,
             // the "real error message" is the first in the context.
-            errors.add(context.first.code.name);
+            errors.add(context!.first.code.name);
             reportLocatedMessage(elementMap.reporter, message, context);
           },
               environment: Environment(environment),
@@ -654,11 +649,11 @@ Future testData(TestData data) async {
                   ? ir.EvaluationMode.weak
                   : ir.EvaluationMode.strong);
           ir.Constant evaluatedConstant = evaluator.evaluate(
-              new ir.StaticTypeContext(node, typeEnvironment), initializer);
+              ir.StaticTypeContext(node, typeEnvironment), initializer);
 
           ConstantValue value = evaluatedConstant is! ir.UnevaluatedConstant
               ? constantValuefier.visitConstant(evaluatedConstant)
-              : new NonConstantValue();
+              : NonConstantValue();
 
           Expect.isNotNull(
               value,

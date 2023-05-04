@@ -70,6 +70,8 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
   V(FunctionType, UntaggedFunctionType, type_parameters, TypeParameters,       \
     FINAL)                                                                     \
+  V(ReceivePort, UntaggedReceivePort, send_port, SendPort, FINAL)              \
+  V(ReceivePort, UntaggedReceivePort, handler, Closure, VAR)                   \
   V(ImmutableLinkedHashBase, UntaggedLinkedHashBase, index,                    \
     TypedDataUint32Array, VAR)                                                 \
   V(Instance, UntaggedInstance, native_fields_array, Dynamic, VAR)             \
@@ -125,8 +127,8 @@ class ParsedFunction;
   V(ArgumentsDescriptor, UntaggedArray, positional_count, Smi, FINAL)          \
   V(ArgumentsDescriptor, UntaggedArray, count, Smi, FINAL)                     \
   V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
-  V(Record, UntaggedRecord, field_names, ImmutableArray, FINAL)                \
-  V(Record, UntaggedRecord, num_fields, Smi, FINAL)                            \
+  V(Record, UntaggedRecord, shape, Smi, FINAL)                                 \
+  V(TypeArguments, UntaggedTypeArguments, hash, Smi, VAR)                      \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
   V(TypeParameters, UntaggedTypeParameters, names, Array, FINAL)               \
   V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL)               \
@@ -266,8 +268,6 @@ class Slot : public ZoneAllocated {
                                          intptr_t offset_in_bytes);
 
   // Returns a slot corresponding to a record field at [offset_in_bytes].
-  // TODO(dartbug.com/49719): distinguish slots of records with different
-  // shapes.
   static const Slot& GetRecordFieldSlot(Thread* thread,
                                         intptr_t offset_in_bytes);
 

@@ -46,13 +46,13 @@ static method main() → void {
           final self::MyFinalizable finalizable14 = new self::MyFinalizable::•();
           if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 100) {
             throw block {
-              final core::Exception :expressionValueWrappedFinalizable = core::Exception::•("foo");
+              final synthesized core::Exception :expressionValueWrappedFinalizable = core::Exception::•("foo");
               _in::reachabilityFence(finalizable14);
             } =>:expressionValueWrappedFinalizable;
           }
           if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 101) {
             throw block {
-              final core::Error :expressionValueWrappedFinalizable = new core::Error::•();
+              final synthesized core::Error :expressionValueWrappedFinalizable = new core::Error::•();
               _in::reachabilityFence(finalizable);
               _in::reachabilityFence(finalizable13);
               _in::reachabilityFence(finalizable14);
@@ -69,7 +69,7 @@ static method main() → void {
       finally {
         if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 1000) {
           throw block {
-            final core::Exception :expressionValueWrappedFinalizable = core::Exception::•("bar");
+            final synthesized core::Exception :expressionValueWrappedFinalizable = core::Exception::•("bar");
             _in::reachabilityFence(finalizable13);
           } =>:expressionValueWrappedFinalizable;
         }
@@ -211,7 +211,7 @@ static method main() → void {
     _in::reachabilityFence(finalizable16);
   }
   {
-    core::Iterator<ffi::Finalizable> :sync-for-iterator = core::Iterable::generate<ffi::Finalizable>(5, (core::int index) → self::MyFinalizable => new self::MyFinalizable::•()).{core::Iterable::iterator}{core::Iterator<ffi::Finalizable>};
+    synthesized core::Iterator<ffi::Finalizable> :sync-for-iterator = core::Iterable::generate<ffi::Finalizable>(5, (core::int index) → self::MyFinalizable => new self::MyFinalizable::•()).{core::Iterable::iterator}{core::Iterator<ffi::Finalizable>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final ffi::Finalizable finalizable17 = :sync-for-iterator.{core::Iterator::current}{ffi::Finalizable};
       {
@@ -230,7 +230,7 @@ static method doSomething(core::int a) → core::int
 static method createClosure() → () → void {
   final self::MyFinalizable finalizable20 = new self::MyFinalizable::•();
   return block {
-    final () → void :expressionValueWrappedFinalizable = () → void {
+    final synthesized () → void :expressionValueWrappedFinalizable = () → void {
       if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 42) {
         {
           _in::reachabilityFence(finalizable20);
@@ -246,13 +246,13 @@ static method createClosure() → () → void {
 static method createNestedClosure() → () → () → () → void {
   final self::MyFinalizable finalizable40 = new self::MyFinalizable::•();
   return block {
-    final () → () → () → void :expressionValueWrappedFinalizable = () → () → () → void {
+    final synthesized () → () → () → void :expressionValueWrappedFinalizable = () → () → () → void {
       final self::MyFinalizable finalizable41 = new self::MyFinalizable::•();
       return block {
-        final () → () → void :expressionValueWrappedFinalizable = () → () → void {
+        final synthesized () → () → void :expressionValueWrappedFinalizable = () → () → void {
           final self::MyFinalizable finalizable42 = new self::MyFinalizable::•();
           return block {
-            final () → void :expressionValueWrappedFinalizable = () → void {
+            final synthesized () → void :expressionValueWrappedFinalizable = () → void {
               self::doSomething(finalizable40.{self::MyFinalizable::internalValue}{core::int});
               self::doSomething(finalizable41.{self::MyFinalizable::internalValue}{core::int});
               self::doSomething(finalizable42.{self::MyFinalizable::internalValue}{core::int});
@@ -276,7 +276,7 @@ static method createBadClosure() → () → void {
   final self::MyFinalizable finalizable21 = new self::MyFinalizable::•();
   final core::int internalValue = finalizable21.{self::MyFinalizable::internalValue}{core::int};
   return block {
-    final () → void :expressionValueWrappedFinalizable = () → void {
+    final synthesized () → void :expressionValueWrappedFinalizable = () → void {
       self::doSomething(internalValue);
     };
     _in::reachabilityFence(finalizable21);
@@ -286,7 +286,7 @@ static method reassignment() → void {
   self::MyFinalizable finalizable30 = new self::MyFinalizable::•();
   self::doSomething(4);
   finalizable30 = block {
-    final self::MyFinalizable :expressionValueWrappedFinalizable = new self::MyFinalizable::•();
+    final synthesized self::MyFinalizable :expressionValueWrappedFinalizable = new self::MyFinalizable::•();
     _in::reachabilityFence(finalizable30);
   } =>:expressionValueWrappedFinalizable;
   _in::reachabilityFence(finalizable30);

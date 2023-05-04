@@ -18,9 +18,9 @@ checkImplements(object, String name) {
   ClassMirror cls = reflect(object).type;
   checkClassMirrorMethods(cls);
 
-  // The VM implements List via a mixin, so check for that.
+  // The VM implements List through an intermediate abstract class.
   if (cls.superinterfaces.isEmpty && object is List) {
-    cls = cls.superclass.superclass.mixin;
+    cls = cls.superclass;
   }
 
   // The VM implements String through an intermediate abstract

@@ -72,12 +72,41 @@ class DartSnippetRequest {
         return SnippetContext.inString;
       }
 
+      if (node is VariableDeclaration) {
+        return SnippetContext.inExpression;
+      }
+
+      if (node is VariableDeclarationList) {
+        return SnippetContext.inIdentifierDeclaration;
+      }
+
+      if (node is PropertyAccess) {
+        return SnippetContext.inQualifiedMemberAccess;
+      }
+
+      if (node is InstanceCreationExpression) {
+        return SnippetContext.inConstructorInvocation;
+      }
+
       if (node is Block) {
         return SnippetContext.inBlock;
       }
 
-      if (node is Statement || node is Expression || node is Annotation) {
-        return SnippetContext.inExpressionOrStatement;
+      if (node is Statement) {
+        return SnippetContext.inStatement;
+      }
+
+      // SwitchExpression outside of SwitchExpressionCase is a pattern.
+      if (node is SwitchExpression) {
+        return SnippetContext.inPattern;
+      }
+
+      if (node is Expression) {
+        return SnippetContext.inExpression;
+      }
+
+      if (node is Annotation) {
+        return SnippetContext.inAnnotation;
       }
 
       if (node is BlockFunctionBody) {
@@ -86,7 +115,8 @@ class DartSnippetRequest {
 
       if (node is ClassDeclaration ||
           node is ExtensionDeclaration ||
-          node is MixinDeclaration) {
+          node is MixinDeclaration ||
+          node is EnumDeclaration) {
         return SnippetContext.inClass;
       }
 

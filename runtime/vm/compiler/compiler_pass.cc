@@ -57,8 +57,8 @@ CompilerPassState::CompilerPassState(
     : thread(thread),
       precompiler(precompiler),
       inlining_depth(0),
-      sinking(NULL),
-      call_specializer(NULL),
+      sinking(nullptr),
+      call_specializer(nullptr),
       speculative_policy(speculative_policy),
       reorder_blocks(false),
       sticky_flags(0),
@@ -74,7 +74,7 @@ CompilerPassState::CompilerPassState(
   // larger than the length of |inline_id_to_token_pos| by one.
 }
 
-CompilerPass* CompilerPass::passes_[CompilerPass::kNumPasses] = {NULL};
+CompilerPass* CompilerPass::passes_[CompilerPass::kNumPasses] = {nullptr};
 uint8_t CompilerPass::flags_[CompilerPass::kNumPasses] = {0};
 
 DEFINE_OPTION_HANDLER(CompilerPass::ParseFiltersFromFlag,
@@ -124,14 +124,14 @@ uint8_t* CompilerPass::ParseFiltersFromPragma(const char* filter) {
 }
 
 void CompilerPass::ParseFilters(const char* filter, uint8_t* pass_flags) {
-  if (filter == NULL || *filter == 0) {
+  if (filter == nullptr || *filter == 0) {
     return;
   }
 
   if (strcmp(filter, "help") == 0) {
     OS::PrintErr("%s", kCompilerPassesUsage);
     for (intptr_t i = 0; i < kNumPasses; i++) {
-      if (passes_[i] != NULL) {
+      if (passes_[i] != nullptr) {
         OS::PrintErr("  %s\n", passes_[i]->name());
       }
     }
@@ -190,7 +190,7 @@ void CompilerPass::ParseOneFilter(const char* start,
   if (length != 0) {
     char* pass_name = Utils::StrNDup(start, length);
     CompilerPass* pass = FindPassByName(pass_name);
-    if (pass != NULL) {
+    if (pass != nullptr) {
       pass_flags[pass->id()] |= flags;
     } else {
       OS::PrintErr("Unknown compiler pass: %s\n", pass_name);
@@ -382,9 +382,9 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(AllocationSinking_Sink);
   INVOKE_PASS(EliminateDeadPhis);
   INVOKE_PASS(DCE);
+  INVOKE_PASS(Canonicalize);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(SelectRepresentations_Final);
-  INVOKE_PASS(Canonicalize);
   INVOKE_PASS(UseTableDispatch);
   INVOKE_PASS(EliminateStackOverflowChecks);
   INVOKE_PASS(Canonicalize);
@@ -461,7 +461,7 @@ COMPILER_PASS(OptimisticallySpecializeSmiPhis, {
 
 COMPILER_PASS(WidenSmiToInt32, {
   // Where beneficial convert Smi operations into Int32 operations.
-  // Only meanigful for 32bit platforms right now.
+  // Only meaningful for 32bit platforms right now.
   flow_graph->WidenSmiToInt32();
 });
 
@@ -536,7 +536,7 @@ COMPILER_PASS(AllocationSinking_Sink, {
 });
 
 COMPILER_PASS(AllocationSinking_DetachMaterializations, {
-  if (state->sinking != NULL) {
+  if (state->sinking != nullptr) {
     // Remove all MaterializeObject instructions inserted by allocation
     // sinking from the flow graph and let them float on the side
     // referenced only from environments. Register allocator will consider
@@ -546,7 +546,7 @@ COMPILER_PASS(AllocationSinking_DetachMaterializations, {
 });
 
 COMPILER_PASS(AllocateRegisters, {
-  flow_graph->InsertPushArguments();
+  flow_graph->InsertMoveArguments();
   // Ensure loop hierarchy has been computed.
   flow_graph->GetLoopHierarchy();
   // Perform register allocation on the SSA graph.
@@ -555,6 +555,7 @@ COMPILER_PASS(AllocateRegisters, {
 });
 
 COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
+  flow_graph->set_max_argument_slot_count(0);
   // Ensure loop hierarchy has been computed.
   flow_graph->GetLoopHierarchy();
   // Perform register allocation on the SSA graph.

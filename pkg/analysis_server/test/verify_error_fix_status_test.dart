@@ -96,7 +96,7 @@ class VerifyErrorFixStatusTest {
 
   /// Return a failure message composed from the given lists.
   String _failureMessage(_ErrorData errorData) {
-    var buffer = StringBuffer();
+    var buffer = StringBuffer('In ${_statusFilePath()}:\n');
     var needsBlankLine = false;
     if (errorData.codesWithNoEntry.isNotEmpty) {
       buffer.writeln('Add the following entries:');

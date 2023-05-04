@@ -9,15 +9,15 @@ import 'package:compiler/src/util/testing.dart';
 /*class: A:needsArgs*/
 
 class A<X, Y, Z> {
-  shift() => new A<Z, X, Y>();
+  shift() => A<Z, X, Y>();
 
-  swap() => new A<Z, Y, X>();
+  swap() => A<Z, Y, X>();
 
-  first() => new A<X, X, X>();
+  first() => A<X, X, X>();
 
-  last() => new A<Z, Z, Z>();
+  last() => A<Z, Z, Z>();
 
-  wrap() => new A<A<X, X, X>, A<Y, Y, Y>, A<Z, Z, Z>>();
+  wrap() => A<A<X, X, X>, A<Y, Y, Y>, A<Z, Z, Z>>();
 }
 
 class B extends A<U, V, W> {}
@@ -39,16 +39,16 @@ class W {}
 sameType(a, b) => makeLive(a.runtimeType == b.runtimeType);
 
 main() {
-  A a = new A<U, V, W>();
+  A a = A<U, V, W>();
   sameType(new A<W, U, V>(), a.shift());
   sameType(new A<W, V, U>(), a.swap());
   sameType(new A<U, U, U>(), a.first());
   sameType(new A<W, W, W>(), a.last());
   sameType(new A<A<U, U, U>, A<V, V, V>, A<W, W, W>>(), a.wrap());
-  B b = new B();
+  B b = B();
   sameType(new A<A<U, U, U>, A<V, V, V>, A<W, W, W>>(), b.wrap());
-  C c = new C<V>();
+  C c = C<V>();
   sameType(new A<A<U, U, U>, A<V, V, V>, A<W, W, W>>(), c.wrap());
-  D d = new D<U, V, W>();
+  D d = D<U, V, W>();
   sameType(new A<A<V, V, V>, A<W, W, W>, A<U, U, U>>(), d.wrap());
 }

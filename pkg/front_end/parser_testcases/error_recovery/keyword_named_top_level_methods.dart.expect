@@ -56,7 +56,7 @@ parser/error_recovery/keyword_named_top_level_methods:46:5: 'const' can't be use
 int const(int x) {
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:48:19: Record literal with one field requires a trailing comma.
+parser/error_recovery/keyword_named_top_level_methods:48:19: A record literal with exactly one positional field requires a trailing comma.
   return const(x-1) + 1;
                   ^
 
@@ -272,7 +272,7 @@ parser/error_recovery/keyword_named_top_level_methods:183:14: Expected ')' befor
   return is(x-1) + 1;
              ^
 
-parser/error_recovery/keyword_named_top_level_methods:183:16: Record type with one entry requires a trailing comma.
+parser/error_recovery/keyword_named_top_level_methods:183:16: A record type with exactly one positional field requires a trailing comma.
   return is(x-1) + 1;
                ^
 

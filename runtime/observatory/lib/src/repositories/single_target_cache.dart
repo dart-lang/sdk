@@ -7,7 +7,6 @@ part of repositories;
 class SingleTargetCacheRepository extends M.SingleTargetCacheRepository {
   Future<M.SingleTargetCache> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     return (await isolate.getObject(id)) as S.SingleTargetCache;
   }
 }

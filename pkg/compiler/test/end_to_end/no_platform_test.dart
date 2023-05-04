@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
@@ -19,20 +17,20 @@ main() {
     fe.InitializedCompilerState initializedCompilerState =
         fe.initializeCompiler(
             null,
-            new Dart2jsTarget('dart2js', new TargetFlags()),
+            Dart2jsTarget('dart2js', TargetFlags()),
             sdkLibrariesSpecificationUri,
             [], // additionalDills
             Uri.base
                 .resolve('.dart_tool/package_config.json'), // packagesFileUri
             explicitExperimentalFlags: experimentalFlags,
             verify: true);
-    ir.Component component = await fe.compile(
+    ir.Component component = (await fe.compile(
         initializedCompilerState, false, fe.StandardFileSystem.instance,
         (fe.DiagnosticMessage message) {
       message.plainTextFormatted.forEach(print);
       Expect.notEquals(fe.Severity.error, message.severity);
     }, [Uri.base.resolve('pkg/compiler/test/end_to_end/data/hello_world.dart')],
-        false);
+        false))!;
     Expect.isNotNull(new ir.CoreTypes(component).futureClass);
   }
 

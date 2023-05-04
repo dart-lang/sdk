@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
@@ -21,7 +19,7 @@ void foo(bar) {
 // GVN'ing the length of [:list:].
 const String TEST_TWO = r"""
 void foo(a) {
-  var list = new List<int>();
+  var list = <int>[];
   list[0] = list[0 % a];
   list[1] = list[1 % a];
 }
@@ -55,7 +53,7 @@ class A {
 class B {}
 
 main() {
-  helper([new A(32), new A(21), new B(), null][0]);
+  helper([new A(32), A(21), B(), null][0]);
 }
 
 helper(A a) {
@@ -76,7 +74,7 @@ class A {
 }
 
 main() {
-  dynamic a = new A();
+  dynamic a = A();
   while (a.field == 54) { a.field = 42; }
 }
 """;
@@ -91,8 +89,8 @@ class A {
 }
 
 main() {
-  dynamic a = new A();
-  dynamic b = new A.bar();
+  dynamic a = A();
+  dynamic b = A.bar();
   while (a.field == 54) { a.field = 42; b.field = 42; }
 }
 """;
@@ -106,8 +104,8 @@ class A {
 }
 
 main() {
-  dynamic a = new A();
-  dynamic b = new A.bar();
+  dynamic a = A();
+  dynamic b = A.bar();
   for (int i = 0; i < a.field; i++) { a.field = 42; b.field = 42; }
 }
 """;

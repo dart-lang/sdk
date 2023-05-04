@@ -9,6 +9,7 @@ from __future__ import print_function
 
 import contextlib
 import datetime
+from functools import total_ordering
 import glob
 import imp
 import json
@@ -27,6 +28,8 @@ try:
     import resource
 except:
     pass
+
+SEMANTIC_VERSION_PATTERN = r'^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
 
 
 # To eliminate clashing with older archived builds on bleeding edge we add
@@ -120,16 +123,88 @@ def GetMinidumpUtils(repo_path=DART_DIR):
                            os.path.join(repo_path, 'tools', 'minidump.py'))
 
 
+@total_ordering
 class Version(object):
 
-    def __init__(self, channel, major, minor, patch, prerelease,
-                 prerelease_patch):
+    def __init__(self,
+                 channel=None,
+                 major=None,
+                 minor=None,
+                 patch=None,
+                 prerelease=None,
+                 prerelease_patch=None,
+                 version=None):
         self.channel = channel
         self.major = major
         self.minor = minor
         self.patch = patch
         self.prerelease = prerelease
         self.prerelease_patch = prerelease_patch
+        if version:
+            self.set_version(version)
+
+    def set_version(self, version):
+        match = re.match(SEMANTIC_VERSION_PATTERN, version)
+        assert match, '%s must be a valid version' % version
+        self.channel = 'stable'
+        self.major = match['major']
+        self.minor = match['minor']
+        self.patch = match['patch']
+        self.prerelease = '0'
+        self.prerelease_patch = '0'
+        if match['prerelease']:
+            subversions = match['prerelease'].split('.')
+            self.prerelease = subversions[0]
+            self.prerelease_patch = subversions[1]
+            self.channel = subversions[2]
+
+    def __str__(self):
+        result = '%s.%s.%s' % (self.major, self.minor, self.patch)
+        if self.channel != 'stable':
+            result += '-%s.%s.%s' % (self.prerelease, self.prerelease_patch,
+                                     self.channel)
+        return result
+
+    def __eq__(self, other):
+        return self.channel == other.channel and \
+               self.major == other.major and \
+               self.minor == other.minor and \
+               self.patch == other.patch and \
+               self.prerelease == other.prerelease and \
+               self.prerelease_patch == other.prerelease_patch
+
+    def __lt__(self, other):
+        if int(self.major) < int(other.major):
+            return True
+        if int(self.major) > int(other.major):
+            return False
+        if int(self.minor) < int(other.minor):
+            return True
+        if int(self.minor) > int(other.minor):
+            return False
+        if int(self.patch) < int(other.patch):
+            return True
+        if int(self.patch) > int(other.patch):
+            return False
+        # The stable channel is ahead of the other channels on the same triplet.
+        if self.channel != 'stable' and other.channel == 'stable':
+            return True
+        if self.channel == 'stable' and other.channel != 'stable':
+            return False
+        # The be channel is ahead of the other channels on the same triplet.
+        if self.channel != 'be' and other.channel == 'be':
+            return True
+        if self.channel == 'be' and other.channel != 'be':
+            return False
+        if int(self.prerelease_patch) < int(other.prerelease_patch):
+            return True
+        if int(self.prerelease_patch) > int(other.prerelease_patch):
+            return False
+        if int(self.prerelease) < int(other.prerelease):
+            return True
+        if int(self.prerelease) > int(other.prerelease):
+            return False
+        return False
 
 
 # Try to guess the host operating system.
@@ -182,7 +257,7 @@ def HostArchitectures():
             return ['arm']
         if m in ['i386', 'i686', 'ia32', 'x86']:
             return ['x86', 'ia32']
-        if m in ['x64', 'x86-64', 'x86_64', 'AMD64']:
+        if m in ['x64', 'x86-64', 'x86_64', 'amd64', 'AMD64']:
             return ['x64', 'x86', 'ia32']
     raise Exception('Failed to determine host architectures for %s %s',
                     platform.machine(), platform.system())
@@ -420,16 +495,19 @@ def GetGitRevision(git_revision_file=None, repo_path=DART_DIR):
         git_revision_file = os.path.join(repo_path, 'tools', 'GIT_REVISION')
     try:
         with open(git_revision_file) as fd:
-            return fd.read().decode('utf-8').strip()
+            return fd.read().strip()
     except:
         pass
     p = subprocess.Popen(['git', 'rev-parse', 'HEAD'],
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
+                         stderr=subprocess.PIPE,
                          shell=IsWindows(),
                          cwd=repo_path)
-    output, _ = p.communicate()
-    revision = output.decode('utf-8').strip()
+    out, err = p.communicate()
+    # TODO(https://github.com/dart-lang/sdk/issues/51865): Don't ignore errors.
+    # if p.wait() != 0:
+    #    raise Exception('git rev-parse failed: ' + str(err))
+    revision = out.decode('utf-8').strip()
     # We expect a full git hash
     if len(revision) != 40:
         print('Warning: Could not parse git commit, output was {}'.format(
@@ -442,13 +520,15 @@ def GetGitRevision(git_revision_file=None, repo_path=DART_DIR):
 def GetShortGitHash(repo_path=DART_DIR):
     p = subprocess.Popen(['git', 'rev-parse', '--short=10', 'HEAD'],
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
+                         stderr=subprocess.PIPE,
                          shell=IsWindows(),
                          cwd=repo_path)
-    output, _ = p.communicate()
-    revision = output.decode('utf-8').strip()
+    out, err = p.communicate()
     if p.wait() != 0:
+        # TODO(https://github.com/dart-lang/sdk/issues/51865): Don't ignore errors.
+        # raise Exception('git rev-parse failed: ' + str(err))
         return None
+    revision = out.decode('utf-8').strip()
     return revision
 
 
@@ -465,40 +545,53 @@ def GetLatestDevTag(repo_path=DART_DIR):
     ]
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
+                         stderr=subprocess.PIPE,
                          shell=IsWindows(),
                          cwd=repo_path)
-    output, _ = p.communicate()
-    tag = output.decode('utf-8').strip()
+    out, err = p.communicate()
     if p.wait() != 0:
         print('Warning: Could not get the most recent dev branch tag {}'.format(
             tag),
               file=sys.stderr)
         return None
+    tag = out.decode('utf-8').strip()
     return tag
 
 
-def GetGitTimestamp(repo_path=DART_DIR):
+def GetGitTimestamp(git_timestamp_file=None, repo_path=DART_DIR):
+    # When building from tarball use tools/GIT_TIMESTAMP
+    if git_timestamp_file is None:
+        git_timestamp_file = os.path.join(repo_path, 'tools', 'GIT_TIMESTAMP')
+    try:
+        with open(git_timestamp_file) as fd:
+            return fd.read().strip()
+    except:
+        pass
     p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%cd'],
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
+                         stderr=subprocess.PIPE,
                          shell=IsWindows(),
                          cwd=repo_path)
-    output, _ = p.communicate()
-    timestamp = output.decode('utf-8').strip()
+    out, err = p.communicate()
     if p.wait() != 0:
+        # TODO(https://github.com/dart-lang/sdk/issues/51865): Don't ignore errors.
+        # raise Exception('git log failed: ' + str(err))
         return None
+    timestamp = out.decode('utf-8').strip()
     return timestamp
 
 
 def GetGitNumber(repo_path=DART_DIR):
     p = subprocess.Popen(['git', 'rev-list', 'HEAD', '--count'],
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
+                         stderr=subprocess.PIPE,
                          shell=IsWindows(),
                          cwd=repo_path)
-    output, _ = p.communicate()
-    number = output.decode('utf-8').strip()
+    out, err = p.communicate()
+    # TODO(https://github.com/dart-lang/sdk/issues/51865): Don't ignore errors.
+    # if p.wait() != 0:
+    #     raise Exception('git rev-list failed: ' + str(err))
+    number = out.decode('utf-8').strip()
     try:
         number = int(number)
         return number + GIT_NUMBER_BASE
@@ -939,7 +1032,7 @@ class BaseCoreDumpArchiver(object):
 
     def _find_all_coredumps(self):
         """Return coredumps that were recorded (if supported by the platform).
-        This method will be overriden by concrete platform specific implementations.
+        This method will be overridden by concrete platform specific implementations.
         """
         return []
 

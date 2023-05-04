@@ -26,7 +26,7 @@ spawnWorker(worker, data) async {
   return await completer.future;
 }
 
-class NativeWrapperClass extends NativeFieldWrapperClass1 {}
+base class NativeWrapperClass extends NativeFieldWrapperClass1 {}
 
 verifyCantSendNative() async {
   final receivePort = ReceivePort();

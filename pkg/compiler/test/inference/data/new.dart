@@ -28,7 +28,7 @@ main() {
 class Class1 {}
 
 /*member: generativeConstructorCall:[exact=Class1]*/
-generativeConstructorCall() => new Class1();
+generativeConstructorCall() => Class1();
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Call factory constructor that returns `null`.
@@ -40,7 +40,7 @@ class Class2 {
 }
 
 /*member: factoryConstructorCall1:[null]*/
-factoryConstructorCall1() => new Class2();
+factoryConstructorCall1() => Class2();
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Call factory constructor that returns an instance of the same class.
@@ -48,13 +48,13 @@ factoryConstructorCall1() => new Class2();
 
 class Class3 {
   /*member: Class3.:[exact=Class3]*/
-  factory Class3() => new Class3.named();
+  factory Class3() => Class3.named();
   /*member: Class3.named:[exact=Class3]*/
   Class3.named();
 }
 
 /*member: factoryConstructorCall2:[exact=Class3]*/
-factoryConstructorCall2() => new Class3();
+factoryConstructorCall2() => Class3();
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Call factory constructor that returns an instance of another class.
@@ -62,14 +62,14 @@ factoryConstructorCall2() => new Class3();
 
 class Class4a {
   /*member: Class4a.:[exact=Class4b]*/
-  factory Class4a() => new Class4b();
+  factory Class4a() => Class4b();
 }
 
 /*member: Class4b.:[exact=Class4b]*/
 class Class4b implements Class4a {}
 
 /*member: factoryConstructorCall3:[exact=Class4b]*/
-factoryConstructorCall3() => new Class4a();
+factoryConstructorCall3() => Class4a();
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Call constructor with final field initialization.
@@ -83,7 +83,7 @@ class Class5 {
 }
 
 /*member: classWithFinalFieldInitializer:[exact=Class5]*/
-classWithFinalFieldInitializer() => new Class5(0);
+classWithFinalFieldInitializer() => Class5(0);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Call constructor with non-final field initialization.
@@ -97,7 +97,7 @@ class Class6 {
 }
 
 /*member: classWithNonFinalFieldInitializer:[exact=Class6]*/
-classWithNonFinalFieldInitializer() => new Class6(0);
+classWithNonFinalFieldInitializer() => Class6(0);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Call constructor with explicit field initialization.
@@ -111,7 +111,7 @@ class Class7 {
 }
 
 /*member: classWithExplicitFieldInitializer:[exact=Class7]*/
-classWithExplicitFieldInitializer() => new Class7(0);
+classWithExplicitFieldInitializer() => Class7(0);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Call constructor with field initialization in the constructor body.
@@ -127,7 +127,7 @@ class Class8 {
 }
 
 /*member: classWithFieldInitializerInBody:[exact=Class8]*/
-classWithFieldInitializerInBody() => new Class8(0);
+classWithFieldInitializerInBody() => Class8(0);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Instance field with `null` initializer and no assignment in the constructor
@@ -142,7 +142,7 @@ class Class9 {
 }
 
 /*member: classWithNullNoFieldInitializerInBody:[exact=Class9]*/
-classWithNullNoFieldInitializerInBody() => new Class9();
+classWithNullNoFieldInitializerInBody() => Class9();
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Instance field with `null` initializer and an assignment in the constructor
@@ -159,7 +159,7 @@ class Class10 {
 }
 
 /*member: classWithNullFieldInitializerInBody:[exact=Class10]*/
-classWithNullFieldInitializerInBody() => new Class10(0);
+classWithNullFieldInitializerInBody() => Class10(0);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Instance field with `null` initializer and an assignment in one of the
@@ -180,8 +180,8 @@ class Class11 {
 
 /*member: classWithNullMaybeFieldInitializerInBody:[exact=Class11]*/
 classWithNullMaybeFieldInitializerInBody() {
-  new Class11.a(0);
-  return new Class11.b();
+  Class11.a(0);
+  return Class11.b();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -197,5 +197,5 @@ class Class12 {
 
 /*member: classWithNullFinalFieldInitializer:[exact=Class12]*/
 classWithNullFinalFieldInitializer() {
-  return new Class12();
+  return Class12();
 }

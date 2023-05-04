@@ -24,8 +24,6 @@ import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
-const String extensionThisName = '#this';
-
 class SourceExtensionBuilder extends ExtensionBuilderImpl
     with SourceDeclarationBuilderMixin {
   final Extension _extension;
@@ -122,6 +120,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.RedirectingFactory:
       case BuiltMemberKind.Field:
       case BuiltMemberKind.Method:
+      case BuiltMemberKind.InlineClassConstructor:
+      case BuiltMemberKind.InlineClassMethod:
+      case BuiltMemberKind.InlineClassGetter:
+      case BuiltMemberKind.InlineClassSetter:
+      case BuiltMemberKind.InlineClassOperator:
+      case BuiltMemberKind.InlineClassTearOff:
+      case BuiltMemberKind.InlineClassFactory:
         unhandled("${member.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:

@@ -11,7 +11,10 @@ class FunctionDeclaration extends DartSnippetProducer {
   static const prefix = 'fun';
   static const label = 'fun';
 
-  FunctionDeclaration(super.request);
+  FunctionDeclaration(super.request, {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   @override
   Future<Snippet> compute() async {

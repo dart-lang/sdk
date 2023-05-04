@@ -172,6 +172,7 @@ class Foo {
     var pseudoKeywords = new Set<Keyword>.from([
       Keyword.ASYNC,
       Keyword.AWAIT,
+      Keyword.BASE,
       Keyword.HIDE,
       Keyword.INOUT,
       Keyword.NATIVE,
@@ -179,6 +180,7 @@ class Foo {
       Keyword.ON,
       Keyword.OUT,
       Keyword.PATCH,
+      Keyword.SEALED,
       Keyword.SHOW,
       Keyword.SOURCE,
       Keyword.SYNC,

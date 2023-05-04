@@ -18,9 +18,7 @@ class Bad extends core::Object {
   constructor bar() → self::Bad
     ;
 }
-class M extends core::Object {
-  synthetic constructor •() → self::M
-    ;
+abstract class M extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class _MixinApplication&Super&M = self::Super with self::M /*isAnonymousMixin*/  {
   synthetic constructor _() → self::_MixinApplication&Super&M

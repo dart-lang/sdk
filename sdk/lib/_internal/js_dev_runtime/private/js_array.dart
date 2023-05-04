@@ -11,7 +11,7 @@ part of dart._interceptors;
  * argument added to each member.
  */
 @JsPeerInterface(name: 'Array')
-class JSArray<E> implements List<E>, JSIndexable<E> {
+class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   const JSArray();
 
   /**
@@ -24,6 +24,9 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     // TODO(jmesserly): this uses special compiler magic to close over the
     // parameterized ES6 'JSArray' class.
     JS('', '#.__proto__ = JSArray.prototype', list);
+    if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
+      JS('', '#.# = #', list, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY),
+          JSArray<E>);
     return JS('-dynamic', '#', list);
   }
 
@@ -31,6 +34,9 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   factory JSArray.fixed(list) {
     JS('', '#.__proto__ = JSArray.prototype', list);
     JS('', r'#.fixed$length = Array', list);
+    if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
+      JS('', '#.# = #', list, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY),
+          JSArray<E>);
     return JS('-dynamic', '#', list);
   }
 
@@ -38,6 +44,9 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     JS('', '#.__proto__ = JSArray.prototype', list);
     JS('', r'#.fixed$length = Array', list);
     JS('', r'#.immutable$list = Array', list);
+    if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
+      JS('', '#.# = #', list, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY),
+          JSArray<E>);
     return JS('-dynamic', '#', list);
   }
 
@@ -378,7 +387,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
       // type annotation checks on the stores.
       for (int i = length - 1; i >= 0; i--) {
         // Use JS to avoid bounds check (the bounds check elimination
-        // optimzation is too weak). The 'E' type annotation is a store type
+        // optimization is too weak). The 'E' type annotation is a store type
         // check - we can't rely on iterable, it could be List<dynamic>.
         var element = otherList[otherStart + i];
         JS('', '#[#] = #', this, start + i, element);
@@ -597,8 +606,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return ListMapView<E>(this);
   }
 
-  Type get runtimeType =>
-      dart.wrapType(JS('', '#(#)', dart.getGenericClassStatic<List>(), E));
+  Type get runtimeType => List<E>;
 
   Iterable<E> followedBy(Iterable<E> other) =>
       FollowedByIterable<E>.firstEfficient(this, other);

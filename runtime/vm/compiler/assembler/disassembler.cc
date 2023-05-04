@@ -25,6 +25,10 @@ DECLARE_FLAG(bool, trace_inlining_intervals);
 #endif
 
 DEFINE_FLAG(bool, trace_source_positions, false, "Source position diagnostics");
+DEFINE_FLAG(bool,
+            include_inlining_info_in_disassembly,
+            true,
+            "Include inlining information when printing disassembly")
 
 void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
                                              intptr_t hex_size,
@@ -45,7 +49,7 @@ void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
     }
   }
   THR_Print("%s", human_buffer);
-  if (object != NULL) {
+  if (object != nullptr) {
     THR_Print("   %s", object->ToCString());
   }
   THR_Print("\n");
@@ -114,7 +118,7 @@ void DisassembleToMemory::Print(const char* format, ...) {
   }
   va_list measure_args;
   va_start(measure_args, format);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
   if (remaining_ < len + 100) {
     *buffer_++ = '.';
@@ -145,7 +149,7 @@ void Disassembler::Disassemble(uword start,
   if (comments == nullptr) {
     comments = code.IsNull() ? &Code::Comments::New(0) : &code.comments();
   }
-  ASSERT(formatter != NULL);
+  ASSERT(formatter != nullptr);
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
   uword pc = start;
@@ -160,7 +164,8 @@ void Disassembler::Disassemble(uword start,
       formatter->Print("        ;; %s\n", comments->CommentAt(comment_finger));
       comment_finger++;
     }
-    if (old_comment_finger != comment_finger && !code.IsNull()) {
+    if (FLAG_include_inlining_info_in_disassembly &&
+        old_comment_finger != comment_finger && !code.IsNull()) {
       char str[4000];
       BufferFormatter f(str, sizeof(str));
       // Comment emitted, emit inlining information.
@@ -487,7 +492,7 @@ void DisassembleToJSONStream::ConsumeInstruction(char* hex_buffer,
   jsarr_.AddValue(hex_buffer);
   jsarr_.AddValue(human_buffer);
 
-  if (object != NULL) {
+  if (object != nullptr) {
     jsarr_.AddValue(*object);
   } else {
     jsarr_.AddValueNull();  // Not a reference to null.
@@ -497,7 +502,7 @@ void DisassembleToJSONStream::ConsumeInstruction(char* hex_buffer,
 void DisassembleToJSONStream::Print(const char* format, ...) {
   va_list measure_args;
   va_start(measure_args, format);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* p = reinterpret_cast<char*>(malloc(len + 1));

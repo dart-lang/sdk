@@ -87,7 +87,7 @@ void main() {
   Expect.listEquals([1, 2, 12, 256 - 13], listu8);
 
   var clist = const <int>[1, 2, 3, 4];
-  var flist = new List<int>(4)..setAll(0, [10, 11, 12, 13]);
+  var flist = new List<int>.filled(4, null)..setAll(0, [10, 11, 12, 13]);
   List.copyRange(flist, 1, clist, 1, 3);
   Expect.listEquals([10, 2, 3, 13], flist);
 

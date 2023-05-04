@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class I {
   foo();
 }
@@ -7,7 +6,7 @@ class A {
   foo() {}
 }
 
-class B implements I {
+mixin class B implements I {
   noSuchMethod(_) => null;
 }
 

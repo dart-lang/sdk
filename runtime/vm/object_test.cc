@@ -24,7 +24,6 @@
 #include "vm/debugger_api_impl_test.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
-#include "vm/malloc_hooks.h"
 #include "vm/message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -1921,6 +1920,38 @@ ISOLATE_UNIT_TEST_CASE(Array) {
   EXPECT(obj.IsArray());
 }
 
+ISOLATE_UNIT_TEST_CASE(Array_Grow) {
+  const intptr_t kSmallSize = 100;
+  EXPECT(!Array::UseCardMarkingForAllocation(kSmallSize));
+  const intptr_t kMediumSize = 1000;
+  EXPECT(!Array::UseCardMarkingForAllocation(kMediumSize));
+  const intptr_t kLargeSize = 100000;
+  EXPECT(Array::UseCardMarkingForAllocation(kLargeSize));
+
+  const Array& small = Array::Handle(Array::New(kSmallSize));
+  for (intptr_t i = 0; i < kSmallSize; i++) {
+    small.SetAt(i, Smi::Handle(Smi::New(i)));
+  }
+
+  const Array& medium = Array::Handle(Array::Grow(small, kMediumSize));
+  EXPECT_EQ(kMediumSize, medium.Length());
+  for (intptr_t i = 0; i < kSmallSize; i++) {
+    EXPECT_EQ(Smi::New(i), medium.At(i));
+  }
+  for (intptr_t i = kSmallSize; i < kMediumSize; i++) {
+    EXPECT_EQ(Object::null(), medium.At(i));
+  }
+
+  const Array& large = Array::Handle(Array::Grow(small, kLargeSize));
+  EXPECT_EQ(kLargeSize, large.Length());
+  for (intptr_t i = 0; i < kSmallSize; i++) {
+    EXPECT_EQ(large.At(i), Smi::New(i));
+  }
+  for (intptr_t i = kSmallSize; i < kLargeSize; i++) {
+    EXPECT_EQ(large.At(i), Object::null());
+  }
+}
+
 ISOLATE_UNIT_TEST_CASE(EmptyInstantiationsCacheArray) {
   SafepointMutexLocker ml(
       thread->isolate_group()->type_arguments_canonicalization_mutex());
@@ -2278,6 +2309,37 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(1, new_array.Length());
 }
 
+ISOLATE_UNIT_TEST_CASE(TypedData_Grow) {
+  const intptr_t kSmallSize = 42;
+  const intptr_t kLargeSize = 1000;
+
+  Random random(42);
+
+  for (classid_t cid = kTypedDataInt8ArrayCid; cid < kByteDataViewCid;
+       cid += 4) {
+    ASSERT(IsTypedDataClassId(cid));
+
+    const auto& small = TypedData::Handle(TypedData::New(cid, kSmallSize));
+    EXPECT_EQ(small.LengthInBytes(), kSmallSize * small.ElementSizeInBytes());
+
+    for (intptr_t i = 0; i < TypedData::ElementSizeFor(cid) * kSmallSize; i++) {
+      small.SetUint8(i, static_cast<uint8_t>(random.NextUInt64() & 0xff));
+    }
+
+    const auto& big = TypedData::Handle(TypedData::Grow(small, kLargeSize));
+    EXPECT_EQ(small.GetClassId(), big.GetClassId());
+    EXPECT_EQ(big.LengthInBytes(), kLargeSize * big.ElementSizeInBytes());
+
+    for (intptr_t i = 0; i < TypedData::ElementSizeFor(cid) * kSmallSize; i++) {
+      EXPECT_EQ(small.GetUint8(i), big.GetUint8(i));
+    }
+    for (intptr_t i = TypedData::ElementSizeFor(cid) * kSmallSize;
+         i < TypedData::ElementSizeFor(cid) * kLargeSize; i++) {
+      EXPECT_EQ(0, big.GetUint8(i));
+    }
+  }
+}
+
 ISOLATE_UNIT_TEST_CASE(InternalTypedData) {
   uint8_t data[] = {253, 254, 255, 0, 1, 2, 3, 4};
   intptr_t data_length = ARRAY_SIZE(data);
@@ -2516,30 +2578,39 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.
-  var_ta = local_scope->LookupVariable(ta, test_only);
+  var_ta = local_scope->LookupVariable(ta, LocalVariable::kNoKernelOffset,
+                                       test_only);
   EXPECT(var_ta->is_captured());
   EXPECT_EQ(parent_scope_function_level, var_ta->owner()->function_level());
-  EXPECT(local_scope->LocalLookupVariable(ta) == var_ta);  // Alias.
+  EXPECT(local_scope->LocalLookupVariable(ta, LocalVariable::kNoKernelOffset) ==
+         var_ta);  // Alias.
 
-  var_a = local_scope->LookupVariable(a, test_only);
+  var_a =
+      local_scope->LookupVariable(a, LocalVariable::kNoKernelOffset, test_only);
   EXPECT(var_a->is_captured());
   EXPECT_EQ(parent_scope_function_level, var_a->owner()->function_level());
-  EXPECT(local_scope->LocalLookupVariable(a) == var_a);  // Alias.
+  EXPECT(local_scope->LocalLookupVariable(a, LocalVariable::kNoKernelOffset) ==
+         var_a);  // Alias.
 
-  var_b = local_scope->LookupVariable(b, test_only);
+  var_b =
+      local_scope->LookupVariable(b, LocalVariable::kNoKernelOffset, test_only);
   EXPECT(!var_b->is_captured());
   EXPECT_EQ(local_scope_function_level, var_b->owner()->function_level());
-  EXPECT(local_scope->LocalLookupVariable(b) == var_b);
+  EXPECT(local_scope->LocalLookupVariable(b, LocalVariable::kNoKernelOffset) ==
+         var_b);
 
   test_only = true;  // Please, do not insert alias.
-  var_c = local_scope->LookupVariable(c, test_only);
+  var_c =
+      local_scope->LookupVariable(c, LocalVariable::kNoKernelOffset, test_only);
   EXPECT(!var_c->is_captured());
   EXPECT_EQ(parent_scope_function_level, var_c->owner()->function_level());
   // c is not in local_scope.
-  EXPECT(local_scope->LocalLookupVariable(c) == NULL);
+  EXPECT(local_scope->LocalLookupVariable(c, LocalVariable::kNoKernelOffset) ==
+         NULL);
 
   test_only = false;  // Please, insert alias.
-  var_c = local_scope->LookupVariable(c, test_only);
+  var_c =
+      local_scope->LookupVariable(c, LocalVariable::kNoKernelOffset, test_only);
   EXPECT(var_c->is_captured());
 
   EXPECT_EQ(4, local_scope->num_variables());         // ta, a, b, c.
@@ -2566,22 +2637,23 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   LocalScope* outer_scope = LocalScope::RestoreOuterScope(context_scope);
   EXPECT_EQ(3, outer_scope->num_variables());
 
-  var_ta = outer_scope->LocalLookupVariable(ta);
+  var_ta = outer_scope->LocalLookupVariable(ta, LocalVariable::kNoKernelOffset);
   EXPECT(var_ta->is_captured());
   EXPECT_EQ(0, var_ta->index().value());  // First index.
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_ta->owner()->context_level());  // Adjusted context level.
 
-  var_a = outer_scope->LocalLookupVariable(a);
+  var_a = outer_scope->LocalLookupVariable(a, LocalVariable::kNoKernelOffset);
   EXPECT(var_a->is_captured());
   EXPECT_EQ(1, var_a->index().value());  // First index.
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_a->owner()->context_level());  // Adjusted context level.
 
   // var b was not captured.
-  EXPECT(outer_scope->LocalLookupVariable(b) == NULL);
+  EXPECT(outer_scope->LocalLookupVariable(b, LocalVariable::kNoKernelOffset) ==
+         NULL);
 
-  var_c = outer_scope->LocalLookupVariable(c);
+  var_c = outer_scope->LocalLookupVariable(c, LocalVariable::kNoKernelOffset);
   EXPECT(var_c->is_captured());
   EXPECT_EQ(2, var_c->index().value());
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
@@ -2710,9 +2782,6 @@ ISOLATE_UNIT_TEST_CASE(Code) {
 // Test for immutability of generated instructions. The test crashes with a
 // segmentation fault when writing into it.
 ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
-  bool stack_trace_collection_enabled =
-      MallocHooks::stack_trace_collection_enabled();
-  MallocHooks::set_stack_trace_collection_enabled(false);
   extern void GenerateIncrement(compiler::Assembler * assembler);
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler _assembler_(&object_pool_builder);
@@ -2733,8 +2802,6 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
     // is switched off.
     FATAL("Test requires --write-protect-code; skip by forcing expected crash");
   }
-  MallocHooks::set_stack_trace_collection_enabled(
-      stack_trace_collection_enabled);
 }
 
 class CodeTestHelper {
@@ -2750,9 +2817,6 @@ class CodeTestHelper {
 // Test for executability of generated instructions. The test crashes with a
 // segmentation fault when executing the writeable view.
 ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
-  bool stack_trace_collection_enabled =
-      MallocHooks::stack_trace_collection_enabled();
-  MallocHooks::set_stack_trace_collection_enabled(false);
   extern void GenerateIncrement(compiler::Assembler * assembler);
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler _assembler_(&object_pool_builder);
@@ -2786,8 +2850,6 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
     // is switched off.
     FATAL("Test requires --dual-map-code; skip by forcing expected crash");
   }
-  MallocHooks::set_stack_trace_collection_enabled(
-      stack_trace_collection_enabled);
 }
 
 // Test for Embedded String object in the instructions.
@@ -4021,6 +4083,50 @@ ISOLATE_UNIT_TEST_CASE(
 ISOLATE_UNIT_TEST_CASE(
     WeakReference_Preserve_ReachableThroughWeakProperty_OldSpace) {
   WeakReference_Preserve_ReachableThroughWeakProperty(thread, Heap::kOld);
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakArray_New) {
+  WeakArray& array = WeakArray::Handle(WeakArray::New(2, Heap::kNew));
+  Object& target0 = Object::Handle();
+  {
+    HANDLESCOPE(thread);
+    target0 = String::New("0", Heap::kNew);
+    Object& target1 = Object::Handle(String::New("1", Heap::kNew));
+    array.SetAt(0, target0);
+    array.SetAt(1, target1);
+  }
+
+  EXPECT(array.Length() == 2);
+  EXPECT(array.At(0) != Object::null());
+  EXPECT(array.At(1) != Object::null());
+
+  GCTestHelper::CollectNewSpace();
+
+  EXPECT(array.Length() == 2);
+  EXPECT(array.At(0) != Object::null());  // Survives
+  EXPECT(array.At(1) == Object::null());  // Cleared
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakArray_Old) {
+  WeakArray& array = WeakArray::Handle(WeakArray::New(2, Heap::kOld));
+  Object& target0 = Object::Handle();
+  {
+    HANDLESCOPE(thread);
+    target0 = String::New("0", Heap::kOld);
+    Object& target1 = Object::Handle(String::New("1", Heap::kOld));
+    array.SetAt(0, target0);
+    array.SetAt(1, target1);
+  }
+
+  EXPECT(array.Length() == 2);
+  EXPECT(array.At(0) != Object::null());
+  EXPECT(array.At(1) != Object::null());
+
+  GCTestHelper::CollectAllGarbage();
+
+  EXPECT(array.Length() == 2);
+  EXPECT(array.At(0) != Object::null());  // Survives
+  EXPECT(array.At(1) == Object::null());  // Cleared
 }
 
 static int NumEntries(const FinalizerEntry& entry, intptr_t acc = 0) {
@@ -5332,7 +5438,7 @@ static ClassPtr GetClass(const Library& lib, const char* name) {
   return cls.ptr();
 }
 
-TEST_CASE(ImplementsFinalizable) {
+TEST_CASE(IsIsolateUnsendable) {
   Zone* const zone = Thread::Current()->zone();
 
   const char* kScript = R"(
@@ -5340,7 +5446,7 @@ import 'dart:ffi';
 
 class AImpl implements A {}
 class ASub extends A {}
-// Wonky class order and non-alhpabetic naming on purpose.
+// Wonky class order and non-alphabetic naming on purpose.
 class C extends Z {}
 class E extends D {}
 class A implements Finalizable {}
@@ -5356,16 +5462,16 @@ class X extends E {}
   EXPECT(!lib.IsNull());
 
   const auto& class_x = Class::Handle(zone, GetClass(lib, "X"));
-  ClassFinalizer::FinalizeTypesInClass(class_x);
-  EXPECT(class_x.implements_finalizable());
+  class_x.EnsureIsFinalized(thread);
+  EXPECT(class_x.is_isolate_unsendable());
 
   const auto& class_a_impl = Class::Handle(zone, GetClass(lib, "AImpl"));
-  ClassFinalizer::FinalizeTypesInClass(class_a_impl);
-  EXPECT(class_a_impl.implements_finalizable());
+  class_a_impl.EnsureIsFinalized(thread);
+  EXPECT(class_a_impl.is_isolate_unsendable());
 
   const auto& class_a_sub = Class::Handle(zone, GetClass(lib, "ASub"));
-  ClassFinalizer::FinalizeTypesInClass(class_a_sub);
-  EXPECT(class_a_sub.implements_finalizable());
+  class_a_sub.EnsureIsFinalized(thread);
+  EXPECT(class_a_sub.is_isolate_unsendable());
 }
 
 TEST_CASE(ImplementorCid) {
@@ -6316,7 +6422,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
     EXPECT_SUBSTRING(
         "\"id\":\"\","
-        "\"kind\":\"PlainInstance\"}",
+        "\"kind\":\"UserTag\",\"label\":\"Default\"}",
         buffer);
   }
   // Type reference
@@ -6450,7 +6556,7 @@ TEST_CASE(HashCode) {
   EXPECT(result.IsIdenticalTo(expected));
 }
 
-const uint32_t kCalculateCanonizalizeHash = 0;
+const uint32_t kCalculateCanonicalizeHash = 0;
 
 // Checks that the .hashCode equals the VM CanonicalizeHash() for keys in
 // constant maps.
@@ -6461,7 +6567,7 @@ const uint32_t kCalculateCanonizalizeHash = 0;
 // is not executed but the provided value is used.
 static bool HashCodeEqualsCanonicalizeHash(
     const char* value_script,
-    uint32_t hashcode_canonicalize_vm = kCalculateCanonizalizeHash,
+    uint32_t hashcode_canonicalize_vm = kCalculateCanonicalizeHash,
     bool check_identity = true,
     bool check_hashcode = true) {
   auto kScriptChars = Utils::CStringUniquePtr(
@@ -6588,7 +6694,7 @@ TEST_CASE(HashCode_Symbol) {
       "value() {\n"
       "  return #A;\n"
       "}\n";
-  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonizalizeHash,
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonicalizeHash,
                                         /*check_identity=*/false));
 }
 
@@ -6607,7 +6713,7 @@ TEST_CASE(HashCode_Type_Dynamic) {
       "value() {\n"
       "  return type;\n"
       "}\n";
-  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonizalizeHash,
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonicalizeHash,
                                         /*check_identity=*/false));
 }
 
@@ -6618,7 +6724,7 @@ TEST_CASE(HashCode_Type_Int) {
       "value() {\n"
       "  return type;\n"
       "}\n";
-  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonizalizeHash,
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonicalizeHash,
                                         /*check_identity=*/false));
 }
 
@@ -7357,7 +7463,7 @@ static void CheckConcatAll(const String* data[], intptr_t n) {
 
 ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
   {
-    const String* data[3] = {&Symbols::FallThroughError(), &Symbols::Dot(),
+    const String* data[3] = {&Symbols::TypeError(), &Symbols::Dot(),
                              &Symbols::isPaused()};
     CheckConcatAll(data, 3);
   }
@@ -7412,7 +7518,7 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
 
   {
     const String& empty = String::Handle(String::New(""));
-    const String* data[3] = {&Symbols::FallThroughError(), &empty,
+    const String* data[3] = {&Symbols::TypeError(), &empty,
                              &Symbols::isPaused()};
     CheckConcatAll(data, 3);
   }
@@ -8045,6 +8151,77 @@ FutureOr<T?> bar<T>() { return null; }
   }
 }
 
+#define __ assembler->
+
+static void GenerateInvokeInstantiateTAVStub(compiler::Assembler* assembler) {
+  __ EnterDartFrame(0);
+
+  // Load the arguments into the right stub calling convention registers.
+  const intptr_t uninstantiated_offset =
+      (kCallerSpSlotFromFp + 2) * compiler::target::kWordSize;
+  const intptr_t inst_type_args_offset =
+      (kCallerSpSlotFromFp + 1) * compiler::target::kWordSize;
+  const intptr_t fun_type_args_offset =
+      (kCallerSpSlotFromFp + 0) * compiler::target::kWordSize;
+
+  __ LoadMemoryValue(InstantiationABI::kUninstantiatedTypeArgumentsReg, FPREG,
+                     uninstantiated_offset);
+  __ LoadMemoryValue(InstantiationABI::kInstantiatorTypeArgumentsReg, FPREG,
+                     inst_type_args_offset);
+  __ LoadMemoryValue(InstantiationABI::kFunctionTypeArgumentsReg, FPREG,
+                     fun_type_args_offset);
+
+  __ Call(StubCode::InstantiateTypeArguments());
+
+  // Set the return from the stub.
+  __ MoveRegister(CallingConventions::kReturnReg,
+                  InstantiationABI::kResultTypeArgumentsReg);
+  __ LeaveDartFrame();
+  __ Ret();
+}
+
+#undef __
+
+static CodePtr CreateInvokeInstantiateTypeArgumentsStub(Thread* thread) {
+  Zone* const zone = thread->zone();
+  const auto& klass = Class::Handle(
+      zone, thread->isolate_group()->class_table()->At(kInstanceCid));
+  const auto& symbol = String::Handle(
+      zone, Symbols::New(thread, OS::SCreate(zone, "InstantiateTAVTest")));
+  const auto& signature = FunctionType::Handle(zone, FunctionType::New());
+  const auto& function = Function::Handle(
+      zone, Function::New(signature, symbol, UntaggedFunction::kRegularFunction,
+                          false, false, false, false, false, klass,
+                          TokenPosition::kNoSource));
+
+  compiler::ObjectPoolBuilder pool_builder;
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  compiler::Assembler assembler(&pool_builder);
+  GenerateInvokeInstantiateTAVStub(&assembler);
+  const Code& invoke_instantiate_tav = Code::Handle(
+      Code::FinalizeCodeAndNotify("InstantiateTAV", nullptr, &assembler,
+                                  Code::PoolAttachment::kNotAttachPool,
+                                  /*optimized=*/false));
+
+  const auto& pool =
+      ObjectPool::Handle(zone, ObjectPool::NewFromBuilder(pool_builder));
+  invoke_instantiate_tav.set_object_pool(pool.ptr());
+  invoke_instantiate_tav.set_owner(function);
+  invoke_instantiate_tav.set_exception_handlers(
+      ExceptionHandlers::Handle(zone, ExceptionHandlers::New(0)));
+#if defined(TARGET_ARCH_IA32)
+  EXPECT_EQ(0, pool.Length());
+#else
+  EXPECT_EQ(1, pool.Length());  // The InstantiateTypeArguments stub.
+#endif
+  return invoke_instantiate_tav.ptr();
+}
+
+#if !defined(PRODUCT)
+// Defined before TypeArguments::InstantiateAndCanonicalizeFrom in object.cc.
+extern bool TESTING_runtime_fail_on_existing_cache_entry;
+#endif
+
 static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
   TextBuffer buffer(MB);
   buffer.AddString("class D<T> {}\n");
@@ -8054,7 +8231,7 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
   }
   buffer.AddString("main() {\n");
   for (intptr_t i = 0; i < num_classes; i++) {
-    buffer.Printf("  new C%" Pd "().toString();\n", i);
+    buffer.Printf("  C%" Pd "().toString();\n", i);
   }
   buffer.AddString("}\n");
 
@@ -8090,7 +8267,16 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
   // Cache the first computed set of instantiator type arguments to check that
   // no entries from the cache have been lost when the cache grows.
   auto& first_instantiator_type_args = TypeArguments::Handle(zone);
+  // Used for the cache hit in stub check.
+  const auto& invoke_instantiate_tav =
+      Code::Handle(zone, CreateInvokeInstantiateTypeArgumentsStub(thread));
+  const auto& invoke_instantiate_tav_arguments =
+      Array::Handle(zone, Array::New(3));
+  const auto& invoke_instantiate_tav_args_descriptor =
+      Array::Handle(zone, ArgumentsDescriptor::NewBoxed(0, 3));
   for (intptr_t i = 0; i < num_classes; ++i) {
+    const bool updated_cache_is_linear =
+        i < TypeArguments::Cache::kMaxLinearCacheEntries;
     auto const name = OS::SCreate(zone, "C%" Pd "", i);
     class_c = GetClass(root_lib, name);
     ASSERT(!class_c.IsNull());
@@ -8099,7 +8285,16 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
     instantiator_type_args.SetTypeAt(0, decl_type_c);
     instantiator_type_args = instantiator_type_args.Canonicalize(thread);
 
+#if !defined(PRODUCT)
+    // The first call to InstantiateAndCanonicalizeFrom shouldn't have a cache
+    // hit since the instantiator type arguments should be unique for each
+    // iteration, and after that we do a check that the InstantiateTypeArguments
+    // stub finds the entry (unless the cache is hash-based on IA32).
+    TESTING_runtime_fail_on_existing_cache_entry = true;
+#endif
+
     // Check that the key does not currently exist in the cache.
+    intptr_t old_capacity;
     {
       SafepointMutexLocker ml(
           thread->isolate_group()->type_arguments_canonicalization_mutex());
@@ -8108,6 +8303,7 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
       auto loc =
           cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
       EXPECT(!loc.present);
+      old_capacity = cache.NumEntries();
     }
 
     decl_type_d_type_args.InstantiateAndCanonicalizeFrom(instantiator_type_args,
@@ -8115,17 +8311,44 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
 
     // Check that the key now does exist in the cache.
     TypeArguments::Cache::KeyLocation loc;
+    bool storage_changed;
     {
       SafepointMutexLocker ml(
           thread->isolate_group()->type_arguments_canonicalization_mutex());
       TypeArguments::Cache cache(zone, decl_type_d_type_args);
       EXPECT_EQ(i + 1, cache.NumOccupied());
       // Double-check that we got the expected type of cache.
-      EXPECT(i < TypeArguments::Cache::kMaxLinearCacheEntries ? cache.IsLinear()
-                                                              : cache.IsHash());
+      EXPECT(updated_cache_is_linear ? cache.IsLinear() : cache.IsHash());
       loc = cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
       EXPECT(loc.present);
+      storage_changed = cache.NumEntries() != old_capacity;
     }
+
+#if defined(TARGET_ARCH_IA32)
+    const bool stub_checks_hash_caches = false;
+#else
+    const bool stub_checks_hash_caches = true;
+#endif
+    // Now check that we get the expected result from calling the stub if it
+    // checks the cache (e.g., in all cases but hash-based caches on IA32).
+    if (updated_cache_is_linear || stub_checks_hash_caches) {
+      invoke_instantiate_tav_arguments.SetAt(0, decl_type_d_type_args);
+      invoke_instantiate_tav_arguments.SetAt(1, instantiator_type_args);
+      invoke_instantiate_tav_arguments.SetAt(2, function_type_args);
+      result_type_args ^= DartEntry::InvokeCode(
+          invoke_instantiate_tav, invoke_instantiate_tav.EntryPoint(),
+          invoke_instantiate_tav_args_descriptor,
+          invoke_instantiate_tav_arguments, thread);
+      EXPECT_EQ(1, result_type_args.Length());
+      result_type = result_type_args.TypeAt(0);
+      EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(decl_type_c, result_type);
+    }
+
+#if !defined(PRODUCT)
+    // Setting to false prior to re-calling InstantiateAndCanonicalizeFrom with
+    // the same keys, as now we want a runtime check of an existing cache entry.
+    TESTING_runtime_fail_on_existing_cache_entry = false;
+#endif
 
     result_type_args = decl_type_d_type_args.InstantiateAndCanonicalizeFrom(
         instantiator_type_args, function_type_args);
@@ -8146,8 +8369,8 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
 
     if (i == 0) {
       first_instantiator_type_args = instantiator_type_args.ptr();
-    } else {
-      // Check that the first instantiator TAV still exists in the cache.
+    } else if (storage_changed) {
+      // Check that the first instantiator TAV still exists in the new cache.
       SafepointMutexLocker ml(
           thread->isolate_group()->type_arguments_canonicalization_mutex());
       TypeArguments::Cache cache(zone, decl_type_d_type_args);
@@ -8169,10 +8392,11 @@ TEST_CASE(TypeArguments_Cache_SomeInstantiations) {
                              2 * TypeArguments::Cache::kMaxLinearCacheEntries);
 }
 
-// Too slow in debug mode. Also avoid the sanitizers for similar reasons.
+// Too slow in debug mode. Also avoid the sanitizers and simulators for similar
+// reasons. Any core issues will likely be found by SomeInstantiations.
 #if !defined(DEBUG) && !defined(USING_MEMORY_SANITIZER) &&                     \
     !defined(USING_THREAD_SANITIZER) && !defined(USING_LEAK_SANITIZER) &&      \
-    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER)
+    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER) && !defined(USING_SIMULATOR)
 TEST_CASE(TypeArguments_Cache_ManyInstantiations) {
   const intptr_t kNumClasses = 100000;
   static_assert(kNumClasses > TypeArguments::Cache::kMaxLinearCacheEntries,

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: implementation_imports
+
 /// A library to invoke the CFE to compute kernel summary files.
 ///
 /// Used by `utils/bazel/kernel_worker.dart`.
@@ -9,9 +11,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
-    as isolatedExecutor;
+    as isolated_executor;
 import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
-    as processExecutor;
+    as process_executor;
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
     show SerializationMode;
 import 'package:args/args.dart';
@@ -34,25 +36,25 @@ import 'package:vm/target/vm.dart';
 /// This is how individual work request args are differentiated from startup
 /// args in bazel (individual work request args go in that file).
 List<String> preprocessArgs(List<String> args) {
-  args = new List.from(args);
+  args = List.from(args);
   if (args.isEmpty) {
     return args;
   }
   String lastArg = args.last;
   if (lastArg.startsWith('@')) {
-    File argsFile = new File(lastArg.substring(1));
+    File argsFile = File(lastArg.substring(1));
     try {
       args.removeLast();
       args.addAll(argsFile.readAsLinesSync());
     } on FileSystemException catch (e) {
-      throw new Exception('Failed to read file specified by $lastArg : $e');
+      throw Exception('Failed to read file specified by $lastArg : $e');
     }
   }
   return args;
 }
 
 /// An [ArgParser] for generating kernel summaries.
-final summaryArgsParser = new ArgParser()
+final summaryArgsParser = ArgParser()
   ..addFlag('help', negatable: false, abbr: 'h')
   ..addFlag('exclude-non-sources',
       negatable: false,
@@ -94,7 +96,7 @@ final summaryArgsParser = new ArgParser()
       help: 'Enable a language experiment when invoking the CFE.')
   ..addMultiOption('define', abbr: 'D')
   ..addFlag('verbose', defaultsTo: false)
-  ..addFlag('sound-null-safety', defaultsTo: false)
+  ..addFlag('sound-null-safety', defaultsTo: true)
   ..addFlag('null-environment', defaultsTo: false, negatable: false)
   ..addOption('verbosity',
       defaultsTo: fe.Verbosity.defaultValue,
@@ -147,7 +149,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   if (parsedArgs['help']) {
     out.writeln(summaryArgsParser.usage);
     if (!isWorker) exit(0);
-    return new ComputeKernelResult(false, previousState);
+    return ComputeKernelResult(false, previousState);
   }
 
   // Bazel creates an overlay file system where some files may be located in the
@@ -155,7 +157,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   // system hides this from the front end.
   var multiRoots = parsedArgs['multi-root'].map(Uri.base.resolve).toList();
   if (multiRoots.isEmpty) multiRoots.add(Uri.base);
-  MultiRootFileSystem mrfs = new MultiRootFileSystem(
+  MultiRootFileSystem mrfs = MultiRootFileSystem(
       parsedArgs['multi-root-scheme'],
       multiRoots,
       fe.StandardFileSystem.instance);
@@ -169,7 +171,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   var summaryOnly = parsedArgs['summary-only'] as bool;
   var summary = parsedArgs['summary'] as bool;
   if (summaryOnly && !summary) {
-    throw new ArgumentError('--summary-only conflicts with --no-summary');
+    throw ArgumentError('--summary-only conflicts with --no-summary');
   }
   var trackWidgetCreation = parsedArgs['track-widget-creation'] as bool;
 
@@ -177,40 +179,40 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   // compatible while we migrate existing clients of this tool.
   var targetName =
       (parsedArgs['target'] as String?) ?? (summaryOnly ? 'ddc' : 'vm');
-  var targetFlags = new TargetFlags(
+  var targetFlags = TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
-      enableNullSafety: nnbdMode == fe.NnbdMode.Strong);
+      soundNullSafety: nnbdMode == fe.NnbdMode.Strong);
   Target target;
   switch (targetName) {
     case 'vm':
-      target = new VmTarget(targetFlags);
+      target = VmTarget(targetFlags);
       if (summaryOnly) {
         out.writeln('error: --summary-only not supported for the vm target');
       }
       break;
     case 'flutter':
-      target = new FlutterTarget(targetFlags);
+      target = FlutterTarget(targetFlags);
       if (summaryOnly) {
-        throw new ArgumentError(
+        throw ArgumentError(
             'error: --summary-only not supported for the flutter target');
       }
       break;
     case 'flutter_runner':
-      target = new FlutterRunnerTarget(targetFlags);
+      target = FlutterRunnerTarget(targetFlags);
       if (summaryOnly) {
-        throw new ArgumentError('error: --summary-only not supported for the '
+        throw ArgumentError('error: --summary-only not supported for the '
             'flutter_runner target');
       }
       break;
     case 'dart2js':
-      target = new Dart2jsTarget('dart2js', targetFlags);
+      target = Dart2jsTarget('dart2js', targetFlags);
       if (summaryOnly) {
         out.writeln(
             'error: --summary-only not supported for the dart2js target');
       }
       break;
     case 'dart2js_summary':
-      target = new Dart2jsSummaryTarget(
+      target = Dart2jsSummaryTarget(
           'dart2js', sources, excludeNonSources, targetFlags);
       if (!summaryOnly) {
         out.writeln(
@@ -221,7 +223,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       // TODO(jakemac):If `generateKernel` changes to return a summary
       // component, process the component instead.
       target =
-          new DevCompilerSummaryTarget(sources, excludeNonSources, targetFlags);
+          DevCompilerSummaryTarget(sources, excludeNonSources, targetFlags);
       if (!summaryOnly) {
         out.writeln('error: --no-summary-only not supported for the '
             'ddc target');
@@ -296,7 +298,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         verbose: verbose,
         nnbdMode: nnbdMode);
     var uriTranslator = await helper.processedOpts.getUriTranslator();
-    _FakeFileSystem ffs = fileSystem = new _FakeFileSystem(fileSystem);
+    _FakeFileSystem ffs = fileSystem = _FakeFileSystem(fileSystem);
     for (MapEntry<Uri, Uri> entry in redirectsToFrom.entries) {
       ffs.addRedirect(
           uriTranslator.translate(entry.value, false) ?? entry.value,
@@ -393,14 +395,14 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       switch (format) {
         case 'kernel':
           macroExecutor.registerExecutorFactory(
-              () => isolatedExecutor.start(serializationMode, programUri),
+              () => isolated_executor.start(serializationMode, programUri),
               {library});
           break;
         case 'aot':
           macroExecutor.registerExecutorFactory(
-              () => processExecutor.start(
+              () => process_executor.start(
                   serializationMode,
-                  processExecutor.CommunicationChannel.socket,
+                  process_executor.CommunicationChannel.socket,
                   programUri.toFilePath()),
               {library});
           break;
@@ -441,12 +443,12 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         if (lib.importUri.isScheme("dart")) continue;
         Uri? uri = state.libraryToInputDill![lib.importUri];
         if (uri == null) {
-          throw new StateError("Library ${lib.importUri} was recorded as used, "
+          throw StateError("Library ${lib.importUri} was recorded as used, "
               "but was not in the list of known libraries.");
         }
         usedOutlines.add(uri);
       }
-      var outputUsedFile = new File(parsedArgs["used-inputs"]);
+      var outputUsedFile = File(parsedArgs["used-inputs"]);
       outputUsedFile.createSync(recursive: true);
       outputUsedFile.writeAsStringSync(usedOutlines.join("\n"));
       wroteUsedDills = true;
@@ -490,7 +492,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
   if (!wroteUsedDills && recordUsedInputs) {
     // The path taken didn't record inputs used: Say we used everything.
-    var outputUsedFile = new File(parsedArgs["used-inputs"]);
+    var outputUsedFile = File(parsedArgs["used-inputs"]);
     outputUsedFile.createSync(recursive: true);
     Set<Uri> allFiles = {...summaryInputs, ...linkedInputs};
     outputUsedFile.writeAsStringSync(allFiles.join("\n"));
@@ -498,14 +500,14 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
 
   if (kernel != null) {
-    var outputFile = new File(parsedArgs['output']);
+    var outputFile = File(parsedArgs['output']);
     outputFile.createSync(recursive: true);
     outputFile.writeAsBytesSync(kernel);
   } else {
     assert(!succeeded);
   }
 
-  return new ComputeKernelResult(succeeded, state);
+  return ComputeKernelResult(succeeded, state);
 }
 
 /// Make sure the output is stable by sorting libraries and additional exports.
@@ -544,7 +546,9 @@ class _FakeFileSystem extends FileSystem {
 }
 
 class DevCompilerSummaryTarget extends DevCompilerTarget with SummaryMixin {
+  @override
   final List<Uri> sources;
+  @override
   final bool excludeNonSources;
 
   DevCompilerSummaryTarget(

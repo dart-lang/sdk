@@ -12,7 +12,7 @@ abstract class Super extends core::Object {
   abstract method abstractExtendsConcreteMixin() → void;
   abstract method abstractExtendsAbstractMixin() → void;
 }
-abstract class MixinClass extends core::Object {
+abstract mixin class MixinClass extends core::Object {
   synthetic constructor •() → self::MixinClass
     ;
   method concreteExtendsConcreteMixin() → void

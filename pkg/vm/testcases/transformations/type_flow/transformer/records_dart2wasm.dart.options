@@ -1,0 +1,2 @@
+--enable-experiment=records
+--target=dart2wasm

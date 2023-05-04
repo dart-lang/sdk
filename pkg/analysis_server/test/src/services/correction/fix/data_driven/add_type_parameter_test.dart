@@ -120,7 +120,7 @@ void f(C<String, int> c) {}
 
   Future<void> test_inWith_removed() async {
     setPackageContent('''
-class A<S, T> {}
+mixin A<S, T> {}
 ''');
     setPackageData(_add(0, components: ['A']));
     await resolveTestCode('''

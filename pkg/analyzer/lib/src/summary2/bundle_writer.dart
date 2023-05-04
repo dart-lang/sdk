@@ -598,14 +598,20 @@ class ResolutionSink extends _SummaryDataWriter {
         element.substitution.map,
       );
 
-      writeByte(
-        isLegacy
-            ? Tag.MemberLegacyWithTypeArguments
-            : Tag.MemberWithTypeArguments,
-      );
-
-      _writeElement(declaration);
-      _writeTypeList(typeArguments);
+      if (isLegacy) {
+        if (typeArguments.isEmpty) {
+          writeByte(Tag.MemberLegacyWithoutTypeArguments);
+          _writeElement(declaration);
+        } else {
+          writeByte(Tag.MemberLegacyWithTypeArguments);
+          _writeElement(declaration);
+          _writeTypeList(typeArguments);
+        }
+      } else {
+        writeByte(Tag.MemberWithTypeArguments);
+        _writeElement(declaration);
+        _writeTypeList(typeArguments);
+      }
     } else {
       writeByte(Tag.RawElement);
       _writeElement(element);

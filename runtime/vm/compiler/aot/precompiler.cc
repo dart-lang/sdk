@@ -35,6 +35,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/ffi/native_assets.h"
 #include "vm/flags.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
@@ -145,7 +146,7 @@ struct RetainReasons : public AllStatic {
   // The object is a function and symbolic stack traces are enabled.
   static constexpr const char* kSymbolicStackTraces =
       "needed for symbolic stack traces";
-  // The object is a parent function function of a non-inlined local function.
+  // The object is a parent function of a non-inlined local function.
   static constexpr const char* kLocalParent = "parent of a local function";
   // The object is a main function of the root library.
   static constexpr const char* kMainFunction =
@@ -345,7 +346,6 @@ class PrecompileParsedFunctionHelper : public ValueObject {
   ParsedFunction* parsed_function() const { return parsed_function_; }
   bool optimized() const { return optimized_; }
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread_->isolate(); }
 
   void FinalizeCompilation(compiler::Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
@@ -386,8 +386,7 @@ void Precompiler::ReportStats() {
 
 Precompiler::Precompiler(Thread* thread)
     : thread_(thread),
-      zone_(NULL),
-      isolate_(thread->isolate()),
+      zone_(nullptr),
       changed_(false),
       retain_root_library_caches_(false),
       function_count_(0),
@@ -403,7 +402,7 @@ Precompiler::Precompiler(Thread* thread)
       dropped_library_count_(0),
       dropped_constants_arrays_entries_count_(0),
       libraries_(GrowableObjectArray::Handle(
-          isolate_->group()->object_store()->libraries())),
+          thread->isolate_group()->object_store()->libraries())),
       pending_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
       sent_selectors_(),
@@ -427,7 +426,7 @@ Precompiler::Precompiler(Thread* thread)
       api_uses_(),
       error_(Error::Handle()),
       get_runtime_type_is_unique_(false) {
-  ASSERT(Precompiler::singleton_ == NULL);
+  ASSERT(Precompiler::singleton_ == nullptr);
   Precompiler::singleton_ = this;
 
   if (FLAG_print_precompiler_timings) {
@@ -444,7 +443,7 @@ Precompiler::~Precompiler() {
   functions_to_retain_.Release();
 
   ASSERT(Precompiler::singleton_ == this);
-  Precompiler::singleton_ = NULL;
+  Precompiler::singleton_ = nullptr;
 
   delete thread()->compiler_timings();
   thread()->set_compiler_timings(nullptr);
@@ -491,6 +490,10 @@ void Precompiler::DoCompileAll() {
 
       dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
       dispatch_table_generator_->Initialize(IG->class_table());
+
+      // After finding all code, and before starting to trace, populate the
+      // assets map.
+      GetNativeAssetsMap(T);
 
       // Precompile constructors to compute information such as
       // optimized instruction count (used in inlining heuristics).
@@ -616,6 +619,7 @@ void Precompiler::DoCompileAll() {
         // Clear these before dropping classes as they may hold onto otherwise
         // dead instances of classes we will remove or otherwise unused symbols.
         IG->object_store()->set_unique_dynamic_targets(Array::null_array());
+        Library& null_library = Library::Handle(Z);
         Class& null_class = Class::Handle(Z);
         Function& null_function = Function::Handle(Z);
         Field& null_field = Field::Handle(Z);
@@ -630,6 +634,7 @@ void Precompiler::DoCompileAll() {
         IG->object_store()->set_simple_instance_of_false_function(
             null_function);
         IG->object_store()->set_async_star_stream_controller(null_class);
+        IG->object_store()->set_native_assets_library(null_library);
         DropMetadata();
         DropLibraryEntries();
       }
@@ -650,8 +655,8 @@ void Precompiler::DoCompileAll() {
     const auto& non_visited =
         Function::Handle(Z, FindUnvisitedRetainedFunction());
     if (!non_visited.IsNull()) {
-      FATAL1("Code visitor would miss the code for function \"%s\"\n",
-             non_visited.ToFullyQualifiedCString());
+      FATAL("Code visitor would miss the code for function \"%s\"\n",
+            non_visited.ToFullyQualifiedCString());
     }
 #endif
     DiscardCodeObjects();
@@ -668,7 +673,7 @@ void Precompiler::DoCompileAll() {
       retained_reasons_writer_ = nullptr;
     }
 
-    zone_ = NULL;
+    zone_ = nullptr;
   }
 
   intptr_t symbols_before = -1;
@@ -1721,12 +1726,8 @@ void Precompiler::CheckForNewDynamicFunctions() {
             functions_called_dynamically_.Insert(function2);
           }
         } else if (function.kind() == UntaggedFunction::kRegularFunction) {
-          selector2 = Field::LookupGetterSymbol(selector);
-          selector3 = String::null();
-          if (!selector2.IsNull()) {
-            selector3 =
-                Function::CreateDynamicInvocationForwarderName(selector2);
-          }
+          selector2 = Field::GetterSymbol(selector);
+          selector3 = Function::CreateDynamicInvocationForwarderName(selector2);
           if (IsSent(selector2) || IsSent(selector3)) {
             metadata = kernel::ProcedureAttributesOf(function, Z);
             found_metadata = true;
@@ -1945,7 +1946,6 @@ void Precompiler::TraceForRetainedFunctions() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
-  String& name = String::Handle(Z);
   Function& function = Function::Handle(Z);
   Function& function2 = Function::Handle(Z);
   Array& fields = Array::Handle(Z);
@@ -1997,17 +1997,16 @@ void Precompiler::TraceForRetainedFunctions() {
         }
       }
 
-      {
-        functions = cls.invocation_dispatcher_cache();
-        InvocationDispatcherTable dispatchers(functions);
-        for (auto dispatcher : dispatchers) {
-          name = dispatcher.Get<Class::kInvocationDispatcherName>();
-          if (name.IsNull()) break;  // Reached last entry.
-          function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
+      if (cls.invocation_dispatcher_cache() != Array::empty_array().ptr()) {
+        DispatcherSet dispatchers(cls.invocation_dispatcher_cache());
+        DispatcherSet::Iterator it(&dispatchers);
+        while (it.MoveNext()) {
+          function ^= dispatchers.GetKey(it.Current());
           if (possibly_retained_functions_.ContainsKey(function)) {
             AddTypesOf(function);
           }
         }
+        dispatchers.Release();
       }
     }
   }
@@ -2029,8 +2028,8 @@ void Precompiler::TraceForRetainedFunctions() {
     // they are referenced only from code (object pool).
     if (!functions_to_retain_.ContainsKey(function) &&
         !function.IsFfiTrampoline()) {
-      FATAL1("Function %s was not traced in TraceForRetainedFunctions\n",
-             function.ToFullyQualifiedCString());
+      FATAL("Function %s was not traced in TraceForRetainedFunctions\n",
+            function.ToFullyQualifiedCString());
     }
   }
 #endif  // DEBUG
@@ -2253,9 +2252,6 @@ void Precompiler::DropFunctions() {
   };
 
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
-  auto& dispatchers_array = Array::Handle(Z);
-  auto& name = String::Handle(Z);
-  auto& desc = Array::Handle(Z);
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     HANDLESCOPE(T);
@@ -2283,30 +2279,32 @@ void Precompiler::DropFunctions() {
       }
 
       retained_functions = GrowableObjectArray::New();
-      {
-        dispatchers_array = cls.invocation_dispatcher_cache();
-        InvocationDispatcherTable dispatchers(dispatchers_array);
-        for (auto dispatcher : dispatchers) {
-          name = dispatcher.Get<Class::kInvocationDispatcherName>();
-          if (name.IsNull()) break;  // Reached last entry.
-          desc = dispatcher.Get<Class::kInvocationDispatcherArgsDesc>();
-          function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
+      if (cls.invocation_dispatcher_cache() != Array::empty_array().ptr()) {
+        DispatcherSet dispatchers(Z, cls.invocation_dispatcher_cache());
+        DispatcherSet::Iterator it(&dispatchers);
+        while (it.MoveNext()) {
+          function ^= dispatchers.GetKey(it.Current());
           if (functions_to_retain_.ContainsKey(function)) {
-            retained_functions.Add(name);
-            retained_functions.Add(desc);
             trim_function(function);
             retained_functions.Add(function);
           } else {
             drop_function(function);
           }
         }
+        dispatchers.Release();
       }
-      if (retained_functions.Length() > 0) {
-        functions = Array::MakeFixedLength(retained_functions);
+      if (retained_functions.Length() == 0) {
+        cls.set_invocation_dispatcher_cache(Array::empty_array());
       } else {
-        functions = Object::empty_array().ptr();
+        DispatcherSet retained_dispatchers(
+            Z, HashTables::New<DispatcherSet>(retained_functions.Length(),
+                                              Heap::kOld));
+        for (intptr_t j = 0; j < retained_functions.Length(); j++) {
+          function ^= retained_functions.At(j);
+          retained_dispatchers.Insert(function);
+        }
+        cls.set_invocation_dispatcher_cache(retained_dispatchers.Release());
       }
-      cls.set_invocation_dispatcher_cache(functions);
     }
   }
 
@@ -2471,7 +2469,7 @@ static bool IsUserDefinedClass(Zone* zone,
 }
 
 /// Updates |visited| weak table with information about whether object
-/// (transitevly) references constants of user-defined classes: |kDrop|
+/// (transitively) references constants of user-defined classes: |kDrop|
 /// indicates it does, |kRetain| - does not.
 class ConstantInstanceVisitor {
  public:
@@ -2747,7 +2745,7 @@ void Precompiler::DropLibraryEntries() {
       } else if (entry.IsLibraryPrefix()) {
         // Always drop.
       } else {
-        FATAL1("Unexpected library entry: %s", entry.ToCString());
+        FATAL("Unexpected library entry: %s", entry.ToCString());
       }
       dict.SetAt(j, Object::null_object());
     }
@@ -3090,6 +3088,16 @@ void Precompiler::DiscardCodeObjects() {
 }
 
 void Precompiler::PruneDictionaries() {
+#if defined(DEBUG)
+  // Verify that api_uses_ is stable: any entry in it can be found. This
+  // check serves to catch bugs when ProgramElementSet::Hash is accidentally
+  // defined using unstable values.
+  ProgramElementSet::Iterator it = api_uses_.GetIterator();
+  while (auto entry = it.Next()) {
+    ASSERT(api_uses_.HasKey(*entry));
+  }
+#endif
+
   // PRODUCT-only: pruning interferes with various uses of the service protocol,
   // including heap analysis tools.
 #if defined(PRODUCT)
@@ -3358,7 +3366,7 @@ void Precompiler::Obfuscate() {
     Library::RegisterLibraries(T, libraries_);
   }
 
-  // Obfuscation is done. Move obfuscation map into malloced memory.
+  // Obfuscation is done. Move obfuscation map into mallocated memory.
   IG->set_obfuscation_map(Obfuscator::SerializeMap(T));
 
   // Discard obfuscation mappings to avoid including them into snapshot.
@@ -3537,17 +3545,17 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // too big). If we were adding objects into the global pool directly
       // these recompilations would leave dead entries behind.
       // Instead we add objects into an intermediary pool which gets
-      // commited into the global object pool at the end of the compilation.
+      // committed into the global object pool at the end of the compilation.
       // This makes an assumption that global object pool itself does not
       // grow during code generation - unfortunately this is not the case
-      // becase we might have nested code generation (i.e. we might generate
+      // because we might have nested code generation (i.e. we might generate
       // some stubs). If this indeed happens we retry the compilation.
       // (See TryCommitToParent invocation below).
       compiler::ObjectPoolBuilder object_pool_builder(
           precompiler_->global_object_pool_builder());
       compiler::Assembler assembler(&object_pool_builder, far_branch_level);
 
-      CodeStatistics* function_stats = NULL;
+      CodeStatistics* function_stats = nullptr;
       if (FLAG_print_instruction_stats) {
         // At the moment we are leaking CodeStatistics objects for
         // simplicity because this is just a development mode flag.
@@ -3752,7 +3760,7 @@ ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
 }
 
 Obfuscator::Obfuscator(Thread* thread, const String& private_key)
-    : state_(NULL) {
+    : state_(nullptr) {
   auto isolate_group = thread->isolate_group();
   if (!isolate_group->obfuscate()) {
     // Nothing to do.
@@ -3760,7 +3768,7 @@ Obfuscator::Obfuscator(Thread* thread, const String& private_key)
   }
   auto zone = thread->zone();
 
-  // Create ObfuscationState from ObjectStore::obfusction_map().
+  // Create ObfuscationState from ObjectStore::obfuscation_map().
   ObjectStore* store = isolate_group->object_store();
   Array& obfuscation_state = Array::Handle(zone, store->obfuscation_map());
 
@@ -3783,7 +3791,7 @@ Obfuscator::Obfuscator(Thread* thread, const String& private_key)
 }
 
 Obfuscator::~Obfuscator() {
-  if (state_ != NULL) {
+  if (state_ != nullptr) {
     state_->SaveState();
   }
 }
@@ -3904,7 +3912,7 @@ static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
 void Obfuscator::PreventRenaming(const char* name) {
   // For constructor names Class.name skip class name (if any) and a dot.
   const char* dot = strchr(name, '.');
-  if (dot != NULL) {
+  if (dot != nullptr) {
     name = dot + 1;
   }
 
@@ -3975,6 +3983,12 @@ StringPtr Obfuscator::ObfuscationState::NewAtomicRename(
 
 StringPtr Obfuscator::ObfuscationState::BuildRename(const String& name,
                                                     bool atomic) {
+  // Do not rename record positional field names $1, $2 etc
+  // in order to handle them properly during dynamic invocations.
+  if (Record::GetPositionalFieldIndexFromFieldName(name) >= 0) {
+    return name.ptr();
+  }
+
   if (atomic) {
     return NewAtomicRename(name.CharAt(0) == '_');
   }
@@ -4087,7 +4101,7 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
       Array::Handle(thread->zone(),
                     thread->isolate_group()->object_store()->obfuscation_map());
   if (obfuscation_state.IsNull()) {
-    return NULL;
+    return nullptr;
   }
 
   const Array& renames = Array::Handle(
@@ -4106,7 +4120,7 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
     str ^= renames_map.GetPayload(entry, 0);
     result[idx++] = StringToCString(str);
   }
-  result[idx++] = NULL;
+  result[idx++] = nullptr;
   renames_map.Release();
 
   return result;

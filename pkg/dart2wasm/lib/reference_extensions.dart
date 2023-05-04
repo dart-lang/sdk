@@ -40,25 +40,25 @@ extension GetterSetterReference on Reference {
 // Use Expandos to avoid keeping the procedure alive.
 final Expando<Reference> _tearOffReference = Expando();
 final Expando<Reference> _asyncInnerReference = Expando();
+final Expando<Reference> _typeCheckerReference = Expando();
 
-extension CustomReference on Procedure {
+extension CustomReference on Member {
   Reference get tearOffReference =>
       _tearOffReference[this] ??= Reference()..node = this;
 
   Reference get asyncInnerReference =>
       _asyncInnerReference[this] ??= Reference()..node = this;
+
+  Reference get typeCheckerReference =>
+      _typeCheckerReference[this] ??= Reference()..node = this;
 }
 
 extension IsCustomReference on Reference {
-  bool get isTearOffReference {
-    Member member = asMember;
-    return member is Procedure && _tearOffReference[member] == this;
-  }
+  bool get isTearOffReference => _tearOffReference[asMember] == this;
 
-  bool get isAsyncInnerReference {
-    Member member = asMember;
-    return member is Procedure && _asyncInnerReference[member] == this;
-  }
+  bool get isAsyncInnerReference => _asyncInnerReference[asMember] == this;
+
+  bool get isTypeCheckerReference => _typeCheckerReference[asMember] == this;
 }
 
 extension ReferenceAs on Member {

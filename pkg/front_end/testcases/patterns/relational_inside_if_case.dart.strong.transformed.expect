@@ -3,37 +3,55 @@ import self as self;
 import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
-  final dynamic #t1 = x;
-  if(#t1 =={core::Object::==}{(core::Object) → core::bool} 1) {
+  {
+    final synthesized dynamic #0#0 = x;
+    if(#0#0 =={core::Object::==}{(core::Object) → core::bool} #C1) {
+    }
   }
-  final dynamic #t2 = x;
-  if(#t2 == null) {
+  {
+    final synthesized dynamic #1#0 = x;
+    if(#1#0 == null) {
+    }
   }
-  final dynamic #t3 = x;
-  if(#t3 =={core::Object::==}{(core::Object) → core::bool} "foo".{core::String::length}{core::int}) {
+  {
+    final synthesized dynamic #2#0 = x;
+    if(#2#0 =={core::Object::==}{(core::Object) → core::bool} #C2) {
+    }
   }
-  final dynamic #t4 = x;
-  if(!(#t4 =={core::Object::==}{(core::Object) → core::bool} 1)) {
+  {
+    final synthesized dynamic #3#0 = x;
+    if(!(#3#0 =={core::Object::==}{(core::Object) → core::bool} #C1)) {
+    }
   }
-  final dynamic #t5 = x;
-  if(!(#t5 == null)) {
+  {
+    final synthesized dynamic #4#0 = x;
+    if(!(#4#0 == null)) {
+    }
   }
-  final dynamic #t6 = x;
-  if(#t6{dynamic}.<(1)) {
+  {
+    final synthesized dynamic #5#0 = x;
+    if(#5#0{dynamic}.<(#C1) as{ForNonNullableByDefault} core::bool) {
+    }
   }
-  final dynamic #t7 = x;
-  if(#t7{dynamic}.<=(1)) {
+  {
+    final synthesized dynamic #6#0 = x;
+    if(#6#0{dynamic}.<=(#C1) as{ForNonNullableByDefault} core::bool) {
+    }
   }
-  final dynamic #t8 = x;
-  if(#t8{dynamic}.>(1)) {
+  {
+    final synthesized dynamic #7#0 = x;
+    if(#7#0{dynamic}.>(#C1) as{ForNonNullableByDefault} core::bool) {
+    }
   }
-  final dynamic #t9 = x;
-  if(#t9{dynamic}.>=(1)) {
+  {
+    final synthesized dynamic #8#0 = x;
+    if(#8#0{dynamic}.>=(#C1) as{ForNonNullableByDefault} core::bool) {
+    }
   }
 }
 static method main() → dynamic {}
 
-
-Extra constant evaluation status:
-Evaluated: InstanceGet @ org-dartlang-testcase:///relational_inside_if_case.dart:8:23 -> IntConstant(3)
-Extra constant evaluation: evaluated: 30, effectively constant: 1
+constants  {
+  #C1 = 1
+  #C2 = 3
+}

@@ -168,9 +168,6 @@ abstract class VMInternalsForTesting {
   @pragma("vm:external-name", "Internal_collectAllGarbage")
   external static void collectAllGarbage();
 
-  @pragma("vm:external-name", "Internal_writeHeapSnapshotToFile")
-  external static void writeHeapSnapshotToFile(String filename);
-
   @pragma("vm:external-name", "Internal_deoptimizeFunctionsOnStack")
   external static void deoptimizeFunctionsOnStack();
 
@@ -372,10 +369,10 @@ extension FinalizerBaseMembers on FinalizerBase {
   setIsolate() => _setIsolate();
 }
 
-/// Contains the informatation of an active [Finalizer.attach].
+/// Contains the information of an active [Finalizer.attach].
 ///
 /// It holds on to the [value], optional [detach], and [token]. In addition, it
-/// also keeps a reference the [finalizer] it belings to and a [next] field for
+/// also keeps a reference the [finalizer] it belongs to and a [next] field for
 /// when being used in a linked list.
 ///
 /// This is being kept alive by [FinalizerBase._allEntries] until either (1)
@@ -431,3 +428,6 @@ class FinalizerEntry {
   @FfiNative<Void Function(Handle, IntPtr)>('FinalizerEntry_SetExternalSize')
   external void setExternalSize(int externalSize);
 }
+
+@pragma("vm:external-name", "StringBase_intern")
+external String intern(String str);

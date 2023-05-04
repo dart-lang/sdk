@@ -1,6 +1,9 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// ignore_for_file: unnecessary_string_escapes
+
 import 'dart:io';
 
 import 'package:expect/expect.dart';
@@ -45,6 +48,7 @@ void testParseDill() {
   Expect.listEquals(<String>[], file.dartOptions);
   Expect.listEquals(<String>[], file.sharedOptions);
   Expect.listEquals(<String>[], file.dart2jsOptions);
+  Expect.listEquals(<String>[], file.dart2wasmOptions);
   Expect.listEquals(<String>[], file.ddcOptions);
   Expect.listEquals(<String>[], file.otherResources);
   Expect.listEquals(<String>[], file.sharedObjects);
@@ -95,6 +99,7 @@ void testParseOtherOptions() {
   Expect.listEquals(<String>[], file.dartOptions);
   Expect.listEquals(<String>[], file.sharedOptions);
   Expect.listEquals(<String>[], file.dart2jsOptions);
+  Expect.listEquals(<String>[], file.dart2wasmOptions);
   Expect.listEquals(<String>[], file.ddcOptions);
   Expect.listEquals(<String>[], file.otherResources);
   Expect.listEquals(<String>[], file.sharedObjects);
@@ -105,7 +110,8 @@ void testParseOtherOptions() {
   /\/ DartOptions=dart options
   /\/ SharedOptions=shared options
   /\/ dart2jsOptions=dart2js options
-  /\/ dartdevcOptions=ddc options
+  /\/ dart2wasmOptions=dart2wasm options
+  /\/ ddcOptions=ddc options
   /\/ OtherResources=other resources
   /\/ SharedObjects=shared objects
   /\/ Requirements=nnbd nnbd-strong
@@ -113,6 +119,7 @@ void testParseOtherOptions() {
   Expect.listEquals(["dart", "options"], file.dartOptions);
   Expect.listEquals(["shared", "options"], file.sharedOptions);
   Expect.listEquals(["dart2js", "options"], file.dart2jsOptions);
+  Expect.listEquals(["dart2wasm", "options"], file.dart2wasmOptions);
   Expect.listEquals(["ddc", "options"], file.ddcOptions);
   Expect.listEquals(["other", "resources"], file.otherResources);
   Expect.listEquals([Feature.nnbd, Feature.nnbdStrong], file.requirements);
@@ -131,8 +138,12 @@ void testParseOtherOptions() {
   /\/ dart2jsOptions=second
   """);
   expectParseThrows("""
-  /\/ dartdevcOptions=first
-  /\/ dartdevcOptions=second
+  /\/ dart2wasmOptions=first
+  /\/ dart2wasmOptions=second
+  """);
+  expectParseThrows("""
+  /\/ ddcOptions=first
+  /\/ ddcOptions=second
   """);
   expectParseThrows("""
   /\/ Requirements=nnbd

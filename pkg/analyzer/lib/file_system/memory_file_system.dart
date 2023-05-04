@@ -33,6 +33,11 @@ class MemoryResourceProvider implements ResourceProvider {
   @visibleForTesting
   final Duration? delayWatcherInitialization;
 
+  /// Paths that should have `PathNotFoundException`s emitted on their watch
+  /// streams.
+  @visibleForTesting
+  final Set<String> emitPathNotFoundExceptionsForPaths = {};
+
   MemoryResourceProvider({
     pathos.Context? context,
     this.delayWatcherInitialization,
@@ -625,6 +630,10 @@ abstract class _MemoryResource implements Resource {
         }
       });
       ready.complete();
+      if (provider.emitPathNotFoundExceptionsForPaths.contains(path)) {
+        streamController.addError(PathNotFoundException(
+            path, 'Simulated PathNotFoundException from _MemoryResource'));
+      }
     }
 
     final delayWatcherInitialization = provider.delayWatcherInitialization;

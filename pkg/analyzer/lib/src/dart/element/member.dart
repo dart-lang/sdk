@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
@@ -96,6 +97,9 @@ class ConstructorMember extends ExecutableMember
 
   @override
   InterfaceType get returnType => type.returnType as InterfaceType;
+
+  @override
+  Source get source => _declaration.source!;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
@@ -397,6 +401,9 @@ class FieldMember extends VariableMember implements FieldElement {
   }
 
   @override
+  Source? get source => _declaration.source;
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
 
   /// If the given [field]'s type is different when any type parameters from the
@@ -457,6 +464,9 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
 
   @override
   String get name => declaration.name;
+
+  @override
+  Source get source => _declaration.source!;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
@@ -561,6 +571,9 @@ abstract class Member implements Element {
   bool get hasProtected => _declaration.hasProtected;
 
   @override
+  bool get hasReopen => _declaration.hasReopen;
+
+  @override
   bool get hasRequired => _declaration.hasRequired;
 
   @override
@@ -621,7 +634,7 @@ abstract class Member implements Element {
   AnalysisSession? get session => _declaration.session;
 
   @override
-  Source get source => _declaration.source!;
+  Version? get sinceSdkVersion => _declaration.sinceSdkVersion;
 
   /// The substitution for type parameters referenced in the base element.
   MapSubstitution get substitution => _substitution;
@@ -808,6 +821,9 @@ class MethodMember extends ExecutableMember implements MethodElement {
   String get name => declaration.name;
 
   @override
+  Source get source => _declaration.source!;
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 
   /// If the given [method]'s type is different when any type parameters from
@@ -930,6 +946,9 @@ class ParameterMember extends VariableMember
   }
 
   @override
+  Source? get source => _declaration.source;
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitParameterElement(this);
 
@@ -1042,6 +1061,9 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   String get name => declaration.name;
+
+  @override
+  Source get source => _declaration.source!;
 
   @override
   PropertyInducingElement get variable {
@@ -1187,6 +1209,9 @@ class TopLevelVariableMember extends VariableMember
     return PropertyAccessorMember(
         _typeProvider, baseSetter, _substitution, isLegacy);
   }
+
+  @override
+  Source get source => _declaration.source!;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {

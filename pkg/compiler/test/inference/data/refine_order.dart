@@ -15,7 +15,7 @@ class Class {
 
 /*member: main:[null]*/
 main() {
-  new Class();
+  Class();
   statementOrderFieldAccess(null);
   statementOrderFieldUpdate(null);
   statementOrderInvocation(null);
@@ -136,11 +136,14 @@ conditionalCondition(/*[null|subclass=Object]*/ o) {
 // Access both branches of a conditional expression.
 ////////////////////////////////////////////////////////////////////////////////
 
+/*member: flag:Value([null|exact=JSBool], value: true)*/
+bool flag; // late
+
 /*member: conditionalBothBranches:[null]*/
 @pragma('dart2js:assumeDynamic')
 conditionalBothBranches(/*[null|subclass=Object]*/ o) {
   // ignore: DEAD_CODE
-  true ? o.field : o.field;
+  (flag = true) ? o.field : o.field;
   o. /*[subclass=Object]*/ field;
 }
 
@@ -152,7 +155,7 @@ conditionalBothBranches(/*[null|subclass=Object]*/ o) {
 @pragma('dart2js:assumeDynamic')
 conditionalOneBranchOnly(/*[null|subclass=Object]*/ o) {
   // ignore: DEAD_CODE
-  true ? o.field : null;
+  (flag = true) ? o.field : null;
   o.field;
   o. /*[subclass=Object]*/ field;
 }

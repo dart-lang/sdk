@@ -101,10 +101,12 @@ Procedure? createConstructorTearOffProcedure(
     Uri fileUri,
     int fileOffset,
     Reference? reference,
-    {required bool forAbstractClassOrEnum}) {
+    {required bool forAbstractClassOrEnum,
+    bool forceCreateLowering = false}) {
   if (!forAbstractClassOrEnum &&
-      compilationUnit
-          .loader.target.backendTarget.isConstructorTearOffLoweringEnabled) {
+      (forceCreateLowering ||
+          compilationUnit.loader.target.backendTarget
+              .isConstructorTearOffLoweringEnabled)) {
     return _createTearOffProcedure(compilationUnit,
         constructorTearOffName(name), fileUri, fileOffset, reference);
   }
@@ -144,7 +146,8 @@ Procedure createTypedefTearOffProcedure(
 }
 
 /// Creates the parameters and body for [tearOff] based on
-/// [declarationConstructor] in [enclosingClass].
+/// [declarationConstructor].
+/// [enclosingDeclarationTypeParameters].
 ///
 /// The [declarationConstructor] is the origin constructor and
 /// [implementationConstructor] is the patch constructor, if patched, otherwise
@@ -153,7 +156,7 @@ void buildConstructorTearOffProcedure(
     {required Procedure tearOff,
     required Member declarationConstructor,
     required Member implementationConstructor,
-    required Class enclosingClass,
+    List<TypeParameter>? enclosingDeclarationTypeParameters,
     required SourceLibraryBuilder libraryBuilder}) {
   assert(
       declarationConstructor is Constructor ||
@@ -176,19 +179,15 @@ void buildConstructorTearOffProcedure(
 
   int fileOffset = tearOff.fileOffset;
 
-  List<TypeParameter> classTypeParameters;
-  if (declarationConstructor is Constructor) {
-    // Generative constructors implicitly have the type parameters of the
-    // enclosing class.
-    classTypeParameters = enclosingClass.typeParameters;
-  } else {
-    // Factory constructors explicitly copy over the type parameters of the
-    // enclosing class.
-    classTypeParameters = function.typeParameters;
-  }
+  // Generative constructors implicitly have the type parameters of the
+  // enclosing class.
+  // Factory constructors explicitly copy over the type parameters of the
+  // enclosing class.
+  List<TypeParameter> declarationTypeParameters =
+      enclosingDeclarationTypeParameters ?? function.typeParameters;
 
   FreshTypeParameters freshTypeParameters =
-      _createFreshTypeParameters(classTypeParameters, tearOff.function);
+      _createFreshTypeParameters(declarationTypeParameters, tearOff.function);
 
   List<DartType> typeArguments = freshTypeParameters.freshTypeArguments;
   Substitution substitution = freshTypeParameters.substitution;

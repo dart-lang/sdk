@@ -1,0 +1,21 @@
+import 'dart:math' as math;
+
+sealed class Shape {
+  double calculateArea();
+}
+
+class Square implements Shape {
+  final double length;
+  Square(this.length);
+  double calculateArea() => length * length;
+}
+
+class Circle implements Shape {
+  final double radius;
+  Circle(this.radius);
+  double calculateArea() => math.pi * radius * radius;
+}
+
+double calculateArea(Shape shape) => switch (shape) {};
+main() {}
+expect(expected, actual) {}

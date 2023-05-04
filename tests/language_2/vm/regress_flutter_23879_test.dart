@@ -10,7 +10,7 @@
 
 import "package:expect/expect.dart";
 
-List<int> list = new List<int>(10);
+List<int> list = new List<int>.filled(10, null);
 
 List<int> expected_values = [null, 152, 168, 184, 200, 216, 232, 248, 264, 280];
 

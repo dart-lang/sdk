@@ -70,8 +70,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfFunction(bool constructor);
 
-  Fragment BuildExpression(TokenPosition* position = nullptr,
-                           bool allow_late_uninitialized = false);
+  Fragment BuildExpression(TokenPosition* position = nullptr);
   Fragment BuildStatement(TokenPosition* position = nullptr);
   Fragment BuildStatementWithBranchCoverage(TokenPosition* position = nullptr);
 
@@ -156,7 +155,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment Return(TokenPosition position);
   Fragment EvaluateAssertion();
   Fragment RethrowException(TokenPosition position, int catch_try_index);
-  Fragment ThrowNoSuchMethodError(const Function& target,
+  Fragment ThrowNoSuchMethodError(TokenPosition position,
+                                  const Function& target,
                                   bool incompatible_arguments);
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
@@ -164,8 +164,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
-                     const String& function_name,
-                     bool clear_the_temp = true);
+                     const String& function_name);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
@@ -178,6 +177,11 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                       const InferredTypeMetadata* result_type = nullptr,
                       intptr_t type_args_len = 0,
                       bool use_unchecked_entry = false);
+  Fragment StaticCallMissing(TokenPosition position,
+                             const String& selector,
+                             intptr_t argument_count,
+                             InvocationMirror::Level level,
+                             InvocationMirror::Kind kind);
   Fragment InstanceCall(TokenPosition position,
                         const String& name,
                         Token::Kind kind,
@@ -240,6 +244,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                            bool is_synthesized);
   Fragment TryCatch(int try_handler_index);
   Fragment Drop();
+  Fragment DropArguments(intptr_t argument_count, intptr_t type_args_count);
 
   // Drop given number of temps from the stack but preserve top of the stack.
   Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
@@ -266,14 +271,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildArgumentsFromActualArguments(Array* argument_names);
 
   Fragment BuildInvalidExpression(TokenPosition* position);
-  Fragment BuildVariableGet(TokenPosition* position,
-                            bool allow_late_uninitialized = false);
-  Fragment BuildVariableGet(uint8_t payload,
-                            TokenPosition* position,
-                            bool allow_late_uninitialized = false);
+  Fragment BuildVariableGet(TokenPosition* position);
+  Fragment BuildVariableGet(uint8_t payload, TokenPosition* position);
   Fragment BuildVariableGetImpl(intptr_t variable_kernel_position,
-                                TokenPosition position,
-                                bool allow_late_uninitialized = false);
+                                TokenPosition position);
   Fragment BuildVariableSet(TokenPosition* position);
   Fragment BuildVariableSet(uint8_t payload, TokenPosition* position);
   Fragment BuildVariableSetImpl(TokenPosition position,

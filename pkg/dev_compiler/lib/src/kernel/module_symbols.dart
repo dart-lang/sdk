@@ -542,7 +542,7 @@ class LibrarySymbol extends ScopeSymbol {
 }
 
 class LibrarySymbolDependency implements SymbolTableElement {
-  /// True if this dependency an import, false if an an export.
+  /// True if this dependency an import, false if an export.
   final bool isImport;
 
   /// True if this dependency is deferred.

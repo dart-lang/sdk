@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -46,6 +47,7 @@ f() {
   }
 
   test_equal_legacyLibrary() async {
+    noSoundNullSafety = false;
     await assertNoErrorsInCode('''
 // @dart = 2.5
 f(int a) {
@@ -62,8 +64,8 @@ f(int a) {
   null == a;
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 15, 7),
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 26, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 15, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 26, 7),
     ]);
   }
 
@@ -74,6 +76,32 @@ f(int? a) {
   null == a;
 }
 ''');
+  }
+
+  test_implicitlyAssigned_false() async {
+    await assertErrorsInCode('''
+f() {
+  int? i;
+  i != null;
+  null != i;
+}
+''', [
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 18, 4),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 36, 4),
+    ]);
+  }
+
+  test_implicitlyAssigned_true() async {
+    await assertErrorsInCode('''
+f() {
+  int? i;
+  i == null;
+  null == i;
+}
+''', [
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 18, 4),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 36, 4),
+    ]);
   }
 }
 
@@ -109,6 +137,7 @@ f() {
   }
 
   test_notEqual_legacyLibrary() async {
+    noSoundNullSafety = false;
     await assertNoErrorsInCode('''
 // @dart = 2.5
 f(int a) {
@@ -125,8 +154,8 @@ f(int a) {
   null != a;
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 15, 7),
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 26, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 15, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 26, 7),
     ]);
   }
 

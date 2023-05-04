@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 abstract class ScrollListener {
@@ -11,7 +9,7 @@ abstract class ScrollListener {
   /// [decelerating] specifies whether or not the content is moving due
   /// to deceleration. It should be false if the content is moving because the
   /// user is dragging the content.
-  void onScrollerMoved(double scrollX, double scrollY, bool decelerating);
+  void onScrollerMoved(num scrollX, num scrollY, bool decelerating);
 }
 
 /// The scroll watcher is intended to provide a single way to
@@ -22,7 +20,7 @@ class ScrollWatcher {
 
   final List<ScrollListener> _listeners;
 
-  Element _scrollerEl;
+  Element? _scrollerEl;
 
   ScrollWatcher(Scroller scroller)
       : _scroller = scroller,

@@ -45,7 +45,7 @@ Thread::~Thread() {
   ASSERT(marking_stack_block_ == nullptr);
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == nullptr);
-  // Delete the resusable api scope if there is one.
+  // Delete the reusable api scope if there is one.
   if (api_reusable_scope_ != nullptr) {
     delete api_reusable_scope_;
     api_reusable_scope_ = nullptr;
@@ -65,18 +65,7 @@ Thread::~Thread() {
 
 Thread::Thread(bool is_vm_isolate)
     : ThreadState(false),
-      stack_limit_(0),
       write_barrier_mask_(UntaggedObject::kGenerationalBarrierMask),
-      heap_base_(0),
-      isolate_(nullptr),
-      dispatch_table_array_(nullptr),
-      saved_stack_limit_(0),
-      stack_overflow_flags_(0),
-      heap_(nullptr),
-      top_exit_frame_info_(0),
-      store_buffer_block_(nullptr),
-      marking_stack_block_(nullptr),
-      vm_tag_(0),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
       global_object_pool_(ObjectPool::null()),
@@ -108,7 +97,7 @@ Thread::Thread(bool is_vm_isolate)
 #if defined(USING_SAFE_STACK)
               saved_safestack_limit_(0),
 #endif
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
       next_(nullptr),
       heap_sampler_(this) {
 #else
@@ -196,7 +185,9 @@ static const struct ALIGN16 {
 } float_zerow_constant = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000};
 
 void Thread::InitVMConstants() {
+#if defined(DART_COMPRESSED_POINTERS)
   heap_base_ = Object::null()->heap_base();
+#endif
 
 #define ASSERT_VM_HEAP(type_name, member_name, init_expr, default_init_value)  \
   ASSERT((init_expr)->IsOldObject());
@@ -460,17 +451,20 @@ ErrorPtr Thread::HandleInterrupts() {
     }
 
 #if !defined(PRODUCT)
-    // Don't block system isolates to process CPU samples to avoid blocking
-    // them during critical tasks (e.g., initial compilation).
-    if (!Isolate::IsSystemIsolate(isolate())) {
-      // Processes completed SampleBlocks and sends CPU sample events over the
-      // service protocol when applicable.
-      SampleBlockBuffer* sample_buffer = Profiler::sample_block_buffer();
-      if (sample_buffer != nullptr && sample_buffer->process_blocks()) {
-        sample_buffer->ProcessCompletedBlocks();
-      }
+    if (isolate()->TakeHasCompletedBlocks()) {
+      Profiler::ProcessCompletedBlocks(this);
     }
 #endif  // !defined(PRODUCT)
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+    HeapProfileSampler& sampler = heap_sampler();
+    if (sampler.ShouldSetThreadSamplingInterval()) {
+      sampler.SetThreadSamplingInterval();
+    }
+    if (sampler.ShouldUpdateThreadEnable()) {
+      sampler.UpdateThreadEnable();
+    }
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   }
   if ((interrupt_bits & kMessageInterrupt) != 0) {
     MessageHandler::MessageStatus status =
@@ -1037,95 +1031,84 @@ DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
   }
 }
 
-const intptr_t kInitialCallbackIdsReserved = 16;
-int32_t Thread::AllocateFfiCallbackId() {
-  Zone* Z = Thread::Current()->zone();
-  if (ffi_callback_code_ == GrowableObjectArray::null()) {
-    ffi_callback_code_ = GrowableObjectArray::New(kInitialCallbackIdsReserved);
-  }
-  const auto& array = GrowableObjectArray::Handle(Z, ffi_callback_code_);
-  array.Add(Code::Handle(Z, Code::null()));
-  const int32_t id = array.Length() - 1;
-
-  // Allocate a native callback trampoline if necessary.
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (NativeCallbackTrampolines::Enabled()) {
-    auto* const tramps = isolate()->native_callback_trampolines();
-    ASSERT(tramps->next_callback_id() == id);
-    tramps->AllocateTrampoline();
-  }
-#endif
-
-  return id;
-}
-
-void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
-  Zone* Z = Thread::Current()->zone();
-
-  /// In AOT the callback ID might have been allocated during compilation but
-  /// 'ffi_callback_code_' is initialized to empty again when the program
-  /// starts. Therefore we may need to initialize or expand it to accomodate
-  /// the callback ID.
+void Thread::EnsureFfiCallbackMetadata(intptr_t callback_id) {
+  static constexpr intptr_t kInitialCallbackIdsReserved = 16;
 
   if (ffi_callback_code_ == GrowableObjectArray::null()) {
     ffi_callback_code_ = GrowableObjectArray::New(kInitialCallbackIdsReserved);
   }
-
-  const auto& array = GrowableObjectArray::Handle(Z, ffi_callback_code_);
-
-  if (callback_id >= array.Length()) {
-    const int32_t capacity = array.Capacity();
-    if (callback_id >= capacity) {
-      // Ensure both that we grow enough and an exponential growth strategy.
-      const int32_t new_capacity =
-          Utils::Maximum(callback_id + 1, capacity * 2);
-      array.Grow(new_capacity);
-    }
-    array.SetLength(callback_id + 1);
-  }
-
-  array.SetAt(callback_id, code);
-}
-
-void Thread::SetFfiCallbackStackReturn(int32_t callback_id,
-                                       intptr_t stack_return_delta) {
 #if defined(TARGET_ARCH_IA32)
-#else
-  UNREACHABLE();
-#endif
-
-  Zone* Z = Thread::Current()->zone();
-
-  /// In AOT the callback ID might have been allocated during compilation but
-  /// 'ffi_callback_code_' is initialized to empty again when the program
-  /// starts. Therefore we may need to initialize or expand it to accomodate
-  /// the callback ID.
-
   if (ffi_callback_stack_return_ == TypedData::null()) {
     ffi_callback_stack_return_ = TypedData::New(
         kTypedDataInt8ArrayCid, kInitialCallbackIdsReserved, Heap::kOld);
   }
+#endif  // defined(TARGET_ARCH_IA32)
 
-  auto& array = TypedData::Handle(Z, ffi_callback_stack_return_);
+  const auto& code_array =
+      GrowableObjectArray::Handle(zone(), ffi_callback_code_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  auto* const tramps = isolate()->native_callback_trampolines();
+#if defined(TARGET_ARCH_IA32)
+  auto& stack_array = TypedData::Handle(zone(), ffi_callback_stack_return_);
+#endif
+#endif
 
-  if (callback_id >= array.Length()) {
-    const int32_t capacity = array.Length();
-    if (callback_id >= capacity) {
-      // Ensure both that we grow enough and an exponential growth strategy.
-      const int32_t new_capacity =
-          Utils::Maximum(callback_id + 1, capacity * 2);
-      const auto& new_array = TypedData::Handle(
-          Z, TypedData::New(kTypedDataUint8ArrayCid, new_capacity, Heap::kOld));
-      for (intptr_t i = 0; i < capacity; i++) {
-        new_array.SetUint8(i, array.GetUint8(i));
-      }
-      array ^= new_array.ptr();
-      ffi_callback_stack_return_ = new_array.ptr();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Verify invariants of the 3 arrays hold.
+  ASSERT(code_array.Length() == tramps->next_callback_id());
+#if defined(TARGET_ARCH_IA32)
+  ASSERT(code_array.Length() <= stack_array.Length());
+#endif
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  if (code_array.Length() <= callback_id) {
+    // Ensure we've enough space in the 3 arrays.
+    while (!(callback_id < code_array.Length())) {
+      code_array.Add(Code::null_object());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      tramps->AllocateTrampoline();
+#endif
     }
+
+#if defined(TARGET_ARCH_IA32)
+    if (callback_id >= stack_array.Length()) {
+      const int32_t capacity = stack_array.Length();
+      if (callback_id >= capacity) {
+        // Ensure both that we grow enough and an exponential growth strategy.
+        const int32_t new_capacity =
+            Utils::Maximum(callback_id + 1, capacity * 2);
+        stack_array = TypedData::Grow(stack_array, new_capacity);
+        ffi_callback_stack_return_ = stack_array.ptr();
+      }
+    }
+#endif  // defined(TARGET_ARCH_IA32)
   }
 
-  ASSERT(callback_id < array.Length());
-  array.SetUint8(callback_id, stack_return_delta);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Verify invariants of the 3 arrays (still) hold.
+  ASSERT(code_array.Length() == tramps->next_callback_id());
+#if defined(TARGET_ARCH_IA32)
+  ASSERT(code_array.Length() <= stack_array.Length());
+#endif
+#endif
+  ASSERT(callback_id < code_array.Length());
+}
+
+void Thread::SetFfiCallbackCode(const Function& ffi_trampoline,
+                                const Code& code,
+                                intptr_t stack_return_delta) {
+  const intptr_t callback_id = ffi_trampoline.FfiCallbackId();
+  EnsureFfiCallbackMetadata(callback_id);
+
+  const auto& code_array =
+      GrowableObjectArray::Handle(zone(), ffi_callback_code_);
+  code_array.SetAt(callback_id, code);
+
+#if defined(TARGET_ARCH_IA32)
+  const auto& stack_delta_array =
+      TypedData::Handle(zone(), ffi_callback_stack_return_);
+  stack_delta_array.SetUint8(callback_id, stack_return_delta);
+#endif  // defined(TARGET_ARCH_IA32)
 }
 
 void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {

@@ -55,12 +55,20 @@ SourceReport::~SourceReport() {
 }
 
 void SourceReport::ClearScriptTable() {
+  // Delete entries from script_table_ as it has the unfiltered list.
+  DirectChainedHashMap<ScriptTableTrait>::Iterator iter =
+      script_table_.GetIterator();
+  ScriptTableTrait::Pair* pair;
+  while ((pair = iter.Next()) != nullptr) {
+    delete ScriptTableTrait::ValueOf(*pair);
+  }
+  script_table_.Clear();
+
   for (intptr_t i = 0; i < script_table_entries_.length(); i++) {
-    delete script_table_entries_[i];
     script_table_entries_[i] = NULL;
   }
   script_table_entries_.Clear();
-  script_table_.Clear();
+
   next_script_index_ = 0;
 }
 
@@ -161,7 +169,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     }
   }
 
-  // Enum constuctors cannot be invoked by the user, so ignore them.
+  // Enum constructors cannot be invoked by the user, so ignore them.
   if (func.IsGenerativeConstructor()) {
     Class& cls = Class::Handle(func.Owner());
     if (cls.is_enum_class()) {
@@ -202,14 +210,6 @@ bool SourceReport::ShouldFiltersIncludeUrl(const String& url) {
     }
   }
   return false;
-}
-
-bool SourceReport::ShouldFiltersIncludeLibrary(const Library& lib) {
-  if (library_filters_.IsNull()) {
-    return true;
-  }
-  const String& url = String::Handle(zone(), lib.url());
-  return ShouldFiltersIncludeUrl(url);
 }
 
 bool SourceReport::ShouldFiltersIncludeScript(const Script& script) {
@@ -623,25 +623,18 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   Field& field = Field::Handle(zone());
   Script& script = Script::Handle(zone());
   ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-
-  if (!ShouldFiltersIncludeLibrary(lib)) {
-    return;
-  }
-
   while (it.HasNext()) {
     cls = it.GetNextClass();
-
-    script = cls.script();
-    const intptr_t script_index = GetScriptIndex(script);
-    if (script_index < 0) {
-      continue;
-    }
-
     if (!cls.is_finalized()) {
       if (compile_mode_ == kForceCompile) {
         Error& err = Error::Handle(cls.EnsureIsFinalized(thread()));
         if (!err.IsNull()) {
           // Emit an uncompiled range for this class with error information.
+          script = cls.script();
+          const intptr_t script_index = GetScriptIndex(script);
+          if (script_index < 0) {
+            continue;
+          }
           JSONObject range(jsarr);
           range.AddProperty("scriptIndex", script_index);
           range.AddProperty("startPos", cls.token_pos());
@@ -654,6 +647,11 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
       } else {
         cls.EnsureDeclarationLoaded();
         // Emit one range for the whole uncompiled class.
+        script = cls.script();
+        const intptr_t script_index = GetScriptIndex(script);
+        if (script_index < 0) {
+          continue;
+        }
         JSONObject range(jsarr);
         range.AddProperty("scriptIndex", script_index);
         range.AddProperty("startPos", cls.token_pos());

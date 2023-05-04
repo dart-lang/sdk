@@ -27,7 +27,7 @@ f() async {
   String a = await fi(); // Warning: int not assignable to String
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 62, 10),
     ]);
   }
@@ -38,7 +38,7 @@ f(Stream<int> stream) async {
   await for (int i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
   }
 
@@ -48,7 +48,7 @@ f(Stream<String> stream) async {
   await for (int i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 55, 6),
     ]);
   }
@@ -59,7 +59,7 @@ f(Stream<num> stream) async {
   await for (int i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 52, 6),
     ]);
   }
@@ -70,7 +70,7 @@ f(Stream<int> stream) async {
   await for (var i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
   }
 
@@ -81,7 +81,7 @@ f(Stream<int> stream) async {
   await for (i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1),
     ]);
   }
 
@@ -92,7 +92,7 @@ f(Stream<String> stream) async {
   await for (i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 65, 6),
     ]);
   }
@@ -103,7 +103,7 @@ f(Stream stream) async {
   await for (int i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
     ]);
   }
 
@@ -113,7 +113,7 @@ f(Stream<int> stream) async {
   await for (num i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
   }
 
@@ -123,7 +123,7 @@ f() {
   for (int i in <int>[]) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
   }
 
@@ -133,7 +133,7 @@ f() {
   for (int i in <String>[]) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
     ]);
   }
@@ -145,7 +145,7 @@ f() {
   for (var i in d) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
   }
 
@@ -156,7 +156,7 @@ f() {
   for (int i in iterable) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
     ]);
   }
 
@@ -166,7 +166,7 @@ f() {
   for (var i in <int>[]) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
   }
 
@@ -177,7 +177,7 @@ f() {
   for (i in <int>[]) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
     ]);
   }
 
@@ -188,7 +188,7 @@ f() {
   for (i in <String>[]) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
     ]);
   }
@@ -199,7 +199,7 @@ f() {
   for (int i in []) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
   }
 
@@ -209,7 +209,7 @@ f(List o) { // Could be [].
   for (var i in o) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
     ]);
   }
 
@@ -221,7 +221,7 @@ class Foo<T extends Iterable<int>> {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 1),
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
     ]);
   }
@@ -234,7 +234,7 @@ class Foo<T extends Iterable<int>> {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 78, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 78, 1),
     ]);
   }
 
@@ -244,7 +244,7 @@ f() {
   for (num i in <int>[]) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
   }
 
@@ -391,7 +391,7 @@ g(Object p) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 16, 1),
+      error(WarningCode.UNUSED_ELEMENT, 16, 1),
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 57, 6),
     ]);
   }
@@ -417,7 +417,7 @@ f(A<V> p) {
   test_typePromotion_if_with_notMoreSpecific_dynamic() async {
     await assertErrorsInCode(r'''
 class V {}
-class A<T> {}
+mixin A<T> {}
 class B<S> extends Object with A<S> {
   var b;
 }
@@ -478,7 +478,7 @@ f() async {
   Future<int> b = await ffi();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
     ]);
   }
 
@@ -503,7 +503,7 @@ void main() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 271, 4),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 271, 4),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 289, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 304, 2),
     ]);
@@ -515,7 +515,7 @@ f() {
   for (int i in <num>[]) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
   }
 

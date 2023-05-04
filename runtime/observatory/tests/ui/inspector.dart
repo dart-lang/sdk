@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: experiment_not_enabled
-// @dart = 2.19
+// @dart = 3.0
 
 // See inspector.txt for expected behavior.
 
@@ -31,7 +31,7 @@ class B<S extends num> {}
 
 class S {}
 
-class M {}
+mixin M {}
 
 class MA extends S with M {}
 
@@ -50,14 +50,12 @@ class Node {
   var blockType;
   var boundedType;
   var capability;
-  var counter;
   var expando;
   var finalizer;
   var finalizerEntry;
   var float32x4;
   var float64;
   var float64x2;
-  var gauge;
   var growableList;
   var int32x4;
   var isolate;
@@ -166,7 +164,6 @@ class Node {
     blockType = blockClean.runtimeType;
     boundedType = extractPrivateField(
         reflect(new B<int>()).type.typeVariables.single, '_reflectee');
-    counter = new Counter("CounterName", "Counter description");
     expando = new Expando("expando-name");
     expando[array] = 'The weakly associated value';
     finalizer = Finalizer<dynamic>((_){});
@@ -174,7 +171,6 @@ class Node {
     float32x4 = new Float32x4(0.0, -1.0, 3.14, 2e28);
     float64 = 3.14;
     float64x2 = new Float64x2(0.0, 3.14);
-    gauge = new Gauge("GaugeName", "Gauge description", 0.0, 100.0);
     growableList = <dynamic>[];
     int32x4 = new Int32x4(0, 1, 10, 11);
     map = {
@@ -282,11 +278,6 @@ class Typed {
   var byteData = new ByteData(8);
 
   Typed() {
-    float32List[0] = 3.14;
-    int8List[0] = 5;
-  }
-
-  Typed._named() {
     float32List[0] = 3.14;
     int8List[0] = 5;
   }

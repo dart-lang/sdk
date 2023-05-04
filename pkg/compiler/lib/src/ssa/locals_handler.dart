@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:compiler/src/js_model/element_map.dart';
 
 import '../closure.dart';
@@ -38,9 +36,9 @@ class LocalsHandler {
   Map<Local, FieldEntity> redirectionMapping = {};
   final KernelSsaGraphBuilder builder;
 
-  MemberEntity _scopeInfoMember;
-  ScopeInfo _scopeInfo;
-  KernelToLocalsMap _localsMap;
+  MemberEntity? _scopeInfoMember;
+  ScopeInfo? _scopeInfo;
+  KernelToLocalsMap? _localsMap;
 
   Map<TypeVariableEntity, TypeVariableLocal> typeVariableLocals = {};
   final Entity executableContext;
@@ -60,10 +58,10 @@ class LocalsHandler {
   ///       Foo(this.field);
   ///     }
   ///     main() {
-  ///       new Foo<String>('foo');
+  ///       Foo<String>('foo');
   ///     }
   ///
-  final InterfaceType instanceType;
+  final InterfaceType? instanceType;
 
   final NativeData _nativeData;
 
@@ -87,17 +85,18 @@ class LocalsHandler {
   /// [contextClass].
   DartType substInContext(DartType type) {
     DartType newType = type;
-    if (instanceType != null) {
-      ClassEntity typeContext = DartTypes.getClassContext(newType);
+    final iType = instanceType;
+    if (iType != null) {
+      final typeContext = DartTypes.getClassContext(newType);
       if (typeContext != null) {
         newType = _closedWorld.dartTypes.substByContext(
             newType,
             _closedWorld.dartTypes.asInstanceOf(
-                _closedWorld.dartTypes.getThisType(instanceType.element),
-                typeContext));
+                _closedWorld.dartTypes.getThisType(iType.element),
+                typeContext)!);
       }
-      if (!instanceType.containsTypeVariables) {
-        newType = _closedWorld.dartTypes.substByContext(newType, instanceType);
+      if (!iType.containsTypeVariables) {
+        newType = _closedWorld.dartTypes.substByContext(newType, iType);
       }
     }
     return newType;
@@ -123,7 +122,7 @@ class LocalsHandler {
         cachedTypesOfCapturedVariables = other.cachedTypesOfCapturedVariables;
 
   /// Sets up the scope to use the scope and locals from [member].
-  void setupScope(MemberEntity member) {
+  void setupScope(MemberEntity? member) {
     _scopeInfoMember = member;
     if (member != null) {
       _scopeInfo = _closedWorld.closureDataLookup.getScopeInfo(member);
@@ -136,9 +135,9 @@ class LocalsHandler {
 
   /// Returns the member that currently defines the scope as setup in
   /// [setupScope].
-  MemberEntity get scopeMember => _scopeInfoMember;
+  MemberEntity? get scopeMember => _scopeInfoMember;
 
-  Local get thisLocal => _scopeInfo.thisLocal;
+  Local? get thisLocal => _scopeInfo?.thisLocal;
 
   /// Redirects accesses from element [from] to element [to]. The [to] element
   /// must be a boxed variable or a variable that is stored in a closure-field.
@@ -148,7 +147,7 @@ class LocalsHandler {
     assert(isStoredInClosureField(from) || isBoxed(from));
   }
 
-  HInstruction createBox(SourceInformation sourceInformation) {
+  HInstruction createBox(SourceInformation? sourceInformation) {
     HInstruction box = HCreateBox(_abstractValueDomain.nonNullType)
       ..sourceInformation = sourceInformation;
     builder.add(box);
@@ -158,31 +157,29 @@ class LocalsHandler {
   /// If the scope (function or loop) [node] has captured variables then this
   /// method creates a box and sets up the redirections.
   void enterScope(
-      CapturedScope closureInfo, SourceInformation sourceInformation,
-      {bool forGenerativeConstructorBody = false, HInstruction inlinedBox}) {
+      CapturedScope closureInfo, SourceInformation? sourceInformation,
+      {bool forGenerativeConstructorBody = false, HInstruction? inlinedBox}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
     if (!closureInfo.requiresContextBox) return;
     HInstruction box;
+    final contentBox = closureInfo.contextBox!;
     // The scope has captured variables.
     if (forGenerativeConstructorBody) {
       // The box is passed as a parameter to a generative constructor body.
       box = inlinedBox ??
-          builder.addParameter(
-              closureInfo.contextBox, _abstractValueDomain.nonNullType);
+          builder.addParameter(contentBox, _abstractValueDomain.nonNullType);
     } else {
       box = createBox(sourceInformation);
     }
     // Add the box to the known locals.
-    directLocals[closureInfo.contextBox] = box;
+    directLocals[contentBox] = box;
     // Make sure that accesses to the boxed locals go into the box. We also
     // need to make sure that parameters are copied into the box if necessary.
-    closureInfo.forEachBoxedVariable(_localsMap, (Local from, FieldEntity to) {
+    closureInfo.forEachBoxedVariable(_localsMap!, (Local from, FieldEntity to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
-      JLocal jFrom = from;
-      bool isParameter = jFrom.isRegularParameter;
-      assert(isParameter != null);
+      bool isParameter = (from as JLocal).isRegularParameter;
       if (isParameter && !forGenerativeConstructorBody) {
         // Now that the redirection is set up, the update to the local will
         // write the parameter value into the box.
@@ -203,7 +200,7 @@ class LocalsHandler {
   /// Replaces the current box with a new box and copies over the given list
   /// of elements from the old box into the new box.
   void updateCaptureBox(Local currentBox, List<Local> toBeCopiedElements,
-      SourceInformation sourceInformation) {
+      SourceInformation? sourceInformation) {
     // Create a new box and copy over the values from the old box into the
     // new one.
     HInstruction oldBox = readLocal(currentBox);
@@ -223,8 +220,8 @@ class LocalsHandler {
   ///
   /// Invariant: [function] must be an implementation element.
   void startFunction(MemberEntity element, Map<Local, AbstractValue> parameters,
-      Set<Local> elidedParameters, SourceInformation sourceInformation,
-      {bool isGenerativeConstructorBody}) {
+      Set<Local> elidedParameters, SourceInformation? sourceInformation,
+      {required bool isGenerativeConstructorBody}) {
     setupScope(element);
 
     CapturedScope scopeData =
@@ -232,7 +229,7 @@ class LocalsHandler {
 
     parameters.forEach((Local local, AbstractValue typeMask) {
       if (isGenerativeConstructorBody) {
-        if (scopeData.isBoxedVariable(_localsMap, local)) {
+        if (scopeData.isBoxedVariable(_localsMap!, local)) {
           // The parameter will be a field in the box passed as the
           // last parameter. So no need to have it.
           return;
@@ -251,35 +248,37 @@ class LocalsHandler {
     // When we remove the element model, we can just use the first check
     // (because the underlying elements won't all be *both* ScopeInfos and
     // ClosureRepresentationInfos).
-    ScopeInfo scopeInfo = _scopeInfo;
+    final scopeInfo = _scopeInfo;
     if (scopeInfo is ClosureRepresentationInfo && scopeInfo.isClosure) {
       ClosureRepresentationInfo closureData = scopeInfo;
       // If the freeVariableMapping is not empty, then this function was a
       // nested closure that captures variables. Redirect the captured
       // variables to fields in the closure.
-      closureData.forEachFreeVariable(_localsMap, (Local from, FieldEntity to) {
+      closureData.forEachFreeVariable(_localsMap!,
+          (Local from, FieldEntity to) {
         redirectElement(from, to);
       });
       // Inside closure redirect references to itself to [:this:].
-      HThis thisInstruction =
-          HThis(closureData.thisLocal, _abstractValueDomain.nonNullType);
+      HThis thisInstruction = HThis(closureData.thisLocal as ThisLocal?,
+          _abstractValueDomain.nonNullType);
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
-      updateLocal(closureData.getClosureEntity(_localsMap), thisInstruction);
+      updateLocal(closureData.getClosureEntity(_localsMap!)!, thisInstruction);
     } else if (element.isInstanceMember) {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
       // context.
-      HThis thisInstruction = HThis(scopeInfo.thisLocal, getTypeOfThis());
+      final thisLocal = scopeInfo!.thisLocal as ThisLocal;
+      HThis thisInstruction = HThis(thisLocal, getTypeOfThis());
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
-      directLocals[scopeInfo.thisLocal] = thisInstruction;
+      directLocals[thisLocal] = thisInstruction;
     }
 
     // If this method is an intercepted method, add the extra
     // parameter to it, that is the actual receiver for intercepted
     // classes, or the same as [:this:] for non-intercepted classes.
-    ClassEntity cls = element.enclosingClass;
+    final cls = element.enclosingClass;
 
     // When the class extends a native class, the instance is pre-constructed
     // and passed to the generative constructor factory function as a parameter.
@@ -292,18 +291,18 @@ class LocalsHandler {
       SyntheticLocal parameter = createLocal('receiver');
       HParameterValue value = HParameterValue(parameter, getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
-      builder.graph.entry.addAfter(directLocals[scopeInfo.thisLocal], value);
+      builder.graph.entry.addAfter(directLocals[scopeInfo!.thisLocal], value);
       if (builder.lastAddedParameter == null) {
         // If this is the first parameter inserted, make sure it stays first.
         builder.lastAddedParameter = value;
       }
-      directLocals[scopeInfo.thisLocal] = value;
+      directLocals[scopeInfo.thisLocal!] = value;
     } else if (isNativeUpgradeFactory) {
       SyntheticLocal parameter = createLocal('receiver');
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
-      HParameterValue value = HParameterValue(
-          parameter, _closedWorld.abstractValueDomain.createNullableExact(cls));
+      HParameterValue value = HParameterValue(parameter,
+          _closedWorld.abstractValueDomain.createNullableExact(cls!));
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
       if (builder.lastAddedParameter == null) {
@@ -316,16 +315,14 @@ class LocalsHandler {
   /// Returns true if the local can be accessed directly. Boxed variables or
   /// captured variables that are stored in the closure-field return [:false:].
   bool isAccessedDirectly(Local local) {
-    assert(local != null);
     return !redirectionMapping.containsKey(local) &&
-        !_scopeInfo.localIsUsedInTryOrSync(_localsMap, local);
+        !_scopeInfo!.localIsUsedInTryOrSync(_localsMap!, local);
   }
 
   bool isStoredInClosureField(Local local) {
-    assert(local != null);
     if (isAccessedDirectly(local)) return false;
     if (_scopeInfo is! ClosureRepresentationInfo) return false;
-    FieldEntity redirectTarget = redirectionMapping[local];
+    final redirectTarget = redirectionMapping[local];
     if (redirectTarget == null) return false;
     return redirectTarget is JClosureField;
   }
@@ -337,16 +334,15 @@ class LocalsHandler {
   }
 
   bool _isUsedInTryOrGenerator(Local local) {
-    return _scopeInfo.localIsUsedInTryOrSync(_localsMap, local);
+    return _scopeInfo!.localIsUsedInTryOrSync(_localsMap!, local);
   }
 
   /// Returns an [HInstruction] for the given element. If the element is
   /// boxed or stored in a closure then the method generates code to retrieve
   /// the value.
-  HInstruction /*!*/ readLocal(Local local,
-      {SourceInformation sourceInformation}) {
+  HInstruction readLocal(Local local, {SourceInformation? sourceInformation}) {
     if (isAccessedDirectly(local)) {
-      HInstruction value = directLocals[local];
+      HInstruction? value = directLocals[local];
       if (value == null) {
         if (local is TypeVariableLocal) {
           failedAt(
@@ -366,10 +362,10 @@ class LocalsHandler {
       }
       return value;
     } else if (isStoredInClosureField(local)) {
-      ClosureRepresentationInfo closureData = _scopeInfo;
-      FieldEntity redirect = redirectionMapping[local];
+      final closureData = _scopeInfo as ClosureRepresentationInfo;
+      final redirect = redirectionMapping[local]!;
       HInstruction receiver =
-          readLocal(closureData.getClosureEntity(_localsMap));
+          readLocal(closureData.getClosureEntity(_localsMap!)!);
       AbstractValue type = local is BoxLocal
           ? _abstractValueDomain.nonNullType
           : getTypeOfCapturedVariable(redirect);
@@ -379,17 +375,13 @@ class LocalsHandler {
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(local)) {
-      FieldEntity redirect = redirectionMapping[local];
-      BoxLocal localBox;
+      FieldEntity? redirect = redirectionMapping[local];
       // In the function that declares the captured variable the box is
       // accessed as direct local. Inside the nested closure the box is
       // accessed through a closure-field.
       // Calling [readLocal] makes sure we generate the correct code to get
       // the box.
-      if (redirect is JContextField) {
-        localBox = redirect.box;
-      }
-      assert(localBox != null);
+      BoxLocal localBox = (redirect as JContextField).box;
 
       HInstruction box = readLocal(localBox);
       HInstruction lookup = HFieldGet(
@@ -407,23 +399,19 @@ class LocalsHandler {
     }
   }
 
-  HInstruction readThis({SourceInformation sourceInformation}) {
-    HInstruction res =
-        readLocal(_scopeInfo.thisLocal, sourceInformation: sourceInformation);
-    if (res.instructionType == null) {
-      res.instructionType = getTypeOfThis();
-    }
-    return res;
+  HInstruction readThis({SourceInformation? sourceInformation}) {
+    return readLocal(_scopeInfo!.thisLocal!,
+        sourceInformation: sourceInformation);
   }
 
-  HLocalValue getLocal(Local local, {SourceInformation sourceInformation}) {
+  HLocalValue getLocal(Local local, {SourceInformation? sourceInformation}) {
     // If the element is a parameter, we already have a
     // HParameterValue for it. We cannot create another one because
     // it could then have another name than the real parameter. And
     // the other one would not know it is just a copy of the real
     // parameter.
     if (builder.parameters.containsKey(local)) {
-      return builder.parameters[local];
+      return builder.parameters[local] as HLocalValue;
     }
 
     return activationVariables.putIfAbsent(local, () {
@@ -442,7 +430,7 @@ class LocalsHandler {
   /// Sets the [element] to [value]. If the element is boxed or stored in a
   /// closure then the method generates code to set the value.
   void updateLocal(Local local, HInstruction value,
-      {SourceInformation sourceInformation}) {
+      {SourceInformation? sourceInformation}) {
     if (value is HRef) {
       HRef ref = value;
       value = ref.value;
@@ -452,13 +440,8 @@ class LocalsHandler {
     if (isAccessedDirectly(local)) {
       directLocals[local] = value;
     } else if (isBoxed(local)) {
-      FieldEntity redirect = redirectionMapping[local];
-      assert(redirect != null);
-      BoxLocal localBox;
-      if (redirect is JContextField) {
-        localBox = redirect.box;
-      }
-      assert(localBox != null);
+      FieldEntity redirect = redirectionMapping[local]!;
+      BoxLocal localBox = (redirect as JContextField).box;
 
       // The box itself could be captured, or be local. A local variable that
       // is captured will be boxed, but the box itself will be a local.
@@ -520,7 +503,7 @@ class LocalsHandler {
   ///    goto loop-entry;
   ///  loop-exit:
   void startLoop(
-      CapturedLoopScope loopInfo, SourceInformation sourceInformation) {
+      CapturedLoopScope loopInfo, SourceInformation? sourceInformation) {
     if (loopInfo.hasBoxedLoopVariables) {
       // If there are boxed loop variables then we set up the box and
       // redirections already now. This way the initializer can write its
@@ -541,7 +524,7 @@ class LocalsHandler {
     savedDirectLocals.forEach((Local local, HInstruction instruction) {
       if (isAccessedDirectly(local)) {
         // We know 'this' cannot be modified.
-        if (local != _scopeInfo.thisLocal) {
+        if (local != _scopeInfo!.thisLocal) {
           HPhi phi = HPhi.singleInput(
               local, instruction, _abstractValueDomain.dynamicType);
           loopEntry.addPhi(phi);
@@ -554,7 +537,7 @@ class LocalsHandler {
   }
 
   void enterLoopBody(
-      CapturedLoopScope loopInfo, SourceInformation sourceInformation) {
+      CapturedLoopScope loopInfo, SourceInformation? sourceInformation) {
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
     if (!loopInfo.hasBoxedLoopVariables) {
@@ -563,15 +546,15 @@ class LocalsHandler {
   }
 
   void enterLoopUpdates(
-      CapturedLoopScope loopInfo, SourceInformation sourceInformation) {
+      CapturedLoopScope loopInfo, SourceInformation? sourceInformation) {
     // If there are declared boxed loop variables then the updates might have
     // access to the box and we must switch to a new box before executing the
     // updates.
     // In all other cases a new box will be created when entering the body of
     // the next iteration.
     if (loopInfo.hasBoxedLoopVariables) {
-      updateCaptureBox(loopInfo.contextBox,
-          loopInfo.getBoxedLoopVariables(_localsMap), sourceInformation);
+      updateCaptureBox(loopInfo.contextBox!,
+          loopInfo.getBoxedLoopVariables(_localsMap!), sourceInformation);
     }
   }
 
@@ -582,8 +565,8 @@ class LocalsHandler {
     // phis.
     if (loopEntry.predecessors.length == 1) return;
     loopEntry.forEachPhi((HPhi phi) {
-      Local element = phi.sourceElement;
-      HInstruction postLoopDefinition = directLocals[element];
+      final element = phi.sourceElement;
+      final postLoopDefinition = directLocals[element]!;
       phi.addInput(postLoopDefinition);
     });
   }
@@ -601,18 +584,16 @@ class LocalsHandler {
     Map<Local, HInstruction> joinedLocals = {};
     otherLocals.directLocals.forEach((Local local, HInstruction instruction) {
       // We know 'this' cannot be modified.
-      if (local == _scopeInfo.thisLocal) {
+      if (local == _scopeInfo!.thisLocal) {
         assert(directLocals[local] == instruction);
         joinedLocals[local] = instruction;
       } else {
-        HInstruction mine = directLocals[local];
+        final mine = directLocals[local];
         if (mine == null) return;
         if (identical(instruction, mine)) {
           joinedLocals[local] = instruction;
         } else {
-          HInstruction phi = HPhi.manyInputs(
-              local,
-              <HInstruction>[mine, instruction],
+          final phi = HPhi.manyInputs(local, <HInstruction>[mine, instruction],
               _abstractValueDomain.dynamicType);
           joinBlock.addPhi(phi);
           joinedLocals[local] = phi;
@@ -632,9 +613,9 @@ class LocalsHandler {
     assert(localsHandlers.length > 0);
     if (localsHandlers.length == 1) return localsHandlers.single;
     Map<Local, HInstruction> joinedLocals = {};
-    HInstruction thisValue = null;
+    HInstruction? thisValue = null;
     directLocals.forEach((Local local, HInstruction instruction) {
-      if (local != _scopeInfo.thisLocal) {
+      if (local != _scopeInfo!.thisLocal) {
         HPhi phi = HPhi.noInputs(local, _abstractValueDomain.dynamicType);
         joinedLocals[local] = phi;
         joinBlock.addPhi(phi);
@@ -647,7 +628,7 @@ class LocalsHandler {
     });
     for (LocalsHandler handler in localsHandlers) {
       handler.directLocals.forEach((Local local, HInstruction instruction) {
-        HPhi phi = joinedLocals[local];
+        final phi = joinedLocals[local] as HPhi?;
         if (phi != null) {
           phi.addInput(instruction);
         }
@@ -655,15 +636,15 @@ class LocalsHandler {
     }
     if (thisValue != null) {
       // If there was a "this" for the scope, add it to the new locals.
-      joinedLocals[_scopeInfo.thisLocal] = thisValue;
+      joinedLocals[_scopeInfo!.thisLocal!] = thisValue!;
     }
 
     // Remove locals that are not in all handlers.
     directLocals = {};
     joinedLocals.forEach((Local local, HInstruction instruction) {
-      if (local != _scopeInfo.thisLocal &&
+      if (local != _scopeInfo!.thisLocal &&
           instruction.inputs.length != localsHandlers.length) {
-        joinBlock.removePhi(instruction);
+        joinBlock.removePhi(instruction as HPhi);
       } else {
         directLocals[local] = instruction;
       }
@@ -671,12 +652,12 @@ class LocalsHandler {
     return this;
   }
 
-  AbstractValue cachedTypeOfThis;
+  AbstractValue? cachedTypeOfThis;
 
   AbstractValue getTypeOfThis() {
-    AbstractValue result = cachedTypeOfThis;
+    AbstractValue? result = cachedTypeOfThis;
     if (result == null) {
-      ThisLocal local = _scopeInfo.thisLocal;
+      final local = _scopeInfo!.thisLocal as ThisLocal;
       ClassEntity cls = local.enclosingClass;
       if (_closedWorld.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be

@@ -98,7 +98,7 @@ struct DwarfCodeKeyValueTrait {
     }
     Pair() : code(nullptr), value{} {}
 
-    // Don't implcitly delete copy and copy assigment constructors.
+    // Don't implicitly delete copy and copy assignment constructors.
     Pair(const Pair& other) = default;
     Pair& operator=(const Pair& other) = default;
 

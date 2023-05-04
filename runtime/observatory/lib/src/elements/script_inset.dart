@@ -14,7 +14,6 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/utils.dart';
 
 class ScriptInsetElement extends CustomElement implements Renderable {
   late RenderingScheduler<ScriptInsetElement> _r;
@@ -49,13 +48,6 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       bool inDebuggerContext = false,
       Iterable variables = const [],
       RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(script != null);
-    assert(scripts != null);
-    assert(objects != null);
-    assert(events != null);
-    assert(inDebuggerContext != null);
-    assert(variables != null);
     ScriptInsetElement e = new ScriptInsetElement.created();
     e._r = new RenderingScheduler<ScriptInsetElement>(e, queue: queue);
     e._isolate = isolate;
@@ -85,7 +77,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
         .listen((M.Breakpoint b) async {
       final M.Location loc = b.location!;
       int? line;
-      if (loc.script.id == script.id) {
+      if (loc.script!.id == script.id) {
         if (loc.tokenPos != null) {
           line = _loadedScript!.tokenToLine(loc.tokenPos!);
         } else {
@@ -96,7 +88,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
           line = (loc as dynamic).line;
         } on NoSuchMethodError {
           if (loc.tokenPos != null) {
-            M.Script scriptUsed = await _scripts.get(_isolate, loc.script.id!);
+            M.Script scriptUsed = await _scripts.get(_isolate, loc.script!.id!);
             line = scriptUsed.tokenToLine(loc.tokenPos!);
           }
         }
@@ -812,8 +804,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
         line.script.isolate!.addBreakpoint(line.script, line.line).then((_) {},
             onError: (e, st) {
           if (e is! S.ServerRpcException ||
-              (e as S.ServerRpcException).code !=
-                  S.ServerRpcException.kCannotAddBreakpoint) {
+              e.code != S.ServerRpcException.kCannotAddBreakpoint) {
             ObservatoryApplication.app.handleException(e, st);
           }
         }).whenComplete(() {
@@ -903,7 +894,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       var position = 0;
       consumeUntil(var stop) {
         if (stop <= position) {
-          return null; // Empty gap between annotations/boundries.
+          return null; // Empty gap between annotations/boundaries.
         }
         if (stop > line.text.length) {
           // Approximated token length can run past the end of the line.
@@ -1231,13 +1222,6 @@ abstract class DeclarationAnnotation extends Annotation {
       : super(isolate, objects, queue) {
     assert(decl.loaded);
     S.SourceLocation location = decl.location;
-    if (location == null) {
-      line = 0;
-      columnStart = 0;
-      columnStop = 0;
-      return;
-    }
-
     S.Script script = location.script;
     line = script.tokenToLine(location.tokenPos);
     columnStart = script.tokenToCol(location.tokenPos);

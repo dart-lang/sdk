@@ -26,15 +26,16 @@ class RemoveNameFromDeclarationClause extends CorrectionProducer {
     }
     var clause = type.parent;
 
-    // TODO(srawlins): Handle ExtendsClause from various diagnostics.
-
     if (clause == null) {
       return;
     }
 
     NodeList<NamedType> nameList;
     String clauseName;
-    if (clause is ImplementsClause) {
+    if (clause is ExtendsClause) {
+      await _delete(builder, clause, 'extends');
+      return;
+    } else if (clause is ImplementsClause) {
       clauseName = 'implements';
       nameList = clause.interfaces;
     } else if (clause is OnClause) {
@@ -48,16 +49,20 @@ class RemoveNameFromDeclarationClause extends CorrectionProducer {
     }
 
     if (nameList.length == 1) {
-      // Delete the whole clause.
-      _fixMessage = "Remove '$clauseName' clause";
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.deletionRange(clause));
-      });
+      await _delete(builder, clause, clauseName);
     } else {
       _fixMessage = "Remove name from '$clauseName' clause";
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.nodeInList(nameList, type));
       });
     }
+  }
+
+  Future<void> _delete(
+      ChangeBuilder builder, AstNode clause, String clauseName) async {
+    _fixMessage = "Remove '$clauseName' clause";
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addDeletion(range.deletionRange(clause));
+    });
   }
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Ensure that unused empty HashMap nodes are dropped from the output.
 
 import 'package:async_helper/async_helper.dart';
@@ -24,10 +22,10 @@ const HASHMAP_EMPTY_CONSTRUCTOR = r"LinkedHashMap_LinkedHashMap$_empty";
 
 main() {
   runTest() async {
-    var collector = new OutputCollector();
+    var collector = OutputCollector();
     await runCompiler(
         memorySourceFiles: TEST_SOURCE, outputProvider: collector);
-    String generated = collector.getOutput('', api.OutputType.js);
+    String generated = collector.getOutput('', api.OutputType.js)!;
     Expect.isFalse(generated.contains(HASHMAP_EMPTY_CONSTRUCTOR));
   }
 

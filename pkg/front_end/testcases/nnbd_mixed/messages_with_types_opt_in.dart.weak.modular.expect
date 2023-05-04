@@ -204,6 +204,7 @@ class SuperOut extends core::Object {
     return 1;
   method nonNullableBad<T extends core::Object* = dynamic>(mes::SuperOut::nonNullableBad::T* t) → core::int*
     return 2;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -212,7 +213,6 @@ class SuperOut extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class SubOutOut extends mes::SuperOut {
@@ -240,6 +240,7 @@ class SubInOut extends self::SuperIn {
     return null;
   method nonNullableBad<T extends core::Object* = dynamic>(mes::SubInOut::nonNullableBad::T* t) → mes::SubInOut::nonNullableBad::T*
     return t;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -248,7 +249,6 @@ class SubInOut extends self::SuperIn {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field core::String* legacyVar = "legacy";

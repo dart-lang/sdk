@@ -6,7 +6,7 @@
 // "horizontally" from a non-closure argument of an invocation to a closure
 // argument.
 
-// SharedOptions=--enable-experiment=inference-update-1
+// @dart=2.18
 
 import '../static_type_helper.dart';
 

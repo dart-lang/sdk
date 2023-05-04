@@ -303,6 +303,7 @@ class InstanceMemberInferrer {
   /// Infer type information for all of the instance members in the given
   /// [classElement].
   void _inferClass(InterfaceElement classElement) {
+    _setInducedModifier(classElement);
     if (classElement is AbstractClassElementImpl) {
       if (classElement.hasBeenInferred) {
         return;
@@ -605,6 +606,87 @@ class InstanceMemberInferrer {
     element.isOperatorEqualWithParameterTypeFromObject = true;
   }
 
+  /// Find and mark the induced modifier of an element, if the [classElement] is
+  /// 'sealed'.
+  void _setInducedModifier(InterfaceElement classElement) {
+    // Only sealed elements propagate induced modifiers.
+    if (classElement is! ClassElementImpl || !classElement.isSealed) {
+      return;
+    }
+
+    final supertype = classElement.supertype;
+    final interfaces = classElement.interfaces;
+    final mixins = classElement.mixins;
+
+    if (mixins.any((type) => type.element.isFinal)) {
+      // A sealed declaration is considered 'final' if it has a direct
+      // superclass which is 'final'.
+      classElement.isFinal = true;
+      return;
+    }
+
+    if (supertype != null) {
+      if (supertype.element.isFinal) {
+        // A sealed declaration is considered 'final' if it has a direct
+        // superclass which is 'final'.
+        classElement.isFinal = true;
+        return;
+      }
+      if (supertype.element.isBase) {
+        // A sealed declaration is considered 'final' if it has a
+        // direct superclass which is 'interface' and it has a direct
+        // superinterface which is 'base'.
+        if (mixins.any((type) => type.element.isInterface)) {
+          classElement.isFinal = true;
+          return;
+        }
+
+        // Otherwise, a sealed declaration is considered 'base' if it has a
+        // direct superinterface which is 'base' or 'final'.
+        classElement.isBase = true;
+        return;
+      }
+      if (supertype.element.isInterface) {
+        // A sealed declaration is considered 'final' if it has a
+        // direct superclass which is 'interface' and it has a direct
+        // superinterface which is 'base'.
+        if (interfaces.any((type) => type.element.isBase) ||
+            mixins.any((type) => type.element.isBase)) {
+          classElement.isFinal = true;
+          return;
+        }
+
+        // Otherwise, a sealed declaration is considered 'interface' if it has a
+        // direct superclass which is 'interface'
+        classElement.isInterface = true;
+        return;
+      }
+    }
+
+    if (interfaces.any((type) => type.element.isBase || type.element.isFinal) ||
+        mixins.any((type) => type.element.isBase || type.element.isFinal)) {
+      // A sealed declaration is considered 'base' if it has a direct
+      // superinterface which is 'base' or 'final'.
+      classElement.isBase = true;
+      return;
+    }
+
+    if (mixins.any((type) => type.element.isInterface)) {
+      // A sealed declaration is considered 'final' if it has a
+      // direct superclass which is 'interface' and it has a direct
+      // superinterface which is 'base'.
+      if (interfaces.any((type) => type.element.isBase)) {
+        classElement.isFinal = true;
+        return;
+      }
+
+      // Otherwise, a sealed declaration is considered 'interface' if it has a
+      // direct superclass which is 'interface'
+      classElement.isInterface = true;
+      return;
+    }
+  }
+
   /// Return the [FunctionType] of the [overriddenElement] that [element]
   /// overrides. Return `null`, in case of type parameters inconsistency.
   ///
@@ -647,3 +729,23 @@ class InstanceMemberInferrer {
 
 /// A class of exception that is not used anywhere else.
 class _CycleException implements Exception {}
+
+extension on InterfaceElement {
+  bool get isBase {
+    var self = this;
+    if (self is ClassOrMixinElementImpl) return self.isBase;
+    return false;
+  }
+
+  bool get isFinal {
+    var self = this;
+    if (self is ClassElement) return self.isFinal;
+    return false;
+  }
+
+  bool get isInterface {
+    var self = this;
+    if (self is ClassElement) return self.isInterface;
+    return false;
+  }
+}

@@ -13,7 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class ParenthesizedPatternResolutionTest extends PatternsResolutionTest {
+class ParenthesizedPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
@@ -28,7 +28,9 @@ ParenthesizedPattern
     expression: IntegerLiteral
       literal: 0
       staticType: int
+    matchedValueType: dynamic
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -49,7 +51,9 @@ ParenthesizedPattern
     expression: IntegerLiteral
       literal: 0
       staticType: int
+    matchedValueType: dynamic
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 }

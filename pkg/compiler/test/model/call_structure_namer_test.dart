@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/universe/call_structure.dart';
@@ -15,7 +13,7 @@ main() {
         {int positionalParameters = 0,
         int typeParameters = 0,
         List<String> namedParameters = const <String>[]}) {
-      CallStructure callStructure = new CallStructure(
+      CallStructure callStructure = CallStructure(
           positionalParameters + namedParameters.length,
           namedParameters,
           typeParameters);

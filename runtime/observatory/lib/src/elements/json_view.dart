@@ -26,8 +26,6 @@ class JSONViewElement extends CustomElement implements Renderable {
 
   factory JSONViewElement(Map map, M.NotificationRepository notifications,
       {RenderingQueue? queue}) {
-    assert(notifications != null);
-    assert(map != null);
     JSONViewElement e = new JSONViewElement.created();
     e._r = new RenderingScheduler<JSONViewElement>(e, queue: queue);
     e._notifications = notifications;

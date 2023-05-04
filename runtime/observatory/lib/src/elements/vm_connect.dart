@@ -29,9 +29,6 @@ class VMConnectElement extends CustomElement implements Renderable {
   factory VMConnectElement(
       M.TargetRepository targets, M.NotificationRepository notifications,
       {String address = '', RenderingQueue? queue}) {
-    assert(address != null);
-    assert(notifications != null);
-    assert(targets != null);
     VMConnectElement e = new VMConnectElement.created();
     e._r = new RenderingScheduler<VMConnectElement>(e, queue: queue);
     e._address = address;
@@ -58,8 +55,6 @@ class VMConnectElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    final host = window.location.hostname;
-    final port = window.location.port;
     children = <Element>[
       navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue).element,
@@ -132,7 +127,7 @@ class VMConnectElement extends CustomElement implements Renderable {
   }
 
   void _createAndConnect() {
-    if (_address == null || _address.isEmpty) return;
+    if (_address.isEmpty) return;
     String normalizedNetworkAddress = _normalizeStandaloneAddress(_address);
     _targets.add(normalizedNetworkAddress);
     var target = _targets.find(normalizedNetworkAddress);

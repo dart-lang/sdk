@@ -51,7 +51,6 @@ const byteDataEncoding = 'DartType.BYTEDATA';
 const castErrorEncoding = 'DartType.CASTERROR';
 const concurrentModificationErrorEncoding =
     'DartType.CONCURRENTMODIFICATIONERROR';
-const cyclicInitializationErrorEncoding = 'DartType.CYCLICINITIALIZATIONERROR';
 const deprecatedEncoding = 'DartType.DEPRECATED';
 const doubleEncoding = 'DartType.DOUBLE';
 const endianEncoding = 'DartType.ENDIAN';
@@ -81,7 +80,6 @@ const listIntEncoding = 'DartType.LIST_INT';
 const mapEntryIntStringEncoding = 'DartType.MAPENTRY_INT_STRING';
 const mapIntStringEncoding = 'DartType.MAP_INT_STRING';
 const nullEncoding = 'DartType.NULL';
-const nullThrownErrorEncoding = 'DartType.NULLTHROWNERROR';
 const numEncoding = 'DartType.NUM';
 const provisionalEncoding = 'DartType.PROVISIONAL';
 const rangeErrorEncoding = 'DartType.RANGEERROR';
@@ -113,7 +111,6 @@ final boolLibs = 'boolLibs';
 final byteDataLibs = 'byteDataLibs';
 final castErrorLibs = 'castErrorLibs';
 final concurrentModificationErrorLibs = 'concurrentModificationErrorLibs';
-final cyclicInitializationErrorLibs = 'cyclicInitializationErrorLibs';
 final deprecatedLibs = 'deprecatedLibs';
 final doubleLibs = 'doubleLibs';
 final endianLibs = 'endianLibs';
@@ -142,7 +139,6 @@ final listLibs = 'listLibs';
 final mapEntryIntStringLibs = 'mapEntryIntStringLibs';
 final mapLibs = 'mapLibs';
 final nullLibs = 'nullLibs';
-final nullThrownErrorLibs = 'nullThrownErrorLibs';
 final numLibs = 'numLibs';
 final provisionalLibs = 'provisionalLibs';
 final rangeErrorLibs = 'rangeErrorLibs';
@@ -171,12 +167,10 @@ final Map<String, String> typeToLibraryMethodsListName = () {
     abstractClassInstantiationErrorEncoding:
         abstractClassInstantiationErrorLibs,
     argumentErrorEncoding: argumentErrorLibs,
-    assertionErrorEncoding: assertionErrorLibs,
     boolEncoding: boolLibs,
     byteDataEncoding: byteDataLibs,
     castErrorEncoding: castErrorLibs,
     concurrentModificationErrorEncoding: concurrentModificationErrorLibs,
-    cyclicInitializationErrorEncoding: cyclicInitializationErrorLibs,
     deprecatedEncoding: deprecatedLibs,
     doubleEncoding: doubleLibs,
     endianEncoding: endianLibs,
@@ -205,7 +199,6 @@ final Map<String, String> typeToLibraryMethodsListName = () {
     mapEntryIntStringEncoding: mapEntryIntStringLibs,
     mapIntStringEncoding: mapLibs,
     nullEncoding: nullLibs,
-    nullThrownErrorEncoding: nullThrownErrorLibs,
     numEncoding: numLibs,
     provisionalEncoding: provisionalLibs,
     rangeErrorEncoding: rangeErrorLibs,
@@ -247,7 +240,6 @@ final Map<String, List<DartLib>> typeToLibraryMethodsList = () {
     byteDataEncoding,
     castErrorEncoding,
     concurrentModificationErrorEncoding,
-    cyclicInitializationErrorEncoding,
     deprecatedEncoding,
     doubleEncoding,
     endianEncoding,
@@ -276,7 +268,6 @@ final Map<String, List<DartLib>> typeToLibraryMethodsList = () {
     mapEntryIntStringEncoding,
     mapIntStringEncoding,
     nullEncoding,
-    nullThrownErrorEncoding,
     numEncoding,
     provisionalEncoding,
     rangeErrorEncoding,
@@ -493,8 +484,6 @@ String typeStringHelper(DartType type) {
       return castErrorEncoding;
     case 'ConcurrentModificationError':
       return concurrentModificationErrorEncoding;
-    case 'CyclicInitializationError':
-      return cyclicInitializationErrorEncoding;
     case 'Deprecated':
       return deprecatedEncoding;
     case 'E':
@@ -559,8 +548,6 @@ String typeStringHelper(DartType type) {
       return mapEntryIntStringEncoding;
     case 'Null':
       return nullEncoding;
-    case 'NullThrownError':
-      return nullThrownErrorEncoding;
     case 'Provisional':
       return provisionalEncoding;
     case 'RangeError':
@@ -701,7 +688,7 @@ enum Restriction {
 
 /// Class that represents Dart library methods.
 ///
-/// The invididual lists are organized by return type.
+/// The individual lists are organized by return type.
 /// Proto is a list of DartTypes whose first element is the type of the
 /// DartType of the receiver (DartType.VOID if none). The remaining elements are
 /// DartTypes of the parameters. The second element is DartType.VOID if there

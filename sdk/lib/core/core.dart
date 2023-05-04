@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-///
 /// Built-in types, collections,
 /// and other core functionality for every Dart program.
 ///
@@ -170,6 +169,21 @@ import "dart:typed_data" show Uint8List;
 export "dart:async" show Future, Stream;
 @Since("2.12")
 export "dart:async" show FutureExtensions;
+@Since("3.0")
+export "dart:async"
+    show
+        FutureIterable,
+        FutureRecord2,
+        FutureRecord3,
+        FutureRecord4,
+        FutureRecord5,
+        FutureRecord6,
+        FutureRecord7,
+        FutureRecord8,
+        FutureRecord9,
+        ParallelWaitError;
+
+export "dart:collection" show NullableIterableExtensions, IterableExtensions;
 
 part "annotations.dart";
 part "bigint.dart";

@@ -102,7 +102,7 @@ CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
       // todo (pq): consider refactoring to share common logic w/
       //  ArgListContributor.buildClosureSuggestions
       final returnType = parameterType.returnType;
-      if (returnType.isVoid) {
+      if (returnType is VoidType) {
         blockBuffer.write('{');
         rangeStart = sb.length + blockBuffer.length;
         blockBuffer.write(' }');

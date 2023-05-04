@@ -4,12 +4,16 @@
 
 import 'dart:io';
 
+import 'package:dart2wasm/record_class_generator.dart'
+    show generateRecordClasses;
+import 'package:dart2wasm/target.dart' show WasmTarget;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:test/test.dart';
+import 'package:vm/target/install.dart' show installAdditionalTargets;
 import 'package:vm/transformations/pragma.dart'
     show ConstantPragmaAnnotationParser;
 import 'package:vm/transformations/type_flow/transformer.dart'
@@ -19,16 +23,23 @@ import '../../common_test_utils.dart';
 
 final Uri pkgVmDir = Platform.script.resolve('../../..');
 
-void runTestCase(Uri source, bool enableNullSafety,
-    List<Uri>? linkedDependencies, List<String>? experimentalFlags) async {
-  final target =
-      new TestingVmTarget(new TargetFlags(enableNullSafety: enableNullSafety));
+void runTestCase(Uri source, List<Uri>? linkedDependencies,
+    List<String>? experimentalFlags, String? targetName) async {
+  targetName ??= "vm";
+  // Install all VM targets and dart2wasm.
+  installAdditionalTargets();
+  targets["dart2wasm"] = (TargetFlags flags) => WasmTarget();
+  final target = getTarget(targetName, TargetFlags())!;
   Component component = await compileTestCaseToKernelProgram(source,
       target: target,
       linkedDependencies: linkedDependencies,
       experimentalFlags: experimentalFlags);
 
   final coreTypes = new CoreTypes(component);
+
+  if (target is WasmTarget) {
+    target.recordClasses = generateRecordClasses(component, coreTypes);
+  }
 
   component = transformComponent(target, coreTypes, component,
       matcher: new ConstantPragmaAnnotationParser(coreTypes, target),
@@ -82,14 +93,12 @@ class TestOptions {
   static const Option<List<String>?> linked =
       Option('--linked', StringListValue());
 
-  /// If set, the test should be compiled with sound null safety.
-  static const Option<bool> nnbdStrong =
-      Option('--nnbd-strong', BoolValue(false));
-
   static const Option<List<String>?> enableExperiment =
       Option('--enable-experiment', StringListValue());
 
-  static const List<Option> options = [linked, nnbdStrong, enableExperiment];
+  static const Option<String?> target = Option('--target', StringValue());
+
+  static const List<Option> options = [linked, enableExperiment, target];
 }
 
 void main(List<String> args) {
@@ -111,8 +120,8 @@ void main(List<String> args) {
           continue;
         }
         List<Uri>? linkDependencies;
-        bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
         List<String>? experimentalFlags;
+        String? targetName;
 
         File optionsFile = new File('${path}.options');
         if (optionsFile.existsSync()) {
@@ -124,16 +133,14 @@ void main(List<String> args) {
             linkDependencies =
                 linked.map((String name) => entry.uri.resolve(name)).toList();
           }
-          if (TestOptions.nnbdStrong.read(parsedOptions)) {
-            enableNullSafety = true;
-          }
           experimentalFlags = TestOptions.enableExperiment.read(parsedOptions);
+          targetName = TestOptions.target.read(parsedOptions);
         }
 
         test(
             path,
-            () => runTestCase(entry.uri, enableNullSafety, linkDependencies,
-                experimentalFlags));
+            () => runTestCase(
+                entry.uri, linkDependencies, experimentalFlags, targetName));
       }
     }
   }, timeout: Timeout.none);

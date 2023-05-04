@@ -12,10 +12,8 @@ generic_metadata/typedef_generic_types_in_arguments_and_bounds: SemiFuzzCrash
 dart2js/late_fields_with_annotation: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49415
 dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339
 dart2js/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
-extensions/explicit_invalid_access: Crash # https://github.com/dart-lang/sdk/issues/50575
 general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
 general/fallthrough: RuntimeError # Fallthrough cases in switch.
-general/issue40242: Crash # https://github.com/dart-lang/sdk/issues/50575
 general/issue48765: semiFuzzFailureOnForceRebuildBodies # private class
 general/mixin_from_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/multiple_class_patches/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
@@ -49,7 +47,6 @@ no_such_method_forwarders/abstract_accessors_from_field_with_substitution: SemiF
 no_such_method_forwarders/abstract_override_abstract_different_type: SemiFuzzFailure
 no_such_method_forwarders/abstract_override_with_different_signature: SemiFuzzFailure
 no_such_method_forwarders/default_argument_values: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
-rasta/malformed_function: Crash # https://github.com/dart-lang/sdk/issues/50575
 variance/generic_covariance_sound_variance: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
 
 dart2js/flutter_issue94561/main: SemiFuzzFailure
@@ -69,7 +66,7 @@ nnbd_mixed/mixin_from_opt_in/main.no_link: SemiFuzzFailure
 regress/utf_16_le_content.crash: SemiFuzzCrash
 static_field_lowering/opt_in: SemiFuzzFailure
 
-# These tests have "privacy issues" and isn't compatiable with splitting files (fuzzing):
+# These tests have "privacy issues" and isn't compatible with splitting files (fuzzing):
 dart2js/mixin_default_values/main: semiFuzzFailureOnForceRebuildBodies # private method
 dartdevc/factory_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 dartdevc/private_covariant: semiFuzzFailureOnForceRebuildBodies # private method in class
@@ -111,6 +108,7 @@ nnbd/issue43918: semiFuzzFailureOnForceRebuildBodies # private class
 nnbd/issue44595: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 nnbd/nullable_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 nnbd/nullable_setter: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+no_such_method_forwarders/mixin_nsm: TypeCheckError
 none/mixin_super: semiFuzzFailureOnForceRebuildBodies # has private name mixin
 regress/issue_39682: semiFuzzFailureOnForceRebuildBodies # has private method
 
@@ -145,6 +143,7 @@ general/bug30695: TypeCheckError
 general/call: RuntimeError
 general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
+general/continue_label_invalid: RuntimeError
 general/covariant_field: TypeCheckError
 general/covariant_generic2: RuntimeError
 general/covariant_generic: RuntimeError
@@ -258,6 +257,7 @@ rasta/parser_error: RuntimeError
 rasta/static: RuntimeError
 rasta/super: RuntimeError
 rasta/super_mixin: RuntimeError
+rasta/try_label: RuntimeError
 rasta/type_literals: RuntimeError
 rasta/typedef: RuntimeError
 rasta/unresolved: RuntimeError
@@ -277,8 +277,8 @@ regress/issue_37285: RuntimeError
 regress/issue_39091_2: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
-set_literals/disambiguation_rule: RuntimeError
 set_literals/disambiguation_rule2: RuntimeError
+set_literals/disambiguation_rule: RuntimeError
 value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected

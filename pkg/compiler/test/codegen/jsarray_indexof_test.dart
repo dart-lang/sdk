@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test that `length` access in JSArray.indexOf is encoding using `.length` and
 // not `.get$length()`.
 
@@ -48,16 +46,16 @@ runTest(List<String> options) async {
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   JsBackendStrategy backendStrategy = compiler.backendStrategy;
-  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
-  MemberEntity jsArrayIndexOf =
-      findClassMember(closedWorld, 'JSArray', 'indexOf');
-  ProgramLookup programLookup = new ProgramLookup(backendStrategy);
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
+  final jsArrayIndexOf =
+      findClassMember(closedWorld, 'JSArray', 'indexOf') as FunctionEntity;
+  ProgramLookup programLookup = ProgramLookup(backendStrategy);
 
-  Selector getLengthSelector = new Selector.getter(const PublicName('length'));
+  Selector getLengthSelector = Selector.getter(const PublicName('length'));
   js.Name getLengthName =
       backendStrategy.namerForTesting.invocationName(getLengthSelector);
 
-  Method method = programLookup.getMethod(jsArrayIndexOf);
+  Method method = programLookup.getMethod(jsArrayIndexOf)!;
   int lengthCount = 0;
   forEachNode(method.code, onCall: (js.Call node) {
     js.Node target = node.target;

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
+int? f<T>(T a) => null;
 
-int f<T>(T a) => null;
-
-typedef int F<R>(R a);
+typedef int? F<R>(R a);
 
 /*member: B.:hasThis*/
 class B<S> {
@@ -22,5 +20,5 @@ class B<S> {
 }
 
 main() {
-  new B().method();
+  B().method();
 }

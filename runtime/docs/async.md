@@ -255,6 +255,20 @@ If an argument of `await` is a Future, then `_SuspendState._await` attaches 'the
 callbacks to that Future. Otherwise it schedules a micro-task to continue execution of
 the suspended function later.
 
+### AwaitWithTypeCheck stub
+
+AwaitWithTypeCheck is a variant of Await stub which additionally passes type argument `T`
+and calls `_SuspendState._awaitWithTypeCheck` in order to test if the value has a
+correct `Future<T>` type before awaiting.
+
+This runtime check is needed to maintain soundness in case value is a Future of an
+incompatible type, for example:
+
+```
+final FutureOr<Object> f = Future<Object?>.value(null);
+Object x = await f; // x == f, not null.
+```
+
 ### ReturnAsync stub
 
 ReturnAsync stub = Return stub which calls `_SuspendState._returnAsync`.

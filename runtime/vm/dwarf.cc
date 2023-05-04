@@ -211,8 +211,8 @@ intptr_t Dwarf::LookupFunction(const Function& function) {
   RELEASE_ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
   if (pair == NULL) {
-    FATAL1("Function detected too late during DWARF generation: %s",
-           function.ToCString());
+    FATAL("Function detected too late during DWARF generation: %s",
+          function.ToCString());
   }
   return pair->index_;
 }
@@ -221,8 +221,8 @@ intptr_t Dwarf::LookupScript(const Script& script) {
   RELEASE_ASSERT(!script.IsNull());
   ScriptIndexPair* pair = script_to_index_.Lookup(&script);
   if (pair == NULL) {
-    FATAL1("Script detected too late during DWARF generation: %s",
-           script.ToCString());
+    FATAL("Script detected too late during DWARF generation: %s",
+          script.ToCString());
   }
   return pair->index_;
 }
@@ -429,7 +429,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
   const Array& functions = Array::Handle(zone_, code.inlined_id_to_function());
   const Function& root_function = Function::ZoneHandle(zone_, code.function());
   if (root_function.IsNull()) {
-    FATAL1("Wherefore art thou functionless code, %s?\n", code.ToCString());
+    FATAL("Wherefore art thou functionless code, %s?\n", code.ToCString());
   }
 
   GrowableArray<InliningNode*> node_stack(zone_, 4);
@@ -876,7 +876,7 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
       stream->u1(0);  // DW_LNS_const_add_pc, 0 operands
       stream->u1(1);  // DW_LNS_fixed_advance_pc, 1 operands
       stream->u1(0);  // DW_LNS_set_prolog_end, 0 operands
-      stream->u1(0);  // DW_LNS_set_epligoue_begin, 0 operands
+      stream->u1(0);  // DW_LNS_set_epilogue_begin, 0 operands
       stream->u1(1);  // DW_LNS_set_isa, 1 operands
 
       // 10. include_directories (sequence of path names)
@@ -887,6 +887,7 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
       String& uri = String::Handle(zone_);
       for (intptr_t i = 0; i < scripts_.length(); i++) {
         const Script& script = *(scripts_[i]);
+        const char* uri_cstr = nullptr;
         if (FLAG_resolve_dwarf_paths) {
           uri = script.resolved_url();
           // Strictly enforce this to catch unresolvable cases.
@@ -894,18 +895,18 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
             FATAL("no resolved URI for Script %s available",
                   script.ToCString());
           }
-        } else {
-          uri = script.url();
-        }
-        ASSERT(!uri.IsNull());
-        auto uri_cstr = Deobfuscate(uri.ToCString());
-        if (FLAG_resolve_dwarf_paths) {
-          auto const converted_cstr = ConvertResolvedURI(uri_cstr);
+          // resolved_url is never obfuscated, so just convert the prefix.
+          auto const orig_cstr = uri.ToCString();
+          auto const converted_cstr = ConvertResolvedURI(orig_cstr);
           // Strictly enforce this to catch inconvertible cases.
           if (converted_cstr == nullptr) {
-            FATAL("cannot convert resolved URI %s", uri_cstr);
+            FATAL("cannot convert resolved URI %s", orig_cstr);
           }
           uri_cstr = converted_cstr;
+        } else {
+          uri = script.url();
+          ASSERT(!uri.IsNull());
+          uri_cstr = Deobfuscate(uri.ToCString());
         }
         RELEASE_ASSERT(strlen(uri_cstr) != 0);
 

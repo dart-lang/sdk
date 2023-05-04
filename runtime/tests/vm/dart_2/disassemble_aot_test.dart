@@ -33,8 +33,8 @@ Future<void> main(List<String> args) async {
   if (!await testExecutable(genSnapshot)) {
     throw "Cannot run test as $genSnapshot not available";
   }
-  if (!await testExecutable(aotRuntime)) {
-    throw "Cannot run test as $aotRuntime not available";
+  if (!await testExecutable(dartPrecompiledRuntime)) {
+    throw "Cannot run test as $dartPrecompiledRuntime not available";
   }
   if (!File(platformDill).existsSync()) {
     throw "Cannot run test as $platformDill does not exist";
@@ -48,6 +48,7 @@ Future<void> main(List<String> args) async {
     // Compile script to Kernel IR.
     await run(genKernel, <String>[
       '--aot',
+      '--no-sound-null-safety',
       '--platform=$platformDill',
       '-o',
       scriptDill,
@@ -59,6 +60,7 @@ Future<void> main(List<String> args) async {
     await run(genSnapshot, <String>[
       '--disassemble',
       '--disassemble_stubs',
+      '--no-sound-null-safety',
       '--always_generate_trampolines_for_testing',
       '--snapshot-kind=app-aot-elf',
       '--elf=$elfFile',
@@ -66,7 +68,7 @@ Future<void> main(List<String> args) async {
     ]);
 
     // Run the AOT runtime with the disassemble flags set.
-    await run(
-        aotRuntime, <String>['--disassemble', '--disassemble_stubs', elfFile]);
+    await run(dartPrecompiledRuntime,
+        <String>['--disassemble', '--disassemble_stubs', elfFile]);
   });
 }

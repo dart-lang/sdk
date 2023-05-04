@@ -1,13 +1,11 @@
-/**
- * Scalable Vector Graphics:
- * Two-dimensional vector graphics with support for events and animation.
- *
- * For details about the features and syntax of SVG, a W3C standard,
- * refer to the
- * [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).
- *
- * {@category Web}
- */
+/// Scalable Vector Graphics:
+/// Two-dimensional vector graphics with support for events and animation.
+///
+/// For details about the features and syntax of SVG, a W3C standard,
+/// refer to the
+/// [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).
+///
+/// {@category Web}
 library dart.dom.svg;
 
 import 'dart:async';
@@ -4102,7 +4100,6 @@ abstract class _SVGFEDropShadowElement extends SvgElement
   _SVGFEDropShadowElement.created() : super.created();
 
   // From SVGFilterPrimitiveStandardAttributes
-
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4127,5 +4124,4 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
   _SVGMPathElement.created() : super.created();
 
   // From SVGURIReference
-
 }

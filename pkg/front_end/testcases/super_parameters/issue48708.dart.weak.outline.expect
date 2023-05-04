@@ -6,9 +6,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     ;
 }
-class Mixin extends core::Object {
-  synthetic constructor •() → self::Mixin
-    ;
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class B<D extends core::Object? = dynamic> extends core::Object {
   final field self::B::D% field;

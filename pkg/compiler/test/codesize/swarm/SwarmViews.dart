@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of swarmlib;
 
 // TODO(jacobr): there is a lot of dead code in this class. Checking is as is
@@ -23,16 +21,16 @@ class FrontView extends CompositeView {
   /// View containing all UI anchored to the left side of the page. */
   CompositeView bottomView;
   HeaderView headerView;
-  SliderMenu sliderMenu;
+  late final SliderMenu sliderMenu;
 
   /// When the user is viewing a story, the data source for that story is
   /// detached from the section and shown at the bottom of the screen. This keeps
   /// track of that so we can restore it later.
-  DataSourceView detachedView;
+  DataSourceView? detachedView;
 
   /// Map from section title to the View that shows this section.  This
   /// is populated lazily.
-  StoryContentView storyView;
+  StoryContentView? storyView;
   bool nextPrevShown;
 
   ConveyorView sections;
@@ -59,10 +57,11 @@ class FrontView extends CompositeView {
         nextPageKeyPresses = {78 /*n*/},
         previousPageKeyPresses = {80 /*p*/},
         nextPrevShown = false,
+        topView = CompositeView('top-view', false, false, false),
+        headerView = HeaderView(swarm),
+        bottomView = CompositeView('bottom-view', false, false, false),
+        sections = ConveyorView(),
         super('front-view fullpage') {
-    topView = CompositeView('top-view', false, false, false);
-
-    headerView = HeaderView(swarm);
     topView.addChild(headerView);
 
     sliderMenu = SliderMenu(swarm.sections.sectionTitles, (sectionTitle) {
@@ -73,11 +72,7 @@ class FrontView extends CompositeView {
     });
     topView.addChild(sliderMenu);
     addChild(topView);
-
-    bottomView = CompositeView('bottom-view', false, false, false);
     addChild(bottomView);
-
-    sections = ConveyorView();
     sections.viewSelected = _onSectionTransitionEnded;
   }
 
@@ -88,7 +83,7 @@ class FrontView extends CompositeView {
       view = sections.childViews[0];
       sections.selectView(view);
     }
-    return view;
+    return view as SectionView;
   }
 
   @override
@@ -104,7 +99,7 @@ class FrontView extends CompositeView {
 
   void _refreshCurrentArticle() {
     if (!swarm.state.inMainView) {
-      _animateToStory(swarm.state.currentArticle.value);
+      _animateToStory(swarm.state.currentArticle.value!);
     } else {
       _animateToMainView();
     }
@@ -113,21 +108,21 @@ class FrontView extends CompositeView {
   /// Animates back from the story view to the main grid view.
   void _animateToMainView() {
     sliderMenu.removeClass('hidden');
-    storyView.addClass('hidden-story');
+    storyView!.addClass('hidden-story');
     currentSection.storyMode = false;
 
     headerView.startTransitionToMainView();
 
-    currentSection.dataSourceView
-        .reattachSubview(detachedView.source, detachedView, true);
+    currentSection.dataSourceView!
+        .reattachSubview(detachedView!.source, detachedView!, true);
 
-    storyView.node.onTransitionEnd.first.then((e) {
+    storyView!.node.onTransitionEnd.first.then((e) {
       currentSection.hidden = false;
       // TODO(rnystrom): Should move this "mode" into SwarmState and have
       // header view respond to change events itself.
-      removeChild(storyView);
+      removeChild(storyView!);
       storyView = null;
-      detachedView.removeClass('sel');
+      detachedView!.removeClass('sel');
       detachedView = null;
     });
   }
@@ -135,7 +130,7 @@ class FrontView extends CompositeView {
   void _animateToStory(Article item) {
     final source = item.dataSource;
 
-    if (detachedView != null && detachedView.source != source) {
+    if (detachedView != null && detachedView!.source != source) {
       // Ignore spurious item selection clicks that occur while a data source
       // is already selected.  These are likely clicks that occur while an
       // animation is in progress.
@@ -145,7 +140,7 @@ class FrontView extends CompositeView {
     if (storyView != null) {
       // Remove the old story. This happens if we're already in the Story View
       // and the user has clicked to see a new story.
-      removeChild(storyView);
+      removeChild(storyView!);
 
       // Create the new story view and place in the frame.
       storyView = addChild(StoryContentView(swarm, item));
@@ -156,7 +151,7 @@ class FrontView extends CompositeView {
 
       final newPosition =
           FxUtil.computeRelativePosition(view.node, bottomView.node);
-      currentSection.dataSourceView.detachSubview(view.source);
+      currentSection.dataSourceView!.detachSubview(view.source);
       detachedView = view;
 
       FxUtil.setPosition(view.node, newPosition);
@@ -172,10 +167,10 @@ class FrontView extends CompositeView {
         sliderMenu.addClass('hidden');
         // Make the fancy sliding into the window animation.
         Timer(const Duration(milliseconds: 0), () {
-          storyView.addClass('hidden-story');
-          addChild(storyView);
+          storyView!.addClass('hidden-story');
+          addChild(storyView!);
           Timer(const Duration(milliseconds: 0), () {
-            storyView.removeClass('hidden-story');
+            storyView!.removeClass('hidden-story');
           });
           headerView.endTransitionToStoryView();
         });
@@ -195,13 +190,13 @@ class FrontView extends CompositeView {
     FxUtil.setWebkitTransform(topView.node, 0, -HeaderView.HEIGHT);
     if (detachedView != null) {
       FxUtil.setWebkitTransform(
-          detachedView.node, 0, -DataSourceView.TAB_ONLY_HEIGHT);
+          detachedView!.node, 0, -DataSourceView.TAB_ONLY_HEIGHT);
     }
   }
 
   void _animateDataSourceToMinimized() {
     if (detachedView != null) {
-      FxUtil.setWebkitTransform(detachedView.node, 0, 0);
+      FxUtil.setWebkitTransform(detachedView!.node, 0, 0);
       FxUtil.setWebkitTransform(topView.node, 0, 0);
     }
   }
@@ -209,8 +204,8 @@ class FrontView extends CompositeView {
   /// Called when the animation to switch to a section has completed.
   void _onSectionTransitionEnded(SectionView selectedView) {
     // Show the section and hide the others.
-    for (SectionView view in sections.childViews) {
-      if (view == selectedView) {
+    for (View view in sections.childViews) {
+      if ((view as SectionView) == selectedView) {
         // Always refresh the sources in case they've changed.
         view.showSources();
       } else {
@@ -225,8 +220,8 @@ class FrontView extends CompositeView {
   void _onSectionSelected(String sectionTitle) {
     final section = swarm.sections.findSection(sectionTitle);
     // Find the view for this section.
-    for (SectionView view in sections.childViews) {
-      if (view.section == section) {
+    for (View view in sections.childViews) {
+      if ((view as SectionView).section == section) {
         // Have the conveyor show it.
         sections.selectView(view);
         break;
@@ -329,18 +324,18 @@ class HeaderView extends CompositeView {
   static const HEIGHT = 80;
   Swarm swarm;
 
-  View _title;
-  View _infoButton;
-  View _configButton;
-  View _refreshButton;
-  SwarmBackButton _backButton;
-  View _infoDialog;
-  View _configDialog;
+  late final View _title;
+  late final View _infoButton;
+  late final View _configButton;
+  late final View _refreshButton;
+  late final SwarmBackButton _backButton;
+  View? _infoDialog;
+  View? _configDialog;
 
   // For (text/web) article view controls
-  View _webBackButton;
-  View _webForwardButton;
-  View _newWindowButton;
+  late final View _webBackButton;
+  late final View _webForwardButton;
+  late final View _newWindowButton;
 
   HeaderView(this.swarm) : super('header-view') {
     _backButton = addChild(SwarmBackButton(swarm));
@@ -373,7 +368,7 @@ class HeaderView extends CompositeView {
       if (_configDialog == null) {
         // TODO(terry): Cleanup, HeaderView shouldn't be tangled with main view.
         _configDialog = ConfigHintDialog(swarm.frontView, () {
-          swarm.frontView.removeChild(_configDialog);
+          swarm.frontView.removeChild(_configDialog!);
           _configDialog = null;
 
           // TODO: Need to push these to the server on a per-user basis.
@@ -381,7 +376,7 @@ class HeaderView extends CompositeView {
           swarm.sections.refresh();
         });
 
-        swarm.frontView.addChild(_configDialog);
+        swarm.frontView.addChild(_configDialog!);
       }
       // TODO(jimhug): Graceful redirection to reader.
     });
@@ -397,19 +392,19 @@ class HeaderView extends CompositeView {
       if (_infoDialog == null) {
         // TODO(terry): Cleanup, HeaderView shouldn't be tangled with main view.
         _infoDialog = HelpDialog(swarm.frontView, () {
-          swarm.frontView.removeChild(_infoDialog);
+          swarm.frontView.removeChild(_infoDialog!);
           _infoDialog = null;
 
           swarm.sections.refresh();
         });
 
-        swarm.frontView.addChild(_infoDialog);
+        swarm.frontView.addChild(_infoDialog!);
       }
     });
 
     // On click of the new window button, show web article in new window/tab.
     _newWindowButton.addOnClick((e) {
-      String currentArticleSrcUrl = swarm.state.currentArticle.value.srcUrl;
+      String currentArticleSrcUrl = swarm.state.currentArticle.value!.srcUrl;
       window.open(currentArticleSrcUrl, '_blank');
     });
 
@@ -514,7 +509,7 @@ class DataSourceViewFactory implements ViewFactory<Feed> {
   @override
   int get width => ArticleViewLayout.getSingleton().width;
   @override
-  int get height => null; // Width for this view isn't known.
+  int? get height => null; // Width for this view isn't known.
 }
 
 /// A view for the items from a single data source.
@@ -524,7 +519,7 @@ class DataSourceView extends CompositeView {
   static const TAB_ONLY_HEIGHT = 34;
 
   final Feed source;
-  VariableSizeListView<Article> itemsView;
+  late final VariableSizeListView<Article> itemsView;
 
   DataSourceView(this.source, Swarm swarm) : super('query') {
     // TODO(jacobr): make the title a view or decide it is sane for a subclass
@@ -576,7 +571,7 @@ class ToggleButton extends View {
   }
 
   String get state {
-    final currentState = node.innerHtml;
+    final currentState = node.innerHtml!;
     assert(states.contains(currentState));
     return currentState;
   }
@@ -606,9 +601,9 @@ class ArticleViewFactory implements VariableSizeViewFactory<Article> {
   View newView(Article item) => ArticleView(item, swarm, layout);
 
   @override
-  int getWidth(Article item) => layout.width;
+  int getWidth(Article? item) => layout.width;
   @override
-  int getHeight(Article item) => layout.computeHeight(item);
+  int getHeight(Article? item) => layout.computeHeight(item);
 }
 
 class ArticleViewMetrics {
@@ -639,20 +634,17 @@ class ArticleViewLayout {
   MeasureText measureBodyText;
 
   int width;
-  static ArticleViewLayout _singleton;
+  static ArticleViewLayout? _singleton;
   ArticleViewLayout()
       : measureBodyText = MeasureText(BODY_FONT),
-        measureTitleText = MeasureText(TITLE_FONT) {
-    num screenWidth = window.screen.width;
-    width = DESKTOP_WIDTH;
-  }
+        measureTitleText = MeasureText(TITLE_FONT),
+        width = DESKTOP_WIDTH;
 
   static ArticleViewLayout getSingleton() {
-    _singleton ??= ArticleViewLayout();
-    return _singleton;
+    return _singleton ??= ArticleViewLayout();
   }
 
-  int computeHeight(Article item) {
+  int computeHeight(Article? item) {
     if (item == null) {
       // TODO(jacobr): find out why this is happening..
       print('Null item encountered.');
@@ -665,7 +657,7 @@ class ArticleViewLayout {
   /// titleContainer and snippetContainer may be null in which case the size is
   /// computed but no actual layout is performed.
   ArticleViewMetrics computeLayout(
-      Article item, StringBuffer titleBuffer, StringBuffer snippetBuffer) {
+      Article item, StringBuffer? titleBuffer, StringBuffer? snippetBuffer) {
     int titleWidth = width - BODY_MARGIN_LEFT;
 
     if (item.hasThumbnail) {
@@ -731,7 +723,7 @@ class ArticleView extends View {
     // Remove the snippet entirely if it's empty. This keeps it from taking up
     // space and pushing the padding down.
     if ((item.textBody == null) || (item.textBody.trim() == '')) {
-      node.querySelector('.snippet').remove();
+      node.querySelector('.snippet')!.remove();
     }
 
     return node;
@@ -779,16 +771,16 @@ class ArticleView extends View {
   /// Notify the view to jump to a different area if we are selecting an
   /// article that is currently outside of the visible area.
   void _updateViewForSelectedArticle() {
-    Article selArticle = swarm.state.selectedArticle.value;
+    Article selArticle = swarm.state.selectedArticle.value!;
     if (swarm.state.hasArticleSelected) {
       // Ensure that the selected article is visible in the view.
       if (!swarm.state.inMainView) {
         // Story View.
-        swarm.frontView.detachedView.itemsView.showView(selArticle);
+        swarm.frontView.detachedView!.itemsView.showView(selArticle);
       } else {
         if (swarm.frontView.currentSection.inCurrentView(selArticle)) {
           // Scroll horizontally if needed.
-          swarm.frontView.currentSection.dataSourceView
+          swarm.frontView.currentSection.dataSourceView!
               .showView(selArticle.dataSource);
           DataSourceView dataView =
               swarm.frontView.currentSection.findView(selArticle.dataSource);
@@ -805,7 +797,7 @@ class ArticleView extends View {
     final CanvasElement canvas =
         CanvasElement(height: img.height, width: img.width);
 
-    final CanvasRenderingContext2D ctx = canvas.getContext("2d");
+    final ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     ctx.drawImageScaled(img, 0, 0, img.width, img.height);
 
     return canvas.toDataUrl("image/png");
@@ -832,7 +824,7 @@ class StoryContentView extends View {
   final Swarm swarm;
   final Article item;
 
-  View _pagedStory;
+  late View _pagedStory;
 
   StoryContentView(this.swarm, this.item);
 
@@ -873,7 +865,7 @@ class StoryContentView extends View {
         </div>
       </div>''');
 
-    container.querySelector('.paged-story').replaceWith(_pagedStory.node);
+    container.querySelector('.paged-story')!.replaceWith(_pagedStory.node);
 
     return container;
   }
@@ -884,8 +876,8 @@ class SectionView extends CompositeView {
   final Swarm swarm;
   final DataSourceViewFactory _viewFactory;
   final View loadingText;
-  ListView<Feed> dataSourceView;
-  PageNumberView pageNumberView;
+  ListView<Feed>? dataSourceView;
+  late PageNumberView pageNumberView;
   final PageState pageState;
 
   SectionView(this.swarm, this.section, this._viewFactory)
@@ -899,10 +891,11 @@ class SectionView extends CompositeView {
   void showSources() {
     loadingText.node.style.display = 'none';
 
+    ListView<Feed>? dataView = dataSourceView;
     // Lazy initialize the data source view.
-    if (dataSourceView == null) {
+    if (dataView == null) {
       // TODO(jacobr): use named arguments when available.
-      dataSourceView = ListView<Feed>(
+      dataView = dataSourceView = ListView<Feed>(
           section.feeds,
           _viewFactory,
           true /* scrollable */,
@@ -914,27 +907,27 @@ class SectionView extends CompositeView {
           false,
           /* showScrollbar */
           pageState);
-      dataSourceView.addClass("data-source-view");
-      addChild(dataSourceView);
+      dataView.addClass("data-source-view");
+      addChild(dataView);
 
       pageNumberView = addChild(PageNumberView(pageState));
 
       node.style.opacity = '1';
     } else {
-      addChild(dataSourceView);
+      addChild(dataView);
       addChild(pageNumberView);
       node.style.opacity = '1';
     }
 
     // TODO(jacobr): get rid of this call to reconfigure when it is not needed.
-    dataSourceView.scroller.reconfigure(() {});
+    dataView.scroller!.reconfigure(() {});
   }
 
   /// Hides the data sources and shows the loading text.
   void hideSources() {
     if (dataSourceView != null) {
       node.style.opacity = '0.6';
-      removeChild(dataSourceView);
+      removeChild(dataSourceView!);
       removeChild(pageNumberView);
     }
 
@@ -952,10 +945,11 @@ class SectionView extends CompositeView {
   /// Find the [DataSourceView] in this SectionView that's displaying the given
   /// [Feed].
   DataSourceView findView(Feed dataSource) {
-    return dataSourceView.getSubview(dataSourceView.findIndex(dataSource));
+    return dataSourceView!.getSubview(dataSourceView!.findIndex(dataSource)!)
+        as DataSourceView;
   }
 
   bool inCurrentView(Article article) {
-    return dataSourceView.findIndex(article.dataSource) != null;
+    return dataSourceView!.findIndex(article.dataSource) != null;
   }
 }

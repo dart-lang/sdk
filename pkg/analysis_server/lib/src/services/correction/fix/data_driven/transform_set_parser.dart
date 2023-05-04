@@ -443,7 +443,7 @@ class TransformSetParser {
   /// Translate the [node] into a change. Return the resulting change, or `null`
   /// if the [node] does not represent a valid change. If the [node] is not
   /// valid, use the [context] to report the error.
-  Change? _translateChange(YamlNode node, ErrorContext context) {
+  Change<Object>? _translateChange(YamlNode node, ErrorContext context) {
     if (node is YamlMap) {
       var kindNode = node.valueAt(_kindKey);
       var kindContext = ErrorContext(key: _kindKey, parentNode: node);
@@ -554,7 +554,7 @@ class TransformSetParser {
   }
 
   void _translateConditionalChange(YamlNode node, ErrorContext context,
-      Map<Expression, List<Change>> changeMap) {
+      Map<Expression, List<Change<Object>>> changeMap) {
     if (node is YamlMap) {
       _reportUnsupportedKeys(node, const {_ifKey, _changesKey});
       var expressionNode = node.valueAt(_ifKey);
@@ -587,7 +587,7 @@ class TransformSetParser {
   ChangesSelector? _translateConditionalChanges(
       YamlNode node, ErrorContext context) {
     if (node is YamlList) {
-      var changeMap = <Expression, List<Change>>{};
+      var changeMap = <Expression, List<Change<Object>>>{};
       for (var element in node.nodes) {
         _translateConditionalChange(element, context, changeMap);
       }
@@ -1120,6 +1120,14 @@ class TransformSetParser {
     // Static methods and top-level functions can replace each other.
     addSet({
       ElementKind.functionKind,
+      ElementKind.methodKind,
+    });
+    // Instance getters and methods can replace each other.
+    // Only a zero-parameter method can be replaced with a getter.
+    // Replacing a getter with a method can result in a compilation error if the
+    // required arguments are not added.
+    addSet({
+      ElementKind.getterKind,
       ElementKind.methodKind,
     });
     // Static getters and getter-inducing elements can replace each other.

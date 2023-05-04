@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -15,6 +16,34 @@ main() {
 
 @reflectiveTest
 class CastFromNullAlwaysFailsTest extends PubPackageResolutionTest {
+  test_castPattern_Null_nonNullable() async {
+    await assertErrorsInCode('''
+void f(Null n, num m) {
+  (m as int) = n;
+}
+''', [
+      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 27, 8),
+    ]);
+  }
+
+  test_castPattern_Null_nullable() async {
+    await assertErrorsInCode('''
+void f(Null n, num? m) {
+  (m as int?) = n;
+}
+''', [
+      error(WarningCode.UNNECESSARY_CAST_PATTERN, 30, 2),
+    ]);
+  }
+
+  test_castPattern_nullable_nullable() async {
+    await assertNoErrorsInCode('''
+void f(num? n, num? m) {
+  (m as int?) = n;
+}
+''');
+  }
+
   test_Null_dynamic() async {
     await assertNoErrorsInCode('''
 void f(Null n) {
@@ -29,7 +58,7 @@ void f(Null n) {
   n as Never;
 }
 ''', [
-      error(HintCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 10),
+      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 10),
     ]);
   }
 
@@ -39,7 +68,7 @@ void f(Null n) {
   n as int;
 }
 ''', [
-      error(HintCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 8),
+      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 8),
     ]);
   }
 
@@ -49,7 +78,7 @@ void f<T extends Object>(Null n) {
   n as T;
 }
 ''', [
-      error(HintCode.CAST_FROM_NULL_ALWAYS_FAILS, 37, 6),
+      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 37, 6),
     ]);
   }
 
@@ -72,6 +101,7 @@ void f<T>(Null n) {
   }
 
   test_Null_preNullSafety() async {
+    noSoundNullSafety = false;
     await assertErrorsInCode('''
 // @dart=2.9
 

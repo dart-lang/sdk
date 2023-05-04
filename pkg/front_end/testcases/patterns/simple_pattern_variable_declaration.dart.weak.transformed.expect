@@ -1,0 +1,66 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1(dynamic x) → dynamic {
+  hoisted has-declared-initializer core::int y;
+  {
+    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
+    function ##0#6#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = y = #0#6{core::int} in true))))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  return y;
+}
+static method test2(dynamic x) → dynamic {
+  hoisted has-declared-initializer core::String a;
+  hoisted has-declared-initializer core::String b;
+  {
+    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::String>;
+    function ##0#2#initializer() → core::int
+      return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+    late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
+    function ##0#6#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    function ##0#7#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(#0#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
+    late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
+    if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2.{core::num::>=}(#C2){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::String && (let final core::String #t2 = a = #0#6{core::String} in true)) && (#0#7 is{ForNonNullableByDefault} core::String && (let final core::String #t3 = b = #0#7{core::String} in true))))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  return a.{core::String::+}(b){(core::String) → core::String};
+}
+static method main() → dynamic {
+  self::expectEquals(self::test1(core::_GrowableList::_literal1<core::int>(0)), 0);
+  self::expectThrows(() → void => self::test1(core::_GrowableList::•<dynamic>(0)));
+  self::expectThrows(() → void => self::test1(core::_GrowableList::_literal3<core::int>(0, 1, 2)));
+  self::expectEquals(self::test2(core::_GrowableList::_literal4<core::String>("one", "two", "three", "four")), "onefour");
+  self::expectThrows(() → void => self::test2(core::_GrowableList::_literal1<core::String>("one")));
+  self::expectThrows(() → void => self::test2("one"));
+  self::expectThrows(() → void => self::test2(null));
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected ${x} to be equal to ${y}.";
+  }
+}
+static method expectThrows(() → void f) → dynamic {
+  core::bool hasThrown = true;
+  try {
+    f(){() → void};
+    hasThrown = false;
+  }
+  on core::Object catch(final core::Object e) {
+  }
+  if(!hasThrown) {
+    throw "Expected function to throw.";
+  }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}

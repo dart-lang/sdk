@@ -65,7 +65,7 @@ class InductionVarAnalysis : public ValueObject {
   void ClassifyControl(LoopInfo* loop);
 
   // Transfer methods. Compute how induction of the operands, if any,
-  // tranfers over the operation performed by the given definition.
+  // transfers over the operation performed by the given definition.
   InductionVar* TransferPhi(LoopInfo* loop, Definition* def, intptr_t idx = -1);
   InductionVar* TransferDef(LoopInfo* loop, Definition* def);
   InductionVar* TransferBinary(LoopInfo* loop, Definition* def);
@@ -445,7 +445,7 @@ void InductionVarAnalysis::ClassifyControl(LoopInfo* loop) {
     // conditions like i <= U as upperbound or i >= L as lowerbound since this
     // could loop forever when U is kMaxInt64 or L is kMinInt64 under Dart's
     // 64-bit arithmetic wrap-around. Non-unit strides could overshoot the
-    // bound due to aritmetic wrap-around.
+    // bound due to arithmetic wrap-around.
     switch (cmp) {
       case Token::kLT:
         // Accept i < U (i++).
@@ -603,7 +603,7 @@ InductionVar* InductionVarAnalysis::SolveConstraint(LoopInfo* loop,
                                                     InductionVar* init) {
   InductionVar* c = LookupCycle(def->InputAt(0)->definition());
   if (c == init) {
-    // Record a non-artifical bound constraint on a phi.
+    // Record a non-artificial bound constraint on a phi.
     ConstraintInstr* constraint = def->AsConstraint();
     if (constraint->target() != nullptr) {
       loop->limit_ = constraint;

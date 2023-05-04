@@ -38,12 +38,15 @@ import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/kernel.dart' show Component, Library, Procedure;
+import 'package:kernel/kernel.dart'
+    show Component, Library, Procedure, NonNullableByDefaultCompiledMode;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart'
-    show autoDetectNullSafetyMode, createLoadedLibrariesSet;
+    show createLoadedLibrariesSet, ErrorDetector;
 import 'package:vm/http_filesystem.dart';
+import 'package:vm/native_assets/diagnostic_message.dart';
+import 'package:vm/native_assets/synthesizer.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
@@ -63,6 +66,7 @@ const String packageConfigFile = '.dart_tool/package_config.json';
 //       purposes).
 //   5 - List program dependencies (for creating depfiles)
 //   6 - Isolate shutdown that potentially should result in compiler cleanup.
+//   7 - Reject last compilation result.
 const int kCompileTag = 0;
 const int kUpdateSourcesTag = 1;
 const int kAcceptTag = 2;
@@ -70,26 +74,15 @@ const int kTrainTag = 3;
 const int kCompileExpressionTag = 4;
 const int kListDependenciesTag = 5;
 const int kNotifyIsolateShutdownTag = 6;
-const int kDetectNullabilityTag = 7;
+const int kRejectTag = 7;
 
 bool allowDartInternalImport = false;
-
-// Null Safety command line options
-//
-// Note: The values of these constants must match the
-// values of flag sound_null_safety in ../../../../runtime/vm/flag_list.h.
-// 0 - No --[no-]sound-null-safety option specified on the command line.
-// 1 - '--no-sound-null-safety' specified on the command line.
-// 2 - '--sound-null-safety' option specified on the command line.
-const int kNullSafetyOptionUnspecified = 0;
-const int kNullSafetyOptionWeak = 1;
-const int kNullSafetyOptionStrong = 2;
 
 CompilerOptions setupCompilerOptions(
     FileSystem fileSystem,
     Uri? platformKernelPath,
     bool enableAsserts,
-    int nullSafety,
+    bool nullSafety,
     List<String>? experimentalFlags,
     Uri? packagesUri,
     List<String> errorsPlain,
@@ -108,21 +101,20 @@ CompilerOptions setupCompilerOptions(
   return new CompilerOptions()
     ..fileSystem = fileSystem
     ..target = new VmTarget(new TargetFlags(
-        enableNullSafety: nullSafety == kNullSafetyOptionStrong,
-        supportMirrors: enableMirrors))
+        soundNullSafety: nullSafety, supportMirrors: enableMirrors))
     ..packagesFileUri = packagesUri
     ..sdkSummary = platformKernelPath
     ..verbose = verbose
-    ..omitPlatform = true
+    ..omitPlatform = false // so that compilation results can be rejected,
+    // which potentially is only relevant for
+    // incremental, rather than single-shot compilter
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(expFlags), onError: (msg) {
       errorsPlain.add(msg);
       errorsColorized.add(msg);
     })
     ..environmentDefines = new EnvironmentMap()
-    ..nnbdMode = (nullSafety == kNullSafetyOptionStrong)
-        ? NnbdMode.Strong
-        : NnbdMode.Weak
+    ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage message) {
       bool printToStdErr = false;
       bool printToStdOut = false;
@@ -164,7 +156,7 @@ abstract class Compiler {
   final FileSystem fileSystem;
   final Uri? platformKernelPath;
   final bool enableAsserts;
-  final int nullSafety;
+  final bool nullSafety;
   final List<String>? experimentalFlags;
   final String? packageConfig;
   final String invocationModes;
@@ -183,7 +175,7 @@ abstract class Compiler {
 
   Compiler(this.isolateGroupId, this.fileSystem, this.platformKernelPath,
       {this.enableAsserts = false,
-      this.nullSafety = kNullSafetyOptionUnspecified,
+      this.nullSafety = true,
       this.experimentalFlags = null,
       this.supportCodeCoverage = false,
       this.supportHotReload = false,
@@ -298,7 +290,7 @@ class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompilerWrapper(
       int isolateGroupId, FileSystem fileSystem, Uri? platformKernelPath,
       {bool enableAsserts = false,
-      int nullSafety = kNullSafetyOptionUnspecified,
+      bool nullSafety = true,
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes = '',
@@ -351,6 +343,7 @@ class IncrementalCompilerWrapper extends Compiler {
   }
 
   void accept() => generator!.accept();
+  Future<void> reject() async => generator!.reject();
   void invalidate(Uri uri) => generator!.invalidate(uri);
 
   Future<IncrementalCompilerWrapper> clone(int isolateGroupId) async {
@@ -392,7 +385,7 @@ class SingleShotCompilerWrapper extends Compiler {
       int isolateGroupId, FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain = false,
       bool enableAsserts = false,
-      int nullSafety = kNullSafetyOptionUnspecified,
+      bool nullSafety = true,
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes = '',
@@ -418,7 +411,7 @@ class SingleShotCompilerWrapper extends Compiler {
 
     Set<Library> loadedLibraries = createLoadedLibrariesSet(
         compilerResult.loadedComponents, compilerResult.sdkComponent,
-        includePlatform: !options.omitPlatform);
+        includePlatform: false);
 
     return new CompilerResult(compilerResult.component, loadedLibraries,
         compilerResult.classHierarchy, compilerResult.coreTypes);
@@ -436,7 +429,7 @@ IncrementalCompilerWrapper? lookupIncrementalCompiler(int isolateGroupId) {
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
     List sourceFiles, Uri platformKernelPath, List<int>? platformKernel,
     {bool enableAsserts = false,
-    int nullSafety = kNullSafetyOptionUnspecified,
+    bool nullSafety = true,
     List<String>? experimentalFlags,
     String? packageConfig,
     String? multirootFilepaths,
@@ -784,7 +777,7 @@ Future _processLoadRequest(request) async {
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
   final bool incremental = request[4];
   final bool snapshot = request[5];
-  final int nullSafety = request[6];
+  final bool nullSafety = request[6];
   final List sourceFiles = request[8];
   final bool enableAsserts = request[9];
   final List<String>? experimentalFlags =
@@ -792,7 +785,6 @@ Future _processLoadRequest(request) async {
   final String? packageConfig = request[11];
   final String? multirootFilepaths = request[12];
   final String? multirootScheme = request[13];
-  final String? workingDirectory = request[14];
   final String verbosityLevel = request[15];
   final bool enableMirrors = request[16];
   Uri platformKernelPath;
@@ -827,49 +819,28 @@ Future _processLoadRequest(request) async {
     updateSources(compiler as IncrementalCompilerWrapper, sourceFiles);
     port.send(new CompilationResult.ok(null).toResponse());
     return;
-  } else if (tag == kAcceptTag) {
+  } else if (tag == kAcceptTag || tag == kRejectTag) {
     assert(
-        incremental, "Incremental compiler required for use of 'kAcceptTag'");
+        incremental,
+        "Incremental compiler required for use of 'kAcceptTag' or "
+        "'kRejectTag");
     compiler = lookupIncrementalCompiler(isolateGroupId);
     // There are unit tests that invoke the IncrementalCompiler directly and
     // request a reload, meaning that we won't have a compiler for this isolate.
     if (compiler != null) {
-      (compiler as IncrementalCompilerWrapper).accept();
+      final wrapper = compiler as IncrementalCompilerWrapper;
+      try {
+        if (tag == kAcceptTag) {
+          wrapper.accept();
+        } else {
+          await wrapper.reject();
+        }
+      } catch (e, st) {
+        port.send(CompilationResult.crash(e, st).toResponse());
+        return;
+      }
     }
     port.send(new CompilationResult.ok(null).toResponse());
-    return;
-  } else if (tag == kDetectNullabilityTag) {
-    FileSystem fileSystem = _buildFileSystem(
-        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
-    Uri? packagesUri = null;
-    final packageConfigWithDefault = packageConfig ?? Platform.packageConfig;
-    if (packageConfigWithDefault != null) {
-      packagesUri = Uri.parse(packageConfigWithDefault);
-    }
-    if (packagesUri != null && !packagesUri.hasScheme) {
-      // Script does not have a scheme, assume that it is a path,
-      // resolve it against the working directory.
-      packagesUri = Uri.directory(workingDirectory!).resolveUri(packagesUri);
-    }
-    final List<String> errorsPlain = <String>[];
-    final List<String> errorsColorized = <String>[];
-    var options = setupCompilerOptions(
-        fileSystem,
-        platformKernelPath,
-        false,
-        nullSafety,
-        experimentalFlags,
-        packagesUri,
-        errorsPlain,
-        errorsColorized,
-        invocationModes,
-        verbosityLevel,
-        false);
-
-    // script should only be null for kUpdateSourcesTag.
-    await autoDetectNullSafetyMode(script!, options);
-    bool value = options.nnbdMode == NnbdMode.Strong;
-    port.send(new CompilationResult.nullSafety(value).toResponse());
     return;
   }
 
@@ -880,6 +851,7 @@ Future _processLoadRequest(request) async {
   // one compiler or another. We should always use an incremental
   // compiler as its functionality is a super set of the other one. We need to
   // watch the performance though.
+  FileSystem fileSystem;
   if (incremental) {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateGroupId, sourceFiles, platformKernelPath, platformKernel,
@@ -892,8 +864,9 @@ Future _processLoadRequest(request) async {
         invocationModes: invocationModes,
         verbosityLevel: verbosityLevel,
         enableMirrors: enableMirrors);
+    fileSystem = compiler.fileSystem;
   } else {
-    FileSystem fileSystem = _buildFileSystem(
+    fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
     compiler = new SingleShotCompilerWrapper(
         isolateGroupId, fileSystem, platformKernelPath,
@@ -916,21 +889,53 @@ Future _processLoadRequest(request) async {
     CompilerResult compilerResult = await compiler.compile(script!);
     Set<Library> loadedLibraries = compilerResult.loadedLibraries;
 
+    final String? nativeAssets = await findNativeAssets(
+      packagesFileUri:
+          packageConfig != null ? resolveInputUri(packageConfig) : null,
+      script: script,
+      fileSystem: fileSystem,
+    );
+    Component? nativeAssetsComponent;
+    final nativeAssetsErrors = <NativeAssetsDiagnosticMessage>[];
+    if (nativeAssets != null) {
+      final errorDetector = ErrorDetector(
+          previousErrorHandler: (message) =>
+              nativeAssetsErrors.add(message as NativeAssetsDiagnosticMessage));
+      final nativeAssetsLibrary =
+          await NativeAssetsSynthesizer.synthesizeLibraryFromYamlString(
+        nativeAssets,
+        errorDetector,
+        nonNullableByDefaultCompiledMode: nullSafety
+            ? NonNullableByDefaultCompiledMode.Strong
+            : NonNullableByDefaultCompiledMode.Weak,
+        pragmaClass: compilerResult.coreTypes?.pragmaClass,
+      );
+      if (nativeAssetsLibrary != null) {
+        nativeAssetsComponent = Component(
+          libraries: [nativeAssetsLibrary],
+          mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
+        );
+      }
+    }
+
     assert(compiler.errorsPlain.length == compiler.errorsColorized.length);
     // http://dartbug.com/45137
     // enableColors calls `stdout.supportsAnsiEscapes` which - on Windows -
     // does something with line endings. To avoid this when no error
     // messages are do be printed anyway, we are careful not to call it unless
     // necessary.
-    if (compiler.errorsColorized.isNotEmpty) {
-      final List<String> errors =
-          (enableColors) ? compiler.errorsColorized : compiler.errorsPlain;
+    if (compiler.errorsColorized.isNotEmpty || nativeAssetsErrors.isNotEmpty) {
+      final List<String> errors = [
+        ...(enableColors) ? compiler.errorsColorized : compiler.errorsPlain,
+        ...nativeAssetsErrors.map((e) => e.message)
+      ];
       final component = compilerResult.component;
       if (component != null) {
         result = new CompilationResult.errors(
             errors,
             serializeComponent(component,
-                filter: (lib) => !loadedLibraries.contains(lib)));
+                filter: (lib) => !loadedLibraries.contains(lib),
+                nativeAssetsComponent: nativeAssetsComponent));
       } else {
         result = new CompilationResult.errors(errors, null);
       }
@@ -941,7 +946,8 @@ Future _processLoadRequest(request) async {
       // decide what to exclude.
       result = new CompilationResult.ok(serializeComponent(
           compilerResult.component!,
-          filter: (lib) => !loadedLibraries.contains(lib)));
+          filter: (lib) => !loadedLibraries.contains(lib),
+          nativeAssetsComponent: nativeAssetsComponent));
     }
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);
@@ -972,6 +978,67 @@ Future _processLoadRequest(request) async {
       new CompilationResult.errors(<String>["unknown tag"], null).payload
     ]);
   }
+}
+
+/// Returns the contents of the `native_assets.yaml` for the host os in JIT,
+/// if it exists.
+///
+/// Order or priority:
+/// 1. If a `package_config.json` is picked by the kernel service, look to see
+///    if there is a `native_assets.yaml` next to it.
+/// 2. If no `package_config.json` is picked by the kernel service, walk up
+///    folder hierarchy to find one and look next to it.
+Future<String?> findNativeAssets({
+  Uri? packagesFileUri,
+  Uri? script,
+  required FileSystem fileSystem,
+}) async {
+  if (packagesFileUri != null &&
+      (packagesFileUri.scheme == '' || packagesFileUri.scheme == 'file')) {
+    final nativeAssetsUri = packagesFileUri.resolve('native_assets.yaml');
+    final nativeAssetsEntity = fileSystem.entityForUri(nativeAssetsUri);
+    if (await nativeAssetsEntity.exists()) {
+      return await nativeAssetsEntity.readAsString();
+    }
+    return null;
+  }
+  if (script != null && (script.scheme == '' || script.scheme == 'file')) {
+    Future<String?> tryLoadNativeAssetsYaml(Uri uri) async {
+      final nativeAssetsUri = uri.resolve('.dart_tool/native_assets.yaml');
+      final nativeAssetsEntity = fileSystem.entityForUri(nativeAssetsUri);
+      if (await nativeAssetsEntity.exists()) {
+        return await nativeAssetsEntity.readAsString();
+      }
+      return null;
+    }
+
+    Uri folderUri = script.resolve('.');
+    while (true) {
+      final found = await tryLoadNativeAssetsYaml(folderUri);
+      if (found != null) {
+        return found;
+      }
+      final parentUri = folderUri.resolve('..');
+      if (parentUri.path == folderUri.path) {
+        return null;
+      }
+      folderUri = parentUri;
+    }
+  }
+  return null;
+}
+
+Uint8List serializeComponent(Component component,
+    {bool Function(Library library)? filter,
+    Component? nativeAssetsComponent}) {
+  final byteSink = new BytesSink();
+  BinaryPrinter printer = new BinaryPrinter(byteSink, libraryFilter: filter);
+  printer.writeComponentFile(component);
+  if (nativeAssetsComponent != null) {
+    BinaryPrinter printer = new BinaryPrinter(byteSink);
+    printer.writeComponentFile(nativeAssetsComponent);
+  }
+  return byteSink.builder.takeBytes();
 }
 
 /// Creates a file system containing the files specified in [sourceFiles] and
@@ -1056,7 +1123,7 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     platformKernelPath,
     false /* incremental */,
     false /* snapshot */,
-    kNullSafetyOptionUnspecified /* null safety */,
+    true /* null safety */,
     1 /* isolateGroupId chosen randomly */,
     [] /* source files */,
     false /* enable asserts */,
@@ -1067,6 +1134,7 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     null /* original working directory */,
     'all' /* CFE logging mode */,
     true /* enableMirrors */,
+    null /* native assets yaml */,
   ];
   await _processLoadRequest(request);
 }

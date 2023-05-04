@@ -64,7 +64,7 @@ const int _paddingChar = 0x3d; // '='.
 /// It does not allow invalid characters when decoding and it requires,
 /// and generates, padding so that the input is always a multiple of four
 /// characters.
-class Base64Codec extends Codec<List<int>, String> {
+final class Base64Codec extends Codec<List<int>, String> {
   final Base64Encoder _encoder;
   const Base64Codec() : _encoder = const Base64Encoder();
   const Base64Codec.urlSafe() : _encoder = const Base64Encoder.urlSafe();
@@ -231,7 +231,7 @@ class Base64Codec extends Codec<List<int>, String> {
 /// final encodedSample = base64Encoder.convert(sample.codeUnits);
 /// print(encodedSample); // RGFydCBpcyBvcGVuIHNvdXJjZQ==
 /// ```
-class Base64Encoder extends Converter<List<int>, String> {
+final class Base64Encoder extends Converter<List<int>, String> {
   final bool _urlSafe;
 
   const Base64Encoder() : _urlSafe = false;
@@ -416,7 +416,7 @@ class _BufferCachingBase64Encoder extends _Base64Encoder {
   }
 }
 
-abstract class _Base64EncoderSink extends ByteConversionSinkBase {
+abstract class _Base64EncoderSink extends ByteConversionSink {
   void add(List<int> source) {
     _add(source, 0, source.length, false);
   }
@@ -491,7 +491,7 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
 /// // Print as string using UTF-8 decoder
 /// print(utf8.decode(decodedBytes)); // Dart is open source
 /// ```
-class Base64Decoder extends Converter<String, List<int>> {
+final class Base64Decoder extends Converter<String, List<int>> {
   const Base64Decoder();
 
   /// Decodes the characters of [input] from [start] to [end] as base64.
@@ -850,7 +850,7 @@ class _Base64Decoder {
   }
 }
 
-class _Base64DecoderSink extends StringConversionSinkBase {
+class _Base64DecoderSink extends StringConversionSink {
   /// Output sink
   final Sink<List<int>> _sink;
   final _Base64Decoder _decoder = _Base64Decoder();

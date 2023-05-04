@@ -48,7 +48,7 @@ class BlazeChangesTest extends AbstractAnalysisServerIntegrationTest {
       path.join(workspacePath, relative.replaceAll('/', path.separator));
 
   @override
-  Future setUp() async {
+  Future<void> setUp() async {
     await super.setUp();
     oldSourceDirectory = sourceDirectory;
 
@@ -78,7 +78,7 @@ class BlazeChangesTest extends AbstractAnalysisServerIntegrationTest {
   }
 
   @override
-  Future tearDown() async {
+  Future<void> tearDown() async {
     Directory(tmpPath).deleteSync(recursive: true);
     sourceDirectory = oldSourceDirectory;
     await super.tearDown();

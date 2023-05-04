@@ -3,7 +3,7 @@ sealed class Class {}
 mixin M {}
 sealed class A = Object with M;
 
-sealed[StringToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+sealed[KeywordToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
 
 mixin[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken]
-sealed[StringToken] class[KeywordToken] A[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] M[StringToken];[SimpleToken][SimpleToken]
+sealed[KeywordToken] class[KeywordToken] A[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] M[StringToken];[SimpleToken][SimpleToken]

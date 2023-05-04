@@ -376,7 +376,7 @@ class Printer implements NodeVisitor<void> {
     Statement elsePart = node.otherwise;
     bool hasElse = node.hasElse;
 
-    // Handle dangling elses and a work-around for Android 4.0 stock browser.
+    // Handle dangling elses and a workaround for Android 4.0 stock browser.
     // Android 4.0 requires braces for a single do-while in the `then` branch.
     // See issue 10923.
     if (hasElse) {
@@ -1661,7 +1661,13 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   bool visitComment(Comment node) => true;
 
   @override
-  bool visitBlock(Block node) => false;
+  bool visitBlock(Block node) {
+    // Singleton blocks are in many places printed as the contained statement so
+    // that statement might capture the dangling else.
+    if (node.statements.length != 1) return false;
+    return node.statements.single.accept(this);
+  }
+
   @override
   bool visitExpressionStatement(ExpressionStatement node) => false;
   @override

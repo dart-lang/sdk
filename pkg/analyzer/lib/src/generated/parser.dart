@@ -190,8 +190,10 @@ class Parser {
 
   Expression parsePrimaryExpression() {
     currentToken = fastaParser
-        .parsePrimary(fastaParser.syntheticPreviousToken(currentToken),
-            fasta.IdentifierContext.expression)
+        .parsePrimary(
+            fastaParser.syntheticPreviousToken(currentToken),
+            fasta.IdentifierContext.expression,
+            fasta.ConstantPatternContext.none)
         .next!;
     return astBuilder.pop() as Expression;
   }

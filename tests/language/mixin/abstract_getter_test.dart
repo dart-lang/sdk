@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-abstract class B {
+mixin B {
   int get x;
 }
 

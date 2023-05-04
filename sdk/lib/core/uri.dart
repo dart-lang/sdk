@@ -239,7 +239,7 @@ abstract class Uri {
   ///
   /// The `path` component is set from the [unencodedPath]
   /// argument. The path passed must not be encoded as this constructor
-  /// encodes the path. Only `/` is recognized as path separtor.
+  /// encodes the path. Only `/` is recognized as path separator.
   /// If omitted, the path defaults to being empty.
   ///
   /// The `query` component is set from the optional [queryParameters]
@@ -1272,7 +1272,7 @@ abstract class Uri {
   ///
   /// All characters except uppercase and lowercase letters, digits and
   /// the characters `!#$&'()*+,-./:;=?@_~` are percent-encoded. This
-  /// is the set of characters specified in in ECMA-262 version 5.1 for
+  /// is the set of characters specified in ECMA-262 version 5.1 for
   /// the encodeURI function.
   ///
   /// Example:
@@ -4105,7 +4105,8 @@ final List<Uint8List> _scannerTables = _createTables();
 ///   Set to another value if the URI is considered "not simple".
 ///   This is elaborated below.
 ///
-/// # Simple URIs
+/// ### Simple URIs
+///
 /// A URI is considered "simple" if it is in a normalized form containing no
 /// escapes. This allows us to skip normalization and checking whether escapes
 /// are valid, and to extract components without worrying about unescaping.

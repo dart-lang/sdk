@@ -66,7 +66,7 @@ class DartUriResolver extends UriResolver {
   ///
   /// @param uri the URI being tested
   /// @return `true` if the given URI is a `dart:` URI
-  static bool isDartUri(Uri uri) => DART_SCHEME == uri.scheme;
+  static bool isDartUri(Uri uri) => uri.isScheme(DART_SCHEME);
 }
 
 /// An implementation of an non-existing [Source].
@@ -129,7 +129,7 @@ class NonExistingSource extends Source {
 ///
 /// If the instances that implement this API are the system of record, then they
 /// will typically be unique. In that case, sources that are created that
-/// represent non-existent files must also be retained so that if those files
+/// represent nonexistent files must also be retained so that if those files
 /// are created at a later date the long-lived sources representing those files
 /// will know that they now exist.
 abstract class Source {

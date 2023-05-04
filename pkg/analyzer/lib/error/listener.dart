@@ -73,10 +73,10 @@ class ErrorReporter {
   /// Report an error with the given [errorCode] and [arguments]. The [element]
   /// is used to compute the location of the error.
   void reportErrorForElement(ErrorCode errorCode, Element element,
-      [List<Object>? arguments]) {
+      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
     var nonSynthetic = element.nonSynthetic;
-    reportErrorForOffset(
-        errorCode, nonSynthetic.nameOffset, nonSynthetic.nameLength, arguments);
+    reportErrorForOffset(errorCode, nonSynthetic.nameOffset,
+        nonSynthetic.nameLength, arguments, messages);
   }
 
   /// Report a diagnostic with the given [code] and [arguments]. The
@@ -250,7 +250,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   /// Return the errors collected by the listener.
   List<AnalysisError> get errors {
     if (_errors == null) {
-      return const <AnalysisError>[];
+      return const [];
     }
     return _errors!.toList();
   }
@@ -258,7 +258,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   /// Return the errors collected by the listener for the given [source].
   List<AnalysisError> getErrorsForSource(Source source) {
     if (_errors == null) {
-      return const <AnalysisError>[];
+      return const [];
     }
     return _errors!.where((error) => error.source == source).toList();
   }

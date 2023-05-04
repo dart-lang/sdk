@@ -35,8 +35,8 @@ abstract class AnalysisOptions {
   /// analysis.
   List<String> get excludePatterns;
 
-  /// Return `true` if analysis is to generate hint results (e.g. type inference
-  /// based information and pub best practices).
+  /// Return `true` if analysis is to generate hint results (e.g. best practices
+  /// and analysis based on certain annotations).
   bool get hint;
 
   /// Return `true` if analysis is to generate lint warnings.

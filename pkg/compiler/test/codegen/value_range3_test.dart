@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test that global analysis in dart2js propagates positive integers.
 
 import 'package:async_helper/async_helper.dart';
@@ -18,7 +16,7 @@ var a = [42];
 main() {
   var value = a[0];
   if (value < 42) {
-    return new List(42)[value];
+    return List.filled(42, null)[value];
   }
 }
 ''',

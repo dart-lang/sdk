@@ -13,9 +13,7 @@ import self as self;
 import "dart:core" as core;
 
 typedef A = () →? dynamic;
-class B extends core::Object {
-  synthetic constructor •() → self::B
-    ;
+abstract class B extends core::Object /*isMixinDeclaration*/  {
 }
 class C = core::Object with self::B {
   synthetic constructor •() → self::C

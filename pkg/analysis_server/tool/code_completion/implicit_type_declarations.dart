@@ -104,7 +104,7 @@ class ImpliedTypeCollector extends RecursiveAstVisitor<void> {
   void handleVariableDeclaration(VariableDeclaration node, DartType? dartType) {
     // If some untyped variable declaration
     if (node.equals != null && dartType == null ||
-        (dartType != null && (dartType.isDynamic || dartType.isVoid))) {
+        (dartType != null && (dartType.isDynamic || dartType is VoidType))) {
       // And if we can determine the type on the RHS of the variable declaration
       var rhsType = node.initializer?.staticType;
       if (rhsType != null && !rhsType.isDynamic) {

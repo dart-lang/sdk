@@ -8,7 +8,7 @@ import 'package:js_ast/js_ast.dart';
 
 import '../common.dart';
 import '../options.dart';
-import '../dump_info_javascript_monitor.dart' show DumpInfoJavaScriptMonitor;
+import '../dump_info.dart' show DumpInfoTask;
 import '../io/code_output.dart' show CodeBuffer, CodeOutputListener;
 import 'js_source_mapping.dart';
 
@@ -33,7 +33,9 @@ String prettyPrint(Node node,
 
 CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
     JavaScriptSourceInformationStrategy sourceInformationStrategy,
-    {DumpInfoJavaScriptMonitor? monitor,
+    {DumpInfoTask? monitor,
+    JavaScriptAnnotationMonitor annotationMonitor =
+        const JavaScriptAnnotationMonitor(),
     bool allowVariableMinification = true,
     List<CodeOutputListener> listeners = const []}) {
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
@@ -44,21 +46,32 @@ CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
   SourceInformationProcessor sourceInformationProcessor =
       sourceInformationStrategy.createProcessor(
           SourceMapperProviderImpl(outBuffer), const SourceInformationReader());
+
   Dart2JSJavaScriptPrintingContext context = Dart2JSJavaScriptPrintingContext(
-      monitor, outBuffer, sourceInformationProcessor);
+      monitor, outBuffer, sourceInformationProcessor, annotationMonitor);
   Printer printer = Printer(options, context);
   printer.visit(node);
   sourceInformationProcessor.process(node, outBuffer);
   return outBuffer;
 }
 
+class JavaScriptAnnotationMonitor {
+  const JavaScriptAnnotationMonitor();
+
+  /// Called for each non-empty list of annotations in the JavaScript tree.
+  void onAnnotations(List<Object> annotations) {
+    // Should the position of the annotated node be recorded?
+  }
+}
+
 class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
-  final DumpInfoJavaScriptMonitor? monitor;
+  final DumpInfoTask? monitor;
   final CodeBuffer outBuffer;
   final CodePositionListener codePositionListener;
+  final JavaScriptAnnotationMonitor annotationMonitor;
 
-  Dart2JSJavaScriptPrintingContext(
-      this.monitor, this.outBuffer, this.codePositionListener);
+  Dart2JSJavaScriptPrintingContext(this.monitor, this.outBuffer,
+      this.codePositionListener, this.annotationMonitor);
 
   @override
   void error(String message) {
@@ -83,6 +96,10 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
     monitor?.exitNode(node, startPosition, endPosition, closingPosition);
     codePositionListener.onPositions(
         node, startPosition, endPosition, closingPosition);
+    final annotations = node.annotations;
+    if (annotations.isNotEmpty) {
+      annotationMonitor.onAnnotations(annotations);
+    }
   }
 
   @override
@@ -133,8 +150,7 @@ class UnparsedNode extends DeferredString implements AstContainer {
   final Node tree;
   final bool _enableMinification;
   final bool _protectForEval;
-  // TODO(48820): Can be `late final` with initializer.
-  LiteralString? _cachedLiteral;
+  late final LiteralString _literal = _create(tree);
 
   @override
   Iterable<Node> get containedNodes => [tree];
@@ -145,8 +161,6 @@ class UnparsedNode extends DeferredString implements AstContainer {
   /// [ast] and, if [protectForEval] is true, wraps the resulting string in
   /// parenthesis. The result is also escaped.
   UnparsedNode(this.tree, this._enableMinification, this._protectForEval);
-
-  LiteralString get _literal => _cachedLiteral ??= _create(tree);
 
   LiteralString _create(Node node) {
     String text = prettyPrint(node, enableMinification: _enableMinification);

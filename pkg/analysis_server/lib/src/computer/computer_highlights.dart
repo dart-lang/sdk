@@ -625,6 +625,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    computer._addRegion_token(
+        node.name, HighlightRegionType.LOCAL_VARIABLE_REFERENCE);
+    super.visitAssignedVariablePattern(node);
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
@@ -652,18 +659,50 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCaseClause(CaseClause node) {
+    computer._addRegion_token(node.caseKeyword, HighlightRegionType.KEYWORD,
+        semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
+    super.visitCaseClause(node);
+  }
+
+  @override
+  void visitCastPattern(CastPattern node) {
+    computer._addRegion_token(node.asToken, HighlightRegionType.BUILT_IN);
+    super.visitCastPattern(node);
+  }
+
+  @override
   void visitCatchClause(CatchClause node) {
     computer._addRegion_token(node.catchKeyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
+
+    var exceptionParameter = node.exceptionParameter;
+    if (exceptionParameter != null) {
+      computer._addRegion_token(exceptionParameter.name,
+          HighlightRegionType.LOCAL_VARIABLE_DECLARATION);
+    }
+    var stackTraceParameter = node.stackTraceParameter;
+    if (stackTraceParameter != null) {
+      computer._addRegion_token(stackTraceParameter.name,
+          HighlightRegionType.LOCAL_VARIABLE_DECLARATION);
+    }
+
     super.visitCatchClause(node);
   }
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    computer._addRegion_token(node.inlineKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.sealedKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.baseKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.interfaceKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.finalKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(node.name, HighlightRegionType.CLASS);
     super.visitClassDeclaration(node);
@@ -673,7 +712,19 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitClassTypeAlias(ClassTypeAlias node) {
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.sealedKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.baseKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.interfaceKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.finalKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
     super.visitClassTypeAlias(node);
+  }
+
+  @override
+  void visitConstantPattern(ConstantPattern node) {
+    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
+    super.visitConstantPattern(node);
   }
 
   @override
@@ -732,6 +783,14 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     );
 
     super.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(
+        node.name, HighlightRegionType.LOCAL_VARIABLE_DECLARATION);
+    super.visitDeclaredVariablePattern(node);
   }
 
   @override
@@ -850,6 +909,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(node.inKeyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     super.visitForEachPartsWithIdentifier(node);
+  }
+
+  @override
+  void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    super.visitForEachPartsWithPattern(node);
   }
 
   @override
@@ -1079,7 +1144,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    computer._addRegion_token(node.baseKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.name, HighlightRegionType.MIXIN);
     super.visitMixinDeclaration(node);
   }
 
@@ -1087,8 +1154,16 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var type = node.type;
     if (type != null) {
-      if (type.isDynamic && node.name.name == 'dynamic') {
-        computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);
+      var isDynamic = type.isDynamic && node.name.name == 'dynamic';
+      var isNever = type is NeverType;
+      if (isDynamic || isNever) {
+        computer._addRegion_node(
+          node.name,
+          isDynamic
+              ? HighlightRegionType.TYPE_NAME_DYNAMIC
+              : HighlightRegionType.CLASS,
+          semanticTokenType: SemanticTokenTypes.type,
+        );
         return;
       }
     }
@@ -1132,6 +1207,22 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_tokenStart_tokenEnd(
         node.partKeyword, node.ofKeyword, HighlightRegionType.BUILT_IN);
     super.visitPartOfDirective(node);
+  }
+
+  @override
+  void visitPatternFieldName(PatternFieldName node) {
+    final name = node.name;
+    if (name != null) {
+      computer._addRegion_token(
+          node.name, HighlightRegionType.INSTANCE_GETTER_REFERENCE);
+    }
+    super.visitPatternFieldName(node);
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    super.visitPatternVariableDeclaration(node);
   }
 
   @override
@@ -1268,6 +1359,19 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSwitchExpression(SwitchExpression node) {
+    computer._addRegion_token(node.switchKeyword, HighlightRegionType.KEYWORD);
+    super.visitSwitchExpression(node);
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD,
+        semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
+    super.visitSwitchPatternCase(node);
+  }
+
+  @override
   void visitSwitchStatement(SwitchStatement node) {
     computer._addRegion_token(node.switchKeyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
@@ -1345,10 +1449,23 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitWhenClause(WhenClause node) {
+    computer._addRegion_token(node.whenKeyword, HighlightRegionType.KEYWORD,
+        semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
+    super.visitWhenClause(node);
+  }
+
+  @override
   void visitWhileStatement(WhileStatement node) {
     computer._addRegion_token(node.whileKeyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     super.visitWhileStatement(node);
+  }
+
+  @override
+  void visitWildcardPattern(WildcardPattern node) {
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    super.visitWildcardPattern(node);
   }
 
   @override

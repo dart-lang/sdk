@@ -575,7 +575,11 @@ int${migrated ? '?' : ''} f() => null;
   test_lifecycle_already_migrated_file() async {
     Map<String, String?> createProject({bool migrated = false}) {
       var projectContents = simpleProject(sourceText: '''
-${migrated ? '' : '// @dart = 2.6'}
+${migrated ? '''
+// ignore: illegal_language_version_override
+''' : '''
+// ignore: illegal_language_version_override
+// @dart = 2.6'''}
 import 'already_migrated.dart';
 int${migrated ? '?' : ''} x = y;
 ''', migrated: true);
@@ -952,18 +956,18 @@ import 'test.dart';
       projectContents['lib/test.dart'] = '''
 import 'skip.dart';
 import 'analyze_but_do_not_migrate.dart';
-void f(int x) {}
-void g(int${migrated ? '?' : ''} x) {}
-void h(int${migrated ? '?' : ''} x) {}
-void call_h() => h(null);
+int f() => 1;
+int${migrated ? '?' : ''} g() => 1;
+int${migrated ? '?' : ''} h() => 1;
+bool call_h() => h() == null;
 ''';
       projectContents['lib/skip.dart'] = '''
 import 'test.dart';
-void call_f() => f(null);
+bool call_f() => f() == null;
 ''';
       projectContents['lib/analyze_but_do_not_migrate.dart'] = '''
 import 'test.dart';
-void call_g() => g(null);
+bool call_g() => g() == null;
 ''';
       return projectContents;
     }
@@ -1333,7 +1337,7 @@ int f() => null;
   }
 
   test_lifecycle_preview_rerun_with_ignore_errors() async {
-    var origSourceText = 'void f(int i) {}';
+    var origSourceText = 'void _f(int i) {}';
     var projectContents = simpleProject(sourceText: origSourceText);
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
@@ -1343,10 +1347,12 @@ int f() => null;
       var uri = Uri.parse(url);
       var testPath =
           resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
-      resourceProvider.getFile(testPath).writeAsStringSync('void f(int? i) {}');
+      resourceProvider
+          .getFile(testPath)
+          .writeAsStringSync('void _f(int? i) {}');
       // We haven't rerun, so getting the file details from the server should
       // still yield the original source text, with informational space.
-      expect(await getSourceFromServer(uri, testPath), 'void f(int  i) {}');
+      expect(await getSourceFromServer(uri, testPath), 'void _f(int  i) {}');
       var response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
@@ -1354,12 +1360,12 @@ int f() => null;
       expect(body['success'], isTrue);
       expect(body['errors'], isNull);
       // Now that we've rerun, the server should yield the new source text
-      expect(await getSourceFromServer(uri, testPath), 'void f(int?  i) {}');
+      expect(await getSourceFromServer(uri, testPath), 'void _f(int?  i) {}');
     });
   }
 
   test_lifecycle_preview_rerun_with_new_analysis_errors() async {
-    var origSourceText = 'void f(int i) {}';
+    var origSourceText = 'void _f(int i) {}';
     var projectContents = simpleProject(sourceText: origSourceText);
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
@@ -1368,11 +1374,11 @@ int f() => null;
       var uri = Uri.parse(url);
       var testPath =
           resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
-      var newSourceText = 'void f(int? i) {}';
+      var newSourceText = 'void _f(int? i) {}';
       resourceProvider.getFile(testPath).writeAsStringSync(newSourceText);
       // We haven't rerun, so getting the file details from the server should
       // still yield the original source text, with informational space.
-      expect(await getSourceFromServer(uri, testPath), 'void f(int  i) {}');
+      expect(await getSourceFromServer(uri, testPath), 'void _f(int  i) {}');
       var response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
@@ -1386,7 +1392,7 @@ int f() => null;
           equals(
               "This requires the 'non-nullable' language feature to be enabled"));
       expect(error['location'],
-          equals(resourceProvider.pathContext.join('lib', 'test.dart:1:11')));
+          equals(resourceProvider.pathContext.join('lib', 'test.dart:1:12')));
       expect(error['code'], equals('experiment_not_enabled'));
     });
   }
@@ -1876,16 +1882,17 @@ name: test
     expect(
         logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
     // The Dart source code should still be migrated.
-    assertProjectContents(
-        projectDir, simpleProject(migrated: true, sourceText: '''
+    assertProjectContents(projectDir, simpleProject(
+        migrated: true,
+        sourceText: '''
 import 'package:collection/collection.dart' show IterableExtension;
 
 int? firstEven(Iterable<int> x)
     => x.firstWhereOrNull((x) => x.isEven);
 ''',
-            // Note: section order is weird, but it's valid and this is a rare use
-            // case.
-            pubspecText: '''
+        // Note: section order is weird, but it's valid and this is a rare use
+        // case.
+        pubspecText: '''
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
@@ -1906,7 +1913,9 @@ int firstEven(Iterable<int> x)
     expect(
         logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
     // The Dart source code should still be migrated.
-    assertProjectContents(projectDir, simpleProject(migrated: true, sourceText: '''
+    assertProjectContents(projectDir, simpleProject(
+        migrated: true,
+        sourceText: '''
 import 'package:collection/collection.dart' show IterableExtension;
 
 int? firstEven(Iterable<int> x)

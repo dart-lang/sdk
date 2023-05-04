@@ -28,7 +28,7 @@ class EventBatch {
 
   /// Ensure there is an event batch where [userFunction] can accumulate events.
   /// When the batch is complete, fire all events at once.
-  static Function wrap(userFunction(var a)) {
+  static void Function(T) wrap<T>(userFunction(var a)) {
     return (e) {
       if (current == null) {
         // Not in a batch so create one.
@@ -50,7 +50,7 @@ class EventBatch {
         return result;
       } else {
         // Already in a batch, so just use it.
-        // TODO(rnystrom): Re-entrant calls to wrap() are kind of hairy. They
+        // TODO(rnystrom): Reentrant calls to wrap() are kind of hairy. They
         // can occur in at least one known place:
         // 1. You respond to an event handler by calling a function with wrap()
         //    (i.e. the normal way we wrap event handlers).

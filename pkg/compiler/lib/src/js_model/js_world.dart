@@ -40,6 +40,7 @@ import '../world.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'locals.dart';
+import 'records.dart' show RecordData;
 
 class JClosedWorld implements World {
   static const String tag = 'closed-world';
@@ -51,7 +52,8 @@ class JClosedWorld implements World {
 
   // [_allFunctions] is created lazily because it is not used when we switch
   // from a frontend to a backend model before inference.
-  late final FunctionSet _allFunctions = FunctionSet(liveInstanceMembers);
+  late final FunctionSet _allFunctions =
+      FunctionSet(liveInstanceMembers.followedBy(recordData.allGetters));
 
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
 
@@ -109,6 +111,7 @@ class JClosedWorld implements World {
   final JFieldAnalysis fieldAnalysis;
   final AnnotationsData annotationsData;
   final ClosureData closureDataLookup;
+  final RecordData recordData;
   final OutputUnitData outputUnitData;
 
   /// The [Sorter] used for sorting elements in the generated code.
@@ -137,6 +140,7 @@ class JClosedWorld implements World {
       AbstractValueStrategy abstractValueStrategy,
       this.annotationsData,
       this.closureDataLookup,
+      this.recordData,
       this.outputUnitData,
       this.memberAccess) {
     _abstractValueDomain = abstractValueStrategy.createDomain(this);
@@ -188,6 +192,7 @@ class JClosedWorld implements World {
 
     ClosureData closureData =
         ClosureData.readFromDataSource(elementMap, source);
+    RecordData recordData = RecordData.readFromDataSource(elementMap, source);
 
     OutputUnitData outputUnitData = OutputUnitData.readFromDataSource(source);
     elementMap.lateOutputUnitDataBuilder =
@@ -219,6 +224,7 @@ class JClosedWorld implements World {
         abstractValueStrategy,
         annotationsData,
         closureData,
+        recordData,
         outputUnitData,
         memberAccess);
   }
@@ -247,6 +253,7 @@ class JClosedWorld implements World {
         (Set<ClassEntity> set) => sink.writeClasses(set));
     annotationsData.writeToDataSink(sink);
     closureDataLookup.writeToDataSink(sink);
+    recordData.writeToDataSink(sink);
     outputUnitData.writeToDataSink(sink);
     sink.writeMemberMap(
         memberAccess,
@@ -520,20 +527,6 @@ class JClosedWorld implements World {
 
   Selector getSelector(ir.Expression node) => elementMap.getSelector(node);
 
-  /// Returns the mask for the potential receivers of a dynamic call to
-  /// [selector] on [receiver].
-  ///
-  /// This will narrow the constraints of [receiver] to an [AbstractValue] of
-  /// the set of classes that actually implement the selected member or
-  /// implement the handling 'noSuchMethod' where the selected member is
-  /// unimplemented.
-  AbstractValue computeReceiverType(Selector selector, AbstractValue receiver) {
-    if (includesClosureCall(selector, receiver)) {
-      return abstractValueDomain.dynamicType;
-    }
-    return _allFunctions.receiverType(selector, receiver, abstractValueDomain);
-  }
-
   /// Returns all the instance members that may be invoked with the [selector]
   /// on the given [receiver] using the [abstractValueDomain]. The returned elements may include noSuchMethod
   /// handlers that are potential targets indirectly through the noSuchMethod
@@ -550,12 +543,6 @@ class JClosedWorld implements World {
   Iterable<MemberEntity> locateMembers(
       Selector selector, AbstractValue? receiver) {
     return locateMembersInDomain(selector, receiver, abstractValueDomain);
-  }
-
-  bool hasAnyUserDefinedGetter(Selector selector, AbstractValue receiver) {
-    return _allFunctions
-        .filter(selector, receiver, abstractValueDomain)
-        .any((each) => each.isGetter);
   }
 
   /// Returns the single [MemberEntity] that matches a call to [selector] on the
@@ -643,6 +630,17 @@ class JClosedWorld implements World {
   void registerExtractTypeArguments(ClassEntity interface) {
     extractTypeArgumentsInterfacesNewRti.add(interface);
   }
+
+  late final Set<ClassEntity> _defaultSuperclasses = {
+    commonElements.objectClass,
+    commonElements.jsLegacyJavaScriptObjectClass,
+    commonElements.jsInterceptorClass
+  };
+
+  /// Returns true if [cls] acts as a default superclass to some subset of
+  /// classes.
+  bool isDefaultSuperclass(ClassEntity cls) =>
+      _defaultSuperclasses.contains(cls);
 }
 
 class KernelSorter implements Sorter {

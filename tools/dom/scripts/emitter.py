@@ -26,7 +26,7 @@ class Emitter(object):
         self._bindings = bindings or Emitter.Frame({}, None)
 
     def EmitRaw(self, item):
-        """Emits literal string with no substitition."""
+        """Emits literal string with no substitution."""
         self._items.append(item)
 
     def Emit(self, template_source, **parameters):
@@ -49,7 +49,7 @@ class Emitter(object):
     corresponding emitter.
 
     Subtemplates can be created by using $#NAME(...), where text can be placed
-    inside of the parentheses and will conditionally expand depdending on if
+    inside of the parentheses and will conditionally expand depending on if
     NAME is set to True or False. The text inside the parentheses may use
     further $#NAME and $NAME substitutions, but is not permitted to create
     holes.
@@ -250,7 +250,7 @@ class Emitter(object):
         """A lookup operation that is deferred until final string generation."""
 
         # TODO(sra): A deferred lookup will be useful when we add expansions that
-        # have behaviour condtional on the contents, e.g. adding separators between
+        # have behaviour conditional on the contents, e.g. adding separators between
         # a list of items.
         def __init__(self, lookup, environment):
             self._lookup = lookup

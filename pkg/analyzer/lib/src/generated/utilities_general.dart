@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
 /// Test if the given [value] is `false` or the string "false"
@@ -19,7 +18,7 @@ bool isTrue(Object value) =>
 /// value could not be converted.
 bool? toBool(Object value) {
   if (value is YamlScalar) {
-    value = value.value;
+    value = value.valueOrThrow;
   }
   if (value is bool) {
     return value;
@@ -41,19 +40,3 @@ String? toLowerCase(Object? value) => value?.toString().toLowerCase();
 /// Safely convert this [value] to upper case, returning `null` if [value] is
 /// null.
 String? toUpperCase(Object? value) => value?.toString().toUpperCase();
-
-/// A simple limited queue.
-class LimitedQueue<E> extends ListQueue<E> {
-  final int limit;
-
-  /// Create a queue with [limit] items.
-  LimitedQueue(this.limit);
-
-  @override
-  void add(E value) {
-    super.add(value);
-    while (length > limit) {
-      remove(first);
-    }
-  }
-}

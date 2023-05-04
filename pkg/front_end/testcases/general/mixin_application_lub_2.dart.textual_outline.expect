@@ -1,4 +1,4 @@
-class Diagnosticable {}
+mixin Diagnosticable {}
 
 class SomeClass with Diagnosticable {}
 

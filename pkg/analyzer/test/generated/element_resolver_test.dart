@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -306,6 +306,23 @@ test() {}
     expect(prefixed.identifier.staticElement, findElement.method('=='));
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51578')
+  test_visitCommentReference_superParameter() async {
+    await assertNoErrorsInCode('''
+class G {
+  G(int p1);
+}
+
+class H extends G {
+  /// [p1]
+  H(super.p1);
+}
+''');
+    var node = findNode.commentReference('[p1]');
+    expect(node, isNotNull);
+    // todo(pq): add expectations
+  }
+
   test_visitConstructorName_named() async {
     await assertNoErrorsInCode('''
 class A implements B {
@@ -392,7 +409,7 @@ class A {
     await assertErrorsInCode('''
 import 'dart:math' show pi;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
     var pi = findElement
         .import('dart:math')
@@ -406,7 +423,7 @@ import 'dart:math' show pi;
     await assertErrorsInCode('''
 import 'dart:math' as p show pi hide ln10;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
     var mathNamespace =
         findElement.import('dart:math').importedLibrary!.exportNamespace;
@@ -420,7 +437,7 @@ import 'dart:math' as p show pi hide ln10;
     await assertErrorsInCode('''
 import 'dart:math';
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
     expect(findNode.import('dart:math').element!.importedLibrary!.name,
         'dart.math');
@@ -430,7 +447,7 @@ import 'dart:math';
     await assertErrorsInCode('''
 import 'dart:math' as p;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
     expect(findNode.import('dart:math').element!.importedLibrary!.name,
         'dart.math');
@@ -444,7 +461,7 @@ final int v2 = 0;
     await assertErrorsInCode('''
 import 'lib1.dart' show v1, v2;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
     var importedVariables = findNode
         .import('lib1.dart')

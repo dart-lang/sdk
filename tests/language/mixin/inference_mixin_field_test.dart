@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-class Mixin {
+mixin Mixin {
   var field;
   createIt() {
     if (field == null) field = 42;

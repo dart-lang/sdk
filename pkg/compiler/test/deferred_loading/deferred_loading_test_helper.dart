@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
@@ -32,7 +30,7 @@ Map<String, Uri> importPrefixes = {};
 String importPrefixString(OutputUnit unit) {
   List<String> importNames = [];
   for (ImportEntity import in unit.imports) {
-    importNames.add(import.name);
+    importNames.add(import.name!);
     Expect.isTrue(import.isDeferred);
 
     if (importPrefixes.containsKey(import.name)) {
@@ -47,7 +45,7 @@ String importPrefixString(OutputUnit unit) {
           '    We require using unique prefixes on these tests to make '
           'the expectations more readable.');
     }
-    importPrefixes[import.name] = import.enclosingLibraryUri;
+    importPrefixes[import.name!] = import.enclosingLibraryUri;
   }
   importNames.sort();
   return importNames.join(', ');
@@ -55,7 +53,7 @@ String importPrefixString(OutputUnit unit) {
 
 /// Create a consistent string representation of [OutputUnit]s for both
 /// KImportEntities and ImportElements.
-String outputUnitString(OutputUnit unit) {
+String outputUnitString(OutputUnit? unit) {
   if (unit == null) return 'none';
   String sb = importPrefixString(unit);
   return '${unit.name}{$sb}';
@@ -72,7 +70,7 @@ Map<String, List<PreFragment>> buildPreFragmentMap(
   fragmentsToLoad.forEach((loadId, fragments) {
     List<PreFragment> preFragments = [];
     for (var fragment in fragments) {
-      preFragments.add(fragmentMap[fragment]);
+      preFragments.add(fragmentMap[fragment]!);
     }
     preFragmentMap[loadId] = preFragments.toList();
   });
@@ -105,7 +103,7 @@ class OutputUnitDataComputer extends DataComputer<Features> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,
@@ -117,22 +115,22 @@ class OutputUnitDataComputer extends DataComputer<Features> {
   void computeClassData(Compiler compiler, ClassEntity cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     ClassDefinition definition = elementMap.getClassDefinition(cls);
     OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,
             closedWorld.outputUnitData, closedWorld.closureDataLookup)
-        .computeForClass(definition.node);
+        .computeForClass(definition.node as ir.Class);
   }
 
   @override
   void computeLibraryData(Compiler compiler, LibraryEntity library,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {required bool verbose}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     ir.Library node = frontendStrategy.elementMap.getLibraryNode(library);
     List<PreFragment> preDeferredFragments = compiler
-        .backendStrategy.emitterTask.emitter.preDeferredFragmentsForTesting;
+        .backendStrategy.emitterTask.emitter.preDeferredFragmentsForTesting!;
     Map<String, List<FinalizedFragment>> fragmentsToLoad =
         compiler.backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
     Set<OutputUnit> omittedOutputUnits =
@@ -163,7 +161,7 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
   @override
   Features computeLibraryValue(Id id, ir.Library library) {
     var name = '${library.importUri.pathSegments.last}';
-    Features features = new Features();
+    Features features = Features();
     if (!name.startsWith('main')) return features;
 
     // First build a list of pre fragments and their dependencies.
@@ -184,7 +182,7 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
     }
 
     for (int i = 1; i < index; i++) {
-      var preFragment = reversePreFragmentIndices[i];
+      var preFragment = reversePreFragmentIndices[i]!;
       List<String> needs = [];
       List<OutputUnit> supplied = [];
       List<String> usedBy = [];
@@ -211,7 +209,7 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
 
     // Now dump finalized fragments and load ids.
     for (int i = 1; i < index; i++) {
-      var finalizedFragment = reverseFinalizedFragmentIndices[i];
+      var finalizedFragment = reverseFinalizedFragmentIndices[i]!;
       List<String> supplied = [];
 
       for (var codeFragment in finalizedFragment.codeFragments) {
@@ -287,8 +285,8 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
   @override
   Features computeMemberValue(Id id, ir.Member node) {
     if (node is ir.Field && node.isConst) {
-      ir.Expression initializer = node.initializer;
-      ConstantValue constant = _elementMap.getConstantValue(node, initializer);
+      ir.Expression? initializer = node.initializer!;
+      ConstantValue constant = _elementMap.getConstantValue(node, initializer)!;
       if (constant is! PrimitiveConstantValue) {
         SourceSpan span = computeSourceSpanFromTreeNode(initializer);
         if (initializer is ir.ConstructorInvocation) {
@@ -320,7 +318,7 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
 
   @override
   visitConstantExpression(ir.ConstantExpression node) {
-    ConstantValue constant = _elementMap.getConstantValue(null, node);
+    ConstantValue constant = _elementMap.getConstantValue(null, node)!;
     if (constant is! PrimitiveConstantValue) {
       _constants.add('${constant.toStructuredText(_elementMap.types)}='
           '${outputUnitString(_data.outputUnitForConstant(constant))}');
@@ -329,10 +327,11 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
   }
 
   @override
-  Features computeNodeValue(Id id, ir.TreeNode node) {
+  Features? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(Tags.closure, info.callMethod, const {});
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      return getMemberValue(Tags.closure, info.callMethod!, const {});
     }
     return null;
   }
@@ -344,7 +343,7 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
 void _registerValue<T>(Id id, T value, Object object, SourceSpan sourceSpan,
     Map<Id, ActualData<T>> actualMap, DiagnosticReporter reporter) {
   if (actualMap.containsKey(id)) {
-    ActualData<T> existingData = actualMap[id];
+    ActualData<T> existingData = actualMap[id]!;
     reportHere(reporter, sourceSpan,
         "Duplicate id ${id}, value=$value, object=$object");
     reportHere(

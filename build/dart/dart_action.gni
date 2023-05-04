@@ -133,16 +133,16 @@ template("_prebuilt_tool_action") {
 
     args = [
              "compiled_action",
-             rebase_path(invoker.binary),
+             rebase_path(invoker.binary, root_build_dir),
            ] + vm_args
     if (defined(invoker.packages)) {
-      args += [ "--packages=" + rebase_path(invoker.packages) ]
+      args += [ "--packages=" + rebase_path(invoker.packages, root_build_dir) ]
     }
     if (defined(invoker.dfe)) {
-      args += [ "--dfe=" + rebase_path(invoker.dfe) ]
+      args += [ "--dfe=" + rebase_path(invoker.dfe, root_build_dir) ]
     }
     if (defined(invoker.script)) {
-      args += [ rebase_path(invoker.script) ]
+      args += [ rebase_path(invoker.script, root_build_dir) ]
     }
     args += invoker.args
   }
@@ -261,10 +261,10 @@ template("_built_tool_action") {
 
     args = vm_args
     if (defined(invoker.packages)) {
-      args += [ "--packages=" + rebase_path(invoker.packages) ]
+      args += [ "--packages=" + rebase_path(invoker.packages, root_build_dir) ]
     }
     if (defined(invoker.script)) {
-      args += [ rebase_path(invoker.script) ]
+      args += [ rebase_path(invoker.script, root_build_dir) ]
     }
     args += invoker.args
   }
@@ -320,7 +320,7 @@ template("dart_action") {
       # Dart has an implicit dependency on the kernel service so unless DFE is
       # passed, we need to add this dep.
       if (defined(invoker.dfe)) {
-        vm_args += [ "--dfe=" + rebase_path(invoker.dfe) ]
+        vm_args += [ "--dfe=" + rebase_path(invoker.dfe, root_build_dir) ]
       } else {
         if (!defined(invoker.deps)) {
           deps = []

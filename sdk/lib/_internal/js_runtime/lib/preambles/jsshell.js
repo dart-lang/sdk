@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Javascript preamble, that lets the output of dart2js run on JSShell.
+// JavaScript preamble, that lets the output of dart2js run on JSShell.
 
 (function(self, scriptArguments) {
   // Using strict mode to avoid accidentally defining global variables.
@@ -17,6 +17,9 @@
   self.self = self;
 
   self.location = { href: "file://" + workingDirectory + "/" };
+
+  // Some js-interop code accesses 'window' as 'self.window'
+  if (typeof self.window == "undefined") self.window = self;
 
   // Event loop.
 
@@ -272,6 +275,7 @@
   self.setInterval = addInterval;
   self.clearInterval = cancelTimer;
   self.scheduleImmediate = addTask;
+  self.dartUseDateNowForTicks = true;
 
   function computeCurrentScript() {
     try {

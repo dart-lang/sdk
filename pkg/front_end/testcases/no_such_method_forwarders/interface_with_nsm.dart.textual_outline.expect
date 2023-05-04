@@ -1,10 +1,9 @@
-// @dart = 2.9
 class I {
   dynamic noSuchMethod(Invocation i) => null;
   void foo();
 }
 
-class M {
+mixin class M {
   dynamic noSuchMethod(Invocation i) => null;
 }
 

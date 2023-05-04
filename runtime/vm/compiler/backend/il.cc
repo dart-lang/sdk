@@ -16,6 +16,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/loops.h"
+#include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/marshaller.h"
@@ -26,6 +27,7 @@
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/object.h"
@@ -375,7 +377,7 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
       TypeArguments::Handle(zone, Type::Cast(type).arguments());
   ASSERT(ta.Length() == num_type_arguments);
 
-  // The last [num_type_pararameters] entries in the [TypeArguments] vector [ta]
+  // The last [num_type_parameters] entries in the [TypeArguments] vector [ta]
   // are the values we have to check against.  Ensure we can handle all of them
   // via [CidRange]-based checks or that it is a type parameter.
   AbstractType& type_arg = AbstractType::Handle(zone);
@@ -386,6 +388,23 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
     }
   }
 
+  return true;
+}
+
+bool HierarchyInfo::CanUseRecordSubtypeRangeCheckFor(const AbstractType& type) {
+  ASSERT(type.IsFinalized());
+  if (!type.IsRecordType()) {
+    return false;
+  }
+  const RecordType& rec = RecordType::Cast(type);
+  Zone* zone = thread()->zone();
+  auto& field_type = AbstractType::Handle(zone);
+  for (intptr_t i = 0, n = rec.NumFields(); i < n; ++i) {
+    field_type = rec.FieldTypeAt(i);
+    if (!CanUseSubtypeRangeCheckFor(field_type)) {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -503,7 +522,7 @@ void Instruction::CheckField(const Field& field) const {
 //    - a constant (any non-sentinel value)
 //    - unknown sentinel
 Object& Definition::constant_value() {
-  if (constant_value_ == NULL) {
+  if (constant_value_ == nullptr) {
     constant_value_ = &Object::ZoneHandle(ConstantPropagator::Unknown());
   }
   return *constant_value_;
@@ -822,7 +841,6 @@ CheckClassInstr::CheckClassInstr(Value* value,
                                  const InstructionSource& source)
     : TemplateInstruction(source, deopt_id),
       cids_(cids),
-      licm_hoisted_(false),
       is_bit_test_(IsCompactCidRange(cids)),
       token_pos_(source.token_pos) {
   // Expected useful check data.
@@ -836,7 +854,7 @@ CheckClassInstr::CheckClassInstr(Value* value,
 
 bool CheckClassInstr::AttributesEqual(const Instruction& other) const {
   auto const other_check = other.AsCheckClass();
-  ASSERT(other_check != NULL);
+  ASSERT(other_check != nullptr);
   return cids().Equals(other_check->cids());
 }
 
@@ -1026,7 +1044,7 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
 
 bool StrictCompareInstr::AttributesEqual(const Instruction& other) const {
   auto const other_op = other.AsStrictCompare();
-  ASSERT(other_op != NULL);
+  ASSERT(other_op != nullptr);
   return ComparisonInstr::AttributesEqual(other) &&
          (needs_number_check() == other_op->needs_number_check());
 }
@@ -1038,7 +1056,7 @@ const RuntimeEntry& CaseInsensitiveCompareInstr::TargetFunction() const {
 
 bool MathMinMaxInstr::AttributesEqual(const Instruction& other) const {
   auto const other_op = other.AsMathMinMax();
-  ASSERT(other_op != NULL);
+  ASSERT(other_op != nullptr);
   return (op_kind() == other_op->op_kind()) &&
          (result_cid() == other_op->result_cid());
 }
@@ -1053,7 +1071,7 @@ bool BinaryIntegerOpInstr::AttributesEqual(const Instruction& other) const {
 
 bool LoadFieldInstr::AttributesEqual(const Instruction& other) const {
   auto const other_load = other.AsLoadField();
-  ASSERT(other_load != NULL);
+  ASSERT(other_load != nullptr);
   return &this->slot_ == &other_load->slot_;
 }
 
@@ -1096,7 +1114,7 @@ ConstantInstr::ConstantInstr(const Object& value,
 
 bool ConstantInstr::AttributesEqual(const Instruction& other) const {
   auto const other_constant = other.AsConstant();
-  ASSERT(other_constant != NULL);
+  ASSERT(other_constant != nullptr);
   return (value().ptr() == other_constant->value().ptr() &&
           representation() == other_constant->representation());
 }
@@ -1120,13 +1138,13 @@ bool Value::BindsToConstant() const {
 // Returns true if the value represents constant null.
 bool Value::BindsToConstantNull() const {
   ConstantInstr* constant = definition()->OriginalDefinition()->AsConstant();
-  return (constant != NULL) && constant->value().IsNull();
+  return (constant != nullptr) && constant->value().IsNull();
 }
 
 const Object& Value::BoundConstant() const {
   ASSERT(BindsToConstant());
   ConstantInstr* constant = definition()->OriginalDefinition()->AsConstant();
-  ASSERT(constant != NULL);
+  ASSERT(constant != nullptr);
   return constant->value();
 }
 
@@ -1164,10 +1182,10 @@ ConstantInstr* GraphEntryInstr::constant_null() {
   ASSERT(initial_definitions()->length() > 0);
   for (intptr_t i = 0; i < initial_definitions()->length(); ++i) {
     ConstantInstr* defn = (*initial_definitions())[i]->AsConstant();
-    if (defn != NULL && defn->value().IsNull()) return defn;
+    if (defn != nullptr && defn->value().IsNull()) return defn;
   }
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 CatchBlockEntryInstr* GraphEntryInstr::GetCatchEntry(intptr_t index) {
@@ -1176,7 +1194,7 @@ CatchBlockEntryInstr* GraphEntryInstr::GetCatchEntry(intptr_t index) {
   for (intptr_t i = 0; i < catch_entries_.length(); ++i) {
     if (catch_entries_[i]->catch_try_index() == index) return catch_entries_[i];
   }
-  return NULL;
+  return nullptr;
 }
 
 bool GraphEntryInstr::IsCompiledForOsr() const {
@@ -1208,7 +1226,7 @@ void Instruction::RemoveEnvironment() {
   for (Environment::DeepIterator it(env()); !it.Done(); it.Advance()) {
     it.CurrentValue()->RemoveFromUseList();
   }
-  env_ = NULL;
+  env_ = nullptr;
 }
 
 void Instruction::ReplaceInEnvironment(Definition* current,
@@ -1230,26 +1248,26 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   ASSERT(!IsReturn());
   ASSERT(!IsReThrow());
   ASSERT(!IsGoto());
-  ASSERT(previous() != NULL);
+  ASSERT(previous() != nullptr);
   // We cannot assert that the instruction, if it is a definition, has no
   // uses.  This function is used to remove instructions from the graph and
   // reinsert them elsewhere (e.g., hoisting).
   Instruction* prev_instr = previous();
   Instruction* next_instr = next();
-  ASSERT(next_instr != NULL);
+  ASSERT(next_instr != nullptr);
   ASSERT(!next_instr->IsBlockEntry());
   prev_instr->LinkTo(next_instr);
   UnuseAllInputs();
   // Reset the successor and previous instruction to indicate that the
   // instruction is removed from the graph.
-  set_previous(NULL);
-  set_next(NULL);
+  set_previous(nullptr);
+  set_next(nullptr);
   return return_previous ? prev_instr : next_instr;
 }
 
 void Instruction::InsertAfter(Instruction* prev) {
-  ASSERT(previous_ == NULL);
-  ASSERT(next_ == NULL);
+  ASSERT(previous_ == nullptr);
+  ASSERT(next_ == nullptr);
   previous_ = prev;
   next_ = prev->next_;
   next_->previous_ = this;
@@ -1299,7 +1317,7 @@ void BackwardInstructionIterator::RemoveCurrentFromGraph() {
 
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
-  ASSERT(current_iterator_ == NULL);
+  ASSERT(current_iterator_ == nullptr);
   for (intptr_t i = 0; i < block_order_->length(); ++i) {
     BlockEntryInstr* entry = (*block_order_)[i];
     entry->Accept(this);
@@ -1308,7 +1326,7 @@ void FlowGraphVisitor::VisitBlocks() {
     for (; !it.Done(); it.Advance()) {
       it.Current()->Accept(this);
     }
-    current_iterator_ = NULL;
+    current_iterator_ = nullptr;
   }
 }
 
@@ -1368,8 +1386,8 @@ void Value::AddToList(Value* value, Value** list) {
   ASSERT(value != next);
   *list = value;
   value->set_next_use(next);
-  value->set_previous_use(NULL);
-  if (next != NULL) next->set_previous_use(value);
+  value->set_previous_use(nullptr);
+  if (next != nullptr) next->set_previous_use(value);
 }
 
 void Value::RemoveFromUseList() {
@@ -1377,17 +1395,17 @@ void Value::RemoveFromUseList() {
   Value* next = next_use();
   if (this == def->input_use_list()) {
     def->set_input_use_list(next);
-    if (next != NULL) next->set_previous_use(NULL);
+    if (next != nullptr) next->set_previous_use(nullptr);
   } else if (this == def->env_use_list()) {
     def->set_env_use_list(next);
-    if (next != NULL) next->set_previous_use(NULL);
+    if (next != nullptr) next->set_previous_use(nullptr);
   } else if (Value* prev = previous_use()) {
     prev->set_next_use(next);
-    if (next != NULL) next->set_previous_use(prev);
+    if (next != nullptr) next->set_previous_use(prev);
   }
 
-  set_previous_use(NULL);
-  set_next_use(NULL);
+  set_previous_use(nullptr);
+  set_next_use(nullptr);
 }
 
 // True if the definition has a single input use and is used only in
@@ -1405,18 +1423,18 @@ bool Definition::HasOnlyUse(Value* use) const {
 }
 
 bool Definition::HasOnlyInputUse(Value* use) const {
-  return (input_use_list() == use) && (use->next_use() == NULL);
+  return (input_use_list() == use) && (use->next_use() == nullptr);
 }
 
 void Definition::ReplaceUsesWith(Definition* other) {
-  ASSERT(other != NULL);
+  ASSERT(other != nullptr);
   ASSERT(this != other);
 
-  Value* current = NULL;
+  Value* current = nullptr;
   Value* next = input_use_list();
-  if (next != NULL) {
+  if (next != nullptr) {
     // Change all the definitions.
-    while (next != NULL) {
+    while (next != nullptr) {
       current = next;
       current->set_definition(other);
       current->RefineReachingType(other->Type());
@@ -1426,16 +1444,16 @@ void Definition::ReplaceUsesWith(Definition* other) {
     // Concatenate the lists.
     next = other->input_use_list();
     current->set_next_use(next);
-    if (next != NULL) next->set_previous_use(current);
+    if (next != nullptr) next->set_previous_use(current);
     other->set_input_use_list(input_use_list());
-    set_input_use_list(NULL);
+    set_input_use_list(nullptr);
   }
 
   // Repeat for environment uses.
-  current = NULL;
+  current = nullptr;
   next = env_use_list();
-  if (next != NULL) {
-    while (next != NULL) {
+  if (next != nullptr) {
+    while (next != nullptr) {
       current = next;
       current->set_definition(other);
       current->RefineReachingType(other->Type());
@@ -1443,9 +1461,9 @@ void Definition::ReplaceUsesWith(Definition* other) {
     }
     next = other->env_use_list();
     current->set_next_use(next);
-    if (next != NULL) next->set_previous_use(current);
+    if (next != nullptr) next->set_previous_use(current);
     other->set_env_use_list(env_use_list());
-    set_env_use_list(NULL);
+    set_env_use_list(nullptr);
   }
 }
 
@@ -1458,40 +1476,40 @@ void Instruction::UnuseAllInputs() {
   }
 }
 
-void Instruction::RepairPushArgsInEnvironment() const {
+void Instruction::RepairArgumentUsesInEnvironment() const {
   // Some calls (e.g. closure calls) have more inputs than actual arguments.
   // Those extra inputs will be consumed from the stack before the call.
   const intptr_t after_args_input_count = env()->LazyDeoptPruneCount();
-  PushArgumentsArray* push_arguments = GetPushArguments();
-  ASSERT(push_arguments != nullptr);
+  MoveArgumentsArray* move_arguments = GetMoveArguments();
+  ASSERT(move_arguments != nullptr);
   const intptr_t arg_count = ArgumentCount();
   ASSERT((arg_count + after_args_input_count) <= env()->Length());
   const intptr_t env_base =
       env()->Length() - arg_count - after_args_input_count;
   for (intptr_t i = 0; i < arg_count; ++i) {
-    env()->ValueAt(env_base + i)->BindToEnvironment(push_arguments->At(i));
+    env()->ValueAt(env_base + i)->BindToEnvironment(move_arguments->At(i));
   }
 }
 
 void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
                                           Definition* call,
                                           Definition* result) {
-  ASSERT(call->env() != NULL);
+  ASSERT(call->env() != nullptr);
   deopt_id_ = DeoptId::ToDeoptAfter(call->deopt_id_);
   call->env()->DeepCopyAfterTo(
       flow_graph->zone(), this, call->ArgumentCount(),
       flow_graph->constant_dead(),
-      result != NULL ? result : flow_graph->constant_dead());
+      result != nullptr ? result : flow_graph->constant_dead());
 }
 
 void Instruction::InheritDeoptTarget(Zone* zone, Instruction* other) {
-  ASSERT(other->env() != NULL);
+  ASSERT(other->env() != nullptr);
   CopyDeoptIdFrom(*other);
   other->env()->DeepCopyTo(zone, this);
 }
 
 void BranchInstr::InheritDeoptTarget(Zone* zone, Instruction* other) {
-  ASSERT(env() == NULL);
+  ASSERT(env() == nullptr);
   Instruction::InheritDeoptTarget(zone, other);
   comparison()->SetDeoptId(*this);
 }
@@ -1513,7 +1531,8 @@ bool Instruction::IsDominatedBy(Instruction* dom) {
       return false;
     }
 
-    for (Instruction* curr = dom->next(); curr != NULL; curr = curr->next()) {
+    for (Instruction* curr = dom->next(); curr != nullptr;
+         curr = curr->next()) {
       if (curr == this) return true;
     }
 
@@ -1555,7 +1574,7 @@ void Definition::ReplaceWithResult(Instruction* replacement,
     input->definition()->AddInputUse(input);
   }
   // Take replacement's environment from this definition.
-  ASSERT(replacement->env() == NULL);
+  ASSERT(replacement->env() == nullptr);
   replacement->SetEnvironment(env());
   ClearEnv();
   // Replace all uses of this definition with replacement_for_uses.
@@ -1563,7 +1582,7 @@ void Definition::ReplaceWithResult(Instruction* replacement,
 
   // Finally replace this one with the replacement instruction in the graph.
   previous()->LinkTo(replacement);
-  if ((iterator != NULL) && (this == iterator->Current())) {
+  if ((iterator != nullptr) && (this == iterator->Current())) {
     // Remove through the iterator.
     replacement->LinkTo(this);
     iterator->RemoveCurrentFromGraph();
@@ -1572,8 +1591,8 @@ void Definition::ReplaceWithResult(Instruction* replacement,
     // Remove this definition's input uses.
     UnuseAllInputs();
   }
-  set_previous(NULL);
-  set_next(NULL);
+  set_previous(nullptr);
+  set_next(nullptr);
 }
 
 void Definition::ReplaceWith(Definition* other,
@@ -1593,8 +1612,8 @@ void BranchInstr::SetComparison(ComparisonInstr* new_comparison) {
     input->set_instruction(this);
   }
   // There should be no need to copy or unuse an environment.
-  ASSERT(comparison()->env() == NULL);
-  ASSERT(new_comparison->env() == NULL);
+  ASSERT(comparison()->env() == nullptr);
+  ASSERT(new_comparison->env() == nullptr);
   // Remove the current comparison's input uses.
   comparison()->UnuseAllInputs();
   ASSERT(!new_comparison->HasUses());
@@ -1618,14 +1637,14 @@ bool BlockEntryInstr::DiscoverBlock(BlockEntryInstr* predecessor,
                                     GrowableArray<intptr_t>* parent) {
   // If this block has a predecessor (i.e., is not the graph entry) we can
   // assume the preorder array is non-empty.
-  ASSERT((predecessor == NULL) || !preorder->is_empty());
+  ASSERT((predecessor == nullptr) || !preorder->is_empty());
   // Blocks with a single predecessor cannot have been reached before.
   ASSERT(IsJoinEntry() || !IsMarked(this, preorder));
 
   // 1. If the block has already been reached, add current_block as a
   // basic-block predecessor and we are done.
   if (IsMarked(this, preorder)) {
-    ASSERT(predecessor != NULL);
+    ASSERT(predecessor != nullptr);
     AddPredecessor(predecessor);
     return false;
   }
@@ -1633,12 +1652,12 @@ bool BlockEntryInstr::DiscoverBlock(BlockEntryInstr* predecessor,
   // 2. Otherwise, clear the predecessors which might have been computed on
   // some earlier call to DiscoverBlocks and record this predecessor.
   ClearPredecessors();
-  if (predecessor != NULL) AddPredecessor(predecessor);
+  if (predecessor != nullptr) AddPredecessor(predecessor);
 
   // 3. The predecessor is the spanning-tree parent.  The graph entry has no
   // parent, indicated by -1.
   intptr_t parent_number =
-      (predecessor == NULL) ? -1 : predecessor->preorder_number();
+      (predecessor == nullptr) ? -1 : predecessor->preorder_number();
   parent->Add(parent_number);
 
   // 4. Assign the preorder number and add the block entry to the list.
@@ -1666,7 +1685,7 @@ bool BlockEntryInstr::DiscoverBlock(BlockEntryInstr* predecessor,
 void GraphEntryInstr::RelinkToOsrEntry(Zone* zone, intptr_t max_block_id) {
   ASSERT(osr_id_ != Compiler::kNoOSRDeoptId);
   BitVector* block_marks = new (zone) BitVector(zone, max_block_id + 1);
-  bool found = FindOsrEntryAndRelink(this, /*parent=*/NULL, block_marks);
+  bool found = FindOsrEntryAndRelink(this, /*parent=*/nullptr, block_marks);
   ASSERT(found);
 }
 
@@ -1732,9 +1751,9 @@ bool BlockEntryInstr::FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
 bool BlockEntryInstr::Dominates(BlockEntryInstr* other) const {
   // TODO(fschneider): Make this faster by e.g. storing dominators for each
   // block while computing the dominator tree.
-  ASSERT(other != NULL);
+  ASSERT(other != nullptr);
   BlockEntryInstr* current = other;
-  while (current != NULL && current != this) {
+  while (current != nullptr && current != this) {
     current = current->dominator();
   }
   return current == this;
@@ -1745,7 +1764,7 @@ BlockEntryInstr* BlockEntryInstr::ImmediateDominator() const {
   if ((last->SuccessorCount() == 1) && (last->SuccessorAt(0) == this)) {
     return dominator();
   }
-  return NULL;
+  return nullptr;
 }
 
 bool BlockEntryInstr::IsLoopHeader() const {
@@ -1769,13 +1788,13 @@ void BlockEntryInstr::ReplaceAsPredecessorWith(BlockEntryInstr* new_block) {
   for (intptr_t sidx = 0; sidx < last->SuccessorCount(); ++sidx) {
     // If the successor is a target, update its predecessor.
     TargetEntryInstr* target = last->SuccessorAt(sidx)->AsTargetEntry();
-    if (target != NULL) {
+    if (target != nullptr) {
       target->predecessor_ = new_block;
       continue;
     }
     // If the successor is a join, update each predecessor and the phis.
     JoinEntryInstr* join = last->SuccessorAt(sidx)->AsJoinEntry();
-    ASSERT(join != NULL);
+    ASSERT(join != nullptr);
     // Find the old predecessor index.
     intptr_t old_index = join->IndexOfPredecessor(this);
     intptr_t pred_count = join->PredecessorCount();
@@ -1799,11 +1818,11 @@ void BlockEntryInstr::ReplaceAsPredecessorWith(BlockEntryInstr* new_block) {
     }
     join->predecessors_[new_index] = new_block;
     // If the new and old predecessor index match there is nothing to update.
-    if ((join->phis() == NULL) || (old_index == new_index)) return;
+    if ((join->phis() == nullptr) || (old_index == new_index)) return;
     // Otherwise, reorder the predecessor uses in each phi.
     for (PhiIterator it(join); !it.Done(); it.Advance()) {
       PhiInstr* phi = it.Current();
-      ASSERT(phi != NULL);
+      ASSERT(phi != nullptr);
       ASSERT(pred_count == phi->InputCount());
       // Save the predecessor use.
       Value* pred_use = phi->InputAt(old_index);
@@ -1821,7 +1840,7 @@ void BlockEntryInstr::ReplaceAsPredecessorWith(BlockEntryInstr* new_block) {
 
 void BlockEntryInstr::ClearAllInstructions() {
   JoinEntryInstr* join = this->AsJoinEntry();
-  if (join != NULL) {
+  if (join != nullptr) {
     for (PhiIterator it(join); !it.Done(); it.Advance()) {
       it.Current()->UnuseAllInputs();
     }
@@ -1837,26 +1856,26 @@ PhiInstr* JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
   // Currently, phis are stored in a sparse array that holds the phi
   // for variable with index i at position i.
   // TODO(fschneider): Store phis in a more compact way.
-  if (phis_ == NULL) {
+  if (phis_ == nullptr) {
     phis_ = new ZoneGrowableArray<PhiInstr*>(var_count);
     for (intptr_t i = 0; i < var_count; i++) {
-      phis_->Add(NULL);
+      phis_->Add(nullptr);
     }
   }
-  ASSERT((*phis_)[var_index] == NULL);
+  ASSERT((*phis_)[var_index] == nullptr);
   return (*phis_)[var_index] = new PhiInstr(this, PredecessorCount());
 }
 
 void JoinEntryInstr::InsertPhi(PhiInstr* phi) {
   // Lazily initialize the array of phis.
-  if (phis_ == NULL) {
+  if (phis_ == nullptr) {
     phis_ = new ZoneGrowableArray<PhiInstr*>(1);
   }
   phis_->Add(phi);
 }
 
 void JoinEntryInstr::RemovePhi(PhiInstr* phi) {
-  ASSERT(phis_ != NULL);
+  ASSERT(phis_ != nullptr);
   for (intptr_t index = 0; index < phis_->length(); ++index) {
     if (phi == (*phis_)[index]) {
       (*phis_)[index] = phis_->Last();
@@ -1867,12 +1886,12 @@ void JoinEntryInstr::RemovePhi(PhiInstr* phi) {
 }
 
 void JoinEntryInstr::RemoveDeadPhis(Definition* replacement) {
-  if (phis_ == NULL) return;
+  if (phis_ == nullptr) return;
 
   intptr_t to_index = 0;
   for (intptr_t from_index = 0; from_index < phis_->length(); ++from_index) {
     PhiInstr* phi = (*phis_)[from_index];
-    if (phi != NULL) {
+    if (phi != nullptr) {
       if (phi->is_alive()) {
         (*phis_)[to_index++] = phi;
         for (intptr_t i = phi->InputCount() - 1; i >= 0; --i) {
@@ -1885,7 +1904,7 @@ void JoinEntryInstr::RemoveDeadPhis(Definition* replacement) {
     }
   }
   if (to_index == 0) {
-    phis_ = NULL;
+    phis_ = nullptr;
   } else {
     phis_->TruncateTo(to_index);
   }
@@ -1899,7 +1918,7 @@ BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
   // Called only if index is in range.  Only control-transfer instructions
   // can have non-zero successor counts and they override this function.
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 intptr_t GraphEntryInstr::SuccessorCount() const {
@@ -1932,7 +1951,7 @@ BlockEntryInstr* BranchInstr::SuccessorAt(intptr_t index) const {
   if (index == 0) return true_successor_;
   if (index == 1) return false_successor_;
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 intptr_t GotoInstr::SuccessorCount() const {
@@ -2080,7 +2099,7 @@ static Definition* CanonicalizeCommutativeDoubleArithmetic(Token::Kind op,
                                                            Value* right) {
   int64_t left_value;
   if (!Evaluator::ToIntegerConstant(left, &left_value)) {
-    return NULL;
+    return nullptr;
   }
 
   // Can't apply 0.0 * x -> 0.0 equivalence to double operation because
@@ -2094,7 +2113,7 @@ static Definition* CanonicalizeCommutativeDoubleArithmetic(Token::Kind op,
           // did not run yet. We need it to guarantee that right value is
           // correctly coerced to double. The second canonicalization pass
           // will apply this equivalence.
-          return NULL;
+          return nullptr;
         } else {
           return right->definition();
         }
@@ -2104,7 +2123,7 @@ static Definition* CanonicalizeCommutativeDoubleArithmetic(Token::Kind op,
       break;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -2112,8 +2131,8 @@ Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
   // Must only be used in Float32 StoreIndexedInstr, FloatToDoubleInstr,
   // Phis introduce by load forwarding, or MaterializeObject for
   // eliminated Float32 array.
-  ASSERT(env_use_list() == NULL);
-  for (Value* use = input_use_list(); use != NULL; use = use->next_use()) {
+  ASSERT(env_use_list() == nullptr);
+  for (Value* use = input_use_list(); use != nullptr; use = use->next_use()) {
     ASSERT(use->instruction()->IsPhi() ||
            use->instruction()->IsFloatToDouble() ||
            (use->instruction()->IsStoreIndexed() &&
@@ -2124,7 +2143,7 @@ Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
              kTypedDataFloat32ArrayCid)));
   }
 #endif
-  if (!HasUses()) return NULL;
+  if (!HasUses()) return nullptr;
   if (value()->definition()->IsFloatToDouble()) {
     // F2D(D2F(v)) == v.
     return value()->definition()->AsFloatToDouble()->value()->definition();
@@ -2133,21 +2152,21 @@ Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* FloatToDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
-  return HasUses() ? this : NULL;
+  return HasUses() ? this : nullptr;
 }
 
 Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses()) return NULL;
+  if (!HasUses()) return nullptr;
 
-  Definition* result = NULL;
+  Definition* result = nullptr;
 
   result = CanonicalizeCommutativeDoubleArithmetic(op_kind(), left(), right());
-  if (result != NULL) {
+  if (result != nullptr) {
     return result;
   }
 
   result = CanonicalizeCommutativeDoubleArithmetic(op_kind(), right(), left());
-  if (result != NULL) {
+  if (result != nullptr) {
     return result;
   }
 
@@ -2164,7 +2183,7 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* DoubleTestOpInstr::Canonicalize(FlowGraph* flow_graph) {
-  return HasUses() ? this : NULL;
+  return HasUses() ? this : nullptr;
 }
 
 static bool IsCommutative(Token::Kind op) {
@@ -2189,13 +2208,13 @@ UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
                                                Value* value,
                                                intptr_t deopt_id,
                                                Range* range) {
-  UnaryIntegerOpInstr* op = NULL;
+  UnaryIntegerOpInstr* op = nullptr;
   switch (representation) {
     case kTagged:
       op = new UnarySmiOpInstr(op_kind, value, deopt_id);
       break;
     case kUnboxedInt32:
-      return NULL;
+      return nullptr;
     case kUnboxedUint32:
       op = new UnaryUint32OpInstr(op_kind, value, deopt_id);
       break;
@@ -2204,10 +2223,10 @@ UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
       break;
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 
-  if (op == NULL) {
+  if (op == nullptr) {
     return op;
   }
 
@@ -2421,7 +2440,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         UnaryIntegerOpInstr* bit_not = UnaryIntegerOpInstr::Make(
             representation(), Token::kBIT_NOT, left()->CopyWithType(),
             GetDeoptId(), range());
-        if (bit_not != NULL) {
+        if (bit_not != nullptr) {
           flow_graph->InsertBefore(this, bit_not, env(), FlowGraph::kValue);
           return bit_not;
         }
@@ -2441,7 +2460,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         UnaryIntegerOpInstr* negation = UnaryIntegerOpInstr::Make(
             representation(), Token::kNEGATE, left()->CopyWithType(),
             GetDeoptId(), range());
-        if (negation != NULL) {
+        if (negation != nullptr) {
           flow_graph->InsertBefore(this, negation, env(), FlowGraph::kValue);
           return negation;
         }
@@ -2525,13 +2544,13 @@ Definition* Definition::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
-  // Must not remove Redifinitions without uses until LICM, even though
+  // Must not remove Redefinitions without uses until LICM, even though
   // Redefinition might not have any uses itself it can still be dominating
   // uses of the value it redefines and must serve as a barrier for those
   // uses. RenameUsesDominatedByRedefinitions would normalize the graph and
   // route those uses through this redefinition.
   if (!HasUses() && !flow_graph->is_licm_allowed()) {
-    return NULL;
+    return nullptr;
   }
   if (constrained_type() != nullptr &&
       constrained_type()->IsEqualTo(value()->Type())) {
@@ -2546,7 +2565,7 @@ Instruction* CheckStackOverflowInstr::Canonicalize(FlowGraph* flow_graph) {
       return this;
     case kOsrOnly:
       // Don't need OSR entries in the optimized code.
-      return NULL;
+      return nullptr;
   }
 
   // Switch above exhausts all possibilities but some compilers can't figure
@@ -2620,7 +2639,7 @@ bool LoadFieldInstr::IsUnmodifiableTypedDataViewFactory(
 }
 
 Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
-  return HasUses() ? this : NULL;
+  return HasUses() ? this : nullptr;
 }
 
 // A math unary instruction has a side effect (exception
@@ -2681,16 +2700,9 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
       }
       return false;
 
-    case Slot::Kind::kRecord_num_fields:
+    case Slot::Kind::kRecord_shape:
       if (instance.IsRecord()) {
-        *result = Smi::New(Record::Cast(instance).num_fields());
-        return true;
-      }
-      return false;
-
-    case Slot::Kind::kRecord_field_names:
-      if (instance.IsRecord()) {
-        *result = Record::Cast(instance).field_names();
+        *result = Record::Cast(instance).shape().AsSmi();
         return true;
       }
       return false;
@@ -2820,37 +2832,17 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         }
       }
       break;
-    case Slot::Kind::kRecord_num_fields:
+    case Slot::Kind::kRecord_shape:
       ASSERT(!calls_initializer());
       if (auto* alloc_rec = orig_instance->AsAllocateRecord()) {
-        return flow_graph->GetConstant(
-            Smi::Handle(Smi::New(alloc_rec->num_fields())));
+        return flow_graph->GetConstant(Smi::Handle(alloc_rec->shape().AsSmi()));
       } else if (auto* alloc_rec = orig_instance->AsAllocateSmallRecord()) {
-        return flow_graph->GetConstant(
-            Smi::Handle(Smi::New(alloc_rec->num_fields())));
+        return flow_graph->GetConstant(Smi::Handle(alloc_rec->shape().AsSmi()));
       } else {
         const AbstractType* type = instance()->Type()->ToAbstractType();
         if (type->IsRecordType()) {
           return flow_graph->GetConstant(
-              Smi::Handle(Smi::New(RecordType::Cast(*type).NumFields())));
-        }
-      }
-      break;
-    case Slot::Kind::kRecord_field_names:
-      ASSERT(!calls_initializer());
-      if (auto* alloc_rec = orig_instance->AsAllocateRecord()) {
-        return alloc_rec->field_names()->definition();
-      } else if (auto* alloc_rec = orig_instance->AsAllocateSmallRecord()) {
-        if (alloc_rec->has_named_fields()) {
-          return alloc_rec->field_names()->definition();
-        } else {
-          return flow_graph->GetConstant(Object::empty_array());
-        }
-      } else {
-        const AbstractType* type = instance()->Type()->ToAbstractType();
-        if (type->IsRecordType()) {
-          return flow_graph->GetConstant(
-              Array::Handle(RecordType::Cast(*type).field_names()));
+              Smi::Handle(RecordType::Cast(*type).shape().AsSmi()));
         }
       }
       break;
@@ -2907,6 +2899,30 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       if (result.IsSmi() || result.IsOld()) {
         return flow_graph->GetConstant(result);
       }
+    }
+  }
+
+  if (instance()->definition()->IsAllocateObject() && slot().is_immutable()) {
+    StoreFieldInstr* initializing_store = nullptr;
+    for (auto use : instance()->definition()->input_uses()) {
+      if (auto store = use->instruction()->AsStoreField()) {
+        if (store->slot().IsIdentical(slot())) {
+          if (initializing_store == nullptr) {
+            initializing_store = store;
+          } else {
+            initializing_store = nullptr;
+            break;
+          }
+        }
+      }
+    }
+
+    // If we find an initializing store then it *must* by construction
+    // dominate the load.
+    if (initializing_store != nullptr &&
+        initializing_store->is_initialization()) {
+      ASSERT(IsDominatedBy(initializing_store));
+      return initializing_store->value()->definition();
     }
   }
 
@@ -3031,7 +3047,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
-  return HasUses() ? this : NULL;
+  return HasUses() ? this : nullptr;
 }
 
 LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Zone* zone,
@@ -3044,7 +3060,7 @@ LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Zone* zone,
 }
 
 Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
-  return NULL;
+  return nullptr;
 }
 
 Instruction* RecordCoverageInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -3058,10 +3074,16 @@ Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
     return value()->definition();
   }
 
+  // Fold away Box<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
+
   // Fold away Box<rep>(Unbox<rep>(v)) if value is known to be of the
   // right class.
   UnboxInstr* unbox_defn = value()->definition()->AsUnbox();
-  if ((unbox_defn != NULL) &&
+  if ((unbox_defn != nullptr) &&
       (unbox_defn->representation() == from_representation()) &&
       (unbox_defn->value()->Type()->ToCid() == Type()->ToCid())) {
     return unbox_defn->value()->definition();
@@ -3079,6 +3101,12 @@ Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == nullptr) {
     // Environments can accommodate any representation. No need to box.
     return value()->definition();
+  }
+
+  // Fold away Box<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
   }
 
   return this;
@@ -3116,7 +3144,7 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
         UNREACHABLE();
         break;
     }
-    flow_graph->InsertBefore(this, replacement, NULL, FlowGraph::kValue);
+    flow_graph->InsertBefore(this, replacement, nullptr, FlowGraph::kValue);
     return replacement;
   }
 
@@ -3124,11 +3152,17 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses() && !CanDeoptimize()) return NULL;
+  if (!HasUses() && !CanDeoptimize()) return nullptr;
+
+  // Fold away Unbox<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
 
   // Fold away Unbox<rep>(Box<rep>(v)).
   BoxInstr* box_defn = value()->definition()->AsBox();
-  if ((box_defn != NULL) &&
+  if ((box_defn != nullptr) &&
       (box_defn->from_representation() == representation())) {
     return box_defn->value()->definition();
   }
@@ -3149,7 +3183,13 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses() && !CanDeoptimize()) return NULL;
+  if (!HasUses() && !CanDeoptimize()) return nullptr;
+
+  // Fold away Unbox<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
 
   // Do not attempt to fold this instruction if we have not matched
   // input/output representations yet.
@@ -3159,7 +3199,7 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
 
   // Fold away UnboxInteger<rep_to>(BoxInteger<rep_from>(v)).
   BoxIntegerInstr* box_defn = value()->definition()->AsBoxInteger();
-  if (box_defn != NULL && !box_defn->HasUnmatchedInputRepresentations()) {
+  if (box_defn != nullptr && !box_defn->HasUnmatchedInputRepresentations()) {
     Representation from_representation =
         box_defn->value()->definition()->representation();
     if (from_representation == representation()) {
@@ -3200,7 +3240,7 @@ Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   ConstantInstr* c = value()->definition()->AsConstant();
-  if ((c != NULL) && c->value().IsInteger()) {
+  if ((c != nullptr) && c->value().IsInteger()) {
     if (!is_truncating()) {
       // Check that constant fits into 32-bit integer.
       const int64_t value = Integer::Cast(c->value()).AsInt64Value();
@@ -3222,7 +3262,7 @@ Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   ConstantInstr* c = value()->definition()->AsConstant();
-  if (c != NULL && c->value().IsInteger()) {
+  if (c != nullptr && c->value().IsInteger()) {
     return flow_graph->GetConstant(c->value(), kUnboxedInt64);
   }
 
@@ -3230,7 +3270,7 @@ Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses()) return NULL;
+  if (!HasUses()) return nullptr;
 
   // Fold IntConverter({Unboxed}Constant(...)) to UnboxedConstant.
   if (auto constant = value()->definition()->AsConstant()) {
@@ -3248,8 +3288,8 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
-  if ((box_defn != NULL) && (box_defn->representation() == from())) {
-    // If the first convertion can erase bits (or deoptimize) we can't
+  if ((box_defn != nullptr) && (box_defn->representation() == from())) {
+    // If the first conversion can erase bits (or deoptimize) we can't
     // canonicalize it away.
     auto src_defn = box_defn->value()->definition();
     if ((box_defn->from() == kUnboxedInt64) &&
@@ -3281,9 +3321,9 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   UnboxInt64Instr* unbox_defn = value()->definition()->AsUnboxInt64();
-  if (unbox_defn != NULL && (from() == kUnboxedInt64) &&
+  if (unbox_defn != nullptr && (from() == kUnboxedInt64) &&
       (to() == kUnboxedInt32) && unbox_defn->HasOnlyInputUse(value())) {
-    // TODO(vegorov): there is a duplication of code between UnboxedIntCoverter
+    // TODO(vegorov): there is a duplication of code between UnboxedIntConverter
     // and code path that unboxes Mint into Int32. We should just schedule
     // these instructions close to each other instead of fusing them.
     Definition* replacement =
@@ -3355,7 +3395,7 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
   }
   *negated = false;
   PassiveObject& constant = PassiveObject::Handle();
-  Value* other = NULL;
+  Value* other = nullptr;
   if (compare->right()->BindsToConstant()) {
     constant = compare->right()->BoundConstant().ptr();
     other = compare->left();
@@ -3419,7 +3459,7 @@ static bool RecognizeTestPattern(Value* left, Value* right, bool* negate) {
   }
 
   BinarySmiOpInstr* mask_op = left->definition()->AsBinarySmiOp();
-  if ((mask_op == NULL) || (mask_op->op_kind() != Token::kBIT_AND) ||
+  if ((mask_op == nullptr) || (mask_op->op_kind() != Token::kBIT_AND) ||
       !mask_op->HasOnlyUse(left)) {
     return false;
   }
@@ -3453,7 +3493,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       return this;
     }
     ComparisonInstr* comp = replacement->AsComparison();
-    if ((comp == NULL) || comp->CanDeoptimize() ||
+    if ((comp == nullptr) || comp->CanDeoptimize() ||
         comp->HasUnmatchedInputRepresentations()) {
       return this;
     }
@@ -3478,13 +3518,13 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       }
       // Clear the comparison's temp index and ssa temp index since the
       // value of the comparison is not used outside the branch anymore.
-      ASSERT(comp->input_use_list() == NULL);
+      ASSERT(comp->input_use_list() == nullptr);
       comp->ClearSSATempIndex();
       comp->ClearTempIndex();
     }
   } else if (comparison()->IsEqualityCompare() &&
              comparison()->operation_cid() == kSmiCid) {
-    BinarySmiOpInstr* bit_and = NULL;
+    BinarySmiOpInstr* bit_and = nullptr;
     bool negate = false;
     if (RecognizeTestPattern(comparison()->left(), comparison()->right(),
                              &negate)) {
@@ -3493,7 +3533,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
                                     &negate)) {
       bit_and = comparison()->right()->definition()->AsBinarySmiOp();
     }
-    if (bit_and != NULL) {
+    if (bit_and != nullptr) {
       if (FLAG_trace_optimization) {
         THR_Print("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
       }
@@ -3513,7 +3553,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses()) return NULL;
+  if (!HasUses()) return nullptr;
   bool negated = false;
   Definition* replacement = CanonicalizeStrictCompare(this, &negated,
                                                       /* is_branch = */ false);
@@ -3558,7 +3598,7 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
     return this;
   }
 
-  return cids().HasClassId(value_cid) ? NULL : this;
+  return cids().HasClassId(value_cid) ? nullptr : this;
 }
 
 Definition* LoadClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -3579,7 +3619,7 @@ Instruction* CheckClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
     const Object& constant_value = value()->BoundConstant();
     if (constant_value.IsSmi() &&
         cids_.Contains(Smi::Cast(constant_value).Value())) {
-      return NULL;
+      return nullptr;
     }
   }
   return this;
@@ -3590,9 +3630,7 @@ TestCidsInstr::TestCidsInstr(const InstructionSource& source,
                              Value* value,
                              const ZoneGrowableArray<intptr_t>& cid_results,
                              intptr_t deopt_id)
-    : TemplateComparison(source, kind, deopt_id),
-      cid_results_(cid_results),
-      licm_hoisted_(false) {
+    : TemplateComparison(source, kind, deopt_id), cid_results_(cid_results) {
   ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
   SetInputAt(0, value);
   set_operation_cid(kObjectCid);
@@ -3637,17 +3675,17 @@ Definition* TestCidsInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Instruction* GuardFieldClassInstr::Canonicalize(FlowGraph* flow_graph) {
   if (field().guarded_cid() == kDynamicCid) {
-    return NULL;  // Nothing to guard.
+    return nullptr;  // Nothing to guard.
   }
 
   if (field().is_nullable() && value()->Type()->IsNull()) {
-    return NULL;
+    return nullptr;
   }
 
   const intptr_t cid = field().is_nullable() ? value()->Type()->ToNullableCid()
                                              : value()->Type()->ToCid();
   if (field().guarded_cid() == cid) {
-    return NULL;  // Value is guaranteed to have this cid.
+    return nullptr;  // Value is guaranteed to have this cid.
   }
 
   return this;
@@ -3655,7 +3693,7 @@ Instruction* GuardFieldClassInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!field().needs_length_check()) {
-    return NULL;  // Nothing to guard.
+    return nullptr;  // Nothing to guard.
   }
 
   const intptr_t expected_length = field().guarded_list_length();
@@ -3665,11 +3703,11 @@ Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
 
   // Check if length is statically known.
   StaticCallInstr* call = value()->definition()->AsStaticCall();
-  if (call == NULL) {
+  if (call == nullptr) {
     return this;
   }
 
-  ConstantInstr* length = NULL;
+  ConstantInstr* length = nullptr;
   if (call->is_known_list_constructor() &&
       LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
     length = call->ArgumentAt(1)->AsConstant();
@@ -3679,9 +3717,9 @@ Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
   } else if (LoadFieldInstr::IsTypedDataViewFactory(call->function())) {
     length = call->ArgumentAt(3)->AsConstant();
   }
-  if ((length != NULL) && length->value().IsSmi() &&
+  if ((length != nullptr) && length->value().IsSmi() &&
       Smi::Cast(length->value()).Value() == expected_length) {
-    return NULL;  // Expected length matched.
+    return nullptr;  // Expected length matched.
   }
 
   return this;
@@ -3693,13 +3731,13 @@ Instruction* GuardFieldTypeInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Instruction* CheckSmiInstr::Canonicalize(FlowGraph* flow_graph) {
-  return (value()->Type()->ToCid() == kSmiCid) ? NULL : this;
+  return (value()->Type()->ToCid() == kSmiCid) ? nullptr : this;
 }
 
 Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
   if ((left()->Type()->ToCid() == kDoubleCid) ||
       (right()->Type()->ToCid() == kDoubleCid)) {
-    return NULL;  // Remove from the graph.
+    return nullptr;  // Remove from the graph.
   }
   return this;
 }
@@ -3745,7 +3783,7 @@ BoxInstr* BoxInstr::Create(Representation from, Value* value) {
 
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -3778,7 +3816,7 @@ UnboxInstr* UnboxInstr::Create(Representation to,
 
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -3903,7 +3941,7 @@ const CallTargets* CallTargets::CreateAndExpand(Zone* zone,
     // into a suffix that consists purely of abstract classes to
     // shorten the range.
     // However such spreading is beneficial when it allows to
-    // merge to consequtive ranges.
+    // merge to consecutive ranges.
     intptr_t cid_end_including_abstract = target_info->cid_end;
     for (int i = target_info->cid_end + 1; i < upper_limit_cid; i++) {
       bool class_is_abstract = false;
@@ -3983,13 +4021,13 @@ void CallTargets::Print() const {
 LocationSummary* GraphEntryInstr::MakeLocationSummary(Zone* zone,
                                                       bool optimizing) const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 LocationSummary* JoinEntryInstr::MakeLocationSummary(Zone* zone,
                                                      bool optimizing) const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -3999,14 +4037,14 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    InstructionSource());
   }
   if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
 LocationSummary* TargetEntryInstr::MakeLocationSummary(Zone* zone,
                                                        bool optimizing) const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4029,7 +4067,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
@@ -4037,7 +4075,7 @@ LocationSummary* FunctionEntryInstr::MakeLocationSummary(
     Zone* zone,
     bool optimizing) const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4103,7 +4141,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
@@ -4157,21 +4195,24 @@ void NativeEntryInstr::SaveArgument(
       ASSERT(pointer_loc.IsStack());
       // It's already on the stack, so we don't have to save it.
     }
-  } else {
-    ASSERT(nloc.IsMultiple());
+  } else if (nloc.IsMultiple()) {
     const auto& multiple = nloc.AsMultiple();
     const intptr_t num = multiple.locations().length();
     // Save the argument registers, in reverse order.
     for (intptr_t i = num; i-- > 0;) {
       SaveArgument(compiler, *multiple.locations().At(i));
     }
+  } else {
+    ASSERT(nloc.IsBoth());
+    const auto& both = nloc.AsBoth();
+    SaveArgument(compiler, both.location(0));
   }
 }
 
 LocationSummary* OsrEntryInstr::MakeLocationSummary(Zone* zone,
                                                     bool optimizing) const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4196,7 +4237,7 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
@@ -4546,7 +4587,7 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
 LocationSummary* PhiInstr::MakeLocationSummary(Zone* zone,
                                                bool optimizing) const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void PhiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4556,7 +4597,7 @@ void PhiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* RedefinitionInstr::MakeLocationSummary(Zone* zone,
                                                         bool optimizing) const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void RedefinitionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4581,7 +4622,7 @@ void ReachabilityFenceInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* ParameterInstr::MakeLocationSummary(Zone* zone,
                                                      bool optimizing) const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4637,17 +4678,17 @@ bool ParallelMoveInstr::IsRedundant() const {
 
 LocationSummary* ParallelMoveInstr::MakeLocationSummary(Zone* zone,
                                                         bool optimizing) const {
-  return NULL;
+  return nullptr;
 }
 
 void ParallelMoveInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  ParallelMoveEmitter(compiler, this).EmitNativeCode();
 }
 
 LocationSummary* ConstraintInstr::MakeLocationSummary(Zone* zone,
                                                       bool optimizing) const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void ConstraintInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4658,7 +4699,7 @@ LocationSummary* MaterializeObjectInstr::MakeLocationSummary(
     Zone* zone,
     bool optimizing) const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void MaterializeObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4708,7 +4749,7 @@ LocationSummary* SpecialParameterInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   // Only appears in initial definitions, never in normal code.
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void SpecialParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4938,6 +4979,20 @@ static FunctionPtr FindBinarySmiOp(Zone* zone, const String& name) {
   return smi_op_target.ptr();
 }
 
+void InstanceCallInstr::EnsureICData(FlowGraph* graph) {
+  if (HasICData()) {
+    return;
+  }
+
+  const Array& arguments_descriptor =
+      Array::Handle(graph->zone(), GetArgumentsDescriptor());
+  const ICData& ic_data = ICData::ZoneHandle(
+      graph->zone(),
+      ICData::New(graph->function(), function_name(), arguments_descriptor,
+                  deopt_id(), checked_argument_count(), ICData::kInstance));
+  set_ic_data(&ic_data);
+}
+
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Zone* zone = compiler->zone();
 
@@ -4952,9 +5007,9 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 
-  const ICData* call_ic_data = NULL;
+  const ICData* call_ic_data = nullptr;
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing() ||
-      (ic_data() == NULL)) {
+      (ic_data() == nullptr)) {
     const Array& arguments_descriptor =
         Array::Handle(zone, GetArgumentsDescriptor());
 
@@ -5133,8 +5188,7 @@ void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->AddNullCheck(source(), function_name);
     }
   }
-  __ Drop(ArgumentsSize());
-
+  compiler->EmitDropArguments(ArgumentsSize());
   compiler->AddDispatchTableCallTarget(selector());
 }
 
@@ -5300,21 +5354,27 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 
   // We could turn cold call sites for known receiver cids into a StaticCall.
   // However, that keeps the ICData of the InstanceCall from being updated.
+  //
   // This is fine if there is no later deoptimization, but if there is, then
   // the InstanceCall with the updated ICData for this receiver may then be
   // better optimized by the compiler.
   //
+  // This optimization is safe to apply in AOT mode because deoptimization is
+  // not a concern there.
+  //
   // TODO(dartbug.com/37291): Allow this optimization, but accumulate affected
   // InstanceCallInstrs and the corresponding receiver cids during compilation.
   // After compilation, add receiver checks to the ICData for those call sites.
-  if (Targets().is_empty()) return this;
+  if (!CompilerState::Current().is_aot() && Targets().is_empty()) {
+    return this;
+  }
 
   const CallTargets* new_target =
       FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
           receiver_cid,
           String::Handle(flow_graph->zone(), ic_data()->target_name()),
           Array::Handle(flow_graph->zone(), ic_data()->arguments_descriptor()));
-  if (new_target == NULL) {
+  if (new_target == nullptr) {
     // No specialization.
     return this;
   }
@@ -5491,7 +5551,7 @@ Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if (kind == MethodRecognizer::kObjectRuntimeType) {
-    if (input_use_list() == NULL) {
+    if (input_use_list() == nullptr) {
       // This function has only environment uses. In precompiled mode it is
       // fine to remove it - because we will never deoptimize.
       return flow_graph->constant_dead();
@@ -5570,9 +5630,9 @@ LocationSummary* StaticCallInstr::MakeLocationSummary(Zone* zone,
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Zone* zone = compiler->zone();
-  const ICData* call_ic_data = NULL;
+  const ICData* call_ic_data = nullptr;
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing() ||
-      (ic_data() == NULL)) {
+      (ic_data() == nullptr)) {
     const Array& arguments_descriptor =
         Array::Handle(zone, GetArgumentsDescriptor());
     const int num_args_checked =
@@ -5768,8 +5828,7 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label* deopt =
-      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
-                             licm_hoisted_ ? ICData::kHoisted : 0);
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
   if (IsNullCheck()) {
     EmitNullCheck(compiler, deopt);
     return;
@@ -6034,9 +6093,9 @@ Environment* Environment::From(Zone* zone,
                                intptr_t fixed_parameter_count,
                                intptr_t lazy_deopt_pruning_count,
                                const ParsedFunction& parsed_function) {
-  Environment* env = new (zone)
-      Environment(definitions.length(), fixed_parameter_count,
-                  lazy_deopt_pruning_count, parsed_function.function(), NULL);
+  Environment* env = new (zone) Environment(
+      definitions.length(), fixed_parameter_count, lazy_deopt_pruning_count,
+      parsed_function.function(), nullptr);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new (zone) Value(definitions[i]));
   }
@@ -6049,18 +6108,21 @@ void Environment::PushValue(Value* value) {
 
 Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
   ASSERT(length <= values_.length());
-  Environment* copy = new (zone)
-      Environment(length, fixed_parameter_count_, LazyDeoptPruneCount(),
-                  function_, (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
+  Environment* copy = new (zone) Environment(
+      length, fixed_parameter_count_, LazyDeoptPruneCount(), function_,
+      (outer_ == nullptr) ? nullptr : outer_->DeepCopy(zone));
   copy->SetDeoptId(DeoptIdBits::decode(bitfield_));
   copy->SetLazyDeoptToBeforeDeoptId(LazyDeoptToBeforeDeoptId());
-  if (locations_ != NULL) {
+  if (IsHoisted()) {
+    copy->MarkAsHoisted();
+  }
+  if (locations_ != nullptr) {
     Location* new_locations = zone->Alloc<Location>(length);
     copy->set_locations(new_locations);
   }
   for (intptr_t i = 0; i < length; ++i) {
     copy->values_.Add(values_[i]->CopyWithType(zone));
-    if (locations_ != NULL) {
+    if (locations_ != nullptr) {
       copy->locations_[i] = locations_[i].Copy();
     }
   }
@@ -6111,8 +6173,7 @@ void Environment::DeepCopyToOuter(Zone* zone,
                                   Instruction* instr,
                                   intptr_t outer_deopt_id) const {
   // Create a deep copy removing caller arguments from the environment.
-  ASSERT(this != NULL);
-  ASSERT(instr->env()->outer() == NULL);
+  ASSERT(instr->env()->outer() == nullptr);
   intptr_t argument_count = instr->env()->fixed_parameter_count();
   Environment* outer =
       DeepCopy(zone, values_.length() - argument_count - LazyDeoptPruneCount());
@@ -6131,7 +6192,7 @@ void Environment::DeepCopyToOuter(Zone* zone,
 ComparisonInstr* DoubleTestOpInstr::CopyWithNewOperands(Value* new_left,
                                                         Value* new_right) {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 ComparisonInstr* EqualityCompareInstr::CopyWithNewOperands(Value* new_left,
@@ -6268,7 +6329,7 @@ Definition* PhiInstr::Canonicalize(FlowGraph* flow_graph) {
     // If we are replacing a Phi which has redefinitions as all of its inputs
     // then to maintain the redefinition chain we are going to insert a
     // redefinition. If any input is *not* a redefinition that means that
-    // whatever properties were infered for a Phi also hold on a path
+    // whatever properties were inferred for a Phi also hold on a path
     // that does not pass through any redefinitions so there is no need
     // to redefine this value.
     auto zone = flow_graph->zone();
@@ -6524,6 +6585,44 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   return RepresentationOfArrayElement(class_id());
 }
 
+Instruction* MemoryCopyInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!length()->BindsToSmiConstant() || !src_start()->BindsToSmiConstant() ||
+      !dest_start()->BindsToSmiConstant()) {
+    // TODO(https://dartbug.com/51031): Consider adding support for src/dest
+    // starts to be in bytes rather than element size.
+    return this;
+  }
+
+  intptr_t new_length = length()->BoundSmiConstant();
+  intptr_t new_src_start = src_start()->BoundSmiConstant();
+  intptr_t new_dest_start = dest_start()->BoundSmiConstant();
+  intptr_t new_element_size = element_size_;
+  while (((new_length | new_src_start | new_dest_start) & 1) == 0 &&
+         new_element_size < compiler::target::kWordSize) {
+    new_length >>= 1;
+    new_src_start >>= 1;
+    new_dest_start >>= 1;
+    new_element_size <<= 1;
+  }
+  if (new_element_size == element_size_) {
+    return this;
+  }
+
+  Zone* const zone = flow_graph->zone();
+  auto* const length_instr = flow_graph->GetConstant(
+      Integer::ZoneHandle(zone, Integer::New(new_length, Heap::kOld)),
+      unboxed_length_ ? kUnboxedIntPtr : kTagged);
+  auto* const src_start_instr = flow_graph->GetConstant(
+      Integer::ZoneHandle(zone, Integer::New(new_src_start, Heap::kOld)));
+  auto* const dest_start_instr = flow_graph->GetConstant(
+      Integer::ZoneHandle(zone, Integer::New(new_dest_start, Heap::kOld)));
+  length()->BindTo(length_instr);
+  src_start()->BindTo(src_start_instr);
+  dest_start()->BindTo(dest_start_instr);
+  element_size_ = new_element_size;
+  return this;
+}
+
 bool Utf8ScanInstr::IsScanFlagsUnboxed() const {
   return scan_flags_field_.is_unboxed();
 }
@@ -6645,7 +6744,22 @@ void NativeCallInstr::SetupNative() {
     return;
   }
 
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  // Currently we perform unoptimized compilations only on mutator threads. If
+  // the compiler has to resolve a native to a function pointer it calls out to
+  // the embedder to do so.
+  //
+  // Unfortunately that embedder API was designed by giving it a handle to a
+  // string. So the embedder will have to call back into the VM to convert it to
+  // a C string - which requires an active isolate.
+  //
+  // => To allow this `dart-->jit-compiler-->embedder-->dart api` we set the
+  //    active isolate again.
+  //
+  ActiveIsolateScope active_isolate(thread);
+
   const Class& cls = Class::Handle(zone, function().Owner());
   const Library& library = Library::Handle(zone, cls.library());
 
@@ -6658,7 +6772,7 @@ void NativeCallInstr::SetupNative() {
   bool auto_setup_scope = true;
   NativeFunction native_function = NativeEntry::ResolveNative(
       library, native_name(), num_params, &auto_setup_scope);
-  if (native_function == NULL) {
+  if (native_function == nullptr) {
     if (has_inlining_id()) {
       UNIMPLEMENTED();
     }
@@ -6723,9 +6837,19 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
     }
   }
 
+#if defined(TARGET_ARCH_X64) && !defined(DART_TARGET_OS_WINDOWS)
+  // Only use R13 if really needed, having R13 free causes less spilling.
+  const Register target_address =
+      marshaller_.contains_varargs()
+          ? R13
+          : CallingConventions::kFirstNonArgumentRegister;  // RAX
+  summary->set_in(TargetAddressIndex(),
+                  Location::RegisterLocation(target_address));
+#else
   summary->set_in(TargetAddressIndex(),
                   Location::RegisterLocation(
                       CallingConventions::kFirstNonArgumentRegister));
+#endif
   for (intptr_t i = 0, n = marshaller_.NumDefinitions(); i < n; ++i) {
     summary->set_in(i, marshaller_.LocInFfiCall(i));
   }
@@ -6805,7 +6929,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
         // Can't occur because we currently don't inline FFI trampolines (see
-        // http://dartbug.com/45055), which means all incomming arguments
+        // http://dartbug.com/45055), which means all incoming arguments
         // originate from parameters and thus are non-constant.
         UNREACHABLE();
       }
@@ -6872,7 +6996,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                    compiler::FieldAddress(
                        temp0, compiler::target::PointerBase::data_offset()));
 
-      // Copy chuncks.
+      // Copy chunks.
       const intptr_t sp_offset =
           marshaller_.PassByPointerStackOffset(arg_index);
       // Struct size is rounded up to a multiple of target::kWordSize.
@@ -7562,7 +7686,7 @@ SimdOpInstr::Kind SimdOpInstr::KindForMethod(MethodRecognizer::Kind kind) {
       break;
   }
 
-  FATAL1("Not a SIMD method: %s", MethodRecognizer::KindToCString(kind));
+  FATAL("Not a SIMD method: %s", MethodRecognizer::KindToCString(kind));
   return kIllegalSimdOp;
 }
 
@@ -7672,12 +7796,24 @@ void Call1ArgStubInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              locs(), deopt_id(), env());
 }
 
+Definition* SuspendInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (stub_id() == StubId::kAwaitWithTypeCheck &&
+      !operand()->Type()->CanBeFuture()) {
+    type_args()->RemoveFromUseList();
+    stub_id_ = StubId::kAwait;
+  }
+  return this;
+}
+
 LocationSummary* SuspendInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = has_type_args() ? 2 : 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(SuspendStubABI::kArgumentReg));
+  if (has_type_args()) {
+    locs->set_in(1, Location::RegisterLocation(SuspendStubABI::kTypeArgsReg));
+  }
   locs->set_out(0, Location::RegisterLocation(CallingConventions::kReturnReg));
   return locs;
 }
@@ -7691,6 +7827,9 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (stub_id_) {
     case StubId::kAwait:
       stub = object_store->await_stub();
+      break;
+    case StubId::kAwaitWithTypeCheck:
+      stub = object_store->await_with_type_check_stub();
       break;
     case StubId::kYieldAsyncStar:
       stub = object_store->yield_async_star_stub();
@@ -7723,12 +7862,10 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AllocateRecordInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0,
-               Location::RegisterLocation(AllocateRecordABI::kFieldNamesReg));
   locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
   return locs;
 }
@@ -7737,8 +7874,8 @@ void AllocateRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(),
       compiler->isolate_group()->object_store()->allocate_record_stub());
-  __ LoadImmediate(AllocateRecordABI::kNumFieldsReg,
-                   Smi::RawValue(num_fields()));
+  __ LoadImmediate(AllocateRecordABI::kShapeReg,
+                   Smi::RawValue(shape().AsInt()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                              locs(), deopt_id(), env());
 }
@@ -7750,35 +7887,25 @@ LocationSummary* AllocateSmallRecordInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  if (has_named_fields()) {
+  locs->set_in(0,
+               Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
+  locs->set_in(1,
+               Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
+  if (num_fields() > 2) {
     locs->set_in(
-        0, Location::RegisterLocation(AllocateSmallRecordABI::kFieldNamesReg));
-    locs->set_in(
-        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
-    locs->set_in(
-        2, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
-    if (num_fields() > 2) {
-      locs->set_in(
-          3, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
-    }
-  } else {
-    locs->set_in(
-        0, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
-    locs->set_in(
-        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
-    if (num_fields() > 2) {
-      locs->set_in(
-          2, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
-    }
+        2, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
   }
-  locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
+  locs->set_out(0,
+                Location::RegisterLocation(AllocateSmallRecordABI::kResultReg));
   return locs;
 }
 
 void AllocateSmallRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto object_store = compiler->isolate_group()->object_store();
   Code& stub = Code::ZoneHandle(compiler->zone());
-  if (has_named_fields()) {
+  if (shape().HasNamedFields()) {
+    __ LoadImmediate(AllocateSmallRecordABI::kShapeReg,
+                     Smi::RawValue(shape().AsInt()));
     switch (num_fields()) {
       case 2:
         stub = object_store->allocate_record2_named_stub();

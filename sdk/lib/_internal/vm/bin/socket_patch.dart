@@ -99,9 +99,7 @@ class InternetAddress {
 @patch
 class NetworkInterface {
   @patch
-  static bool get listSupported {
-    return _listSupported();
-  }
+  static bool get listSupported => true;
 
   @patch
   static Future<List<NetworkInterface>> list(
@@ -113,9 +111,6 @@ class NetworkInterface {
         includeLinkLocal: includeLinkLocal,
         type: type);
   }
-
-  @pragma("vm:external-name", "NetworkInterface_ListSupported")
-  external static bool _listSupported();
 }
 
 void _throwOnBadPort(int port) {
@@ -375,14 +370,15 @@ class _NetworkInterface implements NetworkInterface {
 
 // The NativeFieldWrapperClass1 cannot be used with a mixin, due to missing
 // implicit constructor.
-class _NativeSocketNativeWrapper extends NativeFieldWrapperClass1 {}
+base class _NativeSocketNativeWrapper extends NativeFieldWrapperClass1 {}
 
 /// Returns error code that corresponds to EINPROGRESS OS error.
 @pragma("vm:external-name", "OSError_inProgressErrorCode")
 external int get _inProgressErrorCode;
 
 // The _NativeSocket class encapsulates an OS socket.
-class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
+base class _NativeSocket extends _NativeSocketNativeWrapper
+    with _ServiceObject {
   // Bit flags used when communicating between the eventhandler and
   // dart code. The EVENT flags are used to indicate events of
   // interest when sending a message from dart code to the
@@ -522,17 +518,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     });
   }
 
-  static Stream<List<InternetAddress>> lookupAsStream(String host,
-      {InternetAddressType type = InternetAddressType.any}) {
-    final controller = StreamController<List<InternetAddress>>();
-    controller.onListen = () {
-      lookup(host, type: type).then((list) {
-        controller.add(list);
-      }, onError: controller.addError).whenComplete(controller.close);
-    };
-    return controller.stream;
-  }
-
   static Future<InternetAddress> reverseLookup(InternetAddress addr) {
     return _IOService._dispatch(_IOService.socketReverseLookup,
         [(addr as _InternetAddress)._in_addr]).then((response) {
@@ -602,12 +587,20 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         (char == '8' || char == '9' || char == 'a' || char == 'b');
   }
 
-  /// Explicitly makes two separate OS lookup requests: first for IPv4, then
-  /// after short delay for IPv6.
-  /// This avoids making single OS lookup request that internally does both IPv4
-  /// and IPv6 together, which on iOS sometimes seems to be taking unreasonably
-  /// long because of slow IPv6 lookup even though IPv4 lookup is fast.
-  static Stream<List<InternetAddress>> staggeredLookup(String host) {
+  /// Explicitly makes two separate OS lookup requests: first for IPv4 then,
+  /// after a short delay, for IPv6.
+  ///
+  /// This avoids making a single OS lookup request that internally does both
+  /// IPv4 and IPv6 lookups together, which will be as slow as the slowest
+  /// lookup. Some broken DNS servers do not support IPv6 AAAA records and
+  /// will cause the IPv6 lookup to timeout.
+  ///
+  /// The IPv4 lookup is done first because, in practice, IPv4 traffic is
+  /// routed more reliably.
+  ///
+  /// See https://dartbug.com/50868.
+  static Stream<List<InternetAddress>> staggeredLookup(
+      String host, _InternetAddress? source) {
     final controller = StreamController<List<InternetAddress>>(sync: true);
 
     controller.onListen = () {
@@ -618,40 +611,50 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       // closed.
       final ipv4Completer = Completer<void>();
       final ipv6Completer = Completer<void>();
+      // Only report an error if no address lookups were sucessful.
+      var anySuccess = false;
 
       void lookupAddresses(InternetAddressType type, Completer<void> done) {
         lookup(host, type: type).then((addresses) {
+          anySuccess = true;
           if (done.isCompleted) {
             // By the time lookup is done, [connectNext] might have
             // been able to connect to one of the resolved addresses.
             return;
           }
           controller.add(addresses);
+          done.complete();
         }, onError: (e, st) {
           if (done.isCompleted) {
             // By the time lookup is done, [connectNext] might have
             // been able to connect to one of the resolved addresses.
             return;
           }
-          controller.addError(e, st);
-        }).whenComplete(() {
-          if (!done.isCompleted) {
-            done.complete();
-          }
+          done.completeError(e, st);
         });
       }
 
-      lookupAddresses(InternetAddressType.IPv4, ipv4Completer);
-      // Give a chance for a connect to an IPv4 address to complete before
-      // starting an IPv6 lookup. If IPv4 connect succeeds before timer goes
-      // off, the timer gets cancelled.
       const concurrentLookupDelay = Duration(milliseconds: 10);
-      final ipv6LookupDelay = Timer(concurrentLookupDelay, () {
-        lookupAddresses(InternetAddressType.IPv6, ipv6Completer);
-      });
+      Timer? ipv6LookupDelay;
+
+      lookupAddresses(InternetAddressType.IPv4, ipv4Completer);
+      if (source != null && source.type == InternetAddressType.IPv4) {
+        // Binding to an IPv4 address and connecting to an IPv6 address will
+        // never work.
+        ipv6Completer.complete();
+      } else {
+        // Introduce a delay before IPv6 lookup in order to favor IPv4.
+        ipv6LookupDelay = Timer(concurrentLookupDelay,
+            () => lookupAddresses(InternetAddressType.IPv6, ipv6Completer));
+      }
 
       Future.wait([ipv4Completer.future, ipv6Completer.future])
-          .then((_) => controller.close());
+          .then((_) => controller.close(), onError: (e, st) {
+        if (!anySuccess) {
+          controller.addError(e, st);
+        }
+        controller.close();
+      });
 
       controller.onCancel = () {
         // This is invoked when [connectNext] managed to connect to one of the
@@ -659,7 +662,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         // the addresses.
         if (!ipv4Completer.isCompleted) ipv4Completer.complete();
         if (!ipv6Completer.isCompleted) ipv6Completer.complete();
-        ipv6LookupDelay.cancel();
+        ipv6LookupDelay?.cancel();
       };
     };
     return controller.stream;
@@ -682,6 +685,15 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     _InternetAddress? source;
     if (sourceAddress != null) {
       if (sourceAddress is _InternetAddress) {
+        // A host of type [String] is interpreted to be a an internet host
+        // (or numeric IP e.g. '127.0.0.1'), which is never reachable using
+        // a Unix Domain Socket.
+        if (host is String && sourceAddress.type == InternetAddressType.unix) {
+          // ArgumentError would be better but changing it would not be
+          // backwards-compatible.
+          throw SocketException(
+              "Cannot connect to an internet host using a unix domain socket");
+        }
         source = sourceAddress;
       } else if (sourceAddress is String) {
         source = new _InternetAddress.fromString(sourceAddress);
@@ -694,26 +706,24 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     final stackTrace = StackTrace.current;
 
     return new Future.value(host).then<ConnectionTask<_NativeSocket>>((host) {
+      if (host is String) {
+        // Attempt to interpret the host as a numeric address
+        // (e.g. "127.0.0.1"). This will prevent [InternetAddress.lookup] from
+        // generating an unnecessary address in a different address family e.g.
+        // `InternetAddress.lookup('127.0.0.1', InternetAddressType.IPv6)`
+        // may return `InternetAddress('::ffff:127.0.0.1').
+        host = _InternetAddress.tryParse(host) ?? host;
+      }
       if (host is _InternetAddress) {
         return tryConnectToResolvedAddresses(host, port, source, sourcePort,
             Stream.value(<_InternetAddress>[host]), stackTrace);
       }
       final hostname = host as String;
-      final staggeredLookupOverride = bool.fromEnvironment(
-          "dart.library.io.force_staggered_ipv6_lookup",
-          defaultValue: false);
 
-      // On ios name resolution can get delayed by slow IPv6 name resolution,
-      // so we run IPv4 and IPv6 name resolution in parallel(IPv6 slightly
-      // delayed so if IPv4 is successfully looked up, we don't do IPv6 look up
-      // at all) and grab first successfully resolved name we are able to connect to.
-      final Stream<List<InternetAddress>> stream =
-          Platform.isIOS || staggeredLookupOverride
-              ? staggeredLookup(hostname)
-              : lookupAsStream(hostname);
-
+      final Stream<List<InternetAddress>> addresses =
+          staggeredLookup(hostname, source);
       return tryConnectToResolvedAddresses(
-          host, port, source, sourcePort, stream, stackTrace);
+          host, port, source, sourcePort, addresses, stackTrace);
     });
   }
 
@@ -761,8 +771,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                 "Address family not supported by protocol family, "
                 // ...and then add some details.
                 "sourceAddress.type must be ${InternetAddressType.unix} but was "
-                "${source.type}",
-                address: address);
+                "${source.type}", address: address);
           }
           connectionResult = socket.nativeCreateUnixDomainBindConnect(
               address.address, source.address, _Namespace._namespace);
@@ -2232,6 +2241,10 @@ class _Socket extends Stream<Uint8List> implements Socket {
 
   void add(List<int> bytes) => _sink.add(bytes);
 
+  /// Unsupported operation on sockets.
+  ///
+  /// Throws an [UnsupportedError] because errors cannot be transmitted over a
+  /// [Socket].
   void addError(Object error, [StackTrace? stackTrace]) {
     throw new UnsupportedError("Cannot send errors on sockets");
   }
@@ -2410,9 +2423,8 @@ class _Socket extends Stream<Uint8List> implements Socket {
   }
 
   void set _owner(owner) {
-    // Note: _raw can be _RawSocket and _RawSecureSocket which are two
-    // incompatible types.
-    (_raw as dynamic)._owner = owner;
+    // Note: _raw can be _RawSocket and _RawSecureSocket.
+    (_raw as _RawSocketBase)._owner = owner;
   }
 }
 

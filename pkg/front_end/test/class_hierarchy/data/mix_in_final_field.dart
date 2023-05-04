@@ -197,9 +197,10 @@ class Mixin {
 
 /*class: ClassMixin:
  abstractMembers=[
+  Mixin.extendedAbstractMixedInAbstractField,
+  Mixin.mixedInAbstractField,
   Super.extendedAbstractField,
-  _ClassMixin&Super&Mixin.extendedAbstractMixedInAbstractField,
-  _ClassMixin&Super&Mixin.mixedInAbstractField],
+  Super.extendedAbstractMixedInAbstractField],
  interfaces=[Mixin],
  maxInheritancePath=3,
  superclasses=[
@@ -295,9 +296,10 @@ class ClassMixin extends Super with Mixin {
 
 /*class: NamedMixin:
  abstractMembers=[
-  NamedMixin.extendedAbstractMixedInAbstractField,
-  NamedMixin.mixedInAbstractField,
-  Super.extendedAbstractField],
+  Mixin.extendedAbstractMixedInAbstractField,
+  Mixin.mixedInAbstractField,
+  Super.extendedAbstractField,
+  Super.extendedAbstractMixedInAbstractField],
  interfaces=[Mixin],
  maxInheritancePath=2,
  superclasses=[

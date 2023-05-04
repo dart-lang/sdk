@@ -284,6 +284,8 @@ doesn't conform to the language specification or
 that might work in unexpected ways.
 
 [ffi]: https://dart.dev/guides/libraries/c-interop
+[IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
+[irrefutable pattern]: https://dart.dev/resources/glossary#irrefutable-pattern
 [meta-doNotStore]: https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html
 [meta-factory]: https://pub.dev/documentation/meta/latest/meta/factory-constant.html
 [meta-immutable]: https://pub.dev/documentation/meta/latest/meta/immutable-constant.html
@@ -296,6 +298,7 @@ that might work in unexpected ways.
 [meta-UseResult]: https://pub.dev/documentation/meta/latest/meta/UseResult-class.html
 [meta-visibleForOverriding]: https://pub.dev/documentation/meta/latest/meta/visibleForOverriding-constant.html
 [meta-visibleForTesting]: https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html
+[refutable pattern]: https://dart.dev/resources/glossary#refutable-pattern
 
 ### abi_specific_integer_invalid
 
@@ -320,7 +323,7 @@ define a const constructor:
 import 'dart:ffi';
 
 @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-class [!C!] extends AbiSpecificInteger {
+final class [!C!] extends AbiSpecificInteger {
 }
 {% endprettify %}
 
@@ -331,7 +334,7 @@ a `const` constructor:
 import 'dart:ffi';
 
 @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-class [!C!] extends AbiSpecificInteger {
+final class [!C!] extends AbiSpecificInteger {
   C();
 }
 {% endprettify %}
@@ -343,7 +346,7 @@ multiple constructors:
 import 'dart:ffi';
 
 @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-class [!C!] extends AbiSpecificInteger {
+final class [!C!] extends AbiSpecificInteger {
   const C.zero();
   const C.one();
 }
@@ -356,7 +359,7 @@ a field:
 import 'dart:ffi';
 
 @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-class [!C!] extends AbiSpecificInteger {
+final class [!C!] extends AbiSpecificInteger {
   final int i;
 
   const C(this.i);
@@ -370,7 +373,7 @@ type parameter:
 import 'dart:ffi';
 
 @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-class [!C!]<T> extends AbiSpecificInteger { // type parameters
+final class [!C!]<T> extends AbiSpecificInteger { // type parameters
   const C();
 }
 {% endprettify %}
@@ -384,7 +387,7 @@ parameters and a single member that is a `const` constructor:
 import 'dart:ffi';
 
 @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-class C extends AbiSpecificInteger {
+final class C extends AbiSpecificInteger {
   const C();
 }
 {% endprettify %}
@@ -410,7 +413,7 @@ import 'dart:ffi';
 
 @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
 @[!AbiSpecificIntegerMapping!]({Abi.linuxX64 : Uint16()})
-class C extends AbiSpecificInteger {
+final class C extends AbiSpecificInteger {
   const C();
 }
 {% endprettify %}
@@ -424,7 +427,7 @@ appropriate:
 import 'dart:ffi';
 
 @AbiSpecificIntegerMapping({Abi.macosX64 : Int8(), Abi.linuxX64 : Uint16()})
-class C extends AbiSpecificInteger {
+final class C extends AbiSpecificInteger {
   const C();
 }
 {% endprettify %}
@@ -448,7 +451,7 @@ The following code produces this diagnostic because there's no
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class [!C!] extends AbiSpecificInteger {
+final class [!C!] extends AbiSpecificInteger {
   const C();
 }
 {% endprettify %}
@@ -461,7 +464,7 @@ Add an `AbiSpecificIntegerMapping` annotation to the class:
 import 'dart:ffi';
 
 @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-class C extends AbiSpecificInteger {
+final class C extends AbiSpecificInteger {
   const C();
 }
 {% endprettify %}
@@ -494,7 +497,7 @@ entry is `Array<Uint8>`, which isn't a valid integer type:
 import 'dart:ffi';
 
 @AbiSpecificIntegerMapping({Abi.macosX64 : [!Array<Uint8>(4)!]})
-class C extends AbiSpecificInteger {
+final class C extends AbiSpecificInteger {
   const C();
 }
 {% endprettify %}
@@ -507,7 +510,7 @@ Use one of the valid types as a value in the map:
 import 'dart:ffi';
 
 @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-class C extends AbiSpecificInteger {
+final class C extends AbiSpecificInteger {
   const C();
 }
 {% endprettify %}
@@ -561,6 +564,41 @@ abstract class C {
 }
 {% endprettify %}
 
+### abstract_sealed_class
+
+_A class can't be declared both 'sealed' and 'abstract'._
+
+#### Description
+
+The analyzer produces this diagnostic when a class is declared using both
+the modifier `abstract` and the modifier `sealed`. Sealed classes are
+implicitly abstract, so explicitly using both modifiers is not allowed.
+
+#### Example
+
+The following code produces this diagnostic because the class `C` is
+declared using both `abstract` and `sealed`:
+
+{% prettify dart tag=pre+code %}
+abstract [!sealed!] class C {}
+{% endprettify %}
+
+#### Common fixes
+
+If the class should be abstract but not sealed, then remove the `sealed`
+modifier:
+
+{% prettify dart tag=pre+code %}
+abstract class C {}
+{% endprettify %}
+
+If the class should be both abstract and sealed, then remove the
+`abstract` modifier:
+
+{% prettify dart tag=pre+code %}
+sealed class C {}
+{% endprettify %}
+
 ### abstract_super_member_reference
 
 _The {0} '{1}' is always abstract in the supertype._
@@ -601,13 +639,13 @@ cause the same name to be exported from multiple libraries.
 
 #### Example
 
-Given a file named `a.dart` containing
+Given a file `a.dart` containing
 
 {% prettify dart tag=pre+code %}
 class C {}
 {% endprettify %}
 
-And a file named `b.dart` containing
+And a file `b.dart` containing
 
 {% prettify dart tag=pre+code %}
 class C {}
@@ -913,7 +951,7 @@ annotation `@Double()`:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   [!@Double()!]
   external Pointer<Int8> p;
 }
@@ -926,7 +964,7 @@ Remove the annotations from the field:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   external Pointer<Int8> p;
 }
 {% endprettify %}
@@ -2263,6 +2301,42 @@ num x = 0;
 int y = x as int;
 {% endprettify %}
 
+### class_used_as_mixin
+
+_The class '{0}' can't be used as a mixin because it's neither a mixin class nor
+a mixin._
+
+#### Description
+
+The analyzer produces this diagnostic when a class that is neither a
+`mixin class` nor a `mixin` is used in a `with` clause.
+
+#### Example
+
+The following code produces this diagnostic because the class `M` is being
+used as a mixin, but it isn't defined as a `mixin class`:
+
+{% prettify dart tag=pre+code %}
+class M {}
+class C with [!M!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If the class can be a pure mixin, then change `class` to `mixin`:
+
+{% prettify dart tag=pre+code %}
+mixin M {}
+class C with M {}
+{% endprettify %}
+
+If the class needs to be both a class and a mixin, then add `mixin`:
+
+{% prettify dart tag=pre+code %}
+mixin class M {}
+class C with M {}
+{% endprettify %}
+
 ### collection_element_from_deferred_library
 
 _Constant values from a deferred library can't be used as keys in a 'const' map
@@ -2286,12 +2360,12 @@ contains a value that is declared in a library that is imported using a
 deferred import. Constants are evaluated at compile time, and values from
 deferred libraries aren't available at compile time.
 
-For more information, see the language tour's coverage of
-[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
 #### Example
 
-Given a file (`a.dart`) that defines the constant `zero`:
+Given a file `a.dart` that defines the constant `zero`:
 
 {% prettify dart tag=pre+code %}
 const zero = 0;
@@ -2303,7 +2377,7 @@ literal contains `a.zero`, which is imported using a `deferred` import:
 {% prettify dart tag=pre+code %}
 import 'a.dart' deferred as a;
 
-var l = const [[!a.zero!]];
+var l = const [a.[!zero!]];
 {% endprettify %}
 
 #### Common fixes
@@ -2352,7 +2426,7 @@ implements `Finalizable`:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class [!S!] extends Struct implements Finalizable {
+final class [!S!] extends Struct implements Finalizable {
   external Pointer notEmpty;
 }
 {% endprettify %}
@@ -2364,7 +2438,7 @@ Try removing the implements clause from the class:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class S extends Struct {
+final class S extends Struct {
   external Pointer notEmpty;
 }
 {% endprettify %}
@@ -2620,6 +2694,95 @@ class C<T> {
 }
 {% endprettify %}
 
+### constant_pattern_never_matches_value_type
+
+_The matched value type '{0}' can never be equal to this constant of type
+'{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a constant pattern can never
+match the value it's being tested against because the type of the constant
+is known to never match the type of the value.
+
+#### Example
+
+The following code produces this diagnostic because the type of the
+constant pattern `(true)` is `bool`, and the type of the value being
+matched (`x`) is `int`, and a Boolean can never match an integer:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  if (x case [!true!]) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the type of the value is correct, then rewrite the pattern to be
+compatible:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  if (x case 3) {}
+}
+{% endprettify %}
+
+If the type of the constant is correct, then rewrite the value to be
+compatible:
+
+{% prettify dart tag=pre+code %}
+void f(bool x) {
+  if (x case true) {}
+}
+{% endprettify %}
+
+### constant_pattern_with_non_constant_expression
+
+_The expression of a constant pattern must be a valid constant._
+
+#### Description
+
+The analyzer produces this diagnostic when a constant pattern has an
+expression that isn't a valid constant.
+
+#### Example
+
+The following code produces this diagnostic because the constant pattern
+`i` isn't a constant:
+
+{% prettify dart tag=pre+code %}
+void f(int e, int i) {
+  switch (e) {
+    case [!i!]:
+      break;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the value that should be matched is known, then replace the expression
+with a constant:
+
+{% prettify dart tag=pre+code %}
+void f(int e, int i) {
+  switch (e) {
+    case 0:
+      break;
+  }
+}
+{% endprettify %}
+
+If the value that should be matched isn't known, then rewrite the code to
+not use a pattern:
+
+{% prettify dart tag=pre+code %}
+void f(int e, int i) {
+  if (e == i) {}
+}
+{% endprettify %}
+
 ### const_constructor_param_type_mismatch
 
 _A value of type '{0}' can't be assigned to a parameter of type '{1}' in a const
@@ -2841,8 +3004,8 @@ imported using a deferred import is used to create a `const` object.
 Constants are evaluated at compile time, and classes from deferred
 libraries aren't available at compile time.
 
-For more information, see the language tour's coverage of
-[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
 #### Example
 
@@ -2925,8 +3088,8 @@ initialized using a `const` variable from a library that is imported using
 a deferred import. Constants are evaluated at compile time, and values from
 deferred libraries aren't available at compile time.
 
-For more information, see the language tour's coverage of
-[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
 #### Example
 
@@ -2937,7 +3100,7 @@ being initialized using the constant `math.pi` from the library
 {% prettify dart tag=pre+code %}
 import 'dart:math' deferred as math;
 
-const pi = [!math.pi!];
+const pi = math.[!pi!];
 {% endprettify %}
 
 #### Common fixes
@@ -2997,20 +3160,21 @@ class C {
 }
 {% endprettify %}
 
-### const_map_key_expression_type_implements_equals
+### const_map_key_not_primitive_equality
 
-_The type of a key in a constant map can't override the '==' operator, but the
-class '{0}' does._
+_The type of a key in a constant map can't override the '==' operator, or
+'hashCode', but the class '{0}' does._
 
 #### Description
 
 The analyzer produces this diagnostic when the class of object used as a
-key in a constant map literal implements the `==` operator. The
-implementation of constant maps uses the `==` operator, so any
-implementation other than the one inherited from `Object` requires
-executing arbitrary code at compile time, which isn't supported.
+key in a constant map literal implements either the `==` operator, the
+getter `hashCode`, or both. The implementation of constant maps uses both
+the `==` operator and the `hashCode` getter, so any implementation other
+than the ones inherited from `Object` requires executing arbitrary code at
+compile time, which isn't supported.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the constant map
 contains a key whose type is `C`, and the class `C` overrides the
@@ -3026,9 +3190,24 @@ class C {
 const map = {[!C()!] : 0};
 {% endprettify %}
 
+The following code produces this diagnostic because the constant map
+contains a key whose type is `C`, and the class `C` overrides the
+implementation of `hashCode`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  int get hashCode => 3;
+}
+
+const map = {[!C()!] : 0};
+{% endprettify %}
+
 #### Common fixes
 
-If you can remove the implementation of `==` from the class, then do so:
+If you can remove the implementation of `==` and `hashCode` from the
+class, then do so:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -3038,8 +3217,8 @@ class C {
 const map = {C() : 0};
 {% endprettify %}
 
-If you can't remove the implementation of `==` from the class, then make
-the map be non-constant:
+If you can't remove the implementation of `==` and `hashCode` from the
+class, then make the map non-constant:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -3076,18 +3255,21 @@ Add an initializer:
 const c = 'c';
 {% endprettify %}
 
-### const_set_element_type_implements_equals
+### const_set_element_not_primitive_equality
 
-_The type of an element in a constant set can't override the '==' operator, but
-the type '{0}' does._
+<a id="const_set_element_type_implements_equals" aria-hidden="true"></a>_(Previously known as `const_set_element_type_implements_equals`)_
+
+_An element in a constant set can't override the '==' operator, or 'hashCode',
+but the type '{0}' does._
 
 #### Description
 
 The analyzer produces this diagnostic when the class of object used as an
-element in a constant set literal implements the `==` operator. The
-implementation of constant sets uses the `==` operator, so any
-implementation other than the one inherited from `Object` requires
-executing arbitrary code at compile time, which isn't supported.
+element in a constant set literal implements either the `==` operator, the
+getter `hashCode`, or both. The implementation of constant sets uses both
+the `==` operator and the `hashCode` getter, so any implementation other
+than the ones inherited from `Object` requires executing arbitrary code at
+compile time, which isn't supported.
 
 #### Example
 
@@ -3105,9 +3287,24 @@ class C {
 const set = {[!C()!]};
 {% endprettify %}
 
+The following code produces this diagnostic because the constant set
+contains an element whose type is `C`, and the class `C` overrides the
+implementation of `hashCode`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  int get hashCode => 3;
+}
+
+const map = {[!C()!]};
+{% endprettify %}
+
 #### Common fixes
 
-If you can remove the implementation of `==` from the class, then do so:
+If you can remove the implementation of `==` and `hashCode` from the
+class, then do so:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -3117,8 +3314,8 @@ class C {
 const set = {C()};
 {% endprettify %}
 
-If you can't remove the implementation of `==` from the class, then make
-the set be non-constant:
+If you can't remove the implementation of `==` and `hashCode` from the
+class, then make the set non-constant:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -3320,10 +3517,12 @@ class C<T> {
 C<T> newC<T>() => C<T>();
 {% endprettify %}
 
-### continue_label_on_switch
+### continue_label_invalid
 
-_A `continue` label resolves to a `switch` statement, but the label must be on a
-loop or a switch member._
+<a id="continue_label_on_switch" aria-hidden="true"></a>_(Previously known as `continue_label_on_switch`)_
+
+_The label used in a 'continue' statement must be defined on either a loop or a
+switch member._
 
 #### Description
 
@@ -3339,7 +3538,7 @@ label a `switch` statement, is used in the `continue` statement:
 void f(int i) {
   l: switch (i) {
     case 0:
-      continue [!l!];
+      [!continue l;!]
   }
 }
 {% endprettify %}
@@ -3369,7 +3568,7 @@ instantiated using a generative constructor:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Int32()
   external int a;
 }
@@ -3388,7 +3587,7 @@ If you need to allocate the structure described by the class, then use the
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
-class C extends Struct {
+final class C extends Struct {
   @Int32()
   external int a;
 }
@@ -3848,12 +4047,12 @@ a deferred import declares an extension that is visible in the importing
 library. Extension methods are resolved at compile time, and extensions
 from deferred libraries aren't available at compile time.
 
-For more information, see the language tour's coverage of
-[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
 #### Example
 
-Given a file (`a.dart`) that defines a named extension:
+Given a file `a.dart` that defines a named extension:
 
 {% prettify dart tag=pre+code %}
 class C {}
@@ -4465,6 +4664,41 @@ class C {
 }
 {% endprettify %}
 
+### duplicate_field_name
+
+_The field name '{0}' is already used in this record._
+
+#### Description
+
+The analyzer produces this diagnostic when either a record literal or a
+record type annotation contains a field whose name is the same as a
+previously declared field in the same literal or type.
+
+#### Examples
+
+The following code produces this diagnostic because the record literal has
+two fields named `a`:
+
+{% prettify dart tag=pre+code %}
+var r = (a: 1, [!a!]: 2);
+{% endprettify %}
+
+The following code produces this diagnostic because the record type
+annotation has two fields named `a`, one a positional field and the other
+a named field:
+
+{% prettify dart tag=pre+code %}
+void f((int a, {int [!a!]}) r) {}
+{% endprettify %}
+
+#### Common fixes
+
+Rename one or both of the fields:
+
+{% prettify dart tag=pre+code %}
+var r = (a: 1, b: 2);
+{% endprettify %}
+
 ### duplicate_hidden_name
 
 _Duplicate hidden name._
@@ -4645,7 +4879,7 @@ multiple part directives.
 
 #### Example
 
-Given a file named `part.dart` containing
+Given a file `part.dart` containing
 
 {% prettify dart tag=pre+code %}
 part of lib;
@@ -4669,6 +4903,149 @@ Remove all except the first of the duplicated part directives:
 library lib;
 
 part 'part.dart';
+{% endprettify %}
+
+### duplicate_pattern_assignment_variable
+
+_The variable '{0}' is already assigned in this pattern._
+
+#### Description
+
+The analyzer produces this diagnostic when a single pattern variable is
+assigned a value more than once in the same pattern assignment.
+
+#### Example
+
+The following code produces this diagnostic because the variable `a` is
+assigned twice in the pattern `(a, a)`:
+
+{% prettify dart tag=pre+code %}
+int f((int, int) r) {
+  int a;
+  (a, [!a!]) = r;
+  return a;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to capture all of the values, then use a unique variable for
+each of the subpatterns being matched:
+
+{% prettify dart tag=pre+code %}
+int f((int, int) r) {
+  int a, b;
+  (a, b) = r;
+  return a + b;
+}
+{% endprettify %}
+
+If some of the values don't need to be captured, then use a wildcard
+pattern `_` to avoid having to bind the value to a variable:
+
+{% prettify dart tag=pre+code %}
+int f((int, int) r) {
+  int a;
+  (_, a) = r;
+  return a;
+}
+{% endprettify %}
+
+### duplicate_pattern_field
+
+_The field '{0}' is already matched in this pattern._
+
+#### Description
+
+The analyzer produces this diagnostic when a record pattern matches the
+same field more than once, or when an object pattern matches the same
+getter more than once.
+
+#### Examples
+
+The following code produces this diagnostic because the record field `a`
+is matched twice in the same record pattern:
+
+{% prettify dart tag=pre+code %}
+void f(({int a, int b}) r) {
+  switch (r) {
+    case (a: 1, [!a!]: 2):
+      return;
+  }
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the getter `f` is
+matched twice in the same object pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Object o) {
+  switch (o) {
+    case C(f: 1, [!f!]: 2):
+      return;
+  }
+}
+class C {
+  int? f;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the pattern should match for more than one value of the duplicated
+field, then use a logical-or pattern:
+
+{% prettify dart tag=pre+code %}
+void f(({int a, int b}) r) {
+  switch (r) {
+    case (a: 1, b: _) || (a: 2, b: _):
+      break;
+  }
+}
+{% endprettify %}
+
+If the pattern should match against multiple fields, then change the name
+of one of the fields:
+
+{% prettify dart tag=pre+code %}
+void f(({int a, int b}) r) {
+  switch (r) {
+    case (a: 1, b: 2):
+      return;
+  }
+}
+{% endprettify %}
+
+### duplicate_rest_element_in_pattern
+
+_At most one rest element is allowed in a list or map pattern._
+
+#### Description
+
+The analyzer produces this diagnostic when there's more than one rest
+pattern in either a list or map pattern. A rest pattern will capture any
+values unmatched by other subpatterns, making subsequent rest patterns
+unnecessary because there's nothing left to capture.
+
+#### Example
+
+The following code produces this diagnostic because there are two rest
+patterns in the list pattern:
+
+{% prettify dart tag=pre+code %}
+void f(List<int> x) {
+  if (x case [0, ..., [!...!]]) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove all but one of the rest patterns:
+
+{% prettify dart tag=pre+code %}
+void f(List<int> x) {
+  if (x case [0, ...]) {}
+}
 {% endprettify %}
 
 ### duplicate_shown_name
@@ -4711,6 +5088,192 @@ import 'dart:math' show min;
 var x = min(2, min(0, 1));
 {% endprettify %}
 
+### duplicate_variable_pattern
+
+_The variable '{0}' is already defined in this pattern._
+
+#### Description
+
+The analyzer produces this diagnostic when a branch of a logical-and
+pattern declares a variable that is already declared in an earlier branch
+of the same pattern.
+
+#### Example
+
+The following code produces this diagnostic because the variable `a` is
+declared in both branches of the logical-and pattern:
+
+{% prettify dart tag=pre+code %}
+void f((int, int) r) {
+  if (r case (var a, 0) && (0, var [!a!])) {
+    print(a);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to capture the matched value in multiple branches, then change
+the names of the variables so that they are unique:
+
+{% prettify dart tag=pre+code %}
+void f((int, int) r) {
+  if (r case (var a, 0) && (0, var b)) {
+    print(a + b);
+  }
+}
+{% endprettify %}
+
+If you only need to capture the matched value on one branch, then remove
+the variable pattern from all but one branch:
+
+{% prettify dart tag=pre+code %}
+void f((int, int) r) {
+  if (r case (var a, 0) && (0, _)) {
+    print(a);
+  }
+}
+{% endprettify %}
+
+### empty_map_pattern
+
+_A map pattern must have at least one entry._
+
+#### Description
+
+The analyzer produces this diagnostic when a map pattern is empty.
+
+#### Example
+
+The following code produces this diagnostic because the map pattern
+is empty:
+
+{% prettify dart tag=pre+code %}
+void f(Map<int, String> x) {
+  if (x case [!{}!]) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the pattern should match any map, then replace it with an object
+pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Map<int, String> x) {
+  if (x case Map()) {}
+}
+{% endprettify %}
+
+If the pattern should only match an empty map, then check the length
+in the pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Map<int, String> x) {
+  if (x case Map(isEmpty: true)) {}
+}
+{% endprettify %}
+
+### empty_record_literal_with_comma
+
+_A record literal without fields can't have a trailing comma._
+
+#### Description
+
+The analyzer produces this diagnostic when a record literal that has no
+fields has a trailing comma. Empty record literals can't contain a comma.
+
+#### Example
+
+The following code produces this diagnostic because the empty record
+literal has a trailing comma:
+
+{% prettify dart tag=pre+code %}
+var r = ([!,!]);
+{% endprettify %}
+
+#### Common fixes
+
+If the record is intended to be empty, then remove the comma:
+
+{% prettify dart tag=pre+code %}
+var r = ();
+{% endprettify %}
+
+If the record is intended to have one or more fields, then add the
+expressions used to compute the values of those fields:
+
+{% prettify dart tag=pre+code %}
+var r = (3, 4);
+{% endprettify %}
+
+### empty_record_type_named_fields_list
+
+_The list of named fields in a record type can't be empty._
+
+#### Description
+
+The analyzer produces this diagnostic when a record type has an empty list
+of named fields.
+
+#### Example
+
+The following code produces this diagnostic because the record type has an
+empty list of named fields:
+
+{% prettify dart tag=pre+code %}
+void f((int, int, {[!}!]) r) {}
+{% endprettify %}
+
+#### Common fixes
+
+If the record is intended to have named fields, then add the types and
+names of the fields:
+
+{% prettify dart tag=pre+code %}
+void f((int, int, {int z}) r) {}
+{% endprettify %}
+
+If the record isn't intended to have named fields, then remove the curly
+braces:
+
+{% prettify dart tag=pre+code %}
+void f((int, int) r) {}
+{% endprettify %}
+
+### empty_record_type_with_comma
+
+_A record type without fields can't have a trailing comma._
+
+#### Description
+
+The analyzer produces this diagnostic when a record type that has no
+fields has a trailing comma. Empty record types can't contain a comma.
+
+#### Example
+
+The following code produces this diagnostic because the empty record type
+has a trailing comma:
+
+{% prettify dart tag=pre+code %}
+void f(([!,!]) r) {}
+{% endprettify %}
+
+#### Common fixes
+
+If the record type is intended to be empty, then remove the comma:
+
+{% prettify dart tag=pre+code %}
+void f(() r) {}
+{% endprettify %}
+
+If the record type is intended to have one or more fields, then add the
+types of those fields:
+
+{% prettify dart tag=pre+code %}
+void f((int, int) r) {}
+{% endprettify %}
+
 ### empty_struct
 
 _The class '{0}' can't be empty because it's a subclass of '{1}'._
@@ -4731,7 +5294,7 @@ extends `Struct`, doesn't declare any fields:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class [!C!] extends Struct {}
+final class [!C!] extends Struct {}
 {% endprettify %}
 
 #### Common fixes
@@ -4741,7 +5304,7 @@ If the class is intended to be a struct, then declare one or more fields:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Int32()
   external int x;
 }
@@ -4753,7 +5316,7 @@ make it a subclass of `Opaque`:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Opaque {}
+final class C extends Opaque {}
 {% endprettify %}
 
 If the class isn't intended to be a struct, then remove or change the
@@ -5107,6 +5670,77 @@ Note that literal maps preserve the order of their entries, so the choice
 of which entry to remove might affect the order in which the keys and
 values are returned by an iterator.
 
+### equal_keys_in_map_pattern
+
+_Two keys in a map pattern can't be equal._
+
+#### Description
+
+The analyzer produces this diagnostic when a map pattern contains more
+than one key with the same name. The same key can't be matched twice.
+
+#### Example
+
+The following code produces this diagnostic because the key `'a'` appears
+twice:
+
+{% prettify dart tag=pre+code %}
+void f(Map<String, int> x) {
+  if (x case {'a': 1, [!'a'!]: 2}) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you are trying to match two different keys, then change one of the keys
+in the pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Map<String, int> x) {
+  if (x case {'a': 1, 'b': 2}) {}
+}
+{% endprettify %}
+
+If you are trying to match the same key, but allow any one of multiple
+patterns to match, the use a logical-or pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Map<String, int> x) {
+  if (x case {'a': 1 || 2}) {}
+}
+{% endprettify %}
+
+### expected_one_list_pattern_type_arguments
+
+_List patterns require one type argument or none, but {0} found._
+
+#### Description
+
+The analyzer produces this diagnostic when a list pattern has more than
+one type argument. List patterns can have either zero type arguments or
+one type argument, but can't have more than one.
+
+#### Example
+
+The following code produces this diagnostic because the list pattern
+(`[0]`) has two type arguments:
+
+{% prettify dart tag=pre+code %}
+void f(Object x) {
+  if (x case [!<int, int>!][0]) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove all but one of the type arguments:
+
+{% prettify dart tag=pre+code %}
+void f(Object x) {
+  if (x case <int>[0]) {}
+}
+{% endprettify %}
+
 ### expected_one_list_type_arguments
 
 _List literals require one type argument or none, but {0} found._
@@ -5157,6 +5791,38 @@ Remove all except one of the type arguments:
 
 {% prettify dart tag=pre+code %}
 var s = <int>{0, 1};
+{% endprettify %}
+
+### expected_two_map_pattern_type_arguments
+
+_Map patterns require two type arguments or none, but {0} found._
+
+#### Description
+
+The analyzer produces this diagnostic when a map pattern has either one
+type argument or more than two type arguments. Map patterns can have
+either two type arguments or zero type arguments, but can't have any other
+number.
+
+#### Example
+
+The following code produces this diagnostic because the map pattern
+(`<int>{}`) has one type argument:
+
+{% prettify dart tag=pre+code %}
+void f(Object x) {
+  if (x case [!<int>!]{0: _}) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add or remove type arguments until there are two, or none:
+
+{% prettify dart tag=pre+code %}
+void f(Object x) {
+  if (x case <int, int>{0: _}) {}
+}
 {% endprettify %}
 
 ### expected_two_map_type_arguments
@@ -5268,7 +5934,7 @@ part rather than a library.
 
 #### Example
 
-Given a file named `part.dart` containing
+Given a file `part.dart` containing
 
 {% prettify dart tag=pre+code %}
 part of lib;
@@ -5789,7 +6455,7 @@ annotations describing the native type of the field:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Int32()
   [!@Int16()!]
   external int x;
@@ -5802,7 +6468,7 @@ Remove all but one of the annotations:
 
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
-class C extends Struct {
+final class C extends Struct {
   @Int32()
   external int x;
 }
@@ -5905,7 +6571,7 @@ annotations that specify the size of the native array:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Array(4)
   [!@Array(8)!]
   external Array<Uint8> a0;
@@ -5919,7 +6585,7 @@ Remove all but one of the annotations:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Array(8)
   external Array<Uint8> a0;
 }
@@ -6121,7 +6787,7 @@ constructor with an initializer for the field `f`:
 // @dart = 2.9
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Int32()
   int f;
 
@@ -6137,7 +6803,7 @@ Remove the field initializer:
 // @dart = 2.9
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Int32()
   int f;
 
@@ -6386,7 +7052,7 @@ initializer:
 // @dart = 2.9
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   Pointer [!p!] = nullptr;
 }
 {% endprettify %}
@@ -6399,7 +7065,7 @@ Remove the initializer:
 // @dart = 2.9
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   Pointer p;
 }
 {% endprettify %}
@@ -6423,7 +7089,7 @@ marked as being `external`:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Int16()
   int [!a!];
 }
@@ -6436,7 +7102,7 @@ Add the required `external` modifier:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Int16()
   external int a;
 }
@@ -6715,7 +7381,7 @@ void f() {
 
 ### for_in_of_invalid_type
 
-_The type '{0}' used in the 'for' loop must implement {1}._
+_The type '{0}' used in the 'for' loop must implement '{1}'._
 
 #### Description
 
@@ -6849,7 +7515,7 @@ the type parameter `T`:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class [!S!]<T> extends Struct {
+final class [!S!]<T> extends Struct {
   external Pointer notEmpty;
 }
 {% endprettify %}
@@ -6861,7 +7527,7 @@ Remove the type parameters from the class:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class S extends Struct {
+final class S extends Struct {
   external Pointer notEmpty;
 }
 {% endprettify %}
@@ -7233,7 +7899,7 @@ The following code produces this diagnostic because the class `A` is used
 in both the `extends` and `with` clauses for the class `B`:
 
 {% prettify dart tag=pre+code %}
-class A {}
+mixin class A {}
 
 class B extends A with [!A!] {}
 {% endprettify %}
@@ -7406,12 +8072,12 @@ deferred import introduces an implicit function named `loadLibrary`. This
 function is used to load the contents of the deferred library, and the
 implicit function hides the explicit declaration in the deferred library.
 
-For more information, see the language tour's coverage of
-[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
 #### Example
 
-Given a file (`a.dart`) that defines a function named `loadLibrary`:
+Given a file `a.dart` that defines a function named `loadLibrary`:
 
 {% prettify dart tag=pre+code %}
 void loadLibrary(Library library) {}
@@ -7465,10 +8131,6 @@ void f() {
 }
 {% endprettify %}
 
-If type arguments shouldn't be required for the class, then mark the class
-with the `[optionalTypeArgs][meta-optionalTypeArgs]` annotation (from
-`package:meta`):
-
 ### import_internal_library
 
 _The library '{0}' is internal and can't be imported._
@@ -7503,7 +8165,7 @@ imports a library that isn't null safe.
 
 #### Example
 
-Given a file named `a.dart` that contains the following:
+Given a file `a.dart` that contains the following:
 
 {% prettify dart tag=pre+code %}
 // @dart = 2.9
@@ -7623,7 +8285,7 @@ the one being used for the library to which the part belongs.
 Given a [part file][] named `part.dart` that contains the following:
 
 {% prettify dart tag=pre+code %}
-// @dart = 2.6
+// @dart = 2.14
 part of 'test.dart';
 {% endprettify %}
 
@@ -7631,7 +8293,7 @@ The following code produces this diagnostic because the parts of a library
 must have the same language version as the defining compilation unit:
 
 {% prettify dart tag=pre+code %}
-// @dart = 2.5
+// @dart = 2.15
 part [!'part.dart'!];
 {% endprettify %}
 
@@ -7648,6 +8310,84 @@ If necessary, either adjust the language version override in the defining
 compilation unit to be appropriate for the code in the part, or migrate
 the code in the [part file][] to be consistent with the new language
 version.
+
+### inconsistent_pattern_variable_logical_or
+
+_The variable '{0}' has a different type and/or finality in this branch of the
+logical-or pattern._
+
+#### Description
+
+The analyzer produces this diagnostic when a pattern variable that is
+declared on all branches of a logical-or pattern doesn't have the same
+type on every branch. It is also produced when the variable has a
+different finality on different branches. A pattern variable declared on
+multiple branches of a logical-or pattern is required to have the same
+type and finality in each branch, so that the type and finality of the
+variable can be known in code that's guarded by the logical-or pattern.
+
+#### Examples
+
+The following code produces this diagnostic because the variable `a` is
+defined to be an `int` on one branch and a `double` on the other:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  if (x case (int a) || (double [!a!])) {
+    print(a);
+  }
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the variable `a` is
+`final` in the first branch and isn't `final` in the second branch:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  if (x case (final int a) || (int [!a!])) {
+    print(a);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the finality of the variable is different, decide whether it should be
+`final` or not `final` and make the cases consistent:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  if (x case (int a) || (int a)) {
+    print(a);
+  }
+}
+{% endprettify %}
+
+If the type of the variable is different and the type isn't critical to
+the condition being matched, then ensure that the variable has the same
+type on both branches:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  if (x case (num a) || (num a)) {
+    print(a);
+  }
+}
+{% endprettify %}
+
+If the type of the variable is different and the type is critical to the
+condition being matched, then consider breaking the condition into
+multiple `if` statements or `case` clauses:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  if (x case int a) {
+    print(a);
+  } else if (x case double a) {
+    print(a);
+  }
+}
+{% endprettify %}
 
 ### initializer_for_non_existent_field
 
@@ -8210,8 +8950,8 @@ that is imported as a deferred library is referenced in the argument list
 of an annotation. Annotations are evaluated at compile time, and values
 from deferred libraries aren't available at compile time.
 
-For more information, see the language tour's coverage of
-[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
 #### Example
 
@@ -8226,7 +8966,7 @@ class C {
   const C(double d);
 }
 
-@C([!math.pi!])
+@C(math.[!pi!])
 void f () {}
 {% endprettify %}
 
@@ -8261,8 +9001,8 @@ is imported using a deferred import is used as an annotation. Annotations
 are evaluated at compile time, and constants from deferred libraries aren't
 available at compile time.
 
-For more information, see the language tour's coverage of
-[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
 #### Example
 
@@ -8471,7 +9211,7 @@ annotation.
 
 #### Example
 
-Given a file named `a.dart` in the `src` directory that contains:
+Given a file `a.dart` in the `src` directory that contains:
 
 {% prettify dart tag=pre+code %}
 import 'package:meta/meta.dart';
@@ -8511,7 +9251,7 @@ is marked with the `[internal][meta-internal]` annotation.
 
 #### Example
 
-Given a file named `a.dart` in the `src` directory that contains the
+Given a file `a.dart` in the `src` directory that contains the
 following:
 
 {% prettify dart tag=pre+code %}
@@ -8748,6 +9488,80 @@ class C {
 }
 {% endprettify %}
 
+### invalid_field_name
+
+_Record field names can't be a dollar sign followed by an integer when the
+integer is the index of a positional field._
+
+_Record field names can't be private._
+
+_Record field names can't be the same as a member from 'Object'._
+
+#### Description
+
+The analyzer produces this diagnostic when either a record literal or a
+record type annotation has a field whose name is invalid. The name is
+invalid if it is:
+- private (starts with `_`)
+- the same as one of the members defined on `Object`
+- the same as the name of a positional field (an exception is made if the
+  field is a positional field with the specified name)
+
+#### Examples
+
+The following code produces this diagnostic because the record literal has
+a field named `toString`, which is a method defined on `Object`:
+
+{% prettify dart tag=pre+code %}
+var r = (a: 1, [!toString!]: 4);
+{% endprettify %}
+
+The following code produces this diagnostic because the record type
+annotation has a field named `hashCode`, which is a getter defined on
+`Object`:
+
+{% prettify dart tag=pre+code %}
+void f(({int a, int [!hashCode!]}) r) {}
+{% endprettify %}
+
+The following code produces this diagnostic because the record literal has
+a private field named `_a`:
+
+{% prettify dart tag=pre+code %}
+var r = ([!_a!]: 1, b: 2);
+{% endprettify %}
+
+The following code produces this diagnostic because the record type
+annotation has a private field named `_a`:
+
+{% prettify dart tag=pre+code %}
+void f(({int [!_a!], int b}) r) {}
+{% endprettify %}
+
+The following code produces this diagnostic because the record literal has
+a field named `$1`, which is also the name of a different positional
+parameter:
+
+{% prettify dart tag=pre+code %}
+var r = (2, [!$1!]: 1);
+{% endprettify %}
+
+The following code produces this diagnostic because the record type
+annotation has a field named `$1`, which is also the name of a different
+positional parameter:
+
+{% prettify dart tag=pre+code %}
+void f((int, String, {int [!$1!]}) r) {}
+{% endprettify %}
+
+#### Common fixes
+
+Rename the field:
+
+{% prettify dart tag=pre+code %}
+var r = (a: 1, d: 4);
+{% endprettify %}
+
 ### invalid_field_type_in_struct
 
 _Fields in struct classes can't have the type '{0}'. They can only be declared
@@ -8770,7 +9584,7 @@ subclass of `Struct`:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   external [!String!] s;
 
   @Int32()
@@ -8786,7 +9600,7 @@ Use one of the allowed types for the field:
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
-class C extends Struct {
+final class C extends Struct {
   external Pointer<Utf8> s;
 
   @Int32()
@@ -8797,6 +9611,9 @@ class C extends Struct {
 ### invalid_implementation_override
 
 _'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' ('{4}')._
+
+_The setter '{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}'
+('{4}')._
 
 #### Description
 
@@ -9005,7 +9822,7 @@ be lowercase in such a comment and because there's no equal sign between
 the word `dart` and the version number:
 
 {% prettify dart tag=pre+code %}
-[!// @Dart 2.9!]
+[!// @Dart 2.13!]
 {% endprettify %}
 
 #### Common fixes
@@ -9014,7 +9831,7 @@ If the comment is intended to be a language version override, then change
 the comment to follow the correct format:
 
 {% prettify dart tag=pre+code %}
-// @dart = 2.9
+// @dart = 2.13
 {% endprettify %}
 
 ### invalid_literal_annotation
@@ -9314,6 +10131,8 @@ not be appropriate in some cases.)
 
 _'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}')._
 
+_The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}')._
+
 #### Description
 
 The analyzer produces this diagnostic when a member of a class is found
@@ -9429,6 +10248,163 @@ class A {
 class B extends A {
   @override
   void m() {}
+}
+{% endprettify %}
+
+### invalid_pattern_variable_in_shared_case_scope
+
+_The variable '{0}' doesn't have the same type and/or finality in all cases that
+share this body._
+
+_The variable '{0}' is available in some, but not all cases that share this
+body._
+
+_The variable '{0}' is not available because there is a label or 'default'
+case._
+
+#### Description
+
+The analyzer produces this diagnostic when multiple case clauses in a
+switch statement share a body, and at least one of them declares a
+variable that is referenced in the shared statements, but the variable is
+either not declared in all of the case clauses or it is declared in
+inconsistent ways.
+
+If the variable isn't declared in all of the case clauses, then it won't
+have a value if one of the clauses that doesn't declare the variable is
+the one that matches and executes the body. This includes the situation
+where one of the case clauses is the `default` clause.
+
+If the variable is declared in inconsistent ways, either being `final` in
+some cases and not `final` in others or having a different type in
+different cases, then the semantics of what the type or finality of the
+variable should be are not defined.
+
+#### Examples
+
+The following code produces this diagnostic because the variable `a` is
+only declared in one of the case clauses, and won't have a value if the
+second clause is the one that matched `x`:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  switch (x) {
+    case int a when a > 0:
+    case 0:
+      [!a!];
+  }
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the variable `a` isn't
+declared in the `default` clause, and won't have a value if the body is
+executed because none of the other clauses matched `x`:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  switch (x) {
+    case int a when a > 0:
+    default:
+      [!a!];
+  }
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the variable `a` won't
+have a value if the body is executed because a different group of cases
+caused control to continue at the label:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  switch (x) {
+    someLabel:
+    case int a when a > 0:
+      [!a!];
+    case int b when b < 0:
+      continue someLabel;
+  }
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the variable `a`,
+while being assigned in all of the case clauses, doesn't have then same
+type associated with it in every clause:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  switch (x) {
+    case int a when a < 0:
+    case num a when a > 0:
+      [!a!];
+  }
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the variable `a` is
+`final` in the first case clause and isn't `final` in the second case
+clause:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  switch (x) {
+    case final int a when a < 0:
+    case int a when a > 0:
+      [!a!];
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the variable isn't declared in all of the cases, and you need to
+reference it in the statements, then declare it in the other cases:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  switch (x) {
+    case int a when a > 0:
+    case int a when a == 0:
+      a;
+  }
+}
+{% endprettify %}
+
+If the variable isn't declared in all of the cases, and you don't need to
+reference it in the statements, then remove the references to it and
+remove the declarations from the other cases:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  switch (x) {
+    case > 0:
+    case 0:
+  }
+}
+{% endprettify %}
+
+If the type of the variable is different, decide the type the variable
+should have and make the cases consistent:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  switch (x) {
+    case num a when a < 0:
+    case num a when a > 0:
+      a;
+  }
+}
+{% endprettify %}
+
+If the finality of the variable is different, decide whether it should be
+`final` or not `final` and make the cases consistent:
+
+{% prettify dart tag=pre+code %}
+void f(Object? x) {
+  switch (x) {
+    case final int a when a < 0:
+    case final int a when a > 0:
+      a;
+  }
 }
 {% endprettify %}
 
@@ -9873,6 +10849,74 @@ int f(String? x) {
 }
 {% endprettify %}
 
+### invalid_use_of_type_outside_library
+
+_The class '{0}' can't be extended outside of its library because it's a final
+class._
+
+_The class '{0}' can't be extended outside of its library because it's an
+interface class._
+
+_The class '{0}' can't be extended, implemented, or mixed in outside of its
+library because it's a sealed class._
+
+_The class '{0}' can't be implemented outside of its library because it's a base
+class._
+
+_The class '{0}' can't be implemented outside of its library because it's a
+final class._
+
+_The class '{0}' can't be used as a mixin superclass constraint outside of its
+library because it's a final class._
+
+_The mixin '{0}' can't be implemented outside of its library because it's a base
+mixin._
+
+#### Description
+
+The analyzer produces this diagnostic when an `extends`, `implements`,
+`with`, or `on` clause uses a class or mixin in a way that isn't allowed
+given the modifiers on that class or mixin's declaration.
+
+The message specifies how the declaration is being used and why it isn't
+allowed.
+
+#### Example
+
+Given a file `a.dart` that defines a base class `A`:
+
+{% prettify dart tag=pre+code %}
+base class A {}
+{% endprettify %}
+
+The following code produces this diagnostic because the class `B`
+implements the class `A`, but the `base` modifier prevents `A` from being
+implemented outside of the library where it's defined:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart';
+
+final class B implements [!A!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Use of this type is restricted outside of its declaring library. If a
+different, unrestricted type is available that can provide similar
+functionality, then replace the type:
+
+{% prettify dart tag=pre+code %}
+class B implements C {}
+class C {}
+{% endprettify %}
+
+If there isn't a different type that would be appropriate, then remove the
+type, and possibly the whole clause:
+
+{% prettify dart tag=pre+code %}
+class B {}
+{% endprettify %}
+
 ### invalid_use_of_visible_for_overriding_member
 
 _The member '{0}' can only be used for overriding._
@@ -9886,7 +10930,7 @@ than to override it.
 
 #### Example
 
-Given a file named `a.dart` containing the following declaration:
+Given a file `a.dart` containing the following declaration:
 
 {% prettify dart tag=pre+code %}
 import 'package:meta/meta.dart';
@@ -9927,7 +10971,7 @@ which it is declared or in a library in the `test` directory.
 
 #### Example
 
-Given a file named `c.dart` that contains the following:
+Given a file `c.dart` that contains the following:
 
 {% prettify dart tag=pre+code %}
 import 'package:meta/meta.dart';
@@ -10789,7 +11833,7 @@ The following code produces this diagnostic because the annotation
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   [!@Double()!]
   external int x;
 }
@@ -10802,7 +11846,7 @@ If the type of the field is correct, then change the annotation to match:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Int32()
   external int x;
 }
@@ -10813,7 +11857,7 @@ If the annotation is correct, then change the type of the field to match:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Double()
   external double x;
 }
@@ -10842,7 +11886,7 @@ have an annotation indicating the underlying width of the integer value:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   external [!int!] x;
 }
 {% endprettify %}
@@ -10854,7 +11898,7 @@ Add an appropriate annotation to the field:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Int64()
   external int x;
 }
@@ -11057,7 +12101,7 @@ doesn't have a type annotation:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   external var [!str!];
 
   @Int32()
@@ -11073,7 +12117,7 @@ Explicitly specify the type of the field:
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
-class C extends Struct {
+final class C extends Struct {
   external Pointer<Utf8> str;
 
   @Int32()
@@ -11110,13 +12154,81 @@ dependencies:
   meta: ^1.0.2
 ```
 
+### missing_named_pattern_field_name
+
+_The getter name is not specified explicitly, and the pattern is not a
+variable._
+
+#### Description
+
+The analyzer produces this diagnostic when, within an object pattern, the
+specification of a property and the pattern used to match the property's
+value doesn't have either:
+- a getter name before the colon
+- a variable pattern from which the getter name can be inferred
+
+#### Example
+
+The following code produces this diagnostic because there is no getter
+name before the colon and no variable pattern after the colon in the
+object pattern (`C(:0)`):
+
+{% prettify dart tag=pre+code %}
+abstract class C {
+  int get f;
+}
+
+void f(C c) {
+  switch (c) {
+    case C([!:0!]):
+      break;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to use the actual value of the property within the pattern's
+scope, then add a variable pattern where the name of the variable is the
+same as the name of the property being matched:
+
+{% prettify dart tag=pre+code %}
+abstract class C {
+  int get f;
+}
+
+void f(C c) {
+  switch (c) {
+    case C(:var f) when f == 0:
+      print(f);
+  }
+}
+{% endprettify %}
+
+If you don't need to use the actual value of the property within the
+pattern's scope, then add the name of the property being matched before
+the colon:
+
+{% prettify dart tag=pre+code %}
+abstract class C {
+  int get f;
+}
+
+void f(C c) {
+  switch (c) {
+    case C(f: 0):
+      break;
+  }
+}
+{% endprettify %}
+
 ### missing_override_of_must_be_overridden
 
-_Missing concrete override implementation of '{0}' and '{1}'._
+_Missing concrete implementation of '{0}'._
 
-_Missing concrete override implementation of '{0}', '{1}', and {2} more._
+_Missing concrete implementations of '{0}' and '{1}'._
 
-_Missing concrete override implementation of '{0}'._
+_Missing concrete implementations of '{0}', '{1}', and {2} more._
 
 #### Description
 
@@ -11292,7 +12404,7 @@ have an `Array` annotation:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   external [!Array<Uint8>!] a0;
 }
 {% endprettify %}
@@ -11304,9 +12416,73 @@ Ensure that there's exactly one `Array` annotation on the field:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Array(8)
   external Array<Uint8> a0;
+}
+{% endprettify %}
+
+### missing_variable_pattern
+
+_Variable pattern '{0}' is missing in this branch of the logical-or pattern._
+
+#### Description
+
+The analyzer produces this diagnostic when one branch of a logical-or
+pattern doesn't declare a variable that is declared on the other branch of
+the same pattern.
+
+#### Example
+
+The following code produces this diagnostic because the right-hand side of
+the logical-or pattern doesn't declare the variable `a`:
+
+{% prettify dart tag=pre+code %}
+void f((int, int) r) {
+  if (r case (var a, 0) || [!(0, _)!]) {
+    print(a);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the variable needs to be referenced in the controlled statements, then
+add a declaration of the variable to every branch of the logical-or
+pattern:
+
+{% prettify dart tag=pre+code %}
+void f((int, int) r) {
+  if (r case (var a, 0) || (0, var a)) {
+    print(a);
+  }
+}
+{% endprettify %}
+
+If the variable doesn't need to be referenced in the controlled
+statements, then remove the declaration of the variable from every branch
+of the logical-or pattern:
+
+{% prettify dart tag=pre+code %}
+void f((int, int) r) {
+  if (r case (_, 0) || (0, _)) {
+    print('found a zero');
+  }
+}
+{% endprettify %}
+
+If the variable needs to be referenced if one branch of the pattern
+matches but not when the other matches, then break the pattern into two
+pieces:
+
+{% prettify dart tag=pre+code %}
+void f((int, int) r) {
+  switch (r) {
+    case (var a, 0):
+      print(a);
+    case (0, _):
+      print('found a zero');
+  }
 }
 {% endprettify %}
 
@@ -11453,6 +12629,9 @@ class X = A with M;
 _The class doesn't have a concrete implementation of the super-invoked member
 '{0}'._
 
+_The class doesn't have a concrete implementation of the super-invoked setter
+'{0}'._
+
 #### Description
 
 The analyzer produces this diagnostic when a [mixin application][] contains
@@ -11521,6 +12700,63 @@ mixin M on A {
 abstract class B extends A with M {}
 {% endprettify %}
 
+### mixin_class_declaration_extends_not_object
+
+_The class '{0}' can't be declared a mixin because it extends a class other than
+'Object'._
+
+#### Description
+
+The analyzer produces this diagnostic when a class that is marked with
+the `mixin` modifier extends a class other than `Object`. A mixin class
+can't have a superclass other than `Object`.
+
+#### Example
+
+The following code produces this diagnostic because the class `B`, which
+has the modifier `mixin`, extends `A`:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+mixin class B extends [!A!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If you want the class to be used as a mixin, then change the superclass to
+`Object`, either explicitly or by removing the extends clause:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+mixin class B {}
+{% endprettify %}
+
+If the class needs to have a superclass other than `Object`, then remove
+the `mixin` modifier:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class B extends A {}
+{% endprettify %}
+
+If you need both a mixin and a subclass of a class other than `Object`,
+then move the members of the subclass to a new mixin, remove the `mixin`
+modifier from the subclass, and apply the new mixin to the subclass:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class B extends A with M {}
+
+mixin M {}
+{% endprettify %}
+
+Depending on the members of the subclass this might require adding an `on`
+clause to the mixin.
+
 ### mixin_class_declares_constructor
 
 _The class '{0}' can't be used as a mixin because it declares a constructor._
@@ -11536,6 +12772,7 @@ The following code produces this diagnostic because the class `A`, which
 defines a constructor, is being used as a mixin:
 
 {% prettify dart tag=pre+code %}
+//@dart=2.19
 class A {
   A();
 }
@@ -11558,6 +12795,7 @@ If the class can't be a mixin and it's possible to remove the constructor,
 then do so:
 
 {% prettify dart tag=pre+code %}
+//@dart=2.19
 class A {
 }
 
@@ -11591,6 +12829,7 @@ The following code produces this diagnostic because the class `B`, which
 extends `A`, is being used as a mixin by `C`:
 
 {% prettify dart tag=pre+code %}
+//@dart=2.19
 class A {}
 
 class B extends A {}
@@ -11604,6 +12843,7 @@ If the class being used as a mixin can be changed to extend `Object`, then
 change it:
 
 {% prettify dart tag=pre+code %}
+//@dart=2.19
 class A {}
 
 class B {}
@@ -12485,12 +13725,12 @@ import. In order for switch statements to be compiled efficiently, the
 constants referenced in case clauses need to be available at compile time,
 and constants from deferred libraries aren't available at compile time.
 
-For more information, see the language tour's coverage of
-[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
 #### Example
 
-Given a file (`a.dart`) that defines the constant `zero`:
+Given a file `a.dart` that defines the constant `zero`:
 
 {% prettify dart tag=pre+code %}
 const zero = 0;
@@ -12505,7 +13745,7 @@ import 'a.dart' deferred as a;
 
 void f(int x) {
   switch (x) {
-    case [!a.zero!]:
+    case a.[!zero!]:
       // ...
       break;
   }
@@ -12609,12 +13849,12 @@ parameter uses a constant from a library imported using a deferred import.
 Default values need to be available at compile time, and constants from
 deferred libraries aren't available at compile time.
 
-For more information, see the language tour's coverage of
-[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
 #### Example
 
-Given a file (`a.dart`) that defines the constant `zero`:
+Given a file `a.dart` that defines the constant `zero`:
 
 {% prettify dart tag=pre+code %}
 const zero = 0;
@@ -12626,7 +13866,7 @@ library imported using a deferred import:
 {% prettify dart tag=pre+code %}
 import 'a.dart' deferred as a;
 
-void f({int x = [!a.zero!]}) {}
+void f({int x = a.[!zero!]}) {}
 {% endprettify %}
 
 #### Common fixes
@@ -12770,6 +14010,44 @@ var a = 'a';
 var m = {a: 0};
 {% endprettify %}
 
+### non_constant_map_pattern_key
+
+_Key expressions in map patterns must be constants._
+
+#### Description
+
+The analyzer produces this diagnostic when a key in a map pattern isn't a
+constant expression.
+
+#### Example
+
+The following code produces this diagnostic because the key `A()` isn't a
+constant:
+
+{% prettify dart tag=pre+code %}
+void f(Object x) {
+  if (x case {[!A()!]: 0}) {}
+}
+
+class A {
+  const A();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use a constant for the key:
+
+{% prettify dart tag=pre+code %}
+void f(Object x) {
+  if (x case {const A(): 0}) {}
+}
+
+class A {
+  const A();
+}
+{% endprettify %}
+
 ### non_constant_map_value
 
 _The values in a const map literal must be constant._
@@ -12803,6 +14081,40 @@ keyword:
 {% prettify dart tag=pre+code %}
 var a = 'a';
 var m = {0: a};
+{% endprettify %}
+
+### non_constant_relational_pattern_expression
+
+_The relational pattern expression must be a constant._
+
+#### Description
+
+The analyzer produces this diagnostic when the value in a relational
+pattern expression isn't a constant expression.
+
+#### Example
+
+The following code produces this diagnostic because the operand of the `>`
+operator, `a`, isn't a constant:
+
+{% prettify dart tag=pre+code %}
+final a = 0;
+
+void f(int x) {
+  if (x case > [!a!]) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the value with a constant expression:
+
+{% prettify dart tag=pre+code %}
+const a = 0;
+
+void f(int x) {
+  if (x case > a) {}
+}
 {% endprettify %}
 
 ### non_constant_set_element
@@ -12964,6 +14276,128 @@ enum E {
   const E();
 }
 {% endprettify %}
+
+### non_exhaustive_switch_expression
+
+_The type '{0}' is not exhaustively matched by the switch cases since it doesn't
+match '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a `switch` expression is
+missing a case for one or more of the possible values that could flow
+through it.
+
+#### Example
+
+The following code produces this diagnostic because the switch expression
+doesn't have a case for the value `E.three`:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+String f(E e) => [!switch!] (e) {
+    E.one => 'one',
+    E.two => 'two',
+  };
+{% endprettify %}
+
+#### Common fixes
+
+Add a case for each of the constants that aren't currently being matched:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+String f(E e) => switch (e) {
+    E.one => 'one',
+    E.two => 'two',
+    E.three => 'three',
+  };
+{% endprettify %}
+
+If the missing values don't need to be matched, then add  a wildcard
+pattern:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+String f(E e) => switch (e) {
+    E.one => 'one',
+    E.two => 'two',
+    _ => 'unknown',
+  };
+{% endprettify %}
+
+But be aware that adding a wildcard pattern will cause any future values
+of the type to also be handled, so you will have lost the ability for the
+compiler to warn you if the `switch` needs to be updated.
+
+### non_exhaustive_switch_statement
+
+_The type '{0}' is not exhaustively matched by the switch cases since it doesn't
+match '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a `switch` statement switching
+over an exhaustive type is missing a case for one or more of the possible
+values that could flow through it.
+
+#### Example
+
+The following code produces this diagnostic because the switch statement
+doesn't have a case for the value `E.three`, and `E` is an exhaustive
+type:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+void f(E e) {
+  [!switch!] (e) {
+    case E.one:
+    case E.two:
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add a case for each of the constants that aren't currently being matched:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+void f(E e) {
+  switch (e) {
+    case E.one:
+    case E.two:
+      break;
+    case E.three:
+  }
+}
+{% endprettify %}
+
+If the missing values don't need to be matched, then add a `default`
+clause or a wildcard pattern:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+void f(E e) {
+  switch (e) {
+    case E.one:
+    case E.two:
+      break;
+    default:
+  }
+}
+{% endprettify %}
+
+But be aware that adding a `default` clause or wildcard pattern will cause
+any future values of the exhaustive type to also be handled, so you will
+have lost the ability for the compiler to warn you if the `switch` needs
+to be updated.
 
 ### non_final_field_in_enum
 
@@ -13191,7 +14625,7 @@ The following code produces this diagnostic because an array dimension of
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   @Array([!-8!])
   external Array<Uint8> a0;
 }
@@ -13204,7 +14638,7 @@ Change the dimension to be a positive integer:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   @Array(8)
   external Array<Uint8> a0;
 }
@@ -13232,7 +14666,7 @@ The following code produces this diagnostic because the type argument to
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Array(8)
   external Array<[!Void!]> a0;
 }
@@ -13245,7 +14679,7 @@ Change the type argument to one of the valid types:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Array(8)
   external Array<Uint8> a0;
 }
@@ -14403,7 +15837,7 @@ import 'dart:ffi';
 
 @Packed(1)
 [!@Packed(1)!]
-class C extends Struct {
+final class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 {% endprettify %}
@@ -14416,7 +15850,7 @@ Remove all but one of the annotations:
 import 'dart:ffi';
 
 @Packed(1)
-class C extends Struct {
+final class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 {% endprettify %}
@@ -14441,7 +15875,7 @@ The following code produces this diagnostic because the argument to the
 import 'dart:ffi';
 
 @Packed([!3!])
-class C extends Struct {
+final class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 {% endprettify %}
@@ -14454,7 +15888,7 @@ Change the alignment to be one of the allowed values:
 import 'dart:ffi';
 
 @Packed(4)
-class C extends Struct {
+final class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 {% endprettify %}
@@ -14471,7 +15905,7 @@ library.
 
 #### Example
 
-Given a file named `part.dart` containing
+Given a file `part.dart` containing
 
 {% prettify dart tag=pre+code %}
 part of 'library.dart';
@@ -14505,7 +15939,7 @@ the referenced file doesn't have a part-of directive.
 
 #### Example
 
-Given a file (`a.dart`) containing:
+Given a file `a.dart` containing:
 
 {% prettify dart tag=pre+code %}
 class A {}
@@ -14638,7 +16072,7 @@ that references a directory that doesn't contain a `pubspec.yaml` file.
 
 #### Example
 
-Assuming that the directory `local_package` doesn't contain a file named
+Assuming that the directory `local_package` doesn't contain a file
 `pubspec.yaml`, the following code produces this diagnostic because it's
 listed as the path of a package:
 
@@ -14659,6 +16093,258 @@ name: local_package
 ```
 
 If the path is wrong, then replace it with the correct path.
+
+### pattern_assignment_not_local_variable
+
+_Only local variables can be assigned in pattern assignments._
+
+#### Description
+
+The analyzer produces this diagnostic when a pattern assignment assigns a
+value to anything other than a local variable. Patterns can't assign to
+fields or top-level variables.
+
+#### Example
+
+If the code is cleaner when destructuring with a pattern, then rewrite the
+code to assign the value to a local variable in a pattern declaration,
+assigning the non-local variable separately:
+
+{% prettify dart tag=pre+code %}
+class C {
+  var x = 0;
+
+  void f((int, int) r) {
+    ([!x!], _) = r;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the code is cleaner when using a pattern assignment, then rewrite the
+code to assign the value to a local variable, assigning the non-local
+variable separately:
+
+{% prettify dart tag=pre+code %}
+class C {
+  var x = 0;
+
+  void f((int, int) r) {
+    var (a, _) = r;
+    x = a;
+  }
+}
+{% endprettify %}
+
+If the code is cleaner without using a pattern assignment, then rewrite
+the code to not use a pattern assignment:
+
+{% prettify dart tag=pre+code %}
+class C {
+  var x = 0;
+
+  void f((int, int) r) {
+    x = r.$1;
+  }
+}
+{% endprettify %}
+
+### pattern_constant_from_deferred_library
+
+_Constant values from a deferred library can't be used in patterns._
+
+#### Description
+
+The analyzer produces this diagnostic when a pattern contains a value
+declared in a different library, and that library is imported using a
+deferred import. Constants are evaluated at compile time, but values from
+deferred libraries aren't available at compile time.
+
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
+
+#### Example
+
+Given a file `a.dart` that defines the constant `zero`:
+
+{% prettify dart tag=pre+code %}
+const zero = 0;
+{% endprettify %}
+
+The following code produces this diagnostic because the constant pattern
+`a.zero` is imported using a deferred import:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' deferred as a;
+
+void f(int x) {
+  switch (x) {
+    case a.[!zero!]:
+      // ...
+      break;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to reference the constant from the imported library, then
+remove the `deferred` keyword:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' as a;
+
+void f(int x) {
+  switch (x) {
+    case a.zero:
+      // ...
+      break;
+  }
+}
+{% endprettify %}
+
+If you need to reference the constant from the imported library and also
+need the imported library to be deferred, then rewrite the switch
+statement as a sequence of `if` statements:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' deferred as a;
+
+void f(int x) {
+  if (x == a.zero) {
+    // ...
+  }
+}
+{% endprettify %}
+
+If you don't need to reference the constant, then replace the case
+expression:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  switch (x) {
+    case 0:
+      // ...
+      break;
+  }
+}
+{% endprettify %}
+
+### pattern_type_mismatch_in_irrefutable_context
+
+_The matched value of type '{0}' isn't assignable to the required type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the type of the value on the
+right-hand side of a pattern assignment or pattern declaration doesn't
+match the type required by the pattern being used to match it.
+
+#### Example
+
+The following code produces this diagnostic because `x` might not be a
+`String` and hence might not match the object pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Object x) {
+  var [!String(length: a)!] = x;
+  print(a);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the code so that the type of the expression on the right-hand side
+matches the type required by the pattern:
+
+{% prettify dart tag=pre+code %}
+void f(String x) {
+  var String(length: a) = x;
+  print(a);
+}
+{% endprettify %}
+
+### pattern_variable_assignment_inside_guard
+
+_Pattern variables can't be assigned inside the guard of the enclosing guarded
+pattern._
+
+#### Description
+
+The analyzer produces this diagnostic when a pattern variable is assigned
+a value inside a guard (`when`) clause.
+
+#### Example
+
+The following code produces this diagnostic because the variable `a` is
+assigned a value inside the guard clause:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  if (x case var a when ([!a!] = 1) > 0) {
+    print(a);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If there's a value you need to capture, then assign it to a different
+variable:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  var b;
+  if (x case var a when (b = 1) > 0) {
+    print(a + b);
+  }
+}
+{% endprettify %}
+
+If there isn't a value you need to capture, then remove the assignment:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  if (x case var a when 1 > 0) {
+    print(a);
+  }
+}
+{% endprettify %}
+
+### positional_field_in_object_pattern
+
+_Object patterns can only use named fields._
+
+#### Description
+
+The analyzer produces this diagnostic when an object pattern contains a
+field that doesn't have a getter name. The fields provide a pattern to
+match against the value returned by a getter, and not specifying the name
+of the getter means that there's no way to access the value that the
+pattern is intended to match against.
+
+#### Example
+
+The following code produces this diagnostic because the object pattern
+`String(1)` doesn't say which value to compare with `1`:
+
+{% prettify dart tag=pre+code %}
+void f(Object o) {
+  if (o case String([!1!])) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add both the name of the getter to use to access the value and a colon
+before the value:
+
+{% prettify dart tag=pre+code %}
+void f(Object o) {
+  if (o case String(length: 1)) {}
+}
+{% endprettify %}
 
 ### positional_super_formal_parameter_with_positional_argument
 
@@ -14867,19 +16553,19 @@ the one that defines the mixins.
 
 #### Example
 
-Given a file named `a.dart` containing the following code:
+Given a file `a.dart` containing the following code:
 
 {% prettify dart tag=pre+code %}
-class A {
+mixin A {
   void _foo() {}
 }
 
-class B {
+mixin B {
   void _foo() {}
 }
 {% endprettify %}
 
-The following code produces this diagnostic because the classes `A` and `B`
+The following code produces this diagnostic because the mixins `A` and `B`
 both define the method `_foo`:
 
 {% prettify dart tag=pre+code %}
@@ -14944,7 +16630,7 @@ library where it isn't visible.
 
 #### Example
 
-Given a file named `a.dart` that contains the following:
+Given a file `a.dart` that contains the following:
 
 {% prettify dart tag=pre+code %}
 class A {
@@ -15015,6 +16701,66 @@ int f(bool b) {
   }
   return x;
 }
+{% endprettify %}
+
+### record_literal_one_positional_no_trailing_comma
+
+_A record literal with exactly one positional field requires a trailing comma._
+
+#### Description
+
+The analyzer produces this diagnostic when a record literal with a single
+positional field doesn't have a trailing comma after the field.
+
+In some locations a record literal with a single positional field could
+also be a parenthesized expression. A trailing comma is required to
+disambiguate these two valid interpretations.
+
+#### Example
+
+The following code produces this diagnostic because the record literal has
+one positional field but doesn't have a trailing comma:
+
+{% prettify dart tag=pre+code %}
+var r = const (1[!)!];
+{% endprettify %}
+
+#### Common fixes
+
+Add a trailing comma:
+
+{% prettify dart tag=pre+code %}
+var r = const (1,);
+{% endprettify %}
+
+### record_type_one_positional_no_trailing_comma
+
+_A record type with exactly one positional field requires a trailing comma._
+
+#### Description
+
+The analyzer produces this diagnostic when a record type annotation with a
+single positional field doesn't have a trailing comma after the field.
+
+In some locations a record type with a single positional field could also
+be a parenthesized expression. A trailing comma is required to
+disambiguate these two valid interpretations.
+
+#### Example
+
+The following code produces this diagnostic because the record type has
+one positional field, but doesn't have a trailing comma:
+
+{% prettify dart tag=pre+code %}
+void f((int[!)!] r) {}
+{% endprettify %}
+
+#### Common fixes
+
+Add a trailing comma:
+
+{% prettify dart tag=pre+code %}
+void f((int,) r) {}
 {% endprettify %}
 
 ### recursive_compile_time_constant
@@ -15642,6 +17388,218 @@ void f(int i) {
   print(i);
   int x = 5;
   print(x);
+}
+{% endprettify %}
+
+### refutable_pattern_in_irrefutable_context
+
+_Refutable patterns can't be used in an irrefutable context._
+
+#### Description
+
+The analyzer produces this diagnostic when a [refutable pattern][] is used
+in a context where only an [irrefutable pattern][] is allowed.
+
+The refutable patterns that are disallowed are:
+- logical-or
+- relational
+- null-check
+- constant
+
+The contexts that are checked are:
+- pattern-based variable declarations
+- pattern-based for loops
+- assignments with a pattern on the left-hand side
+
+#### Example
+
+The following code produces this diagnostic because the null-check
+pattern, which is a refutable pattern, is in a pattern-based variable
+declaration, which doesn't allow refutable patterns:
+
+{% prettify dart tag=pre+code %}
+void f(int? x) {
+  var ([!_?!]) = x;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Rewrite the code to not use a refutable pattern in an irrefutable context.
+
+### relational_pattern_operand_type_not_assignable
+
+_The constant expression type '{0}' is not assignable to the parameter type
+'{1}' of the '{2}' operator._
+
+#### Description
+
+The analyzer produces this diagnostic when the operand of a relational
+pattern has a type that isn't assignable to the parameter of the operator
+that will be invoked.
+
+#### Example
+
+The following code produces this diagnostic because the operand in the
+relational pattern (`0`) is an `int`, but the `>` operator defined in `C`
+expects an object of type `C`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  bool operator >(C other) => true;
+}
+
+void f(C c) {
+  switch (c) {
+    case > [!0!]:
+      print('positive');
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the switch is using the correct value, then change the case to compare
+the value to the right type of object:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  bool operator >(C other) => true;
+}
+
+void f(C c) {
+  switch (c) {
+    case > const C():
+      print('positive');
+  }
+}
+{% endprettify %}
+
+If the switch is using the wrong value, then change the expression used to
+compute the value being matched:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  bool operator >(C other) => true;
+
+  int get toInt => 0;
+}
+
+void f(C c) {
+  switch (c.toInt) {
+    case > 0:
+      print('positive');
+  }
+}
+{% endprettify %}
+
+### relational_pattern_operator_return_type_not_assignable_to_bool
+
+_The return type of operators used in relational patterns must be assignable to
+'bool'._
+
+#### Description
+
+The analyzer produces this diagnostic when a relational pattern references
+an operator that doesn't produce a value of type `bool`.
+
+#### Example
+
+The following code produces this diagnostic because the operator `>`, used
+in the relational pattern `> c2`, returns a value of type `int` rather
+than a `bool`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  int operator >(C c) => 3;
+
+  bool operator <(C c) => false;
+}
+
+const C c2 = C();
+
+void f(C c1) {
+  if (c1 case [!>!] c2) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If there's a different operator that should be used, then change the
+operator:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  int operator >(C c) => 3;
+
+  bool operator <(C c) => false;
+}
+
+const C c2 = C();
+
+void f(C c1) {
+  if (c1 case < c2) {}
+}
+{% endprettify %}
+
+If the operator is expected to return `bool`, then update the declaration
+of the operator:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  bool operator >(C c) => true;
+
+  bool operator <(C c) => false;
+}
+
+const C c2 = C();
+
+void f(C c1) {
+  if (c1 case > c2) {}
+}
+{% endprettify %}
+
+### rest_element_in_map_pattern
+
+_A map pattern can't contain a rest pattern._
+
+#### Description
+
+The analyzer produces this diagnostic when a map pattern contains a rest
+pattern. The matching for map patterns already allows the map to have
+more keys than those explicitly given in the pattern, so a rest pattern
+wouldn't add anything.
+
+#### Example
+
+The following code produces this diagnostic because there's a rest
+pattern in a map pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Map<int, String> x) {
+  if (x case {0: _, [!...!]}) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the rest pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Map<int, String> x) {
+  if (x case {0: _}) {}
 }
 {% endprettify %}
 
@@ -16665,7 +18623,7 @@ type with three nested arrays, but only two dimensions are given in the
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   [!@Array(8, 8)!]
   external Array<Array<Array<Uint8>>> a0;
 }
@@ -16679,7 +18637,7 @@ required number of dimensions:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Array(8, 8, 4)
   external Array<Array<Array<Uint8>>> a0;
 }
@@ -16690,7 +18648,7 @@ If the type of the field is wrong, then fix the type of the field:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Array(8, 8)
   external Array<Array<Uint8>> a0;
 }
@@ -16749,6 +18707,40 @@ class C {
 int f(C c) => c.b;
 {% endprettify %}
 
+### subtype_of_base_or_final_is_not_base_final_or_sealed
+
+_The type '{0}' must be 'base', 'final' or 'sealed' because the supertype '{1}'
+is 'base'._
+
+_The type '{0}' must be 'base', 'final' or 'sealed' because the supertype '{1}'
+is 'final'._
+
+#### Description
+
+The analyzer produces this diagnostic when a class or mixin has a direct
+or indirect supertype that is either `base` or `final`, but the class or
+mixin itself isn't marked either `base`, `final`, or `sealed`.
+
+#### Example
+
+The following code produces this diagnostic because the class `B` is a
+subtype of `A`, and `A` is a `base` class, but `B` is neither `base`,
+`final` or `sealed`:
+
+{% prettify dart tag=pre+code %}
+base class A {}
+class [!B!] extends A {}
+{% endprettify %}
+
+#### Common fixes
+
+Add either `base`, `final` or `sealed` to the class or mixin declaration:
+
+{% prettify dart tag=pre+code %}
+base class A {}
+final class B extends A {}
+{% endprettify %}
+
 ### subtype_of_deferred_class
 
 _Classes and mixins can't implement deferred classes._
@@ -16765,12 +18757,12 @@ The supertypes of a type must be compiled at the same time as the type, and
 classes from deferred libraries aren't compiled until the library is
 loaded.
 
-For more information, see the language tour's coverage of
-[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
 #### Example
 
-Given a file (`a.dart`) that defines the class `A`:
+Given a file `a.dart` that defines the class `A`:
 
 {% prettify dart tag=pre+code %}
 class A {}
@@ -16884,7 +18876,7 @@ The following code produces this diagnostic because the class `C` extends
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends [!Double!] {}
+final class C extends [!Double!] {}
 {% endprettify %}
 
 #### Common fixes
@@ -16895,7 +18887,7 @@ declaration of the class:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Int32()
   external int i;
 }
@@ -16905,7 +18897,7 @@ If the class shouldn't extend either `Struct` or `Union`, then remove any
 references to FFI classes:
 
 {% prettify dart tag=pre+code %}
-class C {}
+final class C {}
 {% endprettify %}
 
 ### subtype_of_sealed_class
@@ -16986,11 +18978,11 @@ The following code produces this diagnostic because the class `C` extends
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class S extends Struct {
+final class S extends Struct {
   external Pointer f;
 }
 
-class C extends [!S!] {
+final class C extends [!S!] {
   external Pointer g;
 }
 {% endprettify %}
@@ -17004,11 +18996,11 @@ directly and copy the shared fields:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class S extends Struct {
+final class S extends Struct {
   external Pointer f;
 }
 
-class C extends Struct {
+final class C extends Struct {
   external Pointer f;
 
   external Pointer g;
@@ -17651,7 +19643,7 @@ void f(String? s) {
 
 #### Common fixes
 
-Add an explicit null check to the expression:
+Add an explicit null-check to the expression:
 
 {% prettify dart tag=pre+code %}
 void f(String? s) {
@@ -17745,8 +19737,8 @@ variable declaration, or the type used in a cast (`as`) or type test (`is`)
 is a type declared in a library that is imported using a deferred import.
 These types are required to be available at compile time, but aren't.
 
-For more information, see the language tour's coverage of
-[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+For more information, check out
+[Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
 
 #### Example
 
@@ -19321,13 +21313,13 @@ library are also visible through another import.
 
 #### Example
 
-Given a file named `a.dart` that contains the following:
+Given a file `a.dart` that contains the following:
 
 {% prettify dart tag=pre+code %}
 class A {}
 {% endprettify %}
 
-And, given a file named `b.dart` that contains the following:
+And, given a file `b.dart` that contains the following:
 
 {% prettify dart tag=pre+code %}
 export 'a.dart';
@@ -19353,6 +21345,43 @@ If the import isn't needed, then remove it.
 If some of the names imported by this import are intended to be used but
 aren't yet, and if those names aren't imported by other imports, then add
 the missing references to those names.
+
+### unnecessary_nan_comparison
+
+_A double can't equal 'double.nan', so the condition is always 'false'._
+
+_A double can't equal 'double.nan', so the condition is always 'true'._
+
+#### Description
+
+The analyzer produces this diagnostic when a value is compared to
+`double.nan` using either `==` or `!=`.
+
+Dart follows the [IEEE 754] floating-point standard for the semantics of
+floating point operations, which states that, for any floating point value
+`x` (including NaN, positive infinity, and negative infinity),
+- `NaN == x` is always false
+- `NaN != x` is always true
+
+As a result, comparing any value to NaN is pointless because the result is
+already known (based on the comparison operator being used).
+
+#### Example
+
+The following code produces this diagnostic because `d` is being compared
+to `double.nan`:
+
+{% prettify dart tag=pre+code %}
+bool isNaN(double d) => d [!== double.nan!];
+{% endprettify %}
+
+#### Common fixes
+
+Use the getter `double.isNaN` instead:
+
+{% prettify dart tag=pre+code %}
+bool isNaN(double d) => d.isNaN;
+{% endprettify %}
 
 ### unnecessary_non_null_assertion
 
@@ -19431,11 +21460,73 @@ class A {
 class B extends A {}
 {% endprettify %}
 
+### unnecessary_null_assert_pattern
+
+_The null-assert pattern will have no effect because the matched type isn't
+nullable._
+
+#### Description
+
+The analyzer produces this diagnostic when a null-assert pattern is used
+to match a value that isn't nullable.
+
+#### Example
+
+The following code produces this diagnostic because the variable `x` isn't
+nullable:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  if (x case var a[!!!] when a > 0) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the null-assert pattern:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  if (x case var a when a > 0) {}
+}
+{% endprettify %}
+
+### unnecessary_null_check_pattern
+
+_The null-check pattern will have no effect because the matched type isn't
+nullable._
+
+#### Description
+
+The analyzer produces this diagnostic when a null-check pattern is used to
+match a value that isn't nullable.
+
+#### Example
+
+The following code produces this diagnostic because the value `x` isn't
+nullable:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  if (x case var a[!?!] when a > 0) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the null-check pattern:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  if (x case var a when a > 0) {}
+}
+{% endprettify %}
+
 ### unnecessary_null_comparison
 
-_The operand can't be null, so the condition is always false._
+_The operand can't be null, so the condition is always 'false'._
 
-_The operand can't be null, so the condition is always true._
+_The operand can't be null, so the condition is always 'true'._
 
 #### Description
 
@@ -19514,6 +21605,47 @@ Remove the unneeded question mark:
 
 {% prettify dart tag=pre+code %}
 dynamic x;
+{% endprettify %}
+
+### unnecessary_set_literal
+
+_Braces unnecessarily wrap this expression in a set literal._
+
+#### Description
+
+The analyzer produces this diagnostic when a function that has a return
+type of `void`, `Future<void>`, or `FutureOr<void>` uses an expression
+function body (`=>`) and the returned value is a literal set containing a
+single element.
+
+Although the language allows it, returning a value from a `void` function
+isn't useful because it can't be used at the call site. In this particular
+case the return is often due to a misunderstanding about the syntax. The
+braces aren't necessary and can be removed.
+
+#### Example
+
+The following code produces this diagnostic because the closure being
+passed to `g` has a return type of `void`, but is returning a set:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  g(() => [!{1}!]);
+}
+
+void g(void Function() p) {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the braces from around the value:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  g(() => 1);
+}
+
+void g(void Function() p) {}
 {% endprettify %}
 
 ### unnecessary_type_check
@@ -19653,6 +21785,47 @@ extension E on C {
   }
 
   void m() {}
+}
+{% endprettify %}
+
+### unreachable_switch_case
+
+_This case is covered by the previous cases._
+
+#### Description
+
+The analyzer produces this diagnostic when a `case` clause in a `switch`
+statement doesn't match anything because all of the matchable values are
+matched by an earlier `case` clause.
+
+#### Example
+
+The following code produces this diagnostic because the value `1` was
+matched in the preceeding case:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  switch (x) {
+    case 1:
+      print('one');
+    [!case!] 1:
+      print('two');
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change one or both of the conflicting cases to match different values:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  switch (x) {
+    case 1:
+      print('one');
+    case 2:
+      print('two');
+  }
 }
 {% endprettify %}
 
@@ -20209,6 +22382,39 @@ Change the name of the conflicting member:
 enum E {
   v;
   void getValues() {}
+}
+{% endprettify %}
+
+### variable_pattern_keyword_in_declaration_context
+
+_Variable patterns in declaration context can't specify 'var' or 'final'
+keyword._
+
+#### Description
+
+The analyzer produces this diagnostic when a variable pattern is used
+within a declaration context.
+
+#### Example
+
+The following code produces this diagnostic because the variable patterns
+in the record pattern are in a declaration context:
+
+{% prettify dart tag=pre+code %}
+void f((int, int) r) {
+  var ([!var!] x, y) = r;
+  print(x + y);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the `var` or `final` keyword(s) within the variable pattern:
+
+{% prettify dart tag=pre+code %}
+void f((int, int) r) {
+  var (x, y) = r;
+  print(x + y);
 }
 {% endprettify %}
 

@@ -29,7 +29,8 @@ fi
 bin/flutter update-packages
 
 # Analyze the flutter/flutter source code.
-$dart --enable-asserts dev/bots/analyze.dart --dart-sdk $sdk
+$dart --enable-asserts dev/bots/analyze.dart --suppress-analytics --dart-sdk \
+  $sdk
 
 # Test flutter's use of data-driven fixes.
-$dart fix packages/flutter/test_fixes --compare-to-golden
+$dart fix --suppress-analytics packages/flutter/test_fixes --compare-to-golden

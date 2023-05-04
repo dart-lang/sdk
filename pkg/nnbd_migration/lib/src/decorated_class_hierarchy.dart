@@ -31,6 +31,17 @@ class DecoratedClassHierarchy {
   /// If the [type] is a [TypeParameterType], it will be resolved against its
   /// bound.
   DecoratedType asInstanceOf(DecoratedType type, InterfaceElement? superclass) {
+    if (superclass != null &&
+        superclass.thisType.isDartAsyncFutureOr &&
+        !type.type!.isDartAsyncFuture &&
+        !type.type!.isDartAsyncFutureOr) {
+      return DecoratedType(
+          superclass.instantiate(
+              typeArguments: [type.type!],
+              nullabilitySuffix: NullabilitySuffix.none),
+          type.node,
+          typeArguments: [type]);
+    }
     type = _getInterfaceType(type);
     var typeType = type.type as InterfaceType;
     var class_ = typeType.element;

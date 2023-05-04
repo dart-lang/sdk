@@ -112,7 +112,7 @@ extension YamlMapExtensions on YamlMap {
   /// Return the [YamlNode] associated with the given [key], or `null` if there
   /// is no matching key.
   YamlNode? getKey(String key) {
-    for (YamlNode k in nodes.keys) {
+    for (var k in nodes.keys.cast<YamlNode>()) {
       if (k is YamlScalar && k.value == key) {
         return k;
       }
@@ -125,7 +125,7 @@ extension YamlMapExtensions on YamlMap {
   YamlNode? keyAtValue(YamlNode value) {
     for (var entry in nodes.entries) {
       if (entry.value == value) {
-        return entry.key;
+        return entry.key as YamlNode?;
       }
     }
     return null;
@@ -141,4 +141,8 @@ extension YamlMapExtensions on YamlMap {
     }
     return null;
   }
+}
+
+extension YamlNodeExtension on YamlNode {
+  Object get valueOrThrow => value as Object;
 }

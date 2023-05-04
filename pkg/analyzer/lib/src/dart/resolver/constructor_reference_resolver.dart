@@ -25,7 +25,7 @@ class ConstructorReferenceResolver {
       // Only report this if [node] has no explicit type arguments; otherwise
       // the parser has already reported an error.
       _resolver.errorReporter.reportErrorForNode(
-          HintCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
+          WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
     }
     node.constructorName.accept(_resolver);
     var element = node.constructorName.staticElement;

@@ -1,12 +1,11 @@
-// @dart = 2.9
 abstract class I {
   void foo();
-}
-
-class A implements I {
-  dynamic noSuchMethod(Invocation i) => null;
 }
 
 class B extends Object with A {}
 
 main() {}
+
+mixin class A implements I {
+  dynamic noSuchMethod(Invocation i) => null;
+}

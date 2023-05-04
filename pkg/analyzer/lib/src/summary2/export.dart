@@ -6,6 +6,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class Export {
   final LibraryBuilder exporter;
@@ -32,6 +33,9 @@ class ExportedReference {
   ExportedReference({
     required this.reference,
   });
+
+  /// We are done updating this object, returns the immutable version.
+  ExportedReference toFinalized() => this;
 
   @override
   String toString() {
@@ -60,6 +64,14 @@ class ExportedReferenceExported extends ExportedReference {
     if (!locations.contains(location)) {
       locations.add(location);
     }
+  }
+
+  @override
+  ExportedReference toFinalized() {
+    return ExportedReferenceExported(
+      reference: reference,
+      locations: locations.toFixedList(),
+    );
   }
 }
 
@@ -131,5 +143,11 @@ class ExportScope {
 
   void forEach(void Function(String name, ExportedReference reference) f) {
     map.forEach(f);
+  }
+
+  List<ExportedReference> toReferences() {
+    return map.values.map((reference) {
+      return reference.toFinalized();
+    }).toFixedList();
   }
 }

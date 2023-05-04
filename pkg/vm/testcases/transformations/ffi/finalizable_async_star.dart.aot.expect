@@ -17,19 +17,19 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
 static method useFinalizableAsyncStar([@vm.inferred-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → asy::Stream<core::int> async* {
   final self::MyFinalizable finalizable2 = new self::MyFinalizable::•();
   yield block {
-    final core::int :expressionValueWrappedFinalizable = self::doSomething();
+    final synthesized core::int :expressionValueWrappedFinalizable = self::doSomething();
     _in::reachabilityFence(finalizable);
     _in::reachabilityFence(finalizable2);
   } =>:expressionValueWrappedFinalizable;
   final self::MyFinalizable finalizable3 = new self::MyFinalizable::•();
   await block {
-    final asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 3);
+    final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 3);
     _in::reachabilityFence(finalizable);
     _in::reachabilityFence(finalizable2);
     _in::reachabilityFence(finalizable3);
   } =>:expressionValueWrappedFinalizable;
   final self::MyFinalizable finalizable4 = new self::MyFinalizable::•();
-  if([@vm.inferred-type.metadata=dart.core::bool] [@vm.direct-call.metadata=dart.core::DateTime.millisecondsSinceEpoch] [@vm.inferred-type.metadata=int] new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 4) {
+  if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::DateTime.millisecondsSinceEpoch] [@vm.inferred-type.metadata=int] new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 4) {
     {
       _in::reachabilityFence(finalizable);
       _in::reachabilityFence(finalizable2);
@@ -39,7 +39,7 @@ static method useFinalizableAsyncStar([@vm.inferred-type.metadata=#lib::MyFinali
     }
   }
   yield block {
-    final core::int :expressionValueWrappedFinalizable = 5;
+    final synthesized core::int :expressionValueWrappedFinalizable = 5;
     _in::reachabilityFence(finalizable);
     _in::reachabilityFence(finalizable2);
     _in::reachabilityFence(finalizable3);
@@ -54,11 +54,11 @@ static method main() → void async /* futureValueType= void */ {
   final self::MyFinalizable finalizable = new self::MyFinalizable::•();
   final asy::Stream<core::int> asyncStarResult = [@vm.inferred-type.metadata=!] self::useFinalizableAsyncStar(finalizable);
   {
-    asy::Stream<core::int> :stream = asyncStarResult;
-    asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+    synthesized asy::Stream<core::int> :stream = asyncStarResult;
+    synthesized asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
     try
       while (let dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream) in await [@vm.direct-call.metadata=dart.async::_StreamIterator.moveNext] [@vm.inferred-type.metadata=!? (skip check)] :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
-        final core::int element = [@vm.direct-call.metadata=dart.async::_StreamIterator.current] [@vm.inferred-type.metadata=int?] :for-iterator.{asy::_StreamIterator::current}{core::int};
+        final core::int element = [@vm.direct-call.metadata=dart.async::_StreamIterator.current] [@vm.inferred-type.metadata=int] :for-iterator.{asy::_StreamIterator::current}{core::int};
         {
           core::print(element);
         }

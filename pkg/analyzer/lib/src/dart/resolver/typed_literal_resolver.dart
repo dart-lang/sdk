@@ -108,7 +108,7 @@ class TypedLiteralResolver {
     } else {
       inferrer = _inferListTypeDownwards(node, contextType: contextType);
       if (contextType is! UnknownInferredType) {
-        var typeArguments = inferrer.partialInfer();
+        var typeArguments = inferrer.choosePreliminaryTypes();
         listType = _typeProvider.listElement.instantiate(
             typeArguments: typeArguments, nullabilitySuffix: _noneOrStarSuffix);
       }
@@ -142,7 +142,7 @@ class TypedLiteralResolver {
       } else {
         inferrer = _inferSetTypeDownwards(node, literalResolution.contextType);
         if (literalResolution.contextType != null) {
-          var typeArguments = inferrer.partialInfer();
+          var typeArguments = inferrer.choosePreliminaryTypes();
           literalType = _typeProvider.setElement.instantiate(
               typeArguments: typeArguments,
               nullabilitySuffix: _noneOrStarSuffix);
@@ -156,7 +156,7 @@ class TypedLiteralResolver {
       } else {
         inferrer = _inferMapTypeDownwards(node, literalResolution.contextType);
         if (literalResolution.contextType != null) {
-          var typeArguments = inferrer.partialInfer();
+          var typeArguments = inferrer.choosePreliminaryTypes();
           literalType = _typeProvider.mapElement.instantiate(
               typeArguments: typeArguments,
               nullabilitySuffix: _noneOrStarSuffix);
@@ -494,12 +494,12 @@ class TypedLiteralResolver {
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
       _errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, node, ['List']);
+          WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, node, ['List']);
     }
 
     inferrer.constrainArguments(
         parameters: parameters, argumentTypes: elementTypes);
-    var typeArguments = inferrer.upwardsInfer();
+    var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: _noneOrStarSuffix,
@@ -624,7 +624,7 @@ class TypedLiteralResolver {
         elementType = typeArguments[0].typeOrThrow;
       }
       node.staticType = _typeProvider.listElement.instantiate(
-        typeArguments: [elementType],
+        typeArguments: fixedTypeList(elementType),
         nullabilitySuffix: _noneOrStarSuffix,
       );
       return;
@@ -660,7 +660,7 @@ class TypedLiteralResolver {
         node.becomeSet();
         var elementType = typeArguments[0].typeOrThrow;
         node.staticType = _typeProvider.setElement.instantiate(
-          typeArguments: [elementType],
+          typeArguments: fixedTypeList(elementType),
           nullabilitySuffix: _noneOrStarSuffix,
         );
         return;
@@ -669,7 +669,7 @@ class TypedLiteralResolver {
         var keyType = typeArguments[0].typeOrThrow;
         var valueType = typeArguments[1].typeOrThrow;
         node.staticType = _typeProvider.mapElement.instantiate(
-          typeArguments: [keyType, valueType],
+          typeArguments: fixedTypeList(keyType, valueType),
           nullabilitySuffix: _noneOrStarSuffix,
         );
         return;
@@ -697,7 +697,7 @@ class TypedLiteralResolver {
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
       _errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
+          WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
           node,
           [node.isMap ? 'Map' : 'Set']);
     }
@@ -742,7 +742,7 @@ class TypedLiteralResolver {
       parameters: parameters,
       argumentTypes: argumentTypes,
     );
-    var typeArguments = inferrer.upwardsInfer();
+    var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: _noneOrStarSuffix,
@@ -776,7 +776,7 @@ class TypedLiteralResolver {
     }
     inferrer.constrainArguments(
         parameters: parameters, argumentTypes: argumentTypes);
-    var typeArguments = inferrer.upwardsInfer();
+    var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
         typeArguments: typeArguments, nullabilitySuffix: _noneOrStarSuffix);
   }

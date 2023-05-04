@@ -127,6 +127,16 @@ const simpleBreakpointProgram = '''
   }
 ''';
 
+/// A simple Dart script that should run with no errors and contains a comment
+/// marker '// BREAKPOINT' on a blank line where a breakpoint should be resolved
+/// to the next line.
+const simpleBreakpointResolutionProgram = '''
+  void main(List<String> args) async {
+    $breakpointMarker
+    print('Hello!');
+  }
+''';
+
 /// A simple Dart script that has a blank line before its breakpoint, used to
 /// ensure breakpoints that resolve to the same place are handled correctly.
 const simpleBreakpointWithLeadingBlankLineProgram = '''
@@ -184,7 +194,7 @@ final simpleTestProgramExpectedOutput = [
   'Expected: <2>',
   '  Actual: <1>',
   // These lines contain paths, so just check the non-path parts.
-  allOf(startsWith('package:test_api'), endsWith('expect')),
+  allOf(startsWith('package:matcher'), endsWith('expect')),
   endsWith('main.<fn>.<fn>'),
   '✖ group 1 failing test',
   // Exit
@@ -196,6 +206,42 @@ final simpleTestProgramExpectedOutput = [
 const simpleThrowingProgram = r'''
   void main(List<String> args) async {
     throw Exception('error text');
+  }
+''';
+
+/// A simple Dart script that sends a `navigate` event to the `ToolEvent`
+/// stream.
+const simpleToolEventProgram = r'''
+  import 'dart:developer';
+
+  void main(List<String> args) async {
+    postEvent(
+      'navigate',
+      {
+        'uri': 'file:///file.dart',
+      },
+      stream: 'ToolEvent',
+    );
+  }
+''';
+
+/// A simple Dart script that sends a `navigate` event to the `ToolEvent`
+/// stream using a dart:core URI.
+const simpleToolEventWithDartCoreUriProgram = r'''
+  import 'dart:developer';
+
+  void main(List<String> args) async {
+    postEvent(
+      'navigate',
+      {
+        'uri': 'dart:core',
+      },
+      stream: 'ToolEvent',
+    );
+    // resolving postEvent URIs is async, so we need to ensure the program
+    // does not immediately terminate. The test script should terminate it when
+    // it has had the event.
+    await Future.delayed(const Duration(seconds: 10));
   }
 ''';
 

@@ -27,6 +27,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
             parent,
             extension.fileOffset,
             new Scope(
+                kind: ScopeKind.declaration,
                 local: <String, MemberBuilder>{},
                 setters: <String, MemberBuilder>{},
                 parent: parent.scope,

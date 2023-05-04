@@ -7,7 +7,7 @@
 
 import "package:expect/expect.dart";
 
-class C {
+mixin C {
   int x = -1;
   int get y => x;
 }

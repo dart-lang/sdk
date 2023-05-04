@@ -3,7 +3,7 @@ name: analysis_server
 publish_to: none
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
@@ -22,8 +22,11 @@ dependencies:
   stream_channel: any
   telemetry: any
   test: any
+  unified_analytics: any
+  vm_service: any
   watcher: any
   yaml: any
+  yaml_edit: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
@@ -32,4 +35,5 @@ dev_dependencies:
   lints: any
   logging: any
   matcher: any
+  test_descriptor: any
   test_reflective_loader: any

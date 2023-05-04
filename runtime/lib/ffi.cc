@@ -74,88 +74,35 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
 CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA)
 #undef DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA
 
-DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-  // Calls to this function are removed by the flow-graph builder in AOT.
-  // See StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction().
-  UNREACHABLE();
-#else
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Closure, closure, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, exceptional_return,
-                               arguments->NativeArgAt(1));
-
-  ASSERT(type_arg.IsInstantiated() && type_arg.IsFunctionType());
-  const FunctionType& native_signature = FunctionType::Cast(type_arg);
-  Function& func = Function::Handle(zone, closure.function());
-
-  // The FE verifies that the target of a 'fromFunction' is a static method, so
-  // the value we see here must be a static tearoff. See ffi_use_sites.dart for
-  // details.
-  //
-  // TODO(36748): Define hot-reload semantics of native callbacks. We may need
-  // to look up the target by name.
-  ASSERT(func.IsImplicitClosureFunction());
-  func = func.parent_function();
-  ASSERT(func.is_static());
-
-  // AbiSpecificTypes can have an incomplete mapping.
-  const char* error = nullptr;
-  compiler::ffi::NativeFunctionTypeFromFunctionType(zone, native_signature,
-                                                    &error);
-  if (error != nullptr) {
-    Exceptions::ThrowCompileTimeError(LanguageError::Handle(
-        zone, LanguageError::New(String::Handle(zone, String::New(error)))));
-  }
-
-  // We are returning an object which is not an Instance here. This is only OK
-  // because we know that the result will be passed directly to
-  // _pointerFromFunction and will not leak out into user code.
-  arguments->SetReturn(
-      Function::Handle(zone, compiler::ffi::NativeCallbackFunction(
-                                 native_signature, func, exceptional_return,
-                                 /*register_function=*/false)));
-
-  // Because we have already set the return value.
-  return Object::sentinel().ptr();
-#endif
-}
-
 DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
-  const Function& function =
-      Function::CheckedHandle(zone, arguments->NativeArg0());
-
-  Code& code = Code::Handle(zone);
-
-#if defined(DART_PRECOMPILED_RUNTIME)
-  code = function.CurrentCode();
-#else
-  // We compile the callback immediately because we need to return a pointer to
-  // the entry-point. Native calls do not use patching like Dart calls, so we
-  // cannot compile it lazily.
-  const Object& result = Object::Handle(
-      zone, Compiler::CompileOptimizedFunction(thread, function));
-  if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-  }
-  ASSERT(result.IsCode());
-  code ^= result.ptr();
-#endif
-
+  const auto& function = Function::CheckedHandle(zone, arguments->NativeArg0());
+  const auto& code =
+      Code::Handle(zone, FLAG_precompiled_mode ? function.CurrentCode()
+                                               : function.EnsureHasCode());
   ASSERT(!code.IsNull());
-  thread->SetFfiCallbackCode(function.FfiCallbackId(), code);
 
-#ifdef TARGET_ARCH_IA32
+#if defined(TARGET_ARCH_IA32)
   // On ia32, store the stack delta that we need to use when returning.
   const intptr_t stack_return_delta =
       function.FfiCSignatureReturnsStruct() && CallingConventions::kUsesRet4
           ? compiler::target::kWordSize
           : 0;
-  thread->SetFfiCallbackStackReturn(function.FfiCallbackId(),
-                                    stack_return_delta);
+#else
+  const intptr_t stack_return_delta = 0;
 #endif
+  thread->SetFfiCallbackCode(function, code, stack_return_delta);
 
   uword entry_point = code.EntryPoint();
+
+  // In JIT we use one more indirection:
+  //   * AOT: Native -> Ffi Trampoline -> Dart function
+  //   * JIT: Native -> Jit trampoline -> Ffi Trampoline -> Dart function
+  //
+  // We do that since ffi trampoline code lives in Dart heap. During GC we can
+  // flip page protections from RX to RW to GC JITed code. During that time
+  // machine code on such pages cannot be executed. Native code therefore has to
+  // perform the safepoint transition before executing code in Dart heap (which
+  // is why we use the jit trampoline).
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (NativeCallbackTrampolines::Enabled()) {
     entry_point = isolate->native_callback_trampolines()->TrampolineForId(

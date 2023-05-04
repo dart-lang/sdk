@@ -7,11 +7,11 @@
 
 import "package:expect/expect.dart";
 
-abstract class Mixin1 {
+mixin Mixin1 {
   var mixin1Field = 1;
 }
 
-abstract class Mixin2 {
+mixin Mixin2 {
   var mixin2Field = 2;
 }
 

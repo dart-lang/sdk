@@ -34,5 +34,5 @@ static final field _la::_Cell _#MyInt|a = new _la::_Cell::named("MyInt|a");
 late static field core::int MyInt|b = 42;
 static get MyInt|a() → core::int
   return mai::_#MyInt|a.{_la::_Cell::readField}<core::int>(){() → core::int};
-static set MyInt|a(core::int value) → void
+static set MyInt|a(synthesized core::int value) → void
   return mai::_#MyInt|a.{_la::_Cell::value} = value;

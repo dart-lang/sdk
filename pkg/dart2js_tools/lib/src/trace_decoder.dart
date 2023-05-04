@@ -4,11 +4,13 @@
 
 /// Logic to expand and deobfuscate stack traces.
 
-import 'package:stack_trace/stack_trace.dart';
-import 'package:source_span/source_span.dart';
+// ignore: implementation_imports
 import 'package:source_maps/src/utils.dart';
-import 'sourcemap_helper.dart';
+import 'package:source_span/source_span.dart';
+import 'package:stack_trace/stack_trace.dart';
+
 import 'dart2js_mapping.dart';
+import 'sourcemap_helper.dart';
 import 'util.dart';
 
 /// Provides the result of deobfuscating a stack trace.
@@ -61,7 +63,7 @@ StackDeobfuscationResult deobfuscateStack(
 
     SourceFile jsFile = provider.fileFor(frame.uri);
     int offset = jsFile.getOffset(frameLine - 1, column - 1);
-    String nameOf(id) =>
+    String nameOf(int id) =>
         _normalizeName(id >= 0 ? mapping.sourceMap.names[id] : null);
 
     Uri? fileName = span.sourceUrl;
@@ -75,7 +77,7 @@ StackDeobfuscationResult deobfuscateStack(
     // inlined all the code into.
     Map<int, List<FrameEntry>> frames = mapping.frames;
     List<int> index = mapping.frameIndex;
-    int key = binarySearch(index, (i) => i > offset) - 1;
+    int key = binarySearch<int>(index, (i) => i > offset) - 1;
     int depth = 0;
     outer:
     while (key >= 0) {
@@ -83,8 +85,8 @@ StackDeobfuscationResult deobfuscateStack(
         if (frame.isEmpty) break outer;
         if (frame.isPush) {
           if (depth <= 0) {
-            mappedFrames.add(new Frame(fileName!, targetLine, targetColumn,
-                _normalizeName(frame.inlinedMethodName) + "(inlined)"));
+            mappedFrames.add(Frame(fileName!, targetLine, targetColumn,
+                "${_normalizeName(frame.inlinedMethodName)}(inlined)"));
             fileName = Uri.parse(frame.callUri!);
             targetLine = (frame.callLine ?? 0) + 1;
             targetColumn = (frame.callColumn ?? 0) + 1;
@@ -101,12 +103,10 @@ StackDeobfuscationResult deobfuscateStack(
 
     var functionEntry = findEnclosingFunction(provider, frame.uri, offset);
     String methodName = nameOf(functionEntry?.sourceNameId ?? -1);
-    mappedFrames
-        .add(new Frame(fileName!, targetLine, targetColumn, methodName));
+    mappedFrames.add(Frame(fileName!, targetLine, targetColumn, methodName));
     deobfuscatedFrames.addAll(mappedFrames);
   }
-  return new StackDeobfuscationResult(
-      trace, new Trace(deobfuscatedFrames), frameMap);
+  return StackDeobfuscationResult(trace, Trace(deobfuscatedFrames), frameMap);
 }
 
 /// Ensure we don't use spaces in method names. At this time, they are only

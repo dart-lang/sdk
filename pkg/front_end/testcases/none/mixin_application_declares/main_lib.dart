@@ -6,7 +6,7 @@ class SuperClass {
   void method(covariant int i) {}
 }
 
-class Mixin {
+mixin Mixin {
   void method(num i) {}
 }
 

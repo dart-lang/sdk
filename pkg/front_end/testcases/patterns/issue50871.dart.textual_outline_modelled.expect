@@ -1,0 +1,3 @@
+String test(Symbol value) {}
+expect(expected, actual) {}
+main() {}

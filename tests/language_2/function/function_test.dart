@@ -206,7 +206,7 @@ class FunctionTest {
   }
 
   void testLexicalClosureRef3() {
-    var a = new List();
+    var a = [];
     for (int i = 0; i < 10; i++) {
       var x = i;
       a.add(() {
@@ -240,7 +240,7 @@ class FunctionTest {
 
   // Make sure labels are preserved, and a second 'i' does influence the first.
   void testLexicalClosureRef4() {
-    var a = new List();
+    var a = [];
     x:
     for (int i = 0; i < 10; i++) {
       a.add(() {

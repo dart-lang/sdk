@@ -91,12 +91,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   Extension? currentExtension;
 
-  View? currentView;
+  InlineClass? currentInlineClass;
 
   TreeNode? currentParent;
 
   TreeNode? get currentClassOrExtensionOrMember =>
-      currentMember ?? currentClass ?? currentExtension ?? currentView;
+      currentMember ?? currentClass ?? currentExtension ?? currentInlineClass;
 
   static void check(Component component,
       {bool? isOutline,
@@ -278,14 +278,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitView(View node) {
-    currentView = node;
+  void visitInlineClass(InlineClass node) {
+    currentInlineClass = node;
     declareTypeParameters(node.typeParameters);
     final TreeNode? oldParent = enterParent(node);
     node.visitChildren(this);
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
-    currentView = null;
+    currentInlineClass = null;
   }
 
   void checkTypedef(Typedef node) {
@@ -406,6 +406,22 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     classTypeParametersAreInScope = false;
     visitList(node.annotations, this);
     exitParent(oldParent);
+    // TODO(johnniwinther): Enable this invariant. Possibly by removing bodies
+    // from external procedures declared with a body or by removing the external
+    // flag from such procedures.
+    /*if (node.isExternal) {
+      if (node.function.body != null) {
+        problem(node, "External procedure has non-null body.");
+      }
+    } else if (node.isAbstract) {
+      if (node.function.body != null) {
+        problem(node, "Abstract procedure has non-null body.");
+      }
+    } else {
+      if (node.function.body == null) {
+        problem(node, "Non-external/abstract procedure has no body.");
+      }
+    }*/
     currentMember = null;
   }
 
@@ -426,6 +442,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     classTypeParametersAreInScope = false;
     visitList(node.annotations, this);
     exitParent(oldParent);
+    // TODO(johnniwinther): Enable this invariant. Possibly by removing bodies
+    // from external constructors declared with a body or by removing the
+    // external flag from such constructors.
+    /*if (node.isExternal) {
+      if (node.function.body != null) {
+        problem(node, "External constructor has non-null body.");
+      }
+    } else {
+      if (node.function.body == null) {
+        problem(node, "Non-external constructor has no body.");
+      }
+    }*/
     classTypeParametersAreInScope = false;
     currentMember = null;
   }

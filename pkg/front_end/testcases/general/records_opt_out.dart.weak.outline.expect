@@ -9,12 +9,12 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/general/records_opt_out.dart:8:14: Error: This requires the experimental 'records' language feature to be enabled.
 // Try passing the '--enable-experiment=records' command line option.
-// int method2([(int, String) record = const (0, '')]) => record.$0;
+// int method2([(int, String) record = const (0, '')]) => record.$1;
 //              ^
 //
 // pkg/front_end/testcases/general/records_opt_out.dart:9:17: Error: This requires the experimental 'records' language feature to be enabled.
 // Try passing the '--enable-experiment=records' command line option.
-// String method3([(int, String) record = const (0, '')]) => record.$1;
+// String method3([(int, String) record = const (0, '')]) => record.$2;
 //                 ^
 //
 // pkg/front_end/testcases/general/records_opt_out.dart:10:1: Error: This requires the experimental 'records' language feature to be enabled.

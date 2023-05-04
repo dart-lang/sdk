@@ -6,6 +6,7 @@
 
 # Dart SDK promote tools.
 
+import json
 import optparse
 import os
 import sys
@@ -14,6 +15,7 @@ import urllib
 import bots.bot_utils as bot_utils
 
 from os.path import join
+from utils import Version
 
 DART_PATH = os.path.abspath(os.path.join(__file__, '..', '..'))
 DRY_RUN = False
@@ -93,6 +95,18 @@ def main():
         _PromoteDartArchiveBuild(options.channel, source, options.revision)
 
 
+def GetLatestRelease(channel):
+    release_namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.RELEASE)
+    version_object = release_namer.version_filepath('latest')
+    global DRY_RUN
+    was_dry = DRY_RUN
+    DRY_RUN = False
+    (stdout, _, _) = Gsutil(['cat', version_object])
+    DRY_RUN = was_dry
+    version = json.loads(stdout)['version']
+    return Version(version=version)
+
+
 def UpdateDocs():
     try:
         print('Updating docs')
@@ -114,7 +128,6 @@ def _PromoteDartArchiveBuild(channel, source_channel, revision):
     release_namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.RELEASE)
 
     def promote(to_revision):
-
         def safety_check_on_gs_path(gs_path, revision, channel):
             if not (revision != None and len(channel) > 0 and
                     ('%s' % revision) in gs_path and channel in gs_path):
@@ -175,17 +188,27 @@ def _PromoteDartArchiveBuild(channel, source_channel, revision):
         # Copy VERSION file.
         from_loc = raw_namer.version_filepath(revision)
         to_loc = release_namer.version_filepath(to_revision)
-        Gsutil(['cp', from_loc, to_loc])
+        # Never cache the latest VERSION file for quick new version detection.
+        no_cache = []
+        if to_revision == 'latest':
+            no_cache = ['-h', 'Cache-Control: no-cache']
+        Gsutil(no_cache + ['cp', from_loc, to_loc])
 
     promote(revision)
-    promote('latest')
+    # Promote to latest unless it's an older version.
+    if GetLatestRelease(channel) <= Version(version=revision):
+        promote('latest')
+    # Promote beta to stable if stable becomes ahead of beta.
+    if channel == 'stable' and \
+       GetLatestRelease('beta') <= Version(version=revision):
+        _PromoteDartArchiveBuild('beta', 'stable', revision)
 
 
 def Gsutil(cmd, throw_on_error=True):
     gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
     command = [sys.executable, gsutilTool] + cmd
     if DRY_RUN:
-        print('DRY runnning: %s' % command)
+        print('DRY running: %s' % command)
         return (None, None, 0)
     return bot_utils.run(command, throw_on_error=throw_on_error)
 

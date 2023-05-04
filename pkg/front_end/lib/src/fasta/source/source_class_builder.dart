@@ -40,21 +40,20 @@ import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
-import '../kernel/combined_member_signature.dart';
+import '../identifiers.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart'
     show RedirectingFactoryBody, redirectingName;
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
-import '../identifiers.dart';
-import '../names.dart' show equalsName, noSuchMethodName;
+import '../names.dart' show equalsName;
 import '../problems.dart' show unexpected, unhandled, unimplemented;
 import '../scope.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
+import 'class_declaration.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
@@ -95,7 +94,7 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
-    implements Comparable<SourceClassBuilder> {
+    implements Comparable<SourceClassBuilder>, ClassDeclaration {
   final Class actualCls;
 
   final List<ConstructorReferenceBuilder>? constructorReferences;
@@ -112,7 +111,19 @@ class SourceClassBuilder extends ClassBuilderImpl
   final bool isSealed;
 
   @override
+  final bool isBase;
+
+  @override
+  final bool isInterface;
+
+  @override
+  final bool isFinal;
+
+  @override
   final bool isAugmentation;
+
+  @override
+  final bool isMixinClass;
 
   @override
   bool isMixinDeclaration;
@@ -156,7 +167,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isMixinDeclaration = false,
       this.isMacro = false,
       this.isSealed = false,
-      this.isAugmentation = false})
+      this.isBase = false,
+      this.isInterface = false,
+      this.isFinal = false,
+      this.isAugmentation = false,
+      this.isMixinClass = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed,
             isAugmentation: isAugmentation),
@@ -221,15 +236,9 @@ class SourceClassBuilder extends ClassBuilderImpl
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
     Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder);
-    if (supertype != null) {
-      Class superclass = supertype.classNode;
-      if (superclass.name == 'Function' &&
-          superclass.enclosingLibrary == coreLibrary.library) {
-        libraryBuilder.addProblem(
-            messageExtendFunction, charOffset, noLength, fileUri);
-        supertype = null;
-        supertypeBuilder = null;
-      }
+    if (_isFunction(supertype, coreLibrary)) {
+      supertype = null;
+      supertypeBuilder = null;
     }
     if (!isMixinDeclaration &&
         actualCls.supertype != null &&
@@ -256,8 +265,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     Supertype? mixedInType =
         mixedInTypeBuilder?.buildMixedInType(libraryBuilder);
     if (_isFunction(mixedInType, coreLibrary)) {
-      libraryBuilder.addProblem(
-          messageMixinFunction, charOffset, noLength, fileUri);
       mixedInType = null;
       mixedInTypeBuilder = null;
       actualCls.isAnonymousMixin = false;
@@ -273,7 +280,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     // compile-time error.
     cls.isAbstract = isAbstract;
     cls.isMacro = isMacro;
+    cls.isMixinClass = isMixinClass;
     cls.isSealed = isSealed;
+    cls.isBase = isBase;
+    cls.isInterface = isInterface;
+    cls.isFinal = isFinal;
+
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);
@@ -281,8 +293,6 @@ class SourceClassBuilder extends ClassBuilderImpl
             interfaceBuilders![i].buildSupertype(libraryBuilder);
         if (supertype != null) {
           if (_isFunction(supertype, coreLibrary)) {
-            libraryBuilder.addProblem(
-                messageImplementFunction, charOffset, noLength, fileUri);
             continue;
           }
           // TODO(ahe): Report an error if supertype is null.
@@ -380,62 +390,32 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  Iterator<Builder> get fullMemberIterator =>
-      new ClassMemberIterator(this, includeDuplicates: false);
+  Iterator<T> fullMemberIterator<T extends Builder>() =>
+      new ClassDeclarationMemberIterator<SourceClassBuilder, T>(
+          const _SourceClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
   @override
-  NameIterator<Builder> get fullMemberNameIterator =>
-      new ClassMemberNameIterator(this, includeDuplicates: false);
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
+      new ClassDeclarationMemberNameIterator<SourceClassBuilder, T>(
+          const _SourceClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
   @override
-  Iterator<MemberBuilder> get fullConstructorIterator =>
-      new ClassConstructorIterator(this, includeDuplicates: false);
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
+      new ClassDeclarationConstructorIterator<SourceClassBuilder, T>(
+          const _SourceClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
   @override
-  NameIterator<MemberBuilder> get fullConstructorNameIterator =>
-      new ClassConstructorNameIterator(this, includeDuplicates: false);
+  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
+      new ClassDeclarationConstructorNameIterator<SourceClassBuilder, T>(
+          const _SourceClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
-  void forEachDeclaredField(
-      void Function(String name, SourceFieldBuilder fieldBuilder) callback) {
-    // Currently, fields can't be patched, but can be injected.  When the fields
-    // will be made available for patching, the following code should iterate
-    // first over the fields from the patch and then -- over the fields in the
-    // original declaration, filtering out the patched fields.  For now, the
-    // assert checks that the names of the fields from the original declaration
-    // and from the patch don't intersect.
-    assert(
-        _patches == null ||
-            _patches!.every((patchClass) => patchClass.scope
-                .filteredIterator<SourceFieldBuilder>(
-                    parent: patchClass,
-                    includeDuplicates: false,
-                    includeAugmentations: false)
-                .toList()
-                .map((b) => b.name)
-                .toSet()
-                .intersection(scope
-                    .filteredIterator<SourceFieldBuilder>(
-                        parent: this,
-                        includeDuplicates: false,
-                        includeAugmentations: false)
-                    .toList()
-                    .map((b) => b.name)
-                    .toSet())
-                .isEmpty),
-        "Detected an attempt to patch a field");
-    new ClassMemberNameIterator<SourceFieldBuilder>(this,
-            includeDuplicates: false)
-        .forEach(callback);
-  }
-
-  void forEachDeclaredConstructor(
-      void Function(
-              String name, DeclaredSourceConstructorBuilder constructorBuilder)
-          callback) {
-    new ClassConstructorNameIterator<DeclaredSourceConstructorBuilder>(this,
-            includeDuplicates: false)
-        .forEach(callback);
-  }
+  @override
+  bool get hasGenerativeConstructor =>
+      fullConstructorNameIterator<SourceConstructorBuilder>().moveNext();
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
@@ -639,6 +619,28 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Moreover, it checks that `FutureOr` and `void` are not among the
     // supertypes and that `Enum` is not implemented by non-abstract classes.
 
+    // Anonymous mixins have to propagate certain class modifiers.
+    if (cls.isAnonymousMixin) {
+      Class? superclass = cls.superclass;
+      Class? mixedInClass = cls.mixedInClass;
+      // If either [superclass] or [mixedInClass] is sealed, the current
+      // anonymous mixin is sealed.
+      if (superclass != null && superclass.isSealed ||
+          mixedInClass != null && mixedInClass.isSealed) {
+        cls.isSealed = true;
+      } else {
+        // Otherwise, if either [superclass] or [mixedInClass] is base or final,
+        // then the current anonymous mixin is final.
+        bool superclassIsBaseOrFinal =
+            superclass != null && (superclass.isBase || superclass.isFinal);
+        bool mixedInClassIsBaseOrFinal = mixedInClass != null &&
+            (mixedInClass.isBase || mixedInClass.isFinal);
+        if (superclassIsBaseOrFinal || mixedInClassIsBaseOrFinal) {
+          cls.isFinal = true;
+        }
+      }
+    }
+
     ClassHierarchyNode classHierarchyNode =
         hierarchyBuilder.getNodeFromClass(cls);
     if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled && !isEnum) {
@@ -813,6 +815,37 @@ class SourceClassBuilder extends ClassBuilderImpl
         superClass = decl;
       }
     }
+    if (cls.isMixinClass) {
+      // Check that the class does not have a constructor.
+      Iterator<SourceMemberBuilder> constructorIterator =
+          fullConstructorIterator<SourceMemberBuilder>();
+      while (constructorIterator.moveNext()) {
+        SourceMemberBuilder constructor = constructorIterator.current;
+        // Assumes the constructor isn't synthetic since
+        // [installSyntheticConstructors] hasn't been called yet.
+        if (constructor is DeclaredSourceConstructorBuilder) {
+          // Report an error if a mixin class has a constructor with parameters,
+          // is external, or is a redirecting constructor.
+          if (constructor.isRedirecting ||
+              (constructor.formals != null &&
+                  constructor.formals!.isNotEmpty) ||
+              constructor.isExternal) {
+            addProblem(
+                templateIllegalMixinDueToConstructors
+                    .withArguments(fullNameForErrors),
+                constructor.charOffset,
+                noLength);
+          }
+        }
+      }
+      // Check that the class has 'Object' as their superclass.
+      if (superClass != null &&
+          superClassType != null &&
+          superClass.cls != objectClass) {
+        addProblem(templateMixinInheritsFromNotObject.withArguments(name),
+            superClassType.charOffset ?? TreeNode.noOffset, noLength);
+      }
+    }
     if (classHierarchyNode.isMixinApplication) {
       assert(mixedInTypeBuilder != null,
           "No mixed in type builder for mixin application $this.");
@@ -904,7 +937,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
       InterfaceType? implementedInterface = hierarchy.getTypeAsInstanceOf(
-          supertype, requiredInterface.classNode, libraryBuilder.library);
+          supertype, requiredInterface.classNode,
+          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
       if (implementedInterface == null ||
           !typeEnvironment.areMutualSubtypes(
               implementedInterface,
@@ -936,9 +970,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    Iterator<SourceFactoryBuilder> iterator =
-        constructorScope.filteredIterator<SourceFactoryBuilder>(
-            parent: this, includeDuplicates: true, includeAugmentations: true);
+    Iterator<SourceFactoryBuilder> iterator = constructorScope.filteredIterator(
+        parent: this, includeDuplicates: true, includeAugmentations: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }
@@ -1100,29 +1133,19 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    Iterator<Builder> memberIterator = fullMemberIterator;
+    Iterator<SourceMemberBuilder> memberIterator =
+        fullMemberIterator<SourceMemberBuilder>();
     while (memberIterator.moveNext()) {
-      Builder builder = memberIterator.current;
-      if (builder is SourceMemberBuilder) {
-        builder.checkVariance(this, typeEnvironment);
-        builder.checkTypes(libraryBuilder, typeEnvironment);
-      } else {
-        assert(
-            false,
-            "Unexpected class member builder $builder "
-            "(${builder.runtimeType})");
-      }
+      SourceMemberBuilder builder = memberIterator.current;
+      builder.checkVariance(this, typeEnvironment);
+      builder.checkTypes(libraryBuilder, typeEnvironment);
     }
 
-    Iterator<MemberBuilder> constructorIterator = fullConstructorIterator;
+    Iterator<SourceMemberBuilder> constructorIterator =
+        fullConstructorIterator<SourceMemberBuilder>();
     while (constructorIterator.moveNext()) {
-      MemberBuilder builder = constructorIterator.current;
-      if (builder is SourceMemberBuilder) {
-        builder.checkTypes(libraryBuilder, typeEnvironment);
-      } else {
-        assert(false,
-            "Unexpected constructor builder $builder (${builder.runtimeType})");
-      }
+      SourceMemberBuilder builder = constructorIterator.current;
+      builder.checkTypes(libraryBuilder, typeEnvironment);
     }
   }
 
@@ -1134,8 +1157,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
     cls.addConstructor(constructorBuilder.invokeTarget);
-    if (constructorBuilder.readTarget != null &&
-        constructorBuilder.readTarget != constructorBuilder.invokeTarget) {
+    if (constructorBuilder.readTarget != constructorBuilder.invokeTarget) {
       cls.addProcedure(constructorBuilder.readTarget as Procedure);
     }
     if (constructorBuilder.isConst) {
@@ -1275,255 +1297,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     int result = "$fileUri".compareTo("${other.fileUri}");
     if (result != 0) return result;
     return charOffset.compareTo(other.charOffset);
-  }
-
-  bool _hasUserDefinedNoSuchMethod(
-      Class klass, ClassHierarchy hierarchy, Class objectClass) {
-    Member? noSuchMethod = hierarchy.getDispatchTarget(klass, noSuchMethodName);
-    return noSuchMethod != null && noSuchMethod.enclosingClass != objectClass;
-  }
-
-  List<Member> _getStaticMembers() {
-    List<Member> staticMembers = <Member>[];
-    for (Field field in cls.fields) {
-      if (field.isStatic) {
-        staticMembers.add(field);
-      }
-    }
-    for (Procedure procedure in cls.procedures) {
-      if (procedure.isStatic) {
-        staticMembers.add(procedure);
-      }
-    }
-    staticMembers.sort(ClassHierarchy.compareMembers);
-    return staticMembers;
-  }
-
-  bool _addMissingNoSuchMethodForwarders(
-      KernelTarget target, Set<Member> existingForwarders,
-      {required bool forSetters}) {
-    // ignore: unnecessary_null_comparison
-    assert(forSetters != null);
-
-    ClassHierarchy hierarchy = target.loader.hierarchy;
-
-    List<Member> allMembers =
-        hierarchy.getInterfaceMembers(cls, setters: forSetters);
-    List<Member> concreteMembers =
-        hierarchy.getDispatchTargets(cls, setters: forSetters);
-    List<Member> declaredMembers =
-        hierarchy.getDeclaredMembers(cls, setters: forSetters);
-    List<Member> staticMembers = _getStaticMembers();
-
-    Procedure noSuchMethod = ClassHierarchy.findMemberByName(
-        hierarchy.getInterfaceMembers(cls), noSuchMethodName) as Procedure;
-    bool clsHasUserDefinedNoSuchMethod =
-        _hasUserDefinedNoSuchMethod(cls, hierarchy, target.objectClass);
-
-    bool changed = false;
-
-    // It's possible to have multiple abstract members with the same name -- as
-    // long as there's one with function type that's a subtype of function types
-    // of all other members.  Such member is called "best" in the code below.
-    // Members with the same name are put into groups, and "best" is searched
-    // for in each group.
-    Map<Name, List<Member>> sameNameMembers = {};
-    for (Member member in allMembers) {
-      (sameNameMembers[member.name] ??= []).add(member);
-    }
-    for (MapEntry<Name, List<Member>> entry in sameNameMembers.entries) {
-      List<Member> members = entry.value;
-      assert(members.isNotEmpty);
-      CombinedMemberSignatureBuilder combinedMemberSignature =
-          new CombinedMemberSignatureBuilder(hierarchy, this, members,
-              forSetter: forSetters);
-      Member? member = combinedMemberSignature.canonicalMember;
-      if (member != null) {
-        if (_isForwarderRequired(clsHasUserDefinedNoSuchMethod, member, cls,
-                concreteMembers, staticMembers,
-                isPatch: member.fileUri != member.enclosingClass!.fileUri) &&
-            !existingForwarders.contains(member)) {
-          assert(!combinedMemberSignature.needsCovarianceMerging,
-              "Needed covariant merging for ${members}");
-          if (ClassHierarchy.findMemberByName(declaredMembers, member.name) !=
-              null) {
-            _transformProcedureToNoSuchMethodForwarder(
-                noSuchMethod, target, member as Procedure);
-          } else {
-            // The reason we don't copy the location is to ensure that the stack
-            // trace for throwing no-such-method forwarders point to the class
-            // in which they are inserted and not to the declaration of the
-            // missing member.
-            Procedure memberSignature = combinedMemberSignature
-                .createMemberFromSignature(copyLocation: false)!;
-            _transformProcedureToNoSuchMethodForwarder(
-                noSuchMethod, target, memberSignature);
-            cls.procedures.add(memberSignature);
-            memberSignature.parent = cls;
-
-            if (member is Procedure) {
-              libraryBuilder.forwardersOrigins.add(memberSignature);
-              libraryBuilder.forwardersOrigins.add(member);
-            }
-          }
-          changed = true;
-        }
-      }
-    }
-
-    return changed;
-  }
-
-  /// Adds noSuchMethod forwarding stubs to this class.
-  ///
-  /// Returns `true` if the class was modified.
-  bool addNoSuchMethodForwarders(
-      KernelTarget target, ClassHierarchy hierarchy) {
-    // Don't install forwarders in superclasses.
-    if (cls.isAbstract) return false;
-
-    // Compute signatures of existing noSuchMethod forwarders in superclasses.
-    Set<Member> existingForwarders = new Set<Member>.identity();
-    Set<Member> existingSetterForwarders = new Set<Member>.identity();
-    {
-      Class? nearestConcreteSuperclass = cls.superclass;
-      while (nearestConcreteSuperclass != null &&
-          nearestConcreteSuperclass.isAbstract) {
-        nearestConcreteSuperclass = nearestConcreteSuperclass.superclass;
-      }
-      if (nearestConcreteSuperclass != null) {
-        bool superHasUserDefinedNoSuchMethod = _hasUserDefinedNoSuchMethod(
-            nearestConcreteSuperclass, hierarchy, target.objectClass);
-        {
-          List<Member> concreteMembers =
-              hierarchy.getDispatchTargets(nearestConcreteSuperclass);
-          List<Member> staticMembers = _getStaticMembers();
-          for (Member member
-              in hierarchy.getInterfaceMembers(nearestConcreteSuperclass)) {
-            if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
-                nearestConcreteSuperclass, concreteMembers, staticMembers,
-                isPatch: member.fileUri != member.enclosingClass!.fileUri)) {
-              existingForwarders.add(member);
-            }
-          }
-        }
-
-        {
-          List<Member> concreteSetters = hierarchy
-              .getDispatchTargets(nearestConcreteSuperclass, setters: true);
-          List<Member> staticSetters = _getStaticMembers();
-          for (Member member in hierarchy
-              .getInterfaceMembers(nearestConcreteSuperclass, setters: true)) {
-            if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
-                nearestConcreteSuperclass, concreteSetters, staticSetters)) {
-              existingSetterForwarders.add(member);
-            }
-          }
-        }
-      }
-    }
-
-    bool changed = false;
-
-    // Install noSuchMethod forwarders for methods and getters.
-    changed = _addMissingNoSuchMethodForwarders(target, existingForwarders,
-            forSetters: false) ||
-        changed;
-
-    // Install noSuchMethod forwarders for setters.
-    changed = _addMissingNoSuchMethodForwarders(
-            target, existingSetterForwarders,
-            forSetters: true) ||
-        changed;
-
-    return changed;
-  }
-
-  /// Tells if a noSuchMethod forwarder is required for [member] in [cls].
-  bool _isForwarderRequired(bool hasUserDefinedNoSuchMethod, Member member,
-      Class cls, List<Member> concreteMembers, List<Member> staticMembers,
-      {bool isPatch = false}) {
-    // A noSuchMethod forwarder is allowed for an abstract member if the class
-    // has a user-defined noSuchMethod or if the member is private and is
-    // defined in a different library.  Private members in patches are assumed
-    // to be visible only to patches, so they are treated as if they were from
-    // another library.
-    bool isForwarderAllowed = hasUserDefinedNoSuchMethod ||
-        (member.name.isPrivate &&
-            cls.enclosingLibrary.compareTo(member.enclosingLibrary) != 0) ||
-        (member.name.isPrivate && isPatch);
-    // A noSuchMethod forwarder is required if it's allowed and if there's no
-    // concrete implementation or a forwarder already.
-    bool isForwarderRequired = isForwarderAllowed &&
-        ClassHierarchy.findMemberByName(concreteMembers, member.name) == null &&
-        ClassHierarchy.findMemberByName(staticMembers, member.name) == null;
-    return isForwarderRequired;
-  }
-
-  void _transformProcedureToNoSuchMethodForwarder(
-      Procedure noSuchMethodInterface,
-      KernelTarget target,
-      Procedure procedure) {
-    bool shouldThrow = false;
-    Name procedureName = procedure.name;
-    if (procedureName.isPrivate) {
-      Library procedureNameLibrary = procedureName.library!;
-      // If the name is defined in a different library than the library we're
-      // synthesizing a forwarder for, then the forwarder must throw.  This
-      // avoids surprising users by ensuring that all non-throwing
-      // implementations of a private name can be found solely by looking at the
-      // library in which the name is defined; it also avoids soundness holes in
-      // field promotion.
-      if (procedureNameLibrary.compareTo(procedure.enclosingLibrary) != 0) {
-        shouldThrow = true;
-      }
-    }
-    Expression result;
-    String prefix = procedure.isGetter
-        ? 'get:'
-        : procedure.isSetter
-            ? 'set:'
-            : '';
-    String invocationName = prefix + procedureName.text;
-    if (procedure.isSetter) invocationName += '=';
-    CoreTypes coreTypes = target.loader.coreTypes;
-    Expression invocation = target.backendTarget.instantiateInvocation(
-        coreTypes,
-        new ThisExpression(),
-        invocationName,
-        new Arguments.forwarded(procedure.function, libraryBuilder.library),
-        procedure.fileOffset,
-        /*isSuper=*/ false);
-    if (shouldThrow) {
-      // Build `throw new NoSuchMethodError(this, invocation)`.
-      result = new Throw(new StaticInvocation(
-          coreTypes.noSuchMethodErrorDefaultConstructor,
-          new Arguments([new ThisExpression(), invocation])))
-        ..fileOffset = procedure.fileOffset;
-    } else {
-      // Build `this.noSuchMethod(invocation)`.
-      result = new InstanceInvocation(InstanceAccessKind.Instance,
-          new ThisExpression(), noSuchMethodName, new Arguments([invocation]),
-          functionType: noSuchMethodInterface.getterType as FunctionType,
-          interfaceTarget: noSuchMethodInterface)
-        ..fileOffset = procedure.fileOffset;
-      if (procedure.function.returnType is! VoidType) {
-        result = new AsExpression(result, procedure.function.returnType)
-          ..isTypeError = true
-          ..isForDynamic = true
-          ..isForNonNullableByDefault = libraryBuilder.isNonNullableByDefault
-          ..fileOffset = procedure.fileOffset;
-      }
-    }
-    procedure.function.body = new ReturnStatement(result)
-      ..fileOffset = procedure.fileOffset
-      ..parent = procedure.function;
-    procedure.function.asyncMarker = AsyncMarker.Sync;
-    procedure.function.dartAsyncMarker = AsyncMarker.Sync;
-
-    procedure.isAbstract = false;
-    procedure.stubKind = ProcedureStubKind.NoSuchMethodForwarder;
-    procedure.stubTarget = null;
   }
 
   /// If any private field names in this library are unpromotable due to fields
@@ -2656,6 +2429,20 @@ int? getOverlookedOverrideProblemChoice(ClassBuilder classBuilder) {
   return null;
 }
 
+class _SourceClassBuilderAugmentationAccess
+    implements ClassDeclarationAugmentationAccess<SourceClassBuilder> {
+  const _SourceClassBuilderAugmentationAccess();
+
+  @override
+  SourceClassBuilder getOrigin(SourceClassBuilder classDeclaration) =>
+      classDeclaration.origin;
+
+  @override
+  Iterable<SourceClassBuilder>? getAugmentations(
+          SourceClassBuilder classDeclaration) =>
+      classDeclaration._patches;
+}
+
 class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
     with SourceMemberBuilderMixin {
   _RedirectingConstructorsFieldBuilder(Field field, SourceClassBuilder parent)
@@ -2680,196 +2467,4 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
   @override
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
-}
-
-class ClassMemberIterator<T extends Builder> implements Iterator<T> {
-  Iterator<T>? _iterator;
-  Iterator<SourceClassBuilder>? augmentationBuilders;
-  final bool includeDuplicates;
-
-  factory ClassMemberIterator(SourceClassBuilder classBuilder,
-      {required bool includeDuplicates}) {
-    return new ClassMemberIterator._(classBuilder.origin,
-        includeDuplicates: includeDuplicates);
-  }
-
-  ClassMemberIterator._(SourceClassBuilder classBuilder,
-      {required this.includeDuplicates})
-      : _iterator = classBuilder.scope.filteredIterator<T>(
-            parent: classBuilder,
-            includeDuplicates: includeDuplicates,
-            includeAugmentations: false),
-        augmentationBuilders = classBuilder._patches?.iterator;
-
-  @override
-  bool moveNext() {
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
-      SourceClassBuilder augmentationClassBuilder =
-          augmentationBuilders!.current;
-      _iterator = augmentationClassBuilder.scope.filteredIterator<T>(
-          parent: augmentationClassBuilder,
-          includeDuplicates: includeDuplicates,
-          includeAugmentations: false);
-    }
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  T get current => _iterator?.current ?? (throw new StateError('No element'));
-}
-
-class ClassMemberNameIterator<T extends Builder> implements NameIterator<T> {
-  NameIterator<T>? _iterator;
-  Iterator<SourceClassBuilder>? augmentationBuilders;
-  final bool includeDuplicates;
-
-  factory ClassMemberNameIterator(SourceClassBuilder classBuilder,
-      {required bool includeDuplicates}) {
-    return new ClassMemberNameIterator._(classBuilder.origin,
-        includeDuplicates: includeDuplicates);
-  }
-
-  ClassMemberNameIterator._(SourceClassBuilder classBuilder,
-      {required this.includeDuplicates})
-      : _iterator = classBuilder.scope.filteredNameIterator<T>(
-            parent: classBuilder,
-            includeDuplicates: includeDuplicates,
-            includeAugmentations: false),
-        augmentationBuilders = classBuilder._patches?.iterator;
-
-  @override
-  bool moveNext() {
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
-      SourceClassBuilder augmentationClassBuilder =
-          augmentationBuilders!.current;
-      _iterator = augmentationClassBuilder.scope.filteredNameIterator<T>(
-          parent: augmentationClassBuilder,
-          includeDuplicates: includeDuplicates,
-          includeAugmentations: false);
-    }
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  T get current => _iterator?.current ?? (throw new StateError('No element'));
-
-  @override
-  String get name => _iterator?.name ?? (throw new StateError('No element'));
-}
-
-class ClassConstructorIterator<T extends MemberBuilder> implements Iterator<T> {
-  Iterator<T>? _iterator;
-  Iterator<SourceClassBuilder>? augmentationBuilders;
-  final bool includeDuplicates;
-
-  factory ClassConstructorIterator(SourceClassBuilder classBuilder,
-      {required bool includeDuplicates}) {
-    return new ClassConstructorIterator._(classBuilder.origin,
-        includeDuplicates: includeDuplicates);
-  }
-
-  ClassConstructorIterator._(SourceClassBuilder classBuilder,
-      {required this.includeDuplicates})
-      : _iterator = classBuilder.constructorScope.filteredIterator<T>(
-            parent: classBuilder,
-            includeDuplicates: includeDuplicates,
-            includeAugmentations: false),
-        augmentationBuilders = classBuilder._patches?.iterator;
-
-  @override
-  bool moveNext() {
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
-      SourceClassBuilder augmentationClassBuilder =
-          augmentationBuilders!.current;
-      _iterator = augmentationClassBuilder.constructorScope.filteredIterator<T>(
-          parent: augmentationClassBuilder,
-          includeDuplicates: includeDuplicates,
-          includeAugmentations: false);
-    }
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  T get current => _iterator?.current ?? (throw new StateError('No element'));
-}
-
-class ClassConstructorNameIterator<T extends MemberBuilder>
-    implements NameIterator<T> {
-  NameIterator<T>? _iterator;
-  Iterator<SourceClassBuilder>? augmentationBuilders;
-  final bool includeDuplicates;
-
-  factory ClassConstructorNameIterator(SourceClassBuilder classBuilder,
-      {required bool includeDuplicates}) {
-    return new ClassConstructorNameIterator._(classBuilder.origin,
-        includeDuplicates: includeDuplicates);
-  }
-
-  ClassConstructorNameIterator._(SourceClassBuilder classBuilder,
-      {required this.includeDuplicates})
-      : _iterator = classBuilder.constructorScope.filteredNameIterator<T>(
-            parent: classBuilder,
-            includeDuplicates: includeDuplicates,
-            includeAugmentations: false),
-        augmentationBuilders = classBuilder._patches?.iterator;
-
-  @override
-  bool moveNext() {
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
-      SourceClassBuilder augmentationClassBuilder =
-          augmentationBuilders!.current;
-      _iterator = augmentationClassBuilder.constructorScope
-          .filteredNameIterator<T>(
-              parent: augmentationClassBuilder,
-              includeDuplicates: includeDuplicates,
-              includeAugmentations: false);
-    }
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  T get current => _iterator?.current ?? (throw new StateError('No element'));
-
-  @override
-  String get name => _iterator?.name ?? (throw new StateError('No element'));
 }

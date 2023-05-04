@@ -16,7 +16,7 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   SearchGetElementDeclarationsHandler(
-      super.server, super.request, super.cancellationToken);
+      super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {
@@ -47,6 +47,8 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
           return protocol.ElementKind.ENUM;
         case search.DeclarationKind.ENUM_CONSTANT:
           return protocol.ElementKind.ENUM_CONSTANT;
+        case search.DeclarationKind.EXTENSION:
+          return protocol.ElementKind.EXTENSION;
         case search.DeclarationKind.FIELD:
           return protocol.ElementKind.FIELD;
         case search.DeclarationKind.FUNCTION:

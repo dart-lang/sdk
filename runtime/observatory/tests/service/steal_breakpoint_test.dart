@@ -41,7 +41,6 @@ var tests = <IsolateTest>[
     // Add the breakpoint.
     var script = isolate.rootLibrary.scripts[0];
     var result = await isolate.addBreakpoint(script, 14);
-    expect(result is Breakpoint, isTrue);
 
     await completer.future; // Wait for breakpoint event to fire.
   },

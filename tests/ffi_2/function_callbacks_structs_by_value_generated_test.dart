@@ -9232,7 +9232,7 @@ Struct17BytesInt returnStruct17BytesIntCalculateResult() {
   return result;
 }
 
-/// Rerturn value returned in preallocated space passed by pointer on most ABIs.
+/// Return value returned in preallocated space passed by pointer on most ABIs.
 /// Is non word size on purpose, to test that structs are rounded up to word size
 /// on all ABIs.
 Struct17BytesInt returnStruct17BytesInt(int a0, int a1, int a2) {

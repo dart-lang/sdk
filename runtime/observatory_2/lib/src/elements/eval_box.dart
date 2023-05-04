@@ -10,7 +10,6 @@ import 'package:observatory_2/models.dart' as M;
 import 'package:observatory_2/src/elements/helpers/any_ref.dart';
 import 'package:observatory_2/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory_2/src/elements/helpers/custom_element.dart';
-import 'package:observatory_2/src/elements/instance_ref.dart';
 
 class EvalBoxElement extends CustomElement implements Renderable {
   RenderingScheduler<EvalBoxElement> _r;

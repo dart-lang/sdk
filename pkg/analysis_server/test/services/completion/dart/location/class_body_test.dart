@@ -7,9 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_check.dart';
 import '../completion_printer.dart' as printer;
-import '../completion_printer.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -38,7 +36,7 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
   Future<void> test_nothing_x() async {
     await _checkContainers(
       line: '^',
-      validator: (context, response) {
+      validator: (context) {
         _printKeywordsOrClass();
 
         final keywords = {
@@ -58,7 +56,7 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
           Keyword.VOID,
         };
 
-        assertResponseText(response, '''
+        assertResponse('''
 suggestions
   Object
     kind: class
@@ -71,7 +69,7 @@ ${keywords.asKeywordSuggestions}
   Future<void> test_static_const_x() async {
     await _checkContainers(
       line: 'static const ^',
-      validator: (context, response) {
+      validator: (context) {
         _printKeywordsOrClass();
 
         final keywords = {
@@ -79,7 +77,7 @@ ${keywords.asKeywordSuggestions}
           Keyword.VOID,
         };
 
-        assertResponseText(response, '''
+        assertResponse('''
 suggestions
   Object
     kind: class
@@ -92,10 +90,10 @@ ${keywords.asKeywordSuggestions}
   Future<void> test_static_final_Ox() async {
     await _checkContainers(
       line: 'static final O^',
-      validator: (context, response) {
+      validator: (context) {
         if (isProtocolVersion2) {
           _printKeywordsOrClass();
-          assertResponseText(response, '''
+          assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -110,7 +108,7 @@ suggestions
             Keyword.VOID,
           };
 
-          assertResponseText(response, '''
+          assertResponse('''
 replacement
   left: 1
 suggestions
@@ -126,7 +124,7 @@ ${keywords.asKeywordSuggestions}
   Future<void> test_static_final_x() async {
     await _checkContainers(
       line: 'static final ^',
-      validator: (context, response) {
+      validator: (context) {
         _printKeywordsOrClass();
 
         final keywords = {
@@ -134,7 +132,7 @@ ${keywords.asKeywordSuggestions}
           Keyword.VOID,
         };
 
-        assertResponseText(response, '''
+        assertResponse('''
 suggestions
   Object
     kind: class
@@ -151,13 +149,13 @@ ${keywords.asKeywordSuggestions}
 
     await _checkContainers(
       line: 'static f^',
-      validator: (context, response) {
+      validator: (context) {
         if (isProtocolVersion2) {
           final keywords = {
             Keyword.FINAL,
           };
 
-          assertResponseText(response, '''
+          assertResponse('''
 replacement
   left: 1
 suggestions
@@ -177,7 +175,7 @@ ${keywords.asKeywordSuggestions}
             Keyword.LATE,
           };
 
-          assertResponseText(response, '''
+          assertResponse('''
 replacement
   left: 1
 suggestions
@@ -193,7 +191,7 @@ ${keywords.asKeywordSuggestions}
   Future<void> test_static_late_x() async {
     await _checkContainers(
       line: 'static late ^',
-      validator: (context, response) {
+      validator: (context) {
         _printKeywordsOrClass();
 
         final keywords = {
@@ -201,7 +199,7 @@ ${keywords.asKeywordSuggestions}
           Keyword.FINAL,
         };
 
-        assertResponseText(response, '''
+        assertResponse('''
 suggestions
   Object
     kind: class
@@ -214,7 +212,7 @@ ${keywords.asKeywordSuggestions}
   Future<void> test_static_x() async {
     await _checkContainers(
       line: 'static ^',
-      validator: (context, response) {
+      validator: (context) {
         _printKeywordsOrClass();
 
         final keywords = {
@@ -224,7 +222,7 @@ ${keywords.asKeywordSuggestions}
           Keyword.LATE,
         };
 
-        assertResponseText(response, '''
+        assertResponse('''
 suggestions
   Object
     kind: class
@@ -237,7 +235,7 @@ ${keywords.asKeywordSuggestions}
   Future<void> test_static_x_name_eq() async {
     await _checkContainers(
       line: 'static ^ name = 0;',
-      validator: (context, response) {
+      validator: (context) {
         _printKeywordsOrClass();
 
         final keywords = {
@@ -253,7 +251,7 @@ ${keywords.asKeywordSuggestions}
           Keyword.LATE,
         };
 
-        assertResponseText(response, '''
+        assertResponse('''
 suggestions
   Object
     kind: class
@@ -270,14 +268,14 @@ ${keywords.asKeywordSuggestions}
 
     await _checkContainers(
       line: 's^',
-      validator: (context, response) {
+      validator: (context) {
         if (isProtocolVersion2) {
           final keywords = {
             Keyword.SET,
             Keyword.STATIC,
           };
 
-          assertResponseText(response, '''
+          assertResponse('''
 replacement
   left: 1
 suggestions
@@ -303,7 +301,7 @@ ${keywords.asKeywordSuggestions}
             Keyword.VOID,
           };
 
-          assertResponseText(response, '''
+          assertResponse('''
 replacement
   left: 1
 suggestions
@@ -318,65 +316,59 @@ ${keywords.asKeywordSuggestions}
 
   Future<void> _checkContainers({
     required String line,
-    required void Function(
-      _Context context,
-      CompletionResponseForTesting response,
-    )
-        validator,
+    required void Function(_Context context) validator,
   }) async {
     // class
     {
-      var response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 class A {
   $line
 }
 ''');
-      validator(_Context(isClass: true), response);
+      validator(_Context(isClass: true));
     }
     // enum
     {
-      var response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 enum E {
   v;
   $line
 }
 ''');
-      validator(_Context(), response);
+      validator(_Context());
     }
     // extension
     {
-      var response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 extension on Object {
   $line
 }
 ''');
-      validator(_Context(), response);
+      validator(_Context());
     }
     // mixin
     {
-      var response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 mixin M {
   $line
 }
 ''');
-      validator(_Context(isMixin: true), response);
+      validator(_Context(isMixin: true));
     }
   }
 
   void _printKeywordsOrClass({
     String sampleClassName = 'Object',
   }) {
-    printerConfiguration
-      ..filter = (suggestion) {
-        final completion = suggestion.completion;
-        if (suggestion.kind == CompletionSuggestionKind.KEYWORD) {
-          return true;
-        } else if (completion == sampleClassName) {
-          return true;
-        }
-        return false;
+    printerConfiguration.filter = (suggestion) {
+      final completion = suggestion.completion;
+      if (suggestion.kind == CompletionSuggestionKind.KEYWORD) {
+        return true;
+      } else if (completion == sampleClassName) {
+        return true;
       }
-      ..sorting = Sorting.completion;
+      return false;
+    };
   }
 }
 
@@ -411,7 +403,7 @@ mixin OverrideTestCases on AbstractCompletionDriverTest {
   }
 
   Future<void> test_class_inComment() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
@@ -422,13 +414,13 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
 ''');
   }
 
   Future<void> test_class_inComment_dartdoc() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
@@ -439,13 +431,13 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
 ''');
   }
 
   Future<void> test_class_inComment_reference() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
@@ -456,7 +448,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -464,7 +456,7 @@ suggestions
   }
 
   Future<void> test_class_method_alreadyOverridden() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
   void foo02() {}
@@ -476,7 +468,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -492,19 +484,19 @@ suggestions
   }
 
   Future<void> test_class_method_beforeField() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
 
 class B extends A {
   foo^
-  
+
   int bar = 0;
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -520,19 +512,19 @@ suggestions
   }
 
   Future<void> test_class_method_beforeMethod() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
 
 class B extends A {
   foo^
-  
+
   void bar() {}
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -548,7 +540,7 @@ suggestions
   }
 
   Future<void> test_class_method_fromExtends() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
@@ -558,7 +550,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -582,7 +574,7 @@ class A {
 }
 ''');
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 part 'a.dart';
 
 class B extends A {
@@ -590,7 +582,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -606,7 +598,7 @@ suggestions
   }
 
   Future<void> test_class_method_fromExtends_multiple() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
@@ -620,7 +612,7 @@ class C extends B {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -652,7 +644,7 @@ class A {
 }
 ''');
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'a.dart';
 
 class B extends A {
@@ -660,7 +652,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -676,7 +668,7 @@ suggestions
   }
 
   Future<void> test_class_method_fromExtends_private_thisLibrary() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void _foo01() {}
   void foo02() {}
@@ -687,7 +679,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -719,7 +711,7 @@ class A {
   FutureOr<void> foo01() {}
 }
 ''');
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'a.dart';
 
 class B extends A {
@@ -727,7 +719,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -743,7 +735,7 @@ suggestions
   }
 
   Future<void> test_class_method_fromExtends_withOverride() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
@@ -754,7 +746,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -769,7 +761,7 @@ suggestions
   }
 
   Future<void> test_class_method_fromImplements() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
@@ -779,7 +771,7 @@ class B implements A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -794,7 +786,7 @@ suggestions
   }
 
   Future<void> test_class_method_fromWith() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 mixin M {
   void foo01() {}
 }
@@ -804,7 +796,7 @@ class A with M {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -820,7 +812,7 @@ suggestions
   }
 
   Future<void> test_class_operator_eqEq() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   opera^
 }
@@ -830,7 +822,7 @@ class A {
       return suggestion.completion.contains('==(');
     };
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 5
 suggestions
@@ -846,7 +838,7 @@ suggestions
   }
 
   Future<void> test_class_operator_plus() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   int operator +(int other) { }
 }
@@ -860,7 +852,7 @@ class B extends A {
       return suggestion.completion.contains('+(');
     };
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 5
 suggestions
@@ -876,7 +868,7 @@ suggestions
   }
 
   Future<void> test_extension_method() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
@@ -886,7 +878,7 @@ extension E on A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -894,7 +886,7 @@ suggestions
   }
 
   Future<void> test_mixin_method_fromConstraints_alreadyOverridden() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
   void foo02() {}
@@ -906,7 +898,7 @@ mixin M on A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -922,7 +914,7 @@ suggestions
   }
 
   Future<void> test_mixin_method_fromImplements() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
@@ -932,7 +924,7 @@ mixin M implements A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -947,7 +939,7 @@ suggestions
   }
 
   Future<void> test_mixin_method_fromSuperclassConstraint() async {
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   void foo01() {}
 }
@@ -957,7 +949,7 @@ mixin M on A {
 }
 ''');
 
-    assertResponseText(response, '''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions

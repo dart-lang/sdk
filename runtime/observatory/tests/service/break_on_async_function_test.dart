@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:developer';
 
-const int LINE_A = 13;
+const int LINE_A = 12;
 
 Future<String> testFunction() async {
   await new Future.delayed(new Duration(milliseconds: 1));
@@ -31,7 +30,6 @@ var tests = <IsolateTest>[
         rootLib.functions.singleWhere((f) => f.name == 'testFunction');
 
     var bpt = await isolate.addBreakpointAtEntry(function);
-    expect(bpt is Breakpoint, isTrue);
     print(bpt);
   },
 

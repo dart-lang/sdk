@@ -34,6 +34,9 @@ class Abi {
   /// The application binary interface for Fuchsia on the X64 architecture.
   static const fuchsiaX64 = _fuchsiaX64;
 
+  /// The application binary interface for Fuchsia on the Riscv64 architecture.
+  static const fuchsiaRiscv64 = _fuchsiaRiscv64;
+
   /// The application binary interface for iOS on the Arm architecture.
   static const iosArm = _iosArm;
 
@@ -82,11 +85,6 @@ class Abi {
   /// The ABIs that the DartVM can run on.
   ///
   /// Does not contain a `macosIA32`. We have stopped supporting 32-bit MacOS.
-  ///
-  /// Includes [windowsArm64], even though it is currently not supported.
-  /// Support has been requested for Flutter.
-  /// https://github.com/flutter/flutter/issues/53120
-  // TODO(http://dartbug.com/47824): Remove the above comment when supported.
   static const values = [
     androidArm,
     androidArm64,
@@ -94,6 +92,7 @@ class Abi {
     androidX64,
     fuchsiaArm64,
     fuchsiaX64,
+    fuchsiaRiscv64,
     iosArm,
     iosArm64,
     iosX64,
@@ -136,6 +135,7 @@ class Abi {
   static const _androidX64 = Abi._(_Architecture.x64, _OS.android);
   static const _fuchsiaArm64 = Abi._(_Architecture.arm64, _OS.fuchsia);
   static const _fuchsiaX64 = Abi._(_Architecture.x64, _OS.fuchsia);
+  static const _fuchsiaRiscv64 = Abi._(_Architecture.riscv64, _OS.fuchsia);
   static const _iosArm = Abi._(_Architecture.arm, _OS.ios);
   static const _iosArm64 = Abi._(_Architecture.arm64, _OS.ios);
   static const _iosX64 = Abi._(_Architecture.x64, _OS.ios);

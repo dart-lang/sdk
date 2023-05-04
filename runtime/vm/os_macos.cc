@@ -121,15 +121,6 @@ int64_t OS::GetCurrentMonotonicMicrosForTimeline() {
 #endif
 }
 
-int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
-#if defined(SUPPORT_TIMELINE)
-  if (Timeline::recorder_discards_clock_values()) return -1;
-  return OS::GetCurrentThreadCPUMicros();
-#else
-  return -1;
-#endif
-}
-
 intptr_t OS::ActivationFrameAlignment() {
 #if DART_HOST_OS_IOS
 #if TARGET_ARCH_ARM
@@ -291,13 +282,13 @@ void OS::Init() {
   // libnotify is initialized early before any fork happens.
   struct timeval tv;
   if (gettimeofday(&tv, NULL) < 0) {
-    FATAL1("gettimeofday returned an error (%s)\n", strerror(errno));
+    FATAL("gettimeofday returned an error (%s)\n", strerror(errno));
     return;
   }
   tm decomposed;
   struct tm* error_code = localtime_r(&(tv.tv_sec), &decomposed);
   if (error_code == NULL) {
-    FATAL1("localtime_r returned an error (%s)\n", strerror(errno));
+    FATAL("localtime_r returned an error (%s)\n", strerror(errno));
     return;
   }
 }

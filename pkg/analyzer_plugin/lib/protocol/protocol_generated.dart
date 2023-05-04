@@ -6,8 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-// ignore_for_file: constant_identifier_names
-
 import 'dart:convert' hide JsonDecoder;
 
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -3688,7 +3686,7 @@ class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
   factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath,
-      Object? json, Map responseJson) {
+      Object? json, Map<Object?, Object?> responseJson) {
     return refactoringFeedbackFromJson(
         jsonDecoder, jsonPath, json, responseJson);
   }

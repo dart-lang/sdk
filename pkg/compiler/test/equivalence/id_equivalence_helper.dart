@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:io';
 
@@ -86,14 +84,14 @@ abstract class DataComputer<T> {
   /// Fills [actualMap] with the data.
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData<T>> actualMap,
-      {bool verbose}) {}
+      {required bool verbose}) {}
 
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
   void computeLibraryData(Compiler compiler, LibraryEntity library,
       Map<Id, ActualData<T>> actualMap,
-      {bool verbose}) {}
+      {required bool verbose}) {}
 
   /// Returns `true` if this data computer supports tests with compile-time
   /// errors.
@@ -103,7 +101,8 @@ abstract class DataComputer<T> {
   bool get supportsErrors => false;
 
   /// Returns data corresponding to [error].
-  T computeErrorData(Compiler compiler, Id id, List<CollectedMessage> errors) =>
+  T? computeErrorData(
+          Compiler compiler, Id id, List<CollectedMessage> errors) =>
       null;
 
   DataInterpreter<T> get dataValidator;
@@ -122,7 +121,7 @@ void reportError(
 /// [entryPoint] and [memorySourceFiles].
 ///
 /// Actual data is computed using [computeMemberData].
-Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
+Future<CompiledData<T>?> computeData<T>(String name, Uri entryPoint,
     Map<String, String> memorySourceFiles, DataComputer<T> dataComputer,
     {List<String> options = const <String>[],
     bool verbose = false,
@@ -132,10 +131,10 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
     bool skipUnprocessedMembers = false,
     bool skipFailedCompilations = false,
     Iterable<Id> globalIds = const <Id>[],
-    Future<void> verifyCompiler(String test, Compiler compiler)}) async {
-  OutputCollector outputCollector = new OutputCollector();
-  DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
-  Uri packageConfig;
+    Future<void> verifyCompiler(String test, Compiler compiler)?}) async {
+  OutputCollector outputCollector = OutputCollector();
+  DiagnosticCollector diagnosticCollector = DiagnosticCollector();
+  Uri? packageConfig;
   Uri wantedPackageConfig =
       createUriForFileName(".dart_tool/package_config.json");
   for (String key in memorySourceFiles.keys) {
@@ -183,24 +182,24 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
   Map<Uri, Map<int, List<CollectedMessage>>> errors = {};
   for (CollectedMessage error in diagnosticCollector.errors) {
     Map<int, List<CollectedMessage>> map =
-        errors.putIfAbsent(error.uri, () => {});
-    List<CollectedMessage> list = map.putIfAbsent(error.begin, () => []);
+        errors.putIfAbsent(error.uri!, () => {});
+    List<CollectedMessage> list = map.putIfAbsent(error.begin!, () => []);
     list.add(error);
   }
 
   errors.forEach((Uri uri, Map<int, List<CollectedMessage>> map) {
     map.forEach((int offset, List<CollectedMessage> list) {
-      NodeId id = new NodeId(offset, IdKind.error);
-      T data = dataComputer.computeErrorData(compiler, id, list);
+      NodeId id = NodeId(offset, IdKind.error);
+      T? data = dataComputer.computeErrorData(compiler, id, list);
       if (data != null) {
         Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
-        actualMap[id] = new ActualData<T>(id, data, uri, offset, list);
+        actualMap[id] = ActualData<T>(id, data, uri, offset, list);
       }
     });
   });
 
   if (!result.isSuccess) {
-    return new Dart2jsCompiledData<T>(
+    return Dart2jsCompiledData<T>(
         compiler, null, entryPoint, actualMaps, globalData);
   }
 
@@ -225,7 +224,7 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
       return;
     }
     if (member.enclosingClass != null) {
-      if (elementEnvironment.isEnumClass(member.enclosingClass)) {
+      if (elementEnvironment.isEnumClass(member.enclosingClass!)) {
         if (member is ConstructorEntity ||
             member.isInstanceMember ||
             member.name == 'values') {
@@ -258,7 +257,7 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     LibraryEntity kLibrary =
-        elementMap.elementEnvironment.lookupLibrary(library.canonicalUri);
+        elementMap.elementEnvironment.lookupLibrary(library.canonicalUri)!;
     return elementMap.getLibraryNode(kLibrary);
   }
 
@@ -285,20 +284,20 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
 
   List<LibraryEntity> globalLibraries = <LibraryEntity>[
     commonElements.coreLibrary,
-    elementEnvironment.lookupLibrary(Uri.parse('dart:collection')),
-    commonElements.interceptorsLibrary,
-    commonElements.jsHelperLibrary,
-    commonElements.asyncLibrary,
+    elementEnvironment.lookupLibrary(Uri.parse('dart:collection'))!,
+    commonElements.interceptorsLibrary!,
+    commonElements.jsHelperLibrary!,
+    commonElements.asyncLibrary!,
   ];
 
-  LibraryEntity htmlLibrary =
+  LibraryEntity? htmlLibrary =
       elementEnvironment.lookupLibrary(Uri.parse('dart:html'), required: false);
   if (htmlLibrary != null) {
     globalLibraries.add(htmlLibrary);
   }
 
   ClassEntity getGlobalClass(String className) {
-    ClassEntity cls;
+    ClassEntity? cls;
     for (LibraryEntity library in globalLibraries) {
       cls ??= elementEnvironment.lookupClass(library, className);
     }
@@ -306,11 +305,11 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
         cls,
         "Global class '$className' not found in the global "
         "libraries: ${globalLibraries.map((l) => l.canonicalUri).join(', ')}");
-    return cls;
+    return cls!;
   }
 
   MemberEntity getGlobalMember(String memberName) {
-    MemberEntity member;
+    MemberEntity? member;
     for (LibraryEntity library in globalLibraries) {
       member ??= elementEnvironment.lookupLibraryMember(library, memberName);
     }
@@ -318,14 +317,14 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
         member,
         "Global member '$memberName' not found in the global "
         "libraries: ${globalLibraries.map((l) => l.canonicalUri).join(', ')}");
-    return member;
+    return member!;
   }
 
   for (Id id in globalIds) {
     if (id is MemberId) {
-      MemberEntity member;
+      MemberEntity? member;
       if (id.className != null) {
-        ClassEntity cls = getGlobalClass(id.className);
+        ClassEntity cls = getGlobalClass(id.className!);
         member = elementEnvironment.lookupClassMember(
             cls, Name(id.memberName, cls.library.canonicalUri));
         member ??= elementEnvironment.lookupConstructor(cls, id.memberName);
@@ -334,22 +333,22 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
       } else {
         member = getGlobalMember(id.memberName);
       }
-      processMember(member, globalData);
+      processMember(member!, globalData);
     } else if (id is ClassId) {
       ClassEntity cls = getGlobalClass(id.className);
       processClass(cls, globalData);
     } else {
-      throw new UnsupportedError("Unexpected global id: $id");
+      throw UnsupportedError("Unexpected global id: $id");
     }
   }
 
-  return new Dart2jsCompiledData<T>(
+  return Dart2jsCompiledData<T>(
       compiler, elementEnvironment, entryPoint, actualMaps, globalData);
 }
 
 class Dart2jsCompiledData<T> extends CompiledData<T> {
   final Compiler compiler;
-  final ElementEnvironment elementEnvironment;
+  final ElementEnvironment? elementEnvironment;
 
   Dart2jsCompiledData(
       this.compiler,
@@ -363,7 +362,7 @@ class Dart2jsCompiledData<T> extends CompiledData<T> {
   int getOffsetFromId(Id id, Uri uri) {
     return compiler.reporter
         .spanFromSpannable(computeSpannable(elementEnvironment, uri, id))
-        ?.begin;
+        .begin;
   }
 
   @override
@@ -401,17 +400,17 @@ class TestConfig {
 /// file and any supporting libraries.
 Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     {List<String> skip = const <String>[],
-    bool filterActualData(IdValue idValue, ActualData<T> actualData),
+    bool filterActualData(IdValue? idValue, ActualData<T> actualData)?,
     List<String> options = const <String>[],
     List<String> args = const <String>[],
     bool forUserLibrariesOnly = true,
-    Callback setUpFunction,
+    Callback? setUpFunction,
     int shards = 1,
     int shardIndex = 0,
-    void onTest(Uri uri),
+    void onTest(Uri uri)?,
     List<TestConfig> testedConfigs = const [],
     Map<String, List<String>> perTestOptions = const {},
-    Future<void> verifyCompiler(String test, Compiler compiler)}) async {
+    Future<void> verifyCompiler(String test, Compiler compiler)?}) async {
   if (testedConfigs.isEmpty) testedConfigs = defaultInternalConfigs;
   Set<String> testedMarkers =
       testedConfigs.map((config) => config.marker).toSet();
@@ -424,12 +423,12 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 
   Future<Map<String, TestResult<T>>> checkTest(
       MarkerOptions markerOptions, TestData testData,
-      {bool testAfterFailures,
-      bool verbose,
-      bool succinct,
-      bool printCode,
-      Map<String, List<String>> skipMap,
-      Uri nullUri}) async {
+      {required bool testAfterFailures,
+      required bool verbose,
+      required bool succinct,
+      required bool printCode,
+      Map<String, List<String>>? skipMap,
+      Uri? nullUri}) async {
     for (TestConfig testConfiguration in testedConfigs) {
       Expect.isTrue(
           testData.expectedMaps.containsKey(testConfiguration.marker),
@@ -443,7 +442,7 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
       testOptions.add(Flags.enableAsserts);
     }
     if (perTestOptions.containsKey(name)) {
-      testOptions.addAll(perTestOptions[name]);
+      testOptions.addAll(perTestOptions[name]!);
     }
 
     if (setUpFunction != null) setUpFunction();
@@ -497,16 +496,16 @@ Future<TestResult<T>> runTestForConfiguration<T>(
     DataComputer<T> dataComputer,
     TestData testData,
     List<String> options,
-    {bool filterActualData(IdValue idValue, ActualData<T> actualData),
+    {bool filterActualData(IdValue? idValue, ActualData<T> actualData)?,
     bool verbose = false,
     bool succinct = false,
     bool printCode = false,
     bool forUserLibrariesOnly = true,
     bool testAfterFailures = false,
-    Future<void> verifyCompiler(String test, Compiler compiler)}) async {
+    Future<void> verifyCompiler(String test, Compiler compiler)?}) async {
   MemberAnnotations<IdValue> annotations =
-      testData.expectedMaps[testConfiguration.marker];
-  CompiledData<T> compiledData = await computeData(testData.name,
+      testData.expectedMaps[testConfiguration.marker]!;
+  CompiledData<T> compiledData = (await computeData(testData.name,
       testData.entryPoint, testData.memorySourceFiles, dataComputer,
       options: [...options, ...testConfiguration.options],
       verbose: verbose,
@@ -514,7 +513,7 @@ Future<TestResult<T>> runTestForConfiguration<T>(
       testFrontend: dataComputer.testFrontend,
       forUserLibrariesOnly: forUserLibrariesOnly,
       globalIds: annotations.globalData.keys,
-      verifyCompiler: verifyCompiler);
+      verifyCompiler: verifyCompiler))!;
   return await checkCode(
       markerOptions,
       testConfiguration.marker,
@@ -531,9 +530,9 @@ Future<TestResult<T>> runTestForConfiguration<T>(
 
 /// Compute a [Spannable] from an [id] in the library [mainUri].
 Spannable computeSpannable(
-    ElementEnvironment elementEnvironment, Uri mainUri, Id id) {
+    ElementEnvironment? elementEnvironment, Uri mainUri, Id id) {
   if (id is NodeId) {
-    return new SourceSpan(mainUri, id.value, id.value + 1);
+    return SourceSpan(mainUri, id.value, id.value + 1);
   } else if (id is MemberId) {
     if (elementEnvironment == null) {
       // If compilation resulted in error we might not have an
@@ -546,18 +545,18 @@ Spannable computeSpannable(
       isSetter = true;
       memberName = memberName.substring(0, memberName.length - 1);
     }
-    LibraryEntity library = elementEnvironment.lookupLibrary(mainUri);
+    LibraryEntity library = elementEnvironment.lookupLibrary(mainUri)!;
     if (id.className != null) {
-      ClassEntity cls = elementEnvironment.lookupClass(library, id.className);
+      ClassEntity? cls = elementEnvironment.lookupClass(library, id.className!);
       if (cls == null) {
         // Constant expression in CFE might remove inlined parts of sources.
         print("No class '${id.className}' in $mainUri.");
         return NO_LOCATION_SPANNABLE;
       }
-      MemberEntity member = elementEnvironment.lookupClassMember(
+      MemberEntity? member = elementEnvironment.lookupClassMember(
           cls, Name(memberName, cls.library.canonicalUri, isSetter: isSetter));
       if (member == null) {
-        ConstructorEntity constructor =
+        ConstructorEntity? constructor =
             elementEnvironment.lookupConstructor(cls, memberName);
         if (constructor == null) {
           // Constant expression in CFE might remove inlined parts of sources.
@@ -568,7 +567,7 @@ Spannable computeSpannable(
       }
       return member;
     } else {
-      MemberEntity member = elementEnvironment
+      MemberEntity? member = elementEnvironment
           .lookupLibraryMember(library, memberName, setter: isSetter);
       if (member == null) {
         // Constant expression in CFE might remove inlined parts of sources.
@@ -578,8 +577,8 @@ Spannable computeSpannable(
       return member;
     }
   } else if (id is ClassId) {
-    LibraryEntity library = elementEnvironment.lookupLibrary(mainUri);
-    ClassEntity cls = elementEnvironment.lookupClass(library, id.className);
+    LibraryEntity library = elementEnvironment!.lookupLibrary(mainUri)!;
+    ClassEntity? cls = elementEnvironment.lookupClass(library, id.className);
     if (cls == null) {
       // Constant expression in CFE might remove inlined parts of sources.
       print("No class '${id.className}' in $mainUri.");
@@ -587,7 +586,7 @@ Spannable computeSpannable(
     }
     return cls;
   } else if (id is LibraryId) {
-    return new SourceSpan(id.uri, null, null);
+    return SourceSpan(id.uri, 0, 0);
   }
-  throw new UnsupportedError('Unsupported id $id.');
+  throw UnsupportedError('Unsupported id $id.');
 }

@@ -28,7 +28,7 @@ const c = true && '';
     await assertErrorsInCode('''
 const c = (true || 0);
 ''', [
-      error(HintCode.DEAD_CODE, 16, 4),
+      error(WarningCode.DEAD_CODE, 16, 4),
       error(CompileTimeErrorCode.NON_BOOL_OPERAND, 19, 1),
     ]);
   }

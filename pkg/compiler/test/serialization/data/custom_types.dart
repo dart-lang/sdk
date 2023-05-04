@@ -18,12 +18,12 @@ main() {
 }
 
 exactInterfaceType() {
-  Object c = new A();
+  Object c = A();
   return c;
 }
 
 thisInterfaceType() {
-  new A().method();
+  A().method();
 }
 
 doesNotCompleteType() {

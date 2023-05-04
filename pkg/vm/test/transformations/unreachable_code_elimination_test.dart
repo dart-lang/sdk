@@ -4,20 +4,23 @@
 
 import 'dart:io';
 
+import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
+import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/unreachable_code_elimination.dart'
     show transformComponent;
+import 'package:vm/transformations/vm_constant_evaluator.dart';
 
 import '../common_test_utils.dart';
 
 final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
 runTestCase(Uri source) async {
-  final target = new TestingVmTarget(new TargetFlags());
+  final target = new VmTarget(new TargetFlags());
   Component component = await compileTestCaseToKernelProgram(source,
       target: target,
       environmentDefines: {
@@ -25,7 +28,11 @@ runTestCase(Uri source) async {
         'test.define.isFalse': 'false'
       });
 
-  component = transformComponent(component, /* enableAsserts = */ false);
+  // Do not perform constant evaluation for a specific target operating system.
+  final evaluator = VMConstantEvaluator.create(
+      target, component, /* targetOS = */ null, NnbdMode.Strong);
+  component =
+      transformComponent(component, /* enableAsserts = */ false, evaluator);
   verifyComponent(component);
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:collection' show SplayTreeMap;
 import 'dart:convert' as json;
 import 'dart:io';
@@ -33,12 +31,12 @@ main(List<String> args) {
   ArgParser argParser = createArgParser();
   ArgResults argResults = argParser.parse(args);
 
-  Uri entryPoint = getEntryPoint(argResults);
+  Uri? entryPoint = getEntryPoint(argResults);
   if (entryPoint == null) {
-    throw new ArgumentError("Missing entry point.");
+    throw ArgumentError("Missing entry point.");
   }
-  Uri librariesSpecificationUri = getLibrariesSpec(argResults);
-  Uri packageConfig = getPackages(argResults);
+  Uri? librariesSpecificationUri = getLibrariesSpec(argResults);
+  Uri? packageConfig = getPackages(argResults);
   List<String> options = getOptions(argResults);
   run(entryPoint, null,
       analyzedUrisFilter: (Uri uri) => !uri.isScheme('dart'),
@@ -47,14 +45,14 @@ main(List<String> args) {
       options: options);
 }
 
-run(Uri entryPoint, String allowedListPath,
+run(Uri entryPoint, String? allowedListPath,
     {Map<String, String> memorySourceFiles = const {},
-    Uri librariesSpecificationUri,
-    Uri packageConfig,
+    Uri? librariesSpecificationUri,
+    Uri? packageConfig,
     bool verbose = false,
     bool generate = false,
     List<String> options = const <String>[],
-    bool analyzedUrisFilter(Uri uri)}) {
+    bool analyzedUrisFilter(Uri uri)?}) {
   asyncTest(() async {
     Compiler compiler = await compilerFor(
         memorySourceFiles: memorySourceFiles,
@@ -62,14 +60,14 @@ run(Uri entryPoint, String allowedListPath,
         packageConfig: packageConfig,
         entryPoint: entryPoint,
         options: options);
-    load_kernel.Output result = await load_kernel.run(load_kernel.Input(
+    load_kernel.Output result = (await load_kernel.run(load_kernel.Input(
         compiler.options,
         compiler.provider,
         compiler.reporter,
         compiler.initializedCompilerState,
-        false));
+        false)))!;
     compiler.frontendStrategy
-        .registerLoadedLibraries(result.component, result.libraries);
+        .registerLoadedLibraries(result.component, result.libraries!);
     DynamicVisitor(compiler.reporter, result.component, allowedListPath,
             analyzedUrisFilter)
         .run(verbose: verbose, generate: generate);
@@ -78,22 +76,25 @@ run(Uri entryPoint, String allowedListPath,
 
 class StaticTypeVisitorBase extends StaticTypeVisitor {
   @override
-  VariableScopeModel variableScopeModel;
+  VariableScopeModel get variableScopeModel => _variableScopeModel!;
+  VariableScopeModel? _variableScopeModel;
 
-  Dart2jsConstantEvaluator _constantEvaluator;
+  late final Dart2jsConstantEvaluator _constantEvaluator;
 
   @override
-  ir.StaticTypeContext staticTypeContext;
+  ir.StaticTypeContext get staticTypeContext => _staticTypeContext!;
+  set staticTypeContext(ir.StaticTypeContext context) {
+    _staticTypeContext = context;
+  }
+
+  ir.StaticTypeContext? _staticTypeContext;
 
   StaticTypeVisitorBase(
       ir.Component component, ir.ClassHierarchy classHierarchy,
-      {ir.EvaluationMode evaluationMode})
-      : assert(evaluationMode != null),
-        super(
-            new ir.TypeEnvironment(new ir.CoreTypes(component), classHierarchy),
-            classHierarchy,
-            new StaticTypeCacheImpl()) {
-    _constantEvaluator = new Dart2jsConstantEvaluator(
+      {required ir.EvaluationMode evaluationMode})
+      : super(ir.TypeEnvironment(new ir.CoreTypes(component), classHierarchy),
+            classHierarchy, StaticTypeCacheImpl()) {
+    _constantEvaluator = Dart2jsConstantEvaluator(
         component, typeEnvironment, const ir.SimpleErrorReporter().report,
         evaluationMode: evaluationMode);
   }
@@ -105,62 +106,64 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
   bool get inferEffectivelyFinalVariableTypes => true;
 
   @override
-  Null visitProcedure(ir.Procedure node) {
+  ir.DartType visitProcedure(ir.Procedure node) {
     if (node.kind == ir.ProcedureKind.Factory && node.isRedirectingFactory) {
       // Don't visit redirecting factories.
-      return;
+      return const ir.VoidType();
     }
-    staticTypeContext = new ir.StaticTypeContext(node, typeEnvironment);
-    variableScopeModel =
-        new ScopeModel.from(node, _constantEvaluator).variableScopeModel;
-    super.visitProcedure(node);
-    variableScopeModel = null;
-    staticTypeContext = null;
+    _staticTypeContext = ir.StaticTypeContext(node, typeEnvironment);
+    _variableScopeModel =
+        ScopeModel.from(node, _constantEvaluator).variableScopeModel;
+    final result = super.visitProcedure(node);
+    _variableScopeModel = null;
+    _staticTypeContext = null;
+    return result;
   }
 
   @override
-  Null visitField(ir.Field node) {
+  ir.DartType visitField(ir.Field node) {
     if (isRedirectingFactoryField(node)) {
       // Skip synthetic .dill members.
-      return;
+      return const ir.VoidType();
     }
-    staticTypeContext = new ir.StaticTypeContext(node, typeEnvironment);
-    variableScopeModel =
-        new ScopeModel.from(node, _constantEvaluator).variableScopeModel;
-    super.visitField(node);
-    variableScopeModel = null;
-    staticTypeContext = null;
+    _staticTypeContext = ir.StaticTypeContext(node, typeEnvironment);
+    _variableScopeModel =
+        ScopeModel.from(node, _constantEvaluator).variableScopeModel;
+    final result = super.visitField(node);
+    _variableScopeModel = null;
+    _staticTypeContext = null;
+    return result;
   }
 
   @override
-  Null visitConstructor(ir.Constructor node) {
-    staticTypeContext = new ir.StaticTypeContext(node, typeEnvironment);
-    variableScopeModel =
-        new ScopeModel.from(node, _constantEvaluator).variableScopeModel;
-    super.visitConstructor(node);
-    variableScopeModel = null;
-    staticTypeContext = null;
+  ir.DartType visitConstructor(ir.Constructor node) {
+    _staticTypeContext = ir.StaticTypeContext(node, typeEnvironment);
+    _variableScopeModel =
+        ScopeModel.from(node, _constantEvaluator).variableScopeModel;
+    final result = super.visitConstructor(node);
+    _variableScopeModel = null;
+    _staticTypeContext = null;
+    return result;
   }
 }
 
 class DynamicVisitor extends StaticTypeVisitorBase {
   final DiagnosticReporter reporter;
   final ir.Component component;
-  final String _allowedListPath;
-  final bool Function(Uri uri) analyzedUrisFilter;
+  final String? _allowedListPath;
+  final bool Function(Uri uri)? analyzedUrisFilter;
 
   Map _expectedJson = {};
   final Map<String, Map<String, List<DiagnosticMessage>>> _actualMessages = {};
 
   DynamicVisitor(this.reporter, this.component, this._allowedListPath,
       this.analyzedUrisFilter)
-      : super(component,
-            new ir.ClassHierarchy(component, new ir.CoreTypes(component)),
+      : super(component, ir.ClassHierarchy(component, ir.CoreTypes(component)),
             evaluationMode: ir.EvaluationMode.weak);
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate && _allowedListPath != null) {
-      File file = new File(_allowedListPath);
+      File file = File(_allowedListPath!);
       if (file.existsSync()) {
         try {
           _expectedJson = json.jsonDecode(file.readAsStringSync());
@@ -182,14 +185,14 @@ class DynamicVisitor extends StaticTypeVisitorBase {
         actualJson[uri] = map;
       });
 
-      File(_allowedListPath).writeAsStringSync(
+      File(_allowedListPath!).writeAsStringSync(
           json.JsonEncoder.withIndent('  ').convert(actualJson));
       return;
     }
 
     int errorCount = 0;
     _expectedJson.forEach((uri, expectedMessages) {
-      Map<String, List<DiagnosticMessage>> actualMessagesMap =
+      Map<String, List<DiagnosticMessage>>? actualMessagesMap =
           _actualMessages[uri];
       if (actualMessagesMap == null) {
         print("Error: Allowed-listing of uri '$uri' isn't used. "
@@ -197,7 +200,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
         errorCount++;
       } else {
         expectedMessages.forEach((expectedMessage, expectedCount) {
-          List<DiagnosticMessage> actualMessages =
+          List<DiagnosticMessage>? actualMessages =
               actualMessagesMap[expectedMessage];
           if (actualMessages == null) {
             print("Error: Allowed-listing of message '$expectedMessage' "
@@ -293,12 +296,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
 
   /// Pulls the static type from `getStaticType` on [node].
   ir.DartType _getStaticTypeFromExpression(ir.Expression node) {
-    if (typeEnvironment == null) {
-      // The class hierarchy crashes on multiple inheritance. Use `dynamic`
-      // as static type.
-      return const ir.DynamicType();
-    }
-    ir.TreeNode enclosingClass = node;
+    ir.TreeNode? enclosingClass = node;
     while (enclosingClass != null && enclosingClass is! ir.Class) {
       enclosingClass = enclosingClass.parent;
     }
@@ -330,13 +328,14 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   }
 
   @override
-  Null visitLibrary(ir.Library node) {
+  ir.DartType visitLibrary(ir.Library node) {
     if (analyzedUrisFilter != null) {
-      if (analyzedUrisFilter(node.importUri)) {
-        super.visitLibrary(node);
+      if (analyzedUrisFilter!(node.importUri)) {
+        return super.visitLibrary(node);
       }
+      return const ir.VoidType();
     } else {
-      super.visitLibrary(node);
+      return super.visitLibrary(node);
     }
   }
 
@@ -367,11 +366,11 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     }
   }
 
-  String reportAssertionFailure(ir.Node node, String message) {
+  String reportAssertionFailure(ir.TreeNode node, String message) {
     SourceSpan span = computeSourceSpanFromTreeNode(node);
     Uri uri = span.uri;
     if (uri.isScheme('org-dartlang-sdk')) {
-      span = new SourceSpan(
+      span = SourceSpan(
           Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
     }
     DiagnosticMessage diagnosticMessage =
@@ -380,14 +379,14 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     return message;
   }
 
-  void registerError(ir.Node node, String message) {
+  void registerError(ir.TreeNode node, String message) {
     SourceSpan span = computeSourceSpanFromTreeNode(node);
     Uri uri = span.uri;
     String uriString = relativizeUri(Uri.base, uri, Platform.isWindows);
     Map<String, List<DiagnosticMessage>> actualMap = _actualMessages
         .putIfAbsent(uriString, () => <String, List<DiagnosticMessage>>{});
     if (uri.isScheme('org-dartlang-sdk')) {
-      span = new SourceSpan(
+      span = SourceSpan(
           Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
     }
     DiagnosticMessage diagnosticMessage =

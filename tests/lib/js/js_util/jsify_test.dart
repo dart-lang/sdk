@@ -43,6 +43,15 @@ main() {
     }
     """);
 
+  test('convert primitives', () {
+    final cases = [null, true, 0.5, 'foo'];
+    for (int i = 0; i < cases.length; i++) {
+      final test = cases[i];
+      final jsTest = js_util.jsify(test);
+      expect(identical(test, jsTest), isTrue);
+    }
+  });
+
   test('convert a List', () {
     final list = [1, 2, 3, 4, 5, 6, 7, 8];
     var array = js_util.jsify(list);
@@ -96,9 +105,5 @@ main() {
     expect(js_util.callMethod(d, 'bar', []), equals(42));
 
     expect(js_util.getProperty(jsObject, 'e'), isNull);
-  });
-
-  test('throws if object is not a Map or Iterable', () {
-    expect(() => js_util.jsify('a'), throwsArgumentError);
   });
 }

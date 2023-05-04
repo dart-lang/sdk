@@ -737,7 +737,109 @@ void f() {
     expect(refactoring.isAvailable(), isTrue);
   }
 
-  Future<void> test_lint_prefer_final_locals() async {
+  Future<void> test_lint_alwaysSpecifyTypes() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
+    await indexTestUnit('''
+void f() {
+  print(1 + 2);
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f() {
+  int res = 1 + 2;
+  print(res);
+}
+''');
+  }
+
+  Future<void> test_lint_alwaysSpecifyTypes_const() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
+    await indexTestUnit('''
+void f() {
+  const <int>[1, 2];
+}
+''');
+    _createRefactoringForString('1');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f() {
+  const int res = 1;
+  const <int>[res, 2];
+}
+''');
+  }
+
+  Future<void> test_lint_alwaysSpecifyTypes_final() async {
+    createAnalysisOptionsFile(
+        lints: [LintNames.always_specify_types, LintNames.prefer_final_locals]);
+    await indexTestUnit('''
+void f() {
+  print(1 + 2);
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f() {
+  final int res = 1 + 2;
+  print(res);
+}
+''');
+  }
+
+  Future<void> test_lint_alwaysSpecifyTypes_functionExpressionBody() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
+    await indexTestUnit('''
+foo(Point p) => p.x * p.x + p.y * p.y;
+class Point {int x = 0; int y = 0;}
+''');
+    _createRefactoringForString('p.x');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+foo(Point p) {
+  int res = p.x;
+  return res * res + p.y * p.y;
+}
+class Point {int x = 0; int y = 0;}
+''');
+  }
+
+  Future<void> test_lint_alwaysSpecifyTypes_statement() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
+    await indexTestUnit('''
+void f(String p) {
+  p.toString();
+}
+''');
+    _createRefactoringForString('p.toString()');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f(String p) {
+  String res = p.toString();
+}
+''');
+  }
+
+  Future<void> test_lint_alwaysSpecifyTypes_stringLiteralPart() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
+    await indexTestUnit('''
+void f() {
+  print('abcdefgh');
+}
+''');
+    _createRefactoringForString('cde');
+    // apply refactoring
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  String res = 'cde';
+  print('ab${res}fgh');
+}
+''');
+  }
+
+  Future<void> test_lint_preferFinalLocals() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_final_locals]);
     await indexTestUnit('''
 void f() {
@@ -1352,7 +1454,7 @@ void f() {
     _assertSingleLinkedEditGroup(length: 3, offsets: [43, 69], names: ['xy']);
   }
 
-  Future _assertInitialConditions_fatal_selection() async {
+  Future<void> _assertInitialConditions_fatal_selection() async {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
@@ -1383,7 +1485,7 @@ void f() {
 
   /// Checks that all conditions are OK and the result of applying the
   /// [SourceChange] to [testUnit] is [expectedCode].
-  Future _assertSuccessfulRefactoring(String expectedCode) async {
+  Future<void> _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;

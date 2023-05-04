@@ -6,6 +6,8 @@
 
 import 'dart:core' hide Type;
 
+import 'package:front_end/src/api_prototype/static_weak_references.dart'
+    show StaticWeakReferences;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/class_hierarchy.dart'
@@ -15,15 +17,15 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:vm/metadata/direct_call.dart';
+import 'package:vm/metadata/inferred_type.dart';
+import 'package:vm/metadata/procedure_attributes.dart';
+import 'package:vm/metadata/table_selector.dart';
+import 'package:vm/metadata/unboxing_info.dart';
+import 'package:vm/metadata/unreachable.dart';
+import 'package:vm/transformations/devirtualization.dart' show Devirtualization;
+import 'package:vm/transformations/pragma.dart';
 
-import '../../metadata/direct_call.dart';
-import '../../metadata/inferred_type.dart';
-import '../../metadata/procedure_attributes.dart';
-import '../../metadata/table_selector.dart';
-import '../../metadata/unboxing_info.dart';
-import '../../metadata/unreachable.dart';
-import '../devirtualization.dart' show Devirtualization;
-import '../pragma.dart';
 import 'analysis.dart';
 import 'calls.dart';
 import 'finalizable_types.dart';
@@ -205,7 +207,8 @@ class MoveFieldInitializers {
           initExpr = CloneVisitorNotMembers().clone(initExpr);
         }
         final Initializer newInit = initializedFields.contains(f)
-            ? LocalInitializer(VariableDeclaration(null, initializer: initExpr))
+            ? LocalInitializer(VariableDeclaration(null,
+                initializer: initExpr, isSynthesized: true))
             : FieldInitializer(f, initExpr);
         newInit.parent = c;
         newInitializers.add(newInit);
@@ -516,17 +519,12 @@ class AnnotateKernel extends RecursiveVisitor {
             _unboxingInfo.getUnboxingInfoOfMember(member);
         if (unboxingInfoMetadata != null) {
           // Check for partitions that only have abstract methods should be marked as boxed.
-          if (unboxingInfoMetadata.returnInfo ==
-              UnboxingInfoMetadata.kUnboxingCandidate) {
-            unboxingInfoMetadata.returnInfo = UnboxingInfoMetadata.kBoxed;
+          if (unboxingInfoMetadata.returnInfo == UnboxingType.kUnknown) {
+            unboxingInfoMetadata.returnInfo = UnboxingType.kBoxed;
           }
-          for (int i = 0;
-              i < unboxingInfoMetadata.unboxedArgsInfo.length;
-              i++) {
-            if (unboxingInfoMetadata.unboxedArgsInfo[i] ==
-                UnboxingInfoMetadata.kUnboxingCandidate) {
-              unboxingInfoMetadata.unboxedArgsInfo[i] =
-                  UnboxingInfoMetadata.kBoxed;
+          for (int i = 0; i < unboxingInfoMetadata.argsInfo.length; i++) {
+            if (unboxingInfoMetadata.argsInfo[i] == UnboxingType.kUnknown) {
+              unboxingInfoMetadata.argsInfo[i] = UnboxingType.kBoxed;
             }
           }
           if (!unboxingInfoMetadata.isFullyBoxed) {
@@ -890,7 +888,8 @@ class FieldMorpher {
     Procedure accessor;
     if (isSetter) {
       final isAbstract = !shaker.isFieldSetterReachable(field);
-      final parameter = new VariableDeclaration('value', type: field.type)
+      final parameter = new VariableDeclaration('value',
+          type: field.type, isSynthesized: true)
         ..isCovariantByDeclaration = field.isCovariantByDeclaration
         ..isCovariantByClass = field.isCovariantByClass
         ..fileOffset = field.fileOffset;
@@ -1090,8 +1089,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   TreeNode _makeUnreachableInitializer(List<Expression> args) {
-    return new LocalInitializer(
-        new VariableDeclaration(null, initializer: _makeUnreachableCall(args)));
+    return new LocalInitializer(new VariableDeclaration(null,
+        initializer: _makeUnreachableCall(args), isSynthesized: true));
   }
 
   NarrowNotNull? _getNullTest(TreeNode node) =>
@@ -1375,6 +1374,13 @@ class _TreeShakerPass1 extends RemovingTransformer {
   @override
   TreeNode visitStaticInvocation(
       StaticInvocation node, TreeNode? removalSentinel) {
+    if (StaticWeakReferences.isWeakReference(node)) {
+      final target = StaticWeakReferences.getWeakReferenceTarget(node);
+      if (shaker.isMemberBodyReachable(target)) {
+        return transform(StaticWeakReferences.getWeakReferenceArgument(node));
+      }
+      return NullLiteral()..fileOffset = node.fileOffset;
+    }
     node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall(_flattenArguments(node.arguments));
@@ -1475,8 +1481,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
           "Field should be reachable: ${field}");
       if (!shaker.retainField(field)) {
         if (mayHaveSideEffects(node.value)) {
-          return LocalInitializer(
-              VariableDeclaration(null, initializer: node.value));
+          return LocalInitializer(VariableDeclaration(null,
+              initializer: node.value, isSynthesized: true));
         } else {
           return removalSentinel!;
         }
@@ -1617,7 +1623,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
     // are implicitly checked for null, so transform the node only
     // if using sound null safety or it evaluates to a bool literal.
     if (_isExtendedBoolLiteral(left) &&
-        (shaker.typeFlowAnalysis.target.flags.enableNullSafety ||
+        (shaker.typeFlowAnalysis.target.flags.soundNullSafety ||
             _isExtendedBoolLiteral(right))) {
       return _evaluateArguments([left], right);
     }

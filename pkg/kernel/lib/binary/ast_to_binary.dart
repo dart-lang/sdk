@@ -384,12 +384,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  void writeViewNodeList(List<View> nodes) {
+  void writeInlineClassNodeList(List<InlineClass> nodes) {
     final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final View node = nodes[i];
-      writeViewNode(node);
+      final InlineClass node = nodes[i];
+      writeInlineClassNode(node);
     }
   }
 
@@ -495,7 +495,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     node.accept(this);
   }
 
-  void writeViewNode(View node) {
+  void writeInlineClassNode(InlineClass node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -1126,7 +1126,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeClassNodeList(node.classes);
     classOffsets.add(getBufferOffset());
     writeExtensionNodeList(node.extensions);
-    writeViewNodeList(node.views);
+    writeInlineClassNodeList(node.inlineClasses);
     writeFieldNodeList(node.fields);
     procedureOffsets = <int>[];
     writeProcedureNodeList(node.procedures);
@@ -1273,7 +1273,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
 
-    writeByte(node.flags);
+    writeUInt30(node.flags);
     writeStringReference(node.name);
 
     enterScope(memberScope: true);
@@ -1823,9 +1823,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitLocalFunctionInvocation(LocalFunctionInvocation node) {
     writeByte(Tag.LocalFunctionInvocation);
     writeOffset(node.fileOffset);
-    int index = _getVariableIndex(node.variable);
-    writeUInt30(node.variable.binaryOffsetNoTag);
-    writeUInt30(index);
+    _writeVariableReference(node.variable);
     writeArgumentsNode(node.arguments);
     writeDartType(node.functionType);
   }
@@ -2466,12 +2464,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitViewType(ViewType node) {
-    writeByte(Tag.ViewType);
+  void visitInlineType(InlineType node) {
+    writeByte(Tag.InlineType);
     writeByte(node.nullability.index);
-    writeNonNullReference(node.viewReference);
+    writeNonNullReference(node.inlineClassReference);
     writeNodeList(node.typeArguments);
-    writeNode(node.representationType);
+    writeNode(node.instantiatedRepresentationType);
   }
 
   @override
@@ -2655,12 +2653,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitView(View node) {
+  void visitInlineClass(InlineClass node) {
     CanonicalName? canonicalName = node.reference.canonicalName;
     if (canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
-    writeByte(Tag.View);
+    writeByte(Tag.InlineClass);
     _writeNonNullCanonicalName(canonicalName);
     writeStringReference(node.name);
     writeAnnotationList(node.annotations);
@@ -2670,13 +2668,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
-    writeDartType(node.representationType);
+    writeDartType(node.declaredRepresentationType);
+    writeStringReference(node.name);
+    writeNodeList(node.implements);
     leaveScope(typeParameters: node.typeParameters);
 
     final int len = node.members.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final ViewMemberDescriptor descriptor = node.members[i];
+      final InlineClassMemberDescriptor descriptor = node.members[i];
       writeName(descriptor.name);
       writeByte(descriptor.kind.index);
       writeByte(descriptor.flags);
@@ -2691,6 +2691,298 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.FunctionTearOff);
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
+  }
+
+  void _writeVariableReference(VariableDeclaration variable) {
+    int index = _getVariableIndex(variable);
+    writeUInt30(variable.binaryOffsetNoTag);
+    writeUInt30(index);
+  }
+
+  @override
+  void visitAndPattern(AndPattern node) {
+    writeByte(Tag.AndPattern);
+    writeOffset(node.fileOffset);
+    writeNode(node.left);
+    writeNode(node.right);
+  }
+
+  @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    writeByte(Tag.AssignedVariablePattern);
+    writeOffset(node.fileOffset);
+    _writeVariableReference(node.variable);
+    writeOptionalNode(node.matchedValueType);
+    writeByte(node.needsCast ? 1 : 0);
+  }
+
+  @override
+  void visitCastPattern(CastPattern node) {
+    writeByte(Tag.CastPattern);
+    writeOffset(node.fileOffset);
+    writeNode(node.pattern);
+    writeDartType(node.type);
+  }
+
+  @override
+  void visitConstantPattern(ConstantPattern node) {
+    writeByte(Tag.ConstantPattern);
+    writeOffset(node.fileOffset);
+    writeNode(node.expression);
+    writeOptionalNode(node.expressionType);
+    writeNullAllowedReference(node.equalsTargetReference);
+    writeOptionalNode(node.equalsType);
+  }
+
+  @override
+  void visitInvalidPattern(InvalidPattern node) {
+    writeByte(Tag.InvalidPattern);
+    writeOffset(node.fileOffset);
+    writeNode(node.invalidExpression);
+    writeVariableDeclarationList(node.declaredVariables);
+  }
+
+  @override
+  void visitListPattern(ListPattern node) {
+    writeByte(Tag.ListPattern);
+    writeOffset(node.fileOffset);
+    writeOptionalNode(node.typeArgument);
+    writeNodeList(node.patterns);
+    writeOptionalNode(node.requiredType);
+    writeOptionalNode(node.matchedValueType);
+    writeByte((node.needsCheck ? 0x1 : 0) | (node.hasRestPattern ? 0x2 : 0));
+    writeOptionalNode(node.lookupType);
+    writeNullAllowedReference(node.lengthTargetReference);
+    writeOptionalNode(node.lengthType);
+    writeNullAllowedReference(node.lengthCheckTargetReference);
+    writeOptionalNode(node.lengthCheckType);
+    writeNullAllowedReference(node.sublistTargetReference);
+    writeOptionalNode(node.sublistType);
+    writeNullAllowedReference(node.minusTargetReference);
+    writeOptionalNode(node.minusType);
+    writeNullAllowedReference(node.indexGetTargetReference);
+    writeOptionalNode(node.indexGetType);
+  }
+
+  @override
+  void visitMapPattern(MapPattern node) {
+    writeByte(Tag.MapPattern);
+    writeOffset(node.fileOffset);
+    writeOptionalNode(node.keyType);
+    writeOptionalNode(node.valueType);
+    writeNodeList(node.entries);
+    writeOptionalNode(node.requiredType);
+    writeOptionalNode(node.matchedValueType);
+    writeByte(node.needsCheck ? 0x1 : 0);
+    writeOptionalNode(node.lookupType);
+    writeNullAllowedReference(node.containsKeyTargetReference);
+    writeOptionalNode(node.containsKeyType);
+    writeNullAllowedReference(node.indexGetTargetReference);
+    writeOptionalNode(node.indexGetType);
+  }
+
+  @override
+  void visitMapPatternEntry(MapPatternEntry node) {
+    writeByte(Tag.MapPatternEntry);
+    writeOffset(node.fileOffset);
+    writeNode(node.key);
+    writeNode(node.value);
+    writeOptionalNode(node.keyType);
+  }
+
+  @override
+  void visitMapPatternRestEntry(MapPatternRestEntry node) {
+    writeByte(Tag.MapPatternRestEntry);
+    writeOffset(node.fileOffset);
+  }
+
+  @override
+  void visitNamedPattern(NamedPattern node) {
+    writeByte(Tag.NamedPattern);
+    writeOffset(node.fileOffset);
+    writeStringReference(node.name);
+    writeNode(node.pattern);
+    writeName(node.fieldName);
+    writeByte(node.accessKind.index);
+    writeNullAllowedReference(node.targetReference);
+    writeOptionalNode(node.resultType);
+    writeOptionalNode(node.recordType);
+    writeUInt30(node.recordFieldIndex);
+    writeOptionalNode(node.functionType);
+    if (node.typeArguments == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeNodeList(node.typeArguments!);
+    }
+  }
+
+  @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    writeByte(Tag.NullAssertPattern);
+    writeOffset(node.fileOffset);
+    writeNode(node.pattern);
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    writeByte(Tag.NullCheckPattern);
+    writeOffset(node.fileOffset);
+    writeNode(node.pattern);
+  }
+
+  @override
+  void visitObjectPattern(ObjectPattern node) {
+    writeByte(Tag.ObjectPattern);
+    writeOffset(node.fileOffset);
+    writeDartType(node.requiredType);
+    writeNodeList(node.fields);
+    writeOptionalNode(node.matchedValueType);
+    writeByte(node.needsCheck ? 1 : 0);
+    writeOptionalNode(node.lookupType);
+  }
+
+  @override
+  void visitOrPattern(OrPattern node) {
+    writeByte(Tag.OrPattern);
+    writeOffset(node.fileOffset);
+    writeNode(node.left);
+    writeNode(node.right);
+    writeList(node.orPatternJointVariables, _writeVariableReference);
+  }
+
+  @override
+  void visitPatternGuard(PatternGuard node) {
+    writeOffset(node.fileOffset);
+    writeNode(node.pattern);
+    writeOptionalNode(node.guard);
+  }
+
+  @override
+  void visitPatternSwitchCase(PatternSwitchCase node) {
+    writeVariableDeclarationList(node.jointVariables);
+    int length = node.patternGuards.length;
+    writeUInt30(length);
+    for (int i = 0; i < length; ++i) {
+      writeOffset(node.caseOffsets[i]);
+      writeNode(node.patternGuards[i]);
+    }
+    writeByte((node.isDefault ? 0x1 : 0) | (node.hasLabel ? 0x2 : 0));
+    writeNode(node.body);
+  }
+
+  @override
+  void visitPatternSwitchStatement(PatternSwitchStatement node) {
+    SwitchCaseIndexer switchCaseIndexer =
+        _switchCaseIndexer ??= new SwitchCaseIndexer();
+    switchCaseIndexer.enter(node);
+    writeByte(Tag.PatternSwitchStatement);
+    writeOffset(node.fileOffset);
+    writeNode(node.expression);
+    writeOptionalNode(node.expressionType);
+    writeSwitchCaseNodeList(node.cases);
+    switchCaseIndexer.exit(node);
+  }
+
+  @override
+  void visitRecordPattern(RecordPattern node) {
+    writeByte(Tag.RecordPattern);
+    writeOffset(node.fileOffset);
+    writeNodeList(node.patterns);
+    writeOptionalNode(node.requiredType);
+    writeOptionalNode(node.matchedValueType);
+    writeByte(node.needsCheck ? 1 : 0);
+    writeOptionalNode(node.lookupType);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    writeByte(Tag.RelationalPattern);
+    writeOffset(node.fileOffset);
+    writeByte(node.kind.index);
+    writeNode(node.expression);
+    writeOptionalNode(node.expressionType);
+    writeOptionalNode(node.matchedValueType);
+    writeByte(node.accessKind.index);
+    writeOptionalNode(node.name);
+    writeNullAllowedReference(node.targetReference);
+    if (node.typeArguments == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeNodeList(node.typeArguments!);
+    }
+    writeOptionalNode(node.functionType);
+  }
+
+  @override
+  void visitRestPattern(RestPattern node) {
+    writeByte(Tag.RestPattern);
+    writeOffset(node.fileOffset);
+    writeOptionalNode(node.subPattern);
+  }
+
+  @override
+  void visitSwitchExpression(SwitchExpression node) {
+    writeByte(Tag.SwitchExpression);
+    writeOffset(node.fileOffset);
+    writeNode(node.expression);
+    writeOptionalNode(node.expressionType);
+    writeList(node.cases, visitSwitchExpressionCase);
+    writeOptionalNode(node.staticType);
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    writeOffset(node.fileOffset);
+    writeNode(node.patternGuard);
+    writeNode(node.expression);
+  }
+
+  @override
+  void visitVariablePattern(VariablePattern node) {
+    writeByte(Tag.VariablePattern);
+    writeOffset(node.fileOffset);
+    writeOptionalNode(node.type);
+    writeVariableDeclaration(node.variable);
+    writeOptionalNode(node.matchedValueType);
+  }
+
+  @override
+  void visitWildcardPattern(WildcardPattern node) {
+    writeByte(Tag.WildcardPattern);
+    writeOffset(node.fileOffset);
+    writeOptionalNode(node.type);
+  }
+
+  @override
+  void visitIfCaseStatement(IfCaseStatement node) {
+    writeByte(Tag.IfCaseStatement);
+    writeOffset(node.fileOffset);
+    writeNode(node.expression);
+    writeNode(node.patternGuard);
+    writeNode(node.then);
+    writeOptionalNode(node.otherwise);
+    writeOptionalNode(node.matchedValueType);
+  }
+
+  @override
+  void visitPatternAssignment(PatternAssignment node) {
+    writeByte(Tag.PatternAssignment);
+    writeOffset(node.fileOffset);
+    writeNode(node.pattern);
+    writeNode(node.expression);
+    writeOptionalNode(node.matchedValueType);
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    writeByte(Tag.PatternVariableDeclaration);
+    writeOffset(node.fileOffset);
+    writeNode(node.pattern);
+    writeNode(node.initializer);
+    writeByte(node.isFinal ? 1 : 0);
+    writeOptionalNode(node.matchedValueType);
   }
 
   // ================================================================
@@ -2783,8 +3075,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitViewReference(View node) {
-    throw new UnsupportedError('serialization of View references');
+  void visitInlineClassReference(InlineClass node) {
+    throw new UnsupportedError('serialization of InlineClass references');
   }
 
   @override
@@ -3011,6 +3303,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitUnevaluatedConstantReference(UnevaluatedConstant node) {
     throw new UnsupportedError(
         'serialization of UnevaluatedConstant references');
+  }
+
+  @override
+  void defaultPattern(Pattern node) {
+    throw new UnsupportedError(
+        'serialization of generic Pattern: ${node} (${node.runtimeType})');
   }
 }
 

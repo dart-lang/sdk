@@ -62,7 +62,7 @@ Future<void> testSendAndExitFinalizable() async {
     receivePort.sendPort,
   );
   final result = await receivePort.first;
-  Expect.contains("Invalid argument: is a Finalizable", result);
+  Expect.contains("Invalid argument: is unsendable", result);
 }
 
 Future<void> testSendAndExitFinalizer() async {
@@ -79,5 +79,5 @@ Future<void> testSendAndExitFinalizer() async {
     receivePort.sendPort,
   );
   final result = await receivePort.first;
-  Expect.contains("Invalid argument: is a Finalizable", result);
+  Expect.contains("Invalid argument: is unsendable", result);
 }

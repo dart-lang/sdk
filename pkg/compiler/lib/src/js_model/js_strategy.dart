@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js_model.strategy;
 
 import 'package:kernel/ast.dart' as ir;
@@ -19,10 +17,10 @@ import '../deferred_load/output_unit.dart'
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../enqueue.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../io/kernel_source_information.dart'
     show KernelSourceInformationStrategy;
 import '../io/source_information.dart';
-import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/type_graph_inferrer.dart';
 import '../inferrer/types.dart';
 import '../inferrer_experimental/types.dart' as experimentalInferrer;
@@ -46,6 +44,7 @@ import '../js_backend/namer.dart'
         MinifyNamer,
         ModularNamer,
         Namer;
+import '../js_backend/records_codegen.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
@@ -75,37 +74,37 @@ import 'element_map_impl.dart';
 import 'js_world.dart';
 import 'js_world_builder.dart' show JClosedWorldBuilder;
 import 'locals.dart';
-import 'js_strategy_interfaces.dart' as interfaces;
+import 'records.dart' show RecordDataBuilder;
 
 /// JS Strategy pattern that defines the element model used in type inference
 /// and code generation.
-class JsBackendStrategy implements interfaces.JsBackendStrategy {
+class JsBackendStrategy {
   final Compiler _compiler;
-  JsKernelToElementMap _elementMap;
+  late JsKernelToElementMap _elementMap;
 
   /// Codegen support for generating table of interceptors and
   /// constructors for custom elements.
-  CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
+  late final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
 
-  NativeCodegenEnqueuer _nativeCodegenEnqueuer;
+  late final RecordsCodegen _recordsCodegen;
 
-  Namer _namer;
+  late final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
-  CodegenImpactTransformer _codegenImpactTransformer;
+  late final Namer _namer;
 
-  CodeEmitterTask _emitterTask;
+  late final CodegenImpactTransformer _codegenImpactTransformer;
 
-  RuntimeTypesChecksBuilder _rtiChecksBuilder;
+  late final CodeEmitterTask _emitterTask;
 
-  FunctionCompiler _functionCompiler;
+  late final RuntimeTypesChecksBuilder _rtiChecksBuilder;
 
-  @override
-  SourceInformationStrategy sourceInformationStrategy;
+  late final FunctionCompiler _functionCompiler;
+
+  late SourceInformationStrategy sourceInformationStrategy;
 
   final SsaMetrics _ssaMetrics = SsaMetrics();
 
   /// The generated code as a js AST for compiled methods.
-  @override
   final Map<MemberEntity, js.Expression> generatedCode = {};
 
   JsBackendStrategy(this._compiler) {
@@ -133,41 +132,30 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
 
   FunctionCompiler get functionCompiler => _functionCompiler;
 
-  @override
   CodeEmitterTask get emitterTask => _emitterTask;
 
   Namer get namerForTesting => _namer;
 
-  @override
-  NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
+  NativeCodegenEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   RuntimeTypesChecksBuilder get rtiChecksBuilderForTesting => _rtiChecksBuilder;
 
-  Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
+  Map<MemberEntity, WorldImpact>? codegenImpactsForTesting;
 
-  String getGeneratedCodeForTesting(MemberEntity element) {
+  String? getGeneratedCodeForTesting(MemberEntity element) {
     if (generatedCode[element] == null) return null;
-    return js.prettyPrint(generatedCode[element],
+    return js.prettyPrint(generatedCode[element]!,
         enableMinification: _compiler.options.enableMinification);
   }
 
   /// Codegen support for generating table of interceptors and
   /// constructors for custom elements.
-  @override
-  CustomElementsCodegenAnalysis get customElementsCodegenAnalysis {
-    assert(
-        _customElementsCodegenAnalysis != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "CustomElementsCodegenAnalysis has not been created yet."));
-    return _customElementsCodegenAnalysis;
-  }
+  CustomElementsCodegenAnalysis get customElementsCodegenAnalysis =>
+      _customElementsCodegenAnalysis;
 
-  @override
+  RecordsCodegen get recordsCodegen => _recordsCodegen;
+
   RuntimeTypesChecksBuilder get rtiChecksBuilder {
-    assert(
-        _rtiChecksBuilder != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "RuntimeTypesChecksBuilder has not been created yet."));
     assert(
         !_rtiChecksBuilder.rtiChecksBuilderClosed,
         failedAt(NO_LOCATION_SPANNABLE,
@@ -188,9 +176,12 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
         closedWorld.annotationsData);
     ClosureDataBuilder closureDataBuilder = ClosureDataBuilder(
         _compiler.reporter, _elementMap, closedWorld.annotationsData);
+    RecordDataBuilder recordDataBuilder = RecordDataBuilder(
+        _compiler.reporter, _elementMap, closedWorld.annotationsData);
     JClosedWorldBuilder closedWorldBuilder = JClosedWorldBuilder(
         _elementMap,
         closureDataBuilder,
+        recordDataBuilder,
         _compiler.options,
         _compiler.reporter,
         _compiler.abstractValueStrategy);
@@ -225,9 +216,10 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
 
     RuntimeTypesSubstitutions rtiSubstitutions;
     if (_compiler.options.disableRtiOptimization) {
-      rtiSubstitutions = TrivialRuntimeTypesSubstitutions(closedWorld);
+      final trivialSubs =
+          rtiSubstitutions = TrivialRuntimeTypesSubstitutions(closedWorld);
       _rtiChecksBuilder =
-          TrivialRuntimeTypesChecksBuilder(closedWorld, rtiSubstitutions);
+          TrivialRuntimeTypesChecksBuilder(closedWorld, trivialSubs);
     } else {
       RuntimeTypesImpl runtimeTypesImpl = RuntimeTypesImpl(closedWorld);
       _rtiChecksBuilder = runtimeTypesImpl;
@@ -250,9 +242,8 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
       CodegenInputs codegen,
-      CodegenResults codegenResults) {
-    assert(_elementMap != null,
-        "JsBackendStrategy.elementMap has not been created yet.");
+      CodegenResults codegenResults,
+      SourceLookup sourceLookup) {
     OneShotInterceptorData oneShotInterceptorData = OneShotInterceptorData(
         closedWorld.interceptorData,
         closedWorld.commonElements,
@@ -264,6 +255,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
     BackendImpacts impacts = BackendImpacts(commonElements, _compiler.options);
     _customElementsCodegenAnalysis = CustomElementsCodegenAnalysis(
         commonElements, elementEnvironment, closedWorld.nativeData);
+    _recordsCodegen = RecordsCodegen(commonElements, closedWorld.recordData);
     return CodegenEnqueuer(
         task,
         CodegenWorldBuilderImpl(
@@ -278,7 +270,8 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
             // TODO(johnniwinther): Avoid the need for a [ComponentLookup]. This
             // is caused by some type masks holding a kernel node for using in
             // tracing.
-            ComponentLookup(_elementMap.programEnv.mainComponent)),
+            ComponentLookup(_elementMap.programEnv.mainComponent),
+            sourceLookup),
         CodegenEnqueuerListener(
             _compiler.options,
             elementEnvironment,
@@ -286,7 +279,9 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
             impacts,
             closedWorld.backendUsage,
             closedWorld.rtiNeed,
+            closedWorld.recordData,
             customElementsCodegenAnalysis,
+            recordsCodegen,
             nativeCodegenEnqueuer),
         closedWorld.annotationsData);
   }
@@ -336,7 +331,8 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
       JClosedWorld closedWorld,
       CodegenResults codegenResults,
       EntityLookup entityLookup,
-      ComponentLookup componentLookup) {
+      ComponentLookup componentLookup,
+      SourceLookup sourceLookup) {
     MemberEntity member = work.element;
     CodegenResult result = codegenResults.getCodegenResults(member);
     if (_compiler.options.testMode) {
@@ -357,15 +353,16 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
           CodegenReaderImpl(closedWorld, modularNames, modularExpression));
       source.registerEntityLookup(entityLookup);
       source.registerComponentLookup(componentLookup);
+      source.registerSourceLookup(sourceLookup);
       result = CodegenResult.readFromDataSource(
           source, modularNames, modularExpression);
     }
     if (result.code != null) {
-      generatedCode[member] = result.code;
+      generatedCode[member] = result.code!;
     }
     if (retainDataForTesting) {
       codegenImpactsForTesting ??= {};
-      codegenImpactsForTesting[member] = result.impact;
+      codegenImpactsForTesting![member] = result.impact;
     }
     WorldImpact worldImpact =
         _codegenImpactTransformer.transformCodegenImpact(result.impact);
@@ -398,17 +395,16 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
         _compiler.reporter,
         _compiler.dumpInfoTask,
         _ssaMetrics,
-        _elementMap /*!*/,
+        _elementMap,
         sourceInformationStrategy);
   }
 
   /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
-  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
+  SourceSpan spanFromSpannable(Spannable spannable, Entity? currentElement) {
     return _elementMap.getSourceSpan(spannable, currentElement);
   }
 
   /// Creates the [TypesInferrer] used by this strategy.
-  @override
   TypesInferrer createTypesInferrer(
       covariant JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
@@ -418,7 +414,6 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   }
 
   /// Creates the [TypesInferrer] used by this strategy.
-  @override
   experimentalInferrer.TypesInferrer createExperimentalTypesInferrer(
       covariant JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
@@ -428,7 +423,6 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   }
 
   /// Prepare [source] to deserialize modular code generation data.
-  @override
   void prepareCodegenReader(DataSourceReader source) {
     source.registerEntityReader(ClosedEntityReader(_elementMap));
     source.registerEntityLookup(ClosedEntityLookup(_elementMap));
@@ -441,15 +435,14 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   /// the serialized data.
   ///
   /// The needed members include members computed on demand during non-modular
-  /// code generation, such as constructor bodies and and generator bodies.
-  @override
+  /// code generation, such as constructor bodies and generator bodies.
   EntityWriter forEachCodegenMember(void Function(MemberEntity member) f) {
     int earlyMemberIndexLimit = _elementMap.prepareForCodegenSerialization();
     ClosedEntityWriter entityWriter = ClosedEntityWriter(earlyMemberIndexLimit);
     for (int memberIndex = 0;
         memberIndex < _elementMap.members.length;
         memberIndex++) {
-      MemberEntity member = _elementMap.members.getEntity(memberIndex);
+      final member = _elementMap.members.getEntity(memberIndex);
       if (member == null || member.isAbstract) continue;
       f(member);
     }
@@ -463,15 +456,27 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   final CodegenResults _codegenResults;
   final EntityLookup _entityLookup;
   final ComponentLookup _componentLookup;
+  final SourceLookup _sourceLookup;
 
-  KernelCodegenWorkItemBuilder(this._backendStrategy, this._closedWorld,
-      this._codegenResults, this._entityLookup, this._componentLookup);
+  KernelCodegenWorkItemBuilder(
+      this._backendStrategy,
+      this._closedWorld,
+      this._codegenResults,
+      this._entityLookup,
+      this._componentLookup,
+      this._sourceLookup);
 
   @override
-  WorkItem createWorkItem(MemberEntity entity) {
+  WorkItem? createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
-    return KernelCodegenWorkItem(_backendStrategy, _closedWorld,
-        _codegenResults, _entityLookup, _componentLookup, entity);
+    return KernelCodegenWorkItem(
+        _backendStrategy,
+        _closedWorld,
+        _codegenResults,
+        _entityLookup,
+        _componentLookup,
+        _sourceLookup,
+        entity);
   }
 }
 
@@ -481,6 +486,7 @@ class KernelCodegenWorkItem extends WorkItem {
   final CodegenResults _codegenResults;
   final EntityLookup _entityLookup;
   final ComponentLookup _componentLookup;
+  final SourceLookup _sourceLookup;
   @override
   final MemberEntity element;
 
@@ -490,12 +496,13 @@ class KernelCodegenWorkItem extends WorkItem {
       this._codegenResults,
       this._entityLookup,
       this._componentLookup,
+      this._sourceLookup,
       this.element);
 
   @override
   WorldImpact run() {
-    return _backendStrategy.generateCode(
-        this, _closedWorld, _codegenResults, _entityLookup, _componentLookup);
+    return _backendStrategy.generateCode(this, _closedWorld, _codegenResults,
+        _entityLookup, _componentLookup, _sourceLookup);
   }
 }
 
@@ -509,8 +516,9 @@ class KernelSsaBuilder implements SsaBuilder {
   final JsToElementMap _elementMap;
   final SourceInformationStrategy _sourceInformationStrategy;
 
-  FunctionInlineCache _inlineCache;
-  InlineDataCache _inlineDataCache;
+  // TODO(48820): Make this final by passing in closed world to constructor.
+  FunctionInlineCache? _inlineCache;
+  final InlineDataCache _inlineDataCache;
 
   KernelSsaBuilder(
       this._task,
@@ -519,10 +527,13 @@ class KernelSsaBuilder implements SsaBuilder {
       this._dumpInfoTask,
       this._metrics,
       this._elementMap,
-      this._sourceInformationStrategy);
+      this._sourceInformationStrategy)
+      : _inlineDataCache = InlineDataCache(
+            enableUserAssertions: _options.enableUserAssertions,
+            omitImplicitCasts: _options.omitImplicitChecks);
 
   @override
-  HGraph build(
+  HGraph? build(
       MemberEntity member,
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults results,
@@ -531,9 +542,6 @@ class KernelSsaBuilder implements SsaBuilder {
       ModularNamer namer,
       ModularEmitter emitter) {
     _inlineCache ??= FunctionInlineCache(closedWorld.annotationsData);
-    _inlineDataCache ??= InlineDataCache(
-        enableUserAssertions: _options.enableUserAssertions,
-        omitImplicitCasts: _options.omitImplicitChecks);
     return _task.measure(() {
       KernelSsaGraphBuilder builder = KernelSsaGraphBuilder(
           _options,
@@ -550,7 +558,7 @@ class KernelSsaBuilder implements SsaBuilder {
           emitter,
           codegen.tracer,
           _sourceInformationStrategy,
-          _inlineCache,
+          _inlineCache!,
           _inlineDataCache);
       return builder.build();
     });
@@ -559,7 +567,7 @@ class KernelSsaBuilder implements SsaBuilder {
 
 class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   final GlobalTypeInferenceResults _globalInferenceResults;
-  GlobalTypeInferenceMemberResult _targetResults;
+  late final GlobalTypeInferenceMemberResult _targetResults;
 
   KernelToTypeInferenceMapImpl(
       MemberEntity target, this._globalInferenceResults) {
@@ -577,18 +585,18 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
-  AbstractValue receiverTypeOfInvocation(
+  AbstractValue? receiverTypeOfInvocation(
       ir.Expression node, AbstractValueDomain abstractValueDomain) {
     return _targetResults.typeOfReceiver(node);
   }
 
   @override
-  AbstractValue receiverTypeOfGet(ir.Expression node) {
+  AbstractValue? receiverTypeOfGet(ir.Expression node) {
     return _targetResults.typeOfReceiver(node);
   }
 
   @override
-  AbstractValue receiverTypeOfSet(
+  AbstractValue? receiverTypeOfSet(
       ir.Expression node, AbstractValueDomain abstractValueDomain) {
     return _targetResults.typeOfReceiver(node);
   }
@@ -601,24 +609,30 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
-  AbstractValue typeOfIterator(ir.ForInStatement node) {
+  AbstractValue? typeOfRecordLiteral(
+      ir.RecordLiteral recordLiteral, AbstractValueDomain abstractValueDomain) {
+    return _globalInferenceResults.typeOfRecordLiteral(recordLiteral);
+  }
+
+  @override
+  AbstractValue? typeOfIterator(ir.ForInStatement node) {
     return _targetResults.typeOfIterator(node);
   }
 
   @override
-  AbstractValue typeOfIteratorCurrent(ir.ForInStatement node) {
+  AbstractValue? typeOfIteratorCurrent(ir.ForInStatement node) {
     return _targetResults.typeOfIteratorCurrent(node);
   }
 
   @override
-  AbstractValue typeOfIteratorMoveNext(ir.ForInStatement node) {
+  AbstractValue? typeOfIteratorMoveNext(ir.ForInStatement node) {
     return _targetResults.typeOfIteratorMoveNext(node);
   }
 
   @override
   bool isJsIndexableIterator(
       ir.ForInStatement node, AbstractValueDomain abstractValueDomain) {
-    AbstractValue mask = typeOfIterator(node);
+    final mask = typeOfIterator(node);
     // TODO(sra): Investigate why mask is sometimes null.
     if (mask == null) return false;
     return abstractValueDomain.isJsIndexableAndIterable(mask).isDefinitelyTrue;
@@ -627,7 +641,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   @override
   AbstractValue inferredIndexType(ir.ForInStatement node) {
     return AbstractValueFactory.inferredResultTypeForSelector(
-        Selector.index(), typeOfIterator(node), _globalInferenceResults);
+        Selector.index(), typeOfIterator(node)!, _globalInferenceResults);
   }
 
   @override
@@ -650,9 +664,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
 
   @override
   AbstractValue typeFromNativeBehavior(
-      // TODO(48820): remove covariant once interface and implementation match.
-      NativeBehavior nativeBehavior,
-      covariant JClosedWorld closedWorld) {
+      NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
     return AbstractValueFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 }

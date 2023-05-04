@@ -189,7 +189,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
 /// otherwise a [HintCode.UNUSED_IMPORT] hint is generated with
 /// [generateUnusedImportHints].
 ///
-/// Additionally, [generateDuplicateImportHints] generates
+/// Additionally, [generateDuplicateImportWarnings] generates
 /// [HintCode.DUPLICATE_IMPORT] hints and [HintCode.UNUSED_SHOWN_NAME] hints.
 ///
 /// While this class does not yet have support for an "Organize Imports" action,
@@ -316,50 +316,42 @@ class ImportsVerifier {
 
   /// Any time after the defining compilation unit has been visited by this
   /// visitor, this method can be called to report an
-  /// [HintCode.DUPLICATE_EXPORT] hint for each of the export directives in the
-  /// [_duplicateExports] list.
-  ///
-  /// @param errorReporter the error reporter to report the set of
-  ///        [HintCode.DUPLICATE_EXPORT] hints to
-  void generateDuplicateExportHints(ErrorReporter errorReporter) {
+  /// [WarningCode.DUPLICATE_EXPORT] hint for each of the export
+  /// directives in the [_duplicateExports] list.
+  void generateDuplicateExportWarnings(ErrorReporter errorReporter) {
     var length = _duplicateExports.length;
     for (var i = 0; i < length; i++) {
       errorReporter.reportErrorForNode(
-          HintCode.DUPLICATE_EXPORT, _duplicateExports[i].uri);
+          WarningCode.DUPLICATE_EXPORT, _duplicateExports[i].uri);
     }
   }
 
   /// Any time after the defining compilation unit has been visited by this
   /// visitor, this method can be called to report an
-  /// [HintCode.DUPLICATE_IMPORT] hint for each of the import directives in the
-  /// [_duplicateImports] list.
-  ///
-  /// @param errorReporter the error reporter to report the set of
-  ///        [HintCode.DUPLICATE_IMPORT] hints to
-  void generateDuplicateImportHints(ErrorReporter errorReporter) {
+  /// [WarningCode.DUPLICATE_IMPORT] hint for each of the import
+  /// directives in the [_duplicateImports] list.
+  void generateDuplicateImportWarnings(ErrorReporter errorReporter) {
     var length = _duplicateImports.length;
     for (var i = 0; i < length; i++) {
       errorReporter.reportErrorForNode(
-          HintCode.DUPLICATE_IMPORT, _duplicateImports[i].uri);
+          WarningCode.DUPLICATE_IMPORT, _duplicateImports[i].uri);
     }
   }
 
-  /// Report a [HintCode.DUPLICATE_SHOWN_NAME] and
-  /// [HintCode.DUPLICATE_HIDDEN_NAME] hints for each duplicate shown or hidden
-  /// name.
+  /// Report a [WarningCode.DUPLICATE_SHOWN_NAME] and
+  /// [WarningCode.DUPLICATE_HIDDEN_NAME] hints for each duplicate shown or
+  /// hidden name.
   ///
   /// Only call this method after all of the compilation units have been visited
   /// by this visitor.
-  ///
-  /// @param errorReporter the error reporter used to report the set of
-  ///          [HintCode.UNUSED_SHOWN_NAME] hints
-  void generateDuplicateShownHiddenNameHints(ErrorReporter reporter) {
+  void generateDuplicateShownHiddenNameWarnings(ErrorReporter reporter) {
     _duplicateHiddenNamesMap.forEach(
         (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(HintCode.DUPLICATE_HIDDEN_NAME, identifier);
+        reporter.reportErrorForNode(
+            WarningCode.DUPLICATE_HIDDEN_NAME, identifier);
       }
     });
     _duplicateShownNamesMap.forEach(
@@ -367,7 +359,8 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(HintCode.DUPLICATE_SHOWN_NAME, identifier);
+        reporter.reportErrorForNode(
+            WarningCode.DUPLICATE_SHOWN_NAME, identifier);
       }
     });
   }
@@ -412,8 +405,8 @@ class ImportsVerifier {
       // only way for it to be `null` is if the import contains a string
       // interpolation, in which case the import wouldn't have resolved and
       // would not have been included in [_unusedImports].
-      errorReporter
-          .reportErrorForNode(HintCode.UNUSED_IMPORT, uri, [uri.stringValue!]);
+      errorReporter.reportErrorForNode(
+          WarningCode.UNUSED_IMPORT, uri, [uri.stringValue!]);
     }
   }
 
@@ -439,7 +432,7 @@ class ImportsVerifier {
           // Only generate a hint if we won't also generate a
           // "duplicate_shown_name" hint for the same identifier.
           reporter.reportErrorForNode(
-              HintCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
+              WarningCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
         }
       }
     });

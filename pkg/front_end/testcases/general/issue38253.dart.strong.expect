@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -10,15 +10,17 @@ library;
 //   g f(){
 //   ^
 //
-// pkg/front_end/testcases/general/issue38253.dart:7:5: Warning: Must explicitly return a value from a non-void function.
+// pkg/front_end/testcases/general/issue38253.dart:7:5: Error: A value must be explicitly returned from a non-void function.
 //     return;
 //     ^
 //
 import self as self;
 
-static field () →* Null a = () → Null {
+static field () → Null a = () → Null {
   function f() → invalid-type {
-    return null;
+    return invalid-expression "pkg/front_end/testcases/general/issue38253.dart:7:5: Error: A value must be explicitly returned from a non-void function.
+    return;
+    ^" in null;
   }
 };
 static method main() → dynamic {}

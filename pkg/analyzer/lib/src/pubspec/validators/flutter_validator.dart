@@ -7,6 +7,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
@@ -23,7 +24,7 @@ class FlutterValidator extends BasePubspecValidator {
         String packageRoot = context.dirname(source.fullName);
         for (YamlNode entryValue in assetsField.nodes) {
           if (entryValue is YamlScalar) {
-            Object entry = entryValue.value;
+            var entry = entryValue.valueOrThrow;
             if (entry is String) {
               if (entry.startsWith('packages/')) {
                 // TODO(brianwilkerson) Add validation of package references.
@@ -36,8 +37,8 @@ class FlutterValidator extends BasePubspecValidator {
                   ErrorCode errorCode = isDirectoryEntry
                       ? PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST
                       : PubspecWarningCode.ASSET_DOES_NOT_EXIST;
-                  reportErrorForNode(
-                      reporter, entryValue, errorCode, [entryValue.value]);
+                  reportErrorForNode(reporter, entryValue, errorCode,
+                      [entryValue.valueOrThrow]);
                 }
               }
             } else {

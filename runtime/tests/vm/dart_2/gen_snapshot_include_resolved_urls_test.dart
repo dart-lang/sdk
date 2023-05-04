@@ -12,6 +12,8 @@ import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import 'use_flag_test_helper.dart';
+
 main(List<String> args) async {
   if (!Platform.executable.endsWith("dart_precompiled_runtime")) {
     return; // Running in JIT: AOT binaries not available.
@@ -21,8 +23,6 @@ main(List<String> args) async {
     return; // SDK tree and gen_snapshot not available on the test device.
   }
 
-  final buildDir = path.dirname(Platform.executable);
-  final sdkDir = path.dirname(path.dirname(buildDir));
   final scriptUrl = path.join(
     sdkDir,
     'runtime',
@@ -32,10 +32,6 @@ main(List<String> args) async {
     'gen_snapshot_include_resolved_urls_script.dart',
   );
 
-  final platformDill = path.join(buildDir, 'vm_platform_strong.dill');
-  final genSnapshot = path.join(buildDir, 'gen_snapshot');
-  final aotRuntime = path.join(buildDir, 'dart_precompiled_runtime');
-
   Directory tempDir;
   setUpAll(() async {
     tempDir = Directory.systemTemp.createTempSync('aot-script-urls-test');
@@ -44,6 +40,7 @@ main(List<String> args) async {
     // Compile script to Kernel IR.
     await run('pkg/vm/tool/gen_kernel', <String>[
       '--aot',
+      '--no-sound-null-safety',
       '--packages=$sdkDir/.dart_tool/package_config.json',
       '--platform=$platformDill',
       '-o',
@@ -65,6 +62,7 @@ main(List<String> args) async {
       // Compile script to Kernel IR.
       await run('pkg/vm/tool/gen_kernel', <String>[
         '--aot',
+        '--no-sound-null-safety',
         '--packages=$sdkDir/.packages',
         '--platform=$platformDill',
         '-o',
@@ -75,13 +73,14 @@ main(List<String> args) async {
       final elfFile = path.join(tempDir.path, 'aot.snapshot');
       await run(genSnapshot, <String>[
         '--snapshot-kind=app-aot-elf',
+        '--no-sound-null-safety',
         '--elf=$elfFile',
         scriptDill,
       ]);
 
       // Ensure we can actually run the code.
       expect(
-        await run(aotRuntime, <String>[
+        await run(dartPrecompiledRuntime, <String>[
           '--enable-vm-service=0',
           '--profiler',
           elfFile,

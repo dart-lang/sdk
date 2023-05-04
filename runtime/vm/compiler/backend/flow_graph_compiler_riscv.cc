@@ -10,6 +10,7 @@
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -74,13 +75,12 @@ void FlowGraphCompiler::ExitIntrinsicMode() {
 TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                 DeoptInfoBuilder* builder,
                                                 const Array& deopt_table) {
-  if (deopt_env_ == NULL) {
+  if (deopt_env_ == nullptr) {
     ++builder->current_info_number_;
     return TypedData::null();
   }
 
-  intptr_t stack_height = compiler->StackSize();
-  AllocateIncomingParametersRecursive(deopt_env_, &stack_height);
+  AllocateOutgoingArguments(deopt_env_);
 
   intptr_t slot_ix = 0;
   Environment* current = deopt_env_;
@@ -112,7 +112,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   Environment* previous = current;
   current = current->outer();
-  while (current != NULL) {
+  while (current != nullptr) {
     builder->AddPp(current->function(), slot_ix++);
     builder->AddPcMarker(previous->function(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
@@ -141,7 +141,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     current = current->outer();
   }
   // The previous pointer is now the outermost environment.
-  ASSERT(previous != NULL);
+  ASSERT(previous != nullptr);
 
   // Add slots for the outermost environment.
   builder->AddCallerPp(slot_ix++);
@@ -169,7 +169,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
     __ trap();
   }
 
-  ASSERT(deopt_env() != NULL);
+  ASSERT(deopt_env() != nullptr);
   __ Call(compiler::Address(THR, Thread::deoptimize_entry_offset()));
   set_pc_offset(assembler->CodeSize());
 #undef __
@@ -340,7 +340,9 @@ void FlowGraphCompiler::EmitPrologue() {
     const intptr_t slot_index =
         compiler::target::frame_layout.FrameSlotForVariable(
             parsed_function().suspend_state_var());
-    __ StoreToOffset(NULL_REG, FP, slot_index * kWordSize);
+    const intptr_t fp_to_sp_delta =
+        StackSize() + compiler::target::frame_layout.dart_fixed_frame_size;
+    __ StoreToOffset(NULL_REG, SP, (slot_index + fp_to_sp_delta) * kWordSize);
   }
 
   EndCodeSourceRange(PrologueSource());
@@ -477,7 +479,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   __ LoadUniqueObject(IC_DATA_REG, ic_data);
   GenerateDartCall(deopt_id, source, stub, UntaggedPcDescriptors::kIcCall, locs,
                    entry_kind);
-  __ Drop(ic_data.SizeWithTypeArgs());
+  EmitDropArguments(ic_data.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
@@ -501,7 +503,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
   __ jalr(RA);
   EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kIcCall, locs,
                        pending_deoptimization_env_);
-  __ Drop(ic_data.SizeWithTypeArgs());
+  EmitDropArguments(ic_data.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitMegamorphicInstanceCall(
@@ -545,7 +547,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     }
   }
   RecordCatchEntryMoves(pending_deoptimization_env_);
-  __ Drop(args_desc.SizeWithTypeArgs());
+  EmitDropArguments(args_desc.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
@@ -589,7 +591,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
 
   EmitCallsiteMetadata(source, DeoptId::kNone, UntaggedPcDescriptors::kOther,
                        locs, pending_deoptimization_env_);
-  __ Drop(ic_data.SizeWithTypeArgs());
+  EmitDropArguments(ic_data.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(
@@ -605,7 +607,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
   __ LoadObject(IC_DATA_REG, ic_data);
   GenerateDartCall(deopt_id, source, stub,
                    UntaggedPcDescriptors::kUnoptStaticCall, locs, entry_kind);
-  __ Drop(size_with_type_args);
+  EmitDropArguments(size_with_type_args);
 }
 
 void FlowGraphCompiler::EmitOptimizedStaticCall(
@@ -629,7 +631,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   // we can record the outgoing edges to other code.
   GenerateStaticDartCall(deopt_id, source, UntaggedPcDescriptors::kOther, locs,
                          function, entry_kind);
-  __ Drop(size_with_type_args);
+  EmitDropArguments(size_with_type_args);
 }
 
 void FlowGraphCompiler::EmitDispatchTableCall(
@@ -645,16 +647,9 @@ void FlowGraphCompiler::EmitDispatchTableCall(
   // Would like cid_reg to be available on entry to the target function
   // for checking purposes.
   ASSERT(cid_reg != TMP);
-  intx_t imm = offset << compiler::target::kWordSizeLog2;
-  intx_t lo = ImmLo(imm);
-  intx_t hi = ImmHi(imm);
-  __ slli(TMP, cid_reg, compiler::target::kWordSizeLog2);
-  if (hi != 0) {
-    __ lui(TMP2, hi);
-    __ add(TMP, TMP, TMP2);
-  }
-  __ add(TMP, TMP, DISPATCH_TABLE_REG);
-  __ lx(TMP, compiler::Address(TMP, lo));
+  __ AddShifted(TMP, DISPATCH_TABLE_REG, cid_reg,
+                compiler::target::kWordSizeLog2);
+  __ LoadFromOffset(TMP, TMP, offset << compiler::target::kWordSizeLog2);
   __ jalr(TMP);
 }
 
@@ -779,10 +774,29 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
   __ LoadClassId(class_id_reg, A0);
 }
 
+Location FlowGraphCompiler::RebaseIfImprovesAddressing(Location loc) const {
+  if (loc.IsStackSlot() && (loc.base_reg() == FP)) {
+    intptr_t fp_sp_dist =
+        (compiler::target::frame_layout.first_local_from_fp + 1 - StackSize());
+    __ CheckFpSpDist(fp_sp_dist * compiler::target::kWordSize);
+    return Location::StackSlot(loc.stack_index() - fp_sp_dist, SP);
+  }
+  if (loc.IsDoubleStackSlot() && (loc.base_reg() == FP)) {
+    intptr_t fp_sp_dist =
+        (compiler::target::frame_layout.first_local_from_fp + 1 - StackSize());
+    __ CheckFpSpDist(fp_sp_dist * compiler::target::kWordSize);
+    return Location::DoubleStackSlot(loc.stack_index() - fp_sp_dist, SP);
+  }
+  return loc;
+}
+
 void FlowGraphCompiler::EmitMove(Location destination,
                                  Location source,
                                  TemporaryRegisterAllocator* allocator) {
   if (destination.Equals(source)) return;
+
+  destination = RebaseIfImprovesAddressing(destination);
+  source = RebaseIfImprovesAddressing(source);
 
   if (source.IsRegister()) {
     if (destination.IsRegister()) {
@@ -804,10 +818,8 @@ void FlowGraphCompiler::EmitMove(Location destination,
       ASSERT(destination.IsStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      Register tmp = allocator->AllocateTemporary();
-      __ LoadFromOffset(tmp, source.base_reg(), source_offset);
-      __ StoreToOffset(tmp, destination.base_reg(), dest_offset);
-      allocator->ReleaseTemporary();
+      __ LoadFromOffset(TMP, source.base_reg(), source_offset);
+      __ StoreToOffset(TMP, destination.base_reg(), dest_offset);
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
@@ -849,15 +861,8 @@ void FlowGraphCompiler::EmitMove(Location destination,
 #endif
   } else {
     ASSERT(source.IsConstant());
-    if (destination.IsStackSlot()) {
-      Register tmp = allocator->AllocateTemporary();
-      source.constant_instruction()->EmitMoveToLocation(this, destination, tmp,
-                                                        source.pair_index());
-      allocator->ReleaseTemporary();
-    } else {
-      source.constant_instruction()->EmitMoveToLocation(
-          this, destination, kNoRegister, source.pair_index());
-    }
+    source.constant_instruction()->EmitMoveToLocation(this, destination, TMP,
+                                                      source.pair_index());
   }
 }
 
@@ -881,8 +886,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
     const compiler::ffi::NativeLocation& source) {
   const auto& src_type = source.payload_type();
   const auto& dst_type = destination.payload_type();
-  ASSERT(src_type.IsFloat() == dst_type.IsFloat());
-  ASSERT(src_type.IsInt() == dst_type.IsInt());
+
   ASSERT(src_type.IsSigned() == dst_type.IsSigned());
   ASSERT(src_type.IsPrimitive());
   ASSERT(dst_type.IsPrimitive());
@@ -946,8 +950,23 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       }
 
     } else if (destination.IsFpuRegisters()) {
-      // Fpu Registers should only contain doubles and registers only ints.
-      UNIMPLEMENTED();
+      const auto& dst = destination.AsFpuRegisters();
+      ASSERT(src_size == dst_size);
+      ASSERT(src.num_regs() == 1);
+      switch (src_size) {
+        case 4:
+          __ fmvwx(dst.fpu_reg(), src.reg_at(0));
+          return;
+        case 8:
+#if XLEN == 32
+          UNIMPLEMENTED();
+#else
+          __ fmvdx(dst.fpu_reg(), src.reg_at(0));
+#endif
+          return;
+        default:
+          UNREACHABLE();
+      }
 
     } else {
       ASSERT(destination.IsStack());
@@ -963,8 +982,23 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
     ASSERT(src_type.Equals(dst_type));
 
     if (destination.IsRegisters()) {
-      // Fpu Registers should only contain doubles and registers only ints.
-      UNIMPLEMENTED();
+      const auto& dst = destination.AsRegisters();
+      ASSERT(src_size == dst_size);
+      ASSERT(dst.num_regs() == 1);
+      switch (src_size) {
+        case 4:
+          __ fmvxw(dst.reg_at(0), src.fpu_reg());
+          return;
+        case 8:
+#if XLEN == 32
+          UNIMPLEMENTED();
+#else
+          __ fmvxd(dst.reg_at(0), src.fpu_reg());
+#endif
+          return;
+        default:
+          UNREACHABLE();
+      }
 
     } else if (destination.IsFpuRegisters()) {
       const auto& dst = destination.AsFpuRegisters();
@@ -1047,10 +1081,9 @@ void FlowGraphCompiler::LoadBSSEntry(BSS::Relocation relocation,
 #undef __
 #define __ compiler_->assembler()->
 
-void ParallelMoveResolver::EmitSwap(int index) {
-  MoveOperands* move = moves_[index];
-  const Location source = move->src();
-  const Location destination = move->dest();
+void ParallelMoveEmitter::EmitSwap(const MoveOperands& move) {
+  const Location source = move.src();
+  const Location destination = move.dest();
 
   if (source.IsRegister() && destination.IsRegister()) {
     ASSERT(source.reg() != TMP);
@@ -1089,56 +1122,38 @@ void ParallelMoveResolver::EmitSwap(int index) {
   } else {
     UNREACHABLE();
   }
-
-  // The swap of source and destination has executed a move from source to
-  // destination.
-  move->Eliminate();
-
-  // Any unperformed (including pending) move with a source of either
-  // this move's source or destination needs to have their source
-  // changed to reflect the state of affairs after the swap.
-  for (int i = 0; i < moves_.length(); ++i) {
-    const MoveOperands& other_move = *moves_[i];
-    if (other_move.Blocks(source)) {
-      moves_[i]->set_src(destination);
-    } else if (other_move.Blocks(destination)) {
-      moves_[i]->set_src(source);
-    }
-  }
 }
 
-void ParallelMoveResolver::MoveMemoryToMemory(const compiler::Address& dst,
-                                              const compiler::Address& src) {
+void ParallelMoveEmitter::MoveMemoryToMemory(const compiler::Address& dst,
+                                             const compiler::Address& src) {
   UNREACHABLE();
 }
 
 // Do not call or implement this function. Instead, use the form below that
 // uses an offset from the frame pointer instead of an Address.
-void ParallelMoveResolver::Exchange(Register reg,
-                                    const compiler::Address& mem) {
+void ParallelMoveEmitter::Exchange(Register reg, const compiler::Address& mem) {
   UNREACHABLE();
 }
 
 // Do not call or implement this function. Instead, use the form below that
 // uses offsets from the frame pointer instead of Addresses.
-void ParallelMoveResolver::Exchange(const compiler::Address& mem1,
-                                    const compiler::Address& mem2) {
+void ParallelMoveEmitter::Exchange(const compiler::Address& mem1,
+                                   const compiler::Address& mem2) {
   UNREACHABLE();
 }
 
-void ParallelMoveResolver::Exchange(Register reg,
-                                    Register base_reg,
-                                    intptr_t stack_offset) {
-  ScratchRegisterScope tmp(this, reg);
-  __ mv(tmp.reg(), reg);
+void ParallelMoveEmitter::Exchange(Register reg,
+                                   Register base_reg,
+                                   intptr_t stack_offset) {
+  __ mv(TMP, reg);
   __ LoadFromOffset(reg, base_reg, stack_offset);
-  __ StoreToOffset(tmp.reg(), base_reg, stack_offset);
+  __ StoreToOffset(TMP, base_reg, stack_offset);
 }
 
-void ParallelMoveResolver::Exchange(Register base_reg1,
-                                    intptr_t stack_offset1,
-                                    Register base_reg2,
-                                    intptr_t stack_offset2) {
+void ParallelMoveEmitter::Exchange(Register base_reg1,
+                                   intptr_t stack_offset1,
+                                   Register base_reg2,
+                                   intptr_t stack_offset2) {
   ScratchRegisterScope tmp1(this, kNoRegister);
   ScratchRegisterScope tmp2(this, tmp1.reg());
   __ LoadFromOffset(tmp1.reg(), base_reg1, stack_offset1);
@@ -1147,20 +1162,20 @@ void ParallelMoveResolver::Exchange(Register base_reg1,
   __ StoreToOffset(tmp2.reg(), base_reg1, stack_offset1);
 }
 
-void ParallelMoveResolver::SpillScratch(Register reg) {
+void ParallelMoveEmitter::SpillScratch(Register reg) {
   __ PushRegister(reg);
 }
 
-void ParallelMoveResolver::RestoreScratch(Register reg) {
+void ParallelMoveEmitter::RestoreScratch(Register reg) {
   __ PopRegister(reg);
 }
 
-void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::SpillFpuScratch(FpuRegister reg) {
   __ subi(SP, SP, sizeof(double));
   __ fsd(reg, compiler::Address(SP, 0));
 }
 
-void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::RestoreFpuScratch(FpuRegister reg) {
   __ fld(reg, compiler::Address(SP, 0));
   __ addi(SP, SP, sizeof(double));
 }

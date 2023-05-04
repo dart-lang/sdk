@@ -1,0 +1,3 @@
+int test(o) {}
+main() {}
+expect(expected, actual) {}

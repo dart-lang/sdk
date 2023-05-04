@@ -8,10 +8,10 @@ main() {
   (int, int, {/*missing*/}) r1 = (1, 2);
   //                     ^
   // [analyzer] SYNTACTIC_ERROR.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST
-  // [cfe] Record type named fields list can't be empty.
+  // [cfe] The list of named fields in a record type can't be empty.
 
   (int /* missing trailing comma */ ) r2 = (1, );
   //                                ^
   // [analyzer] SYNTACTIC_ERROR.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
-  // [cfe] Record type with one entry requires a trailing comma.
+  // [cfe] A record type with exactly one positional field requires a trailing comma.
 }

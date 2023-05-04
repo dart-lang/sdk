@@ -1,7 +1,7 @@
 //
 // Problems outside component:
 //
-// pkg/front_end/testcases/general/experiment_release_version/allowed_package/lib/versioned_2_8_lib.dart:7:4: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/general/experiment_release_version/allowed_package/lib/versioned_2_8_lib.dart:7:4: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.9 or higher.
 // int? versioned_2_8_AllowedPackage; // error
 //    ^
@@ -9,12 +9,12 @@
 // // @dart=2.8
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/experiment_release_version/not_allowed_package/lib/unversioned_lib.dart:5:4: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/general/experiment_release_version/not_allowed_package/lib/unversioned_lib.dart:5:4: Error: Null safety is disabled for this library.
 // Try removing the package language version or setting the language version to 2.10 or higher.
 // int? versionedUnallowedPackage; // error
 //    ^
 //
-// pkg/front_end/testcases/general/experiment_release_version/not_allowed_package/lib/versioned_2_8_lib.dart:7:4: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/general/experiment_release_version/not_allowed_package/lib/versioned_2_8_lib.dart:7:4: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.10 or higher.
 // int? versioned_2_8_AllowedPackage; // error
 //    ^
@@ -22,7 +22,7 @@
 // // @dart=2.8
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/experiment_release_version/not_allowed_package/lib/versioned_2_9_lib.dart:7:4: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/general/experiment_release_version/not_allowed_package/lib/versioned_2_9_lib.dart:7:4: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.10 or higher.
 // int? versioned_2_9_AllowedPackage; // error
 //    ^
@@ -59,7 +59,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/experiment_release_version/versioned_2_8_lib.dart:7:4: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/general/experiment_release_version/versioned_2_8_lib.dart:7:4: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.10 or higher.
 // int? versioned_2_8_Library; // error
 //    ^
@@ -76,7 +76,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/experiment_release_version/versioned_2_9_lib.dart:7:4: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/general/experiment_release_version/versioned_2_9_lib.dart:7:4: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.10 or higher.
 // int? versioned_2_9_Library; // error
 //    ^
@@ -93,7 +93,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/experiment_release_version/versioned_2_10_lib.dart:8:4: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/general/experiment_release_version/versioned_2_10_lib.dart:8:4: Error: Null safety is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.10 or higher.
 // int? versioned_2_10_Library; // error
 //    ^

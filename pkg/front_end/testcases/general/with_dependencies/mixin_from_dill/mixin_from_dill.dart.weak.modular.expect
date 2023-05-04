@@ -57,10 +57,7 @@ abstract class C extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class D extends core::Object implements mix2::C {
-  synthetic constructor •() → mix2::D
-    : super core::Object::•()
-    ;
+abstract class D extends core::Object implements mix2::C /*isMixinDeclaration*/  {
   operator ==(core::Object dynamic) → core::bool {
     core::print("D.==");
     return true;

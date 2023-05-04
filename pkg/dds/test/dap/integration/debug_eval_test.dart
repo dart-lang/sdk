@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dds/src/dap/adapters/dart.dart';
+import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';
@@ -73,8 +74,7 @@ void main(List<String> args) {
       await client.expectEvalResult(topFrameId, 'a + b;', '3');
     });
 
-    test(
-        'evaluates complex expressions expressions with evaluateToStringInDebugViews=true',
+    test('evaluates complex expressions with evaluateToStringInDebugViews=true',
         () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
@@ -214,6 +214,128 @@ void foo() {
           "to a variable of type 'num'.",
         ),
       );
+    });
+
+    group('format specifiers', () {
+      test('",nq" suppresses quotes on strings', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+  void main(List<String> args) {
+    var myString = 'test';
+    print('Hello!'); $breakpointMarker
+  }''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        final topFrameId = await client.getTopFrameId(stop.threadId!);
+        await client.expectEvalResult(topFrameId, 'myString', '"test"');
+        await client.expectEvalResult(topFrameId, 'myString,nq', 'test');
+      });
+
+      test('",h" renders numbers in hex', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+  void main(List<String> args) {
+    var i = 12345;
+    print('Hello!'); $breakpointMarker
+  }''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        final topFrameId = await client.getTopFrameId(stop.threadId!);
+        await client.expectEvalResult(topFrameId, 'i', '12345');
+        await client.expectEvalResult(topFrameId, 'i,h', '0x3039');
+      });
+
+      test('",d" renders numbers in decimal', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+  void main(List<String> args) {
+    var i = 12345;
+    print('Hello!'); $breakpointMarker
+  }''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        final topFrameId = await client.getTopFrameId(stop.threadId!);
+        await client.expectEvalResult(topFrameId, 'i', '12345');
+        await client.expectEvalResult(topFrameId, 'i,d', '12345');
+      });
+
+      test('apply to child values', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+  void main(List<String> args) {
+    var myItems = [12345, 34567];
+    print('Hello!'); $breakpointMarker
+  }''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        final topFrameId = await client.getTopFrameId(stop.threadId!);
+        final result = await client.expectEvalResult(
+            topFrameId, 'myItems,h', 'List (2 items)');
+
+        // Check we got a variablesReference and fetching the child items uses
+        // the requested formatting.
+        expect(result.variablesReference, isPositive);
+        await client.expectVariables(
+          result.variablesReference,
+          '''
+            [0]: 0x3039, eval: myItems[0]
+            [1]: 0x8707, eval: myItems[1]
+        ''',
+        );
+      });
+
+      test('multiple can be applied in any order', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+  void main(List<String> args) {
+    var myItems = [12345, 'test'];
+    print('Hello!'); $breakpointMarker
+  }''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        final topFrameId = await client.getTopFrameId(stop.threadId!);
+        for (final expression in ['myItems,h,nq', 'myItems,nq,h']) {
+          final result = await client.expectEvalResult(
+              topFrameId, expression, 'List (2 items)');
+
+          // Check we got a variablesReference and fetching the child items uses
+          // the requested formatting.
+          expect(result.variablesReference, isPositive);
+          await client.expectVariables(
+            result.variablesReference,
+            '''
+            [0]: 0x3039, eval: myItems[0]
+            [1]: test, eval: myItems[1]
+        ''',
+          );
+        }
+      });
+    });
+
+    group('value formats', () {
+      test('supports format.hex in evaluation arguments', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+  void main(List<String> args) {
+    var i = 12345;
+    print('Hello!'); $breakpointMarker
+  }''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        final topFrameId = await client.getTopFrameId(stop.threadId!);
+        await client.expectEvalResult(
+          topFrameId,
+          'i',
+          '0x3039',
+          format: ValueFormat(hex: true),
+        );
+      });
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);

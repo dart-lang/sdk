@@ -7,6 +7,6 @@
 // Regression test for issue 27700.
 
 main() {
-  var x = new List(0);
+  var x = new List.filled(0, null);
   var z = "$x";
 }

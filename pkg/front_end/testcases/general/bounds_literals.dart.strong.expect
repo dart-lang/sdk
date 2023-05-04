@@ -1,0 +1,213 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:17:4: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <F<Object>, F<int>>{}; // Error
+//    ^
+// pkg/front_end/testcases/general/bounds_literals.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:17:15: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <F<Object>, F<int>>{}; // Error
+//               ^
+// pkg/front_end/testcases/general/bounds_literals.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:21:4: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <G<Object>, G<int>>{}; // Error
+//    ^
+// pkg/front_end/testcases/general/bounds_literals.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:21:15: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <G<Object>, G<int>>{}; // Error
+//               ^
+// pkg/front_end/testcases/general/bounds_literals.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:27:4: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <F<Object>>{}; // Error
+//    ^
+// pkg/front_end/testcases/general/bounds_literals.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:28:4: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <F<int>>{}; // Error
+//    ^
+// pkg/front_end/testcases/general/bounds_literals.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:37:4: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <G<Object>>{}; // Error
+//    ^
+// pkg/front_end/testcases/general/bounds_literals.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:38:4: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <G<int>>{}; // Error
+//    ^
+// pkg/front_end/testcases/general/bounds_literals.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:46:4: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <F<Object>>[]; // Error
+//    ^
+// pkg/front_end/testcases/general/bounds_literals.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:47:4: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <F<int>>[]; // Error
+//    ^
+// pkg/front_end/testcases/general/bounds_literals.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:54:4: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <G<Object>>[]; // Error
+//    ^
+// pkg/front_end/testcases/general/bounds_literals.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_literals.dart:55:4: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   <G<int>>[]; // Error
+//    ^
+// pkg/front_end/testcases/general/bounds_literals.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+typedef F<X extends self::Class<X> = self::Class<dynamic>> = X;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+}
+class ConcreteClass extends core::Object implements self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+}
+class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
+  synthetic constructor •() → self::G<self::G::X>
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic {
+  <self::Class<dynamic>, dynamic>{};
+  <self::Class<dynamic>, self::Class<dynamic>>{};
+  <self::ConcreteClass, self::Class<self::ConcreteClass>>{};
+  <core::Object, core::int>{};
+  <self::G<self::Class<dynamic>>, self::G<self::Class<dynamic>>>{};
+  <self::G<self::Class<dynamic>>, self::G<self::Class<dynamic>>>{};
+  <self::G<self::ConcreteClass>, self::G<self::Class<self::ConcreteClass>>>{};
+  <self::G<core::Object>, self::G<core::int>>{};
+  block {
+    final core::Set<self::Class<dynamic>> #t1 = col::LinkedHashSet::•<self::Class<dynamic>>();
+  } =>#t1;
+  block {
+    final core::Set<dynamic> #t2 = col::LinkedHashSet::•<dynamic>();
+  } =>#t2;
+  block {
+    final core::Set<self::Class<dynamic>> #t3 = col::LinkedHashSet::•<self::Class<dynamic>>();
+  } =>#t3;
+  block {
+    final core::Set<self::Class<dynamic>> #t4 = col::LinkedHashSet::•<self::Class<dynamic>>();
+  } =>#t4;
+  block {
+    final core::Set<core::Object> #t5 = col::LinkedHashSet::•<core::Object>();
+  } =>#t5;
+  block {
+    final core::Set<core::int> #t6 = col::LinkedHashSet::•<core::int>();
+  } =>#t6;
+  block {
+    final core::Set<self::ConcreteClass> #t7 = col::LinkedHashSet::•<self::ConcreteClass>();
+  } =>#t7;
+  block {
+    final core::Set<self::Class<self::ConcreteClass>> #t8 = col::LinkedHashSet::•<self::Class<self::ConcreteClass>>();
+  } =>#t8;
+  block {
+    final core::Set<self::G<self::Class<dynamic>>> #t9 = col::LinkedHashSet::•<self::G<self::Class<dynamic>>>();
+  } =>#t9;
+  block {
+    final core::Set<self::G<self::Class<dynamic>>> #t10 = col::LinkedHashSet::•<self::G<self::Class<dynamic>>>();
+  } =>#t10;
+  block {
+    final core::Set<self::G<self::Class<dynamic>>> #t11 = col::LinkedHashSet::•<self::G<self::Class<dynamic>>>();
+  } =>#t11;
+  block {
+    final core::Set<self::G<self::Class<dynamic>>> #t12 = col::LinkedHashSet::•<self::G<self::Class<dynamic>>>();
+  } =>#t12;
+  block {
+    final core::Set<self::G<self::ConcreteClass>> #t13 = col::LinkedHashSet::•<self::G<self::ConcreteClass>>();
+  } =>#t13;
+  block {
+    final core::Set<self::G<self::Class<self::ConcreteClass>>> #t14 = col::LinkedHashSet::•<self::G<self::Class<self::ConcreteClass>>>();
+  } =>#t14;
+  block {
+    final core::Set<self::G<core::Object>> #t15 = col::LinkedHashSet::•<self::G<core::Object>>();
+  } =>#t15;
+  block {
+    final core::Set<self::G<core::int>> #t16 = col::LinkedHashSet::•<self::G<core::int>>();
+  } =>#t16;
+  <self::Class<dynamic>>[];
+  <dynamic>[];
+  <self::Class<dynamic>>[];
+  <self::Class<dynamic>>[];
+  <self::ConcreteClass>[];
+  <self::Class<self::ConcreteClass>>[];
+  <core::Object>[];
+  <core::int>[];
+  <self::G<self::Class<dynamic>>>[];
+  <self::G<self::Class<dynamic>>>[];
+  <self::G<self::Class<dynamic>>>[];
+  <self::G<self::Class<dynamic>>>[];
+  <self::G<self::ConcreteClass>>[];
+  <self::G<self::Class<self::ConcreteClass>>>[];
+  <self::G<core::Object>>[];
+  <self::G<core::int>>[];
+}
+static method main() → dynamic {}

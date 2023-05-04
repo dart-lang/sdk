@@ -456,7 +456,7 @@ class NestedTempDirectoryTest {
   List<Directory> createdDirectories;
   Directory current;
 
-  NestedTempDirectoryTest.run() : createdDirectories = new List<Directory>() {
+  NestedTempDirectoryTest.run() : createdDirectories = <Directory>[] {
     Directory.systemTemp.createTemp('dart_directory').then(createPhaseCallback);
   }
 

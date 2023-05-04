@@ -17,5 +17,5 @@ test(o) => o is Function(int);
 main() {
   makeLive(test(new A<int>()));
   makeLive(test(new A<String>()));
-  new A().call(null); // Use .call to ensure it is live.
+  A().call(null); // Use .call to ensure it is live.
 }

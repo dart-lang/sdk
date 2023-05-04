@@ -113,7 +113,9 @@ main() {
     returnsNeverInVariable(AImpl());
   });
 
-  Expect.equals(42, switchOnBool(null));
+  Expect.throws(() {
+    switchOnBool(null);
+  });
 
   Expect.throws(() {
     switchOnEnum(null);

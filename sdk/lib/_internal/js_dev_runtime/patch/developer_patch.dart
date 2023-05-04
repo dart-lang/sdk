@@ -13,6 +13,7 @@ import 'dart:convert' show json;
 import 'dart:isolate';
 
 var _issuedRegisterExtensionWarning = false;
+var _issuedPostEventWarning = false;
 final _developerSupportWarning = 'from dart:developer is only supported in '
     'build/run/test environments where the developer event method hooks have '
     'been set by package:dwds v11.1.0 or higher.';
@@ -86,16 +87,13 @@ _registerExtension(String method, ServiceExtensionHandler handler) {
     // See hooks assigned by package:dwds:
     // https://github.com/dart-lang/webdev/blob/de05cf9fbbfe088be74bb61df4a138289a94d902/dwds/web/client.dart#L223
     JS('', r'#.$emitRegisterEvent(#)', dart.global_, method);
-    return;
   }
-  // TODO(48103) Remove use of debug log in Dart 3.0.0.
-  JS('', 'console.debug("dart.developer.registerExtension", #)', method);
 }
 
 /// Returns a JS `Promise` that resolves with the result of invoking
 /// [methodName] with an [encodedJson] map as its parameters.
 ///
-/// This is used by the VM Service Prototcol to invoke extensions registered
+/// This is used by the VM Service Protocol to invoke extensions registered
 /// with [registerExtension]. For example, in JS:
 ///
 ///     await sdk.developer.invokeExtension(
@@ -124,16 +122,20 @@ bool get extensionStreamHasListener => _debuggerAttached;
 
 @patch
 void _postEvent(String eventKind, String eventData) {
+  if (!_debuggerAttached) {
+    if (!_issuedPostEventWarning) {
+      var message = 'postEvent() $_developerSupportWarning';
+      JS('', 'console.warn(#)', message);
+      _issuedPostEventWarning = true;
+    }
+    return;
+  }
   // TODO(46377) Update this check when we have a documented API for DDC apps.
   if (JS<bool>('!', r'!!#.$emitDebugEvent', dart.global_)) {
     // See hooks assigned by package:dwds:
     // https://github.com/dart-lang/webdev/blob/de05cf9fbbfe088be74bb61df4a138289a94d902/dwds/web/client.dart#L220
     JS('', r'#.$emitDebugEvent(#, #)', dart.global_, eventKind, eventData);
-    return;
   }
-  // TODO(48103) Remove use of debug log in Dart 3.0.0.
-  JS('', 'console.debug("dart.developer.postEvent", #, #)', eventKind,
-      eventData);
 }
 
 @patch
@@ -194,7 +196,7 @@ class UserTag {
   static UserTag get defaultTag => _FakeUserTag._defaultTag;
 }
 
-class _FakeUserTag implements UserTag {
+final class _FakeUserTag implements UserTag {
   static final _instances = <String, _FakeUserTag>{};
 
   _FakeUserTag.real(this.label);
@@ -228,3 +230,11 @@ var _currentTag = _FakeUserTag._defaultTag;
 
 @patch
 UserTag getCurrentTag() => _currentTag;
+
+@patch
+abstract final class NativeRuntime {
+  @patch
+  static void writeHeapSnapshotToFile(String filepath) =>
+      throw UnsupportedError(
+          "Generating heap snapshots is not supported on the web.");
+}

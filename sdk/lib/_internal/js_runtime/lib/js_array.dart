@@ -14,17 +14,8 @@ const _ListConstructorSentinel = const _Growable();
 /// class as an interceptor, and changes references to [:this:] to
 /// actually use the receiver of the method, which is generated as an extra
 /// argument added to each member.
-class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
+class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   const JSArray();
-
-  // This factory constructor is the redirection target of the List() factory
-  // constructor. [length] has no type to permit the sentinel value.
-  factory JSArray.list([length = _ListConstructorSentinel]) {
-    if (_ListConstructorSentinel == length) {
-      return new JSArray<E>.emptyGrowable();
-    }
-    return new JSArray<E>.fixed(length);
-  }
 
   /// Returns a fresh JavaScript Array, marked as fixed-length. The holes in the
   /// array yield `undefined`, making the Dart List appear to be filled with
@@ -509,7 +500,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
       // type annotation checks on the stores.
       for (int i = length - 1; i >= 0; i--) {
         // Use JS to avoid bounds check (the bounds check elimination
-        // optimzation is too weak). The 'E' type annotation is a store type
+        // optimization is too weak). The 'E' type annotation is a store type
         // check - we can't rely on iterable, it could be List<dynamic>.
         E element = otherList[otherStart + i];
         JS('', '#[#] = #', this, start + i, element);
@@ -762,6 +753,10 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
     if (this.isEmpty) throw IterableElementError.noElement();
     this[this.length - 1] = element;
   }
+
+  // Specialized version of `get runtimeType` is needed here so that
+  // `Interceptor.runtimeType` can avoid testing for `JSArray`.
+  Type get runtimeType => getRuntimeTypeOfArray(this);
 }
 
 /// Dummy subclasses that allow the backend to track more precise

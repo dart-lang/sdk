@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+@core::Deprecated::•("")
+inline class A /* declaredRepresentationType = core::int */ {
+  method m = self::A|m;
+  tearoff m = self::A|get#m;
+  constructor • = self::A|;
+  tearoff • = self::A|get#;
+}
+@core::Deprecated::•("")
+static method A|(core::int i) → self::A
+  ;
+static method A|get#(core::int i) → self::A
+  return self::A|(i);
+@core::Deprecated::•("")
+static method A|m(lowered final self::A #this) → void
+  ;
+static method A|get#m(lowered final self::A #this) → () → void
+  return () → void => self::A|m(#this);
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:5:2 -> InstanceConstant(const Deprecated{Deprecated.message: ""})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:10:4 -> InstanceConstant(const Deprecated{Deprecated.message: ""})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:13:4 -> InstanceConstant(const Deprecated{Deprecated.message: ""})
+Extra constant evaluation: evaluated: 8, effectively constant: 3

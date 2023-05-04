@@ -24,12 +24,22 @@ void main() {
         expect(process.commandLine, startsWith('dart'));
       }
     });
+
+    test('parseMacos', () {
+      // Regression test for https://github.com/dart-lang/sdk/issues/51385.
+
+      const line = '35472   0,0    20:41:58 <path>/dart --disable-dart-dev '
+          '/Users/foo/flutter_tools.snapshot daemon';
+
+      var result = ProcessInfo.parseMacos(line);
+      expect(result.command, 'dart');
+      expect(result.cpuPercent, 0.0);
+      expect(result.memoryMb, 34);
+    });
   });
 
   group('info macos', () {
     late TestProject p;
-
-    tearDown(() async => await p.dispose());
 
     test('shows process info', () async {
       p = project(mainSrc: 'void main() {}');

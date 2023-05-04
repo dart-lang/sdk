@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Script to compile a benchmark using dart2wasm. Assumes the Dart repo's
+# directory structure.
+
+set -e
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+PROG_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+SDK_DIR="$(cd "${PROG_DIR}/../../.." ; pwd -P)"
+
+# Locate build directory, containing executables, snapshots and platform dill.
+if [[ `uname` == 'Darwin' ]]; then
+  OUT_DIR="$SDK_DIR/xcodebuild"
+else
+  OUT_DIR="$SDK_DIR/out"
+fi
+DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
+BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
+
+DART2WASM="$SDK_DIR/sdk/bin/dart2wasm"
+BINARYEN="$BIN_DIR/wasm-opt"
+
+TEMPDIR="$(mktemp -d)"
+TEMPFILE="$(mktemp -p "$TEMPDIR" --suffix=.wasm)"
+
+COMPILE_FLAGS="--enable-experiment=records,patterns"
+if [[ "$3" == "--omit-checks" ]]; then
+  COMPILE_FLAGS+=" --omit-type-checks"
+fi
+
+"$DART2WASM" "$1" "$TEMPFILE" $COMPILE_FLAGS
+"$BINARYEN" -all --closed-world -tnh -O3 --type-ssa --gufa -O3 --type-merging "$TEMPFILE" -o "$2"
+
+# Locate JS runtime and copy it to the same directory as "$2". We also rename it
+# using the basename of "$2".
+cp "${TEMPFILE%.*}.mjs" "$(dirname "$2")"/"$(basename ${2%.*}.mjs)"
+
+# Clean up temporary files.
+rm -r "$TEMPDIR"

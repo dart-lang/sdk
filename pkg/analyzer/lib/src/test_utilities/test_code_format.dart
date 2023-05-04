@@ -193,7 +193,7 @@ class _StringScanner {
   /// Returns whether the end of the string has been reached.
   bool get isDone => _position == _source.length;
 
-  /// Returns the last match from scalling [scan] if the position has not
+  /// Returns the last match from scaling [scan] if the position has not
   /// advanced since.
   Match? get lastMatch {
     return _position == _lastMatchPosition ? _lastMatch : null;

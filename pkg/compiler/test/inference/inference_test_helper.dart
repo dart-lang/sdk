@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/inferrer/typemasks/masks.dart';
+import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
@@ -25,14 +24,17 @@ main(List<String> args) {
   runTests(args);
 }
 
-runTests(List<String> args, [int shardIndex]) {
+runTests(List<String> args, [int? shardIndex]) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const TypeMaskDataComputer(),
         forUserLibrariesOnly: true,
         args: args,
         options: [stopAfterTypeInference],
         testedConfigs: allInternalConfigs,
+        perTestOptions: {
+          "issue48304.dart": [Flags.soundNullSafety],
+        },
         skip: skip,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 4 : 1);
@@ -49,13 +51,13 @@ class TypeMaskDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     GlobalTypeInferenceResults results =
-        compiler.globalInference.resultsForTesting;
+        compiler.globalInference.resultsForTesting!;
     GlobalLocalsMap localsMap = results.globalLocalsMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new TypeMaskIrComputer(
+    TypeMaskIrComputer(
             compiler.reporter,
             actualMap,
             elementMap,
@@ -89,7 +91,7 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
       : result = results.resultOfMember(member),
         super(reporter, actualMap);
 
-  String getMemberValue(MemberEntity member) {
+  String? getMemberValue(MemberEntity member) {
     GlobalTypeInferenceMemberResult memberResult =
         results.resultOfMember(member);
     if (member.isFunction || member is ConstructorEntity || member.isGetter) {
@@ -105,11 +107,11 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
     }
   }
 
-  String getParameterValue(Local parameter) {
+  String? getParameterValue(Local parameter) {
     return getTypeMaskValue(results.resultOfParameter(parameter));
   }
 
-  String getTypeMaskValue(TypeMask typeMask) {
+  String? getTypeMaskValue(AbstractValue? typeMask) {
     return typeMask != null ? '$typeMask' : null;
   }
 
@@ -117,7 +119,7 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
   visitFunctionExpression(ir.FunctionExpression node) {
     GlobalTypeInferenceMemberResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-    result = results.resultOfMember(info.callMethod);
+    result = results.resultOfMember(info.callMethod!);
     super.visitFunctionExpression(node);
     result = oldResult;
   }
@@ -126,25 +128,26 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
     GlobalTypeInferenceMemberResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-    result = results.resultOfMember(info.callMethod);
+    result = results.resultOfMember(info.callMethod!);
     super.visitFunctionDeclaration(node);
     result = oldResult;
   }
 
   @override
-  String computeMemberValue(Id id, ir.Member node) {
+  String? computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.VariableDeclaration && node.parent is ir.FunctionNode) {
       Local parameter = _localsMap.getLocalVariable(node);
       return getParameterValue(parameter);
     } else if (node is ir.FunctionExpression ||
         node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod);
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      return getMemberValue(info.callMethod!);
     } else if (node is ir.InstanceInvocation ||
         node is ir.InstanceGetterInvocation ||
         node is ir.DynamicInvocation ||
@@ -167,6 +170,8 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
       } else if (id.kind == IdKind.moveNext) {
         return getTypeMaskValue(result.typeOfIteratorMoveNext(node));
       }
+    } else if (node is ir.RecordIndexGet || node is ir.RecordNameGet) {
+      return getTypeMaskValue(result.typeOfReceiver(node));
     }
     return null;
   }

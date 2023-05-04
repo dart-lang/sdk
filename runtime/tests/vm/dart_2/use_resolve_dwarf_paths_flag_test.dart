@@ -31,14 +31,20 @@ main(List<String> args) async {
   if (!await testExecutable(genSnapshot)) {
     throw "Cannot run test as $genSnapshot not available";
   }
-  if (!await testExecutable(aotRuntime)) {
-    throw "Cannot run test as $aotRuntime not available";
+  if (!await testExecutable(dartPrecompiledRuntime)) {
+    throw "Cannot run test as $dartPrecompiledRuntime not available";
   }
   if (!File(platformDill).existsSync()) {
     throw "Cannot run test as $platformDill does not exist";
   }
 
-  await withTempDir('dwarf-flag-test', (String tempDir) async {
+  runTests(obfuscate: false);
+  runTests(obfuscate: true);
+}
+
+void runTests({bool obfuscate}) async {
+  final pathSuffix = obfuscate ? 'obfuscated' : 'cleartext';
+  await withTempDir('dwarf-flag-test-$pathSuffix', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
     final script =
         path.join(cwDir, 'use_save_debugging_info_flag_program.dart');
@@ -46,6 +52,7 @@ main(List<String> args) async {
 
     // Compile script to Kernel IR.
     await run(genKernel, <String>[
+      '--no-sound-null-safety',
       '--aot',
       '--platform=$platformDill',
       '-o',
@@ -55,6 +62,11 @@ main(List<String> args) async {
 
     final scriptDwarfSnapshot = path.join(tempDir, 'dwarf.so');
     await run(genSnapshot, <String>[
+      if (obfuscate) ...[
+        '--obfuscate',
+        '--save-obfuscation-map=${path.join(tempDir, 'obfuscation.map')}',
+      ],
+      '--no-sound-null-safety',
       '--resolve-dwarf-paths',
       '--dwarf-stack-traces-mode',
       '--snapshot-kind=app-aot-elf',
@@ -63,7 +75,7 @@ main(List<String> args) async {
     ]);
 
     // Run the resulting Dwarf-AOT compiled script.
-    final dwarfTrace = await runError(aotRuntime, <String>[
+    final dwarfTrace = await runError(dartPrecompiledRuntime, <String>[
       scriptDwarfSnapshot,
       scriptDill,
     ]);

@@ -183,7 +183,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             // A symbolic link can potentially point to an anon_inode. For
             // example, an epoll file descriptor will have a symbolic link whose
             // content is the string anon_inode:[eventpoll]. In this case, the
-            // target doesn't belong to any regular file catogory.
+            // target doesn't belong to any regular file category.
             return kListLink;
           }
           if (S_ISDIR(entry_info.st_mode)) {
@@ -207,14 +207,14 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
           return kListLink;
         } else {
           // Regular files, character devices, block devices, fifos, sockets and
-          // unknown types are all considerred as files.
+          // unknown types are all considered as files.
           return kListFile;
         }
       }
 
       default:
         // We should have covered all the bases. If not, let's get an error.
-        FATAL1("Unexpected d_type: %d\n", entry->d_type);
+        FATAL("Unexpected d_type: %d\n", entry->d_type);
         return kListError;
     }
   }
@@ -461,7 +461,7 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
       }
       default:
         // We should have covered all the bases. If not, let's get an error.
-        FATAL1("Unexpected d_type: %d\n", entry->d_type);
+        FATAL("Unexpected d_type: %d\n", entry->d_type);
         break;
     }
     if (!ok) {

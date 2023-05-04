@@ -82,6 +82,37 @@ enum E {
     assertHas('c', ElementKind.ENUM_CONSTANT);
   }
 
+  Future<void> test_extension() async {
+    addTestFile(r'''
+extension E on int {
+  int get foo01 => 0;
+  void set foo02(_) {}
+  void foo03() {}
+}
+''');
+    await _getDeclarations();
+
+    assertHas('E', ElementKind.EXTENSION);
+
+    {
+      var declaration = assertHas('foo01', ElementKind.GETTER);
+      expect(declaration.codeOffset, 23);
+      expect(declaration.codeLength, 19);
+    }
+
+    {
+      var declaration = assertHas('foo02', ElementKind.SETTER);
+      expect(declaration.codeOffset, 45);
+      expect(declaration.codeLength, 20);
+    }
+
+    {
+      var declaration = assertHas('foo03', ElementKind.METHOD);
+      expect(declaration.codeOffset, 68);
+      expect(declaration.codeLength, 15);
+    }
+  }
+
   Future<void> test_maxResults() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}

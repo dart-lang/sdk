@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dart2wasm/target.dart' show WasmTarget;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerOptions,
@@ -12,6 +13,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         computePlatformBinariesLocation,
         kernelForModule,
         kernelForProgram,
+        NnbdMode,
         parseExperimentalArguments,
         parseExperimentalFlags;
 import 'package:kernel/ast.dart';
@@ -28,32 +30,27 @@ const kUpdateExpectations = 'updateExpectations';
 /// Environment define to dump actual results alongside expectations.
 const kDumpActualResult = 'dump.actual.result';
 
-class TestingVmTarget extends VmTarget {
-  TestingVmTarget(TargetFlags flags) : super(flags);
-
-  @override
-  bool enableSuperMixins = false;
-}
-
 Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     {Target? target,
-    bool enableSuperMixins = false,
     List<String>? experimentalFlags,
     Map<String, String>? environmentDefines,
     Uri? packagesFileUri,
     List<Uri>? linkedDependencies}) async {
   Directory? tempDirectory;
   try {
+    target ??= new VmTarget(new TargetFlags());
+    final platformFileName = (target is WasmTarget)
+        ? 'dart2wasm_platform.dill'
+        : 'vm_platform_strong.dill';
     final platformKernel =
-        computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
-    target ??= new TestingVmTarget(new TargetFlags())
-      ..enableSuperMixins = enableSuperMixins;
+        computePlatformBinariesLocation().resolve(platformFileName);
     environmentDefines ??= <String, String>{};
     final options = new CompilerOptions()
       ..target = target
       ..additionalDills = <Uri>[platformKernel]
       ..environmentDefines = environmentDefines
       ..packagesFileUri = packagesFileUri
+      ..nnbdMode = NnbdMode.Strong
       ..explicitExperimentalFlags =
           parseExperimentalFlags(parseExperimentalArguments(experimentalFlags),
               onError: (String message) {
@@ -101,8 +98,11 @@ String kernelLibraryToString(Library library,
   final printer = new Printer(buffer, showMetadata: true);
   printer.writeLibraryFile(library);
   printer.writeConstantTable(library.enclosingComponent!);
-  String result =
-      buffer.toString().replaceAll(library.importUri.toString(), library.name!);
+  String result = buffer.toString();
+  final libraryName = library.name;
+  if (libraryName != null) {
+    result = result.replaceAll(library.importUri.toString(), library.name!);
+  }
   if (removeSelectorIds) {
     result = result
         .replaceAll(RegExp(r',methodOrSetterSelectorId:\d{3,}'), '')

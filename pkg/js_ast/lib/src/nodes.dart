@@ -561,9 +561,32 @@ abstract class JavaScriptNodeSourceInformation {
 }
 
 abstract class Node {
-  JavaScriptNodeSourceInformation? get sourceInformation => _sourceInformation;
-
+  /// Field for storing source information and other annotations.
+  ///
+  /// Source information is common but not universal, so missing source
+  /// information is represented by `null`. Annotations are uncommon. As a
+  /// space-saving measure we pack both kinds of information into one field by
+  /// storing the user's JavaScriptNodeSourceInformation object directly in the
+  /// field if there are no annotations. If there are annotations, the field is
+  /// 'expanded' by having it reference an internal
+  /// [_SourceInformationAndAnnotations] object which has two fields.
   JavaScriptNodeSourceInformation? _sourceInformation;
+
+  /// Returns the source information associated with this node.
+  JavaScriptNodeSourceInformation? get sourceInformation {
+    final source = _sourceInformation;
+    return source is _SourceInformationAndAnnotations
+        ? source._sourceInformation
+        : source;
+  }
+
+  /// Returns a list of annotations attached to this node. See [withAnnotation].
+  List<Object> get annotations {
+    final source = _sourceInformation;
+    return source is _SourceInformationAndAnnotations
+        ? source._annotations
+        : const [];
+  }
 
   T accept<T>(NodeVisitor<T> visitor);
   void visitChildren<T>(NodeVisitor<T> visitor);
@@ -573,22 +596,61 @@ abstract class Node {
 
   /// Shallow clone of node.
   ///
-  /// Does not clone positions since the only use of this private method is
-  /// create a copy with a new position.
+  /// Does not clone [_sourceInformation] since the only use of this private
+  /// method is create a copy with a new source information or annotations.
   Node _clone();
 
-  /// Returns a node equivalent to [this], but with new source position and end
-  /// source position.
+  /// Returns a node equivalent to [this], but with new source position.
   Node withSourceInformation(
-      JavaScriptNodeSourceInformation? sourceInformation) {
-    if (sourceInformation == _sourceInformation) {
-      return this;
-    }
-    Node clone = _clone();
-    // TODO(sra): Should existing data be 'sticky' if we try to overwrite with
+      JavaScriptNodeSourceInformation? newSourceInformation) {
+    if (!_shouldReplaceSourceInformation(newSourceInformation)) return this;
+    return _clone()
+      .._sourceInformation =
+          _replacementSourceInformation(newSourceInformation);
+  }
+
+  bool _shouldReplaceSourceInformation(
+      JavaScriptNodeSourceInformation? newSourceInformation) {
+    // TODO(sra): Should existing data be 'sticky' if we try to update with
     // `null`?
-    clone._sourceInformation = sourceInformation;
-    return clone;
+    return newSourceInformation != sourceInformation;
+  }
+
+  JavaScriptNodeSourceInformation? _replacementSourceInformation(
+      JavaScriptNodeSourceInformation? newSourceInformation) {
+    final source = _sourceInformation;
+    return source is _SourceInformationAndAnnotations
+        ? _SourceInformationAndAnnotations(
+            newSourceInformation, source._annotations)
+        : newSourceInformation;
+  }
+
+  /// Returns a node equivalent to [this] but with an additional annotation.
+  ///
+  /// Annotations are data attached to a Node. What exactly is stored as an
+  /// annotation is determined by the user of the js_ast library. The
+  /// annotations do not affect how the AST prints, but can be inspected either
+  /// while walking the AST, either directly in a visitor or indirectly, e.g. by
+  /// the enter/exit hooks in the printer.
+  Node withAnnotation(Object newAnnotation) {
+    return _clone().._sourceInformation = _appendedAnnotation(newAnnotation);
+  }
+
+  _SourceInformationAndAnnotations _appendedAnnotation(Object newAnnotation) {
+    return _SourceInformationAndAnnotations(
+        sourceInformation, List.unmodifiable([...annotations, newAnnotation]));
+  }
+
+  /// Returns a node equivalent to [this] but with the same source information
+  /// and annotations as [node].
+  Node withInformationFrom(Node node) {
+    return _hasSameInformationAs(node)
+        ? this
+        : (_clone().._sourceInformation = node._sourceInformation);
+  }
+
+  bool _hasSameInformationAs(Node node) {
+    return node._sourceInformation == _sourceInformation;
   }
 
   bool get isCommaOperator => false;
@@ -610,6 +672,14 @@ abstract class Node {
     assert(!isFinalized);
     return '$runtimeType';
   }
+}
+
+class _SourceInformationAndAnnotations
+    implements JavaScriptNodeSourceInformation {
+  final JavaScriptNodeSourceInformation? _sourceInformation;
+  final List<Object> _annotations;
+  _SourceInformationAndAnnotations(this._sourceInformation, this._annotations)
+      : assert(_sourceInformation is! _SourceInformationAndAnnotations);
 }
 
 class Program extends Node {
@@ -649,9 +719,19 @@ abstract class Statement extends Node {
   // Override for refined return type.
   @override
   Statement withSourceInformation(
-      JavaScriptNodeSourceInformation? sourceInformation) {
-    if (sourceInformation == _sourceInformation) return this;
-    return _clone().._sourceInformation = sourceInformation;
+      JavaScriptNodeSourceInformation? newSourceInformation) {
+    if (!_shouldReplaceSourceInformation(newSourceInformation)) return this;
+    return _clone()
+      .._sourceInformation =
+          _replacementSourceInformation(newSourceInformation);
+  }
+
+  // Override for refined return type.
+  @override
+  Statement withInformationFrom(Node node) {
+    return _hasSameInformationAs(node)
+        ? this
+        : (_clone().._sourceInformation = node._sourceInformation);
   }
 
   @override
@@ -1312,9 +1392,25 @@ abstract class Expression extends Node {
   // Override for refined return type.
   @override
   Expression withSourceInformation(
-      JavaScriptNodeSourceInformation? sourceInformation) {
-    if (sourceInformation == _sourceInformation) return this;
-    return _clone().._sourceInformation = sourceInformation;
+      JavaScriptNodeSourceInformation? newSourceInformation) {
+    if (!_shouldReplaceSourceInformation(newSourceInformation)) return this;
+    return _clone()
+      .._sourceInformation =
+          _replacementSourceInformation(newSourceInformation);
+  }
+
+  // Override for refined return type.
+  @override
+  Expression withAnnotation(Object newAnnotation) {
+    return _clone().._sourceInformation = _appendedAnnotation(newAnnotation);
+  }
+
+  // Override for refined return type.
+  @override
+  Expression withInformationFrom(Node node) {
+    return _hasSameInformationAs(node)
+        ? this
+        : (_clone().._sourceInformation = node._sourceInformation);
   }
 
   @override

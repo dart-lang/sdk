@@ -13,7 +13,7 @@ main() {
   });
 }
 
-/// Tests of HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE with the
+/// Tests of WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE with the
 /// "strict-inference" static analysis option.
 @reflectiveTest
 class InferenceFailureOnFunctionReturnTypeTest
@@ -23,6 +23,7 @@ class InferenceFailureOnFunctionReturnTypeTest
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
+        experiments: experiments,
         strictInference: true,
       ),
     );
@@ -33,7 +34,7 @@ class InferenceFailureOnFunctionReturnTypeTest
 class C {
   get f => 7;
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 11)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 11)]);
   }
 
   test_classInstanceMethod() async {
@@ -41,12 +42,12 @@ class C {
 class C {
   f() => 7;
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 9)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 9)]);
   }
 
   test_classInstanceMethod_overriding() async {
     await assertNoErrorsInCode(r'''
-class C {
+mixin class C {
   int f() => 7;
 }
 
@@ -89,7 +90,7 @@ class C {
 class C {
   operator +(int x) => print(x);
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 30)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 30)]);
   }
 
   test_classInstanceSetter() async {
@@ -105,7 +106,7 @@ class C {
 class C {
   static f() => 7;
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 16)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 16)]);
   }
 
   test_classStaticMethod_withType() async {
@@ -123,7 +124,7 @@ extension E on List {
     return 7;
   }
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 24, 23)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 24, 23)]);
   }
 
   test_functionTypedParameter() async {
@@ -131,7 +132,7 @@ extension E on List {
 void f(callback()) {
   callback();
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 7, 10)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 7, 10)]);
   }
 
   test_functionTypedParameter_nested() async {
@@ -139,7 +140,7 @@ void f(callback()) {
 void f(void callback(callback2())) {
   callback(() => print('hey'));
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 21, 11)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 21, 11)]);
   }
 
   test_functionTypedParameter_withReturnType() async {
@@ -155,7 +156,7 @@ void f(int callback()) {
 Function(int) f = (int n) {
   print(n);
 };
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 13)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 13)]);
   }
 
   test_genericFunctionType_withReturnType() async {
@@ -183,7 +184,7 @@ class C {
 mixin C {
   f() => 7;
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 9)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 9)]);
   }
 
   test_setter_topLevel() async {
@@ -195,7 +196,7 @@ set f(int x) => print(x);
   test_topLevelArrowFunction() async {
     await assertErrorsInCode(r'''
 f() => 7;
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 9)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 9)]);
   }
 
   test_topLevelFunction() async {
@@ -203,7 +204,7 @@ f() => 7;
 f() {
   return 7;
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 19)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 19)]);
   }
 
   test_topLevelFunction_async() async {
@@ -211,7 +212,7 @@ f() {
 f() {
   return 7;
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 19)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 19)]);
   }
 
   test_topLevelFunction_withReturnType() async {
@@ -223,7 +224,7 @@ dynamic f() => 7;
   test_typedef_classic() async {
     await assertErrorsInCode(r'''
 typedef Callback(int i);
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 24)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 24)]);
   }
 
   test_typedef_classic_withReturnType() async {
@@ -235,7 +236,7 @@ typedef void Callback(int i);
   test_typedef_modern() async {
     await assertErrorsInCode(r'''
 typedef Callback = Function(int i);
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 35)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 35)]);
   }
 
   test_typedef_modern_withReturnType() async {

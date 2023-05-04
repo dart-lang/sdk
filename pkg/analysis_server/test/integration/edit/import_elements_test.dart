@@ -72,7 +72,7 @@ class AnalysisGetImportElementsIntegrationTest
   }
 
   @override
-  Future setUp() async {
+  Future<void> setUp() async {
     await super.setUp();
     pathname = sourcePath('test.dart');
   }

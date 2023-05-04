@@ -14,431 +14,576 @@ main() {
 }
 
 @reflectiveTest
-class MissingVariablePatternTest extends PatternsResolutionTest {
+class MissingVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase_differentStatements_nested() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   if (x case final a) {
     if (x case final b) {}
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+    ]);
 
     final node1 = findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
+    matchedValueType: int
 ''');
 
     final node2 = findNode.caseClause('case final b').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: b
     declaredElement: hasImplicitType isFinal b@61
       type: int
+    matchedValueType: int
 ''');
   }
 
   test_ifCase_differentStatements_sibling() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   if (x case final a) {}
   if (x case final b) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+    ]);
 
     final node1 = findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
+    matchedValueType: int
 ''');
 
     final node2 = findNode.caseClause('case final b').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: b
     declaredElement: hasImplicitType isFinal b@60
       type: int
+    matchedValueType: int
 ''');
   }
 
   test_ifCase_logicalOr2_both_direct() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case final a | final a) {}
+  if (x case final a || final a) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.DEAD_CODE, 37, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
-  operator: |
-  rightOperand: VariablePattern
+    matchedValueType: int
+  operator: ||
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@45
+    declaredElement: hasImplicitType isFinal a@46
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
   test_ifCase_logicalOr2_both_nested_logicalAnd() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case 0 & final a | final a) {}
+  if (x case 0 && final a || final a) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalAndPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 0
         staticType: int
-    operator: &
-    rightOperand: VariablePattern
+      matchedValueType: int
+    operator: &&
+    rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@39
+      declaredElement: hasImplicitType isFinal a@40
         type: int
-  operator: |
-  rightOperand: VariablePattern
+      matchedValueType: int
+    matchedValueType: int
+  operator: ||
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@49
+    declaredElement: hasImplicitType isFinal a@51
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
   test_ifCase_logicalOr2_left() async {
     await assertErrorsInCode(r'''
-void f(int x) {
-  if (x case final a | 2) {}
+void f(num x) {
+  if (x case final int a || 2) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 39, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: DeclaredVariablePattern
     keyword: final
-    name: a
-    declaredElement: hasImplicitType isFinal a@35
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: null
       type: int
-  operator: |
+    name: a
+    declaredElement: isFinal a@39
+      type: int
+    matchedValueType: num
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
   test_ifCase_logicalOr2_right() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case 1 | final a) {}
+  if (x case 1 || final a) {}
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
       staticType: int
-  operator: |
-  rightOperand: VariablePattern
+    matchedValueType: int
+  operator: ||
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@39
+    declaredElement: hasImplicitType isFinal a@40
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
   test_ifCase_logicalOr3_1() async {
     await assertErrorsInCode(r'''
-void f(int x) {
-  if (x case final a | 2 | 3) {}
+void f(num x) {
+  if (x case final int a || 2 || 3) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 39, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 43, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
-    leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
+    leftOperand: DeclaredVariablePattern
       keyword: final
-      name: a
-      declaredElement: hasImplicitType isFinal a@35
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
         type: int
-    operator: |
+      name: a
+      declaredElement: isFinal a@39
+        type: int
+      matchedValueType: num
+    operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
-  operator: |
+      matchedValueType: num
+    matchedValueType: num
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
   test_ifCase_logicalOr3_12() async {
     await assertErrorsInCode(r'''
-void f(int x) {
-  if (x case final a | final a | 3) {}
+void f(num x) {
+  if (x case final int a || final int a || 3) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 59, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
-    leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
+    leftOperand: DeclaredVariablePattern
       keyword: final
-      name: a
-      declaredElement: hasImplicitType isFinal a@35
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
         type: int
-    operator: |
-    rightOperand: VariablePattern
+      name: a
+      declaredElement: isFinal a@39
+        type: int
+      matchedValueType: num
+    operator: ||
+    rightOperand: DeclaredVariablePattern
       keyword: final
-      name: a
-      declaredElement: hasImplicitType isFinal a@45
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
         type: int
-  operator: |
+      name: a
+      declaredElement: isFinal a@54
+        type: int
+      matchedValueType: num
+    matchedValueType: num
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
   test_ifCase_logicalOr3_123() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case final a | final a | final a) {}
+  if (x case final a || final a || final a) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.DEAD_CODE, 37, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(WarningCode.DEAD_CODE, 48, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
-    leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
+    leftOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@35
         type: int
-    operator: |
-    rightOperand: VariablePattern
+      matchedValueType: int
+    operator: ||
+    rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@45
+      declaredElement: hasImplicitType isFinal a@46
         type: int
-  operator: |
-  rightOperand: VariablePattern
+      matchedValueType: int
+    matchedValueType: int
+  operator: ||
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@55
+    declaredElement: hasImplicitType isFinal a@57
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
   test_ifCase_logicalOr3_13() async {
     await assertErrorsInCode(r'''
-void f(int x) {
-  if (x case final a | 2 | final a) {}
+void f(num x) {
+  if (x case final int a || 2 || final int a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 39, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
-    leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
+    leftOperand: DeclaredVariablePattern
       keyword: final
-      name: a
-      declaredElement: hasImplicitType isFinal a@35
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
         type: int
-    operator: |
+      name: a
+      declaredElement: isFinal a@39
+        type: int
+      matchedValueType: num
+    operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
-  operator: |
-  rightOperand: VariablePattern
+      matchedValueType: num
+    matchedValueType: num
+  operator: ||
+  rightOperand: DeclaredVariablePattern
     keyword: final
-    name: a
-    declaredElement: hasImplicitType isFinal a@49
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: null
       type: int
+    name: a
+    declaredElement: isFinal a@59
+      type: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
   test_ifCase_logicalOr3_2() async {
     await assertErrorsInCode(r'''
-void f(int x) {
-  if (x case 1 | final a | 3) {}
+void f(num x) {
+  if (x case 1 || final int a || 3) {}
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 43, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
-    operator: |
-    rightOperand: VariablePattern
+      matchedValueType: num
+    operator: ||
+    rightOperand: DeclaredVariablePattern
       keyword: final
-      name: a
-      declaredElement: hasImplicitType isFinal a@39
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
         type: int
-  operator: |
+      name: a
+      declaredElement: isFinal a@44
+        type: int
+      matchedValueType: num
+    matchedValueType: num
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
   test_ifCase_logicalOr3_23() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case 1 | final a | final a) {}
+  if (x case 1 || final a || final a) {}
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(WarningCode.DEAD_CODE, 42, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
-    operator: |
-    rightOperand: VariablePattern
+      matchedValueType: int
+    operator: ||
+    rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@39
+      declaredElement: hasImplicitType isFinal a@40
         type: int
-  operator: |
-  rightOperand: VariablePattern
+      matchedValueType: int
+    matchedValueType: int
+  operator: ||
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@49
+    declaredElement: hasImplicitType isFinal a@51
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
   test_ifCase_logicalOr3_3() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case 1 | 2 | final a) {}
+  if (x case 1 || 2 || final a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 5),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 6),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
-    operator: |
+      matchedValueType: int
+    operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
-  operator: |
-  rightOperand: VariablePattern
+      matchedValueType: int
+    matchedValueType: int
+  operator: ||
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@43
+    declaredElement: hasImplicitType isFinal a@45
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
   test_switchStatement_case1_logicalOr2_both() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
-    case final a | final a:
+    case final a || final a:
       return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(WarningCode.DEAD_CODE, 48, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@46
       type: int
-  operator: |
-  rightOperand: VariablePattern
+    matchedValueType: int
+  operator: ||
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@56
+    declaredElement: hasImplicitType isFinal a@57
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
   test_switchStatement_case1_logicalOr2_left() async {
     await assertErrorsInCode(r'''
-void f(int x) {
+void f(num x) {
   switch (x) {
-    case final a | 2:
+    case final int a || 2:
+      return;
+    default:
       return;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 50, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 55, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
+LogicalOrPattern
+  leftOperand: DeclaredVariablePattern
     keyword: final
-    name: a
-    declaredElement: hasImplicitType isFinal a@46
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: null
       type: int
-  operator: |
+    name: a
+    declaredElement: isFinal a@50
+      type: int
+    matchedValueType: num
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -446,31 +591,35 @@ BinaryPattern
     await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
-    case 1 | final a:
+    case 1 || final a:
       return;
   }
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
       staticType: int
-  operator: |
-  rightOperand: VariablePattern
+    matchedValueType: int
+  operator: ||
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@50
+    declaredElement: hasImplicitType isFinal a@51
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
   test_switchStatement_case2_both() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case /*1*/ final a:
@@ -478,43 +627,54 @@ void f(int x) {
       return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(WarningCode.DEAD_CODE, 59, 4),
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 59, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+    ]);
 
     final node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@52
       type: int
+    matchedValueType: int
 ''');
 
     final node2 = findNode.switchPatternCase('case /*2*/').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@76
       type: int
+    matchedValueType: int
 ''');
   }
 
   test_switchStatement_case2_left() async {
-    await assertNoErrorsInCode(r'''
-void f(int x) {
+    await assertErrorsInCode(r'''
+void f(num x) {
   switch (x) {
-    case final a:
+    case final double a:
     case 2:
+      return;
+    default:
       return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+    ]);
   }
 
   test_switchStatement_case2_right() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case 1:
@@ -522,11 +682,13 @@ void f(int x) {
       return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+    ]);
   }
 
   test_switchStatement_differentCases_nested() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case final a:
@@ -537,19 +699,25 @@ void f(int x) {
       return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+    ]);
   }
 
   test_switchStatement_differentCases_sibling() async {
-    await assertNoErrorsInCode(r'''
-void f(int x) {
+    await assertErrorsInCode(r'''
+void f(num x) {
   switch (x) {
-    case final a:
+    case final double a:
       return;
     case 2:
       return;
+    default:
+      return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+    ]);
   }
 }

@@ -7,7 +7,7 @@
 /// [ClosableIterator]s often use resources which should be freed after use.
 /// The consumer of the iterator can either manually [close] the iterator, or
 /// consume all elements on which the iterator will automatically be closed.
-abstract class ClosableIterator<T> extends Iterator<T> {
+abstract class ClosableIterator<T> implements Iterator<T> {
   /// Close this iterator.
   void close();
 

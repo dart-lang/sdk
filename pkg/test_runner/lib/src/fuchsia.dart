@@ -72,8 +72,8 @@ class FuchsiaEmulator {
     }, onDone: () {
       if (!deviceNameFuture.isCompleted) {
         deviceNameFuture.completeError(
-            'Fuchsia emulator terminated unexpectedly.\n\n' +
-                _formatOutputs(emuStdout.toString(), emuStderr.toString()));
+            'Fuchsia emulator terminated unexpectedly.\n\n'
+            '${_formatOutputs(emuStdout.toString(), emuStderr.toString())}');
       }
       _stop();
     });
@@ -118,9 +118,9 @@ class FuchsiaEmulator {
     }, onDone: () {
       if (!serverReadyFuture.isCompleted) {
         serverReadyFuture.completeError(
-            'Fuchsia package server terminated unexpectedly.\n\n' +
-                _formatOutputs(
-                    serverStdout.toString(), serverStderr.toString()));
+          'Fuchsia package server terminated unexpectedly.\n\n'
+          '${_formatOutputs(serverStdout.toString(), serverStderr.toString())}',
+        );
       }
       _stop();
     });
@@ -220,7 +220,7 @@ class FuchsiaEmulator {
   }
 
   String _formatFailedResult(String name, ProcessResult result) {
-    return '$name failed with exit code: ${result.exitCode}\n\n' +
-        _formatOutputs(result.stdout as String, result.stderr as String);
+    return '$name failed with exit code: ${result.exitCode}\n\n'
+        '${_formatOutputs(result.stdout as String, result.stderr as String)}';
   }
 }

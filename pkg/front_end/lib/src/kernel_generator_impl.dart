@@ -152,7 +152,8 @@ Future<CompilerResult> _buildInternal(
     }
     if (options.debugDump) {
       printComponentText(summaryComponent,
-          libraryFilter: kernelTarget.isSourceLibraryForDebugging);
+          libraryFilter: kernelTarget.isSourceLibraryForDebugging,
+          showOffsets: options.debugDumpShowOffsets);
     }
 
     // Create the requested component ("truncating" or not).
@@ -209,7 +210,8 @@ Future<CompilerResult> _buildInternal(
     component = buildResult.component;
     if (options.debugDump) {
       printComponentText(component,
-          libraryFilter: kernelTarget.isSourceLibraryForDebugging);
+          libraryFilter: kernelTarget.isSourceLibraryForDebugging,
+          showOffsets: options.debugDumpShowOffsets);
     }
     options.ticker.logMs("Generated component");
   }

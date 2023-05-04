@@ -38,7 +38,7 @@ import self as iss;
 import "dart:core" as core;
 
 typedef bar = () → core::bool;
-static field core::int foo;
+static field core::int foo = 42;
 static method baz() → core::int {
   return 42;
 }

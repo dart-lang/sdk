@@ -17,7 +17,8 @@ class ProcessInfo {
   final String command;
   final String commandLine;
 
-  static ProcessInfo _parseMacos(String line, {bool elideFilePaths = true}) {
+  @visibleForTesting
+  static ProcessInfo parseMacos(String line, {bool elideFilePaths = true}) {
     // "33712   0.0 01-19:07:19 launchd ..."
     line = line.replaceAll(wsRegex, ' ');
 
@@ -37,7 +38,7 @@ class ProcessInfo {
       return ProcessInfo._(
         command: _getCommandFrom(commandLine),
         memoryMb: int.parse(mb) ~/ 1024,
-        cpuPercent: double.parse(cpu),
+        cpuPercent: double.tryParse(cpu.replaceAll(',', '.')),
         elapsedTime: elapsedTime,
         commandLine: _sanitizeCommandLine(commandLine, preferSnapshot: true),
       );
@@ -45,7 +46,7 @@ class ProcessInfo {
       return ProcessInfo._(
         command: _getCommandFrom(commandLine),
         memoryMb: int.parse(mb) ~/ 1024,
-        cpuPercent: double.parse(cpu),
+        cpuPercent: double.tryParse(cpu.replaceAll(',', '.')),
         elapsedTime: elapsedTime,
         commandLine: commandLine,
       );
@@ -76,7 +77,7 @@ class ProcessInfo {
       return ProcessInfo._(
         command: _getCommandFrom(commandLine),
         memoryMb: int.parse(mb) ~/ 1024,
-        cpuPercent: double.parse(cpu),
+        cpuPercent: double.tryParse(cpu.replaceAll(',', '.')),
         elapsedTime: elapsedTime,
         commandLine: _sanitizeCommandLine(commandLine, preferSnapshot: true),
       );
@@ -84,7 +85,7 @@ class ProcessInfo {
       return ProcessInfo._(
         command: _getCommandFrom(commandLine),
         memoryMb: int.parse(mb) ~/ 1024,
-        cpuPercent: double.parse(cpu),
+        cpuPercent: double.tryParse(cpu.replaceAll(',', '.')),
         elapsedTime: elapsedTime,
         commandLine: commandLine,
       );
@@ -218,7 +219,7 @@ List<ProcessInfo> _getProcessInfoMacOS({bool elideFilePaths = true}) {
       .map((line) => line.trim())
       .where((line) => line.isNotEmpty)
       .map((line) =>
-          ProcessInfo._parseMacos(line, elideFilePaths: elideFilePaths))
+          ProcessInfo.parseMacos(line, elideFilePaths: elideFilePaths))
       .where(_isProcessDartRelated)
       .toList();
 }

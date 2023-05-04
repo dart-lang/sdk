@@ -7,6 +7,7 @@ library dart._foreign_helper;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper' show notNull;
 import 'dart:_js_shared_embedded_names' show JsBuiltin, JsGetName;
+import 'dart:_runtime' as dart show getInterceptorForRti;
 import 'dart:_rti' show Rti;
 
 /**
@@ -56,7 +57,7 @@ import 'dart:_rti' show Rti;
  *
  *  + Do not use any parameter, local, method or field names in the
  *    [codeTemplate].  These names are all subject to arbitrary renaming by the
- *    compiler.  Pass the values in via `#` substition, and test with the
+ *    compiler.  Pass the values in via `#` substitution, and test with the
  *    `--minify` dart2js command-line option.
  *
  *  + The substituted expressions are values, not locations.
@@ -299,18 +300,7 @@ external JS_BUILTIN(String typeDescription, JsBuiltin builtin,
 /// Returns the interceptor for [object].
 ///
 // TODO(nshahan) Replace calls at compile time?
-Object getInterceptor(obj) {
-  var classRef;
-  if (obj == null) {
-    classRef = JS_CLASS_REF(Null);
-  } else if (JS<String>('!', 'typeof #', obj) == 'function') {
-    var signature = JS('', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
-    // Dart functions are always tagged with a signature.
-    if (signature != null) classRef = JS_CLASS_REF(Function);
-  }
-  if (classRef == null) throw 'Unknown interceptor for object: ($obj)';
-  return JS<Object>('!', '#.prototype', classRef);
-}
+Object getInterceptor(obj) => dart.getInterceptorForRti(obj);
 
 /// Returns the Rti object for the type for JavaScript arrays via JS-interop.
 ///

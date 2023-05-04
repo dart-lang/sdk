@@ -9,7 +9,19 @@ import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
 Future<List<ByteData>> loadFromUri(Uri uri) async {
-  final wsUri = uri.replace(scheme: 'ws', path: '/ws');
+  final Uri wsUri;
+  if (uri.isScheme("ws")) {
+    wsUri = uri;
+  } else {
+    if (uri.path.isEmpty || uri.path == "/") {
+      uri = uri.replace(path: "/ws");
+    } else if (uri.path.endsWith("/")) {
+      uri = uri.replace(path: "${uri.path}ws");
+    } else {
+      uri = uri.replace(path: "${uri.path}/ws");
+    }
+    wsUri = uri.replace(scheme: 'ws');
+  }
   final service = await vmServiceConnectUri(wsUri.toString());
   try {
     final r = await _getHeapsnapshot(service);

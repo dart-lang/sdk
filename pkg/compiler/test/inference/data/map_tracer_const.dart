@@ -25,7 +25,7 @@ class A {
 
 /*member: main:[null]*/
 main() {
-  var a = new A();
+  var a = A();
   a. /*[exact=A]*/ map
       /*Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
       ['fun'](3.3);

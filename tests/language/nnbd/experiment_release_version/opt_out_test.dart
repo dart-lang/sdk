@@ -12,5 +12,5 @@ void main() {
   int? x;
   // ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] Null safety features are disabled for this library.
+  // [cfe] Null safety is disabled for this library.
 }

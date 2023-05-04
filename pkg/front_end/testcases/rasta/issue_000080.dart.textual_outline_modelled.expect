@@ -3,9 +3,8 @@ class Foo extends Object with Mixin {
   foo() => super.foo();
 }
 
-class Mixin {
+main() {}
+mixin Mixin {
   foo() => 87;
   var field;
 }
-
-main() {}

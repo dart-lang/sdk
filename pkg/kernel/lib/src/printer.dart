@@ -35,6 +35,13 @@ class AstTextStrategy {
   /// representation.
   final bool includeAuxiliaryProperties;
 
+  /// If `true`, only [Nullability.nullable] is shown on types.
+  final bool showNullableOnly;
+
+  /// If `true`, type parameter names qualified by the name of the declaring
+  /// class or function.
+  final bool useQualifiedTypeParameterNames;
+
   /// If `true`, newlines are used to separate statements.
   final bool useMultiline;
 
@@ -66,6 +73,8 @@ class AstTextStrategy {
       {this.includeLibraryNamesInTypes = false,
       this.includeLibraryNamesInMembers = false,
       this.includeAuxiliaryProperties = false,
+      this.showNullableOnly = false,
+      this.useQualifiedTypeParameterNames = true,
       this.useMultiline = true,
       this.indentation = '  ',
       this.maxStatementDepth = 50,
@@ -118,8 +127,8 @@ class AstPrinter {
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 
-  void writeViewName(Reference? reference) {
-    _sb.write(qualifiedViewNameToStringByReference(reference,
+  void writeInlineClassName(Reference? reference) {
+    _sb.write(qualifiedInlineClassNameToStringByReference(reference,
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 
@@ -155,8 +164,10 @@ class AstPrinter {
   }
 
   void writeTypeParameterName(TypeParameter parameter) {
-    _sb.write(qualifiedTypeParameterNameToString(parameter,
-        includeLibraryName: _strategy.includeLibraryNamesInTypes));
+    _sb.write(_strategy.useQualifiedTypeParameterNames
+        ? qualifiedTypeParameterNameToString(parameter,
+            includeLibraryName: _strategy.includeLibraryNamesInTypes)
+        : typeParameterNameToString(parameter));
   }
 
   void newLine() {
@@ -234,6 +245,12 @@ class AstPrinter {
 
   void writeType(DartType node) {
     node.toTextInternal(this);
+  }
+
+  void writeNullability(Nullability nullability) {
+    if (!_strategy.showNullableOnly || nullability == Nullability.nullable) {
+      write(nullabilityToString(nullability));
+    }
   }
 
   void writeConstant(Constant node) {
@@ -458,7 +475,6 @@ class AstPrinter {
     }
     _sb.write(')');
     Statement? body = node.body;
-    // ignore: unnecessary_null_comparison
     if (body != null) {
       if (body is ReturnStatement) {
         _sb.write(' => ');

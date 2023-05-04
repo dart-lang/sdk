@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,7 +18,6 @@ import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/summary2/unlinked_token_type.dart';
 import 'package:collection/collection.dart';
 
@@ -82,8 +82,6 @@ class AstBinaryReader {
         return _readFieldFormalParameter();
       case Tag.FormalParameterList:
         return _readFormalParameterList();
-      case Tag.FunctionExpressionStub:
-        return _readFunctionExpression();
       case Tag.FunctionExpressionInvocation:
         return _readFunctionExpressionInvocation();
       case Tag.FunctionReference:
@@ -138,6 +136,14 @@ class AstBinaryReader {
         return _readPropertyAccess();
       case Tag.RecordLiteral:
         return _readRecordLiteral();
+      case Tag.RecordTypeAnnotation:
+        return _readRecordTypeAnnotation();
+      case Tag.RecordTypeAnnotationNamedField:
+        return _readRecordTypeAnnotationNamedField();
+      case Tag.RecordTypeAnnotationNamedFields:
+        return _readRecordTypeAnnotationNamedFields();
+      case Tag.RecordTypeAnnotationPositionalField:
+        return _readRecordTypeAnnotationPositionalField();
       case Tag.RedirectingConstructorInvocation:
         return _readRedirectingConstructorInvocation();
       case Tag.SetOrMapLiteral:
@@ -440,7 +446,8 @@ class AstBinaryReader {
   DoubleLiteral _readDoubleLiteral() {
     var value = _reader.readDouble();
     var node = DoubleLiteralImpl(
-      literal: StringToken(TokenType.STRING, '$value', -1),
+      literal: StringToken(
+          TokenType.STRING, considerCanonicalizeString('$value'), -1),
       value: value,
     );
     _readExpressionResolution(node);
@@ -568,10 +575,6 @@ class AstBinaryReader {
       rightSeparator: Tokens.semicolon(),
       updaters: updaters,
     );
-  }
-
-  FunctionExpression _readFunctionExpression() {
-    return emptyFunctionExpression();
   }
 
   FunctionExpressionInvocation _readFunctionExpressionInvocation() {
@@ -1025,6 +1028,64 @@ class AstBinaryReader {
     );
     _readExpressionResolution(node);
     return node;
+  }
+
+  RecordTypeAnnotationImpl _readRecordTypeAnnotation() {
+    final flags = _readByte();
+    final positionalFields =
+        _readNodeList<RecordTypeAnnotationPositionalFieldImpl>();
+    final namedFields =
+        _readOptionalNode() as RecordTypeAnnotationNamedFieldsImpl?;
+
+    final node = RecordTypeAnnotationImpl(
+      leftParenthesis: Tokens.openParenthesis(),
+      positionalFields: positionalFields,
+      namedFields: namedFields,
+      rightParenthesis: Tokens.closeParenthesis(),
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+    );
+    node.type = _reader.readType();
+    return node;
+  }
+
+  RecordTypeAnnotationNamedFieldImpl _readRecordTypeAnnotationNamedField() {
+    final metadata = _readNodeList<AnnotationImpl>();
+    final type = readNode() as TypeAnnotationImpl;
+
+    final lexeme = _reader.readStringReference();
+    final name = TokenFactory.tokenFromString(lexeme);
+
+    return RecordTypeAnnotationNamedFieldImpl(
+      metadata: metadata,
+      type: type,
+      name: name,
+    );
+  }
+
+  RecordTypeAnnotationNamedFieldsImpl _readRecordTypeAnnotationNamedFields() {
+    final fields = _readNodeList<RecordTypeAnnotationNamedFieldImpl>();
+    return RecordTypeAnnotationNamedFieldsImpl(
+      leftBracket: Tokens.openCurlyBracket(),
+      fields: fields,
+      rightBracket: Tokens.closeCurlyBracket(),
+    );
+  }
+
+  RecordTypeAnnotationPositionalFieldImpl
+      _readRecordTypeAnnotationPositionalField() {
+    final metadata = _readNodeList<AnnotationImpl>();
+    final type = readNode() as TypeAnnotationImpl;
+
+    final name = _reader.readOptionalObject((reader) {
+      final lexeme = reader.readStringReference();
+      return TokenFactory.tokenFromString(lexeme);
+    });
+
+    return RecordTypeAnnotationPositionalFieldImpl(
+      metadata: metadata,
+      type: type,
+      name: name,
+    );
   }
 
   RedirectingConstructorInvocation _readRedirectingConstructorInvocation() {

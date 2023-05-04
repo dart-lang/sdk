@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// TODO(johnniwinther): Currently this only works with the mock compiler.
 
 import "package:expect/expect.dart";
@@ -28,14 +26,14 @@ main() {
 }
 
 const String TEST3 = r"""
-var a = new List(42);
+var a = List.filled(42, null);
 main() {
   return a[0];
 }
 """;
 
 const String TEST4 = r"""
-var a = new List(0);
+var a = List.filled(0, null);
 main() {
   return a[0];
 }
@@ -77,7 +75,7 @@ main() {
 
 const String TEST8 = r"""
 var b = int.parse('42');
-var a = new List(b);
+var a = List.filled(b, null);
 main() {
   return a[1];
 }
@@ -85,13 +83,14 @@ main() {
 
 const String TEST9 = r"""
 const b = 42;
-var a = new List(b);
+var a = List.filled(b, null);
 main() {
   return a[1];
 }
 """;
 
-checkRangeError(String test, {bool hasRangeError, String methodName}) async {
+checkRangeError(String test,
+    {required bool hasRangeError, String? methodName}) async {
   String generated =
       await compile(test, methodName: methodName, disableTypeInference: false);
   Expect.equals(

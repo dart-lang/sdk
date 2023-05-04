@@ -10,6 +10,6 @@ class Bar {
 
 main() {
   var r = (foo, Bar());
-  r.$0();
   r.$1();
+  r.$2();
 }

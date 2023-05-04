@@ -16,7 +16,6 @@ import 'package:observatory/event.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/repositories.dart';
 import 'package:observatory/tracer.dart';
-import 'package:observatory/utils.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 export 'package:observatory/utils.dart';

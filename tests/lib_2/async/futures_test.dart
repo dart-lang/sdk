@@ -11,12 +11,12 @@ import "package:expect/expect.dart";
 import 'dart:async';
 
 Future testWaitEmpty() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   return Future.wait(futures);
 }
 
 Future testCompleteAfterWait() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c = new Completer<Object>();
   futures.add(c.future);
   Future future = Future.wait(futures);
@@ -25,7 +25,7 @@ Future testCompleteAfterWait() {
 }
 
 Future testCompleteBeforeWait() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c = new Completer();
   futures.add(c.future);
   c.complete(null);
@@ -33,7 +33,7 @@ Future testCompleteBeforeWait() {
 }
 
 Future testWaitWithMultipleValues() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -46,7 +46,7 @@ Future testWaitWithMultipleValues() {
 }
 
 Future testWaitWithSingleError() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -63,7 +63,7 @@ Future testWaitWithSingleError() {
 }
 
 Future testWaitWithMultipleErrors() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -89,7 +89,7 @@ Future testWaitWithErrorAndNonErrorEager() {
 }
 
 Future testWaitWithMultipleErrorsEager() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -115,7 +115,7 @@ StackTrace get currentStackTrace {
 }
 
 Future testWaitWithSingleErrorWithStackTrace() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -132,7 +132,7 @@ Future testWaitWithSingleErrorWithStackTrace() {
 }
 
 Future testWaitWithMultipleErrorsWithStackTrace() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -149,7 +149,7 @@ Future testWaitWithMultipleErrorsWithStackTrace() {
 }
 
 Future testWaitWithMultipleErrorsWithStackTraceEager() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -253,7 +253,7 @@ Future testDoWhileWithException() {
 }
 
 main() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
 
   futures.add(testWaitEmpty());
   futures.add(testCompleteAfterWait());

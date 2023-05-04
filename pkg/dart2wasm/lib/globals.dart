@@ -17,7 +17,7 @@ class Globals {
   final Map<Field, w.Global> _globalInitializedFlag = {};
   final Map<w.FunctionType, w.DefinedFunction> _dummyFunctions = {};
   final Map<w.HeapType, w.DefinedGlobal> _dummyValues = {};
-  late final w.DefinedGlobal dummyGlobal;
+  late final w.DefinedGlobal dummyStructGlobal;
 
   w.Module get m => translator.m;
 
@@ -26,16 +26,16 @@ class Globals {
   }
 
   void _initDummyValues() {
-    // Create dummy struct for anyref/eqref/dataref/context dummy values
-    w.StructType structType = m.addStructType("#Dummy");
-    w.RefType type = w.RefType.def(structType, nullable: false);
-    dummyGlobal = m.addGlobal(w.GlobalType(type, mutable: false));
-    w.Instructions ib = dummyGlobal.initializer;
+    // Create dummy struct for anyref/eqref/structref dummy values
+    w.StructType structType = m.addStructType("#DummyStruct");
+    dummyStructGlobal = m.addGlobal(
+        w.GlobalType(w.RefType.struct(nullable: false), mutable: false));
+    w.Instructions ib = dummyStructGlobal.initializer;
     ib.struct_new(structType);
     ib.end();
-    _dummyValues[w.HeapType.any] = dummyGlobal;
-    _dummyValues[w.HeapType.eq] = dummyGlobal;
-    _dummyValues[w.HeapType.data] = dummyGlobal;
+    _dummyValues[w.HeapType.any] = dummyStructGlobal;
+    _dummyValues[w.HeapType.eq] = dummyStructGlobal;
+    _dummyValues[w.HeapType.struct] = dummyStructGlobal;
   }
 
   /// Provide a dummy function with the given signature. Used for empty entries

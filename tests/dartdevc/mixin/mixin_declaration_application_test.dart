@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(https://github.com/dart-lang/sdk/issues/51557): Decide if the mixins
+// being applied in this test should be "mixin", "mixin class" or the test
+// should be left at 2.19.
+// @dart=2.19
+
 import 'package:expect/expect.dart';
 
 void main() {
@@ -10,7 +15,7 @@ void main() {
   Expect.equals('B._foo', D0().foo);
 
   // When mixin application is in the same library as the declaration,
-  // private symbol from the mixin delaration `B._foo` overrides `A._foo`.
+  // private symbol from the mixin declaration `B._foo` overrides `A._foo`.
   Expect.equals('B._foo', C()._foo);
   Expect.equals('B._foo', D()._foo);
   // Getter `foo` returns `B._foo` that is coming from the mixin declaration.

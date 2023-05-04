@@ -208,11 +208,9 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   @override
   void processBackendImpact(BackendImpact backendImpact) {
     for (FunctionEntity staticUse in backendImpact.staticUses) {
-      assert((staticUse as dynamic) != null); // TODO(48820): Remove when sound.
       _processBackendStaticUse(staticUse);
     }
     for (FunctionEntity staticUse in backendImpact.globalUses) {
-      assert((staticUse as dynamic) != null); // TODO(48820): Remove when sound.
       _processBackendStaticUse(staticUse, isGlobal: true);
     }
     for (InterfaceType instantiatedType in backendImpact.instantiatedTypes) {
@@ -256,14 +254,12 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   @override
   void registerGlobalFunctionDependency(FunctionEntity element) {
-    assert((element as dynamic) != null); // TODO(48820): Remove when sound.
     _globalFunctionDependencies ??= Setlet();
     _globalFunctionDependencies!.add(element);
   }
 
   @override
   void registerGlobalClassDependency(ClassEntity element) {
-    assert((element as dynamic) != null); // TODO(48820): Remove when sound.
     _globalClassDependencies ??= Setlet();
     _globalClassDependencies!.add(element);
   }

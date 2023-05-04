@@ -168,7 +168,7 @@ int RunAnalyzer(int argc, char** argv) {
   const char* script_name = nullptr;
   script_name = inputs.GetArgument(0);
 
-  // Dart_LoadELF will crash on nonexistant file non-gracefully
+  // Dart_LoadELF will crash on nonexistent file non-gracefully
   // even though it should return `nullptr`.
   File* const file = File::Open(/*namespc=*/nullptr, script_name, File::kRead);
   if (file == nullptr) {

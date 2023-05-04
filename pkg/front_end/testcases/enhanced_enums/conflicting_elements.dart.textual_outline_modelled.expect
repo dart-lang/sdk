@@ -1,15 +1,3 @@
-class A10 {
-  void element() {}
-}
-
-class A8 {
-  void set element(dynamic value) {}
-}
-
-class A9 {
-  int element = 42;
-}
-
 enum E1 {
   element;
 
@@ -58,3 +46,12 @@ enum E8 with A8 { element }
 enum E9 with A9 { element }
 
 main() {}
+mixin A10 {
+  void element() {}
+}
+mixin A8 {
+  void set element(dynamic value) {}
+}
+mixin A9 {
+  int element = 42;
+}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
@@ -18,7 +16,7 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('jdata'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('jdata'));
     await checkTests(dataDir, const JAllocatorAnalysisDataComputer(),
         args: args, testedConfigs: allSpecConfigs);
   });
@@ -44,10 +42,11 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       {bool verbose = false}) {
     if (member is FieldEntity) {
       DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
-      JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
       JFieldAnalysis fieldAnalysis = closedWorld.fieldAnalysis;
-      ir.Member node = closedWorld.elementMap.getMemberDefinition(member).node;
-      Features features = new Features();
+      final node =
+          closedWorld.elementMap.getMemberDefinition(member).node as ir.Member;
+      Features features = Features();
       FieldAnalysisData fieldData = fieldAnalysis.getFieldData(member);
       if (fieldData.isElided && !fieldData.isEffectivelyConstant) {
         features.add(Tags.isElided);
@@ -57,10 +56,10 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       }
       if (fieldData.isEffectivelyConstant) {
         features[Tags.constantValue] =
-            fieldData.constantValue.toStructuredText(dartTypes);
+            fieldData.constantValue!.toStructuredText(dartTypes);
       } else if (fieldData.initialValue != null) {
         features[Tags.initialValue] =
-            fieldData.initialValue.toStructuredText(dartTypes);
+            fieldData.initialValue!.toStructuredText(dartTypes);
       } else if (fieldData.isEager) {
         if (fieldData.eagerCreationIndex != null) {
           features[Tags.eagerCreationIndex] =
@@ -68,7 +67,7 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
         }
         if (fieldData.eagerFieldDependenciesForTesting != null) {
           for (FieldEntity field
-              in fieldData.eagerFieldDependenciesForTesting) {
+              in fieldData.eagerFieldDependenciesForTesting!) {
             features.addElement(Tags.isEager, field.name);
           }
         } else {
@@ -82,9 +81,9 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
         features.add(Tags.isEffectivelyFinal);
       }
       Id id = computeMemberId(node);
-      ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
-      actualMap[id] = new ActualData<Features>(id, features,
-          nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);
+      ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
+      actualMap[id] = ActualData<Features>(id, features,
+          nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
     }
   }
 

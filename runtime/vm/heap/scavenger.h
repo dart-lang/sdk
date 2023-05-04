@@ -86,7 +86,7 @@ class ScavengeStats {
 
   // Of all data before scavenge, what fraction was found to be garbage?
   // If this scavenge included growth, assume the extra capacity would become
-  // garbage to give the scavenger a chance to stablize at the new capacity.
+  // garbage to give the scavenger a chance to stabilize at the new capacity.
   double ExpectedGarbageFraction() const {
     double work =
         after_.used_in_words + promoted_in_words_ + abandoned_in_words_;
@@ -251,7 +251,8 @@ class Scavenger {
     ASSERT(heap_ != Dart::vm_isolate_group()->heap());
 
     const uword result = thread->top();
-    const intptr_t remaining = thread->end() - result;
+    const intptr_t remaining = static_cast<intptr_t>(thread->end()) - result;
+    ASSERT(remaining >= 0);
     if (UNLIKELY(remaining < size)) {
       return 0;
     }
@@ -276,8 +277,6 @@ class Scavenger {
   void IterateRoots(ScavengerVisitorBase<parallel>* visitor);
   void MournWeakHandles();
   void Epilogue(SemiSpace* from);
-
-  bool IsUnreachable(ObjectPtr* p);
 
   void VerifyStoreBuffers();
 

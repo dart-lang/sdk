@@ -137,6 +137,9 @@ class PragmaAnnotation {
   static const PragmaAnnotation loadLibraryPriorityHigh =
       PragmaAnnotation(21, 'load-priority:high');
 
+  static const PragmaAnnotation resourceIdentifier =
+      PragmaAnnotation(22, 'resource-identifier');
+
   static const List<PragmaAnnotation> values = [
     noInline,
     tryInline,
@@ -160,6 +163,7 @@ class PragmaAnnotation {
     lateCheck,
     loadLibraryPriorityNormal,
     loadLibraryPriorityHigh,
+    resourceIdentifier,
   ];
 
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
@@ -168,7 +172,7 @@ class PragmaAnnotation {
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> excludes = {
     noInline: {tryInline},
-    tryInline: {noInline},
+    tryInline: {noInline, resourceIdentifier},
     typesTrust: {typesCheck, parameterCheck, downcastCheck},
     typesCheck: {typesTrust, parameterTrust, downcastTrust},
     parameterTrust: {parameterCheck},
@@ -181,6 +185,7 @@ class PragmaAnnotation {
     lateCheck: {lateTrust},
     loadLibraryPriorityNormal: {loadLibraryPriorityHigh},
     loadLibraryPriorityHigh: {loadLibraryPriorityNormal},
+    resourceIdentifier: {tryInline},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> requires = {
     noThrows: {noInline},
@@ -386,8 +391,14 @@ abstract class AnnotationsData {
   // [ir.Field].
   CheckPolicy getLateVariableCheckPolicyAt(ir.TreeNode node);
 
+  /// The priority to load the specified library with.
   ///
+  /// Indicates that the `fetchpriority` attribute should be set to the
+  /// specified value on the injected script tag used to load the library.
   LoadLibraryPriority getLoadLibraryPriorityAt(ir.LoadLibrary node);
+
+  /// Determines whether [member] is annotated as a resource identifier.
+  bool methodIsResourceIdentifier(FunctionEntity member);
 }
 
 class AnnotationsDataImpl implements AnnotationsData {
@@ -631,6 +642,17 @@ class AnnotationsDataImpl implements AnnotationsData {
       context = context.parent;
     }
     return null;
+  }
+
+  @override
+  bool methodIsResourceIdentifier(MemberEntity member) {
+    EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
+    if (annotations != null) {
+      if (annotations.contains(PragmaAnnotation.resourceIdentifier)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

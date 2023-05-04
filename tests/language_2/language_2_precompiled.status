@@ -13,9 +13,6 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 [ $compiler != dart2analyzer && $runtime == dart_precompiled ]
 mixin/mixin2_test: Skip
 
-[ $compiler == dartkp && $runtime == dart_precompiled ]
-async_star/async_star_await_for_test: RuntimeError
-
 [ $runtime == dart_precompiled && $minified ]
 enum/duplicate_test/*: Skip # Uses Enum.toString()
 enum/enum_test: Skip # Uses Enum.toString()

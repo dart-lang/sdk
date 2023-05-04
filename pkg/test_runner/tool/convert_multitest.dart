@@ -55,6 +55,7 @@ const staticOutcomes = [
 class UnableToConvertException {
   final String message;
   UnableToConvertException(this.message);
+  @override
   String toString() => "unable to convert: $message";
 }
 

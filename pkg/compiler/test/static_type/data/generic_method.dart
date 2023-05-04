@@ -31,6 +31,6 @@ genericMethod2(c) {
 }
 
 genericMethod3() {
-  dynamic c = new Class2<int>();
+  dynamic c = Class2<int>();
   /*Class2<int>*/ c. /*invoke: [Class2<int>]->int*/ method();
 }

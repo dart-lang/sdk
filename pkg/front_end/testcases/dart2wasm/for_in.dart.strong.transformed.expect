@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method method(core::Iterable<core::int> iterable) → dynamic {
+  {
+    synthesized core::Iterator<core::int> #forIterator = iterable.{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; #forIterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::int i = #forIterator.{core::Iterator::current}{core::int};
+      {
+        core::print(i);
+      }
+    }
+  }
+}
+static method asyncMethod(asy::Stream<core::int> stream) → dynamic async /* futureValueType= dynamic */ {
+  {
+    synthesized asy::_StreamIterator<core::int> #forIterator = new asy::_StreamIterator::•<core::int>(stream);
+    synthesized core::bool #jumpSentinel = #C1;
+    try {
+      for (; #jumpSentinel = await #forIterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}; ) {
+        core::int i = #forIterator.{asy::_StreamIterator::current}{core::int};
+        {
+          core::print(i);
+        }
+      }
+    }
+    finally {
+      if(#jumpSentinel)
+        await #forIterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+    }
+  }
+}
+
+constants  {
+  #C1 = false
+}

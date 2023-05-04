@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library type_test_helper;
 
 import 'dart:async';
@@ -40,7 +38,7 @@ class TypeEnvironment {
       bool testBackendWorld = false,
       List<String> options = const <String>[],
       Map<String, String> fieldTypeMap = const <String, String>{}}) async {
-    memory.DiagnosticCollector collector = new memory.DiagnosticCollector();
+    memory.DiagnosticCollector collector = memory.DiagnosticCollector();
     Uri uri = Uri.parse('memory:main.dart');
     memory.CompilationResult result = await memory.runCompiler(
         entryPoint: uri,
@@ -59,7 +57,7 @@ class TypeEnvironment {
       var warnings = collector.warnings;
       Expect.isTrue(warnings.isEmpty, 'Unexpected warnings: ${warnings}');
     }
-    return new TypeEnvironment._(compiler, testBackendWorld: testBackendWorld);
+    return TypeEnvironment._(compiler, testBackendWorld: testBackendWorld);
   }
 
   TypeEnvironment._(Compiler this.compiler, {this.testBackendWorld = false});
@@ -70,7 +68,7 @@ class TypeEnvironment {
 
   ElementEnvironment get elementEnvironment {
     if (testBackendWorld) {
-      return compiler.backendClosedWorldForTesting.elementEnvironment;
+      return compiler.backendClosedWorldForTesting!.elementEnvironment;
     } else {
       return compiler.frontendStrategy.elementEnvironment;
     }
@@ -78,7 +76,7 @@ class TypeEnvironment {
 
   CommonElements get commonElements {
     if (testBackendWorld) {
-      return compiler.backendClosedWorldForTesting.commonElements;
+      return compiler.backendClosedWorldForTesting!.commonElements;
     } else {
       return compiler.frontendStrategy.commonElements;
     }
@@ -88,7 +86,7 @@ class TypeEnvironment {
 
   DartTypes get types {
     if (testBackendWorld) {
-      return compiler.backendClosedWorldForTesting.dartTypes;
+      return compiler.backendClosedWorldForTesting!.dartTypes;
     } else {
       KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
       return frontendStrategy.elementMap.types;
@@ -96,7 +94,7 @@ class TypeEnvironment {
   }
 
   Entity getElement(String name) {
-    LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
+    LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
     dynamic element = elementEnvironment.lookupLibraryMember(mainLibrary, name);
     element ??= elementEnvironment.lookupClass(mainLibrary, name);
     element ??=
@@ -106,10 +104,10 @@ class TypeEnvironment {
   }
 
   ClassEntity getClass(String name) {
-    LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
-    ClassEntity element = elementEnvironment.lookupClass(mainLibrary, name);
+    LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
+    ClassEntity? element = elementEnvironment.lookupClass(mainLibrary, name);
     Expect.isNotNull(element, "No class named '$name' found.");
-    return element;
+    return element!;
   }
 
   DartType getElementType(String name) {
@@ -135,17 +133,17 @@ class TypeEnvironment {
     return getElementType(name);
   }
 
-  MemberEntity _getMember(String name, [ClassEntity cls]) {
+  MemberEntity _getMember(String name, [ClassEntity? cls]) {
     if (cls != null) {
       return elementEnvironment.lookupLocalClassMember(
-          cls, Name(name, cls.library.canonicalUri));
+          cls, Name(name, cls.library.canonicalUri))!;
     } else {
-      LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
-      return elementEnvironment.lookupLibraryMember(mainLibrary, name);
+      LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
+      return elementEnvironment.lookupLibraryMember(mainLibrary, name)!;
     }
   }
 
-  DartType getMemberType(String name, [ClassEntity cls]) {
+  DartType getMemberType(String name, [ClassEntity? cls]) {
     MemberEntity member = _getMember(name, cls);
     if (member is FieldEntity) {
       return elementEnvironment.getFieldType(member);
@@ -155,29 +153,29 @@ class TypeEnvironment {
     throw 'Unexpected member: $member for ${name}, cls=$cls';
   }
 
-  DartType getClosureType(String name, [ClassEntity cls]) {
+  DartType? getClosureType(String name, [ClassEntity? cls]) {
     if (testBackendWorld) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           "getClosureType not supported for backend testing.");
     }
     MemberEntity member = _getMember(name, cls);
-    DartType type;
+    DartType? type;
 
-    for (KLocalFunction local
-        in compiler.frontendClosedWorldForTesting.localFunctions) {
-      if (local.memberContext == member) {
-        type ??= elementEnvironment.getLocalFunctionType(local);
+    for (Local local
+        in compiler.frontendClosedWorldForTesting!.localFunctions) {
+      final kLocal = local as KLocalFunction;
+      if (kLocal.memberContext == member) {
+        type ??= elementEnvironment.getLocalFunctionType(kLocal);
       }
     }
     return type;
   }
 
   DartType getFieldType(String name) {
-    LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
-    FieldEntity field =
-        elementEnvironment.lookupLibraryMember(mainLibrary, name);
+    LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
+    final field = elementEnvironment.lookupLibraryMember(mainLibrary, name);
     Expect.isNotNull(field);
-    return elementEnvironment.getFieldType(field);
+    return elementEnvironment.getFieldType(field as FieldEntity);
   }
 
   bool isSubtype(DartType T, DartType S) {
@@ -190,12 +188,12 @@ class TypeEnvironment {
 
   JClosedWorld get jClosedWorld {
     assert(testBackendWorld);
-    return compiler.backendClosedWorldForTesting;
+    return compiler.backendClosedWorldForTesting!;
   }
 
   KClosedWorld get kClosedWorld {
     assert(!testBackendWorld);
-    return compiler.frontendClosedWorldForTesting;
+    return compiler.frontendClosedWorldForTesting!;
   }
 
   String printType(DartType type) => type.toStructuredText(types, options);
@@ -226,7 +224,7 @@ class FunctionTypeData {
 ///     $returnType $name$parameters => null;
 String createMethods(List<FunctionTypeData> dataList,
     {String additionalData = '', String prefix = ''}) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   for (FunctionTypeData data in dataList) {
     sb.writeln(
         '${data.returnType} $prefix${data.name}${data.parameters} => null;');
@@ -244,7 +242,7 @@ String createMethods(List<FunctionTypeData> dataList,
 /// where a field using the typedef is add to make the type accessible by name.
 String createTypedefs(List<FunctionTypeData> dataList,
     {String additionalData = '', String prefix = ''}) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];
     sb.writeln(
@@ -260,7 +258,7 @@ String createTypedefs(List<FunctionTypeData> dataList,
 
 /// Return source code that uses the function types in [dataList].
 String createUses(List<FunctionTypeData> dataList, {String prefix = ''}) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];
     sb.writeln('$prefix${data.name};');

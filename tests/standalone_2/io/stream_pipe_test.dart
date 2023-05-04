@@ -35,8 +35,8 @@ bool compareFileContent(String fileName1, String fileName2,
     }
   }
   if (count == null) count = length1;
-  var data1 = new List<int>(count);
-  var data2 = new List<int>(count);
+  var data1 = new List<int>.filled(count, 0);
+  var data2 = new List<int>.filled(count, 0);
   if (file1Offset != 0) file1.setPositionSync(file1Offset);
   if (file2Offset != 0) file2.setPositionSync(file2Offset);
   var read1 = file1.readIntoSync(data1, 0, count);
@@ -106,7 +106,7 @@ testFileToFilePipe2() {
       Expect.isTrue(
           compareFileContent(srcFileName, dstFileName, count: srcLength));
       dst.setPositionSync(srcLength);
-      var data = new List<int>(1);
+      var data = new List<int>.filled(1, null);
       var read2 = dst.readIntoSync(data, 0, 1);
       Expect.equals(32, data[0]);
       src.closeSync();

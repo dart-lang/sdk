@@ -22,8 +22,7 @@ DEFINE_FLAG(bool,
             false,
             "Print constant propagation and useless code elimination.");
 
-// Quick access to the current zone and isolate.
-#define I (isolate())
+// Quick access to the current thread & zone.
 #define Z (graph_->zone())
 #define T (graph_->thread())
 
@@ -73,7 +72,7 @@ bool ConstantPropagator::SetValue(Definition* definition, const Object& value) {
   // heap-allocated and so not necessarily pointer-equal on each iteration).
   if (definition->constant_value().ptr() != value.ptr()) {
     definition->constant_value() = value.ptr();
-    if (definition->input_use_list() != NULL) {
+    if (definition->input_use_list() != nullptr) {
       definition_worklist_.Add(definition);
     }
     return true;
@@ -246,7 +245,7 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
   // might be analyzing it because the constant value of one of its inputs
   // has changed.)
   if (reachable_->Contains(instr->GetBlock()->preorder_number())) {
-    if (instr->constant_target() != NULL) {
+    if (instr->constant_target() != nullptr) {
       ASSERT((instr->constant_target() == instr->true_successor()) ||
              (instr->constant_target() == instr->false_successor()));
       SetReachable(instr->constant_target());
@@ -306,10 +305,10 @@ Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {
   if (defn->IsPhi()) {
     JoinEntryInstr* block = defn->AsPhi()->block();
 
-    Definition* input = NULL;
+    Definition* input = nullptr;
     for (intptr_t i = 0; i < defn->InputCount(); ++i) {
       if (reachable_->Contains(block->PredecessorAt(i)->preorder_number())) {
-        if (input == NULL) {
+        if (input == nullptr) {
           input = defn->InputAt(i)->definition();
         } else {
           return defn;
@@ -369,7 +368,7 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
                  info->visit_count);
     NOT_IN_PRODUCT(
         FlowGraphPrinter::PrintGraph("Constant Propagation", graph_));
-    FATAL("Aborting due to non-covergence.");
+    FATAL("Aborting due to non-convergence.");
   }
 
   // Compute the join over all the reachable predecessor values.
@@ -433,8 +432,8 @@ void ConstantPropagator::VisitNativeParameter(NativeParameterInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitPushArgument(PushArgumentInstr* instr) {
-  UNREACHABLE();
+void ConstantPropagator::VisitMoveArgument(MoveArgumentInstr* instr) {
+  UNREACHABLE();  // Inserted right before register allocation.
 }
 
 void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
@@ -1570,8 +1569,8 @@ void ConstantPropagator::EliminateRedundantBranches() {
     BlockEntryInstr* block = b.Current();
     BranchInstr* branch = block->last_instruction()->AsBranch();
     empty_blocks->Clear();
-    if ((branch != NULL) && !branch->HasUnknownSideEffects()) {
-      ASSERT(branch->previous() != NULL);  // Not already eliminated.
+    if ((branch != nullptr) && !branch->HasUnknownSideEffects()) {
+      ASSERT(branch->previous() != nullptr);  // Not already eliminated.
       BlockEntryInstr* if_true =
           FindFirstNonEmptySuccessor(branch->true_successor(), empty_blocks);
       BlockEntryInstr* if_false =
@@ -1585,7 +1584,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
           graph_->CopyDeoptTarget(jump, branch);
 
           Instruction* previous = branch->previous();
-          branch->set_previous(NULL);
+          branch->set_previous(nullptr);
           previous->LinkTo(jump);
 
           // Remove uses from branch and all the empty blocks that
@@ -1634,12 +1633,12 @@ void ConstantPropagator::Transform() {
     }
 
     JoinEntryInstr* join = block->AsJoinEntry();
-    if (join != NULL) {
+    if (join != nullptr) {
       // Remove phi inputs corresponding to unreachable predecessor blocks.
       // Predecessors will be recomputed (in block id order) after removing
       // unreachable code so we merely have to keep the phi inputs in order.
       ZoneGrowableArray<PhiInstr*>* phis = join->phis();
-      if ((phis != NULL) && !phis->is_empty()) {
+      if ((phis != nullptr) && !phis->is_empty()) {
         intptr_t pred_count = join->PredecessorCount();
         intptr_t live_count = 0;
         for (intptr_t pred_idx = 0; pred_idx < pred_count; ++pred_idx) {
@@ -1648,7 +1647,7 @@ void ConstantPropagator::Transform() {
             if (live_count < pred_idx) {
               for (PhiIterator it(join); !it.Done(); it.Advance()) {
                 PhiInstr* phi = it.Current();
-                ASSERT(phi != NULL);
+                ASSERT(phi != nullptr);
                 phi->SetInputAt(live_count, phi->InputAt(pred_idx));
               }
             }
@@ -1656,7 +1655,7 @@ void ConstantPropagator::Transform() {
           } else {
             for (PhiIterator it(join); !it.Done(); it.Advance()) {
               PhiInstr* phi = it.Current();
-              ASSERT(phi != NULL);
+              ASSERT(phi != nullptr);
               phi->InputAt(pred_idx)->RemoveFromUseList();
             }
           }
@@ -1665,7 +1664,7 @@ void ConstantPropagator::Transform() {
           intptr_t to_idx = 0;
           for (intptr_t from_idx = 0; from_idx < phis->length(); ++from_idx) {
             PhiInstr* phi = (*phis)[from_idx];
-            ASSERT(phi != NULL);
+            ASSERT(phi != nullptr);
             if (FLAG_remove_redundant_phis && (live_count == 1)) {
               Value* input = phi->InputAt(0);
               phi->ReplaceUsesWith(input->definition());
@@ -1676,7 +1675,7 @@ void ConstantPropagator::Transform() {
             }
           }
           if (to_idx == 0) {
-            join->phis_ = NULL;
+            join->phis_ = nullptr;
           } else {
             phis->TruncateTo(to_idx);
           }
@@ -1701,22 +1700,22 @@ void ConstantPropagator::Transform() {
 
     // Replace branches where one target is unreachable with jumps.
     BranchInstr* branch = block->last_instruction()->AsBranch();
-    if (branch != NULL) {
+    if (branch != nullptr) {
       TargetEntryInstr* if_true = branch->true_successor();
       TargetEntryInstr* if_false = branch->false_successor();
-      JoinEntryInstr* join = NULL;
-      Instruction* next = NULL;
+      JoinEntryInstr* join = nullptr;
+      Instruction* next = nullptr;
 
       if (!reachable_->Contains(if_true->preorder_number())) {
         ASSERT(reachable_->Contains(if_false->preorder_number()));
-        ASSERT(if_false->parallel_move() == NULL);
+        ASSERT(if_false->parallel_move() == nullptr);
         join = new (Z) JoinEntryInstr(if_false->block_id(),
                                       if_false->try_index(), DeoptId::kNone);
         graph_->CopyDeoptTarget(join, if_false);
         if_false->UnuseAllInputs();
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
-        ASSERT(if_true->parallel_move() == NULL);
+        ASSERT(if_true->parallel_move() == nullptr);
         join = new (Z) JoinEntryInstr(if_true->block_id(), if_true->try_index(),
                                       DeoptId::kNone);
         graph_->CopyDeoptTarget(join, if_true);
@@ -1724,7 +1723,7 @@ void ConstantPropagator::Transform() {
         next = if_true->next();
       }
 
-      if (join != NULL) {
+      if (join != nullptr) {
         // Replace the branch with a jump to the reachable successor.
         // Drop the comparison, which does not have side effects as long
         // as it is a strict compare (the only one we can determine is
@@ -1733,7 +1732,7 @@ void ConstantPropagator::Transform() {
         graph_->CopyDeoptTarget(jump, branch);
 
         Instruction* previous = branch->previous();
-        branch->set_previous(NULL);
+        branch->set_previous(nullptr);
         previous->LinkTo(jump);
 
         // Replace the false target entry with the new join entry. We will
@@ -1754,7 +1753,6 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
   // Replace constant-valued instructions without observable side
   // effects.  Do this for smis and old objects only to avoid having to
   // copy other objects into the heap's old generation.
-  ASSERT((defn == nullptr) || !defn->IsPushArgument());
   if ((defn != nullptr) && IsConstant(defn->constant_value()) &&
       (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
       !defn->IsConstant() && !defn->IsStoreIndexed() && !defn->IsStoreField() &&
@@ -1771,7 +1769,7 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
       ASSERT(!constant_value_.IsNull());
     }
     if (auto call = defn->AsStaticCall()) {
-      ASSERT(!call->HasPushArguments());
+      ASSERT(!call->HasMoveArguments());
     }
     Definition* replacement =
         graph_->TryCreateConstantReplacementFor(defn, constant_value_);

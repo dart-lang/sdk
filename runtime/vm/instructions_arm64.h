@@ -42,7 +42,7 @@ class InstructionPattern : public AllStatic {
   // address of the first instruction in the sequence.  Returns the register
   // being loaded and the index in the pool being read from in the output
   // parameters 'reg' and 'index' respectively.
-  // IMPORANT: When generating code loading values from pool on ARM64 use
+  // IMPORTANT: When generating code loading values from pool on ARM64 use
   // LoadWordFromPool macro instruction instead of emitting direct load.
   // The macro instruction takes care of pool offsets that can't be
   // encoded as immediates.
@@ -55,7 +55,7 @@ class InstructionPattern : public AllStatic {
   // address of the first instruction in the sequence.  Returns the registers
   // being loaded and the index in the pool being read from in the output
   // parameters 'reg1', 'reg2' and 'index' respectively.
-  // IMPORANT: When generating code loading values from pool on ARM64 use
+  // IMPORTANT: When generating code loading values from pool on ARM64 use
   // LoadDoubleWordFromPool macro instruction instead of emitting direct load.
   // The macro instruction takes care of pool offsets that can't be
   // encoded as immediates.

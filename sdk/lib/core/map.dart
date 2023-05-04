@@ -35,6 +35,7 @@ abstract class Map<K, V> {
   /// A `LinkedHashMap` requires the keys to implement compatible
   /// `operator==` and `hashCode`.
   /// It iterates in key insertion order.
+  // TODO: @Deprecated("Use literal <K, V>{} instead")
   external factory Map();
 
   /// Creates a [LinkedHashMap] with the same keys and values as [other].
@@ -462,20 +463,28 @@ abstract class Map<K, V> {
 /// ]);
 /// print(map); // {1: A, 2: B, 3: C, 4: D}
 /// ```
-class MapEntry<K, V> {
+///
+/// Do not extend or implement the `MapEntry` class.
+/// If the Dart language introduces value types,
+/// the `MapEntry` class will be changed to such a type,
+/// and will likely no longer be able to be implemented or extended
+/// by classes.
+final class MapEntry<K, V> {
   /// The key of the entry.
+  ///
   /// ```dart
-  /// final map = {'theKey': 'theValue'};
-  /// var entry = map.entries.first;
-  /// print(entry.key); // theKey
+  /// final map = {'theKey': 'theValue'}; // Map<String, String>
+  /// var entry = map.entries.first; // MapEntry<String, String>
+  /// print(entry.key); // 'theKey'
   /// ```
   final K key;
 
-  /// The value associated to [key] in the map.
+  /// The value associated to [key] in a map.
+  ///
   /// ```dart
-  /// final map = {'theKey': 'theValue'};
-  /// var entry = map.entries.first;
-  /// print(entry.value); // theValue
+  /// final map = {'theKey': 'theValue'}; // Map<String, String>
+  /// var entry = map.entries.first; // MapEntry<String, String>
+  /// print(entry.value); // 'theValue'
   /// ```
   final V value;
 
@@ -484,5 +493,8 @@ class MapEntry<K, V> {
 
   const MapEntry._(this.key, this.value);
 
+  /// String representation intended for debugging only.
+  ///
+  /// Not guaranteed to be stable over time.
   String toString() => "MapEntry($key: $value)";
 }

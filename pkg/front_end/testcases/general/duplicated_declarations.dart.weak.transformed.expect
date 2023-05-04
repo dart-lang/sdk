@@ -316,7 +316,7 @@ library /*isNonNullableByDefault*/;
 //     ^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations.dart:40:5: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //   C.();
 //     ^
 // pkg/front_end/testcases/general/duplicated_declarations.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
@@ -373,7 +373,7 @@ class C#3#0 extends core::Object { // from org-dartlang-testcase:///duplicated_d
     ;
 }
 class C#2#0 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  field core::String field = null;
+  field core::String field = "1st";
   constructor •(dynamic a) → self::C#2#0
     : super core::Object::•()
     ;
@@ -394,7 +394,7 @@ class C#1#0 extends core::Object {
     ;
 }
 class C extends core::Object {
-  field core::String field = null;
+  field core::String field = "1st";
   constructor •(dynamic a) → self::C
     : super core::Object::•()
     ;
@@ -488,7 +488,7 @@ class AnotherEnum extends core::_Enum /*isEnum*/  {
   method _enumToString() → core::String
     return "AnotherEnum.${this.{core::_Enum::_name}{core::String}}";
 }
-static field core::String field;
+static field core::String field = "1st";
 static method main() → dynamic {
   "1st";
 }

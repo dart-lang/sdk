@@ -2,13 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: scope=[
-  async.dart.FutureExtensions,
-  core.dart.DateTimeCopyWith,
-  core.dart.EnumByName,
-  core.dart.EnumName,
-  origin.dart.Extension,
-  origin.dart.GenericExtension]*/
+/*library: */
 
 // ignore: uri_does_not_exist
 import 'dart:test';

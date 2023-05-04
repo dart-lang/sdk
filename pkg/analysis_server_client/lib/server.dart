@@ -95,7 +95,7 @@ class Server extends ServerBase {
     bool profileServer = false,
     String? sdkPath,
     String? serverPath,
-    int? servicesPort,
+    int? servicePort,
     bool suppressAnalytics = true,
     bool useAnalysisHighlight2 = false,
     bool enableAsserts = false,
@@ -125,14 +125,14 @@ class Server extends ServerBase {
     // Add VM arguments.
     //
     if (profileServer) {
-      if (servicesPort == null) {
+      if (servicePort == null) {
         arguments.add('--observe');
       } else {
-        arguments.add('--observe=$servicesPort');
+        arguments.add('--observe=$servicePort');
       }
       arguments.add('--pause-isolates-on-exit');
-    } else if (servicesPort != null) {
-      arguments.add('--enable-vm-service=$servicesPort');
+    } else if (servicePort != null) {
+      arguments.add('--enable-vm-service=$servicePort');
     }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');

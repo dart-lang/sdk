@@ -34,6 +34,12 @@ class PromotionKeyStore<Variable extends Object> {
   int keyForVariable(Variable variable) =>
       _variableKeys[variable] ??= _makeNewKey(variable: variable);
 
+  /// Creates a fresh promotion key that hasn't been used before (and won't be
+  /// reused again).  This is used by flow analysis to model the synthetic
+  /// variables used during pattern matching to cache the values that the
+  /// pattern, and its subpatterns, are being matched against.
+  int makeTemporaryKey() => _makeNewKey();
+
   Variable? variableForKey(int variableKey) => _keyToInfo[variableKey].variable;
 
   int _makeNewKey({Variable? variable, int? targetKey}) {

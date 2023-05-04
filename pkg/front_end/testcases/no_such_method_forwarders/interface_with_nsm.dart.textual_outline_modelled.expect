@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A extends Object with M implements I {}
 
 class B extends Object with M implements I {}
@@ -8,8 +7,8 @@ class I {
   void foo();
 }
 
-class M {
+main() {}
+
+mixin class M {
   dynamic noSuchMethod(Invocation i) => null;
 }
-
-main() {}

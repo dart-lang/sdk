@@ -20,8 +20,6 @@ class B extends A<K> {}
 class X<T> {}
 
 main() {
-  var v = new DateTime.now().millisecondsSinceEpoch != 42
-      ? new X<B>()
-      : new X<A<String>>();
+  var v = DateTime.now().millisecondsSinceEpoch != 42 ? X<B>() : X<A<String>>();
   makeLive(v is X<A<String>>);
 }

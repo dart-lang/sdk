@@ -1,0 +1,104 @@
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'access_abstract_nsm_lib.dart';
+
+class SubClass1 extends SuperClass {
+  dynamic noSuchMethod(Invocation invocation);
+}
+
+class SubClass2 implements SuperClass {
+  dynamic noSuchMethod(Invocation invocation);
+}
+
+class SubClass3 with SuperClass {
+  dynamic noSuchMethod(Invocation invocation);
+}
+
+class SubSubClass1 extends SubClass1 {}
+
+class SubSubClass2 extends SubClass2 {}
+
+class SubSubClass3 extends SubClass3 {}
+
+abstract class AbstractSubClass1 extends SuperClass {
+  dynamic noSuchMethod(Invocation invocation);
+}
+
+abstract class AbstractSubClass2 implements SuperClass {
+  dynamic noSuchMethod(Invocation invocation);
+}
+
+abstract class AbstractSubClass3 with SuperClass {
+  dynamic noSuchMethod(Invocation invocation);
+}
+
+class SubAbstractSubClass1 extends AbstractSubClass1 {}
+
+class SubAbstractSubClass2 extends AbstractSubClass2 {}
+
+class SubAbstractSubClass3 extends AbstractSubClass3 {}
+
+class SubClassImplements1 extends SuperClass implements NoSuchMethodClass {}
+
+class SubClassImplements2 implements SuperClass, NoSuchMethodClass {}
+
+class SubClassImplements3 with SuperClass implements NoSuchMethodClass {}
+
+class SubSubClassImplements1 extends SubClassImplements1 {}
+
+class SubSubClassImplements2 extends SubClassImplements2 {}
+
+class SubSubClassImplements3 extends SubClassImplements3 {}
+
+abstract class AbstractSubClassImplements1 extends SuperClass
+    implements NoSuchMethodClass {}
+
+abstract class AbstractSubClassImplements2
+    implements SuperClass, NoSuchMethodClass {}
+
+abstract class AbstractSubClassImplements3
+    with SuperClass
+    implements NoSuchMethodClass {}
+
+class SubAbstractSubClassImplements1 extends AbstractSubClassImplements1 {}
+
+class SubAbstractSubClassImplements2 extends AbstractSubClassImplements2 {}
+
+class SubAbstractSubClassImplements3 extends AbstractSubClassImplements3 {}
+
+class SubClassWith1 extends SuperClass with NoSuchMethodClass {}
+
+class SubClassWith2 with NoSuchMethodClass implements SuperClass {}
+
+class SubClassWith3 with SuperClass, NoSuchMethodClass {}
+
+class SubClassWith4 with NoSuchMethodClass, SuperClass {}
+
+class SubSubClassWith1 extends SubClassWith1 {}
+
+class SubSubClassWith2 extends SubClassWith2 {}
+
+class SubSubClassWith3 extends SubClassWith3 {}
+
+class SubSubClassWith4 extends SubClassWith4 {}
+
+abstract class AbstractSubClassWith1 extends SuperClass
+    with NoSuchMethodClass {}
+
+abstract class AbstractSubClassWith2
+    with NoSuchMethodClass
+    implements SuperClass {}
+
+abstract class AbstractSubClassWith3 with SuperClass, NoSuchMethodClass {}
+
+abstract class AbstractSubClassWith4 with NoSuchMethodClass, SuperClass {}
+
+class SubAbstractSubClassWith1 extends AbstractSubClassWith1 {}
+
+class SubAbstractSubClassWith2 extends AbstractSubClassWith2 {}
+
+class SubAbstractSubClassWith3 extends AbstractSubClassWith3 {}
+
+class SubAbstractSubClassWith4 extends AbstractSubClassWith4 {}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Unittest for the [LocationCollector].
 
 import 'package:compiler/src/io/code_output.dart';
@@ -13,11 +11,11 @@ import 'package:kernel/ast.dart' show Location;
 
 import '../../lib/src/util/output_collector.dart';
 
-test(List events, Map<int, List<int>> expectedPositions) {
-  BufferedOutputSink sink = new BufferedOutputSink();
-  LocationCollector locationProvider = new LocationCollector();
+test(List events, Map<int, List<int>?> expectedPositions) {
+  BufferedOutputSink sink = BufferedOutputSink();
+  LocationCollector locationProvider = LocationCollector();
   CodeOutput output =
-      new StreamCodeOutput(sink, <CodeOutputListener>[locationProvider]);
+      StreamCodeOutput(sink, <CodeOutputListener>[locationProvider]);
   for (var event in events) {
     if (event is String) {
       output.add(event);
@@ -27,7 +25,7 @@ test(List events, Map<int, List<int>> expectedPositions) {
   }
   output.close();
 
-  expectedPositions.forEach((int offset, List<int> expectedPosition) {
+  expectedPositions.forEach((int offset, List<int>? expectedPosition) {
     if (expectedPosition == null) {
       Expect.throws(
           () => locationProvider.getLocation(offset),
@@ -80,7 +78,7 @@ main() {
     3: null
   });
 
-  Map<int, List<int>> positions = {
+  Map<int, List<int>?> positions = {
     0: [0, 0],
     1: [0, 1],
     2: [1, 0],
@@ -96,19 +94,19 @@ main() {
 
   test(["a", "\n", "b\nc"], positions);
 
-  CodeBuffer buffer1 = new CodeBuffer();
+  CodeBuffer buffer1 = CodeBuffer();
   buffer1.add("a\nb\nc");
   test([buffer1], positions);
 
-  CodeBuffer buffer2 = new CodeBuffer();
+  CodeBuffer buffer2 = CodeBuffer();
   buffer2.add("\nb\nc");
   test(["a", buffer2], positions);
 
-  CodeBuffer buffer3 = new CodeBuffer();
+  CodeBuffer buffer3 = CodeBuffer();
   buffer3.add("a");
   test([buffer3, buffer2], positions);
 
-  CodeBuffer buffer4 = new CodeBuffer();
+  CodeBuffer buffer4 = CodeBuffer();
   buffer4.addBuffer(buffer3);
   test([buffer4, buffer2], positions);
 }

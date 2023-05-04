@@ -66,6 +66,7 @@ class ThreadInterrupterMacOS {
     if (thread == nullptr) {
       return;
     }
+    ThreadInterruptScope signal_handler_scope;
     Profiler::SampleThread(thread, ProcessState(state));
   }
 
@@ -117,10 +118,6 @@ void ThreadInterrupter::InterruptThread(OSThread* os_thread) {
     OS::PrintErr("ThreadInterrupter interrupting %p\n", os_thread->id());
   }
 
-  ThreadInterrupter::SampleBufferWriterScope scope;
-  if (!scope.CanSample()) {
-    return;
-  }
   ThreadInterrupterMacOS interrupter(os_thread);
   interrupter.CollectSample();
 }

@@ -41,9 +41,9 @@ mixin PidTracker {
   void terminatePids(ProcessSignal signal) {
     // TODO(dantup): In Dart-Code DAP, we first try again with sigint and wait
     // for a few seconds before sending sigkill.
-    pidsToTerminate.forEach(
-      (pid) => Process.killPid(pid, signal),
-    );
+    for (var pid in pidsToTerminate) {
+      Process.killPid(pid, signal);
+    }
   }
 }
 
@@ -57,10 +57,10 @@ mixin TestAdapter {
   /// Test names by testID.
   ///
   /// Stored in testStart so that they can be looked up in testDone.
-  Map<int, String> _testNames = {};
+  final Map<int, String> _testNames = {};
 
   void sendEvent(EventBody body, {String? eventType});
-  void sendOutput(String category, String message);
+  void sendOutput(String category, String message, {int? variablesReference});
 
   void sendTestEvents(Object testNotification) {
     // Send the JSON package as a raw notification so the client can interpret
@@ -138,7 +138,7 @@ mixin VmServiceInfoFileUtils on FileUtils {
   /// Creates a temp folder for the VM to write the service-info-file into and
   /// returns the [File] to use.
   File generateVmServiceInfoFile() {
-    // Using tmpDir.createTempory() is flakey on Windows+Linux (at least
+    // Using tmpDir.createTemporary() is flakey on Windows+Linux (at least
     // on GitHub Actions) complaining the file does not exist when creating a
     // watcher. Creating/watching a folder and writing the file into it seems
     // to be reliable.

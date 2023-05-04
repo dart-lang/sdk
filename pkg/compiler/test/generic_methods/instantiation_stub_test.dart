@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
@@ -53,7 +51,7 @@ main() {
   print(method1(42, f1a));
   print(f1b(42, 87));
 
-  Class c = new Class();
+  Class c = Class();
   print(method2(0, 1, c.f2a));
   print(c.f2b(42, 87, 123));
 
@@ -69,15 +67,15 @@ main() {
         options: [Flags.omitImplicitChecks]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
-    ProgramLookup programLookup = new ProgramLookup(compiler.backendStrategy);
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
+    ProgramLookup programLookup = ProgramLookup(compiler.backendStrategy);
 
     void checkStubs(ClassEntity element, List<String> expectedStubs) {
-      Class cls = programLookup.getClass(element);
+      Class? cls = programLookup.getClass(element);
       List<String> actualStubs = <String>[];
       if (cls != null) {
         for (StubMethod stub in cls.callStubs) {
-          actualStubs.add(stub.name.key);
+          actualStubs.add(stub.name!.key);
         }
       }
       Expect.setEquals(

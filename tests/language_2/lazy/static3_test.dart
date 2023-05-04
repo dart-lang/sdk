@@ -56,7 +56,7 @@ main() {
   Expect.throws(() => fib(x2), (e) => e == "interrupt initialization");
   Expect.equals(null, x2);
 
-  Expect.throws(() => fib(x3), (e) => e is CyclicInitializationError);
+  Expect.throws(() => fib(x3), (e) => e is Error);
   Expect.equals(null, x3);
 
   Expect.equals(499, x4);
@@ -65,5 +65,5 @@ main() {
 
   Expect.equals(499, x6);
 
-  Expect.throws(() => fib(x7), (e) => e is CyclicInitializationError);
+  Expect.throws(() => fib(x7), (e) => e is Error);
 }

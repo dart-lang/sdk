@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:json_rpc_2/error_code.dart' as jsonRpcErrors;
+import 'package:json_rpc_2/error_code.dart' as json_rpc_errors;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
@@ -24,6 +24,7 @@ import '../protocol_converter.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 import '../utils.dart';
+import '../variables.dart';
 import 'mixins.dart';
 
 /// The mime type to send with source responses to the client.
@@ -102,6 +103,10 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
   /// Either this or [vmServiceUri] must be supplied.
   final String? vmServiceInfoFile;
 
+  /// A reader for protocol arguments that throws detailed exceptions if
+  /// arguments aren't of the correct type.
+  static final arg = DebugAdapterArgumentReader('attach');
+
   DartAttachRequestArguments({
     this.vmServiceUri,
     this.vmServiceInfoFile,
@@ -131,8 +136,8 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
         );
 
   DartAttachRequestArguments.fromMap(Map<String, Object?> obj)
-      : vmServiceUri = obj['vmServiceUri'] as String?,
-        vmServiceInfoFile = obj['vmServiceInfoFile'] as String?,
+      : vmServiceUri = arg.read<String?>(obj, 'vmServiceUri'),
+        vmServiceInfoFile = arg.read<String?>(obj, 'vmServiceInfoFile'),
         super.fromMap(obj);
 
   @override
@@ -149,6 +154,10 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
 /// A common base for [DartLaunchRequestArguments] and
 /// [DartAttachRequestArguments] for fields that are common to both.
 class DartCommonLaunchAttachRequestArguments extends RequestArguments {
+  /// A reader for protocol arguments that throws detailed exceptions if
+  /// arguments aren't of the correct type.
+  static final arg = DebugAdapterArgumentReader('launch/attach');
+
   /// Optional data from the previous, restarted session.
   /// The data is sent as the 'restart' attribute of the 'terminated' event.
   /// The client should leave the data intact.
@@ -226,21 +235,22 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   });
 
   DartCommonLaunchAttachRequestArguments.fromMap(Map<String, Object?> obj)
-      : restart = obj['restart'],
-        name = obj['name'] as String?,
-        cwd = obj['cwd'] as String?,
-        env = (obj['env'] as Map<String, Object?>?)?.cast<String, String>(),
+      : restart = arg.read<Object?>(obj, 'restart'),
+        name = arg.read<String?>(obj, 'name'),
+        cwd = arg.read<String?>(obj, 'cwd'),
+        env = arg.readOptionalMap<String, String>(obj, 'env'),
         additionalProjectPaths =
-            (obj['additionalProjectPaths'] as List?)?.cast<String>(),
-        debugSdkLibraries = obj['debugSdkLibraries'] as bool?,
+            arg.readOptionalList<String>(obj, 'additionalProjectPaths'),
+        debugSdkLibraries = arg.read<bool?>(obj, 'debugSdkLibraries'),
         debugExternalPackageLibraries =
-            obj['debugExternalPackageLibraries'] as bool?,
+            arg.read<bool?>(obj, 'debugExternalPackageLibraries'),
         evaluateGettersInDebugViews =
-            obj['evaluateGettersInDebugViews'] as bool?,
+            arg.read<bool?>(obj, 'evaluateGettersInDebugViews'),
         evaluateToStringInDebugViews =
-            obj['evaluateToStringInDebugViews'] as bool?,
-        sendLogsToClient = obj['sendLogsToClient'] as bool?,
-        sendCustomProgressEvents = obj['sendCustomProgressEvents'] as bool?;
+            arg.read<bool?>(obj, 'evaluateToStringInDebugViews'),
+        sendLogsToClient = arg.read<bool?>(obj, 'sendLogsToClient'),
+        sendCustomProgressEvents =
+            arg.read<bool?>(obj, 'sendCustomProgressEvents');
 
   Map<String, Object?> toJson() => {
         if (restart != null) 'restart': restart,
@@ -307,7 +317,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   /// Manages VM Isolates and their events, including fanning out any requests
   /// to set breakpoints etc. from the client to all Isolates.
-  late IsolateManager _isolateManager;
+  @visibleForTesting
+  late IsolateManager isolateManager;
 
   /// A helper that handlers converting to/from DAP and VM Service types.
   late ProtocolConverter _converter;
@@ -359,9 +370,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   final Logger? logger;
 
   /// Whether the current debug session is an attach request (as opposed to a
-  /// launch request). Not available until after launchRequest or attachRequest
-  /// have been called.
-  late final bool isAttach;
+  /// launch request). Only set during [attachRequest] so will always be `false`
+  /// prior to that.
+  bool isAttach = false;
 
   /// A list of evaluateNames for InstanceRef IDs.
   ///
@@ -430,6 +441,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// preserve order.
   Future? _lastOutputEvent;
 
+  /// Capabilities of the DDS instance available in the connected VM Service.
+  ///
+  /// If the VM Service is not yet connected, does not have a DDS instance, or
+  /// the version has not been fetched, all capabilities will be false.
+  _DdsCapabilities _ddsCapabilities = _DdsCapabilities.empty;
+
+  /// The ID of the custom VM Service stream that emits events intended for
+  /// tools/IDEs.
+  static final toolEventStreamId = 'ToolEvent';
+
   /// Removes any breakpoints or pause behaviour and resumes any paused
   /// isolates.
   ///
@@ -439,11 +460,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   Future<void> preventBreakingAndResume() async {
     // Remove anything that may cause us to pause again.
     await Future.wait([
-      _isolateManager.clearAllBreakpoints(),
-      _isolateManager.setExceptionPauseMode('None'),
+      isolateManager.clearAllBreakpoints(),
+      isolateManager.setExceptionPauseMode('None'),
     ]);
     // Once those have completed, it's safe to resume anything paused.
-    await _isolateManager.resumeAll();
+    await isolateManager.resumeAll();
   }
 
   DartDebugAdapter(
@@ -460,7 +481,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     dartSdkRoot = path.dirname(path.dirname(vmPath));
     orgDartlangSdkMappings[dartSdkRoot] = Uri.parse('org-dartlang-sdk:///sdk');
 
-    _isolateManager = IsolateManager(this);
+    isolateManager = IsolateManager(this);
     _converter = ProtocolConverter(this);
   }
 
@@ -507,7 +528,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// to this request.
   Future<void> attachImpl();
 
-  /// [attachRequest] is called by the client when it wants us to to attach to
+  /// [attachRequest] is called by the client when it wants us to attach to
   /// an existing app. This will only be called once (and only one of this or
   /// launchRequest will be called).
   @override
@@ -522,7 +543,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     // When attaching to a process, suppress auto-resuming isolates until the
     // first time the user resumes anything.
-    _isolateManager.autoResumeStartingIsolates = false;
+    isolateManager.autoResumeStartingIsolates = false;
 
     // Common setup.
     await _prepareForLaunchOrAttach(null);
@@ -612,6 +633,18 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final vmService = await _vmServiceConnectUri(uri.toString());
     logger?.call('Connected to debugger at $uri!');
 
+    // Fetch DDS capabilities.
+    final supportedProtocols = await vmService.getSupportedProtocols();
+    final ddsProtocol = supportedProtocols.protocols
+        ?.firstWhereOrNull((protocol) => protocol.protocolName == 'DDS');
+    if (ddsProtocol != null) {
+      _ddsCapabilities = _DdsCapabilities(
+        major: ddsProtocol.major ?? 0,
+        minor: ddsProtocol.minor ?? 0,
+      );
+    }
+    final supportsCustomStreams = _ddsCapabilities.supportsCustomStreams;
+
     // Send debugger URI to the client.
     sendDebuggerUris(uri);
 
@@ -628,10 +661,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       vmService.onLoggingEvent.listen(wrap(handleLoggingEvent)),
       vmService.onExtensionEvent.listen(wrap(handleExtensionEvent)),
       vmService.onServiceEvent.listen(wrap(handleServiceEvent)),
-      if (_subscribeToOutputStreams)
+      if (supportsCustomStreams)
+        vmService.onEvent(toolEventStreamId).listen(wrap(handleToolEvent)),
+      if (_subscribeToOutputStreams) ...[
         vmService.onStdoutEvent.listen(wrap(_handleStdoutEvent)),
-      if (_subscribeToOutputStreams)
         vmService.onStderrEvent.listen(wrap(_handleStderrEvent)),
+      ],
     ]);
     await Future.wait([
       vmService.streamListen(vm.EventStreams.kIsolate),
@@ -639,8 +674,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       vmService.streamListen(vm.EventStreams.kLogging),
       vmService.streamListen(vm.EventStreams.kExtension),
       vmService.streamListen(vm.EventStreams.kService),
-      vmService.streamListen(vm.EventStreams.kStdout),
-      vmService.streamListen(vm.EventStreams.kStderr),
+      if (supportsCustomStreams) vmService.streamListen(toolEventStreamId),
+      if (_subscribeToOutputStreams) ...[
+        vmService.streamListen(vm.EventStreams.kStdout),
+        vmService.streamListen(vm.EventStreams.kStderr),
+      ],
     ]);
 
     final vmInfo = await vmService.getVM();
@@ -708,7 +746,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           ? vm.EventKind.kIsolateRunnable
           : vm.EventKind.kIsolateStart;
       final thread =
-          await _isolateManager.registerIsolate(isolate, pauseEventKind);
+          await isolateManager.registerIsolate(isolate, pauseEventKind);
 
       // If the Isolate already has a Pause event we can give it to the
       // IsolateManager to handle (if it's PausePostStart it will re-configure
@@ -716,16 +754,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // runnable - otherwise we'll handle this when it becomes runnable in an
       // event later).
       if (isolate.pauseEvent?.kind?.startsWith('Pause') ?? false) {
-        await _isolateManager.handleEvent(
+        await isolateManager.handleEvent(
           isolate.pauseEvent!,
         );
       } else if (isolate.runnable == true) {
         // If requested, automatically resume. Otherwise send a Stopped event to
         // inform the client UI the thread is paused.
-        if (_isolateManager.autoResumeStartingIsolates) {
-          await _isolateManager.resumeIsolate(isolate);
+        if (isolateManager.autoResumeStartingIsolates) {
+          await isolateManager.resumeIsolate(isolate);
         } else {
-          _isolateManager.sendStoppedOnEntryEvent(thread.threadId);
+          isolateManager.sendStoppedOnEntryEvent(thread.threadId);
         }
       }
     }));
@@ -739,7 +777,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     ContinueArguments args,
     void Function(ContinueResponseBody) sendResponse,
   ) async {
-    await _isolateManager.resumeThread(args.threadId);
+    await isolateManager.resumeThread(args.threadId);
     sendResponse(ContinueResponseBody(allThreadsContinued: false));
   }
 
@@ -802,7 +840,24 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // through the run daemon) as it needs to perform additional work to
       // rebuild widgets afterwards.
       case 'hotReload':
-        await _isolateManager.reloadSources();
+        await isolateManager.reloadSources();
+        sendResponse(_noResult);
+        break;
+
+      // Called by VS Code extension to have us force a re-evaluation of
+      // variables if settings are modified that globally change the format
+      // of numbers (in the case where format specifiers are not explicitly
+      // provided, such as the Variables pane).
+      case '_invalidateAreas':
+        // We just send the invalidate request back to the client. DAP only
+        // allows these to originate in the DAP server, but we have case where
+        // the client knows that these have become stale (because the user
+        // changed some config) so we have to bounce it through the server.
+        final areas = args?.args['areas'] as List<Object?>?;
+        final stringArears = areas?.whereType<String>().toList();
+        // Trigger the invalidation.
+        sendEvent(InvalidatedEventBody(areas: stringArears));
+        // Respond to the incoming request.
         sendResponse(_noResult);
         break;
 
@@ -865,7 +920,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     ThreadInfo? thread;
     int? frameIndex;
     if (frameId != null) {
-      final data = _isolateManager.getStoredData(frameId);
+      final data = isolateManager.getStoredData(frameId);
       if (data != null) {
         thread = data.thread;
         frameIndex = (data.data as vm.Frame).index;
@@ -879,18 +934,27 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       throw UnimplementedError('Global evaluation not currently supported');
     }
 
+    // Parse the expression for trailing format specifiers.
+    final expressionData = EvaluationExpression.parse(
+      args.expression
+          .trim()
+          // Remove any trailing semicolon as the VM only evaluates expressions
+          // but a user may have highlighted a whole line/statement to send for
+          // evaluation.
+          .replaceFirst(_trailingSemicolonPattern, ''),
+    );
+    final expression = expressionData.expression;
+    final format = expressionData.format ??
+        // If we didn't parse a format specifier, fall back to the format in
+        // the arguments.
+        VariableFormat.fromDapValueFormat(args.format);
+
+    final exceptionReference = thread.exceptionReference;
     // The value in the constant `frameExceptionExpression` is used as a special
     // expression that evaluates to the exception on the current thread. This
     // allows us to construct evaluateNames that evaluate to the fields down the
     // tree to support some of the debugger functionality (for example
     // "Copy Value", which re-evaluates).
-    final expression = args.expression
-        .trim()
-        // Remove any trailing semicolon as the VM only evaluates expressions
-        // but a user may have highlighted a whole line/statement to send for
-        // evaluation.
-        .replaceFirst(_trailingSemicolonPattern, '');
-    final exceptionReference = thread.exceptionReference;
     final isExceptionExpression = expression == threadExceptionExpression ||
         expression.startsWith('$threadExceptionExpression.');
 
@@ -938,10 +1002,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         thread,
         result,
         allowCallingToString: evaluateToStringInDebugViews,
+        format: format,
       );
 
-      final variablesReference =
-          _converter.isSimpleKind(result.kind) ? 0 : thread.storeData(result);
+      final variablesReference = _converter.isSimpleKind(result.kind)
+          ? 0
+          : thread.storeData(VariableData(result, format));
 
       // Store the expression that gets this object as we may need it to
       // compute evaluateNames for child objects later.
@@ -1039,6 +1105,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       supportsConfigurationDoneRequest: true,
       supportsDelayedStackTraceLoading: true,
       supportsEvaluateForHovers: true,
+      supportsValueFormattingOptions: true,
       supportsLogPoints: true,
       supportsRestartRequest: supportsRestartRequest,
       // TODO(dantup): All of these...
@@ -1089,7 +1156,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// to this request.
   Future<void> launchImpl();
 
-  /// [launchRequest] is called by the client when it wants us to to start the app
+  /// [launchRequest] is called by the client when it wants us to start the app
   /// to be run/debug. This will only be called once (and only one of this or
   /// [attachRequest] will be called).
   @override
@@ -1116,9 +1183,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// by the `updateDebugOptions` custom request.
   Future<bool> libraryIsDebuggable(ThreadInfo thread, Uri uri) async {
     if (isSdkLibrary(uri)) {
-      return _isolateManager.debugSdkLibraries;
+      return isolateManager.debugSdkLibraries;
     } else if (await isExternalPackageLibrary(thread, uri)) {
-      return _isolateManager.debugExternalPackageLibraries;
+      return isolateManager.debugExternalPackageLibraries;
     } else {
       return true;
     }
@@ -1132,7 +1199,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     NextArguments args,
     void Function() sendResponse,
   ) async {
-    await _isolateManager.resumeThread(args.threadId, vm.StepOption.kOver);
+    await isolateManager.resumeThread(args.threadId, vm.StepOption.kOver);
     sendResponse();
   }
 
@@ -1161,27 +1228,43 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     ScopesArguments args,
     void Function(ScopesResponseBody) sendResponse,
   ) async {
+    final storedData = isolateManager.getStoredData(args.frameId);
+    final thread = storedData?.thread;
+    final data = storedData?.data;
+    final frameData = data is vm.Frame ? data : null;
     final scopes = <Scope>[];
 
-    // For local variables, we can just reuse the frameId as variablesReference
-    // as variablesRequest handles stored data of type `Frame` directly.
-    scopes.add(Scope(
-      name: 'Locals',
-      presentationHint: 'locals',
-      variablesReference: args.frameId,
-      expensive: false,
-    ));
-
-    // If the top frame has an exception, add an additional section to allow
-    // that to be inspected.
-    final data = _isolateManager.getStoredData(args.frameId);
-    final exceptionReference = data?.thread.exceptionReference;
-    if (exceptionReference != null) {
+    if (frameData != null && thread != null) {
       scopes.add(Scope(
-        name: 'Exceptions',
-        variablesReference: exceptionReference,
+        name: 'Locals',
+        presentationHint: 'locals',
+        variablesReference: isolateManager.storeData(
+          thread,
+          FrameScopeData(frameData, FrameScopeDataKind.locals),
+        ),
         expensive: false,
       ));
+
+      scopes.add(Scope(
+        name: 'Globals',
+        presentationHint: 'globals',
+        variablesReference: isolateManager.storeData(
+          thread,
+          FrameScopeData(frameData, FrameScopeDataKind.globals),
+        ),
+        expensive: false,
+      ));
+
+      // If the top frame has an exception, add an additional section to allow
+      // that to be inspected.
+      final exceptionReference = thread.exceptionReference;
+      if (exceptionReference != null) {
+        scopes.add(Scope(
+          name: 'Exceptions',
+          variablesReference: exceptionReference,
+          expensive: false,
+        ));
+      }
     }
 
     sendResponse(ScopesResponseBody(scopes: scopes));
@@ -1197,19 +1280,27 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// processing stack frames requires async calls, this function will insert
   /// output events into a queue and only send them when previous calls have
   /// been completed.
-  void sendOutput(String category, String message) async {
+  void sendOutput(
+    String category,
+    String message, {
+    int? variablesReference,
+  }) async {
     // Reserve our place in the queue be inserting a future that we can complete
     // after we have sent the output event.
     final completer = Completer<void>();
-    final _previousEvent = _lastOutputEvent ?? Future.value();
+    final previousEvent = _lastOutputEvent ?? Future.value();
     _lastOutputEvent = completer.future;
 
     try {
-      final outputEvents = await _buildOutputEvents(category, message);
+      final outputEvents = await _buildOutputEvents(
+        category,
+        message,
+        variablesReference: variablesReference,
+      );
 
       // Chain our sends onto the end of the previous one, and complete our Future
       // once done so that the next one can go.
-      await _previousEvent;
+      await previousEvent;
       outputEvents.forEach(sendEvent);
     } finally {
       completer.complete();
@@ -1235,7 +1326,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// the file URI in [args.source.path].
   ///
   /// The VM requires breakpoints to be set per-isolate so these will be passed
-  /// to [_isolateManager] that will fan them out to each isolate.
+  /// to [isolateManager] that will fan them out to each isolate.
   ///
   /// When new isolates are registered, it is [isolateManager]'s responsibility
   /// to ensure all breakpoints are given to them (and like at startup, this
@@ -1252,13 +1343,24 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final name = args.source.name;
     final uri = path != null ? Uri.file(normalizePath(path)).toString() : name!;
 
-    await _isolateManager.setBreakpoints(uri, breakpoints);
+    // Use a completer to track when the response is sent, so any events related
+    // to these breakpoints are not sent before the client has the IDs.
+    final completer = Completer<void>();
 
-    // TODO(dantup): Handle breakpoint resolution rather than pretending all
-    // breakpoints are verified immediately.
+    final clientBreakpoints = breakpoints
+        .map((bp) => ClientBreakpoint(bp, completer.future))
+        .toList();
+    await isolateManager.setBreakpoints(uri, clientBreakpoints);
+
     sendResponse(SetBreakpointsResponseBody(
-      breakpoints: breakpoints.map((e) => Breakpoint(verified: true)).toList(),
+      breakpoints: clientBreakpoints
+          // Send breakpoints back as unverified and with our generated IDs so we
+          // can update them with a 'breakpoint' event when we get the
+          // 'BreakpointAdded'/'BreakpointResolved' events from the VM.
+          .map((bp) => Breakpoint(id: bp.id, verified: false))
+          .toList(),
     ));
+    completer.complete();
   }
 
   /// Handles a request from the client to set exception pause modes.
@@ -1267,7 +1369,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// the app is running).
   ///
   /// The VM requires exception modes to be set per-isolate so these will be
-  /// passed to [_isolateManager] that will fan them out to each isolate.
+  /// passed to [isolateManager] that will fan them out to each isolate.
   ///
   /// When new isolates are registered, it is [isolateManager]'s responsibility
   /// to ensure the pause mode is given to them (and like at startup, this
@@ -1284,12 +1386,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
             ? 'Unhandled'
             : 'None';
 
-    await _isolateManager.setExceptionPauseMode(mode);
+    await isolateManager.setExceptionPauseMode(mode);
 
     sendResponse(SetExceptionBreakpointsResponseBody());
   }
 
-  /// Shuts down/detatches from the debugee and cleans up.
+  /// Shuts down/detaches from the debugee and cleans up.
   ///
   /// This is called by [disconnectRequest] and [terminateRequest] but may also
   /// be called if the client just disconnects from the server without calling
@@ -1302,8 +1404,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     _dds = null;
   }
 
-  /// Shuts down the debug adapter, including terminating/detatching from the
+  /// Shuts down the debug adapter, including terminating/detaching from the
   /// debugee if required.
+  @override
   @nonVirtual
   Future<void> shutdown() async {
     await shutdownDebugee();
@@ -1382,7 +1485,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     SourceArguments args,
     void Function(SourceResponseBody) sendResponse,
   ) async {
-    final storedData = _isolateManager.getStoredData(
+    final storedData = isolateManager.getStoredData(
       args.source?.sourceReference ?? args.sourceReference,
     );
     if (storedData == null) {
@@ -1433,7 +1536,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     const stackFrameBatchSize = 20;
 
     final threadId = args.threadId;
-    final thread = _isolateManager.getThread(threadId);
+    final thread = isolateManager.getThread(threadId);
     final topFrame = thread?.pauseEvent?.topFrame;
     final startFrame = args.startFrame ?? 0;
     final numFrames = args.levels ?? 0;
@@ -1485,7 +1588,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
             : frames.length;
 
         // Find the first async marker, because some functionality only works
-        // up until the first async bounday (e.g. rewind) since we're showing
+        // up until the first async boundary (e.g. rewind) since we're showing
         // the user async frames which are out-of-sync with the real frames
         // past that point.
         final firstAsyncMarkerIndex = frames.indexWhere(
@@ -1530,7 +1633,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     StepInArguments args,
     void Function() sendResponse,
   ) async {
-    await _isolateManager.resumeThread(args.threadId, vm.StepOption.kInto);
+    await isolateManager.resumeThread(args.threadId, vm.StepOption.kInto);
     sendResponse();
   }
 
@@ -1541,7 +1644,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     StepOutArguments args,
     void Function() sendResponse,
   ) async {
-    await _isolateManager.resumeThread(args.threadId, vm.StepOption.kOut);
+    await isolateManager.resumeThread(args.threadId, vm.StepOption.kOut);
     sendResponse();
   }
 
@@ -1592,23 +1695,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     void Function(ThreadsResponseBody) sendResponse,
   ) async {
     final threads = [
-      for (final thread in _isolateManager.threads)
+      for (final thread in isolateManager.threads)
         Thread(
           id: thread.threadId,
           name: thread.isolate.name ?? '<unnamed isolate>',
         )
     ];
     sendResponse(ThreadsResponseBody(threads: threads));
-  }
-
-  /// Sets the package config file to use for `package: URI` resolution.
-  ///
-  /// It is no longer necessary to call this method as the package config file
-  /// is no longer used. URI lookups are done via the VM Service.
-  @Deprecated('No longer necessary, URI lookups are done via VM Service')
-  void usePackageConfigFile(File packageConfig) {
-    // TODO(dantup): Remove this method after Flutter DA is updated not to use
-    // it.
   }
 
   /// [variablesRequest] is called by the client to request child variables for
@@ -1631,22 +1724,35 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ) async {
     final childStart = args.start;
     final childCount = args.count;
-    final storedData = _isolateManager.getStoredData(args.variablesReference);
+    final storedData = isolateManager.getStoredData(args.variablesReference);
     if (storedData == null) {
       throw StateError('variablesReference is no longer valid');
     }
     final thread = storedData.thread;
-    final data = storedData.data;
-    final vmData = data is vm.Response ? data : null;
+    var data = storedData.data;
+
+    VariableFormat? format;
+    // Unwrap any variable we stored with formatting info.
+    if (data is VariableData) {
+      format = data.format;
+      data = data.data;
+    }
+
+    // If no explicit formatting, use from args.
+    format ??= VariableFormat.fromDapValueFormat(args.format);
+
     final variables = <Variable>[];
 
-    if (vmData is vm.Frame) {
-      final vars = vmData.vars;
+    if (data is FrameScopeData && data.kind == FrameScopeDataKind.locals) {
+      final vars = data.frame.vars;
       if (vars != null) {
         Future<Variable> convert(int index, vm.BoundVariable variable) {
           // Store the expression that gets this object as we may need it to
           // compute evaluateNames for child objects later.
-          storeEvaluateName(variable.value, variable.name);
+          final value = variable.value;
+          if (value is vm.InstanceRef) {
+            storeEvaluateName(value, variable.name);
+          }
           return _converter.convertVmResponseToVariable(
             thread,
             variable.value,
@@ -1654,6 +1760,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
             allowCallingToString: evaluateToStringInDebugViews &&
                 index <= maxToStringsPerEvaluation,
             evaluateName: variable.name,
+            format: format,
           );
         }
 
@@ -1662,6 +1769,32 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // Sort the variables by name.
         variables.sortBy((v) => v.name);
       }
+    } else if (data is FrameScopeData &&
+        data.kind == FrameScopeDataKind.globals) {
+      /// Helper to simplify calling converter.
+      Future<Variable> convert(int index, vm.FieldRef fieldRef) async {
+        return _converter.convertFieldRefToVariable(
+          thread,
+          fieldRef,
+          allowCallingToString: evaluateToStringInDebugViews &&
+              index <= maxToStringsPerEvaluation,
+          format: format,
+        );
+      }
+
+      final globals = await _getFrameGlobals(thread, data.frame);
+      variables.addAll(await Future.wait(globals.mapIndexed(convert)));
+      variables.sortBy((v) => v.name);
+    } else if (data is InspectData) {
+      // When sending variables as part of an OutputEvent, VS Code will only
+      // show the first field, so we wrap the object to ensure there's always
+      // a single field.
+      final instance = data.instance;
+      variables.add(Variable(
+        name: '', // Unused.
+        value: '<inspected variable>', // Shown to user, expandable.
+        variablesReference: instance != null ? thread.storeData(instance) : 0,
+      ));
     } else if (data is vm.MapAssociation) {
       final key = data.key;
       final value = data.value;
@@ -1675,9 +1808,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
               thread,
               key,
               allowCallingToString: evaluateToStringInDebugViews,
+              format: format,
             ),
-            variablesReference:
-                _converter.isSimpleKind(key.kind) ? 0 : thread.storeData(key),
+            variablesReference: _converter.isSimpleKind(key.kind)
+                ? 0
+                : thread.storeData(VariableData(key, format)),
           ),
           Variable(
               name: 'value',
@@ -1685,18 +1820,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
                 thread,
                 value,
                 allowCallingToString: evaluateToStringInDebugViews,
+                format: format,
               ),
               variablesReference: _converter.isSimpleKind(value.kind)
                   ? 0
-                  : thread.storeData(value),
+                  : thread.storeData(VariableData(value, format)),
               evaluateName:
                   buildEvaluateName('', parentInstanceRefId: value.id)),
         ]);
       }
-    } else if (vmData is vm.ObjRef) {
-      final object = await _isolateManager.getObject(
+    } else if (data is vm.ObjRef) {
+      final object = await isolateManager.getObject(
         storedData.thread.isolate,
-        vmData,
+        data,
         offset: childStart,
         count: childCount,
       );
@@ -1711,10 +1847,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         variables.addAll(await _converter.convertVmInstanceToVariablesList(
           thread,
           object,
-          evaluateName: buildEvaluateName('', parentInstanceRefId: vmData.id),
+          evaluateName: buildEvaluateName('', parentInstanceRefId: data.id),
           allowCallingToString: evaluateToStringInDebugViews,
           startItem: childStart,
           numItems: childCount,
+          format: format,
         ));
       } else {
         variables.add(Variable(
@@ -1726,6 +1863,30 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
 
     sendResponse(VariablesResponseBody(variables: variables));
+  }
+
+  /// Gets global variables for the library of [frame].
+  Future<List<vm.FieldRef>> _getFrameGlobals(
+    ThreadInfo thread,
+    vm.Frame frame,
+  ) async {
+    final scriptRef = frame.location?.script;
+    if (scriptRef == null) {
+      return [];
+    }
+
+    final script = await thread.getScript(scriptRef);
+    final libraryRef = script.library;
+    if (libraryRef == null) {
+      return [];
+    }
+
+    final library = await thread.getObject(libraryRef);
+    if (library is! vm.Library) {
+      return [];
+    }
+
+    return library.variables ?? [];
   }
 
   /// Fixes up a VM Service WebSocket URI to not have a trailing /ws
@@ -1742,7 +1903,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     return uri;
   }
 
-  /// Fixes up an Observatory [uri] to a WebSocket URI with a trailing /ws
+  /// Fixes up a VM Service [uri] to a WebSocket URI with a trailing /ws
   /// for connecting when not using DDS.
   ///
   /// DDS does its own cleaning up of the URI.
@@ -1767,13 +1928,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// for each frame to allow location metadata to be attached.
   Future<List<OutputEventBody>> _buildOutputEvents(
     String category,
-    String message,
-  ) async {
+    String message, {
+    int? variablesReference,
+  }) async {
     try {
       if (category == 'stderr') {
         return await _buildStdErrOutputEvents(message);
       } else {
-        return [OutputEventBody(category: category, output: message)];
+        return [
+          OutputEventBody(
+            category: category,
+            output: message,
+            variablesReference: variablesReference,
+          )
+        ];
       }
     } catch (e, s) {
       // Since callers of [sendOutput] may not await it, don't allow unhandled
@@ -1800,7 +1968,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // isolate printed an error to stderr, we just have to use the first one and
     // hope the packages are available. If one is not available (which should
     // never be the case), we will just skip resolution.
-    final thread = _isolateManager.threads.firstOrNull;
+    final thread = isolateManager.threads.firstOrNull;
 
     // Send a batch request. This will cache the results so we can easily use
     // them in the loop below by calling the method again.
@@ -1871,7 +2039,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     String expression,
     ThreadInfo thread,
   ) async {
-    final exception = _isolateManager.getStoredData(exceptionReference)?.data
+    final exception = isolateManager.getStoredData(exceptionReference)?.data
         as vm.InstanceRef?;
 
     if (exception == null) {
@@ -1903,7 +2071,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // it's doing is own initialization that this may interfere with.
     await debuggerInitialized;
 
-    await _isolateManager.handleEvent(event);
+    await isolateManager.handleEvent(event);
 
     final eventKind = event.kind;
     final isolate = event.isolate;
@@ -1914,7 +2082,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         eventKind == vm.EventKind.kPauseExit &&
         isolate != null) {
       await _waitForPendingOutputEvents();
-      await _isolateManager.resumeIsolate(isolate);
+      await isolateManager.resumeIsolate(isolate);
     }
   }
 
@@ -1936,7 +2104,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     await debuggerInitialized;
 
     // Allow IsolateManager to handle any state-related events.
-    await _isolateManager.handleEvent(event);
+    await isolateManager.handleEvent(event);
 
     switch (event.kind) {
       // Pass any Service Extension events on to the client so they can enable
@@ -1950,9 +2118,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
-  /// Helper to convert to InstanceRef to a complete untruncated String,
-  /// handling [vm.InstanceKind.kNull] which is the type for the unused fields
-  /// of a log event.
+  /// Helper to convert to InstanceRef to a complete untruncated unquoted
+  /// String, handling [vm.InstanceKind.kNull] which is the type for the unused
+  /// fields of a log event.
   Future<String?> getFullString(ThreadInfo thread, vm.InstanceRef? ref) async {
     if (ref == null || ref.kind == vm.InstanceKind.kNull) {
       return null;
@@ -1966,17 +2134,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // setting.
       allowCallingToString: true,
       allowTruncatedValue: false,
-      includeQuotesAroundString: false,
+      format: VariableFormat.noQuotes(),
     )
-        // TODO: Fix this static error.
-        // ignore: body_might_complete_normally_catch_error
-        .catchError((e) {
-      // Fetching strings from the server may throw if they have been
-      // collected since (for example if a Hot Restart occurs while
-      // we're running this). Log the error and just return null so
-      // nothing is shown.
-      logger?.call('$e');
-    });
+        // Fetching strings from the server may throw if they have been
+        // collected since (for example if a Hot Restart occurs while
+        // we're running this) or if the app is terminating. Log the error and
+        // just return null so nothing is shown.
+        .then<String?>(
+      (s) => s,
+      onError: (Object e) {
+        logger?.call('$e');
+        return null;
+      },
+    );
   }
 
   /// Handles a dart:developer log() event, sending output to the client.
@@ -1984,7 +2154,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   @mustCallSuper
   Future<void> handleLoggingEvent(vm.Event event) async {
     final record = event.logRecord;
-    final thread = _isolateManager.threadForIsolate(event.isolate);
+    final thread = isolateManager.threadForIsolate(event.isolate);
     if (record == null || thread == null) {
       return;
     }
@@ -2027,6 +2197,69 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
+  /// Resolves any URI stored in [data] with key [field] to a local file URI via
+  /// the VM Service and adds it to [data] with a 'resolved' prefix.
+  ///
+  /// A resolved URI will not be added if the URI cannot be resolved or is
+  /// already a 'file://' URI.
+  Future<void> resolveToolEventUris(
+    vm.IsolateRef? isolate,
+    Map<String, Object?> data,
+    String field,
+  ) async {
+    final thread = isolateManager.threadForIsolate(isolate);
+    if (thread == null) {
+      return;
+    }
+
+    final uriString = data[field];
+    if (uriString is! String) {
+      return;
+    }
+    final uri = Uri.tryParse(uriString);
+    if (uri == null) {
+      return;
+    }
+
+    if (uri.isScheme('file')) {
+      return;
+    }
+
+    final path = await thread.resolveUriToPath(uri);
+    if (path != null) {
+      // Convert:
+      //   uri -> resolvedUri
+      //   fileUri -> resolvedFileUri
+      final resolvedFieldName =
+          'resolved${field.substring(0, 1).toUpperCase()}${field.substring(1)}';
+      data[resolvedFieldName] = Uri.file(path).toString();
+    }
+  }
+
+  @protected
+  @mustCallSuper
+  Future<void> handleToolEvent(vm.Event event) async {
+    await debuggerInitialized;
+
+    // Some events will contain URIs that need to first be mapped to file URIs
+    // so the IDE can understand them.
+    final data = event.extensionData?.data;
+    if (data is Map<String, Object?>) {
+      const uriFieldNames = ['fileUri', 'uri'];
+      for (final fieldName in uriFieldNames) {
+        await resolveToolEventUris(event.isolate, data, fieldName);
+      }
+    }
+
+    sendEvent(
+      RawEventBody({
+        'kind': event.extensionKind,
+        'data': data,
+      }),
+      eventType: 'dart.toolEvent',
+    );
+  }
+
   void _handleStderrEvent(vm.Event event) {
     _sendOutputStreamEvent('stderr', event);
   }
@@ -2061,9 +2294,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // Notify IsolateManager if we'll be debugging so it knows whether to set
     // up breakpoints etc. when isolates are registered.
     final debug = !(noDebug ?? false);
-    _isolateManager.debug = debug;
-    _isolateManager.debugSdkLibraries = args.debugSdkLibraries ?? true;
-    _isolateManager.debugExternalPackageLibraries =
+    isolateManager.debug = debug;
+    isolateManager.debugSdkLibraries = args.debugSdkLibraries ?? true;
+    isolateManager.debugExternalPackageLibraries =
         args.debugExternalPackageLibraries ?? true;
   }
 
@@ -2106,13 +2339,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// in the map will not be updated by this method.
   Future<void> _updateDebugOptions(Map<String, Object?> args) async {
     if (args.containsKey('debugSdkLibraries')) {
-      _isolateManager.debugSdkLibraries = args['debugSdkLibraries'] as bool;
+      isolateManager.debugSdkLibraries = args['debugSdkLibraries'] as bool;
     }
     if (args.containsKey('debugExternalPackageLibraries')) {
-      _isolateManager.debugExternalPackageLibraries =
+      isolateManager.debugExternalPackageLibraries =
           args['debugExternalPackageLibraries'] as bool;
     }
-    await _isolateManager.applyDebugOptions();
+    await isolateManager.applyDebugOptions();
   }
 
   /// A wrapper around the same name function from package:vm_service that
@@ -2191,7 +2424,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         }
         // SERVER_ERROR can occur when DDS completes any outstanding requests
         // with "The client closed with pending request".
-        if (e.code == jsonRpcErrors.SERVER_ERROR) {
+        if (e.code == json_rpc_errors.SERVER_ERROR) {
           return null;
         }
       }
@@ -2213,8 +2446,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 /// class.
 class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     implements LaunchRequestArguments {
+  /// A reader for protocol arguments that throws detailed exceptions if
+  /// arguments aren't of the correct type.
+  static final arg = DebugAdapterArgumentReader('launch');
+
   /// If noDebug is true the launch request should launch the program without
   /// enabling debugging.
+  @override
   final bool? noDebug;
 
   /// The program/Dart script to be run.
@@ -2304,15 +2542,16 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         );
 
   DartLaunchRequestArguments.fromMap(Map<String, Object?> obj)
-      : noDebug = obj['noDebug'] as bool?,
-        program = obj['program'] as String,
-        args = (obj['args'] as List?)?.cast<String>(),
-        toolArgs = (obj['toolArgs'] as List?)?.cast<String>(),
-        vmAdditionalArgs = (obj['vmAdditionalArgs'] as List?)?.cast<String>(),
-        vmServicePort = obj['vmServicePort'] as int?,
-        console = obj['console'] as String?,
-        customTool = obj['customTool'] as String?,
-        customToolReplacesArgs = obj['customToolReplacesArgs'] as int?,
+      : noDebug = arg.read<bool?>(obj, 'noDebug'),
+        program = arg.read<String>(obj, 'program'),
+        args = arg.readOptionalList<String>(obj, 'args'),
+        toolArgs = arg.readOptionalList<String>(obj, 'toolArgs'),
+        vmAdditionalArgs =
+            arg.readOptionalList<String>(obj, 'vmAdditionalArgs'),
+        vmServicePort = arg.read<int?>(obj, 'vmServicePort'),
+        console = arg.read<String?>(obj, 'console'),
+        customTool = arg.read<String?>(obj, 'customTool'),
+        customToolReplacesArgs = arg.read<int?>(obj, 'customToolReplacesArgs'),
         super.fromMap(obj);
 
   @override
@@ -2332,4 +2571,29 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
 
   static DartLaunchRequestArguments fromJson(Map<String, Object?> obj) =>
       DartLaunchRequestArguments.fromMap(obj);
+}
+
+/// A helper for checking whether the available DDS instance has specific
+/// capabilities.
+class _DdsCapabilities {
+  final int major;
+  final int minor;
+
+  static const empty = _DdsCapabilities(major: 0, minor: 0);
+
+  const _DdsCapabilities({required this.major, required this.minor});
+
+  /// Whether the DDS instance supports custom streams via `dart:developer`'s
+  /// `postEvent`.
+  bool get supportsCustomStreams => _isAtLeast(major: 1, minor: 4);
+
+  bool _isAtLeast({required major, required minor}) {
+    if (this.major > major) {
+      return true;
+    } else if (this.major == major && this.minor >= minor) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

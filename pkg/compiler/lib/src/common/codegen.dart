@@ -15,6 +15,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
+import '../js_backend/backend.dart';
 import '../js_backend/codegen_inputs.dart';
 import '../js_backend/namer.dart'
     show AsyncName, Namer, operatorNameToIdentifier, StringBackedName;
@@ -28,8 +29,8 @@ import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';
-import '../ssa/ssa_interfaces.dart' show SsaFunctionCompiler;
 import '../universe/feature.dart';
+import '../universe/resource_identifier.dart' show ResourceIdentifier;
 import '../universe/selector.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
@@ -396,7 +397,7 @@ class CodegenRegistry {
     _expressions.add(expression);
   }
 
-  CodegenResult close(js.Fun code) {
+  CodegenResult close(js.Fun? code) {
     return CodegenResult(code, _worldImpact, _names.isEmpty ? const [] : _names,
         _expressions.isEmpty ? const [] : _expressions);
   }
@@ -410,7 +411,7 @@ class OnDemandCodegenResults extends CodegenResults {
   final GlobalTypeInferenceResults globalTypeInferenceResults;
   @override
   final CodegenInputs codegenInputs;
-  final SsaFunctionCompiler _functionCompiler;
+  final FunctionCompiler _functionCompiler;
 
   OnDemandCodegenResults(this.globalTypeInferenceResults, this.codegenInputs,
       this._functionCompiler);
@@ -789,6 +790,11 @@ class JsNodeTags {
   static const String deferredHolderExpression = 'js-deferredHolderExpression';
 }
 
+enum JsAnnotationKind {
+  string,
+  resourceIdentifier,
+}
+
 /// Visitor that serializes a [js.Node] into a [DataSinkWriter].
 class JsNodeSerializer implements js.NodeVisitor<void> {
   final DataSinkWriter sink;
@@ -819,11 +825,37 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   }
 
   void _writeInfo(js.Node node) {
-    sink.writeCached<SourceInformation>(
-        node.sourceInformation as SourceInformation?,
-        (SourceInformation sourceInformation) {
-      SourceInformation.writeToDataSink(sink, sourceInformation);
-    });
+    final sourceInformation = node.sourceInformation as SourceInformation?;
+    final annotations = node.annotations;
+    // Low bit encodes presence of `sourceInformation`, higher bits the number
+    // of annotations.
+    final infoCode =
+        (sourceInformation == null ? 0 : 1) + 2 * annotations.length;
+    sink.writeInt(infoCode);
+    final hasSourceInformation = infoCode.isOdd;
+    final annotationCount = infoCode ~/ 2;
+    if (hasSourceInformation) {
+      sink.writeCached<SourceInformation>(sourceInformation,
+          (SourceInformation sourceInformation) {
+        SourceInformation.writeToDataSink(sink, sourceInformation);
+      });
+    }
+    for (int i = 0; i < annotationCount; i++) {
+      _writeAnnotation(annotations[i]);
+    }
+  }
+
+  void _writeAnnotation(Object annotation) {
+    if (annotation is String) {
+      sink.writeEnum(JsAnnotationKind.string);
+      sink.writeString(annotation);
+    } else if (annotation is ResourceIdentifier) {
+      sink.writeEnum(JsAnnotationKind.resourceIdentifier);
+      annotation.writeToDataSink(sink);
+    } else {
+      throw UnsupportedError(
+          'JsNodeAnnotation ${annotation.runtimeType}: $annotation');
+    }
   }
 
   @override
@@ -1891,17 +1923,34 @@ class JsNodeDeserializer {
         source.end(JsNodeTags.deferredHolderExpression);
         break;
     }
-    final sourceInformation = source.readCachedOrNull<SourceInformation>(() {
-      return SourceInformation.readFromDataSource(source);
-    });
-    if (sourceInformation != null) {
+
+    final infoCode = source.readInt();
+    final hasSourceInformation = infoCode.isOdd;
+    final annotationCount = infoCode ~/ 2;
+    if (hasSourceInformation) {
+      final sourceInformation = source.readCachedOrNull<SourceInformation>(() {
+        return SourceInformation.readFromDataSource(source);
+      });
       node = node.withSourceInformation(sourceInformation);
+    }
+    for (int i = 0; i < annotationCount; i++) {
+      node = node.withAnnotation(_readAnnotation());
     }
     return node as T;
   }
 
   List<T> readList<T extends js.Node>() {
     return source.readList(read);
+  }
+
+  Object _readAnnotation() {
+    final kind = source.readEnum(JsAnnotationKind.values);
+    switch (kind) {
+      case JsAnnotationKind.string:
+        return source.readString();
+      case JsAnnotationKind.resourceIdentifier:
+        return ResourceIdentifier.readFromDataSource(source);
+    }
   }
 }
 

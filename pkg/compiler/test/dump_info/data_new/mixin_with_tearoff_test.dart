@@ -1,5 +1,3 @@
-//@dart = 2.9
-
 /*library: 
  constant=[
   {
@@ -72,7 +70,7 @@
   "id": "library/memory:sdk/tests/web/native/main.dart::",
   "kind": "library",
   "name": "memory:sdk/tests/web/native/main.dart",
-  "size": 842,
+  "size": 833,
   "children": [
     "class/memory:sdk/tests/web/native/main.dart::Clazz",
     "class/memory:sdk/tests/web/native/main.dart::Mixin",
@@ -90,7 +88,6 @@
   "imports": []
 }]
 */
-
 import 'package:expect/expect.dart';
 
 /*class: Super:class=[{
@@ -118,14 +115,14 @@ class Super<T> {
   "outputUnit": "outputUnit/main",
   "parent": "library/memory:sdk/tests/web/native/main.dart::",
   "modifiers": {
-    "abstract": false
+    "abstract": true
   },
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::Mixin.method"
   ],
   "supers": []
 }]*/
-class Mixin {
+mixin Mixin {
   /*member: Mixin.method:
    function=[{
   "id": "function/memory:sdk/tests/web/native/main.dart::Mixin.method",
@@ -147,13 +144,13 @@ class Mixin {
     {
       "name": "t",
       "type": "[exact=JSUInt31]",
-      "declaredType": "int*"
+      "declaredType": "int"
     }
   ],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "method$1(t) {\n    }\nvar _ = A.Mixin.prototype;\n\n_.super$Mixin$method = _.method$1;\n",
-  "type": "void Function(int*)*",
+  "type": "void Function(int)",
   "functionKind": 2
 }],
    holding=[
@@ -200,7 +197,7 @@ class Mixin {
   "id": "class/memory:sdk/tests/web/native/main.dart::Clazz",
   "kind": "class",
   "name": "Clazz",
-  "size": 192,
+  "size": 191,
   "outputUnit": "outputUnit/main",
   "parent": "library/memory:sdk/tests/web/native/main.dart::",
   "modifiers": {
@@ -219,7 +216,7 @@ class Mixin {
   "id": "function/memory:sdk/tests/web/native/main.dart::Clazz.method",
   "kind": "function",
   "name": "method",
-  "size": 162,
+  "size": 161,
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::Clazz",
   "children": [],
@@ -235,13 +232,13 @@ class Mixin {
     {
       "name": "t",
       "type": "Union([exact=JSString], [exact=JSUInt31])",
-      "declaredType": "int*"
+      "declaredType": "int"
     }
   ],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
-  "code": "method$1(t) {\n      return this.super$Mixin$method(A._asIntS(t));\n    }\n_instance(A.Clazz.prototype, \"get$method\", 0, 1, null, [\"call$1\"], [\"method$1\"], 0, 0, 1);\n",
-  "type": "void Function(int*)*",
+  "code": "method$1(t) {\n      return this.super$Mixin$method(A._asInt(t));\n    }\n_instance(A.Clazz.prototype, \"get$method\", 0, 1, null, [\"call$1\"], [\"method$1\"], 0, 0, 1);\n",
+  "type": "void Function(int)",
   "functionKind": 2
 }],
  holding=[
@@ -316,13 +313,13 @@ class Clazz = Super<int> with Mixin;
     "factory": false,
     "external": false
   },
-  "returnType": "Subclass*",
+  "returnType": "Subclass",
   "inferredReturnType": "[exact=Subclass]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
   "code": "",
-  "type": "Subclass* Function()*",
+  "type": "Subclass Function()",
   "functionKind": 3
 }]*/
 class Subclass extends Clazz {
@@ -346,7 +343,7 @@ class Subclass extends Clazz {
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 1,
   "code": "",
-  "type": "void Function()*",
+  "type": "void Function()",
   "functionKind": 2
 }]*/
   void test() {
@@ -360,7 +357,7 @@ class Subclass extends Clazz {
   "id": "closure/memory:sdk/tests/web/native/main.dart::main.main_closure",
   "kind": "closure",
   "name": "main_closure",
-  "size": 237,
+  "size": 236,
   "outputUnit": "outputUnit/main",
   "parent": "function/memory:sdk/tests/web/native/main.dart::main",
   "function": "function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"
@@ -370,7 +367,7 @@ class Subclass extends Clazz {
   "id": "function/memory:sdk/tests/web/native/main.dart::main",
   "kind": "function",
   "name": "main",
-  "size": 404,
+  "size": 396,
   "outputUnit": "outputUnit/main",
   "parent": "library/memory:sdk/tests/web/native/main.dart::",
   "children": [
@@ -387,15 +384,15 @@ class Subclass extends Clazz {
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
-  "code": "main() {\n      var s = new A.Subclass();\n      A.Clazz.prototype.get$method.call(s).call$1(0);\n      A.Expect_throws(new A.main_closure(s), type$.legacy_Object);\n    }",
-  "type": "dynamic Function()*",
+  "code": "main() {\n      var s = new A.Subclass();\n      A.Clazz.prototype.get$method.call(s).call$1(0);\n      A.Expect_throws(new A.main_closure(s), type$.Object);\n    }",
+  "type": "dynamic Function()",
   "functionKind": 0
 },
   {
   "id": "function/memory:sdk/tests/web/native/main.dart::main.main_closure.call",
   "kind": "function",
   "name": "call",
-  "size": 71,
+  "size": 70,
   "outputUnit": "outputUnit/main",
   "parent": "closure/memory:sdk/tests/web/native/main.dart::main.main_closure",
   "children": [],
@@ -410,7 +407,7 @@ class Subclass extends Clazz {
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
-  "code": "call$0() {\n      return this.s.super$Mixin$method(A._asIntS(\"\"));\n    }",
+  "code": "call$0() {\n      return this.s.super$Mixin$method(A._asInt(\"\"));\n    }",
   "type": "void Function()",
   "functionKind": 2
 }],
@@ -428,6 +425,6 @@ class Subclass extends Clazz {
   {"id":"function/package:expect/expect.dart::Expect.throws"}]
 */
 main() {
-  Super<Object> s = new Subclass()..test();
+  Super<Object> s = Subclass()..test();
   Expect.throws(() => s.method(''));
 }

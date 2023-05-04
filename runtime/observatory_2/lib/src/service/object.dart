@@ -680,9 +680,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   int architectureBits;
   int nativeZoneMemoryUsage = 0;
   int pid = 0;
-  int mallocUsed = 0;
-  int mallocCapacity = 0;
-  String mallocImplementation = 'unknown';
   int currentMemory;
   int maxRSS;
   int currentRSS;
@@ -1044,9 +1041,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
     }
     pid = map['pid'];
-    mallocUsed = map['_mallocUsed'];
-    mallocCapacity = map['_mallocCapacity'];
-    mallocImplementation = map['_mallocImplementation'];
     embedder = map['_embedder'];
     currentMemory = map['_currentMemory'];
     maxRSS = map['_maxRSS'];
@@ -1894,8 +1888,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('setName', {'name': newName});
   }
 
-  Future setExceptionPauseMode(String mode) {
-    return invokeRpc('setExceptionPauseMode', {'mode': mode});
+  Future setIsolatePauseMode(String mode) {
+    return invokeRpc('setIsolatePauseMode', {'exceptionPauseMode': mode});
   }
 
   Future<ServiceMap> getStack({int limit}) {
@@ -2803,9 +2797,9 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.typeRef;
     case 'ReceivePort':
       return M.InstanceKind.receivePort;
-    case '_Record':
+    case 'Record':
       return M.InstanceKind.record;
-    case '_RecordType':
+    case 'RecordType':
       return M.InstanceKind.recordType;
     case 'Finalizer':
       return M.InstanceKind.finalizer;
@@ -4418,7 +4412,7 @@ class Code extends HeapObject implements M.Code {
   void _processDisassembly(List disassembly) {
     assert(disassembly != null);
     instructions.clear();
-    instructionsByAddressOffset = new List(endAddress - startAddress);
+    instructionsByAddressOffset = List.filled(endAddress - startAddress, null);
 
     assert((disassembly.length % 4) == 0);
     for (var i = 0; i < disassembly.length; i += 4) {
@@ -4517,7 +4511,7 @@ class SocketStats {
 }
 
 /// A peer to a Socket in dart:io. Sockets can represent network sockets or
-/// OS pipes. Each socket is owned by another ServceObject, for example,
+/// OS pipes. Each socket is owned by another ServiceObject, for example,
 /// a process or an HTTP server.
 class Socket extends ServiceObject {
   Socket._empty(ServiceObjectOwner owner) : super._empty(owner);

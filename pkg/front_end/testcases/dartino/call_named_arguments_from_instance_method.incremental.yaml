@@ -3,12 +3,12 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 main.dart.patch: |
-  // Similiar to call_named_arguments_2 but where the change in the way the method
+  // Similar to call_named_arguments_2 but where the change in the way the method
   // with named parameters is called happens in an instance method belonging to
   // the same class.
 
   class C {
-    foo({a: 'v2'}) {
+    foo({a = 'v2'}) {
       print(a);
     }
 

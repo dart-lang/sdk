@@ -13,7 +13,7 @@ main() {
   });
 }
 
-/// Tests of HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION with the
+/// Tests of WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION with the
 /// "strict-inference" static analysis option.
 @reflectiveTest
 class InferenceFailureOnFunctionInvocationTest
@@ -35,16 +35,7 @@ void f(void Function<T>() m) {
   m();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 33, 1),
-    ]);
-  }
-
-  test_functionType_noInference_topLevel() async {
-    await assertErrorsInCode('''
-int m<T>() => 1;
-var x = m();
-''', [
-      error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 25, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 33, 1),
     ]);
   }
 
@@ -120,7 +111,7 @@ void f(C c) {
   c.m();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 55, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 55, 1),
     ]);
   }
 
@@ -160,7 +151,7 @@ void f() {
   C.m();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 52, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 52, 1),
     ]);
   }
 
@@ -171,7 +162,7 @@ void g(Fn fn) {
   fn();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 51, 2),
+      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 51, 2),
     ]);
   }
 
@@ -193,7 +184,7 @@ void f() {
   g();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 30, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 30, 1),
     ]);
   }
 
@@ -204,7 +195,7 @@ void f() {
   m();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 33, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 33, 1),
     ]);
   }
 
@@ -228,7 +219,7 @@ void g() {
   f();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 29, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 29, 1),
     ]);
   }
 
@@ -242,7 +233,7 @@ void g() {
   a.f();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 37, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 37, 1),
     ]);
   }
 

@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library type_mask2_test;
 
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import '../helpers/type_test_helper.dart';
@@ -29,11 +26,11 @@ void main() {
 
 checkMasks(JClosedWorld closedWorld, List<ClassEntity> allClasses,
     List<FlatTypeMask> masks,
-    {FlatTypeMask result,
-    List<FlatTypeMask> disjointMasks,
-    FlatTypeMask flattened,
-    List<ClassEntity> containedClasses}) {
-  AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
+    {FlatTypeMask? result,
+    required List<FlatTypeMask> disjointMasks,
+    FlatTypeMask? flattened,
+    List<ClassEntity>? containedClasses}) {
+  final commonMasks = closedWorld.abstractValueDomain as CommonMasks;
   bool isNullable = masks.any((FlatTypeMask mask) => mask.isNullable);
   bool hasLateSentinel = masks.any((FlatTypeMask mask) => mask.hasLateSentinel);
   List<FlatTypeMask> disjoint = <FlatTypeMask>[];
@@ -91,30 +88,30 @@ Future testUnionTypeMaskFlatten() async {
       class E extends B implements A {}
 
       main() {
-        new A();
-        new B();
-        new C();
-        new D();
-        new E();
+        A();
+        B();
+        C();
+        D();
+        E();
       }
       """, testBackendWorld: true);
 
   JClosedWorld closedWorld = env.jClosedWorld;
 
-  ClassEntity Object_ = env.getElement("Object");
-  ClassEntity A = env.getElement("A");
-  ClassEntity B = env.getElement("B");
-  ClassEntity C = env.getElement("C");
-  ClassEntity D = env.getElement("D");
-  ClassEntity E = env.getElement("E");
+  final Object_ = env.getElement("Object") as ClassEntity;
+  final A = env.getElement("A") as ClassEntity;
+  final B = env.getElement("B") as ClassEntity;
+  final C = env.getElement("C") as ClassEntity;
+  final D = env.getElement("D") as ClassEntity;
+  final E = env.getElement("E") as ClassEntity;
 
   List<ClassEntity> allClasses = <ClassEntity>[Object_, A, B, C, D, E];
 
   check(List<FlatTypeMask> masks,
-      {FlatTypeMask result,
-      List<FlatTypeMask> disjointMasks,
-      FlatTypeMask flattened,
-      List<ClassEntity> containedClasses}) {
+      {FlatTypeMask? result,
+      required List<FlatTypeMask> disjointMasks,
+      FlatTypeMask? flattened,
+      List<ClassEntity>? containedClasses}) {
     return checkMasks(closedWorld, allClasses, masks,
         result: result,
         disjointMasks: disjointMasks,
@@ -122,25 +119,30 @@ Future testUnionTypeMaskFlatten() async {
         containedClasses: containedClasses);
   }
 
-  TypeMask empty = TypeMask.nonNullEmpty();
-  TypeMask sentinel = TypeMask.nonNullEmpty(hasLateSentinel: true);
-  TypeMask subclassObject = TypeMask.nonNullSubclass(Object_, closedWorld);
-  TypeMask subclassObjectOrSentinel =
-      TypeMask.nonNullSubclass(Object_, closedWorld, hasLateSentinel: true);
-  TypeMask exactA = TypeMask.nonNullExact(A, closedWorld);
-  TypeMask exactAOrSentinel =
-      TypeMask.nonNullExact(A, closedWorld, hasLateSentinel: true);
-  TypeMask subclassA = TypeMask.nonNullSubclass(A, closedWorld);
-  TypeMask subtypeA = TypeMask.nonNullSubtype(A, closedWorld);
-  TypeMask subtypeAOrSentinel =
-      TypeMask.nonNullSubtype(A, closedWorld, hasLateSentinel: true);
-  TypeMask exactB = TypeMask.nonNullExact(B, closedWorld);
-  TypeMask exactBOrSentinel =
-      TypeMask.nonNullExact(B, closedWorld, hasLateSentinel: true);
-  TypeMask subclassB = TypeMask.nonNullSubclass(B, closedWorld);
-  TypeMask exactC = TypeMask.nonNullExact(C, closedWorld);
-  TypeMask exactD = TypeMask.nonNullExact(D, closedWorld);
-  TypeMask exactE = TypeMask.nonNullExact(E, closedWorld);
+  final empty = TypeMask.nonNullEmpty() as FlatTypeMask;
+  final sentinel = TypeMask.nonNullEmpty(hasLateSentinel: true) as FlatTypeMask;
+  final subclassObject =
+      TypeMask.nonNullSubclass(Object_, closedWorld) as FlatTypeMask;
+  final subclassObjectOrSentinel =
+      TypeMask.nonNullSubclass(Object_, closedWorld, hasLateSentinel: true)
+          as FlatTypeMask;
+  final exactA = TypeMask.nonNullExact(A, closedWorld) as FlatTypeMask;
+  final exactAOrSentinel =
+      TypeMask.nonNullExact(A, closedWorld, hasLateSentinel: true)
+          as FlatTypeMask;
+  final subclassA = TypeMask.nonNullSubclass(A, closedWorld) as FlatTypeMask;
+  final subtypeA = TypeMask.nonNullSubtype(A, closedWorld) as FlatTypeMask;
+  final subtypeAOrSentinel =
+      TypeMask.nonNullSubtype(A, closedWorld, hasLateSentinel: true)
+          as FlatTypeMask;
+  final exactB = TypeMask.nonNullExact(B, closedWorld) as FlatTypeMask;
+  final exactBOrSentinel =
+      TypeMask.nonNullExact(B, closedWorld, hasLateSentinel: true)
+          as FlatTypeMask;
+  final subclassB = TypeMask.nonNullSubclass(B, closedWorld) as FlatTypeMask;
+  final exactC = TypeMask.nonNullExact(C, closedWorld) as FlatTypeMask;
+  final exactD = TypeMask.nonNullExact(D, closedWorld) as FlatTypeMask;
+  final exactE = TypeMask.nonNullExact(E, closedWorld) as FlatTypeMask;
 
   check([],
       result: empty,
@@ -280,8 +282,8 @@ Future testStringSubtypes() async {
       """, testBackendWorld: true);
   JClosedWorld closedWorld = env.jClosedWorld;
 
-  ClassEntity Object_ = env.getElement("Object");
-  ClassEntity String_ = env.getElement("String");
+  final Object_ = env.getElement("Object") as ClassEntity;
+  final String_ = env.getElement("String") as ClassEntity;
   ClassEntity JSString = closedWorld.commonElements.jsStringClass;
 
   // TODO(37602): Track down why `Object` is directly instantiated:

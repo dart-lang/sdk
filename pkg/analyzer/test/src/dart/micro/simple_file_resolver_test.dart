@@ -116,6 +116,8 @@ elementFactory
     package:dart.test/a.dart
     package:dart.test/b.dart
     package:dart.test/c.dart
+unlinkedUnitStore
+  1: [k00, k01, k02, k06, k07, k08, k09, k10]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
 ''');
@@ -193,6 +195,8 @@ elementFactory
     package:dart.test/a.dart
     package:dart.test/b.dart
     package:dart.test/c.dart
+unlinkedUnitStore
+  1: [k00, k01, k02, k06, k07, k08, k09, k10]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
 ''');
@@ -270,6 +274,8 @@ elementFactory
     package:dart.test/a.dart
     package:dart.test/b.dart
     package:dart.test/c.dart
+unlinkedUnitStore
+  1: [k00, k01, k02, k06, k07, k08, k09, k10]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
 ''');
@@ -315,6 +321,8 @@ libraryCycles
 elementFactory
   hasElement
     package:dart.test/b.dart
+unlinkedUnitStore
+  1: [k01, k06, k07, k08, k09, k10]
 byteStore
   1: [k01, k04, k06, k07, k08, k09, k10, k11]
 ''');
@@ -392,6 +400,8 @@ elementFactory
     package:dart.test/a.dart
     package:dart.test/b.dart
     package:dart.test/c.dart
+unlinkedUnitStore
+  1: [k00, k01, k02, k06, k07, k08, k09, k10]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
 ''');
@@ -553,6 +563,8 @@ libraryCycles
 elementFactory
   hasElement
     package:dart.test/a.dart
+unlinkedUnitStore
+  1: [k00, k01, k03, k04, k05, k06, k07]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08]
 ''');
@@ -574,6 +586,8 @@ libraryCycles
     get: []
     put: [k02]
 elementFactory
+unlinkedUnitStore
+  1: [k03, k04, k05, k06, k07]
 byteStore
   1: [k03, k04, k05, k06, k07, k08]
 ''');
@@ -617,6 +631,8 @@ libraryCycles
 elementFactory
   hasElement
     package:dart.test/a.dart
+unlinkedUnitStore
+  1: [k00, k01, k03, k04, k05, k06, k07]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08]
 ''');
@@ -700,6 +716,8 @@ elementFactory
   hasElement
     package:dart.test/a.dart
     package:dart.test/c.dart
+unlinkedUnitStore
+  1: [k00, k01, k02, k05, k06, k07, k08, k09]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10]
 ''');
@@ -728,6 +746,8 @@ libraryCycles
     get: []
     put: [k04]
 elementFactory
+unlinkedUnitStore
+  1: [k05, k06, k07, k08, k09]
 byteStore
   1: [k05, k06, k07, k08, k09, k10]
 ''');
@@ -794,6 +814,8 @@ elementFactory
   hasElement
     package:dart.test/a.dart
     package:dart.test/c.dart
+unlinkedUnitStore
+  1: [k00, k01, k02, k05, k06, k07, k08, k09]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10]
 ''');
@@ -942,6 +964,8 @@ libraryCycles
 elementFactory
   hasElement
     package:dart.test/a.dart
+unlinkedUnitStore
+  1: [k00, k02, k03, k04, k05, k06]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07]
 ''');
@@ -961,6 +985,8 @@ libraryCycles
     get: []
     put: [k01]
 elementFactory
+unlinkedUnitStore
+  1: [k00, k02, k03, k04, k05, k06]
 byteStore
 ''');
   }
@@ -1458,14 +1484,6 @@ part of 'b.dart';
     }, throwsArgumentError);
   }
 
-  test_hint() async {
-    await assertErrorsInCode(r'''
-import 'dart:math';
-''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
-    ]);
-  }
-
   test_hint_in_third_party() async {
     var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
     newFile(aPath, r'''
@@ -1511,6 +1529,8 @@ libraryCycles
 elementFactory
   hasReader
     package:dart.test/a.dart
+unlinkedUnitStore
+  1: [k00, k02, k03, k04, k05, k06]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07]
 ''');
@@ -1545,6 +1565,8 @@ elementFactory
     package:dart.test/a.dart
   hasReader
     package:dart.test/a.dart
+unlinkedUnitStore
+  1: [k00, k02, k03, k04, k05, k06]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07]
 ''');
@@ -1602,6 +1624,8 @@ elementFactory
   hasReader
     package:dart.test/a.dart
     package:dart.test/b.dart
+unlinkedUnitStore
+  1: [k00, k02, k03, k04, k05, k06, k08]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
 ''');
@@ -1668,6 +1692,8 @@ elementFactory
   hasReader
     package:dart.test/a.dart
     package:dart.test/b.dart
+unlinkedUnitStore
+  1: [k00, k02, k03, k04, k05, k06, k08]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
 ''');
@@ -1711,6 +1737,8 @@ libraryCycles
 elementFactory
   hasReader
     package:dart.test/test.dart
+unlinkedUnitStore
+  1: [k00, k02, k03, k04, k05, k06]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07]
 ''');
@@ -1751,6 +1779,8 @@ elementFactory
     package:dart.test/test.dart
   hasReader
     package:dart.test/test.dart
+unlinkedUnitStore
+  1: [k00, k02, k03, k04, k05, k06]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07]
 ''');
@@ -1936,6 +1966,8 @@ elementFactory
     package:dart.aaa/a.dart
     package:dart.aaa/b.dart
     package:dart.aaa/c.dart
+unlinkedUnitStore
+  1: [k00, k01, k02, k06, k07, k08, k09, k10]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
 ''');
@@ -1998,6 +2030,8 @@ elementFactory
   hasElement
     package:dart.aaa/a.dart
     package:dart.aaa/c.dart
+unlinkedUnitStore
+  1: [k00, k02, k06, k07, k08, k09, k10]
 byteStore
   1: [k00, k02, k03, k05, k06, k07, k08, k09, k10, k11]
 ''');
@@ -2167,6 +2201,8 @@ elementFactory
     package:dart.aaa/d.dart
     package:dart.aaa/e.dart
     package:dart.aaa/f.dart
+unlinkedUnitStore
+  1: [k00, k01, k02, k03, k04, k05, k12, k13, k14, k15, k16]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11, k12, k13, k14, k15, k16, k17]
 ''');
@@ -2278,6 +2314,8 @@ elementFactory
     package:dart.aaa/c.dart
     package:dart.aaa/d.dart
     package:dart.aaa/f.dart
+unlinkedUnitStore
+  1: [k00, k02, k03, k05, k12, k13, k14, k15, k16]
 byteStore
   1: [k00, k02, k03, k05, k06, k08, k09, k11, k12, k13, k14, k15, k16, k17]
 ''');
@@ -2319,6 +2357,8 @@ libraryCycles
 elementFactory
   hasElement
     package:dart.aaa/a.dart
+unlinkedUnitStore
+  1: [k00, k02, k03, k04, k05, k06]
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07]
 ''');
@@ -2554,6 +2594,14 @@ void f(MyEnum myEnum) {
 import 'foo:bar';
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
+    ]);
+  }
+
+  test_warning() async {
+    await assertErrorsInCode(r'''
+import 'dart:math';
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
   }
 

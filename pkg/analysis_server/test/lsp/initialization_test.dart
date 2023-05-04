@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
@@ -132,6 +133,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_completionRegistrations_withDartPlugin() async {
+    if (!AnalysisServer.supportsPlugins) return;
     // This tests for a bug that occurred with an analysis server plugin
     // that works on Dart files. When computing completion registrations we
     // usually have separate registrations for Dart + non-Dart to account for
@@ -177,6 +179,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_dynamicRegistration_areNotInterleaved() async {
+    if (!AnalysisServer.supportsPlugins) return;
     // Some of the issues in https://github.com/dart-lang/sdk/issues/47851
     // (duplicate hovers/code actions/etc.) were caused by duplicate
     // registrations. This happened when we tried to rebuild registrations
@@ -530,6 +533,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_dynamicRegistration_unregistersOutdatedAfterChange() async {
+    if (!AnalysisServer.supportsPlugins) return;
     // Initialize by supporting dynamic registrations everywhere
     final registrations = <Registration>[];
     await monitorDynamicRegistrations(
@@ -565,6 +569,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_dynamicRegistration_updatesWithPlugins() async {
+    if (!AnalysisServer.supportsPlugins) return;
     await initialize(
       textDocumentCapabilities:
           extendTextDocumentCapabilities(emptyTextDocumentClientCapabilities, {

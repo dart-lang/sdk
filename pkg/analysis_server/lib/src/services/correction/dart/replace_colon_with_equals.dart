@@ -34,8 +34,13 @@ class ReplaceColonWithEquals extends CorrectionProducer {
       return;
     }
 
+    var replacement = '=';
+    if (separator.offset == separator.previous!.end) {
+      replacement = ' $replacement';
+    }
+
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.token(separator), ' =');
+      builder.addSimpleReplacement(range.token(separator), replacement);
     });
   }
 }

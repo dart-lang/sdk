@@ -32,7 +32,7 @@ part of dart.collection;
 /// queue.removeLast();
 /// print(queue); // {1, 2, 3}
 /// ```
-abstract class Queue<E> implements EfficientLengthIterable<E> {
+abstract interface class Queue<E> implements EfficientLengthIterable<E> {
   /// Creates a queue.
   factory Queue() = ListQueue<E>;
 
@@ -262,7 +262,7 @@ class _DoubleLinkedQueueSentinel<E> extends _DoubleLinkedQueueEntry<E> {
 /// A [Queue] implementation based on a double-linked list.
 ///
 /// Allows constant time add, remove-at-ends and peek operations.
-class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
+final class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   final _DoubleLinkedQueueSentinel<E> _sentinel =
       _DoubleLinkedQueueSentinel<E>();
 
@@ -483,7 +483,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
     return _DoubleLinkedQueueIterator<E>(this);
   }
 
-  String toString() => IterableBase.iterableToFullString(this, '{', '}');
+  String toString() => Iterable.iterableToFullString(this, '{', '}');
 }
 
 class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
@@ -583,7 +583,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// print(queue.isEmpty); // true
 /// print(queue); // {}
 /// ```
-class ListQueue<E> extends ListIterable<E> implements Queue<E> {
+final class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   static const int _INITIAL_CAPACITY = 8;
   List<E?> _table;
   int _head;
@@ -803,7 +803,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
     }
   }
 
-  String toString() => IterableBase.iterableToFullString(this, "{", "}");
+  String toString() => Iterable.iterableToFullString(this, "{", "}");
 
   // Queue interface.
 

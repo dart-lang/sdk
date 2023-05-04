@@ -10,11 +10,11 @@ library test;
 
 void test(int x, void f()) {
   switch (x) {
-    case 0:
+    case /*@target=num.==*/ 0:
       f();
       continue L;
     L:
-    case 1:
+    case /*@target=num.==*/ 1:
       f();
       break;
   }

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -193,6 +194,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    usedElements.addMember(node.element);
+    usedElements.addReadMember(node.element);
+    super.visitPatternField(node);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     var element = node.staticElement;
     usedElements.addMember(element);
@@ -204,6 +212,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     var element = node.staticElement;
     usedElements.addMember(element);
     super.visitPrefixExpression(node);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    usedElements.addMember(node.element);
+    usedElements.addReadMember(node.element);
+    super.visitRelationalPattern(node);
   }
 
   @override
@@ -434,8 +449,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 }
 
 /// Instances of the class [UnusedLocalElementsVerifier] traverse an AST
-/// looking for cases of [HintCode.UNUSED_ELEMENT], [HintCode.UNUSED_FIELD],
-/// [HintCode.UNUSED_LOCAL_VARIABLE], etc.
+/// looking for cases of [WarningCode.UNUSED_ELEMENT],
+/// [WarningCode.UNUSED_FIELD],
+/// [WarningCode.UNUSED_LOCAL_VARIABLE], etc.
 class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   /// The error listener to which errors will be reported.
   final AnalysisErrorListener _errorListener;
@@ -482,6 +498,18 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _visitLocalVariableElement(node.declaredElement!);
     super.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(
+    covariant DeclaredVariablePatternImpl node,
+  ) {
+    final declaredElement = node.declaredElement!;
+    if (!declaredElement.isDuplicate) {
+      _visitLocalVariableElement(declaredElement);
+    }
+
+    super.visitDeclaredVariablePattern(node);
   }
 
   @override
@@ -875,7 +903,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void _visitFieldElement(FieldElement element) {
     if (!_isReadMember(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_FIELD, element, [element.displayName]);
+          WarningCode.UNUSED_FIELD, element, [element.displayName]);
     }
   }
 
@@ -888,13 +916,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitLocalVariableElement(LocalVariableElement element) {
     if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
-      HintCode errorCode;
+      ErrorCode errorCode;
       if (_usedElements.isCatchException(element)) {
-        errorCode = HintCode.UNUSED_CATCH_CLAUSE;
+        errorCode = WarningCode.UNUSED_CATCH_CLAUSE;
       } else if (_usedElements.isCatchStackTrace(element)) {
-        errorCode = HintCode.UNUSED_CATCH_STACK;
+        errorCode = WarningCode.UNUSED_CATCH_STACK;
       } else {
-        errorCode = HintCode.UNUSED_LOCAL_VARIABLE;
+        errorCode = WarningCode.UNUSED_LOCAL_VARIABLE;
       }
       _reportErrorForElement(errorCode, element, [element.displayName]);
     }
@@ -987,7 +1015,9 @@ class UsedLocalElements {
   }
 
   void addElement(Element? element) {
-    if (element != null) {
+    if (element is JoinPatternVariableElementImpl) {
+      elements.addAll(element.transitiveVariables);
+    } else if (element != null) {
       elements.add(element);
     }
   }
@@ -1004,6 +1034,11 @@ class UsedLocalElements {
   }
 
   void addReadMember(Element? element) {
+    // Store un-parameterized members.
+    if (element is ExecutableMember) {
+      element = element.declaration;
+    }
+
     if (element != null) {
       readMembers.add(element);
     }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library source_map_name_test;
 
 import 'package:async_helper/async_helper.dart';
@@ -68,8 +66,8 @@ main() {
   Class.staticAnonymous();
   Class.staticLocal();
 
-  var c = new Class();
-  c = new Class.named();
+  var c = Class();
+  c = Class.named();
   c.instanceField = c.instanceMethod();
   c.instanceAnonymous();
   c.instanceLocal();
@@ -83,37 +81,37 @@ main() {
         memorySourceFiles: {'main.dart': SOURCE},
         options: [Flags.disableInlining]);
     Compiler compiler = result.compiler;
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JElementEnvironment env = closedWorld.elementEnvironment;
-    LibraryEntity mainApp = env.mainLibrary;
+    LibraryEntity mainApp = env.mainLibrary!;
 
     check(MemberEntity element, String expectedName) {
-      String name = computeKernelElementNameForSourceMaps(
+      String? name = computeKernelElementNameForSourceMaps(
           closedWorld.elementMap, element);
       Expect.equals(expectedName, name,
           "Unexpected name '$name' for $element, expected '$expectedName'.");
     }
 
     MemberEntity lookup(String name) {
-      MemberEntity element;
+      MemberEntity? element;
       int dotPosition = name.indexOf('.');
       if (dotPosition != -1) {
         String clsName = name.substring(0, dotPosition);
-        ClassEntity cls = env.lookupClass(mainApp, clsName);
+        ClassEntity? cls = env.lookupClass(mainApp, clsName);
         Expect.isNotNull(cls, "Class '$clsName' not found.");
         var subname = name.substring(dotPosition + 1);
         element = env.lookupLocalClassMember(
-                cls, Name(subname, cls.library.canonicalUri)) ??
+                cls!, Name(subname, cls.library.canonicalUri)) ??
             env.lookupConstructor(cls, subname);
       } else {
         element = env.lookupLibraryMember(mainApp, name);
       }
       Expect.isNotNull(element, "Element '$name' not found.");
-      return element;
+      return element!;
     }
 
     void checkName(String expectedName,
-        [List<String> expectedClosureNames, String lookupName]) {
+        [List<String>? expectedClosureNames, String? lookupName]) {
       if (lookupName == null) {
         lookupName = expectedName;
       }

@@ -99,7 +99,7 @@ String makeData(dynamic root) {
     if (index == 0) {
       flattened.add(null);
     } else {
-      flattened.add(indices[object.parent] as int);
+      flattened.add(indices[object.parent]);
     }
   }
 

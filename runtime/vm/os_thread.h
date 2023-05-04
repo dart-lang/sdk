@@ -106,13 +106,6 @@ class OSThread : public BaseThread {
 
   void SetName(const char* name);
 
-  void set_name(const char* name) {
-    ASSERT(OSThread::Current() == this);
-    ASSERT(name_ == NULL);
-    ASSERT(name != NULL);
-    name_ = Utils::StrDup(name);
-  }
-
   Mutex* timeline_block_lock() const { return &timeline_block_lock_; }
 
   // Only safe to access when holding |timeline_block_lock_|.
@@ -180,6 +173,11 @@ class OSThread : public BaseThread {
   static void SetCurrent(OSThread* current) { SetCurrentTLS(current); }
 
   static ThreadState* CurrentVMThread() { return current_vm_thread_; }
+#if defined(DEBUG)
+  static void SetCurrentVMThread(ThreadState* thread) {
+    current_vm_thread_ = thread;
+  }
+#endif
 
   // TODO(5411455): Use flag to override default value and Validate the
   // stack size by querying OS.
@@ -199,7 +197,7 @@ class OSThread : public BaseThread {
   typedef void (*ThreadDestructor)(void* parameter);
 
   // Start a thread running the specified function. Returns 0 if the
-  // thread started successfuly and a system specific error code if
+  // thread started successfully and a system specific error code if
   // the thread failed to start.
   static int Start(const char* name,
                    ThreadStartFunction function,
@@ -219,7 +217,7 @@ class OSThread : public BaseThread {
   static bool Compare(ThreadId a, ThreadId b);
 
   // This function can be called only once per OSThread, and should only be
-  // called when the retunred id will eventually be passed to OSThread::Join().
+  // called when the returned id will eventually be passed to OSThread::Join().
   static ThreadJoinId GetCurrentThreadJoinId(OSThread* thread);
 
   // Called at VM startup and shutdown.
@@ -254,6 +252,11 @@ class OSThread : public BaseThread {
 #ifdef SUPPORT_TIMELINE
   static ThreadId GetCurrentThreadTraceId();
 #endif  // SUPPORT_TIMELINE
+
+  // Retrieves the name given to the current thread at the OS level and returns
+  // it as a heap-allocated string that must eventually be freed by the caller
+  // using free. Returns |nullptr| when the name cannot be retrieved.
+  static char* GetCurrentThreadName();
   static OSThread* GetOSThreadFromThread(ThreadState* thread);
   static void AddThreadToListLocked(OSThread* thread);
   static void RemoveThreadFromList(OSThread* thread);
@@ -303,7 +306,9 @@ class OSThread : public BaseThread {
   static OSThread* thread_list_head_;
   static bool creation_enabled_;
 
-  static thread_local ThreadState* current_vm_thread_;
+  // Inline initialization is important for avoiding unnecessary TLS
+  // initialization checks at each use.
+  static inline thread_local ThreadState* current_vm_thread_ = nullptr;
 
   friend class IsolateGroup;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
@@ -383,6 +388,35 @@ inline bool Mutex::IsOwnedByCurrentThread() const {
   return false;
 #endif
 }
+
+// Mark when we are running in a signal handler (Linux, Android) or with a
+// suspended thread (Windows, Mac, Fuchia). During this time, we cannot take
+// locks, access Thread/Isolate::Current(), or use malloc.
+class ThreadInterruptScope : public ValueObject {
+#if defined(DEBUG)
+ public:
+  ThreadInterruptScope() {
+    ASSERT(!in_thread_interrupt_scope_);  // We don't use nested signals.
+    in_thread_interrupt_scope_ = true;
+
+    // Poison attempts to use Thread::Current. This is much cheaper than adding
+    // an assert in Thread::Current itself.
+    saved_current_vm_thread_ = OSThread::CurrentVMThread();
+    OSThread::SetCurrentVMThread(reinterpret_cast<ThreadState*>(0xabababab));
+  }
+
+  ~ThreadInterruptScope() {
+    OSThread::SetCurrentVMThread(saved_current_vm_thread_);
+    in_thread_interrupt_scope_ = false;
+  }
+
+  static bool in_thread_interrupt_scope() { return in_thread_interrupt_scope_; }
+
+ private:
+  ThreadState* saved_current_vm_thread_;
+  static inline thread_local bool in_thread_interrupt_scope_ = false;
+#endif  // DEBUG
+};
 
 }  // namespace dart
 

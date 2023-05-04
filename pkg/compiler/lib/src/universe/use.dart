@@ -26,7 +26,7 @@ import '../js_model/closure.dart' show JContextField;
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
-import 'strong_mode_constraint.dart' show StrongModeConstraintInterface;
+import 'world_builder.dart';
 
 enum DynamicUseKind {
   INVOKE,
@@ -94,7 +94,7 @@ class DynamicUse {
     StringBuffer sb = StringBuffer();
     if (receiverConstraint != null) {
       var constraint = receiverConstraint;
-      if (constraint is StrongModeConstraintInterface) {
+      if (constraint is StrongModeConstraint) {
         if (constraint.isThis) {
           sb.write('this:');
         } else if (constraint.isExact) {
@@ -170,6 +170,7 @@ enum StaticUseKind {
   STATIC_SET,
   FIELD_INIT,
   FIELD_CONSTANT_INIT,
+  WEAK_STATIC_TEAR_OFF,
 }
 
 /// Statically known use of an [Entity].
@@ -318,10 +319,6 @@ class StaticUse {
             "or static method."));
     assert(element.isFunction,
         failedAt(element, "Static get element $element must be a function."));
-    assert(
-        (callStructure as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(element,
-            "Not CallStructure for static invocation of element $element."));
     StaticUse staticUse = StaticUse.internal(
         element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure,
@@ -343,6 +340,19 @@ class StaticUse {
     assert(element.isFunction,
         failedAt(element, "Static get element $element must be a function."));
     return StaticUse.internal(element, StaticUseKind.STATIC_TEAR_OFF,
+        deferredImport: deferredImport);
+  }
+
+  /// Weak reference to a tear-off of a static or top-level function [element].
+  factory StaticUse.weakStaticTearOff(FunctionEntity element,
+      [ImportEntity? deferredImport]) {
+    assert(
+        element.isStatic || element.isTopLevel,
+        failedAt(
+            element,
+            "Weak tear-off element $element must be a top-level "
+            "or static method."));
+    return StaticUse.internal(element, StaticUseKind.WEAK_STATIC_TEAR_OFF,
         deferredImport: deferredImport);
   }
 
@@ -400,10 +410,6 @@ class StaticUse {
         element.isInstanceMember,
         failedAt(element,
             "Super invoke element $element must be an instance method."));
-    assert(
-        (callStructure as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(element,
-            "Not CallStructure for super invocation of element $element."));
     StaticUse staticUse = StaticUse.internal(
         element, StaticUseKind.SUPER_INVOKE,
         callStructure: callStructure, typeArguments: typeArguments);
@@ -463,12 +469,6 @@ class StaticUse {
             element,
             "Constructor invoke element $element must be a "
             "generative constructor."));
-    assert(
-        (callStructure as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(
-            element,
-            "Not CallStructure for super constructor invocation of element "
-            "$element."));
     return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
@@ -477,12 +477,6 @@ class StaticUse {
   /// constructor call with the given [callStructure].
   factory StaticUse.constructorBodyInvoke(
       ConstructorBodyEntity element, CallStructure callStructure) {
-    assert(
-        (callStructure as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(
-            element,
-            "Not CallStructure for constructor body invocation of element "
-            "$element."));
     return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
@@ -535,12 +529,6 @@ class StaticUse {
   /// Constructor invocation of [element] with the given [callStructure].
   factory StaticUse.constructorInvoke(
       ConstructorEntity element, CallStructure callStructure) {
-    assert(
-        (callStructure as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(
-            element,
-            "Not CallStructure for constructor invocation of element "
-            "$element."));
     return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
@@ -552,9 +540,6 @@ class StaticUse {
       CallStructure callStructure,
       InterfaceType type,
       ImportEntity? deferredImport) {
-    assert(
-        (type as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(element, "No type provided for constructor invocation."));
     return StaticUse.internal(element, StaticUseKind.CONSTRUCTOR_INVOKE,
         type: type,
         callStructure: callStructure,
@@ -568,9 +553,6 @@ class StaticUse {
       CallStructure callStructure,
       InterfaceType type,
       ImportEntity? deferredImport) {
-    assert(
-        (type as dynamic) != null, // TODO(48820): remove when sound
-        failedAt(element, "No type provided for constructor invocation."));
     return StaticUse.internal(element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE,
         type: type,
         callStructure: callStructure,
@@ -645,7 +627,7 @@ class StaticUse {
 
   /// Inlining of [element].
   factory StaticUse.constructorInlining(
-      ConstructorEntity element, InterfaceType instanceType) {
+      ConstructorEntity element, InterfaceType? instanceType) {
     return StaticUse.internal(element, StaticUseKind.INLINING,
         type: instanceType);
   }
@@ -683,6 +665,7 @@ enum TypeUseKind {
   INSTANTIATION,
   NATIVE_INSTANTIATION,
   CONST_INSTANTIATION,
+  RECORD_INSTANTIATION,
   CONSTRUCTOR_REFERENCE,
   IMPLICIT_CAST,
   PARAMETER_CHECK,
@@ -746,6 +729,9 @@ class TypeUse {
       case TypeUseKind.CONST_INSTANTIATION:
         sb.write('const:');
         break;
+      case TypeUseKind.RECORD_INSTANTIATION:
+        sb.write('record:');
+        break;
       case TypeUseKind.CONSTRUCTOR_REFERENCE:
         sb.write('constructor:');
         break;
@@ -801,7 +787,7 @@ class TypeUse {
 
   /// [type] used in an implicit cast in Dart 2, like `T` in
   ///
-  ///    dynamic foo = new Object();
+  ///    dynamic foo = Object();
   ///    T bar = foo; // Implicitly `T bar = foo as T`.
   ///
   factory TypeUse.implicitCast(DartType type) {
@@ -833,6 +819,11 @@ class TypeUse {
   /// [type] used in a native instantiation.
   factory TypeUse.nativeInstantiation(InterfaceType type) {
     return TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
+  }
+
+  /// [type] used in a record instantiation, like `(1, 2)` or `const (1, 2)`.
+  factory TypeUse.recordInstantiation(RecordType type) {
+    return TypeUse.internal(type, TypeUseKind.RECORD_INSTANTIATION);
   }
 
   /// [type] used as a direct RTI value.
@@ -876,7 +867,7 @@ class TypeUse {
 class ConstantUse {
   static const String tag = 'constant-use';
 
-  final ConstantValue /*!*/ value;
+  final ConstantValue value;
 
   ConstantUse._(this.value);
 
@@ -899,7 +890,7 @@ class ConstantUse {
   }
 
   /// Constant used as the initial value of a field.
-  ConstantUse.init(ConstantValue /*!*/ value) : this._(value);
+  ConstantUse.init(ConstantValue value) : this._(value);
 
   /// Type constant used for registration of custom elements.
   ConstantUse.customElements(TypeConstantValue value) : this._(value);

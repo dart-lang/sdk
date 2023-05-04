@@ -1,0 +1,13 @@
+abstract class A {}
+
+class B {
+  final A a;
+  external B(A a);
+  external B.named(int i);
+  external A method();
+  external T genericMethod<T>(T t);
+  external B get getter;
+  external void set setter(B b);
+}
+
+void method(A a) {}

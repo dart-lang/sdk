@@ -75,6 +75,19 @@ class ElementFactory {
     return element;
   }
 
+  static ClassElementImpl classElement4(String typeName,
+          {bool isBase = false,
+          bool isInterface = false,
+          bool isFinal = false,
+          bool isSealed = false,
+          bool isMixinClass = false}) =>
+      classElement2(typeName)
+        ..isBase = isBase
+        ..isInterface = isInterface
+        ..isFinal = isFinal
+        ..isSealed = isSealed
+        ..isMixinClass = isMixinClass;
+
   static ClassElementImpl classTypeAlias(
       String typeName, InterfaceType superclassType,
       [List<String>? parameterNames]) {
@@ -185,8 +198,9 @@ class ElementFactory {
     return getter;
   }
 
-  static LibraryElementImpl library(
-      AnalysisContext context, String libraryName) {
+  static LibraryElementImpl library(AnalysisContext context, String libraryName,
+      {FeatureSet? featureSet}) {
+    FeatureSet features = featureSet ?? FeatureSet.latestLanguageVersion();
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(
       source: NonExistingSource(fileName, toUri(fileName)),
@@ -197,7 +211,7 @@ class ElementFactory {
       libraryName,
       0,
       libraryName.length,
-      FeatureSet.latestLanguageVersion(),
+      features,
     );
     library.definingCompilationUnit = unit;
     return library;
@@ -229,13 +243,13 @@ class ElementFactory {
     return method;
   }
 
-  static MixinElementImpl mixinElement({
-    required String name,
-    List<TypeParameterElement>? typeParameters,
-    List<String> typeParameterNames = const [],
-    List<InterfaceType> constraints = const [],
-    List<InterfaceType> interfaces = const [],
-  }) {
+  static MixinElementImpl mixinElement(
+      {required String name,
+      List<TypeParameterElement>? typeParameters,
+      List<String> typeParameterNames = const [],
+      List<InterfaceType> constraints = const [],
+      List<InterfaceType> interfaces = const [],
+      bool isBase = false}) {
     typeParameters ??= ElementFactory.typeParameters(typeParameterNames);
 
     if (constraints.isEmpty) {
@@ -247,6 +261,7 @@ class ElementFactory {
     element.superclassConstraints = constraints;
     element.interfaces = interfaces;
     element.constructors = const <ConstructorElementImpl>[];
+    element.isBase = isBase;
     return element;
   }
 

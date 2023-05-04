@@ -14,7 +14,7 @@ abstract class I1 {
 
 abstract class I2 implements I0, I1 {}
 
-class M {
+mixin M {
   foo() => 42;
   bar() => 87;
 }

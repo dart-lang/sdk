@@ -74,6 +74,20 @@ void Object::PrintJSON(JSONStream* stream, bool ref) const {
   }
 }
 
+void Object::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {
+  UNREACHABLE();
+}
+
+void Object::PrintImplementationFields(JSONStream* stream) const {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "ImplementationFields");
+  JSONArray jsarr_fields(&jsobj, "fields");
+  if (!IsNull()) {
+    PrintImplementationFieldsImpl(jsarr_fields);
+  }
+}
+
 void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Isolate* isolate = Isolate::Current();
   JSONObject jsobj(stream);
@@ -113,6 +127,11 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("abstract", is_abstract());
   jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("isSealed", is_sealed());
+  jsobj.AddProperty("isMixinClass", is_mixin_class());
+  jsobj.AddProperty("isBaseClass", is_base_class());
+  jsobj.AddProperty("isInterfaceClass", is_interface_class());
+  jsobj.AddProperty("isFinal", is_final());
   jsobj.AddProperty("_finalized", is_finalized());
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", false);
@@ -180,6 +199,9 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void Class::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {
+}
+
 void TypeParameters::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // Consider making this type public if we decide to expose TypeParameters
   // through the protocol.
@@ -190,6 +212,9 @@ void TypeParameters::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("bounds", TypeArguments::Handle(bounds()));
   jsobj.AddProperty("defaults", TypeArguments::Handle(defaults()));
 }
+
+void TypeParameters::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -240,9 +265,15 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void TypeArguments::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void PatchClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
+
+void PatchClass::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void Function::AddFunctionServiceId(const JSONObject& jsobj) const {
   Class& cls = Class::Handle(Owner());
@@ -388,9 +419,15 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void Function::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void FfiTrampolineData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
+
+void FfiTrampolineData::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -457,6 +494,9 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void Field::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {
+}
+
 // See also Dart_ScriptGetTokenInfo.
 void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -517,6 +557,9 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
     }
   }
 }
+
+void Script::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 static void PrintShowHideNamesToJSON(JSONObject* jsobj, const Namespace& ns) {
   Array& arr = Array::Handle();
@@ -666,17 +709,29 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void Library::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void LibraryPrefix::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
+
+void LibraryPrefix::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void Namespace::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
+void Namespace::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void KernelProgramInfo::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
+
+void KernelProgramInfo::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -687,13 +742,22 @@ void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void Instructions::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void InstructionsSection::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
+void InstructionsSection::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void InstructionsTable::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
+
+void InstructionsTable::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void WeakSerializationReference::PrintJSONImpl(JSONStream* stream,
                                                bool ref) const {
@@ -704,6 +768,41 @@ void WeakSerializationReference::PrintJSONImpl(JSONStream* stream,
   auto& obj = Object::Handle(target());
   jsobj.AddProperty("target", obj);
 }
+
+void WeakSerializationReference::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
+void WeakArray::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  intptr_t limit = offset + count;
+  ASSERT(limit <= Length());
+  {
+    JSONArray jsarr(&jsobj, "elements");
+    Object& element = Object::Handle();
+    for (intptr_t index = offset; index < limit; index++) {
+      element = At(index);
+      jsarr.AddValue(element);
+    }
+  }
+}
+
+void WeakArray::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -744,6 +843,9 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void ObjectPool::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
   AddCommonObjectProperties(jsobj, "Object", ref);
   // TODO(johnmccutchan): Generate a stable id. PcDescriptors hang off a Code
@@ -770,13 +872,22 @@ void PcDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
   PrintToJSONObject(&jsobj, ref);
 }
 
+void PcDescriptors::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void CodeSourceMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
+void CodeSourceMap::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void CompressedStackMaps::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
+
+void CompressedStackMaps::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -804,9 +915,15 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void LocalVarDescriptors::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void ExceptionHandlers::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
+
+void ExceptionHandlers::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void SingleTargetCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -820,6 +937,9 @@ void SingleTargetCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_upperLimit", upper_limit());
 }
 
+void SingleTargetCache::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void UnlinkedCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
@@ -832,6 +952,9 @@ void UnlinkedCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
                     Array::Handle(arguments_descriptor()));
 }
 
+void UnlinkedCall::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void MonomorphicSmiableCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
@@ -842,7 +965,15 @@ void MonomorphicSmiableCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void MonomorphicSmiableCall::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void CallSiteData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
+void CallSiteData::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {
   UNREACHABLE();
 }
 
@@ -886,6 +1017,9 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
     cache_entry.AddProperty("count", count);
   }
 }
+
+void ICData::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -949,6 +1083,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   PrintJSONInlineIntervals(&jsobj);
 }
 
+void Code::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {}
+
 void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   // TODO(turnidge): Should the user level type for Context be Context
@@ -976,9 +1112,15 @@ void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void Context::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void ContextScope::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
+
+void ContextScope::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void Sentinel::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // Handle certain special sentinel values.
@@ -994,10 +1136,19 @@ void Sentinel::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("kind", "BeingInitialized");
     jsobj.AddProperty("valueAsString", "<being initialized>");
     return;
+  } else if (ptr() == Object::optimized_out().ptr()) {
+    JSONObject jsobj(stream);
+    jsobj.AddProperty("type", "Sentinel");
+    jsobj.AddProperty("kind", "OptimizedOut");
+    jsobj.AddProperty("valueAsString", "<optimized out>");
+    return;
   }
 
   Object::PrintJSONImpl(stream, ref);
 }
+
+void Sentinel::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void MegamorphicCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1013,6 +1164,9 @@ void MegamorphicCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
                     Object::Handle(arguments_descriptor()));
 }
 
+void MegamorphicCache::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void SubtypeTestCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
@@ -1022,6 +1176,9 @@ void SubtypeTestCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("_cache", Array::Handle(cache()));
 }
+
+void SubtypeTestCache::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void LoadingUnit::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1037,7 +1194,14 @@ void LoadingUnit::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_loadOutstanding", load_outstanding());
 }
 
+void LoadingUnit::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void Error::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
+void Error::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {
   UNREACHABLE();
 }
 
@@ -1049,6 +1213,9 @@ void ApiError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("message", ToErrorCString());
 }
 
+void ApiError::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void LanguageError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Error", ref);
@@ -1056,6 +1223,9 @@ void LanguageError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddServiceId(*this);
   jsobj.AddProperty("message", ToErrorCString());
 }
+
+void LanguageError::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void UnhandledException::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1073,6 +1243,9 @@ void UnhandledException::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("stacktrace", instance);
 }
 
+void UnhandledException::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Error", ref);
@@ -1081,6 +1254,9 @@ void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("message", ToErrorCString());
   jsobj.AddProperty("_is_user_initiated", is_user_initiated());
 }
+
+void UnwindError::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
                                        bool ref,
@@ -1124,8 +1300,8 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
           if (!field.is_static()) {
             field_value = GetField(field);
             JSONObject jsfield(&jsarr);
-            jsfield.AddProperty("type", "BoundField");
             jsfield.AddProperty("decl", field);
+            jsfield.AddProperty("name", field.UserVisibleNameCString());
             jsfield.AddProperty("value", field_value);
           }
         }
@@ -1148,9 +1324,44 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "PlainInstance");
+
+  GrowableArray<Class*> classes;
+  Array& field_array = Array::Handle();
+  Field& field = Field::Handle();
+  Class& cls = Class::Handle(this->clazz());
+  if (IsClosure()) {
+    // Closure fields are not instances. Skip them.
+    cls = cls.SuperClass();
+  }
+  do {
+    classes.Add(&Class::Handle(cls.ptr()));
+    cls = cls.SuperClass();
+  } while (!cls.IsNull());
+
+  intptr_t num_fields = 0;
+  for (intptr_t i = classes.length() - 1; i >= 0; --i) {
+    field_array ^= classes[i]->fields();
+    if (!field_array.IsNull()) {
+      for (intptr_t j = 0; j < field_array.Length(); ++j) {
+        field ^= field_array.At(j);
+        if (!field.is_static()) {
+          ++num_fields;
+        }
+      }
+    }
+  }
+  jsobj.AddProperty("length", num_fields);
 }
 
+void Instance::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void AbstractType::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
+void AbstractType::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {
   UNREACHABLE();
 }
 
@@ -1177,6 +1388,8 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("typeArguments", typeArgs);
   }
 }
+
+void Type::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {}
 
 void FunctionType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1216,10 +1429,13 @@ void FunctionType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void FunctionType::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "_RecordType");
+  jsobj.AddProperty("kind", "RecordType");
   if (ref) {
     return;
   }
@@ -1229,16 +1445,14 @@ void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
     String& name = String::Handle();
     AbstractType& type = AbstractType::Handle();
     const intptr_t num_fields = NumFields();
-    const intptr_t num_positional_fields = NumPositionalFields();
+    const Array& field_names = Array::Handle(GetFieldNames(Thread::Current()));
+    const intptr_t num_positional_fields = num_fields - field_names.Length();
     for (intptr_t index = 0; index < num_fields; ++index) {
       JSONObject jsfield(&jsarr);
-      // TODO(derekx): Remove this because BoundField isn't a response type in
-      // the spec.
-      jsfield.AddProperty("type", "BoundField");
       if (index < num_positional_fields) {
-        jsfield.AddProperty("name", index);
+        jsfield.AddProperty("name", index + 1);
       } else {
-        name = FieldNameAt(index - num_positional_fields);
+        name ^= field_names.At(index - num_positional_fields);
         jsfield.AddProperty("name", name.ToCString());
       }
       type = FieldTypeAt(index);
@@ -1246,6 +1460,9 @@ void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
     }
   }
 }
+
+void RecordType::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1259,6 +1476,9 @@ void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("targetType", AbstractType::Handle(type()));
 }
+
+void TypeRef::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1278,7 +1498,15 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("bound", upper_bound);
 }
 
+void TypeParameter::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void Number::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
+void Number::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {
   UNREACHABLE();
 }
 
@@ -1289,6 +1517,9 @@ void Integer::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("valueAsString", ToCString());
 }
 
+void Integer::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void Smi::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref, /*include_id=*/false);
@@ -1297,9 +1528,13 @@ void Smi::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("valueAsString", "%" Pd "", Value());
 }
 
+void Smi::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {}
+
 void Mint::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Integer::PrintJSONImpl(stream, ref);
 }
+
+void Mint::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {}
 
 void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1308,17 +1543,11 @@ void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("valueAsString", ToCString());
 }
 
+void Double::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  if (ptr() == Symbols::OptimizedOut().ptr()) {
-    // TODO(turnidge): This is a hack.  The user could have this
-    // special string in their program.  Fixing this involves updating
-    // the debugging api a bit.
-    jsobj.AddProperty("type", "Sentinel");
-    jsobj.AddProperty("kind", "OptimizedOut");
-    jsobj.AddProperty("valueAsString", "<optimized out>");
-    return;
-  }
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "String");
   jsobj.AddProperty("length", Length());
@@ -1344,6 +1573,9 @@ void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyStr("valueAsString", *this, offset, count);
 }
 
+void String::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void Bool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* str = ToCString();
   JSONObject jsobj(stream);
@@ -1352,6 +1584,8 @@ void Bool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddFixedServiceId("objects/bool-%s", str);
   jsobj.AddPropertyF("valueAsString", "%s", str);
 }
+
+void Bool::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {}
 
 void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1382,6 +1616,9 @@ void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void Array::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {
+}
+
 void GrowableObjectArray::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
@@ -1410,6 +1647,9 @@ void GrowableObjectArray::PrintJSONImpl(JSONStream* stream, bool ref) const {
     }
   }
 }
+
+void GrowableObjectArray::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void Map::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1448,6 +1688,8 @@ void Map::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void Map::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {}
+
 void Set::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
@@ -1482,12 +1724,17 @@ void Set::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void Set::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {}
+
 void Float32x4::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Float32x4");
   jsobj.AddProperty("valueAsString", ToCString());
 }
+
+void Float32x4::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void Int32x4::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1496,6 +1743,9 @@ void Int32x4::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("valueAsString", ToCString());
 }
 
+void Int32x4::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void Float64x2::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
@@ -1503,7 +1753,15 @@ void Float64x2::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("valueAsString", ToCString());
 }
 
+void Float64x2::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void TypedDataBase::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
+void TypedDataBase::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {
   UNREACHABLE();
 }
 
@@ -1537,9 +1795,15 @@ void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void TypedData::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void TypedDataView::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
+
+void TypedDataView::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void ExternalTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1571,17 +1835,29 @@ void ExternalTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void ExternalTypedData::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void Pointer::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
+
+void Pointer::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void DynamicLibrary::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
 
+void DynamicLibrary::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void Capability::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
+
+void Capability::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void ReceivePort::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject obj(stream);
@@ -1595,17 +1871,29 @@ void ReceivePort::PrintJSONImpl(JSONStream* stream, bool ref) const {
   obj.AddProperty("allocationLocation", allocation_location_);
 }
 
+void ReceivePort::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void SendPort::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
+
+void SendPort::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void TransferableTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
 
+void TransferableTypedData::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void ClosureData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
+
+void ClosureData::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void Closure::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1626,10 +1914,15 @@ void Closure::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void Closure::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "_Record");
+  jsobj.AddProperty("kind", "Record");
+  const intptr_t num_fields = this->num_fields();
+  jsobj.AddProperty("length", num_fields);
   if (ref) {
     return;
   }
@@ -1638,16 +1931,12 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
     JSONArray jsarr(&jsobj, "fields");
     String& name = String::Handle();
     Object& value = Object::Handle();
-    const intptr_t num_fields = this->num_fields();
-    const intptr_t num_positional_fields = NumPositionalFields();
-    const Array& field_names = Array::Handle(this->field_names());
+    const Array& field_names = Array::Handle(GetFieldNames(Thread::Current()));
+    const intptr_t num_positional_fields = num_fields - field_names.Length();
     for (intptr_t index = 0; index < num_fields; ++index) {
       JSONObject jsfield(&jsarr);
-      // TODO(derekx): Remove this because BoundField isn't a response type in
-      // the spec.
-      jsfield.AddProperty("type", "BoundField");
       if (index < num_positional_fields) {
-        jsfield.AddProperty("name", index);
+        jsfield.AddProperty("name", index + 1);
       } else {
         name ^= field_names.At(index - num_positional_fields);
         jsfield.AddProperty("name", name.ToCString());
@@ -1658,12 +1947,18 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void Record::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void StackTrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "StackTrace");
   jsobj.AddProperty("valueAsString", ToCString());
 }
+
+void StackTrace::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void RegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -1710,6 +2005,9 @@ void RegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void RegExp::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void WeakProperty::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
@@ -1724,6 +2022,9 @@ void WeakProperty::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("propertyValue", value_handle);
 }
 
+void WeakProperty::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void WeakReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
@@ -1736,7 +2037,15 @@ void WeakReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("target", target_handle);
 }
 
+void WeakReference::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void FinalizerBase::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
+void FinalizerBase::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {
   UNREACHABLE();
 }
 
@@ -1754,6 +2063,9 @@ void Finalizer::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // Not exposing entries.
 }
 
+void Finalizer::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void NativeFinalizer::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
@@ -1768,7 +2080,15 @@ void NativeFinalizer::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // Not exposing entries.
 }
 
+void NativeFinalizer::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void FinalizerEntry::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
+void FinalizerEntry::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {
   UNREACHABLE();
 }
 
@@ -1785,17 +2105,34 @@ void MirrorReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("mirrorReferent", referent_handle);
 }
 
+void MirrorReference::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void UserTag::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "UserTag");
+
+  String& tag_label = String::Handle(label());
+  jsobj.AddProperty("label", tag_label.ToCString());
 }
+
+void UserTag::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 void FutureOr::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
 
+void FutureOr::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void SuspendState::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
+
+void SuspendState::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
 
 #endif
 

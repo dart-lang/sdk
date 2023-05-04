@@ -75,6 +75,7 @@ abstract class Commands {
 abstract class CustomMethods {
   static const diagnosticServer = Method('dart/diagnosticServer');
   static const reanalyze = Method('dart/reanalyze');
+  static const openUri = Method('dart/openUri');
   static const publishClosingLabels =
       Method('dart/textDocument/publishClosingLabels');
   static const publishOutline = Method('dart/textDocument/publishOutline');
@@ -200,6 +201,9 @@ abstract class DartCodeActionKind {
   //   LSP protocol code and swap this code CodeActionKind.SourceFixAll
   //   https://github.com/microsoft/language-server-protocol/pull/1308
   static const FixAll = CodeActionKind('source.fixAll');
+  // TODO(dantup): Remove this in favour of CodeActionKind.RefactorMove once it
+  //   has been added to a published LSP version.
+  static const RefactorMove = CodeActionKind('refactor.move');
 }
 
 abstract class ServerErrorCodes {

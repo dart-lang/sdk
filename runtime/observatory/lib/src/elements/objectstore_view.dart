@@ -11,7 +11,6 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -43,12 +42,6 @@ class ObjectStoreViewElement extends CustomElement implements Renderable {
       M.ObjectStoreRepository stores,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(stores != null);
-    assert(objects != null);
     ObjectStoreViewElement e = new ObjectStoreViewElement.created();
     e._r = new RenderingScheduler<ObjectStoreViewElement>(e, queue: queue);
     e._vm = vm;

@@ -11,10 +11,10 @@ class A<T> {
 
 /*class: B:needsArgs*/
 class B<S> {
-  method2() => new A<S>().method1();
+  method2() => A<S>().method1();
 }
 
 main() {
-  var b = new B<int>();
+  var b = B<int>();
   b.method2();
 }

@@ -87,8 +87,6 @@ dart2js:              Compile to JavaScript using dart2js.
 dart2analyzer:        Perform static analysis on Dart code using the analyzer.
 compare_analyzer_cfe: Compare analyzer and common front end representations.
 ddc:                  Compile to JavaScript using dartdevc.
-dartdevc:             Compile to JavaScript using dartdevc (same as ddc).
-dartdevk:             Compile to JavaScript using dartdevc (same as ddc).
 app_jitk:             Compile the Dart code into Kernel and then into an app
                       snapshot.
 dartk:                Compile the Dart code into Kernel before running test.
@@ -118,7 +116,7 @@ none:             No runtime, compile only.''')
     ..addMultiOption('arch',
         abbr: 'a',
         allowed: ['all', ...Architecture.names],
-        defaultsTo: [Architecture.x64.name],
+        defaultsTo: [Architecture.host.name],
         hide: true,
         help: '''The architecture to run tests for.
 
@@ -143,6 +141,12 @@ riscv32, riscv64, simriscv32, simriscv64''')
         hide: true,
         help: '''The named test configuration that supplies the values for all
 test options, specifying how tests should be run.''')
+    ..addFlag('detect-host',
+        aliases: ['detect_host'],
+        help: 'Replace the system and architecture options in named '
+            'configurations to match the local host. Provided only as a '
+            'convenience when running tests locally. It is an error use this '
+            'flag with without specifying a named configuration.')
     ..addFlag('build',
         help: 'Build the necessary targets to test this configuration')
     // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
@@ -275,11 +279,6 @@ compact, color, line, verbose, silent, status, buildbot''')
         help: '''Which set of non-nullable type features to use.
 
 Allowed values are: legacy, weak, strong''')
-    // TODO(rnystrom): This does not appear to be used. Remove?
-    ..addOption('build-directory',
-        aliases: ['build_directory'],
-        help: 'The name of the build directory, where products are placed.',
-        hide: true)
     ..addOption('output-directory',
         aliases: ['output_directory'],
         defaultsTo: "logs",
@@ -301,7 +300,7 @@ Allowed values are: legacy, weak, strong''')
     ..addFlag('write-logs',
         aliases: ['write_logs'],
         hide: true,
-        help: 'Write failing test stdout and stderr to to the '
+        help: 'Write failing test stdout and stderr to the '
             '"${TestUtils.logsFileName}" file')
     ..addFlag('reset-browser-configuration',
         aliases: ['reset_browser_configuration'],
@@ -498,8 +497,8 @@ has been specified on the command line.''')
 
     var allSuiteDirectories = [
       ...testSuiteDirectories,
-      "tests/co19",
-      "tests/co19_2",
+      Path('tests/co19'),
+      Path('tests/co19_2'),
     ];
 
     var selectors = <String>[];
@@ -509,20 +508,24 @@ has been specified on the command line.''')
       // the command line.
       for (var suiteDirectory in allSuiteDirectories) {
         var path = suiteDirectory.toString();
-        if (selector.startsWith("$path/") || selector.startsWith("$path\\")) {
-          selector = selector.substring(path.lastIndexOf("/") + 1);
+        final separator = Platform.pathSeparator;
+        if (separator != '/') {
+          selector = selector.replaceAll(separator, '/');
+        }
+        if (selector.startsWith('$path/')) {
+          selector = selector.substring(path.lastIndexOf('/') + 1);
 
           // Remove the `src/` subdirectories from the co19 and co19_2
           // directories that do not appear in the test names.
-          if (selector.startsWith("co19")) {
-            selector = selector.replaceFirst(RegExp("src[/\]"), "");
+          if (selector.startsWith('co19')) {
+            selector = selector.replaceFirst(RegExp('src/'), '');
           }
           break;
         }
       }
 
       // If they tab complete to a single test, ignore the ".dart".
-      if (selector.endsWith(".dart")) {
+      if (selector.endsWith('.dart')) {
         selector = selector.substring(0, selector.length - 5);
       }
 
@@ -712,12 +715,32 @@ has been specified on the command line.''')
     }
 
     var namedConfigurations = data["named-configuration"] as List<String>;
+    var detectHost = data['detect-host'] as bool;
+    if (detectHost && namedConfigurations.isEmpty) {
+      _fail('The `--detect-host` flag is only supported for named '
+          'configurations.');
+    }
     if (namedConfigurations.isNotEmpty) {
       var testMatrix = TestMatrix.fromPath(_testMatrixFile);
       for (var namedConfiguration in namedConfigurations) {
         try {
           var configuration = testMatrix.configurations
               .singleWhere((c) => c.name == namedConfiguration);
+          if (configuration.system != System.host ||
+              configuration.architecture != Architecture.host) {
+            print("-- WARNING -- \n"
+                "The provided named configuration does not match the host "
+                "system or architecture:\n"
+                "    ${configuration.name}");
+            if (detectHost) {
+              configuration = Configuration.detectHost(configuration);
+              print("Detecting host configuration:\n"
+                  "    $configuration");
+            } else {
+              print("Passing the `--detect-host` flag will modify the named "
+                  "configuration to match the local system and architecture.");
+            }
+          }
           addConfiguration(configuration, namedConfiguration);
         } on StateError {
           var names = testMatrix.configurations
@@ -918,7 +941,7 @@ void findConfigurations(Map<String, dynamic> options) {
   var architectureOption = options['arch'] as List<String>;
   var architectures = [
     if (architectureOption.isEmpty)
-      Architecture.x64
+      Architecture.host
     else if (!architectureOption.contains('all'))
       ...architectureOption.map(Architecture.find)
   ];
@@ -988,7 +1011,6 @@ void listConfigurations(Map<String, dynamic> options) {
 }
 
 /// Throws an [OptionParseException] with [message].
-// ignore: sdk_version_never
 Never _fail(String message) {
   throw OptionParseException(message);
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 ////////////////////////////////////////////////////////////////////////////////
 /// A constructor invocation to a class that needs type arguments captures the
 /// type variables.
@@ -17,7 +15,7 @@ class Class1b<T> {
   /*member: Class1b.method1:hasThis*/
   method1() {
     /*fields=[this],free=[this],hasThis*/
-    dynamic local() => new Class1a<T>();
+    dynamic local() => Class1a<T>();
     return local;
   }
 }
@@ -35,12 +33,12 @@ class Class2b<T> {
   /*member: Class2b.method2:hasThis*/
   method2() {
     /*hasThis*/
-    dynamic local() => new Class2a<T>();
+    dynamic local() => Class2a<T>();
     return local;
   }
 }
 
 main() {
-  new Class1b<int>().method1().call() is Class1a<int>;
-  new Class2b<int>().method2().call();
+  Class1b<int>().method1().call() is Class1a<int>;
+  Class2b<int>().method2().call();
 }

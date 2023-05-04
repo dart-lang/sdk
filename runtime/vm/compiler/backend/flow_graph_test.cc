@@ -328,7 +328,7 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_PhiUnboxingHeuristic_Double) {
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
   }));
-  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
+  if (!FLAG_sound_null_safety) {
     RELEASE_ASSERT(cursor.TryMatch({
         kMatchAndMoveBranchFalse,
         kMatchAndMoveTargetEntry,
@@ -382,7 +382,7 @@ static void TestPhiUnboxingHeuristicSimd(const char* script) {
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
   }));
-  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
+  if (!FLAG_sound_null_safety) {
     RELEASE_ASSERT(cursor.TryMatch({
         kMatchAndMoveBranchFalse,
         kMatchAndMoveTargetEntry,

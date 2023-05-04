@@ -55,8 +55,7 @@ class CodegenImpactTransformer {
 
   DartTypes get _dartTypes => _closedWorld.dartTypes;
 
-  void onIsCheckForCodegen(
-      DartType /*!*/ type, TransformedWorldImpact transformed) {
+  void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
     assert((type as dynamic) != null);
     if (_dartTypes.isTopType(type)) return;
 
@@ -145,6 +144,7 @@ class CodegenImpactTransformer {
         case StaticUseKind.INLINING:
         case StaticUseKind.CLOSURE:
         case StaticUseKind.CLOSURE_CALL:
+        case StaticUseKind.WEAK_STATIC_TEAR_OFF:
           break;
       }
     }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 // TODO(johnniwinther): Add a test that ensure that this library doesn't depend
 // on the dart2js internals.
 library compiler.src.kernel.dart2js_target;
@@ -49,6 +47,7 @@ List<Pattern> _allowedNativeTestPatterns = [
   RegExp(r'(?<!generated_)tests/web_2/internal'),
   'generated_tests/web_2/native/native_test',
   'generated_tests/web_2/internal/deferred_url_test',
+  'pkg/front_end/testcases/dart2js/native',
 ];
 
 bool allowedNativeTest(Uri uri) {
@@ -112,6 +111,7 @@ class Dart2jsTarget extends Target {
         'dart:_js_helper',
         'dart:_late_helper',
         'dart:js',
+        'dart:js_interop',
         'dart:js_util'
       ];
 
@@ -121,7 +121,8 @@ class Dart2jsTarget extends Target {
       (uri.path == 'core' ||
           uri.path == 'typed_data' ||
           uri.path == '_interceptors' ||
-          uri.path == '_native_typed_data');
+          uri.path == '_native_typed_data' ||
+          uri.path == '_js_helper');
 
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
@@ -153,6 +154,7 @@ class Dart2jsTarget extends Target {
     _nativeClasses = JsInteropChecks.getNativeClasses(component);
     var jsInteropChecks = JsInteropChecks(
         coreTypes,
+        hierarchy,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!);
     // Process and validate first before doing anything with exports.
@@ -268,6 +270,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_names',
     'dart:_js_primitives',
     'dart:_js_shared_embedded_names',
+    'dart:_js_types',
     'dart:_late_helper',
     'dart:_load_library_priority',
     'dart:_metadata',
@@ -284,6 +287,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:io',
     'dart:isolate',
     'dart:js',
+    'dart:js_interop',
     'dart:js_util',
     'dart:math',
     'dart:svg',
@@ -305,6 +309,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_names',
     'dart:_js_primitives',
     'dart:_js_shared_embedded_names',
+    'dart:_js_types',
     'dart:_late_helper',
     'dart:_load_library_priority',
     'dart:_native_typed_data',
@@ -317,6 +322,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:io',
     'dart:isolate',
     'dart:js',
+    'dart:js_interop',
     'dart:js_util',
     'dart:math',
     'dart:typed_data',

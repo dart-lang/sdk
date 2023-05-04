@@ -595,7 +595,7 @@ class LibraryModuleFormatter implements Formatter {
     var libraryNames = dart.getModuleName(object)!.split('/');
     // Library names are received with a repeat directory name, so strip the
     // last directory entry here to make the path cleaner. For example, the
-    // library "third_party/dart/utf/utf" shoud display as
+    // library "third_party/dart/utf/utf" should display as
     // "third_party/dart/utf/".
     if (libraryNames.length > 1 &&
         libraryNames.last == libraryNames[libraryNames.length - 2]) {

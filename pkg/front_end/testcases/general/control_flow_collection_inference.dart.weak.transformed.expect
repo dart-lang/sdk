@@ -430,6 +430,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -438,7 +439,6 @@ class A extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class B extends self::A {
@@ -892,7 +892,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::List<core::int*>* list91 = block {
     final core::List<core::int*>* #t72 = core::_GrowableList::•<core::int*>(0);
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*) {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t73 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -905,7 +905,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::Set<core::int*>* set91 = block {
     final core::Set<core::int*>* #t75 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*) {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t76 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -919,7 +919,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::Map<core::String*, core::int*>* map91 = block {
     final core::Map<core::String*, core::int*>* #t78 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*) {
-      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t79 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
         {
@@ -1653,7 +1653,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::List<core::int*>* list91 = block {
     final core::List<core::int*>* #t180 = core::_GrowableList::•<core::int*>(0);
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t181 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -1666,7 +1666,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Set<core::int*>* set91 = block {
     final core::Set<core::int*>* #t183 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t184 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -1680,7 +1680,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Map<core::String*, core::int*>* map91 = block {
     final core::Map<core::String*, core::int*>* #t186 = <core::String*, core::int*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
-      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
+      synthesized core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t187 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
         {
@@ -1710,7 +1710,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::List<core::int*>* list110 = block {
     final core::List<core::int*>* #t196 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
         #t196.{core::List::add}{Invariant}(i){(core::int*) →* void};
@@ -1720,7 +1720,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Set<core::int*>* set110 = block {
     final core::Set<core::int*>* #t197 = new col::_Set::•<core::int*>();
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
         #t197.{core::Set::add}{Invariant}(i){(core::int*) →* core::bool*};
@@ -1731,7 +1731,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Map<core::String*, core::int*>* map110 = block {
     final core::Map<core::String*, core::int*>* #t198 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
         #t198.{core::Map::[]=}{Invariant}("bar", i){(core::String*, core::int*) →* void};
@@ -1742,7 +1742,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::List<core::int*>* list120 = block {
     final core::List<core::int*>* #t199 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         dynamic i = :sync-for-iterator.{core::Iterator::current}{dynamic};
         #t199.{core::List::add}{Invariant}(i as{TypeError,ForDynamic} core::int*){(core::int*) →* void};
@@ -1752,7 +1752,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Set<core::int*>* set120 = block {
     final core::Set<core::int*>* #t200 = new col::_Set::•<core::int*>();
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         dynamic i = :sync-for-iterator.{core::Iterator::current}{dynamic};
         #t200.{core::Set::add}{Invariant}(i as{TypeError,ForDynamic} core::int*){(core::int*) →* core::bool*};
@@ -1763,7 +1763,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Map<core::String*, core::int*>* map120 = block {
     final core::Map<core::String*, core::int*>* #t201 = <core::String*, core::int*>{};
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         dynamic i = :sync-for-iterator.{core::Iterator::current}{dynamic};
         #t201.{core::Map::[]=}{Invariant}("bar", i as{TypeError,ForDynamic} core::int*){(core::String*, core::int*) →* void};
@@ -1968,7 +1968,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::List<core::int*>* #t220 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(1).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(1).{core::Iterable::iterator}{core::Iterator<core::int*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::int* #t221 = :sync-for-iterator.{core::Iterator::current}{core::int*};
         {
@@ -1983,7 +1983,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::Set<core::int*>* #t222 = new col::_Set::•<core::int*>();
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(1).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(1).{core::Iterable::iterator}{core::Iterator<core::int*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::int* #t223 = :sync-for-iterator.{core::Iterator::current}{core::int*};
         {
@@ -1999,7 +1999,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::Map<core::String*, core::int*>* #t224 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(1).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(1).{core::Iterable::iterator}{core::Iterator<core::int*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::int* #t225 = :sync-for-iterator.{core::Iterator::current}{core::int*};
         {
@@ -2015,7 +2015,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::List<dynamic>* list10 = block {
     final core::List<dynamic>* #t226 = core::_GrowableList::•<dynamic>(0);
     {
-      core::Iterator<Never>* :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:236:31: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+      synthesized core::Iterator<Never>* :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:236:31: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   var list10 = [for (var i in \"not iterable\") i];
                               ^" in "not iterable" as{TypeError} core::Iterable<dynamic>*.{core::Iterable::iterator}{core::Iterator<Never>*};
@@ -2028,7 +2028,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::Set<dynamic>* set10 = block {
     final core::Set<dynamic>* #t227 = new col::_Set::•<dynamic>();
     {
-      core::Iterator<Never>* :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:237:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+      synthesized core::Iterator<Never>* :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:237:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   var set10 = {for (var i in \"not iterable\") i, null};
                              ^" in "not iterable" as{TypeError} core::Iterable<dynamic>*.{core::Iterable::iterator}{core::Iterator<Never>*};
@@ -2042,7 +2042,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::Map<core::String*, dynamic>* map10 = block {
     final core::Map<core::String*, dynamic>* #t228 = <core::String*, dynamic>{};
     {
-      core::Iterator<Never>* :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:238:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+      synthesized core::Iterator<Never>* :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:238:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   var map10 = {for (var i in \"not iterable\") \"bar\": i, \"baz\": null};
                              ^" in "not iterable" as{TypeError} core::Iterable<dynamic>*.{core::Iterable::iterator}{core::Iterator<Never>*};
@@ -2056,7 +2056,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::List<core::int*>* list20 = block {
     final core::List<core::int*>* #t229 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:239:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:239:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list20 = [for (int i in [\"not\", \"int\"]) i];
                                ^" in "not" as{TypeError} core::int*, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:239:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list20 = [for (int i in [\"not\", \"int\"]) i];
@@ -2070,7 +2070,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::Set<core::int*>* set20 = block {
     final core::Set<core::int*>* #t230 = new col::_Set::•<core::int*>();
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:240:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:240:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set20 = {for (int i in [\"not\", \"int\"]) i, null};
                               ^" in "not" as{TypeError} core::int*, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:240:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set20 = {for (int i in [\"not\", \"int\"]) i, null};
@@ -2085,7 +2085,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::Map<core::String*, core::int*>* map20 = block {
     final core::Map<core::String*, core::int*>* #t231 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:241:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:241:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map20 = {for (int i in [\"not\", \"int\"]) \"bar\": i, \"baz\": null};
                               ^" in "not" as{TypeError} core::int*, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:241:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map20 = {for (int i in [\"not\", \"int\"]) \"bar\": i, \"baz\": null};
@@ -2100,11 +2100,11 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::List<dynamic>* list30 = block {
     final core::List<dynamic>* #t232 = core::_GrowableList::•<dynamic>(0);
     {
-      Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:242:37: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+      synthesized Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:242:37: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var list30 = [await for (var i in \"not stream\") i];
                                     ^" in "not stream" as{TypeError} asy::Stream<dynamic>*;
-      asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+      synthesized asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
       try
         while (let dynamic #t233 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
           dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
@@ -2118,11 +2118,11 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::Set<dynamic>* set30 = block {
     final core::Set<dynamic>* #t234 = new col::_Set::•<dynamic>();
     {
-      Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:243:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+      synthesized Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:243:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var set30 = {await for (var i in \"not stream\") i, null};
                                    ^" in "not stream" as{TypeError} asy::Stream<dynamic>*;
-      asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+      synthesized asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
       try
         while (let dynamic #t235 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
           dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
@@ -2137,11 +2137,11 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::Map<core::String*, dynamic>* map30 = block {
     final core::Map<core::String*, dynamic>* #t236 = <core::String*, dynamic>{};
     {
-      Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:244:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+      synthesized Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:244:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var map30 = {await for (var i in \"not stream\") \"bar\": i, \"baz\": null};
                                    ^" in "not stream" as{TypeError} asy::Stream<dynamic>*;
-      asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+      synthesized asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
       try
         while (let dynamic #t237 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
           dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
@@ -2156,12 +2156,12 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::List<core::int*>* list40 = block {
     final core::List<core::int*>* #t238 = core::_GrowableList::•<core::int*>(0);
     {
-      asy::Stream<core::int*> :stream = asy::Stream::fromIterable<core::int*>(core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:245:58: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      synthesized asy::Stream<core::int*> :stream = asy::Stream::fromIterable<core::int*>(core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:245:58: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list40 = [await for (int i in Stream.fromIterable([\"not\", \"int\"])) i];
                                                          ^" in "not" as{TypeError} core::int*, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:245:65: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list40 = [await for (int i in Stream.fromIterable([\"not\", \"int\"])) i];
                                                                 ^" in "int" as{TypeError} core::int*));
-      asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
+      synthesized asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
       try
         while (let dynamic #t239 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
           core::int* i = :for-iterator.{asy::_StreamIterator::current}{core::int*};
@@ -2175,12 +2175,12 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::Set<core::int*>* set40 = block {
     final core::Set<core::int*>* #t240 = new col::_Set::•<core::int*>();
     {
-      asy::Stream<core::int*> :stream = asy::Stream::fromIterable<core::int*>(core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:246:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      synthesized asy::Stream<core::int*> :stream = asy::Stream::fromIterable<core::int*>(core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:246:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
                                                         ^" in "not" as{TypeError} core::int*, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:246:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
                                                                ^" in "int" as{TypeError} core::int*));
-      asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
+      synthesized asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
       try
         while (let dynamic #t241 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
           core::int* i = :for-iterator.{asy::_StreamIterator::current}{core::int*};
@@ -2195,12 +2195,12 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   core::Map<core::String*, core::int*>* map40 = block {
     final core::Map<core::String*, core::int*>* #t242 = <core::String*, core::int*>{};
     {
-      asy::Stream<core::int*> :stream = asy::Stream::fromIterable<core::int*>(core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:247:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      synthesized asy::Stream<core::int*> :stream = asy::Stream::fromIterable<core::int*>(core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:247:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
                                                         ^" in "not" as{TypeError} core::int*, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:247:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
                                                                ^" in "int" as{TypeError} core::int*));
-      asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
+      synthesized asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
       try
         while (let dynamic #t243 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
           core::int* i = :for-iterator.{asy::_StreamIterator::current}{core::int*};

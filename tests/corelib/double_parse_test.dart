@@ -1,4 +1,4 @@
-// Copyright (c) 2014 the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--no-use-field-guards
@@ -103,13 +103,10 @@ void testDouble(double value) {
 
 void testFail(String source) {
   var object = new Object();
-  Expect.throws(() {
-    double.parse(source, (s) {
-      Expect.equals(source, s);
-      throw object;
-    });
-  }, (e) => identical(object, e), "Fail: '$source'");
-  Expect.equals(1.5, double.parse(source, (s) => 1.5));
+  Expect.throwsFormatException(() { 
+    double.parse(source);
+  });
+  Expect.equals(1.5, double.tryParse(source) ?? 1.5);
 }
 
 void main() {

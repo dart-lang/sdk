@@ -99,9 +99,9 @@ class PrecompilerTracer : public ZoneAllocated {
       if (obj.IsFunction()) {
         return Function::Cast(obj).Hash();
       } else if (obj.IsClass()) {
-        return String::HashRawSymbol(Class::Cast(obj).Name());
+        return Class::Cast(obj).Hash();
       } else if (obj.IsField()) {
-        return String::HashRawSymbol(Field::Cast(obj).name());
+        return Field::Cast(obj).Hash();
       }
       return obj.GetClassId();
     }

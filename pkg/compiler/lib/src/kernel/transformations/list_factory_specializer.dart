@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
@@ -95,7 +93,10 @@ class ListFactorySpecializer extends BaseSpecializer {
     Expression getLength() {
       if (lengthConstant != null) return IntLiteral(lengthConstant);
       lengthVariable ??= VariableDeclaration('_length',
-          initializer: length, isFinal: true, type: intType)
+          initializer: length,
+          isFinal: true,
+          type: intType,
+          isSynthesized: true)
         ..fileOffset = node.fileOffset;
       return VariableGet(lengthVariable!)..fileOffset = node.fileOffset;
     }
@@ -114,12 +115,14 @@ class ListFactorySpecializer extends BaseSpecializer {
       isFinal: true,
       type: InterfaceType(
           _jsArrayClass, Nullability.nonNullable, [...args.types]),
+      isSynthesized: true,
     )..fileOffset = node.fileOffset;
 
     final indexVariable = VariableDeclaration(
       _indexNameFromContext(generator),
       initializer: IntLiteral(0),
       type: intType,
+      isSynthesized: true,
     )..fileOffset = node.fileOffset;
     indexVariable.fileOffset =
         generator.function.positionalParameters.first.fileOffset;
@@ -287,7 +290,8 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
     final closureParameter = function.positionalParameters.single;
     parameter = VariableDeclaration(argument.name,
         initializer: VariableGet(argument)..fileOffset = argument.fileOffset,
-        type: closureParameter.type)
+        type: closureParameter.type,
+        isSynthesized: true)
       ..fileOffset = closureParameter.fileOffset;
     this.argument = argument;
     setVariableClone(closureParameter, parameter);

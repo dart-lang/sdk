@@ -139,6 +139,9 @@ class FindElement extends _FindElementBase {
       declaredIdentifier: (node) {
         updateResult(node.declaredElement!);
       },
+      declaredVariablePattern: (node) {
+        updateResult(node.declaredElement!);
+      },
       variableDeclaration: (node) {
         updateResult(node.declaredElement!);
       },
@@ -253,52 +256,17 @@ class FindElement extends _FindElementBase {
   TypeParameterElement typeParameter(String name) {
     TypeParameterElement? result;
 
-    void findIn(List<TypeParameterElement> typeParameters) {
-      for (var typeParameter in typeParameters) {
-        if (typeParameter.name == name) {
+    unit.accept(FunctionAstVisitor(
+      typeParameter: (node) {
+        final element = node.declaredElement!;
+        if (element.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
           }
-          result = typeParameter;
+          result = element;
         }
-      }
-    }
-
-    void findInClass(InterfaceElement class_) {
-      findIn(class_.typeParameters);
-      for (var method in class_.methods) {
-        findIn(method.typeParameters);
-      }
-    }
-
-    for (var type in unitElement.functions) {
-      findIn(type.typeParameters);
-    }
-
-    for (var alias in unitElement.typeAliases) {
-      findIn(alias.typeParameters);
-
-      var aliasedElement = alias.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        findIn(aliasedElement.typeParameters);
-      }
-    }
-
-    for (var class_ in unitElement.classes) {
-      findInClass(class_);
-    }
-
-    for (var enum_ in unitElement.enums) {
-      findInClass(enum_);
-    }
-
-    for (var extension_ in unitElement.extensions) {
-      findIn(extension_.typeParameters);
-    }
-
-    for (var mixin in unitElement.mixins) {
-      findInClass(mixin);
-    }
+      },
+    ));
 
     if (result != null) {
       return result!;

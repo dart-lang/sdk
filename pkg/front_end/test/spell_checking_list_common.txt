@@ -398,6 +398,7 @@ capturing
 care
 careful
 cares
+caring
 carries
 carry
 cascade
@@ -447,6 +448,7 @@ chooses
 choosing
 chosen
 chunk
+circle
 circularities
 circularity
 circumstance
@@ -493,6 +495,7 @@ clue
 code
 coerce
 coerced
+coerces
 coercing
 coercion
 coincides
@@ -652,6 +655,7 @@ continued
 continues
 continuing
 continuously
+contract
 contraposition
 contrast
 contravariance
@@ -746,7 +750,6 @@ deciding
 decimal
 decision
 declarable
-declarated
 declaration
 declaration's
 declarations
@@ -940,6 +943,7 @@ downside
 downward
 downwards
 drive
+driven
 driver
 drop
 dropped
@@ -1299,6 +1303,7 @@ fresh
 friendly
 from
 front
+fulfill
 full
 fullname
 fully
@@ -1348,6 +1353,7 @@ gotten
 governed
 gracefully
 grammar
+granular
 graph
 greater
 greatest
@@ -1749,6 +1755,7 @@ library
 library's
 license
 licensing
+lies
 light
 lightweight
 like
@@ -2414,6 +2421,7 @@ quite
 quote
 quotes
 quoting
+radius
 raise
 raising
 random
@@ -2596,6 +2604,7 @@ restored
 restores
 restrict
 restricted
+restrictions
 restrictive
 result
 resulted

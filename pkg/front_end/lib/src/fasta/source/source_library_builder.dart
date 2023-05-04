@@ -40,6 +40,7 @@ import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
+import '../builder/inline_class_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -56,7 +57,6 @@ import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../builder/view_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../combinator.dart' show CombinatorBuilder;
 import '../configuration.dart' show Configuration;
@@ -107,6 +107,7 @@ import '../operator.dart';
 import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
 import '../util/helpers.dart';
+import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
@@ -115,11 +116,11 @@ import 'source_extension_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
+import 'source_inline_class_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
-import 'source_view_builder.dart';
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
@@ -298,7 +299,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             packageUri,
             packageLanguageVersion,
             new TypeParameterScopeBuilder.library(),
-            scope ?? new Scope.top(),
+            scope ?? new Scope.top(kind: ScopeKind.library),
             origin,
             library,
             nameOrigin,
@@ -333,7 +334,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             fileUri,
             _libraryTypeParameterScopeBuilder.toScope(importScope,
                 omittedTypeDeclarationBuilders: omittedTypes),
-            new Scope.top()) {
+            new Scope.top(kind: ScopeKind.library)) {
     assert(
         _packageUri == null ||
             !importUri.isScheme('package') ||
@@ -1460,6 +1461,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
             if (memberLast is ClassBuilder) {
               library.additionalExports.add(memberLast.cls.reference);
+            } else if (memberLast is InlineClassBuilder) {
+              library.additionalExports.add(memberLast.inlineClass.reference);
             } else if (memberLast is TypeAliasBuilder) {
               library.additionalExports.add(memberLast.typedef.reference);
             } else if (memberLast is ExtensionBuilder) {
@@ -1557,19 +1560,24 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void collectSourceClasses(List<SourceClassBuilder> sourceClasses) {
+  void collectSourceClasses(List<SourceClassBuilder> sourceClasses,
+      List<SourceInlineClassBuilder>? inlineClasses) {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.collectSourceClasses(sourceClasses);
+        patchLibrary.collectSourceClasses(sourceClasses, inlineClasses);
       }
     }
 
-    Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
+    Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
-      SourceClassBuilder member = iterator.current;
-      if (!member.isPatch) {
+      Builder member = iterator.current;
+      if (member is SourceClassBuilder && !member.isPatch) {
         sourceClasses.add(member);
+      } else if (inlineClasses != null &&
+          member is SourceInlineClassBuilder &&
+          !member.isPatch) {
+        inlineClasses.add(member);
       }
     }
   }
@@ -1616,7 +1624,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// Reports [message] on all libraries that access this library.
   void addProblemAtAccessors(Message message) {
     if (accessProblem == null) {
-      if (accessors.isEmpty && this == loader.first) {
+      if (accessors.isEmpty && loader.roots.contains(this.importUri)) {
         // This is the entry point library, and nobody access it directly. So
         // we need to report a problem.
         loader.addProblem(message, -1, 1, null);
@@ -1789,7 +1797,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int supertypeOffset,
       {required bool isMacro,
       required bool isSealed,
-      required bool isAugmentation}) {
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
+      required bool isAugmentation,
+      required bool isMixinClass}) {
     _addClass(
         TypeParameterScopeKind.classDeclaration,
         metadata,
@@ -1805,7 +1817,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         supertypeOffset,
         isMacro: isMacro,
         isSealed: isSealed,
-        isAugmentation: isAugmentation);
+        isBase: isBase,
+        isInterface: isInterface,
+        isFinal: isFinal,
+        isAugmentation: isAugmentation,
+        isMixinClass: isMixinClass);
   }
 
   void addMixinDeclaration(
@@ -1819,7 +1835,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int nameOffset,
       int endOffset,
       int supertypeOffset,
-      {required bool isSealed,
+      {required bool isBase,
       required bool isAugmentation}) {
     TypeBuilder? supertype;
     MixinApplicationBuilder? mixinApplication;
@@ -1846,8 +1862,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         endOffset,
         supertypeOffset,
         isMacro: false,
-        isSealed: isSealed,
-        isAugmentation: isAugmentation);
+        isSealed: false,
+        isBase: isBase,
+        isInterface: false,
+        isFinal: false,
+        isAugmentation: isAugmentation,
+        isMixinClass: false);
   }
 
   void _addClass(
@@ -1865,7 +1885,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int supertypeOffset,
       {required bool isMacro,
       required bool isSealed,
-      required bool isAugmentation}) {
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
+      required bool isAugmentation,
+      required bool isMixinClass}) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(kind, className)
@@ -1876,6 +1900,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Map<String, MemberBuilder> setters = declaration.setters!;
 
     Scope classScope = new Scope(
+        kind: ScopeKind.declaration,
         local: members,
         setters: setters,
         parent: scope.withTypeVariables(typeVariables),
@@ -1904,8 +1929,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeVariables: typeVariables,
             isMacro: false,
             isSealed: false,
+            isBase: false,
+            isInterface: false,
+            isFinal: false,
             // TODO(johnniwinther): How can we support class with mixins?
-            isAugmentation: false),
+            isAugmentation: false,
+            isMixinClass: false),
         interfaces,
         // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
         // here.
@@ -1921,7 +1950,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isMixinDeclaration: isMixinDeclaration,
         isMacro: isMacro,
         isSealed: isSealed,
-        isAugmentation: isAugmentation);
+        isBase: isBase,
+        isInterface: isInterface,
+        isFinal: isFinal,
+        isAugmentation: isAugmentation,
+        isMixinClass: isMixinClass);
 
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
@@ -2110,6 +2143,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Map<String, MemberBuilder> setters = declaration.setters!;
 
     Scope classScope = new Scope(
+        kind: ScopeKind.declaration,
         local: members,
         setters: setters,
         parent: scope.withTypeVariables(typeVariables),
@@ -2170,31 +2204,35 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         getterReference: referenceFrom?.reference);
   }
 
-  void addViewDeclaration(
+  void addInlineClassDeclaration(
       List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
       List<TypeVariableBuilder>? typeVariables,
+      List<TypeBuilder>? interfaces,
       int startOffset,
       int nameOffset,
       int endOffset) {
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
-    TypeParameterScopeBuilder declaration =
-        endNestedDeclaration(TypeParameterScopeKind.viewDeclaration, name)
-          ..resolveNamedTypes(typeVariables, this);
+    TypeParameterScopeBuilder declaration = endNestedDeclaration(
+        TypeParameterScopeKind.inlineClassDeclaration, name)
+      ..resolveNamedTypes(typeVariables, this);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
 
-    Scope classScope = new Scope(
+    Scope memberScope = new Scope(
+        kind: ScopeKind.declaration,
         local: members,
         setters: setters,
         parent: scope.withTypeVariables(typeVariables),
-        debugName: "extension $name",
+        debugName: "inline class $name",
         isModifiable: false);
+    ConstructorScope constructorScope =
+        new ConstructorScope(name, constructors);
 
-    View? referenceFrom = referencesFromIndexed?.lookupView(name);
+    InlineClass? referenceFrom = referencesFromIndexed?.lookupInlineClass(name);
 
     SourceFieldBuilder? representationFieldBuilder;
     outer:
@@ -2210,12 +2248,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    ViewBuilder viewBuilder = new SourceViewBuilder(
+    InlineClassBuilder inlineClassBuilder = new SourceInlineClassBuilder(
         metadata,
         modifiers,
         declaration.name,
         typeVariables,
-        classScope,
+        interfaces,
+        memberScope,
+        constructorScope,
         this,
         startOffset,
         nameOffset,
@@ -2224,10 +2264,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         representationFieldBuilder);
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
-        checkTypeVariables(typeVariables, viewBuilder);
+        checkTypeVariables(typeVariables, inlineClassBuilder);
     void setParent(String name, MemberBuilder? member) {
       while (member != null) {
-        member.parent = viewBuilder;
+        member.parent = inlineClassBuilder;
         member = member.next as MemberBuilder?;
       }
     }
@@ -2236,7 +2276,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (typeVariablesByName != null) {
         TypeVariableBuilder? tv = typeVariablesByName[name];
         if (tv != null) {
-          viewBuilder.addProblem(
+          inlineClassBuilder.addProblem(
               templateConflictsWithTypeVariable.withArguments(name),
               member.charOffset,
               name.length,
@@ -2252,7 +2292,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    addBuilder(viewBuilder.name, viewBuilder, nameOffset,
+    addBuilder(inlineClassBuilder.name, inlineClassBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
   }
 
@@ -2271,7 +2311,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<TypeBuilder>? interfaces,
       required bool isMacro,
       required bool isSealed,
-      required bool isAugmentation}) {
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
+      required bool isAugmentation,
+      required bool isMixinClass}) {
     if (name == null) {
       // The following parameters should only be used when building a named
       // mixin application.
@@ -2411,7 +2455,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         List<TypeBuilder>? applicationTypeArguments;
         if (isNamedMixinApplication) {
           // If this is a named mixin application, it must be given all the
-          // declarated type variables.
+          // declared type variables.
           applicationTypeVariables = typeVariables;
         } else {
           // Otherwise, we pass the fresh type variables to the mixin
@@ -2492,6 +2536,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     : null,
             null, // No `on` clause types.
             new Scope(
+                kind: ScopeKind.declaration,
                 local: <String, MemberBuilder>{},
                 setters: <String, MemberBuilder>{},
                 parent: scope.withTypeVariables(typeVariables),
@@ -2507,7 +2552,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
             isMacro: isNamedMixinApplication && isMacro,
             isSealed: isNamedMixinApplication && isSealed,
-            isAugmentation: isNamedMixinApplication && isAugmentation);
+            isBase: isNamedMixinApplication && isBase,
+            isInterface: isNamedMixinApplication && isInterface,
+            isFinal: isNamedMixinApplication && isFinal,
+            isAugmentation: isNamedMixinApplication && isAugmentation,
+            isMixinClass: isNamedMixinApplication && isMixinClass);
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
@@ -2567,7 +2616,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       {required bool isMacro,
       required bool isSealed,
-      required bool isAugmentation}) {
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
+      required bool isAugmentation,
+      required bool isMixinClass}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
         .resolveNamedTypes(typeVariables, this);
@@ -2580,7 +2633,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         interfaces: interfaces,
         isMacro: isMacro,
         isSealed: isSealed,
-        isAugmentation: isAugmentation)!;
+        isBase: isBase,
+        isInterface: isInterface,
+        isFinal: isFinal,
+        isAugmentation: isAugmentation,
+        isMixinClass: isMixinClass)!;
     checkTypeVariables(typeVariables, supertype.declaration);
   }
 
@@ -2613,14 +2670,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     final bool isInstanceMember = currentTypeParameterScopeBuilder.kind !=
             TypeParameterScopeKind.library &&
         (modifiers & staticMask) == 0;
-    String? className;
-    if (isInstanceMember) {
-      className = currentTypeParameterScopeBuilder.name;
-    }
     final bool isExtensionMember = currentTypeParameterScopeBuilder.kind ==
         TypeParameterScopeKind.extensionDeclaration;
-    ExtensionName? extensionName =
-        currentTypeParameterScopeBuilder.extensionName;
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.containerName;
 
     Reference? fieldReference;
     Reference? fieldGetterReference;
@@ -2633,9 +2688,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     NameScheme nameScheme = new NameScheme(
         isInstanceMember: isInstanceMember,
-        className: className,
-        isExtensionMember: isExtensionMember,
-        extensionName: extensionName,
+        containerName: containerName,
+        containerType: containerType,
         libraryName: referencesFrom != null
             ? new LibraryName(referencesFrom!.reference)
             : libraryName);
@@ -2735,23 +2789,57 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               constructorTearOffName(constructorName),
               _currentClassReferencesFromIndexed!.library));
     }
-    DeclaredSourceConstructorBuilder constructorBuilder =
-        new DeclaredSourceConstructorBuilder(
-            metadata,
-            modifiers & ~abstractMask,
-            addInferableType(),
-            constructorName,
-            typeVariables,
-            formals,
-            this,
-            startCharOffset,
-            charOffset,
-            charOpenParenOffset,
-            charEndOffset,
-            constructorReference,
-            tearOffReference,
-            nativeMethodName: nativeMethodName,
-            forAbstractClassOrEnum: forAbstractClass);
+    AbstractSourceConstructorBuilder constructorBuilder;
+
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.containerName;
+    NameScheme nameScheme = new NameScheme(
+        isInstanceMember: false,
+        containerName: containerName,
+        containerType: containerType,
+        libraryName: referencesFrom != null
+            ? new LibraryName(referencesFrom!.reference)
+            : libraryName);
+    if (currentTypeParameterScopeBuilder.kind ==
+        TypeParameterScopeKind.inlineClassDeclaration) {
+      constructorBuilder = new SourceInlineClassConstructorBuilder(
+          metadata,
+          modifiers & ~abstractMask,
+          addInferableType(),
+          constructorName,
+          typeVariables,
+          formals,
+          this,
+          startCharOffset,
+          charOffset,
+          charOpenParenOffset,
+          charEndOffset,
+          constructorReference,
+          tearOffReference,
+          nameScheme,
+          nativeMethodName: nativeMethodName,
+          forAbstractClassOrEnum: forAbstractClass);
+    } else {
+      constructorBuilder = new DeclaredSourceConstructorBuilder(
+          metadata,
+          modifiers & ~abstractMask,
+          addInferableType(),
+          constructorName,
+          typeVariables,
+          formals,
+          this,
+          startCharOffset,
+          charOffset,
+          charOpenParenOffset,
+          charEndOffset,
+          constructorReference,
+          tearOffReference,
+          nameScheme,
+          nativeMethodName: nativeMethodName,
+          forAbstractClassOrEnum: forAbstractClass);
+    }
     checkTypeVariables(typeVariables, constructorBuilder);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.
     addBuilder(constructorName, constructorBuilder, charOffset,
@@ -2795,16 +2883,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(!isExtensionMember ||
         currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.extensionDeclaration);
-    String? className = (isInstanceMember && !isExtensionMember)
-        ? currentTypeParameterScopeBuilder.name
-        : null;
-    ExtensionName? extensionName = isExtensionMember
-        ? currentTypeParameterScopeBuilder.extensionName
-        : null;
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.containerName;
     NameScheme nameScheme = new NameScheme(
-        isExtensionMember: isExtensionMember,
-        className: className,
-        extensionName: extensionName,
+        containerName: containerName,
+        containerType: containerType,
         isInstanceMember: isInstanceMember,
         libraryName: referencesFrom != null
             ? new LibraryName(referencesFrom!.reference)
@@ -2865,8 +2950,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         tearOffReference,
         asyncModifier,
         nameScheme,
-        isExtensionMember: isExtensionMember,
-        isInstanceMember: isInstanceMember,
         nativeMethodName: nativeMethodName);
     checkTypeVariables(typeVariables, procedureBuilder);
     addBuilder(name, procedureBuilder, charOffset,
@@ -2917,10 +3000,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       procedureName = name as String;
     }
 
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.parent!.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.parent!.containerName;
+
     NameScheme procedureNameScheme = new NameScheme(
-        isExtensionMember: false,
-        className: null,
-        extensionName: null,
+        containerName: containerName,
+        containerType: containerType,
         isInstanceMember: false,
         libraryName: referencesFrom != null
             ? new LibraryName(
@@ -3051,7 +3138,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeVariables: typeVariables,
             isMacro: false,
             isSealed: false,
-            isAugmentation: false),
+            isBase: false,
+            isInterface: false,
+            isFinal: false,
+            isAugmentation: false,
+            isMixinClass: false),
         interfaceBuilders,
         enumConstantInfos,
         this,
@@ -3061,6 +3152,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charEndOffset,
         referencesFromIndexedClass,
         new Scope(
+            kind: ScopeKind.declaration,
             local: members,
             setters: setters,
             parent: scope.withTypeVariables(typeVariables),
@@ -3215,7 +3307,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (declaration is SourceExtensionBuilder) {
         declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
-      } else if (declaration is SourceViewBuilder) {
+      } else if (declaration is SourceInlineClassBuilder) {
         declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
       } else if (declaration is SourceMemberBuilder) {
@@ -3258,11 +3350,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         library.addExtension(extension);
       }
-    } else if (declaration is SourceViewBuilder) {
-      View view = declaration.build(coreLibrary,
+    } else if (declaration is SourceInlineClassBuilder) {
+      InlineClass inlineClass = declaration.build(coreLibrary,
           addMembersToLibrary: !declaration.isDuplicate);
       if (!declaration.isPatch && !declaration.isDuplicate) {
-        library.addView(view);
+        library.addInlineClass(inlineClass);
       }
     } else if (declaration is SourceMemberBuilder) {
       declaration
@@ -3869,11 +3961,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (!haveErroneousBounds) {
           List<NamedTypeBuilder> unboundTypes = [];
           List<TypeVariableBuilder> unboundTypeVariables = [];
-          List<TypeBuilder> calculatedBounds = calculateBounds(
-              variables,
-              dynamicType,
-              isNonNullableByDefault ? bottomType : nullType,
-              objectClass,
+          List<TypeBuilder> calculatedBounds = calculateBounds(variables,
+              dynamicType, isNonNullableByDefault ? bottomType : nullType,
               unboundTypes: unboundTypes,
               unboundTypeVariables: unboundTypeVariables);
           for (NamedTypeBuilder unboundType in unboundTypes) {
@@ -3924,6 +4013,54 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           inErrorRecovery: issues.isNotEmpty);
     }
 
+    void processSourceFieldBuilder(SourceFieldBuilder member) {
+      TypeBuilder? fieldType = member.type;
+      if (fieldType is! OmittedTypeBuilder) {
+        List<NonSimplicityIssue> issues =
+            getInboundReferenceIssuesInType(fieldType);
+        reportIssues(issues);
+        _recursivelyReportGenericFunctionTypesAsBoundsForType(fieldType);
+      }
+    }
+
+    void processSourceConstructorBuilder(SourceMemberBuilder member,
+        {required bool inErrorRecovery}) {
+      List<FormalParameterBuilder>? formals;
+      if (member is SourceFactoryBuilder) {
+        assert(member.isFactory,
+            "Unexpected constructor member (${member.runtimeType}).");
+        count += computeDefaultTypesForVariables(member.typeVariables,
+            // Type variables are inherited from the class so if the class
+            // has issues, so does the factory constructors.
+            inErrorRecovery: inErrorRecovery);
+        formals = member.formals;
+      } else {
+        assert(member is ConstructorDeclaration,
+            "Unexpected constructor member (${member.runtimeType}).");
+        formals = (member as ConstructorDeclaration).formals;
+      }
+      if (formals != null && formals.isNotEmpty) {
+        for (FormalParameterBuilder formal in formals) {
+          List<NonSimplicityIssue> issues =
+              getInboundReferenceIssuesInType(formal.type);
+          reportIssues(issues);
+          _recursivelyReportGenericFunctionTypesAsBoundsForType(formal.type);
+        }
+      }
+    }
+
+    void processSourceMemberBuilder(SourceMemberBuilder member,
+        {required bool inErrorRecovery}) {
+      if (member is SourceProcedureBuilder) {
+        processSourceProcedureBuilder(member);
+      } else if (member is SourceFieldBuilder) {
+        processSourceFieldBuilder(member);
+      } else {
+        processSourceConstructorBuilder(member,
+            inErrorRecovery: inErrorRecovery);
+      }
+    }
+
     void computeDefaultValuesForDeclaration(Builder declaration) {
       if (declaration is SourceClassBuilder) {
         List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(
@@ -3933,52 +4070,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
 
-        Iterator<MemberBuilder> iterator = declaration.constructorScope
-            .filteredIterator(
+        Iterator<SourceMemberBuilder> iterator = declaration.constructorScope
+            .filteredIterator<SourceMemberBuilder>(
                 includeDuplicates: false, includeAugmentations: true);
         while (iterator.moveNext()) {
-          MemberBuilder member = iterator.current;
-          List<FormalParameterBuilder>? formals;
-          if (member is SourceFactoryBuilder) {
-            assert(member.isFactory,
-                "Unexpected constructor member (${member.runtimeType}).");
-            count += computeDefaultTypesForVariables(member.typeVariables,
-                // Type variables are inherited from the class so if the class
-                // has issues, so does the factory constructors.
-                inErrorRecovery: issues.isNotEmpty);
-            formals = member.formals;
-          } else {
-            assert(member is DeclaredSourceConstructorBuilder,
-                "Unexpected constructor member (${member.runtimeType}).");
-            formals = (member as DeclaredSourceConstructorBuilder).formals;
-          }
-          if (formals != null && formals.isNotEmpty) {
-            for (FormalParameterBuilder formal in formals) {
-              List<NonSimplicityIssue> issues =
-                  getInboundReferenceIssuesInType(formal.type);
-              reportIssues(issues);
-              _recursivelyReportGenericFunctionTypesAsBoundsForType(
-                  formal.type);
-            }
-          }
+          processSourceMemberBuilder(iterator.current,
+              inErrorRecovery: issues.isNotEmpty);
         }
 
-        Iterator<Builder> memberIterator = declaration.fullMemberIterator;
+        Iterator<SourceMemberBuilder> memberIterator =
+            declaration.fullMemberIterator<SourceMemberBuilder>();
         while (memberIterator.moveNext()) {
-          Builder member = memberIterator.current;
-          if (member is SourceProcedureBuilder) {
-            processSourceProcedureBuilder(member);
-          } else {
-            assert(member is SourceFieldBuilder,
-                "Unexpected class member $member (${member.runtimeType}).");
-            TypeBuilder? fieldType = (member as SourceFieldBuilder).type;
-            if (fieldType is! OmittedTypeBuilder) {
-              List<NonSimplicityIssue> issues =
-                  getInboundReferenceIssuesInType(fieldType);
-              reportIssues(issues);
-              _recursivelyReportGenericFunctionTypesAsBoundsForType(fieldType);
-            }
-          }
+          SourceMemberBuilder member = memberIterator.current;
+          processSourceMemberBuilder(member,
+              inErrorRecovery: issues.isNotEmpty);
         }
       } else if (declaration is SourceTypeAliasBuilder) {
         List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(
@@ -3989,24 +4094,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
         _recursivelyReportGenericFunctionTypesAsBoundsForType(declaration.type);
-      } else if (declaration is SourceFunctionBuilder) {
-        List<NonSimplicityIssue> issues =
-            getNonSimplicityIssuesForTypeVariables(declaration.typeVariables);
-        if (declaration.formals != null && declaration.formals!.isNotEmpty) {
-          for (FormalParameterBuilder formal in declaration.formals!) {
-            issues.addAll(getInboundReferenceIssuesInType(formal.type));
-            _recursivelyReportGenericFunctionTypesAsBoundsForType(formal.type);
-          }
-        }
-        if (declaration.returnType is! OmittedTypeBuilder) {
-          issues
-              .addAll(getInboundReferenceIssuesInType(declaration.returnType));
-          _recursivelyReportGenericFunctionTypesAsBoundsForType(
-              declaration.returnType);
-        }
-        reportIssues(issues);
-        count += computeDefaultTypesForVariables(declaration.typeVariables,
-            inErrorRecovery: issues.isNotEmpty);
+      } else if (declaration is SourceMemberBuilder) {
+        processSourceMemberBuilder(declaration, inErrorRecovery: false);
       } else if (declaration is SourceExtensionBuilder) {
         List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(
             declaration,
@@ -4016,19 +4105,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             inErrorRecovery: issues.isNotEmpty);
 
         declaration.forEach((String name, Builder member) {
-          if (member is SourceProcedureBuilder) {
-            processSourceProcedureBuilder(member);
-          } else if (member is SourceFieldBuilder) {
-            if (member.type is! OmittedTypeBuilder) {
-              _recursivelyReportGenericFunctionTypesAsBoundsForType(
-                  member.type);
-            }
+          if (member is SourceMemberBuilder) {
+            processSourceMemberBuilder(member,
+                inErrorRecovery: issues.isNotEmpty);
           } else {
-            throw new StateError(
+            assert(false,
                 "Unexpected extension member $member (${member.runtimeType}).");
           }
         });
-      } else if (declaration is SourceViewBuilder) {
+      } else if (declaration is SourceInlineClassBuilder) {
         List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(
             declaration,
             performErrorRecovery: true);
@@ -4037,26 +4122,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             inErrorRecovery: issues.isNotEmpty);
 
         declaration.forEach((String name, Builder member) {
-          if (member is SourceProcedureBuilder) {
-            processSourceProcedureBuilder(member);
-          } else if (member is SourceFieldBuilder) {
-            if (member.type is! OmittedTypeBuilder) {
-              _recursivelyReportGenericFunctionTypesAsBoundsForType(
-                  member.type);
-            }
+          if (member is SourceMemberBuilder) {
+            processSourceMemberBuilder(member,
+                inErrorRecovery: issues.isNotEmpty);
           } else {
-            throw new StateError(
-                "Unexpected extension member $member (${member.runtimeType}).");
+            assert(
+                false,
+                "Unexpected inline class member "
+                "$member (${member.runtimeType}).");
           }
         });
-      } else if (declaration is SourceFieldBuilder) {
-        if (declaration.type is! OmittedTypeBuilder) {
-          List<NonSimplicityIssue> issues =
-              getInboundReferenceIssuesInType(declaration.type);
-          reportIssues(issues);
-          _recursivelyReportGenericFunctionTypesAsBoundsForType(
-              declaration.type);
-        }
       } else {
         assert(
             declaration is PrefixBuilder ||
@@ -4141,7 +4216,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (builder is SourceExtensionBuilder) {
         count +=
             builder.buildBodyNodes(addMembersToLibrary: !builder.isDuplicate);
-      } else if (builder is SourceViewBuilder) {
+      } else if (builder is SourceInlineClassBuilder) {
         count +=
             builder.buildBodyNodes(addMembersToLibrary: !builder.isDuplicate);
       } else if (builder is SourceClassBuilder) {
@@ -4343,10 +4418,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInConstructorBuilder(
-      DeclaredSourceConstructorBuilder constructorBuilder,
+      SourceConstructorBuilder constructorBuilder,
+      List<FormalParameterBuilder>? formals,
       TypeEnvironment typeEnvironment) {
-    if (!constructorBuilder.isExternal && constructorBuilder.formals != null) {
-      checkInitializersInFormals(constructorBuilder.formals!, typeEnvironment);
+    if (!constructorBuilder.isExternal && formals != null) {
+      checkInitializersInFormals(formals, typeEnvironment);
     }
   }
 
@@ -4613,7 +4689,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
-      } else if (declaration is SourceViewBuilder) {
+      } else if (declaration is SourceInlineClassBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceTypeAliasBuilder) {
         // Do nothing.
@@ -4938,6 +5014,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         case TypeUse.returnType:
         case TypeUse.isType:
         case TypeUse.asType:
+        case TypeUse.objectPatternType:
         case TypeUse.catchType:
         case TypeUse.constructorTypeArgument:
         case TypeUse.redirectionTypeArgument:
@@ -5051,7 +5128,7 @@ enum TypeParameterScopeKind {
   unnamedMixinApplication,
   namedMixinApplication,
   extensionDeclaration,
-  viewDeclaration,
+  inlineClassDeclaration,
   typedef,
   staticMethod,
   instanceMethod,
@@ -5060,6 +5137,62 @@ enum TypeParameterScopeKind {
   factoryMethod,
   functionType,
   enumDeclaration,
+}
+
+extension on TypeParameterScopeBuilder {
+  /// Returns the [ContainerName] corresponding to this type parameter scope,
+  /// if any.
+  ContainerName? get containerName {
+    switch (kind) {
+      case TypeParameterScopeKind.library:
+        return null;
+      case TypeParameterScopeKind.classOrNamedMixinApplication:
+      case TypeParameterScopeKind.classDeclaration:
+      case TypeParameterScopeKind.mixinDeclaration:
+      case TypeParameterScopeKind.unnamedMixinApplication:
+      case TypeParameterScopeKind.namedMixinApplication:
+      case TypeParameterScopeKind.enumDeclaration:
+      case TypeParameterScopeKind.inlineClassDeclaration:
+        return new ClassName(name);
+      case TypeParameterScopeKind.extensionDeclaration:
+        return extensionName;
+      case TypeParameterScopeKind.typedef:
+      case TypeParameterScopeKind.staticMethod:
+      case TypeParameterScopeKind.instanceMethod:
+      case TypeParameterScopeKind.constructor:
+      case TypeParameterScopeKind.topLevelMethod:
+      case TypeParameterScopeKind.factoryMethod:
+      case TypeParameterScopeKind.functionType:
+        throw new UnsupportedError("Unexpected field container: ${this}");
+    }
+  }
+
+  /// Returns the [ContainerType] corresponding to this type parameter scope.
+  ContainerType get containerType {
+    switch (kind) {
+      case TypeParameterScopeKind.library:
+        return ContainerType.Library;
+      case TypeParameterScopeKind.classOrNamedMixinApplication:
+      case TypeParameterScopeKind.classDeclaration:
+      case TypeParameterScopeKind.mixinDeclaration:
+      case TypeParameterScopeKind.unnamedMixinApplication:
+      case TypeParameterScopeKind.namedMixinApplication:
+      case TypeParameterScopeKind.enumDeclaration:
+        return ContainerType.Class;
+      case TypeParameterScopeKind.extensionDeclaration:
+        return ContainerType.Extension;
+      case TypeParameterScopeKind.inlineClassDeclaration:
+        return ContainerType.InlineClass;
+      case TypeParameterScopeKind.typedef:
+      case TypeParameterScopeKind.staticMethod:
+      case TypeParameterScopeKind.instanceMethod:
+      case TypeParameterScopeKind.constructor:
+      case TypeParameterScopeKind.topLevelMethod:
+      case TypeParameterScopeKind.factoryMethod:
+      case TypeParameterScopeKind.functionType:
+        throw new UnsupportedError("Unexpected field container: ${this}");
+    }
+  }
 }
 
 /// A builder object preparing for building declarations that can introduce type
@@ -5192,13 +5325,13 @@ class TypeParameterScopeBuilder {
     _typeVariables = typeVariables;
   }
 
-  /// Registers that this builder is preparing for a view declaration with the
-  /// given [name] and [typeVariables] located [charOffset].
-  void markAsViewDeclaration(
+  /// Registers that this builder is preparing for an inline class declaration
+  /// with the given [name] and [typeVariables] located [charOffset].
+  void markAsInlineClassDeclaration(
       String name, int charOffset, List<TypeVariableBuilder>? typeVariables) {
     assert(_kind == TypeParameterScopeKind.classOrNamedMixinApplication,
         "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.viewDeclaration;
+    _kind = TypeParameterScopeKind.inlineClassDeclaration;
     _name = name;
     _charOffset = charOffset;
     _typeVariables = typeVariables;
@@ -5344,12 +5477,14 @@ class TypeParameterScopeBuilder {
     if (omittedTypeDeclarationBuilders != null &&
         omittedTypeDeclarationBuilders.isNotEmpty) {
       parent = new Scope(
+          kind: ScopeKind.typeParameters,
           local: omittedTypeDeclarationBuilders,
           parent: parent,
           debugName: 'omitted-types',
           isModifiable: false);
     }
     return new Scope(
+        kind: ScopeKind.typeParameters,
         local: members ?? const {},
         setters: setters,
         extensions: extensions,

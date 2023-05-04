@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: testFunctionStatement:[null|exact=JSUInt31]*/
 testFunctionStatement() {
   var res;
@@ -46,7 +44,7 @@ class A {
 testStoredInInstance() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
-  var a = new A(closure);
+  var a = A(closure);
   a.field /*invoke: [exact=A]*/ (42);
   return res;
 }
@@ -59,11 +57,11 @@ testStoredInMapOfList() {
   dynamic b = <dynamic, dynamic>{'foo': 1};
 
   b
-      /*update: Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
+      /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
       ['bar'] = a;
 
   b
-          /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
+          /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
           ['bar']
 
       /*Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)*/
@@ -126,6 +124,17 @@ testStoredInListOfListUsingAdd() {
           [3]
       /*Union([exact=JSExtendableArray], [exact=JSUInt31])*/
       [0](42);
+  return res;
+}
+
+/*member: testStoredInRecord:[null|exact=JSUInt31]*/
+testStoredInRecord() {
+  var res;
+  /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
+  final a = (3, closure);
+
+  a. /*[Record(RecordShape(2), [[exact=JSUInt31], [subclass=Closure]])]*/ $2(
+      42);
   return res;
 }
 
@@ -194,6 +203,41 @@ testStaticClosure4() {
   return topLevel4;
 }
 
+/*member: bar1:[subclass=Closure]*/
+int Function(int, [int]) bar1(
+        int /*[exact=JSUInt31]*/ a) => /*[subclass=JSInt]*/
+    (int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/ b,
+            [int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/
+                c = 17]) =>
+        a /*invoke: [exact=JSUInt31]*/ + b /*invoke: [subclass=JSInt]*/ + c;
+/*member: bar2:[subclass=Closure]*/
+int Function(int, [int]) bar2(
+        int /*[exact=JSUInt31]*/ a) => /*[subclass=JSInt]*/
+    (int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/ b,
+            [int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/
+                c = 17]) =>
+        a /*invoke: [exact=JSUInt31]*/ + b /*invoke: [subclass=JSInt]*/ + c;
+/*member: bar3:[subclass=Closure]*/
+int Function(int, [int]) bar3(
+        int /*[exact=JSUInt31]*/ a) => /*[subclass=JSPositiveInt]*/
+    (int /*[exact=JSUInt31]*/ b, [int /*[exact=JSUInt31]*/ c = 17]) =>
+        a /*invoke: [exact=JSUInt31]*/ + b /*invoke: [subclass=JSUInt32]*/ + c;
+
+/*member: testFunctionApply:[null|subclass=Object]*/
+testFunctionApply() {
+  return Function.apply(bar1(10), [20]);
+}
+
+/*member: testRecordFunctionApply:[null|subclass=Object]*/
+testRecordFunctionApply() {
+  final rec = (bar2(10), bar3(10));
+  (rec. /*[Record(RecordShape(2), [[subclass=Closure], [subclass=Closure]])]*/ $2)(
+      2, 3);
+  return Function.apply(
+      rec. /*[Record(RecordShape(2), [[subclass=Closure], [subclass=Closure]])]*/ $1,
+      [20]);
+}
+
 /*member: main:[null]*/
 main() {
   testFunctionStatement();
@@ -204,9 +248,12 @@ main() {
   testStoredInListOfList();
   testStoredInListOfListUsingInsert();
   testStoredInListOfListUsingAdd();
+  testStoredInRecord();
   testPassedInParameter();
   testStaticClosure1();
   testStaticClosure2();
   testStaticClosure3();
   testStaticClosure4();
+  testFunctionApply();
+  testRecordFunctionApply();
 }

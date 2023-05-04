@@ -9,7 +9,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
-import '../universe/record_shape.dart';
+import 'util.dart' show recordShapeOfRecordType;
 
 /// Visitor that converts string literals and concatenations of string literals
 /// into the string value.
@@ -168,16 +168,10 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitRecordType(ir.RecordType node) {
-    final positional = node.positional;
-    final named = node.named;
-    final shape = RecordShape(
-        positional.length,
-        named.isEmpty
-            ? const []
-            : named.map((n) => n.name).toList(growable: false));
+    final shape = recordShapeOfRecordType(node);
     List<DartType> fields = [
-      for (final type in positional) visitType(type),
-      for (final namedType in named) visitType(namedType.type)
+      for (final type in node.positional) visitType(type),
+      for (final namedType in node.named) visitType(namedType.type)
     ].toList(growable: false);
     return _convertNullability(_dartTypes.recordType(shape, fields), node);
   }
@@ -213,6 +207,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   @override
   DartType visitNullType(ir.NullType node) {
     return elementMap.commonElements.nullType;
+  }
+
+  @override
+  DartType visitInlineType(ir.InlineType node) {
+    return node.instantiatedRepresentationType.accept(this);
   }
 
   @override
@@ -315,7 +314,12 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
 
   @override
   ConstantValue visitRecordConstant(ir.RecordConstant node) {
-    return defaultConstant(node);
+    final shape = recordShapeOfRecordType(node.recordType);
+    final fieldValues = [
+      for (final value in node.positional) visitConstant(value),
+      for (final value in node.named.values) visitConstant(value)
+    ];
+    return RecordConstantValue(shape, fieldValues);
   }
 
   @override

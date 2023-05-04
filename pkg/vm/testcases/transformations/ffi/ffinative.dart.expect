@@ -9,7 +9,7 @@ import "dart:ffi";
 import "dart:nativewrappers";
 
 class Classy extends core::Object {
-  static final field (core::int) → core::int _returnIntPtrStatic$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (core::int) → core::int _returnIntPtrStatic$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr) → ffi::IntPtr>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr) → ffi::IntPtr>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
   synthetic constructor •() → self::Classy
     : super core::Object::•()
     ;
@@ -17,15 +17,15 @@ class Classy extends core::Object {
     return self::Classy::_returnIntPtrStatic$Method$FfiNative$Ptr(x){(core::int) → core::int};
 }
 class NativeClassy extends nat::NativeFieldWrapperClass1 {
-  static final field (ffi::Pointer<ffi::Void>, core::int) → void _goodHasReceiverPointer$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, core::int) → void, (ffi::Pointer<ffi::Void*>*, ffi::IntPtr*) →* ffi::Void*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void*>*, ffi::IntPtr*) →* ffi::Void*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-  static final field (self::NativeClassy, core::int) → void _goodHasReceiverHandle$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(self::NativeClassy, core::int) → void, (ffi::Handle*, ffi::IntPtr*) →* ffi::Void*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle*, ffi::IntPtr*) →* ffi::Void*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-  static final field (self::NativeClassy, ffi::Pointer<ffi::Void>) → void _goodHasReceiverHandleAndPtr$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(self::NativeClassy, ffi::Pointer<ffi::Void>) → void, (ffi::Handle*, ffi::Pointer<ffi::Void*>*) →* ffi::Void*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle*, ffi::Pointer<ffi::Void*>*) →* ffi::Void*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-  static final field (self::NativeClassy, self::NativeClassy) → void _goodHasReceiverHandleAndHandle$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(self::NativeClassy, self::NativeClassy) → void, (ffi::Handle*, ffi::Handle*) →* ffi::Void*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle*, ffi::Handle*) →* ffi::Void*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-  static final field (ffi::Pointer<ffi::Void>, self::NativeClassy) → void _goodHasReceiverPtrAndHandle$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, self::NativeClassy) → void, (ffi::Pointer<ffi::Void*>*, ffi::Handle*) →* ffi::Void*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void*>*, ffi::Handle*) →* ffi::Void*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-  static final field (ffi::Pointer<ffi::Void>, core::bool) → core::Object? _meh$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, core::bool) → core::Object?, (ffi::Pointer<ffi::Void*>*, ffi::Bool*) →* ffi::Handle*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void*>*, ffi::Bool*) →* ffi::Handle*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-  static final field (ffi::Pointer<ffi::Void>) → core::bool _blah$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>) → core::bool, (ffi::Pointer<ffi::Void*>*) →* ffi::Bool*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void*>*) →* ffi::Bool*>*>(ffi::_ffi_resolver(#C1, #C4, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-  static final field (ffi::Pointer<ffi::Void>) → core::bool _myField$Getter$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>) → core::bool, (ffi::Pointer<ffi::Void*>*) →* ffi::Bool*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void*>*) →* ffi::Bool*>*>(ffi::_ffi_resolver(#C1, #C4, #C3){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
-  static final field (ffi::Pointer<ffi::Void>, core::bool) → void _myField$Setter$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, core::bool) → void, (ffi::Pointer<ffi::Void*>*, ffi::Bool*) →* ffi::Void*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void*>*, ffi::Bool*) →* ffi::Void*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
+  static final field (ffi::Pointer<ffi::Void>, core::int) → void _goodHasReceiverPointer$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, core::int) → void, (ffi::Pointer<ffi::Void>, ffi::IntPtr) → ffi::Void>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>, ffi::IntPtr) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (self::NativeClassy, core::int) → void _goodHasReceiverHandle$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(self::NativeClassy, core::int) → void, (ffi::Handle, ffi::IntPtr) → ffi::Void>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle, ffi::IntPtr) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (self::NativeClassy, ffi::Pointer<ffi::Void>) → void _goodHasReceiverHandleAndPtr$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(self::NativeClassy, ffi::Pointer<ffi::Void>) → void, (ffi::Handle, ffi::Pointer<ffi::Void>) → ffi::Void>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle, ffi::Pointer<ffi::Void>) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (self::NativeClassy, self::NativeClassy) → void _goodHasReceiverHandleAndHandle$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(self::NativeClassy, self::NativeClassy) → void, (ffi::Handle, ffi::Handle) → ffi::Void>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle, ffi::Handle) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (ffi::Pointer<ffi::Void>, self::NativeClassy) → void _goodHasReceiverPtrAndHandle$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, self::NativeClassy) → void, (ffi::Pointer<ffi::Void>, ffi::Handle) → ffi::Void>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>, ffi::Handle) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (ffi::Pointer<ffi::Void>, core::bool) → core::Object? _meh$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, core::bool) → core::Object?, (ffi::Pointer<ffi::Void>, ffi::Bool) → ffi::Handle>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>, ffi::Bool) → ffi::Handle>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (ffi::Pointer<ffi::Void>) → core::bool _blah$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>) → core::bool, (ffi::Pointer<ffi::Void>) → ffi::Bool>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>) → ffi::Bool>*>(ffi::_ffi_resolver(#C1, #C4, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (ffi::Pointer<ffi::Void>) → core::bool _myField$Getter$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>) → core::bool, (ffi::Pointer<ffi::Void>) → ffi::Bool>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>) → ffi::Bool>*>(ffi::_ffi_resolver(#C1, #C4, #C3){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
+  static final field (ffi::Pointer<ffi::Void>, core::bool) → void _myField$Setter$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, core::bool) → void, (ffi::Pointer<ffi::Void>, ffi::Bool) → ffi::Void>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>, ffi::Bool) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
   synthetic constructor •() → self::NativeClassy
     : super nat::NativeFieldWrapperClass1::•()
     ;
@@ -34,7 +34,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t1 = this;
       final core::int #t2 = v;
       final void #t3 = self::NativeClassy::_goodHasReceiverPointer$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t1);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t1);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else
@@ -58,7 +58,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t7 = this;
       final self::NativeClassy #t8 = v;
       final void #t9 = self::NativeClassy::_goodHasReceiverPtrAndHandle$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t7);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t7);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else
@@ -71,7 +71,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t10 = this;
       final core::bool #t11 = blah;
       final core::String? #t12 = _in::unsafeCast<core::String?>(self::NativeClassy::_meh$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t10);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t10);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else
@@ -83,7 +83,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t13 = this;
       final core::bool #t14 = self::NativeClassy::_blah$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t13);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t13);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else
@@ -95,7 +95,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t15 = this;
       final core::bool #t16 = self::NativeClassy::_myField$Getter$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t15);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t15);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else
@@ -108,7 +108,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t17 = this;
       final core::bool #t18 = value;
       final void #t19 = self::NativeClassy::_myField$Setter$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = nat::_getNativeField(#t17);
+        synthesized core::int #pointerAddress = nat::_getNativeField(#t17);
         if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
           core::StateError::_throwNew(#C7);
         else
@@ -117,8 +117,8 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       _in::reachabilityFence(#t17);
     } =>#t19;
 }
-static final field (core::int) → core::int _returnIntPtr$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-static final field (core::int) → core::int _returnIntPtrLeaf$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
+static final field (core::int) → core::int _returnIntPtr$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr) → ffi::IntPtr>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr) → ffi::IntPtr>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+static final field (core::int) → core::int _returnIntPtrLeaf$Method$FfiNative$Ptr = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr) → ffi::IntPtr>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr) → ffi::IntPtr>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
 static method returnIntPtr(core::int x) → core::int
   return self::_returnIntPtr$Method$FfiNative$Ptr(x){(core::int) → core::int};
 static method returnIntPtrLeaf(core::int x) → core::int

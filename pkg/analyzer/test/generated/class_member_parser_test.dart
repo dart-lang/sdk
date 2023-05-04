@@ -421,7 +421,7 @@ class ClassMemberParserTest extends FastaParserTestCase
   }
 
   void test_parseClassMember_field_generic() {
-    createParser('List<List<N>> _allComponents = new List<List<N>>();');
+    createParser('List<List<N>> _allComponents = new List<List<N>>.empty();');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertNoErrors();
@@ -1540,7 +1540,6 @@ void Function<A>(core.List<core.int> x) m() => null;
     // https://github.com/dart-lang/sdk/issues/37693
     parseCompilationUnit('class C{ C() : super() * (); }', errors: [
       expectedError(ParserErrorCode.INVALID_INITIALIZER, 15, 12),
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 25, 1),
     ]);
   }
 

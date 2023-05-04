@@ -26,7 +26,6 @@ namespace kernel {
 TranslationHelper::TranslationHelper(Thread* thread)
     : thread_(thread),
       zone_(thread->zone()),
-      isolate_(thread->isolate()),
       isolate_group_(thread->isolate_group()),
       allocation_space_(Heap::kNew),
       string_offsets_(TypedData::Handle(Z)),
@@ -42,7 +41,6 @@ TranslationHelper::TranslationHelper(Thread* thread)
 TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
     : thread_(thread),
       zone_(thread->zone()),
-      isolate_(thread->isolate()),
       isolate_group_(thread->isolate_group()),
       allocation_space_(space),
       string_offsets_(TypedData::Handle(Z)),
@@ -87,33 +85,6 @@ void TranslationHelper::InitFromKernelProgramInfo(
   SetConstants(Array::Handle(Z, info.constants()));
   SetConstantsTable(ExternalTypedData::Handle(Z, info.constants_table()));
   SetKernelProgramInfo(info);
-}
-
-GrowableObjectArrayPtr TranslationHelper::EnsurePotentialPragmaFunctions() {
-  auto& funcs =
-      GrowableObjectArray::Handle(Z, info_.potential_pragma_functions());
-  if (funcs.IsNull()) {
-    funcs = GrowableObjectArray::New(16, Heap::kNew);
-    info_.set_potential_pragma_functions(funcs);
-  }
-  return funcs.ptr();
-}
-
-void TranslationHelper::AddPotentialExtensionLibrary(const Library& library) {
-  if (potential_extension_libraries_ == nullptr) {
-    potential_extension_libraries_ =
-        &GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  }
-  potential_extension_libraries_->Add(library);
-}
-
-GrowableObjectArrayPtr TranslationHelper::GetPotentialExtensionLibraries() {
-  if (potential_extension_libraries_ != nullptr) {
-    GrowableObjectArray* result = potential_extension_libraries_;
-    potential_extension_libraries_ = nullptr;
-    return result->ptr();
-  }
-  return GrowableObjectArray::null();
 }
 
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
@@ -525,22 +496,27 @@ const String& TranslationHelper::DartFactoryName(NameIndex factory) {
   return String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
 }
 
-// TODO(https://github.com/dart-lang/sdk/issues/37517): Should emit code to
-// throw a NoSuchMethodError.
-static void CheckStaticLookup(const Object& target) {
-  if (target.IsNull()) {
-#ifndef PRODUCT
-    ASSERT(IsolateGroup::Current()->HasAttemptedReload());
-    Report::LongJump(LanguageError::Handle(LanguageError::New(String::Handle(
-        String::New("Unimplemented handling of missing static target")))));
-#else
-    UNREACHABLE();
-#endif
+void TranslationHelper::LookupFailed(NameIndex name) {
+  String& message = String::Handle(String::New("Lookup failed: "));
+  message = String::Concat(message, DartString(CanonicalNameString(name)));
+  name = CanonicalNameParent(name);
+  while (!IsRoot(name)) {
+    message = String::Concat(message, String::Handle(String::New(" in ")));
+    message = String::Concat(message, DartString(CanonicalNameString(name)));
+    name = CanonicalNameParent(name);
   }
+  Report::LongJump(LanguageError::Handle(LanguageError::New(message)));
+}
+
+void TranslationHelper::LookupFailed(StringIndex name) {
+  const String& message = String::Handle(String::Concat(
+      String::Handle(String::New("Lookup failed: ")), DartString(name)));
+  Report::LongJump(LanguageError::Handle(LanguageError::New(message)));
 }
 
 LibraryPtr TranslationHelper::LookupLibraryByKernelLibrary(
-    NameIndex kernel_library) {
+    NameIndex kernel_library,
+    bool required) {
   // We only use the string and don't rely on having any particular parent.
   // This ASSERT is just a sanity check.
   ASSERT(IsLibrary(kernel_library) ||
@@ -559,12 +535,18 @@ LibraryPtr TranslationHelper::LookupLibraryByKernelLibrary(
   ASSERT(!library_name.IsNull());
   const Library& library =
       Library::Handle(Z, Library::LookupLibrary(thread_, library_name));
-  CheckStaticLookup(library);
+  if (library.IsNull()) {
+    if (required) {
+      LookupFailed(kernel_library);
+    }
+    return Library::null();
+  }
   name_index_handle_ = Smi::New(kernel_library);
   return info_.InsertLibrary(thread_, name_index_handle_, library);
 }
 
-ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
+ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class,
+                                                     bool required) {
   ASSERT(IsClass(kernel_class));
   {
     name_index_handle_ = Smi::New(kernel_class);
@@ -577,35 +559,58 @@ ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
 
   const String& class_name = DartClassName(kernel_class);
   NameIndex kernel_library = CanonicalNameParent(kernel_class);
-  Library& library =
-      Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
-  ASSERT(!library.IsNull());
+  Library& library = Library::Handle(
+      Z, LookupLibraryByKernelLibrary(kernel_library, /*required=*/false));
+  if (library.IsNull()) {
+    if (required) {
+      LookupFailed(kernel_class);
+    }
+    return Class::null();
+  }
   const Class& klass =
       Class::Handle(Z, library.LookupClassAllowPrivate(class_name));
-  CheckStaticLookup(klass);
-  ASSERT(!klass.IsNull());
+  if (klass.IsNull()) {
+    if (required) {
+      LookupFailed(kernel_class);
+    }
+    return Class::null();
+  }
   name_index_handle_ = Smi::New(kernel_class);
   return info_.InsertClass(thread_, name_index_handle_, klass);
 }
 
-FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
+FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field,
+                                                     bool required) {
   ASSERT(IsField(kernel_field));
   NameIndex enclosing = EnclosingName(kernel_field);
 
   Class& klass = Class::Handle(Z);
   if (IsLibrary(enclosing)) {
-    Library& library =
-        Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
+    Library& library = Library::Handle(
+        Z, LookupLibraryByKernelLibrary(enclosing, /*required=*/false));
+    if (library.IsNull()) {
+      if (required) {
+        LookupFailed(kernel_field);
+      }
+      return Field::null();
+    }
     klass = library.toplevel_class();
-    CheckStaticLookup(klass);
   } else {
     ASSERT(IsClass(enclosing));
-    klass = LookupClassByKernelClass(enclosing);
+    klass = LookupClassByKernelClass(enclosing, /*required=*/false);
+    if (klass.IsNull()) {
+      if (required) {
+        LookupFailed(kernel_field);
+      }
+      return Field::null();
+    }
   }
   Field& field = Field::Handle(
       Z, klass.LookupFieldAllowPrivate(
              DartSymbolObfuscate(CanonicalNameString(kernel_field))));
-  CheckStaticLookup(field);
+  if (field.IsNull() && required) {
+    LookupFailed(kernel_field);
+  }
   return field.ptr();
 }
 
@@ -617,19 +622,30 @@ FieldPtr TranslationHelper::LookupFieldByKernelGetterOrSetter(
 
   Class& klass = Class::Handle(Z);
   if (IsLibrary(enclosing)) {
-    Library& library =
-        Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
+    Library& library = Library::Handle(
+        Z, LookupLibraryByKernelLibrary(enclosing, /*required=*/false));
+    if (library.IsNull()) {
+      if (required) {
+        LookupFailed(kernel_field);
+      }
+      return Field::null();
+    }
     klass = library.toplevel_class();
-    CheckStaticLookup(klass);
   } else {
     ASSERT(IsClass(enclosing));
-    klass = LookupClassByKernelClass(enclosing);
+    klass = LookupClassByKernelClass(enclosing, /*required=*/false);
+    if (klass.IsNull()) {
+      if (required) {
+        LookupFailed(kernel_field);
+      }
+      return Field::null();
+    }
   }
   Field& field = Field::Handle(
       Z, klass.LookupFieldAllowPrivate(
              DartSymbolObfuscate(CanonicalNameString(kernel_field))));
-  if (required) {
-    CheckStaticLookup(field);
+  if (field.IsNull() && required) {
+    LookupFailed(kernel_field);
   }
   return field.ptr();
 }
@@ -642,53 +658,66 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
   // The parent is either a library or a class (in which case the procedure is a
   // static method).
   NameIndex enclosing = EnclosingName(procedure);
+  Function& function = Function::Handle(Z);
   if (IsLibrary(enclosing)) {
-    Library& library =
-        Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
-    Function& function =
-        Function::Handle(Z, library.LookupFunctionAllowPrivate(procedure_name));
-    if (required) {
-      CheckStaticLookup(function);
+    Library& library = Library::Handle(
+        Z, LookupLibraryByKernelLibrary(enclosing, /*required=*/false));
+    if (!library.IsNull()) {
+      function = library.LookupFunctionAllowPrivate(procedure_name);
     }
-    return function.ptr();
   } else {
     ASSERT(IsClass(enclosing));
-    Class& klass = Class::Handle(Z, LookupClassByKernelClass(enclosing));
-    const auto& error = klass.EnsureIsFinalized(thread_);
-    ASSERT(error == Error::null());
-    Function& function = Function::ZoneHandle(
-        Z, klass.LookupFunctionAllowPrivate(procedure_name));
-    if (required) {
-      CheckStaticLookup(function);
+    Class& klass = Class::Handle(
+        Z, LookupClassByKernelClass(enclosing, /*required=*/false));
+    if (!klass.IsNull()) {
+      const auto& error = klass.EnsureIsFinalized(thread_);
+      ASSERT(error == Error::null());
+      function = klass.LookupFunctionAllowPrivate(procedure_name);
     }
-    return function.ptr();
   }
+  if (function.IsNull() && required) {
+    LookupFailed(procedure);
+  }
+  return function.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
-    NameIndex constructor) {
+    NameIndex constructor,
+    bool required) {
   ASSERT(IsConstructor(constructor));
-  Class& klass =
-      Class::Handle(Z, LookupClassByKernelClass(EnclosingName(constructor)));
-  CheckStaticLookup(klass);
-  return LookupConstructorByKernelConstructor(klass, constructor);
-}
-
-FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
-    const Class& owner,
-    NameIndex constructor) {
-  ASSERT(IsConstructor(constructor));
-  const auto& error = owner.EnsureIsFinalized(thread_);
-  ASSERT(error == Error::null());
-  Function& function = Function::Handle(
-      Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
-  CheckStaticLookup(function);
+  Class& klass = Class::Handle(
+      Z,
+      LookupClassByKernelClass(EnclosingName(constructor), /*required=*/false));
+  Function& function = Function::Handle(Z);
+  if (!klass.IsNull()) {
+    function = LookupConstructorByKernelConstructor(klass, constructor,
+                                                    /*required=*/false);
+  }
+  if (function.IsNull() && required) {
+    LookupFailed(constructor);
+  }
   return function.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
     const Class& owner,
-    StringIndex constructor_name) {
+    NameIndex constructor,
+    bool required) {
+  ASSERT(IsConstructor(constructor));
+  const auto& error = owner.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
+  Function& function = Function::Handle(
+      Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
+  if (function.IsNull() && required) {
+    LookupFailed(constructor);
+  }
+  return function.ptr();
+}
+
+FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
+    const Class& owner,
+    StringIndex constructor_name,
+    bool required) {
   GrowableHandlePtrArray<const String> pieces(Z, 3);
   pieces.Add(String::Handle(Z, owner.Name()));
   pieces.Add(Symbols::Dot());
@@ -700,26 +729,25 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
   const auto& error = owner.EnsureIsFinalized(thread_);
   ASSERT(error == Error::null());
   FunctionPtr function = owner.LookupConstructorAllowPrivate(new_name);
-  ASSERT(function != Object::null());
+  if (function == Object::null() && required) {
+    LookupFailed(constructor_name);
+  }
   return function;
 }
 
 FunctionPtr TranslationHelper::LookupMethodByMember(NameIndex target,
-                                                    const String& method_name) {
+                                                    const String& method_name,
+                                                    bool required) {
   NameIndex kernel_class = EnclosingName(target);
-  Class& klass = Class::Handle(Z, LookupClassByKernelClass(kernel_class));
+  Class& klass = Class::Handle(
+      Z, LookupClassByKernelClass(kernel_class, /*required=*/false));
   Function& function = Function::Handle(Z);
-  if (klass.EnsureIsFinalized(thread_) == Error::null()) {
+  if (!klass.IsNull() && klass.EnsureIsFinalized(thread_) == Error::null()) {
     function = klass.LookupFunctionAllowPrivate(method_name);
   }
-#ifdef DEBUG
-  if (function.IsNull()) {
-    THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),
-              klass.ToCString());
+  if (function.IsNull() && required) {
+    LookupFailed(target);
   }
-#endif
-  CheckStaticLookup(function);
-  ASSERT(!function.IsNull());
   return function.ptr();
 }
 
@@ -1287,7 +1315,7 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      flags_ = helper_->ReadFlags();  // read flags.
+      flags_ = helper_->ReadUInt();  // read flags.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kNameIndex:
@@ -1581,7 +1609,7 @@ void MetadataHelper::ScanMetadataMappings() {
 
     if (H.StringEquals(tag, tag_)) {
       if ((!FLAG_precompiled_mode) && precompiler_only_) {
-        FATAL1("%s metadata is allowed in precompiled mode only", tag_);
+        FATAL("%s metadata is allowed in precompiled mode only", tag_);
       }
       SetMetadataMappings(offset + kUInt32Size, mappings_num);
       return;
@@ -1915,7 +1943,7 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
           translation_helper_.DartSymbolPlain(helper_->ReadStringReference());
       lib = Library::LookupLibrary(thread, uri);
       if (lib.IsNull()) {
-        FATAL1("Missing library: %s\n", uri.ToCString());
+        FATAL("Missing library: %s\n", uri.ToCString());
       }
       lib.set_loading_unit(unit);
       uris.SetAt(j, uri);
@@ -2011,18 +2039,39 @@ UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
   const auto info = new (helper_->zone_) UnboxingInfoMetadata();
   info->SetArgsCount(num_args);
   for (intptr_t i = 0; i < num_args; i++) {
-    const intptr_t arg_info = helper_->ReadByte();
-    assert(arg_info >= UnboxingInfoMetadata::kBoxed &&
-           arg_info < UnboxingInfoMetadata::kUnboxingCandidate);
-    info->unboxed_args_info[i] =
-        static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(arg_info);
+    info->unboxed_args_info[i] = ReadUnboxingType();
   }
-  const intptr_t return_info = helper_->ReadByte();
-  assert(return_info >= UnboxingInfoMetadata::kBoxed &&
-         return_info < UnboxingInfoMetadata::kUnboxingCandidate);
-  info->return_info =
-      static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(return_info);
+  info->return_info = ReadUnboxingType();
   return info;
+}
+
+UnboxingInfoMetadata::UnboxingType
+UnboxingInfoMetadataHelper::ReadUnboxingType() const {
+  const auto kind =
+      static_cast<UnboxingInfoMetadata::UnboxingKind>(helper_->ReadByte());
+  ASSERT(kind >= UnboxingInfoMetadata::kBoxed &&
+         kind < UnboxingInfoMetadata::kUnknown);
+  if (kind == UnboxingInfoMetadata::kRecord) {
+    // Read and register record shape.
+    const intptr_t num_positional = helper_->ReadUInt();
+    const intptr_t num_named = helper_->ReadUInt();
+    const Array* field_names = &Array::empty_array();
+    if (num_named > 0) {
+      auto& names = Array::Handle(helper_->zone_, Array::New(num_named));
+      for (intptr_t i = 0; i < num_named; ++i) {
+        const String& name = helper_->translation_helper_.DartSymbolObfuscate(
+            helper_->ReadStringReference());
+        names.SetAt(i, name);
+      }
+      names.MakeImmutable();
+      field_names = &names;
+    }
+    const intptr_t num_fields = num_positional + num_named;
+    const RecordShape shape = RecordShape::Register(
+        helper_->translation_helper_.thread(), num_fields, *field_names);
+    return {kind, shape};
+  }
+  return {kind, RecordShape::ForUnnamed(0)};
 }
 
 intptr_t KernelReaderHelper::ReaderOffset() const {
@@ -2167,8 +2216,8 @@ void KernelReaderHelper::SkipInterfaceMemberNameReference() {
 }
 
 void KernelReaderHelper::ReportUnexpectedTag(const char* variant, Tag tag) {
-  FATAL3("Unexpected tag %d (%s) in ?, expected %s", tag, Reader::TagName(tag),
-         variant);
+  FATAL("Unexpected tag %d (%s) in ?, expected %s", tag, Reader::TagName(tag),
+        variant);
 }
 
 void KernelReaderHelper::ReadUntilFunctionNode() {
@@ -2224,11 +2273,11 @@ void KernelReaderHelper::SkipDartType() {
       }
       return;
     }
-    case kViewType: {
+    case kInlineType: {
       ReadNullability();
       SkipCanonicalNameReference();  // read index for canonical name.
       SkipListOfDartTypes();         // read type arguments
-      SkipDartType();                // read representation type.
+      SkipDartType();                // read instantiated representation type.
       break;
     }
     case kTypedefType:
@@ -2702,8 +2751,10 @@ void KernelReaderHelper::SkipExpression() {
     case kInstanceCreation:
     case kFileUriExpression:
     case kStaticTearOff:
-      // These nodes are internal to the front end and
-      // removed by the constant evaluator.
+    case kSwitchExpression:
+    case kPatternAssignment:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();
@@ -2841,6 +2892,11 @@ void KernelReaderHelper::SkipStatement() {
       SkipVariableDeclaration();  // read variable.
       SkipFunctionNode();         // read function node.
       return;
+    case kIfCaseStatement:
+    case kPatternSwitchStatement:
+    case kPatternVariableDeclaration:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("statement", tag);
       UNREACHABLE();
@@ -2890,11 +2946,6 @@ void KernelReaderHelper::SkipLibraryDependency() {
   for (intptr_t i = 0; i < combinator_count; ++i) {
     SkipLibraryCombinator();
   }
-}
-
-void KernelReaderHelper::SkipLibraryPart() {
-  SkipListOfExpressions();  // Read annotations.
-  SkipStringReference();    // Read part URI index.
 }
 
 TokenPosition KernelReaderHelper::ReadPosition() {
@@ -2962,7 +3013,7 @@ const String& KernelReaderHelper::GetSourceFor(intptr_t index) {
 
 TypedDataPtr KernelReaderHelper::GetLineStartsFor(intptr_t index) {
   // Line starts are delta encoded. So get the max delta first so that we
-  // can store them as tighly as possible.
+  // can store them as tightly as possible.
   AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());  // skip uri.
@@ -3014,7 +3065,7 @@ ExternalTypedDataPtr KernelReaderHelper::GetConstantCoverageFor(
 }
 
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
-  ASSERT(member != NULL);
+  ASSERT(member != nullptr);
   if (member->IsFactory()) {
     return klass->NumTypeParameters();
   } else if (member->IsMethodExtractor()) {
@@ -3073,7 +3124,7 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
 
   const TypeArguments* old_params = active_class->local_type_parameters;
   const intptr_t old_param_count =
-      old_params == NULL ? 0 : old_params->Length();
+      old_params == nullptr ? 0 : old_params->Length();
   const TypeArguments& extended_params = TypeArguments::Handle(
       Z, TypeArguments::New(old_param_count + num_new_params));
 
@@ -3121,7 +3172,7 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       constant_reader_(constant_reader),
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
-      type_parameter_scope_(NULL),
+      type_parameter_scope_(nullptr),
       inferred_type_metadata_helper_(helper_, constant_reader_),
       unboxing_info_metadata_helper_(helper_),
       zone_(translation_helper_.zone()),
@@ -3195,8 +3246,8 @@ void TypeTranslator::BuildTypeInternal() {
     case kIntersectionType:
       BuildIntersectionType();
       break;
-    case kViewType:
-      BuildViewType();
+    case kInlineType:
+      BuildInlineType();
       break;
     default:
       helper_->ReportUnexpectedTag("type", tag);
@@ -3246,7 +3297,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
 
 void TypeTranslator::BuildFunctionType(bool simple) {
   const intptr_t num_enclosing_type_arguments =
-      active_class_->enclosing != NULL
+      active_class_->enclosing != nullptr
           ? active_class_->enclosing->NumTypeArguments()
           : 0;
   Nullability nullability = helper_->ReadNullability();
@@ -3385,11 +3436,13 @@ void TypeTranslator::BuildRecordType() {
   if (named_count != 0) {
     field_names.MakeImmutable();
   }
+  const RecordShape shape =
+      RecordShape::Register(H.thread(), num_fields, field_names);
 
   finalize_ = finalize;
 
-  RecordType& rec = RecordType::Handle(
-      Z, RecordType::New(field_types, field_names, nullability));
+  RecordType& rec =
+      RecordType::Handle(Z, RecordType::New(shape, field_types, nullability));
 
   if (finalize_) {
     rec ^= ClassFinalizer::FinalizeType(rec);
@@ -3472,7 +3525,7 @@ void TypeTranslator::BuildTypeParameterType() {
       }
     }
   }
-  if (active_class_->local_type_parameters != NULL) {
+  if (active_class_->local_type_parameters != nullptr) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
       const auto& type_param = TypeParameter::CheckedHandle(
           Z, active_class_->local_type_parameters->TypeAt(parameter_index));
@@ -3489,7 +3542,7 @@ void TypeTranslator::BuildTypeParameterType() {
     parameter_index -= active_class_->local_type_parameters->Length();
   }
 
-  if (type_parameter_scope_ != NULL &&
+  if (type_parameter_scope_ != nullptr &&
       parameter_index < type_parameter_scope_->outer_parameter_count() +
                             type_parameter_scope_->parameter_count()) {
     result_ = Type::DynamicType();
@@ -3507,12 +3560,12 @@ void TypeTranslator::BuildIntersectionType() {
   helper_->SkipDartType();  // read right.
 }
 
-void TypeTranslator::BuildViewType() {
-  // We skip the view type and only use the representation type.
+void TypeTranslator::BuildInlineType() {
+  // We skip the inline type and only use the representation type.
   helper_->ReadNullability();
   helper_->SkipCanonicalNameReference();  // read index for canonical name.
   helper_->SkipListOfDartTypes();         // read type arguments
-  BuildTypeInternal();                    // read representation type.
+  BuildTypeInternal();  // read instantiated representation type.
 }
 
 const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {
@@ -3723,25 +3776,22 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
       param_index + (function.HasThisParameter() ? 1 : 0);
 
   if (param_pos < function.maximum_unboxed_parameter_count()) {
-    switch (metadata->unboxed_args_info[param_index]) {
-      case UnboxingInfoMetadata::kUnboxedIntCandidate:
+    switch (metadata->unboxed_args_info[param_index].kind) {
+      case UnboxingInfoMetadata::kInt:
         function.set_unboxed_integer_parameter_at(param_pos);
         break;
-      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+      case UnboxingInfoMetadata::kDouble:
         if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
           function.set_unboxed_double_parameter_at(param_pos);
         }
         break;
-      case UnboxingInfoMetadata::kUnboxedRecordCandidate:
+      case UnboxingInfoMetadata::kRecord:
         UNREACHABLE();
         break;
-      case UnboxingInfoMetadata::kUnboxingCandidate:
+      case UnboxingInfoMetadata::kUnknown:
         UNREACHABLE();
         break;
       case UnboxingInfoMetadata::kBoxed:
-        break;
-      default:
-        UNREACHABLE();
         break;
     }
   }
@@ -3750,25 +3800,22 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
 static void SetupUnboxingInfoOfReturnValue(
     const Function& function,
     const UnboxingInfoMetadata* metadata) {
-  switch (metadata->return_info) {
-    case UnboxingInfoMetadata::kUnboxedIntCandidate:
+  switch (metadata->return_info.kind) {
+    case UnboxingInfoMetadata::kInt:
       function.set_unboxed_integer_return();
       break;
-    case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+    case UnboxingInfoMetadata::kDouble:
       if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
         function.set_unboxed_double_return();
       }
       break;
-    case UnboxingInfoMetadata::kUnboxedRecordCandidate:
+    case UnboxingInfoMetadata::kRecord:
       function.set_unboxed_record_return();
       break;
-    case UnboxingInfoMetadata::kUnboxingCandidate:
+    case UnboxingInfoMetadata::kUnknown:
       UNREACHABLE();
       break;
     case UnboxingInfoMetadata::kBoxed:
-      break;
-    default:
-      UNREACHABLE();
       break;
   }
 }

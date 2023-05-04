@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 main() {
-  new Class1(0);
-  new Class1(0, 1);
-  new Class2(0);
-  new Class2(0, field2: 1);
+  Class1(0);
+  Class1(0, 1);
+  Class2(0);
+  Class2(0, field2: 1);
 }
 
 class Class1 {

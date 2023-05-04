@@ -13,7 +13,7 @@ import 'package:vm/transformations/ffi/common.dart' show NativeType;
 import 'package:vm/transformations/ffi/native.dart' show FfiNativeTransformer;
 import 'abi.dart' show kWasmAbiEnumIndex;
 
-/// Transform `@FfiNative`-annotated functions to convert Dart arguments to
+/// Transform `@Native`-annotated functions to convert Dart arguments to
 /// Wasm arguments expected by the FFI functions, and convert the Wasm function
 /// return value to the Dart value.
 ///
@@ -21,7 +21,7 @@ import 'abi.dart' show kWasmAbiEnumIndex;
 ///
 /// Example:
 ///
-///   @FfiNative<Int8 Function(Int8, Int8)>("ffi.addInt8")
+///   @Native<Int8 Function(Int8, Int8)>(symbol: "addInt8")
 ///   external int addInt8(int a, int b);
 ///
 /// Converted to:
@@ -44,7 +44,7 @@ void transformLibraries(
     'dart:_internal',
     'dart:typed_data',
     'dart:nativewrappers',
-    'dart:wasm'
+    'dart:_wasm'
   ]);
   final transformer = WasmFfiNativeTransformer(
       index, coreTypes, hierarchy, diagnosticReporter, referenceFromIndex);
@@ -52,15 +52,11 @@ void transformLibraries(
 }
 
 class WasmFfiNativeTransformer extends FfiNativeTransformer {
-  final Class ffiNativeClass;
-  final Class nativeFunctionClass;
   final Class wasmI32Class;
   final Class wasmI64Class;
   final Class wasmF32Class;
   final Class wasmF64Class;
   final Class wasmEqRefClass;
-  final Field ffiNativeNameField;
-  final Field ffiNativeIsLeafField;
   final Procedure wasmI32FromInt;
   final Procedure wasmI32Int8FromInt;
   final Procedure wasmI32Uint8FromInt;
@@ -83,73 +79,75 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
       ClassHierarchy hierarchy,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex)
-      : ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
-        nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
-        wasmI32Class = index.getClass('dart:wasm', 'WasmI32'),
-        wasmI64Class = index.getClass('dart:wasm', 'WasmI64'),
-        wasmF32Class = index.getClass('dart:wasm', 'WasmF32'),
-        wasmF64Class = index.getClass('dart:wasm', 'WasmF64'),
-        wasmEqRefClass = index.getClass('dart:wasm', 'WasmEqRef'),
-        ffiNativeNameField =
-            index.getField('dart:ffi', 'FfiNative', 'nativeName'),
-        ffiNativeIsLeafField =
-            index.getField('dart:ffi', 'FfiNative', 'isLeaf'),
-        wasmI32FromInt = index.getProcedure('dart:wasm', 'WasmI32', 'fromInt'),
+      : wasmI32Class = index.getClass('dart:_wasm', 'WasmI32'),
+        wasmI64Class = index.getClass('dart:_wasm', 'WasmI64'),
+        wasmF32Class = index.getClass('dart:_wasm', 'WasmF32'),
+        wasmF64Class = index.getClass('dart:_wasm', 'WasmF64'),
+        wasmEqRefClass = index.getClass('dart:_wasm', 'WasmEqRef'),
+        wasmI32FromInt = index.getProcedure('dart:_wasm', 'WasmI32', 'fromInt'),
         wasmI32Int8FromInt =
-            index.getProcedure('dart:wasm', 'WasmI32', 'int8FromInt'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'int8FromInt'),
         wasmI32Uint8FromInt =
-            index.getProcedure('dart:wasm', 'WasmI32', 'uint8FromInt'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'uint8FromInt'),
         wasmI32Int16FromInt =
-            index.getProcedure('dart:wasm', 'WasmI32', 'int16FromInt'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'int16FromInt'),
         wasmI32Uint16FromInt =
-            index.getProcedure('dart:wasm', 'WasmI32', 'uint16FromInt'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'uint16FromInt'),
         wasmI32FromBool =
-            index.getProcedure('dart:wasm', 'WasmI32', 'fromBool'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'fromBool'),
         wasmI32ToIntSigned =
-            index.getProcedure('dart:wasm', 'WasmI32', 'toIntSigned'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'toIntSigned'),
         wasmI32ToIntUnsigned =
-            index.getProcedure('dart:wasm', 'WasmI32', 'toIntUnsigned'),
-        wasmI32ToBool = index.getProcedure('dart:wasm', 'WasmI32', 'toBool'),
-        wasmI64ToInt = index.getProcedure('dart:wasm', 'WasmI64', 'toInt'),
-        wasmI64FromInt = index.getProcedure('dart:wasm', 'WasmI64', 'fromInt'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'toIntUnsigned'),
+        wasmI32ToBool = index.getProcedure('dart:_wasm', 'WasmI32', 'toBool'),
+        wasmI64ToInt = index.getProcedure('dart:_wasm', 'WasmI64', 'toInt'),
+        wasmI64FromInt = index.getProcedure('dart:_wasm', 'WasmI64', 'fromInt'),
         wasmF32FromDouble =
-            index.getProcedure('dart:wasm', 'WasmF32', 'fromDouble'),
+            index.getProcedure('dart:_wasm', 'WasmF32', 'fromDouble'),
         wasmF32ToDouble =
-            index.getProcedure('dart:wasm', 'WasmF32', 'toDouble'),
+            index.getProcedure('dart:_wasm', 'WasmF32', 'toDouble'),
         wasmF64FromDouble =
-            index.getProcedure('dart:wasm', 'WasmF64', 'fromDouble'),
+            index.getProcedure('dart:_wasm', 'WasmF64', 'fromDouble'),
         wasmF64ToDouble =
-            index.getProcedure('dart:wasm', 'WasmF64', 'toDouble'),
+            index.getProcedure('dart:_wasm', 'WasmF64', 'toDouble'),
         super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex);
 
   @override
   visitProcedure(Procedure node) {
-    // Only transform functions that are external and have FfiNative annotation:
-    //   @FfiNative<Double Function(Double)>('Math_sqrt')
+    // Only transform functions that are external and have Native annotation:
+    //   @Native<Double Function(Double)>('Math_sqrt')
     //   external double _square_root(double x);
-    final ffiNativeAnnotation = tryGetFfiNativeAnnotation(node);
-    if (ffiNativeAnnotation == null) {
+    final nativeAnnotation = tryGetNativeAnnotation(node);
+    if (nativeAnnotation == null) {
       return node;
     }
+    final annotationOffset = nativeAnnotation.fileOffset;
+    final ffiConstant = nativeAnnotation.constant as InstanceConstant;
+    final ffiFunctionType = ffiConstant.typeArguments.first as FunctionType;
+    final isLeafField =
+        ffiConstant.fieldValues[nativeIsLeafField.fieldReference];
+    final isLeaf = (isLeafField as BoolConstant).value;
+    final assetField = ffiConstant.fieldValues[nativeAssetField];
+    final assetName = (assetField is StringConstant)
+        ? assetField
+        : (currentAsset ?? StringConstant("ffi"));
+    final nameField = ffiConstant.fieldValues[nativeSymbolField.fieldReference];
+    final functionName = (nameField is StringConstant)
+        ? nameField
+        : StringConstant(node.name.text);
+    final nativeFunctionName =
+        StringConstant("${assetName.value}.${functionName.value}");
 
     // Original function should be external and without body
     assert(node.isExternal == true);
     assert(node.function.body == null);
 
-    final ffiConstant = ffiNativeAnnotation.constant as InstanceConstant;
-    final ffiFunctionType = ffiConstant.typeArguments[0] as FunctionType;
-    final nativeFunctionName = ffiConstant
-        .fieldValues[ffiNativeNameField.fieldReference] as StringConstant;
-    final isLeaf = (ffiConstant.fieldValues[ffiNativeIsLeafField.fieldReference]
-            as BoolConstant)
-        .value;
-
     final dartFunctionType =
         node.function.computeThisFunctionType(Nullability.nonNullable);
 
-    final wrappedDartFunctionType = checkFfiType(node, dartFunctionType,
-        ffiFunctionType, isLeaf, ffiNativeAnnotation.fileOffset);
+    final wrappedDartFunctionType = checkFfiType(
+        node, dartFunctionType, ffiFunctionType, isLeaf, annotationOffset);
 
     if (wrappedDartFunctionType == null) {
       // It's OK to continue because the diagnostics issued will cause
@@ -178,6 +176,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         wasmImportProcedureArgs.add(VariableDeclaration(
           node.function.positionalParameters[i].name!,
           type: argWasmType,
+          isSynthesized: true,
         ));
       }
     }
@@ -203,7 +202,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
     // Update the original procedure to call the Wasm import, converting
     // arguments and return value
     node.isExternal = false;
-    node.annotations.remove(ffiNativeAnnotation);
+    node.annotations.remove(nativeAnnotation);
 
     // Convert arguments
     assert(ffiFunctionType.positionalParameters.length ==

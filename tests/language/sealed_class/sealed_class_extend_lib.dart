@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
+// Other-library declarations used by sealed_class_extend_test.dart and
+// sealed_class_extend_error_test.dart.
+
 sealed class SealedClass {
   int nonAbstractFoo = 0;
   abstract int foo;
@@ -14,20 +17,12 @@ sealed class SealedClass {
 abstract class A extends SealedClass {}
 
 class AImpl extends A {
-  @override
   int foo = 1;
-
-  @override
   int bar(int value) => value + 1;
 }
 
 class B extends SealedClass {
-  @override
   int nonAbstractFoo = 100;
-
-  @override
   int foo = 2;
-
-  @override
   int bar(int value) => value;
 }

@@ -766,6 +766,17 @@ void Assembler::AndRegisters(Register dst, Register src1, Register src2) {
   }
 }
 
+void Assembler::LslRegister(Register dst, Register shift) {
+  if (shift != RCX) {
+    movq(TMP, RCX);
+    movq(RCX, shift);
+    shlq(dst == RCX ? TMP : dst, RCX);
+    movq(RCX, TMP);
+  } else {
+    shlq(dst, shift);
+  }
+}
+
 void Assembler::OrImmediate(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
     orq(dst, imm);
@@ -850,7 +861,14 @@ void Assembler::MulImmediate(Register reg,
                              const Immediate& imm,
                              OperandSize width) {
   ASSERT(width == kFourBytes || width == kEightBytes);
-  if (imm.is_int32()) {
+  if (Utils::IsPowerOfTwo(imm.value())) {
+    const intptr_t shift = Utils::ShiftForPowerOfTwo(imm.value());
+    if (width == kFourBytes) {
+      shll(reg, Immediate(shift));
+    } else {
+      shlq(reg, Immediate(shift));
+    }
+  } else if (imm.is_int32()) {
     if (width == kFourBytes) {
       imull(reg, imm);
     } else {
@@ -1761,6 +1779,26 @@ void Assembler::StoreToOffset(Register reg,
   }
 }
 
+void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
+  sarq(reg, Immediate(shift));
+}
+
+void Assembler::CompareWords(Register reg1,
+                             Register reg2,
+                             intptr_t offset,
+                             Register count,
+                             Register temp,
+                             Label* equals) {
+  Label loop;
+  Bind(&loop);
+  decq(count);
+  j(LESS, equals, Assembler::kNearJump);
+  COMPILE_ASSERT(target::kWordSize == 8);
+  movq(temp, FieldAddress(reg1, count, TIMES_8, offset));
+  cmpq(temp, FieldAddress(reg2, count, TIMES_8, offset));
+  BranchIf(EQUAL, &loop, Assembler::kNearJump);
+}
+
 void Assembler::EnterFrame(intptr_t frame_size) {
   if (prologue_offset_ == -1) {
     prologue_offset_ = CodeSize();
@@ -2173,6 +2211,50 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   }
 }
 
+void Assembler::CombineHashes(Register dst, Register other) {
+  // hash += other_hash
+  addl(dst, other);
+  // hash += hash << 10
+  movl(other, dst);
+  shll(other, Immediate(10));
+  addl(dst, other);
+  // hash ^= hash >> 6
+  movl(other, dst);
+  shrl(other, Immediate(6));
+  xorl(dst, other);
+}
+
+void Assembler::FinalizeHashForSize(intptr_t bit_size,
+                                    Register dst,
+                                    Register scratch) {
+  ASSERT(bit_size > 0);  // Can't avoid returning 0 if there are no hash bits!
+  // While any 32-bit hash value fits in X bits, where X > 32, the caller may
+  // reasonably expect that the returned values fill the entire bit space.
+  ASSERT(bit_size <= kBitsPerInt32);
+  ASSERT(scratch != kNoRegister);
+  // hash += hash << 3;
+  movl(scratch, dst);
+  shll(scratch, Immediate(3));
+  addl(dst, scratch);
+  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
+  movl(scratch, dst);
+  shrl(scratch, Immediate(11));
+  xorl(dst, scratch);
+  // hash += hash << 15;
+  movl(scratch, dst);
+  shll(scratch, Immediate(15));
+  addl(dst, scratch);
+  // Size to fit.
+  if (bit_size < kBitsPerInt32) {
+    andl(dst, Immediate(Utils::NBitMask(bit_size)));
+  }
+  // return (hash == 0) ? 1 : hash;
+  Label done;
+  j(NOT_ZERO, &done, kNearJump);
+  incl(dst);
+  Bind(&done);
+}
+
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
@@ -2203,7 +2285,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
                                   JumpDistance distance,
                                   Register instance_reg,
                                   Register temp_reg) {
-  ASSERT(failure != NULL);
+  ASSERT(failure != nullptr);
   ASSERT(instance_size != 0);
   ASSERT(Utils::IsAligned(instance_size,
                           target::ObjectAlignment::kObjectAlignment));
@@ -2238,7 +2320,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register instance,
                                  Register end_address,
                                  Register temp) {
-  ASSERT(failure != NULL);
+  ASSERT(failure != nullptr);
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path

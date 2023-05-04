@@ -47,9 +47,6 @@ class VirtualCollectionElement extends CustomElement implements Renderable {
       VirtualCollectionHeaderCallback? createHeader,
       VirtualCollectionSearchCallback? search,
       RenderingQueue? queue}) {
-    assert(create != null);
-    assert(update != null);
-    assert(items != null);
     VirtualCollectionElement e = new VirtualCollectionElement.created();
     e._r = new RenderingScheduler<VirtualCollectionElement>(e, queue: queue);
     e._create = create;
@@ -113,7 +110,7 @@ class VirtualCollectionElement extends CustomElement implements Renderable {
   }
 
   /// The preloaded element before and after the visible area are:
-  /// 1/preload_size of the number of items in the visble area.
+  /// 1/preload_size of the number of items in the visible area.
   static const int _preload = 2;
 
   /// L = length of all the elements loaded

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 ////////////////////////////////////////////////////////////////////////////////
 /// A sound initialization of a local variable doesn't capture the type
 /// variable.
@@ -33,7 +31,7 @@ class Class1b<T> {
   method1b(T o) {
     /*fields=[o],free=[o],hasThis*/
     dynamic local() {
-      T t = null;
+      T? t = null;
       t = o;
       return t;
     }
@@ -147,19 +145,19 @@ class Class7<T> {
 /*member: Class8.:hasThis*/
 class Class8<T> {
   /*member: Class8.field8:hasThis*/
-  T field8 = /*hasThis*/ () {
+  T? field8 = /*hasThis*/ () {
     return null;
   }();
 }
 
 main() {
-  new Class1<int>().method1(0).call();
-  new Class1b<int>().method1b(0).call();
-  new Class2<int>().method2().call(0);
-  new Class3<int>().method3(0).call();
-  new Class4<int>().method4(0).call();
-  new Class5<int>().method5(0);
-  new Class6<int>().method6().call(0).call();
-  new Class7<int>().method7(0).call().call();
-  new Class8<int>().field8;
+  Class1<int>().method1(0).call();
+  Class1b<int>().method1b(0).call();
+  Class2<int>().method2().call(0);
+  Class3<int>().method3(0).call();
+  Class4<int>().method4(0).call();
+  Class5<int>().method5(0);
+  Class6<int>().method6().call(0).call();
+  Class7<int>().method7(0).call().call();
+  Class8<int>().field8;
 }

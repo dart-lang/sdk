@@ -26,8 +26,6 @@ class LocalVarDescriptorsRefElement extends CustomElement
   factory LocalVarDescriptorsRefElement(
       M.IsolateRef isolate, M.LocalVarDescriptorsRef localVar,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(localVar != null);
     LocalVarDescriptorsRefElement e =
         new LocalVarDescriptorsRefElement.created();
     e._r =

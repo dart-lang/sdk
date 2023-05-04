@@ -342,6 +342,10 @@ class VariableUseGenerator extends Generator {
   }
 
   Expression _createWrite(int offset, Expression value) {
+    if (_helper.isDeclaredInEnclosingCase(variable)) {
+      _helper.addProblem(
+          messagePatternVariableAssignmentInsideGuard, offset, noLength);
+    }
     _helper.registerVariableAssignment(variable);
     return new VariableSet(variable, value)..fileOffset = offset;
   }
@@ -531,7 +535,9 @@ class PropertyAccessGenerator extends Generator {
       Expression receiver, Name name, bool isNullAware) {
     if (helper.forest.isThisExpression(receiver)) {
       return new ThisPropertyAccessGenerator(helper, token, name,
-          thisOffset: receiver.fileOffset, isNullAware: isNullAware);
+          thisVariable: null,
+          thisOffset: receiver.fileOffset,
+          isNullAware: isNullAware);
     } else {
       return isNullAware
           ? new NullAwarePropertyAccessGenerator(helper, token, receiver, name)
@@ -578,9 +584,13 @@ class ThisPropertyAccessGenerator extends Generator {
   final int? thisOffset;
   final bool isNullAware;
 
+  /// The synthetic variable used for 'this' in instance extension members
+  /// and instance inline class members/constructor bodies.
+  VariableDeclaration? thisVariable;
+
   ThisPropertyAccessGenerator(
       ExpressionGeneratorHelper helper, Token token, this.name,
-      {this.thisOffset, this.isNullAware = false})
+      {this.thisVariable, this.thisOffset, this.isNullAware = false})
       : super(helper, token);
 
   @override
@@ -599,6 +609,10 @@ class ThisPropertyAccessGenerator extends Generator {
     }
   }
 
+  Expression get _thisExpression => thisVariable != null
+      ? _forest.createVariableGet(fileOffset, thisVariable!)
+      : _forest.createThisExpression(fileOffset);
+
   @override
   Expression buildSimpleRead() {
     return _createRead();
@@ -606,8 +620,7 @@ class ThisPropertyAccessGenerator extends Generator {
 
   Expression _createRead() {
     _reportNonNullableInNullAwareWarningIfNeeded();
-    return _forest.createPropertyGet(
-        fileOffset, _forest.createThisExpression(fileOffset), name);
+    return _forest.createPropertyGet(fileOffset, _thisExpression, name);
   }
 
   @override
@@ -619,7 +632,7 @@ class ThisPropertyAccessGenerator extends Generator {
   Expression _createWrite(int offset, Expression value,
       {required bool forEffect}) {
     return _helper.forest.createPropertySet(
-        fileOffset, _forest.createThisExpression(fileOffset), name, value,
+        fileOffset, _thisExpression, name, value,
         forEffect: forEffect);
   }
 
@@ -667,7 +680,7 @@ class ThisPropertyAccessGenerator extends Generator {
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.buildMethodInvocation(
-        _forest.createThisExpression(fileOffset), name, arguments, offset);
+        _thisExpression, name, arguments, offset);
   }
 
   @override
@@ -1663,6 +1676,12 @@ class ExtensionInstanceAccessGenerator extends Generator {
       } else if (getterBuilder.isOperator) {
         assert(!getterBuilder.isStatic);
         invokeTarget = getterBuilder.invokeTarget as Procedure?;
+      } else {
+        return unhandled(
+            "${getterBuilder.runtimeType}",
+            "ExtensionInstanceAccessGenerator.fromBuilder",
+            offsetForToken(token),
+            helper.uri);
       }
     }
     Procedure? writeTarget;
@@ -1801,6 +1820,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
       int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false}) {
     if (invokeTarget != null) {
+      Expression thisAccess = _helper.createVariableGet(extensionThis, offset);
       return _helper.buildExtensionMethodInvocation(
           offset,
           invokeTarget!,
@@ -1809,12 +1829,14 @@ class ExtensionInstanceAccessGenerator extends Generator {
               _extensionTypeParameterCount,
               invokeTarget!.function.typeParameters.length -
                   _extensionTypeParameterCount,
-              _helper.createVariableGet(extensionThis, offset),
+              thisAccess,
               extensionTypeArguments: _createExtensionTypeArguments(),
               typeArguments: arguments.types,
               positionalArguments: arguments.positional,
               namedArguments: arguments.named,
-              argumentsOriginalOrder: arguments.argumentsOriginalOrder),
+              argumentsOriginalOrder: arguments.argumentsOriginalOrder != null
+                  ? [thisAccess, ...arguments.argumentsOriginalOrder!]
+                  : null),
           isTearOff: false);
     } else {
       return _helper.forest.createExpressionInvocation(
@@ -4319,6 +4341,12 @@ class ParserErrorGenerator extends Generator {
         message.withLocation(_uri, fileOffset, noLength));
   }
 
+  TypeBuilder buildTypeWithResolvedArgumentsDoNotAddProblem(
+      NullabilityBuilder nullabilityBuilder) {
+    return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
+        message.withLocation(_uri, fileOffset, noLength));
+  }
+
   @override
   Expression qualifiedLookup(Token name) {
     return buildProblem();
@@ -4507,6 +4535,7 @@ class ThisAccessGenerator extends Generator {
             // TODO(ahe): This is not the 'this' token.
             selector.token,
             name,
+            thisVariable: null,
             thisOffset: fileOffset,
             isNullAware: isNullAware);
       }

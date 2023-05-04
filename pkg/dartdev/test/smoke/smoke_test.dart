@@ -4,15 +4,30 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import '../utils.dart';
+
 const numRuns = 10;
-final script = Platform.script.resolve('smoke.dart').toString();
+
+final smokeTestScript = r'''
+void main() {
+  print('Smoke test!');
+}
+''';
 
 void main() {
   group(
     'explicit dartdev smoke -',
     () {
+      late final String script;
+
+      setUpAll(() {
+        var p = project(mainSrc: smokeTestScript);
+        script = path.join(p.dirPath, p.relativeFilePath);
+      });
+
       test('dart run smoke.dart', () async {
         for (int i = 1; i <= numRuns; ++i) {
           if (i % 5 == 0) {
@@ -52,8 +67,8 @@ void main() {
       });
 
       test('dart run --enable-vm-service smoke.dart with used port', () async {
-        final server = await HttpServer.bind(InternetAddress.anyIPv4, 0);
-        final result = await Process.run(
+        final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+        final result = Process.runSync(
           Platform.executable,
           [
             'run',
@@ -61,12 +76,13 @@ void main() {
             script,
           ],
         );
+        int port = server.port;
+        await server.close(force: true);
         expect(
           result.stderr,
-          'Could not start the VM service: localhost:${server.port} is already in use.\n',
+          'Could not start the VM service: localhost:$port is already in use.\n',
         );
         expect(result.stdout, isEmpty);
-        server.close();
       });
 
       // This test verifies that an error isn't thrown when a valid experiment

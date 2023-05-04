@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -129,6 +130,39 @@ void f(List<String> list) {
 ''');
   }
 
+  Future<void> test_blockBody_async() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) async {
+    e.length / 2;
+  });
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_blockBody_asyncStar() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) async* {
+    e.length / 2;
+  });
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_blockBody_syncStar() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) sync* {
+    e.length / 2;
+  });
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_expressionBody() async {
     await resolveTestCode('''
 void f(List<String> list) {
@@ -139,6 +173,86 @@ void f(List<String> list) {
 void f(List<String> list) {
   for (var e in list) {
     e.substring(3, 7);
+  }
+}
+''');
+  }
+
+  Future<void> test_expressionBody_async() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) async => e.substring(3, 7));
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_expressionBody_asyncStar() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) async* => e.substring(3, 7));
+}
+''');
+    await assertNoFix(
+        errorFilter: (error) =>
+            error.errorCode.name ==
+            LintNames.avoid_function_literals_in_foreach_calls);
+  }
+
+  Future<void> test_expressionBody_syncStar() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) sync* => e.substring(3, 7));
+}
+''');
+    await assertNoFix(
+        errorFilter: (error) =>
+            error.errorCode.name ==
+            LintNames.avoid_function_literals_in_foreach_calls);
+  }
+
+  Future<void> test_functionExpression() async {
+    await resolveTestCode('''
+void f(List<List<int?>> lists) {
+  lists.forEach((list) {
+    list.map((x) {
+      if (x == null) return 0;
+      return x.abs();
+    });
+  });
+}
+''');
+    await assertHasFix('''
+void f(List<List<int?>> lists) {
+  for (var list in lists) {
+    list.map((x) {
+      if (x == null) return 0;
+      return x.abs();
+    });
+  }
+}
+''');
+  }
+
+  Future<void> test_mapLiteral() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  list.forEach((x) => {1: 2});
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_mapLiteral_typeArguments() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  list.forEach((x) => <int, int>{x: 2});
+}
+''');
+    await assertHasFix('''
+void f(List<int> list) {
+  for (var x in list) {
+    <int, int>{x: 2};
   }
 }
 ''');
@@ -163,5 +277,48 @@ void f(List<String> list) {
   }
 }
 ''');
+  }
+
+  Future<void> test_setLiteral() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  list.forEach((x) => {print('')});
+}
+''');
+    await assertNoFix(
+        errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
+  }
+
+  Future<void> test_setLiteral_multiple() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  list.forEach((x) => {print(''), print('')});
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_setLiteral_statement() async {
+    await resolveTestCode('''
+void f(List<int> list, bool b) {
+  list.forEach((x) => {if (b) print('')});
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_setLiteral_typeArguments() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  list.forEach((x) => <int>{x});
+}
+''');
+    await assertHasFix('''
+void f(List<int> list) {
+  for (var x in list) {
+    <int>{x};
+  }
+}
+''', errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
   }
 }

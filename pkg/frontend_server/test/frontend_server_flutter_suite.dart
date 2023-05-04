@@ -32,7 +32,7 @@ class Options {
       this.flutterPlatformDir);
 
   static Options parse(List<String> args) {
-    var parser = new ArgParser()
+    var parser = ArgParser()
       ..addOption("named-configuration",
           abbr: "n",
           defaultsTo: suiteNamePrefix,
@@ -70,7 +70,7 @@ class Options {
 class ResultLogger extends Logger {
   final SuiteConfiguration suiteConfiguration;
   final Map<String, Stopwatch> stopwatches = {};
-  List<String> _log = <String>[];
+  final List<String> _log = <String>[];
 
   ResultLogger(this.suiteConfiguration);
 
@@ -106,10 +106,11 @@ class ResultLogger extends Logger {
     }
     if (suiteConfiguration.verbose) {
       String result = matchedExpectations ? "PASS" : "FAIL";
-      print("${fullTestName}: ${result}");
+      print("$fullTestName: $result");
     }
   }
 
+  @override
   void logTestStart(String testName) {
     stopwatches[testName] = Stopwatch()..start();
     _log.clear();
@@ -189,9 +190,9 @@ main([List<String> arguments = const <String>[]]) async {
   List<String> results = [];
   List<String> logs = [];
   Options options = Options.parse(arguments);
-  ReceivePort resultsPort = new ReceivePort()
+  ReceivePort resultsPort = ReceivePort()
     ..listen((resultEntry) => results.add(resultEntry));
-  ReceivePort logsPort = new ReceivePort()
+  ReceivePort logsPort = ReceivePort()
     ..listen((logEntry) => logs.add(logEntry));
   String? filter = options.testFilter;
 
@@ -199,9 +200,9 @@ main([List<String> arguments = const <String>[]]) async {
   List<Future<bool>> futures = [];
   for (int shard = 0; shard < shards; shard++) {
     // Start the test suite in a new isolate.
-    ReceivePort exitPort = new ReceivePort();
-    ReceivePort errorPort = new ReceivePort();
-    SuiteConfiguration configuration = new SuiteConfiguration(
+    ReceivePort exitPort = ReceivePort();
+    ReceivePort errorPort = ReceivePort();
+    SuiteConfiguration configuration = SuiteConfiguration(
       resultsPort.sendPort,
       logsPort.sendPort,
       options.verbose,
@@ -233,11 +234,11 @@ main([List<String> arguments = const <String>[]]) async {
         isolate.kill(priority: Isolate.immediate);
       });
       await exitPort.first;
-      errorSubscription.cancel();
+      await errorSubscription.cancel();
       timer.cancel();
       if (!timedOut && !gotError) {
         int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
-        print("Suite finished (shard #$shard) (took ${seconds} seconds)");
+        print("Suite finished (shard #$shard) (took $seconds seconds)");
       }
       return timedOut || gotError;
     });

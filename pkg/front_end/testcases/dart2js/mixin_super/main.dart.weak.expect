@@ -470,23 +470,23 @@ abstract class Mixin2 extends mai::_Mixin2&Super1&Super2 /*isMixinDeclaration*/ 
   }
   set property2(core::int value) → void {}
   get field1() → core::int {
-    core::int value = this.{mai::Mixin2::_#Mixin2#field1#AI}{core::int};
+    synthesized core::int value = this.{mai::Mixin2::_#Mixin2#field1#AI}{core::int};
     if(_in::isSentinel(value))
       value = this.{mai::Mixin2::_#Mixin2#field1#AI} = (() → core::int {
         return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
       })(){() → core::int};
     return value;
   }
-  set field1(core::int value) → void
+  set field1(synthesized core::int value) → void
     this.{mai::Mixin2::_#Mixin2#field1#AI} = value;
   get field2() → core::int {
-    core::int value = this.{mai::Mixin2::_#Mixin2#field2#AI}{core::int};
+    synthesized core::int value = this.{mai::Mixin2::_#Mixin2#field2#AI}{core::int};
     if(_in::isSentinel(value))
       value = this.{mai::Mixin2::_#Mixin2#field2#AI} = (() → core::int {
         return 88;
       })(){() → core::int};
     return value;
   }
-  set field2(core::int value) → void
+  set field2(synthesized core::int value) → void
     this.{mai::Mixin2::_#Mixin2#field2#AI} = value;
 }

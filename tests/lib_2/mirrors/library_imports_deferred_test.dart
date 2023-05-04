@@ -10,31 +10,29 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 import 'stringify.dart';
 
-import 'dart:collection' as eagercollection;
-import 'dart:collection' deferred as lazycollection;
+import 'dart:math' as eagermath;
+import 'dart:math' deferred as lazymath;
 
 test(MirrorSystem mirrors) {
   LibraryMirror thisLibrary =
       mirrors.findLibrary(#test.library_imports_deferred);
-  LibraryMirror collection = mirrors.findLibrary(#dart.collection);
+  LibraryMirror math = mirrors.findLibrary(#dart.math);
 
   var importsOfCollection = thisLibrary.libraryDependencies
-      .where((dep) => dep.targetLibrary == collection)
+      .where((dep) => dep.targetLibrary == math)
       .toList();
   Expect.equals(2, importsOfCollection.length);
   Expect.notEquals(importsOfCollection[0].isDeferred,
       importsOfCollection[1].isDeferred); // One deferred, one not.
 
-  // Only collection is defer-imported.
+  // Only math is defer-imported.
   LibraryDependencyMirror dep =
       thisLibrary.libraryDependencies.singleWhere((dep) => dep.isDeferred);
-  Expect.equals(collection, dep.targetLibrary);
+  Expect.equals(math, dep.targetLibrary);
 
   Expect.stringEquals(
-      'import dart.collection as eagercollection\n'
-      'import dart.collection deferred as lazycollection\n'
-      ' hide loadLibrary\n'
-      'import dart.core\n'
+      'import dart.math as eagermath\n'
+      'import dart.math deferred as lazymath\n'
       'import dart.mirrors\n'
       'import expect\n'
       'import test.stringify\n',

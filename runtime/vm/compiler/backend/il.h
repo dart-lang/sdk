@@ -59,6 +59,7 @@ class Instruction;
 class InstructionVisitor;
 class LocalVariable;
 class LoopInfo;
+class MoveSchedule;
 class ParsedFunction;
 class Range;
 class RangeAnalysis;
@@ -79,11 +80,11 @@ class Value : public ZoneAllocated {
    public:
     explicit Iterator(Value* head) : next_(head) { Advance(); }
     Value* Current() const { return current_; }
-    bool Done() const { return current_ == NULL; }
+    bool Done() const { return current_ == nullptr; }
     void Advance() {
       // Pre-fetch next on advance and cache it.
       current_ = next_;
-      if (next_ != NULL) next_ = next_->next_use();
+      if (next_ != nullptr) next_ = next_->next_use();
     }
 
    private:
@@ -93,11 +94,11 @@ class Value : public ZoneAllocated {
 
   explicit Value(Definition* definition)
       : definition_(definition),
-        previous_use_(NULL),
-        next_use_(NULL),
-        instruction_(NULL),
+        previous_use_(nullptr),
+        next_use_(nullptr),
+        instruction_(nullptr),
         use_index_(-1),
-        reaching_type_(NULL) {}
+        reaching_type_(nullptr) {}
 
   Definition* definition() const { return definition_; }
   void set_definition(Definition* definition) {
@@ -114,7 +115,7 @@ class Value : public ZoneAllocated {
   void set_next_use(Value* next) { next_use_ = next; }
 
   bool IsSingleUse() const {
-    return (next_use_ == NULL) && (previous_use_ == NULL);
+    return (next_use_ == nullptr) && (previous_use_ == nullptr);
   }
 
   Instruction* instruction() const { return instruction_; }
@@ -273,7 +274,7 @@ class HierarchyInfo : public ThreadStackResource {
     thread->set_hierarchy_info(this);
   }
 
-  ~HierarchyInfo() { thread()->set_hierarchy_info(NULL); }
+  ~HierarchyInfo() { thread()->set_hierarchy_info(nullptr); }
 
   // Returned from FindBestTAVOffset and SplitOnConsistentTypeArguments
   // to denote a failure to find a compatible concrete, finalized class.
@@ -304,6 +305,10 @@ class HierarchyInfo : public ThreadStackResource {
   // This method should only be called if [CanUseSubtypeRangecheckFor] returned
   // false.
   bool CanUseGenericSubtypeRangeCheckFor(const AbstractType& type);
+
+  // Returns `true` if [type] is a record type which fields can be tested using
+  // simple [CidRange]-based subtype-check.
+  bool CanUseRecordSubtypeRangeCheckFor(const AbstractType& type);
 
  private:
   // Does not use any hierarchy information available in the system but computes
@@ -415,7 +420,7 @@ struct InstrAttrs {
   M(MemoryCopy, kNoGC)                                                         \
   M(TailCall, kNoGC)                                                           \
   M(ParallelMove, kNoGC)                                                       \
-  M(PushArgument, kNoGC)                                                       \
+  M(MoveArgument, kNoGC)                                                       \
   M(Return, kNoGC)                                                             \
   M(NativeReturn, kNoGC)                                                       \
   M(Throw, kNoGC)                                                              \
@@ -856,7 +861,7 @@ class BinaryFeedback : public ZoneAllocated {
 };
 
 typedef GrowableArray<Value*> InputsArray;
-typedef ZoneGrowableArray<PushArgumentInstr*> PushArgumentsArray;
+typedef ZoneGrowableArray<MoveArgumentInstr*> MoveArgumentsArray;
 
 template <typename Trait>
 class InstructionIndexedPropertyIterable {
@@ -969,7 +974,7 @@ class Instruction : public ZoneAllocated {
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
   void SetInputAt(intptr_t i, Value* value) {
-    ASSERT(value != NULL);
+    ASSERT(value != nullptr);
     value->set_instruction(this);
     value->set_use_index(i);
     RawSetInputAt(i, value);
@@ -999,24 +1004,25 @@ class Instruction : public ZoneAllocated {
   inline Value* ArgumentValueAt(intptr_t index) const;
   inline Definition* ArgumentAt(intptr_t index) const;
 
-  // Sets array of PushArgument instructions.
-  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
+  // Sets array of MoveArgument instructions.
+  virtual void SetMoveArguments(MoveArgumentsArray* move_arguments) {
     UNREACHABLE();
   }
-  // Returns array of PushArgument instructions
-  virtual PushArgumentsArray* GetPushArguments() const {
+  // Returns array of MoveArgument instructions
+  virtual MoveArgumentsArray* GetMoveArguments() const {
     UNREACHABLE();
     return nullptr;
   }
-  // Replace inputs with separate PushArgument instructions detached from call.
-  virtual void ReplaceInputsWithPushArguments(
-      PushArgumentsArray* push_arguments) {
+  // Replace inputs with separate MoveArgument instructions detached from call.
+  virtual void ReplaceInputsWithMoveArguments(
+      MoveArgumentsArray* move_arguments) {
     UNREACHABLE();
   }
-  bool HasPushArguments() const { return GetPushArguments() != nullptr; }
+  bool HasMoveArguments() const { return GetMoveArguments() != nullptr; }
 
-  // Repairs trailing PushArgs in environment.
-  void RepairPushArgsInEnvironment() const;
+  // Replaces direct uses of arguments with uses of corresponding MoveArgument
+  // instructions.
+  void RepairArgumentUsesInEnvironment() const;
 
   // Returns true, if this instruction can deoptimize with its current inputs.
   // This property can change if we add or remove redefinitions that constrain
@@ -1025,7 +1031,7 @@ class Instruction : public ZoneAllocated {
 
   virtual bool ComputeCanDeoptimizeAfterCall() const {
     // TODO(dartbug.com/45213): Incrementally migrate IR instructions from using
-    // [ComputeCanDeoptimze] to either [ComputeCanDeoptimizeAfterCall] if they
+    // [ComputeCanDeoptimize] to either [ComputeCanDeoptimizeAfterCall] if they
     // can only lazy deoptimize.
     return false;
   }
@@ -1050,9 +1056,9 @@ class Instruction : public ZoneAllocated {
   void set_next(Instruction* instr) {
     ASSERT(!IsGraphEntry());
     ASSERT(!IsReturn());
-    ASSERT(!IsBranch() || (instr == NULL));
+    ASSERT(!IsBranch() || (instr == nullptr));
     ASSERT(!IsPhi());
-    ASSERT(instr == NULL || !instr->IsBlockEntry());
+    ASSERT(instr == nullptr || !instr->IsBlockEntry());
     // TODO(fschneider): Also add Throw and ReThrow to the list of instructions
     // that do not have a successor. Currently, the graph builder will continue
     // to append instruction in case of a Throw inside an expression. This
@@ -1147,17 +1153,17 @@ class Instruction : public ZoneAllocated {
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
   LocationSummary* locs() {
-    ASSERT(locs_ != NULL);
+    ASSERT(locs_ != nullptr);
     return locs_;
   }
 
-  bool HasLocs() const { return locs_ != NULL; }
+  bool HasLocs() const { return locs_ != nullptr; }
 
   virtual LocationSummary* MakeLocationSummary(Zone* zone,
                                                bool is_optimizing) const = 0;
 
   void InitializeLocationSummary(Zone* zone, bool optimizing) {
-    ASSERT(locs_ == NULL);
+    ASSERT(locs_ == nullptr);
     locs_ = MakeLocationSummary(zone, optimizing);
   }
 
@@ -1216,7 +1222,7 @@ class Instruction : public ZoneAllocated {
   // Representation of the value produced by this computation.
   virtual Representation representation() const { return kTagged; }
 
-  bool WasEliminated() const { return next() == NULL; }
+  bool WasEliminated() const { return next() == nullptr; }
 
   // Returns deoptimization id that corresponds to the deoptimization target
   // that input operands conversions inserted for this instruction can jump
@@ -1226,7 +1232,7 @@ class Instruction : public ZoneAllocated {
     return DeoptId::kNone;
   }
 
-  // Returns a replacement for the instruction or NULL if the instruction can
+  // Returns a replacement for the instruction or nullptr if the instruction can
   // be eliminated.  By default returns the this instruction which means no
   // change.
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
@@ -1307,7 +1313,7 @@ class Instruction : public ZoneAllocated {
 
   bool IsDominatedBy(Instruction* dom);
 
-  void ClearEnv() { env_ = NULL; }
+  void ClearEnv() { env_ = nullptr; }
 
   void Unsupported(FlowGraphCompiler* compiler);
 
@@ -1474,6 +1480,8 @@ class TemplateInstruction
 class MoveOperands : public ZoneAllocated {
  public:
   MoveOperands(Location dest, Location src) : dest_(dest), src_(src) {}
+  MoveOperands(const MoveOperands& other)
+      : ZoneAllocated(), dest_(other.dest_), src_(other.src_) {}
 
   MoveOperands& operator=(const MoveOperands& other) {
     dest_ = other.dest_;
@@ -1527,6 +1535,9 @@ class MoveOperands : public ZoneAllocated {
     return src_.IsInvalid();
   }
 
+  void Write(FlowGraphSerializer* s) const;
+  explicit MoveOperands(FlowGraphDeserializer* d);
+
  private:
   Location dest_;
   Location src_;
@@ -1563,12 +1574,22 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
     return TokenPosition::kParallelMove;
   }
 
+  const MoveSchedule& move_schedule() const {
+    ASSERT(move_schedule_ != nullptr);
+    return *move_schedule_;
+  }
+
+  void set_move_schedule(const MoveSchedule& schedule) {
+    move_schedule_ = &schedule;
+  }
+
   PRINT_TO_SUPPORT
   DECLARE_EMPTY_SERIALIZATION(ParallelMoveInstr, TemplateInstruction)
   DECLARE_EXTRA_SERIALIZATION
 
  private:
   GrowableArray<MoveOperands*> moves_;  // Elements cannot be null.
+  const MoveSchedule* move_schedule_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
 };
@@ -1619,14 +1640,14 @@ class BlockEntryInstr : public TemplateInstruction<0, NoThrow> {
 
   ParallelMoveInstr* parallel_move() const { return parallel_move_; }
 
-  bool HasParallelMove() const { return parallel_move_ != NULL; }
+  bool HasParallelMove() const { return parallel_move_ != nullptr; }
 
   bool HasNonRedundantParallelMove() const {
     return HasParallelMove() && !parallel_move()->IsRedundant();
   }
 
   ParallelMoveInstr* GetParallelMove() {
-    if (parallel_move_ == NULL) {
+    if (parallel_move_ == nullptr) {
       parallel_move_ = new ParallelMoveInstr();
     }
     return parallel_move_;
@@ -1776,7 +1797,7 @@ class ForwardInstructionIterator {
     current_ = current_->next();
   }
 
-  bool Done() const { return current_ == NULL; }
+  bool Done() const { return current_ == nullptr; }
 
   // Removes 'current_' from graph and sets 'current_' to previous instruction.
   void RemoveCurrentFromGraph();
@@ -1815,7 +1836,7 @@ class BackwardInstructionIterator : public ValueObject {
  public:
   explicit BackwardInstructionIterator(BlockEntryInstr* block_entry)
       : block_entry_(block_entry), current_(block_entry->last_instruction()) {
-    ASSERT(block_entry_->previous() == NULL);
+    ASSERT(block_entry_->previous() == nullptr);
   }
 
   void Advance() {
@@ -1880,7 +1901,7 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
   virtual intptr_t PredecessorCount() const { return 0; }
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
@@ -2040,7 +2061,9 @@ class PhiIterator : public ValueObject {
     index_++;
   }
 
-  bool Done() const { return (phis_ == NULL) || (index_ >= phis_->length()); }
+  bool Done() const {
+    return (phis_ == nullptr) || (index_ >= phis_->length());
+  }
 
   PhiInstr* Current() const { return (*phis_)[index_]; }
 
@@ -2068,10 +2091,10 @@ class TargetEntryInstr : public BlockEntryInstr {
   void adjust_edge_weight(double scale_factor) { edge_weight_ *= scale_factor; }
 
   virtual intptr_t PredecessorCount() const {
-    return (predecessor_ == NULL) ? 0 : 1;
+    return (predecessor_ == nullptr) ? 0 : 1;
   }
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
-    ASSERT((index == 0) && (predecessor_ != NULL));
+    ASSERT((index == 0) && (predecessor_ != nullptr));
     return predecessor_;
   }
 
@@ -2086,9 +2109,9 @@ class TargetEntryInstr : public BlockEntryInstr {
  private:
   friend class BlockEntryInstr;  // Access to predecessor_ when inlining.
 
-  virtual void ClearPredecessors() { predecessor_ = NULL; }
+  virtual void ClearPredecessors() { predecessor_ = nullptr; }
   virtual void AddPredecessor(BlockEntryInstr* predecessor) {
-    ASSERT(predecessor_ == NULL);
+    ASSERT(predecessor_ == nullptr);
     predecessor_ = predecessor;
   }
 
@@ -2101,7 +2124,7 @@ class TargetEntryInstr : public BlockEntryInstr {
 // Represents an entrypoint to a function which callers can invoke (i.e. not
 // used for OSR entries).
 //
-// The flow graph builder might decide to create create multiple entrypoints
+// The flow graph builder might decide to create multiple entrypoints
 // (e.g. checked/unchecked entrypoints) and will attach those to the
 // [GraphEntryInstr].
 //
@@ -2260,7 +2283,7 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
                                   deopt_id,
                                   /*stack_depth=*/0),
         graph_entry_(graph_entry),
-        predecessor_(NULL),
+        predecessor_(nullptr),
         catch_handler_types_(Array::ZoneHandle(handler_types.ptr())),
         catch_try_index_(catch_try_index),
         exception_var_(exception_var),
@@ -2273,10 +2296,10 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
   DECLARE_INSTRUCTION(CatchBlockEntry)
 
   virtual intptr_t PredecessorCount() const {
-    return (predecessor_ == NULL) ? 0 : 1;
+    return (predecessor_ == nullptr) ? 0 : 1;
   }
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
-    ASSERT((index == 0) && (predecessor_ != NULL));
+    ASSERT((index == 0) && (predecessor_ != nullptr));
     return predecessor_;
   }
 
@@ -2306,9 +2329,9 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
  private:
   friend class BlockEntryInstr;  // Access to predecessor_ when inlining.
 
-  virtual void ClearPredecessors() { predecessor_ = NULL; }
+  virtual void ClearPredecessors() { predecessor_ = nullptr; }
   virtual void AddPredecessor(BlockEntryInstr* predecessor) {
-    ASSERT(predecessor_ == NULL);
+    ASSERT(predecessor_ == nullptr);
     predecessor_ = predecessor;
   }
 
@@ -2437,7 +2460,7 @@ class Definition : public Instruction {
   // Compile time type of the definition, which may be requested before type
   // propagation during graph building.
   CompileType* Type() {
-    if (type_ == NULL) {
+    if (type_ == nullptr) {
       auto type = new CompileType(ComputeType());
       type->set_owner(this);
       set_type(type);
@@ -2445,7 +2468,7 @@ class Definition : public Instruction {
     return type_;
   }
 
-  bool HasType() const { return (type_ != NULL); }
+  bool HasType() const { return (type_ != nullptr); }
 
   inline bool IsInt64Definition();
 
@@ -2482,7 +2505,7 @@ class Definition : public Instruction {
   }
 
   bool HasUses() const {
-    return (input_use_list_ != NULL) || (env_use_list_ != NULL);
+    return (input_use_list_ != nullptr) || (env_use_list_ != nullptr);
   }
   bool HasOnlyUse(Value* use) const;
   bool HasOnlyInputUse(Value* use) const;
@@ -2508,7 +2531,7 @@ class Definition : public Instruction {
   // Replace this definition with another instruction. Use the provided result
   // definition to replace uses of the original definition. If replacing during
   // iteration, pass the iterator so that the instruction can be replaced
-  // without affecting iteration order, otherwise pass a NULL iterator.
+  // without affecting iteration order, otherwise pass a nullptr iterator.
   void ReplaceWithResult(Instruction* replacement,
                          Definition* replacement_for_uses,
                          ForwardInstructionIterator* iterator);
@@ -2516,7 +2539,7 @@ class Definition : public Instruction {
   // Replace this definition and all uses with another definition.  If
   // replacing during iteration, pass the iterator so that the instruction
   // can be replaced without affecting iteration order, otherwise pass a
-  // NULL iterator.
+  // nullptr iterator.
   void ReplaceWith(Definition* other, ForwardInstructionIterator* iterator);
 
   // A value in the constant propagation lattice.
@@ -2796,21 +2819,25 @@ class PhiInstr : public VariadicDefinition {
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
 
-// This instruction represents an incomming parameter for a function entry,
-// or incoming value for OSR entry or incomming value for a catch entry.
-// Value [index] always denotes the position of the parameter. When [base_reg]
-// is set to FPREG, value [index] corresponds to environment variable index
-// (0 is the very first parameter, 1 is next and so on). When [base_reg] is
-// set to SPREG, value [index] needs to be reversed (0 is the very last
-// parameter, 1 is next and so on) to get the sp relative position.
+// This instruction represents an incoming parameter for a function entry,
+// or incoming value for OSR entry or incoming value for a catch entry.
+// [env_index] is a position of the parameter in the flow graph environment.
+// [param_index] is a position of the function parameter, or -1 if
+// this instruction doesn't correspond to a real function parameter.
 class ParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  ParameterInstr(intptr_t index,
+  // [param_index] when ParameterInstr doesn't correspond to
+  // a function parameter.
+  static constexpr intptr_t kNotFunctionParameter = -1;
+
+  ParameterInstr(intptr_t env_index,
+                 intptr_t param_index,
                  intptr_t param_offset,
                  BlockEntryInstr* block,
                  Representation representation,
                  Register base_reg = FPREG)
-      : index_(index),
+      : env_index_(env_index),
+        param_index_(param_index),
         param_offset_(param_offset),
         base_reg_(base_reg),
         representation_(representation),
@@ -2819,7 +2846,14 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
   DECLARE_INSTRUCTION(Parameter)
   DECLARE_ATTRIBUTES(index())
 
-  intptr_t index() const { return index_; }
+  // Index of the parameter in the flow graph environment.
+  intptr_t env_index() const { return env_index_; }
+  intptr_t index() const { return env_index(); }
+
+  // Index of the real function parameter
+  // (between 0 and function.NumParameters()), or -1.
+  intptr_t param_index() const { return param_index_; }
+
   intptr_t param_offset() const { return param_offset_; }
   Register base_reg() const { return base_reg_; }
 
@@ -2848,7 +2882,8 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
-  F(const intptr_t, index_)                                                    \
+  F(const intptr_t, env_index_)                                                \
+  F(const intptr_t, param_index_)                                              \
   /* The offset (in words) of the last slot of the parameter, relative */      \
   /* to the first parameter. */                                                \
   /* It is used in the FlowGraphAllocator when it sets the assigned */         \
@@ -2973,7 +3008,7 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
 //
 // Currently this instruction uses pinpoints the register to be FP.
 //
-// This lowlevel instruction is non-inlinable since it makes assumptons about
+// This lowlevel instruction is non-inlinable since it makes assumptions about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -3028,10 +3063,12 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
                   Value* dest_start,
                   Value* length,
                   classid_t src_cid,
-                  classid_t dest_cid)
+                  classid_t dest_cid,
+                  bool unboxed_length)
       : src_cid_(src_cid),
         dest_cid_(dest_cid),
-        element_size_(Instance::ElementSizeFor(src_cid)) {
+        element_size_(Instance::ElementSizeFor(src_cid)),
+        unboxed_length_(unboxed_length) {
     ASSERT(IsArrayTypeSupported(src_cid));
     ASSERT(IsArrayTypeSupported(dest_cid));
     ASSERT(Instance::ElementSizeFor(src_cid) ==
@@ -3054,6 +3091,9 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   DECLARE_INSTRUCTION(MemoryCopy)
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    if (index == kLengthPos && unboxed_length_) {
+      return kUnboxedIntPtr;
+    }
     // All inputs are tagged (for now).
     return kTagged;
   }
@@ -3069,10 +3109,17 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   Value* dest_start() const { return inputs_[kDestStartPos]; }
   Value* length() const { return inputs_[kLengthPos]; }
 
+  intptr_t element_size() const { return element_size_; }
+  bool unboxed_length() const { return unboxed_length_; }
+
+  // Optimizes MemoryCopyInstr with constant parameters to use larger moves.
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
 #define FIELD_LIST(F)                                                          \
   F(classid_t, src_cid_)                                                       \
   F(classid_t, dest_cid_)                                                      \
-  F(intptr_t, element_size_)
+  F(intptr_t, element_size_)                                                   \
+  F(bool, unboxed_length_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MemoryCopyInstr,
                                           TemplateInstruction,
@@ -3081,12 +3128,11 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 
  private:
   // Set array_reg to point to the index indicated by start (contained in
-  // start_reg) of the typed data or string in array (contained in array_reg).
+  // start_loc) of the typed data or string in array (contained in array_reg).
   void EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                classid_t array_cid,
-                               Value* start,
                                Register array_reg,
-                               Register start_reg);
+                               Location start_loc);
 
   static bool IsArrayTypeSupported(classid_t array_cid) {
     if (IsTypedDataBaseClassId(array_cid)) {
@@ -3112,7 +3158,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 // usual location (stack or LR).  The arguments descriptor supplied by the
 // original caller will be put into ARGS_DESC_REG.
 //
-// This lowlevel instruction is non-inlinable since it makes assumptons about
+// This lowlevel instruction is non-inlinable since it makes assumptions about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class TailCallInstr : public TemplateInstruction<1, Throws, Pure> {
  public:
@@ -3148,14 +3194,20 @@ class TailCallInstr : public TemplateInstruction<1, Throws, Pure> {
   DISALLOW_COPY_AND_ASSIGN(TailCallInstr);
 };
 
-class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
+// Move the given argument value into the place where callee expects it.
+// Currently all outgoing arguments are located in [SP+idx]
+class MoveArgumentInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit PushArgumentInstr(Value* value, Representation representation)
-      : representation_(representation) {
+  explicit MoveArgumentInstr(Value* value,
+                             Representation representation,
+                             intptr_t sp_relative_index)
+      : representation_(representation), sp_relative_index_(sp_relative_index) {
     SetInputAt(0, value);
   }
 
-  DECLARE_INSTRUCTION(PushArgument)
+  DECLARE_INSTRUCTION(MoveArgument)
+
+  intptr_t sp_relative_index() const { return sp_relative_index_; }
 
   virtual CompileType ComputeType() const;
 
@@ -3166,7 +3218,7 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual TokenPosition token_pos() const {
-    return TokenPosition::kPushArgument;
+    return TokenPosition::kMoveArgument;
   }
 
   virtual Representation representation() const { return representation_; }
@@ -3178,20 +3230,22 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const Representation, representation_)
+#define FIELD_LIST(F)                                                          \
+  F(const Representation, representation_)                                     \
+  F(const intptr_t, sp_relative_index_)
 
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(PushArgumentInstr,
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MoveArgumentInstr,
                                           TemplateDefinition,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
+  DISALLOW_COPY_AND_ASSIGN(MoveArgumentInstr);
 };
 
 inline Value* Instruction::ArgumentValueAt(intptr_t index) const {
-  PushArgumentsArray* push_arguments = GetPushArguments();
-  return push_arguments != nullptr ? (*push_arguments)[index]->value()
+  MoveArgumentsArray* move_arguments = GetMoveArguments();
+  return move_arguments != nullptr ? (*move_arguments)[index]->value()
                                    : InputAt(index);
 }
 
@@ -3373,7 +3427,7 @@ class ReThrowInstr : public TemplateInstruction<2, Throws> {
 class StopInstr : public TemplateInstruction<0, NoThrow> {
  public:
   explicit StopInstr(const char* message) : message_(message) {
-    ASSERT(message != NULL);
+    ASSERT(message != nullptr);
   }
 
   const char* message() const { return message_; }
@@ -3432,14 +3486,14 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 
   ParallelMoveInstr* parallel_move() const { return parallel_move_; }
 
-  bool HasParallelMove() const { return parallel_move_ != NULL; }
+  bool HasParallelMove() const { return parallel_move_ != nullptr; }
 
   bool HasNonRedundantParallelMove() const {
     return HasParallelMove() && !parallel_move()->IsRedundant();
   }
 
   ParallelMoveInstr* GetParallelMove() {
-    if (parallel_move_ == NULL) {
+    if (parallel_move_ == nullptr) {
       parallel_move_ = new ParallelMoveInstr();
     }
     return parallel_move_;
@@ -3487,7 +3541,7 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 // The FlowGraphCompiler will - as a post-processing step - invoke
 // [ComputeOffsetTable] of all [IndirectGotoInstr]s. In there we initialize a
 // TypedDataInt32Array containing offsets of all [IndirectEntryInstr]s (the
-// offests are relative to start of the instruction payload).
+// offsets are relative to start of the instruction payload).
 //
 //  => See `FlowGraphCompiler::CompileGraph()`
 //  => See `IndirectGotoInstr::ComputeOffsetTable`
@@ -3656,7 +3710,7 @@ class BranchInstr : public Instruction {
  public:
   explicit BranchInstr(ComparisonInstr* comparison, intptr_t deopt_id)
       : Instruction(deopt_id), comparison_(comparison) {
-    ASSERT(comparison->env() == NULL);
+    ASSERT(comparison->env() == nullptr);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
       comparison->InputAt(i)->set_instruction(this);
     }
@@ -3667,11 +3721,11 @@ class BranchInstr : public Instruction {
   virtual intptr_t ArgumentCount() const {
     return comparison()->ArgumentCount();
   }
-  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
-    comparison()->SetPushArguments(push_arguments);
+  virtual void SetMoveArguments(MoveArgumentsArray* move_arguments) {
+    comparison()->SetMoveArguments(move_arguments);
   }
-  virtual PushArgumentsArray* GetPushArguments() const {
-    return comparison()->GetPushArguments();
+  virtual MoveArgumentsArray* GetMoveArguments() const {
+    return comparison()->GetMoveArguments();
   }
 
   intptr_t InputCount() const { return comparison()->InputCount(); }
@@ -3777,7 +3831,7 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
 
 class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit RedefinitionInstr(Value* value) : constrained_type_(NULL) {
+  explicit RedefinitionInstr(Value* value) : constrained_type_(nullptr) {
     SetInputAt(0, value);
   }
 
@@ -3953,7 +4007,7 @@ class UnboxedConstantInstr : public ConstantInstr {
 
   virtual Representation representation() const { return representation_; }
 
-  // Either NULL or the address of the unboxed constant.
+  // Either nullptr or the address of the unboxed constant.
   uword constant_address() const { return constant_address_; }
 
   DECLARE_INSTRUCTION(UnboxedConstant)
@@ -3961,7 +4015,8 @@ class UnboxedConstantInstr : public ConstantInstr {
 
  private:
   const Representation representation_;
-  uword constant_address_;  // Either NULL or points to the untagged constant.
+  uword
+      constant_address_;  // Either nullptr or points to the untagged constant.
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedConstantInstr);
 };
@@ -4307,23 +4362,23 @@ class TemplateDartCall : public VariadicDefinition {
   // ArgumentCount() includes the type argument vector if any.
   // Caution: Must override Instruction::ArgumentCount().
   intptr_t ArgumentCount() const {
-    return push_arguments_ != nullptr ? push_arguments_->length()
+    return move_arguments_ != nullptr ? move_arguments_->length()
                                       : InputCount() - kExtraInputs;
   }
   virtual intptr_t ArgumentsSize() const { return ArgumentCount(); }
 
-  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
-    ASSERT(push_arguments_ == nullptr);
-    push_arguments_ = push_arguments;
+  virtual void SetMoveArguments(MoveArgumentsArray* move_arguments) {
+    ASSERT(move_arguments_ == nullptr);
+    move_arguments_ = move_arguments;
   }
-  virtual PushArgumentsArray* GetPushArguments() const {
-    return push_arguments_;
+  virtual MoveArgumentsArray* GetMoveArguments() const {
+    return move_arguments_;
   }
-  virtual void ReplaceInputsWithPushArguments(
-      PushArgumentsArray* push_arguments) {
-    ASSERT(push_arguments_ == nullptr);
-    ASSERT(push_arguments->length() == ArgumentCount());
-    SetPushArguments(push_arguments);
+  virtual void ReplaceInputsWithMoveArguments(
+      MoveArgumentsArray* move_arguments) {
+    ASSERT(move_arguments_ == nullptr);
+    ASSERT(move_arguments->length() == ArgumentCount());
+    SetMoveArguments(move_arguments);
     ASSERT(InputCount() == ArgumentCount() + kExtraInputs);
     const intptr_t extra_inputs_base = InputCount() - kExtraInputs;
     for (intptr_t i = 0, n = ArgumentCount(); i < n; ++i) {
@@ -4355,7 +4410,7 @@ class TemplateDartCall : public VariadicDefinition {
   DECLARE_EXTRA_SERIALIZATION
 
  private:
-  PushArgumentsArray* push_arguments_ = nullptr;
+  MoveArgumentsArray* move_arguments_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TemplateDartCall);
 };
@@ -4617,6 +4672,8 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
   const CallTargets& Targets();
   void SetTargets(const CallTargets* targets) { targets_ = targets; }
 
+  void EnsureICData(FlowGraph* graph);
+
 #define FIELD_LIST(F)                                                          \
   F(const intptr_t, checked_argument_count_)                                   \
   F(const AbstractType*, receivers_static_type_)
@@ -4640,7 +4697,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
                                                 InstanceCallBaseInstr* call,
                                                 const CallTargets& targets,
                                                 bool complete) {
-    ASSERT(!call->HasPushArguments());
+    ASSERT(!call->HasMoveArguments());
     InputsArray args(zone, call->ArgumentCount());
     for (intptr_t i = 0, n = call->ArgumentCount(); i < n; ++i) {
       args.Add(call->ArgumentValueAt(i)->CopyWithType(zone));
@@ -4672,7 +4729,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
 
   virtual intptr_t CallCount() const;
 
-  // If this polymophic call site was created to cover the remaining cids after
+  // If this polymorphic call site was created to cover the remaining cids after
   // inlining then we need to keep track of the total number of calls including
   // the ones that we inlined. This is different from the CallCount above:  Eg
   // if there were 100 calls originally, distributed across three class-ids in
@@ -4937,13 +4994,9 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   virtual bool AttributesEqual(const Instruction& other) const;
 
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const ZoneGrowableArray<intptr_t>&, cid_results_)                          \
-  F(bool, licm_hoisted_)
+#define FIELD_LIST(F) F(const ZoneGrowableArray<intptr_t>&, cid_results_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TestCidsInstr,
                                           TemplateComparison,
@@ -5086,7 +5139,7 @@ class IfThenElseInstr : public Definition {
         if_true_(Smi::Cast(if_true->BoundConstant()).Value()),
         if_false_(Smi::Cast(if_false->BoundConstant()).Value()) {
     // Adjust uses at the comparison.
-    ASSERT(comparison->env() == NULL);
+    ASSERT(comparison->env() == nullptr);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
       comparison->InputAt(i)->set_instruction(this);
     }
@@ -5182,7 +5235,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
         call_count_(0),
         function_(function),
         rebind_rule_(rebind_rule),
-        result_type_(NULL),
+        result_type_(nullptr),
         is_known_list_constructor_(false),
         entry_kind_(Code::EntryKind::kNormal),
         identity_(AliasIdentity::Unknown()) {
@@ -5203,11 +5256,11 @@ class StaticCallInstr : public TemplateDartCall<0> {
                          argument_names,
                          std::move(arguments),
                          source),
-        ic_data_(NULL),
+        ic_data_(nullptr),
         call_count_(call_count),
         function_(function),
         rebind_rule_(rebind_rule),
-        result_type_(NULL),
+        result_type_(nullptr),
         is_known_list_constructor_(false),
         entry_kind_(Code::EntryKind::kNormal),
         identity_(AliasIdentity::Unknown()) {
@@ -5222,7 +5275,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
                                    const C* call,
                                    const Function& target,
                                    intptr_t call_count) {
-    ASSERT(!call->HasPushArguments());
+    ASSERT(!call->HasMoveArguments());
     InputsArray args(zone, call->ArgumentCount());
     for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
       args.Add(call->ArgumentValueAt(i)->CopyWithType());
@@ -5230,7 +5283,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
     StaticCallInstr* new_call = new (zone) StaticCallInstr(
         call->source(), target, call->type_args_len(), call->argument_names(),
         std::move(args), call->deopt_id(), call_count, ICData::kNoRebind);
-    if (call->result_type() != NULL) {
+    if (call->result_type() != nullptr) {
       new_call->result_type_ = call->result_type();
     }
     new_call->set_entry_kind(call->entry_kind());
@@ -5239,7 +5292,9 @@ class StaticCallInstr : public TemplateDartCall<0> {
 
   // ICData for static calls carries call count.
   const ICData* ic_data() const { return ic_data_; }
-  bool HasICData() const { return (ic_data() != NULL) && !ic_data()->IsNull(); }
+  bool HasICData() const {
+    return (ic_data() != nullptr) && !ic_data()->IsNull();
+  }
 
   void set_ic_data(const ICData* value) { ic_data_ = value; }
 
@@ -5256,7 +5311,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   const Function& function() const { return function_; }
 
   virtual intptr_t CallCount() const {
-    return ic_data() == NULL ? call_count_ : ic_data()->AggregateCount();
+    return ic_data() == nullptr ? call_count_ : ic_data()->AggregateCount();
   }
 
   virtual bool ComputeCanDeoptimize() const {
@@ -5284,7 +5339,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   CompileType* result_type() const { return result_type_; }
 
   intptr_t result_cid() const {
-    if (result_type_ == NULL) {
+    if (result_type_ == nullptr) {
       return kDynamicCid;
     }
     return result_type_->ToCid();
@@ -5464,7 +5519,7 @@ class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
   explicit MakeTempInstr(Zone* zone)
       : null_(new (zone) ConstantInstr(Object::ZoneHandle())) {
     // Note: We put ConstantInstr inside MakeTemp to simplify code generation:
-    // having ConstantInstr allows us to use Location::Contant(null_) as an
+    // having ConstantInstr allows us to use Location::Constant(null_) as an
     // output location for this instruction.
   }
 
@@ -5566,6 +5621,9 @@ class NativeCallInstr : public TemplateDartCall<0> {
         link_lazily_(link_lazily) {
     DEBUG_ASSERT(name.IsNotTemporaryScopedHandle());
     DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
+    // +1 for return value placeholder.
+    ASSERT(ArgumentCount() ==
+           function.NumParameters() + (function.IsGeneric() ? 1 : 0) + 1);
   }
 
   DECLARE_INSTRUCTION(NativeCall)
@@ -6426,7 +6484,7 @@ class OneByteStringFromCharCodeInstr
 class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   StringToCharCodeInstr(Value* str, intptr_t cid) : cid_(cid) {
-    ASSERT(str != NULL);
+    ASSERT(str != nullptr);
     SetInputAt(0, str);
   }
 
@@ -6654,7 +6712,7 @@ class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(RecordCoverageInstr);
 };
 
-// Note overrideable, built-in: value ? false : true.
+// Note overridable, built-in: value ? false : true.
 class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit BooleanNegateInstr(Value* value) { SetInputAt(0, value); }
@@ -6978,40 +7036,27 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
 };
 
 // Allocates and null initializes a record object.
-class AllocateRecordInstr : public TemplateAllocation<1> {
+class AllocateRecordInstr : public TemplateAllocation<0> {
  public:
-  enum { kFieldNamesPos = 0 };
   AllocateRecordInstr(const InstructionSource& source,
-                      intptr_t num_fields,
-                      Value* field_names,
+                      RecordShape shape,
                       intptr_t deopt_id)
-      : TemplateAllocation(source, deopt_id), num_fields_(num_fields) {
-    SetInputAt(kFieldNamesPos, field_names);
-  }
+      : TemplateAllocation(source, deopt_id), shape_(shape) {}
 
   DECLARE_INSTRUCTION(AllocateRecord)
   virtual CompileType ComputeType() const;
 
-  intptr_t num_fields() const { return num_fields_; }
-  Value* field_names() const { return InputAt(kFieldNamesPos); }
-
-  virtual const Slot* SlotForInput(intptr_t pos) {
-    switch (pos) {
-      case kFieldNamesPos:
-        return &Slot::Record_field_names();
-      default:
-        return TemplateAllocation::SlotForInput(pos);
-    }
-  }
+  RecordShape shape() const { return shape_; }
+  intptr_t num_fields() const { return shape_.num_fields(); }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
     return Heap::IsAllocatableInNewSpace(
-        compiler::target::Record::InstanceSize(num_fields_));
+        compiler::target::Record::InstanceSize(num_fields()));
   }
 
-#define FIELD_LIST(F) F(const intptr_t, num_fields_)
+#define FIELD_LIST(F) F(const RecordShape, shape_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateRecordInstr,
                                           TemplateAllocation,
@@ -7024,75 +7069,46 @@ class AllocateRecordInstr : public TemplateAllocation<1> {
 
 // Allocates and initializes fields of a small record object
 // (with 2 or 3 fields).
-class AllocateSmallRecordInstr : public TemplateAllocation<4> {
+class AllocateSmallRecordInstr : public TemplateAllocation<3> {
  public:
   AllocateSmallRecordInstr(const InstructionSource& source,
-                           intptr_t num_fields,  // 2 or 3.
-                           Value* field_names,   // Optional.
+                           RecordShape shape,  // 2 or 3 fields.
                            Value* value0,
                            Value* value1,
                            Value* value2,  // Optional.
                            intptr_t deopt_id)
-      : TemplateAllocation(source, deopt_id),
-        num_fields_(num_fields),
-        has_named_fields_(field_names != nullptr) {
+      : TemplateAllocation(source, deopt_id), shape_(shape) {
+    const intptr_t num_fields = shape.num_fields();
     ASSERT(num_fields == 2 || num_fields == 3);
     ASSERT((num_fields > 2) == (value2 != nullptr));
-    if (has_named_fields_) {
-      SetInputAt(0, field_names);
-      SetInputAt(1, value0);
-      SetInputAt(2, value1);
-      if (num_fields > 2) {
-        SetInputAt(3, value2);
-      }
-    } else {
-      SetInputAt(0, value0);
-      SetInputAt(1, value1);
-      if (num_fields > 2) {
-        SetInputAt(2, value2);
-      }
+    SetInputAt(0, value0);
+    SetInputAt(1, value1);
+    if (num_fields > 2) {
+      SetInputAt(2, value2);
     }
   }
 
   DECLARE_INSTRUCTION(AllocateSmallRecord)
   virtual CompileType ComputeType() const;
 
-  intptr_t num_fields() const { return num_fields_; }
-  bool has_named_fields() const { return has_named_fields_; }
+  RecordShape shape() const { return shape_; }
+  intptr_t num_fields() const { return shape().num_fields(); }
 
-  Value* field_names() const {
-    ASSERT(has_named_fields_);
-    return InputAt(0);
-  }
-
-  virtual intptr_t InputCount() const {
-    return (has_named_fields_ ? 1 : 0) + num_fields_;
-  }
+  virtual intptr_t InputCount() const { return num_fields(); }
 
   virtual const Slot* SlotForInput(intptr_t pos) {
-    if (has_named_fields_) {
-      if (pos == 0) {
-        return &Slot::Record_field_names();
-      } else {
-        return &Slot::GetRecordFieldSlot(
-            Thread::Current(), compiler::target::Record::field_offset(pos - 1));
-      }
-    } else {
-      return &Slot::GetRecordFieldSlot(
-          Thread::Current(), compiler::target::Record::field_offset(pos));
-    }
+    return &Slot::GetRecordFieldSlot(
+        Thread::Current(), compiler::target::Record::field_offset(pos));
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
     return Heap::IsAllocatableInNewSpace(
-        compiler::target::Record::InstanceSize(num_fields_));
+        compiler::target::Record::InstanceSize(num_fields()));
   }
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, num_fields_)                                               \
-  F(const bool, has_named_fields_)
+#define FIELD_LIST(F) F(const RecordShape, shape_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateSmallRecordInstr,
                                           TemplateAllocation,
@@ -7110,12 +7126,12 @@ class MaterializeObjectInstr : public VariadicDefinition {
  public:
   MaterializeObjectInstr(AllocationInstr* allocation,
                          const Class& cls,
-                         intptr_t num_elements,
+                         intptr_t length_or_shape,
                          const ZoneGrowableArray<const Slot*>& slots,
                          InputsArray&& values)
       : VariadicDefinition(std::move(values)),
         cls_(cls),
-        num_elements_(num_elements),
+        length_or_shape_(length_or_shape),
         slots_(slots),
         registers_remapped_(false),
         allocation_(allocation) {
@@ -7125,7 +7141,7 @@ class MaterializeObjectInstr : public VariadicDefinition {
   AllocationInstr* allocation() const { return allocation_; }
   const Class& cls() const { return cls_; }
 
-  intptr_t num_elements() const { return num_elements_; }
+  intptr_t length_or_shape() const { return length_or_shape_; }
 
   intptr_t FieldOffsetAt(intptr_t i) const {
     return slots_[i]->offset_in_bytes();
@@ -7165,7 +7181,7 @@ class MaterializeObjectInstr : public VariadicDefinition {
 
 #define FIELD_LIST(F)                                                          \
   F(const Class&, cls_)                                                        \
-  F(intptr_t, num_elements_)                                                   \
+  F(intptr_t, length_or_shape_)                                                \
   F(const ZoneGrowableArray<const Slot*>&, slots_)                             \
   F(bool, registers_remapped_)
 
@@ -7718,7 +7734,7 @@ class CloneContextInstr : public TemplateDefinition<1, Throws> {
 class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
  public:
   CheckEitherNonSmiInstr(Value* left, Value* right, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id), licm_hoisted_(false) {
+      : TemplateInstruction(deopt_id) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -7734,14 +7750,7 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-
-#define FIELD_LIST(F) F(bool, licm_hoisted_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckEitherNonSmiInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
+  DECLARE_EMPTY_SERIALIZATION(CheckEitherNonSmiInstr, TemplateInstruction)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
@@ -9785,14 +9794,10 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual bool AttributesEqual(const Instruction& other) const;
 
-  bool licm_hoisted() const { return licm_hoisted_; }
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
   F(const Cids&, cids_)                                                        \
-  F(bool, licm_hoisted_)                                                       \
   F(bool, is_bit_test_)                                                        \
   F(const TokenPosition, token_pos_)
 
@@ -9825,9 +9830,7 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
   CheckSmiInstr(Value* value,
                 intptr_t deopt_id,
                 const InstructionSource& source)
-      : TemplateInstruction(source, deopt_id),
-        token_pos_(source.token_pos),
-        licm_hoisted_(false) {
+      : TemplateInstruction(source, deopt_id), token_pos_(source.token_pos) {
     SetInputAt(0, value);
   }
 
@@ -9842,12 +9845,7 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
-  bool licm_hoisted() const { return licm_hoisted_; }
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(bool, licm_hoisted_)
+#define FIELD_LIST(F) F(const TokenPosition, token_pos_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckSmiInstr,
                                           TemplateInstruction,
@@ -10007,9 +10005,7 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
 class CheckArrayBoundInstr : public CheckBoundBase {
  public:
   CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : CheckBoundBase(length, index, deopt_id),
-        generalized_(false),
-        licm_hoisted_(false) {}
+      : CheckBoundBase(length, index, deopt_id), generalized_(false) {}
 
   DECLARE_INSTRUCTION(CheckArrayBound)
 
@@ -10027,11 +10023,7 @@ class CheckArrayBoundInstr : public CheckBoundBase {
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-
-#define FIELD_LIST(F)                                                          \
-  F(bool, generalized_)                                                        \
-  F(bool, licm_hoisted_)
+#define FIELD_LIST(F) F(bool, generalized_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckArrayBoundInstr,
                                           CheckBoundBase,
@@ -10341,7 +10333,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
 // All SIMD intrinsics and recognized methods are represented via instances
 // of SimdOpInstr, a particular type of SimdOp is selected by SimdOpInstr::Kind.
 //
-// Defines below are used to contruct SIMD_OP_LIST - a list of all SIMD
+// Defines below are used to construct SIMD_OP_LIST - a list of all SIMD
 // operations. SIMD_OP_LIST contains information such as arity, input types and
 // output type for each SIMD op and is used to derive things like input
 // and output representations, type of return value, etc.
@@ -10388,14 +10380,14 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(Arity, _, Name##Z, Inputs, Output)                                         \
   M(Arity, _, Name##W, Inputs, Output)
 
-// Define convertion between two SIMD types.
+// Define conversion between two SIMD types.
 #define SIMD_CONVERSION(M, FromType, ToType)                                   \
   M(1, _, FromType##To##ToType, (FromType), ToType)
 
 // List of all recognized SIMD operations.
 // Note: except for operations that map to operators (Add, Mul, Sub, Div,
 // BitXor, BitOr) all other operations must match names used by
-// MethodRecognizer. This allows to autogenerate convertion from
+// MethodRecognizer. This allows to autogenerate conversion from
 // MethodRecognizer::Kind into SimdOpInstr::Kind (see KindForMethod helper).
 // Note: M is for those SimdOp that are recognized methods and BINARY_OP
 // is for operators.
@@ -10623,10 +10615,11 @@ class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
 };
 
 // Suspends execution using the suspend stub specified using [StubId].
-class SuspendInstr : public TemplateDefinition<1, Throws> {
+class SuspendInstr : public TemplateDefinition<2, Throws> {
  public:
   enum class StubId {
     kAwait,
+    kAwaitWithTypeCheck,
     kYieldAsyncStar,
     kSuspendSyncStarAtStart,
     kSuspendSyncStarAtYield,
@@ -10635,6 +10628,7 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
   SuspendInstr(const InstructionSource& source,
                StubId stub_id,
                Value* operand,
+               Value* type_args,
                intptr_t deopt_id,
                intptr_t resume_deopt_id)
       : TemplateDefinition(source, deopt_id),
@@ -10642,9 +10636,22 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
         resume_deopt_id_(resume_deopt_id),
         token_pos_(source.token_pos) {
     SetInputAt(0, operand);
+    if (has_type_args()) {
+      SetInputAt(1, type_args);
+    } else {
+      ASSERT(type_args == nullptr);
+    }
   }
 
+  bool has_type_args() const { return stub_id_ == StubId::kAwaitWithTypeCheck; }
+  virtual intptr_t InputCount() const { return has_type_args() ? 2 : 1; }
+
   Value* operand() const { return inputs_[0]; }
+  Value* type_args() const {
+    ASSERT(has_type_args());
+    return inputs_[1];
+  }
+
   StubId stub_id() const { return stub_id_; }
   intptr_t resume_deopt_id() const { return resume_deopt_id_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
@@ -10659,8 +10666,10 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(Suspend);
   PRINT_OPERANDS_TO_SUPPORT
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
 #define FIELD_LIST(F)                                                          \
-  F(const StubId, stub_id_)                                                    \
+  F(StubId, stub_id_)                                                          \
   F(const intptr_t, resume_deopt_id_)                                          \
   F(const TokenPosition, token_pos_)
 
@@ -10677,7 +10686,7 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
 
 class Environment : public ZoneAllocated {
  public:
-  // Iterate the non-NULL values in the innermost level of an environment.
+  // Iterate the non-nullptr values in the innermost level of an environment.
   class ShallowIterator : public ValueObject {
    public:
     explicit ShallowIterator(Environment* environment)
@@ -10702,18 +10711,18 @@ class Environment : public ZoneAllocated {
     }
 
     bool Done() const {
-      return (environment_ == NULL) || (index_ >= environment_->Length());
+      return (environment_ == nullptr) || (index_ >= environment_->Length());
     }
 
     Value* CurrentValue() const {
       ASSERT(!Done());
-      ASSERT(environment_->values_[index_] != NULL);
+      ASSERT(environment_->values_[index_] != nullptr);
       return environment_->values_[index_];
     }
 
     void SetCurrentValue(Value* value) {
       ASSERT(!Done());
-      ASSERT(value != NULL);
+      ASSERT(value != nullptr);
       environment_->values_[index_] = value;
     }
 
@@ -10732,7 +10741,7 @@ class Environment : public ZoneAllocated {
     intptr_t index_;
   };
 
-  // Iterate all non-NULL values in an environment, including outer
+  // Iterate all non-nullptr values in an environment, including outer
   // environments.  Note that the iterator skips empty environments.
   class DeepIterator : public ValueObject {
    public:
@@ -10746,7 +10755,7 @@ class Environment : public ZoneAllocated {
       SkipDone();
     }
 
-    bool Done() const { return iterator_.environment() == NULL; }
+    bool Done() const { return iterator_.environment() == nullptr; }
 
     Value* CurrentValue() const {
       ASSERT(!Done());
@@ -10786,7 +10795,7 @@ class Environment : public ZoneAllocated {
                            const ParsedFunction& parsed_function);
 
   void set_locations(Location* locations) {
-    ASSERT(locations_ == NULL);
+    ASSERT(locations_ == nullptr);
     locations_ = locations;
   }
 
@@ -10810,6 +10819,11 @@ class Environment : public ZoneAllocated {
     bitfield_ = LazyDeoptToBeforeDeoptId::update(true, bitfield_);
   }
 
+  // This environment belongs to an optimistically hoisted instruction.
+  bool IsHoisted() const { return Hoisted::decode(bitfield_); }
+
+  void MarkAsHoisted() { bitfield_ = Hoisted::update(true, bitfield_); }
+
   Environment* GetLazyDeoptEnv(Zone* zone) {
     const intptr_t num_args_to_prune = LazyDeoptPruneCount();
     if (num_args_to_prune == 0) return this;
@@ -10820,7 +10834,7 @@ class Environment : public ZoneAllocated {
 
   Environment* Outermost() {
     Environment* result = this;
-    while (result->outer() != NULL)
+    while (result->outer() != nullptr)
       result = result->outer();
     return result;
   }
@@ -10840,7 +10854,7 @@ class Environment : public ZoneAllocated {
   Value* ValueAtUseIndex(intptr_t index) const {
     const Environment* env = this;
     while (index >= env->Length()) {
-      ASSERT(env->outer_ != NULL);
+      ASSERT(env->outer_ != nullptr);
       index -= env->Length();
       env = env->outer_;
     }
@@ -10852,7 +10866,7 @@ class Environment : public ZoneAllocated {
   intptr_t CountArgsPushed() {
     intptr_t count = 0;
     for (Environment::DeepIterator it(this); !it.Done(); it.Advance()) {
-      if (it.CurrentValue()->definition()->IsPushArgument()) {
+      if (it.CurrentValue()->definition()->IsMoveArgument()) {
         count++;
       }
     }
@@ -10892,12 +10906,15 @@ class Environment : public ZoneAllocated {
   class LazyDeoptPruningBits : public BitField<uintptr_t, uintptr_t, 0, 8> {};
   class LazyDeoptToBeforeDeoptId
       : public BitField<uintptr_t, bool, LazyDeoptPruningBits::kNextBit, 1> {};
-  class DeoptIdBits
-      : public BitField<uintptr_t,
-                        intptr_t,
-                        LazyDeoptToBeforeDeoptId::kNextBit,
-                        kBitsPerWord - LazyDeoptToBeforeDeoptId::kNextBit,
-                        /*sign_extend=*/true> {};
+  class Hoisted : public BitField<uintptr_t,
+                                  bool,
+                                  LazyDeoptToBeforeDeoptId::kNextBit,
+                                  1> {};
+  class DeoptIdBits : public BitField<uintptr_t,
+                                      intptr_t,
+                                      Hoisted::kNextBit,
+                                      kBitsPerWord - Hoisted::kNextBit,
+                                      /*sign_extend=*/true> {};
 
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
@@ -10957,7 +10974,7 @@ class InstructionVisitor : public ValueObject {
 class FlowGraphVisitor : public InstructionVisitor {
  public:
   explicit FlowGraphVisitor(const GrowableArray<BlockEntryInstr*>& block_order)
-      : current_iterator_(NULL), block_order_(&block_order) {}
+      : current_iterator_(nullptr), block_order_(&block_order) {}
   virtual ~FlowGraphVisitor() {}
 
   ForwardInstructionIterator* current_iterator() const {
@@ -10984,9 +11001,11 @@ class FlowGraphVisitor : public InstructionVisitor {
 #define DEFINE_UNIMPLEMENTED_INSTRUCTION(Name)                                 \
   LocationSummary* Name::MakeLocationSummary(Zone* zone, bool opt) const {     \
     UNIMPLEMENTED();                                                           \
-    return NULL;                                                               \
+    return nullptr;                                                            \
   }                                                                            \
-  void Name::EmitNativeCode(FlowGraphCompiler* compiler) { UNIMPLEMENTED(); }
+  void Name::EmitNativeCode(FlowGraphCompiler* compiler) {                     \
+    UNIMPLEMENTED();                                                           \
+  }
 
 template <intptr_t kExtraInputs>
 StringPtr TemplateDartCall<kExtraInputs>::Selector() {

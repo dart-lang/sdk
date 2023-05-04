@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/compiler_helper.dart';
@@ -35,7 +33,7 @@ void main() {
         disableTypeInference: false,
         disableInlining: false,
         soundNullSafety: true, check: (String generated) {
-      RegExp regexp = new RegExp(r'=== \$');
+      RegExp regexp = RegExp(r'=== \$');
       Expect.equals(1, regexp.allMatches(generated).length);
     });
   });

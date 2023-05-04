@@ -12,7 +12,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PostfixExpressionResolutionTest);
-    defineReflectiveTests(PostfixExpressionResolutionWithoutNullSafetyTest);
+    defineReflectiveTests(PostfixExpressionResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -83,6 +83,51 @@ PostfixExpression
 ''');
 
     assertType(findNode.simple('x; // ref'), 'Object');
+  }
+
+  test_inc_switchExpression() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  (switch (x) {
+    _ => 0,
+  }++);
+}
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 51, 2),
+    ]);
+
+    var node = findNode.postfix('++');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: ++
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_nullCheck() async {
@@ -163,7 +208,7 @@ void f(Null x) {
   x!;
 }
 ''', [
-      error(HintCode.NULL_CHECK_ALWAYS_FAILS, 19, 2),
+      error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 19, 2),
     ]);
 
     assertType(findNode.postfix('x!'), 'Never');
@@ -345,6 +390,11 @@ PostfixExpression
 ''');
   }
 }
+
+@reflectiveTest
+class PostfixExpressionResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with PostfixExpressionResolutionTestCases, WithoutNullSafetyMixin {}
 
 mixin PostfixExpressionResolutionTestCases on PubPackageResolutionTest {
   test_dec_simpleIdentifier_parameter_int() async {
@@ -1332,8 +1382,3 @@ PostfixExpression
     }
   }
 }
-
-@reflectiveTest
-class PostfixExpressionResolutionWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with PostfixExpressionResolutionTestCases, WithoutNullSafetyMixin {}

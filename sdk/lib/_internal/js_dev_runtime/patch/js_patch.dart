@@ -139,7 +139,8 @@ class JsObject {
     if (args != null) args = List.from(args.map(_convertToJS));
     var fn = JS('', '#[#]', _jsObject, method);
     if (JS<bool>('!', 'typeof(#) !== "function"', fn)) {
-      throw NoSuchMethodError(_jsObject, Symbol('$method'), args, {});
+      final invocation = Invocation.method(Symbol('$method'), args, {});
+      throw NoSuchMethodError.withInvocation(_jsObject, invocation);
     }
     return _convertToDart(JS('', '#.apply(#, #)', fn, _jsObject, args));
   }
@@ -402,44 +403,4 @@ T _putIfAbsent<T>(Object weakMap, Object o, T getValue(Object o)) {
   }
   // TODO(vsm): Static cast.  Unnecessary?
   return JS('', '#', value);
-}
-
-Expando<Function> _interopExpando = Expando<Function>();
-
-@patch
-F allowInterop<F extends Function>(F f) {
-  if (!dart.isDartFunction(f)) return f;
-  var ret = _interopExpando[f] as F?;
-  if (ret == null) {
-    ret = JS<F>(
-        '',
-        'function (...args) {'
-            ' return #(#, args);'
-            '}',
-        dart.dcall,
-        f);
-    _interopExpando[f] = ret;
-  }
-  return ret;
-}
-
-Expando<Function> _interopCaptureThisExpando = Expando<Function>();
-
-@patch
-Function allowInteropCaptureThis(Function f) {
-  if (!dart.isDartFunction(f)) return f;
-  var ret = _interopCaptureThisExpando[f];
-  if (ret == null) {
-    ret = JS<Function>(
-        '',
-        'function(...arguments) {'
-            '  let args = [this];'
-            '  args.push.apply(args, arguments);'
-            '  return #(#, args);'
-            '}',
-        dart.dcall,
-        f);
-    _interopCaptureThisExpando[f] = ret;
-  }
-  return ret;
 }

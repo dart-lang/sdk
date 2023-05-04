@@ -10,7 +10,7 @@ class B extends A {}
 
 class Base<S> {}
 
-class Mixin<T> {
+mixin Mixin<T> {
   void f(T arg) {}
 }
 

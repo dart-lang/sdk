@@ -9,7 +9,6 @@
 #include "vm/hash_map.h"
 #include "vm/heap/safepoint.h"
 #include "vm/log.h"
-#include "vm/malloc_hooks.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/os.h"
@@ -988,7 +987,9 @@ class ProfileBuilder : public ValueObject {
 
   bool FilterSamples() {
     ScopeTimer sw("ProfileBuilder::FilterSamples", FLAG_trace_profiler);
-    ASSERT(sample_buffer_ != nullptr);
+    if (sample_buffer_ == nullptr) {
+      return false;
+    }
     samples_ = sample_buffer_->BuildProcessedSampleBuffer(filter_);
     profile_->samples_ = samples_;
     profile_->sample_count_ = samples_->length();
@@ -1476,14 +1477,14 @@ Profile::Profile()
       dead_code_index_offset_(-1),
       tag_code_index_offset_(-1),
       min_time_(kMaxInt64),
-      max_time_(0) {}
+      max_time_(0),
+      sample_count_(0) {}
 
 void Profile::Build(Thread* thread,
                     SampleFilter* filter,
                     ProcessedSampleBufferBuilder* sample_buffer) {
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
-  ThreadInterrupter::SampleBufferReaderScope scope;
   ProfileBuilder builder(thread, filter, sample_buffer, this);
   builder.Build();
 }
@@ -1559,9 +1560,6 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
   obj->AddProperty("maxStackDepth",
                    static_cast<intptr_t>(FLAG_max_profile_depth));
   obj->AddProperty("sampleCount", sample_count());
-  // TODO(bkonyi): remove timeSpan after next major revision.
-  ASSERT(SERVICE_PROTOCOL_MAJOR_VERSION == 3);
-  obj->AddProperty64("timeSpan", -1);
   obj->AddPropertyTimeMicros("timeOriginMicros", min_time());
   obj->AddPropertyTimeMicros("timeExtentMicros", GetTimeSpan());
   obj->AddProperty64("pid", pid);
@@ -1576,8 +1574,6 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
                          counters.bail_out_check_isolate);
     counts.AddProperty64("single_frame_sample_deoptimizing",
                          counters.single_frame_sample_deoptimizing);
-    counts.AddProperty64("single_frame_sample_register_check",
-                         counters.single_frame_sample_register_check);
     counts.AddProperty64(
         "single_frame_sample_get_and_validate_stack_bounds",
         counters.single_frame_sample_get_and_validate_stack_bounds);
@@ -1700,10 +1696,6 @@ void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
     }
     if (sample->truncated()) {
       sample_obj.AddProperty("truncated", true);
-    }
-    if (sample->is_native_allocation_sample()) {
-      sample_obj.AddProperty64("_nativeAllocationSizeBytes",
-                               sample->native_allocation_size_bytes());
     }
     {
       JSONArray stack(&sample_obj, "stack");
@@ -1885,16 +1877,6 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
   PrintJSONImpl(thread, stream, &filter, Profiler::sample_block_buffer(), true);
 }
 
-void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
-                                                int64_t time_origin_micros,
-                                                int64_t time_extent_micros,
-                                                bool include_code_samples) {
-  Thread* thread = Thread::Current();
-  NativeAllocationSampleFilter filter(time_origin_micros, time_extent_micros);
-  PrintJSONImpl(thread, stream, &filter, Profiler::allocation_sample_buffer(),
-                include_code_samples);
-}
-
 void ProfilerService::ClearSamples() {
   SampleBlockBuffer* sample_block_buffer = Profiler::sample_block_buffer();
   if (sample_block_buffer == nullptr) {
@@ -1906,7 +1888,6 @@ void ProfilerService::ClearSamples() {
 
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
-  ThreadInterrupter::SampleBufferReaderScope scope;
 
   ClearProfileVisitor clear_profile(isolate);
   sample_block_buffer->VisitSamples(&clear_profile);

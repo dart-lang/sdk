@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -76,7 +76,7 @@ class A {
   static int f = 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
     ]);
   }
 
@@ -88,7 +88,7 @@ class A {
   static int get f => 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
     ]);
   }
 
@@ -100,7 +100,7 @@ class A {
   static void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
     ]);
   }
 
@@ -112,7 +112,7 @@ class A {
   static void set f(int value) {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
     ]);
   }
 
@@ -125,7 +125,7 @@ class C {
   C();
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 47, 16),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 47, 16),
     ]);
   }
 
@@ -139,7 +139,7 @@ enum E {
   void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 57, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 57, 17),
     ]);
   }
 
@@ -152,7 +152,7 @@ extension E on String {
   void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 60, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 60, 17),
     ]);
   }
 
@@ -174,7 +174,7 @@ import 'package:meta/meta.dart';
 @mustBeOverridden
 void m() {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 35, 16),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 16),
     ]);
   }
 }
@@ -240,7 +240,7 @@ class A {
   static int f = 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
     ]);
   }
 
@@ -252,7 +252,7 @@ class A {
   static int get f => 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
     ]);
   }
 
@@ -264,7 +264,7 @@ class A {
   static void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
     ]);
   }
 
@@ -276,7 +276,7 @@ class A {
   static void set f(int value) {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
     ]);
   }
 
@@ -289,7 +289,7 @@ class C {
   C();
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 47, 13),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 47, 13),
     ]);
   }
 
@@ -303,7 +303,7 @@ enum E {
   void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 57, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 57, 14),
     ]);
   }
 
@@ -316,7 +316,7 @@ extension E on String {
   void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 60, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 60, 14),
     ]);
   }
 
@@ -338,17 +338,22 @@ import 'package:meta/meta.dart';
 @mustCallSuper
 void m() {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 35, 13),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 13),
     ]);
   }
 }
 
 @reflectiveTest
 class InvalidAnnotationTargetTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
   // todo(pq): add tests for topLevelVariables:
   // https://dart-review.googlesource.com/c/sdk/+/200301
   void test_classType_class() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -362,8 +367,23 @@ class C {}
 ''');
   }
 
+  void test_classType_classTypeAlias() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.classType})
+class A {
+  const A();
+}
+
+mixin M {}
+
+@A()
+class C = Object with M;
+''');
+  }
+
   void test_classType_mixin() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -375,12 +395,11 @@ class A {
 @A()
 mixin M {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 98, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
     ]);
   }
 
   void test_classType_topLevelVariable_constructor() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -392,12 +411,11 @@ class A {
 @A()
 int x = 0;
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 98, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
     ]);
   }
 
   void test_classType_topLevelVariable_topLevelConstant() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -411,12 +429,11 @@ const a = A();
 @a
 int x = 0;
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 114, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 114, 1),
     ]);
   }
 
   void test_enumType_class() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -428,12 +445,11 @@ class A {
 @A()
 class C {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 97, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1),
     ]);
   }
 
   void test_enumType_enum() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -448,7 +464,6 @@ enum E {a, b}
   }
 
   void test_extension_class() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -460,12 +475,11 @@ class A {
 @A()
 class C {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 98, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
     ]);
   }
 
   void test_extension_extension() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -481,7 +495,6 @@ class C {}
   }
 
   void test_field_field() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -498,7 +511,6 @@ class C {
   }
 
   void test_function_function() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -513,7 +525,6 @@ int f(int x) => 0;
   }
 
   void test_function_method() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -527,12 +538,11 @@ class C {
   int M(int x) => 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 109, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 109, 1),
     ]);
   }
 
   void test_function_topLevelGetter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -544,12 +554,11 @@ class A {
 @A()
 int get x => 0;
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 97, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1),
     ]);
   }
 
   void test_function_topLevelSetter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -561,12 +570,11 @@ class A {
 @A()
 set x(_x) {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 97, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1),
     ]);
   }
 
   void test_getter_getter() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -583,7 +591,6 @@ class C {
   }
 
   void test_getter_method() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -597,12 +604,11 @@ class C {
   int m(int x) => x;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
   void test_getter_setter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -616,12 +622,11 @@ class C {
   set x(int _x) {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
   void test_getter_topLevelGetter() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -636,7 +641,6 @@ int get x => 0;
   }
 
   void test_library_class() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -648,12 +652,11 @@ class A {
 @A()
 class C {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 96, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 96, 1),
     ]);
   }
 
   void test_library_import() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 @A()
 import 'package:meta/meta_meta.dart';
@@ -666,7 +669,6 @@ class A {
   }
 
   void test_library_library() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 @A()
 library test;
@@ -681,7 +683,6 @@ class A {
   }
 
   void test_method_getter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -695,12 +696,11 @@ class C {
   int get x => 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
   void test_method_method() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -717,7 +717,6 @@ class C {
   }
 
   void test_method_operator() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -734,7 +733,6 @@ class C {
   }
 
   void test_method_setter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -748,12 +746,11 @@ class C {
   set x(int _x) {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
   void test_method_topLevelFunction() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -765,12 +762,11 @@ class A {
 @A()
 int f(int x) => x;
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 95, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 95, 1),
     ]);
   }
 
   void test_mixinType_class() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -782,12 +778,11 @@ class A {
 @A()
 class C {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 98, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
     ]);
   }
 
   void test_mixinType_mixin() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -802,7 +797,6 @@ mixin M {}
   }
 
   void test_multiple_invalid() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -814,12 +808,11 @@ class A {
 @A()
 int x = 0;
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 117, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 117, 1),
     ]);
   }
 
   void test_multiple_valid() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -837,7 +830,6 @@ class C {
   }
 
   void test_parameter_function() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -849,12 +841,11 @@ class A {
 @A()
 void f(int x) {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 98, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
     ]);
   }
 
   void test_parameter_parameter() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -868,7 +859,6 @@ void f(@A() int x) {}
   }
 
   void test_setter_getter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -882,12 +872,11 @@ class C {
   int get x => 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
   void test_setter_method() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -901,12 +890,11 @@ class C {
   int m(int x) => x;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
   void test_setter_setter() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -923,7 +911,6 @@ class C {
   }
 
   void test_setter_topLevelSetter() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -938,7 +925,6 @@ set x(_x) {}
   }
 
   void test_topLevelVariable_field() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -952,12 +938,11 @@ class B {
   int f = 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 117, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 117, 1),
     ]);
   }
 
   void test_topLevelVariable_topLevelVariable() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -972,7 +957,6 @@ int f = 0;
   }
 
   void test_type_class() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -986,8 +970,23 @@ class C {}
 ''');
   }
 
+  void test_type_classTypeAlias() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.type})
+class A {
+  const A();
+}
+
+mixin M {}
+
+@A()
+class C = Object with M;
+''');
+  }
+
   void test_type_enum() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -1002,7 +1001,6 @@ enum E {a, b}
   }
 
   void test_type_extension() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -1015,12 +1013,11 @@ class A {
 extension on C {}
 class C {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 93, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 93, 1),
     ]);
   }
 
   void test_type_genericTypeAlias() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -1035,7 +1032,6 @@ typedef F = void Function(int);
   }
 
   void test_type_mixin() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -1050,7 +1046,6 @@ mixin M {}
   }
 
   void test_typedefType_genericTypeAlias() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 

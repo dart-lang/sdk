@@ -27,7 +27,7 @@ class Class1 {
 /*member: forceInlineDynamic:[]*/
 @pragma('dart2js:noInline')
 forceInlineDynamic() {
-  new Class1().method();
+  Class1().method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,5 +47,5 @@ class Class2 {
 /*member: forceInlineOptional:[]*/
 @pragma('dart2js:noInline')
 forceInlineOptional() {
-  new Class2().method();
+  Class2().method();
 }

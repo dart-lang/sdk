@@ -73,10 +73,10 @@ void printQualifiedNameOn(Member? member, StringSink sink) {
 /// [libraryFilter] is provided, then only libraries that satisfy it are
 /// printed.
 void printComponentText(Component? component,
-    {bool Function(Library library)? libraryFilter}) {
+    {bool Function(Library library)? libraryFilter, bool showOffsets = false}) {
   if (component == null) return;
   StringBuffer sb = new StringBuffer();
-  Printer printer = new Printer(sb);
+  Printer printer = new Printer(sb, showOffsets: showOffsets);
   printer.writeComponentProblems(component);
   for (Library library in component.libraries) {
     if (libraryFilter != null && !libraryFilter(library)) continue;

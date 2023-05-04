@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of swarmlib;
 
 /// The top-level collection of all sections for a user. */
@@ -61,7 +59,7 @@ class Sections extends IterableBase<Section> {
   static void initializeFromUrl(
       bool useCannedData, void Function(Sections sections) callback) {
     if (Sections.runningFromFile || useCannedData) {
-      initializeFromData(CannedData.data['user.data'], callback);
+      initializeFromData(CannedData.data['user.data']!, callback);
     } else {
       // TODO(jmesserly): display an error if we fail here! Silent failure bad.
       HttpRequest.getString('data/user.data')
@@ -187,12 +185,12 @@ class Article {
   }
 
   String get dataUri {
-    return SwarmUri.encodeComponent(id)
+    return SwarmUri.encodeComponent(id)!
         .replaceAll('%2F', '/')
         .replaceAll('%253A', '%3A');
   }
 
-  String get thumbUrl {
+  String? get thumbUrl {
     if (!hasThumbnail) return null;
 
     String home;
@@ -215,13 +213,13 @@ class Article {
 
     var name = '$dataUri.html';
     if (Sections.runningFromFile) {
-      _htmlBody = CannedData.data[name];
+      _htmlBody = CannedData.data[name]!;
     } else {
-      // TODO(jimhug): Remove this truly evil synchronoush xhr.
+      // TODO(jimhug): Remove this truly evil synchronous xhr.
       final req = HttpRequest();
       req.open('GET', 'data/$name', async: false);
       req.send();
-      _htmlBody = req.responseText;
+      _htmlBody = req.responseText!;
     }
   }
 

@@ -17,12 +17,12 @@ namespace kernel {
 #define IG IsolateGroup::Current()
 
 ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
-    : result_(NULL),
+    : result_(nullptr),
       parsed_function_(parsed_function),
       translation_helper_(Thread::Current()),
       zone_(translation_helper_.zone()),
-      current_function_scope_(NULL),
-      scope_(NULL),
+      current_function_scope_(nullptr),
+      scope_(nullptr),
       depth_(0),
       name_index_(0),
       needs_expr_temp_(false),
@@ -45,9 +45,9 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
 }
 
 ScopeBuildingResult* ScopeBuilder::BuildScopes() {
-  if (result_ != NULL) return result_;
+  if (result_ != nullptr) return result_;
 
-  ASSERT(scope_ == NULL && depth_.loop_ == 0 && depth_.function_ == 0);
+  ASSERT(scope_ == nullptr && depth_.loop_ == 0 && depth_.function_ == 0);
   result_ = new (Z) ScopeBuildingResult();
 
   const Function& function = parsed_function_->function();
@@ -65,7 +65,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   ActiveTypeParametersScope active_type_params(&active_class_, function,
                                                &signature, Z);
 
-  LocalScope* enclosing_scope = NULL;
+  LocalScope* enclosing_scope = nullptr;
   if (function.IsImplicitClosureFunction() && !function.is_static()) {
     // Create artificial enclosing scope for the tear-off that contains
     // captured receiver value. This ensure that AssertAssignable will correctly
@@ -77,7 +77,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                      Symbols::This(), klass_type);
     parsed_function_->set_receiver_var(receiver_variable);
     receiver_variable->set_is_captured();
-    enclosing_scope = new (Z) LocalScope(NULL, 0, 0);
+    enclosing_scope = new (Z) LocalScope(nullptr, 0, 0);
     enclosing_scope->set_context_level(0);
     enclosing_scope->AddVariable(receiver_variable);
     enclosing_scope->AddContextVariable(receiver_variable);
@@ -278,7 +278,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
               TokenPosition::kNoSource, TokenPosition::kNoSource,
               Symbols::Value(),
               AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)),
-              &parameter_type);
+              LocalVariable::kNoKernelOffset, &parameter_type);
         } else {
           result_->setter_value = MakeVariable(
               TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -577,12 +577,12 @@ void ScopeBuilder::VisitFunctionNode() {
   // Mark known chained futures such as _Future::timeout()'s _future.
   if (function.recognized_kind() == MethodRecognizer::kFutureTimeout &&
       depth_.function_ == 1) {
-    LocalVariable* future = scope_->LookupVariable(Symbols::_future(), true);
+    LocalVariable* future = scope_->LookupVariableByName(Symbols::_future());
     ASSERT(future != nullptr);
     future->set_is_chained_future();
   } else if (function.recognized_kind() == MethodRecognizer::kFutureWait &&
              depth_.function_ == 1) {
-    LocalVariable* future = scope_->LookupVariable(Symbols::_future(), true);
+    LocalVariable* future = scope_->LookupVariableByName(Symbols::_future());
     ASSERT(future != nullptr);
     future->set_is_chained_future();
   }
@@ -983,7 +983,7 @@ void ScopeBuilder::VisitExpression() {
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read operand.
       if (helper_.ReadTag() == kSomething) {
-        helper_.SkipDartType();  // read runtime check type.
+        VisitDartType();  // read runtime check type.
       }
       return;
     case kConstStaticInvocation:
@@ -998,8 +998,10 @@ void ScopeBuilder::VisitExpression() {
     case kInstanceCreation:
     case kFileUriExpression:
     case kStaticTearOff:
-      // These nodes are internal to the front end and
-      // removed by the constant evaluator.
+    case kSwitchExpression:
+    case kPatternAssignment:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();
@@ -1184,7 +1186,7 @@ void ScopeBuilder::VisitStatement() {
       return;
     case kReturnStatement: {
       if ((depth_.function_ == 0) && (depth_.finally_ > 0) &&
-          (result_->finally_return_variable == NULL)) {
+          (result_->finally_return_variable == nullptr)) {
         const String& name = Symbols::TryFinallyReturnValue();
         LocalVariable* variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -1274,6 +1276,11 @@ void ScopeBuilder::VisitStatement() {
       HandleLocalFunction(offset);  // read function node.
       return;
     }
+    case kIfCaseStatement:
+    case kPatternSwitchStatement:
+    case kPatternVariableDeclaration:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("declaration", tag);
       UNREACHABLE();
@@ -1311,7 +1318,8 @@ void ScopeBuilder::VisitArguments() {
 void ScopeBuilder::VisitVariableDeclaration() {
   PositionScope scope(&helper_.reader_);
 
-  intptr_t kernel_offset_no_tag = helper_.ReaderOffset();
+  const intptr_t kernel_offset =
+      helper_.data_program_offset_ + helper_.ReaderOffset();
   VariableDeclarationHelper helper(&helper_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   AbstractType& type = BuildAndVisitVariableType();
@@ -1336,7 +1344,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
     end_position = end_position.Next();
   }
   LocalVariable* variable =
-      MakeVariable(helper.position_, end_position, name, type);
+      MakeVariable(helper.position_, end_position, name, type, kernel_offset);
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
@@ -1344,10 +1352,12 @@ void ScopeBuilder::VisitVariableDeclaration() {
     variable->set_is_late();
     variable->set_late_init_offset(initializer_offset);
   }
+  if (helper.IsSynthesized()) {
+    variable->set_invisible(true);
+  }
 
   scope_->AddVariable(variable);
-  result_->locals.Insert(helper_.data_program_offset_ + kernel_offset_no_tag,
-                         variable);
+  result_->locals.Insert(kernel_offset, variable);
 }
 
 AbstractType& ScopeBuilder::BuildAndVisitVariableType() {
@@ -1390,8 +1400,8 @@ void ScopeBuilder::VisitDartType() {
     case kIntersectionType:
       VisitIntersectionType();
       return;
-    case kViewType:
-      VisitViewType();
+    case kInlineType:
+      VisitInlineType();
       return;
     default:
       ReportUnexpectedTag("type", tag);
@@ -1486,7 +1496,8 @@ void ScopeBuilder::VisitTypeParameterType() {
       // The type argument vector is passed as the very first argument to the
       // factory constructor function.
       HandleSpecialLoad(&result_->type_arguments_variable,
-                        Symbols::TypeArgumentsParameter());
+                        Symbols::TypeArgumentsParameter(),
+                        LocalVariable::kNoKernelOffset);
     } else {
       // If the type parameter is a parameter to this or an enclosing function,
       // we can read it directly from the function type arguments vector later.
@@ -1505,12 +1516,12 @@ void ScopeBuilder::VisitIntersectionType() {
   helper_.SkipDartType();  // read right.
 }
 
-void ScopeBuilder::VisitViewType() {
-  // We skip the view type and only use the representation type.
+void ScopeBuilder::VisitInlineType() {
+  // We skip the inline type and only use the representation type.
   helper_.ReadNullability();
   helper_.SkipCanonicalNameReference();  // read index for canonical name.
   helper_.SkipListOfDartTypes();         // read type arguments
-  VisitDartType();                       // read representation type.
+  VisitDartType();  // read instantiated representation type.
 }
 
 void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
@@ -1608,9 +1619,12 @@ void ScopeBuilder::AddVariableDeclarationParameter(
     intptr_t pos,
     ParameterTypeCheckMode type_check_mode,
     const ProcedureAttributesMetadata& attrs) {
-  intptr_t kernel_offset = helper_.ReaderOffset();  // no tag.
+  // Convert kernel offset of variable declaration to absolute.
+  const intptr_t kernel_offset =
+      helper_.data_program_offset_ + helper_.ReaderOffset();
+  // MetadataHelper expects relative offsets and adjusts them internally
   const InferredTypeMetadata parameter_type =
-      inferred_type_metadata_helper_.GetInferredType(kernel_offset);
+      inferred_type_metadata_helper_.GetInferredType(helper_.ReaderOffset());
   VariableDeclarationHelper helper(&helper_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   String& name = H.DartSymbolObfuscate(helper.name_index_);
@@ -1619,8 +1633,9 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   helper.SetJustRead(VariableDeclarationHelper::kType);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
 
-  LocalVariable* variable = MakeVariable(helper.position_, helper.position_,
-                                         name, type, &parameter_type);
+  LocalVariable* variable =
+      MakeVariable(helper.position_, helper.position_, name, type,
+                   kernel_offset, &parameter_type);
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
@@ -1681,8 +1696,7 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   }
 
   scope_->InsertParameterAt(pos, variable);
-  result_->locals.Insert(helper_.data_program_offset_ + kernel_offset,
-                         variable);
+  result_->locals.Insert(kernel_offset, variable);
 
   // The default value may contain 'let' bindings for which the constant
   // evaluator needs scope bindings.
@@ -1697,7 +1711,8 @@ LocalVariable* ScopeBuilder::MakeVariable(
     TokenPosition token_pos,
     const String& name,
     const AbstractType& type,
-    const InferredTypeMetadata* param_type_md /* = NULL */) {
+    intptr_t kernel_offset,
+    const InferredTypeMetadata* param_type_md /* = nullptr */) {
   CompileType* param_type = nullptr;
   const Object* param_value = nullptr;
   if (param_type_md != nullptr && !param_type_md->IsTrivial()) {
@@ -1707,14 +1722,14 @@ LocalVariable* ScopeBuilder::MakeVariable(
     }
   }
   return new (Z) LocalVariable(declaration_pos, token_pos, name, type,
-                               param_type, param_value);
+                               kernel_offset, param_type, param_value);
 }
 
 void ScopeBuilder::AddExceptionVariable(
     GrowableArray<LocalVariable*>* variables,
     const char* prefix,
     intptr_t nesting_depth) {
-  LocalVariable* v = NULL;
+  LocalVariable* v = nullptr;
 
   // No need to create variables for try/catch-statements inside
   // nested functions.
@@ -1723,7 +1738,7 @@ void ScopeBuilder::AddExceptionVariable(
 
   // If variable was not lifted by the transformer introduce a new
   // one into the current function scope.
-  if (v == NULL) {
+  if (v == nullptr) {
     v = MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      GenerateName(prefix, nesting_depth - 1),
                      AbstractType::dynamic_type());
@@ -1798,7 +1813,7 @@ void ScopeBuilder::AddIteratorVariable() {
 }
 
 void ScopeBuilder::AddSwitchVariable() {
-  if ((depth_.function_ == 0) && (result_->switch_variable == NULL)) {
+  if ((depth_.function_ == 0) && (result_->switch_variable == nullptr)) {
     LocalVariable* variable =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::SwitchExpr(), AbstractType::dynamic_type());
@@ -1823,22 +1838,24 @@ void ScopeBuilder::VisitVariableGet(intptr_t declaration_binary_offset) {
 LocalVariable* ScopeBuilder::LookupVariable(
     intptr_t declaration_binary_offset) {
   LocalVariable* variable = result_->locals.Lookup(declaration_binary_offset);
-  if (variable == NULL) {
+  if (variable == nullptr) {
     // We have not seen a declaration of the variable, so it must be the
     // case that we are compiling a nested function and the variable is
     // declared in an outer scope.  In that case, look it up in the scope by
     // name and add it to the variable map to simplify later lookup.
-    ASSERT(current_function_scope_->parent() != NULL);
+    ASSERT(current_function_scope_->parent() != nullptr);
     StringIndex var_name = GetNameFromVariableDeclaration(
         declaration_binary_offset - helper_.data_program_offset_,
         parsed_function_->function());
 
     const String& name = H.DartSymbolObfuscate(var_name);
-    variable = current_function_scope_->parent()->LookupVariable(name, true);
-    ASSERT(variable != NULL);
+    variable = current_function_scope_->parent()->LookupVariable(
+        name, declaration_binary_offset, true);
+    ASSERT(variable != nullptr);
     result_->locals.Insert(declaration_binary_offset, variable);
   }
 
+  ASSERT(variable->owner() != nullptr);
   if (variable->owner()->function_level() < scope_->function_level()) {
     // We call `LocalScope->CaptureVariable(variable)` in two scenarios for two
     // different reasons:
@@ -1885,8 +1902,8 @@ void ScopeBuilder::HandleLoadReceiver() {
       current_function_scope_->parent() != nullptr) {
     // Lazily populate receiver variable using the parent function scope.
     parsed_function_->set_receiver_var(
-        current_function_scope_->parent()->LookupVariable(Symbols::This(),
-                                                          true));
+        current_function_scope_->parent()->LookupVariable(
+            Symbols::This(), LocalVariable::kNoKernelOffset, true));
   }
 
   if ((current_function_scope_->parent() != nullptr) ||
@@ -1899,31 +1916,23 @@ void ScopeBuilder::HandleLoadReceiver() {
 }
 
 void ScopeBuilder::HandleSpecialLoad(LocalVariable** variable,
-                                     const String& symbol) {
-  if (current_function_scope_->parent() != NULL) {
+                                     const String& symbol,
+                                     intptr_t kernel_offset) {
+  if (current_function_scope_->parent() != nullptr) {
     // We are building the scope tree of a closure function and saw [node]. We
     // lazily populate the variable using the parent function scope.
-    if (*variable == NULL) {
-      *variable =
-          current_function_scope_->parent()->LookupVariable(symbol, true);
-      ASSERT(*variable != NULL);
+    if (*variable == nullptr) {
+      *variable = current_function_scope_->parent()->LookupVariable(
+          symbol, kernel_offset, true);
+      ASSERT(*variable != nullptr);
     }
   }
 
-  if ((current_function_scope_->parent() != NULL) ||
+  if ((current_function_scope_->parent() != nullptr) ||
       (scope_->function_level() > 0)) {
     // Every scope we use the [variable] from needs to be notified of the usage
     // in order to ensure that preserving the context scope on that particular
     // use-site also includes the [variable].
-    scope_->CaptureVariable(*variable);
-  }
-}
-
-void ScopeBuilder::LookupCapturedVariableByName(LocalVariable** variable,
-                                                const String& name) {
-  if (*variable == NULL) {
-    *variable = scope_->LookupVariable(name, true);
-    ASSERT(*variable != NULL);
     scope_->CaptureVariable(*variable);
   }
 }

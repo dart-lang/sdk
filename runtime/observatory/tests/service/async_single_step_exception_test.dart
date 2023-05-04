@@ -10,16 +10,15 @@ import 'test_helper.dart';
 
 const LINE_A = 20;
 const LINE_B = 21;
-const LINE_C = 27;
-const LINE_D = 29;
-const LINE_E = 32;
-const LINE_F = 35;
-const LINE_G = 37;
+const LINE_C = 26;
+const LINE_D = 28;
+const LINE_E = 31;
+const LINE_F = 34;
+const LINE_G = 36;
 
 helper() async {
   print('helper'); // LINE_A.
   throw 'a'; // LINE_B.
-  return null;
 }
 
 testMain() async {
@@ -27,7 +26,7 @@ testMain() async {
   print('mmmmm'); // LINE_C.
   try {
     await helper(); // LINE_D.
-  } on dynamic catch (e) {
+  } catch (e) {
     // arrive here on error.
     print('error: $e'); // LINE_E.
   } finally {

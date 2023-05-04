@@ -1,3 +1,44 @@
+# 2.7.8
+- [DAP] Sentinel values (such as uninitialized fields/locals) will no longer cause `scopesRequest`/`variablesRequest` to fail, instead showing appropriate text (like "<not initialized>") against the variable.
+
+# 2.7.7
+- [DAP] Debug adapters now only call `setLibraryDebuggable` when the debuggable flag changes from the default/current values, reducing the amount of VM Service traffic for new isolates/reloads.
+- [DAP] `breakpoint` events are no longer sometimes sent prior to the response to the `setBreakpointsRequest` that created them.
+
+# 2.7.6
+- [DAP] `scopesRequest` now returns a `Globals` scope containing global variables for the current frame.
+- [DAP] Responses to `setBreakpointsRequest` will now have `verified: false` and will send `breakpoint` events to update `verified` and/or `line`/`column` as the VM resolves them.
+
+# 2.7.5
+- Updated `vm_service` version to >=9.0.0 <12.0.0.
+
+# 2.7.4
+- [DAP] Added support for `,d` (decimal), `,h` (hex) and `,nq` (no quotes) format specifiers to be used as suffixes to evaluation requests.
+- [DAP] Added support for `format.hex` in `variablesRequest` and `evaluateRequest`.
+
+# 2.7.3
+- [DAP] Added support for displaying records in responses to `variablesRequest`.
+- A new exception `ExistingDartDevelopmentServiceException` (extending `DartDevelopmentServiceException`) is thrown when trying to connect DDS to a VM Service that already has a DDS instance. This new exception contains a `ddsUri` field that is populated with the URI of the existing DDS instance if provided by the target VM Service.
+
+# 2.7.2
+- Update DDS protocol version to 1.4.
+- [DAP] Forward any events from the VM Service's `ToolEvent` stream as `dart.toolEvent` DAP events.
+
+# 2.7.1
+- Updated `vm_service` version to >=9.0.0 <11.0.0.
+- Simplified the DevTools URI composed by DDS.
+- Fix issue where DDS was invoking an unimplemented RPC against a non-VM target.
+
+# 2.7.0
+- Added `DartDevelopmentService.setExternalDevToolsUri(Uri uri)`, adding support for registering an external DevTools server with DDS.
+
+# 2.6.1
+- [DAP] Fix a crash handling errors when fetching full strings in evaluation and logging events.
+
+# 2.6.0
+- Add support for registering and subscribing to custom service streams.
+- [DAP] Supplying incorrect types of arguments in `launch`/`attach` requests will now result in a clear error message in an error response instead of terminating the adapter.
+
 # 2.5.0
 - [DAP] `variables` requests now treat lists from `dart:typed_data` (such as `Uint8List`) like standard `List` instances and return their elements instead of class fields.
 - [DAP] `variables` requests now return information about the number of items in lists to allow the client to page through them.

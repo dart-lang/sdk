@@ -23,7 +23,7 @@ part of dart2js.js_emitter.startup_emitter.model_emitter;
 ///
 ///     // Inheritance is achieved by updating the prototype objects (hidden in
 ///     // a helper function):
-///     A.Point.prototype.__proto__ = H.Object.prototype;
+///     Object.setPrototypeOf(A.Point.prototype, H.Object.prototype);
 ///
 /// The emitter doesn't try to be clever and emits everything beforehand. This
 /// increases the output size, but improves performance.
@@ -93,7 +93,7 @@ function inherit(cls, sup) {
     if (supportsDirectProtoAccess) {
       // Firefox doesn't like to update the prototypes, but when setting up
       // the hierarchy chain it's ok.
-      cls.prototype.__proto__ = sup.prototype;
+      Object.setPrototypeOf(cls.prototype, sup.prototype);
       return;
     }
     var clsPrototype = Object.create(sup.prototype);
@@ -481,14 +481,14 @@ convertToFastObject(#staticState);
 })();
 ''';
 
-/// An expression that returns `true` if `__proto__` can be assigned to stitch
+/// An expression that returns `true` if `setPrototypeOf` can be called to stitch
 /// together a prototype chain, and the performance is good.
 const String _directAccessTestExpression = r'''
   (function () {
     var cls = function () {};
     cls.prototype = {'p': {}};
     var object = new cls();
-    if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
+    if (!(Object.getPrototypeOf(object) && Object.getPrototypeOf(object).p === cls.prototype.p))
       return false;
 
     try {
@@ -801,7 +801,7 @@ class FragmentEmitter {
         resourceName,
         fragment.fragments,
         holderCode);
-    js.Expression /*!*/ code = js.js(_deferredBoilerplate, {
+    js.Expression code = js.js(_deferredBoilerplate, {
       // TODO(floitsch): don't just reference 'init'.
       'embeddedGlobalsObject': js.Parameter('init'),
       'isCollectingRuntimeMetrics': _options.experimentalTrackAllocations,
@@ -1105,6 +1105,16 @@ class FragmentEmitter {
       // Most closures have no optional arguments.
       properties.add(js.Property(
           js.string(_namer.fixedNames.defaultValuesField), js.LiteralNull()));
+    }
+
+    // `prototype` properties for record classes.
+    if (cls.recordShapeRecipe != null) {
+      properties.add(js.Property(js.string(_namer.fixedNames.recordShapeRecipe),
+          cls.recordShapeRecipe!));
+    }
+    if (cls.recordShapeTag != null) {
+      properties.add(js.Property(js.string(_namer.fixedNames.recordShapeTag),
+          js.number(cls.recordShapeTag!)));
     }
 
     return js.ObjectInitializer(properties);
@@ -1878,6 +1888,12 @@ class FragmentEmitter {
           js.string(RUNTIME_METRICS), js.js('dartProgram.$RUNTIME_METRICS')));
     }
 
+    final recordStubs = (program.mainFragment as MainFragment).recordTypeStubs;
+    if (recordStubs != null) {
+      globals.add(js.Property(
+          js.string(RECORD_TYPE_TEST_COMBINATORS_PROPERTY), recordStubs));
+    }
+
     js.ObjectInitializer globalsObject =
         js.ObjectInitializer(globals, isOneLiner: false);
 
@@ -2089,7 +2105,7 @@ class FragmentEmitter {
 
     // Emit the empty objects for main fragment in case we emit
     // getNativeInterceptor.
-    // TODO(sra): Refine the impacts to accuratley predict whether we need this
+    // TODO(sra): Refine the impacts to accurately predict whether we need this
     // at all, and delete 'setOrUpdateInterceptorsByTag' if it is not called.
     if (fragment.isMainFragment || interceptorsByTag.isNotEmpty) {
       statements.add(js.js.statement(
@@ -2136,7 +2152,7 @@ class DeferredLoadingState {
 class DeferredPrimaryExpression extends js.DeferredExpression {
   late final js.Expression _value;
 
-  /// Set the value for this defferred expression.
+  /// Set the value for this deferred expression.
   ///
   /// Ensure this is called exactly once before calling the [value] getter.
   void setValue(js.Expression value) {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Javascript preamble, that lets the output of dart2js run on V8's d8 shell.
+// JavaScript preamble, that lets the output of dart2js run on V8's d8 shell.
 
 // Node wraps files and provides them with a different `this`. The global
 // `this` can be accessed through `global`.
@@ -280,6 +280,10 @@ if (typeof global != "undefined") self = global;  // Node.js.
   self.setInterval = addInterval;
   self.clearInterval = cancelTimer;
   self.scheduleImmediate = addTask;
+  self.dartUseDateNowForTicks = true;
+
+  // Some js-interop code accesses 'window' as 'self.window'
+  if (typeof self.window == "undefined") self.window = self;
 
   function computeCurrentScript() {
     try {

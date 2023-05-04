@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'always_exhaustive_test.dart' as always_exhaustive;
 import 'class_element_test.dart' as class_element;
 import 'class_hierarchy_test.dart' as class_hierarchy;
 import 'display_string_test.dart' as display_string;
@@ -15,6 +16,7 @@ import 'future_or_base_test.dart' as future_or_base;
 import 'future_value_type_test.dart' as future_value_type;
 import 'generic_inferrer_test.dart' as generic_inferrer;
 import 'inheritance_manager3_test.dart' as inheritance_manager3;
+import 'is_known_test.dart' as is_known_test;
 import 'least_greatest_closure_test.dart' as least_greatest_closure_test;
 import 'least_upper_bound_helper_test.dart' as least_upper_bound_helper;
 import 'normalize_type_test.dart' as normalize_type;
@@ -36,6 +38,7 @@ import 'upper_lower_bound_test.dart' as upper_bound;
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
+    always_exhaustive.main();
     class_element.main();
     class_hierarchy.main();
     display_string.main();
@@ -47,6 +50,7 @@ main() {
     future_value_type.main();
     generic_inferrer.main();
     inheritance_manager3.main();
+    is_known_test.main();
     least_greatest_closure_test.main();
     least_upper_bound_helper.main();
     normalize_type.main();

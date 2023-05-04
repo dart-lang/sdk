@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import '../helpers/compiler_helper.dart';
@@ -17,7 +15,7 @@ main() {
 
 const String TEST2 = r"""
 main() {
-  var a = new List();
+  var a = [];
   a.add(42);
   a.add(null);
   return a[0] + 42;
@@ -26,7 +24,7 @@ main() {
 
 const String TEST3 = r"""
 main() {
-  var a = new List(42);
+  var a = List<dynamic>.filled(42, null);
   a[a.length - 1] = 42;
   return a[0] + 42;
 }
@@ -34,7 +32,7 @@ main() {
 
 const String TEST4 = r"""
 main() {
-  var a = new List.filled(42, null);
+  var a = List.filled(42, null);
   a[a.length - 1] = 42;
   return 42 + a[0];
 }

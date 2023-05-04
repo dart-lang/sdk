@@ -183,12 +183,11 @@ void main() {
       });
 
       test("runtime defaults to compiler's default runtime", () {
-        expect(Configuration.parse("dartdevc", {}).runtime,
-            equals(Runtime.chrome));
+        expect(Configuration.parse("ddc", {}).runtime, equals(Runtime.chrome));
       });
 
       test("runtime defaults to compiler's default runtime from option", () {
-        expect(Configuration.parse("wat", {"compiler": "dartdevc"}).runtime,
+        expect(Configuration.parse("wat", {"compiler": "ddc"}).runtime,
             equals(Runtime.chrome));
       });
 

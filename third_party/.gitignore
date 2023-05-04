@@ -1,7 +1,6 @@
 # ignore everything
 *
-# except for items in the pkg directory and self.
-# except for our files in boringssl.  The checkout is in boringssl/src.
+# except for the following files and directories:
 !.gitignore
 !pkg
 !/tcmalloc

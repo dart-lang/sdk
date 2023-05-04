@@ -212,14 +212,14 @@ List<CommonGroup> buildCommonGroups(String commitA, String commitB,
   while (h < diffs.length) {
     final d = diffs[h++];
     final builders = <String>{}..add(d.builder);
-    final gropupDiffs = <Diff>[d];
+    final groupDiffs = <Diff>[d];
 
     while (h < diffs.length) {
       final nd = diffs[h];
       if (d.test == nd.test) {
         if (d.sameExpectationDifferenceAs(nd)) {
           builders.add(nd.builder);
-          gropupDiffs.add(nd);
+          groupDiffs.add(nd);
           h++;
           continue;
         }
@@ -227,7 +227,7 @@ List<CommonGroup> buildCommonGroups(String commitA, String commitB,
       break;
     }
 
-    groups.add(GroupedDiff(d.test, builders.toList()..sort(), gropupDiffs));
+    groups.add(GroupedDiff(d.test, builders.toList()..sort(), groupDiffs));
   }
 
   final commonGroups = <String, List<GroupedDiff>>{};
@@ -313,7 +313,6 @@ class Result {
   int get hashCode => name.hashCode ^ builderName.hashCode;
 
   @override
-  // ignore: unnecessary_overrides
   bool operator ==(Object other) {
     // TODO: implement ==
     return super == other;
@@ -353,12 +352,12 @@ Set<String> loadVmBuildersFromTestMatrix(List<Glob> globs) {
 List<String> extractBuilderPattern(List<String> builders) {
   final all = Set<String>.from(builders);
 
-  String reduce(String builder, List<String> posibilities) {
-    for (final pos in posibilities) {
+  String reduce(String builder, List<String> possibilities) {
+    for (final pos in possibilities) {
       if (builder.contains(pos)) {
         final existing = <String>[];
         final available = <String>[];
-        for (final pos2 in posibilities) {
+        for (final pos2 in possibilities) {
           final builder2 = builder.replaceFirst(pos, pos2);
           if (all.contains(builder2)) {
             existing.add(builder2);

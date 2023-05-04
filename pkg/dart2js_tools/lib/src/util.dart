@@ -17,12 +17,15 @@ class CachingFileProvider implements FileProvider {
 
   CachingFileProvider({this.logger});
 
+  @override
   String sourcesFor(Uri uri) =>
-      _sources[uri] ??= new File.fromUri(uri).readAsStringSync();
+      _sources[uri] ??= File.fromUri(uri).readAsStringSync();
 
+  @override
   SourceFile fileFor(Uri uri) =>
-      _files[uri] ??= new SourceFile.fromString(sourcesFor(uri));
+      _files[uri] ??= SourceFile.fromString(sourcesFor(uri));
 
+  @override
   Dart2jsMapping? mappingFor(Uri uri) =>
       _mappings[uri] ??= parseMappingFor(uri, logger: logger);
 }
@@ -33,7 +36,7 @@ class CachingFileProvider implements FileProvider {
 /// Typically used when downloading the source and source-map files and applying
 /// deobfuscation locally for debugging purposes.
 class DownloadedFileProvider extends CachingFileProvider {
-  _localize(uri) {
+  Uri _localize(Uri uri) {
     if (uri.isScheme('http') || uri.isScheme('https')) {
       String filename = uri.path.substring(uri.path.lastIndexOf('/') + 1);
       return Uri.base.resolve(filename);
@@ -41,15 +44,18 @@ class DownloadedFileProvider extends CachingFileProvider {
     return uri;
   }
 
+  @override
   String sourcesFor(Uri uri) => super.sourcesFor(_localize(uri));
 
+  @override
   SourceFile fileFor(Uri uri) => super.fileFor(_localize(uri));
 
+  @override
   Dart2jsMapping? mappingFor(Uri uri) => super.mappingFor(_localize(uri));
 }
 
 class Logger {
-  Set<String> _seenMessages = new Set<String>();
+  final Set<String> _seenMessages = <String>{};
   log(String message) {
     if (_seenMessages.add(message)) {
       print(message);

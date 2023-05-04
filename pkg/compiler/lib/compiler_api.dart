@@ -8,6 +8,9 @@ import 'dart:async';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
+import 'src/compiler.dart';
+import 'src/options.dart';
+
 /// Kind of diagnostics that the compiler can report.
 class Diagnostic {
   /// An error as identified by the "Dart Programming Language
@@ -139,6 +142,9 @@ enum OutputType {
   /// Unused libraries output.
   dumpUnusedLibraries,
 
+  /// Resource identifiers output.
+  resourceIdentifiers,
+
   /// Implementation specific output used for debugging the compiler.
   debug,
 }
@@ -187,7 +193,7 @@ abstract class CompilerDiagnostics {
   /// `null`, neither are [begin] and [end]. [uri] indicates the compilation
   /// unit from where the diagnostic originates. [begin] and [end] are
   /// zero-based character offsets from the beginning of the compilation unit.
-  /// [message] is the diagnostic message, and [kind] indicates indicates what
+  /// [message] is the diagnostic message, and [kind] indicates what
   /// kind of diagnostic it is.
   ///
   /// Experimental: [code] gives access to an id for the messages. Currently it
@@ -216,4 +222,30 @@ class CompilationResult {
 
   CompilationResult(this.compiler,
       {this.isSuccess = true, this.kernelInitializedCompilerState});
+}
+
+// Unless explicitly allowed, passing [:null:] for any argument to the
+// methods of library will result in an Error being thrown.
+
+/// Returns a future that completes to a [CompilationResult] when the Dart
+/// sources in [options] have been compiled.
+///
+/// The generated compiler output is obtained by providing a [compilerOutput].
+///
+/// If the compilation fails, the future's `CompilationResult.isSuccess` is
+/// `false` and [CompilerDiagnostics.report] on [compilerDiagnostics]
+/// is invoked at least once with `kind == Diagnostic.ERROR` or
+/// `kind == Diagnostic.CRASH`.
+Future<CompilationResult> compile(
+    CompilerOptions compilerOptions,
+    CompilerInput compilerInput,
+    CompilerDiagnostics compilerDiagnostics,
+    CompilerOutput compilerOutput) {
+  var compiler = Compiler(
+      compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
+  return compiler.run().then((bool success) {
+    return CompilationResult(compiler,
+        isSuccess: success,
+        kernelInitializedCompilerState: compiler.initializedCompilerState);
+  });
 }

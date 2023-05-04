@@ -69,7 +69,7 @@ void doTestSync() {
   FileStat stat = file2.statSync();
   Expect.equals(time, stat.modified);
 
-  // Directory operaions in the namespace.
+  // Directory operations in the namespace.
   // absolute.
   Expect.equals(dir1.path, dir1rel.absolute.path);
   // create
@@ -155,7 +155,7 @@ doTestAsync() async {
   FileStat stat = await file2.stat();
   Expect.equals(time, stat.modified);
 
-  // Directory operaions in the namespace.
+  // Directory operations in the namespace.
   // absolute.
   Expect.equals(dir1.path, dir1rel.absolute.path);
   // create

@@ -2,70 +2,70 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:7:13: Error: 'element' is already declared in this scope.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:8:13: Error: 'element' is already declared in this scope.
 //   final int element = 42; // Error.
 //             ^^^^^^^
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:6:3: Context: Previous declaration of 'element'.
 //   element;
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:12:3: Error: 'element' is already declared in this scope.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:13:3: Error: 'element' is already declared in this scope.
 //   element; // Error.
 //   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:11:3: Context: Previous declaration of 'element'.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:12:3: Context: Previous declaration of 'element'.
 //   element,
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:18:8: Error: 'element' is already declared in this scope.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:19:8: Error: 'element' is already declared in this scope.
 //   void element() {} // Error.
 //        ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:16:3: Context: Previous declaration of 'element'.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:17:3: Context: Previous declaration of 'element'.
 //   element;
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:24:15: Error: 'element' is already declared in this scope.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:25:15: Error: 'element' is already declared in this scope.
 //   static void element() {} // Error.
 //               ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:22:3: Context: Previous declaration of 'element'.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:23:3: Context: Previous declaration of 'element'.
 //   element;
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:30:14: Error: 'element' is already declared in this scope.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:31:14: Error: 'element' is already declared in this scope.
 //   static int element = 42; // Error.
 //              ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:28:3: Context: Previous declaration of 'element'.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:29:3: Context: Previous declaration of 'element'.
 //   element;
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:34:3: Error: This static member conflicts with an instance member.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:35:3: Error: This static member conflicts with an instance member.
 //   element; // Error.
 //   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:36:12: Context: This is the instance member.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:37:12: Context: This is the instance member.
 //   void set element(E6 value) {}
 //            ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:50:3: Error: Can't declare a member that conflicts with an inherited one.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:51:3: Error: Can't declare a member that conflicts with an inherited one.
 //   element // Error.
 //   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:46:12: Context: This is the inherited member.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:47:12: Context: This is the inherited member.
 //   void set element(dynamic value) {}
 //            ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:58:3: Error: Can't declare a member that conflicts with an inherited one.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:59:3: Error: Can't declare a member that conflicts with an inherited one.
 //   element // Error.
 //   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:54:7: Context: This is the inherited member.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:55:7: Context: This is the inherited member.
 //   int element = 42;
 //       ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:66:3: Error: Can't declare a member that conflicts with an inherited one.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:67:3: Error: Can't declare a member that conflicts with an inherited one.
 //   element // Error.
 //   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:62:8: Context: This is the inherited member.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:63:8: Context: This is the inherited member.
 //   void element() {}
 //        ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:57:6: Error: A constant constructor can't call a non-constant super constructor.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:58:6: Error: A constant constructor can't call a non-constant super constructor.
 // enum E9 with A9 {
 //      ^
 //
@@ -74,7 +74,7 @@ import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E1> values = #C1;
-  final field core::int element = null;
+  final field core::int element = 42;
   const constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
@@ -110,7 +110,7 @@ class E4 extends core::_Enum /*isEnum*/  {
 }
 class E5 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E5> values = #C8;
-  static field core::int element = null;
+  static field core::int element = 42;
   const constructor •(core::int #index, core::String #name) → self::E5
     : super core::_Enum::•(#index, #name)
     ;
@@ -137,10 +137,7 @@ class E7 extends core::_Enum /*isEnum*/  {
     return "E7.${this.{core::_Enum::_name}{core::String}}";
   static set element(self::E7 value) → void {}
 }
-class A8 extends core::Object {
-  synthetic constructor •() → self::A8
-    : super core::Object::•()
-    ;
+abstract class A8 extends core::Object /*isMixinDeclaration*/  {
   set element(dynamic value) → void {}
 }
 abstract class _E8&_Enum&A8 = core::_Enum with self::A8 /*isAnonymousMixin,hasConstConstructor*/  {
@@ -159,11 +156,8 @@ class E8 extends self::_E8&_Enum&A8 /*isEnum*/  {
   method _enumToString() → core::String
     return "E8.${this.{core::_Enum::_name}{core::String}}";
 }
-class A9 extends core::Object {
+abstract class A9 extends core::Object /*isMixinDeclaration*/  {
   field core::int element = 42;
-  synthetic constructor •() → self::A9
-    : super core::Object::•()
-    ;
 }
 abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin*/  {
   synthetic constructor •(core::int index, core::String _name) → self::_E9&_Enum&A9
@@ -183,10 +177,7 @@ class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   method _enumToString() → core::String
     return "E9.${this.{core::_Enum::_name}{core::String}}";
 }
-class A10 extends core::Object {
-  synthetic constructor •() → self::A10
-    : super core::Object::•()
-    ;
+abstract class A10 extends core::Object /*isMixinDeclaration*/  {
   method element() → void {}
 }
 abstract class _E10&_Enum&A10 = core::_Enum with self::A10 /*isAnonymousMixin,hasConstConstructor*/  {
@@ -229,13 +220,13 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///conflicting_elements.dart:
-- E2. (from org-dartlang-testcase:///conflicting_elements.dart:10:6)
+- E2. (from org-dartlang-testcase:///conflicting_elements.dart:11:6)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- E6. (from org-dartlang-testcase:///conflicting_elements.dart:33:6)
-- E7. (from org-dartlang-testcase:///conflicting_elements.dart:39:6)
-- E8. (from org-dartlang-testcase:///conflicting_elements.dart:49:6)
-- _E8&_Enum&A8. (from org-dartlang-testcase:///conflicting_elements.dart:49:6)
-- E9. (from org-dartlang-testcase:///conflicting_elements.dart:57:6)
-- E10. (from org-dartlang-testcase:///conflicting_elements.dart:65:6)
-- _E10&_Enum&A10. (from org-dartlang-testcase:///conflicting_elements.dart:65:6)
+- E6. (from org-dartlang-testcase:///conflicting_elements.dart:34:6)
+- E7. (from org-dartlang-testcase:///conflicting_elements.dart:40:6)
+- E8. (from org-dartlang-testcase:///conflicting_elements.dart:50:6)
+- _E8&_Enum&A8. (from org-dartlang-testcase:///conflicting_elements.dart:50:6)
+- E9. (from org-dartlang-testcase:///conflicting_elements.dart:58:6)
+- E10. (from org-dartlang-testcase:///conflicting_elements.dart:66:6)
+- _E10&_Enum&A10. (from org-dartlang-testcase:///conflicting_elements.dart:66:6)

@@ -94,7 +94,7 @@ class LibraryAnalyzer {
     // Return full results.
     var results = <UnitAnalysisResult>[];
     units.forEach((file, unit) {
-      List<AnalysisError> errors = _getErrorListener(file).errors;
+      var errors = _getErrorListener(file).errors;
       errors = _filterIgnoredErrors(file, errors);
       results.add(UnitAnalysisResult(file, unit, errors));
     });
@@ -223,10 +223,13 @@ class LibraryAnalyzer {
   }
 
   void _computeConstantErrors(
-      ErrorReporter errorReporter, CompilationUnit unit) {
-    ConstantVerifier constantVerifier =
-        ConstantVerifier(errorReporter, _libraryElement, _declaredVariables);
+      ErrorReporter errorReporter, FileState file, CompilationUnit unit) {
+    ConstantVerifier constantVerifier = ConstantVerifier(
+        errorReporter, _libraryElement, _declaredVariables,
+        retainDataForTesting: _testingData != null);
     unit.accept(constantVerifier);
+    _testingData?.recordExhaustivenessDataForTesting(
+        file.uri, constantVerifier.exhaustivenessDataForTesting!);
   }
 
   /// Compute [_constants] in all units.
@@ -247,7 +250,7 @@ class LibraryAnalyzer {
     );
   }
 
-  /// Compute diagnostics in [units], including errors and warnings, hints,
+  /// Compute diagnostics in [units], including errors and warnings,
   /// lints, and a few other cases.
   void _computeDiagnostics(Map<FileState, CompilationUnitImpl> units) {
     units.forEach((file, unit) {
@@ -269,10 +272,9 @@ class LibraryAnalyzer {
           usedImportedElements.add(visitor.usedElements);
         }
       }
-      UsedLocalElements usedElements =
-          UsedLocalElements.merge(usedLocalElements);
+      var usedElements = UsedLocalElements.merge(usedLocalElements);
       units.forEach((file, unit) {
-        _computeHints(
+        _computeWarnings(
           file,
           unit,
           usedImportedElements: usedImportedElements,
@@ -317,85 +319,6 @@ class LibraryAnalyzer {
           _analysisOptions.unignorableNames,
         ).reportErrors();
       }
-    }
-  }
-
-  void _computeHints(
-    FileState file,
-    CompilationUnit unit, {
-    required List<UsedImportedElements> usedImportedElements,
-    required UsedLocalElements usedElements,
-  }) {
-    AnalysisErrorListener errorListener = _getErrorListener(file);
-    ErrorReporter errorReporter = _getErrorReporter(file);
-
-    if (!_libraryElement.isNonNullableByDefault) {
-      unit.accept(
-        LegacyDeadCodeVerifier(
-          errorReporter,
-          typeSystem: _typeSystem,
-        ),
-      );
-    }
-
-    UnicodeTextVerifier(errorReporter).verify(unit, file.content);
-
-    unit.accept(DeadCodeVerifier(errorReporter));
-
-    unit.accept(
-      BestPracticesVerifier(
-        errorReporter,
-        _typeProvider,
-        _libraryElement,
-        unit,
-        file.content,
-        declaredVariables: _declaredVariables,
-        typeSystem: _typeSystem,
-        inheritanceManager: _inheritance,
-        analysisOptions: _analysisOptions,
-        workspacePackage: _library.file.workspacePackage,
-      ),
-    );
-
-    unit.accept(OverrideVerifier(
-      _inheritance,
-      _libraryElement,
-      errorReporter,
-    ));
-
-    TodoFinder(errorReporter).findIn(unit);
-    LanguageVersionOverrideVerifier(errorReporter).verify(unit);
-
-    // Verify imports.
-    {
-      ImportsVerifier verifier = ImportsVerifier();
-      verifier.addImports(unit);
-      usedImportedElements.forEach(verifier.removeUsedElements);
-      verifier.generateDuplicateExportHints(errorReporter);
-      verifier.generateDuplicateImportHints(errorReporter);
-      verifier.generateDuplicateShownHiddenNameHints(errorReporter);
-      verifier.generateUnusedImportHints(errorReporter);
-      verifier.generateUnusedShownNameHints(errorReporter);
-      verifier.generateUnnecessaryImportHints(
-          errorReporter, usedImportedElements);
-    }
-
-    // Unused local elements.
-    {
-      UnusedLocalElementsVerifier visitor = UnusedLocalElementsVerifier(
-          errorListener, usedElements, _inheritance, _libraryElement);
-      unit.accept(visitor);
-    }
-
-    //
-    // Find code that uses features from an SDK version that does not satisfy
-    // the SDK constraints specified in analysis options.
-    //
-    var sdkVersionConstraint = _analysisOptions.sdkVersionConstraint;
-    if (sdkVersionConstraint != null) {
-      SdkConstraintVerifier verifier = SdkConstraintVerifier(
-          errorReporter, _libraryElement, _typeProvider, sdkVersionConstraint);
-      unit.accept(verifier);
     }
   }
 
@@ -455,7 +378,7 @@ class LibraryAnalyzer {
     //
     // Use the ConstantVerifier to compute errors.
     //
-    _computeConstantErrors(errorReporter, unit);
+    _computeConstantErrors(errorReporter, file, unit);
 
     //
     // Compute inheritance and override errors.
@@ -474,6 +397,85 @@ class LibraryAnalyzer {
     // Verify constraints on FFI uses. The CFE enforces these constraints as
     // compile-time errors and so does the analyzer.
     unit.accept(FfiVerifier(_typeSystem, errorReporter));
+  }
+
+  void _computeWarnings(
+    FileState file,
+    CompilationUnit unit, {
+    required List<UsedImportedElements> usedImportedElements,
+    required UsedLocalElements usedElements,
+  }) {
+    AnalysisErrorListener errorListener = _getErrorListener(file);
+    ErrorReporter errorReporter = _getErrorReporter(file);
+
+    if (!_libraryElement.isNonNullableByDefault) {
+      unit.accept(
+        LegacyDeadCodeVerifier(
+          errorReporter,
+          typeSystem: _typeSystem,
+        ),
+      );
+    }
+
+    UnicodeTextVerifier(errorReporter).verify(unit, file.content);
+
+    unit.accept(DeadCodeVerifier(errorReporter));
+
+    unit.accept(
+      BestPracticesVerifier(
+        errorReporter,
+        _typeProvider,
+        _libraryElement,
+        unit,
+        file.content,
+        declaredVariables: _declaredVariables,
+        typeSystem: _typeSystem,
+        inheritanceManager: _inheritance,
+        analysisOptions: _analysisOptions,
+        workspacePackage: _library.file.workspacePackage,
+      ),
+    );
+
+    unit.accept(OverrideVerifier(
+      _inheritance,
+      _libraryElement,
+      errorReporter,
+    ));
+
+    TodoFinder(errorReporter).findIn(unit);
+    LanguageVersionOverrideVerifier(errorReporter).verify(unit);
+
+    // Verify imports.
+    {
+      ImportsVerifier verifier = ImportsVerifier();
+      verifier.addImports(unit);
+      usedImportedElements.forEach(verifier.removeUsedElements);
+      verifier.generateDuplicateExportWarnings(errorReporter);
+      verifier.generateDuplicateImportWarnings(errorReporter);
+      verifier.generateDuplicateShownHiddenNameWarnings(errorReporter);
+      verifier.generateUnusedImportHints(errorReporter);
+      verifier.generateUnusedShownNameHints(errorReporter);
+      verifier.generateUnnecessaryImportHints(
+          errorReporter, usedImportedElements);
+    }
+
+    // Unused local elements.
+    {
+      UnusedLocalElementsVerifier visitor = UnusedLocalElementsVerifier(
+          errorListener, usedElements, _inheritance, _libraryElement);
+      unit.accept(visitor);
+    }
+
+    //
+    // Find code that uses features from an SDK version that does not satisfy
+    // the SDK constraints specified in analysis options.
+    //
+    var sdkVersionConstraint = _analysisOptions.sdkVersionConstraint;
+    if (sdkVersionConstraint != null) {
+      SdkConstraintVerifier verifier = SdkConstraintVerifier(
+          errorReporter, _libraryElement, _typeProvider, sdkVersionConstraint);
+      unit.accept(verifier);
+    }
   }
 
   /// Return a subset of the given [errors] that are not marked as ignored in
@@ -726,7 +728,7 @@ class LibraryAnalyzer {
 
   void _resolveFile(FileState file, CompilationUnit unit) {
     var source = file.source;
-    RecordingErrorListener errorListener = _getErrorListener(file);
+    var errorListener = _getErrorListener(file);
 
     var unitElement = unit.declaredElement as CompilationUnitElementImpl;
 

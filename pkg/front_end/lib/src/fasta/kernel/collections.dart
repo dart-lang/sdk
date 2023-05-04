@@ -17,6 +17,8 @@ import '../problems.dart' show getFileUri, unsupported;
 
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
+import 'internal_ast.dart';
+
 /// Mixin for spread and control-flow elements.
 ///
 /// Spread and control-flow elements are not truly expressions and they cannot
@@ -297,8 +299,23 @@ class ForElement extends Expression with ControlFlowElement {
   }
 
   @override
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('for (');
+    for (int index = 0; index < variables.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(variables[index],
+          includeModifiersAndType: index == 0);
+    }
+    printer.write('; ');
+    if (condition != null) {
+      printer.writeExpression(condition!);
+    }
+    printer.write('; ');
+    printer.writeExpressions(updates);
+    printer.write(') ');
+    printer.writeExpression(body);
   }
 }
 
@@ -656,8 +673,23 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('for (');
+    for (int index = 0; index < variables.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(variables[index],
+          includeModifiersAndType: index == 0);
+    }
+    printer.write('; ');
+    if (condition != null) {
+      printer.writeExpression(condition!);
+    }
+    printer.write('; ');
+    printer.writeExpressions(updates);
+    printer.write(') ');
+    body.toTextInternal(printer);
   }
 }
 
@@ -805,12 +837,42 @@ Expression convertToElement(
     onConvertMapEntry(entry, result);
     return result;
   }
-  if (entry is ForMapEntry) {
-    ForElement result = new ForElement(entry.variables, entry.condition,
-        entry.updates, convertToElement(entry.body, helper, onConvertMapEntry))
+  if (entry is IfCaseMapEntry) {
+    IfCaseElement result = new IfCaseElement(
+        prelude: entry.prelude,
+        expression: entry.expression,
+        patternGuard: entry.patternGuard,
+        then: convertToElement(entry.then, helper, onConvertMapEntry),
+        otherwise: entry.otherwise == null
+            ? null
+            : convertToElement(entry.otherwise!, helper, onConvertMapEntry))
+      ..matchedValueType = entry.matchedValueType
       ..fileOffset = entry.fileOffset;
     onConvertMapEntry(entry, result);
     return result;
+  }
+  if (entry is ForMapEntry) {
+    if (entry is PatternForMapEntry) {
+      PatternForElement result = new PatternForElement(
+          patternVariableDeclaration: entry.patternVariableDeclaration,
+          intermediateVariables: entry.intermediateVariables,
+          variables: entry.variables,
+          condition: entry.condition,
+          updates: entry.updates,
+          body: convertToElement(entry.body, helper, onConvertMapEntry))
+        ..fileOffset = entry.fileOffset;
+      onConvertMapEntry(entry, result);
+      return result;
+    } else {
+      ForElement result = new ForElement(
+          entry.variables,
+          entry.condition,
+          entry.updates,
+          convertToElement(entry.body, helper, onConvertMapEntry))
+        ..fileOffset = entry.fileOffset;
+      onConvertMapEntry(entry, result);
+      return result;
+    }
   }
   if (entry is ForInMapEntry) {
     ForInElement result = new ForInElement(
@@ -849,7 +911,15 @@ bool isConvertibleToMapEntry(Expression element) {
         (element.otherwise == null ||
             isConvertibleToMapEntry(element.otherwise!));
   }
+  if (element is IfCaseElement) {
+    return isConvertibleToMapEntry(element.then) &&
+        (element.otherwise == null ||
+            isConvertibleToMapEntry(element.otherwise!));
+  }
   if (element is ForElement) {
+    return isConvertibleToMapEntry(element.body);
+  }
+  if (element is PatternForElement) {
     return isConvertibleToMapEntry(element.body);
   }
   if (element is ForInElement) {
@@ -883,7 +953,33 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
     onConvertElement(element, result);
     return result;
   }
+  if (element is IfCaseElement) {
+    IfCaseMapEntry result = new IfCaseMapEntry(
+        prelude: [],
+        expression: element.expression,
+        patternGuard: element.patternGuard,
+        then: convertToMapEntry(element.then, helper, onConvertElement),
+        otherwise: element.otherwise == null
+            ? null
+            : convertToMapEntry(element.otherwise!, helper, onConvertElement))
+      ..matchedValueType = element.matchedValueType
+      ..fileOffset = element.fileOffset;
+    onConvertElement(element, result);
+    return result;
+  }
   if (element is ForElement) {
+    if (element is PatternForElement) {
+      PatternForMapEntry result = new PatternForMapEntry(
+          patternVariableDeclaration: element.patternVariableDeclaration,
+          intermediateVariables: element.intermediateVariables,
+          variables: element.variables,
+          condition: element.condition,
+          updates: element.updates,
+          body: convertToMapEntry(element.body, helper, onConvertElement))
+        ..fileOffset = element.fileOffset;
+      onConvertElement(element, result);
+      return result;
+    }
     ForMapEntry result = new ForMapEntry(
         element.variables,
         element.condition,

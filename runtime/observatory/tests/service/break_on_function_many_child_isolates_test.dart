@@ -7,6 +7,7 @@
 // simultaneously.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:developer';
 import 'dart:isolate' as dart_isolate;
 
@@ -16,9 +17,9 @@ import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const int LINE_A = 23;
-const int LINE_B = 35;
-const int LINE_C = 41;
+const int LINE_A = 24;
+const int LINE_B = 36;
+const int LINE_C = 42;
 
 foo(args) { // LINE_A
   print('${dart_isolate.Isolate.current.debugName}: $args');
@@ -44,6 +45,9 @@ testMain() async {
 final completerAtFoo = List<Completer>.generate(nIsolates, (_) => Completer());
 int completerCount = 0;
 
+Isolate? activeIsolate = null;
+final pendingToResume = ListQueue<Isolate>();
+
 final tests = <IsolateTest>[
   hasPausedAtStart,
   resumeIsolate,
@@ -64,13 +68,16 @@ final tests = <IsolateTest>[
             if (lib.uri!
                 .endsWith('break_on_function_many_child_isolates_test.dart')) {
               final foo = lib.functions.singleWhere((f) => f.name == 'foo');
-              final bpt = await childIsolate.addBreakpointAtEntry(foo);
-
-              expect(bpt is Breakpoint, isTrue);
+              await childIsolate.addBreakpointAtEntry(foo);
               break;
             }
           }
-          childIsolate.resume();
+          if (activeIsolate == null) {
+            activeIsolate = childIsolate;
+            activeIsolate!.resume();
+          } else {
+            pendingToResume.addLast(childIsolate);
+          }
           break;
         case ServiceEvent.kPauseBreakpoint:
           final name = event.isolate!.name!;
@@ -84,11 +91,17 @@ final tests = <IsolateTest>[
           final script = await top.location.script.load() as Script;
           expect(script.tokenToLine(top.location.tokenPos), equals(LINE_A));
 
-          childIsolate.resume();
+          expect(activeIsolate != null, equals(true));
+          activeIsolate!.resume();
           if ((++completerCount) == nIsolates) {
             subscription.cancel();
           }
           completerAtFoo[ndx].complete();
+
+          if (pendingToResume.isNotEmpty) {
+            activeIsolate = pendingToResume.removeFirst();
+            activeIsolate!.resume();
+          }
           break;
       }
     });

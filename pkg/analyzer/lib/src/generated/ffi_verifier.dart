@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -13,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
@@ -97,13 +99,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           _validateAbiSpecificIntegerAnnotation(node);
           _validateAbiSpecificIntegerMappingAnnotation(
               node.name, node.metadata);
-        } else if (className != _allocatorClassName &&
-            className != _opaqueClassName &&
-            className != _abiSpecificIntegerClassName) {
-          _errorReporter.reportErrorForNode(
-              FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
-              superclass.name,
-              [node.name.lexeme, superclass.name.name]);
         }
       } else if (superclass.isCompoundSubtype ||
           superclass.isAbiSpecificIntegerSubtype) {
@@ -115,18 +110,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     // No classes from the FFI may be explicitly implemented.
-    void checkSupertype(NamedType typename, FfiCode subtypeOfFfiCode,
-        FfiCode subtypeOfStructCode) {
+    void checkSupertype(NamedType typename, FfiCode subtypeOfStructCode) {
       final superName = typename.name.staticElement?.name;
       if (superName == _allocatorClassName ||
           superName == _finalizableClassName) {
         return;
       }
-      if (typename.ffiClass != null) {
-        _errorReporter.reportErrorForNode(subtypeOfFfiCode, typename,
-            [node.name.lexeme, typename.name.toSource()]);
-      } else if (typename.isCompoundSubtype ||
-          typename.isAbiSpecificIntegerSubtype) {
+      if (typename.isCompoundSubtype || typename.isAbiSpecificIntegerSubtype) {
         _errorReporter.reportErrorForNode(subtypeOfStructCode, typename,
             [node.name.lexeme, typename.name.toSource()]);
       }
@@ -135,15 +125,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var implementsClause = node.implementsClause;
     if (implementsClause != null) {
       for (NamedType type in implementsClause.interfaces) {
-        checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
-            FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS);
+        checkSupertype(type, FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS);
       }
     }
     var withClause = node.withClause;
     if (withClause != null) {
       for (NamedType type in withClause.mixinTypes) {
-        checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH,
-            FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH);
+        checkSupertype(type, FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH);
       }
     }
 
@@ -172,7 +160,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (!typeSystem.isNonNullableByDefault && inCompound) {
+    if (!noSoundNullSafety &&
+        !typeSystem.isNonNullableByDefault &&
+        inCompound) {
       _errorReporter.reportErrorForNode(
         FfiCode.FIELD_INITIALIZER_IN_STRUCT,
         node,
@@ -328,8 +318,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
       final typeArguments = annotation.typeArguments?.arguments;
       final arguments = annotation.arguments?.arguments;
-      if (typeArguments == null || arguments == null) {
-        continue;
+      if (typeArguments == null) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, errorNode, ['T', 'Native']);
+        return;
       }
 
       final ffiSignature = typeArguments[0].type! as FunctionType;
@@ -410,13 +402,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
             errorNode,
-            [nativeType, 'FfiNative']);
+            [nativeType, 'Native']);
         return;
       }
       if (!_validateCompatibleFunctionTypes(dartType, nativeType,
           nativeFieldWrappersAsPointer: true, allowStricterReturn: true)) {
         _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_SUBTYPE, errorNode,
-            [nativeType, dartType, 'FfiNative']);
+            [nativeType, dartType, 'Native']);
         return;
       }
     }
@@ -496,7 +488,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return false;
       }
 
-      for (final DartType typeArg in nativeType.normalParameterTypes) {
+      for (final DartType typeArg
+          in nativeType.normalParameterTypes.flattenVarArgs()) {
         if (!_isValidFfiNativeType(typeArg,
             allowVoid: false, allowEmptyStruct: false, allowHandle: true)) {
           return false;
@@ -825,9 +818,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
+    final nativeTypeNormalParameterTypes =
+        nativeType.normalParameterTypes.flattenVarArgs();
+
     // We disallow any optional parameters.
     final int parameterCount = dartType.normalParameterTypes.length;
-    if (parameterCount != nativeType.normalParameterTypes.length) {
+    if (parameterCount != nativeTypeNormalParameterTypes.length) {
       return false;
     }
     // We disallow generic function types.
@@ -859,7 +855,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     for (int i = 0; i < parameterCount; ++i) {
       if (!_validateCompatibleNativeType(
         dartType.normalParameterTypes[i],
-        nativeType.normalParameterTypes[i],
+        nativeTypeNormalParameterTypes[i],
         checkCovariance: true,
         nativeFieldWrappersAsPointer: nativeFieldWrappersAsPointer,
       )) {
@@ -891,8 +887,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     } else if (nativeReturnType == _PrimitiveDartType.bool) {
       return dartType.isDartCoreBool;
     } else if (nativeReturnType == _PrimitiveDartType.void_) {
-      return dartType.isVoid;
-    } else if (dartType.isVoid) {
+      return dartType is VoidType;
+    } else if (dartType is VoidType) {
       // Don't allow other native subtypes if the Dart return type is void.
       return nativeReturnType == _PrimitiveDartType.void_;
     } else if (nativeReturnType == _PrimitiveDartType.handle) {
@@ -932,8 +928,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateFfiLeafCallUsesNoHandles(
-      NodeList<Expression> args, DartType nativeType, AstNode errorNode) {
-    if (args.isEmpty) {
+      NodeList<Expression>? args, DartType nativeType, AstNode errorNode) {
+    if (args == null || args.isEmpty) {
       return;
     }
     for (final arg in args) {
@@ -985,7 +981,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, fields.variables[0].name);
     } else {
       DartType declaredType = fieldType.typeOrThrow;
-      if (declaredType.isDartCoreInt) {
+      if (declaredType.nullabilitySuffix == NullabilitySuffix.question) {
+        _errorReporter.reportErrorForNode(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
+            fieldType, [fieldType.toSource()]);
+      } else if (declaredType.isDartCoreInt) {
         _validateAnnotations(fieldType, annotations, _PrimitiveDartType.int);
       } else if (declaredType.isDartCoreDouble) {
         _validateAnnotations(fieldType, annotations, _PrimitiveDartType.double);
@@ -1022,7 +1021,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (!typeSystem.isNonNullableByDefault) {
+    if (!noSoundNullSafety && !typeSystem.isNonNullableByDefault) {
       for (VariableDeclaration field in fields.variables) {
         if (field.initializer != null) {
           _errorReporter.reportErrorForToken(
@@ -1066,7 +1065,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     // TODO(brianwilkerson) Validate that `f` is a top-level function.
     final DartType R = (T as FunctionType).returnType;
-    if ((FT as FunctionType).returnType.isVoid ||
+    if ((FT as FunctionType).returnType is VoidType ||
         R.isPointer ||
         R.isHandle ||
         R.isCompoundSubtype) {
@@ -1666,6 +1665,16 @@ extension on DartType {
     final self = this;
     return self is InterfaceType && self.element.isPointer;
   }
+
+  /// Returns `true` iff this is a `ffi.VarArgs` type.
+  bool get isVarArgs {
+    final self = this;
+    if (self is InterfaceType) {
+      final element = self.element;
+      return element.name == 'VarArgs' && element.isFfiClass;
+    }
+    return false;
+  }
 }
 
 extension on NamedType {
@@ -1690,5 +1699,36 @@ extension on NamedType {
       return element.allSupertypes.any((e) => e.isCompound);
     }
     return false;
+  }
+}
+
+extension on List<DartType> {
+  /// Removes the VarArgs from a DartType list.
+  ///
+  /// ```
+  /// [Int8, Int8] -> [Int8, Int8]
+  /// [Int8, VarArgs<(Int8,)>] -> [Int8, Int8]
+  /// [Int8, VarArgs<(Int8, Int8)>] -> [Int8, Int8, Int8]
+  /// ```
+  List<DartType> flattenVarArgs() {
+    if (isEmpty) {
+      return this;
+    }
+    final last = this.last;
+    if (!last.isVarArgs) {
+      return this;
+    }
+    final typeArgument = (last as InterfaceType).typeArguments.single;
+    if (typeArgument is! RecordType) {
+      return this;
+    }
+    if (typeArgument.namedFields.isNotEmpty) {
+      // Don't flatten if invalid record.
+      return this;
+    }
+    return [
+      ...take(length - 1),
+      for (final field in typeArgument.positionalFields) field.type,
+    ];
   }
 }

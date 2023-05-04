@@ -4,6 +4,46 @@
 
 part of 'serialization.dart';
 
+/// Interface handling [DataSourceReader] low-level data deserialization.
+///
+/// Each implementation of [DataSource] should have a corresponding
+/// [DataSink] for which it deserializes data.
+abstract class DataSource {
+  /// Deserialization of a section begin tag.
+  void begin(String tag);
+
+  /// Deserialization of a section end tag.
+  void end(String tag);
+
+  /// Deserialization of a string value.
+  String readString();
+
+  /// Deserialization of a non-negative integer value.
+  int readInt();
+
+  /// Deserialization of an enum value in [values].
+  E readEnum<E>(List<E> values);
+
+  /// Returns the offset for a deferred entity and skips it in the read queue.
+  /// The offset can later be passed to [readAtOffset] to get the value.
+  int readDeferred();
+
+  /// Eagerly reads and returns the value for a deferred entity.
+  E readDeferredAsEager<E>(E reader());
+
+  /// Calls [reader] to read a value at the provided offset in the underlying
+  /// data stream. Use with [readDeferred] to read a deferred value.
+  E readAtOffset<E>(int offset, E reader());
+
+  /// The length of the underlying data source.
+  int get length;
+
+  /// Returns a string representation of the current state of the data source
+  /// useful for debugging in consistencies between serialization and
+  /// deserialization.
+  String get errorContext;
+}
+
 /// Deserialization reader
 ///
 /// To be used with [DataSinkWriter] to read and write serialized data.
@@ -27,6 +67,7 @@ class DataSourceReader {
   EntityLookup? _entityLookup;
   LocalLookup? _localLookup;
   CodegenReader? _codegenReader;
+  SourceLookup? _sourceLookup;
 
   late final IndexedSource<String> _stringIndex;
   late final IndexedSource<Uri> _uriIndex;
@@ -168,6 +209,13 @@ class DataSourceReader {
     return _componentLookup!;
   }
 
+  void registerSourceLookup(SourceLookup sourceLookup) {
+    assert(_sourceLookup == null);
+    _sourceLookup = sourceLookup;
+  }
+
+  SourceLookup get sourceLookup => _sourceLookup!;
+
   /// Registers an [EntityLookup] object with this data source to support
   /// deserialization of references to entities.
   void registerEntityLookup(EntityLookup entityLookup) {
@@ -182,14 +230,12 @@ class DataSourceReader {
   /// Registers an [EntityReader] with this data source for non-default encoding
   /// of entity references.
   void registerEntityReader(EntityReader reader) {
-    assert((reader as dynamic) != null); // TODO(48820): Remove when sound.
     _entityReader = reader;
   }
 
   /// Registers a [LocalLookup] object with this data source to support
 
   void registerLocalLookup(LocalLookup localLookup) {
-    assert((localLookup as dynamic) != null); // TODO(48820): Remove when sound.
     _localLookup = localLookup;
   }
 
@@ -200,7 +246,6 @@ class DataSourceReader {
   /// Registers a [CodegenReader] with this data source to support
   /// deserialization of codegen only data.
   void registerCodegenReader(CodegenReader reader) {
-    assert((reader as dynamic) != null); // TODO(48820): Remove when sound.
     assert(_codegenReader == null);
     _codegenReader = reader;
   }
@@ -480,7 +525,19 @@ class DataSourceReader {
     return library.lookupClassByName(name)!;
   }
 
-  /// Reads a reference to a kernel class node from this data source.
+  /// Reads a reference to a kernel inline class node from this data source.
+  ir.InlineClass readInlineClassNode() {
+    _checkDataKind(DataKind.inlineClassNode);
+    return _readInlineClassNode();
+  }
+
+  ir.InlineClass _readInlineClassNode() {
+    LibraryData library = _readLibraryData();
+    String name = _readString();
+    return library.lookupInlineClass(name)!;
+  }
+
+  /// Reads a reference to a kernel typedef node from this data source.
   ir.Typedef readTypedefNode() {
     _checkDataKind(DataKind.typedefNode);
     return _readTypedefNode();
@@ -809,7 +866,7 @@ class DataSourceReader {
   /// returned type is allowed to be `null`.
   ir.DartType readDartTypeNode() {
     _checkDataKind(DataKind.dartTypeNode);
-    ir.DartType? type = readDartTypeNodeOrNull();
+    ir.DartType? type = _readDartTypeNodeOrNull();
     if (type == null) throw UnsupportedError('Unexpected `null` DartTypeNode');
     return type;
   }
@@ -818,6 +875,10 @@ class DataSourceReader {
   /// allowed to be `null`.
   ir.DartType? readDartTypeNodeOrNull() {
     _checkDataKind(DataKind.dartTypeNode);
+    return _readDartTypeNodeOrNull();
+  }
+
+  ir.DartType? _readDartTypeNodeOrNull() {
     final type = _readDartTypeNode([]);
     return interner?.internDartTypeNode(type) ?? type;
   }
@@ -913,6 +974,12 @@ class DataSourceReader {
             _readDartTypeNodes(functionTypeVariables);
         List<ir.NamedType> named = _readNamedTypeNodes(functionTypeVariables);
         return ir.RecordType(positional, named, nullability);
+      case DartTypeNodeKind.inlineType:
+        ir.InlineClass inlineClass = readInlineClassNode();
+        ir.Nullability nullability = readEnum(ir.Nullability.values);
+        List<ir.DartType> typeArguments =
+            _readDartTypeNodes(functionTypeVariables);
+        return ir.InlineType(inlineClass, nullability, typeArguments);
       case DartTypeNodeKind.typedef:
         ir.Typedef typedef = readTypedefNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
@@ -1270,6 +1337,10 @@ class DataSourceReader {
             readMemberMap<FieldEntity, ConstantValue>(
                 (MemberEntity member) => readConstant());
         return ConstructedConstantValue(type, fields);
+      case ConstantValueKind.RECORD:
+        final shape = RecordShape.readFromDataSource(this);
+        final values = readConstants();
+        return RecordConstantValue(shape, values);
       case ConstantValueKind.TYPE:
         final representedType = readDartType();
         final type = readDartType() as InterfaceType;

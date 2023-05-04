@@ -16,7 +16,7 @@ import 'package:expect/expect.dart';
 ///     unsigned int strike    : 1;
 ///     unsigned int font      : 4;
 /// } ScreenCellAttrs;
-class ScreenCellAttrs extends Struct {
+final class ScreenCellAttrs extends Struct {
   @Int16()
   external int bits;
 
@@ -72,7 +72,7 @@ const int kFontFieldLength = 4;
 
 /// Extension to use a 64-bit integer as bit field.
 extension IntBitField on int {
-  static int _bitMask(int offset, int lenght) => ((1 << lenght) - 1) << offset;
+  static int _bitMask(int offset, int length) => ((1 << length) - 1) << offset;
 
   /// Read `length` bits at `offset`.
   ///

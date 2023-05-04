@@ -73,8 +73,9 @@ class SocketServer implements AbstractSocketServer {
       var error = RequestError(
           RequestErrorCode.SERVER_ALREADY_STARTED, 'Server already started');
       serverChannel.sendResponse(Response('', error: error));
-      serverChannel.requests.listen((Request request) {
-        serverChannel.sendResponse(Response(request.id, error: error));
+      serverChannel.requests.listen((RequestOrResponse requestOrResponse) {
+        serverChannel
+            .sendResponse(Response(requestOrResponse.id, error: error));
       });
       return;
     }

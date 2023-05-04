@@ -325,9 +325,6 @@ class InterfaceType extends DartType {
   InterfaceType._allocate(this.element, this.typeArguments);
 
   factory InterfaceType._(ClassEntity element, List<DartType> typeArguments) {
-    // TODO(48820): Remove:
-    // ignore: unnecessary_null_comparison
-    assert(typeArguments.every((e) => e != null));
     if (typeArguments.isEmpty) typeArguments = const [];
     return InterfaceType._allocate(element, typeArguments);
   }
@@ -403,7 +400,7 @@ class RecordType extends DartType {
   final List<DartType> fields;
 
   static late final _emptyRecordType =
-      RecordType._(RecordShape(0, const []), const []);
+      RecordType._allocate(RecordShape(0, const []), const []);
 
   RecordType._allocate(this.shape, this.fields);
 
@@ -519,7 +516,7 @@ class TypeVariableType extends DartType {
 ///     void Function<T>(T t)
 ///
 /// Such a type variable is different from a [TypeVariableType] because it
-/// doesn't have a unique identity; is is equal to any other
+/// doesn't have a unique identity; is equal to any other
 /// [FunctionTypeVariable] used similarly in another structurally equivalent
 /// function type.
 class FunctionTypeVariable extends DartType {
@@ -528,8 +525,7 @@ class FunctionTypeVariable extends DartType {
   final int index;
 
   /// The bound of this function type variable.
-  // TODO(48820): `bound` getter/setter can be a late final field.
-  DartType? _bound;
+  late final DartType bound;
 
   FunctionTypeVariable._(this.index);
 
@@ -551,16 +547,6 @@ class FunctionTypeVariable extends DartType {
       sink.writeEnum(DartTypeKind.functionTypeVariable);
       sink.writeInt(index);
     }
-  }
-
-  DartType get bound {
-    assert(_bound != null, "Bound has not been set.");
-    return _bound!;
-  }
-
-  void set bound(DartType value) {
-    assert(_bound == null, "Bound has already been set.");
-    _bound = value;
   }
 
   @override
@@ -750,21 +736,7 @@ class FunctionType extends DartType {
       this.namedParameters,
       this.requiredNamedParameters,
       this.namedParameterTypes,
-      this.typeVariables) {
-    // TODO(48820): Remove:
-    // ignore: unnecessary_null_comparison
-    assert(returnType != null, 'Invalid return type in $this.');
-    assert(!parameterTypes.contains(null), 'Invalid parameter types in $this.');
-    assert(!optionalParameterTypes.contains(null),
-        'Invalid optional parameter types in $this.');
-    assert(
-        !namedParameters.contains(null), 'Invalid named parameters in $this.');
-    assert(!requiredNamedParameters.contains(null),
-        'Invalid required named parameters in $this.');
-    assert(!namedParameterTypes.contains(null),
-        'Invalid named parameter types in $this.');
-    assert(!typeVariables.contains(null), 'Invalid type variables in $this.');
-  }
+      this.typeVariables);
 
   factory FunctionType._(
       DartType returnType,

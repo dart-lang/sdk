@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_check.dart';
 import '../completion_printer.dart' as printer;
 
 void main() {
@@ -47,8 +46,8 @@ void f() {
   int a = foo0^
 }
 ''',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -60,6 +59,9 @@ suggestions
   }
 
   Future<void> test_field_hasContextType_subtypes() async {
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
+
     await _checkLocations(
       classCode: r'''
 class A {
@@ -74,8 +76,8 @@ void f() {
   num a = foo0^
 }
 ''',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -104,8 +106,8 @@ void f() {
   foo0^
 }
 ''',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -128,8 +130,8 @@ void f() {
   int a = foo0^
 }
 ''',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -141,6 +143,9 @@ suggestions
   }
 
   Future<void> test_getter_hasContextType_subtypes() async {
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
+
     await _checkLocations(
       classCode: r'''
 class A {
@@ -155,8 +160,8 @@ void f() {
   num a = foo0^
 }
 ''',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -183,8 +188,8 @@ void f() {
   foo0^
 }
 ''',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -205,8 +210,8 @@ void f() {
   foo0^
 }
 ''',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -229,8 +234,8 @@ void f() {
   int a = foo0^
 }
 ''',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -251,8 +256,8 @@ void f() {
   foo0^
 }
 ''',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -266,36 +271,36 @@ mixin _Helpers on AbstractCompletionDriverTest {
   Future<void> _checkLocations({
     required String classCode,
     required String contextCode,
-    required void Function(CompletionResponseForTesting response) validator,
+    required void Function() validator,
   }) async {
     // local
     {
-      final response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 $classCode
 
 $contextCode
 ''');
-      validator(response);
+      validator();
     }
 
     // imported, without prefix
     {
       newFile('$testPackageLibPath/a.dart', classCode);
-      final response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 import 'a.dart';
 
 $contextCode
 ''');
-      validator(response);
+      validator();
     }
 
     // not imported
     {
       newFile('$testPackageLibPath/a.dart', classCode);
-      final response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 $contextCode
 ''');
-      validator(response);
+      validator();
     }
   }
 }

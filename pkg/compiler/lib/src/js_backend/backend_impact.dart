@@ -56,15 +56,12 @@ class BackendImpact {
   void registerImpact(WorldImpactBuilder worldImpactBuilder,
       ElementEnvironment elementEnvironment) {
     for (FunctionEntity staticUse in staticUses) {
-      assert((staticUse as dynamic) != null); // TODO(48820): Remove when sound.
       worldImpactBuilder.registerStaticUse(StaticUse.implicitInvoke(staticUse));
     }
     for (FunctionEntity staticUse in globalUses) {
-      assert((staticUse as dynamic) != null); // TODO(48820): Remove when sound.
       worldImpactBuilder.registerStaticUse(StaticUse.implicitInvoke(staticUse));
     }
     for (Selector selector in dynamicUses) {
-      assert((selector as dynamic) != null); // TODO(48820): Remove when sound.
       worldImpactBuilder
           .registerDynamicUse(DynamicUse(selector, null, const []));
     }
@@ -399,8 +396,7 @@ class BackendImpacts {
 
   late final BackendImpact allowInterop = BackendImpact(
     staticUses: [
-      _commonElements.jsAllowInterop1!,
-      _commonElements.jsAllowInterop2!,
+      _commonElements.jsAllowInterop!,
     ],
     features: EnumSet<BackendFeature>.fromValues([
       BackendFeature.needToInitializeIsolateAffinityTag,
@@ -632,6 +628,12 @@ class BackendImpacts {
     globalUses: [
       _commonElements.throwUnnamedLateFieldADI,
       _commonElements.throwLateFieldADI,
+    ],
+  );
+
+  late final BackendImpact recordInstantiation = BackendImpact(
+    globalUses: [
+      _commonElements.recordImpactModel,
     ],
   );
 }

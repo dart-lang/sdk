@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library world_test;
 
 import 'package:compiler/src/elements/names.dart';
@@ -47,29 +45,29 @@ testClassSets() async {
       class X {}
 
       main() {
-        new A();
-        new B();
-        new C();
-        new D();
-        new E();
-        new F();
-        new G();
+        A();
+        B();
+        C();
+        D();
+        E();
+        F();
+        G();
         html.window;
-        new html.Worker('');
+        html.Worker('');
       }
       """, testBackendWorld: true);
   JClosedWorld closedWorld = env.jClosedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
-  ClassEntity Object_ = env.getElement("Object");
-  ClassEntity A = env.getElement("A");
-  ClassEntity B = env.getElement("B");
-  ClassEntity C = env.getElement("C");
-  ClassEntity D = env.getElement("D");
-  ClassEntity E = env.getElement("E");
-  ClassEntity F = env.getElement("F");
-  ClassEntity G = env.getElement("G");
-  ClassEntity X = env.getElement("X");
+  final Object_ = env.getElement("Object") as ClassEntity;
+  final A = env.getElement("A") as ClassEntity;
+  final B = env.getElement("B") as ClassEntity;
+  final C = env.getElement("C") as ClassEntity;
+  final D = env.getElement("D") as ClassEntity;
+  final E = env.getElement("E") as ClassEntity;
+  final F = env.getElement("F") as ClassEntity;
+  final G = env.getElement("G") as ClassEntity;
+  final X = env.getElement("X") as ClassEntity;
 
   void checkClasses(String property, ClassEntity cls,
       Iterable<ClassEntity> foundClasses, List<ClassEntity> expectedClasses,
@@ -95,8 +93,8 @@ testClassSets() async {
   void check(String property, ClassEntity cls,
       Iterable<ClassEntity> foundClasses, List<ClassEntity> expectedClasses,
       {bool exact = true,
-      void forEach(ClassEntity cls, ForEachFunction f),
-      int getCount(ClassEntity cls)}) {
+      void forEach(ClassEntity cls, ForEachFunction f)?,
+      int getCount(ClassEntity cls)?}) {
     checkClasses(property, cls, foundClasses, expectedClasses, exact: exact);
 
     if (forEach != null) {
@@ -182,11 +180,12 @@ testClassSets() async {
 
   testMixinUses(Object_, []);
   testMixinUses(A, [
-    elementEnvironment.getSuperClass(F),
-    elementEnvironment.getSuperClass(G)
+    elementEnvironment.getSuperClass(F)!,
+    elementEnvironment.getSuperClass(G)!
   ]);
-  testMixinUses(B,
-      [elementEnvironment.getSuperClass(elementEnvironment.getSuperClass(G))]);
+  testMixinUses(B, [
+    elementEnvironment.getSuperClass(elementEnvironment.getSuperClass(G)!)!
+  ]);
   testMixinUses(C, []);
   testMixinUses(D, []);
   testMixinUses(E, []);
@@ -240,21 +239,21 @@ testProperties() async {
       class H4 extends H2 with H {}
 
       main() {
-        new B();
-        new C1();
-        new D2();
-        new E3();
-        new F1();
-        new F2();
-        new G2();
-        new G3();
-        new H4();
+        B();
+        C1();
+        D2();
+        E3();
+        F1();
+        F2();
+        G2();
+        G3();
+        H4();
       }
       """, testBackendWorld: true);
   JClosedWorld closedWorld = env.jClosedWorld;
 
-  check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
-    ClassEntity cls = env.getElement(name);
+  check(String name, {bool? hasStrictSubtype, bool? hasOnlySubclasses}) {
+    final cls = env.getElement(name) as ClassEntity;
     Expect.equals(
         hasStrictSubtype,
         closedWorld.classHierarchy.hasAnyStrictSubtype(cls),
@@ -325,27 +324,27 @@ testNativeClasses() async {
       import 'dart:html' as html;
       main() {
         html.window; // Creates 'Window'.
-        new html.Worker(''); // Creates 'Worker'.
-        new html.CanvasElement() // Creates CanvasElement
+        html.Worker(''); // Creates 'Worker'.
+        html.CanvasElement() // Creates CanvasElement
             ..getContext(''); // Creates CanvasRenderingContext2D
       }
       """, testBackendWorld: true);
   JClosedWorld closedWorld = env.jClosedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-  LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dart_html);
+  LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dart_html)!;
 
   ClassEntity clsEventTarget =
-      elementEnvironment.lookupClass(dart_html, 'EventTarget');
-  ClassEntity clsWindow = elementEnvironment.lookupClass(dart_html, 'Window');
+      elementEnvironment.lookupClass(dart_html, 'EventTarget')!;
+  ClassEntity clsWindow = elementEnvironment.lookupClass(dart_html, 'Window')!;
   ClassEntity clsAbstractWorker =
-      elementEnvironment.lookupClass(dart_html, 'AbstractWorker');
-  ClassEntity clsWorker = elementEnvironment.lookupClass(dart_html, 'Worker');
+      elementEnvironment.lookupClass(dart_html, 'AbstractWorker')!;
+  ClassEntity clsWorker = elementEnvironment.lookupClass(dart_html, 'Worker')!;
   ClassEntity clsCanvasElement =
-      elementEnvironment.lookupClass(dart_html, 'CanvasElement');
+      elementEnvironment.lookupClass(dart_html, 'CanvasElement')!;
   ClassEntity clsCanvasRenderingContext =
-      elementEnvironment.lookupClass(dart_html, 'CanvasRenderingContext');
+      elementEnvironment.lookupClass(dart_html, 'CanvasRenderingContext')!;
   ClassEntity clsCanvasRenderingContext2D =
-      elementEnvironment.lookupClass(dart_html, 'CanvasRenderingContext2D');
+      elementEnvironment.lookupClass(dart_html, 'CanvasRenderingContext2D')!;
 
   List<ClassEntity> allClasses = [
     clsEventTarget,
@@ -358,15 +357,15 @@ testNativeClasses() async {
   ];
 
   check(ClassEntity cls,
-      {bool isDirectlyInstantiated,
-      bool isAbstractlyInstantiated,
-      bool isIndirectlyInstantiated,
-      bool hasStrictSubtype,
-      bool hasOnlySubclasses,
-      ClassEntity lubOfInstantiatedSubclasses,
-      ClassEntity lubOfInstantiatedSubtypes,
-      int instantiatedSubclassCount,
-      int instantiatedSubtypeCount,
+      {required bool isDirectlyInstantiated,
+      required bool isAbstractlyInstantiated,
+      required bool isIndirectlyInstantiated,
+      required bool hasStrictSubtype,
+      required bool hasOnlySubclasses,
+      ClassEntity? lubOfInstantiatedSubclasses,
+      ClassEntity? lubOfInstantiatedSubtypes,
+      int? instantiatedSubclassCount,
+      int? instantiatedSubtypeCount,
       List<ClassEntity> subclasses = const <ClassEntity>[],
       List<ClassEntity> subtypes = const <ClassEntity>[]}) {
     ClassSet classSet = closedWorld.classHierarchy.getClassSet(cls);
@@ -423,7 +422,7 @@ testNativeClasses() async {
           "Unexpected subtype relation between $other and $cls.");
     }
 
-    Set<ClassEntity> strictSubclasses = new Set<ClassEntity>();
+    Set<ClassEntity> strictSubclasses = Set<ClassEntity>();
     closedWorld.classHierarchy.forEachStrictSubclassOf(cls,
         (ClassEntity other) {
       if (allClasses.contains(other)) {
@@ -434,7 +433,7 @@ testNativeClasses() async {
     Expect.setEquals(subclasses, strictSubclasses,
         "Unexpected strict subclasses of $cls: ${strictSubclasses}.");
 
-    Set<ClassEntity> strictSubtypes = new Set<ClassEntity>();
+    Set<ClassEntity> strictSubtypes = Set<ClassEntity>();
     closedWorld.classHierarchy.forEachStrictSubtypeOf(cls, (ClassEntity other) {
       if (allClasses.contains(other)) {
         strictSubtypes.add(other);
@@ -548,29 +547,29 @@ testCommonSubclasses() async {
       class I extends D implements E {}
       class J extends E implements D {}
       main() {
-        new A();
-        new B();
-        new C();
-        new D();
-        new E();
-        new F();
-        new G();
-        new H();
-        new I();
-        new J();
+        A();
+        B();
+        C();
+        D();
+        E();
+        F();
+        G();
+        H();
+        I();
+        J();
       }
       """, testBackendWorld: true);
   JClosedWorld closedWorld = env.jClosedWorld;
 
-  ClassEntity A = env.getElement("A");
-  ClassEntity B = env.getElement("B");
-  ClassEntity C = env.getElement("C");
-  ClassEntity F = env.getElement("F");
-  ClassEntity G = env.getElement("G");
-  ClassEntity I = env.getElement("I");
-  ClassEntity J = env.getElement("J");
+  final A = env.getElement("A") as ClassEntity;
+  final B = env.getElement("B") as ClassEntity;
+  final C = env.getElement("C") as ClassEntity;
+  final F = env.getElement("F") as ClassEntity;
+  final G = env.getElement("G") as ClassEntity;
+  final I = env.getElement("I") as ClassEntity;
+  final J = env.getElement("J") as ClassEntity;
 
-  ClassQuery toClassQuery(SubclassResultKind kind, ClassEntity cls1,
+  ClassQuery? toClassQuery(SubclassResultKind kind, ClassEntity cls1,
       ClassQuery query1, ClassEntity cls2, ClassQuery query2) {
     switch (kind) {
       case SubclassResultKind.EMPTY:
@@ -593,7 +592,7 @@ testCommonSubclasses() async {
     }
   }
 
-  ClassEntity toClassEntity(SubclassResultKind kind, ClassEntity cls1,
+  ClassEntity? toClassEntity(SubclassResultKind kind, ClassEntity cls1,
       ClassQuery query1, ClassEntity cls2, ClassQuery query2) {
     switch (kind) {
       case SubclassResultKind.EMPTY:
@@ -666,10 +665,10 @@ testCommonSubclasses() async {
   check(A, ClassQuery.EXACT, B, ClassQuery.SUBTYPE, SubclassResult.EMPTY);
   check(A, ClassQuery.SUBTYPE, B, ClassQuery.EXACT, SubclassResult.EMPTY);
   check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBCLASS, SubclassResult.EMPTY);
-  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBTYPE, new SubclassResult([G]));
-  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBCLASS, new SubclassResult([J]));
+  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBTYPE, SubclassResult([G]));
+  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBCLASS, SubclassResult([J]));
   check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE,
-      new SubclassResult([F, G, I, J]));
+      SubclassResult([F, G, I, J]));
 
   check(A, ClassQuery.EXACT, C, ClassQuery.EXACT, SubclassResult.EMPTY);
   check(A, ClassQuery.EXACT, C, ClassQuery.SUBCLASS, SubclassResult.EMPTY);
@@ -678,7 +677,7 @@ testCommonSubclasses() async {
   check(A, ClassQuery.SUBTYPE, C, ClassQuery.EXACT, SubclassResult.EXACT2);
   check(
       A, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS, SubclassResult.SUBCLASS2);
-  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, new SubclassResult([C]));
+  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, SubclassResult([C]));
   check(
       A, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS, SubclassResult.SUBCLASS2);
   check(A, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE, SubclassResult.SUBTYPE2);
@@ -689,10 +688,9 @@ testCommonSubclasses() async {
   check(B, ClassQuery.EXACT, C, ClassQuery.SUBTYPE, SubclassResult.EMPTY);
   check(B, ClassQuery.SUBTYPE, C, ClassQuery.EXACT, SubclassResult.EMPTY);
   check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS, SubclassResult.EMPTY);
-  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, new SubclassResult([]));
-  check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS, new SubclassResult([G]));
-  check(
-      B, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE, new SubclassResult([F, G]));
+  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, SubclassResult([]));
+  check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS, SubclassResult([G]));
+  check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE, SubclassResult([F, G]));
 }
 
 testLiveMembers() async {

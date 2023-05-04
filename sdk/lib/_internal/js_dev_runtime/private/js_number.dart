@@ -6,17 +6,17 @@ part of dart._interceptors;
 
 /// Only used as an interceptor by dart:_rti library for number values that look
 /// like an integer.
-class JSInt extends JSNumber implements int {}
+final class JSInt extends JSNumber implements int {}
 
 /// Only used as an interceptor by dart:_rti library for number values that look
 /// like a double.
-class JSNumNotInt extends JSNumber implements double {}
+final class JSNumNotInt extends JSNumber implements double {}
 
 /// The implementation of Dart's int & double methods.
 ///
 /// These are made available as extension methods on `Number` in JS.
 @JsPeerInterface(name: 'Number')
-class JSNumber extends Interceptor implements int, double {
+final class JSNumber extends Interceptor implements double {
   const JSNumber();
 
   @notNull
@@ -482,7 +482,7 @@ class JSNumber extends Interceptor implements int, double {
       return BigInt.from(this).modPow(BigInt.from(e), BigInt.from(m)).toInt();
     }
 
-    int b = this;
+    int b = JS<int>('!', '#', this);
     if (b < 0 || b > m) {
       b %= m;
     }
@@ -574,7 +574,7 @@ class JSNumber extends Interceptor implements int, double {
     if (this is! int) throwArgumentErrorValue(this);
     if (m <= 0) throw RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
-    int t = this;
+    int t = JS<int>('!', '#', this);
     if ((t < 0) || (t >= m)) t %= m;
     if (t == 1) return 1;
     if ((t == 0) || (t.isEven && m.isEven)) {
@@ -587,7 +587,7 @@ class JSNumber extends Interceptor implements int, double {
   @notNull
   int gcd(@nullCheck int other) {
     if (this is! int) throwArgumentErrorValue(this);
-    int x = this.abs();
+    int x = JS<int>('!', '#', this).abs();
     int y = other.abs();
     if (x == 0) return y;
     if (y == 0) return x;

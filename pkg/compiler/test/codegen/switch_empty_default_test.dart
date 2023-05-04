@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
 // Test constant folding on numbers.
 
 import 'package:async_helper/async_helper.dart';
@@ -116,9 +115,9 @@ void main() {
 """;
 
 main() {
-  var def = new RegExp(r"default:");
-  var defOrCase3 = new RegExp(r"(default:|case 3):");
-  var case3 = new RegExp(r"case 3:");
+  var def = RegExp(r"default:");
+  var defOrCase3 = RegExp(r"(default:|case 3):");
+  var case3 = RegExp(r"case 3:");
 
   runTests() async {
     await compileAndDoNotMatch(SIMPLY_EMPTY, 'main', def);

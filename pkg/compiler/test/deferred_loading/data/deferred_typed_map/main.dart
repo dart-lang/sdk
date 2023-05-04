@@ -8,12 +8,10 @@
  c_steps=[lib=(f1)]
 */
 
-// @dart = 2.7
-
 import 'lib1.dart' deferred as lib;
 
 /*member: main:
- constants=[MapConstant(<int*, dynamic Function({M* b})*>{IntConstant(1): FunctionConstant(f1), IntConstant(2): FunctionConstant(f2)})=1{lib}],
+ constants=[MapConstant(<int, dynamic Function({M b})>{IntConstant(1): FunctionConstant(f1), IntConstant(2): FunctionConstant(f2)})=1{lib}],
  member_unit=main{}
 */
 main() async {

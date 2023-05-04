@@ -6,10 +6,10 @@ library src_gen_common;
 
 import 'package:markdown/markdown.dart';
 
-const int RUNE_SPACE = 32;
-const int RUNE_EOL = 10;
-const int RUNE_LEFT_CURLY = 123;
-const int RUNE_RIGHT_CURLY = 125;
+const int $space = 32;
+const int $eol = 10;
+const int $leftCurly = 123;
+const int $rightCurly = 125;
 
 final RegExp _wsRegexp = RegExp(r'\s+');
 
@@ -35,6 +35,20 @@ String titleCase(String str) =>
 /// FooBar ==> fooBar
 String lowerTitleCase(String str) =>
     str.substring(0, 1).toLowerCase() + str.substring(1);
+
+/// Certain special characters are encoded as HTML entities by the Markdown
+/// parser, this function changes those HTML entities back into the characters
+/// they represent.
+String replaceHTMLEntities(String text) {
+  return text
+      // TODO(derekx): Remove the line handling single-quotes once the
+      // package:markdown dep is bumped to ^7.0.0.
+      .replaceAll('&#39;', "'")
+      .replaceAll('&quot;', '"')
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>');
+}
 
 String joinLast(Iterable<String> strs, String join, [String? last]) {
   if (strs.isEmpty) return '';
@@ -68,7 +82,7 @@ String _simpleWrap(String str, [int col = 80]) {
   while (str.length > col) {
     int index = col;
 
-    while (index > 0 && str.codeUnitAt(index) != RUNE_SPACE) {
+    while (index > 0 && str.codeUnitAt(index) != $space) {
       index--;
     }
 

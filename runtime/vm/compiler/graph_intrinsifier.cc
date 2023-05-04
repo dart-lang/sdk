@@ -23,13 +23,13 @@ namespace dart {
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 
-class GraphInstrinsicCodeGenScope {
+class GraphIntrinsicCodeGenScope {
  public:
-  explicit GraphInstrinsicCodeGenScope(FlowGraphCompiler* compiler)
+  explicit GraphIntrinsicCodeGenScope(FlowGraphCompiler* compiler)
       : compiler_(compiler), old_is_optimizing_(compiler->is_optimizing()) {
     compiler_->is_optimizing_ = true;
   }
-  ~GraphInstrinsicCodeGenScope() {
+  ~GraphIntrinsicCodeGenScope() {
     compiler_->is_optimizing_ = old_is_optimizing_;
   }
 
@@ -44,7 +44,7 @@ static void EmitCodeFor(FlowGraphCompiler* compiler, FlowGraph* graph) {
   // For graph intrinsics we run the linearscan register allocator, which will
   // pass opt=true for MakeLocationSummary. We therefore also have to ensure
   // `compiler->is_optimizing()` is set to true during EmitNativeCode.
-  GraphInstrinsicCodeGenScope optimizing_scope(compiler);
+  GraphIntrinsicCodeGenScope optimizing_scope(compiler);
 
   compiler->assembler()->Comment("Graph intrinsic begin");
   for (intptr_t i = 0; i < graph->reverse_postorder().length(); i++) {
@@ -52,22 +52,16 @@ static void EmitCodeFor(FlowGraphCompiler* compiler, FlowGraph* graph) {
     if (block->IsGraphEntry()) continue;  // No code for graph entry needed.
 
     if (block->HasParallelMove()) {
-      compiler->parallel_move_resolver()->EmitNativeCode(
-          block->parallel_move());
+      block->parallel_move()->EmitNativeCode(compiler);
     }
 
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
       if (FLAG_code_comments) compiler->EmitComment(instr);
-      if (instr->IsParallelMove()) {
-        compiler->parallel_move_resolver()->EmitNativeCode(
-            instr->AsParallelMove());
-      } else {
-        ASSERT(instr->locs() != NULL);
-        // Calls are not supported in intrinsics code.
-        ASSERT(!instr->locs()->always_calls());
-        instr->EmitNativeCode(compiler);
-      }
+      // Calls are not supported in intrinsics code.
+      ASSERT(instr->IsParallelMove() ||
+             (instr->locs() != nullptr && !instr->locs()->always_calls()));
+      instr->EmitNativeCode(compiler);
     }
   }
   compiler->assembler()->Comment("Graph intrinsic end");
@@ -178,8 +172,8 @@ static Definition* PrepareIndexedOp(FlowGraph* flow_graph,
 static void VerifyParameterIsBoxed(BlockBuilder* builder, intptr_t arg_index) {
   const auto& function = builder->function();
   if (function.is_unboxed_parameter_at(arg_index)) {
-    FATAL2("Unsupported unboxed parameter %" Pd " in %s", arg_index,
-           function.ToFullyQualifiedCString());
+    FATAL("Unsupported unboxed parameter %" Pd " in %s", arg_index,
+          function.ToFullyQualifiedCString());
   }
 }
 

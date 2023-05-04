@@ -16,7 +16,7 @@ import '../ir/constants.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../ir/class_relation.dart';
+import '../ir/static_type.dart';
 import '../ir/util.dart';
 import '../ir/visitors.dart';
 import '../js_backend/annotations.dart';
@@ -307,9 +307,9 @@ class KernelImpactConverter implements ImpactRegistry {
   @override
   void registerRecordLiteral(ir.RecordType recordType,
       {required bool isConst}) {
-    final type = elementMap.getDartType(recordType);
-    // TODO(50081): We need a TypeUse for instantiating a record.
-    throw UnimplementedError('registerRecordLiteral $recordType -> $type');
+    registerBackendImpact(_impacts.recordInstantiation);
+    final type = elementMap.getDartType(recordType) as RecordType;
+    impactBuilder.registerTypeUse(TypeUse.recordInstantiation(type));
   }
 
   @override
@@ -458,6 +458,13 @@ class KernelImpactConverter implements ImpactRegistry {
   void registerStaticTearOff(
       ir.Procedure procedure, ir.LibraryDependency? import) {
     impactBuilder.registerStaticUse(StaticUse.staticTearOff(
+        elementMap.getMethod(procedure), elementMap.getImport(import)));
+  }
+
+  @override
+  void registerWeakStaticTearOff(
+      ir.Procedure procedure, ir.LibraryDependency? import) {
+    impactBuilder.registerStaticUse(StaticUse.weakStaticTearOff(
         elementMap.getMethod(procedure), elementMap.getImport(import)));
   }
 

@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 main.dart.patch: |
-  // Test that we can tear off an exisiting instance method
+  // Test that we can tear off an existing instance method
 
   class C {
     m(String s) {

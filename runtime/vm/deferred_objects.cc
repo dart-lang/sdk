@@ -109,8 +109,8 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   uword continue_at_pc =
       code.GetPcForDeoptId(deopt_id_, UntaggedPcDescriptors::kDeopt);
   if (continue_at_pc == 0) {
-    FATAL2("Can't locate continuation PC for deoptid %" Pd " within %s\n",
-           deopt_id_, function.ToFullyQualifiedCString());
+    FATAL("Can't locate continuation PC for deoptid %" Pd " within %s\n",
+          deopt_id_, function.ToFullyQualifiedCString());
   }
   uword* dest_addr = reinterpret_cast<uword*>(slot());
   *dest_addr = continue_at_pc;
@@ -136,7 +136,7 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   } else {
     if (deopt_context->HasDeoptFlag(ICData::kHoisted)) {
       // Prevent excessive deoptimization.
-      function.SetProhibitsHoistingCheckClass(true);
+      function.SetProhibitsInstructionHoisting(true);
     }
 
     if (deopt_context->HasDeoptFlag(ICData::kGeneralized)) {
@@ -228,7 +228,7 @@ void DeferredObject::Create() {
   switch (cls.id()) {
     case kContextCid: {
       const intptr_t num_variables =
-          Smi::Cast(Object::Handle(GetLength())).Value();
+          Smi::Cast(Object::Handle(GetLengthOrShape())).Value();
       if (FLAG_trace_deoptimization_verbose) {
         OS::PrintErr(
             "materializing context of length %" Pd " (%" Px ", %" Pd " vars)\n",
@@ -238,7 +238,7 @@ void DeferredObject::Create() {
     } break;
     case kArrayCid: {
       const intptr_t num_elements =
-          Smi::Cast(Object::Handle(GetLength())).Value();
+          Smi::Cast(Object::Handle(GetLengthOrShape())).Value();
       if (FLAG_trace_deoptimization_verbose) {
         OS::PrintErr("materializing array of length %" Pd " (%" Px ", %" Pd
                      " elements)\n",
@@ -248,20 +248,18 @@ void DeferredObject::Create() {
       object_ = &Array::ZoneHandle(Array::New(num_elements));
     } break;
     case kRecordCid: {
-      const intptr_t num_fields =
-          Smi::Cast(Object::Handle(GetLength())).Value();
+      const RecordShape shape(Smi::RawCast(GetLengthOrShape()));
       if (FLAG_trace_deoptimization_verbose) {
-        OS::PrintErr("materializing record of length %" Pd " (%" Px ", %" Pd
-                     " fields)\n",
-                     num_fields, reinterpret_cast<uword>(args_), field_count_);
+        OS::PrintErr(
+            "materializing record of shape %" Px " (%" Px ", %" Pd " fields)\n",
+            shape.AsInt(), reinterpret_cast<uword>(args_), field_count_);
       }
-      object_ =
-          &Record::ZoneHandle(Record::New(num_fields, Object::empty_array()));
+      object_ = &Record::ZoneHandle(Record::New(shape));
     } break;
     default:
       if (IsTypedDataClassId(cls.id())) {
         const intptr_t num_elements =
-            Smi::Cast(Object::Handle(GetLength())).Value();
+            Smi::Cast(Object::Handle(GetLengthOrShape())).Value();
         if (FLAG_trace_deoptimization_verbose) {
           OS::PrintErr("materializing typed data cid %" Pd " of length %" Pd
                        " (%" Px ", %" Pd " elements)\n",
@@ -360,23 +358,12 @@ void DeferredObject::Fill() {
 
       for (intptr_t i = 0; i < field_count_; i++) {
         offset ^= GetFieldOffset(i);
-        if (offset.Value() == Record::field_names_offset()) {
-          // Copy field_names.
-          Array& field_names = Array::Handle();
-          field_names ^= GetValue(i);
-          record.set_field_names(field_names);
-          if (FLAG_trace_deoptimization_verbose) {
-            OS::PrintErr("    record@field_names (offset %" Pd ") <- %s\n",
-                         offset.Value(), field_names.ToCString());
-          }
-        } else {
-          const intptr_t index = Record::field_index_at_offset(offset.Value());
-          value = GetValue(i);
-          record.SetFieldAt(index, value);
-          if (FLAG_trace_deoptimization_verbose) {
-            OS::PrintErr("    record@%" Pd " (offset %" Pd ") <- %s\n", index,
-                         offset.Value(), value.ToCString());
-          }
+        const intptr_t index = Record::field_index_at_offset(offset.Value());
+        value = GetValue(i);
+        record.SetFieldAt(index, value);
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr("    record@%" Pd " (offset %" Pd ") <- %s\n", index,
+                       offset.Value(), value.ToCString());
         }
       }
     } break;

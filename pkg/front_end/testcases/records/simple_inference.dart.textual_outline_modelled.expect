@@ -1,0 +1,20 @@
+A10<(T, T), T> foo10<T>() => throw 0;
+bar10() {}
+
+class A10<X, Y> {}
+
+class A8<X extends (X, Y), Y extends num> {}
+
+class A9<X extends (Y, Z), Y extends num, Z extends String?> {}
+
+foo1((int, String?) r) {}
+foo2((int, String?) r, X Function<X>() f) {}
+foo3() {}
+foo4() {}
+foo5((int, String?) r, (int, X) Function<X>() f) {}
+foo6((X, Y) Function<X, Y>(X x, Y y) f, int x, String y) {}
+foo7(
+    (X, (Y, Z)) Function<X, Y, Z>(X x, Y y, Z z) f, int x, String y, bool? z) {}
+foo8(A8 a) {}
+foo9(A9 a) {}
+main() {}

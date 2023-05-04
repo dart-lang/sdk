@@ -108,7 +108,7 @@ class AndroidEmulator {
 
   static Future<AndroidEmulator> launchNewEmulator(String avdName) {
     var portNumber = AdbServerPortPool.next();
-    var args = ['-avd', '$avdName', '-port', "$portNumber" /*, '-gpu', 'on'*/];
+    var args = ['-avd', avdName, '-port', "$portNumber" /*, '-gpu', 'on'*/];
     return Process.start("emulator64-arm", args).then((Process process) {
       var adbDevice = AdbDevice('emulator-$portNumber');
       return AndroidEmulator._private(portNumber, adbDevice, process);
@@ -158,9 +158,9 @@ class AndroidHelper {
       'create',
       'avd',
       '--name',
-      '$name',
+      name,
       '--target',
-      '$target',
+      target,
       '--force',
       '--abi',
       'armeabi-v7a'
@@ -187,14 +187,14 @@ class AdbDevice {
 
   /// Polls the 'sys.boot_completed' property. Returns as soon as the property
   /// is 1.
-  Future<Null> waitForBootCompleted() async {
+  Future<void> waitForBootCompleted() async {
     while (true) {
       try {
         var result =
             await _adbCommand(['shell', 'getprop', 'sys.boot_completed']);
         if (result.stdout.trim() == '1') return;
       } catch (_) {}
-      await Future<Null>.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 2));
     }
   }
 
@@ -341,7 +341,7 @@ class AdbDevice {
 /// Helper to list all adb devices available.
 class AdbHelper {
   static final RegExp _deviceLineRegexp =
-      RegExp(r'^([a-zA-Z0-9:_-]+)[ \t]+device$', multiLine: true);
+      RegExp(r'^(([a-zA-Z0-9:_-]|\.)+)[ \t]+device$', multiLine: true);
 
   static Future<List<String>> listDevices() {
     return Process.run('adb', ['devices']).then((ProcessResult result) {

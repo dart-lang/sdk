@@ -26,6 +26,7 @@ class InitializeMessageHandler
 
     server.handleClientConnection(
       params.capabilities,
+      params.clientInfo,
       params.initializationOptions,
     );
 

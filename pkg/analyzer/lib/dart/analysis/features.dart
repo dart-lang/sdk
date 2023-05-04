@@ -9,6 +9,9 @@ import 'package:pub_semver/pub_semver.dart';
 /// depends on the supported Dart SDK version, and possibly on the presence of
 /// experimental flags.
 abstract class Feature {
+  /// Feature information for class modifiers.
+  static final class_modifiers = ExperimentalFeatures.class_modifiers;
+
   /// Feature information for the 2018 constant update.
   static final constant_update_2018 = ExperimentalFeatures.constant_update_2018;
 
@@ -39,6 +42,9 @@ abstract class Feature {
 
   /// Feature information for inference-update-2.
   static final inference_update_2 = ExperimentalFeatures.inference_update_2;
+
+  /// Feature information for inline classes.
+  static final inline_class = ExperimentalFeatures.inline_class;
 
   /// Feature information for macros.
   static final macros = ExperimentalFeatures.macros;
@@ -74,9 +80,6 @@ abstract class Feature {
 
   /// Feature information for unnamed libraries.
   static final unnamedLibraries = ExperimentalFeatures.unnamed_libraries;
-
-  /// Feature information for views.
-  static final views = ExperimentalFeatures.views;
 
   /// Feature information for variance.
   static final variance = ExperimentalFeatures.variance;

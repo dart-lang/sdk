@@ -1,0 +1,16 @@
+List<List<A>> subs<A>(List<A> list) => 
+switch (list) {}
+void main() {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+List<List<A>> perms<A>(List<A> list) => 
+switch (list) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+bool equals<A>(List<A> a, List<A> b) => 
+switch ((a, b)) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----

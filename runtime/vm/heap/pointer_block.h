@@ -93,7 +93,7 @@ class BlockStack {
   static void Init();
   static void Cleanup();
 
-  // Partially filled blocks can be reused, and there is an "inifite" supply
+  // Partially filled blocks can be reused, and there is an "infinite" supply
   // of empty blocks (reused or newly allocated). In any case, the caller
   // takes ownership of the returned block.
   Block* PopNonFullBlock();
@@ -209,7 +209,7 @@ class BlockWorkList : public ValueObject {
   bool WaitForWork(RelaxedAtomic<uintptr_t>* num_busy) {
     ASSERT(local_input_->IsEmpty());
     Block* new_work = stack_->WaitForWork(num_busy);
-    if (new_work == NULL) {
+    if (new_work == nullptr) {
       return false;
     }
     stack_->PushBlock(local_input_);

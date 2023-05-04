@@ -47,7 +47,7 @@ enum OtherEnum { foo02 }
       codeAtCompletion: 'useMyEnum(foo0^);',
       validator: (response, context) {
         if (isProtocolVersion2) {
-          assertResponseText(response, r'''
+          assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -59,7 +59,7 @@ suggestions
           // The response includes much more, such as `MyEnum` itself.
           // We don't expect though that the client will show it.
           if (context == _Context.local) {
-            assertResponseText(response, r'''
+            assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -84,7 +84,7 @@ enum OtherEnum { foo02 }
       await waitForSetWithUri('package:test/a.dart');
     }
 
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'a.dart' as prefix;
 
 void useMyEnum(prefix.MyEnum _) {}
@@ -95,7 +95,7 @@ void f() {
 ''');
 
     if (isProtocolVersion2) {
-      assertResponseText(response, r'''
+      assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -105,7 +105,7 @@ suggestions
     } else {
       _configureWithMyEnum();
       // TODO(scheglov) This is wrong.
-      assertResponseText(response, r'''
+      assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -123,10 +123,11 @@ suggestions
     await _check_locations(
       declaration: 'enum MyEnum { foo01 }',
       codeAtCompletion: 'MyEnu^',
+      referencesDeclaration: false,
       validator: (response, context) {
         if (isProtocolVersion2) {
           // No enum constants.
-          assertResponseText(response, r'''
+          assertResponse(r'''
 replacement
   left: 5
 suggestions
@@ -137,7 +138,7 @@ suggestions
           _configureWithMyEnum();
           switch (context) {
             case _Context.local:
-              assertResponseText(response, r'''
+              assertResponse(r'''
 replacement
   left: 5
 suggestions
@@ -147,7 +148,7 @@ suggestions
               break;
             case _Context.imported:
             case _Context.notImported:
-              assertResponseText(response, r'''
+              assertResponse(r'''
 replacement
   left: 5
 suggestions
@@ -172,7 +173,7 @@ enum MyEnum { foo01 }
       await waitForSetWithUri('package:test/a.dart');
     }
 
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'a.dart' as prefix;
 
 void f() {
@@ -181,7 +182,7 @@ void f() {
 ''');
 
     if (isProtocolVersion2) {
-      assertResponseText(response, r'''
+      assertResponse(r'''
 replacement
   left: 5
 suggestions
@@ -191,7 +192,7 @@ suggestions
     } else {
       _configureWithMyEnum();
       // TODO(scheglov) This is wrong.
-      assertResponseText(response, r'''
+      assertResponse(r'''
 replacement
   left: 5
 suggestions
@@ -212,7 +213,7 @@ enum MyEnum { v }
       await waitForSetWithUri('package:test/a.dart');
     }
 
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'a.dart' as prefix01;
 
 void f() {
@@ -222,7 +223,7 @@ void f() {
 
     if (isProtocolVersion2) {
       // TODO(scheglov) The kind should be a prefix.
-      assertResponseText(response, r'''
+      assertResponse(r'''
 replacement
   left: 7
 suggestions
@@ -232,7 +233,7 @@ suggestions
     } else {
       _configureWithMyEnum();
       // TODO(scheglov) This is wrong.
-      assertResponseText(response, r'''
+      assertResponse(r'''
 replacement
   left: 7
 suggestions
@@ -253,7 +254,7 @@ enum MyEnum { v }
       await waitForSetWithUri('package:test/a.dart');
     }
 
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'a.dart' as prefix;
 
 void f() {
@@ -263,7 +264,7 @@ void f() {
 
     // TODO(scheglov) This is wrong.
     // Should include constants, as [test_nothing_imported_withPrefix] does.
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
   MyEnum
     kind: enum
@@ -279,7 +280,7 @@ suggestions
       codeAtCompletion: 'useMyEnum(^);',
       validator: (response, context) {
         if (isProtocolVersion2) {
-          assertResponseText(response, r'''
+          assertResponse(r'''
 suggestions
   MyEnum
     kind: enum
@@ -290,7 +291,7 @@ suggestions
           switch (context) {
             case _Context.local:
             case _Context.imported:
-              assertResponseText(response, r'''
+              assertResponse(r'''
 suggestions
   MyEnum
     kind: enum
@@ -299,7 +300,7 @@ suggestions
 ''');
               break;
             case _Context.notImported:
-              assertResponseText(response, r'''
+              assertResponse(r'''
 suggestions
   MyEnum
     kind: enum
@@ -322,7 +323,7 @@ suggestions
 enum MyEnum { foo01 }
 ''');
 
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'a.dart' as prefix;
 
 void useMyEnum(prefix.MyEnum _) {}
@@ -333,7 +334,7 @@ void f() {
 ''');
 
     if (isProtocolVersion2) {
-      assertResponseText(response, r'''
+      assertResponse(r'''
 suggestions
   prefix.MyEnum
     kind: enum
@@ -342,7 +343,7 @@ suggestions
 ''');
     } else {
       // TODO(scheglov) This is wrong.
-      assertResponseText(response, r'''
+      assertResponse(r'''
 suggestions
   MyEnum
     kind: enum
@@ -356,15 +357,15 @@ suggestions
     required String declaration,
     String declarationForContextType = '',
     required String codeAtCompletion,
+    bool referencesDeclaration = true,
     required void Function(
       CompletionResponseForTesting response,
       _Context context,
-    )
-        validator,
+    ) validator,
   }) async {
     // local
     {
-      var response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 $declaration
 $declarationForContextType
 void f() {
@@ -382,7 +383,7 @@ $declaration
       if (isProtocolVersion1) {
         await waitForSetWithUri('package:test/a.dart');
       }
-      var response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 import 'a.dart';
 $declarationForContextType
 void f() {
@@ -398,13 +399,13 @@ void f() {
 $declaration
 ''');
       newFile('$testPackageLibPath/context_type.dart', '''
-import 'a.dart'; // ignore: unused_import
+import 'a.dart';${referencesDeclaration ? '' : ' // ignore: unused_import'}
 $declarationForContextType
 ''');
       if (isProtocolVersion1) {
         await waitForSetWithUri('package:test/a.dart');
       }
-      var response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 import 'context_type.dart';
 void f() {
   $codeAtCompletion

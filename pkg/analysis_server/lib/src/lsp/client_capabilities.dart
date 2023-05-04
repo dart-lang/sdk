@@ -86,6 +86,7 @@ class LspClientCapabilities {
   final bool completionDefaultTextMode;
   final bool experimentalSnippetTextEdit;
   final Set<String> codeActionCommandParameterSupportedKinds;
+  final bool supportsShowMessageRequest;
 
   factory LspClientCapabilities(ClientCapabilities raw) {
     final workspace = raw.workspace;
@@ -160,6 +161,17 @@ class LspClientCapabilities {
         _listToSet(commandParameterSupport['supportedKinds'] as List?)
             .cast<String>();
 
+    /// At the time of writing (2023-02-01) there is no official capability for
+    /// supporting 'showMessageRequest' because LSP assumed all clients
+    /// supported it.
+    ///
+    /// This turned out to not be the case, so to avoid sending prompts that
+    /// might not be seen, we will only use this functionality if we _know_ the
+    /// client supports it via a custom flag in 'experimental' that is passed by
+    /// the Dart-Code VS Code extension since version v3.58.0 (2023-01-25).
+    final supportsShowMessageRequest =
+        experimental['supportsWindowShowMessageRequest'] == true;
+
     return LspClientCapabilities._(
       raw,
       documentChanges: documentChanges,
@@ -192,6 +204,7 @@ class LspClientCapabilities {
       completionDefaultTextMode: completionDefaultTextMode,
       experimentalSnippetTextEdit: experimentalSnippetTextEdit,
       codeActionCommandParameterSupportedKinds: commandParameterSupportedKinds,
+      supportsShowMessageRequest: supportsShowMessageRequest,
     );
   }
 
@@ -227,6 +240,7 @@ class LspClientCapabilities {
     required this.completionDefaultTextMode,
     required this.experimentalSnippetTextEdit,
     required this.codeActionCommandParameterSupportedKinds,
+    required this.supportsShowMessageRequest,
   });
 
   /// Converts a list to a `Set`, returning null if the list is null.

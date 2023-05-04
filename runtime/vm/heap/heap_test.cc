@@ -30,8 +30,8 @@ TEST_CASE(OldGC) {
       "  return [1, 2, 3];\n"
       "}\n";
   NOT_IN_PRODUCT(FLAG_verbose_gc = true);
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
 
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
@@ -55,8 +55,8 @@ TEST_CASE(OldGC_Unsync) {
       "  return [1, 2, 3];\n"
       "}\n";
   FLAG_verbose_gc = true;
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
 
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
@@ -72,9 +72,9 @@ TEST_CASE(LargeSweep) {
       "  return List.filled(8 * 1024 * 1024, null);\n"
       "}\n";
   NOT_IN_PRODUCT(FLAG_verbose_gc = true);
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_EnterScope();
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
 
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
@@ -109,7 +109,7 @@ TEST_CASE(ClassHeapStats) {
       "  var x = new A();\n"
       "  return new A();\n"
       "}\n";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   auto isolate_group = IsolateGroup::Current();
   ClassTable* class_table = isolate_group->class_table();
   {
@@ -118,7 +118,7 @@ TEST_CASE(ClassHeapStats) {
     GCTestHelper::CollectAllGarbage();
   }
   Dart_EnterScope();
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
   intptr_t cid;
@@ -487,7 +487,7 @@ ISOLATE_UNIT_TEST_CASE(ExternalPromotion) {
   Array& neu = Array::Handle();
   for (intptr_t i = 0; i < 100; i++) {
     neu = Array::New(1, Heap::kNew);
-    FinalizablePersistentHandle::New(isolate_group, neu, NULL, NoopFinalizer,
+    FinalizablePersistentHandle::New(isolate_group, neu, nullptr, NoopFinalizer,
                                      1 * MB,
                                      /*auto_delete=*/true);
     old.SetAt(i, neu);
@@ -652,7 +652,7 @@ ISOLATE_UNIT_TEST_CASE(ExternalAllocationStats) {
   Array& neu = Array::Handle();
   for (intptr_t i = 0; i < 100; i++) {
     neu = Array::New(1, Heap::kNew);
-    FinalizablePersistentHandle::New(isolate_group, neu, NULL, NoopFinalizer,
+    FinalizablePersistentHandle::New(isolate_group, neu, nullptr, NoopFinalizer,
                                      1 * MB,
                                      /*auto_delete=*/true);
     old.SetAt(i, neu);
@@ -850,6 +850,52 @@ ISOLATE_UNIT_TEST_CASE(ConcurrentForceGrowthScope) {
       ml.WaitWithSafepointCheck(thread);
     }
   }
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakSmi) {
+  // Weaklings are prevented from referencing Smis by the public Dart library
+  // interface, but the VM internally can do this and the implementation should
+  // just handle it. Immediate objects are effectively immortal.
+
+  WeakProperty& new_ephemeron =
+      WeakProperty::Handle(WeakProperty::New(Heap::kNew));
+  WeakProperty& old_ephemeron =
+      WeakProperty::Handle(WeakProperty::New(Heap::kOld));
+  WeakReference& new_weakref =
+      WeakReference::Handle(WeakReference::New(Heap::kNew));
+  WeakReference& old_weakref =
+      WeakReference::Handle(WeakReference::New(Heap::kOld));
+  WeakArray& new_weakarray = WeakArray::Handle(WeakArray::New(1, Heap::kNew));
+  WeakArray& old_weakarray = WeakArray::Handle(WeakArray::New(1, Heap::kOld));
+  FinalizerEntry& new_finalizer = FinalizerEntry::Handle(
+      FinalizerEntry::New(FinalizerBase::Handle(), Heap::kNew));
+  FinalizerEntry& old_finalizer = FinalizerEntry::Handle(
+      FinalizerEntry::New(FinalizerBase::Handle(), Heap::kOld));
+
+  {
+    HANDLESCOPE(thread);
+    Smi& smi = Smi::Handle(Smi::New(42));
+    new_ephemeron.set_key(smi);
+    old_ephemeron.set_key(smi);
+    new_weakref.set_target(smi);
+    old_weakref.set_target(smi);
+    new_weakarray.SetAt(0, smi);
+    old_weakarray.SetAt(0, smi);
+    new_finalizer.set_value(smi);
+    old_finalizer.set_value(smi);
+  }
+
+  GCTestHelper::CollectNewSpace();
+  GCTestHelper::CollectAllGarbage();
+
+  EXPECT(new_ephemeron.key() == Smi::New(42));
+  EXPECT(old_ephemeron.key() == Smi::New(42));
+  EXPECT(new_weakref.target() == Smi::New(42));
+  EXPECT(old_weakref.target() == Smi::New(42));
+  EXPECT(new_weakarray.At(0) == Smi::New(42));
+  EXPECT(old_weakarray.At(0) == Smi::New(42));
+  EXPECT(new_finalizer.value() == Smi::New(42));
+  EXPECT(old_finalizer.value() == Smi::New(42));
 }
 
 }  // namespace dart

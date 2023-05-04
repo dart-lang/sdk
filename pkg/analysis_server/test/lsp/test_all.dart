@@ -33,6 +33,7 @@ import 'implementation_test.dart' as implementation;
 import 'initialization_test.dart' as initialization;
 import 'inlay_hint_test.dart' as inlay_hint;
 import 'mapping_test.dart' as mapping;
+import 'open_uri_test.dart' as open_uri;
 import 'outline_test.dart' as outline;
 import 'priority_files_test.dart' as priority_files;
 import 'pub_package_service_test.dart' as pub_package_service;
@@ -82,6 +83,7 @@ void main() {
     inlay_hint.main();
     lsp_packet_transformer.main();
     mapping.main();
+    open_uri.main();
     outline.main();
     priority_files.main();
     pub_package_service.main();

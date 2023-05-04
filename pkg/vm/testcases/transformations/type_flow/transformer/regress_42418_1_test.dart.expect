@@ -29,19 +29,19 @@ class C extends self::A implements self::B {
     : super self::A::•()
     ;
 }
-[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool alwaysFalse = [@vm.inferred-type.metadata=dart.core::bool] [@vm.inferred-type.metadata=int?] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 2;
+[@vm.inferred-type.metadata=dart.core::bool]static final field core::bool alwaysFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 2;
 static method main() → dynamic {
   final math::Random r = [@vm.inferred-type.metadata=dart.math::_Random] math::Random::•();
-  if([@vm.inferred-type.metadata=dart.core::bool?] self::alwaysFalse) {
+  if([@vm.inferred-type.metadata=dart.core::bool] self::alwaysFalse) {
     [@vm.direct-call.metadata=#lib::A.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::foo}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10){(core::int) → core::int}){(core::int?) → void};
     [@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::foo}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10){(core::int) → core::int}){(core::int?) → void};
     [@vm.direct-call.metadata=#lib::A.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::foo}(null){(core::int?) → void};
   }
   final core::List<self::B> l = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::B>] core::_GrowableList::_literal2<self::B>(new self::B::•(), new self::C::•());
   {
-    core::Iterator<self::B> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::B>] l.{core::Iterable::iterator}{core::Iterator<self::B>};
+    synthesized core::Iterator<self::B> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::B>] l.{core::Iterable::iterator}{core::Iterator<self::B>};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      self::B b = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current}{self::B};
+      self::B b = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=!] :sync-for-iterator.{core::Iterator::current}{self::B};
       {
         b.{self::B::foo}(13){(core::int?) → void};
       }

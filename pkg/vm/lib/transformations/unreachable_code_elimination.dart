@@ -3,20 +3,38 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_environment.dart' show StaticTypeContext;
+
+import 'vm_constant_evaluator.dart' show VMConstantEvaluator;
 
 /// Simple unreachable code elimination: removes asserts and if statements
 /// with constant conditions. Does a very limited constant folding of
 /// logical expressions.
-Component transformComponent(Component component, bool enableAsserts) {
-  new SimpleUnreachableCodeElimination(enableAsserts)
+///
+/// Also performs some additional constant evaluation via [evaluator], which is
+/// applied to certain types of expressions (currently only StaticGet).
+Component transformComponent(
+    Component component, bool enableAsserts, VMConstantEvaluator evaluator) {
+  SimpleUnreachableCodeElimination(enableAsserts, evaluator)
       .visitComponent(component, null);
   return component;
 }
 
 class SimpleUnreachableCodeElimination extends RemovingTransformer {
   final bool enableAsserts;
+  final VMConstantEvaluator constantEvaluator;
+  StaticTypeContext? _staticTypeContext;
 
-  SimpleUnreachableCodeElimination(this.enableAsserts);
+  SimpleUnreachableCodeElimination(this.enableAsserts, this.constantEvaluator);
+
+  @override
+  TreeNode defaultMember(Member node, TreeNode? removalSentinel) {
+    _staticTypeContext =
+        StaticTypeContext(node, constantEvaluator.typeEnvironment);
+    final result = super.defaultMember(node, removalSentinel);
+    _staticTypeContext = null;
+    return result;
+  }
 
   bool _isBoolConstant(Expression node) =>
       node is BoolLiteral ||
@@ -114,6 +132,13 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
     final target = node.target;
     if (target is Field && target.isConst) {
       throw 'StaticGet from const field $target should be evaluated by front-end: $node';
+    }
+    if (constantEvaluator.transformerShouldEvaluateExpression(node)) {
+      final context = _staticTypeContext!;
+      final result = constantEvaluator.evaluate(context, node);
+      assert(result is! UnevaluatedConstant);
+      return new ConstantExpression(result, node.getStaticType(context))
+        ..fileOffset = node.fileOffset;
     }
     return node;
   }

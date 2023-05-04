@@ -74,7 +74,7 @@ class _AnalyzerErrorGenerator {
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
@@ -91,6 +91,11 @@ class _AnalyzerErrorGenerator {
       if (errorClass.includeCfeMessages) {
         shouldGenerateFastaAnalyzerErrorCodes = true;
       }
+      analyzerMessages[errorClass.name]!.forEach((_, errorCodeInfo) {
+        if (errorCodeInfo is AliasErrorCodeInfo) {
+          imports.add(errorCodeInfo.aliasForFilePath.toPackageAnalyzerUri);
+        }
+      });
     }
     out.writeln();
     for (var importPath in imports.toList()..sort()) {
@@ -113,12 +118,17 @@ class _AnalyzerErrorGenerator {
         var errorName = entry.key;
         var errorCodeInfo = entry.value;
 
-        generatedCodes.add('${errorClass.name}.$errorName');
-
         out.writeln();
         out.write(errorCodeInfo.toAnalyzerComments(indent: '  '));
-        out.writeln('  static const ${errorClass.name} $errorName =');
-        out.writeln(errorCodeInfo.toAnalyzerCode(errorClass.name, errorName));
+        if (errorCodeInfo is AliasErrorCodeInfo) {
+          out.writeln(
+              '  static const ${errorCodeInfo.aliasForClass} $errorName =');
+          out.writeln('${errorCodeInfo.aliasFor};');
+        } else {
+          generatedCodes.add('${errorClass.name}.$errorName');
+          out.writeln('  static const ${errorClass.name} $errorName =');
+          out.writeln(errorCodeInfo.toAnalyzerCode(errorClass.name, errorName));
+        }
       }
       out.writeln();
       out.writeln('/// Initialize a newly created error code to have the given '
@@ -166,7 +176,7 @@ class _ErrorCodeValuesGenerator {
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
@@ -362,4 +372,9 @@ class _SyntacticErrorGenerator {
       }
     }
   }
+}
+
+extension on String {
+  String get toPackageAnalyzerUri =>
+      replaceFirst(RegExp('^lib/'), 'package:analyzer/');
 }

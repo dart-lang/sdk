@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 # Compile an application, change a file, but don't change the outline.
-# Use it as a mixin, though, so we cannot neccesarily rebuild the bodies only.
+# Use it as a mixin, though, so we cannot necessarily rebuild the bodies only.
 
 type: newworld
 worlds:
@@ -12,7 +12,7 @@ worlds:
       main.dart: |
         import 'libA.dart';
 
-        class Foo {
+        mixin Foo {
           method() {
             print("A");
           }
@@ -35,7 +35,7 @@ worlds:
       main.dart: |
         import 'libA.dart';
 
-        class Foo {
+        mixin Foo {
           method() {
             print("B");
           }

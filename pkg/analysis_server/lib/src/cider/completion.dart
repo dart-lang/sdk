@@ -108,6 +108,7 @@ class CiderCompletionComputer {
               performance,
               enableOverrideContributor: false,
               enableUriContributor: false,
+              useFilter: true,
             );
           });
 
@@ -217,7 +218,8 @@ class CiderCompletionComputer {
   /// the library.
   List<CompletionSuggestionBuilder> _librarySuggestions(
       LibraryElement element) {
-    var suggestionBuilder = SuggestionBuilder(_dartCompletionRequest);
+    var suggestionBuilder =
+        SuggestionBuilder(_dartCompletionRequest, useFilter: false);
     suggestionBuilder.libraryUriStr = element.source.uri.toString();
     var visitor = LibraryElementSuggestionBuilder(
         _dartCompletionRequest, suggestionBuilder);

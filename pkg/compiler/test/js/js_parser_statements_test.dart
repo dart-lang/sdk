@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:compiler/src/js/js.dart' as jsAst;
 import 'package:compiler/src/js/js.dart' show js;
@@ -323,7 +321,7 @@ a = {1: 1,
         ['x', 'y']
       ],
       'function foo(x, y) {\n}');
-  testStatement('function foo(#a){}', {'a': new jsAst.Parameter('x')},
+  testStatement('function foo(#a){}', {'a': jsAst.Parameter('x')},
       'function foo(x) {\n}');
   testStatement('function foo(#a){}', {'a': 'x'}, 'function foo(x) {\n}');
   testStatement('function foo(#a){}', {'a': []}, 'function foo() {\n}');
@@ -437,8 +435,8 @@ a = {1: 1,
       'function x() {\n}');
   testStatement('try {} catch (#) {}', ['x'], 'try {\n} catch (x) {\n}');
   testStatement('try {} catch (#a) {}', {"a": 'x'}, 'try {\n} catch (x) {\n}');
-  testStatement('try {} catch (#a) {}',
-      {"a": new jsAst.VariableDeclaration('x')}, 'try {\n} catch (x) {\n}');
+  testStatement('try {} catch (#a) {}', {"a": jsAst.VariableDeclaration('x')},
+      'try {\n} catch (x) {\n}');
 
   // Test that braces around a single-statement block are removed by printer.
   testStatement('while (a) {foo()}', [], 'while (a)\n  foo();');

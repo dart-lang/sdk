@@ -124,7 +124,7 @@ class PostfixExpressionResolver {
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.reportErrorForNode(
-        HintCode.RECEIVER_OF_TYPE_NEVER,
+        WarningCode.RECEIVER_OF_TYPE_NEVER,
         operand,
       );
       return;

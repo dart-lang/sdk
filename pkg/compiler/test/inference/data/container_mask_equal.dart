@@ -16,10 +16,10 @@ method1() => [0];
 method2() => [1, 2];
 
 /*member: method3:Container([exact=NativeUint8List], element: [exact=JSUInt31], length: 1)*/
-method3() => new Uint8List(1);
+method3() => Uint8List(1);
 
 /*member: method4:Container([exact=NativeUint8List], element: [exact=JSUInt31], length: 2)*/
-method4() => new Uint8List(2);
+method4() => Uint8List(2);
 
 /*member: method1or2:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
 method1or2(/*[exact=JSBool]*/ c) => c ? method1() : method2();

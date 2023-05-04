@@ -6,7 +6,7 @@ mixin M {
   String toString() => "M";
 }
 
-abstract class A {
+abstract mixin class A {
   String toString() => "A";
 }
 
@@ -14,9 +14,7 @@ abstract class B implements Enum {
   String toString() => "B";
 }
 
-enum E1 with M {
-  element
-}
+enum E1 with M { element }
 
 enum E2 with M {
   element;
@@ -30,9 +28,7 @@ enum E3 {
   String toString() => "E3";
 }
 
-enum E4 implements B {
-  element
-}
+enum E4 implements B { element }
 
 enum E5 implements B {
   element;
@@ -40,9 +36,7 @@ enum E5 implements B {
   String toString() => "E5";
 }
 
-enum E6 with A {
-  element
-}
+enum E6 with A { element }
 
 enum E7 with A {
   element;

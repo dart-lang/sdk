@@ -6,9 +6,9 @@
 
 import 'package:expect/expect.dart';
 
-class C {}
+mixin C {}
 
-class D {}
+mixin D {}
 
 class C1 extends Object
 with String //# 01: compile-time error

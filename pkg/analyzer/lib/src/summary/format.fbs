@@ -212,6 +212,10 @@ table AnalysisDriverUnitError {
 
 /// Information about a resolved unit.
 table AnalysisDriverUnitIndex {
+  /// Each item of this list corresponds to a unique referenced element. It is
+  /// a list of the prefixes associated with references to the element.
+  elementImportPrefixes:[string] (id: 20);
+
   /// Each item of this list corresponds to a unique referenced element.  It is
   /// the kind of the synthetic element.
   elementKinds:[IndexSyntheticElementKind] (id: 4);

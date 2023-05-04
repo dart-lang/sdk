@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method id<X extends core::Object? = dynamic>(self::id::X% x) → self::id::X%
+  return x;
+static method main() → void {
+  hoisted has-declared-initializer (core::int) → core::int f;
+  {
+    final synthesized dynamic #0#0 = #C2;
+    if(!(#0#0{(core::int) → core::int} is{ForNonNullableByDefault} (core::int) → core::int && (let final dynamic #t1 = f = #0#0{(core::int) → core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+}
+
+constants  {
+  #C1 = static-tearoff self::id
+  #C2 = instantiation #C1 <core::int>
+}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
@@ -26,7 +24,7 @@ main() {
       // Check that the do-while in the 'then' is enclosed in braces.
       // Otherwise Android 4.0 stock browser has a syntax error. See issue
       // 10923.
-      RegExp pattern = new RegExp(r'if[ ]*\([^)]+\)[ ]*\{[\n ]*do');
+      RegExp pattern = RegExp(r'if[ ]*\([^)]+\)[ ]*\{[\n ]*do');
       Expect.isTrue(pattern.hasMatch(generated),
           "Code pattern $pattern not found in\n$generated");
     });

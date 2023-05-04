@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/fasta/messages.dart'
     show templateCantReadFile, messageMissingMain;
 import 'package:compiler/compiler_api.dart' as api;
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 final EXCEPTION = 'Crash-marker';
@@ -19,7 +18,7 @@ final Uri entryPoint = Uri.parse('memory:main.dart');
 main() {
   runTests() async {
     test('Empty program', await run());
-    test('Crash diagnostics', await run(diagnostics: new CrashingDiagnostics()),
+    test('Crash diagnostics', await run(diagnostics: CrashingDiagnostics()),
         expectedLines: [
           'Uncaught exception in diagnostic handler: $EXCEPTION',
           null /* Stack trace*/
@@ -34,8 +33,7 @@ main() {
       "Error: ${cantReadFile.problemMessage}",
       "Error: ${messageMissingMain.problemMessage}",
     ];
-    test('Throw in input provider',
-        await run(memorySourceFiles: new CrashingMap()),
+    test('Throw in input provider', await run(memorySourceFiles: CrashingMap()),
         expectedLines: expectedLines);
   }
 
@@ -67,19 +65,19 @@ void test(String title, RunResult result,
 
 Future<RunResult> run(
     {Map<String, String> memorySourceFiles = const {'main.dart': 'main() {}'},
-    api.CompilerDiagnostics diagnostics}) async {
-  RunResult result = new RunResult();
+    api.CompilerDiagnostics? diagnostics}) async {
+  RunResult result = RunResult();
   await runZoned(() async {
     try {
       await runCompiler(
           entryPoint: entryPoint,
           memorySourceFiles: memorySourceFiles,
           diagnosticHandler: diagnostics,
-          unsafeToTouchSourceFiles: true);
+          options: [Flags.soundNullSafety]);
     } catch (e) {
       result.exceptions.add(e);
     }
-  }, zoneSpecification: new ZoneSpecification(
+  }, zoneSpecification: ZoneSpecification(
       print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
     result.lines.add(line);
   }));
@@ -94,7 +92,7 @@ class RunResult {
 class CrashingDiagnostics extends DiagnosticCollector {
   @override
   void report(
-      code, Uri uri, int begin, int end, String text, api.Diagnostic kind) {
+      code, Uri? uri, int? begin, int? end, String text, api.Diagnostic kind) {
     throw EXCEPTION;
   }
 }

@@ -4,8 +4,6 @@
 
 import 'common.dart';
 
-// TODO(http://dartbug.com/47823): Remove this copy of `Abi`.
-
 /// The hardware architectures the Dart VM runs on.
 enum _Architecture {
   arm,
@@ -71,6 +69,9 @@ class Abi {
   /// The application binary interface for Fuchsia on the X64 architecture.
   static const fuchsiaX64 = _fuchsiaX64;
 
+  /// The application binary interface for Fuchsia on the Riscv64 architecture.
+  static const fuchsiaRiscv64 = _fuchsiaRiscv64;
+
   /// The application binary interface for iOS on the Arm architecture.
   static const iosArm = _iosArm;
 
@@ -131,6 +132,7 @@ class Abi {
     androidX64,
     fuchsiaArm64,
     fuchsiaX64,
+    fuchsiaRiscv64,
     iosArm,
     iosArm64,
     iosX64,
@@ -176,6 +178,7 @@ class Abi {
   static const _androidX64 = Abi._(_Architecture.x64, _OS.android);
   static const _fuchsiaArm64 = Abi._(_Architecture.arm64, _OS.fuchsia);
   static const _fuchsiaX64 = Abi._(_Architecture.x64, _OS.fuchsia);
+  static const _fuchsiaRiscv64 = Abi._(_Architecture.riscv64, _OS.fuchsia);
   static const _iosArm = Abi._(_Architecture.arm, _OS.ios);
   static const _iosArm64 = Abi._(_Architecture.arm64, _OS.ios);
   static const _iosX64 = Abi._(_Architecture.x64, _OS.ios);
@@ -200,6 +203,7 @@ const Map<Abi, String> abiNames = {
   Abi.androidX64: 'androidX64',
   Abi.fuchsiaArm64: 'fuchsiaArm64',
   Abi.fuchsiaX64: 'fuchsiaX64',
+  Abi.fuchsiaRiscv64: 'fuchsiaRiscv64',
   Abi.iosArm: 'iosArm',
   Abi.iosArm64: 'iosArm64',
   Abi.iosX64: 'iosX64',
@@ -241,6 +245,7 @@ const Map<Abi, Map<NativeType, int>> nonSizeAlignment = {
   Abi.androidX64: _wordSize64,
   Abi.fuchsiaArm64: _wordSize64,
   Abi.fuchsiaX64: _wordSize64,
+  Abi.fuchsiaRiscv64: _wordSize64,
   Abi.iosArm64: _wordSize64,
   Abi.iosX64: _wordSize64,
   Abi.linuxArm64: _wordSize64,

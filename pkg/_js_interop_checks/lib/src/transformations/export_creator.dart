@@ -2,6 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: implementation_imports
+
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show
+        Message,
+        LocatedMessage,
+        templateJsInteropExportClassNotMarkedExportable;
+import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         templateJsInteropExportInvalidInteropTypeArgument,
@@ -9,12 +17,6 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show
-        Message,
-        LocatedMessage,
-        templateJsInteropExportClassNotMarkedExportable;
-import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 
 import 'export_checker.dart';
 import 'static_interop_mock_validator.dart';
@@ -36,7 +38,7 @@ class ExportCreator extends Transformer {
   ExportCreator(
       this._typeEnvironment, this._diagnosticReporter, this._exportChecker)
       : _allowInterop = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure('dart:js', 'allowInterop'),
+            .getTopLevelProcedure('dart:js_util', 'allowInterop'),
         _createDartExport = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'createDartExport'),
         _createStaticInteropMock = _typeEnvironment.coreTypes.index
@@ -86,6 +88,7 @@ class ExportCreator extends Transformer {
         return _createExport(node, dartType, staticInteropType, proto);
       }
     }
+    node.transformChildren(this);
     return node;
   }
 
@@ -125,13 +128,16 @@ class ExportCreator extends Transformer {
       // This occurs when we deserialize previously compiled modules. Those
       // modules may contain export classes, so we need to revisit the classes
       // in those previously compiled modules if they are used.
-      dartClass.procedures
-          .forEach((member) => _exportChecker.visitMember(member));
-      dartClass.fields.forEach((member) => _exportChecker.visitMember(member));
+      for (var member in dartClass.procedures) {
+        _exportChecker.visitMember(member);
+      }
+      for (var member in dartClass.fields) {
+        _exportChecker.visitMember(member);
+      }
       _exportChecker.visitClass(dartClass);
     }
     var exportStatus = _exportChecker.exportStatus[dartClass.reference];
-    if (exportStatus == ExportStatus.NON_EXPORTABLE) {
+    if (exportStatus == ExportStatus.nonExportable) {
       _diagnosticReporter.report(
           templateJsInteropExportClassNotMarkedExportable
               .withArguments(dartClass.name),
@@ -140,7 +146,7 @@ class ExportCreator extends Transformer {
           node.location?.file);
       return false;
     }
-    return exportStatus == ExportStatus.EXPORTABLE;
+    return exportStatus == ExportStatus.exportable;
   }
 
   /// Create the object literal using the export map that was computed from the
@@ -167,7 +173,9 @@ class ExportCreator extends Transformer {
     returnType ??= _typeEnvironment.coreTypes.objectNonNullableRawType;
 
     var dartInstance = VariableDeclaration('#dartInstance',
-        initializer: node.arguments.positional[0], type: dartType)
+        initializer: node.arguments.positional[0],
+        type: dartType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset
       ..parent = node.parent;
     block.add(dartInstance);
@@ -187,7 +195,8 @@ class ExportCreator extends Transformer {
 
     var jsExporter = VariableDeclaration('#jsExporter',
         initializer: AsExpression(getLiteral(proto), returnType),
-        type: returnType)
+        type: returnType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset
       ..parent = node.parent;
     block.add(jsExporter);
@@ -252,7 +261,7 @@ class ExportCreator extends Transformer {
         // A new map VariableDeclaration is created and added to the block of
         // statements for each export name.
         var getSetMap = VariableDeclaration('#${exportName}Mapping',
-            initializer: getLiteral(), type: _objectType)
+            initializer: getLiteral(), type: _objectType, isSynthesized: true)
           ..fileOffset = node.fileOffset
           ..parent = node.parent;
         block.add(getSetMap);
@@ -277,10 +286,10 @@ class ExportCreator extends Transformer {
                   ]))));
         }
         if (setter != null) {
-          var setterParameter =
-              VariableDeclaration('#val', type: setter.setterType)
-                ..fileOffset = node.fileOffset
-                ..parent = node.parent;
+          var setterParameter = VariableDeclaration('#val',
+              type: setter.setterType, isSynthesized: true)
+            ..fileOffset = node.fileOffset
+            ..parent = node.parent;
           block.add(setProperty(
               VariableGet(getSetMap),
               'set',

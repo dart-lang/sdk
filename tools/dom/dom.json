@@ -6737,9 +6737,11 @@
       "readyState": {},
       "referrer": {},
       "registerElement": {
+        "dart_action": "suppress",
         "support_level": "deprecated"
       },
       "registerElement2": {
+        "dart_action": "suppress",
         "support_level": "deprecated"
       },
       "rootElement": {

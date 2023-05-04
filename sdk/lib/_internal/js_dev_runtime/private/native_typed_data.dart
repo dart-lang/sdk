@@ -8,7 +8,7 @@ library dart.typed_data.implementation;
 
 import 'dart:collection';
 import 'dart:_internal';
-import 'dart:_interceptors' show JSIndexable;
+import 'dart:_interceptors' show JavaScriptObject, JSIndexable;
 import 'dart:_js_helper'
     show
         Creates,
@@ -24,7 +24,7 @@ import 'dart:math' as Math;
 import 'dart:typed_data';
 
 @Native('ArrayBuffer')
-class NativeByteBuffer implements ByteBuffer {
+final class NativeByteBuffer extends JavaScriptObject implements ByteBuffer {
   @JSName('byteLength')
   external int get lengthInBytes;
 
@@ -100,7 +100,7 @@ class NativeByteBuffer implements ByteBuffer {
 /// A fixed-length list of Float32x4 numbers that is viewable as a
 /// [TypedData]. For long lists, this implementation will be considerably more
 /// space- and time-efficient than the default [List] implementation.
-class NativeFloat32x4List extends Object
+final class NativeFloat32x4List extends Object
     with ListMixin<Float32x4>, FixedLengthListMixin<Float32x4>
     implements Float32x4List {
   final Float32List _storage;
@@ -172,7 +172,7 @@ class NativeFloat32x4List extends Object
 /// A fixed-length list of Int32x4 numbers that is viewable as a
 /// [TypedData]. For long lists, this implementation will be considerably more
 /// space- and time-efficient than the default [List] implementation.
-class NativeInt32x4List extends Object
+final class NativeInt32x4List extends Object
     with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
     implements Int32x4List {
   final Int32List _storage;
@@ -244,7 +244,7 @@ class NativeInt32x4List extends Object
 /// A fixed-length list of Float64x2 numbers that is viewable as a
 /// [TypedData]. For long lists, this implementation will be considerably more
 /// space- and time-efficient than the default [List] implementation.
-class NativeFloat64x2List extends Object
+final class NativeFloat64x2List extends Object
     with ListMixin<Float64x2>, FixedLengthListMixin<Float64x2>
     implements Float64x2List {
   final Float64List _storage;
@@ -308,7 +308,7 @@ class NativeFloat64x2List extends Object
 }
 
 @Native('ArrayBufferView')
-class NativeTypedData implements TypedData {
+final class NativeTypedData extends JavaScriptObject implements TypedData {
   /// Returns the byte buffer associated with this object.
   @Creates('NativeByteBuffer')
   @Returns('NativeByteBuffer')
@@ -380,7 +380,7 @@ List _ensureNativeList(List list) {
 }
 
 @Native('DataView')
-class NativeByteData extends NativeTypedData implements ByteData {
+final class NativeByteData extends NativeTypedData implements ByteData {
   /// Creates a [ByteData] of the specified length (in elements), all of
   /// whose elements are initially zero.
   factory NativeByteData(int length) => _create1(_checkLength(length));
@@ -665,7 +665,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       JS('NativeByteData', 'new DataView(#, #, #)', arg1, arg2, arg3);
 }
 
-abstract class NativeTypedArray<E> extends NativeTypedData
+abstract final class NativeTypedArray<E> extends NativeTypedData
     implements JavaScriptIndexingBehavior<E> {
   int get length;
 
@@ -692,7 +692,7 @@ abstract class NativeTypedArray<E> extends NativeTypedData
   }
 }
 
-abstract class NativeTypedArrayOfDouble extends NativeTypedArray<double>
+abstract final class NativeTypedArrayOfDouble extends NativeTypedArray<double>
     with ListMixin<double>, FixedLengthListMixin<double> {
   int get length => JS<int>('!', '#.length', this);
 
@@ -716,7 +716,7 @@ abstract class NativeTypedArrayOfDouble extends NativeTypedArray<double>
   }
 }
 
-abstract class NativeTypedArrayOfInt extends NativeTypedArray<int>
+abstract final class NativeTypedArrayOfInt extends NativeTypedArray<int>
     with ListMixin<int>, FixedLengthListMixin<int>
     implements List<int> {
   int get length => JS<int>('!', '#.length', this);
@@ -740,7 +740,7 @@ abstract class NativeTypedArrayOfInt extends NativeTypedArray<int>
 }
 
 @Native('Float32Array')
-class NativeFloat32List extends NativeTypedArrayOfDouble
+final class NativeFloat32List extends NativeTypedArrayOfDouble
     implements Float32List {
   factory NativeFloat32List(int length) => _create1(_checkLength(length));
 
@@ -772,7 +772,7 @@ class NativeFloat32List extends NativeTypedArrayOfDouble
 }
 
 @Native('Float64Array')
-class NativeFloat64List extends NativeTypedArrayOfDouble
+final class NativeFloat64List extends NativeTypedArrayOfDouble
     implements Float64List {
   factory NativeFloat64List(int length) => _create1(_checkLength(length));
 
@@ -803,7 +803,7 @@ class NativeFloat64List extends NativeTypedArrayOfDouble
 }
 
 @Native('Int16Array')
-class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
+final class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
   factory NativeInt16List(int length) => _create1(_checkLength(length));
 
   factory NativeInt16List.fromList(List<int> elements) =>
@@ -838,7 +838,7 @@ class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
 }
 
 @Native('Int32Array')
-class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
+final class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
   factory NativeInt32List(int length) => _create1(_checkLength(length));
 
   factory NativeInt32List.fromList(List<int> elements) =>
@@ -874,7 +874,7 @@ class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
 }
 
 @Native('Int8Array')
-class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
+final class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
   factory NativeInt8List(int length) => _create1(_checkLength(length));
 
   factory NativeInt8List.fromList(List<int> elements) =>
@@ -912,7 +912,8 @@ class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
 }
 
 @Native('Uint16Array')
-class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
+final class NativeUint16List extends NativeTypedArrayOfInt
+    implements Uint16List {
   factory NativeUint16List(int length) => _create1(_checkLength(length));
 
   factory NativeUint16List.fromList(List<int> list) =>
@@ -948,7 +949,8 @@ class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
 }
 
 @Native('Uint32Array')
-class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
+final class NativeUint32List extends NativeTypedArrayOfInt
+    implements Uint32List {
   factory NativeUint32List(int length) => _create1(_checkLength(length));
 
   factory NativeUint32List.fromList(List<int> elements) =>
@@ -984,7 +986,7 @@ class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
 }
 
 @Native('Uint8ClampedArray,CanvasPixelArray')
-class NativeUint8ClampedList extends NativeTypedArrayOfInt
+final class NativeUint8ClampedList extends NativeTypedArrayOfInt
     implements Uint8ClampedList {
   factory NativeUint8ClampedList(int length) => _create1(_checkLength(length));
 
@@ -1035,7 +1037,7 @@ class NativeUint8ClampedList extends NativeTypedArrayOfInt
 // the potential for Uint8ClampedArray to 'accidentally' pick up the
 // dispatch record for Uint8List.
 @Native('Uint8Array,!nonleaf')
-class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
+final class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
   factory NativeUint8List(int length) => _create1(_checkLength(length));
 
   factory NativeUint8List.fromList(List<int> elements) =>
@@ -1078,7 +1080,7 @@ class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
 /// Implementation of Dart Float32x4 immutable value type and operations.
 /// Float32x4 stores 4 32-bit floating point values in "lanes".
 /// The lanes are "x", "y", "z", and "w" respectively.
-class NativeFloat32x4 implements Float32x4 {
+final class NativeFloat32x4 implements Float32x4 {
   final double x;
   final double y;
   final double z;
@@ -1416,7 +1418,7 @@ class NativeFloat32x4 implements Float32x4 {
 /// Interface of Dart Int32x4 and operations.
 /// Int32x4 stores 4 32-bit bit-masks in "lanes".
 /// The lanes are "x", "y", "z", and "w" respectively.
-class NativeInt32x4 implements Int32x4 {
+final class NativeInt32x4 implements Int32x4 {
   final int x;
   final int y;
   final int z;
@@ -1672,7 +1674,7 @@ class NativeInt32x4 implements Int32x4 {
   }
 }
 
-class NativeFloat64x2 implements Float64x2 {
+final class NativeFloat64x2 implements Float64x2 {
   final double x;
   final double y;
 

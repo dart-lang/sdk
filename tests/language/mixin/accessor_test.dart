@@ -15,7 +15,7 @@ abstract class C<E> {
   operator []=(int index, E value);
 }
 
-abstract class CMixin<E> implements C<E> {
+mixin CMixin<E> implements C<E> {
   E get first => this[0];
   set first(E x) {
     this[0] = x;
@@ -24,7 +24,7 @@ abstract class CMixin<E> implements C<E> {
 
 abstract class CBase<E> extends Object with CMixin<E> {}
 
-abstract class DMixin<E> implements C<E> {
+mixin DMixin<E> implements C<E> {
   set first(E _) => throw new UnsupportedError('');
   operator []=(int index, E value) => throw new UnsupportedError('');
 }
@@ -37,7 +37,7 @@ class DView<E> extends DBase<E> {
   E operator [](int index) => _source.elementAt(index);
 }
 
-abstract class FMixin<E> implements C<E> {
+mixin FMixin<E> implements C<E> {
   E get first => throw new UnsupportedError('');
   E operator [](int index) => throw new UnsupportedError('');
 }

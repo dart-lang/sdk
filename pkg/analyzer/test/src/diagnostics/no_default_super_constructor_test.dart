@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -80,6 +81,7 @@ class B extends A {
   }
 
   test_super_requiredNamed_legacySubclass_explicitConstructor() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A({required String s});
@@ -96,6 +98,7 @@ class B extends A {
   }
 
   test_super_requiredNamed_legacySubclass_implicitConstructor() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A({required String s});
@@ -258,6 +261,7 @@ class B extends A {
   }
 
   test_super_requiredPositional_subclass_explicit_language214() async {
+    noSoundNullSafety = false;
     await assertErrorsInCode(r'''
 // @dart = 2.14
 class A {

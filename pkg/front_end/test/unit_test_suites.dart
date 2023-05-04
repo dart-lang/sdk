@@ -241,7 +241,9 @@ class ResultLogger implements Logger {
         sb.write("\n\n${result.trace}");
       }
       sb.write("\n\nTo re-run this test, run:");
-      sb.write("\n\n   dart pkg/front_end/test/unit_test_suites.dart -p "
+      var extraFlags = _assertsEnabled ? ' --enable-asserts' : '';
+      sb.write(
+          "\n\n   dart$extraFlags pkg/front_end/test/unit_test_suites.dart -p "
           "$testName");
       if (result.autoFixCommand != null) {
         sb.write("\n\nTo automatically update the test expectations, run:");
@@ -255,7 +257,7 @@ class ResultLogger implements Logger {
               'used when many tests need updating.\n');
         }
       }
-      if (result.outcome == Expectation.Pass) {
+      if (result.outcome == Expectation.pass) {
         String expectedString =
             expectedOutcomes.map((e) => e.toString()).join(", ");
         sb.write("\n\nThe test passed, but wasn't expected to. "
@@ -664,3 +666,9 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
     exitCode = 0;
   }
 }
+
+final bool _assertsEnabled = () {
+  bool assertsEnabled = false;
+  assert(assertsEnabled = true);
+  return assertsEnabled;
+}();

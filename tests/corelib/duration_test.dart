@@ -315,4 +315,19 @@ main() {
   Expect.isFalse(d.toString().startsWith("--"));
   d = const Duration(minutes: -0); // is -0.0 on web.
   Expect.equals("0:00:00.000000", d.toString());
+
+  // Regression test for https://github.com/dart-lang/sdk/issues/51584
+  // (Didn't fix it all in 48841.)
+  d = const Duration(hours: -1);
+  Expect.equals("-1:00:00.000000", d.toString());
+
+  // Adding -0.0's gives -0.0 again.
+  d = const Duration(
+      days: -0,
+      hours: -0,
+      minutes: -0,
+      seconds: -0,
+      milliseconds: -0,
+      microseconds: -0);
+  Expect.equals("0:00:00.000000", d.toString());
 }

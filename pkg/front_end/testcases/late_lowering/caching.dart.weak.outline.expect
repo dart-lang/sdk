@@ -1,0 +1,26 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int field;
+  final field core::int finalField;
+  constructor •(core::int field, core::int finalField) → self::Class
+    ;
+  get getter() → core::int
+    ;
+}
+static method ifCase(dynamic o) → core::int
+  ;
+static method ifCaseElse(dynamic o) → core::int
+  ;
+static method switchStatement(dynamic o) → core::int
+  ;
+static method switchExpression(dynamic o) → core::int
+  ;
+static method test(dynamic expected, dynamic value) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

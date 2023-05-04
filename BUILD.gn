@@ -5,11 +5,11 @@
 import("build/config/gclient_args.gni")
 import("sdk_args.gni")
 
-targetting_fuchsia = target_os == "fuchsia"
+targeting_fuchsia = target_os == "fuchsia"
 
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
-  if (targetting_fuchsia) {
+  if (targeting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -18,7 +18,7 @@ group("default") {
 
 group("most") {
   import("runtime/runtime_args.gni")
-  if (targetting_fuchsia) {
+  if (targeting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -35,7 +35,7 @@ group("most") {
 group("runtime") {
   import("runtime/runtime_args.gni")
 
-  if (targetting_fuchsia) {
+  if (targeting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -60,14 +60,18 @@ group("runtime") {
     ]
   }
 
-  # We do not support AOT on ia32 and should therefore not provide native
-  # snapshot tooling.
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-    if (dart_runtime_mode == "release") {
-      deps += [ "runtime/bin:analyze_snapshot_product" ]
-    } else {
-      deps += [ "runtime/bin:analyze_snapshot" ]
-    }
+  # This flag is set in runtime/runtime_args.gni
+  # The analyze_snapshot tool is only supported on 64 bit AOT builds running
+  # under linux and android platforms
+  if (build_analyze_snapshot) {
+    deps += [
+      # The `analyze_snapshot` tests require the `analyze_snapshot` as well as
+      # `gen_snapshot` binaries.
+      "runtime/bin:analyze_snapshot",
+      "runtime/bin:analyze_snapshot($host_toolchain)",
+      "runtime/bin:gen_snapshot",
+      "runtime/bin:gen_snapshot($host_toolchain)",
+    ]
   }
 
   if (is_linux || is_android) {
@@ -189,7 +193,7 @@ if (is_fuchsia) {
       if (defined(invoker.data_deps)) {
         data_deps += invoker.data_deps
       }
-      manifest = "build/fuchsia/dart.cmx"
+      manifest = invoker.manifest
 
       library_files = []
       if (defined(invoker.library_files)) {
@@ -225,6 +229,7 @@ if (is_fuchsia) {
   }
 
   dart_fuchsia_test_component("fuchsia_test_component") {
+    manifest = "build/fuchsia/fuchsia_test_component.cmx"
     resource_dirs = [
       "tests/standalone_2",
       "pkg/async_helper",
@@ -253,6 +258,7 @@ if (is_fuchsia) {
   }
 
   dart_fuchsia_test_component("fuchsia_ffi_test_component") {
+    manifest = "build/fuchsia/fuchsia_ffi_test_component.cmx"
     data_deps = [
       "runtime/bin:ffi_test_dynamic_library",
       "runtime/bin:ffi_test_functions",

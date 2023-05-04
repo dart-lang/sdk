@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Helper program that shows the static type data on a dart program.
 
 import 'package:args/args.dart';
@@ -21,6 +19,6 @@ main(List<String> args) async {
   await show(
       results,
       showTypePromotion
-          ? new TypePromotionDataComputer()
-          : new StaticTypeDataComputer());
+          ? TypePromotionDataComputer()
+          : StaticTypeDataComputer());
 }

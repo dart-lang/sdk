@@ -21,7 +21,7 @@ part of dart.core;
 /// * [num] the super class for [double].
 /// * [Numbers](https://dart.dev/guides/language/numbers) in
 /// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
-abstract class double extends num {
+abstract final class double extends num {
   static const double nan = 0.0 / 0.0;
   static const double infinity = 1.0 / 0.0;
   static const double negativeInfinity = -infinity;
@@ -221,11 +221,11 @@ abstract class double extends num {
   ///
   /// Leading and trailing whitespace is ignored.
   ///
-  /// If the [source] string is not a valid double literal, the [onError]
-  /// is called with the [source] as argument, and its return value is
-  /// used instead.
-  /// Throws a [FormatException] if the [source] string is not valid
-  /// and no `onError` is provided.
+  /// Throws a [FormatException] if the [source] string is not
+  /// a valid double literal.
+  ///
+  /// Rather than throwing and immediately catching the [FormatException],
+  /// instead use [tryParse] to handle a potential parsing error.
   ///
   /// Examples of accepted strings:
   /// ```
@@ -238,11 +238,7 @@ abstract class double extends num {
   /// "+.12e-9"
   /// "-NaN"
   /// ```
-  /// The [onError] parameter is deprecated and will be removed.
-  /// Instead of `double.parse(string, (string) { ... })`,
-  /// you should use `double.tryParse(string) ?? (...)`.
-  external static double parse(String source,
-      [@deprecated double onError(String source)?]);
+  external static double parse(String source);
 
   /// Parse [source] as a double literal and return its value.
   ///

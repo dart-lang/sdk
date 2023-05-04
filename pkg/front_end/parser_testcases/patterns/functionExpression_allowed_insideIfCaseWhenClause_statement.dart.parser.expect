@@ -1,0 +1,9 @@
+f(x, y) {
+if (x case _ when y + () => 0) {}
+}
+
+
+f[StringToken]([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] case[KeywordToken] _[StringToken] when[KeywordToken] y[StringToken] +[SimpleToken] ([BeginToken])[SimpleToken] =>[SimpleToken] 0[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

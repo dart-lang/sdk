@@ -6,6 +6,8 @@ import("../sdk_args.gni")
 import("configs.gni")
 import("runtime_args.gni")
 
+import("//build/config/sysroot.gni")
+
 if (is_fuchsia) {
   import("//build/fuchsia/sdk.gni")
 }
@@ -83,6 +85,9 @@ config("add_empty_macho_section_config") {
 config("dart_precompiler_config") {
   defines = []
   defines += [ "DART_PRECOMPILER" ]
+  if (is_clang) {
+    cflags = [ "-fno-omit-frame-pointer" ]
+  }
 }
 
 config("dart_os_config") {
@@ -154,8 +159,9 @@ config("dart_config") {
     defines += [ "DART_USE_TCMALLOC" ]
     include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
   }
-  if (dart_use_mallinfo2) {
-    defines += [ "DART_USE_MALLINFO2" ]
+
+  if (dart_include_sampling_heap_profiler) {
+    defines += [ "FORCE_FORCE_INCLUDE_SAMPLING_HEAP_PROFILER" ]
   }
 
   if (dart_use_compressed_pointers) {
@@ -167,7 +173,7 @@ config("dart_config") {
       lib_dirs = [ root_out_dir + "/lib" ]
     }
     if (using_fuchsia_gn_sdk || using_fuchsia_sdk) {
-      # TODO(chinmaygarde): Currenty these targets need to be build in the
+      # TODO(chinmaygarde): Currently these targets need to be build in the
       # Fuchsia tree as well as outside it using the SDK. However, not all
       # Fuchsia features are available in the SDK. As these features are added,
       # the guards can be removed. Eventually, only SDK builds will be present.
@@ -208,9 +214,6 @@ config("dart_config") {
     }
   } else {
     cflags = [
-      "-Werror",
-      "-Wall",
-      "-Wextra",  # Also known as -W.
       "-Wno-unused-parameter",
       "-Wno-unused-private-field",
       "-Wnon-virtual-dtor",
@@ -243,7 +246,7 @@ config("dart_config") {
     } else if (dart_debug) {
       cflags += [ "-O${dart_debug_optimization_level}" ]
     } else {
-      cflags += [ "-O3" ]
+      cflags += [ "-O2" ]
     }
 
     if (is_fuchsia) {

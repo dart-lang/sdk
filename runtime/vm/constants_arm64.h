@@ -53,10 +53,10 @@ enum Register {
   R18 = 18,  // reserved on iOS, shadow call stack on Fuchsia, TEB on Windows.
   R19 = 19,
   R20 = 20,
-  R21 = 21,  // DISPATCH_TABLE_REG
+  R21 = 21,  // DISPATCH_TABLE_REG (AOT only)
   R22 = 22,  // NULL_REG
   R23 = 23,
-  R24 = 24,
+  R24 = 24,  // CODE_REG
   R25 = 25,
   R26 = 26,  // THR
   R27 = 27,  // PP
@@ -179,6 +179,20 @@ struct InstantiationABI {
   static const Register kResultTypeArgumentsReg = R0;
   static const Register kResultTypeReg = R0;
   static const Register kScratchReg = R8;
+};
+
+// Registers in addition to those listed in InstantiationABI used inside the
+// implementation of the InstantiateTypeArguments stubs.
+struct InstantiateTAVInternalRegs {
+  // The set of registers that must be pushed/popped when probing a hash-based
+  // cache due to overlap with the registers in InstantiationABI.
+  static const intptr_t kSavedRegisters = 0;
+
+  // Additional registers used to probe hash-based caches.
+  static const Register kEntryStartReg = R9;
+  static const Register kProbeMaskReg = R7;
+  static const Register kProbeDistanceReg = R6;
+  static const Register kCurrentEntryIndexReg = R10;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the
@@ -352,17 +366,16 @@ struct AllocateArrayABI {
 // ABI for AllocateRecordStub.
 struct AllocateRecordABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kNumFieldsReg = R2;
-  static const Register kFieldNamesReg = R1;
-  static const Register kTemp1Reg = R3;
-  static const Register kTemp2Reg = R4;
+  static const Register kShapeReg = R1;
+  static const Register kTemp1Reg = R2;
+  static const Register kTemp2Reg = R3;
 };
 
 // ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
 // AllocateRecord3, AllocateRecord3Named).
 struct AllocateSmallRecordABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kFieldNamesReg = R1;
+  static const Register kShapeReg = R1;
   static const Register kValue0Reg = R2;
   static const Register kValue1Reg = R3;
   static const Register kValue2Reg = R4;
@@ -389,10 +402,11 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = R0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub,
+// ABI for SuspendStub (AwaitStub, AwaitWithTypeCheckStub, YieldAsyncStarStub,
 // SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = R0;
+  static const Register kTypeArgsReg = R1;  // Can be the same as kTempReg
   static const Register kTempReg = R1;
   static const Register kFrameSizeReg = R2;
   static const Register kSuspendStateReg = R3;
@@ -498,6 +512,9 @@ const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
 
+// R18 is reserved on Mac/iOS, Fuchsia, Windows and sometimes Android. Although
+// it is available on Linux, we mark it as reserved unconditionally to avoid
+// adding another dimenision for OS into the extracted runtime offsets.
 const RegList kReservedCpuRegisters = R(SPREG) |  // Dart SP
                                       R(FPREG) | R(TMP) | R(TMP2) | R(PP) |
                                       R(THR) | R(LR) | R(HEAP_BITS) |
@@ -550,6 +567,8 @@ class CallingConventions {
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
       kAlignedToWordSize;
+  static constexpr AlignmentStrategy kArgumentRegisterAlignmentVarArgs =
+      kArgumentRegisterAlignment;
 
   // How stack arguments are aligned.
 #if defined(DART_TARGET_OS_MACOS_IOS) || defined(DART_TARGET_OS_MACOS)
@@ -784,6 +803,13 @@ enum LoadStoreExclusiveOp {
   STXR = LoadStoreExclusiveFixed,
   LDAR = LoadStoreExclusiveFixed | B23 | B22 | B15,
   STLR = LoadStoreExclusiveFixed | B23 | B15,
+};
+
+enum AtomicMemoryOp {
+  AtomicMemoryMask = 0x3f200c00,
+  AtomicMemoryFixed = B29 | B28 | B27 | B21,
+  LDCLR = AtomicMemoryFixed | B12,
+  LDSET = AtomicMemoryFixed | B13 | B12,
 };
 
 // C3.3.7-10
@@ -1061,6 +1087,7 @@ enum FPIntCvtOp {
   _V(LoadStoreRegPair)                                                         \
   _V(LoadRegLiteral)                                                           \
   _V(LoadStoreExclusive)                                                       \
+  _V(AtomicMemory)                                                             \
   _V(AddSubImm)                                                                \
   _V(Bitfield)                                                                 \
   _V(LogicalImm)                                                               \

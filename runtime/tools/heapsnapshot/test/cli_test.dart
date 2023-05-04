@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:heapsnapshot/src/cli.dart';
 import 'package:path/path.dart' as path;
@@ -43,6 +44,9 @@ main([List<String> args = const []]) {
     // Force initialize of the data we want in the heapsnapshot.
     print(global.use);
     print(weakTest.use);
+    if (supportsExternalTypedDataTest) {
+      print(externalTypedData1234567.length);
+    }
     print('Child ready');
     return;
   }
@@ -161,12 +165,12 @@ size *count *class
 
       await run('dstats -c filter (closure global) String');
       expectLogPattern('''
-size       unique-size  count     class           data             
---------   --------     --------  --------        --------         
+size       unique-size  count     class           data
+--------   --------     --------  --------        --------
      0 kb       0 kb         4    _OneByteString  #nonSharedString#
-     0 kb       0 kb         2    _OneByteString  #barUniqueString 
-     0 kb       0 kb         2    _OneByteString  #fooUniqueString 
-     0 kb       0 kb         1    _OneByteString  #sharedString    
+     0 kb       0 kb         2    _OneByteString  #barUniqueString
+     0 kb       0 kb         2    _OneByteString  #fooUniqueString
+     0 kb       0 kb         1    _OneByteString  #sharedString
 --------   --------     --------
      0 kb       0 kb         9
     ''');
@@ -176,17 +180,36 @@ size       unique-size  count     class           data
 
       await run('dstats -c lists');
       expectLogPattern('''
-size       unique-size  count     class     data    
+size       unique-size  count     class     data
 --------   --------     --------  --------  --------
-     0 kb       0 kb         1    _List     len:2   
-     0 kb       0 kb         1    _List     len:2   
-     0 kb       0 kb         1    _List     len:1   
-     0 kb       0 kb         1    _List     len:1   
-     0 kb       0 kb         1    _List     len:0   
-     0 kb       0 kb         1    _List     len:0   
+     0 kb       0 kb         1    _List     len:2
+     0 kb       0 kb         1    _List     len:2
+     0 kb       0 kb         1    _List     len:1
+     0 kb       0 kb         1    _List     len:1
+     0 kb       0 kb         1    _List     len:0
+     0 kb       0 kb         1    _List     len:0
 --------   --------     --------
      0 kb       0 kb         6
     ''');
+
+      if (supportsExternalTypedDataTest) {
+        await run('etd = dfilter (filter all _ExternalUint8Array) ==1234567');
+        expectLogPattern('etd $sp');
+
+        await run('stats etd');
+        expectLogPattern('''
+size       count     class
+--------   --------  --------
+  1205 kb       1    _ExternalUint8Array dart:typed_data
+    ''');
+
+        await run('dstats etd');
+        expectLogPattern('''
+size       unique-size  count     class                data
+--------   --------     --------  --------             --------
+  1205 kb    1205 kb         1    _ExternalUint8Array  len:1234567
+    ''');
+      }
 
       await run(
           'stats foobar = (follow (follow global) ^:type_arguments ^Root ^Smi)');
@@ -338,6 +361,14 @@ class Global {
   String get use =>
       '${foos.map((l) => l.use).toList()}|${bars.map((l) => l.use).toList()}|$sharedString';
 }
+
+// In order to create external typed data, we rely on the fact that dart:io will
+// produce `Uint8List`s with external typed data if reading files that will not
+// report their length (such as /dev/zero).
+final bool supportsExternalTypedDataTest = File('/dev/zero').existsSync();
+
+final Uint8List externalTypedData1234567 =
+    File('/dev/zero').openSync().readSync(1234567);
 
 final weakTest = WeakTest(Object());
 

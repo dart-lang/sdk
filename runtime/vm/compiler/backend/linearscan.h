@@ -181,6 +181,8 @@ class FlowGraphAllocator : public ValueObject {
   // Connect split siblings over non-linear control flow edges.
   void ResolveControlFlow();
 
+  void ScheduleParallelMoves();
+
   // Returns true if the target location is the spill slot for the given range.
   bool TargetLocationIsSpillSlot(LiveRange* range, Location target);
 
@@ -287,6 +289,11 @@ class FlowGraphAllocator : public ValueObject {
                                     Register base_reg,
                                     intptr_t pair_index);
 
+  // Assign locations for each outgoing argument. Outgoing argumenst are
+  // currently stored at the top of the stack in direct order (last argument
+  // at the top of the stack).
+  void AllocateOutgoingArguments();
+
   const FlowGraph& flow_graph_;
 
   ReachingDefs reaching_defs_;
@@ -380,8 +387,8 @@ class FlowGraphAllocator : public ValueObject {
 class UsePosition : public ZoneAllocated {
  public:
   UsePosition(intptr_t pos, UsePosition* next, Location* location_slot)
-      : pos_(pos), location_slot_(location_slot), hint_(NULL), next_(next) {
-    ASSERT(location_slot != NULL);
+      : pos_(pos), location_slot_(location_slot), hint_(nullptr), next_(next) {
+    ASSERT(location_slot != nullptr);
   }
 
   Location* location_slot() const { return location_slot_; }
@@ -396,7 +403,7 @@ class UsePosition : public ZoneAllocated {
 
   void set_hint(Location* hint) { hint_ = hint; }
 
-  bool HasHint() const { return (hint_ != NULL) && !hint_->IsUnallocated(); }
+  bool HasHint() const { return (hint_ != nullptr) && !hint_->IsUnallocated(); }
 
   void set_next(UsePosition* next) { next_ = next; }
   UsePosition* next() const { return next_; }
@@ -453,10 +460,10 @@ class UseInterval : public ZoneAllocated {
 class AllocationFinger : public ValueObject {
  public:
   AllocationFinger()
-      : first_pending_use_interval_(NULL),
-        first_register_use_(NULL),
-        first_register_beneficial_use_(NULL),
-        first_hinted_use_(NULL) {}
+      : first_pending_use_interval_(nullptr),
+        first_register_use_(nullptr),
+        first_register_beneficial_use_(nullptr),
+        first_hinted_use_(nullptr) {}
 
   void Initialize(LiveRange* range);
   void UpdateAfterSplit(intptr_t first_use_after_split_pos);
@@ -483,7 +490,7 @@ class AllocationFinger : public ValueObject {
 class SafepointPosition : public ZoneAllocated {
  public:
   SafepointPosition(intptr_t pos, LocationSummary* locs)
-      : pos_(pos), locs_(locs), next_(NULL) {}
+      : pos_(pos), locs_(locs), next_(nullptr) {}
 
   void set_next(SafepointPosition* next) { next_ = next; }
   SafepointPosition* next() const { return next_; }
@@ -507,12 +514,12 @@ class LiveRange : public ZoneAllocated {
         representation_(rep),
         assigned_location_(),
         spill_slot_(),
-        uses_(NULL),
-        first_use_interval_(NULL),
-        last_use_interval_(NULL),
-        first_safepoint_(NULL),
-        last_safepoint_(NULL),
-        next_sibling_(NULL),
+        uses_(nullptr),
+        first_use_interval_(nullptr),
+        last_use_interval_(nullptr),
+        first_safepoint_(nullptr),
+        last_safepoint_(nullptr),
+        next_sibling_(nullptr),
         has_only_any_uses_in_loops_(0),
         is_loop_phi_(false),
         finger_() {}
@@ -596,7 +603,7 @@ class LiveRange : public ZoneAllocated {
         first_use_interval_(first_use_interval),
         last_use_interval_(last_use_interval),
         first_safepoint_(first_safepoint),
-        last_safepoint_(NULL),
+        last_safepoint_(nullptr),
         next_sibling_(next_sibling),
         has_only_any_uses_in_loops_(0),
         is_loop_phi_(false),

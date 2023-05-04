@@ -49,24 +49,29 @@
 // Resolving the `Promise` causes the suspended execution to resume.
 
 import 'dart:_internal' show patch, scheduleCallback, unsafeCastOpaque;
+import 'dart:_js_helper' show JS;
 
-import 'dart:wasm';
+import 'dart:_wasm';
 
 part 'timer_patch.dart';
 
 @pragma("wasm:entry-point")
-Future<T> _asyncHelper<T>(WasmDataRef args) {
+Future<T> _asyncHelper<T>(WasmStructRef args) {
   Completer<T> completer = Completer();
   _callAsyncBridge(args, completer);
   return completer.future;
 }
 
-@pragma("wasm:import", "dart2wasm.callAsyncBridge")
-external void _callAsyncBridge(WasmDataRef args, Completer<Object?> completer);
+void _callAsyncBridge(WasmStructRef args, Completer<Object?> completer) =>
+    // This trampoline is needed because [asyncBridge] is a function wrapped
+    // by `returnPromiseOnSuspend`, and the stack-switching functionality of
+    // that wrapper is implemented as part of the export adapter.
+    JS<void>(
+        "(args, completer) => asyncBridge(args, completer)", args, completer);
 
 @pragma("wasm:export", "\$asyncBridge")
-WasmAnyRef? _asyncBridge(
-    WasmExternRef? stack, WasmDataRef args, Completer<Object?> completer) {
+WasmExternRef? _asyncBridge(
+    WasmExternRef? stack, WasmStructRef args, Completer<Object?> completer) {
   try {
     Object? result = _asyncBridge2(args, stack);
     completer.complete(result);
@@ -75,7 +80,7 @@ WasmAnyRef? _asyncBridge(
   }
 }
 
-external Object? _asyncBridge2(WasmDataRef args, WasmExternRef? stack);
+external Object? _asyncBridge2(WasmStructRef args, WasmExternRef? stack);
 
 class _FutureError {
   final Object exception;
@@ -90,7 +95,9 @@ Object? _awaitHelper(Object? operand, WasmExternRef? stack) {
   // ensure that the zone will be restored in the event of an exception by
   // restoring the original zone before we throw the exception.
   _Zone current = Zone._current;
-  if (operand is! Future) return operand;
+  if (operand is! Future) {
+    operand = Future.value(operand);
+  }
   Object? result = _futurePromise(stack, operand);
   Zone._leave(current);
   if (result is _FutureError) {
@@ -105,8 +112,15 @@ Object? _awaitHelper(Object? operand, WasmExternRef? stack) {
   return result;
 }
 
-@pragma("wasm:import", "dart2wasm.futurePromise")
-external Object? _futurePromise(WasmExternRef? stack, Future<Object?> future);
+Object? _futurePromise(WasmExternRef? stack, Future<Object?> future) =>
+    JS<Object?>("""new WebAssembly.Function(
+            {parameters: ['externref', 'anyref'], results: ['anyref']},
+            function(future) {
+                return new Promise(function (resolve, reject) {
+                    dartInstance.exports.\$awaitCallback(future, resolve);
+                });
+            },
+            {suspending: 'first'})""", stack, future);
 
 @pragma("wasm:export", "\$awaitCallback")
 void _awaitCallback(Future<Object?> future, WasmExternRef? resolve) {
@@ -117,5 +131,7 @@ void _awaitCallback(Future<Object?> future, WasmExternRef? resolve) {
   });
 }
 
-@pragma("wasm:import", "dart2wasm.callResolve")
-external void _callResolve(WasmExternRef? resolve, Object? result);
+void _callResolve(WasmExternRef? resolve, Object? result) =>
+    // This trampoline is needed because [resolve] is a JS function that
+    // can't be called directly from Wasm.
+    JS<void>("(resolve, result) =>  resolve(result)", resolve, result);

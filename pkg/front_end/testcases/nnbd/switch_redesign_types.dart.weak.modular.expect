@@ -2,29 +2,29 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:35:16: Error: Type 'A' of the case expression is not a subtype of type 'B' of this switch expression.
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:37:16: Error: Type 'A' of the case expression is not a subtype of type 'B' of this switch expression.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
 //     case const A(42): // Error: not a subtype of B.
 //                ^
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:30:11: Context: The switch expression is here.
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:32:11: Context: The switch expression is here.
 //   switch (b) {
 //           ^
 //
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:39:10: Error: Type 'dynamic' of the case expression is not a subtype of type 'B' of this switch expression.
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:41:10: Error: Type 'dynamic' of the case expression is not a subtype of type 'B' of this switch expression.
 //  - 'B' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
 //     case x: // Error: D has custom operator ==.
 //          ^
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:30:11: Context: The switch expression is here.
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:32:11: Context: The switch expression is here.
 //   switch (b) {
 //           ^
 //
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:37:16: Error: Case expression 'D {}' does not have a primitive operator '=='.
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:39:16: Error: Case expression 'D {}' does not have a primitive operator '=='.
 //  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
 //     case const D(42): // Error: D has custom operator ==.
 //                ^
 //
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:39:10: Error: Case expression 'D {}' does not have a primitive operator '=='.
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:41:10: Error: Case expression 'D {}' does not have a primitive operator '=='.
 //  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
 //     case x: // Error: D has custom operator ==.
 //          ^
@@ -103,8 +103,8 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///switch_redesign_types.dart:
-- D. (from org-dartlang-testcase:///switch_redesign_types.dart:23:9)
-- B. (from org-dartlang-testcase:///switch_redesign_types.dart:15:9)
-- A. (from org-dartlang-testcase:///switch_redesign_types.dart:11:9)
+- D. (from org-dartlang-testcase:///switch_redesign_types.dart:25:9)
+- B. (from org-dartlang-testcase:///switch_redesign_types.dart:17:9)
+- A. (from org-dartlang-testcase:///switch_redesign_types.dart:13:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- C. (from org-dartlang-testcase:///switch_redesign_types.dart:19:9)
+- C. (from org-dartlang-testcase:///switch_redesign_types.dart:21:9)

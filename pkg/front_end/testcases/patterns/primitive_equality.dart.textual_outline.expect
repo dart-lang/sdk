@@ -1,0 +1,142 @@
+void topLevel() {}
+
+class Const {
+  const Const();
+}
+
+class A {
+  const A();
+  int get hashCode => super.hashCode + 1;
+}
+
+class B {
+  const B();
+  bool operator ==(Object other) => super == other;
+}
+
+class C {
+  const C();
+  int get hashCode => super.hashCode + 1;
+  bool operator ==(Object other) => super == other;
+}
+
+const a1 = A() == Const();
+const a2 = Const() == A();
+const a3 = A() != Const();
+const a4 = Const() != A();
+const a5 = A() == null;
+const a6 = null == A();
+const a7 = A() != null;
+const a8 = null != A();
+const b1 = B() == Const();
+const b2 = Const() == B();
+const b3 = B() != Const();
+const b4 = Const() != B();
+const b5 = B() == null;
+const b6 = null == B();
+const b7 = B() != null;
+const b8 = null != B();
+const c1 = C() == Const();
+const c2 = Const() == C();
+const c3 = C() != Const();
+const c4 = Const() != C();
+const c5 = C() == null;
+const c6 = null == C();
+const c7 = C() != null;
+const c8 = null != C();
+const d1 = true == Const();
+const d2 = Const() == true;
+const d3 = true != Const();
+const d4 = Const() != true;
+const e1 = 0 == Const();
+const e2 = Const() == 0;
+const e3 = 0 != Const();
+const e4 = Const() != 0;
+const f1 = '' == Const();
+const f2 = Const() == '';
+const f3 = '' != Const();
+const f4 = Const() != '';
+const g1 = #a == Const();
+const g2 = Const() == #a;
+const g3 = #a != Const();
+const g4 = Const() != #a;
+const h1 = const Symbol('b') == Const();
+const h2 = Const() == const Symbol('b');
+const h3 = const Symbol('b') != Const();
+const h4 = Const() != const Symbol('b');
+const i1 = Object == Const();
+const i2 = Const() == Object;
+const i3 = Object != Const();
+const i4 = Const() != Object;
+const j1 = [] == Const();
+const j2 = Const() == [];
+const j3 = [] != Const();
+const j4 = Const() != [];
+const k1 = {} == Const();
+const k2 = Const() == {};
+const k3 = {} != Const();
+const k4 = Const() != {};
+const l1 = {0} == Const();
+const l2 = Const() == {0};
+const l3 = {0} != Const();
+const l4 = Const() != {0};
+const n1 = topLevel == Const();
+const n2 = Const() == topLevel;
+const n3 = topLevel != Const();
+const n4 = Const() != topLevel;
+const o1 = 0.5 == Const();
+const o2 = Const() == 0.5;
+const o3 = 0.5 != Const();
+const o4 = Const() != 0.5;
+const set1 = {
+  null,
+  Const(),
+  true,
+  0,
+  '',
+  #a,
+  const Symbol('b'),
+  Object,
+  [],
+  {},
+  {0},
+  topLevel,
+};
+const set2 = {
+  A(),
+};
+const set3 = {
+  B(),
+};
+const set4 = {
+  C(),
+};
+const set5 = {
+  0.5,
+};
+const map1 = {
+  null: 0,
+  Const(): 0,
+  true: 0,
+  0: 0,
+  '': 0,
+  #a: 0,
+  const Symbol('b'): 0,
+  Object: 0,
+  []: 0,
+  {}: 0,
+  {0}: 0,
+  topLevel: 0,
+};
+const map2 = {
+  A(): 0,
+};
+const map3 = {
+  B(): 0,
+};
+const map4 = {
+  C(): 0,
+};
+const map5 = {
+  0.5: 0,
+};

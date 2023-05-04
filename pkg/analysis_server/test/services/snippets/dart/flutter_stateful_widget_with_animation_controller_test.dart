@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget_with_animation.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,11 +40,7 @@ class FlutterStatefulWidgetWithAnimationControllerTest
       code = SourceEdit.applySequence(code, edit.edits);
     }
     expect(code, '''
-import 'package:flutter/src/animation/animation_controller.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
-import 'package:flutter/src/widgets/ticker_provider.dart';
+import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
   const MyWidget({Key? key}) : super(key: key);
@@ -87,25 +84,17 @@ class _MyWidgetState extends State<MyWidget>
     final snippet = await expectValidSnippet('^');
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
-    var code = '';
-    expect(snippet.change.edits, hasLength(1));
-    for (var edit in snippet.change.edits) {
-      code = SourceEdit.applySequence(code, edit.edits);
-    }
-    expect(code, '''
-import 'package:flutter/src/animation/animation_controller.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
-import 'package:flutter/src/widgets/ticker_provider.dart';
+    final expected = TestCode.parse('''
+import 'package:flutter/widgets.dart';
 
-class MyWidget extends StatefulWidget {
-  const MyWidget({super.key});
+class /*0*/MyWidget extends StatefulWidget {
+  const /*1*/MyWidget({super.key});
 
   @override
-  State<MyWidget> createState() => _MyWidgetState();
+  State</*2*/MyWidget> createState() => _/*3*/MyWidgetState();
 }
 
-class _MyWidgetState extends State<MyWidget>
+class _/*4*/MyWidgetState extends State</*5*/MyWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
@@ -123,25 +112,9 @@ class _MyWidgetState extends State<MyWidget>
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return /*[0*/const Placeholder()/*0]*/;
   }
 }''');
-    expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 761);
-    expect(snippet.change.selectionLength, 19);
-    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
-      {
-        'positions': [
-          {'file': testFile, 'offset': 240},
-          {'file': testFile, 'offset': 282},
-          {'file': testFile, 'offset': 326},
-          {'file': testFile, 'offset': 354},
-          {'file': testFile, 'offset': 381},
-          {'file': testFile, 'offset': 409},
-        ],
-        'length': 8,
-        'suggestions': []
-      }
-    ]);
+    assertFlutterSnippetChange(snippet.change, 'MyWidget', expected);
   }
 }

@@ -7,9 +7,7 @@ library function_view_element;
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/code_ref.dart';
-import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/field_ref.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
@@ -68,19 +66,6 @@ class FunctionViewElement extends CustomElement implements Renderable {
       M.ScriptRepository scripts,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(function != null);
-    assert(functions != null);
-    assert(classes != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(scripts != null);
-    assert(objects != null);
     FunctionViewElement e = new FunctionViewElement.created();
     e._r = new RenderingScheduler<FunctionViewElement>(e, queue: queue);
     e._vm = vm;
@@ -426,7 +411,8 @@ class FunctionViewElement extends CustomElement implements Renderable {
         return 'dynamic invocation forwarder';
       case M.FunctionKind.recordFieldGetter:
         return 'record field getter';
+      default:
+        throw new Exception('Unknown Functionkind ($kind)');
     }
-    throw new Exception('Unknown Functionkind ($kind)');
   }
 }

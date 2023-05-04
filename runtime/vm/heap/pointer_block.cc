@@ -22,14 +22,14 @@ END_LEAF_RUNTIME_ENTRY
 
 template <int BlockSize>
 typename BlockStack<BlockSize>::List* BlockStack<BlockSize>::global_empty_ =
-    NULL;
+    nullptr;
 template <int BlockSize>
-Mutex* BlockStack<BlockSize>::global_mutex_ = NULL;
+Mutex* BlockStack<BlockSize>::global_mutex_ = nullptr;
 
 template <int BlockSize>
 void BlockStack<BlockSize>::Init() {
   global_empty_ = new List();
-  if (global_mutex_ == NULL) {
+  if (global_mutex_ == nullptr) {
     global_mutex_ = new Mutex();
   }
 }
@@ -37,7 +37,7 @@ void BlockStack<BlockSize>::Init() {
 template <int BlockSize>
 void BlockStack<BlockSize>::Cleanup() {
   delete global_empty_;
-  global_empty_ = NULL;
+  global_empty_ = nullptr;
 }
 
 template <int BlockSize>
@@ -79,7 +79,7 @@ typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::TakeBlocks() {
 
 template <int BlockSize>
 void BlockStack<BlockSize>::PushBlockImpl(Block* block) {
-  ASSERT(block->next() == NULL);  // Should be just a single block.
+  ASSERT(block->next() == nullptr);  // Should be just a single block.
   if (block->IsFull()) {
     MonitorLocker ml(&monitor_);
     bool was_empty = IsEmptyLocked();
@@ -105,7 +105,7 @@ typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::WaitForWork(
     // This is the last worker, wake the others now that we know no further work
     // will come.
     ml.NotifyAll();
-    return NULL;
+    return nullptr;
   }
   for (;;) {
     if (!full_.IsEmpty()) {
@@ -118,7 +118,7 @@ typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::WaitForWork(
     }
     ml.Wait();
     if (num_busy->load() == 0) {
-      return NULL;
+      return nullptr;
     }
   }
 }
@@ -176,7 +176,7 @@ BlockStack<BlockSize>::PopNonEmptyBlock() {
   } else if (!partial_.IsEmpty()) {
     return partial_.Pop();
   } else {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -203,21 +203,21 @@ typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::List::Pop() {
   Block* result = head_;
   head_ = head_->next_;
   --length_;
-  result->next_ = NULL;
+  result->next_ = nullptr;
   return result;
 }
 
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::List::PopAll() {
   Block* result = head_;
-  head_ = NULL;
+  head_ = nullptr;
   length_ = 0;
   return result;
 }
 
 template <int BlockSize>
 void BlockStack<BlockSize>::List::Push(Block* block) {
-  ASSERT(block->next_ == NULL);
+  ASSERT(block->next_ == nullptr);
   block->next_ = head_;
   head_ = block;
   ++length_;
@@ -234,10 +234,11 @@ intptr_t StoreBuffer::Size() {
 }
 
 void StoreBuffer::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  for (Block* block = full_.Peek(); block != NULL; block = block->next()) {
+  for (Block* block = full_.Peek(); block != nullptr; block = block->next()) {
     block->VisitObjectPointers(visitor);
   }
-  for (Block* block = partial_.Peek(); block != NULL; block = block->next()) {
+  for (Block* block = partial_.Peek(); block != nullptr;
+       block = block->next()) {
     block->VisitObjectPointers(visitor);
   }
 }

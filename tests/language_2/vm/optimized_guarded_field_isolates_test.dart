@@ -54,7 +54,7 @@ class C {
 }
 
 f2(Object send_port) {
-  (send_port as SendPort).send(new C(new List(1)));
+  (send_port as SendPort).send(new C(new List.filled(1, null)));
 }
 
 test_c(C obj) => obj.list[9999];
@@ -63,7 +63,7 @@ test_list_length() {
   var receive_port = new ReceivePort();
   asyncStart();
   Future<Isolate> isolate = Isolate.spawn(f2, receive_port.sendPort);
-  C c = new C(new List(10000));
+  C c = new C(new List.filled(10000, null));
   for (var i = 0; i < 200; i++) {
     test_c(c);
   }

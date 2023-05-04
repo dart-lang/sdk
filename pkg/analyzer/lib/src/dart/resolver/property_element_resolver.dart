@@ -77,7 +77,7 @@ class PropertyElementResolver with ScopeHelpers {
     var targetType = target.typeOrThrow;
     targetType = _typeSystem.resolveToBound(targetType);
 
-    if (targetType.isVoid) {
+    if (targetType is VoidType) {
       // TODO(scheglov) Report directly in TypePropertyResolver?
       _reportUnresolvedIndex(
         node,
@@ -89,7 +89,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (identical(targetType, NeverTypeImpl.instance)) {
       // TODO(scheglov) Report directly in TypePropertyResolver?
       errorReporter.reportErrorForNode(
-        HintCode.RECEIVER_OF_TYPE_NEVER,
+        WarningCode.RECEIVER_OF_TYPE_NEVER,
         target,
       );
       return PropertyElementResolverResult();
@@ -431,7 +431,7 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    if (targetType.isVoid) {
+    if (targetType is VoidType) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
         propertyName,

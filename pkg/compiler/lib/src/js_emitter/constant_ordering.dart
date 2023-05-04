@@ -46,8 +46,6 @@ class _ConstantOrdering
     return 0;
   }
 
-  static int compareStrings(String a, String b) => a.compareTo(b);
-
   int compareClasses(ClassEntity a, ClassEntity b) {
     int r = a.name.compareTo(b.name);
     if (r != 0) return r;
@@ -62,12 +60,6 @@ class _ConstantOrdering
 
   int compareDartTypes(DartType a, DartType b) {
     return _dartTypeOrdering.compare(a, b);
-  }
-
-  int compareRecordShapes(RecordShape a, RecordShape b) {
-    int r = a.positionalFieldCount.compareTo(b.positionalFieldCount);
-    if (r != 0) return r;
-    return compareLists(compareStrings, a.fieldNames, b.fieldNames);
   }
 
   @override
@@ -155,6 +147,13 @@ class _ConstantOrdering
     int r = compareDartTypes(a.representedType, b.representedType);
     if (r != 0) return r;
     return compareDartTypes(a.type, b.type);
+  }
+
+  @override
+  int visitRecord(RecordConstantValue a, RecordConstantValue b) {
+    int r = RecordShape.compare(a.shape, b.shape);
+    if (r != 0) return r;
+    return compareLists(compareValues, a.values, b.values);
   }
 
   @override
@@ -340,7 +339,7 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
 
   @override
   int visitRecordType(covariant RecordType type, covariant RecordType other) {
-    int r = _constantOrdering.compareRecordShapes(type.shape, other.shape);
+    int r = RecordShape.compare(type.shape, other.shape);
     if (r != 0) return r;
     return _compareTypeArguments(type.fields, other.fields);
   }

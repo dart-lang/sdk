@@ -331,7 +331,7 @@ inline intptr_t RoundedAllocationSize(intptr_t size) {
   return Utils::RoundUp(size, kObjectAlignment);
 }
 // Information about frame_layout that compiler should be targeting.
-extern UntaggedFrame frame_layout;
+extern FrameLayout frame_layout;
 
 constexpr intptr_t kIntSpillFactor = sizeof(int64_t) / kWordSize;
 constexpr intptr_t kDoubleSpillFactor = sizeof(double) / kWordSize;
@@ -594,10 +594,18 @@ class GrowableObjectArray : public AllStatic {
   FINAL_CLASS();
 };
 
+class RecordShape : public AllStatic {
+ public:
+  static const word kNumFieldsMask;
+  static const word kMaxNumFields;
+  static const word kFieldNamesIndexShift;
+  static const word kFieldNamesIndexMask;
+  static const word kMaxFieldNamesIndex;
+};
+
 class Record : public AllStatic {
  public:
-  static word num_fields_offset();
-  static word field_names_offset();
+  static word shape_offset();
   static word field_offset(intptr_t index);
   static intptr_t field_index_at_offset(intptr_t offset_in_bytes);
   static word InstanceSize(intptr_t length);
@@ -990,6 +998,8 @@ class Capability : public AllStatic {
 
 class ReceivePort : public AllStatic {
  public:
+  static word send_port_offset();
+  static word handler_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };
@@ -1274,6 +1284,7 @@ class Thread : public AllStatic {
 
   static word suspend_state_init_async_entry_point_offset();
   static word suspend_state_await_entry_point_offset();
+  static word suspend_state_await_with_type_check_entry_point_offset();
   static word suspend_state_return_async_entry_point_offset();
   static word suspend_state_return_async_not_future_entry_point_offset();
 
@@ -1308,10 +1319,12 @@ class ObjectStore : public AllStatic {
  public:
   static word double_type_offset();
   static word int_type_offset();
+  static word record_field_names_offset();
   static word string_type_offset();
   static word type_type_offset();
 
   static word suspend_state_await_offset();
+  static word suspend_state_await_with_type_check_offset();
   static word suspend_state_handle_exception_offset();
   static word suspend_state_init_async_offset();
   static word suspend_state_init_async_star_offset();
@@ -1408,6 +1421,15 @@ class Code : public AllStatic {
 
 class WeakSerializationReference : public AllStatic {
  public:
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
+class WeakArray : public AllStatic {
+ public:
+  static word length_offset();
+  static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   FINAL_CLASS();
 };
@@ -1544,6 +1566,7 @@ class TypeParameters : public AllStatic {
 
 class TypeArguments : public AllStatic {
  public:
+  static word hash_offset();
   static word instantiations_offset();
   static word length_offset();
   static word nullability_offset();

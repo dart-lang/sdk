@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1(dynamic x) → dynamic {
+  {
+    hoisted core::int i;
+    {
+      final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
+      function ##0#6#initializer() → dynamic
+        return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = i = #0#6{core::int} in true))))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    final core::int #t2 = i;
+    for (core::int i = #t2; true; ) {
+      return i;
+    }
+  }
+}
+static method test2(core::List<core::int> x) → dynamic {
+  core::List<core::int> result = core::_GrowableList::•<core::int>(0);
+  {
+    hoisted core::int c;
+    hoisted core::int n;
+    {
+      final synthesized dynamic #0#0 = x;
+      if(!(#0#0{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (let final core::int #t3 = c = #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} in true) && (let final core::int #t4 = n = #0#0{core::List<core::int>}.{core::List::[]}(1){(core::int) → core::int} in true)))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    final core::int #t5 = c;
+    final core::int #t6 = n;
+    for (core::int c = #t5, core::int n = #t6; c.{core::num::<}(n){(core::num) → core::bool}; result.{core::List::add}(c){(core::int) → void}) {
+      result.{core::List::add}(c){(core::int) → void};
+      c = c.{core::num::+}(1){(core::num) → core::int};
+    }
+  }
+  return result;
+}
+static method main() → dynamic {
+  self::expectEquals(self::test1(core::_GrowableList::_literal1<core::int>(0)), 0);
+  self::expectThrows(() → void => self::test1(core::_GrowableList::•<dynamic>(0)));
+  self::expectEquals(self::listToString(self::test2(core::_GrowableList::_literal2<core::int>(1, 2)) as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>), self::listToString(core::_GrowableList::_literal2<dynamic>(1, 2)));
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected '${x}' to be equal to '${y}'.";
+  }
+}
+static method expectThrows(() → void f) → dynamic {
+  core::bool hasThrown = true;
+  try {
+    f(){() → void};
+    hasThrown = false;
+  }
+  on core::Object catch(final core::Object e) {
+  }
+  if(!hasThrown) {
+    throw "Expected function to throw.";
+  }
+}
+static method listToString(core::List<dynamic> list) → dynamic
+  return "[${list.{core::Iterable::map}<core::String>((dynamic e) → core::String => "${e}"){((dynamic) → core::String) → core::Iterable<core::String>}.{core::Iterable::join}(","){([core::String]) → core::String}}]";
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}

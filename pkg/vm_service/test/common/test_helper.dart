@@ -65,7 +65,6 @@ class _ServiceTesteeRunner {
     }
     if (!pause_on_exit) {
       // Wait around for the process to be killed.
-      // ignore: unawaited_futures
       io.stdin.first.then((_) => io.exit(0));
     }
   }

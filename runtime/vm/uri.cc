@@ -135,7 +135,7 @@ static void StringLower(char* str) {
       i += 3;
     } else {
       // I don't use tolower() because I don't want the locale
-      // transforming any non-acii characters.
+      // transforming any non-ascii characters.
       char c = str[i];
       if (c >= 'A' && c <= 'Z') {
         str[i] = c + ('a' - 'A');

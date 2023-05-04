@@ -27,8 +27,6 @@ void defineLanguageServerTests() {
   late utils.TestProject project;
   Process? process;
 
-  tearDown(() async => await project.dispose());
-
   Future runWithLsp(List<String> args) async {
     project = utils.project();
 
@@ -102,7 +100,7 @@ void defineLanguageServerTests() {
 Future<String> _readLspMessage(Stream<List<int>> stream) {
   // Headers are complete if there are 2x '\r\n\'. The '\r' is part of the LSP
   // spec for headers and included on all platforms, not just Windows.
-  const lspHeaderBodySeperator = '\r\n\r\n';
+  const lspHeaderBodySeparator = '\r\n\r\n';
   final contentLengthRegExp = RegExp(r'Content-Length: (\d+)\r\n');
 
   final completer = Completer<String>();
@@ -119,8 +117,8 @@ Future<String> _readLspMessage(Stream<List<int>> stream) {
       // To know if we have a complete message, we need to check we have the
       // headers, extract the content-length, then check we have that many
       // bytes in the body.
-      if (bufferString.contains(lspHeaderBodySeperator)) {
-        final parts = bufferString.split(lspHeaderBodySeperator);
+      if (bufferString.contains(lspHeaderBodySeparator)) {
+        final parts = bufferString.split(lspHeaderBodySeparator);
         final headers = parts[0];
         final body = parts[1];
         final length =

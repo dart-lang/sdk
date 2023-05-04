@@ -14,7 +14,6 @@ import 'package:observatory_2/src/elements/helpers/any_ref.dart';
 import 'package:observatory_2/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory_2/src/elements/helpers/custom_element.dart';
 import 'package:observatory_2/src/elements/helpers/uris.dart';
-import 'package:observatory_2/utils.dart';
 
 class ScriptInsetElement extends CustomElement implements Renderable {
   RenderingScheduler<ScriptInsetElement> _r;
@@ -901,7 +900,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       var position = 0;
       consumeUntil(var stop) {
         if (stop <= position) {
-          return null; // Empty gap between annotations/boundries.
+          return null; // Empty gap between annotations/boundaries.
         }
         if (stop > line.text.length) {
           // Approximated token length can run past the end of the line.

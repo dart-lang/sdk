@@ -8,62 +8,79 @@ main() {
   // Error to assign to pattern variables in guard.
   switch (false) {
     case bool x when x = true:
-      //               ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      //             ^
+      // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+      // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
       print(x);
+    default:
   }
 
   print(switch (false) {
-    case bool x when x = true => x;
-      //               ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    bool x when x = true => x,
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+    // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+    _ => false
   });
 
   if (false case bool x when x = true) {
-    //                         ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //                       ^
+    // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+    // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
     print(x);
   }
 
   print([
     if (false case bool x when x = true)
-      //                         ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      //                       ^
+      // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+      // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
       x
   ]);
 
   // Error even if assignment is nested inside closure.
   switch (false) {
-    case true when () { x = true; }():
-      //                  ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    case var x
+        when () {
+          return x = true;
+          //     ^
+          // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+          // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+        }():
       print(x);
+    default:
   }
 
   print(switch (false) {
-    case true when () { x = true; }() => x;
-      //                  ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    var x
+        when (() {
+          return x = true;
+          //     ^
+          // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+          // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+        })() =>
+      x,
+    _ => false
   });
 
-  if (false case true when () { x = true; }()) {
-    //                            ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+  if (false case var x
+      when (() {
+        return x = true;
+        //     ^
+        // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+        // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+      })()) {
     print(x);
   }
 
   print([
-    if (false case true when () { x = true; }())
-      //                          ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    if (false case var x
+        when (() {
+          return x = true;
+          //     ^
+          // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+          // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+        })())
       x
   ]);
 
@@ -73,10 +90,12 @@ main() {
     case var x when local = true:
       // No error.
       print(x);
+    default:
   }
 
   print(switch (false) {
-    case var x when local = true = x; // No error.
+    var x when local = true => x, // No error.
+    _ => 0,
   });
 
   if (false case var x when local = true) {
@@ -95,10 +114,12 @@ main() {
         case bool y when x = true:
           // No error.
           print(y);
+        default:
       }
 
       print(switch (false) {
-        case bool y when x = true => y; // No error.
+        bool y when x = true => y, // No error.
+        _ => 0,
       });
 
       if (false case bool y when x = true) {

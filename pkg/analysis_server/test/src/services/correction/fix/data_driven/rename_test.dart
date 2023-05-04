@@ -18,6 +18,7 @@ void main() {
     defineReflectiveTests(RenameExtensionTest);
     defineReflectiveTests(RenameFieldTest);
     defineReflectiveTests(RenameGetterTest);
+    defineReflectiveTests(RenameSetterTest);
     defineReflectiveTests(RenameMethodTest);
     defineReflectiveTests(RenameMixinTest);
     defineReflectiveTests(RenameTopLevelFunctionTest);
@@ -301,8 +302,8 @@ void f(New o) {}
   Future<void> test_inWith_deprecated() async {
     setPackageContent('''
 @deprecated
-class Old {}
-class New {}
+mixin class Old {}
+mixin class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
     await resolveTestCode('''
@@ -319,7 +320,7 @@ class C with New {}
 
   Future<void> test_inWith_removed() async {
     setPackageContent('''
-class New {}
+mixin class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
     await resolveTestCode('''
@@ -1335,6 +1336,37 @@ class C with p.Old {}
 import '$importUri' as p;
 
 class C with p.New {}
+''');
+  }
+}
+
+@reflectiveTest
+class RenameSetterTest extends _AbstractRenameTest {
+  @override
+  // TODO(asashour) consider changing the kind to `setter`,
+  // and matching it as `method`
+  String get _kind => 'method';
+
+  Future<void> test_invalidOverride() async {
+    setPackageContent('''
+class A {
+  set x(int i) {}
+}
+''');
+    setPackageData(_rename(['x', 'B'], 'y'));
+    await resolveTestCode('''
+import '$importUri';
+
+class B extends A {
+  set x(String s) {}
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class B extends A {
+  set y(String s) {}
+}
 ''');
   }
 }

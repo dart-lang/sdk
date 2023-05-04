@@ -6,8 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-// ignore_for_file: constant_identifier_names
-
 /// Matchers for data types defined in the analysis server API.
 import 'package:test/test.dart';
 
@@ -99,7 +97,6 @@ final Matcher isAnalysisErrorType = MatchesEnum('AnalysisErrorType', [
 ///   "enableDeferredLoading": optional bool
 ///   "enableEnums": optional bool
 ///   "enableNullAwareOperators": optional bool
-///   "enableSuperMixins": optional bool
 ///   "generateDart2jsHints": optional bool
 ///   "generateHints": optional bool
 ///   "generateLints": optional bool
@@ -110,7 +107,6 @@ final Matcher isAnalysisOptions = LazyMatcher(
           'enableDeferredLoading': isBool,
           'enableEnums': isBool,
           'enableNullAwareOperators': isBool,
-          'enableSuperMixins': isBool,
           'generateDart2jsHints': isBool,
           'generateHints': isBool,
           'generateLints': isBool
@@ -847,6 +843,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   METHOD_DECLARATION
 ///   METHOD_DECLARATION_STATIC
 ///   METHOD_STATIC
+///   MIXIN
 ///   PARAMETER
 ///   SETTER_DECLARATION
 ///   TOP_LEVEL_VARIABLE
@@ -930,6 +927,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'METHOD_DECLARATION',
   'METHOD_DECLARATION_STATIC',
   'METHOD_STATIC',
+  'MIXIN',
   'PARAMETER',
   'SETTER_DECLARATION',
   'TOP_LEVEL_VARIABLE',
@@ -1121,6 +1119,25 @@ final Matcher isLocation = LazyMatcher(() => MatchesJsonObject('Location', {
       'endLine': isInt,
       'endColumn': isInt
     }));
+
+/// MessageAction
+///
+/// {
+///   "label": String
+/// }
+final Matcher isMessageAction =
+    LazyMatcher(() => MatchesJsonObject('MessageAction', {'label': isString}));
+
+/// MessageType
+///
+/// enum {
+///   ERROR
+///   WARNING
+///   INFO
+///   LOG
+/// }
+final Matcher isMessageType =
+    MatchesEnum('MessageType', ['ERROR', 'WARNING', 'INFO', 'LOG']);
 
 /// NavigationRegion
 ///
@@ -3066,6 +3083,29 @@ final Matcher isServerGetVersionResult = LazyMatcher(
 final Matcher isServerLogParams = LazyMatcher(
     () => MatchesJsonObject('server.log params', {'entry': isServerLogEntry}));
 
+/// server.openUrlRequest params
+///
+/// {
+///   "url": String
+/// }
+final Matcher isServerOpenUrlRequestParams = LazyMatcher(
+    () => MatchesJsonObject('server.openUrlRequest params', {'url': isString}));
+
+/// server.openUrlRequest result
+final Matcher isServerOpenUrlRequestResult = isNull;
+
+/// server.setClientCapabilities params
+///
+/// {
+///   "requests": List<String>
+/// }
+final Matcher isServerSetClientCapabilitiesParams = LazyMatcher(() =>
+    MatchesJsonObject('server.setClientCapabilities params',
+        {'requests': isListOf(isString)}));
+
+/// server.setClientCapabilities result
+final Matcher isServerSetClientCapabilitiesResult = isNull;
+
 /// server.setSubscriptions params
 ///
 /// {
@@ -3077,6 +3117,29 @@ final Matcher isServerSetSubscriptionsParams = LazyMatcher(() =>
 
 /// server.setSubscriptions result
 final Matcher isServerSetSubscriptionsResult = isNull;
+
+/// server.showMessageRequest params
+///
+/// {
+///   "type": MessageType
+///   "message": String
+///   "actions": List<MessageAction>
+/// }
+final Matcher isServerShowMessageRequestParams = LazyMatcher(() =>
+    MatchesJsonObject('server.showMessageRequest params', {
+      'type': isMessageType,
+      'message': isString,
+      'actions': isListOf(isMessageAction)
+    }));
+
+/// server.showMessageRequest result
+///
+/// {
+///   "action": optional String
+/// }
+final Matcher isServerShowMessageRequestResult = LazyMatcher(() =>
+    MatchesJsonObject('server.showMessageRequest result', null,
+        optionalFields: {'action': isString}));
 
 /// server.shutdown params
 final Matcher isServerShutdownParams = isNull;

@@ -11,10 +11,7 @@ class A1 extends core::Object {
     : self::A1::a = a, super core::Object::•()
     ;
 }
-class B1 extends core::Object {
-  synthetic constructor •() → self::B1
-    : super core::Object::•()
-    ;
+abstract class B1 extends core::Object /*isMixinDeclaration*/  {
 }
 class C1 extends self::A1 implements self::B1 /*isEliminatedMixin*/  {
   synthetic constructor •(core::int a) → self::C1
@@ -32,10 +29,7 @@ class A2 extends core::Object {
     : self::A2::a = a, super core::Object::•()
     ;
 }
-class B2 extends core::Object {
-  synthetic constructor •() → self::B2
-    : super core::Object::•()
-    ;
+abstract class B2 extends core::Object /*isMixinDeclaration*/  {
 }
 class C2 extends self::A2 implements self::B2 /*isEliminatedMixin*/  {
   synthetic constructor •({core::int a = #C1}) → self::C2
@@ -53,10 +47,7 @@ class A3 extends core::Object {
     : self::A3::a = a, super core::Object::•()
     ;
 }
-class B3 extends core::Object {
-  synthetic constructor •() → self::B3
-    : super core::Object::•()
-    ;
+abstract class B3 extends core::Object /*isMixinDeclaration*/  {
 }
 class C3 extends self::A3 implements self::B3 /*isEliminatedMixin*/  {
   synthetic constructor •([core::int a = #C1]) → self::C3
@@ -78,10 +69,7 @@ class C4 extends self::A4 implements self::B4 /*isEliminatedMixin*/  {
     : super self::A4::•(foo)
     ;
 }
-class B4 extends core::Object {
-  synthetic constructor •() → self::B4
-    : super core::Object::•()
-    ;
+abstract class B4 extends core::Object /*isMixinDeclaration*/  {
 }
 class A4 extends self::AA4 {
   constructor •([core::int foo = #C2]) → self::A4
@@ -114,10 +102,7 @@ class C5a extends self::A5 implements self::B5 /*isEliminatedMixin*/  {
     : super self::A5::•(foo)
     ;
 }
-class B5 extends core::Object {
-  synthetic constructor •() → self::B5
-    : super core::Object::•()
-    ;
+abstract class B5 extends core::Object /*isMixinDeclaration*/  {
 }
 class A5 extends self::AA5 {
   constructor •([core::int foo = #C2]) → self::A5
@@ -135,10 +120,7 @@ class D6 extends syn::C6 {
     : super syn::C6::•(a: a)
     ;
 }
-class B7 extends core::Object {
-  synthetic constructor •() → self::B7
-    : super core::Object::•()
-    ;
+abstract class B7 extends core::Object /*isMixinDeclaration*/  {
 }
 class C7 extends syn::A7 implements self::B7 /*isEliminatedMixin*/  {
   synthetic constructor •([core::int a = #C1]) → self::C7
@@ -155,10 +137,7 @@ class D8 extends syn::C8 {
     : super syn::C8::•(a: a)
     ;
 }
-class B9 extends core::Object {
-  synthetic constructor •() → self::B9
-    : super core::Object::•()
-    ;
+abstract class B9 extends core::Object /*isMixinDeclaration*/  {
 }
 class C9 extends syn::A9 implements self::B9 /*isEliminatedMixin*/  {
   synthetic constructor •([core::int? a = #C3]) → self::C9
@@ -182,10 +161,7 @@ class A6 extends core::Object {
     : syn::A6::a = a, super core::Object::•()
     ;
 }
-class B6 extends core::Object {
-  synthetic constructor •() → syn::B6
-    : super core::Object::•()
-    ;
+abstract class B6 extends core::Object /*isMixinDeclaration*/  {
 }
 class C6 extends syn::A6 implements syn::B6 /*isEliminatedMixin*/  {
   synthetic constructor •({core::int a = #C1}) → syn::C6
@@ -204,10 +180,7 @@ class A8 extends core::Object {
     : syn::A8::a = a, super core::Object::•()
     ;
 }
-class B8 extends core::Object {
-  synthetic constructor •() → syn::B8
-    : super core::Object::•()
-    ;
+abstract class B8 extends core::Object /*isMixinDeclaration*/  {
 }
 class C8 extends syn::A8 implements syn::B8 /*isEliminatedMixin*/  {
   synthetic constructor •({core::int? a = #C3}) → syn::C8

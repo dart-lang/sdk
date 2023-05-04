@@ -13,7 +13,7 @@ class Super {
   void extendedDuplicate2() {}
 }
 
-class Mixin {
+mixin Mixin {
   //void mixinDuplicate1() {}
   //int get mixinDuplicate1 => 42;
 

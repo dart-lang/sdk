@@ -240,13 +240,15 @@ class DevToolsServerTestController {
   }) async {
     late Map<String, dynamic> serverResponse;
 
-    final isOnPage = (client) => client['currentPage'] == requiredPage;
-    final hasConnectionState = (client) => requiredConnectionState ?? false
-        // If we require a connected client, also require a non-null page. This
-        // avoids a race in tests where we may proceed to send messages to a client
-        // that is not fully initialised.
-        ? (client['hasConnection'] && client['currentPage'] != null)
-        : !client['hasConnection'];
+    bool isOnPage(client) => client['currentPage'] == requiredPage;
+    bool hasConnectionState(client) {
+      return requiredConnectionState ?? false
+          // If we require a connected client, also require a non-null page.
+          // This avoids a race in tests where we may proceed to send messages
+          // to a client that is not fully initialised.
+          ? (client['hasConnection'] && client['currentPage'] != null)
+          : !client['hasConnection'];
+    }
 
     await _waitFor(
       () async {
@@ -268,7 +270,7 @@ class DevToolsServerTestController {
   }
 
   Future<void> _waitFor(
-    Future<bool> condition(), {
+    Future<bool> Function() condition, {
     Duration delayDuration = defaultDelay,
   }) async {
     while (true) {

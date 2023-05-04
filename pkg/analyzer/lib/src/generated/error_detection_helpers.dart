@@ -34,7 +34,8 @@ mixin ErrorDetectionHelpers {
       DartType actualStaticType,
       ErrorCode errorCode,
       {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    if (!expectedStaticType.isVoid && checkForUseOfVoidResult(expression)) {
+    if (expectedStaticType is! VoidType &&
+        checkForUseOfVoidResult(expression)) {
       return;
     }
 
@@ -67,7 +68,8 @@ mixin ErrorDetectionHelpers {
       DartType expectedStaticType,
       ErrorCode errorCode,
       {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    if (!expectedStaticType.isVoid && checkForUseOfVoidResult(expression)) {
+    if (expectedStaticType is! VoidType &&
+        checkForUseOfVoidResult(expression)) {
       return;
     }
 
@@ -80,6 +82,21 @@ mixin ErrorDetectionHelpers {
           return getErrorNode(node.expression);
         }
         return node;
+      }
+
+      if (expectedStaticType is RecordType) {
+        if (actualStaticType is! RecordType &&
+            expectedStaticType.positionalFields.length == 1) {
+          var field = expectedStaticType.positionalFields.first;
+          if (typeSystem.isAssignableTo(field.type, actualStaticType)) {
+            errorReporter.reportErrorForNode(
+              WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+              expression,
+              [],
+            );
+            return;
+          }
+        }
       }
 
       errorReporter.reportErrorForNode(
@@ -108,7 +125,7 @@ mixin ErrorDetectionHelpers {
     // test the static type of the expression
     DartType staticType = expression.typeOrThrow;
     if (typeSystem.isAssignableTo(staticType, fieldType)) {
-      if (!fieldType.isVoid) {
+      if (fieldType is! VoidType) {
         checkForUseOfVoidResult(expression);
       }
       return;

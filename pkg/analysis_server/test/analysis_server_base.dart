@@ -9,8 +9,10 @@ import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -58,9 +60,15 @@ class AnalysisOptionsFileConfig {
     buffer.writeln('    strict-casts: $strictCasts');
     buffer.writeln('    strict-inference: $strictInference');
     buffer.writeln('    strict-raw-types: $strictRawTypes');
-    buffer.writeln('  strong-mode:');
-    buffer.writeln('    implicit-casts: $implicitCasts');
-    buffer.writeln('    implicit-dynamic: $implicitDynamic');
+    if (!implicitCasts || !implicitDynamic) {
+      buffer.writeln('  strong-mode:');
+      if (!implicitCasts) {
+        buffer.writeln('    implicit-casts: $implicitCasts');
+      }
+      if (!implicitDynamic) {
+        buffer.writeln('    implicit-dynamic: $implicitDynamic');
+      }
+    }
 
     buffer.writeln('linter:');
     buffer.writeln('  rules:');
@@ -92,6 +100,8 @@ class ContextResolutionTest with ResourceProviderMixin {
   late final MockServerChannel serverChannel;
   late final LegacyAnalysisServer server;
 
+  DartFixPromptManager? dartFixPromptManager;
+
   final List<GeneralAnalysisService> _analysisGeneralServices = [];
   final Map<AnalysisService, List<String>> _analysisFileSubscriptions = {};
 
@@ -118,7 +128,7 @@ class ContextResolutionTest with ResourceProviderMixin {
   void createDefaultFiles() {}
 
   Future<Response> handleRequest(Request request) async {
-    return await serverChannel.sendRequest(request);
+    return await serverChannel.simulateRequestFromClient(request);
   }
 
   /// Validates that the given [request] is handled successfully.
@@ -181,6 +191,7 @@ class ContextResolutionTest with ResourceProviderMixin {
       AnalyticsManager(NoopAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
+      dartFixPromptManager: dartFixPromptManager,
     );
 
     server.pluginManager = pluginManager;
@@ -208,9 +219,15 @@ class ContextResolutionTest with ResourceProviderMixin {
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest {
   // If experiments are needed,
-  // add `import 'package:analyzer/src/dart/analysis/experiments.dart';`
+  // add `import 'package:analyzer/dart/analysis/features.dart';`
   // and list the necessary experiments here.
-  List<String> get experiments => [];
+  List<String> get experiments => [
+        Feature.class_modifiers.enableString,
+        Feature.macros.enableString,
+        Feature.patterns.enableString,
+        Feature.records.enableString,
+        Feature.sealed_class.enableString,
+      ];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';

@@ -1,0 +1,2 @@
+dynamic guard() => true;
+main() {}

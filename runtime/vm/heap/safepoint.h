@@ -103,11 +103,11 @@ class SafepointHandler {
     bool SafepointInProgress() const {
       ASSERT(threads_lock()->IsOwnedByCurrentThread());
       ASSERT((operation_count_ > 0) == (owner_ != nullptr));
-      return ((operation_count_ > 0) && (owner_ != NULL));
+      return ((operation_count_ > 0) && (owner_ != nullptr));
     }
     void SetSafepointInProgress(Thread* T) {
       ASSERT(threads_lock()->IsOwnedByCurrentThread());
-      ASSERT(owner_ == NULL);
+      ASSERT(owner_ == nullptr);
       ASSERT(operation_count_ == 0);
       operation_count_ = 1;
       owner_ = T;
@@ -117,7 +117,7 @@ class SafepointHandler {
       ASSERT(owner_ == T);
       ASSERT(operation_count_ == 1);
       operation_count_ = 0;
-      owner_ = NULL;
+      owner_ = nullptr;
     }
     void NotifyWeAreParked(Thread* T);
 
@@ -142,7 +142,8 @@ class SafepointHandler {
     Monitor parked_lock_;
 
     // If a safepoint operation is currently in progress, this field contains
-    // the thread that initiated the safepoint operation, otherwise it is NULL.
+    // the thread that initiated the safepoint operation, otherwise it is
+    // nullptr.
     Thread* owner_ = nullptr;
 
     // The number of nested safepoint operations currently held.
@@ -229,8 +230,8 @@ class TransitionSafepointState : public ThreadStackResource {
   ~TransitionSafepointState() {}
 
   SafepointHandler* handler() const {
-    ASSERT(thread()->isolate() != NULL);
-    ASSERT(thread()->isolate()->safepoint_handler() != NULL);
+    ASSERT(thread()->isolate() != nullptr);
+    ASSERT(thread()->isolate()->safepoint_handler() != nullptr);
     return thread()->isolate()->safepoint_handler();
   }
 

@@ -107,7 +107,7 @@ class CommandOutput {
 
   bool _didFail(TestCase testCase) => exitCode != 0 && !hasCrashed;
 
-  bool get canRunDependendCommands {
+  bool get canRunDependentCommands {
     // FIXME(kustermann): We may need to change this
     return !hasTimedOut && exitCode == 0;
   }
@@ -337,6 +337,7 @@ class BrowserCommandOutput extends CommandOutput
         super(command, 0, result.didTimeout, stdout, stderr, result.duration,
             false, 0);
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle timeouts first.
     if (_result.didTimeout) {
@@ -357,6 +358,7 @@ class BrowserCommandOutput extends CommandOutput
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // Handle timeouts first.
     if (_result.didTimeout) {
@@ -368,6 +370,7 @@ class BrowserCommandOutput extends CommandOutput
     return _outcome;
   }
 
+  @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
     if (_jsonResult != null) {
       _describeEvents(progress, output);
@@ -392,15 +395,15 @@ class BrowserCommandOutput extends CommandOutput
 
   void _describeEvents(Progress progress, OutputWriter output) {
     // Always show the error events since those are most useful.
-    var showedError = false;
+    var errorShown = false;
 
-    void _showError(String header, event) {
+    void showError(String header, event) {
       output.subsection(header);
       var value = event["value"] as String?;
       if (event["stack_trace"] != null) {
         value = '$value\n${event["stack_trace"]}';
       }
-      showedError = true;
+      errorShown = true;
       output.write(value);
 
       // Skip deobfuscation if there is no indication that there is a stack
@@ -419,15 +422,15 @@ class BrowserCommandOutput extends CommandOutput
 
     for (var event in _jsonResult!.events) {
       if (event["type"] == "sync_exception") {
-        _showError("Runtime error", event);
+        showError("Runtime error", event);
       } else if (event["type"] == "window_onerror") {
-        _showError("Runtime window.onerror", event);
+        showError("Runtime window.onerror", event);
       }
     }
 
     // Show the events unless the above error was sufficient.
     // TODO(rnystrom): Let users enable or disable this explicitly?
-    if (showedError &&
+    if (errorShown &&
         progress != Progress.buildbot &&
         progress != Progress.verbose) {
       return;
@@ -451,7 +454,7 @@ class BrowserCommandOutput extends CommandOutput
         case "window_onerror":
           var value = event["value"] as String;
           value = indent(value.trim(), 2);
-          value = "- " + value.substring(2);
+          value = "- ${value.substring(2)}";
           output.write(value);
           break;
 
@@ -465,6 +468,25 @@ class BrowserCommandOutput extends CommandOutput
 
 /// A parsed analyzer error diagnostic.
 class AnalyzerError implements Comparable<AnalyzerError> {
+  /// The set of static warnings which must be expected in a test. Any warning
+  /// not specified here which is reported by the analyzer does not need to be
+  /// expected, and never causes a test to fail.
+  static const Set<String> _specifiedWarnings = {
+    'dead_null_aware_expression',
+    'invalid_null_aware_operator',
+    'missing_enum_constant_in_switch',
+    'unnecessary_non_null_assertion',
+    'unnecessary_null_assert_pattern',
+    'unnecessary_null_check_pattern',
+  };
+
+  /// The set of hints which must be expected in a test. Any hint not specified
+  /// here which is reported by the analyzer does not need to be expected, and
+  /// never causes a test to fail.
+  static const Set<String> _specifiedHints = {
+    'unreachable_switch_case',
+  };
+
   /// Parses all errors from analyzer [stdout] output.
   static List<AnalyzerError> parseStdout(String stdout) {
     var result = <AnalyzerError>[];
@@ -479,8 +501,25 @@ class AnalyzerError implements Comparable<AnalyzerError> {
     for (var diagnostic in jsonData['diagnostics'] as List<dynamic>) {
       var diagnosticMap = diagnostic as Map<String, dynamic>;
 
-      var type = diagnosticMap['type'] as String?;
       var code = diagnosticMap['code'] as String;
+      var type = diagnosticMap['type'] as String?;
+
+      if (type == 'HINT' && !_specifiedHints.contains(code)) {
+        // The analyzer can report hints which do not need to be expected in
+        // the test source. These can be ignored.
+        // TODO(srawlins): Hints will start to change to be warnings. There are
+        // some warnings produced now which must be expected. See
+        // [StaticError._analyzerWarningCodes]. When we change hints to
+        // warnings, we will need to ignore them here.
+        continue;
+      }
+
+      if (type == 'STATIC_WARNING' && !_specifiedWarnings.contains(code)) {
+        continue;
+      }
+
+      if (type == 'LINT') continue;
+
       var errorCode = '$type.${code.toUpperCase()}';
 
       var error = _parse(
@@ -582,7 +621,8 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     for (var diagnostic in AnalyzerError.parseStdout(stdout)) {
       if (diagnostic.severity == 'ERROR') {
         errors.add(convert(diagnostic));
-      } else if (diagnostic.severity == 'WARNING' && warnings != null) {
+      } else if (warnings != null &&
+          (diagnostic.severity == 'WARNING' || diagnostic.severity == 'INFO')) {
         warnings.add(convert(diagnostic));
       }
     }
@@ -612,6 +652,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
 
+  @override
   Expectation result(TestCase testCase) {
     // TODO(kustermann): If we run the analyzer not in batch mode, make sure
     // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
@@ -659,6 +700,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // TODO(kustermann): If we run the analyzer not in batch mode, make sure
     // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
@@ -761,6 +803,7 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.crash;
@@ -778,6 +821,7 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.crash;
@@ -808,6 +852,7 @@ class SpecParseCommandOutput extends CommandOutput {
 
   bool get hasSyntaxError => exitCode == parseFailExitCode;
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
@@ -835,6 +880,7 @@ class SpecParseCommandOutput extends CommandOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
@@ -851,13 +897,16 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _compileErrorExitCode = 254;
   static const _uncaughtExceptionExitCode = 255;
   static const _adbInfraFailureCodes = [10];
-  static const _ubsanFailureExitCode = 1;
+  // Note that in https://github.com/llvm/llvm-project/blob/main/compiler-rt/lib/sanitizer_common/sanitizer_flags.inc `exitcode` defaults to 1.
+  // Older versions had various per-sanitizer exit codes.
+  static const _sanitizerFailureExitCode = 1;
   static const _frontEndTestExitCode = 1;
 
   VMCommandOutput(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time, int pid)
       : super(command, exitCode, timedOut, stdout, stderr, time, false, pid);
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (exitCode == _dfeErrorExitCode) return Expectation.dartkCrash;
@@ -899,6 +948,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (exitCode == _dfeErrorExitCode) return Expectation.dartkCrash;
@@ -910,8 +960,8 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     // The actual outcome depends on the exitCode.
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
     if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
-    if (exitCode == _ubsanFailureExitCode &&
-        testCase.configuration.sanitizer == Sanitizer.ubsan) {
+    if (exitCode == _sanitizerFailureExitCode &&
+        testCase.configuration.sanitizer != Sanitizer.none) {
       return Expectation.fail;
     }
     if (exitCode == _frontEndTestExitCode &&
@@ -959,6 +1009,7 @@ class CompilationCommandOutput extends CommandOutput {
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
   /// This code can return Expectation.ignore - we may want to fix that.
+  @override
   Expectation realResult(TestCase testCase) {
     // Handle general crash/timeout detection.
     if (hasCrashed) return Expectation.crash;
@@ -984,6 +1035,7 @@ class CompilationCommandOutput extends CommandOutput {
     return Expectation.pass;
   }
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle general crash/timeout detection.
     if (hasCrashed) return Expectation.crash;
@@ -1135,6 +1187,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, pid);
 
+  @override
   Expectation result(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
@@ -1158,6 +1211,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
@@ -1195,13 +1249,15 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped);
 
-  bool get canRunDependendCommands {
+  @override
+  bool get canRunDependentCommands {
     // See [BatchRunnerProcess]: 0 means success, 1 means compile-time error.
     // TODO(asgerf): When the frontend supports it, continue running even if
     // there were compile-time errors. See kernel_sdk issue #18.
     return !hasCrashed && !hasTimedOut && exitCode == 0;
   }
 
+  @override
   Expectation result(TestCase testCase) {
     // TODO(kustermann): Currently the batch mode runner (which can be found
     // in `test_runner.dart:BatchRunnerProcess`) does not really distinguish
@@ -1245,6 +1301,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // TODO(kustermann): Currently the batch mode runner (which can be found
     // in `test_runner.dart:BatchRunnerProcess`) does not really distinguish
@@ -1284,7 +1341,8 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
   ///
   /// This ensures we test that the DartVM produces correct CompileTime errors
   /// as it is supposed to for our test suites.
-  bool get successful => canRunDependendCommands;
+  @override
+  bool get successful => canRunDependentCommands;
 }
 
 class JSCommandLineOutput extends CommandOutput
@@ -1293,6 +1351,7 @@ class JSCommandLineOutput extends CommandOutput
       List<int> stdout, List<int> stderr, Duration time)
       : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
 
+  @override
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
@@ -1311,6 +1370,7 @@ class JSCommandLineOutput extends CommandOutput
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
+  @override
   Expectation realResult(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
@@ -1326,6 +1386,7 @@ class JSCommandLineOutput extends CommandOutput
     return Expectation.pass;
   }
 
+  @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
     super.describe(testCase, progress, output);
     var decodedOut = decodeUtf8(stdout)
@@ -1334,6 +1395,48 @@ class JSCommandLineOutput extends CommandOutput
         .trim();
 
     _deobfuscateAndWriteStack(decodedOut, output);
+  }
+}
+
+class Dart2WasmCommandLineOutput extends CommandOutput
+    with _UnittestSuiteMessagesMixin {
+  Dart2WasmCommandLineOutput(Command command, int exitCode, bool timedOut,
+      List<int> stdout, List<int> stderr, Duration time)
+      : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
+
+  @override
+  Expectation result(TestCase testCase) {
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
+    if (testCase.hasRuntimeError) {
+      if (exitCode != 0) return Expectation.pass;
+      return Expectation.missingRuntimeError;
+    }
+
+    var outcome = exitCode == 0 ? Expectation.pass : Expectation.runtimeError;
+    return _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
+  }
+
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  @override
+  Expectation realResult(TestCase testCase) {
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
+    if (exitCode != 0) return Expectation.runtimeError;
+    var output = decodeUtf8(stdout);
+    if (_isAsyncTest(output) && !_isAsyncTestSuccessful(output)) {
+      return Expectation.fail;
+    }
+    return Expectation.pass;
   }
 }
 
@@ -1347,12 +1450,16 @@ class ScriptCommandOutput extends CommandOutput {
     diagnostics.addAll(lines);
   }
 
+  @override
   Expectation result(TestCase testCase) => _result;
 
+  @override
   Expectation realResult(TestCase testCase) => _result;
 
-  bool get canRunDependendCommands => _result == Expectation.pass;
+  @override
+  bool get canRunDependentCommands => _result == Expectation.pass;
 
+  @override
   bool get successful => _result == Expectation.pass;
 }
 
@@ -1456,7 +1563,6 @@ mixin _StaticErrorOutput on CommandOutput {
   /// Same as `int.parse`, but allows nulls to simply pass through.
   static int? _parseNullableInt(String? s) {
     if (s == null) {
-      // ignore: avoid_returning_null
       return null;
     }
     return int.parse(s);
@@ -1518,6 +1624,7 @@ mixin _StaticErrorOutput on CommandOutput {
     }
   }
 
+  @override
   Expectation result(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
@@ -1532,6 +1639,7 @@ mixin _StaticErrorOutput on CommandOutput {
     return super.result(testCase);
   }
 
+  @override
   Expectation realResult(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
@@ -1574,8 +1682,6 @@ mixin _StaticErrorOutput on CommandOutput {
       Compiler.dart2analyzer: ErrorSource.analyzer,
       Compiler.dart2js: ErrorSource.web,
       Compiler.dart2wasm: ErrorSource.web,
-      Compiler.dartdevc: ErrorSource.web,
-      Compiler.dartdevk: ErrorSource.web,
       Compiler.ddc: ErrorSource.web,
       Compiler.fasta: ErrorSource.cfe
     }[testCase.configuration.compiler]!;

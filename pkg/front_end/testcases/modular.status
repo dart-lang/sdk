@@ -21,7 +21,6 @@ extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # 
 extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
 extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
-extensions/explicit_invalid_access: Crash # https://github.com/dart-lang/sdk/issues/50575
 extensions/extension_setter_error: TypeCheckError
 general/abstract_members: TypeCheckError
 general/bounded_implicit_instantiation: TypeCheckError
@@ -37,7 +36,6 @@ general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invalid_operator_override: TypeCheckError
 general/invocations: TypeCheckError
-general/issue40242: Crash # https://github.com/dart-lang/sdk/issues/50575
 general/issue41210a: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
@@ -85,5 +83,5 @@ nnbd_mixed/inheritance_from_opt_in: TypeCheckError
 nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
-rasta/malformed_function: Crash # https://github.com/dart-lang/sdk/issues/50575
+no_such_method_forwarders/mixin_nsm: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError

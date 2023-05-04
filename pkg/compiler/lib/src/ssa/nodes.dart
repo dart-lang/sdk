@@ -255,6 +255,7 @@ class HGraph {
   // store it on HInstruction, or maybe this can be computed on demand).
   final Set<HInstruction> allocatedFixedLists = {};
 
+  /// SourceInformation for the 'graph' is the location of the entry
   SourceInformation? sourceInformation;
 
   // We canonicalize all constants used within a graph so we do not
@@ -1127,11 +1128,7 @@ abstract class HInstruction implements SpannableWithEntity {
   static const int LATE_WRITE_ONCE_CHECK_TYPECODE = 62;
   static const int LATE_INITIALIZE_ONCE_CHECK_TYPECODE = 63;
 
-  HInstruction(this.inputs, this.instructionType) {
-    // TODO(48820): remove this assertion:
-    assert(inputs.every((e) => (e as dynamic) != null), "inputs: $inputs");
-  }
-
+  HInstruction(this.inputs, this.instructionType);
   @override
   Entity? get sourceEntity => sourceElement;
 
@@ -2345,7 +2342,7 @@ class HLocalSet extends HLocalAccess {
 ///
 /// HInvokeDynamicMethod can be lowered to HInvokeExternal with the same
 /// [element]. The difference is a HInvokeDynamicMethod is a call to a
-/// Dart-calling-convention stub identifed by [element] that contains a call to
+/// Dart-calling-convention stub identified by [element] that contains a call to
 /// the external method, whereas a HInvokeExternal instruction is a direct
 /// JavaScript call to the external method identified by [element].
 class HInvokeExternal extends HInvoke {
@@ -2451,8 +2448,6 @@ class HForeignCode extends HForeign {
       : this.nativeBehavior = nativeBehavior,
         //this.throwBehavior = throwBehavior,
         super(type, inputs) {
-    assert((codeTemplate as dynamic) != null); // TODO(48820): remove.
-
     if (effects == null && nativeBehavior != null) {
       effects = nativeBehavior.sideEffects;
     }
@@ -2662,6 +2657,13 @@ class HSwitch extends HControlFlow {
 }
 
 abstract class HBinaryBitOp extends HInvokeBinary {
+  /// JavaScript bitwise operations like `&` produce a 32-bit signed results but
+  /// the Dart-web operations produce an unsigned result. Conversion to unsigned
+  /// might be unnecessary (e.g. the inputs are such that JavaScript operation
+  /// cannot produce a negative value). During instruction selection we
+  /// determine if conversion is unnecessary.
+  bool requiresUintConversion = true;
+
   HBinaryBitOp(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
 }
@@ -2789,6 +2791,12 @@ class HAbs extends HInvokeUnary {
 }
 
 class HBitNot extends HInvokeUnary {
+  /// JavaScript `~` produces a 32-bit signed result the Dart-web operation
+  /// produces an unsigned result. Conversion to unsigned might be unnecessary
+  /// (e.g. the value is immediately masked). During instruction selection we
+  /// determine if conversion is unnecessary.
+  bool requiresUintConversion = true;
+
   HBitNot(HInstruction input, AbstractValue type) : super(input, type);
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitBitNot(this);
@@ -3350,7 +3358,7 @@ class HInterceptor extends HInstruction {
   }
 }
 
-/// A "one-shot" interceptor is a call to a synthetized method that will fetch
+/// A "one-shot" interceptor is a call to a synthesized method that will fetch
 /// the interceptor of its first parameter, and make a call on a given selector
 /// with the remaining parameters.
 ///
@@ -4330,6 +4338,8 @@ AbstractBool _typeTest(
     if (expressionIsNull.isPotentiallyTrue) {
       if (dartType.isObject) return AbstractBool.Maybe;
     }
+  } else if (expressionIsNull.isDefinitelyTrue && _nullIs(dartType)) {
+    return AbstractBool.True;
   }
 
   if (checkedAbstractValue.isPrecise &&
@@ -4421,8 +4431,7 @@ class HAsCheck extends HCheck {
       this.checkedTypeExpression,
       this.isTypeError,
       AbstractValue instructionType)
-      : assert((isTypeError as dynamic) != null), // TODO(48820): remove.
-        super([rti, checked], instructionType);
+      : super([rti, checked], instructionType);
 
   // The type input is first to facilitate the `type.as(value)` codegen pattern.
   HInstruction get typeInput => inputs[0];

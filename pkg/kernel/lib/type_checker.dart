@@ -852,7 +852,7 @@ class TypeCheckingVisitor
     }
     assert(
         result != null,
-        "Encountered RecordNameGet with non-existent name key: "
+        "Encountered RecordNameGet with nonexistent name key: "
         "'${node.name}'.");
     return result!;
   }
@@ -1248,5 +1248,32 @@ class TypeCheckingVisitor
     checkUnresolvedInvocation(receiverType, node);
     // TODO(johnniwinther): Return the correct result type.
     return const DynamicType();
+  }
+
+  @override
+  void visitPatternSwitchStatement(PatternSwitchStatement node) {
+    // TODO(johnniwinther): Implement this.
+  }
+
+  @override
+  DartType visitSwitchExpression(SwitchExpression node) {
+    // TODO(johnniwinther): Implement this.
+    return node.staticType!;
+  }
+
+  @override
+  void visitIfCaseStatement(IfCaseStatement node) {
+    // TODO(johnniwinther): Implement this.
+  }
+
+  @override
+  DartType visitPatternAssignment(PatternAssignment node) {
+    // TODO(johnniwinther): Implement this.
+    return visitExpression(node.expression);
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    // TODO(johnniwinther): Implement this.
   }
 }

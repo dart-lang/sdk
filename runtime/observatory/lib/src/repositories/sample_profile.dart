@@ -117,10 +117,7 @@ class IsolateSampleProfileRepository
   Stream<SampleProfileLoadingProgressEvent> get(
       M.IsolateRef i, M.SampleProfileTag t,
       {bool clear = false, bool forceFetch = false}) {
-    assert(clear != null);
-    assert(forceFetch != null);
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     if ((_last != null) && !clear && !forceFetch && (_last!.owner == isolate)) {
       _last!.reuse(t);
     } else {
@@ -136,20 +133,16 @@ class ClassSampleProfileRepository implements M.ClassSampleProfileRepository {
       {bool clear = false, bool forceFetch = false}) {
     S.Isolate isolate = i as S.Isolate;
     S.Class cls = c as S.Class;
-    assert(isolate != null);
-    assert(cls != null);
     return SampleProfileLoadingProgress(isolate, t, false, cls: cls).onProgress;
   }
 
   Future enable(M.IsolateRef i, M.ClassRef c) {
     S.Class cls = c as S.Class;
-    assert(cls != null);
     return cls.setTraceAllocations(true);
   }
 
   Future disable(M.IsolateRef i, M.ClassRef c) {
     S.Class cls = c as S.Class;
-    assert(cls != null);
     return cls.setTraceAllocations(false);
   }
 }
@@ -160,11 +153,9 @@ class NativeMemorySampleProfileRepository
 
   Stream<SampleProfileLoadingProgressEvent> get(M.VM vm, M.SampleProfileTag t,
       {bool forceFetch = false, bool clear = false}) {
-    assert(forceFetch != null);
     S.VM owner = vm as S.VM;
-    assert(owner != null);
 
-    if ((_last != null) && (_last!.profile != null) && !forceFetch) {
+    if (_last != null && !forceFetch) {
       _last!.reuse(t);
     } else {
       _last = SampleProfileLoadingProgress(owner, t, false,

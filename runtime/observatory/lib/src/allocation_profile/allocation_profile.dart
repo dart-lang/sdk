@@ -26,7 +26,7 @@ class AllocationProfile implements M.AllocationProfile {
     totalSpace.add(newSpace);
   }
 
-  static DateTime? _intString2DateTime(String milliseconds) {
+  static DateTime? _intString2DateTime(String? milliseconds) {
     if ((milliseconds == null) || milliseconds == '') {
       return null;
     }

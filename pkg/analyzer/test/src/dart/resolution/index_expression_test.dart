@@ -9,12 +9,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(IndexExpressionTest);
+    defineReflectiveTests(IndexExpressionResolutionTest);
   });
 }
 
 @reflectiveTest
-class IndexExpressionTest extends PubPackageResolutionTest {
+class IndexExpressionResolutionTest extends PubPackageResolutionTest {
   test_contextType_read() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -318,6 +318,64 @@ IndexExpression
   rightBracket: ]
   staticElement: self::@class::A::@method::[]
   staticType: bool?
+''');
+  }
+
+  test_read_switchExpression() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  bool operator[](int index) => false;
+}
+
+void f(Object? x) {
+  (switch (x) {
+    _ => A(),
+  }[0]);
+}
+''');
+
+    var node = findNode.index('[0]');
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression: InstanceCreationExpression
+          constructorName: ConstructorName
+            type: NamedType
+              name: SimpleIdentifier
+                token: A
+                staticElement: self::@class::A
+                staticType: null
+              type: A
+            staticElement: self::@class::A::@constructor::new
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticType: A
+    rightBracket: }
+    staticType: A
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@method::[]::@parameter::index
+    staticType: int
+  rightBracket: ]
+  staticElement: self::@class::A::@method::[]
+  staticType: bool
 ''');
   }
 
@@ -653,6 +711,76 @@ AssignmentExpression
   writeType: num
   staticElement: <null>
   staticType: double?
+''');
+  }
+
+  test_write_switchExpression() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void operator[]=(int index, num value) {}
+}
+
+void f(Object? x) {
+  (switch (x) {
+    _ => A(),
+  }[0] = 1.2);
+}
+''');
+
+    var node = findNode.assignment('[0]');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SwitchExpression
+      switchKeyword: switch
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: x
+        staticElement: self::@function::f::@parameter::x
+        staticType: Object?
+      rightParenthesis: )
+      leftBracket: {
+      cases
+        SwitchExpressionCase
+          guardedPattern: GuardedPattern
+            pattern: WildcardPattern
+              name: _
+              matchedValueType: Object?
+          arrow: =>
+          expression: InstanceCreationExpression
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: A
+                  staticElement: self::@class::A
+                  staticType: null
+                type: A
+              staticElement: self::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticType: A
+      rightBracket: }
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: DoubleLiteral
+    literal: 1.2
+    parameter: self::@class::A::@method::[]=::@parameter::value
+    staticType: double
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: <null>
+  staticType: double
 ''');
   }
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test for iterators on for [SubclassNode].
 
 library subtypeset_test;
@@ -43,26 +41,26 @@ runTests({bool strongMode = false}) async {
       abstract class I implements H {}
 
       main() {
-        new A().call;
-        new C();
-        new D();
-        new E();
-        new F();
-        new G();
+        A().call;
+        C();
+        D();
+        E();
+        F();
+        G();
       }
       """);
   KClosedWorld world = env.kClosedWorld;
 
-  ClassEntity A = env.getElement("A");
-  ClassEntity B = env.getElement("B");
-  ClassEntity C = env.getElement("C");
-  ClassEntity D = env.getElement("D");
-  ClassEntity E = env.getElement("E");
-  ClassEntity F = env.getElement("F");
-  ClassEntity G = env.getElement("G");
-  ClassEntity H = env.getElement("H");
-  ClassEntity I = env.getElement("I");
-  ClassEntity Function_ = env.getElement("Function");
+  final A = env.getElement("A") as ClassEntity;
+  final B = env.getElement("B") as ClassEntity;
+  final C = env.getElement("C") as ClassEntity;
+  final D = env.getElement("D") as ClassEntity;
+  final E = env.getElement("E") as ClassEntity;
+  final F = env.getElement("F") as ClassEntity;
+  final G = env.getElement("G") as ClassEntity;
+  final H = env.getElement("H") as ClassEntity;
+  final I = env.getElement("I") as ClassEntity;
+  final Function_ = env.getElement("Function") as ClassEntity;
 
   void checkClass(ClassEntity cls, List<ClassEntity> expectedSubtypes,
       {bool checkSubset = false}) {

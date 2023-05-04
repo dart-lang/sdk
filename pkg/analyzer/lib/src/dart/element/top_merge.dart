@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class TopMergeHelper {
   final TypeSystemImpl typeSystem;
@@ -263,8 +264,8 @@ class TopMergeHelper {
     }
 
     return FunctionTypeImpl(
-      typeFormals: R_typeParameters,
-      parameters: R_parameters,
+      typeFormals: R_typeParameters.toFixedList(),
+      parameters: R_parameters.toFixedList(),
       returnType: R_returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -283,6 +284,7 @@ class TopMergeHelper {
       var arguments = List.generate(
         T_arguments.length,
         (i) => topMerge(T_arguments[i], S_arguments[i]),
+        growable: false,
       );
       return T.element.instantiate(
         typeArguments: arguments,

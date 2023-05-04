@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ExpectedOneListPatternTypeArgumentsTest extends PatternsResolutionTest {
+class ExpectedOneListPatternTypeArgumentsTest extends PubPackageResolutionTest {
   test_1() async {
     await assertNoErrorsInCode(r'''
 void f(x) {

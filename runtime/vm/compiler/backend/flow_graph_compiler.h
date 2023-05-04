@@ -63,107 +63,6 @@ class NoTemporaryAllocator : public TemporaryRegisterAllocator {
   void ReleaseTemporary() override { UNREACHABLE(); }
 };
 
-class ParallelMoveResolver : public ValueObject {
- public:
-  explicit ParallelMoveResolver(FlowGraphCompiler* compiler);
-
-  // Resolve a set of parallel moves, emitting assembler instructions.
-  void EmitNativeCode(ParallelMoveInstr* parallel_move);
-
- private:
-  class ScratchFpuRegisterScope : public ValueObject {
-   public:
-    ScratchFpuRegisterScope(ParallelMoveResolver* resolver,
-                            FpuRegister blocked);
-    ~ScratchFpuRegisterScope();
-
-    FpuRegister reg() const { return reg_; }
-
-   private:
-    ParallelMoveResolver* resolver_;
-    FpuRegister reg_;
-    bool spilled_;
-  };
-
-  class TemporaryAllocator : public TemporaryRegisterAllocator {
-   public:
-    TemporaryAllocator(ParallelMoveResolver* resolver, Register blocked);
-
-    Register AllocateTemporary() override;
-    void ReleaseTemporary() override;
-    DEBUG_ONLY(bool DidAllocateTemporary() { return allocated_; })
-
-    virtual ~TemporaryAllocator() { ASSERT(reg_ == kNoRegister); }
-
-   private:
-    ParallelMoveResolver* const resolver_;
-    const Register blocked_;
-    Register reg_;
-    bool spilled_;
-    DEBUG_ONLY(bool allocated_ = false);
-  };
-
-  class ScratchRegisterScope : public ValueObject {
-   public:
-    ScratchRegisterScope(ParallelMoveResolver* resolver, Register blocked);
-    ~ScratchRegisterScope();
-
-    Register reg() const { return reg_; }
-
-   private:
-    TemporaryAllocator allocator_;
-    Register reg_;
-  };
-
-  bool IsScratchLocation(Location loc);
-  intptr_t AllocateScratchRegister(Location::Kind kind,
-                                   uword blocked_mask,
-                                   intptr_t first_free_register,
-                                   intptr_t last_free_register,
-                                   bool* spilled);
-
-  void SpillScratch(Register reg);
-  void RestoreScratch(Register reg);
-  void SpillFpuScratch(FpuRegister reg);
-  void RestoreFpuScratch(FpuRegister reg);
-
-  // friend class ScratchXmmRegisterScope;
-
-  // Build the initial list of moves.
-  void BuildInitialMoveList(ParallelMoveInstr* parallel_move);
-
-  // Perform the move at the moves_ index in question (possibly requiring
-  // other moves to satisfy dependencies).
-  void PerformMove(const InstructionSource& source, int index);
-
-  // Emit a move and remove it from the move graph.
-  void EmitMove(int index);
-
-  // Execute a move by emitting a swap of two operands.  The move from
-  // source to destination is removed from the move graph.
-  void EmitSwap(int index);
-
-  // Verify the move list before performing moves.
-  void Verify();
-
-  // Helpers for non-trivial source-destination combinations that cannot
-  // be handled by a single instruction.
-  void MoveMemoryToMemory(const compiler::Address& dst,
-                          const compiler::Address& src);
-  void Exchange(Register reg, const compiler::Address& mem);
-  void Exchange(const compiler::Address& mem1, const compiler::Address& mem2);
-  void Exchange(Register reg, Register base_reg, intptr_t stack_offset);
-  void Exchange(Register base_reg1,
-                intptr_t stack_offset1,
-                Register base_reg2,
-                intptr_t stack_offset2);
-
-  FlowGraphCompiler* compiler_;
-
-  // List of moves not yet resolved.
-  GrowableArray<MoveOperands*> moves_;
-};
-
 // Used for describing a deoptimization point after call (lazy deoptimization).
 // For deoptimization before instruction use class CompilerDeoptInfoWithStub.
 class CompilerDeoptInfo : public ZoneAllocated {
@@ -177,7 +76,7 @@ class CompilerDeoptInfo : public ZoneAllocated {
         reason_(reason),
         flags_(flags),
         deopt_env_(deopt_env) {
-    ASSERT(deopt_env != NULL);
+    ASSERT(deopt_env != nullptr);
   }
   virtual ~CompilerDeoptInfo() {}
 
@@ -199,8 +98,7 @@ class CompilerDeoptInfo : public ZoneAllocated {
  private:
   void EmitMaterializations(Environment* env, DeoptInfoBuilder* builder);
 
-  void AllocateIncomingParametersRecursive(Environment* env,
-                                           intptr_t* stack_height);
+  void AllocateOutgoingArguments(Environment* env);
 
   intptr_t pc_offset_;
   const intptr_t deopt_id_;
@@ -228,7 +126,7 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
 
   const char* Name() const {
     const char* kFormat = "Deopt stub for id %d, reason: %s";
-    const intptr_t len = Utils::SNPrint(NULL, 0, kFormat, deopt_id(),
+    const intptr_t len = Utils::SNPrint(nullptr, 0, kFormat, deopt_id(),
                                         DeoptReasonToCString(reason())) +
                          1;
     char* chars = Thread::Current()->zone()->Alloc<char>(len);
@@ -429,7 +327,7 @@ class FlowGraphCompiler : public ValueObject {
     BlockInfo()
         : block_label_(),
           jump_label_(&block_label_),
-          next_nonempty_label_(NULL),
+          next_nonempty_label_(nullptr),
           is_marked_(false) {}
 
     // The label to jump to when control is transferred to this block.  For
@@ -439,7 +337,7 @@ class FlowGraphCompiler : public ValueObject {
     void set_jump_label(compiler::Label* label) { jump_label_ = label; }
 
     // The label of the first nonempty block after this one in the block
-    // order, or NULL if there is no nonempty block following this one.
+    // order, or nullptr if there is no nonempty block following this one.
     compiler::Label* next_nonempty_label() const {
       return next_nonempty_label_;
     }
@@ -473,7 +371,7 @@ class FlowGraphCompiler : public ValueObject {
                     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
                     const GrowableArray<intptr_t>& caller_inline_id,
                     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
-                    CodeStatistics* stats = NULL);
+                    CodeStatistics* stats = nullptr);
 
   void ArchSpecificInitialization();
 
@@ -546,31 +444,28 @@ class FlowGraphCompiler : public ValueObject {
   bool ForceSlowPathForStackOverflow() const;
 
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
-  ParallelMoveResolver* parallel_move_resolver() {
-    return &parallel_move_resolver_;
-  }
 
   void StatsBegin(Instruction* instr) {
-    if (stats_ != NULL) stats_->Begin(instr);
+    if (stats_ != nullptr) stats_->Begin(instr);
   }
 
   void StatsEnd(Instruction* instr) {
-    if (stats_ != NULL) stats_->End(instr);
+    if (stats_ != nullptr) stats_->End(instr);
   }
 
   void SpecialStatsBegin(intptr_t tag) {
-    if (stats_ != NULL) stats_->SpecialBegin(tag);
+    if (stats_ != nullptr) stats_->SpecialBegin(tag);
   }
 
   void SpecialStatsEnd(intptr_t tag) {
-    if (stats_ != NULL) stats_->SpecialEnd(tag);
+    if (stats_ != nullptr) stats_->SpecialEnd(tag);
   }
 
   GrowableArray<const Field*>& used_static_fields() {
     return used_static_fields_;
   }
 
-  // Constructor is lighweight, major initialization work should occur here.
+  // Constructor is lightweight, major initialization work should occur here.
   // This makes it easier to measure time spent in the compiler.
   void InitCompiler();
 
@@ -733,12 +628,13 @@ class FlowGraphCompiler : public ValueObject {
   // the range.
   //
   // Returns whether [class_id_reg] is clobbered by the check.
-  static bool GenerateCidRangesCheck(compiler::Assembler* assembler,
-                                     Register class_id_reg,
-                                     const CidRangeVector& cid_ranges,
-                                     compiler::Label* inside_range_lbl,
-                                     compiler::Label* outside_range_lbl = NULL,
-                                     bool fall_through_if_inside = false);
+  static bool GenerateCidRangesCheck(
+      compiler::Assembler* assembler,
+      Register class_id_reg,
+      const CidRangeVector& cid_ranges,
+      compiler::Label* inside_range_lbl,
+      compiler::Label* outside_range_lbl = nullptr,
+      bool fall_through_if_inside = false);
 
   void EmitOptimizedInstanceCall(
       const Code& stub,
@@ -827,6 +723,8 @@ class FlowGraphCompiler : public ValueObject {
   void EmitJumpToStub(const Code& stub);
   void EmitTailCallToStub(const Code& stub);
 
+  void EmitDropArguments(intptr_t count);
+
   // Emits the following metadata for the current PC:
   //
   //   * Attaches current try index
@@ -855,6 +753,14 @@ class FlowGraphCompiler : public ValueObject {
   // (values for all [ParameterInstr]s, representing local variables
   // and expression stack values, are already on the stack).
   intptr_t ExtraStackSlotsOnOsrEntry() const;
+
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  // Changes the base register of this Location if this allows us to utilize
+  // a better addressing mode. For RISC-V, this is the wider range of compressed
+  // instructions available for SP-relative load compared to FP-relative loads.
+  // Assumes `StackSize` accounts for everything at the point of use.
+  Location RebaseIfImprovesAddressing(Location loc) const;
+#endif  // defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 
   // Returns assembler label associated with the given block entry.
   compiler::Label* GetJumpLabel(BlockEntryInstr* block_entry) const;
@@ -941,7 +847,7 @@ class FlowGraphCompiler : public ValueObject {
                                       intptr_t num_slow_path_args);
 
   intptr_t CurrentTryIndex() const {
-    if (current_block_ == NULL) {
+    if (current_block_ == nullptr) {
       return kInvalidTryIndex;
     }
     return current_block_->try_index();
@@ -993,7 +899,7 @@ class FlowGraphCompiler : public ValueObject {
                               const String& name,
                               const ArgumentsDescriptor& args_desc,
                               Function* fn_return,
-                              bool* class_is_abstract_return = NULL);
+                              bool* class_is_abstract_return = nullptr);
 
   // Returns new class-id bias.
   //
@@ -1015,7 +921,7 @@ class FlowGraphCompiler : public ValueObject {
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreFieldInstr;          // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
-  friend class GraphInstrinsicCodeGenScope;   // For optimizing_.
+  friend class GraphIntrinsicCodeGenScope;   // For optimizing_.
 
   // Architecture specific implementation of simple native moves.
   void EmitNativeMoveArchitecture(const compiler::ffi::NativeLocation& dst,
@@ -1192,7 +1098,7 @@ class FlowGraphCompiler : public ValueObject {
   bool CanPcRelativeCall(const Code& target) const;
   bool CanPcRelativeCall(const AbstractType& target) const;
 
-  // This struct contains either function or code, the other one being NULL.
+  // This struct contains either function or code, the other one being nullptr.
   class StaticCallsStruct : public ZoneAllocated {
    public:
     Code::CallKind call_kind;
@@ -1280,8 +1186,6 @@ class FlowGraphCompiler : public ValueObject {
   const Class& float64x2_class_;
   const Class& int32x4_class_;
   const Class& list_class_;
-
-  ParallelMoveResolver parallel_move_resolver_;
 
   // Currently instructions generate deopt stubs internally by
   // calling AddDeoptStub.  To communicate deoptimization environment

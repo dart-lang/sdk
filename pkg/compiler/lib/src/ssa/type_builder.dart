@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'builder.dart';
 import 'nodes.dart';
 import '../elements/entities.dart';
@@ -30,8 +28,7 @@ abstract class TypeBuilder {
 
   /// Create a type mask for 'trusting' a DartType. Returns `null` if there is
   /// no approximating type mask (i.e. the type mask would be `dynamic`).
-  AbstractValue trustTypeMask(DartType type, {bool hasLateSentinel = false}) {
-    if (type == null) return null;
+  AbstractValue? trustTypeMask(DartType type, {bool hasLateSentinel = false}) {
     type = builder.localsHandler.substInContext(type);
     if (_closedWorld.dartTypes.isTopType(type)) return null;
     bool includeNull =
@@ -39,7 +36,7 @@ abstract class TypeBuilder {
     type = type.withoutNullability;
     if (type is! InterfaceType) return null;
     // The type element is either a class or the void element.
-    ClassEntity element = (type as InterfaceType).element;
+    ClassEntity element = type.element;
     AbstractValue mask = includeNull
         ? _abstractValueDomain.createNullableSubtype(element)
         : _abstractValueDomain.createNonNullSubtype(element);
@@ -49,11 +46,10 @@ abstract class TypeBuilder {
 
   /// Create an instruction to simply trust the provided type.
   HInstruction _trustType(HInstruction original, DartType type) {
-    assert(type != null);
     bool hasLateSentinel = _abstractValueDomain
         .isLateSentinel(original.instructionType)
         .isPotentiallyTrue;
-    AbstractValue mask = trustTypeMask(type, hasLateSentinel: hasLateSentinel);
+    final mask = trustTypeMask(type, hasLateSentinel: hasLateSentinel);
     if (mask == null) return original;
     return HTypeKnown.pinned(mask, original);
   }
@@ -61,14 +57,13 @@ abstract class TypeBuilder {
   /// Produces code that checks the runtime type is actually the type specified
   /// by attempting a type conversion.
   HInstruction _checkType(HInstruction original, DartType type) {
-    assert(type != null);
     type = builder.localsHandler.substInContext(type);
     HInstruction other = buildAsCheck(original, type, isTypeError: true);
     // TODO(johnniwinther): This operation on `registry` may be inconsistent.
     // If it is needed then it seems likely that similar invocations of
     // `buildAsCheck` in `SsaBuilder.visitAs` should also be followed by a
     // similar operation on `registry`; otherwise, this one might not be needed.
-    builder.registry?.registerTypeUse(TypeUse.isCheck(type));
+    builder.registry.registerTypeUse(TypeUse.isCheck(type));
     if (other is HAsCheck &&
         other.isRedundant(builder.closedWorld, builder.options)) {
       return original;
@@ -78,21 +73,19 @@ abstract class TypeBuilder {
 
   /// Produces code that checks the runtime type is actually the type specified
   /// by attempting a type conversion.
-  HInstruction _checkBoolConverion(HInstruction original) {
+  HInstruction _checkBoolConversion(HInstruction original) {
     var checkInstruction =
         HBoolConversion(original, _abstractValueDomain.boolType);
     if (checkInstruction.isRedundant(_closedWorld)) {
       return original;
     }
     DartType boolType = _closedWorld.commonElements.boolType;
-    builder.registry?.registerTypeUse(TypeUse.isCheck(boolType));
+    builder.registry.registerTypeUse(TypeUse.isCheck(boolType));
     return checkInstruction;
   }
 
   HInstruction trustTypeOfParameter(
       MemberEntity memberContext, HInstruction original, DartType type) {
-    if (type == null) return original;
-
     /// Dart semantics check against null outside the method definition,
     /// however dart2js moves the null check to the callee for performance
     /// reasons. As a result the body cannot trust or check that the type is not
@@ -111,16 +104,16 @@ abstract class TypeBuilder {
 
   HInstruction potentiallyCheckOrTrustTypeOfParameter(
       MemberEntity memberContext, HInstruction original, DartType type) {
-    if (type == null) return original;
     HInstruction checkedOrTrusted = original;
     CheckPolicy parameterCheckPolicy = builder.closedWorld.annotationsData
         .getParameterCheckPolicy(memberContext);
 
-    if (memberContext.name == '==') {
+    if (memberContext is FunctionEntity && memberContext.name == '==') {
       // Dart semantics for `a == b` check `a` and `b` against `null` outside
       // the method invocation. For code size reasons, dart2js implements the
       // null check on `a` by implementing `JSNull.==`, and the null check on
-      // `b` by injecting the check into `==` methods, before any type checks.
+      // `b` by injecting the check into `==` methods, before any argument type
+      // checks.
       //
       // There are a small number of runtime library methods that do not have
       // the check injected. For these we need to widen the argument type to
@@ -146,7 +139,6 @@ abstract class TypeBuilder {
   /// trusts the written type.
   HInstruction potentiallyCheckOrTrustTypeOfAssignment(
       MemberEntity memberContext, HInstruction original, DartType type) {
-    if (type == null) return original;
     HInstruction checkedOrTrusted = _trustType(original, type);
     if (checkedOrTrusted == original) return original;
     builder.add(checkedOrTrusted);
@@ -162,7 +154,7 @@ abstract class TypeBuilder {
     if (conditionCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, boolType);
     } else if (conditionCheckPolicy.isEmitted) {
-      checkedOrTrusted = _checkBoolConverion(original);
+      checkedOrTrusted = _checkBoolConversion(original);
     }
     if (checkedOrTrusted == original) return original;
     builder.add(checkedOrTrusted);
@@ -173,14 +165,14 @@ abstract class TypeBuilder {
 
   HInstruction analyzeTypeArgument(
       DartType argument, MemberEntity sourceElement,
-      {SourceInformation sourceInformation}) {
+      {SourceInformation? sourceInformation}) {
     return analyzeTypeArgumentNewRti(argument, sourceElement,
         sourceInformation: sourceInformation);
   }
 
   HInstruction analyzeTypeArgumentNewRti(
       DartType argument, MemberEntity sourceElement,
-      {SourceInformation sourceInformation}) {
+      {SourceInformation? sourceInformation}) {
     if (!argument.containsTypeVariables) {
       HInstruction rti =
           HLoadType.type(argument, _abstractValueDomain.dynamicType)
@@ -205,7 +197,7 @@ abstract class TypeBuilder {
 
   _EnvironmentExpressionAndStructure _buildEnvironmentForType(
       DartType type, MemberEntity member,
-      {SourceInformation sourceInformation}) {
+      {SourceInformation? sourceInformation}) {
     assert(type.containsTypeVariables);
     // Build the environment for each access, and hope GVN reduces the larger
     // number of expressions. Another option is to precompute the environment at
@@ -214,7 +206,7 @@ abstract class TypeBuilder {
 
     // Split the type variables into class-scope and function-scope(s).
     bool usesInstanceParameters = false;
-    InterfaceType interfaceType;
+    InterfaceType? interfaceType;
     Set<TypeVariableType> parameters = Set();
 
     void processTypeVariable(TypeVariableType type) {
@@ -222,7 +214,7 @@ abstract class TypeBuilder {
       if (type.element.typeDeclaration is ClassEntity) {
         typeVariableAccess = computeTypeVariableAccess(member);
         interfaceType = _closedWorld.elementEnvironment
-            .getThisType(type.element.typeDeclaration);
+            .getThisType(type.element.typeDeclaration as ClassEntity);
       } else {
         typeVariableAccess = ClassTypeVariableAccess.parameter;
       }
@@ -252,8 +244,8 @@ abstract class TypeBuilder {
 
     type.forEachTypeVariable(processTypeVariable);
 
-    HInstruction environment;
-    TypeEnvironmentStructure structure;
+    HInstruction? environment;
+    TypeEnvironmentStructure? structure;
 
     if (usesInstanceParameters) {
       HInstruction target =
@@ -309,7 +301,7 @@ abstract class TypeBuilder {
       }
     }
 
-    return _EnvironmentExpressionAndStructure(environment, structure);
+    return _EnvironmentExpressionAndStructure(environment!, structure!);
   }
 
   /// Build a [HAsCheck] for converting [original] to type [type].
@@ -317,8 +309,7 @@ abstract class TypeBuilder {
   /// Invariant: [type] must be valid in the context.
   /// See [LocalsHandler.substInContext].
   HInstruction buildAsCheck(HInstruction original, DartType type,
-      {bool isTypeError, SourceInformation sourceInformation}) {
-    if (type == null) return original;
+      {required bool isTypeError, SourceInformation? sourceInformation}) {
     if (_closedWorld.dartTypes.isTopType(type)) return original;
 
     HInstruction reifiedType = analyzeTypeArgumentNewRti(

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
@@ -15,19 +13,19 @@ import '../helpers/element_lookup.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 const String CODE = """
-class A extends Comparable {
+class A implements Comparable {
   int compareTo(x) { return 0; }
 }
-class B extends Comparable {
+class B implements Comparable {
   int compareTo(x) { return 0; }
 }
-class C extends Comparable {
+class C implements Comparable {
   int compareTo(x) { return 0; }
 }
-class D extends Comparable {
+class D implements Comparable {
   int compareTo(x) { return 0; }
 }
-class E extends Comparable {
+class E implements Comparable {
   int compareTo(x) { return 0; }
 }
 
@@ -82,13 +80,13 @@ main() {
     ]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    var results = compiler.globalInference.resultsForTesting;
+    var results = compiler.globalInference.resultsForTesting!;
     JClosedWorld closedWorld = results.closedWorld;
-    PowersetDomain powersetDomain = closedWorld.abstractValueDomain;
+    final powersetDomain = closedWorld.abstractValueDomain as PowersetDomain;
 
     checkInterceptor(String name, {AbstractBool result = AbstractBool.True}) {
       var element = findMember(closedWorld, name);
-      PowersetValue value = results.resultOfMember(element).type;
+      final value = results.resultOfMember(element).type as PowersetValue;
       Expect.equals(powersetDomain.isInterceptor(value), result);
     }
 

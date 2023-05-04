@@ -330,7 +330,7 @@ void testLookupFunctionPointerNFdyn() {
 }
 
 // error on missing field annotation
-class TestStruct extends Struct {
+final class TestStruct extends Struct {
   @Double()
   external double x;
 
@@ -341,14 +341,14 @@ class TestStruct extends Struct {
 class TestStruct3 extends TestStruct {} //# 52: compile-time error
 
 // error on double annotation
-class TestStruct4 extends Struct {
+final class TestStruct4 extends Struct {
   @Double()
   @Double() //# 53: compile-time error
   external double z;
 }
 
 // error on annotation not matching up
-class TestStruct5 extends Struct {
+final class TestStruct5 extends Struct {
   @Int64() //# 54: compile-time error
   external double z; //# 54: compile-time error
 
@@ -356,7 +356,7 @@ class TestStruct5 extends Struct {
 }
 
 // error on annotation not matching up
-class TestStruct6 extends Struct {
+final class TestStruct6 extends Struct {
   @Void() //# 55: compile-time error
   external double z; //# 55: compile-time error
 
@@ -364,7 +364,7 @@ class TestStruct6 extends Struct {
 }
 
 // error on annotation not matching up
-class TestStruct7 extends Struct {
+final class TestStruct7 extends Struct {
   @NativeType() //# 56: compile-time error
   external double z; //# 56: compile-time error
 
@@ -372,7 +372,7 @@ class TestStruct7 extends Struct {
 }
 
 // error on field initializer on field
-class TestStruct8 extends Struct {
+final class TestStruct8 extends Struct {
   @Double() //# 57: compile-time error
   double z = 10.0; //# 57: compile-time error
 
@@ -380,7 +380,7 @@ class TestStruct8 extends Struct {
 }
 
 // error on field initializer in constructor
-class TestStruct9 extends Struct {
+final class TestStruct9 extends Struct {
   @Double() //# 58: compile-time error
   double z; //# 58: compile-time error
 
@@ -395,7 +395,7 @@ class TestStruct11<T> extends //# 60: compile-time error
 
 // Structs may not appear inside structs (currently, there is no suitable
 // annotation).
-class TestStruct12 extends Struct {
+final class TestStruct12 extends Struct {
   @Pointer //# 61: compile-time error
   external TestStruct9 struct; //# 61: compile-time error
 
@@ -407,7 +407,7 @@ class DummyAnnotation {
 }
 
 // Structs fields may have other annotations.
-class TestStruct13 extends Struct {
+final class TestStruct13 extends Struct {
   @DummyAnnotation()
   @Double()
   external double z;
@@ -504,22 +504,22 @@ void testHandleVariance() {
       MyClass Function(Object)>("PassObjectToC"); //# 1000: compile-time error
 }
 
-class TestStruct1001 extends Struct {
+final class TestStruct1001 extends Struct {
   external Handle handle; //# 1001: compile-time error
 
   external Pointer notEmpty;
 }
 
-class TestStruct1002 extends Struct {
+final class TestStruct1002 extends Struct {
   @Handle() //# 1002: compile-time error
   external Object handle; //# 1002: compile-time error
 
   external Pointer notEmpty;
 }
 
-class EmptyStruct extends Struct {} //# 1099: compile-time error
+final class EmptyStruct extends Struct {} //# 1099: compile-time error
 
-class EmptyStruct extends Struct {} //# 1100: compile-time error
+final class EmptyStruct extends Struct {} //# 1100: compile-time error
 
 void testEmptyStructLookupFunctionArgument() {
   testLibrary.lookupFunction< //# 1100: compile-time error
@@ -527,7 +527,7 @@ void testEmptyStructLookupFunctionArgument() {
       void Function(EmptyStruct)>("DoesNotExist"); //# 1100: compile-time error
 }
 
-class EmptyStruct extends Struct {} //# 1101: compile-time error
+final class EmptyStruct extends Struct {} //# 1101: compile-time error
 
 void testEmptyStructLookupFunctionReturn() {
   testLibrary.lookupFunction< //# 1101: compile-time error
@@ -535,7 +535,7 @@ void testEmptyStructLookupFunctionReturn() {
       EmptyStruct Function()>("DoesNotExist"); //# 1101: compile-time error
 }
 
-class EmptyStruct extends Struct {} //# 1102: compile-time error
+final class EmptyStruct extends Struct {} //# 1102: compile-time error
 
 void testEmptyStructAsFunctionArgument() {
   final Pointer< //# 1102: compile-time error
@@ -545,7 +545,7 @@ void testEmptyStructAsFunctionArgument() {
   pointer.asFunction<void Function(EmptyStruct)>(); //# 1102: compile-time error
 }
 
-class EmptyStruct extends Struct {} //# 1103: compile-time error
+final class EmptyStruct extends Struct {} //# 1103: compile-time error
 
 void testEmptyStructAsFunctionReturn() {
   final Pointer< //# 1103: compile-time error
@@ -554,7 +554,7 @@ void testEmptyStructAsFunctionReturn() {
   pointer.asFunction<EmptyStruct Function()>(); //# 1103: compile-time error
 }
 
-class EmptyStruct extends Struct {} //# 1104: compile-time error
+final class EmptyStruct extends Struct {} //# 1104: compile-time error
 
 void _consumeEmptyStruct(EmptyStruct e) => //# 1104: compile-time error
     print(e); //# 1104: compile-time error
@@ -564,7 +564,7 @@ void testEmptyStructFromFunctionArgument() {
       _consumeEmptyStruct); //# 1104: compile-time error
 }
 
-class EmptyStruct extends Struct {} //# 1105: compile-time error
+final class EmptyStruct extends Struct {} //# 1105: compile-time error
 
 EmptyStruct _returnEmptyStruct() => EmptyStruct(); //# 1105: compile-time error
 
@@ -573,9 +573,9 @@ void testEmptyStructFromFunctionReturn() {
       _returnEmptyStruct); //# 1105: compile-time error
 }
 
-class EmptyStruct extends Struct {} //# 1106: compile-time error
+final class EmptyStruct extends Struct {} //# 1106: compile-time error
 
-class HasNestedEmptyStruct extends Struct {
+final class HasNestedEmptyStruct extends Struct {
   external EmptyStruct nestedEmptyStruct; //# 1106: compile-time error
 
   external Pointer notEmpty;
@@ -653,40 +653,40 @@ void testElementAtNativeType() {
   calloc.free(p);
 }
 
-class TestStruct1400 extends Struct {
+final class TestStruct1400 extends Struct {
   @Array(8) //# 1400: compile-time error
   @Array(8)
   external Array<Uint8> a0;
 }
 
-class TestStruct1401 extends Struct {
+final class TestStruct1401 extends Struct {
   external Array<Uint8> a0; //# 1401: compile-time error
 
   external Pointer<Uint8> notEmpty;
 }
 
-class TestStruct1402 extends Struct {
+final class TestStruct1402 extends Struct {
   @Array(8, 8, 8) //# 1402: compile-time error
   external Array<Array<Uint8>> a0; //# 1402: compile-time error
 
   external Pointer<Uint8> notEmpty;
 }
 
-class TestStruct1403 extends Struct {
+final class TestStruct1403 extends Struct {
   @Array(8, 8) //# 1403: compile-time error
   external Array<Array<Array<Uint8>>> a0; //# 1403: compile-time error
 
   external Pointer<Uint8> notEmpty;
 }
 
-class TestStruct1404 extends Struct {
+final class TestStruct1404 extends Struct {
   @Array.multi([8, 8, 8]) //# 1404: compile-time error
   external Array<Array<Uint8>> a0; //# 1404: compile-time error
 
   external Pointer<Uint8> notEmpty;
 }
 
-class TestStruct1405 extends Struct {
+final class TestStruct1405 extends Struct {
   @Array.multi([8, 8]) //# 1405: compile-time error
   external Array<Array<Array<Uint8>>> a0; //# 1405: compile-time error
 
@@ -743,41 +743,41 @@ void testAsFunctionReturnsHandle() {
 }
 
 @Packed(1)
-class TestStruct1600 extends Struct {
+final class TestStruct1600 extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 
 @Packed(1)
 @Packed(1) //# 1601: compile-time error
-class TestStruct1601 extends Struct {
+final class TestStruct1601 extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 
 @Packed(3) //# 1602: compile-time error
-class TestStruct1602 extends Struct {
+final class TestStruct1602 extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 
 @Packed(0) //# 1607: compile-time error
-class TestStruct1607 extends Struct {
+final class TestStruct1607 extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 
-class TestStruct1800 extends Struct {
+final class TestStruct1800 extends Struct {
   external Pointer<Uint8> notEmpty;
 
   @Array(-1) //# 1800: compile-time error
   external Array<Uint8> inlineArray; //# 1800: compile-time error
 }
 
-class TestStruct1801 extends Struct {
+final class TestStruct1801 extends Struct {
   external Pointer<Uint8> notEmpty;
 
   @Array(1, -1) //# 1801: compile-time error
   external Array<Uint8> inlineArray; //# 1801: compile-time error
 }
 
-class TestStruct1802 extends Struct {
+final class TestStruct1802 extends Struct {
   external Pointer<Uint8> notEmpty;
 
   @Array.multi([2, 2, 2, 2, 2, 2, -1]) //# 1802: compile-time error
@@ -790,7 +790,7 @@ class TestStruct1802 extends Struct {
   Abi.androidIA32: AbiSpecificInteger1(), //# 1901: compile-time error
 })
 @AbiSpecificIntegerMapping({}) //# 1902: compile-time error
-class AbiSpecificInteger1 extends AbiSpecificInteger {
+final class AbiSpecificInteger1 extends AbiSpecificInteger {
   const AbiSpecificInteger1();
 
   int get a => 4; //# 1910: compile-time error
@@ -816,7 +816,7 @@ class AbiSpecificInteger4
   const AbiSpecificInteger4();
 }
 
-class MyFinalizableStruct extends Struct
+final class MyFinalizableStruct extends Struct
     implements Finalizable //# 2000: compile-time error
 {
   external Pointer<Void> field;

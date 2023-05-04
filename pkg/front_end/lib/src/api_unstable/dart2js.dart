@@ -97,6 +97,10 @@ export '../api_prototype/compiler_options.dart'
         parseExperimentalFlags,
         parseExperimentalArguments;
 
+export '../api_prototype/const_conditional_simplifier.dart';
+
+export '../api_prototype/constant_evaluator.dart';
+
 export '../api_prototype/experimental_flags.dart'
     show defaultExperimentalFlags, ExperimentalFlag, isExperimentEnabled;
 
@@ -109,6 +113,8 @@ export '../api_prototype/language_version.dart'
     show uriUsesLegacyLanguageVersion;
 
 export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
+
+export '../api_prototype/try_constant_evaluator.dart';
 
 export '../base/nnbd_mode.dart' show NnbdMode;
 

@@ -8,16 +8,16 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RecordLiteralTest);
+    defineReflectiveTests(RecordLiteralResolutionTest);
   });
 }
 
 @reflectiveTest
-class RecordLiteralTest extends PubPackageResolutionTest {
+class RecordLiteralResolutionTest extends PubPackageResolutionTest {
   test_field_rewrite_named() async {
     await assertNoErrorsInCode(r'''
 void f((int, String) r) {
-  (f1: r.$0, );
+  (f1: r.$1, );
 }
 ''');
 
@@ -40,7 +40,7 @@ RecordLiteral
           staticType: (int, String)
         operator: .
         propertyName: SimpleIdentifier
-          token: $0
+          token: $1
           staticElement: <null>
           staticType: int
         staticType: int
@@ -52,7 +52,7 @@ RecordLiteral
   test_field_rewrite_positional() async {
     await assertNoErrorsInCode(r'''
 void f((int, String) r) {
-  (r.$0, );
+  (r.$1, );
 }
 ''');
 
@@ -68,7 +68,7 @@ RecordLiteral
         staticType: (int, String)
       operator: .
       propertyName: SimpleIdentifier
-        token: $0
+        token: $1
         staticElement: <null>
         staticType: int
       staticType: int

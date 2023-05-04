@@ -33,7 +33,7 @@ void testHttp11Close(bool closeRequest) {
     });
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
-      List<int> buffer = new List<int>(1024);
+      List<int> buffer = new List<int>.filled(1024, null);
       socket.write("GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
       socket.listen((data) {}, onDone: () {
         if (!closeRequest) socket.destroy();

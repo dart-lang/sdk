@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library jsinterop.internal_annotations_test;
 
 import 'package:expect/expect.dart';
@@ -81,12 +79,12 @@ class F {
   F(this.foo);
 }
 
-newA() => new A(0);
-newB() => new B(1);
-newC() => new C(foo: 2);
-newD() => new D(foo: 3);
-newE() => new E(4);
-newF() => new F(5);
+newA() => A(0);
+newB() => B(1);
+newC() => C(foo: 2);
+newD() => D(foo: 3);
+newE() => E(4);
+newF() => F(5);
 
 $mainSource
 """
@@ -99,7 +97,7 @@ $mainSource
       return cls;
     }
 
-    JClosedWorld world = compiler.backendClosedWorldForTesting;
+    JClosedWorld world = compiler.backendClosedWorldForTesting!;
     ElementEnvironment elementEnvironment = world.elementEnvironment;
     ClassEntity Object_ = registerClass(world.commonElements.objectClass);
     ClassEntity Interceptor =
@@ -115,7 +113,7 @@ $mainSource
     ClassEntity E = registerClass(findClass(world, 'E'));
     ClassEntity F = registerClass(findClass(world, 'F'));
 
-    Selector nonExisting = new Selector.getter(const PublicName('nonExisting'));
+    Selector nonExisting = Selector.getter(const PublicName('nonExisting'));
 
     Expect.equals(elementEnvironment.getSuperClass(Interceptor), Object_);
     Expect.equals(
@@ -151,8 +149,7 @@ $mainSource
     Expect.equals('', world.nativeData.getJsInteropClassName(C));
     Expect.equals('', world.nativeData.getJsInteropClassName(D));
 
-    for (String name in classEnvironment.keys) {
-      ClassEntity cls = classEnvironment[name];
+    classEnvironment.forEach((name, cls) {
       bool isInstantiated = false;
       if (directlyInstantiated.contains(name)) {
         isInstantiated = true;
@@ -187,18 +184,18 @@ $mainSource
       // Classes that are expected to be instantiated by default. `Object` and
       // `Interceptor` are base types for non-native and native types, and
       // `JavaScriptObject` is the base type for `dart:html` types.
-      var insantiatedBaseClasses = [
+      var instantiatedBaseClasses = [
         'Object',
         'Interceptor',
         'JavaScriptObject'
       ];
-      if (!isInstantiated && !insantiatedBaseClasses.contains(name)) {
+      if (!isInstantiated && !instantiatedBaseClasses.contains(name)) {
         Expect.isFalse(
             world.classHierarchy.isInstantiated(cls),
             "Expected $name to be uninstantiated in `${mainSource}`:"
             "\n${world.classHierarchy.dump(cls)}");
       }
-    }
+    });
   }
 
   await test('main() {}');

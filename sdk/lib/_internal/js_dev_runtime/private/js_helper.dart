@@ -53,7 +53,7 @@ class DartIterator<E> implements Iterator<E> {
 }
 
 /// Used to compile `sync*`.
-class SyncIterable<E> extends IterableBase<E> {
+class SyncIterable<E> extends Iterable<E> {
   final Function() _initGenerator;
   SyncIterable(this._initGenerator);
 
@@ -157,6 +157,31 @@ class Primitives {
       return null;
     }
     return result;
+  }
+
+  static bool? parseBool(
+      @nullCheck String source, @nullCheck bool caseSensitive) {
+    if (caseSensitive) {
+      return JS('bool', r'# == "true" || # != "false" && null', source, source);
+    }
+    return _compareIgnoreCase(source, "true")
+        ? true
+        : _compareIgnoreCase(source, "false")
+            ? false
+            : null;
+  }
+
+  /// Compares a string against an ASCII lower-case letter-only string.
+  ///
+  /// Returns `true` if the [input] has the same length and same letters
+  /// as [lowerCaseTarget], `false` if not.
+  static bool _compareIgnoreCase(String input, String lowerCaseTarget) {
+    if (input.length != lowerCaseTarget.length) return false;
+    var delta = 0x20;
+    for (var i = 0; i < input.length; i++) {
+      delta |= input.codeUnitAt(i) ^ lowerCaseTarget.codeUnitAt(i);
+    }
+    return delta == 0x20;
   }
 
   /** `r"$".codeUnitAt(0)` */
@@ -530,10 +555,6 @@ throwRuntimeError(message) {
   throw RuntimeError(message);
 }
 
-throwAbstractClassInstantiationError(className) {
-  throw AbstractClassInstantiationError(className);
-}
-
 throwConcurrentModificationError(collection) {
   throw ConcurrentModificationError(collection);
 }
@@ -590,12 +611,6 @@ bool jsHasOwnProperty(jsObject, String property) {
 jsPropertyAccess(jsObject, String property) {
   return JS('var', r'#[#]', jsObject, property);
 }
-
-/**
- * Called at the end of unaborted switch cases to get the singleton
- * FallThroughError exception that will be thrown.
- */
-getFallThroughError() => FallThroughErrorImplementation();
 
 /**
  * A metadata annotation describing the types instantiated by a native element.
@@ -689,16 +704,12 @@ class JSName {
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
 /// Thrown by type assertions that fail.
-class TypeErrorImpl extends Error implements TypeError, CastError {
+class TypeErrorImpl extends Error implements TypeError {
   final String _message;
 
   TypeErrorImpl(this._message);
 
   String toString() => _message;
-}
-
-class FallThroughErrorImplementation extends FallThroughError {
-  String toString() => "Switch case fall-through.";
 }
 
 /**
@@ -833,4 +844,17 @@ void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
   if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
   return Zone.current.bindUnaryCallbackGuarded(callback);
+}
+
+/// [createRecordTypePredicate] is currently unused by DDC.
+Object? createRecordTypePredicate(Object? partialShapeTag, Object? fieldRtis) {
+  throw UnimplementedError('createRecordTypePredicate');
+}
+
+/// Entrypoint for rti library. Calls rti.evaluateRtiForRecord with components
+/// of the record.
+///
+/// [getRtiForRecord] is currently unused by DDC.
+Never getRtiForRecord(Object? record) {
+  throw UnimplementedError('getRtiForRecord');
 }

@@ -10,13 +10,13 @@ class S<T> {
   }
 }
 
-class M<T> {
+mixin M<T> {
   m() {
     return T;
   }
 }
 
-class N<T> {
+mixin N<T> {
   n() {
     return T;
   }

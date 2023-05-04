@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -39,8 +37,8 @@ main() {
       Expect.isTrue(
           functionType is! LegacyType || env.options.useLegacySubtyping);
       functionType = functionType.withoutNullability;
-      FunctionEntity method = env.getElement('m${data.name}');
-      FunctionType methodType = env.getElementType('m${data.name}');
+      final method = env.getElement('m${data.name}') as FunctionEntity;
+      final methodType = env.getElementType('m${data.name}') as FunctionType;
       ParameterStructure parameterStructure = method.parameterStructure;
       Expect.equals(functionType, methodType, "Type mismatch on $data");
       Expect.equals(
@@ -49,10 +47,10 @@ main() {
           "Type parameter mismatch on $data with $parameterStructure.");
       CallStructure callStructure = parameterStructure.callStructure;
       Expect.isTrue(callStructure.signatureApplies(parameterStructure));
-      CallStructure noTypeArguments = new CallStructure(
+      CallStructure noTypeArguments = CallStructure(
           callStructure.argumentCount, callStructure.namedArguments, 0);
       Expect.isTrue(noTypeArguments.signatureApplies(parameterStructure));
-      CallStructure tooManyTypeArguments = new CallStructure(
+      CallStructure tooManyTypeArguments = CallStructure(
           callStructure.argumentCount,
           callStructure.namedArguments,
           callStructure.typeArgumentCount + 1);

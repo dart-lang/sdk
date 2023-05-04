@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of view;
 
 /// A View that is composed of child views.
@@ -14,10 +12,10 @@ class CompositeView extends View {
   // TODO(rnystrom): Allowing this to be public is gross. CompositeView should
   // encapsulate its markup and provide accessors to do the limited amount of
   // things that external users need to access this for.
-  Element container;
+  late Element container;
 
-  Scroller scroller;
-  Scrollbar _scrollbar;
+  late Scroller scroller;
+  late Scrollbar _scrollbar;
 
   final String _cssName;
   final bool _scrollable;
@@ -48,11 +46,8 @@ class CompositeView extends View {
     }
 
     if (_scrollable) {
-      scroller = Scroller(
-          container,
-          _vertical /* verticalScrollEnabled */,
-          !_vertical /* horizontalScrollEnabled */,
-          true /* momementumEnabled */);
+      scroller = Scroller(container, _vertical /* verticalScrollEnabled */,
+          !_vertical /* horizontalScrollEnabled */, true /* momentumEnabled */);
       if (_showScrollbar) {
         _scrollbar = Scrollbar(scroller);
       }
@@ -72,7 +67,7 @@ class CompositeView extends View {
     }
   }
 
-  View addChild(View view) {
+  T addChild<T extends View>(T view) {
     childViews.add(view);
     // TODO(rnystrom): Container shouldn't be null. Remove this check.
     if (container != null) {

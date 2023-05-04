@@ -12,7 +12,6 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate_ref.dart';
 import 'package:observatory/src/elements/isolate/location.dart';
 import 'package:observatory/src/elements/isolate/run_state.dart';
-import 'package:observatory/src/elements/isolate/shared_summary.dart';
 
 class IsolateSummaryElement extends CustomElement implements Renderable {
   late RenderingScheduler<IsolateSummaryElement> _r;
@@ -31,10 +30,6 @@ class IsolateSummaryElement extends CustomElement implements Renderable {
       M.EventRepository events,
       M.ScriptRepository scripts,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(isolates != null);
-    assert(events != null);
-    assert(scripts != null);
     IsolateSummaryElement e = new IsolateSummaryElement.created();
     e._r = new RenderingScheduler<IsolateSummaryElement>(e, queue: queue);
     e._isolate = isolate;

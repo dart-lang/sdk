@@ -416,6 +416,8 @@ bool Options::ProcessVMDebuggingOptions(const char* arg,
   V("--no-pause-isolates-on-unhandled-exception", arg)                         \
   V("--warn-on-pause-with-no-debugger", arg)                                   \
   V("--no-warn-on-pause-with-no-debugger", arg)                                \
+  V("--timeline-streams", arg)                                                 \
+  V("--timeline-recorder", arg)                                                \
   V("--enable-experiment", arg)
   HANDLE_DARTDEV_VM_DEBUG_OPTIONS(IS_DEBUG_OPTION, arg);
 
@@ -444,13 +446,12 @@ bool Options::ParseArguments(int argc,
   bool enable_dartdev_analytics = false;
   bool disable_dartdev_analytics = false;
   bool serve_devtools = true;
+  char* packages_argument = nullptr;
 
   // Parse out the vm options.
   while (i < argc) {
     bool skipVmOption = false;
-    if (OptionProcessor::TryProcess(argv[i], &temp_vm_options)) {
-      i++;
-    } else {
+    if (!OptionProcessor::TryProcess(argv[i], &temp_vm_options)) {
       // Check if this flag is a potentially valid VM flag.
       if (!OptionProcessor::IsValidFlag(argv[i])) {
         break;
@@ -467,9 +468,12 @@ bool Options::ParseArguments(int argc,
       } else if (IsOption(argv[i], "disable-analytics")) {
         disable_dartdev_analytics = true;
         skipVmOption = true;
+      } else if (IsOption(argv[i], "disable-telemetry")) {
+        disable_dartdev_analytics = true;
+        skipVmOption = true;
       } else if (IsOption(argv[i], "no-analytics")) {
         // Just add this option even if we don't go to dartdev.
-        // It is irelevant for the vm.
+        // It is irrelevant for the vm.
         dart_options->AddArgument("--no-analytics");
         skipVmOption = true;
       } else if (IsOption(argv[i], "serve-devtools")) {
@@ -492,8 +496,11 @@ bool Options::ParseArguments(int argc,
       if (!skipVmOption) {
         temp_vm_options.AddArgument(argv[i]);
       }
-      i++;
     }
+    if (IsOption(argv[i], "packages")) {
+      packages_argument = argv[i];
+    }
+    i++;
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -599,6 +606,7 @@ bool Options::ParseArguments(int argc,
   }
   USE(enable_dartdev_analytics);
   USE(disable_dartdev_analytics);
+  USE(packages_argument);
 
   const char** vm_argv = temp_vm_options.arguments();
   int vm_argc = temp_vm_options.count();
@@ -680,6 +688,13 @@ bool Options::ParseArguments(int argc,
           dart_options->AddArgument("--enable-service-port-fallback");
         }
       }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      // Bring any --packages option into the dartdev command
+      if (DartDevIsolate::should_run_dart_dev() &&
+          packages_argument != nullptr) {
+        dart_options->AddArgument(packages_argument);
+      }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
       first_option = false;
     }
   }

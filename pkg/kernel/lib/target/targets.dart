@@ -14,12 +14,12 @@ final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
   final bool trackWidgetCreation;
-  final bool enableNullSafety;
+  final bool soundNullSafety;
   final bool supportMirrors;
 
   const TargetFlags(
       {this.trackWidgetCreation = false,
-      this.enableNullSafety = false,
+      this.soundNullSafety = true,
       this.supportMirrors = true});
 
   @override
@@ -27,7 +27,7 @@ class TargetFlags {
     if (identical(this, other)) return true;
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
-        enableNullSafety == other.enableNullSafety &&
+        soundNullSafety == other.soundNullSafety &&
         supportMirrors == other.supportMirrors;
   }
 
@@ -35,7 +35,7 @@ class TargetFlags {
   int get hashCode {
     int hash = 485786;
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
-    hash = 0x3fffffff & (hash * 31 + (hash ^ enableNullSafety.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ soundNullSafety.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
     return hash;
   }
@@ -290,22 +290,6 @@ abstract class Target {
   /// for the target backend.
   bool get enableNoSuchMethodForwarders => false;
 
-  /// A derived class may change this to `true` to enable Flutter specific
-  /// "super-mixins" semantics.
-  ///
-  /// This semantics relaxes a number of constraint previously imposed on
-  /// mixins. Importantly it imposes the following change:
-  ///
-  ///     An abstract class may contain a member with a super-invocation that
-  ///     corresponds to a member of the superclass interface, but where the
-  ///     actual superclass does not declare or inherit a matching method.
-  ///     Since no amount of overriding can change this property, such a class
-  ///     cannot be extended to a class that is not abstract, it can only be
-  ///     used to derive a mixin from.
-  ///
-  /// See dartbug.com/31542 for details of the semantics.
-  bool get enableSuperMixins => false;
-
   /// Perform target-specific transformations on the outlines stored in
   /// [Component] when generating summaries.
   ///
@@ -389,8 +373,8 @@ abstract class Target {
   bool get nativeExtensionExpectsString => false;
 
   /// Whether integer literals that cannot be represented exactly on the web
-  /// (i.e. in Javascript) should cause an error to be issued.
-  /// An example of such a number is `2^53 + 1` where in Javascript - because
+  /// (i.e. in JavaScript) should cause an error to be issued.
+  /// An example of such a number is `2^53 + 1` where in JavaScript - because
   /// integers are represented as doubles
   /// `Math.pow(2, 53) = Math.pow(2, 53) + 1`.
   bool get errorOnUnexactWebIntLiterals => false;
@@ -542,7 +526,9 @@ abstract class Target {
   Class? concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteSetLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteConstSetLiteralClass(CoreTypes coreTypes) => null;
-  Class? concreteRecordClass(CoreTypes coreTypes) => null;
+  Class getRecordImplementationClass(CoreTypes coreTypes,
+          int numPositionalFields, List<String> namedFields) =>
+      throw UnsupportedError('Target.getRecordImplementationClass');
 
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
   Class? concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
@@ -779,12 +765,12 @@ class TestTargetFlags extends TargetFlags {
       this.forceStaticFieldLoweringForTesting,
       this.forceNoExplicitGetterCallsForTesting,
       this.forceConstructorTearOffLoweringForTesting,
-      bool enableNullSafety = false,
+      bool soundNullSafety = false,
       this.supportedDartLibraries = const {},
       this.unsupportedDartLibraries = const {}})
       : super(
             trackWidgetCreation: trackWidgetCreation,
-            enableNullSafety: enableNullSafety);
+            soundNullSafety: soundNullSafety);
 }
 
 mixin TestTargetMixin on Target {
@@ -918,9 +904,6 @@ class TargetWrapper extends Target {
 
   @override
   bool get enableNoSuchMethodForwarders => _target.enableNoSuchMethodForwarders;
-
-  @override
-  bool get enableSuperMixins => _target.enableSuperMixins;
 
   @override
   bool get errorOnUnexactWebIntLiterals => _target.errorOnUnexactWebIntLiterals;

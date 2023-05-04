@@ -1,3 +1,25 @@
+Problems reported:
+
+parser/general/call_on_after_try_block2:12:7: A record type with exactly one positional field requires a trailing comma.
+  on(e) {
+      ^
+
+parser/general/call_on_after_try_block2:15:6: Expected a type, but got '""'.
+  on("");
+     ^^
+
+parser/general/call_on_after_try_block2:15:6: Expected ')' before this.
+  on("");
+     ^^
+
+parser/general/call_on_after_try_block2:15:8: A record type with exactly one positional field requires a trailing comma.
+  on("");
+       ^
+
+parser/general/call_on_after_try_block2:15:8: A catch clause must have a body, even if it is empty.
+  on("");
+       ^
+
 beginCompilationUnit(void)
   beginMetadataStar(void)
   endMetadataStar(0)
@@ -38,39 +60,45 @@ beginCompilationUnit(void)
             handleEmptyStatement(;)
           endBlock(1, {, }, BlockKind(catch clause))
           handleCatchBlock(on, null, null)
-        endTryStatement(2, try, null)
-        beginMetadataStar(on)
-        endMetadataStar(0)
-        handleNoTypeVariables(()
-        beginLocalFunctionDeclaration(on)
-          handleNoType(})
-          beginFunctionName(on)
-            handleIdentifier(on, localFunctionDeclaration)
-          endFunctionName(on, ()
-          beginFormalParameters((, MemberKind.Local)
-            beginMetadataStar(e)
-            endMetadataStar(0)
-            beginFormalParameter(e, MemberKind.Local, null, null, null)
-              handleNoType(()
-              handleIdentifier(e, formalParameterDeclaration)
-              handleFormalParameterWithoutValue())
-            endFormalParameter(null, null, null, e, null, null, FormalParameterKind.requiredPositional, MemberKind.Local)
-          endFormalParameters(1, (, ), MemberKind.Local)
-          handleNoInitializers()
-          handleAsyncModifier(null, null)
-          beginBlockFunctionBody({)
+          beginCatchClause(on)
+            beginRecordType(()
+              beginRecordTypeEntry()
+                beginMetadataStar(e)
+                endMetadataStar(0)
+                handleIdentifier(e, typeReference)
+                handleNoTypeArguments())
+                handleType(e, null)
+                handleNoName())
+              endRecordTypeEntry()
+              handleRecoverableError(RecordTypeOnePositionalFieldNoTrailingComma, ), ))
+            endRecordType((, null, 1, false)
+          endCatchClause({)
+          beginBlock({, BlockKind(catch clause))
             handleEmptyStatement(;)
-          endBlockFunctionBody(1, {, })
-        endLocalFunctionDeclaration(})
-        handleIdentifier(on, expression)
-        handleNoTypeArguments(()
-        beginArguments(()
-          beginLiteralString("")
-          endLiteralString(0, ))
-        endArguments(1, (, ))
-        handleSend(on, ;)
-        handleExpressionStatement(;)
-      endBlockFunctionBody(3, {, })
+          endBlock(1, {, }, BlockKind(catch clause))
+          handleCatchBlock(on, null, null)
+          beginCatchClause(on)
+            beginRecordType(()
+              beginRecordTypeEntry()
+                beginMetadataStar("")
+                endMetadataStar(0)
+                handleRecoverableError(Message[ExpectedType, Expected a type, but got '""'., null, {lexeme: ""}], "", "")
+                handleIdentifier(, typeReference)
+                handleNoTypeArguments("")
+                handleType(, null)
+                handleNoName("")
+              endRecordTypeEntry()
+              handleRecoverableError(Message[ExpectedButGot, Expected ')' before this., null, {string: )}], "", "")
+              handleRecoverableError(RecordTypeOnePositionalFieldNoTrailingComma, ), ))
+            endRecordType((, null, 1, false)
+          endCatchClause(;)
+          handleRecoverableError(Message[ExpectedClassOrMixinBody, A catch clause must have a body, even if it is empty., Try adding an empty body., {string: catch clause}], ), ))
+          beginBlock({, BlockKind(catch clause))
+          endBlock(0, {, }, BlockKind(catch clause))
+          handleCatchBlock(on, null, null)
+        endTryStatement(4, try, null)
+        handleEmptyStatement(;)
+      endBlockFunctionBody(2, {, })
     endTopLevelMethod(void, null, })
   endTopLevelDeclaration()
 endCompilationUnit(1, )

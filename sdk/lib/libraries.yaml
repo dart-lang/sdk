@@ -47,9 +47,11 @@ vm_common:
         - "_internal/vm_shared/lib/array_patch.dart"
         - "_internal/vm_shared/lib/bigint_patch.dart"
         - "_internal/vm_shared/lib/bool_patch.dart"
+        - "_internal/vm_shared/lib/date_patch.dart"
         - "_internal/vm_shared/lib/integers_patch.dart"
         - "_internal/vm_shared/lib/map_patch.dart"
         - "_internal/vm_shared/lib/null_patch.dart"
+        - "_internal/vm_shared/lib/string_buffer_patch.dart"
 
     developer:
       uri: "developer/developer.dart"
@@ -122,6 +124,10 @@ wasm:
       uri: js/_js_annotations.dart
     _js_helper:
       uri: _internal/wasm/lib/js_helper.dart
+    _js_types:
+      uri: _internal/wasm/lib/js_types.dart
+    _wasm:
+      uri: _wasm/wasm_types.dart
     async:
       uri: async/async.dart
       patches:
@@ -144,10 +150,15 @@ wasm:
       - _internal/vm_shared/lib/array_patch.dart
       - _internal/vm_shared/lib/bigint_patch.dart
       - _internal/vm_shared/lib/bool_patch.dart
-      - _internal/wasm/lib/expando_patch.dart
+      - _internal/vm_shared/lib/date_patch.dart
       - _internal/vm_shared/lib/integers_patch.dart
       - _internal/vm_shared/lib/map_patch.dart
       - _internal/vm_shared/lib/null_patch.dart
+      - _internal/vm_shared/lib/string_buffer_patch.dart
+      - _internal/wasm/lib/date_patch_patch.dart
+      - _internal/wasm/lib/string_buffer_create.dart
+      - _internal/wasm/lib/sync_star_patch.dart
+      - _internal/wasm/lib/weak_patch.dart
     developer:
       uri: developer/developer.dart
       patches:
@@ -173,6 +184,9 @@ wasm:
     js:
       uri: js/js.dart
       patches: _internal/wasm/lib/js_patch.dart
+    js_interop:
+      uri: js_interop/js_interop.dart
+      patches: _internal/wasm/lib/js_interop_patch.dart
     js_util:
       uri: js_util/js_util.dart
       patches: _internal/wasm/lib/js_util_patch.dart
@@ -185,8 +199,6 @@ wasm:
         - _internal/vm/lib/typed_data_patch.dart
         - _internal/wasm/lib/typed_data_patch.dart
         - _internal/wasm/lib/simd_patch.dart
-    wasm:
-      uri: wasm/wasm_types.dart
 
 dart2js:
   include:
@@ -264,12 +276,21 @@ _dart2js_common:
       uri: "js/js.dart"
       patches: "_internal/js_runtime/lib/js_patch.dart"
 
+    js_interop:
+      uri: "js_interop/js_interop.dart"
+      patches: "_internal/js_shared/lib/js_interop_patch.dart"
+
     _js_annotations:
       uri: "js/_js_annotations.dart"
 
+    _js_types:
+      uri: "_internal/js_shared/lib/js_types.dart"
+
     js_util:
       uri: "js_util/js_util.dart"
-      patches: "_internal/js_shared/lib/js_util_patch.dart"
+      patches:
+        - "_internal/js_shared/lib/js_util_patch.dart"
+        - "_internal/js_runtime/lib/js_allow_interop_patch.dart"
 
     math:
       uri: "math/math.dart"
@@ -364,6 +385,9 @@ dartdevc:
       _js_primitives:
         uri: "_internal/js_dev_runtime/private/js_primitives.dart"
 
+      _js_types:
+        uri: "_internal/js_shared/lib/js_types.dart"
+
       _metadata:
         uri: "html/html_common/metadata.dart"
 
@@ -430,9 +454,15 @@ dartdevc:
         uri: "js/js.dart"
         patches: "_internal/js_dev_runtime/patch/js_patch.dart"
 
+      js_interop:
+        uri: "js_interop/js_interop.dart"
+        patches: "_internal/js_shared/lib/js_interop_patch.dart"
+
       js_util:
         uri: "js_util/js_util.dart"
-        patches: "_internal/js_shared/lib/js_util_patch.dart"
+        patches:
+          - "_internal/js_shared/lib/js_util_patch.dart"
+          - "_internal/js_dev_runtime/patch/js_allow_interop_patch.dart"
 
       svg:
         uri: "svg/dart2js/svg_dart2js.dart"

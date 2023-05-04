@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
 // Test constant folding on numbers.
 
 import 'package:async_helper/async_helper.dart';
@@ -73,10 +72,10 @@ main() {
 """;
 
 main() {
-  var plusZero = new RegExp(r"\+ 0");
-  var zeroPlus = new RegExp(r"0 \+");
-  var timesOne = new RegExp(r"\* 1");
-  var oneTimes = new RegExp(r"1 \*");
+  var plusZero = RegExp(r"\+ 0");
+  var zeroPlus = RegExp(r"0 \+");
+  var timesOne = RegExp(r"\* 1");
+  var oneTimes = RegExp(r"1 \*");
 
   test() async {
     await compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero);

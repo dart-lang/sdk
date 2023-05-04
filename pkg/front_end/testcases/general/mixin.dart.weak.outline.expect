@@ -20,15 +20,11 @@ class B extends self::_B&Object&M1&M2 {
   constructor •(dynamic value) → self::B
     ;
 }
-abstract class M1 extends core::Object {
-  synthetic constructor •() → self::M1
-    ;
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
   method m() → dynamic
     ;
 }
-abstract class M2 extends core::Object {
-  synthetic constructor •() → self::M2
-    ;
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
   method m() → dynamic
     ;
 }
@@ -50,9 +46,7 @@ class C extends self::_C&Object&M1&M2 {
   constructor •(dynamic value) → self::C
     ;
 }
-abstract class G1<T extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::G1<self::G1::T%>
-    ;
+abstract class G1<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
   method m() → dynamic
     ;
 }

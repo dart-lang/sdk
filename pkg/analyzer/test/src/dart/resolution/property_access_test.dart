@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,7 +10,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PropertyAccessResolutionTest);
-    defineReflectiveTests(PropertyAccessResolutionWithoutNullSafetyTest);
+    defineReflectiveTests(PropertyAccessResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -477,11 +476,11 @@ PropertyAccess
   test_ofRecordType_positionalField_0() async {
     await assertNoErrorsInCode(r'''
 void f((int, String) r) {
-  r.$0;
+  r.$1;
 }
 ''');
 
-    final node = findNode.propertyAccess(r'$0;');
+    final node = findNode.propertyAccess(r'$1;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -490,7 +489,7 @@ PropertyAccess
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
-    token: $0
+    token: $1
     staticElement: <null>
     staticType: int
   staticType: int
@@ -500,32 +499,9 @@ PropertyAccess
   test_ofRecordType_positionalField_0_hasExtension() async {
     await assertNoErrorsInCode(r'''
 extension E on (int, String) {
-  bool get $0 => false;
+  bool get $1 => false;
 }
 
-void f((int, String) r) {
-  r.$0;
-}
-''');
-
-    final node = findNode.propertyAccess(r'$0;');
-    assertResolvedNodeText(node, r'''
-PropertyAccess
-  target: SimpleIdentifier
-    token: r
-    staticElement: self::@function::f::@parameter::r
-    staticType: (int, String)
-  operator: .
-  propertyName: SimpleIdentifier
-    token: $0
-    staticElement: <null>
-    staticType: int
-  staticType: int
-''');
-  }
-
-  test_ofRecordType_positionalField_1() async {
-    await assertNoErrorsInCode(r'''
 void f((int, String) r) {
   r.$1;
 }
@@ -542,6 +518,29 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: $1
     staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_positionalField_1() async {
+    await assertNoErrorsInCode(r'''
+void f((int, String) r) {
+  r.$2;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$2;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $2
+    staticElement: <null>
     staticType: String
   staticType: String
 ''');
@@ -550,15 +549,15 @@ PropertyAccess
   test_ofRecordType_positionalField_2_fromExtension() async {
     await assertNoErrorsInCode(r'''
 extension on (int, String) {
-  bool get $2 => false;
+  bool get $3 => false;
 }
 
 void f((int, String) r) {
-  r.$2;
+  r.$3;
 }
 ''');
 
-    final node = findNode.propertyAccess(r'$2;');
+    final node = findNode.propertyAccess(r'$3;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -567,8 +566,8 @@ PropertyAccess
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
-    token: $2
-    staticElement: self::@extension::0::@getter::$2
+    token: $3
+    staticElement: self::@extension::0::@getter::$3
     staticType: bool
   staticType: bool
 ''');
@@ -577,13 +576,13 @@ PropertyAccess
   test_ofRecordType_positionalField_2_unresolved() async {
     await assertErrorsInCode(r'''
 void f((int, String) r) {
-  r.$2;
+  r.$3;
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
     ]);
 
-    final node = findNode.propertyAccess(r'$2;');
+    final node = findNode.propertyAccess(r'$3;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -592,7 +591,7 @@ PropertyAccess
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
-    token: $2
+    token: $3
     staticElement: <null>
     staticType: dynamic
   staticType: dynamic
@@ -658,11 +657,11 @@ final r = (0, 'bar');
 // @dart = 2.18
 import 'a.dart';
 void f() {
-  r.$0;
+  r.$1;
 }
 ''');
 
-    final node = findNode.propertyAccess(r'$0;');
+    final node = findNode.propertyAccess(r'$1;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -671,7 +670,7 @@ PropertyAccess
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
-    token: $0
+    token: $1
     staticElement: <null>
     staticType: int
   staticType: int
@@ -706,11 +705,11 @@ PropertyAccess
   test_ofRecordType_positionalField_ofTypeParameter() async {
     await assertNoErrorsInCode(r'''
 void f<T extends (int, String)>(T r) {
-  r.$0;
+  r.$1;
 }
 ''');
 
-    final node = findNode.propertyAccess(r'$0;');
+    final node = findNode.propertyAccess(r'$1;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -719,7 +718,7 @@ PropertyAccess
     staticType: T
   operator: .
   propertyName: SimpleIdentifier
-    token: $0
+    token: $1
     staticElement: <null>
     staticType: int
   staticType: int
@@ -777,7 +776,54 @@ PropertyAccess
   staticType: dynamic
 ''');
   }
+
+  test_ofSwitchExpression() async {
+    await assertNoErrorsInCode('''
+void f(Object? x) {
+  (switch (x) {
+    _ => 0,
+  }.isEven);
 }
+''');
+
+    var node = findNode.propertyAccess('.isEven');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: isEven
+    staticElement: dart:core::@class::int::@getter::isEven
+    staticType: bool
+  staticType: bool
+''');
+  }
+}
+
+@reflectiveTest
+class PropertyAccessResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with PropertyAccessResolutionTestCases, WithoutNullSafetyMixin {}
 
 mixin PropertyAccessResolutionTestCases on PubPackageResolutionTest {
   test_extensionOverride_read() async {
@@ -1565,22 +1611,34 @@ class B extends A {
 }
 ''');
 
-    var propertyAccess = findNode.propertyAccess('super.foo');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertSuperExpression(
-      propertyAccess.target,
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
+    final node = findNode.propertyAccess('super.foo');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_super_readWrite_assignment() async {
@@ -1652,11 +1710,6 @@ AssignmentExpression
   staticType: int*
 ''');
     }
-
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSuperExpression(
-      propertyAccess.target,
-    );
   }
 
   test_super_write() async {
@@ -1724,11 +1777,6 @@ AssignmentExpression
   staticType: int*
 ''');
     }
-
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSuperExpression(
-      propertyAccess.target,
-    );
   }
 
   test_targetTypeParameter_dynamicBounded() async {
@@ -1802,8 +1850,3 @@ bar() {
     assertType(identifier, 'void Function(int)');
   }
 }
-
-@reflectiveTest
-class PropertyAccessResolutionWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with PropertyAccessResolutionTestCases, WithoutNullSafetyMixin {}

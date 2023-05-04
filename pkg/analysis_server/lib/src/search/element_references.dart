@@ -7,6 +7,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A computer for `search.findElementReferences` request results.
 class ElementReferencesComputer {
@@ -15,16 +16,23 @@ class ElementReferencesComputer {
   ElementReferencesComputer(this.searchEngine);
 
   /// Computes [SearchMatch]es for [element] references.
-  Future<List<SearchMatch>> compute(Element element, bool withPotential) async {
+  Future<List<SearchMatch>> compute(Element element, bool withPotential,
+      {OperationPerformanceImpl? performance}) async {
     var results = <SearchMatch>[];
+    performance ??= OperationPerformanceImpl("<root>");
 
     // Add element references.
-    results.addAll(await _findElementsReferences(element));
+    results.addAll(await performance.runAsync(
+        "_findElementsReferences",
+        (childPerformance) =>
+            _findElementsReferences(element, childPerformance)));
 
     // Add potential references.
     if (withPotential && _isMemberElement(element)) {
       var name = element.displayName;
-      var matches = await searchEngine.searchMemberReferences(name);
+      var matches = await performance.runAsync(
+          "searchEngine.searchMemberReferences",
+          (_) => searchEngine.searchMemberReferences(name));
       results.addAll(matches.where((match) => !match.isResolved));
     }
 
@@ -33,11 +41,15 @@ class ElementReferencesComputer {
 
   /// Returns a [Future] completing with a [List] of references to [element] or
   /// to the corresponding hierarchy [Element]s.
-  Future<List<SearchMatch>> _findElementsReferences(Element element) async {
+  Future<List<SearchMatch>> _findElementsReferences(
+      Element element, OperationPerformanceImpl performance) async {
     var allResults = <SearchMatch>[];
-    var refElements = await _getRefElements(element);
+    var refElements = await performance.runAsync("_getRefElements",
+        (childPerformance) => _getRefElements(element, childPerformance));
     for (var refElement in refElements) {
-      var elementResults = await _findSingleElementReferences(refElement);
+      var elementResults = await performance.runAsync(
+          "_findSingleElementReferences",
+          (_) => _findSingleElementReferences(refElement));
       allResults.addAll(elementResults);
     }
     return allResults;
@@ -55,12 +67,17 @@ class ElementReferencesComputer {
   /// corresponding [Element] in the hierarchy is returned.
   ///
   /// Otherwise, only references to [element] should be searched.
-  Future<Iterable<Element>> _getRefElements(Element element) {
+  Future<Iterable<Element>> _getRefElements(
+      Element element, OperationPerformanceImpl performance) {
     if (element is ParameterElement && element.isNamed) {
-      return getHierarchyNamedParameters(searchEngine, element);
+      return performance.runAsync("getHierarchyNamedParameters",
+          (_) => getHierarchyNamedParameters(searchEngine, element));
     }
     if (element is ClassMemberElement) {
-      return getHierarchyMembers(searchEngine, element);
+      return performance.runAsync(
+          "getHierarchyMembers",
+          (performance) => getHierarchyMembers(searchEngine, element,
+              performance: performance));
     }
     return Future.value([element]);
   }

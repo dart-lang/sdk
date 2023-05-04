@@ -11,24 +11,14 @@ import "package:expect/expect.dart";
 import 'sealed_class_extend_lib.dart';
 
 class AExtends extends A {
-  @override
   int foo = 0;
-
-  @override
   int bar(int value) => value;
 }
 
 class AImplements implements A {
-  @override
   int nonAbstractFoo = 0;
-
-  @override
   int foo = 0;
-
-  @override
   int bar(int value) => value;
-
-  @override
   int nonAbstractBar(int value) => value;
 }
 

@@ -54,8 +54,8 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   if (FLAG_worker_thread_priority != kMinInt) {
     if (SetThreadPriority(GetCurrentThread(), FLAG_worker_thread_priority) ==
         0) {
-      FATAL2("Setting thread priority to %d failed: GetLastError() = %d\n",
-             FLAG_worker_thread_priority, GetLastError());
+      FATAL("Setting thread priority to %d failed: GetLastError() = %d\n",
+            FLAG_worker_thread_priority, GetLastError());
     }
   }
 
@@ -70,7 +70,7 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
-    thread->set_name(name);
+    thread->SetName(name);
 
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
@@ -105,7 +105,7 @@ const ThreadJoinId OSThread::kInvalidThreadJoinId = NULL;
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   ThreadLocalKey key = TlsAlloc();
   if (key == kUnsetThreadLocalKey) {
-    FATAL1("TlsAlloc failed %d", GetLastError());
+    FATAL("TlsAlloc failed %d", GetLastError());
   }
   ThreadLocalData::AddThreadLocal(key, destructor);
   return key;
@@ -115,7 +115,7 @@ void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsFree(key);
   if (!result) {
-    FATAL1("TlsFree failed %d", GetLastError());
+    FATAL("TlsFree failed %d", GetLastError());
   }
   ThreadLocalData::RemoveThreadLocal(key);
 }
@@ -134,6 +134,12 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
   return ::GetCurrentThreadId();
 }
 #endif  // SUPPORT_TIMELINE
+
+char* OSThread::GetCurrentThreadName() {
+  // TODO(derekx): We aren't even setting the thread name on Windows, so we need
+  // to figure out how to set/get the thread name on Windows.
+  return nullptr;
+}
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);
@@ -159,7 +165,7 @@ void OSThread::Join(ThreadJoinId id) {
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) <= sizeof(intptr_t));
+  COMPILE_ASSERT(sizeof(id) <= sizeof(intptr_t));
   return static_cast<intptr_t>(id);
 }
 
@@ -217,7 +223,7 @@ void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsSetValue(key, reinterpret_cast<void*>(value));
   if (!result) {
-    FATAL1("TlsSetValue failed %d", GetLastError());
+    FATAL("TlsSetValue failed %d", GetLastError());
   }
 }
 
@@ -241,6 +247,8 @@ Mutex::~Mutex() {
 }
 
 void Mutex::Lock() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   AcquireSRWLockExclusive(&data_.lock_);
 #if defined(DEBUG)
   // When running with assertions enabled we do track the owner.
@@ -249,6 +257,8 @@ void Mutex::Lock() {
 }
 
 bool Mutex::TryLock() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   if (TryAcquireSRWLockExclusive(&data_.lock_) != 0) {
 #if defined(DEBUG)
     // When running with assertions enabled we do track the owner.
@@ -285,6 +295,8 @@ Monitor::~Monitor() {
 }
 
 bool Monitor::TryEnter() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   // Attempt to pass the semaphore but return immediately.
   if (TryAcquireSRWLockExclusive(&data_.lock_) != 0) {
 #if defined(DEBUG)
@@ -298,6 +310,8 @@ bool Monitor::TryEnter() {
 }
 
 void Monitor::Enter() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   AcquireSRWLockExclusive(&data_.lock_);
 
 #if defined(DEBUG)

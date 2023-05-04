@@ -93,7 +93,7 @@ extension on String {
   int get foo => 0;
 }
 ''', [
-      error(HintCode.UNUSED_FIELD, 35, 3),
+      error(WarningCode.UNUSED_FIELD, 35, 3),
       error(_errorCode, 35, 3),
       error(HintCode.UNUSED_ELEMENT, 54, 3),
     ]);

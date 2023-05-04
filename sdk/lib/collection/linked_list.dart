@@ -78,7 +78,7 @@ part of dart.collection;
 ///   print(linkedList.isEmpty); // true
 /// }
 /// ```
-class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
+base class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
   int _modificationCount = 0;
   int _length = 0;
   E? _first;
@@ -270,7 +270,7 @@ class _LinkedListIterator<E extends LinkedListEntry<E>> implements Iterator<E> {
 /// linked list, and otherwise the `list` property is `null`.
 ///
 /// When created, an entry is not in any linked list.
-abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
+abstract base mixin class LinkedListEntry<E extends LinkedListEntry<E>> {
   LinkedList<E>? _list;
   E? _next;
   E? _previous;

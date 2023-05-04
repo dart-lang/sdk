@@ -7,7 +7,6 @@ part of repositories;
 class ObjectStoreRepository implements M.ObjectStoreRepository {
   Future<M.ObjectStore> get(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     return isolate.getObjectStore();
   }
 }

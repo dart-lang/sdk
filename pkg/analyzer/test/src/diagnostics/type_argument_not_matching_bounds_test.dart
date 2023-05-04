@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,6 +20,18 @@ main() {
 @reflectiveTest
 class TypeArgumentNotMatchingBoundsTest extends PubPackageResolutionTest
     with TypeArgumentNotMatchingBoundsTestCases {
+  test_classTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+mixin C {}
+class G<E extends A> {}
+class D = G<B> with C;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1),
+    ]);
+  }
+
   test_enum_inferred() async {
     await assertErrorsInCode('''
 enum E<T extends int> {
@@ -49,6 +62,7 @@ enum E<T extends int> {
   }
 
   test_extends_optIn_fromOptOut_Null() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A<X extends int> {}
 ''');
@@ -62,6 +76,7 @@ class A1<T extends Null> extends A<T> {}
   }
 
   test_extends_optIn_fromOptOut_otherTypeParameter() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 void foo<T extends U, U>() {
 }
@@ -81,6 +96,7 @@ main() {
   }
 
   test_extensionOverride_optIn_fromOptOut_Null() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 extension E<X extends int> on List<X> {
   void m() {}
@@ -146,6 +162,7 @@ void f(CB<F2> a) {}
   }
 
   test_instanceCreation_optIn_fromOptOut_Null() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A<X extends int> {}
 ''');
@@ -222,6 +239,7 @@ void g() {
   }
 
   test_methodInvocation_optIn_fromOptOut_Null() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void m<X extends int>() {}
@@ -340,6 +358,7 @@ foo(G g) {}
   }
 
   test_redirectingConstructor_optIn_fromOptOut_Null() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 import 'test.dart';
 
@@ -433,21 +452,20 @@ var t = D<String>;
           contextMessages: [message('/home/test/lib/test.dart', 49, 9)]),
     ]);
   }
-}
 
-mixin TypeArgumentNotMatchingBoundsTestCases on PubPackageResolutionTest {
-  test_classTypeAlias() async {
+  test_with() async {
     await assertErrorsInCode(r'''
 class A {}
 class B {}
-class C {}
-class G<E extends A> {}
-class D = G<B> with C;
+mixin G<E extends A> {}
+class C extends Object with G<B>{}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 76, 1),
     ]);
   }
+}
 
+mixin TypeArgumentNotMatchingBoundsTestCases on PubPackageResolutionTest {
   test_const() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -816,23 +834,24 @@ G<B> g = (throw 0);
           contextMessages: [message('/home/test/lib/test.dart', 46, 4)]),
     ]);
   }
-
-  test_with() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<E extends A> {}
-class C extends Object with G<B>{}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 76, 1),
-    ]);
-  }
 }
 
 @reflectiveTest
 class TypeArgumentNotMatchingBoundsWithoutNullSafetyTest
     extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, TypeArgumentNotMatchingBoundsTestCases {
+  test_classTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class C {}
+class G<E extends A> {}
+class D = G<B> with C;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1),
+    ]);
+  }
+
   test_regression_42196_Null() async {
     await assertNoErrorsInCode(r'''
 typedef G<X> = Function(X);
@@ -844,5 +863,16 @@ main() {
   test<A<G<A<Null, Null>>, dynamic>>();
 }
 ''');
+  }
+
+  test_with() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<E extends A> {}
+class C extends Object with G<B>{}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 76, 1),
+    ]);
   }
 }

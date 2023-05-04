@@ -19,4 +19,4 @@ class Class1 {
 }
 
 /*member: abstractEquals:[exact=JSBool]*/
-abstractEquals() => new Class1() /*invoke: [exact=Class1]*/ == new Class1();
+abstractEquals() => Class1() /*invoke: [exact=Class1]*/ == Class1();

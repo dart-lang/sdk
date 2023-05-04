@@ -16,7 +16,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
       StreamController<lsp.Message>.broadcast();
 
   /// Completer that will be signalled when the input stream is closed.
-  final Completer _closed = Completer();
+  final Completer<void> _closed = Completer();
 
   /// Errors popups sent to the user.
   final shownErrors = <lsp.ShowMessageParams>[];
@@ -51,7 +51,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
   /// Future that will be completed when the input stream is closed.
   @override
-  Future get closed {
+  Future<void> get closed {
     return _closed.future;
   }
 

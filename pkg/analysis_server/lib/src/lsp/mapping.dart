@@ -33,12 +33,16 @@ import 'package:collection/collection.dart';
 const languageSourceName = 'dart';
 
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
-  _errorCode(HintCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
-  _errorCode(HintCode.DEPRECATED_MEMBER_USE): [lsp.DiagnosticTag.Deprecated],
+  _errorCode(WarningCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
     lsp.DiagnosticTag.Deprecated
   ],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE): [
+    lsp.DiagnosticTag.Deprecated
+  ],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE): [lsp.DiagnosticTag.Deprecated],
+  'deprecated_member_use_from_same_package': [lsp.DiagnosticTag.Deprecated],
+  'deprecated_member_use_from_same_package_with_message': [
     lsp.DiagnosticTag.Deprecated
   ],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE): [
@@ -786,6 +790,18 @@ lsp.CompletionItem snippetToCompletionItem(
   );
 }
 
+/// Sorts a list of [server.SourceEdit]s for mapping to LSP types.
+///
+/// Server works with edits that can be applied sequentially to a [String]. This
+/// means inserts at the same offset are in the reverse order. For LSP, all
+/// offsets relate to the original document and inserts with the same offset
+/// appear in the order they will appear in the final document.
+List<server.SourceEdit> sortSourceEditsForLsp(List<server.SourceEdit> edits) {
+  // Since for LSP the ordering of items without the same offset do not matter,
+  // we can simply reverse the entire list.
+  return edits.reversed.toList();
+}
+
 lsp.CompletionItemKind? suggestionKindToCompletionItemKind(
   Set<lsp.CompletionItemKind> supportedCompletionKinds,
   server.CompletionSuggestionKind kind,
@@ -885,6 +901,7 @@ lsp.CompletionItem toCompletionItem(
   // info appended (for example '(...)' on callables) that should not be included
   // in filterText.
   var label = suggestion.displayText ?? suggestion.completion;
+  assert(label.isNotEmpty);
   final filterText = label;
 
   // Trim any trailing comma from the (displayed) label.
@@ -1158,6 +1175,8 @@ lsp.Position toPosition(server.CharacterLocation location) {
 }
 
 lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
+  assert(offset >= 0);
+  assert(length >= 0);
   final start = lineInfo.getLocation(offset);
   final end = lineInfo.getLocation(offset + length);
 
@@ -1305,7 +1324,7 @@ lsp.TextDocumentEdit toTextDocumentEdit(
     LspClientCapabilities capabilities, FileEditInformation edit) {
   return lsp.TextDocumentEdit(
       textDocument: edit.doc,
-      edits: edit.edits
+      edits: sortSourceEditsForLsp(edit.edits)
           .map((e) => toTextDocumentEditEdit(capabilities, edit.lineInfo, e,
               selectionOffsetRelative: edit.selectionOffsetRelative,
               selectionLength: edit.selectionLength))
@@ -1345,9 +1364,8 @@ lsp.WorkspaceEdit toWorkspaceEdit(
   final supportsDocumentChanges = capabilities.documentChanges;
   if (supportsDocumentChanges) {
     final supportsCreate = capabilities.createResourceOperations;
-    final changes = <
-        Either4<lsp.CreateFile, lsp.DeleteFile, lsp.RenameFile,
-            lsp.TextDocumentEdit>>[];
+    final changes = <Either4<lsp.CreateFile, lsp.DeleteFile, lsp.RenameFile,
+        lsp.TextDocumentEdit>>[];
 
     // Convert each SourceEdit to either a TextDocumentEdit or a
     // CreateFile + a TextDocumentEdit depending on whether it's a new
@@ -1375,8 +1393,9 @@ lsp.WorkspaceEdit toWorkspaceEdit(
 Map<Uri, List<lsp.TextEdit>> toWorkspaceEditChanges(
     List<FileEditInformation> edits) {
   MapEntry<Uri, List<lsp.TextEdit>> createEdit(FileEditInformation file) {
-    final edits =
-        file.edits.map((edit) => toTextEdit(file.lineInfo, edit)).toList();
+    final edits = sortSourceEditsForLsp(file.edits)
+        .map((edit) => toTextEdit(file.lineInfo, edit))
+        .toList();
     return MapEntry(file.doc.uri, edits);
   }
 

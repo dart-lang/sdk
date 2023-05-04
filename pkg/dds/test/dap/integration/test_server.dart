@@ -30,7 +30,9 @@ class InProcessDapTestServer extends DapTestServer {
   final stdinController = StreamController<List<int>>();
   final stdoutController = StreamController<List<int>>();
 
+  @override
   StreamSink<List<int>> get sink => stdinController.sink;
+  @override
   Stream<List<int>> get stream => stdoutController.stream;
 
   InProcessDapTestServer._(
@@ -78,7 +80,9 @@ class OutOfProcessDapTestServer extends DapTestServer {
   final Process _process;
 
   Future<int> get exitCode => _process.exitCode;
+  @override
   StreamSink<List<int>> get sink => _process.stdin;
+  @override
   Stream<List<int>> get stream => _process.stdout;
 
   OutOfProcessDapTestServer._(

@@ -86,7 +86,7 @@ uint32_t Utils::ReverseBits32(uint32_t x) {
 }
 
 // Implementation according to H.S.Warren's "Hacker's Delight"
-// (Addison Wesley, 2002) Chapter 10 and T.Grablund, P.L.Montogomery's
+// (Addison Wesley, 2002) Chapter 10 and T.Grablund, P.L.Montgomery's
 // "Division by Invariant Integers Using Multiplication" (PLDI 1994).
 void Utils::CalculateMagicAndShiftForDivRem(int64_t divisor,
                                             int64_t* magic,
@@ -292,11 +292,11 @@ char* Utils::VSCreate(const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  ASSERT(buffer != NULL);
+  ASSERT(buffer != nullptr);
 
   // Print.
   va_list print_args;

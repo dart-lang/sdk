@@ -35,7 +35,7 @@ import 'package:meta/meta.dart';
 
 @sealed mixin M {}
 ''', [
-      error(HintCode.INVALID_SEALED_ANNOTATION, 34, 7),
+      error(WarningCode.INVALID_SEALED_ANNOTATION, 34, 7),
     ]);
   }
 
@@ -45,7 +45,7 @@ import 'package:meta/meta.dart';
 
 abstract class A {}
 
-abstract class B {}
+mixin B {}
 
 @sealed abstract class M = A with B;
 ''');
@@ -57,7 +57,7 @@ import 'package:meta/meta.dart';
 
 @sealed m({a = 1}) => null;
 ''', [
-      error(HintCode.INVALID_SEALED_ANNOTATION, 34, 7),
+      error(WarningCode.INVALID_SEALED_ANNOTATION, 34, 7),
     ]);
   }
 }

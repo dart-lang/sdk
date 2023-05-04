@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,6 +20,7 @@ main() {
 @reflectiveTest
 class CouldNotInferTest extends PubPackageResolutionTest {
   test_constructor_nullSafe_fromLegacy() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', '''
 class C<T extends Object> {
   C(T t);
@@ -91,7 +93,9 @@ class C<P extends num> {
 
 var c = C([]);
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 78, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 82, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 82, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 82, 1)]),
     ]);
   }
 }

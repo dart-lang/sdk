@@ -12,8 +12,8 @@ static method foo() → void
   return core::print("foo");
 static method main() → dynamic {
   (() → void, self::Bar) r = (#C1, new self::Bar::•());
-  r.$0{() → void}(){() → void};
-  r.$1{self::Bar}.{self::Bar::call}(){() → void};
+  r.$1{() → void}(){() → void};
+  r.$2{self::Bar}.{self::Bar::call}(){() → void};
 }
 
 constants  {

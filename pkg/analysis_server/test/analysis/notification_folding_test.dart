@@ -34,7 +34,7 @@ main async() {}
 
   List<FoldingRegion>? lastRegions;
 
-  late Completer _regionsReceived;
+  late Completer<void> _regionsReceived;
 
   @override
   void processNotification(Notification notification) {
@@ -42,7 +42,7 @@ main async() {}
       var params = AnalysisFoldingParams.fromNotification(notification);
       if (params.file == testFile.path) {
         lastRegions = params.regions;
-        _regionsReceived.complete(null);
+        _regionsReceived.complete();
       }
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
       var params = ServerErrorParams.fromNotification(notification);

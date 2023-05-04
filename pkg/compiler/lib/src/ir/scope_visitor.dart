@@ -158,9 +158,8 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   /// the children of the parent node, which lead to a O(n^2) complexity that
   /// is severe and observable for instance for large list literals.
   EvaluationComplexity _evaluateImplicitConstant(ir.Expression node) {
-    ir.Constant? constant = _constantEvaluator.evaluateOrNull(
-        _staticTypeContext, node,
-        requireConstant: false, replaceImplicitConstant: false);
+    ir.Constant? constant = _constantEvaluator
+        .evaluateOrNull(_staticTypeContext, node, requireConstant: false);
     if (constant != null) {
       return EvaluationComplexity.constant(constant);
     }
@@ -382,7 +381,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       VariableUse usage) {
     assert(variable is ir.VariableDeclaration ||
         variable is TypeVariableTypeWithContext);
-    assert((usage as dynamic) != null); // TODO(48820): Remove.
     if (_isInsideClosure && !_inCurrentContext(variable)) {
       // If the element is not declared in the current function and the element
       // is not the closure itself we need to mark the element as free variable.
@@ -777,6 +775,11 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     return const EvaluationComplexity.lazy();
   }
 
+  @override
+  EvaluationComplexity visitInlineType(ir.InlineType type) {
+    return visitNode(type.instantiatedRepresentationType);
+  }
+
   EvaluationComplexity visitInContext(ir.Node node, VariableUse use) {
     VariableUse? oldCurrentTypeUsage = _currentTypeUsage;
     _currentTypeUsage = use;
@@ -941,7 +944,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     // user-defined `get:hashCode` or `operator==`.
     //
     // TODO(45681): Improve the analysis. (1) Use static type of the [key]
-    // expression. (2) Use information about the class heirarchy and overloading
+    // expression. (2) Use information about the class hierarchy and overloading
     // of `get:hashCode` to detect safe implementations. This will pick up a lot
     // of enum and enum-like classes.
     if (key is ir.ConstantExpression) {
@@ -967,7 +970,9 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitRecordLiteral(ir.RecordLiteral node) {
     EvaluationComplexity complexity = visitExpressions(node.positional);
-    return visitNamedExpressions(node.named, complexity);
+    complexity = visitNamedExpressions(node.named, complexity);
+    if (complexity.isConstant) return _evaluateImplicitConstant(node);
+    return complexity;
   }
 
   @override
@@ -1233,6 +1238,18 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
+  EvaluationComplexity visitRecordIndexGet(ir.RecordIndexGet node) {
+    node.receiver = _handleExpression(node.receiver);
+    return const EvaluationComplexity.lazy();
+  }
+
+  @override
+  EvaluationComplexity visitRecordNameGet(ir.RecordNameGet node) {
+    node.receiver = _handleExpression(node.receiver);
+    return const EvaluationComplexity.lazy();
+  }
+
+  @override
   EvaluationComplexity visitDynamicGet(ir.DynamicGet node) {
     node.receiver = _handleExpression(node.receiver);
     EvaluationComplexity complexity = _lastExpressionComplexity;
@@ -1478,7 +1495,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       (node is ir.Procedure && node.isFactory);
 
   void _analyzeTypeVariable(ir.TypeParameterType type, VariableUse usage) {
-    assert((usage as dynamic) != null); // TODO(48820): Remove.
     final outermost = _outermostNode;
     if (outermost is ir.Member) {
       TypeVariableTypeWithContext typeVariable =

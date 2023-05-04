@@ -7,7 +7,7 @@
 import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async' show Completer, runZonedGuarded;
-import '../../language/static_type_helper.dart';
+import '../../language_2/static_type_helper.dart';
 
 void main() {
   testIgnore();
@@ -20,7 +20,7 @@ void testIgnore() {
   });
 
   asyncStart();
-  // Ignored futures can still be listend to.
+  // Ignored futures can still be listened to.
   {
     var c = Completer<int>.sync();
     var f = c.future;

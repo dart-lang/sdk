@@ -15,7 +15,7 @@ import '../../compiler_api.dart' as api show Input, InputKind;
 
 /// Represents a file of source code. The content can be either a [String] or
 /// a UTF-8 encoded [List<int>] of bytes.
-abstract class SourceFile<T> implements api.Input<T>, LocationProvider {
+abstract class SourceFile implements api.Input<List<int>>, LocationProvider {
   /// The absolute URI of the source file.
   @override
   Uri get uri;
@@ -177,7 +177,7 @@ List<int> _zeroTerminateIfNecessary(List<int> bytes) {
   return result;
 }
 
-class Utf8BytesSourceFile extends SourceFile<List<int>> {
+class Utf8BytesSourceFile extends SourceFile {
   @override
   final Uri uri;
 
@@ -228,27 +228,7 @@ class Utf8BytesSourceFile extends SourceFile<List<int>> {
   void release() {}
 }
 
-class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
-  String? _cachedText;
-  @override
-  final String filename;
-
-  CachingUtf8BytesSourceFile(Uri uri, this.filename, List<int> content)
-      : super(uri, content);
-
-  @override
-  String slowText() {
-    return _cachedText ??= super.slowText();
-  }
-
-  @override
-  void release() {
-    _cachedText = null;
-    super.release();
-  }
-}
-
-class StringSourceFile extends SourceFile<List<int>> {
+class StringSourceFile extends SourceFile {
   @override
   final Uri uri;
   @override

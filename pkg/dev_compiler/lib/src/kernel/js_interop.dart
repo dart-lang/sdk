@@ -34,7 +34,7 @@ bool _isJSLibrary(Library library) => _isLibrary(library, [
 bool isAllowInterop(Expression node) {
   if (node is StaticInvocation) {
     var target = node.target;
-    return _isLibrary(target.enclosingLibrary, ['dart:js']) &&
+    return _isLibrary(target.enclosingLibrary, ['dart:js_util']) &&
         target.name.text == 'allowInterop';
   }
   return false;
@@ -67,7 +67,7 @@ bool isJsRestAnnotation(Expression value) =>
 bool isJSAnnotation(Expression value) =>
     _annotationIsFromJSLibrary('JS', value) || isJSName(value);
 
-/// Returns [true] if [e] is the `JS` annotation from `package:js`.
+/// Returns [true] if [value] is the `JS` annotation from `package:js`.
 bool isPublicJSAnnotation(Expression value) =>
     _annotationIsFromJSLibrary('JS', value);
 
@@ -112,6 +112,18 @@ bool isStaticInteropType(Class namedClass) {
 
 bool isUndefinedAnnotation(Expression value) =>
     isBuiltinAnnotation(value, '_js_helper', '_Undefined');
+
+bool isObjectLiteralAnnotation(Expression value) {
+  final c = getAnnotationClass(value);
+  return c != null &&
+      c.name == 'ObjectLiteral' &&
+      _isLibrary(c.enclosingLibrary, ['dart:js_interop']);
+}
+
+/// Returns whether [a] is annotated with the `@ObjectLiteral(...)` annotation
+/// from `dart:js_interop`.
+bool hasObjectLiteralAnnotation(Annotatable a) =>
+    a.annotations.any(isObjectLiteralAnnotation);
 
 /// Returns true iff the class has an `@JS(...)` annotation from `package:js`.
 ///

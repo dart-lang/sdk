@@ -79,6 +79,11 @@ template("_application_snapshot") {
     output = invoker.output
   }
 
+  gen_kernel_args = []
+  if (defined(invoker.gen_kernel_args)) {
+    gen_kernel_args += invoker.gen_kernel_args
+  }
+
   # Build the kernel file using the prebuilt VM to speed up the debug and
   # simulator builds.
   prebuilt_dart_action(target_name + "_dill") {
@@ -115,15 +120,15 @@ template("_application_snapshot") {
     is_product_flag = dart_runtime_mode == "release"
 
     args = [
-      "--packages=" + rebase_path(dot_packages),
-      "--platform=" + rebase_path(platform_dill),
+      "--packages=" + rebase_path(dot_packages, root_build_dir),
+      "--platform=" + rebase_path(platform_dill, root_build_dir),
       "--no-aot",
       "--no-embed-sources",
       "--no-link-platform",
       "--output=" + rebase_path(output, root_build_dir),
-      "--depfile=" + rebase_path(depfile),
+      "--depfile=" + rebase_path(depfile, root_build_dir),
 
-      # Ensure the compiled appliation (e.g. kernel-service, frontend-server,
+      # Ensure the compiled application (e.g. kernel-service, frontend-server,
       # ...) will use this SDK hash when consuming/producing kernel.
       #
       # (Instead of ensuring every user of the "application_snapshot" /
@@ -131,7 +136,8 @@ template("_application_snapshot") {
       "-Dsdk_hash=$sdk_hash",
       "-Ddart.vm.product=$is_product_flag",
     ]
-    args += [ rebase_path(main_dart) ]
+    args += gen_kernel_args
+    args += [ rebase_path(main_dart, root_build_dir) ]
   }
 
   # Create a snapshot from kernel built above.
@@ -162,16 +168,11 @@ template("_application_snapshot") {
       # snapshot (creating a circular dep. for kernel-service_snapshot).
       dfe = "NEVER_LOADED"
 
-      abs_depfile = rebase_path(depfile)
-      abs_output = rebase_path(output)
-      rel_output = rebase_path(output, root_build_dir)
-
       vm_args = [
                   "--deterministic",
-                  "--packages=$dot_packages",
-                  "--snapshot=$abs_output",
-                  "--snapshot-depfile=$abs_depfile",
-                  "--depfile-output-filename=$rel_output",
+                  "--packages=" + rebase_path(dot_packages, root_build_dir),
+                  "--snapshot=" + rebase_path(output, root_build_dir),
+                  "--snapshot-depfile=" + rebase_path(depfile, root_build_dir),
                 ] + snapshot_vm_args
 
       if (dart_snapshot_kind == "app-jit") {

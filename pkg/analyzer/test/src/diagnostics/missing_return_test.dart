@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -36,6 +37,7 @@ dynamic f() {}
   }
 
   test_function_sync_block_Never() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 Never foo() {
   throw 0;
@@ -88,7 +90,7 @@ class A {
   factory A() {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 12, 14),
+      error(WarningCode.MISSING_RETURN, 12, 14),
     ]);
   }
 
@@ -96,7 +98,7 @@ class A {
     await assertErrorsInCode(r'''
 Future<int> f() async {}
 ''', [
-      error(HintCode.MISSING_RETURN, 12, 1),
+      error(WarningCode.MISSING_RETURN, 12, 1),
     ]);
   }
 
@@ -123,7 +125,7 @@ int f() => 0;
     await assertErrorsInCode(r'''
 int f() {}
 ''', [
-      error(HintCode.MISSING_RETURN, 4, 1),
+      error(WarningCode.MISSING_RETURN, 4, 1),
     ]);
   }
 
@@ -149,7 +151,7 @@ Future Function() f = () async {};
     await assertErrorsInCode(r'''
 Future<int> Function() f = () async {};
 ''', [
-      error(HintCode.MISSING_RETURN, 27, 11),
+      error(WarningCode.MISSING_RETURN, 27, 11),
     ]);
   }
 
@@ -177,7 +179,7 @@ import 'dart:async';
 
 FutureOr<int> Function() f = () {};
 ''', [
-      error(HintCode.MISSING_RETURN, 51, 5),
+      error(WarningCode.MISSING_RETURN, 51, 5),
     ]);
   }
 
@@ -185,7 +187,7 @@ FutureOr<int> Function() f = () {};
     await assertErrorsInCode(r'''
 int Function() f = () {};
 ''', [
-      error(HintCode.MISSING_RETURN, 19, 5),
+      error(WarningCode.MISSING_RETURN, 19, 5),
     ]);
   }
 
@@ -236,7 +238,7 @@ class A {
   FutureOr<int> m() {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 48, 1),
+      error(WarningCode.MISSING_RETURN, 48, 1),
     ]);
   }
 
@@ -246,7 +248,7 @@ class A {
   int m() {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 16, 1),
+      error(WarningCode.MISSING_RETURN, 16, 1),
     ]);
   }
 
@@ -260,7 +262,7 @@ class B extends A {
   m() {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 55, 1),
+      error(WarningCode.MISSING_RETURN, 55, 1),
     ]);
   }
 }

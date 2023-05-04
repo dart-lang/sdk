@@ -930,7 +930,7 @@ TEST_CASE(IsolateReload_TypeIdentityParameter) {
 
 TEST_CASE(IsolateReload_MixinChanged) {
   const char* kScript =
-      "class Mixin1 {\n"
+      "mixin Mixin1 {\n"
       "  var field = 'mixin1';\n"
       "  func() => 'mixin1';\n"
       "}\n"
@@ -946,7 +946,7 @@ TEST_CASE(IsolateReload_MixinChanged) {
   EXPECT_STREQ("saved:field=mixin1,func=mixin1", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
-      "class Mixin2 {\n"
+      "mixin Mixin2 {\n"
       "  var field = 'mixin2';\n"
       "  func() => 'mixin2';\n"
       "}\n"
@@ -1232,7 +1232,7 @@ TEST_CASE(IsolateReload_SmiFastPathStubs) {
 // mixins when we reload.
 TEST_CASE(IsolateReload_ImportedMixinFunction) {
   const char* kImportScript =
-      "class ImportedMixin {\n"
+      "mixin ImportedMixin {\n"
       "  mixinFunc() => 'mixin';\n"
       "}\n";
   TestCase::AddTestLib("test:lib1", kImportScript);
@@ -1705,7 +1705,7 @@ TEST_CASE(IsolateReload_TearOff_Remove) {
   const char* kScript =
       "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
-      "  static foo({String bar: 'bar'}) => 'old';\n"
+      "  static foo({String bar = 'bar'}) => 'old';\n"
       "}\n"
       "main() {\n"
       "  var f1 = C.foo;\n"
@@ -2111,20 +2111,20 @@ TEST_CASE(IsolateReload_EnumAddition) {
   const char* kReloadScript =
       "enum Fruit {\n"
       "  Apple,\n"
-      "  Cantalope,\n"
+      "  Cantaloupe,\n"
       "  Banana,\n"
       "}\n"
       "var x;\n"
       "main() {\n"
       "  String r = '${Fruit.Apple.index}/${Fruit.Apple} ';\n"
-      "  r += '${Fruit.Cantalope.index}/${Fruit.Cantalope} ';\n"
+      "  r += '${Fruit.Cantaloupe.index}/${Fruit.Cantaloupe} ';\n"
       "  r += '${Fruit.Banana.index}/${Fruit.Banana}';\n"
       "  return r;\n"
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("0/Fruit.Apple 1/Fruit.Cantalope 2/Fruit.Banana",
+  EXPECT_STREQ("0/Fruit.Apple 1/Fruit.Cantaloupe 2/Fruit.Banana",
                SimpleInvokeStr(lib, "main"));
 }
 
@@ -2183,11 +2183,11 @@ TEST_CASE(IsolateReload_EnumDelete) {
       "enum Fruit {\n"
       "  Apple,\n"
       "  Banana,\n"
-      "  Cantalope,\n"
+      "  Cantaloupe,\n"
       "}\n"
       "var x;\n"
       "main() {\n"
-      "  x = Fruit.Cantalope;\n"
+      "  x = Fruit.Cantaloupe;\n"
       "  return Fruit.Apple.toString();\n"
       "}\n";
 
@@ -2195,7 +2195,7 @@ TEST_CASE(IsolateReload_EnumDelete) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
-  // Delete 'Cantalope' but make sure that we can still invoke toString,
+  // Delete 'Cantaloupe' but make sure that we can still invoke toString,
   // and access the hashCode and index properties.
 
   const char* kReloadScript =
@@ -2220,7 +2220,7 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
       "enum Fruit {\n"
       "  Apple,\n"
       "  Banana,\n"
-      "  Cantalope,\n"
+      "  Cantaloupe,\n"
       "}\n"
       "var x;\n"
       "var y;\n"
@@ -2229,10 +2229,10 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
       "main() {\n"
       "  x = { Fruit.Apple: Fruit.Apple.index,\n"
       "        Fruit.Banana: Fruit.Banana.index,\n"
-      "        Fruit.Cantalope: Fruit.Cantalope.index};\n"
+      "        Fruit.Cantaloupe: Fruit.Cantaloupe.index};\n"
       "  y = Fruit.Apple;\n"
       "  z = Fruit.Banana;\n"
-      "  w = Fruit.Cantalope;\n"
+      "  w = Fruit.Cantaloupe;\n"
       "  return Fruit.Apple.toString();\n"
       "}\n";
 
@@ -2244,7 +2244,7 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
       "enum Fruit {\n"
       "  Apple,\n"
       "  Banana,\n"
-      "  Cantalope,\n"
+      "  Cantaloupe,\n"
       "}\n"
       "var x;\n"
       "var y;\n"
@@ -2260,16 +2260,143 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
       "  });\n"
       "  r += '${x[Fruit.Apple] == Fruit.Apple.index} ';\n"
       "  r += '${x[Fruit.Banana] == Fruit.Banana.index} ';\n"
-      "  r += '${x[Fruit.Cantalope] == Fruit.Cantalope.index} ';\n"
+      "  r += '${x[Fruit.Cantaloupe] == Fruit.Cantaloupe.index} ';\n"
       "  r += '${identical(y, Fruit.values[x[Fruit.Apple]])} ';\n"
       "  r += '${identical(z, Fruit.values[x[Fruit.Banana]])} ';\n"
-      "  r += '${identical(w, Fruit.values[x[Fruit.Cantalope]])} ';\n"
+      "  r += '${identical(w, Fruit.values[x[Fruit.Cantaloupe]])} ';\n"
       "  return r;\n"
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
   EXPECT_STREQ("true true true true true true true true true ",
+               SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumShapeChange) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.Apple;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A'),\n"
+      "  Banana('Banana', 'B');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.initial;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("A", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumShapeChangeAdd) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.Apple;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A'),\n"
+      "  Banana('Banana', 'B'),\n"
+      "  Cherry('Cherry', 'C');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return Fruit.Cherry.initial;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("C", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumShapeChangeRemove) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.Banana;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Banana", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Deleted enum value from Fruit",
+               SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumShapeChangeValues) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.values;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("[Fruit.Apple, Fruit.Banana]", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A'),\n"
+      "  Banana('Banana', 'B'),\n"
+      "  Cherry('Cherry', 'C');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("[Fruit.Apple, Fruit.Banana, Fruit.Cherry]",
                SimpleInvokeStr(lib, "main"));
 }
 
@@ -2310,6 +2437,909 @@ TEST_CASE(IsolateReload_ConstantIdentical) {
   EXPECT_STREQ("yes", SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_CallDeleted_TopLevelFunction) {
+  const char* kScript =
+      "deleted() { return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => deleted();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_TopLevelFunctionArityChange) {
+  const char* kScript =
+      "deleted() { return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => deleted();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "deleted(newParameter) { return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_TopLevelAddTypeArguments) {
+  const char* kScript =
+      "deleted() { return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => deleted();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "deleted<A, B, C>() { return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_CallDeleted_TopLevelRemoveTypeArguments) {
+  const char* kScript =
+      "deleted<A, B, C>() { return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => deleted<int, int, int>();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "deleted() { return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_TopLevelMissingPassingTypeArguments) {
+  const char* kScript =
+      "deleted<A, B, C>() { return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => deleted<int, int, int>();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_TopLevelFunctionEvaluationOrder) {
+  const char* kScript =
+      "first(flag) { if (flag) throw 'first!'; }\n"
+      "deleted(_) { return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = (bool flag) => deleted(first(flag));\n"
+      "  return retained(false);\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "first(flag) { if (flag) throw 'first!'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained(true);\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_STREQ("first!", result);  // Not NoSuchMethodError
+}
+
+TEST_CASE(IsolateReload_CallDeleted_TopLevelFunctionLibraryDeleted) {
+  // clang-format off
+  Dart_SourceFile sourcefiles[] = {
+    {
+      "file:///test-app.dart",
+
+      "import 'test-lib.dart';\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => deleted();\n"
+      "  return retained();\n"
+      "}\n",
+    },
+    {
+      "file:///test-lib.dart",
+
+      "deleted() { return 'hello'; }\n",
+    },
+  };
+  // clang-format on
+
+  Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
+      sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
+      NULL /* resolver */, true /* finalize */, true /* incrementally */);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  // clang-format off
+  Dart_SourceFile updated_sourcefiles[] = {
+    {
+      "file:///test-app.dart",
+
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n",
+    },
+  };
+  // clang-format on
+
+  const uint8_t* kernel_buffer = NULL;
+  intptr_t kernel_buffer_size = 0;
+  char* error = TestCase::CompileTestScriptWithDFE(
+      "file:///test-app.dart",
+      sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
+      updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
+      true /* incrementally */);
+  EXPECT(error == NULL);
+  EXPECT_NOTNULL(kernel_buffer);
+  lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  // What actually happens because we don't re-search imported libraries.
+  EXPECT_STREQ(result, "hello");
+
+  // What should happen and what did happen with the old VM frontend:
+  // EXPECT_SUBSTRING("NoSuchMethodError", result);
+  // EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_TopLevelGetter) {
+  const char* kScript =
+      "get deleted { return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => deleted;\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_TopLevelSetter) {
+  const char* kScript =
+      "set deleted(x) {}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => deleted = 'hello';\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_TopLevelSetterEvaluationOrder) {
+  const char* kScript =
+      "first(flag) { if (flag) throw 'first!'; return 'hello'; }\n"
+      "set deleted(x) {}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = (bool flag) => deleted = first(flag);\n"
+      "  return retained(false);\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "first(flag) { if (flag) throw 'first!'; return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained(true);\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_STREQ("first!", result);  // Not NoSuchMethodError
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassFunction) {
+  const char* kScript =
+      "class C { static deleted() { return 'hello'; } }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => C.deleted();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassFunctionArityChange) {
+  const char* kScript =
+      "class C { static deleted() { return 'hello'; } }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => C.deleted();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C { static deleted(newParameter) { return 'hello'; } }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassFunctionEvaluationOrder) {
+  const char* kScript =
+      "first(flag) { if (flag) throw 'first!'; }\n"
+      "class C { static deleted(_) { return 'hello'; } }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = (bool flag) => C.deleted(first(flag));\n"
+      "  return retained(false);\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "first(flag) { if (flag) throw 'first!'; }\n"
+      "class C { }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained(true);\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_STREQ("first!", result);  // Not NoSuchMethodError
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassGetter) {
+  const char* kScript =
+      "class C { static get deleted { return 'hello'; } }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => C.deleted;\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassSetter) {
+  const char* kScript =
+      "class C { static set deleted(x) {}}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => C.deleted = 'hello';\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassSetterEvaluationOrder) {
+  const char* kScript =
+      "first(flag) { if (flag) throw 'first!'; return 'hello'; }\n"
+      "class C { static set deleted(x) {}}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = (bool flag) => C.deleted = first(flag);\n"
+      "  return retained(false);\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "first(flag) { if (flag) throw 'first!'; return 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained(true);\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_STREQ("first!", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassGenerativeConstructor) {
+  const char* kScript =
+      "class C { C.deleted(); }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => C.deleted().toString();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassGenerativeConstructorArityChange) {
+  const char* kScript =
+      "class C { C.deleted(); }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => C.deleted().toString();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C { C.deleted(newParameter); }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassGenerativeConstructorClassDeleted) {
+  const char* kScript =
+      "class C { C.deleted(); }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => C.deleted().toString();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassFactoryConstructor) {
+  const char* kScript =
+      "class C { factory C.deleted() => new C(); C(); }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => C.deleted().toString();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassFactoryConstructorArityChange) {
+  const char* kScript =
+      "class C { factory C.deleted() => new C(); C(); }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => C.deleted().toString();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C { factory C.deleted(newParameter) => new C(); C(); }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_ClassFactoryConstructorClassDeleted) {
+  const char* kScript =
+      "class C { factory C.deleted() => new C(); C(); }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = () => C.deleted().toString();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_SuperFunction) {
+  const char* kScript =
+      "class C { deleted() { return 'hello'; } }\n"
+      "class D extends C { curry() => () => super.deleted(); }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = new D().curry();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {}\n"
+      "class D extends C {}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_SuperFunctionArityChange) {
+  const char* kScript =
+      "class C { deleted() { return 'hello'; } }\n"
+      "class D extends C { curry() => () => super.deleted(); }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = new D().curry();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C { deleted(newParameter) { return 'hello'; } }\n"
+      "class D extends C {}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_SuperGetter) {
+  const char* kScript =
+      "class C { get deleted { return 'hello'; } }\n"
+      "class D extends C { curry() => () => super.deleted; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = new D().curry();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {}\n"
+      "class D extends C {}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_SuperSetter) {
+  const char* kScript =
+      "class C { set deleted(x) {} }\n"
+      "class D extends C { curry() => () => super.deleted = 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = new D().curry();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {}\n"
+      "class D extends C {}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_SuperFieldGetter) {
+  const char* kScript =
+      "class C { var deleted = 'hello'; }\n"
+      "class D extends C { curry() => () => super.deleted; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = new D().curry();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {}\n"
+      "class D extends C {}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
+TEST_CASE(IsolateReload_CallDeleted_SuperFieldSetter) {
+  const char* kScript =
+      "class C { var deleted; }\n"
+      "class D extends C { curry() => () => super.deleted = 'hello'; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = new D().curry();\n"
+      "  return retained();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {}\n"
+      "class D extends C {}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return retained();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  const char* result = SimpleInvokeStr(lib, "main");
+  EXPECT_SUBSTRING("NoSuchMethodError", result);
+  EXPECT_SUBSTRING("deleted", result);
+}
+
 TEST_CASE(IsolateReload_EnumValuesToString) {
   const char* kScript =
       "enum Fruit {\n"
@@ -2329,12 +3359,12 @@ TEST_CASE(IsolateReload_EnumValuesToString) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple Fruit.Banana", SimpleInvokeStr(lib, "main"));
 
-  // Insert 'Cantalope'.
+  // Insert 'Cantaloupe'.
 
   const char* kReloadScript =
       "enum Fruit {\n"
       "  Apple,\n"
-      "  Cantalope,\n"
+      "  Cantaloupe,\n"
       "  Banana\n"
       "}\n"
       "var x;\n"
@@ -2342,7 +3372,7 @@ TEST_CASE(IsolateReload_EnumValuesToString) {
       "  String r = '';\n"
       "  r += Fruit.Apple.toString();\n"
       "  r += ' ';\n"
-      "  r += Fruit.Cantalope.toString();\n"
+      "  r += Fruit.Cantaloupe.toString();\n"
       "  r += ' ';\n"
       "  r += Fruit.Banana.toString();\n"
       "  return r;\n"
@@ -2350,7 +3380,7 @@ TEST_CASE(IsolateReload_EnumValuesToString) {
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("Fruit.Apple Fruit.Cantalope Fruit.Banana",
+  EXPECT_STREQ("Fruit.Apple Fruit.Cantaloupe Fruit.Banana",
                SimpleInvokeStr(lib, "main"));
 }
 
@@ -2974,7 +4004,7 @@ TEST_CASE(IsolateReload_ShapeChange_Const_AddSlot) {
   // change, they are allocated old. Because instructions normally contain
   // pointers only to old objects, the scavenger does not bother to ensure code
   // pages are writable when visiting the remembered set. Visiting the
-  // remembered involes writing to update the pointer for any target that gets
+  // remembered involves writing to update the pointer for any target that gets
   // promoted.
   const char* kScript = R"(
     import 'file:///test:isolate_reload_helper';
@@ -4631,6 +5661,9 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectFunction) {
 }
 
 TEST_CASE(IsolateReload_TypedefToNotTypedef) {
+  // The CFE lowers typedefs to function types and as such the VM will not see
+  // any name collision between a class and a typedef class (which doesn't exist
+  // anymore).
   const char* kScript =
       "typedef bool Predicate(dynamic x);\n"
       "main() {\n"
@@ -4650,8 +5683,7 @@ TEST_CASE(IsolateReload_TypedefToNotTypedef) {
       "}\n";
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(result,
-               "Typedef class cannot be redefined to be a non-typedef class");
+  EXPECT_VALID(result);
 }
 
 TEST_CASE(IsolateReload_NotTypedefToTypedef) {
@@ -4667,6 +5699,9 @@ TEST_CASE(IsolateReload_NotTypedefToTypedef) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("false", SimpleInvokeStr(lib, "main"));
 
+  // The CFE lowers typedefs to function types and as such the VM will not see
+  // any name collision between a class and a typedef class (which doesn't exist
+  // anymore).
   const char* kReloadScript =
       "typedef bool Predicate(dynamic x);\n"
       "main() {\n"
@@ -4674,7 +5709,7 @@ TEST_CASE(IsolateReload_NotTypedefToTypedef) {
       "}\n";
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(result, "Class cannot be redefined to be a typedef class");
+  EXPECT_VALID(result);
 }
 
 TEST_CASE(IsolateReload_TypedefAddParameter) {
@@ -4826,7 +5861,7 @@ TEST_CASE(IsolateReload_SuperGetterReboundToMethod) {
 // with multicomponent Kernel binary. When loading kernel blobs through tag
 // handler (Dart_kKernelTag) we need to make sure to preserve a link between
 // KernelProgramInfo objects and original typed data, because it might be
-// comming with a finalizer, which otherwise might end up being called
+// coming with a finalizer, which otherwise might end up being called
 // prematurely.
 namespace {
 
@@ -4971,6 +6006,126 @@ TEST_CASE(IsolateReload_RegressB179030011) {
     GCTestHelper::CollectAllGarbage();
     EXPECT(!handler.was_finalized());
   }
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/50148.
+TEST_CASE(IsolateReload_GenericConstructorTearOff) {
+  const char* kScript = R"(
+    typedef Create<T, R> = T Function(R ref);
+
+    class Base<Input> {
+      Base(void Function(Create<void, Input> create) factory) : _factory = factory;
+
+      final void Function(Create<void, Input> create) _factory;
+
+      void fn() => _factory((ref) {});
+    }
+
+    class Check<T> {
+      Check(Create<Object?, List<T>> create);
+    }
+
+    final f = Base<List<int>>(Check<int>.new);
+
+    main() {
+      f.fn();
+      return "okay";
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  lib = TestCase::ReloadTestScript(kScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/51215.
+TEST_CASE(IsolateReload_ImplicitGetterWithLoadGuard) {
+  const char* kLibScript = R"(
+    import 'file:///test:isolate_reload_helper';
+
+    class A {
+      int x;
+      A(this.x);
+      A.withUinitializedObject(int Function() callback) : x = callback();
+    }
+
+    A a = A(3);
+
+    main() {
+      int sum = 0;
+      // Trigger OSR and optimize this function.
+      for (int i = 0; i < 30000; ++i) {
+        sum += i;
+      }
+      // Make sure A.get:x is compiled.
+      int y = a.x;
+      // Reload while having an uninitialized
+      // object A on the stack. This should result in
+      // a load guard for A.x.
+      A.withUinitializedObject(() {
+         reloadTest();
+         return 4;
+      });
+      // Trigger OSR and optimize this function once again.
+      for (int i = 0; i < 30000; ++i) {
+        sum += i;
+      }
+      // Trigger deoptimization in A.get:x.
+      // It should correctly deoptimize into an implicit
+      // getter with a load guard.
+      a.x = 0x8070605040302010;
+      int z = a.x & 0xffff;
+      return "y: $y, z: $z";
+    }
+  )";
+
+  Dart_Handle lib1 =
+      TestCase::LoadTestLibrary("test_lib1.dart", kLibScript, nullptr);
+  EXPECT_VALID(lib1);
+
+  const char* kMainScript = R"(
+    main() {}
+  )";
+
+  // Trigger hot reload during execution of 'main' from test_lib1
+  // without reloading test_lib1, so its unoptimized code is retained.
+  EXPECT_VALID(TestCase::LoadTestScript(kMainScript, nullptr));
+  EXPECT_VALID(TestCase::SetReloadTestScript(kMainScript));
+
+  EXPECT_STREQ("y: 3, z: 8208", SimpleInvokeStr(lib1, "main"));
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/51835
+TEST_CASE(IsolateReload_EnumInMainLibraryModified) {
+  const char* kScript =
+      "enum Bar { bar }\n"
+      "class Foo { int? a; toString() => 'foo'; }"
+      "main() {\n"
+      "  return Foo().toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_VALID(Dart_FinalizeAllClasses());
+  EXPECT_STREQ("foo", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Bar { bar }\n"
+      "class Foo { int? a; String? b; toString() => 'foo'; }"
+      "main() {\n"
+      "  return Foo().toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  Dart_SetFileModifiedCallback(NULL);
+
+  // Modification of an imported library propagates to the importing library.
+  EXPECT_STREQ("foo", SimpleInvokeStr(lib, "main"));
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// The type builder for a [NamedType].
 class NamedTypeBuilder extends TypeBuilder {
@@ -95,7 +96,6 @@ class NamedTypeBuilder extends TypeBuilder {
       return _type!;
     }
 
-    // ignore: unnecessary_this
     final element = this.element;
     if (element is InterfaceElement) {
       var parameters = element.typeParameters;
@@ -189,7 +189,7 @@ class NamedTypeBuilder extends TypeBuilder {
         return List.generate(arguments.length, (index) {
           var type = arguments[index];
           return _buildType(type);
-        });
+        }, growable: false);
       } else {
         return _listOfDynamic(parameters.length);
       }
@@ -198,7 +198,7 @@ class NamedTypeBuilder extends TypeBuilder {
         var parameter = parameters[index] as TypeParameterElementImpl;
         var defaultType = parameter.defaultType!;
         return _buildType(defaultType);
-      });
+      }, growable: false);
     }
   }
 
@@ -252,7 +252,7 @@ class NamedTypeBuilder extends TypeBuilder {
         _buildFormalParameterType(parameter),
         parameter.kind,
       );
-    }).toList();
+    }).toFixedList();
   }
 
   DartType _getAliasedType(TypeAliasElementImpl element) {
@@ -310,7 +310,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   static List<DartType> _listOfDynamic(int length) {
-    return List<DartType>.filled(length, _dynamicType);
+    return List<DartType>.filled(length, _dynamicType, growable: false);
   }
 
   static void _setAliasedType(AstNode node, DartType type) {
@@ -321,7 +321,7 @@ class NamedTypeBuilder extends TypeBuilder {
     if (node != null) {
       return node.typeParameters
           .map<TypeParameterElement>((p) => p.declaredElement!)
-          .toList();
+          .toFixedList();
     } else {
       return const <TypeParameterElement>[];
     }

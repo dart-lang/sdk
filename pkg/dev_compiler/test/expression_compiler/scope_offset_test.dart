@@ -13,21 +13,31 @@ import 'package:test/test.dart';
 /// Verbose mode for debugging
 bool get verbose => false;
 
-Uri get sdkRoot => computePlatformBinariesLocation();
-Uri get sdkSummaryPath => sdkRoot.resolve('ddc_sdk.dill');
-Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
+Uri sdkSummaryPath(bool soundNullSafety) => soundNullSafety
+    ? computePlatformBinariesLocation().resolve('ddc_outline.dill')
+    // Unsound .dill files are not longer in the released SDK so this file must
+    // be read from the build output directory.
+    : computePlatformBinariesLocation(forceBuildDir: true)
+        .resolve('ddc_outline_unsound.dill');
 
 void main(List<String> args) {
-  test('Offsets are present on scoping nodes in SDK', () async {
-    var entity = StandardFileSystem.instance.entityForUri(sdkSummaryPath);
-    var bytes = await entity.readAsBytes();
+  group('Offsets are present on scoping nodes in SDK', () {
+    for (var soundNullSafety in [true, false]) {
+      test('with ${soundNullSafety ? 'sound' : 'unsound'} null safety',
+          () async {
+        var entity = StandardFileSystem.instance
+            .entityForUri(sdkSummaryPath(soundNullSafety));
+        var bytes = await entity.readAsBytes();
 
-    var component = Component();
-    BinaryBuilderWithMetadata(bytes, disableLazyReading: true)
-        .readComponent(component, checkCanonicalNames: true, createView: true);
+        var component = Component();
+        BinaryBuilderWithMetadata(bytes, disableLazyReading: true)
+            .readComponent(component,
+                checkCanonicalNames: true, createView: true);
 
-    for (var lib in component.libraries) {
-      ScopeOffsetValidator.validate(lib);
+        for (var lib in component.libraries) {
+          ScopeOffsetValidator.validate(lib);
+        }
+      });
     }
   });
 }
@@ -42,8 +52,12 @@ class ScopeOffsetValidator extends Visitor<void> with VisitorVoidMixin {
   static void validate(Library library) {
     var validator = ScopeOffsetValidator._();
     validator.visitLibrary(library);
-    expect(validator.classCount + validator.memberCount, greaterThan(0),
-        reason: 'Validation was not empty');
+    // TODO(joshualitt): Currently, there's nothing in `dart:_js_types` that
+    // would be indexed. Remove this exception when we add things to it.
+    if (library.importUri.toString() != 'dart:_js_types') {
+      expect(validator.classCount + validator.memberCount, greaterThan(0),
+          reason: 'Validation was not empty');
+    }
     expect(validator.blockCount, equals(0),
         reason: 'SDK dill only contains outlines');
   }

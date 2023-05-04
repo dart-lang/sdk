@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=patterns,records
+
 import "package:expect/expect.dart";
 
 // Test that constructor invocations are constant
@@ -38,9 +40,9 @@ main() {
   Expect.identical(c0, C.staticConst);
   Expect.identical(c0, topConst);
 
-  // Switch case expression.
+  // Switch case parenthesized const expression.
   switch (c0) {
-    case C(42):
+    case const (C(42)):
       break;
     default:
       Expect.fail("Didn't match constant");

@@ -4,7 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -13,10 +13,12 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/dart/analysis/analysis_options.dart';
@@ -107,8 +109,8 @@ class AnalysisEngine {
   /// Clear any caches holding on to analysis results so that a full re-analysis
   /// will be performed the next time an analysis context is created.
   void clearCaches() {
-    // See https://github.com/dart-lang/sdk/issues/30314.
-    StringTokenImpl.canonicalizer.clear();
+    // Ensure the string canonicalization cache size is reasonable.
+    pruneStringCanonicalizationCache();
   }
 }
 
@@ -143,6 +145,11 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
 /// A set of analysis options used to control the behavior of an analysis
 /// context.
 class AnalysisOptionsImpl implements AnalysisOptions {
+  static bool get _runsByDartSdkAtLeast300 {
+    final sdkVersion = runningSdkVersion;
+    return sdkVersion != null && sdkVersion >= Version.parse('3.0.0');
+  }
+
   /// The cached [unlinkedSignature].
   Uint32List? _unlinkedSignature;
 
@@ -157,7 +164,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// The constraint on the language version for every Dart file.
   /// Violations will be reported as analysis errors.
-  VersionConstraint? sourceLanguageConstraint;
+  VersionConstraint? sourceLanguageConstraint =
+      _runsByDartSdkAtLeast300 && noSoundNullSafety
+          ? VersionConstraint.parse('>= 2.12.0')
+          : null;
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 

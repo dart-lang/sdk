@@ -97,6 +97,11 @@ class ExpressionCompilerWorker {
     this.onDone,
   );
 
+  // Disable asserts due to failures to load source and locations on kernel
+  // loaded from dill files in DDC.
+  // https://github.com/dart-lang/sdk/issues/43986
+  static const bool _enableAsserts = false;
+
   /// Create expression compiler worker from [args] and start it.
   ///
   /// If [sendPort] is provided, creates a `receivePort` and sends it to
@@ -226,13 +231,14 @@ class ExpressionCompilerWorker {
       ..sdkSummary = sdkSummary
       ..packagesFileUri = packagesFile
       ..librariesSpecificationUri = librariesSpecificationUri
-      ..target = DevCompilerTarget(
-          TargetFlags(trackWidgetCreation: trackWidgetCreation))
+      ..target = DevCompilerTarget(TargetFlags(
+          trackWidgetCreation: trackWidgetCreation,
+          soundNullSafety: soundNullSafety))
       ..fileSystem = fileSystem
       ..omitPlatform = true
-      ..environmentDefines = {
+      ..environmentDefines = addGeneratedVariables({
         if (environmentDefines != null) ...environmentDefines,
-      }
+      }, enableAsserts: _enableAsserts)
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
       ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
@@ -293,7 +299,13 @@ class ExpressionCompilerWorker {
     _processedOptions.ticker.logMs('Stopped expression compiler worker.');
   }
 
-  void close() => onDone?.call();
+  void close() {
+    var fullModules = _moduleCache.fullyLoadedModules.toList();
+    for (var module in fullModules) {
+      _clearCache(module);
+    }
+    onDone?.call();
+  }
 
   /// Handles a `CompileExpression` request.
   Future<Map<String, dynamic>> _compileExpression(
@@ -328,6 +340,54 @@ class ExpressionCompilerWorker {
           '${_fullModules[moduleName]}');
     }
 
+    errors.clear();
+    warnings.clear();
+    infos.clear();
+
+    var expressionCompiler =
+        await _createExpressionCompiler(libraryUri, moduleName);
+
+    // Failed to compile component, report compilation errors.
+    if (expressionCompiler == null) {
+      return {
+        'errors': errors,
+        'warnings': warnings,
+        'infos': infos,
+        'compiledProcedure': null,
+        'succeeded': false,
+      };
+    }
+
+    var compiledProcedure = await expressionCompiler.compileExpressionToJs(
+        request.libraryUri,
+        request.line,
+        request.column,
+        request.jsScope,
+        request.expression);
+
+    _processedOptions.ticker.logMs('Compiled expression to JavaScript');
+
+    // Return result or expression compilation errors.
+    return {
+      'errors': errors,
+      'warnings': warnings,
+      'infos': infos,
+      'compiledProcedure': compiledProcedure,
+      'succeeded': errors.isEmpty,
+    };
+  }
+
+  /// Creates or returns cached expression compiler for the module
+  /// [moduleName].
+  /// Returns `null` if the module's component compilation fails.
+  Future<ExpressionCompiler?> _createExpressionCompiler(
+      Uri libraryUri, String moduleName) async {
+    var expressionCompiler = _moduleCache.expressionCompilers[moduleName];
+    if (expressionCompiler != null) return expressionCompiler;
+
+    _processedOptions.ticker
+        .logMs('Creating expression compiler for $moduleName');
+
     var originalComponent = _moduleCache.componentForModuleName[moduleName];
     if (originalComponent == null) {
       throw StateError('No Component found for module named: $moduleName');
@@ -348,34 +408,26 @@ class ExpressionCompilerWorker {
         uriToSource: originalComponent.uriToSource,
       )..setMainMethodAndMode(
           originalComponent.mainMethodName, true, originalComponent.mode);
+      _processedOptions.ticker.logMs('Collected libraries for $moduleName');
     }
 
-    _processedOptions.ticker.logMs('Collected libraries for $moduleName');
-
-    errors.clear();
-    warnings.clear();
-    infos.clear();
-
+    var entryPoints = originalComponent.libraries
+        .map((e) => e.importUri)
+        .where((uri) => !uri.isScheme('dart'));
     var incrementalCompiler = IncrementalCompiler.forExpressionCompilationOnly(
         CompilerContext(_processedOptions), component, /*resetTicker*/ false);
 
-    var incrementalCompilerResult = await incrementalCompiler
-        .computeDelta(entryPoints: [libraryUri], fullComponent: true);
+    var incrementalCompilerResult = await incrementalCompiler.computeDelta(
+        entryPoints: entryPoints.toList(), fullComponent: true);
     var finalComponent = incrementalCompilerResult.component;
     assert(!duplicateLibrariesReachable(finalComponent.libraries));
     assert(_canSerialize(finalComponent));
 
     _processedOptions.ticker.logMs('Computed delta for expression');
 
-    if (errors.isNotEmpty) {
-      return {
-        'errors': errors,
-        'warnings': warnings,
-        'infos': infos,
-        'compiledProcedure': null,
-        'succeeded': errors.isEmpty,
-      };
-    }
+    // Return null to indicate a compilation error,
+    // to be created by the caller.
+    if (errors.isNotEmpty) return null;
 
     var coreTypes = incrementalCompilerResult.coreTypes;
     var hierarchy = incrementalCompilerResult.classHierarchy!;
@@ -388,13 +440,11 @@ class ExpressionCompilerWorker {
           summarizeApi: false,
           moduleName: moduleName,
           soundNullSafety: _compilerOptions.nnbdMode == NnbdMode.Strong,
-          // Disable asserts due to failures to load source and
-          // locations on kernel loaded from dill files in DDC.
-          // https://github.com/dart-lang/sdk/issues/43986
-          enableAsserts: false),
+          enableAsserts: _enableAsserts),
       _moduleCache.componentForLibrary,
       _moduleCache.moduleNameForComponent,
       coreTypes: coreTypes,
+      ticker: _processedOptions.ticker,
     );
 
     assert(originalComponent.libraries.toSet().length ==
@@ -419,7 +469,7 @@ class ExpressionCompilerWorker {
     kernel2jsCompiler.emitModule(componentToEmit);
     _processedOptions.ticker.logMs('Emitted module for expression');
 
-    var expressionCompiler = ExpressionCompiler(
+    expressionCompiler = ExpressionCompiler(
       _compilerOptions,
       _moduleFormat,
       errors,
@@ -427,23 +477,10 @@ class ExpressionCompilerWorker {
       kernel2jsCompiler,
       finalComponent,
     );
-
-    var compiledProcedure = await expressionCompiler.compileExpressionToJs(
-        request.libraryUri,
-        request.line,
-        request.column,
-        request.jsScope,
-        request.expression);
-
-    _processedOptions.ticker.logMs('Compiled expression to JavaScript');
-
-    return {
-      'errors': errors,
-      'warnings': warnings,
-      'infos': infos,
-      'compiledProcedure': compiledProcedure,
-      'succeeded': errors.isEmpty,
-    };
+    _moduleCache.expressionCompilers[moduleName] = expressionCompiler;
+    _processedOptions.ticker
+        .logMs('Created expression compiler for $moduleName');
+    return expressionCompiler;
   }
 
   /// Collect libraries reachable from component.
@@ -529,10 +566,11 @@ class ExpressionCompilerWorker {
       Uri uri, String moduleName, bool isSummary) async {
     if (isSummary && _moduleCache.isModuleLoaded(moduleName)) return true;
     if (!isSummary && _moduleCache.isModuleFullyLoaded(moduleName)) return true;
+    var componentKind = isSummary ? 'summary' : 'full kernel';
 
+    _processedOptions.ticker.logMs('Loading $componentKind for $moduleName');
     var component = await _loadComponent(uri);
     if (component == null) {
-      var componentKind = isSummary ? 'summary' : 'full kernel';
       _processedOptions.ticker
           .logMs('Failed to load $componentKind for $moduleName');
       return false;
@@ -549,6 +587,7 @@ class ExpressionCompilerWorker {
           alwaysCreateNewNamedNodes: true);
       return component;
     }
+    _processedOptions.ticker.logMs('File for $uri does not exist.');
     return null;
   }
 
@@ -558,6 +597,8 @@ class ExpressionCompilerWorker {
         _moduleCache.isModuleLoaded(moduleName)) {
       return;
     }
+    var componentKind = isSummary ? 'summary' : 'full kernel';
+    _processedOptions.ticker.logMs('Updating $componentKind for $moduleName');
     _moduleCache.addModule(moduleName, component, isSummary);
   }
 
@@ -605,6 +646,7 @@ class ModuleCache {
   final Map<String, Component> componentForModuleName = {};
   final Map<Component, String> moduleNameForComponent = {};
   final Set<String> fullyLoadedModules = {};
+  final Map<String, ExpressionCompiler> expressionCompilers = {};
 
   bool isModuleLoaded(String moduleName) =>
       componentForModuleName.containsKey(moduleName);
@@ -641,6 +683,7 @@ class ModuleCache {
       moduleNameForComponent.remove(oldComponent);
       componentForModuleName.remove(moduleName);
       fullyLoadedModules.remove(moduleName);
+      expressionCompilers.remove(moduleName);
     }
   }
 }
@@ -732,7 +775,7 @@ final argParser = ArgParser()
   ..addOption('asset-server-port')
   ..addOption('module-format', defaultsTo: 'amd')
   ..addFlag('track-widget-creation', defaultsTo: false)
-  ..addFlag('sound-null-safety', defaultsTo: false)
+  ..addFlag('sound-null-safety', negatable: true, defaultsTo: true)
   ..addFlag('verbose', defaultsTo: false);
 
 Uri? _argToUri(String? uriArg) =>

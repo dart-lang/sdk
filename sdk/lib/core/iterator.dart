@@ -31,7 +31,7 @@ part of dart.core;
 /// **See also:**
 /// [Iteration](https://dart.dev/guides/libraries/library-tour#iteration)
 /// in the [library tour](https://dart.dev/guides/libraries/library-tour)
-abstract class Iterator<E> {
+abstract interface class Iterator<E> {
   /// Advances the iterator to the next element of the iteration.
   ///
   /// Should be called before reading [current].

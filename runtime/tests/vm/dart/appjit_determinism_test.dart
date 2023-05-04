@@ -6,6 +6,7 @@
 
 import 'dart:async';
 import 'snapshot_test_helper.dart';
+import 'splay_test.dart';
 
 int fib(int n) {
   if (n <= 1) return 1;
@@ -14,6 +15,13 @@ int fib(int n) {
 
 Future<void> main(List<String> args) async {
   if (args.contains('--child')) {
+    var splay = StrongSplay();
+    splay.setup();
+    for (var i = 0; i < 100; i++) {
+      splay.exercise();
+    }
+    splay.tearDown();
+
     print(fib(35));
     return;
   }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
@@ -19,8 +17,7 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir =
-        new Directory.fromUri(Platform.script.resolve('callers'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('callers'));
     await checkTests(dataDir, const CallersDataComputer(),
         args: args, options: [stopAfterTypeInference]);
   });
@@ -33,10 +30,10 @@ class CallersDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new CallersIrComputer(
+    CallersIrComputer(
             compiler.reporter,
             actualMap,
             elementMap,
@@ -63,13 +60,13 @@ class CallersIrComputer extends IrDataExtractor<String> {
       this._closureDataLookup)
       : super(reporter, actualMap);
 
-  String getMemberValue(MemberEntity member) {
-    Iterable<MemberEntity> callers = inferrer.getCallersOfForTesting(member);
+  String? getMemberValue(MemberEntity member) {
+    Iterable<MemberEntity>? callers = inferrer.getCallersOfForTesting(member);
     if (callers != null) {
       List<String> names = callers.map((MemberEntity member) {
-        StringBuffer sb = new StringBuffer();
+        StringBuffer sb = StringBuffer();
         if (member.enclosingClass != null) {
-          sb.write(member.enclosingClass.name);
+          sb.write(member.enclosingClass!.name);
           sb.write('.');
         }
         sb.write(member.name);
@@ -85,15 +82,16 @@ class CallersIrComputer extends IrDataExtractor<String> {
   }
 
   @override
-  String computeMemberValue(Id id, ir.Member node) {
+  String? computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod);
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      return getMemberValue(info.callMethod!);
     }
     return null;
   }

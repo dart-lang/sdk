@@ -337,7 +337,7 @@ bool Debugger::NeedsDebugEvents() {
     // E.g., NoActiveIsolateScope.
     return false;
   }
-  ASSERT(isolate_ == Isolate::Current());
+  RELEASE_ASSERT(isolate_ == Isolate::Current());
   ASSERT(!Isolate::IsSystemIsolate(isolate_));
   return FLAG_warn_on_pause_with_no_debugger || Service::debug_stream.enabled();
 }
@@ -796,6 +796,9 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
         Object::Handle(SuspendState::Cast(suspend_state).function_data());
     futureOrListener =
         caller_closure_finder.GetFutureFutureListener(futureOrListener);
+    if (futureOrListener.IsNull()) {
+      return false;
+    }
     return caller_closure_finder.HasCatchError(futureOrListener);
   }
 
@@ -838,7 +841,7 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       } else if (obj.IsContext()) {
         ctx_ = Context::Cast(obj).ptr();
       } else {
-        ASSERT(obj.IsNull() || obj.ptr() == Symbols::OptimizedOut().ptr());
+        ASSERT(obj.IsNull() || obj.ptr() == Object::optimized_out().ptr());
         ctx_ = Context::null();
       }
       return ctx_;
@@ -1010,7 +1013,7 @@ bool ActivationFrame::IsRewindable() const {
   Object& obj = Object::Handle();
   for (int i = 0; i < deopt_frame_.Length(); i++) {
     obj = deopt_frame_.At(i);
-    if (obj.ptr() == Symbols::OptimizedOut().ptr()) {
+    if (obj.ptr() == Object::optimized_out().ptr()) {
       return false;
     }
   }
@@ -1113,7 +1116,7 @@ ObjectPtr ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
   // It's possible that ctx was optimized out as no locals were captured by the
   // context. See issue #38182.
   if (ctx.IsNull()) {
-    return Symbols::OptimizedOut().ptr();
+    return Object::optimized_out().ptr();
   }
 
   intptr_t level_diff = frame_ctx_level - var_ctx_level;
@@ -1169,7 +1172,7 @@ ObjectPtr ActivationFrame::GetReceiver() {
       return value.ptr();
     }
   }
-  return Symbols::OptimizedOut().ptr();
+  return Object::optimized_out().ptr();
 }
 
 static bool IsSyntheticVariableName(const String& var_name) {
@@ -1191,6 +1194,10 @@ ObjectPtr ActivationFrame::EvaluateCompiledExpression(
                                           arguments, type_arguments);
   } else {
     const Object& receiver = Object::Handle(GetReceiver());
+    if (receiver.ptr() == Object::optimized_out().ptr()) {
+      // Cannot execute an instance method without a receiver.
+      return Object::optimized_out().ptr();
+    }
     const Class& method_cls = Class::Handle(function().origin());
     ASSERT(receiver.IsInstance() || receiver.IsNull());
     if (!(receiver.IsInstance() || receiver.IsNull())) {
@@ -3192,6 +3199,13 @@ void GroupDebugger::NotifyCompilation(const Function& function) {
   for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
     BreakpointLocation* location = breakpoint_locations_.At(i);
     if (EnsureLocationIsInFunction(zone, resolved_function, location)) {
+      // All mutators are stopped (see RELEASE_ASSERT above). We temporarily
+      // enter the isolate for which the breakpoint was registered.
+      // The code path below may issue service events which will use the active
+      // isolate's object-id ring for naming VM objects.
+      ActiveIsolateScope active_isolate(thread,
+                                        location->debugger()->isolate());
+
       // Ensure the location is resolved for the original function.
       location->EnsureIsResolved(function, location->token_pos());
       if (FLAG_verbose_debug) {

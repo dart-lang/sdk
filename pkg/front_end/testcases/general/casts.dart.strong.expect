@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print("" as{ForNonNullableByDefault} core::String);
+  core::print(1 as{ForNonNullableByDefault} core::int);
+  core::print(1.0 as{ForNonNullableByDefault} core::double);
+  core::print("" is{ForNonNullableByDefault} core::String);
+  core::print("" is{ForNonNullableByDefault} core::int);
+  core::print("" is{ForNonNullableByDefault} core::double);
+  core::print(1 is{ForNonNullableByDefault} core::String);
+  core::print(1 is{ForNonNullableByDefault} core::int);
+  core::print(1 is{ForNonNullableByDefault} core::double);
+  core::print(1.0 is{ForNonNullableByDefault} core::String);
+  core::print(1.0 is{ForNonNullableByDefault} core::int);
+  core::print(1.0 is{ForNonNullableByDefault} core::double);
+}

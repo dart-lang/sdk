@@ -132,7 +132,7 @@ constexpr bool FLAG_support_il_printer = false;
     "methods.")                                                                \
   P(idle_timeout_micros, int, 1000 * kMicrosecondsPerMillisecond,              \
     "Consider thread pool isolates for idle tasks after this long.")           \
-  P(idle_duration_micros, int, 500 * kMicrosecondsPerMillisecond,              \
+  P(idle_duration_micros, int, kMaxInt32,                                      \
     "Allow idle tasks to run for this long.")                                  \
   P(interpret_irregexp, bool, false, "Use irregexp bytecode interpreter")      \
   P(lazy_async_stacks, bool, true, "Obsolete, ignored.")                       \
@@ -253,8 +253,10 @@ constexpr bool FLAG_support_il_printer = false;
     "Eliminate type checks when allowed by static type analysis.")             \
   D(support_rr, bool, false, "Support running within RR.")                     \
   P(verify_entry_points, bool, false,                                          \
-    "Throw API error on invalid member access throuh native API. See "         \
+    "Throw API error on invalid member access through native API. See "        \
     "entry_point_pragma.md")                                                   \
+  P(sound_null_safety, bool, true,                                             \
+    "Respect the nullability of types at runtime.")                            \
   C(branch_coverage, false, false, bool, false, "Enable branch coverage")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

@@ -9,7 +9,7 @@ import 'entity_data.dart';
 
 import '../common.dart';
 import '../common/elements.dart' show CommonElements, KElementEnvironment;
-import '../compiler_interfaces.dart' show CompilerDeferredLoadingFacade;
+import '../compiler.dart' show Compiler;
 import '../constants/values.dart'
     show ConstantValue, ConstructedConstantValue, InstantiationConstantValue;
 import '../elements/entities.dart';
@@ -20,9 +20,6 @@ import '../kernel/kelements.dart' show KLocalFunction;
 import '../kernel/kernel_world.dart' show KClosedWorld;
 import '../universe/use.dart';
 import '../universe/world_impact.dart' show WorldImpact;
-
-// TODO(48820): delete typedef after the migration is complete.
-typedef Compiler = CompilerDeferredLoadingFacade;
 
 /// [EntityDataInfo] is meta data about [EntityData] for a given compilation
 /// [Entity].
@@ -110,7 +107,7 @@ class EntityDataInfoBuilder {
 
   /// Collects all direct dependencies of [element].
   ///
-  /// The collected dependent elements and constants are are added to
+  /// The collected dependent elements and constants are added to
   /// [elements] and [constants] respectively.
   void addDirectMemberDependencies(MemberEntity element) {
     // TODO(sigurdm): We want to be more specific about this - need a better
@@ -162,6 +159,7 @@ class EntityDataInfoBuilder {
       case StaticUseKind.CLOSURE:
       case StaticUseKind.STATIC_GET:
       case StaticUseKind.STATIC_SET:
+      case StaticUseKind.WEAK_STATIC_TEAR_OFF:
         processEntity();
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
@@ -200,6 +198,7 @@ class EntityDataInfoBuilder {
         break;
       case TypeUseKind.INSTANTIATION:
       case TypeUseKind.NATIVE_INSTANTIATION:
+      case TypeUseKind.RECORD_INSTANTIATION:
         addClassIfInterfaceType(type);
         addTypeDependencies(type);
         break;
@@ -342,6 +341,8 @@ class EntityDataInfoVisitor extends EntityDataVisitor {
         }
       }
     }
+
+    // TODO(51016): Track shapes of RecordConstantValue constants.
 
     // Constants are not allowed to refer to deferred constants, so
     // no need to check for a deferred type literal here.
@@ -554,7 +555,7 @@ class ConstantCollector extends ir.RecursiveVisitor {
   void visitTypeLiteral(ir.TypeLiteral node) {
     // Type literals may be [ir.TypeParameterType] or contain TypeParameterType
     // variables nested within (e.g. in a generic type literals). As such,
-    // we can't assume that all type literals are constnat.
+    // we can't assume that all type literals are constant.
     add(node, requireConstant: false);
   }
 

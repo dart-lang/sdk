@@ -564,12 +564,12 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_NonNullableLoadStaticField) {
   RELEASE_ASSERT(cursor.TryMatch({
       kMoveGlob,
       {kMatchAndMoveLoadStaticField, &load},
-      kMatchAndMovePushArgument,
+      kMatchAndMoveMoveArgument,
       kMatchAndMoveStaticCall,
       kMatchAndMoveUnboxInt64,
       kMatchAndMoveBinaryInt64Op,
       kMatchAndMoveBoxInt64,
-      kMatchAndMovePushArgument,
+      kMatchAndMoveMoveArgument,
       kMatchAndMoveStaticCall,
       kMatchReturn,
   }));
@@ -699,5 +699,53 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefineCanBeSentinelWithCannotBe) {
 }
 
 #endif  // defined(DART_PRECOMPILER)
+
+// This test verifies that static type is propagated through a LoadField
+// for a record field.
+ISOLATE_UNIT_TEST_CASE(TypePropagator_RecordFieldAccess) {
+  const char* kScript = R"(
+    @pragma('vm:never-inline')
+    (int, {String foo}) bar() => (42, foo: 'hi');
+    @pragma('vm:never-inline')
+    baz(x) {}
+
+    void main() {
+      final x = bar();
+      baz(x.$1 + 1);
+      baz(x.foo);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+
+  LoadFieldInstr* load1 = nullptr;
+  LoadFieldInstr* load2 = nullptr;
+
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      kMatchAndMoveStaticCall,
+      {kMatchAndMoveLoadField, &load1},
+      kMatchAndMoveCheckSmi,
+      kMatchAndMoveBinarySmiOp,
+      kMatchAndMoveMoveArgument,
+      kMatchAndMoveStaticCall,
+      {kMatchAndMoveLoadField, &load2},
+      kMatchAndMoveMoveArgument,
+      kMatchAndMoveStaticCall,
+      kMatchReturn,
+  }));
+
+  EXPECT_PROPERTY(load1->Type()->ToAbstractType(), it.IsIntType());
+  EXPECT_PROPERTY(load2->Type()->ToAbstractType(), it.IsStringType());
+}
 
 }  // namespace dart

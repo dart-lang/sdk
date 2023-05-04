@@ -17,7 +17,7 @@ class Foo<E> extends Bar<int> with Qux1<int> implements Baz<Bar<int>> {
 org-dartlang-testcase:///test3.dart:
 class Bar<E> {}
 class Baz<E> {}
-class Qux1<E> {
+mixin Qux1<E> {
   Qux1AndAHalf? qux1AndAHalf() {}
 }
 class Qux1AndAHalf<E> {}

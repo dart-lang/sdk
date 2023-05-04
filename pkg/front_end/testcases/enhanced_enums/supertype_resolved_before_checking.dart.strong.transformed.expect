@@ -41,7 +41,7 @@ constants  {
   #C1 = 0
   #C2 = "element"
   #C3 = self::E<core::num, core::num> {index:#C1, _name:#C2}
-  #C4 = <self::E<dynamic, dynamic>>[#C3]
+  #C4 = <self::E<core::num, core::num>>[#C3]
 }
 
 

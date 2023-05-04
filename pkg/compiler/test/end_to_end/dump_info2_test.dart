@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:convert';
 
 import 'package:compiler/compiler_api.dart' as api;
@@ -90,7 +88,7 @@ class Doubler {
   }
 }
 void main() {
-  var f = new Doubler();
+  var f = Doubler();
   print(f.double(4));
 }
 """;
@@ -109,7 +107,7 @@ infoTest(String program, bool useBinary, InfoCheck check) async {
   // have the logic in dart2js.dart to imply dump-info when --dump-info=binary
   // is provided.
   if (useBinary) options.add("${Flags.dumpInfo}=binary");
-  var collector = new OutputCollector();
+  var collector = OutputCollector();
   var result = await runCompiler(
       memorySourceFiles: {'main.dart': program},
       options: options,
@@ -118,11 +116,11 @@ infoTest(String program, bool useBinary, InfoCheck check) async {
   Expect.isFalse(compiler.compilationFailed);
   AllInfo info;
   if (useBinary) {
-    var sink = collector.binaryOutputMap[Uri.parse('out.js.info.data')];
+    var sink = collector.binaryOutputMap[Uri.parse('out.js.info.data')]!;
     info = binary.decode(sink.list);
   } else {
-    info = new AllInfoJsonCodec().decode(
-        json.decode(collector.getOutput("out.js", api.OutputType.dumpInfo)));
+    info = AllInfoJsonCodec().decode(
+        json.decode(collector.getOutput("out.js", api.OutputType.dumpInfo)!));
   }
   check(info);
 }
@@ -173,9 +171,6 @@ runTests({bool useBinary = false}) async {
     var main_ = info.functions.firstWhere((v) => v.name == 'main');
     var fn1 = info.functions.firstWhere((v) => v.name == 'funcA');
     var fn2 = info.functions.firstWhere((v) => v.name == 'funcB');
-    Expect.isTrue(main_ != null);
-    Expect.isTrue(fn1 != null);
-    Expect.isTrue(fn2 != null);
     Expect.isTrue(main_.uses.any((dep) => dep.target == fn1));
     Expect.isTrue(fn1.uses.any((dep) => dep.target == fn2));
   });

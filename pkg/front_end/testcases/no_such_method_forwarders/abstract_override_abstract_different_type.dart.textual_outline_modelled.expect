@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Base {
   noSuchMethod(i) => print("${runtimeType}: ${i.positionalArguments[0]}");
   set float(covariant int x);

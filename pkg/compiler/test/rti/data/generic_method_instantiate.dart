@@ -11,7 +11,7 @@ class A {}
 class B<T> {}
 
 /*member: method:needsArgs*/
-method<T>() => new B<T>();
+method<T>() => B<T>();
 
 main() {
   method<A>() is B<A>;

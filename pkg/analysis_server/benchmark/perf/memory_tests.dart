@@ -31,8 +31,8 @@ abstract class AbstractBenchmarkTest {
   Future<void> updateFile(String filePath, String contents);
 }
 
-/// An implementation of [AbstractBenchmarkTest] for a original protocol memory
-/// test.
+/// An implementation of [AbstractBenchmarkTest] for an 'original protocol'
+/// memory test.
 class AnalysisServerBenchmarkTest extends AbstractBenchmarkTest {
   final _test = AnalysisServerMemoryUsageTest();
 
@@ -87,12 +87,12 @@ class AnalysisServerMemoryUsageTest
     extends AbstractAnalysisServerIntegrationTest with ServerMemoryUsageMixin {
   /// Send the server an 'analysis.setAnalysisRoots' command directing it to
   /// analyze [sourceDirectory].
-  Future setAnalysisRoot() =>
+  Future<void> setAnalysisRoot() =>
       sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
 
   /// The server is automatically started before every test.
   @override
-  Future setUp() async {
+  Future<void> setUp() async {
     _vmServicePort = await ServiceProtocol._findAvailableSocketPort();
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
@@ -102,12 +102,12 @@ class AnalysisServerMemoryUsageTest
       // A server error should never happen during an integration test.
       fail('${params.message}\n${params.stackTrace}');
     });
-    var serverConnected = Completer();
+    var serverConnected = Completer<void>();
     onServerConnected.listen((_) {
       outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return startServer(servicesPort: _vmServicePort).then((_) {
+    return startServer(servicePort: _vmServicePort).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;
@@ -117,11 +117,11 @@ class AnalysisServerMemoryUsageTest
   }
 
   /// After every test, the server is stopped.
-  Future shutdown() async => await shutdownIfNeeded();
+  Future<void> shutdown() async => await shutdownIfNeeded();
 
   /// Enable [ServerService.STATUS] notifications so that [analysisFinished]
   /// can be used.
-  Future subscribeToStatusNotifications() async {
+  Future<void> subscribeToStatusNotifications() async {
     await sendServerSetSubscriptions([ServerService.STATUS]);
   }
 }
@@ -234,7 +234,7 @@ class LspAnalysisServerMemoryUsageTest
   }
 
   /// After every test, the server is stopped.
-  Future shutdown() async => this.tearDown();
+  Future<void> shutdown() async => this.tearDown();
 }
 
 mixin ServerMemoryUsageMixin {
@@ -248,10 +248,14 @@ mixin ServerMemoryUsageMixin {
     var total = 0;
 
     var isolateGroupsRefs = vm['isolateGroups'] as List<Object?>;
-    for (var isolateGroupRef in isolateGroupsRefs.cast<Map>()) {
-      final heapUsage = await service.call('getIsolateGroupMemoryUsage',
+    for (var isolateGroupRef
+        in isolateGroupsRefs.cast<Map<Object?, Object?>>()) {
+      final isolateGroupMemoryUsage = await service.call(
+          'getIsolateGroupMemoryUsage',
           {'isolateGroupId': isolateGroupRef['id']});
-      total += heapUsage['heapUsage'] + heapUsage['externalUsage'] as int;
+      var heapUsage = isolateGroupMemoryUsage['heapUsage'] as int;
+      var externalUsage = isolateGroupMemoryUsage['externalUsage'] as int;
+      total += heapUsage + externalUsage;
     }
 
     await service.dispose();
@@ -264,31 +268,32 @@ class ServiceProtocol {
   final WebSocket socket;
 
   int _id = 0;
-  final Map<String, Completer<Map>> _completers = {};
+  final Map<String, Completer<Map<Object?, Object?>>> _completers = {};
 
   ServiceProtocol._(this.socket) {
     socket.listen(_handleMessage);
   }
 
-  Future<Map> call(String method, [Map args = const {}]) {
+  Future<Map<Object?, Object?>> call(String method,
+      [Map<Object?, Object?> args = const {}]) {
     var id = '${++_id}';
-    var completer = Completer<Map>();
+    var completer = Completer<Map<Object?, Object?>>();
     _completers[id] = completer;
-    var m = <String, dynamic>{
+    var messageMap = <String, dynamic>{
       'jsonrpc': '2.0',
       'id': id,
       'method': method,
-      'args': args
+      'args': args,
+      'params': args,
     };
-    m['params'] = args;
-    var message = jsonEncode(m);
+    var message = jsonEncode(messageMap);
     socket.add(message);
     return completer.future;
   }
 
-  Future dispose() => socket.close();
+  Future<void> dispose() => socket.close();
 
-  void _handleMessage(dynamic message) {
+  void _handleMessage(Object? message) {
     if (message is! String) {
       return;
     }

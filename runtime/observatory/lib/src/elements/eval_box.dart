@@ -10,7 +10,6 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/instance_ref.dart';
 
 class EvalBoxElement extends CustomElement implements Renderable {
   late RenderingScheduler<EvalBoxElement> _r;
@@ -34,12 +33,6 @@ class EvalBoxElement extends CustomElement implements Renderable {
       {bool multiline = false,
       Iterable<String> quickExpressions = const [],
       RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(context != null);
-    assert(objects != null);
-    assert(eval != null);
-    assert(multiline != null);
-    assert(quickExpressions != null);
     EvalBoxElement e = new EvalBoxElement.created();
     e._r = new RenderingScheduler<EvalBoxElement>(e, queue: queue);
     e._isolate = isolate;

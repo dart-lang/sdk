@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 main() {
-  var c = new Class1.a();
+  var c = Class1.a();
   c.field3a = null;
   c.field4a = null;
   c.field5a = null;
-  new Class1.b();
+  Class1.b();
 
   print(c.field1);
   print(c.field2);
@@ -32,13 +30,13 @@ class Class1 {
   var field3b;
 
   /*member: Class1.field4a:allocator,initial=IntConstant(4)*/
-  var field4a = 4;
+  int? field4a = 4;
 
   /*member: Class1.field4b:constant=IntConstant(4)*/
   var field4b = 4;
 
   /*member: Class1.field5a:allocator,initial=IntConstant(5)*/
-  var field5a = 5;
+  int? field5a = 5;
 
   /*member: Class1.field5b:constant=IntConstant(5)*/
   var field5b = 5;

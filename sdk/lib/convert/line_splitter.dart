@@ -35,7 +35,7 @@ const int _CR = 13;
 /// // 3:  garbage-collected
 /// // 4:  language with C-style syntax
 /// ```
-class LineSplitter extends StreamTransformerBase<String, String> {
+final class LineSplitter extends StreamTransformerBase<String, String> {
   const LineSplitter();
 
   /// Split [lines] into individual lines.
@@ -84,15 +84,28 @@ class LineSplitter extends StreamTransformerBase<String, String> {
   }
 }
 
-// TODO(floitsch): deal with utf8.
-class _LineSplitterSink extends StringConversionSinkBase {
+class _LineSplitterSink extends StringConversionSink {
   final StringConversionSink _sink;
 
   /// The carry-over from the previous chunk.
   ///
   /// If the previous slice ended in a line without a line terminator,
   /// then the next slice may continue the line.
+  ///
+  /// Set to `null` if there is no carry (the previous chunk ended on
+  /// a line break).
+  /// Set to an empty string if carry-over comes from multiple chunks,
+  /// in which case the parts are stored in [_multiCarry].
   String? _carry;
+
+  /// Cache of multiple parts of carry-over.
+  ///
+  /// If a line is split over multiple chunks, avoid doing
+  /// repeated string concatenation, and instead store the chunks
+  /// into this stringbuffer.
+  ///
+  /// Is empty when `_carry` is `null` or a non-empty string.
+  StringBuffer? _multiCarry;
 
   /// Whether to skip a leading LF character from the next slice.
   ///
@@ -108,38 +121,31 @@ class _LineSplitterSink extends StringConversionSinkBase {
     end = RangeError.checkValidRange(start, end, chunk.length);
     // If the chunk is empty, it's probably because it's the last one.
     // Handle that here, so we know the range is non-empty below.
-    if (start >= end) {
-      if (isLast) close();
-      return;
-    }
-    String? carry = _carry;
-    if (carry != null) {
-      assert(!_skipLeadingLF);
-      chunk = carry + chunk.substring(start, end);
-      start = 0;
-      end = chunk.length;
-      _carry = null;
-    } else if (_skipLeadingLF) {
-      if (chunk.codeUnitAt(start) == _LF) {
-        start += 1;
+    if (start < end) {
+      if (_skipLeadingLF) {
+        if (chunk.codeUnitAt(start) == _LF) {
+          start += 1;
+        }
+        _skipLeadingLF = false;
       }
-      _skipLeadingLF = false;
+      _addLines(chunk, start, end, isLast);
     }
-    _addLines(chunk, start, end);
     if (isLast) close();
   }
 
   void close() {
-    if (_carry != null) {
-      _sink.add(_carry!);
-      _carry = null;
+    var carry = _carry;
+    if (carry != null) {
+      _sink.add(_useCarry(carry, ""));
     }
     _sink.close();
   }
 
-  void _addLines(String lines, int start, int end) {
+  void _addLines(String lines, int start, int end, bool isLast) {
     var sliceStart = start;
     var char = 0;
+    var carry = _carry;
+
     for (var i = start; i < end; i++) {
       var previousChar = char;
       char = lines.codeUnitAt(i);
@@ -150,14 +156,80 @@ class _LineSplitterSink extends StringConversionSinkBase {
           continue;
         }
       }
-      _sink.add(lines.substring(sliceStart, i));
+      var slice = lines.substring(sliceStart, i);
+      if (carry != null) {
+        slice = _useCarry(carry, slice); // Resets _carry to `null`.
+        carry = null;
+      }
+      _sink.add(slice);
+
       sliceStart = i + 1;
     }
+
     if (sliceStart < end) {
-      _carry = lines.substring(sliceStart, end);
+      var endSlice = lines.substring(sliceStart, end);
+      if (isLast) {
+        // Emit last line instead of carrying it over to the
+        // immediately following `close` call.
+        if (carry != null) {
+          endSlice = _useCarry(carry, endSlice);
+        }
+        _sink.add(endSlice);
+        return;
+      }
+      if (carry == null) {
+        // Common case, this chunk contained at least one line-break.
+        _carry = endSlice;
+      } else {
+        _addCarry(carry, endSlice);
+      }
     } else {
       _skipLeadingLF = (char == _CR);
     }
+  }
+
+  /// Adds [newCarry] to existing carry-over.
+  ///
+  /// Always goes into [_multiCarry], we only call here if there
+  /// was an existing carry that the new carry needs to be combined with.
+  ///
+  /// Only happens when a line is spread over more than two chunks.
+  /// The [existingCarry] is always the current value of [_carry].
+  /// (We pass the existing carry as an argument because we have already
+  /// checked that it is non-`null`.)
+  void _addCarry(String existingCarry, String newCarry) {
+    assert(existingCarry == _carry);
+    assert(newCarry.isNotEmpty);
+    var multiCarry = _multiCarry ??= StringBuffer();
+    if (existingCarry.isNotEmpty) {
+      assert(multiCarry.isEmpty);
+      multiCarry.write(existingCarry);
+      _carry = "";
+    }
+    multiCarry.write(newCarry);
+  }
+
+  /// Consumes and combines existing carry-over with continuation string.
+  ///
+  /// The [carry] value is always the current value of [_carry],
+  /// which is non-`null` when this method is called.
+  /// If that value is the empty string, the actual carry-over is stored
+  /// in [_multiCarry].
+  ///
+  /// The [continuation] is only empty if called from [close].
+  String _useCarry(String carry, String continuation) {
+    assert(carry == _carry);
+    _carry = null;
+    if (carry.isNotEmpty) {
+      return carry + continuation;
+    }
+    var multiCarry = _multiCarry!;
+    multiCarry.write(continuation);
+    var result = multiCarry.toString();
+    // If it happened once, it may happen again.
+    // Keep the string buffer around.
+    multiCarry.clear();
+    return result;
   }
 }
 

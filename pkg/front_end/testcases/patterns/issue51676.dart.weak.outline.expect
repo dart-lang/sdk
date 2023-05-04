@@ -1,0 +1,6 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method case3() → core::int
+  ;

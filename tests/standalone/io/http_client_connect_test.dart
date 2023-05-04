@@ -260,7 +260,10 @@ void testMaxConnectionsPerHost(int connectionCap, int connections) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     int handled = 0;
     server.listen((request) {
-      Expect.isTrue(server.connectionsInfo().total <= connectionCap);
+      Expect.isTrue(
+          server.connectionsInfo().total <= connectionCap,
+          '${server.connectionsInfo().total} <= $connectionCap ' +
+              '(connections: $connections)');
       request.response.close();
       handled++;
       if (handled == connections) {
@@ -288,6 +291,7 @@ void testMaxConnectionsPerHost(int connectionCap, int connections) {
 Future<void> testMaxConnectionsWithFailure() async {
   // When DNS lookup failed, counter for connecting doesn't decrement which
   // prevents the following connections.
+  asyncStart();
   final client = HttpClient();
   client.maxConnectionsPerHost = 1;
   try {
@@ -306,6 +310,7 @@ Future<void> testMaxConnectionsWithFailure() async {
       Expect.fail("Unexpected exception $e is thrown");
     }
   }
+  asyncEnd();
 }
 
 Future<void> testHttpAbort() async {
@@ -443,7 +448,7 @@ void main() async {
   testMaxConnectionsPerHost(1, 10);
   testMaxConnectionsPerHost(5, 10);
   testMaxConnectionsPerHost(10, 50);
-  testMaxConnectionsWithFailure();
+  await testMaxConnectionsWithFailure();
   await testHttpAbort();
   await testHttpAbortBeforeWrite();
   await testHttpAbortBeforeClose();

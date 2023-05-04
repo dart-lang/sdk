@@ -10,6 +10,7 @@
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -87,13 +88,12 @@ void FlowGraphCompiler::ExitIntrinsicMode() {
 TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                 DeoptInfoBuilder* builder,
                                                 const Array& deopt_table) {
-  if (deopt_env_ == NULL) {
+  if (deopt_env_ == nullptr) {
     ++builder->current_info_number_;
     return TypedData::null();
   }
 
-  intptr_t stack_height = compiler->StackSize();
-  AllocateIncomingParametersRecursive(deopt_env_, &stack_height);
+  AllocateOutgoingArguments(deopt_env_);
 
   intptr_t slot_ix = 0;
   Environment* current = deopt_env_;
@@ -125,7 +125,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   Environment* previous = current;
   current = current->outer();
-  while (current != NULL) {
+  while (current != nullptr) {
     builder->AddPp(current->function(), slot_ix++);
     builder->AddPcMarker(previous->function(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
@@ -154,7 +154,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     current = current->outer();
   }
   // The previous pointer is now the outermost environment.
-  ASSERT(previous != NULL);
+  ASSERT(previous != nullptr);
 
   // Add slots for the outermost environment.
   builder->AddCallerPp(slot_ix++);
@@ -182,7 +182,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
     __ brk(0);
   }
 
-  ASSERT(deopt_env() != NULL);
+  ASSERT(deopt_env() != nullptr);
   __ Call(compiler::Address(THR, Thread::deoptimize_entry_offset()));
   set_pc_offset(assembler->CodeSize());
 #undef __
@@ -484,7 +484,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   __ LoadUniqueObject(IC_DATA_REG, ic_data);
   GenerateDartCall(deopt_id, source, stub, UntaggedPcDescriptors::kIcCall, locs,
                    entry_kind);
-  __ Drop(ic_data.SizeWithTypeArgs());
+  EmitDropArguments(ic_data.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
@@ -513,7 +513,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
   __ Call(compiler::FieldAddress(CODE_REG, entry_point_offset));
   EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kIcCall, locs,
                        pending_deoptimization_env_);
-  __ Drop(ic_data.SizeWithTypeArgs());
+  EmitDropArguments(ic_data.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitMegamorphicInstanceCall(
@@ -566,7 +566,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     }
   }
   RecordCatchEntryMoves(pending_deoptimization_env_);
-  __ Drop(args_desc.SizeWithTypeArgs());
+  EmitDropArguments(args_desc.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
@@ -619,7 +619,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
 
   EmitCallsiteMetadata(source, DeoptId::kNone, UntaggedPcDescriptors::kOther,
                        locs, pending_deoptimization_env_);
-  __ Drop(ic_data.SizeWithTypeArgs());
+  EmitDropArguments(ic_data.SizeWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(
@@ -635,7 +635,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
   __ LoadObject(R5, ic_data);
   GenerateDartCall(deopt_id, source, stub,
                    UntaggedPcDescriptors::kUnoptStaticCall, locs, entry_kind);
-  __ Drop(size_with_type_args);
+  EmitDropArguments(size_with_type_args);
 }
 
 void FlowGraphCompiler::EmitOptimizedStaticCall(
@@ -659,7 +659,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   // we can record the outgoing edges to other code.
   GenerateStaticDartCall(deopt_id, source, UntaggedPcDescriptors::kOther, locs,
                          function, entry_kind);
-  __ Drop(size_with_type_args);
+  EmitDropArguments(size_with_type_args);
 }
 
 void FlowGraphCompiler::EmitDispatchTableCall(
@@ -1077,10 +1077,9 @@ void FlowGraphCompiler::LoadBSSEntry(BSS::Relocation relocation,
 #undef __
 #define __ compiler_->assembler()->
 
-void ParallelMoveResolver::EmitSwap(int index) {
-  MoveOperands* move = moves_[index];
-  const Location source = move->src();
-  const Location destination = move->dest();
+void ParallelMoveEmitter::EmitSwap(const MoveOperands& move) {
+  const Location source = move.src();
+  const Location destination = move.dest();
 
   if (source.IsRegister() && destination.IsRegister()) {
     ASSERT(source.reg() != TMP);
@@ -1147,56 +1146,39 @@ void ParallelMoveResolver::EmitSwap(int index) {
   } else {
     UNREACHABLE();
   }
-
-  // The swap of source and destination has executed a move from source to
-  // destination.
-  move->Eliminate();
-
-  // Any unperformed (including pending) move with a source of either
-  // this move's source or destination needs to have their source
-  // changed to reflect the state of affairs after the swap.
-  for (int i = 0; i < moves_.length(); ++i) {
-    const MoveOperands& other_move = *moves_[i];
-    if (other_move.Blocks(source)) {
-      moves_[i]->set_src(destination);
-    } else if (other_move.Blocks(destination)) {
-      moves_[i]->set_src(source);
-    }
-  }
 }
 
-void ParallelMoveResolver::MoveMemoryToMemory(const compiler::Address& dst,
-                                              const compiler::Address& src) {
+void ParallelMoveEmitter::MoveMemoryToMemory(const compiler::Address& dst,
+                                             const compiler::Address& src) {
   UNREACHABLE();
 }
 
 // Do not call or implement this function. Instead, use the form below that
 // uses an offset from the frame pointer instead of an Address.
-void ParallelMoveResolver::Exchange(Register reg,
-                                    const compiler::Address& mem) {
+void ParallelMoveEmitter::Exchange(Register reg, const compiler::Address& mem) {
   UNREACHABLE();
 }
 
 // Do not call or implement this function. Instead, use the form below that
 // uses offsets from the frame pointer instead of Addresses.
-void ParallelMoveResolver::Exchange(const compiler::Address& mem1,
-                                    const compiler::Address& mem2) {
+void ParallelMoveEmitter::Exchange(const compiler::Address& mem1,
+                                   const compiler::Address& mem2) {
   UNREACHABLE();
 }
 
-void ParallelMoveResolver::Exchange(Register reg,
-                                    Register base_reg,
-                                    intptr_t stack_offset) {
+void ParallelMoveEmitter::Exchange(Register reg,
+                                   Register base_reg,
+                                   intptr_t stack_offset) {
   ScratchRegisterScope tmp(this, reg);
   __ mov(tmp.reg(), reg);
   __ LoadFromOffset(reg, base_reg, stack_offset);
   __ StoreToOffset(tmp.reg(), base_reg, stack_offset);
 }
 
-void ParallelMoveResolver::Exchange(Register base_reg1,
-                                    intptr_t stack_offset1,
-                                    Register base_reg2,
-                                    intptr_t stack_offset2) {
+void ParallelMoveEmitter::Exchange(Register base_reg1,
+                                   intptr_t stack_offset1,
+                                   Register base_reg2,
+                                   intptr_t stack_offset2) {
   ScratchRegisterScope tmp1(this, kNoRegister);
   ScratchRegisterScope tmp2(this, tmp1.reg());
   __ LoadFromOffset(tmp1.reg(), base_reg1, stack_offset1);
@@ -1205,19 +1187,19 @@ void ParallelMoveResolver::Exchange(Register base_reg1,
   __ StoreToOffset(tmp2.reg(), base_reg1, stack_offset1);
 }
 
-void ParallelMoveResolver::SpillScratch(Register reg) {
+void ParallelMoveEmitter::SpillScratch(Register reg) {
   __ Push(reg);
 }
 
-void ParallelMoveResolver::RestoreScratch(Register reg) {
+void ParallelMoveEmitter::RestoreScratch(Register reg) {
   __ Pop(reg);
 }
 
-void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::SpillFpuScratch(FpuRegister reg) {
   __ PushQuad(reg);
 }
 
-void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
+void ParallelMoveEmitter::RestoreFpuScratch(FpuRegister reg) {
   __ PopQuad(reg);
 }
 

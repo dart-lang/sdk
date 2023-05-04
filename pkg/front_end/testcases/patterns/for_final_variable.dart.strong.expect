@@ -1,0 +1,290 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:6:32: Error: Can't assign to the final variable 'i'.
+//   for (final int i = 0; i < 3; i = i + 1) {
+//                                ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:9:34: Error: Can't assign to the final variable 'i'.
+//   for (final (int i) = 0; i < 3; i = i + 1) {
+//                                  ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:12:13: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   for (var (final int i, String s) = (0, ''); i < 3; i = i + 1) {
+//             ^^^^^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:15:20: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   for (var (int i, final String s) = (0, ''); i < 3; i = i + 1) {
+//                    ^^^^^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:19:34: Error: Can't assign to the final variable 'i'.
+//     for (final int i = 0; i < 3; i = i + 1) i, // Error
+//                                  ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:22:36: Error: Can't assign to the final variable 'i'.
+//     for (final (int i) = 0; i < 3; i = i + 1) i, // Error
+//                                    ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:25:15: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//     for (var (final int i, String s) = (0, ''); i < 3; i = i + 1) i, // Error
+//               ^^^^^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:28:22: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//     for (var (int i, final String s) = (0, ''); i < 3; i = i + 1) i, // Ok
+//                      ^^^^^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:34:5: Error: Can't assign to the final variable 'i'.
+//     i = i + 1; // Error
+//     ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:37:5: Error: Can't assign to the final variable 'i'.
+//     i = i + 1; // Error
+//     ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:39:13: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   for (var (final int i, String s) in [(1, 'a'), (2, 'b'), (3, 'c')]) {
+//             ^^^^^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:40:5: Error: Can't assign to the final variable 'i'.
+//     i = i + 1; // Error
+//     ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:42:20: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   for (var (int i, final String s) in [(1, 'a'), (2, 'b'), (3, 'c')]) {
+//                    ^^^^^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:46:36: Error: Can't assign to the final variable 'i'.
+//     for (final int i in [1, 2, 3]) i = i + 1 // Error
+//                                    ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:49:38: Error: Can't assign to the final variable 'i'.
+//     for (final (int i) in [1, 2, 3]) i = i + 1 // Error
+//                                      ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:52:15: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//     for (var (final int i, String s) in [(1, 'a'), (2, 'b'), (3, 'c')])
+//               ^^^^^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:53:7: Error: Can't assign to the final variable 'i'.
+//       i = i + 1 // Error
+//       ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:56:22: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//     for (var (int i, final String s) in [(1, 'a'), (2, 'b'), (3, 'c')])
+//                      ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method testFor() → dynamic {
+  for (final core::int i = 0; i.{core::num::<}(3){(core::num) → core::bool}; invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:6:32: Error: Can't assign to the final variable 'i'.
+  for (final int i = 0; i < 3; i = i + 1) {
+                               ^") {
+    core::print(i);
+  }
+  {
+    final hoisted core::int i;
+    {
+      final synthesized dynamic #0#0 = 0;
+      if(!(#0#0{core::int} is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = i = #0#0{core::int} in true)))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    final core::int #t2 = i;
+    for (final core::int i = #t2; i.{core::num::<}(3){(core::num) → core::bool}; invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:9:34: Error: Can't assign to the final variable 'i'.
+  for (final (int i) = 0; i < 3; i = i + 1) {
+                                 ^") {
+      core::print(i);
+    }
+  }
+  {
+    final hoisted core::int i;
+    hoisted core::String s;
+    {
+      final synthesized dynamic #1#0 = (0, "");
+      late final synthesized core::int #1#1 = #1#0{(core::int, core::String)}.$1{core::int};
+      late final synthesized core::String #1#2 = #1#0{(core::int, core::String)}.$2{core::String};
+      if(!(#1#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = i = #1#1 in true) && (#1#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t4 = s = #1#2 in true))))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    final core::int #t5 = i;
+    final core::String #t6 = s;
+    for (core::int i = #t5, core::String s = #t6; i.{core::num::<}(3){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+      core::print(i);
+    }
+  }
+  {
+    hoisted core::int i;
+    final hoisted core::String s;
+    {
+      final synthesized dynamic #2#0 = (0, "");
+      late final synthesized core::int #2#1 = #2#0{(core::int, core::String)}.$1{core::int};
+      late final synthesized core::String #2#2 = #2#0{(core::int, core::String)}.$2{core::String};
+      if(!(#2#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t7 = i = #2#1 in true) && (#2#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t8 = s = #2#2 in true))))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    final core::int #t9 = i;
+    final core::String #t10 = s;
+    for (core::int i = #t9, core::String s = #t10; i.{core::num::<}(3){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+      core::print(i);
+    }
+  }
+  core::List<core::int> l1 = block {
+    final core::List<core::int> #t11 = <core::int>[];
+    for (final core::int i = 0; i.{core::num::<}(3){(core::num) → core::bool}; invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:19:34: Error: Can't assign to the final variable 'i'.
+    for (final int i = 0; i < 3; i = i + 1) i, // Error
+                                 ^")
+      #t11.{core::List::add}{Invariant}(i){(core::int) → void};
+  } =>#t11;
+  core::List<core::int> l2 = block {
+    final core::List<core::int> #t12 = <core::int>[];
+    final hoisted core::int i;
+    {
+      final synthesized dynamic #3#0 = 0;
+      if(!(#3#0{core::int} is{ForNonNullableByDefault} core::int && (let final dynamic #t13 = i = #3#0{core::int} in true)))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    final core::int #t14 = i;
+    for (final core::int i = #t14; i.{core::num::<}(3){(core::num) → core::bool}; invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:22:36: Error: Can't assign to the final variable 'i'.
+    for (final (int i) = 0; i < 3; i = i + 1) i, // Error
+                                   ^")
+      #t12.{core::List::add}{Invariant}(i){(core::int) → void};
+  } =>#t12;
+  core::List<core::int> l3 = block {
+    final core::List<core::int> #t15 = <core::int>[];
+    final hoisted core::int i;
+    hoisted core::String s;
+    {
+      final synthesized dynamic #4#0 = (0, "");
+      late final synthesized core::int #4#1 = #4#0{(core::int, core::String)}.$1{core::int};
+      late final synthesized core::String #4#2 = #4#0{(core::int, core::String)}.$2{core::String};
+      if(!(#4#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t16 = i = #4#1 in true) && (#4#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t17 = s = #4#2 in true))))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    final core::int #t18 = i;
+    final core::String #t19 = s;
+    for (core::int i = #t18, core::String s = #t19; i.{core::num::<}(3){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t15.{core::List::add}{Invariant}(i){(core::int) → void};
+  } =>#t15;
+  core::List<core::int> l4 = block {
+    final core::List<core::int> #t20 = <core::int>[];
+    hoisted core::int i;
+    final hoisted core::String s;
+    {
+      final synthesized dynamic #5#0 = (0, "");
+      late final synthesized core::int #5#1 = #5#0{(core::int, core::String)}.$1{core::int};
+      late final synthesized core::String #5#2 = #5#0{(core::int, core::String)}.$2{core::String};
+      if(!(#5#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t21 = i = #5#1 in true) && (#5#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t22 = s = #5#2 in true))))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    final core::int #t23 = i;
+    final core::String #t24 = s;
+    for (core::int i = #t23, core::String s = #t24; i.{core::num::<}(3){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t20.{core::List::add}{Invariant}(i){(core::int) → void};
+  } =>#t20;
+}
+static method testForIn() → dynamic {
+  for (final core::int i in <core::int>[1, 2, 3]) {
+    invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:34:5: Error: Can't assign to the final variable 'i'.
+    i = i + 1; // Error
+    ^";
+  }
+  for (final core::int #t25 in <core::int>[1, 2, 3]) {
+    final hoisted core::int i;
+    {
+      final synthesized dynamic #0#0 = #t25;
+      if(!(#0#0{core::int} is{ForNonNullableByDefault} core::int && (let final dynamic #t26 = i = #0#0{core::int} in true)))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:37:5: Error: Can't assign to the final variable 'i'.
+    i = i + 1; // Error
+    ^";
+  }
+  for (final(core::int, core::String) #t27 in <(core::int, core::String)>[(1, "a"), (2, "b"), (3, "c")]) {
+    final hoisted core::int i;
+    hoisted core::String s;
+    {
+      final synthesized dynamic #1#0 = #t27;
+      late final synthesized core::int #1#1 = #1#0{(core::int, core::String)}.$1{core::int};
+      late final synthesized core::String #1#2 = #1#0{(core::int, core::String)}.$2{core::String};
+      if(!(#1#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t28 = i = #1#1 in true) && (#1#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t29 = s = #1#2 in true))))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:40:5: Error: Can't assign to the final variable 'i'.
+    i = i + 1; // Error
+    ^";
+  }
+  for (final(core::int, core::String) #t30 in <(core::int, core::String)>[(1, "a"), (2, "b"), (3, "c")]) {
+    hoisted core::int i;
+    final hoisted core::String s;
+    {
+      final synthesized dynamic #2#0 = #t30;
+      late final synthesized core::int #2#1 = #2#0{(core::int, core::String)}.$1{core::int};
+      late final synthesized core::String #2#2 = #2#0{(core::int, core::String)}.$2{core::String};
+      if(!(#2#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t31 = i = #2#1 in true) && (#2#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t32 = s = #2#2 in true))))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    i = i.{core::num::+}(1){(core::num) → core::int};
+  }
+  core::List<dynamic> l1 = block {
+    final core::List<dynamic> #t33 = <dynamic>[];
+    for (final core::int i in <core::int>[1, 2, 3])
+      #t33.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:46:36: Error: Can't assign to the final variable 'i'.
+    for (final int i in [1, 2, 3]) i = i + 1 // Error
+                                   ^"){(dynamic) → void};
+  } =>#t33;
+  core::List<dynamic> l2 = block {
+    final core::List<dynamic> #t34 = <dynamic>[];
+    for (final core::int #t35 in <core::int>[1, 2, 3]) {
+      final hoisted core::int i;
+      {
+        final synthesized dynamic #3#0 = #t35;
+        if(!(#3#0{core::int} is{ForNonNullableByDefault} core::int && (let final dynamic #t36 = i = #3#0{core::int} in true)))
+          throw new core::StateError::•("Pattern matching error");
+      }
+      #t34.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:49:38: Error: Can't assign to the final variable 'i'.
+    for (final (int i) in [1, 2, 3]) i = i + 1 // Error
+                                     ^"){(dynamic) → void};
+    }
+  } =>#t34;
+  core::List<dynamic> l3 = block {
+    final core::List<dynamic> #t37 = <dynamic>[];
+    for (final(core::int, core::String) #t38 in <(core::int, core::String)>[(1, "a"), (2, "b"), (3, "c")]) {
+      final hoisted core::int i;
+      hoisted core::String s;
+      {
+        final synthesized dynamic #4#0 = #t38;
+        late final synthesized core::int #4#1 = #4#0{(core::int, core::String)}.$1{core::int};
+        late final synthesized core::String #4#2 = #4#0{(core::int, core::String)}.$2{core::String};
+        if(!(#4#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t39 = i = #4#1 in true) && (#4#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t40 = s = #4#2 in true))))
+          throw new core::StateError::•("Pattern matching error");
+      }
+      #t37.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:53:7: Error: Can't assign to the final variable 'i'.
+      i = i + 1 // Error
+      ^"){(dynamic) → void};
+    }
+  } =>#t37;
+  core::List<core::int> l4 = block {
+    final core::List<core::int> #t41 = <core::int>[];
+    for (final(core::int, core::String) #t42 in <(core::int, core::String)>[(1, "a"), (2, "b"), (3, "c")]) {
+      hoisted core::int i;
+      final hoisted core::String s;
+      {
+        final synthesized dynamic #5#0 = #t42;
+        late final synthesized core::int #5#1 = #5#0{(core::int, core::String)}.$1{core::int};
+        late final synthesized core::String #5#2 = #5#0{(core::int, core::String)}.$2{core::String};
+        if(!(#5#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t43 = i = #5#1 in true) && (#5#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t44 = s = #5#2 in true))))
+          throw new core::StateError::•("Pattern matching error");
+      }
+      #t41.{core::List::add}{Invariant}(i = i.{core::num::+}(1){(core::num) → core::int}){(core::int) → void};
+    }
+  } =>#t41;
+}

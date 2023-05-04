@@ -1,0 +1,7 @@
+NOTICE: Stream was rewritten by parser!
+
+var *synthetic* = (0, 1);
+
+
+var[KeywordToken] [SyntheticStringToken] =[SimpleToken] ([BeginToken]0[StringToken],[SimpleToken] 1[StringToken])[SimpleToken];[SimpleToken]
+[SimpleToken]

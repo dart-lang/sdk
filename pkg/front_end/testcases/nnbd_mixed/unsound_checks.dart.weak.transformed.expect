@@ -9,6 +9,7 @@ class OptOutClass1 extends core::Object {
   synthetic constructor •() → self::OptOutClass1*
     : super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -17,7 +18,6 @@ class OptOutClass1 extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class OptOutClass2 extends core::Object {
@@ -27,6 +27,7 @@ class OptOutClass2 extends core::Object {
   operator [](core::int* index) → core::int*
     return index;
   operator []=(core::int* index, core::int* value) → void {}
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -35,7 +36,6 @@ class OptOutClass2 extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class OptOutClass3 extends core::Object {
@@ -43,6 +43,7 @@ class OptOutClass3 extends core::Object {
   constructor •(core::int* field) → self::OptOutClass3*
     : self::OptOutClass3::field = field, super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -51,7 +52,6 @@ class OptOutClass3 extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class OptOutSuperClass4 extends core::Object {
@@ -61,6 +61,7 @@ class OptOutSuperClass4 extends core::Object {
   operator [](core::int* index) → core::int*
     return index;
   operator []=(core::int* index, core::int* value) → void {}
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -69,7 +70,6 @@ class OptOutSuperClass4 extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class OptOutClass4 extends self::OptOutSuperClass4 {
@@ -87,6 +87,7 @@ class OptOutClass5 extends core::Object {
   constructor •(core::int* field) → self::OptOutClass5*
     : self::OptOutClass5::field = field, super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -95,7 +96,6 @@ class OptOutClass5 extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 extension OptOutExtension on self::OptOutClass1* {
@@ -523,70 +523,71 @@ static method callReturningNever(() → Never f) → dynamic {
   let final Never #t75 = f(){() → Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
 }
 static method switchOnEnum(uns::E e) → dynamic {
+  #L1:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L1:
-    case #C3:
-      {
-        return;
-      }
     #L2:
-    case #C6:
+    case #C3:
       {
         return;
       }
     #L3:
+    case #C6:
+      {
+        return;
+      }
+    #L4:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchOnEnumWithBreak(uns::E e) → dynamic {
-  #L4:
+  #L5:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L5:
+    #L6:
     case #C3:
       {
-        break #L4;
-      }
-    #L6:
-    case #C6:
-      {
-        break #L4;
+        break #L5;
       }
     #L7:
+    case #C6:
+      {
+        break #L5;
+      }
+    #L8:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
-  #L8:
+  #L9:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L9:
+    #L10:
     case #C3:
       {
-        break #L8;
-      }
-    #L10:
-    case #C6:
-      {
-        break #L8;
+        break #L9;
       }
     #L11:
+    case #C6:
+      {
+        break #L9;
+      }
+    #L12:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchOnEnumWithFallThrough2(uns::E e) → dynamic {
-  #L12:
+  #L13:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L13:
+    #L14:
     case #C3:
     case #C6:
       {
-        break #L12;
+        break #L13;
       }
-    #L14:
+    #L15:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method handleThrow() → dynamic {

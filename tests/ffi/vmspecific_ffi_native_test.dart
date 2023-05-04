@@ -48,7 +48,7 @@ class Classy {
 
 // For automatic transform of NativeFieldWrapperClass1 to Pointer.
 
-class ClassWithNativeField extends NativeFieldWrapperClass1 {
+base class ClassWithNativeField extends NativeFieldWrapperClass1 {
   ClassWithNativeField(int value) {
     setNativeInstanceField(this, 0, value);
   }
@@ -98,14 +98,14 @@ external int passAsPointerAndValue(NativeFieldWrapperClass1 obj, int value);
 @FfiNative<IntPtr Function(IntPtr, Pointer<Void>)>('PassAsValueAndPointer')
 external int passAsValueAndPointer(int value, NativeFieldWrapperClass1 obj);
 
-// Helpers for testing argumnent evaluation order is preserved.
+// Helpers for testing argument evaluation order is preserved.
 int state = 0;
 int setState(int value) {
   state = value;
   return 0;
 }
 
-class StateSetter extends NativeFieldWrapperClass1 {
+base class StateSetter extends NativeFieldWrapperClass1 {
   StateSetter(int value) {
     setNativeInstanceField(this, 0, 0);
     state = value;

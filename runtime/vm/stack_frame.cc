@@ -26,7 +26,7 @@
 
 namespace dart {
 
-const UntaggedFrame invalid_frame_layout = {
+const FrameLayout invalid_frame_layout = {
     /*.first_object_from_fp = */ -1,
     /*.last_fixed_object_from_fp = */ -1,
     /*.param_end_from_fp = */ -1,
@@ -40,7 +40,7 @@ const UntaggedFrame invalid_frame_layout = {
     /*.exit_link_slot_from_entry_fp = */ -1,
 };
 
-const UntaggedFrame default_frame_layout = {
+const FrameLayout default_frame_layout = {
     /*.first_object_from_fp = */ kFirstObjectSlotFromFp,
     /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp,
     /*.param_end_from_fp = */ kParamEndSlotFromFp,
@@ -53,7 +53,7 @@ const UntaggedFrame default_frame_layout = {
     /*.code_from_fp = */ kPcMarkerSlotFromFp,
     /*.exit_link_slot_from_entry_fp = */ kExitLinkSlotFromEntryFp,
 };
-const UntaggedFrame bare_instructions_frame_layout = {
+const FrameLayout bare_instructions_frame_layout = {
     /*.first_object_from_pc =*/kFirstObjectSlotFromFp,  // No saved PP slot.
     /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp +
         2,  // No saved CODE, PP slots
@@ -73,19 +73,19 @@ const UntaggedFrame bare_instructions_frame_layout = {
 namespace compiler {
 
 namespace target {
-UntaggedFrame frame_layout = invalid_frame_layout;
+FrameLayout frame_layout = invalid_frame_layout;
 }
 
 }  // namespace compiler
 
-UntaggedFrame runtime_frame_layout = invalid_frame_layout;
+FrameLayout runtime_frame_layout = invalid_frame_layout;
 
-int UntaggedFrame::FrameSlotForVariable(const LocalVariable* variable) const {
+int FrameLayout::FrameSlotForVariable(const LocalVariable* variable) const {
   ASSERT(!variable->is_captured());
   return this->FrameSlotForVariableIndex(variable->index().value());
 }
 
-int UntaggedFrame::FrameSlotForVariableIndex(int variable_index) const {
+int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
   // Variable indices are:
   //    [1, 2, ..., M] for the M parameters.
   //    [0, -1, -2, ... -(N-1)] for the N [LocalVariable]s
@@ -94,7 +94,7 @@ int UntaggedFrame::FrameSlotForVariableIndex(int variable_index) const {
                              : (variable_index + param_end_from_fp);
 }
 
-void UntaggedFrame::Init() {
+void FrameLayout::Init() {
   // By default we use frames with CODE_REG/PP in the frame.
   compiler::target::frame_layout = default_frame_layout;
   runtime_frame_layout = default_frame_layout;

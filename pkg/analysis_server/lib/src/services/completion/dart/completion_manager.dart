@@ -124,6 +124,7 @@ class DartCompletionManager {
     OperationPerformanceImpl performance, {
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
+    required bool useFilter,
   }) async {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
@@ -139,7 +140,8 @@ class DartCompletionManager {
     request.checkAborted();
 
     // Request Dart specific completions from each contributor
-    var builder = SuggestionBuilder(request, listener: listener);
+    var builder =
+        SuggestionBuilder(request, useFilter: useFilter, listener: listener);
     var contributors = <DartCompletionContributor>[
       ArgListContributor(request, builder),
       ClosureContributor(request, builder),
@@ -184,9 +186,11 @@ class DartCompletionManager {
     try {
       for (var contributor in contributors) {
         await performance.runAsync(
-          'DartCompletionManager - ${contributor.runtimeType}',
-          (_) async {
-            await contributor.computeSuggestions();
+          '${contributor.runtimeType}',
+          (performance) async {
+            await contributor.computeSuggestions(
+              performance: performance,
+            );
           },
         );
         request.checkAborted();
@@ -361,7 +365,7 @@ class DartCompletionRequest {
     );
 
     var opType = OpType.forCompletion(target, offset);
-    if (contextType != null && contextType.isVoid) {
+    if (contextType is VoidType) {
       opType.includeVoidReturnSuggestions = true;
     }
 
@@ -485,7 +489,9 @@ class DartCompletionRequest {
       final uriNode = target.containingNode;
       if (uriNode is SimpleStringLiteral && uriNode.literal == entity) {
         final directive = uriNode.parent;
-        if (directive is UriBasedDirective && directive.uri == uriNode) {
+        if (directive is UriBasedDirective &&
+            directive.uri == uriNode &&
+            offset >= uriNode.contentsOffset) {
           return uriNode.value.substring(0, offset - uriNode.contentsOffset);
         }
       }
@@ -506,6 +512,10 @@ class DartCompletionRequest {
       if (entity.end == offset && entity.isKeywordOrIdentifier) {
         return fromToken(entity);
       }
+    }
+
+    if (entity is DeclaredVariablePattern && entity.name.offset <= offset) {
+      return fromToken(entity.name);
     }
 
     while (entity is AstNode) {

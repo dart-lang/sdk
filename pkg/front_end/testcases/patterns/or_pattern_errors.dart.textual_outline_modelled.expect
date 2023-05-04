@@ -1,0 +1,7 @@
+class Class {
+  int? field1;
+  int? field2;
+  int? field3;
+}
+
+test(o) {}

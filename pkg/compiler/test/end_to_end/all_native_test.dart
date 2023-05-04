@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
@@ -17,7 +15,7 @@ main() {
 }
 
 test(List<String> options) async {
-  DiagnosticCollector collector = new DiagnosticCollector();
+  DiagnosticCollector collector = DiagnosticCollector();
   String fileName = 'sdk/tests/web_2/native/main.dart';
   Uri entryPoint = Uri.parse('memory:$fileName');
   await runCompiler(

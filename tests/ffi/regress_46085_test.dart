@@ -4,7 +4,7 @@
 
 import "dart:ffi";
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   external Pointer<Int8> notEmpty;
 
   @Array.multi([]) //# 01: compile-time error

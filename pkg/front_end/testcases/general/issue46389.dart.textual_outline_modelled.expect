@@ -1,10 +1,3 @@
-abstract class B<X> {
-  X bar({required X x});
-  X foo(X x);
-  void set baz(X x);
-  void set boz(X x);
-}
-
 class A {
   int boz = 0;
   num bar({required int x}) {}
@@ -14,5 +7,11 @@ class A {
 
 class C extends A with B<num> {}
 
+mixin B<X> {
+  X bar({required X x});
+  X foo(X x);
+  void set baz(X x);
+  void set boz(X x);
+}
 throws(void Function() f) {}
 void main() {}

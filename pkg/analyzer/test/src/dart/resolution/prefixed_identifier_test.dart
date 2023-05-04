@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -10,7 +11,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixedIdentifierResolutionTest);
-    defineReflectiveTests(PrefixedIdentifierResolutionWithoutNullSafetyTest);
+    defineReflectiveTests(PrefixedIdentifierResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -18,6 +19,7 @@ main() {
 class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest
     with PrefixedIdentifierResolutionTestCases {
   test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
@@ -30,7 +32,7 @@ main() {
   a.loadLibrary;
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 22, 8),
+      error(WarningCode.UNUSED_IMPORT, 22, 8),
     ]);
 
     var import = findElement.importFind('package:test/a.dart');
@@ -131,22 +133,21 @@ void f() {
 }
 ''');
 
-    assertPrefixedIdentifier(
-      findNode.prefixed('B.foo'),
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertTypeAliasRef(
-      findNode.simple('B.foo'),
-      findElement.typeAlias('B'),
-    );
-
-    assertSimpleIdentifier(
-      findNode.simple('foo;'),
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
+    final node = findNode.prefixed('B.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: B
+    staticElement: self::@typeAlias::B
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticElement: self::@class::A::@getter::foo
+  staticType: int
+''');
   }
 
   test_implicitCall_tearOff_nullable() async {
@@ -207,6 +208,11 @@ void f() {
     );
   }
 }
+
+@reflectiveTest
+class PrefixedIdentifierResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with PrefixedIdentifierResolutionTestCases, WithoutNullSafetyMixin {}
 
 mixin PrefixedIdentifierResolutionTestCases on PubPackageResolutionTest {
   test_class_read() async {
@@ -530,8 +536,3 @@ int Function() foo() {
     assertType(identifier, 'A');
   }
 }
-
-@reflectiveTest
-class PrefixedIdentifierResolutionWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with PrefixedIdentifierResolutionTestCases, WithoutNullSafetyMixin {}

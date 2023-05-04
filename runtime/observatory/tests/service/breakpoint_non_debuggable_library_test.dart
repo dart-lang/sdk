@@ -36,14 +36,12 @@ var tests = <IsolateTest>[
     Breakpoint bpt = await isolate.addBreakpoint(script, LINE_A);
     print("Breakpoint is $bpt");
     expect(bpt, isNotNull);
-    expect(bpt is Breakpoint, isTrue);
 
     // Set breakpoint and check later that this breakpoint won't be added if
     // the library is non-debuggable.
     bpt = await isolate.addBreakpoint(script, LINE_B);
     print("Breakpoint is $bpt");
     expect(bpt, isNotNull);
-    expect(bpt is Breakpoint, isTrue);
     await script.reload();
     // Remove breakpoint.
     var res = await isolate.removeBreakpoint(bpt);
@@ -63,9 +61,12 @@ var tests = <IsolateTest>[
     // Breakpoints are not allowed to set on non-debuggable libraries.
     try {
       await isolate.addBreakpoint(script, LINE_B);
-    } on dynamic catch (e) {
-      expect(e is ServerRpcException, true);
-      expect(e.code == ServerRpcException.kCannotAddBreakpoint, true);
+    } catch (e) {
+      expect(
+        e,
+        isA<ServerRpcException>().having((e) => e.code, 'code',
+            equals(ServerRpcException.kCannotAddBreakpoint)),
+      );
       print("Set Breakpoint to non-debuggable library is not allowed");
     }
   },

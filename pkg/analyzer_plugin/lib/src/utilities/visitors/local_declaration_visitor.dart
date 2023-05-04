@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 /// A visitor that visits an [AstNode] and its parent recursively along with any
 /// declarations in those nodes. Consumers typically call [visit] which catches
 /// the exception thrown by [finished].
-abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
+abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
   final int offset;
 
   LocalDeclarationVisitor(this.offset);
@@ -58,7 +58,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     throw _LocalDeclarationVisitorFinished();
   }
 
-  /// Visit the given [AstNode] and its parent recursively along with any
+  /// Visit the given [AstNode] and its parents recursively along with any
   /// declarations in those nodes. Return `true` if [finished] is called
   /// while visiting, else `false`.
   bool visit(AstNode node) {
@@ -113,6 +113,12 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _visitParamList(node.parameters);
+    visitNode(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    _visitDeclaredVariablePattern(node);
     visitNode(node);
   }
 
@@ -176,6 +182,30 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitIfElement(IfElement node) {
+    var elseKeyword = node.elseKeyword;
+    if (elseKeyword == null || offset < elseKeyword.offset) {
+      var pattern = node.caseClause?.guardedPattern.pattern;
+      if (pattern != null) {
+        _visitVariablesIn(pattern);
+      }
+    }
+    visitNode(node);
+  }
+
+  @override
+  void visitIfStatement(IfStatement node) {
+    var elseKeyword = node.elseKeyword;
+    if (elseKeyword == null || offset < elseKeyword.offset) {
+      var pattern = node.caseClause?.guardedPattern.pattern;
+      if (pattern != null) {
+        _visitVariablesIn(pattern);
+      }
+    }
+    visitNode(node);
+  }
+
+  @override
   void visitInterpolationExpression(InterpolationExpression node) {
     visitNode(node);
   }
@@ -214,19 +244,106 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitSwitchMember(SwitchMember node) {
+  void visitSwitchCase(SwitchCase node) {
+    _visitStatements(node.statements);
+    visitNode(node);
+  }
+
+  @override
+  void visitSwitchDefault(SwitchDefault node) {
+    _visitStatements(node.statements);
+    visitNode(node);
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    if (offset > node.arrow.end) {
+      _visitVariablesIn(node.guardedPattern.pattern);
+    }
+    visitNode(node);
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
     _visitStatements(node.statements);
     visitNode(node);
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    for (var member in node.members) {
+    var members = node.members;
+    for (var member in members) {
       for (var label in member.labels) {
         declaredLabel(label, true);
       }
     }
+    var first = true;
+    for (var i = members.length - 1; i >= 0; i--) {
+      var member = members[i];
+      if (!first && member.statements.isNotEmpty) {
+        break;
+      }
+      if (member is SwitchPatternCase && offset >= member.colon.end) {
+        _visitVariablesIn(member.guardedPattern.pattern);
+      } else {
+        break;
+      }
+      first = false;
+    }
     visitNode(node);
+  }
+
+  /// Recursively traverse the given [pattern], adding all of the declared
+  /// variable patterns that appear in the structure to the list of [variables].
+  void _addVariables(
+      List<DeclaredVariablePattern> variables, DartPattern pattern) {
+    if (pattern is CastPattern) {
+      _addVariables(variables, pattern.pattern);
+    } else if (pattern is DeclaredVariablePattern) {
+      variables.add(pattern);
+    } else if (pattern is ListPattern) {
+      for (var element in pattern.elements) {
+        if (element is DartPattern) {
+          _addVariables(variables, element);
+        } else if (element is RestPatternElement) {
+          var elementPattern = element.pattern;
+          if (elementPattern != null) {
+            _addVariables(variables, elementPattern);
+          }
+        }
+      }
+    } else if (pattern is LogicalAndPattern) {
+      _addVariables(variables, pattern.leftOperand);
+      _addVariables(variables, pattern.rightOperand);
+    } else if (pattern is LogicalOrPattern) {
+      _addVariables(variables, pattern.leftOperand);
+      _addVariables(variables, pattern.rightOperand);
+    } else if (pattern is MapPattern) {
+      for (var element in pattern.elements) {
+        if (element is MapPatternEntry) {
+          _addVariables(variables, element.value);
+        } else if (element is RestPatternElement) {
+          var elementPattern = element.pattern;
+          if (elementPattern != null) {
+            _addVariables(variables, elementPattern);
+          }
+        }
+      }
+    } else if (pattern is NullAssertPattern) {
+      _addVariables(variables, pattern.pattern);
+    } else if (pattern is NullCheckPattern) {
+      _addVariables(variables, pattern.pattern);
+    } else if (pattern is ObjectPattern) {
+      for (var field in pattern.fields) {
+        _addVariables(variables, field.pattern);
+      }
+    } else if (pattern is ParenthesizedPattern) {
+      _addVariables(variables, pattern.pattern);
+    } else if (pattern is RecordPattern) {
+      for (var field in pattern.fields) {
+        _addVariables(variables, field.pattern);
+      }
+    }
   }
 
   void _visitClassOrMixinMembers(List<ClassMember> members) {
@@ -293,6 +410,14 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     }
   }
 
+  /// Visit the given [pattern] without visiting any of its parents.
+  void _visitDeclaredVariablePattern(DeclaredVariablePattern pattern) {
+    var declaredElement = pattern.declaredElement;
+    if (declaredElement != null) {
+      declaredLocalVar(pattern.name, pattern.type, declaredElement);
+    }
+  }
+
   void _visitParamList(FormalParameterList? paramList) {
     if (paramList != null) {
       for (var param in paramList.parameters) {
@@ -338,6 +463,11 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
               );
             }
           }
+        } else if (stmt is PatternVariableDeclarationStatement) {
+          var declaration = stmt.declaration;
+          if (declaration.end < offset) {
+            _visitVariablesIn(declaration.pattern);
+          }
         }
       }
     }
@@ -350,6 +480,14 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
       for (var typeParameter in typeParameters.typeParameters) {
         declaredTypeParameter(typeParameter);
       }
+    }
+  }
+
+  void _visitVariablesIn(DartPattern pattern) {
+    var variables = <DeclaredVariablePattern>[];
+    _addVariables(variables, pattern);
+    for (var variable in variables) {
+      _visitDeclaredVariablePattern(variable);
     }
   }
 }

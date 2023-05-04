@@ -49,7 +49,7 @@ ret
 .type ClobberAndCall, %function
 ClobberAndCall:
 
-/* Save link register register and thread register. */
+/* Save link register and thread register. */
 stp lr, x26, [sp, #-16]!
 mov lr, #1
 mov x26, #1

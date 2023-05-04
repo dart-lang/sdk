@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper" show JS;
 import "dart:typed_data" show Uint8List;
 
 part "class_id.dart";
+part "deferred.dart";
 part "print_patch.dart";
 part "symbol_patch.dart";
 
@@ -70,6 +72,10 @@ const bool has63BitSmis = false;
 
 class Lists {
   static void copy(List src, int srcStart, List dst, int dstStart, int count) {
+    if (srcStart + count > src.length) {
+      throw IterableElementError.tooFew();
+    }
+
     // TODO(askesc): Intrinsify for efficient copying
     if (srcStart < dstStart) {
       for (int i = srcStart + count - 1, j = dstStart + count - 1;
@@ -137,15 +143,26 @@ void _invokeCallback(void Function() callback) {
   }
 }
 
+@pragma("wasm:export", "\$invokeCallback1")
+void _invokeCallback1(void Function(dynamic) callback, dynamic arg) {
+  try {
+    callback(arg);
+  } catch (e, s) {
+    print(e);
+    print(s);
+    rethrow;
+  }
+}
+
 /// Used to invoke the `main` function from JS, printing any exceptions that
 /// escape.
 @pragma("wasm:export", "\$invokeMain")
-void _invokeMain(Function main) {
+void _invokeMain(Function main, List<String> args) {
   try {
     if (main is void Function(List<String>, Null)) {
-      main(const <String>[], null);
+      main(List.unmodifiable(args), null);
     } else if (main is void Function(List<String>)) {
-      main(const <String>[]);
+      main(List.unmodifiable(args));
     } else if (main is void Function()) {
       main();
     } else {
@@ -158,9 +175,19 @@ void _invokeMain(Function main) {
   }
 }
 
-// Schedule a callback from JS via setTimeout.
-@pragma("wasm:import", "dart2wasm.scheduleCallback")
-external void scheduleCallback(double millis, dynamic Function() callback);
+@pragma("wasm:export", "\$makeStringList")
+List<String> _makeStringList() => <String>[];
 
-@pragma("wasm:import", "dart2wasm.jsonEncode")
-external String jsonEncode(String object);
+@pragma("wasm:export", "\$listAdd")
+void _listAdd(List<dynamic> list, dynamic item) => list.add(item);
+
+// Schedule a callback from JS via setTimeout.
+void scheduleCallback(double millis, dynamic Function() callback) {
+  JS<void>(r"""(ms, c) =>
+            setTimeout(
+                () => dartInstance.exports.$invokeCallback(c),ms)""", millis,
+      callback);
+}
+
+String jsonEncode(String object) => JS<String>(
+    "s => stringToDartString(JSON.stringify(stringFromDartString(s)))", object);

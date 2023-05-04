@@ -40,92 +40,92 @@ mixin RecordTypeTestCases on AbstractCompletionDriverTest {
   }
 
   Future<void> test_mixed() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f((int, {String foo02}) r) {
   r.^
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
-  hashCode
-    kind: getter
-    returnType: int
-  runtimeType
-    kind: getter
-    returnType: Type
-  $0
+  $1
     kind: identifier
     returnType: int
   foo02
     kind: identifier
     returnType: String
-  toString
-    kind: methodInvocation
-    returnType: String
+  hashCode
+    kind: getter
+    returnType: int
   noSuchMethod
     kind: methodInvocation
     returnType: dynamic
+  runtimeType
+    kind: getter
+    returnType: Type
+  toString
+    kind: methodInvocation
+    returnType: String
 ''');
   }
 
   Future<void> test_named() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f(({int foo01, String foo02}) r) {
   r.^
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
-  hashCode
-    kind: getter
-    returnType: int
-  runtimeType
-    kind: getter
-    returnType: Type
   foo01
     kind: identifier
     returnType: int
   foo02
     kind: identifier
     returnType: String
-  toString
-    kind: methodInvocation
-    returnType: String
+  hashCode
+    kind: getter
+    returnType: int
   noSuchMethod
     kind: methodInvocation
     returnType: dynamic
+  runtimeType
+    kind: getter
+    returnType: Type
+  toString
+    kind: methodInvocation
+    returnType: String
 ''');
   }
 
   Future<void> test_positional() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f((int, String) r) {
   r.^
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
+  $1
+    kind: identifier
+    returnType: int
+  $2
+    kind: identifier
+    returnType: String
   hashCode
     kind: getter
     returnType: int
-  runtimeType
-    kind: getter
-    returnType: Type
-  $0
-    kind: identifier
-    returnType: int
-  $1
-    kind: identifier
-    returnType: String
-  toString
-    kind: methodInvocation
-    returnType: String
   noSuchMethod
     kind: methodInvocation
     returnType: dynamic
+  runtimeType
+    kind: getter
+    returnType: Type
+  toString
+    kind: methodInvocation
+    returnType: String
 ''');
   }
 }

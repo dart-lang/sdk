@@ -5,7 +5,7 @@
 // Verify that a forwarding constructor is generated even when there is an
 // optional parameter.
 
-abstract class Mixin {}
+mixin Mixin {}
 
 class Base {
   Base(

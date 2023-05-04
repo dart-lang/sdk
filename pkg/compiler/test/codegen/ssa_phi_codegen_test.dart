@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
 // Test that parameters keep their names in the output.
 
 import 'package:async_helper/async_helper.dart';
@@ -88,7 +87,7 @@ main() {
 
     await compileAndDoNotMatchFuzzy(TEST_FOUR, 'foo', '(x) = \1;');
 
-    await compileAndDoNotMatch(TEST_FIVE, 'main', new RegExp('hash0'));
+    await compileAndDoNotMatch(TEST_FIVE, 'main', RegExp('hash0'));
   }
 
   asyncTest(() async {

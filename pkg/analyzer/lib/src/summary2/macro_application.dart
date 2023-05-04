@@ -91,7 +91,7 @@ class LibraryMacroApplier {
             },
             annotationIndex: application.annotationIndex,
             onError: (error) {
-              target.element.macroApplicationErrors.add(error);
+              target.element.addMacroApplicationError(error);
             },
           );
         }
@@ -114,7 +114,7 @@ class LibraryMacroApplier {
             },
             annotationIndex: application.annotationIndex,
             onError: (error) {
-              target.element.macroApplicationErrors.add(error);
+              target.element.addMacroApplicationError(error);
             },
           );
         }
@@ -160,7 +160,7 @@ class LibraryMacroApplier {
             },
             annotationIndex: i,
             onError: (error) {
-              targetElement.macroApplicationErrors.add(error);
+              targetElement.addMacroApplicationError(error);
             },
           );
         }

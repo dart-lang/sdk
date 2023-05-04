@@ -2476,7 +2476,7 @@
           "/**",
           "   * Returns a copy of this node.",
           "   *",
-          "   * If [deep] is `true`, then all of this node's children and descendents are",
+          "   * If [deep] is `true`, then all of this node's children and descendants are",
           "   * copied as well. If [deep] is `false`, then only this node is copied.",
           "   *",
           "   * ## Other resources",
@@ -2645,7 +2645,7 @@
         ],
         "textContent": [
           "/**",
-          "   * All text within this node and its descendents.",
+          "   * All text within this node and its descendants.",
           "   *",
           "   * ## Other resources",
           "   *",
@@ -3817,7 +3817,7 @@
           "   * ## Other resources",
           "   *",
           "   * * [Measuring page load speed with navigation",
-          "   *   timeing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)",
+          "   *   timing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)",
           "   *   from HTML5Rocks.",
           "   * * [Navigation timing",
           "   *   specification](http://www.w3.org/TR/navigation-timing/) from W3C.",
@@ -5187,7 +5187,7 @@
           "   * Get a Stream that fires events when AudioProcessingEvents occur.",
           "   * This particular stream is special in that it only allows one listener to a",
           "   * given stream. Converting the returned [Stream.asBroadcastStream] will",
-          "   * likely ruin the soft-real-time properties which which these events are",
+          "   * likely ruin the soft-real-time properties which these events are",
           "   * fired and can be processed.",
           "   */"
         ]

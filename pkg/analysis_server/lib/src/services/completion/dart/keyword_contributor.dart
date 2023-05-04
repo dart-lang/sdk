@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 const ASYNC_STAR = 'async*';
@@ -30,17 +31,44 @@ class KeywordContributor extends DartCompletionContributor {
   KeywordContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     // Don't suggest anything right after double or integer literals.
     if (request.target.isDoubleOrIntLiteral()) {
       return;
     }
-    request.target.containingNode.accept(_KeywordVisitor(request, builder));
+
+    final visitor = _KeywordVisitor(request, builder);
+
+    final patternLocation = request.opType.patternLocation;
+    if (patternLocation is NamedPatternFieldWantsFinalOrVar) {
+      visitor._addSuggestions([
+        Keyword.FINAL,
+        Keyword.VAR,
+      ]);
+      return;
+    } else if (patternLocation is NamedPatternFieldWantsName) {
+      return;
+    }
+
+    request.target.containingNode.accept(visitor);
   }
 }
 
 /// A visitor for generating keyword suggestions.
 class _KeywordVisitor extends GeneralizingAstVisitor<void> {
+  /// The keywords that are valid at the beginning of a pattern (and hence a
+  /// guarded pattern).
+  static const List<Keyword> patternKeywords = [
+    Keyword.CONST,
+    Keyword.FALSE,
+    Keyword.FINAL,
+    Keyword.NULL,
+    Keyword.TRUE,
+    Keyword.VAR,
+  ];
+
   final DartCompletionRequest request;
 
   final SuggestionBuilder builder;
@@ -143,13 +171,59 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitCaseClause(CaseClause node) {
+    _addSuggestions(patternKeywords);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     final entity = this.entity;
     // Don't suggest class name
     if (entity == node.name) {
       return;
     }
-    if (entity == node.rightBracket) {
+    if (entity == node.classKeyword) {
+      var previous = node.findPrevious(node.classKeyword);
+      if (previous != null) {
+        if (previous.keyword != Keyword.BASE &&
+            previous.keyword != Keyword.FINAL &&
+            previous.keyword != Keyword.INTERFACE &&
+            previous.keyword != Keyword.MIXIN &&
+            previous.keyword != Keyword.SEALED) {
+          if (previous.keyword != Keyword.ABSTRACT) {
+            if (request.featureSet.isEnabled(Feature.sealed_class)) {
+              _addSuggestion(Keyword.SEALED);
+            }
+          } else {
+            // abstract ^ class A {}
+            if (request.featureSet.isEnabled(Feature.class_modifiers)) {
+              _addSuggestions([
+                Keyword.BASE,
+                Keyword.FINAL,
+                Keyword.INTERFACE,
+                Keyword.MIXIN
+              ]);
+            }
+          }
+        }
+        if (request.featureSet.isEnabled(Feature.class_modifiers) &&
+            previous.keyword == Keyword.BASE) {
+          // base ^ class A {}
+          // abstract base ^ class A {}
+          _addSuggestion(Keyword.MIXIN);
+        }
+      }
+    } else if (entity == node.mixinKeyword) {
+      var previous = node.findPrevious(node.mixinKeyword!);
+      if (previous != null) {
+        if (previous.keyword != Keyword.BASE) {
+          // abstract ^ mixin class A {}
+          if (request.featureSet.isEnabled(Feature.class_modifiers)) {
+            _addSuggestion(Keyword.BASE);
+          }
+        }
+      }
+    } else if (entity == node.rightBracket) {
       _addClassBodyKeywords();
     } else if (entity is ClassMember) {
       _addClassBodyKeywords();
@@ -250,6 +324,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
           _addSuggestion(Keyword.THIS);
         }
       }
+    }
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    var parent = node.parent;
+    if (!(parent is GuardedPattern && parent.hasWhen)) {
+      _addSuggestion(Keyword.WHEN);
     }
   }
 
@@ -374,6 +456,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       } else {
         _addSuggestion(Keyword.IN);
       }
+    } else if (!node.inKeyword.isSynthetic && node.iterable.isSynthetic) {
+      _addSuggestion(Keyword.AWAIT);
     }
   }
 
@@ -484,7 +568,25 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     // Actual: for (va^)
     // Parsed: for (va^; ;)
     if (node.forLoopParts == entity) {
-      _addSuggestion(Keyword.VAR);
+      _addSuggestions([Keyword.FINAL, Keyword.VAR]);
+    } else if (node.rightParenthesis == entity) {
+      var parts = node.forLoopParts;
+      if (parts is ForPartsWithDeclarations) {
+        var variables = parts.variables;
+        var keyword = variables.keyword;
+        if (variables.variables.length == 1 &&
+            variables.variables[0].name.isSynthetic &&
+            keyword != null &&
+            parts.leftSeparator.isSynthetic) {
+          var afterKeyword = keyword.next!;
+          if (afterKeyword.type == TokenType.OPEN_PAREN) {
+            var endGroup = afterKeyword.endGroup;
+            if (endGroup != null && request.offset >= endGroup.end) {
+              _addSuggestion(Keyword.IN);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -528,8 +630,24 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitIfElement(IfElement node) {
-    _addCollectionElementKeywords();
-    _addExpressionKeywords(node);
+    if (entity == node.rightParenthesis) {
+      var caseClause = node.caseClause;
+      if (caseClause == null) {
+        _addSuggestion(Keyword.CASE);
+        _addSuggestion(Keyword.IS);
+      } else if (caseClause.guardedPattern.hasWhen) {
+        if (caseClause.guardedPattern.whenClause?.expression == null) {
+          _addExpressionKeywords(node);
+        }
+      } else {
+        _addSuggestion(Keyword.WHEN);
+      }
+    } else if (entity == node.thenElement || entity == node.elseElement) {
+      _addCollectionElementKeywords();
+      _addExpressionKeywords(node);
+    } else if (entity == node.condition) {
+      _addExpressionKeywords(node);
+    }
     return super.visitIfElement(node);
   }
 
@@ -541,12 +659,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       // Parsed: if (x) i^
       _addSuggestion(Keyword.IS);
     } else if (entity == node.rightParenthesis) {
-      if (node.condition.endToken.next == droppedToken) {
-        // fasta parser
-        // Actual: if (x i^)
-        // Parsed: if (x)
-        //    where "i" is in the token stream but not part of the AST
+      var caseClause = node.caseClause;
+      if (caseClause == null) {
+        _addSuggestion(Keyword.CASE);
         _addSuggestion(Keyword.IS);
+      } else if (caseClause.guardedPattern.hasWhen) {
+        if (caseClause.guardedPattern.whenClause?.expression == null) {
+          _addExpressionKeywords(node);
+        }
+      } else {
+        _addSuggestion(Keyword.WHEN);
       }
     } else if (entity == node.thenStatement || entity == node.elseStatement) {
       _addStatementKeywords(node);
@@ -598,6 +720,34 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     _addCollectionElementKeywords();
     _addElseElementKeyword(node.elements);
     super.visitListLiteral(node);
+  }
+
+  @override
+  void visitListPattern(ListPattern node) {
+    _addSuggestions(patternKeywords);
+  }
+
+  @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    _addSuggestions(patternKeywords);
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    _addSuggestions(patternKeywords);
+  }
+
+  @override
+  void visitMapPattern(MapPattern node) {
+    _addConstantExpressionKeywords(node);
+    super.visitMapPattern(node);
+  }
+
+  @override
+  void visitMapPatternEntry(MapPatternEntry node) {
+    _addSuggestions([Keyword.FINAL, Keyword.VAR]);
+    _addExpressionKeywords(node);
+    super.visitMapPatternEntry(node);
   }
 
   @override
@@ -657,7 +807,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         _addSuggestion2(ASYNC_STAR);
         _addSuggestion2(SYNC_STAR);
       }
-    } else {
+    } else if (entity != node.mixinKeyword) {
       _addMixinDeclarationKeywords(node);
     }
   }
@@ -692,6 +842,22 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitParenthesizedPattern(ParenthesizedPattern node) {
+    _addSuggestions(patternKeywords);
+  }
+
+  @override
+  void visitPatternField(PatternField node) {
+    _addSuggestions(patternKeywords);
+    super.visitPatternField(node);
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (entity != node.identifier) {
       _addExpressionKeywords(node);
@@ -704,6 +870,33 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (entity != node.propertyName) {
       super.visitPropertyAccess(node);
     }
+  }
+
+  @override
+  void visitRecordPattern(RecordPattern node) {
+    _addExpressionKeywords(node);
+    _addSuggestions([Keyword.DYNAMIC]);
+    return super.visitRecordPattern(node);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    var operator = node.operator;
+    if (request.offset >= operator.end) {
+      if (request.opType.completionLocation == 'TypeArgumentList_argument') {
+        // This is most likely a type argument list.
+        _addSuggestions([Keyword.DYNAMIC, Keyword.VOID]);
+        return;
+      }
+      _addConstantExpressionKeywords(node);
+      _addSuggestions([Keyword.DYNAMIC, Keyword.VOID]);
+    }
+    super.visitRelationalPattern(node);
+  }
+
+  @override
+  void visitRestPatternElement(RestPatternElement node) {
+    _addSuggestions(patternKeywords);
   }
 
   @override
@@ -754,26 +947,57 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitSwitchExpression(SwitchExpression node) {
+    if (entity == node.expression) {
+      _addExpressionKeywords(node);
+    }
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    final entity = this.entity;
+    if (entity == node.colon && request.target.offset <= node.colon.offset) {
+      var previous = node.colon.previous?.keyword;
+      if (previous == Keyword.AS) {
+        _addSuggestion(Keyword.DYNAMIC);
+      } else if (previous != Keyword.WHEN) {
+        _addSuggestions([Keyword.AS, Keyword.WHEN]);
+      }
+    } else if (entity is GuardedPattern) {
+      var pattern = node.guardedPattern.pattern;
+      if (pattern is DeclaredVariablePattern) {
+        var keyword = pattern.keyword;
+        if (keyword == null) {
+          _addConstantExpressionKeywords(node);
+          _addSuggestions([Keyword.FINAL, Keyword.VAR]);
+        }
+      } else if (pattern is ConstantPattern) {
+        _addConstantExpressionKeywords(node);
+        _addSuggestions([Keyword.FINAL, Keyword.VAR]);
+      } else {
+        _addConstantExpressionKeywords(node);
+      }
+    } else {
+      _addStatementKeywords(node);
+    }
+    return super.visitSwitchPatternCase(node);
+  }
+
+  @override
   void visitSwitchStatement(SwitchStatement node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
     } else if (entity == node.rightBracket) {
-      if (node.members.isEmpty) {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
-      } else {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
+      _addSuggestion(Keyword.CASE);
+      _addSuggestion2(DEFAULT_COLON);
+      if (node.members.isNotEmpty) {
         _addStatementKeywords(node);
       }
     }
     if (node.members.contains(entity)) {
-      if (entity == node.members.first) {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
-      } else {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion2(DEFAULT_COLON);
+      _addSuggestion(Keyword.CASE);
+      _addSuggestion2(DEFAULT_COLON);
+      if (entity != node.members.first) {
         _addStatementKeywords(node);
       }
     }
@@ -829,10 +1053,26 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
+    var keyword = node.keyword;
     var variables = node.variables;
-    if (variables.isNotEmpty && entity == variables[0] && node.type == null) {
-      _addSuggestion(Keyword.DYNAMIC);
-      _addSuggestion(Keyword.VOID);
+    if (variables.isNotEmpty && entity == variables[0]) {
+      var type = node.type;
+      if (type == null && keyword?.keyword != Keyword.VAR) {
+        _addSuggestion(Keyword.DYNAMIC);
+        _addSuggestion(Keyword.VOID);
+      } else if (type is RecordTypeAnnotation) {
+        // This might be a record pattern that happens to look like a type, in
+        // which case the user might be typing `in`.
+        _addSuggestion(Keyword.IN);
+      }
+    }
+  }
+
+  @override
+  void visitWhenClause(WhenClause node) {
+    var whenKeyword = node.whenKeyword;
+    if (!whenKeyword.isSynthetic && request.offset > whenKeyword.end) {
+      _addExpressionKeywords(node);
     }
   }
 
@@ -885,6 +1125,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
       Keyword.FINAL,
+      Keyword.MIXIN,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
@@ -894,6 +1135,25 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     if (request.featureSet.isEnabled(Feature.non_nullable)) {
       _addSuggestion(Keyword.LATE);
+    }
+    if (request.featureSet.isEnabled(Feature.class_modifiers)) {
+      _addSuggestions([Keyword.BASE, Keyword.INTERFACE]);
+    }
+    if (request.featureSet.isEnabled(Feature.sealed_class)) {
+      _addSuggestion(Keyword.SEALED);
+    }
+  }
+
+  void _addConstantExpressionKeywords(AstNode node) {
+    // TODO(brianwilkerson) Use this method in place of `_addExpressionKeywords`
+    //  when in a constant context.
+    _addSuggestions([
+      Keyword.FALSE,
+      Keyword.NULL,
+      Keyword.TRUE,
+    ]);
+    if (!request.inConstantContext) {
+      _addSuggestions([Keyword.CONST]);
     }
   }
 
@@ -940,6 +1200,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     if (node.inAsyncMethodOrFunction) {
       _addSuggestion(Keyword.AWAIT);
+    }
+    if (request.featureSet.isEnabled(Feature.patterns)) {
+      _addSuggestion(Keyword.SWITCH);
     }
   }
 
@@ -1113,6 +1376,25 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       return previousToken != null &&
           previousToken.isSynthetic &&
           previousToken.type == type;
+    }
+    return false;
+  }
+}
+
+extension on GuardedPattern {
+  /// Return `true` if this pattern has, or might have, a `when` keyword.
+  bool get hasWhen {
+    if (whenClause != null) {
+      return true;
+    }
+    var pattern = this.pattern;
+    if (pattern is DeclaredVariablePattern) {
+      if (pattern.name.lexeme == 'when') {
+        final type = pattern.type;
+        if (type is NamedType && type.typeArguments == null) {
+          return true;
+        }
+      }
     }
     return false;
   }

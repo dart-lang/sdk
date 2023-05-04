@@ -4,9 +4,9 @@
 
 import 'package:kernel/ast.dart';
 import '../fasta/kernel/late_lowering.dart';
-import '../fasta/source/source_extension_builder.dart' show extensionThisName;
 export '../fasta/kernel/constructor_tearoff_lowering.dart'
     show
+        extractConstructorNameFromTearOff,
         isConstructorTearOffLowering,
         isTearOffLowering,
         isTypedefTearOffLowering;
@@ -502,20 +502,18 @@ Field? getLateFieldTarget(Member node) {
 ///
 /// The default value of this variable is `null`.
 bool isLateLoweredLocal(VariableDeclaration node) {
-  assert(node.isLowered ||
-      node.name == null ||
-      !isLateLoweredLocalName(node.name!));
   return node.isLowered && isLateLoweredLocalName(node.name!);
 }
 
 /// Returns `true` if [name] is the name of a local variable holding the value
 /// of a lowered late variable.
 bool isLateLoweredLocalName(String name) {
-  return name != extensionThisName &&
+  return name != syntheticThisName &&
       name.startsWith(lateLocalPrefix) &&
       !name.endsWith(lateIsSetSuffix) &&
       !name.endsWith(lateLocalGetterSuffix) &&
-      !name.endsWith(lateLocalSetterSuffix);
+      !name.endsWith(lateLocalSetterSuffix) &&
+      !name.contains(joinedIntermediateInfix);
 }
 
 /// Returns the name of the original late local variable from the [name] of the
@@ -547,9 +545,6 @@ String extractLocalNameFromLateLoweredLocal(String name) {
 ///
 /// The default value of this variable is `false`.
 bool isLateLoweredIsSetLocal(VariableDeclaration node) {
-  assert(node.isLowered ||
-      node.name == null ||
-      !isLateLoweredIsSetLocalName(node.name!));
   return node.isLowered && isLateLoweredIsSetLocalName(node.name!);
 }
 
@@ -586,9 +581,6 @@ String extractLocalNameFromLateLoweredIsSet(String name) {
 ///
 /// where '#local#get' is the local function for reading the variable.
 bool isLateLoweredLocalGetter(VariableDeclaration node) {
-  assert(node.isLowered ||
-      node.name == null ||
-      !isLateLoweredLocalGetterName(node.name!));
   return node.isLowered && isLateLoweredLocalGetterName(node.name!);
 }
 
@@ -627,9 +619,6 @@ String extractLocalNameFromLateLoweredGetter(String name) {
 /// where '#local#set' is the local function for setting the value of the
 /// variable.
 bool isLateLoweredLocalSetter(VariableDeclaration node) {
-  assert(node.isLowered ||
-      node.name == null ||
-      !isLateLoweredLocalSetterName(node.name!));
   return node.isLowered && isLateLoweredLocalSetterName(node.name!);
 }
 
@@ -670,10 +659,20 @@ bool isExtensionThis(VariableDeclaration node) {
   return node.isLowered && isExtensionThisName(node.name);
 }
 
+/// Name used for synthetic 'this' variables in extension instance members and
+/// inline class instance members.
+const String syntheticThisName = '#this';
+
 /// Returns `true` if [name] is the name of the synthetic parameter holding the
 /// `this` value in the encoding of extension instance members.
 bool isExtensionThisName(String? name) {
-  return name == extensionThisName;
+  return name == syntheticThisName;
+}
+
+/// Returns `true` if [name] is the name of the synthetic parameter holding the
+/// `this` value in the encoding of inline class instance members.
+bool isInlineClassThisName(String? name) {
+  return name == syntheticThisName;
 }
 
 /// Returns the name of the original variable from the [name] of the synthetic
@@ -727,6 +726,83 @@ String? _extractLocalName(String name) {
     return extractLocalNameFromLateLoweredSetter(name);
   } else if (isLateLoweredIsSetLocalName(name)) {
     return extractLocalNameFromLateLoweredIsSet(name);
+  } else if (isJoinedIntermediateName(name)) {
+    return extractJoinedIntermediateName(name);
   }
   return null;
+}
+
+/// Infix used for the name of a joined intermediate variable.
+///
+/// See [isJoinedIntermediateName] for details.
+const String joinedIntermediateInfix = "#case#";
+
+/// Returns `true` if [node] is a joined intermediate variable.
+///
+/// See [isJoinedIntermediateName] for details.
+bool isJoinedIntermediateVariable(VariableDeclaration node) {
+  return node.isLowered &&
+      node.name != null &&
+      isJoinedIntermediateName(node.name!);
+}
+
+/// Returns `true` if [name] is the name of the "joined intermediate" variable
+/// for a "joined local variable".
+///
+/// A joined local variable occurs when variables of the same name are declared
+/// in multiple switch cases for the same body. For instance
+///
+///     switch (o) {
+///       case [var a, _] when a > 5:
+///       case [_, var a] when a < 5:
+///         print(a);
+///     }
+///
+/// In this cases the 'a' in `print(a)` is a joined variable but the 'a'
+/// variables used in the guards of the case are joined intermediate variables:
+///
+///     {
+///       var a#case#0; // intermediate variable for the joined variable 'a'.
+///       var a#case#1; // intermediate variable for the joined variable 'a'.
+///       var #t1; // temporary variable for the joined variable 'a'.
+///       if (o is List<dynamic> &&
+///           o.length == 2 &&
+///           let #1 in #t1 = a#case#0 = o[0] in true &&
+///           a#case#0 > 5 ||
+///           o is List<dynamic> &&
+///           o.length == 2 &&
+///           let #1 in #t1 = a#case#1 = o[1] in true &&
+///           a#case#1 < 5) {
+///         var a = #t1;
+///         {
+///           print(a);
+///         }
+///       }
+///     }
+///
+bool isJoinedIntermediateName(String name) {
+  int index = name.indexOf(joinedIntermediateInfix);
+  if (index == -1) {
+    return false;
+  }
+  return int.tryParse(name.substring(index + joinedIntermediateInfix.length)) !=
+      null;
+}
+
+/// Returns the original name for a joined intermediate variable from the [name]
+/// of the lowered variable.
+///
+/// This method assumes that `isJoinedIntermediateName(name)` is `true`.
+///
+/// See [isJoinedIntermediateName] for details.
+String extractJoinedIntermediateName(String name) {
+  int index = name.indexOf(joinedIntermediateInfix);
+  return name.substring(0, index);
+}
+
+/// Infix used for the name of a joined intermediate variable.
+///
+/// See [isJoinedIntermediateName] for details.
+String createJoinedIntermediateName(String variableName, int index) {
+  return '$variableName$joinedIntermediateInfix$index';
 }

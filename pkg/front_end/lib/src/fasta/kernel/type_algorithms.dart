@@ -13,6 +13,7 @@ import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
+import '../builder/inline_class_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
@@ -24,7 +25,6 @@ import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 
-import '../builder/view_builder.dart';
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 
 import '../dill/dill_type_alias_builder.dart' show DillTypeAliasBuilder;
@@ -45,8 +45,8 @@ import '../kernel/utils.dart';
 import '../problems.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
+import '../source/source_inline_class_builder.dart';
 import '../source/source_type_alias_builder.dart';
-import '../source/source_view_builder.dart';
 
 /// Initial value for "variance" that is to be computed by the compiler.
 const int pendingVariance = -1;
@@ -442,7 +442,7 @@ TypeBuilder substitute(
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
 List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
-    TypeBuilder dynamicType, TypeBuilder bottomType, ClassBuilder objectClass,
+    TypeBuilder dynamicType, TypeBuilder bottomType,
     {required List<TypeBuilder> unboundTypes,
     required List<TypeVariableBuilder> unboundTypeVariables}) {
   // ignore: unnecessary_null_comparison
@@ -843,7 +843,7 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
           }
         } else if (declaration is ExtensionBuilder) {
           visitTypeVariables(declaration.typeParameters);
-        } else if (declaration is ViewBuilder) {
+        } else if (declaration is InlineClassBuilder) {
           visitTypeVariables(declaration.typeParameters);
         } else if (declaration is TypeVariableBuilder) {
           // Do nothing. The type variable is handled by its parent declaration.
@@ -936,7 +936,7 @@ List<List<RawTypeCycleElement>> findRawTypeCycles(
   } else if (declaration is SourceExtensionBuilder) {
     return _findRawTypeCyclesFromTypeVariables(
         declaration, declaration.typeParameters);
-  } else if (declaration is SourceViewBuilder) {
+  } else if (declaration is SourceInlineClassBuilder) {
     return _findRawTypeCyclesFromTypeVariables(
         declaration, declaration.typeParameters);
   } else {
@@ -1024,7 +1024,7 @@ List<NonSimplicityIssue> getNonSimplicityIssuesForDeclaration(
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
   } else if (declaration is SourceExtensionBuilder) {
     issues.addAll(getInboundReferenceIssues(declaration.typeParameters));
-  } else if (declaration is SourceViewBuilder) {
+  } else if (declaration is SourceInlineClassBuilder) {
     issues.addAll(getInboundReferenceIssues(declaration.typeParameters));
   } else {
     unhandled(
@@ -1200,7 +1200,7 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitViewType(ViewType node) {
+  bool visitInlineType(InlineType node) {
     return anyTypeVariables(node.typeArguments);
   }
 

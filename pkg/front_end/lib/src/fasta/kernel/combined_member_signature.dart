@@ -256,7 +256,7 @@ abstract class CombinedMemberSignatureBase<T> {
   ///      // void method({covariant int named}) -> Mixin.method
   ///    }
   ///    class SubClass extends Class {
-  ///      // This is a valid override since `Class.method` should should
+  ///      // This is a valid override since `Class.method` should
   ///      // not be considered as _not_ having a required named parameter -
   ///      // it is legacy and doesn't know about required named parameters.
   ///      void method({required int named}) {}
@@ -718,7 +718,9 @@ abstract class CombinedMemberSignatureBase<T> {
       return type;
     }
     InterfaceType? instance = hierarchy.getTypeAsInstanceOf(
-        thisType, member.enclosingClass!, classBuilder.libraryBuilder.library);
+        thisType, member.enclosingClass!,
+        isNonNullableByDefault:
+            classBuilder.libraryBuilder.isNonNullableByDefault);
     assert(
         instance != null,
         "No instance of $thisType as ${member.enclosingClass} found for "

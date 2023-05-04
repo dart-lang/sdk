@@ -15,7 +15,6 @@ import '../kernel/element_map.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
-import 'class_relation.dart';
 import 'constants.dart';
 import 'impact.dart';
 import 'runtime_type_analysis.dart';
@@ -126,6 +125,11 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
+  void handleRecordLiteral(ir.RecordLiteral node) {
+    registerRecordLiteral(node.recordType, isConst: node.isConst);
+  }
+
+  @override
   void handleStaticGet(
       ir.Expression node, ir.Member target, ir.DartType resultType) {
     assert(!(target is ir.Procedure && target.kind == ir.ProcedureKind.Method),
@@ -139,6 +143,11 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     assert(target.kind == ir.ProcedureKind.Method,
         "Static get registered as static tear off: $node");
     registerStaticTearOff(target, getDeferredImport(node));
+  }
+
+  @override
+  void handleWeakStaticTearOff(ir.Expression node, ir.Procedure target) {
+    registerWeakStaticTearOff(target, getDeferredImport(node));
   }
 
   @override
@@ -379,7 +388,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       // Consider this:
       //
       //    abstract class A<T> {
-      //      factory A.regular() => new B<T>();
+      //      factory A.regular() => B<T>();
       //      factory A.redirect() = B<T>;
       //    }
       //
@@ -896,6 +905,12 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
+  void registerWeakStaticTearOff(
+      ir.Procedure procedure, ir.LibraryDependency? import) {
+    (_data._weakStaticTearOffs ??= []).add(_StaticAccess(procedure, import));
+  }
+
+  @override
   void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
       {required bool isConst, required bool isEmpty}) {
     (_data._mapLiterals ??= []).add(
@@ -1024,6 +1039,7 @@ class ImpactData {
   List<_StaticAccess>? _staticSets;
   List<_StaticAccess>? _staticGets;
   List<_StaticAccess>? _staticTearOffs;
+  List<_StaticAccess>? _weakStaticTearOffs;
   List<_MapLiteral>? _mapLiterals;
   List<_ContainerLiteral>? _listLiterals;
   List<_ContainerLiteral>? _setLiterals;
@@ -1091,6 +1107,8 @@ class ImpactData {
     _staticGets =
         source.readListOrNull(() => _StaticAccess.fromDataSource(source));
     _staticTearOffs =
+        source.readListOrNull(() => _StaticAccess.fromDataSource(source));
+    _weakStaticTearOffs =
         source.readListOrNull(() => _StaticAccess.fromDataSource(source));
     _mapLiterals =
         source.readListOrNull(() => _MapLiteral.fromDataSource(source));
@@ -1178,6 +1196,8 @@ class ImpactData {
     sink.writeList(_staticGets, (_StaticAccess o) => o.toDataSink(sink),
         allowNull: true);
     sink.writeList(_staticTearOffs, (_StaticAccess o) => o.toDataSink(sink),
+        allowNull: true);
+    sink.writeList(_weakStaticTearOffs, (_StaticAccess o) => o.toDataSink(sink),
         allowNull: true);
     sink.writeList(_mapLiterals, (_MapLiteral o) => o.toDataSink(sink),
         allowNull: true);
@@ -1448,6 +1468,12 @@ class ImpactData {
     if (_staticTearOffs != null) {
       for (_StaticAccess data in _staticTearOffs!) {
         registry.registerStaticTearOff(
+            data.target as ir.Procedure, data.import);
+      }
+    }
+    if (_weakStaticTearOffs != null) {
+      for (_StaticAccess data in _weakStaticTearOffs!) {
+        registry.registerWeakStaticTearOff(
             data.target as ir.Procedure, data.import);
       }
     }

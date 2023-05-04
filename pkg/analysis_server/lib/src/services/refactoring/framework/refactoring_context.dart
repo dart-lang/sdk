@@ -5,11 +5,12 @@
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// The context in which a refactoring was requested.
@@ -30,12 +31,15 @@ class RefactoringContext {
   /// The number of selected characters.
   final int selectionLength;
 
+  /// Whether to include refactors marked as experimental.
+  final bool includeExperimental;
+
   /// Utilities available to be used in the process of computing the edits.
   late final CorrectionUtils utils = CorrectionUtils(resolvedUnitResult);
 
-  /// The node that was selected, or `null` if the selection is not valid.
-  late final AstNode? selectedNode = resolvedUnitResult.unit
-      .nodeCovering(offset: selectionOffset, length: selectionLength);
+  /// The selection, or `null` if the selection is not valid.
+  late final Selection? selection = resolvedUnitResult.unit
+      .select(offset: selectionOffset, length: selectionLength);
 
   /// The helper used to efficiently access resolved units.
   late final AnalysisSessionHelper sessionHelper =
@@ -51,7 +55,14 @@ class RefactoringContext {
     required this.resolvedUnitResult,
     required this.selectionOffset,
     required this.selectionLength,
+    required this.includeExperimental,
   });
+
+  /// Return the search engine used to search outside the resolved library.
+  SearchEngine get searchEngine => server.searchEngine;
+
+  /// The node that was selected, or `null` if the selection is not valid.
+  AstNode? get selectedNode => selection?.coveringNode;
 
   /// Return the analysis session in which additional resolution can occur.
   AnalysisSession get session => resolvedUnitResult.session;

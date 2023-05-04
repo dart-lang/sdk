@@ -612,7 +612,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
     case 'v': {
       if (format[1] == 's') {
         ASSERT(STRING_STARTS_WITH(format, "vsz"));
-        char const* sz_str = NULL;
+        char const* sz_str = nullptr;
         if (instr->Bits(14, 2) == 3) {
           switch (instr->Bit(22)) {
             case 0:
@@ -813,6 +813,20 @@ void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
     } else {
       Format(instr, "stxr'sz 'rs, 'rt, 'rn");
     }
+  }
+}
+
+void ARM64Decoder::DecodeAtomicMemory(Instr* instr) {
+  switch (instr->Bits(12, 3)) {
+    case 1:
+      Format(instr, "ldclr'sz 'rs, 'rt, ['rn]");
+      break;
+    case 3:
+      Format(instr, "ldset'sz 'rs, 'rt, ['rn]");
+      break;
+    default:
+      Unknown(instr);
+      break;
   }
 }
 
@@ -1069,7 +1083,9 @@ void ARM64Decoder::DecodeCompareBranch(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeLoadStore(Instr* instr) {
-  if (instr->IsLoadStoreRegOp()) {
+  if (instr->IsAtomicMemoryOp()) {
+    DecodeAtomicMemory(instr);
+  } else if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
   } else if (instr->IsLoadStoreRegPairOp()) {
     DecodeLoadStoreRegPair(instr);
@@ -1651,11 +1667,11 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     *out_instr_size = Instr::kInstrSize;
   }
 
-  *object = NULL;
+  *object = nullptr;
   if (!code.IsNull()) {
     *object = &Object::Handle();
     if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
-      *object = NULL;
+      *object = nullptr;
     }
   }
 }

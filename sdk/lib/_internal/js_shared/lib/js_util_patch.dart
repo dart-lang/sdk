@@ -8,32 +8,49 @@ import 'dart:_js_helper'
     show convertDartClosureToJS, assertInterop, assertInteropArgs;
 import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
-import 'dart:js_util';
+import 'dart:typed_data';
+
+bool _noJsifyRequired(Object? o) =>
+    o == null ||
+    o is bool ||
+    o is num ||
+    o is String ||
+    o is Int8List ||
+    o is Uint8List ||
+    o is Uint8ClampedList ||
+    o is Int16List ||
+    o is Uint16List ||
+    o is Int32List ||
+    o is Uint32List ||
+    o is Float32List ||
+    o is Float64List ||
+    o is ByteBuffer ||
+    o is ByteData;
 
 @patch
-dynamic jsify(Object object) {
-  if ((object is! Map) && (object is! Iterable)) {
-    throw ArgumentError("object must be a Map or Iterable");
+dynamic jsify(Object? object) {
+  if (_noJsifyRequired(object)) {
+    return object;
   }
-  return _convertDataTree(object);
-}
-
-Object _convertDataTree(Object data) {
-  var _convertedObjects = HashMap.identity();
+  final _convertedObjects = HashMap<Object?, Object?>.identity();
 
   Object? _convert(Object? o) {
+    // Fast path for primitives.
+    if (_noJsifyRequired(o)) {
+      return o;
+    }
     if (_convertedObjects.containsKey(o)) {
       return _convertedObjects[o];
     }
-    if (o is Map) {
+    if (o is Map<Object?, Object?>) {
       final convertedMap = JS('=Object', '{}');
       _convertedObjects[o] = convertedMap;
       for (var key in o.keys) {
         JS('=Object', '#[#]=#', convertedMap, key, _convert(o[key]));
       }
       return convertedMap;
-    } else if (o is Iterable) {
-      var convertedList = [];
+    } else if (o is Iterable<Object?>) {
+      final convertedList = [];
       _convertedObjects[o] = convertedList;
       convertedList.addAll(o.map(_convert));
       return convertedList;
@@ -42,7 +59,7 @@ Object _convertDataTree(Object data) {
     }
   }
 
-  return _convert(data)!;
+  return _convert(object);
 }
 
 @patch
@@ -60,6 +77,10 @@ T getProperty<T>(Object o, Object name) =>
     JS<dynamic>('Object|Null', '#[#]', o, name);
 
 /// Similar to [getProperty] but introduces an unsound implicit cast to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 T _getPropertyTrustType<T>(Object o, Object name) =>
     JS<T>('Object|Null', '#[#]', o, name);
 
@@ -70,83 +91,123 @@ T setProperty<T>(Object o, Object name, T? value) {
 }
 
 /// Unchecked version of setProperty, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _setPropertyUnchecked<T>(Object o, Object name, T? value) {
   return JS('', '#[#]=#', o, name, value);
 }
 
 @patch
-T callMethod<T>(Object o, String method, List<Object?> args) {
+T callMethod<T>(Object o, Object method, List<Object?> args) {
   assertInteropArgs(args);
   return JS<dynamic>('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 }
 
 /// Similar to [callMethod] but introduces an unsound implicit cast to `T`.
-T _callMethodTrustType<T>(Object o, String method, List<Object?> args) {
+T _callMethodTrustType<T>(Object o, Object method, List<Object?> args) {
   assertInteropArgs(args);
   return JS<T>('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 }
 
 /// Unchecked version for 0 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUnchecked0<T>(Object o, String method) {
+T _callMethodUnchecked0<T>(Object o, Object method) {
   return JS<dynamic>('Object|Null', '#[#]()', o, method);
 }
 
 /// Similar to [_callMethodUnchecked] but introduces an unsound implicit cast
 /// to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUncheckedTrustType0<T>(Object o, String method) {
+T _callMethodUncheckedTrustType0<T>(Object o, Object method) {
   return JS<T>('Object|Null', '#[#]()', o, method);
 }
 
 /// Unchecked version for 1 argument, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUnchecked1<T>(Object o, String method, Object? arg1) {
+T _callMethodUnchecked1<T>(Object o, Object method, Object? arg1) {
   return JS<dynamic>('Object|Null', '#[#](#)', o, method, arg1);
 }
 
 /// Similar to [_callMethodUnchecked1] but introduces an unsound implicit cast
 /// to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUncheckedTrustType1<T>(Object o, String method, Object? arg1) {
+T _callMethodUncheckedTrustType1<T>(Object o, Object method, Object? arg1) {
   return JS<T>('Object|Null', '#[#](#)', o, method, arg1);
 }
 
 /// Unchecked version for 2 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked2<T>(
-    Object o, String method, Object? arg1, Object? arg2) {
+    Object o, Object method, Object? arg1, Object? arg2) {
   return JS<dynamic>('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
 }
 
 /// Similar to [_callMethodUnchecked2] but introduces an unsound implicit cast
 /// to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUncheckedTrustType2<T>(
-    Object o, String method, Object? arg1, Object? arg2) {
+    Object o, Object method, Object? arg1, Object? arg2) {
   return JS<T>('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
 }
 
 /// Unchecked version for 3 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked3<T>(
-    Object o, String method, Object? arg1, Object? arg2, Object? arg3) {
+    Object o, Object method, Object? arg1, Object? arg2, Object? arg3) {
   return JS<dynamic>(
       'Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
 }
 
 /// Similar to [_callMethodUnchecked3] but introduces an unsound implicit cast
 /// to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUncheckedTrustType3<T>(
-    Object o, String method, Object? arg1, Object? arg2, Object? arg3) {
+    Object o, Object method, Object? arg1, Object? arg2, Object? arg3) {
   return JS<T>('Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
 }
 
 /// Unchecked version for 4 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUnchecked4<T>(Object o, String method, Object? arg1, Object? arg2,
+T _callMethodUnchecked4<T>(Object o, Object method, Object? arg1, Object? arg2,
     Object? arg3, Object? arg4) {
   return JS<dynamic>(
       'Object|Null', '#[#](#, #, #, #)', o, method, arg1, arg2, arg3, arg4);
@@ -154,8 +215,12 @@ T _callMethodUnchecked4<T>(Object o, String method, Object? arg1, Object? arg2,
 
 /// Similar to [_callMethodUnchecked4] but introduces an unsound implicit cast
 /// to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUncheckedTrustType4<T>(Object o, String method, Object? arg1,
+T _callMethodUncheckedTrustType4<T>(Object o, Object method, Object? arg1,
     Object? arg2, Object? arg3, Object? arg4) {
   return JS<T>(
       'Object|Null', '#[#](#, #, #, #)', o, method, arg1, arg2, arg3, arg4);
@@ -229,24 +294,40 @@ T callConstructor<T>(Object constr, List<Object?>? arguments) {
 }
 
 /// Unchecked version for 0 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked0<T>(Object constr) {
   return JS<dynamic>('Object', 'new #()', constr);
 }
 
 /// Unchecked version for 1 argument, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked1<T>(Object constr, Object? arg1) {
   return JS<dynamic>('Object', 'new #(#)', constr, arg1);
 }
 
 /// Unchecked version for 2 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked2<T>(Object constr, Object? arg1, Object? arg2) {
   return JS<dynamic>('Object', 'new #(#, #)', constr, arg1, arg2);
 }
 
 /// Unchecked version for 3 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked3<T>(
     Object constr, Object? arg1, Object? arg2, Object? arg3) {
@@ -254,6 +335,10 @@ T _callConstructorUnchecked3<T>(
 }
 
 /// Unchecked version for 4 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked4<T>(
     Object constr, Object? arg1, Object? arg2, Object? arg3, Object? arg4) {
@@ -346,6 +431,48 @@ bool lessThanOrEqual<T>(Object? first, Object? second) {
 }
 
 @patch
+@pragma('dart2js:tryInline')
+bool typeofEquals<T>(Object? o, String type) {
+  return JS<bool>('bool', 'typeof # == #', o, type);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+T not<T>(Object? o) {
+  return JS<dynamic>('Object', '!#', o);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+bool isTruthy<T>(Object? o) {
+  return JS<bool>('bool', '!!#', o);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+T or<T>(Object? first, Object? second) {
+  return JS<dynamic>('Object|bool', '# || #', first, second);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+T and<T>(Object? first, Object? second) {
+  return JS<dynamic>('Object|bool', '# && #', first, second);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+bool delete<T>(Object o, Object property) {
+  return JS<bool>('bool', 'delete #[#]', o, property);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+num unsignedRightShift(Object? leftOperand, Object? rightOperand) {
+  return JS<num>('num', '# >>> #', leftOperand, rightOperand);
+}
+
+@patch
 Future<T> promiseToFuture<T>(Object jsPromise) {
   final completer = Completer<T>();
 
@@ -356,7 +483,7 @@ Future<T> promiseToFuture<T>(Object jsPromise) {
     // provided if the error is `null` or `undefined`.
     if (e == null) {
       return completer.completeError(
-          NullRejectionException._(JS('bool', '# === undefined', e)));
+          NullRejectionException(JS('bool', '# === undefined', e)));
     }
     return completer.completeError(e);
   }, 1);
@@ -401,14 +528,56 @@ DateTime _dateToDateTime(date) {
   return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
 }
 
+bool _noDartifyRequired(Object? o) =>
+    o == null ||
+    JS(
+        'bool',
+        '''typeof # === 'boolean' ||
+                      typeof # === 'number' ||
+                      typeof # === 'string' ||
+                      # instanceof Int8Array ||
+                      # instanceof Uint8Array ||
+                      # instanceof Uint8ClampedArray ||
+                      # instanceof Int16Array ||
+                      # instanceof Uint16Array ||
+                      # instanceof Int32Array ||
+                      # instanceof Uint32Array ||
+                      # instanceof Float32Array ||
+                      # instanceof Float64Array ||
+                      # instanceof ArrayBuffer ||
+                      # instanceof DataView''',
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o);
+
 @patch
 Object? dartify(Object? o) {
-  var _convertedObjects = HashMap.identity();
+  if (_noDartifyRequired(o)) {
+    return o;
+  }
+
+  final _convertedObjects = HashMap<Object?, Object?>.identity();
+
   Object? convert(Object? o) {
-    if (_convertedObjects.containsKey(o)) {
+    // Fast path for primitives.
+    if (_noDartifyRequired(o)) {
+      return o;
+    }
+
+    if (_convertedObjects.containsKey(o!)) {
       return _convertedObjects[o];
     }
-    if (o == null || o is bool || o is num || o is String) return o;
 
     if (_isJavaScriptDate(o)) {
       return _dateToDateTime(o);
@@ -421,32 +590,32 @@ Object? dartify(Object? o) {
     }
 
     if (_isJavaScriptPromise(o)) {
-      return promiseToFuture(o);
+      return promiseToFuture<Object?>(o);
     }
 
     if (isJavaScriptSimpleObject(o)) {
-      Map<Object?, Object?> dartObject = {};
+      final dartObject = <Object?, Object?>{};
       _convertedObjects[o] = dartObject;
-      List<Object?> originalKeys = objectKeys(o);
-      List<Object?> dartKeys = [];
-      for (Object? key in originalKeys) {
+      final originalKeys = objectKeys(o);
+      final dartKeys = <Object?>[];
+      for (final key in originalKeys) {
         dartKeys.add(dartify(key));
       }
       for (int i = 0; i < originalKeys.length; i++) {
-        Object? jsKey = originalKeys[i];
-        Object? dartKey = dartKeys[i];
+        final jsKey = originalKeys[i];
+        final dartKey = dartKeys[i];
         if (jsKey != null) {
-          dartObject[dartKey] = convert(getProperty(o, jsKey));
+          dartObject[dartKey] = convert(getProperty<Object?>(o, jsKey));
         }
       }
       return dartObject;
     }
 
     if (isJavaScriptArray(o)) {
-      var l = JS<List>('returns:List;creates:;', '#', o);
-      List<Object?> dartObject = [];
+      final l = JS<List<Object?>>('returns:List;creates:;', '#', o);
+      final dartObject = <Object?>[];
       _convertedObjects[o] = dartObject;
-      int length = getProperty(o, 'length');
+      final length = getProperty<int>(o, 'length');
       for (int i = 0; i < length; i++) {
         dartObject.add(convert(l[i]));
       }

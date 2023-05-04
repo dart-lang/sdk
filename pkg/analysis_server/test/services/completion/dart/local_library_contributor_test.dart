@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This file contains tests written in a deprecated way. Please do not add any
+/// tests to this file. Instead, add tests to the files in `declaration`,
+/// `location`, or `relevance`.
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
@@ -110,6 +114,22 @@ void f() {^}
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggest('E');
+  }
+
+  Future<void> test_partFile_extension_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', '''
+part of libA;
+extension on int {}
+''');
+    addTestSource('''
+library libA;
+part "a.dart";
+void f() {^}
+''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNotSuggested('');
   }
 
   Future<void>

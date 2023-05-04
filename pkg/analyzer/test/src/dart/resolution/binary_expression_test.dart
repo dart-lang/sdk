@@ -17,6 +17,150 @@ main() {
 @reflectiveTest
 class BinaryExpressionResolutionTest extends PubPackageResolutionTest
     with BinaryExpressionResolutionTestCases {
+  test_eqEq_switchExpression_left() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  (switch (x) {
+    _ => 1,
+  } == 0);
+}
+''');
+
+    var node = findNode.binary('== 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: ==
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::==::@parameter::other
+    staticType: int
+  staticElement: dart:core::@class::num::@method::==
+  staticInvokeType: bool Function(Object)
+  staticType: bool
+''');
+  }
+
+  test_eqEq_switchExpression_right() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  0 == switch (x) {
+    _ => 1,
+  };
+}
+''');
+
+    var node = findNode.binary('0 ==');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: ==
+  rightOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    parameter: dart:core::@class::num::@method::==::@parameter::other
+    staticType: int
+  staticElement: dart:core::@class::num::@method::==
+  staticInvokeType: bool Function(Object)
+  staticType: bool
+''');
+  }
+
+  test_expression_recordType_hasOperator() async {
+    await assertNoErrorsInCode(r'''
+void f((String,) a) {
+  a + 0;
+}
+
+extension on (String,) {
+  int operator +(int other) => 0;
+}
+''');
+
+    final node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: (String)
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: self::@extension::0::@method::+::@parameter::other
+    staticType: int
+  staticElement: self::@extension::0::@method::+
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_expression_recordType_noOperator() async {
+    await assertErrorsInCode(r'''
+void f((String,) a) {
+  a + 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 1),
+    ]);
+
+    final node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: (String)
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
+  }
+
   test_ifNull_left_nullableContext() async {
     await assertNoErrorsInCode(r'''
 T f<T>(T t) => t;
@@ -162,8 +306,8 @@ f(Never a, int b) {
   a + b;
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
-      error(HintCode.DEAD_CODE, 26, 2),
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
+      error(WarningCode.DEAD_CODE, 26, 2),
     ]);
 
     assertResolvedNodeText(findNode.binary('a + b'), r'''
@@ -181,6 +325,94 @@ BinaryExpression
   staticElement: <null>
   staticInvokeType: null
   staticType: Never
+''');
+  }
+
+  test_plus_switchExpression_left() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  (switch (x) {
+    _ => 1,
+  } + 0);
+}
+''');
+
+    var node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: int
+''');
+  }
+
+  test_plus_switchExpression_right() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  0 + switch (x) {
+    _ => 1,
+  };
+}
+''');
+
+    var node = findNode.binary('0 +');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: +
+  rightOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: int
 ''');
   }
 }
@@ -455,8 +687,22 @@ g(int a) {
 h(int x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: dart:core::@class::num::@method::-::@parameter::other
+  staticInvokeType: int Function()
+  staticType: int
+  typeArgumentTypes
+    int
+''');
   }
 
   test_minus_int_double() async {
@@ -518,8 +764,22 @@ g(int a) {
 h(int x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: dart:core::@class::num::@method::%::@parameter::other
+  staticInvokeType: int Function()
+  staticType: int
+  typeArgumentTypes
+    int
+''');
   }
 
   test_mod_int_double() async {
@@ -581,7 +841,22 @@ g(double a) {
 h(double x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: dart:core::@class::double::@method::+::@parameter::other
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
   }
 
   test_plus_double_context_int() async {
@@ -595,7 +870,22 @@ h(int x) {}
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 7),
     ]);
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: dart:core::@class::double::@method::+::@parameter::other
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
   }
 
   test_plus_double_context_none() async {
@@ -606,7 +896,22 @@ g(double a) {
 }
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: dart:core::@class::double::@method::+::@parameter::other
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
   }
 
   test_plus_double_dynamic() async {
@@ -643,8 +948,22 @@ g(int a) {
 h(double x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeStringByNullability(nullable: 'double', legacy: 'num')]);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: dart:core::@class::num::@method::+::@parameter::other
+  staticInvokeType: double Function()
+  staticType: double
+  typeArgumentTypes
+    double
+''');
   }
 
   test_plus_int_context_int() async {
@@ -656,8 +975,22 @@ g(int a) {
 h(int x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: dart:core::@class::num::@method::+::@parameter::other
+  staticInvokeType: int Function()
+  staticType: int
+  typeArgumentTypes
+    int
+''');
   }
 
   test_plus_int_context_int_target_rewritten() async {
@@ -669,8 +1002,22 @@ g(int Function() a) {
 h(int x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: dart:core::@class::num::@method::+::@parameter::other
+  staticInvokeType: int Function()
+  staticType: int
+  typeArgumentTypes
+    int
+''');
   }
 
   test_plus_int_context_int_via_extension_explicit() async {
@@ -687,7 +1034,22 @@ h(int x) {}
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 10),
     ]);
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: self::@extension::E::@method::+::@parameter::x
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
   }
 
   test_plus_int_context_none() async {
@@ -698,7 +1060,22 @@ g(int a) {
 }
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: dart:core::@class::num::@method::+::@parameter::other
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
   }
 
   test_plus_int_double() async {
@@ -886,7 +1263,22 @@ h(int x) {}
           error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7),
         ], legacy: []));
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: dart:core::@class::num::@method::+::@parameter::other
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
   }
 
   test_plus_other_context_int() async {
@@ -905,7 +1297,22 @@ h(int x) {}
           error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7),
         ], legacy: []));
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['String']);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: self::@class::A::@method::+::@parameter::x
+  staticInvokeType: String Function()
+  staticType: String
+  typeArgumentTypes
+    String
+''');
   }
 
   test_plus_other_context_int_via_extension_explicit() async {
@@ -923,7 +1330,22 @@ h(int x) {}
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 10),
     ]);
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: self::@extension::E::@method::+::@parameter::x
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
   }
 
   test_plus_other_context_int_via_extension_implicit() async {
@@ -941,7 +1363,22 @@ h(int x) {}
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 7),
     ]);
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: self::@extension::E::@method::+::@parameter::x
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
   }
 
   test_plus_other_double() async {
@@ -1124,8 +1561,22 @@ g(int a) {
 h(int x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
+    final node = findNode.methodInvocation('f()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: dart:core::@class::num::@method::*::@parameter::other
+  staticInvokeType: int Function()
+  staticType: int
+  typeArgumentTypes
+    int
+''');
   }
 
   test_star_int_double() async {

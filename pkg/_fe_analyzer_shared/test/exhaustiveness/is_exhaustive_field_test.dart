@@ -2,258 +2,270 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:test/test.dart';
 
+import 'env.dart';
 import 'utils.dart';
 
 void main() {
-  group('sealed subtypes', () {
+  var x = 'x';
+  var y = 'y';
+  var z = 'z';
+  var w = 'w';
+
+  group('sealed subtypes |', () {
     //   (A)
     //   / \
     //  B   C
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var t = StaticType('T', fields: {'x': a, 'y': a});
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var t = env.createRecordType({x: a, y: a});
 
-    expectExhaustiveOnlyAll(t, [
-      {'x': b, 'y': b},
-      {'x': b, 'y': c},
-      {'x': c, 'y': b},
-      {'x': c, 'y': c},
+    expectExhaustiveOnlyAll(env, t, [
+      ty(t, {x: b, y: b}),
+      ty(t, {x: b, y: c}),
+      ty(t, {x: c, y: b}),
+      ty(t, {x: c, y: c}),
     ]);
   });
 
-  group('sealed subtypes medium', () {
+  group('sealed subtypes medium |', () {
     //   (A)
     //   /|\
     //  B C D
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [a]);
-    var t = StaticType('T', fields: {'y': a, 'z': a});
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [a]);
+    var t = env.createRecordType({y: a, z: a});
 
-    expectExhaustiveOnlyAll(t, [
-      {'y': b, 'z': b},
-      {'y': b, 'z': c},
-      {'y': b, 'z': d},
-      {'y': c, 'z': b},
-      {'y': c, 'z': c},
-      {'y': c, 'z': d},
-      {'y': d, 'z': b},
-      {'y': d, 'z': c},
-      {'y': d, 'z': d},
+    expectExhaustiveOnlyAll(env, t, [
+      ty(t, {y: b, z: b}),
+      ty(t, {y: b, z: c}),
+      ty(t, {y: b, z: d}),
+      ty(t, {y: c, z: b}),
+      ty(t, {y: c, z: c}),
+      ty(t, {y: c, z: d}),
+      ty(t, {y: d, z: b}),
+      ty(t, {y: d, z: c}),
+      ty(t, {y: d, z: d}),
     ]);
   });
 
-  group('sealed subtypes large', () {
+  group('sealed subtypes large |', () {
     //   (A)
     //   /|\
     //  B C D
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [a]);
-    var t = StaticType('T', fields: {'w': a, 'x': a, 'y': a, 'z': a});
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var d = env.createClass('D', inherits: [a]);
+    var t = env.createRecordType({w: a, x: a, y: a, z: a});
 
-    expectExhaustiveOnlyAll(t, [
-      {'w': b, 'x': b, 'y': b, 'z': b},
-      {'w': b, 'x': b, 'y': b, 'z': c},
-      {'w': b, 'x': b, 'y': b, 'z': d},
-      {'w': b, 'x': b, 'y': c, 'z': b},
-      {'w': b, 'x': b, 'y': c, 'z': c},
-      {'w': b, 'x': b, 'y': c, 'z': d},
-      {'w': b, 'x': b, 'y': d, 'z': b},
-      {'w': b, 'x': b, 'y': d, 'z': c},
-      {'w': b, 'x': b, 'y': d, 'z': d},
-      {'w': b, 'x': c, 'y': b, 'z': b},
-      {'w': b, 'x': c, 'y': b, 'z': c},
-      {'w': b, 'x': c, 'y': b, 'z': d},
-      {'w': b, 'x': c, 'y': c, 'z': b},
-      {'w': b, 'x': c, 'y': c, 'z': c},
-      {'w': b, 'x': c, 'y': c, 'z': d},
-      {'w': b, 'x': c, 'y': d, 'z': b},
-      {'w': b, 'x': c, 'y': d, 'z': c},
-      {'w': b, 'x': c, 'y': d, 'z': d},
-      {'w': b, 'x': d, 'y': b, 'z': b},
-      {'w': b, 'x': d, 'y': b, 'z': c},
-      {'w': b, 'x': d, 'y': b, 'z': d},
-      {'w': b, 'x': d, 'y': c, 'z': b},
-      {'w': b, 'x': d, 'y': c, 'z': c},
-      {'w': b, 'x': d, 'y': c, 'z': d},
-      {'w': b, 'x': d, 'y': d, 'z': b},
-      {'w': b, 'x': d, 'y': d, 'z': c},
-      {'w': b, 'x': d, 'y': d, 'z': d},
-      {'w': c, 'x': b, 'y': b, 'z': b},
-      {'w': c, 'x': b, 'y': b, 'z': c},
-      {'w': c, 'x': b, 'y': b, 'z': d},
-      {'w': c, 'x': b, 'y': c, 'z': b},
-      {'w': c, 'x': b, 'y': c, 'z': c},
-      {'w': c, 'x': b, 'y': c, 'z': d},
-      {'w': c, 'x': b, 'y': d, 'z': b},
-      {'w': c, 'x': b, 'y': d, 'z': c},
-      {'w': c, 'x': b, 'y': d, 'z': d},
-      {'w': c, 'x': c, 'y': b, 'z': b},
-      {'w': c, 'x': c, 'y': b, 'z': c},
-      {'w': c, 'x': c, 'y': b, 'z': d},
-      {'w': c, 'x': c, 'y': c, 'z': b},
-      {'w': c, 'x': c, 'y': c, 'z': c},
-      {'w': c, 'x': c, 'y': c, 'z': d},
-      {'w': c, 'x': c, 'y': d, 'z': b},
-      {'w': c, 'x': c, 'y': d, 'z': c},
-      {'w': c, 'x': c, 'y': d, 'z': d},
-      {'w': c, 'x': d, 'y': b, 'z': b},
-      {'w': c, 'x': d, 'y': b, 'z': c},
-      {'w': c, 'x': d, 'y': b, 'z': d},
-      {'w': c, 'x': d, 'y': c, 'z': b},
-      {'w': c, 'x': d, 'y': c, 'z': c},
-      {'w': c, 'x': d, 'y': c, 'z': d},
-      {'w': c, 'x': d, 'y': d, 'z': b},
-      {'w': c, 'x': d, 'y': d, 'z': c},
-      {'w': c, 'x': d, 'y': d, 'z': d},
-      {'w': d, 'x': b, 'y': b, 'z': b},
-      {'w': d, 'x': b, 'y': b, 'z': c},
-      {'w': d, 'x': b, 'y': b, 'z': d},
-      {'w': d, 'x': b, 'y': c, 'z': b},
-      {'w': d, 'x': b, 'y': c, 'z': c},
-      {'w': d, 'x': b, 'y': c, 'z': d},
-      {'w': d, 'x': b, 'y': d, 'z': b},
-      {'w': d, 'x': b, 'y': d, 'z': c},
-      {'w': d, 'x': b, 'y': d, 'z': d},
-      {'w': d, 'x': c, 'y': b, 'z': b},
-      {'w': d, 'x': c, 'y': b, 'z': c},
-      {'w': d, 'x': c, 'y': b, 'z': d},
-      {'w': d, 'x': c, 'y': c, 'z': b},
-      {'w': d, 'x': c, 'y': c, 'z': c},
-      {'w': d, 'x': c, 'y': c, 'z': d},
-      {'w': d, 'x': c, 'y': d, 'z': b},
-      {'w': d, 'x': c, 'y': d, 'z': c},
-      {'w': d, 'x': c, 'y': d, 'z': d},
-      {'w': d, 'x': d, 'y': b, 'z': b},
-      {'w': d, 'x': d, 'y': b, 'z': c},
-      {'w': d, 'x': d, 'y': b, 'z': d},
-      {'w': d, 'x': d, 'y': c, 'z': b},
-      {'w': d, 'x': d, 'y': c, 'z': c},
-      {'w': d, 'x': d, 'y': c, 'z': d},
-      {'w': d, 'x': d, 'y': d, 'z': b},
-      {'w': d, 'x': d, 'y': d, 'z': c},
-      {'w': d, 'x': d, 'y': d, 'z': d},
+    expectExhaustiveOnlyAll(env, t, [
+      ty(t, {w: b, x: b, y: b, z: b}),
+      ty(t, {w: b, x: b, y: b, z: c}),
+      ty(t, {w: b, x: b, y: b, z: d}),
+      ty(t, {w: b, x: b, y: c, z: b}),
+      ty(t, {w: b, x: b, y: c, z: c}),
+      ty(t, {w: b, x: b, y: c, z: d}),
+      ty(t, {w: b, x: b, y: d, z: b}),
+      ty(t, {w: b, x: b, y: d, z: c}),
+      ty(t, {w: b, x: b, y: d, z: d}),
+      ty(t, {w: b, x: c, y: b, z: b}),
+      ty(t, {w: b, x: c, y: b, z: c}),
+      ty(t, {w: b, x: c, y: b, z: d}),
+      ty(t, {w: b, x: c, y: c, z: b}),
+      ty(t, {w: b, x: c, y: c, z: c}),
+      ty(t, {w: b, x: c, y: c, z: d}),
+      ty(t, {w: b, x: c, y: d, z: b}),
+      ty(t, {w: b, x: c, y: d, z: c}),
+      ty(t, {w: b, x: c, y: d, z: d}),
+      ty(t, {w: b, x: d, y: b, z: b}),
+      ty(t, {w: b, x: d, y: b, z: c}),
+      ty(t, {w: b, x: d, y: b, z: d}),
+      ty(t, {w: b, x: d, y: c, z: b}),
+      ty(t, {w: b, x: d, y: c, z: c}),
+      ty(t, {w: b, x: d, y: c, z: d}),
+      ty(t, {w: b, x: d, y: d, z: b}),
+      ty(t, {w: b, x: d, y: d, z: c}),
+      ty(t, {w: b, x: d, y: d, z: d}),
+      ty(t, {w: c, x: b, y: b, z: b}),
+      ty(t, {w: c, x: b, y: b, z: c}),
+      ty(t, {w: c, x: b, y: b, z: d}),
+      ty(t, {w: c, x: b, y: c, z: b}),
+      ty(t, {w: c, x: b, y: c, z: c}),
+      ty(t, {w: c, x: b, y: c, z: d}),
+      ty(t, {w: c, x: b, y: d, z: b}),
+      ty(t, {w: c, x: b, y: d, z: c}),
+      ty(t, {w: c, x: b, y: d, z: d}),
+      ty(t, {w: c, x: c, y: b, z: b}),
+      ty(t, {w: c, x: c, y: b, z: c}),
+      ty(t, {w: c, x: c, y: b, z: d}),
+      ty(t, {w: c, x: c, y: c, z: b}),
+      ty(t, {w: c, x: c, y: c, z: c}),
+      ty(t, {w: c, x: c, y: c, z: d}),
+      ty(t, {w: c, x: c, y: d, z: b}),
+      ty(t, {w: c, x: c, y: d, z: c}),
+      ty(t, {w: c, x: c, y: d, z: d}),
+      ty(t, {w: c, x: d, y: b, z: b}),
+      ty(t, {w: c, x: d, y: b, z: c}),
+      ty(t, {w: c, x: d, y: b, z: d}),
+      ty(t, {w: c, x: d, y: c, z: b}),
+      ty(t, {w: c, x: d, y: c, z: c}),
+      ty(t, {w: c, x: d, y: c, z: d}),
+      ty(t, {w: c, x: d, y: d, z: b}),
+      ty(t, {w: c, x: d, y: d, z: c}),
+      ty(t, {w: c, x: d, y: d, z: d}),
+      ty(t, {w: d, x: b, y: b, z: b}),
+      ty(t, {w: d, x: b, y: b, z: c}),
+      ty(t, {w: d, x: b, y: b, z: d}),
+      ty(t, {w: d, x: b, y: c, z: b}),
+      ty(t, {w: d, x: b, y: c, z: c}),
+      ty(t, {w: d, x: b, y: c, z: d}),
+      ty(t, {w: d, x: b, y: d, z: b}),
+      ty(t, {w: d, x: b, y: d, z: c}),
+      ty(t, {w: d, x: b, y: d, z: d}),
+      ty(t, {w: d, x: c, y: b, z: b}),
+      ty(t, {w: d, x: c, y: b, z: c}),
+      ty(t, {w: d, x: c, y: b, z: d}),
+      ty(t, {w: d, x: c, y: c, z: b}),
+      ty(t, {w: d, x: c, y: c, z: c}),
+      ty(t, {w: d, x: c, y: c, z: d}),
+      ty(t, {w: d, x: c, y: d, z: b}),
+      ty(t, {w: d, x: c, y: d, z: c}),
+      ty(t, {w: d, x: c, y: d, z: d}),
+      ty(t, {w: d, x: d, y: b, z: b}),
+      ty(t, {w: d, x: d, y: b, z: c}),
+      ty(t, {w: d, x: d, y: b, z: d}),
+      ty(t, {w: d, x: d, y: c, z: b}),
+      ty(t, {w: d, x: d, y: c, z: c}),
+      ty(t, {w: d, x: d, y: c, z: d}),
+      ty(t, {w: d, x: d, y: d, z: b}),
+      ty(t, {w: d, x: d, y: d, z: c}),
+      ty(t, {w: d, x: d, y: d, z: d}),
     ]);
   });
 
-  group('sealed transitive subtypes', () {
+  group('sealed transitive subtypes |', () {
     //     (A)
     //     / \
     //   (B) (C)
     //   / \   \
     //  D   E   F
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', isSealed: true, inherits: [a]);
-    var d = StaticType('D', inherits: [b]);
-    var e = StaticType('E', inherits: [b]);
-    var f = StaticType('F', inherits: [c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', isSealed: true, inherits: [a]);
+    var c = env.createClass('C', isSealed: true, inherits: [a]);
+    var d = env.createClass('D', inherits: [b]);
+    var e = env.createClass('E', inherits: [b]);
+    var f = env.createClass('F', inherits: [c]);
 
-    var t = StaticType('T', fields: {'x': a, 'y': a});
-    expectExhaustiveOnlyAll(t, [
-      {'x': a, 'y': a},
+    var r = env.createRecordType({x: a, y: a});
+    expectExhaustiveOnlyAll(env, r, [
+      ty(r, {x: a, y: a}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      {'x': b, 'y': b},
-      {'x': b, 'y': c},
-      {'x': c, 'y': b},
-      {'x': c, 'y': c},
+    expectExhaustiveOnlyAll(env, r, [
+      ty(r, {x: b, y: b}),
+      ty(r, {x: b, y: c}),
+      ty(r, {x: c, y: b}),
+      ty(r, {x: c, y: c}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      {'x': b, 'y': d},
-      {'x': b, 'y': e},
-      {'x': b, 'y': f},
-      {'x': c, 'y': d},
-      {'x': c, 'y': e},
-      {'x': c, 'y': f},
+    expectExhaustiveOnlyAll(env, r, [
+      ty(r, {x: b, y: d}),
+      ty(r, {x: b, y: e}),
+      ty(r, {x: b, y: f}),
+      ty(r, {x: c, y: d}),
+      ty(r, {x: c, y: e}),
+      ty(r, {x: c, y: f}),
     ]);
   });
 
-  group('unsealed subtypes', () {
+  group('unsealed subtypes |', () {
     //    A
     //   / \
     //  B   C
-    var a = StaticType('A');
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
 
     // Not exhaustive even when known subtypes covered.
-    var t = StaticType('T', fields: {'x': a, 'y': a});
-    expectNeverExhaustive(t, [
-      {'x': b, 'y': b},
-      {'x': b, 'y': c},
-      {'x': c, 'y': b},
-      {'x': c, 'y': c},
+    var t = env.createRecordType({x: a, y: a});
+    expectNeverExhaustive(env, t, [
+      ty(t, {x: b, y: b}),
+      ty(t, {x: b, y: c}),
+      ty(t, {x: c, y: b}),
+      ty(t, {x: c, y: c}),
     ]);
 
     // Exhaustive if field static type is a covered subtype.
-    var u = StaticType('T', fields: {'x': b, 'y': c});
-    expectExhaustiveOnlyAll(u, [
-      {'x': b, 'y': c},
+    var u = env.createRecordType({x: b, y: c});
+    expectExhaustiveOnlyAll(env, u, [
+      ty(u, {x: b, y: c}),
     ]);
   });
 
-  group('different fields', () {
+  group('different fields |', () {
     //   (A)
     //   / \
     //  B   C
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var t = StaticType('T', fields: {'x': a, 'y': a, 'z': a});
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var r = env.createRecordType({x: a, y: a, z: a});
 
-    expectNeverExhaustive(t, [
-      {'x': b},
-      {'y': b},
-      {'z': b},
+    expectNeverExhaustive(env, r, [
+      ty(r, {x: b}),
+      ty(r, {y: b}),
+      ty(r, {z: b}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      {'x': b, 'y': a},
-      {'x': c, 'z': a},
+    expectExhaustiveOnlyAll(env, r, [
+      ty(r, {x: b, y: a}),
+      ty(r, {x: c, z: a}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      {'x': b, 'y': b},
-      {'x': b, 'y': c},
-      {'x': c, 'y': b},
-      {'x': c, 'y': c},
+    expectExhaustiveOnlyAll(env, r, [
+      ty(r, {x: b, y: b}),
+      ty(r, {x: b, y: c}),
+      ty(r, {x: c, y: b}),
+      ty(r, {x: c, y: c}),
     ]);
   });
 
-  group('field types', () {
+  group('field types |', () {
     //   (A)
     //   / \
     //  B   C
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var t = StaticType('T', fields: {'x': a, 'y': b, 'z': c});
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    var r = env.createRecordType({x: a, y: b, z: c});
 
-    expectExhaustiveOnlyAll(t, [
-      {'x': a, 'y': b, 'z': c},
+    expectExhaustiveOnlyAll(env, r, [
+      ty(r, {x: a, y: b, z: c}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      {'x': b},
-      {'x': c},
+    expectExhaustiveOnlyAll(env, r, [
+      ty(r, {x: b}),
+      ty(r, {x: c}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      {'y': b},
+    expectExhaustiveOnlyAll(env, r, [
+      ty(r, {y: b}),
     ]);
 
-    expectExhaustiveOnlyAll(t, [
-      {'z': c},
+    expectExhaustiveOnlyAll(env, r, [
+      ty(r, {z: c}),
     ]);
   });
 }

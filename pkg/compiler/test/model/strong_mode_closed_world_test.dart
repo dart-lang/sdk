@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -146,34 +144,34 @@ main() {
 
 @pragma('dart2js:disableFinal')
 method1() {
-  A a = new A();
-  B b = new B();
+  A a = A();
+  B b = B();
   a.method1();
   a.getter;
   b.method2();
   b.setter = 42;
-  new C();
-  new D();
-  new H();
-  new J();
-  new M().method1();
-  new M2().getter;
-  new N();
-  O o = new P();
+  C();
+  D();
+  H();
+  J();
+  M().method1();
+  M2().getter;
+  N();
+  O o = P();
   o.method1();
   o.getter;
   o.setter = 42;
   R r;
   r.method3();
-  r = new R(); // Create R after call.
-  new Class1a();
-  new Class1b();
-  new Class2().c(0, 1, 2);
+  r = R(); // Create R after call.
+  Class1a();
+  Class1b();
+  Class2().c(0, 1, 2);
 }
 
 method2() {
-  A a = new A();
-  B b = new B();
+  A a = A();
+  B b = B();
   a.method4();
   b.method5();
 }
@@ -198,10 +196,10 @@ method2() {
     'Class2': ['c'],
   };
 
-  KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting;
+  KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting!;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
-  elementEnvironment.forEachClass(elementEnvironment.mainLibrary,
+  elementEnvironment.forEachClass(elementEnvironment.mainLibrary!,
       (ClassEntity cls) {
     List<String> expectedLiveMembers =
         expectedLiveMembersMap[cls.name] ?? const <String>[];
@@ -209,7 +207,7 @@ method2() {
     closedWorld.liveMemberUsage.forEach((MemberEntity member, _) {
       if (member.enclosingClass != cls) return;
       if (member is ConstructorEntity) return;
-      actualLiveMembers.add(member.name);
+      actualLiveMembers.add(member.name!);
     });
     Expect.setEquals(
         expectedLiveMembers,

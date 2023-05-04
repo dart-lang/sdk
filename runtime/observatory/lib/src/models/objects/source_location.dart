@@ -6,7 +6,7 @@ part of models;
 
 abstract class Location {
   /// The script containing the source location.
-  ScriptRef get script;
+  ScriptRef? get script;
 
   /// [optional] The first token of the location.
   int? get tokenPos;

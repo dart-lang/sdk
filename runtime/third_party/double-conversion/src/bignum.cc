@@ -445,7 +445,7 @@ void Bignum::AssignPowerUInt16(uint16_t base, int power_exponent) {
   mask >>= 2;
   uint64_t this_value = base;
 
-  bool delayed_multipliciation = false;
+  bool delayed_multiplication = false;
   const uint64_t max_32bits = 0xFFFFFFFF;
   while (mask != 0 && this_value <= max_32bits) {
     this_value = this_value * this_value;
@@ -458,13 +458,13 @@ void Bignum::AssignPowerUInt16(uint16_t base, int power_exponent) {
       if (high_bits_zero) {
         this_value *= base;
       } else {
-        delayed_multipliciation = true;
+        delayed_multiplication = true;
       }
     }
     mask >>= 1;
   }
   AssignUInt64(this_value);
-  if (delayed_multipliciation) {
+  if (delayed_multiplication) {
     MultiplyByUInt32(base);
   }
 

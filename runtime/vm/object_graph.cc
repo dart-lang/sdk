@@ -19,7 +19,7 @@
 
 namespace dart {
 
-#if !defined(PRODUCT)
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
 
 static bool IsUserClass(intptr_t cid) {
   if (cid == kContextCid) return true;
@@ -1409,17 +1409,24 @@ void VmServiceHeapSnapshotChunkedWriter::WriteChunk(uint8_t* buffer,
 }
 
 FileHeapSnapshotWriter::FileHeapSnapshotWriter(Thread* thread,
-                                               const char* filename)
-    : ChunkedWriter(thread) {
+                                               const char* filename,
+                                               bool* success)
+    : ChunkedWriter(thread), success_(success) {
   auto open = Dart::file_open_callback();
-  if (open != nullptr) {
+  auto write = Dart::file_write_callback();
+  auto close = Dart::file_close_callback();
+  if (open != nullptr && write != nullptr && close != nullptr) {
     file_ = open(filename, /*write=*/true);
   }
+  // If we have open/write/close callbacks we assume it can be done
+  // successfully. (Those embedder-provided callbacks currently don't allow
+  // signaling of failure conditions)
+  if (success_ != nullptr) *success_ = file_ != nullptr;
 }
+
 FileHeapSnapshotWriter::~FileHeapSnapshotWriter() {
-  auto close = Dart::file_close_callback();
-  if (close != nullptr) {
-    close(file_);
+  if (file_ != nullptr) {
+    Dart::file_close_callback()(file_);
   }
 }
 
@@ -1427,12 +1434,23 @@ void FileHeapSnapshotWriter::WriteChunk(uint8_t* buffer,
                                         intptr_t size,
                                         bool last) {
   if (file_ != nullptr) {
-    auto write = Dart::file_write_callback();
-    if (write != nullptr) {
-      write(buffer, size, file_);
-    }
+    Dart::file_write_callback()(buffer, size, file_);
   }
   free(buffer);
+}
+
+CallbackHeapSnapshotWriter::CallbackHeapSnapshotWriter(
+    Thread* thread,
+    Dart_HeapSnapshotWriteChunkCallback callback,
+    void* context)
+    : ChunkedWriter(thread), callback_(callback), context_(context) {}
+
+CallbackHeapSnapshotWriter::~CallbackHeapSnapshotWriter() {}
+
+void CallbackHeapSnapshotWriter::WriteChunk(uint8_t* buffer,
+                                            intptr_t size,
+                                            bool last) {
+  callback_(context_, buffer, size, last);
 }
 
 void HeapSnapshotWriter::Write() {
@@ -1823,6 +1841,6 @@ void CountObjectsVisitor::VisitHandle(uword addr) {
   }
 }
 
-#endif  // !defined(PRODUCT)
+#endif  // defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
 
 }  // namespace dart

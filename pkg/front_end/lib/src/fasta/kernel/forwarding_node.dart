@@ -3,58 +3,77 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:kernel/ast.dart";
+import 'package:kernel/core_types.dart';
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../names.dart';
 import "../source/source_class_builder.dart";
 
 import "../problems.dart" show unhandled;
 
+import '../source/source_library_builder.dart';
 import 'hierarchy/class_member.dart';
 import 'combined_member_signature.dart';
+import 'kernel_target.dart';
 
 class ForwardingNode {
+  /// The combined member signature for all interface members implemented
+  /// by the, possibly synthesized, member for which this [ForwardingNode] was
+  /// created.
   final CombinedClassMemberSignature _combinedMemberSignature;
 
   final ProcedureKind kind;
 
+  /// The concrete member inherited from a superclass, if any.
   final ClassMember? _superClassMember;
 
+  /// The member inherited from a mixin, if any.
   final ClassMember? _mixedInMember;
 
+  /// The target `noSuchMethod` implementation for a noSuchMethod.
+  ///
+  /// If provided, a noSuchMethod forwarder must be created, unless the
+  /// [_superClassMember] is a valid implementation of the interface.
+  final ClassMember? _noSuchMethodTarget;
+
   ForwardingNode(this._combinedMemberSignature, this.kind,
-      this._superClassMember, this._mixedInMember);
+      this._superClassMember, this._mixedInMember, this._noSuchMethodTarget);
 
   /// Finishes handling of this node by propagating covariance and creating
-  /// forwarding stubs if necessary.
+  /// forwarding stubs, mixin stubs, member signature or noSuchMethod forwarders
+  /// if necessary.
   ///
-  /// If a stub is created, this is returned. Otherwise `null` is returned.
-  Procedure? finalize() => _computeCovarianceFixes();
-
-  /// Tag the parameters of [interfaceMember] that need type checks
-  ///
-  /// Parameters can need type checks for calls coming from statically typed
-  /// call sites, due to covariant generics and overrides with explicit
-  /// `covariant` parameters.
-  ///
-  /// Tag parameters of [interfaceMember] that need such checks when the member
-  /// occurs in [enclosingClass]'s interface.  If parameters need checks but
-  /// they would not be checked in an inherited implementation, a forwarding
-  /// stub is introduced as a place to put the checks.
-  ///
-  /// If a stub is created, this is returned. Otherwise `null` is returned.
-  Procedure? _computeCovarianceFixes() {
+  /// If a new member is created, this is returned. Otherwise `null` is
+  /// returned.
+  Procedure? finalize() {
     SourceClassBuilder classBuilder = _combinedMemberSignature.classBuilder;
     ClassMember canonicalMember = _combinedMemberSignature.canonicalMember!;
     Member interfaceMember =
         canonicalMember.getMember(_combinedMemberSignature.membersBuilder);
 
+    // If the class is a mixin application and the member is declared in the
+    // mixin, we insert a mixin stub for the member:
+    //
+    //    class Super { void superMethod() {} }
+    //    mixin Mixin { void mixinMethod() {} }
+    //    class NamedMixinApplication = Object with Mixin /*
+    //      mixin-stub mixinMethod(); // mixin in stub
+    //    */;
     bool needMixinStub =
         classBuilder.isMixinApplication && _mixedInMember != null;
 
-    if (_combinedMemberSignature.members.length == 1 && !needMixinStub) {
+    // If [_noSuchMethodTarget] is provided, a noSuchMethod forwarder must
+    // be created, unless the [_superClassTarget] is a valid implementation.
+    bool hasNoSuchMethodTarget = _noSuchMethodTarget != null;
+
+    if (_combinedMemberSignature.members.length == 1 &&
+        !needMixinStub &&
+        !hasNoSuchMethodTarget) {
+      // Optimization: Avoid complex computation for simple scenarios.
+
       // Covariance can only come from [interfaceMember] so we never need a
       // forwarding stub.
       if (_combinedMemberSignature.neededLegacyErasure) {
@@ -78,12 +97,9 @@ class ForwardingNode {
         _combinedMemberSignature.neededNnbdTopMerge ||
             _combinedMemberSignature.neededLegacyErasure ||
             _combinedMemberSignature.needsCovarianceMerging;
-    bool stubNeeded = cannotReuseExistingMember ||
-        (canonicalMember.classBuilder != classBuilder &&
-            needsTypeOrCovarianceUpdate) ||
-        needMixinStub;
     bool needsSuperImpl = false;
     Member? superTarget;
+    bool hasValidImplementation = false;
     if (_superClassMember != null) {
       superTarget =
           _superClassMember!.getMember(_combinedMemberSignature.membersBuilder);
@@ -108,22 +124,55 @@ class ForwardingNode {
         // Any concrete implementation of B must provide its own implementation
         // of `B.method` and cannot forward to `A.method`.
       } else {
-        // [superTarget] is a valid implementation for [interfaceMember] so
-        // we need to add concrete forwarding stub of the variances differ.
-        needsSuperImpl = _superClassMember!
-                .getCovariance(_combinedMemberSignature.membersBuilder) !=
-            _combinedMemberSignature.combinedMemberSignatureCovariance;
+        if (hasNoSuchMethodTarget) {
+          // A noSuchMethod forwarder is needed it the type of the super member
+          // differs from the interface member.
+          //
+          // For instance
+          //
+          //     class Super {
+          //       noSuchMethod(_) => null;
+          //       method1(); // noSuchMethod forwarder created for this.
+          //       method2(int i); // noSuchMethod forwarder created for this.
+          //     }
+          //     class Class extends Super {
+          //       method1(); // noSuchMethod forwarder from Super is valid.
+          //       method2(num i); // A new noSuchMethod forwarder is needed.
+          //     }
+          //
+          DartType superTargetType =
+              _combinedMemberSignature.getMemberTypeForTarget(superTarget);
+          DartType interfaceMemberType =
+              _combinedMemberSignature.getMemberTypeForTarget(interfaceMember);
+          hasValidImplementation = superTargetType == interfaceMemberType;
+        } else {
+          // [superTarget] is a valid implementation for [interfaceMember] so
+          // we need to add concrete forwarding stub of the variances differ.
+          needsSuperImpl = _superClassMember!
+                  .getCovariance(_combinedMemberSignature.membersBuilder) !=
+              _combinedMemberSignature.combinedMemberSignatureCovariance;
+          hasValidImplementation = true;
+        }
       }
     }
+    bool needsNoSuchMethodForwarder =
+        hasNoSuchMethodTarget && !hasValidImplementation;
+    bool stubNeeded = cannotReuseExistingMember ||
+        (canonicalMember.classBuilder != classBuilder &&
+            (needsTypeOrCovarianceUpdate || needsNoSuchMethodForwarder)) ||
+        needMixinStub;
     if (stubNeeded) {
       Procedure stub = _combinedMemberSignature.createMemberFromSignature(
           copyLocation: false)!;
       bool needsForwardingStub =
           _combinedMemberSignature.needsCovarianceMerging || needsSuperImpl;
-      if (needsForwardingStub || needMixinStub) {
+      if (needsForwardingStub || needMixinStub || needsNoSuchMethodForwarder) {
         ProcedureStubKind stubKind;
-        Member finalTarget;
-        if (needsForwardingStub) {
+        Member? finalTarget;
+        if (needsNoSuchMethodForwarder) {
+          stubKind = ProcedureStubKind.NoSuchMethodForwarder;
+          finalTarget = null;
+        } else if (needsForwardingStub) {
           stubKind = ProcedureStubKind.AbstractForwardingStub;
           if (interfaceMember is Procedure) {
             switch (interfaceMember.stubKind) {
@@ -150,7 +199,14 @@ class ForwardingNode {
 
         stub.stubKind = stubKind;
         stub.stubTarget = finalTarget;
-        if (needsSuperImpl ||
+        if (needsNoSuchMethodForwarder) {
+          _createNoSuchMethodForwarder(
+              classBuilder,
+              _noSuchMethodTarget!
+                      .getMember(_combinedMemberSignature.membersBuilder)
+                  as Procedure,
+              stub);
+        } else if (needsSuperImpl ||
             (needMixinStub && _superClassMember == _mixedInMember)) {
           _createForwardingImplIfNeeded(
               stub.function, stub.name, classBuilder.cls, superTarget,
@@ -164,7 +220,19 @@ class ForwardingNode {
         _combinedMemberSignature.combinedMemberSignatureCovariance!
             .applyCovariance(interfaceMember);
       }
-      if (needsSuperImpl) {
+      if (needsNoSuchMethodForwarder) {
+        assert(interfaceMember is Procedure,
+            "Unexpected abstract member: ${interfaceMember}");
+        (interfaceMember as Procedure).stubKind =
+            ProcedureStubKind.NoSuchMethodForwarder;
+        interfaceMember.stubTarget = null;
+        _createNoSuchMethodForwarder(
+            classBuilder,
+            _noSuchMethodTarget!
+                    .getMember(_combinedMemberSignature.membersBuilder)
+                as Procedure,
+            interfaceMember);
+      } else if (needsSuperImpl) {
         _createForwardingImplIfNeeded(interfaceMember.function!,
             interfaceMember.name, classBuilder.cls, superTarget,
             isForwardingStub: true);
@@ -330,5 +398,71 @@ class ForwardingNode {
     if (needsSignatureType) {
       procedure.signatureType = signatureType;
     }
+  }
+
+  void _createNoSuchMethodForwarder(SourceClassBuilder classBuilder,
+      Procedure noSuchMethodInterface, Procedure procedure) {
+    bool shouldThrow = false;
+    Name procedureName = procedure.name;
+    if (procedureName.isPrivate) {
+      Library procedureNameLibrary = procedureName.library!;
+      // If the name is defined in a different library than the library we're
+      // synthesizing a forwarder for, then the forwarder must throw.  This
+      // avoids surprising users by ensuring that all non-throwing
+      // implementations of a private name can be found solely by looking at the
+      // library in which the name is defined; it also avoids soundness holes in
+      // field promotion.
+      if (procedureNameLibrary.compareTo(procedure.enclosingLibrary) != 0) {
+        shouldThrow = true;
+      }
+    }
+    Expression result;
+    String prefix = procedure.isGetter
+        ? 'get:'
+        : procedure.isSetter
+            ? 'set:'
+            : '';
+    String invocationName = prefix + procedureName.text;
+    if (procedure.isSetter) invocationName += '=';
+    SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
+    KernelTarget target = libraryBuilder.loader.target;
+    CoreTypes coreTypes = target.loader.coreTypes;
+    Expression invocation = target.backendTarget.instantiateInvocation(
+        coreTypes,
+        new ThisExpression(),
+        invocationName,
+        new Arguments.forwarded(procedure.function, libraryBuilder.library),
+        procedure.fileOffset,
+        /*isSuper=*/ false);
+    if (shouldThrow) {
+      // Build `throw new NoSuchMethodError(this, invocation)`.
+      result = new Throw(new StaticInvocation(
+          coreTypes.noSuchMethodErrorDefaultConstructor,
+          new Arguments([new ThisExpression(), invocation])))
+        ..fileOffset = procedure.fileOffset;
+    } else {
+      // Build `this.noSuchMethod(invocation)`.
+      result = new InstanceInvocation(InstanceAccessKind.Instance,
+          new ThisExpression(), noSuchMethodName, new Arguments([invocation]),
+          functionType: noSuchMethodInterface.getterType as FunctionType,
+          interfaceTarget: noSuchMethodInterface)
+        ..fileOffset = procedure.fileOffset;
+      if (procedure.function.returnType is! VoidType) {
+        result = new AsExpression(result, procedure.function.returnType)
+          ..isTypeError = true
+          ..isForDynamic = true
+          ..isForNonNullableByDefault = libraryBuilder.isNonNullableByDefault
+          ..fileOffset = procedure.fileOffset;
+      }
+    }
+    procedure.function.body = new ReturnStatement(result)
+      ..fileOffset = procedure.fileOffset
+      ..parent = procedure.function;
+    procedure.function.asyncMarker = AsyncMarker.Sync;
+    procedure.function.dartAsyncMarker = AsyncMarker.Sync;
+
+    procedure.isAbstract = false;
+    procedure.stubKind = ProcedureStubKind.NoSuchMethodForwarder;
+    procedure.stubTarget = null;
   }
 }

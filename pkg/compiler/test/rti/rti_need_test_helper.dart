@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
@@ -31,9 +29,9 @@ main(List<String> args) {
   runTests(args);
 }
 
-runTests(List<String> args, [int shardIndex]) {
+runTests(List<String> args, [int? shardIndex]) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const RtiNeedDataComputer(),
         args: args,
         shardIndex: shardIndex ?? 0,
@@ -58,19 +56,20 @@ abstract class ComputeValueMixin {
 
   KernelFrontendStrategy get frontendStrategy => compiler.frontendStrategy;
   ResolutionWorldBuilder get resolutionWorldBuilder =>
-      compiler.resolutionWorldBuilderForTesting;
+      compiler.resolutionWorldBuilderForTesting!;
   RuntimeTypesNeedBuilderImpl get rtiNeedBuilder =>
-      frontendStrategy.runtimeTypesNeedBuilderForTesting;
+      frontendStrategy.runtimeTypesNeedBuilderForTesting
+          as RuntimeTypesNeedBuilderImpl;
   RuntimeTypesNeedImpl get rtiNeed =>
-      compiler.backendClosedWorldForTesting.rtiNeed;
-  ClassEntity getFrontendClass(ClassEntity cls);
-  MemberEntity getFrontendMember(MemberEntity member);
-  Local getFrontendClosure(MemberEntity member);
+      compiler.backendClosedWorldForTesting!.rtiNeed as RuntimeTypesNeedImpl;
+  ClassEntity? getFrontendClass(ClassEntity cls);
+  MemberEntity? getFrontendMember(MemberEntity member);
+  Local? getFrontendClosure(MemberEntity member);
 
   void findChecks(
-      Features features, String key, Entity entity, Set<DartType> checks) {
-    Set<DartType> types = new Set<DartType>();
-    FindTypeVisitor finder = new FindTypeVisitor(entity);
+      Features features, String key, Entity? entity, Set<DartType> checks) {
+    Set<DartType> types = Set<DartType>();
+    FindTypeVisitor finder = FindTypeVisitor(entity);
     for (DartType type in checks) {
       if (type.accept(finder, null)) {
         types.add(type);
@@ -82,15 +81,17 @@ abstract class ComputeValueMixin {
     }
   }
 
-  void findDependencies(Features features, Entity entity) {
-    Iterable<Entity> dependencies = rtiNeedBuilder.typeVariableTestsForTesting
-        .getTypeArgumentDependencies(entity);
+  void findDependencies(Features features, Entity? entity) {
+    Iterable<Entity> dependencies = entity == null
+        ? const []
+        : rtiNeedBuilder.typeVariableTestsForTesting!
+            .getTypeArgumentDependencies(entity);
     if (dependencies.isNotEmpty) {
       List<String> names = dependencies.map((Entity d) {
         if (d is MemberEntity && d.enclosingClass != null) {
-          return '${d.enclosingClass.name}.${d.name}';
+          return '${d.enclosingClass!.name}.${d.name}';
         }
-        return d.name;
+        return d.name!;
       }).toList()
         ..sort();
       features[Tags.dependencies] = '[${names.join(',')}]';
@@ -98,33 +99,33 @@ abstract class ComputeValueMixin {
   }
 
   String getClassValue(ClassEntity backendClass) {
-    Features features = new Features();
+    Features features = Features();
 
     if (rtiNeed.classNeedsTypeArguments(backendClass)) {
       features.add(Tags.needsTypeArguments);
     }
-    ClassEntity frontendClass = getFrontendClass(backendClass);
+    ClassEntity? frontendClass = getFrontendClass(backendClass);
     findDependencies(features, frontendClass);
     if (rtiNeedBuilder.classesUsingTypeVariableLiterals
         .contains(frontendClass)) {
       features.add(Tags.typeLiteral);
     }
-    if (rtiNeedBuilder.typeVariableTestsForTesting.classTestsForTesting
+    if (rtiNeedBuilder.typeVariableTestsForTesting!.classTestsForTesting
         .contains(frontendClass)) {
       features.add(Tags.typeArgumentTest);
     }
     findChecks(features, Tags.explicitTypeCheck, frontendClass,
-        rtiNeedBuilder.typeVariableTestsForTesting.explicitIsChecks);
+        rtiNeedBuilder.typeVariableTestsForTesting!.explicitIsChecks);
     findChecks(features, Tags.implicitTypeCheck, frontendClass,
-        rtiNeedBuilder.typeVariableTestsForTesting.implicitIsChecks);
+        rtiNeedBuilder.typeVariableTestsForTesting!.implicitIsChecks);
     return features.getText();
   }
 
   String getMemberValue(MemberEntity backendMember) {
-    MemberEntity frontendMember = getFrontendMember(backendMember);
-    Local frontendClosure = getFrontendClosure(backendMember);
+    MemberEntity? frontendMember = getFrontendMember(backendMember);
+    Local? frontendClosure = getFrontendClosure(backendMember);
 
-    Features features = new Features();
+    Features features = Features();
 
     if (backendMember is FunctionEntity) {
       if (rtiNeed.methodNeedsTypeArguments(backendMember)) {
@@ -136,14 +137,14 @@ abstract class ComputeValueMixin {
 
       void addFrontendData(Entity entity) {
         findDependencies(features, entity);
-        if (rtiNeedBuilder.typeVariableTestsForTesting.methodTestsForTesting
+        if (rtiNeedBuilder.typeVariableTestsForTesting!.methodTestsForTesting
             .contains(entity)) {
           features.add(Tags.typeArgumentTest);
         }
         findChecks(features, Tags.explicitTypeCheck, entity,
-            rtiNeedBuilder.typeVariableTestsForTesting.explicitIsChecks);
+            rtiNeedBuilder.typeVariableTestsForTesting!.explicitIsChecks);
         findChecks(features, Tags.implicitTypeCheck, entity,
-            rtiNeedBuilder.typeVariableTestsForTesting.implicitIsChecks);
+            rtiNeedBuilder.typeVariableTestsForTesting!.implicitIsChecks);
         rtiNeedBuilder.selectorsNeedingTypeArgumentsForTesting
             ?.forEach((Selector selector, Set<Entity> targets) {
           if (targets.contains(entity)) {
@@ -178,7 +179,7 @@ abstract class ComputeValueMixin {
 
 /// Visitor that determines whether a type refers to [entity].
 class FindTypeVisitor extends DartTypeVisitor<bool, Null> {
-  final Entity entity;
+  final Entity? entity;
 
   FindTypeVisitor(this.entity);
 
@@ -250,10 +251,10 @@ class RtiNeedDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
+    RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
             closedWorld.closureDataLookup)
         .run(definition.node);
   }
@@ -265,11 +266,11 @@ class RtiNeedDataComputer extends DataComputer<String> {
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
-    new RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
+    RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
             closedWorld.closureDataLookup)
-        .computeForClass(elementMap.getClassDefinition(cls).node);
+        .computeForClass(elementMap.getClassDefinition(cls).node as ir.Class);
   }
 
   @override
@@ -278,48 +279,48 @@ class RtiNeedDataComputer extends DataComputer<String> {
 
 abstract class IrMixin implements ComputeValueMixin {
   @override
-  MemberEntity getFrontendMember(MemberEntity backendMember) {
+  MemberEntity? getFrontendMember(MemberEntity backendMember) {
     ElementEnvironment elementEnvironment =
-        compiler.frontendClosedWorldForTesting.elementEnvironment;
+        compiler.frontendClosedWorldForTesting!.elementEnvironment;
     LibraryEntity frontendLibrary =
-        elementEnvironment.lookupLibrary(backendMember.library.canonicalUri);
+        elementEnvironment.lookupLibrary(backendMember.library.canonicalUri)!;
     if (backendMember.enclosingClass != null) {
-      if (backendMember.enclosingClass.isClosure) return null;
+      if (backendMember.enclosingClass!.isClosure) return null;
       ClassEntity frontendClass = elementEnvironment.lookupClass(
-          frontendLibrary, backendMember.enclosingClass.name);
+          frontendLibrary, backendMember.enclosingClass!.name)!;
       if (backendMember is ConstructorEntity) {
         return elementEnvironment.lookupConstructor(
-            frontendClass, backendMember.name);
+            frontendClass, backendMember.name!);
       } else {
         return elementEnvironment.lookupClassMember(
             frontendClass,
-            Name(backendMember.name, frontendClass.library.canonicalUri,
+            Name(backendMember.name!, frontendClass.library.canonicalUri,
                 isSetter: backendMember.isSetter));
       }
     }
     return elementEnvironment.lookupLibraryMember(
-        frontendLibrary, backendMember.name,
+        frontendLibrary, backendMember.name!,
         setter: backendMember.isSetter);
   }
 
   @override
-  ClassEntity getFrontendClass(ClassEntity backendClass) {
+  ClassEntity? getFrontendClass(ClassEntity backendClass) {
     if (backendClass.isClosure) return null;
     ElementEnvironment elementEnvironment =
-        compiler.frontendClosedWorldForTesting.elementEnvironment;
+        compiler.frontendClosedWorldForTesting!.elementEnvironment;
     LibraryEntity frontendLibrary =
-        elementEnvironment.lookupLibrary(backendClass.library.canonicalUri);
+        elementEnvironment.lookupLibrary(backendClass.library.canonicalUri)!;
     return elementEnvironment.lookupClass(frontendLibrary, backendClass.name);
   }
 
   @override
-  Local getFrontendClosure(MemberEntity member) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  Local? getFrontendClosure(MemberEntity member) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     ir.Node node = closedWorld.elementMap.getMemberDefinition(member).node;
     if (node is ir.FunctionDeclaration || node is ir.FunctionExpression) {
       KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMap frontendElementMap = frontendStrategy.elementMap;
-      return frontendElementMap.getLocalFunction(node);
+      return frontendElementMap.getLocalFunction(node as ir.LocalFunction);
     }
     return null;
   }
@@ -343,11 +344,11 @@ class RtiClassNeedIrComputer
   DiagnosticReporter get reporter => compiler.reporter;
 
   void computeClassValue(ClassEntity cls) {
-    Id id = new ClassId(cls.name);
-    ir.TreeNode node = _elementMap.getClassDefinition(cls).node;
-    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
-    registerValue(nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset,
-        id, getClassValue(cls), cls);
+    Id id = ClassId(cls.name);
+    final node = _elementMap.getClassDefinition(cls).node as ir.TreeNode;
+    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
+    registerValue(nodeWithOffset.location!.file, nodeWithOffset.fileOffset, id,
+        getClassValue(cls), cls);
   }
 }
 
@@ -378,10 +379,11 @@ class RtiNeedIrComputer extends IrDataExtractor<String>
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod);
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      return getMemberValue(info.callMethod!);
     }
     return null;
   }

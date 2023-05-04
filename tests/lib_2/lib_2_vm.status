@@ -66,10 +66,10 @@ mirrors/invocation_fuzz_test: Crash
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
 
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $hot_reload || $hot_reload_rollback ]
+[ $hot_reload || $hot_reload_rollback ]
+isolate/int32_length_overflow_test: SkipSlow # Iterates over Uint8List(1 << 30).
+
+[ $hot_reload || $hot_reload_rollback || $simulator ]
 convert/chunked_conversion_utf88_test: SkipSlow
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow
 convert/utf85_test: SkipSlow
-
-[ $hot_reload || $hot_reload_rollback ]
-isolate/int32_length_overflow_test: SkipSlow # Iterates over Uint8List(1 << 30).

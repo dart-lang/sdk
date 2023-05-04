@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' show File, Platform;
 import 'dart:typed_data' show BytesBuilder;
 
 import 'package:dart2js_info/binary_serialization.dart' as binary;
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:test/test.dart';
+
+import 'test_shared.dart';
 
 class ByteSink implements Sink<List<int>> {
   BytesBuilder builder = BytesBuilder();
@@ -21,12 +22,9 @@ class ByteSink implements Sink<List<int>> {
 
 void main() {
   group('json to proto conversion with deferred files', () {
-    test('hello_world_deferred', () {
-      var uri = Platform.script
-          .resolve('hello_world_deferred/hello_world_deferred.js.info.json');
-      var helloWorld = File.fromUri(uri);
-      var contents = helloWorld.readAsStringSync();
-      var json = jsonDecode(contents);
+    test('hello_world_deferred', () async {
+      var helloWorld = await helloWorldDeferredDumpInfo();
+      var json = jsonDecode(helloWorld);
       // Clear toJsonDuration for consistency.
       json['program']['toJsonDuration'] = 0;
       var info = AllInfoJsonCodec().decode(json);

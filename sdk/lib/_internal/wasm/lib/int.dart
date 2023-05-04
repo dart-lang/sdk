@@ -9,6 +9,9 @@ class int {
   /// Wasm i64.div_s instruction
   external int _div_s(int divisor);
 
+  /// Wasm i64.le_u instruction
+  external bool _le_u(int other);
+
   /// Wasm i64.lt_u instruction
   external bool _lt_u(int other);
 
@@ -23,7 +26,7 @@ class int {
 }
 
 @pragma("wasm:entry-point")
-class _BoxedInt extends int {
+final class _BoxedInt extends int {
   // A boxed int contains an unboxed int.
   @pragma("wasm:entry-point")
   int value = 0;
@@ -35,14 +38,17 @@ class _BoxedInt extends int {
   external num operator -(num other);
   external num operator *(num other);
 
+  @pragma("wasm:prefer-inline")
   double operator /(num other) {
     return this.toDouble() / other.toDouble();
   }
 
+  @pragma("wasm:prefer-inline")
   int operator ~/(num other) => other is int
       ? _truncDiv(this.value, other)
       : _BoxedDouble._truncDiv(toDouble(), unsafeCast<double>(other));
 
+  @pragma("wasm:prefer-inline")
   num operator %(num other) => other is int
       ? _modulo(this, other)
       : _BoxedDouble._modulo(toDouble(), unsafeCast<double>(other));
@@ -59,6 +65,7 @@ class _BoxedInt extends int {
     return rem;
   }
 
+  @pragma("wasm:prefer-inline")
   static int _truncDiv(int a, int b) {
     // Division special case: overflow in I64.
     // MIN_VALUE / -1 = (MAX_VALUE + 1), which wraps around to MIN_VALUE
@@ -74,6 +81,7 @@ class _BoxedInt extends int {
     return a._div_s(b);
   }
 
+  @pragma("wasm:prefer-inline")
   num remainder(num other) => other is int
       ? this - (this ~/ other) * other
       : _BoxedDouble._remainder(toDouble(), unsafeCast<double>(other));
@@ -84,6 +92,7 @@ class _BoxedInt extends int {
   external int operator |(int other);
   external int operator ^(int other);
 
+  @pragma("wasm:prefer-inline")
   int operator >>(int shift) {
     // Unsigned comparison to check for large and negative shifts
     if (shift._lt_u(64)) {
@@ -98,6 +107,7 @@ class _BoxedInt extends int {
     return this._shr_s(63);
   }
 
+  @pragma("wasm:prefer-inline")
   int operator >>>(int shift) {
     // Unsigned comparison to check for large and negative shifts
     if (shift._lt_u(64)) {
@@ -112,6 +122,7 @@ class _BoxedInt extends int {
     return 0;
   }
 
+  @pragma("wasm:prefer-inline")
   int operator <<(int shift) {
     // Unsigned comparison to check for large and negative shifts
     if (shift._lt_u(64)) {
@@ -131,6 +142,7 @@ class _BoxedInt extends int {
   external bool operator >=(num other);
   external bool operator <=(num other);
 
+  @pragma("wasm:prefer-inline")
   bool operator ==(Object other) {
     return other is int
         ? this == other // Intrinsic ==
@@ -139,10 +151,12 @@ class _BoxedInt extends int {
             : false;
   }
 
+  @pragma("wasm:prefer-inline")
   int abs() {
     return this < 0 ? -this : this;
   }
 
+  @pragma("wasm:prefer-inline")
   int get sign {
     return (this > 0)
         ? 1
@@ -151,17 +165,25 @@ class _BoxedInt extends int {
             : 0;
   }
 
+  @pragma("wasm:prefer-inline")
   bool get isEven => (this & 1) == 0;
+  @pragma("wasm:prefer-inline")
   bool get isOdd => (this & 1) != 0;
+  @pragma("wasm:prefer-inline")
   bool get isNaN => false;
+  @pragma("wasm:prefer-inline")
   bool get isNegative => this < 0;
+  @pragma("wasm:prefer-inline")
   bool get isInfinite => false;
+  @pragma("wasm:prefer-inline")
   bool get isFinite => true;
 
+  @pragma("wasm:prefer-inline")
   int toUnsigned(int width) {
     return this & ((1 << width) - 1);
   }
 
+  @pragma("wasm:prefer-inline")
   int toSigned(int width) {
     // The value of binary number weights each bit by a power of two.  The
     // twos-complement value weights the sign bit negatively.  We compute the
@@ -211,34 +233,42 @@ class _BoxedInt extends int {
     }
   }
 
+  @pragma("wasm:prefer-inline")
   int round() {
     return this;
   }
 
+  @pragma("wasm:prefer-inline")
   int floor() {
     return this;
   }
 
+  @pragma("wasm:prefer-inline")
   int ceil() {
     return this;
   }
 
+  @pragma("wasm:prefer-inline")
   int truncate() {
     return this;
   }
 
+  @pragma("wasm:prefer-inline")
   double roundToDouble() {
     return this.toDouble();
   }
 
+  @pragma("wasm:prefer-inline")
   double floorToDouble() {
     return this.toDouble();
   }
 
+  @pragma("wasm:prefer-inline")
   double ceilToDouble() {
     return this.toDouble();
   }
 
+  @pragma("wasm:prefer-inline")
   double truncateToDouble() {
     return this.toDouble();
   }
@@ -261,6 +291,7 @@ class _BoxedInt extends int {
     return this;
   }
 
+  @pragma("wasm:prefer-inline")
   int toInt() {
     return this;
   }
@@ -654,18 +685,6 @@ class _BoxedInt extends int {
     const int MINUS_SIGN = 0x2d;
     // Character code for '0'.
     const int DIGIT_ZERO = 0x30;
-    if (negSmi > -10) {
-      return _OneByteString._allocate(2)
-        .._setAt(0, MINUS_SIGN)
-        .._setAt(1, DIGIT_ZERO - negSmi);
-    }
-    if (negSmi > -100) {
-      int digitIndex = 2 * -negSmi;
-      return _OneByteString._allocate(3)
-        .._setAt(0, MINUS_SIGN)
-        .._setAt(1, _digitTable[digitIndex])
-        .._setAt(2, _digitTable[digitIndex + 1]);
-    }
     // Number of digits, not including minus.
     int digitCount = _negativeBase10Length(negSmi);
     _OneByteString result = _OneByteString._allocate(digitCount + 1);

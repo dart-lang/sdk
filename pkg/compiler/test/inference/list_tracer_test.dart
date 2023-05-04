@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:expect/expect.dart';
 
@@ -89,6 +88,10 @@ var listSetInNonFinalField = $listAllocation;
 var listWithChangedLength = $listAllocation;
 var listStoredInList = $listAllocation;
 var listStoredInListButEscapes = $listAllocation;
+var listStoredInRecordWithIndexAccess = $listAllocation;
+var listStoredInRecordWithNameAccess = $listAllocation;
+var listStoredInRecordWithoutAccess = $listAllocation;
+var listStoredInRecordWithDynamicAccess = $listAllocation;
 
 foo(list) {
   list[0] = aDouble;
@@ -120,7 +123,7 @@ main() {
   (() => listReturnedFromClosure)()[0] = aDouble;
 
   listInField[0] = anInt;
-  new A(listInField).useField();
+  A(listInField).useField();
 
   listUsedWithCascade[0] = anInt;
   listUsedWithCascade..[0] = aDouble;
@@ -129,10 +132,10 @@ main() {
   (() => listUsedInClosure[0] = aDouble)();
 
   listPassedToSelector[0] = anInt;
-  new A(null).receiveIt(listPassedToSelector);
+  A(null).receiveIt(listPassedToSelector);
 
   listReturnedFromSelector[0] = anInt;
-  new A(null).returnIt()[0] = aDouble;
+  A(null).returnIt()[0] = aDouble;
 
   listUsedWithAddAndInsert.add(anInt);
   listUsedWithAddAndInsert.insert(0, aDouble);
@@ -157,14 +160,14 @@ main() {
   listOnlySetWithConstraint[0]++;
 
   listEscapingInSetterValue[0] = anInt;
-  new A(null).callSetter = listEscapingInSetterValue;
+  A(null).callSetter = listEscapingInSetterValue;
 
   listEscapingInIndex[0] = anInt;
-  new A(null)[listEscapingInIndex];
+  A(null)[listEscapingInIndex];
 
-  new A(null)[listEscapingInIndexSet] = 42;
+  A(null)[listEscapingInIndexSet] = 42;
 
-  new A(null)[listEscapingTwiceInIndexSet] = listEscapingTwiceInIndexSet;
+  A(null)[listEscapingTwiceInIndexSet] = listEscapingTwiceInIndexSet;
 
   listPassedAsOptionalParameter[0] = anInt;
   takeOptional(listPassedAsOptionalParameter);
@@ -173,7 +176,7 @@ main() {
   takeNamed(list: listPassedAsNamedParameter);
 
   listSetInNonFinalField[0] = anInt;
-  new B(listSetInNonFinalField);
+  B(listSetInNonFinalField);
 
   listWithChangedLength[0] = anInt;
   listWithChangedLength.length = 54;
@@ -184,6 +187,18 @@ main() {
   a = [listStoredInListButEscapes];
   a[0][0] = 42;
   a.forEach((e) => print(e));
+
+  listStoredInRecordWithoutAccess[0] = anInt;
+  listStoredInRecordWithIndexAccess[0] = anInt;
+  listStoredInRecordWithNameAccess[0] = anInt;
+  final c = (listStoredInRecordWithoutAccess, listStoredInRecordWithIndexAccess);
+  (c.\$2)[0] = aDouble;
+  final d = (name1: listStoredInRecordWithoutAccess, name2: listStoredInRecordWithNameAccess);
+  (d.name2)[0] = aDouble;
+
+  listStoredInRecordWithDynamicAccess[0] = anInt;
+  dynamic e = (listStoredInRecordWithDynamicAccess,);
+  (e.\$1)[0] = aDouble;
 }
 """;
 }
@@ -193,9 +208,7 @@ void main() {
     // Test literal list.
     await doTest('<dynamic>[]', nullify: false);
     // Test growable list.
-    await doTest('new List<dynamic>()', nullify: false);
-    // Test fixed list.
-    await doTest('new List<dynamic>(1)', nullify: true);
+    await doTest('new List<dynamic>.empty()', nullify: false);
     // Test List.filled.
     await doTest('new List<dynamic>.filled(1, 0)', nullify: false);
     // Test List.filled.
@@ -207,9 +220,11 @@ void main() {
   });
 }
 
-doTest(String allocation, {bool nullify}) async {
+doTest(String allocation, {required bool nullify}) async {
   String source = generateTest(allocation);
-  var result = await runCompiler(memorySourceFiles: {'main.dart': source});
+  var result = await runCompiler(
+      memorySourceFiles: {'main.dart': source},
+      options: [Flags.soundNullSafety]);
   Expect.isTrue(result.isSuccess);
   var compiler = result.compiler;
   var results = compiler.globalInference.resultsForTesting;
@@ -248,9 +263,13 @@ doTest(String allocation, {bool nullify}) async {
   checkType('listPassedAsNamedParameter', commonMasks.numType);
   checkType('listStoredInList', commonMasks.uint31Type);
   checkType('listStoredInListButEscapes', commonMasks.dynamicType);
+  checkType('listStoredInRecordWithIndexAccess', commonMasks.numType);
+  checkType('listStoredInRecordWithNameAccess', commonMasks.numType);
+  checkType('listStoredInRecordWithDynamicAccess', commonMasks.numType);
+  checkType('listStoredInRecordWithoutAccess', commonMasks.uint31Type);
 
   if (!allocation.contains('filled')) {
-    checkType('listUnset', new TypeMask.nonNullEmpty());
-    checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
+    checkType('listUnset', TypeMask.nonNullEmpty());
+    checkType('listOnlySetWithConstraint', TypeMask.nonNullEmpty());
   }
 }

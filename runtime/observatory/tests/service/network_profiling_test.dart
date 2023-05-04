@@ -6,13 +6,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
-import 'dart:isolate';
 
 import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 
-import 'service_test_common.dart';
 import 'test_helper.dart';
 
 const String content = 'some random content';
@@ -41,7 +39,7 @@ Future<void> socketTest() async {
   var server = await io.RawDatagramSocket.bind(localhost, 0);
   server.listen((io.RawSocketEvent event) {
     if (event == io.RawSocketEvent.read) {
-      io.Datagram dg = server.receive()!;
+      server.receive()!;
       if (!doneCompleter.isCompleted) {
         doneCompleter.complete();
       }
@@ -118,7 +116,7 @@ var tests = <IsolateTest>[
       }
     });
 
-    dynamic result = await isolate.invokeRpc("invoke",
+    await isolate.invokeRpc("invoke",
         {"targetId": lib.id, "selector": "socketTest", "argumentIds": []});
     await completer.future;
 
@@ -130,7 +128,7 @@ var tests = <IsolateTest>[
     stats.forEach((socket) {
       expect(socket['address'], contains(localhost));
       Expect.type<int>(socket['startTime']);
-      Expect.type<int>(socket['id']);
+      Expect.type<String>(socket['id']);
       Expect.type<int>(socket['port']);
       if (socket['socketType'] == 'tcp') {
         expect(socket['writeBytes'], content.length);
@@ -166,7 +164,7 @@ var tests = <IsolateTest>[
           completer.complete();
         }
       });
-      dynamic result = await isolate.invokeRpc("invoke",
+      await isolate.invokeRpc("invoke",
           {"targetId": lib.id, "selector": "socketTest", "argumentIds": []});
       await completer.future;
     }
@@ -215,7 +213,7 @@ var tests = <IsolateTest>[
       }
     });
 
-    dynamic result = await isolate.invokeRpc("invoke",
+    await isolate.invokeRpc("invoke",
         {"targetId": lib.id, "selector": "socketTest", "argumentIds": []});
     await completer.future;
 

@@ -55,3 +55,13 @@ out/linux/arm/native_functions.o: native_functions.c | out/linux/arm
 
 out/linux/arm/libnative_functions.so: out/linux/arm/native_functions.o
 	$(CCARM) $(CFLAGS) -s -shared -o $@ out/linux/arm/native_functions.o
+
+# On M1 Machine.
+out/mac/arm64:
+	mkdir -p out/mac/arm64
+
+out/mac/arm64/native_functions.o: native_functions.c | out/mac/arm64
+	$(CC) $(CFLAGS) -c -o $@ native_functions.c
+
+out/mac/arm64/libnative_functions.dylib: out/mac/arm64/native_functions.o
+	$(CC) $(CFLAGS) -s -shared -o $@ out/mac/arm64/native_functions.o

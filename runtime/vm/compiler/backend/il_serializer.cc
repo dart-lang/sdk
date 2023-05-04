@@ -28,6 +28,7 @@ namespace dart {
 FlowGraphSerializer::FlowGraphSerializer(NonStreamingWriteStream* stream)
     : stream_(stream),
       zone_(Thread::Current()->zone()),
+      thread_(Thread::Current()),
       isolate_group_(IsolateGroup::Current()),
       heap_(IsolateGroup::Current()->heap()) {}
 
@@ -555,12 +556,12 @@ void FlowGraphSerializer::WriteRefTrait<Definition*>::WriteRef(
     FlowGraphSerializer* s,
     Definition* x) {
   if (!x->HasSSATemp()) {
-    if (auto* push_arg = x->AsPushArgument()) {
-      // Environments of the calls can reference PushArgument instructions
+    if (auto* move_arg = x->AsMoveArgument()) {
+      // Environments of the calls can reference MoveArgument instructions
       // and they don't have SSA temps.
       // Write a reference to the original definition.
-      // When reading it is restored using RepairPushArgsInEnvironment.
-      x = push_arg->value()->definition();
+      // When reading it is restored using RepairArgumentUsesInEnvironment.
+      x = move_arg->value()->definition();
     } else {
       UNREACHABLE();
     }
@@ -925,8 +926,7 @@ const Function& FlowGraphDeserializer::ReadTrait<const Function&>::Read(
         const Instance& exceptional_return = d->Read<const Instance&>();
         return Function::ZoneHandle(
             zone, compiler::ffi::NativeCallbackFunction(
-                      c_signature, callback_target, exceptional_return,
-                      /*register_function=*/true));
+                      c_signature, callback_target, exceptional_return));
       } else {
         const String& name = d->Read<const String&>();
         const FunctionType& signature = d->Read<const FunctionType&>();
@@ -1252,7 +1252,9 @@ void Location::Write(FlowGraphSerializer* s) const {
 Location Location::Read(FlowGraphDeserializer* d) {
   const uword value = d->Read<uword>();
   if (value == kPairLocationTag) {
-    return Location::Pair(Location::Read(d), Location::Read(d));
+    const Location first = Location::Read(d);
+    const Location second = Location::Read(d);
+    return Location::Pair(first, second);
   } else if ((value & kConstantTag) == kConstantTag) {
     ConstantInstr* instr = d->ReadRef<Definition*>()->AsConstant();
     ASSERT(instr != nullptr);
@@ -1367,18 +1369,22 @@ template <>
 void FlowGraphSerializer::WriteTrait<MoveOperands*>::Write(
     FlowGraphSerializer* s,
     MoveOperands* x) {
-  ASSERT(x != nullptr);
-  x->src().Write(s);
-  x->dest().Write(s);
+  x->Write(s);
 }
 
 template <>
 MoveOperands* FlowGraphDeserializer::ReadTrait<MoveOperands*>::Read(
     FlowGraphDeserializer* d) {
-  Location src = Location::Read(d);
-  Location dest = Location::Read(d);
-  return new (d->zone()) MoveOperands(dest, src);
+  return new (d->zone()) MoveOperands(d);
 }
+
+void MoveOperands::Write(FlowGraphSerializer* s) const {
+  dest().Write(s);
+  src().Write(s);
+}
+
+MoveOperands::MoveOperands(FlowGraphDeserializer* d)
+    : dest_(Location::Read(d)), src_(Location::Read(d)) {}
 
 template <>
 void FlowGraphSerializer::
@@ -1601,11 +1607,9 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
     case kRecordCid: {
       ASSERT(x.IsCanonical());
       const auto& record = Record::Cast(x);
-      const intptr_t num_fields = record.num_fields();
-      Write<intptr_t>(num_fields);
-      Write<const Array&>(Array::Handle(Z, record.field_names()));
+      Write<RecordShape>(record.shape());
       auto& field = Object::Handle(Z);
-      for (intptr_t i = 0; i < num_fields; ++i) {
+      for (intptr_t i = 0, n = record.num_fields(); i < n; ++i) {
         field = record.FieldAt(i);
         Write<const Object&>(field);
       }
@@ -1616,16 +1620,18 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       ASSERT(rec.IsFinalized());
       TypeScope type_scope(this, rec.IsRecursive());
       Write<int8_t>(static_cast<int8_t>(rec.nullability()));
-      Write<const Array&>(Array::Handle(Z, rec.field_names()));
+      Write<RecordShape>(rec.shape());
       Write<const Array&>(Array::Handle(Z, rec.field_types()));
       Write<bool>(type_scope.CanBeCanonicalized());
       break;
     }
     case kSentinelCid:
       if (x.ptr() == Object::sentinel().ptr()) {
-        Write<bool>(true);
+        Write<uint8_t>(0);
       } else if (x.ptr() == Object::transition_sentinel().ptr()) {
-        Write<bool>(false);
+        Write<uint8_t>(1);
+      } else if (x.ptr() == Object::optimized_out().ptr()) {
+        Write<uint8_t>(2);
       } else {
         UNIMPLEMENTED();
       }
@@ -1882,11 +1888,9 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
                                 Symbols::FromLatin1(thread(), latin1, length));
     }
     case kRecordCid: {
-      const intptr_t num_fields = Read<intptr_t>();
-      const auto& field_names = Read<const Array&>();
-      auto& record =
-          Record::ZoneHandle(Z, Record::New(num_fields, field_names));
-      for (intptr_t i = 0; i < num_fields; ++i) {
+      const RecordShape shape = Read<RecordShape>();
+      auto& record = Record::ZoneHandle(Z, Record::New(shape));
+      for (intptr_t i = 0, n = shape.num_fields(); i < n; ++i) {
         record.SetFieldAt(i, Read<const Object&>());
       }
       record ^= record.Canonicalize(thread());
@@ -1894,16 +1898,25 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
     }
     case kRecordTypeCid: {
       const Nullability nullability = static_cast<Nullability>(Read<int8_t>());
-      const Array& field_names = Read<const Array&>();
+      const RecordShape shape = Read<RecordShape>();
       const Array& field_types = Read<const Array&>();
       RecordType& rec = RecordType::ZoneHandle(
-          Z, RecordType::New(field_types, field_names, nullability));
+          Z, RecordType::New(shape, field_types, nullability));
       rec.SetIsFinalized();
       rec ^= MaybeCanonicalize(rec, object_index, Read<bool>());
       return rec;
     }
     case kSentinelCid:
-      return Read<bool>() ? Object::sentinel() : Object::transition_sentinel();
+      switch (Read<uint8_t>()) {
+        case 0:
+          return Object::sentinel();
+        case 1:
+          return Object::transition_sentinel();
+        case 2:
+          return Object::optimized_out();
+        default:
+          UNREACHABLE();
+      }
     case kSmiCid:
       return Smi::ZoneHandle(Z, Smi::New(Read<intptr_t>()));
     case kTwoByteStringCid: {
@@ -2074,11 +2087,13 @@ OsrEntryInstr::OsrEntryInstr(FlowGraphDeserializer* d)
 void ParallelMoveInstr::WriteExtra(FlowGraphSerializer* s) {
   Instruction::WriteExtra(s);
   s->Write<GrowableArray<MoveOperands*>>(moves_);
+  s->Write<const MoveSchedule*>(move_schedule_);
 }
 
 void ParallelMoveInstr::ReadExtra(FlowGraphDeserializer* d) {
   Instruction::ReadExtra(d);
   moves_ = d->Read<GrowableArray<MoveOperands*>>();
+  move_schedule_ = d->Read<const MoveSchedule*>();
 }
 
 void PhiInstr::WriteTo(FlowGraphSerializer* s) {
@@ -2133,6 +2148,22 @@ RangeBoundary::RangeBoundary(FlowGraphDeserializer* d)
     : kind_(static_cast<Kind>(d->Read<int8_t>())),
       value_(d->Read<int64_t>()),
       offset_(d->Read<int64_t>()) {}
+
+template <>
+void FlowGraphSerializer::WriteTrait<RecordShape>::Write(FlowGraphSerializer* s,
+                                                         RecordShape x) {
+  s->Write<intptr_t>(x.num_fields());
+  s->Write<const Array&>(
+      Array::Handle(s->zone(), x.GetFieldNames(s->thread())));
+}
+
+template <>
+RecordShape FlowGraphDeserializer::ReadTrait<RecordShape>::Read(
+    FlowGraphDeserializer* d) {
+  const intptr_t num_fields = d->Read<intptr_t>();
+  const auto& field_names = d->Read<const Array&>();
+  return RecordShape::Register(d->thread(), num_fields, field_names);
+}
 
 void RegisterSet::Write(FlowGraphSerializer* s) const {
   s->Write<uintptr_t>(cpu_registers_.data());
@@ -2315,21 +2346,21 @@ void SpecialParameterInstr::ReadExtra(FlowGraphDeserializer* d) {
 template <intptr_t kExtraInputs>
 void TemplateDartCall<kExtraInputs>::WriteExtra(FlowGraphSerializer* s) {
   VariadicDefinition::WriteExtra(s);
-  if (push_arguments_ == nullptr) {
+  if (move_arguments_ == nullptr) {
     s->Write<intptr_t>(-1);
   } else {
-    s->Write<intptr_t>(push_arguments_->length());
+    s->Write<intptr_t>(move_arguments_->length());
 #if defined(DEBUG)
-    // Verify that PushArgument instructions are inserted immediately
+    // Verify that MoveArgument instructions are inserted immediately
     // before this instruction. ReadExtra below relies on
-    // that when restoring push_arguments_.
+    // that when restoring move_arguments_.
     Instruction* instr = this;
-    for (intptr_t i = push_arguments_->length() - 1; i >= 0; --i) {
+    for (intptr_t i = move_arguments_->length() - 1; i >= 0; --i) {
       do {
         instr = instr->previous();
         ASSERT(instr != nullptr);
-      } while (!instr->IsPushArgument());
-      ASSERT(instr == (*push_arguments_)[i]);
+      } while (!instr->IsMoveArgument());
+      ASSERT(instr == (*move_arguments_)[i]);
     }
 #endif
   }
@@ -2338,21 +2369,21 @@ void TemplateDartCall<kExtraInputs>::WriteExtra(FlowGraphSerializer* s) {
 template <intptr_t kExtraInputs>
 void TemplateDartCall<kExtraInputs>::ReadExtra(FlowGraphDeserializer* d) {
   VariadicDefinition::ReadExtra(d);
-  const intptr_t num_push_args = d->Read<intptr_t>();
-  if (num_push_args >= 0) {
-    push_arguments_ =
-        new (d->zone()) PushArgumentsArray(d->zone(), num_push_args);
-    push_arguments_->EnsureLength(num_push_args, nullptr);
+  const intptr_t num_move_args = d->Read<intptr_t>();
+  if (num_move_args >= 0) {
+    move_arguments_ =
+        new (d->zone()) MoveArgumentsArray(d->zone(), num_move_args);
+    move_arguments_->EnsureLength(num_move_args, nullptr);
     Instruction* instr = this;
-    for (int i = num_push_args - 1; i >= 0; --i) {
+    for (int i = num_move_args - 1; i >= 0; --i) {
       do {
         instr = instr->previous();
         ASSERT(instr != nullptr);
-      } while (!instr->IsPushArgument());
-      (*push_arguments_)[i] = instr->AsPushArgument();
+      } while (!instr->IsMoveArgument());
+      (*move_arguments_)[i] = instr->AsMoveArgument();
     }
     if (env() != nullptr) {
-      RepairPushArgsInEnvironment();
+      RepairArgumentUsesInEnvironment();
     }
   }
 }

@@ -20,9 +20,9 @@ class Class3<T> implements Class1 {
 }
 
 main() {
-  Class1 cls1 = new Class1();
+  Class1 cls1 = Class1();
   makeLive(cls1.runtimeType.toString());
-  new Class2<int>();
-  Class1 cls3 = new Class3<int>();
+  Class2<int>();
+  Class1 cls3 = Class3<int>();
   makeLive(cls3.runtimeType.toString());
 }

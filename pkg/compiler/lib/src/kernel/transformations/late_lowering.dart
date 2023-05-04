@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
@@ -231,7 +229,8 @@ class LateLowering {
         initializer:
             _callCellConstructor(_nameLiteral(name, fileOffset), fileOffset),
         type: InterfaceType(_coreTypes.cellClass, nonNullable),
-        isFinal: true)
+        isFinal: true,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
 
     return _addToCurrentScope(variable, cell);
@@ -257,7 +256,8 @@ class LateLowering {
             _initializerClosure(variable.initializer!, variable.type),
             fileOffset),
         type: InterfaceType(_coreTypes.initializedCellClass, nonNullable),
-        isFinal: true)
+        isFinal: true,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     return _addToCurrentScope(variable, cell);
   }
@@ -351,8 +351,9 @@ class LateLowering {
         ..fileOffset = fileOffset
         ..isNonNullableByDefault = true;
 
-      VariableDeclaration setterValue = VariableDeclaration('value', type: type)
-        ..fileOffset = fileOffset;
+      VariableDeclaration setterValue =
+          VariableDeclaration('value', type: type, isSynthesized: true)
+            ..fileOffset = fileOffset;
       VariableGet setterValueRead() =>
           VariableGet(setterValue)..fileOffset = fileOffset;
 
@@ -458,12 +459,15 @@ class LateLowering {
         //   }
         //   return value;
         // }
-        VariableDeclaration value =
-            VariableDeclaration('value', initializer: fieldRead(), type: type)
-              ..fileOffset = fileOffset;
+        VariableDeclaration value = VariableDeclaration('value',
+            initializer: fieldRead(), type: type, isSynthesized: true)
+          ..fileOffset = fileOffset;
         VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
         VariableDeclaration result = VariableDeclaration('result',
-            initializer: initializer, type: type, isFinal: true)
+            initializer: initializer,
+            type: type,
+            isFinal: true,
+            isSynthesized: true)
           ..fileOffset = fileOffset;
         VariableGet resultRead() =>
             VariableGet(result)..fileOffset = fileOffset;
@@ -512,9 +516,9 @@ class LateLowering {
         //
         // This lowering avoids generating an extra narrowing node in inference,
         // but the generated code is worse due to poor register allocation.
-        VariableDeclaration value =
-            VariableDeclaration('value', initializer: fieldRead(), type: type)
-              ..fileOffset = fileOffset;
+        VariableDeclaration value = VariableDeclaration('value',
+            initializer: fieldRead(), type: type, isSynthesized: true)
+          ..fileOffset = fileOffset;
         VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
         return Block([
           value,
@@ -543,8 +547,9 @@ class LateLowering {
     _copyAnnotations(getter, field);
     enclosingClass.addProcedure(getter);
 
-    VariableDeclaration setterValue = VariableDeclaration('value', type: type)
-      ..fileOffset = fileOffset;
+    VariableDeclaration setterValue =
+        VariableDeclaration('value', type: type, isSynthesized: true)
+          ..fileOffset = fileOffset;
     VariableGet setterValueRead() =>
         VariableGet(setterValue)..fileOffset = fileOffset;
 

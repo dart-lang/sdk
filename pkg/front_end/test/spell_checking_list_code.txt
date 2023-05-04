@@ -27,6 +27,7 @@ actively
 adequate
 adi
 adjusts
+adoption
 advantage
 affecting
 affords
@@ -60,6 +61,8 @@ apis
 app
 apparently
 applicable
+approximation
+architectures
 arg
 args
 arise
@@ -117,14 +120,13 @@ became
 beforehand
 behave
 believe
-bellow
 belonging
-beloning
 benchmark
 benchmarked
 benchmarker
 benchmarking
 benchmarks
+beta
 bf
 bi
 bias
@@ -160,16 +162,19 @@ brevity
 brianwilkerson
 bridge
 bridges
+brute
 bs
 bsd
 bslash
 buffered
+buffers
 buggy
 builder`s
 bulk
 bump
 bypassing
 c
+cacheable
 caches
 calculations
 callbacks
@@ -179,12 +184,12 @@ callers
 callsite
 came
 canonicalizer
+canonicalizing
 cant
 cardinality
 caret
 carets
 carriage
-carring
 cascades
 casing
 cast
@@ -214,8 +219,10 @@ clamp
 clamped
 clarification
 clarify
+clash
 clashes
 class's
+clause's
 clazz
 cli
 client's
@@ -229,9 +236,12 @@ co
 codebase
 codec
 codes
+collides
 collision
 coloring
 colorized
+column's
+columns
 com
 combinations
 combinator
@@ -248,6 +258,7 @@ complement
 complementary
 completers
 completes
+complicated
 complicating
 component's
 comprehensive
@@ -256,9 +267,11 @@ compression
 comprise
 concat
 concatenate
+concept
 conceptual
 concerned
 conciser
+conclusions
 cond
 condensed
 config
@@ -275,14 +288,17 @@ constraining
 consult
 consulted
 consumers
+consumption
 container
 containers
+contextually
 continuations
 contra
 contribute
 conveniently
 convention
 conversely
+converter
 coordinated
 coordinating
 core
@@ -292,6 +308,7 @@ corrected
 corrections
 cosmetic
 costly
+counted
 counters
 covariances
 coverage
@@ -351,6 +368,7 @@ delimiting
 demands
 demangle
 demangled
+demonstrated
 dep
 depended
 dependency's
@@ -358,6 +376,7 @@ deps
 dereferencing
 deregister
 descent
+descriptive
 deserializer
 deserializers
 deserializes
@@ -396,11 +415,13 @@ disambiguator
 discovers
 discussion
 disjoint
+disjointness
 dispatched
 distribute
 diverged
 divided
 divides
+dividing
 dm
 doc
 docs
@@ -413,6 +434,7 @@ downloaded
 downloading
 dq
 dquote
+drawn
 dsdk
 dst
 dummy
@@ -420,6 +442,7 @@ dupdate
 dyn
 dynamically
 e
+eager
 easy
 eb
 ecma
@@ -459,8 +482,10 @@ enumerates
 env
 eof
 eq
+equally
 equation
 equivalences
+equivalently
 erase
 erased
 es
@@ -468,7 +493,10 @@ escalate
 establish
 established
 establishes
+establishing
 estimate
+estimated
+estimation
 et
 eval
 evar
@@ -476,6 +504,7 @@ exchanging
 execute
 executor
 executors
+exhaust
 exhausted
 exhaustively
 exhaustiveness
@@ -547,6 +576,7 @@ fo
 foo
 foobar
 footer
+forcefully
 forcing
 foreign
 formed
@@ -564,6 +594,7 @@ fs
 fsource
 fue
 fuller
+func
 function's
 fuse
 futured
@@ -571,6 +602,7 @@ futureor
 fvar
 g
 gardening
+garner
 gb
 gen
 generation
@@ -597,6 +629,7 @@ granted
 graphs
 grouper
 growability
+growth
 gt
 guarantee
 guarded
@@ -623,6 +656,7 @@ height
 hello
 helpful
 helps
+heuristics
 hfs
 highlight
 highlighting
@@ -640,8 +674,10 @@ href
 html
 https
 human
+hvar
 i
 i'll
+i'm
 ic
 id
 ideal
@@ -689,6 +725,8 @@ inferable
 influence
 informative
 infos
+inhabit
+inhabits
 inhibit
 init
 initializations
@@ -716,6 +754,7 @@ intermediate
 internet
 interop
 interpolations
+interpretation
 interrupted
 intersections
 intersects
@@ -790,6 +829,7 @@ leeway
 left's
 legitimately
 len
+lengths
 lets
 letting
 levels
@@ -800,6 +840,7 @@ lhs
 lib
 libs
 lifetime
+lift
 lifted
 lifter
 limiting
@@ -835,6 +876,7 @@ lx
 ly
 lz
 m
+machinery
 macos
 macro
 macros
@@ -867,6 +909,7 @@ mi
 migrated
 migration
 mime
+mimic
 min
 mini
 misuse
@@ -875,6 +918,7 @@ mk
 mm
 mn
 mockito
+modelled
 modelling
 momentarily
 monomorphic
@@ -930,12 +974,14 @@ nullification
 nullify
 nullness
 nulls
+numeral
 o
 oauth
 obj
 obligated
 observatory
 observe
+obsolete
 obstruct
 obtaining
 occasionally
@@ -964,6 +1010,12 @@ ourselves
 outlined
 outputs
 outputting
+ovar
+overapproximate
+overapproximates
+overapproximation
+overestimate
+overhead
 overlap
 overlapping
 overlaps
@@ -993,6 +1045,7 @@ partof
 patchup
 path
 pattern's
+patterned
 patterns
 paulberry
 pay
@@ -1010,6 +1063,7 @@ pertinent
 physically
 pi
 picking
+pieces
 pipe
 pkg
 play
@@ -1042,6 +1096,7 @@ preexisted
 preexisting
 preferably
 prefixing
+preliminary
 premark
 preorder
 prepares
@@ -1059,6 +1114,7 @@ printf
 println
 prioritization
 proc
+proceeds
 processes
 processor
 producers
@@ -1078,8 +1134,12 @@ proposed
 proto
 protobuf
 protocol
+prototype's
+prove
+proven
 provider
 provisional
+prune
 ps
 pulled
 pure
@@ -1125,7 +1185,9 @@ react
 realign
 realise
 reapplies
+reasonably
 reassigned
+reassigns
 rebased
 rebasing
 rebind
@@ -1156,6 +1218,7 @@ redefine
 redirectee
 redirector
 redo
+reevaluation
 reexports
 ref
 refactoring
@@ -1212,6 +1275,7 @@ response
 responses
 restoring
 restriction
+restricts
 resumed
 ret
 reusage
@@ -1236,6 +1300,9 @@ rough
 roughly
 rounding
 roundtrip
+row
+row's
+rows
 rparen
 rpc
 rs
@@ -1251,7 +1318,9 @@ say
 saying
 sb
 sc
+scale
 scc
+scenarios
 scheglov
 scoped
 scoping
@@ -1289,6 +1358,7 @@ shares
 shas
 shelf
 shifts
+ship
 shl
 shortening
 showing
@@ -1306,6 +1376,7 @@ sides
 sigmund
 signaling
 significant
+simplifier
 simplify
 singleton
 sinker
@@ -1318,6 +1389,7 @@ sk
 sky
 slash
 slb
+slipped
 slots
 slowing
 smi
@@ -1345,6 +1417,7 @@ speeding
 spend
 spent
 spin
+splitting
 spuriously
 sq
 sra
@@ -1363,6 +1436,7 @@ starter
 stated
 statics
 stats
+stay
 stderr
 stdin
 stdio
@@ -1399,6 +1473,7 @@ subname
 subnode
 subnodes
 subpatterns
+subproperties
 subscription
 subsection
 subsections
@@ -1413,6 +1488,7 @@ subtracted
 subtracting
 subtraction
 subtracts
+suffixed
 suffixing
 suggests
 suite
@@ -1427,7 +1503,9 @@ supernode
 supers
 suppose
 surprising
+surrounded
 suspended
+svar
 svg
 sw
 swapped
@@ -1437,6 +1515,7 @@ symbolic
 synchronously
 syncs
 synth
+systematic
 t
 tagged
 tagger
@@ -1503,12 +1582,14 @@ tput
 traced
 tracker
 traditional
+transfer
 transferable
 transformers
 transforming
 translation
 traversal
 traverse
+traversing
 trees
 tricky
 triggering
@@ -1532,13 +1613,16 @@ unaligned
 unaltered
 unavailable
 unbound
+uncached
 uncategorized
 uncomment
 uncommon
+unconditional
 unconditionally
 unconstrained
 undeclare
 undeferred
+underestimate
 undergo
 undermine
 undo
@@ -1564,14 +1648,17 @@ uninhabited
 uninstantiable
 uninstantiated
 unintentionally
+uniquely
 uniqueness
 unittest
 universally
+unlikely
 unlinked
 unlower
 unmark
 unneeded
 unordered
+unpacks
 unpaired
 unparenthesized
 unparsed
@@ -1582,6 +1669,7 @@ unreachable
 unregister
 unregistered
 unregisters
+unrestricted
 unreversed
 unseen
 unset
@@ -1591,6 +1679,7 @@ unsound
 unsubstituted
 untouched
 unusual
+unvisited
 unwrapper
 unwraps
 unwritten
@@ -1609,7 +1698,9 @@ usually
 util
 utils
 v
+validates
 validly
+value's
 variable's
 variances
 variant
@@ -1662,9 +1753,13 @@ widgets
 wiki
 wikipedia
 wind
+winds
 wise
 wiser
+wishes
+witness
 wn
+worst
 worthwhile
 worthy
 woven
@@ -1711,6 +1806,7 @@ yaml
 yb
 yet
 yi
+yielded
 yielding
 yields
 yn
@@ -1721,6 +1817,7 @@ ys
 yss
 z
 zb
+zeros
 zi
 zip
 zipped

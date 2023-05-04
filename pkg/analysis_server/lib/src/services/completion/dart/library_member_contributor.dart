@@ -7,6 +7,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A contributor that produces suggestions based on the members of a library
 /// when the library was imported using a prefix. More concretely, this class
@@ -16,7 +17,9 @@ class LibraryMemberContributor extends DartCompletionContributor {
   LibraryMemberContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     // Determine if the target looks like a library prefix.
     var targetId = request.target.dotTarget;
     if (targetId is SimpleIdentifier && !request.target.isCascade) {

@@ -3,13 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
 import '../../../lsp/code_actions_abstract.dart';
+import '../../../utils/test_code_extensions.dart';
 
 abstract class RefactoringTest extends AbstractCodeActionsTest {
   /// Position of the marker where the refactor will be invoked.
-  late Position _position;
+  Position? _position;
+
+  /// The range of characters that were selected.
+  Range? _range;
 
   /// A map of file paths to their current content.
   ///
@@ -22,14 +27,22 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   String get refactoringName;
 
   void addSource(String filePath, String code) {
-    content[filePath] = code;
-    newFile(filePath, code);
+    var file = newFile(filePath, code);
+    content[file.path] = code;
   }
 
   void addTestSource(String markedCode) {
-    _position = positionFromMarker(markedCode);
-    final code = withoutMarkers(markedCode);
-    addSource(mainFilePath, code);
+    var testCode = TestCode.parse(markedCode);
+    var positions = testCode.positions;
+    if (positions.isNotEmpty) {
+      _position = positions[0].position;
+    } else {
+      var ranges = testCode.ranges;
+      if (ranges.isNotEmpty) {
+        _range = ranges[0].range;
+      }
+    }
+    addSource(mainFilePath, testCode.code);
   }
 
   /// Finds and executes the refactor with [title], updating [content] with
@@ -50,18 +63,19 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
     return action!;
   }
 
-  /// Expects to find a refactor [CodeAction] in [mainFileUri] at the offset of
-  /// the marker with the title [title].
-  Future<void> expectNoCodeAction(String title) async {
+  /// Expects to not find a refactor [CodeAction] in [mainFileUri] at the offset
+  /// of the marker with the title [title].
+  Future<void> expectNoCodeAction(String? title) async {
     expect(await getCodeAction(title), isNull);
   }
 
   /// Attempts to find a refactor [CodeAction] in [mainFileUri] at the offset of
   /// the marker with the title [title].
-  Future<CodeAction?> getCodeAction(String title) async {
+  Future<CodeAction?> getCodeAction(String? title) async {
     final codeActions = await getCodeActions(
       mainFileUri,
       position: _position,
+      range: _range,
       kinds: const [CodeActionKind.Refactor],
     );
     final commandOrCodeAction =
@@ -101,7 +115,7 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
     bool applyEditSupport = true,
   }) async {
     final config = {
-      if (experimentalOptInFlag) 'experimentalNewRefactors': true,
+      if (experimentalOptInFlag) 'experimentalRefactors': true,
     };
     final experimentalCapabilities = {
       if (commandParameterSupportedKinds != null)

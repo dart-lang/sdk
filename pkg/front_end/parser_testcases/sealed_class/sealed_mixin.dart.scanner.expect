@@ -1,3 +1,0 @@
-sealed mixin M {}
-
-sealed[StringToken] mixin[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken][SimpleToken]

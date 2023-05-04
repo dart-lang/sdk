@@ -129,9 +129,7 @@ class Super extends core::Object {
   method extendedMethod() → core::num
     ;
 }
-class Mixin extends core::Object {
-  synthetic constructor •() → self::Mixin
-    ;
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method mixedInMethod() → core::num
     ;
 }
@@ -193,10 +191,10 @@ class ClassImplementsWithNoSuchMethod extends core::Object implements self::Inte
   @core::override
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
-  no-such-method-forwarder method mixedInMethod() → core::int
-    return this.{self::ClassImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#mixedInMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
   no-such-method-forwarder method extendedMethod() → core::int
     return this.{self::ClassImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#extendedMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder method mixedInMethod() → core::int
+    return this.{self::ClassImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#mixedInMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
 }
 abstract class _ClassDeclaresExtends&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_ClassDeclaresExtends&Super&Mixin
@@ -245,11 +243,11 @@ static method main() → dynamic
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///inherited_implements.dart:28:4 -> InstanceConstant(const _Override{})
 Evaluated: StaticGet @ org-dartlang-testcase:///inherited_implements.dart:37:4 -> InstanceConstant(const _Override{})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///inherited_implements.dart:36:7 -> SymbolConstant(#mixedInMethod)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///inherited_implements.dart:36:7 -> SymbolConstant(#extendedMethod)
 Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_implements.dart:36:7 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_implements.dart:36:7 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///inherited_implements.dart:36:7 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///inherited_implements.dart:36:7 -> SymbolConstant(#extendedMethod)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///inherited_implements.dart:36:7 -> SymbolConstant(#mixedInMethod)
 Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_implements.dart:36:7 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_implements.dart:36:7 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///inherited_implements.dart:36:7 -> MapConstant(const <Symbol*, dynamic>{})

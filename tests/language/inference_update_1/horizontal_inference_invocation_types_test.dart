@@ -4,8 +4,6 @@
 
 // Tests horizontal inference for a variety of types of invocations.
 
-// SharedOptions=--enable-experiment=inference-update-1
-
 import '../static_type_helper.dart';
 
 testFunctionExpressionInvocation() {

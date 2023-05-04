@@ -53,7 +53,7 @@ void testOperations() {
 
   void testList(List list) {
     var throws = const ThrowMarker();
-    var mappedList = new List<int>(list.length);
+    var mappedList = new List<int>.filled(list.length, null);
     for (int i = 0; i < list.length; i++) {
       mappedList[i] = rev(list[i]);
     }

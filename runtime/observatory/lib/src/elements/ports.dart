@@ -10,7 +10,6 @@ import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -43,12 +42,6 @@ class PortsElement extends CustomElement implements Renderable {
       M.PortsRepository ports,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(ports != null);
-    assert(objects != null);
     PortsElement e = new PortsElement.created();
     e._r = new RenderingScheduler<PortsElement>(e, queue: queue);
     e._vm = vm;

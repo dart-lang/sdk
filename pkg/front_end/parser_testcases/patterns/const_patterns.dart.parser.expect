@@ -1,0 +1,241 @@
+NOTICE: Stream was rewritten by parser!
+
+import 'const_patterns.dart' as prefix;
+
+const int value = 42;
+
+void func() {}
+
+class Class {
+const Class([a]);
+
+const Class.named();
+
+call() {}
+
+test(o) async {
+const dynamic local = 0;
+dynamic variable = 0;
+switch (o) {
+case true:
+case null:
+case this:
+case this():
+case super():
+case 42:
+case -42:
+case 42.5:
+case -42.5:
+case 'foo':
+case 'foo' 'bar':
+case value:
+case value!:
+case value?:
+case value as int:
+case -value:
+case local:
+case -local:
+case func:
+case prefix.value:
+case -prefix.value:
+case prefix.Class.named:
+case 1 + 2:
+case 1 * 2:
+case void fun:() {};*synthetic*;:
+case assert(false):
+case switch (o) { _ => true }:
+case await 0:
+case !false:
+case ~0:
+case ++variable:
+case const 0:
+case const 0x0:
+case const 0.5:
+case const true:
+case const null:
+case const -0:
+case const 'foo':
+case const #a:
+case const value:
+case const local:
+case const prefix.value:
+case const -prefix.value:
+case const prefix.Class.named:
+case const 1 + 2:
+case const void fun() {}:
+case const assert(false):
+case const switch (o) { _ => true }:
+case const await 0:
+case const !false:
+case const ~0:
+case const ++variable:
+case const Class():
+case const Class(0):
+case const GenericClass():
+case const GenericClass(a: 0):
+case const GenericClass<int>():
+case const GenericClass<int>(a: 0):
+case const GenericClass<int>.new():
+case const GenericClass<int>.new(a: 1):
+case const []:
+case const <int>[]:
+case const {}:
+case const <int, String>{}:
+case const const Class():
+case const const Class(0):
+case const const GenericClass():
+case const const GenericClass(a: 0):
+case const const GenericClass<int>():
+case const const GenericClass<int>(a: 0):
+case const const []:
+case const const <int>[]:
+case const const {}:
+case const const <int, String>{}:
+case const new Class():
+case new Class():
+case const ():
+case const const ():
+case const (1):
+case const (-1):
+case const (value):
+case const (-value):
+case const (1 + 2):
+case GenericClass<int>:
+case prefix.GenericClass<int>:
+case GenericClass<int>.new:
+case prefix.GenericClass<int>.new:
+case const GenericClass<int>:
+case const prefix.GenericClass<int>:
+case const (GenericClass<int>):
+case const (prefix.GenericClass<int>):
+case const (GenericClass<int>.new):
+case const (prefix.GenericClass<int>.new):
+print(0);
+}
+}
+}
+
+class GenericClass<T> {
+const GenericClass({a});
+}
+
+
+import[KeywordToken] 'const_patterns.dart'[StringToken] as[KeywordToken] prefix[StringToken];[SimpleToken]
+
+const[KeywordToken] int[StringToken] value[StringToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+
+void[KeywordToken] func[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+class[KeywordToken] Class[StringToken] {[BeginToken]
+const[KeywordToken] Class[StringToken]([BeginToken][[BeginToken]a[StringToken]][SimpleToken])[SimpleToken];[SimpleToken]
+
+const[KeywordToken] Class[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+call[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+test[StringToken]([BeginToken]o[StringToken])[SimpleToken] async[KeywordToken] {[BeginToken]
+const[KeywordToken] dynamic[KeywordToken] local[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+dynamic[KeywordToken] variable[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+switch[KeywordToken] ([BeginToken]o[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] true[KeywordToken]:[SimpleToken]
+case[KeywordToken] null[KeywordToken]:[SimpleToken]
+case[KeywordToken] this[KeywordToken]:[SimpleToken]
+case[KeywordToken] this[KeywordToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] super[KeywordToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] 42[StringToken]:[SimpleToken]
+case[KeywordToken] -[SimpleToken]42[StringToken]:[SimpleToken]
+case[KeywordToken] 42.5[StringToken]:[SimpleToken]
+case[KeywordToken] -[SimpleToken]42.5[StringToken]:[SimpleToken]
+case[KeywordToken] 'foo'[StringToken]:[SimpleToken]
+case[KeywordToken] 'foo'[StringToken] 'bar'[StringToken]:[SimpleToken]
+case[KeywordToken] value[StringToken]:[SimpleToken]
+case[KeywordToken] value[StringToken]![SimpleToken]:[SimpleToken]
+case[KeywordToken] value[StringToken]?[SimpleToken]:[SimpleToken]
+case[KeywordToken] value[StringToken] as[KeywordToken] int[StringToken]:[SimpleToken]
+case[KeywordToken] -[SimpleToken]value[StringToken]:[SimpleToken]
+case[KeywordToken] local[StringToken]:[SimpleToken]
+case[KeywordToken] -[SimpleToken]local[StringToken]:[SimpleToken]
+case[KeywordToken] func[StringToken]:[SimpleToken]
+case[KeywordToken] prefix[StringToken].[SimpleToken]value[StringToken]:[SimpleToken]
+case[KeywordToken] -[SimpleToken]prefix[StringToken].[SimpleToken]value[StringToken]:[SimpleToken]
+case[KeywordToken] prefix[StringToken].[SimpleToken]Class[StringToken].[SimpleToken]named[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] +[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] 1[StringToken] *[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] void[KeywordToken] fun[StringToken]:[SyntheticToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken]:[SimpleToken]
+case[KeywordToken] assert[KeywordToken]([BeginToken]false[KeywordToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] switch[KeywordToken] ([BeginToken]o[StringToken])[SimpleToken] {[BeginToken] _[StringToken] =>[SimpleToken] true[KeywordToken] }[SimpleToken]:[SimpleToken]
+case[KeywordToken] await[KeywordToken] 0[StringToken]:[SimpleToken]
+case[KeywordToken] ![SimpleToken]false[KeywordToken]:[SimpleToken]
+case[KeywordToken] ~[SimpleToken]0[StringToken]:[SimpleToken]
+case[KeywordToken] ++[SimpleToken]variable[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 0[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 0x0[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 0.5[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] true[KeywordToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] null[KeywordToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] -[SimpleToken]0[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 'foo'[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] #[SimpleToken]a[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] value[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] local[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] prefix[StringToken].[SimpleToken]value[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] -[SimpleToken]prefix[StringToken].[SimpleToken]value[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] prefix[StringToken].[SimpleToken]Class[StringToken].[SimpleToken]named[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] 1[StringToken] +[SimpleToken] 2[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] void[KeywordToken] fun[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] assert[KeywordToken]([BeginToken]false[KeywordToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] switch[KeywordToken] ([BeginToken]o[StringToken])[SimpleToken] {[BeginToken] _[StringToken] =>[SimpleToken] true[KeywordToken] }[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] await[KeywordToken] 0[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ![SimpleToken]false[KeywordToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ~[SimpleToken]0[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ++[SimpleToken]variable[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] Class[StringToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] Class[StringToken]([BeginToken]0[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] GenericClass[StringToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] GenericClass[StringToken]([BeginToken]a[StringToken]:[SimpleToken] 0[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]a[StringToken]:[SimpleToken] 0[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[StringToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[StringToken]([BeginToken]a[StringToken]:[SimpleToken] 1[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] [[BeginToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] <[BeginToken]int[StringToken]>[SimpleToken][[BeginToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] {[BeginToken]}[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] <[BeginToken]int[StringToken],[SimpleToken] String[StringToken]>[SimpleToken]{[BeginToken]}[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] const[KeywordToken] Class[StringToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] const[KeywordToken] Class[StringToken]([BeginToken]0[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] const[KeywordToken] GenericClass[StringToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] const[KeywordToken] GenericClass[StringToken]([BeginToken]a[StringToken]:[SimpleToken] 0[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] const[KeywordToken] GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] const[KeywordToken] GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]a[StringToken]:[SimpleToken] 0[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] const[KeywordToken] [[BeginToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] const[KeywordToken] <[BeginToken]int[StringToken]>[SimpleToken][[BeginToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] const[KeywordToken] {[BeginToken]}[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] const[KeywordToken] <[BeginToken]int[StringToken],[SimpleToken] String[StringToken]>[SimpleToken]{[BeginToken]}[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] new[KeywordToken] Class[StringToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] new[KeywordToken] Class[StringToken]([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] const[KeywordToken] ([BeginToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]-[SimpleToken]1[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]value[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]-[SimpleToken]value[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]1[StringToken] +[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]:[SimpleToken]
+case[KeywordToken] prefix[StringToken].[SimpleToken]GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]:[SimpleToken]
+case[KeywordToken] GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[StringToken]:[SimpleToken]
+case[KeywordToken] prefix[StringToken].[SimpleToken]GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[StringToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] prefix[StringToken].[SimpleToken]GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]prefix[StringToken].[SimpleToken]GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[StringToken])[SimpleToken]:[SimpleToken]
+case[KeywordToken] const[KeywordToken] ([BeginToken]prefix[StringToken].[SimpleToken]GenericClass[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[StringToken])[SimpleToken]:[SimpleToken]
+print[StringToken]([BeginToken]0[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] GenericClass[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] {[BeginToken]
+const[KeywordToken] GenericClass[StringToken]([BeginToken]{[BeginToken]a[StringToken]}[SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

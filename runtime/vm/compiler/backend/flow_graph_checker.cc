@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+
 #if defined(DEBUG)
 
 #include "vm/compiler/backend/flow_graph_checker.h"
@@ -38,7 +40,7 @@ DEFINE_FLAG(int,
 // Such constants may have a lot of uses and checking them could be too slow.
 static bool IsCommonConstant(Definition* def) {
   if (auto c = def->AsConstant()) {
-    return c->value().ptr() == Symbols::OptimizedOut().ptr() ||
+    return c->value().ptr() == Object::optimized_out().ptr() ||
            c->value().ptr() == Object::null();
   }
   return false;
@@ -138,10 +140,10 @@ static void AssertArgumentsInEnv(FlowGraph* flow_graph, Definition* call) {
     ASSERT1((arg_count + after_args_input_count) <= env_count, call);
     const intptr_t env_base = env_count - arg_count - after_args_input_count;
     for (intptr_t i = 0; i < arg_count; i++) {
-      if (call->HasPushArguments()) {
+      if (call->HasMoveArguments()) {
         ASSERT1(call->ArgumentAt(i) == env->ValueAt(env_base + i)
                                            ->definition()
-                                           ->AsPushArgument()
+                                           ->AsMoveArgument()
                                            ->value()
                                            ->definition(),
                 call);

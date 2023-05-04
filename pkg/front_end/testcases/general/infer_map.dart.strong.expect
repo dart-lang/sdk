@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+static field core::List<core::int> intList = <core::int>[1, 2];
+static field core::List<self::A> list1 = self::intList.{core::Iterable::map}<self::B>((core::int i) → self::B => new self::B::•()){((core::int) → self::B) → core::Iterable<self::B>}.{core::Iterable::toList}(){({growable: core::bool}) → core::List<self::B>};
+static method test(core::List<self::A> list) → dynamic {
+  try {
+    list.{core::List::add}(new self::A::•()){(self::A) → void};
+    list.{core::List::removeLast}(){() → self::A};
+  }
+  on core::Object catch(final core::Object e) {
+    return;
+  }
+  throw "Expected subtype error";
+}
+static method main() → dynamic {
+  self::test(self::list1);
+  self::list1 = self::intList.{core::Iterable::map}<self::B>((core::int i) → self::B => new self::B::•()){((core::int) → self::B) → core::Iterable<self::B>}.{core::Iterable::toList}(){({growable: core::bool}) → core::List<self::B>};
+  self::test(self::list1);
+  core::List<self::A> list2 = self::intList.{core::Iterable::map}<self::B>((core::int i) → self::B => new self::B::•()){((core::int) → self::B) → core::Iterable<self::B>}.{core::Iterable::toList}(){({growable: core::bool}) → core::List<self::B>};
+  self::test(list2);
+  list2 = self::intList.{core::Iterable::map}<self::B>((core::int i) → self::B => new self::B::•()){((core::int) → self::B) → core::Iterable<self::B>}.{core::Iterable::toList}(){({growable: core::bool}) → core::List<self::B>};
+  self::test(list2);
+  self::test(self::intList.{core::Iterable::map}<self::B>((core::int i) → self::B => new self::B::•()){((core::int) → self::B) → core::Iterable<self::B>}.{core::Iterable::toList}(){({growable: core::bool}) → core::List<self::B>});
+}

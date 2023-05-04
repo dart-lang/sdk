@@ -18,7 +18,6 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 import 'package:kernel/ast.dart';
-import 'package:kernel/clone.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/type_environment.dart';
@@ -27,17 +26,16 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
     as shared;
 
 import '../builder/type_alias_builder.dart';
-import '../fasta_codes.dart';
 import '../names.dart';
 import '../problems.dart' show unsupported;
 import '../type_inference/inference_visitor.dart';
-import '../type_inference/inference_visitor_base.dart';
 import '../type_inference/inference_results.dart';
-import '../type_inference/object_access_target.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
+import 'collections.dart';
+
 typedef SharedMatchContext = shared
-    .MatchContext<Node, Expression, Pattern, DartType, VariableDeclaration>;
+    .MatchContext<TreeNode, Expression, Pattern, DartType, VariableDeclaration>;
 
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
@@ -169,6 +167,11 @@ bool hasExplicitTypeArguments(Arguments arguments) {
 
 mixin InternalTreeNode implements TreeNode {
   @override
+  void replaceChild(TreeNode child, TreeNode replacement) {
+    // Do nothing. The node should not be part of the resulting AST, anyway.
+  }
+
+  @override
   R accept<R>(TreeVisitor<R> visitor) {
     if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
       // Allow visitors needed for toString and replaceWith.
@@ -205,6 +208,11 @@ mixin InternalTreeNode implements TreeNode {
 /// Common base class for internal statements.
 abstract class InternalStatement extends Statement {
   @override
+  void replaceChild(TreeNode child, TreeNode replacement) {
+    // Do nothing. The node should not be part of the resulting AST, anyway.
+  }
+
+  @override
   R accept<R>(StatementVisitor<R> visitor) {
     if (visitor is Printer || visitor is Precedence) {
       // Allow visitors needed for toString.
@@ -216,6 +224,18 @@ abstract class InternalStatement extends Statement {
   @override
   R accept1<R, A>(StatementVisitor1<R, A> visitor, A arg) =>
       unsupported("${runtimeType}.accept1", -1, null);
+
+  @override
+  void transformChildren(Transformer v) => unsupported(
+      "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) => unsupported(
+      "${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}", -1, null);
+
+  @override
+  void visitChildren(Visitor v) =>
+      unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
 
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor);
 }
@@ -250,67 +270,6 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    iterable.accept(v);
-    syntheticAssignment?.accept(v);
-    expressionEffects?.accept(v);
-    body.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    if (variable != null) {
-      variable = v.transform(variable!);
-      variable?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (iterable != null) {
-      iterable = v.transform(iterable);
-      iterable.parent = this;
-    }
-    if (syntheticAssignment != null) {
-      syntheticAssignment = v.transform(syntheticAssignment!);
-      syntheticAssignment?.parent = this;
-    }
-    if (expressionEffects != null) {
-      expressionEffects = v.transform(expressionEffects!);
-      expressionEffects?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    if (variable != null) {
-      variable = v.transform(variable!);
-      variable?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (iterable != null) {
-      iterable = v.transform(iterable);
-      iterable.parent = this;
-    }
-    if (syntheticAssignment != null) {
-      syntheticAssignment = v.transform(syntheticAssignment!);
-      syntheticAssignment?.parent = this;
-    }
-    if (expressionEffects != null) {
-      expressionEffects = v.transform(expressionEffects!);
-      expressionEffects?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "ForInStatementWithSynthesizedVariable(${toStringInternal()})";
   }
@@ -342,41 +301,6 @@ class TryStatement extends InternalStatement {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    tryBlock.accept(v);
-    visitList(catchBlocks, v);
-    finallyBlock?.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (tryBlock != null) {
-      tryBlock = v.transform(tryBlock);
-      tryBlock.parent = this;
-    }
-    v.transformList(catchBlocks, this);
-    if (finallyBlock != null) {
-      finallyBlock = v.transform(finallyBlock!);
-      finallyBlock?.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (tryBlock != null) {
-      tryBlock = v.transform(tryBlock);
-      tryBlock.parent = this;
-    }
-    v.transformCatchList(catchBlocks, this);
-    if (finallyBlock != null) {
-      finallyBlock = v.transformOrRemoveStatement(finallyBlock!);
-      finallyBlock?.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "TryStatement(${toStringInternal()})";
   }
@@ -397,10 +321,11 @@ class TryStatement extends InternalStatement {
 }
 
 class SwitchCaseImpl extends SwitchCase {
+  final List<int> caseOffsets;
   final bool hasLabel;
 
-  SwitchCaseImpl(
-      List<Expression> expressions, List<int> expressionOffsets, Statement body,
+  SwitchCaseImpl(this.caseOffsets, List<Expression> expressions,
+      List<int> expressionOffsets, Statement body,
       {bool isDefault = false, required this.hasLabel})
       // ignore: unnecessary_null_comparison
       : assert(hasLabel != null),
@@ -409,142 +334,6 @@ class SwitchCaseImpl extends SwitchCase {
   @override
   String toString() {
     return "SwitchCaseImpl(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] with an optional guard [Expression].
-class PatternGuard extends TreeNode with InternalTreeNode {
-  Pattern pattern;
-  Expression? guard;
-
-  PatternGuard(this.pattern, [this.guard]) {
-    pattern.parent = this;
-    guard?.parent = this;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    pattern.toTextInternal(printer);
-    if (guard != null) {
-      printer.write(' when ');
-      printer.writeExpression(guard!);
-    }
-  }
-
-  @override
-  String toString() => 'PatternGuard(${toStringInternal()})';
-}
-
-class PatternSwitchCase extends TreeNode
-    with InternalTreeNode
-    implements SwitchCase {
-  final List<PatternGuard> patternGuards;
-  @override
-  Statement body;
-
-  @override
-  bool isDefault;
-
-  final bool hasLabel;
-
-  PatternSwitchCase(int fileOffset, this.patternGuards, this.body,
-      {required this.isDefault, required this.hasLabel}) {
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    for (int index = 0; index < patternGuards.length; index++) {
-      if (index > 0) {
-        printer.newLine();
-      }
-      printer.write('case ');
-      patternGuards[index].toTextInternal(printer);
-      printer.write(':');
-    }
-    if (isDefault) {
-      if (patternGuards.isNotEmpty) {
-        printer.newLine();
-      }
-      printer.write('default:');
-    }
-    printer.incIndentation();
-    Statement? block = body;
-    if (block is Block) {
-      for (Statement statement in block.statements) {
-        printer.newLine();
-        printer.writeStatement(statement);
-      }
-    } else {
-      printer.write(' ');
-      printer.writeStatement(body);
-    }
-    printer.decIndentation();
-  }
-
-  @override
-  String toString() {
-    return "PatternSwitchCase(${toStringInternal()})";
-  }
-
-  @override
-  List<Expression> get expressions =>
-      throw new UnimplementedError('PatternSwitchCase.expressions');
-
-  @override
-  List<int> get expressionOffsets =>
-      throw new UnimplementedError('PatternSwitchCase.expressionOffsets');
-}
-
-class PatternSwitchStatement extends InternalStatement {
-  Expression expression;
-  final List<SwitchCase> cases;
-
-  PatternSwitchStatement(int fileOffset, this.expression, this.cases) {
-    this.fileOffset = fileOffset;
-    expression.parent = this;
-    setParents(cases, this);
-  }
-
-  @override
-  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitPatternSwitchStatement(this);
-  }
-
-  @override
-  String toString() {
-    return "PatternSwitchStatement(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('switch (');
-    printer.writeExpression(expression);
-    printer.write(') {');
-    printer.incIndentation();
-    for (SwitchCase switchCase in cases) {
-      printer.newLine();
-      printer.writeSwitchCase(switchCase);
-    }
-    printer.decIndentation();
-    printer.newLine();
-    printer.write('}');
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    throw new UnsupportedError('PatternSwitchStatement.transformChildren');
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    throw new UnsupportedError(
-        'PatternSwitchStatement.transformOrRemoveChildren');
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    throw new UnsupportedError('PatternSwitchStatement.visitChildren');
   }
 }
 
@@ -574,58 +363,17 @@ class BreakStatementImpl extends BreakStatement {
   }
 }
 
-enum InternalExpressionKind {
-  AugmentSuperInvocation,
-  AugmentSuperGet,
-  AugmentSuperSet,
-  Binary,
-  Cascade,
-  CompoundExtensionIndexSet,
-  CompoundExtensionSet,
-  CompoundIndexSet,
-  CompoundPropertySet,
-  CompoundSuperIndexSet,
-  DeferredCheck,
-  Equals,
-  ExpressionInvocation,
-  ExtensionIndexSet,
-  ExtensionTearOff,
-  ExtensionSet,
-  IfNull,
-  IfNullExtensionIndexSet,
-  IfNullIndexSet,
-  IfNullPropertySet,
-  IfNullSet,
-  IfNullSuperIndexSet,
-  IndexGet,
-  IndexSet,
-  InternalRecordLiteral,
-  LoadLibraryTearOff,
-  LocalPostIncDec,
-  MethodInvocation,
-  NullAwareCompoundSet,
-  NullAwareExtension,
-  NullAwareIfNullSet,
-  NullAwareMethodInvocation,
-  NullAwarePropertyGet,
-  NullAwarePropertySet,
-  Parenthesized,
-  PropertyGet,
-  PropertyPostIncDec,
-  PropertySet,
-  StaticPostIncDec,
-  SuperIndexSet,
-  SuperPostIncDec,
-  Unary,
-}
-
 /// Common base class for internal expressions.
 abstract class InternalExpression extends Expression {
-  InternalExpressionKind get kind;
+  @override
+  void replaceChild(TreeNode child, TreeNode replacement) {
+    // Do nothing. The node should not be part of the resulting AST, anyway.
+  }
 
   @override
   R accept<R>(ExpressionVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
+    if (visitor is Printer ||
+        visitor is Precedence /* || visitor is Transformer*/) {
       // Allow visitors needed for toString and replaceWith.
       return visitor.defaultExpression(this);
     }
@@ -646,6 +394,18 @@ abstract class InternalExpression extends Expression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       unsupported("${runtimeType}.getStaticType", -1, null);
+
+  @override
+  void visitChildren(Visitor<dynamic> v) =>
+      unsupported("${runtimeType}.visitChildren", -1, null);
+
+  @override
+  void transformChildren(Transformer v) =>
+      unsupported("${runtimeType}.transformChildren", -1, null);
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) =>
+      unsupported("${runtimeType}.transformOrRemoveChildren", -1, null);
 
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext);
@@ -811,39 +571,10 @@ class Cascade extends InternalExpression {
     return visitor.visitCascade(this, typeContext);
   }
 
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.Cascade;
-
   /// Adds [expression] to the list of [expressions] performed on [variable].
   void addCascadeExpression(Expression expression) {
     expressions.add(expression);
     expression.parent = this;
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    visitList(expressions, v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    v.transformList(expressions, this);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    v.transformExpressionList(expressions, this);
   }
 
   @override
@@ -891,43 +622,6 @@ class DeferredCheck extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitDeferredCheck(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.DeferredCheck;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    expression.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
   }
 
   @override
@@ -1136,43 +830,6 @@ class IfNullExpression extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.IfNull;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    left.accept(v);
-    right.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "IfNullExpression(${toStringInternal()})";
   }
@@ -1333,44 +990,6 @@ class ExpressionInvocation extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.ExpressionInvocation;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    expression.accept(v);
-    arguments.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "ExpressionInvocation(${toStringInternal()})";
   }
@@ -1408,44 +1027,6 @@ class NullAwareMethodInvocation extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwareMethodInvocation(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.NullAwareMethodInvocation;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    invocation.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (invocation != null) {
-      invocation = v.transform(invocation);
-      invocation.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (invocation != null) {
-      invocation = v.transform(invocation);
-      invocation.parent = this;
-    }
   }
 
   @override
@@ -1514,44 +1095,6 @@ class NullAwarePropertyGet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.NullAwarePropertyGet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    read.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "NullAwarePropertyGet(${toStringInternal()})";
   }
@@ -1602,44 +1145,6 @@ class NullAwarePropertySet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwarePropertySet(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.NullAwarePropertySet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
   }
 
   @override
@@ -1754,6 +1259,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
       bool isLate = false,
       bool isRequired = false,
       bool isLowered = false,
+      bool isSynthesized = false,
       this.isStaticLate = false})
       : isImplicitlyTyped = type == null,
         isLocalFunction = isLocalFunction,
@@ -1767,6 +1273,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
             isLate: isLate,
             isRequired: isRequired,
             isLowered: isLowered,
+            isSynthesized: isSynthesized,
             hasDeclaredInitializer: hasDeclaredInitializer);
 
   VariableDeclarationImpl.forEffect(Expression initializer)
@@ -1888,20 +1395,6 @@ class LoadLibraryTearOff extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.LoadLibraryTearOff;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    v.visitProcedureReference(target);
-  }
-
-  @override
-  void transformChildren(Transformer v) {}
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
-
-  @override
   String toString() {
     return "LoadLibraryTearOff(${toStringInternal()})";
   }
@@ -1968,43 +1461,6 @@ class IfNullPropertySet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.IfNullPropertySet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "IfNullPropertySet(${toStringInternal()})";
   }
@@ -2055,43 +1511,6 @@ class IfNullSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIfNullSet(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.IfNullSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    read.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
   }
 
   @override
@@ -2204,44 +1623,6 @@ class CompoundExtensionSet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.CompoundExtensionSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "CompoundExtensionSet(${toStringInternal()})";
   }
@@ -2312,43 +1693,6 @@ class CompoundPropertySet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.CompoundPropertySet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "CompoundPropertySet(${toStringInternal()})";
   }
@@ -2407,45 +1751,6 @@ class PropertyPostIncDec extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.PropertyPostIncDec;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    read.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable!);
-      variable?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transformOrRemoveVariableDeclaration(variable!)
-          as VariableDeclarationImpl?;
-      variable?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "PropertyPostIncDec(${toStringInternal()})";
   }
@@ -2479,43 +1784,6 @@ class LocalPostIncDec extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitLocalPostIncDec(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.LocalPostIncDec;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    read.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
   }
 
   @override
@@ -2555,43 +1823,6 @@ class StaticPostIncDec extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.StaticPostIncDec;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    read.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "StaticPostIncDec(${toStringInternal()})";
   }
@@ -2628,43 +1859,6 @@ class SuperPostIncDec extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.SuperPostIncDec;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    read.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "SuperPostIncDec(${toStringInternal()})";
   }
@@ -2691,43 +1885,6 @@ class IndexGet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIndexGet(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.IndexGet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
   }
 
   @override
@@ -2790,54 +1947,6 @@ class IndexSet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.IndexSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "IndexSet(${toStringInternal()})";
   }
@@ -2888,43 +1997,6 @@ class SuperIndexSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitSuperIndexSet(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.SuperIndexSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
   }
 
   @override
@@ -2990,54 +2062,6 @@ class ExtensionIndexSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitExtensionIndexSet(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.ExtensionIndexSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
   }
 
   @override
@@ -3136,54 +2160,6 @@ class IfNullIndexSet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.IfNullIndexSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "IfNullIndexSet(${toStringInternal()})";
   }
@@ -3258,43 +2234,6 @@ class IfNullSuperIndexSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIfNullSuperIndexSet(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.IfNullSuperIndexSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
   }
 
   @override
@@ -3388,55 +2327,6 @@ class IfNullExtensionIndexSet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.IfNullExtensionIndexSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "IfNullExtensionIndexSet(${toStringInternal()})";
   }
@@ -3516,54 +2406,6 @@ class CompoundIndexSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitCompoundIndexSet(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.CompoundIndexSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
   }
 
   @override
@@ -3689,44 +2531,6 @@ class NullAwareCompoundSet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.NullAwareCompoundSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "NullAwareCompoundSet(${toStringInternal()})";
   }
@@ -3826,43 +2630,6 @@ class NullAwareIfNullSet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.NullAwareIfNullSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "NullAwareIfNullSet(${toStringInternal()})";
   }
@@ -3951,44 +2718,6 @@ class CompoundSuperIndexSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitCompoundSuperIndexSet(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.CompoundSuperIndexSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    index.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
   }
 
   @override
@@ -4098,55 +2827,6 @@ class CompoundExtensionIndexSet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.CompoundExtensionIndexSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "CompoundExtensionIndexSet(${toStringInternal()})";
   }
@@ -4213,43 +2893,6 @@ class ExtensionSet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.ExtensionSet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "ExtensionSet(${toStringInternal()})";
   }
@@ -4281,43 +2924,6 @@ class NullAwareExtension extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwareExtension(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.NullAwareExtension;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    expression.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
   }
 
   @override
@@ -4358,32 +2964,6 @@ class ExtensionTearOff extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.ExtensionTearOff;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    arguments.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "ExtensionTearOff(${toStringInternal()})";
   }
@@ -4410,43 +2990,6 @@ class EqualsExpression extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitEquals(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.Equals;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    left.accept(v);
-    right.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
   }
 
   @override
@@ -4488,43 +3031,6 @@ class BinaryExpression extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.Binary;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    left.accept(v);
-    right.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "BinaryExpression(${toStringInternal()})";
   }
@@ -4555,32 +3061,6 @@ class UnaryExpression extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitUnary(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.Unary;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    expression.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
   }
 
   @override
@@ -4619,32 +3099,6 @@ class ParenthesizedExpression extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.Parenthesized;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    expression.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-  }
-
-  @override
   int get precedence => Precedence.CALLEE;
 
   @override
@@ -4658,48 +3112,6 @@ class ParenthesizedExpression extends InternalExpression {
     printer.writeExpression(expression);
     printer.write(')');
   }
-}
-
-/// Creates a [Let] of [variable] with the given [body] using
-/// `variable.fileOffset` as the file offset for the let.
-///
-/// This is useful for create let expressions in replacement code.
-Let createLet(VariableDeclaration variable, Expression body) {
-  return new Let(variable, body)..fileOffset = variable.fileOffset;
-}
-
-/// Creates a [VariableDeclaration] for [expression] with the static [type]
-/// using `expression.fileOffset` as the file offset for the declaration.
-///
-/// This is useful for creating let variables for expressions in replacement
-/// code.
-VariableDeclaration createVariable(Expression expression, DartType type) {
-  assert(expression is! ThisExpression);
-  return new VariableDeclaration.forValue(expression, type: type)
-    ..fileOffset = expression.fileOffset;
-}
-
-/// Creates a [VariableDeclaration] for the expression inference [result]
-/// using `result.expression.fileOffset` as the file offset for the declaration.
-///
-/// This is useful for creating let variables for expressions in replacement
-/// code.
-VariableDeclaration createVariableForResult(ExpressionInferenceResult result) {
-  return createVariable(result.expression, result.inferredType);
-}
-
-/// Creates a [VariableGet] of [variable] using `variable.fileOffset` as the
-/// file offset for the expression.
-///
-/// This is useful for referencing let variables for expressions in replacement
-/// code.
-VariableGet createVariableGet(VariableDeclaration variable) {
-  return new VariableGet(variable)..fileOffset = variable.fileOffset;
-}
-
-ExpressionStatement createExpressionStatement(Expression expression) {
-  return new ExpressionStatement(expression)
-    ..fileOffset = expression.fileOffset;
 }
 
 /// Returns `true` if [node] is a pure expression.
@@ -4760,43 +3172,6 @@ class MethodInvocation extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.MethodInvocation;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    arguments.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "MethodInvocation(${toStringInternal()})";
   }
@@ -4833,32 +3208,6 @@ class PropertyGet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitPropertyGet(this, typeContext);
-  }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.PropertyGet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
   }
 
   @override
@@ -4915,44 +3264,6 @@ class PropertySet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.PropertySet;
-
-  @override
-  void visitChildren(Visitor v) {
-    receiver.accept(v);
-    name.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "PropertySet(${toStringInternal()})";
   }
@@ -4989,27 +3300,6 @@ class AugmentSuperInvocation extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.AugmentSuperInvocation;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    arguments.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    arguments = v.transform(arguments);
-    arguments.parent = this;
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    arguments = v.transform(arguments);
-    arguments.parent = this;
-  }
-
-  @override
   String toString() {
     return "AugmentSuperInvocation(${toStringInternal()})";
   }
@@ -5041,18 +3331,6 @@ class AugmentSuperGet extends InternalExpression {
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitAugmentSuperGet(this, typeContext);
   }
-
-  @override
-  InternalExpressionKind get kind => InternalExpressionKind.AugmentSuperGet;
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {}
-
-  @override
-  void transformChildren(Transformer v) {}
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
 
   @override
   String toString() {
@@ -5093,26 +3371,6 @@ class AugmentSuperSet extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind => InternalExpressionKind.AugmentSuperSet;
-
-  @override
-  void visitChildren(Visitor v) {
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    value = v.transform(value);
-    value.parent = this;
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    value = v.transform(value);
-    value.parent = this;
-  }
-
-  @override
   String toString() {
     return "AugmentSuperSet(${toStringInternal()})";
   }
@@ -5144,27 +3402,6 @@ class InternalRecordLiteral extends InternalExpression {
   }
 
   @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.InternalRecordLiteral;
-
-  @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
   String toString() {
     return "InternalRecordLiteral(${toStringInternal()})";
   }
@@ -5191,1140 +3428,25 @@ class InternalRecordLiteral extends InternalExpression {
   }
 }
 
-abstract class Pattern extends TreeNode with InternalTreeNode {
-  Pattern(int fileOffset) {
-    this.fileOffset = fileOffset;
-  }
-
-  /// Variable declarations induced by nested variable patterns.
-  ///
-  /// These variables are initialized to the values captured by the variable
-  /// patterns nested in the pattern.
-  List<VariableDeclaration> get declaredVariables;
-
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  });
-
-  /// Transforms a pattern into a series of if-statements and local variables
-  ///
-  /// [matchedExpression] is the expression that evaluates to the object being
-  /// matched against the pattern at runtime. [matchedType] is the static type
-  /// of [matchedExpression]. [variableInitializingContext] evaluates to the
-  /// same runtime objects as [matchedExpression], but can be accessed without
-  /// causing additional side effects. It is the responsibility of the caller to
-  /// ensure the absence of those side effects, which can be done, for example,
-  /// via caching of the value to match in a local variable.
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor);
-}
-
-class DummyPattern extends Pattern {
-  DummyPattern(int fileOffset) : super(fileOffset);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('<dummy-pattern>');
-  }
-
-  @override
-  List<VariableDeclaration> get declaredVariables => const [];
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitDummyPattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition: null,
-          variableInitializers: <Statement>[])
-    ]);
-  }
-
-  @override
-  String toString() {
-    return "DummyPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] based on an [Expression]. This corresponds to a constant
-/// pattern in the specification.
-class ExpressionPattern extends Pattern {
-  Expression expression;
-
-  ExpressionPattern(this.expression) : super(expression.fileOffset) {
-    expression.parent = this;
-  }
-
-  @override
-  List<VariableDeclaration> get declaredVariables => const [];
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitExpressionPattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
-        matchedType, equalsName, fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-    Expression result = inferenceVisitor.engine.forest.createEqualsCall(
-        fileOffset,
-        matchedExpression,
-        expression,
-        target.getFunctionType(inferenceVisitor),
-        target.member as Procedure);
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition: result,
-          variableInitializers: [])
-    ]);
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    expression.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "ExpressionPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `pattern & pattern`.
-class AndPattern extends Pattern {
-  Pattern left;
-  Pattern right;
-
-  @override
-  List<VariableDeclaration> get declaredVariables =>
-      [...left.declaredVariables, ...right.declaredVariables];
-
-  AndPattern(this.left, this.right, int fileOffset) : super(fileOffset) {
-    left.parent = this;
-    right.parent = this;
-  }
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitAndPattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    // intermediateVariable: `matchedType` VAR = `matchedExpression`
-    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
-
-    PatternTransformationResult transformationResult = left.transform(
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
-        matchedType,
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
-        inferenceVisitor);
-
-    transformationResult = transformationResult.combine(
-        right.transform(
-            inferenceVisitor.engine.forest
-                .createVariableGet(fileOffset, intermediateVariable),
-            matchedType,
-            inferenceVisitor.engine.forest
-                .createVariableGet(fileOffset, intermediateVariable),
-            inferenceVisitor),
-        inferenceVisitor);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [intermediateVariable]),
-        inferenceVisitor);
-
-    return transformationResult;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    left.toTextInternal(printer);
-    printer.write(' & ');
-    right.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "BinaryPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `pattern | pattern`.
-class OrPattern extends Pattern {
-  Pattern left;
-  Pattern right;
-  List<VariableDeclaration> _orPatternJointVariables;
-
-  @override
-  List<VariableDeclaration> get declaredVariables => _orPatternJointVariables;
-
-  OrPattern(this.left, this.right, int fileOffset,
-      {required List<VariableDeclaration> orPatternJointVariables})
-      : _orPatternJointVariables = orPatternJointVariables,
-        super(fileOffset) {
-    left.parent = this;
-    right.parent = this;
-  }
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitOrPattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    // intermediateVariable: `matchedType` VAR = `matchedExpression`
-    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
-
-    // leftConditionIsTrue: bool LVAR = false;
-    VariableDeclaration leftConditionIsTrue = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(
-            inferenceVisitor.engine.forest.createBoolLiteral(fileOffset, false),
-            type: inferenceVisitor.coreTypes.boolNonNullableRawType);
-
-    Map<String, VariableDeclaration> leftVariablesByName = {
-      for (VariableDeclaration variable in left.declaredVariables)
-        variable.name!: variable
-    };
-    Map<String, VariableDeclaration> rightVariablesByName = {
-      for (VariableDeclaration variable in right.declaredVariables)
-        variable.name!: variable
-    };
-    List<VariableDeclaration> declaredVariables = this.declaredVariables;
-    for (VariableDeclaration variable in declaredVariables) {
-      VariableDeclaration leftVariable = leftVariablesByName[variable.name!]!;
-      VariableDeclaration rightVariable = rightVariablesByName[variable.name!]!;
-      variable.initializer = inferenceVisitor.engine.forest
-          .createConditionalExpression(
-              fileOffset,
-              inferenceVisitor.engine.forest.createVariableGet(
-                  fileOffset, leftConditionIsTrue),
-              inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, leftVariable)
-                ..promotedType = leftVariable.type,
-              inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, rightVariable)
-                ..promotedType = rightVariable.type)
-        ..staticType = inferenceVisitor.typeSchemaEnvironment
-            .getStandardUpperBound(leftVariable.type, rightVariable.type,
-                inferenceVisitor.libraryBuilder.library)
-        ..parent = variable;
-    }
-
-    // setLeftConditionIsTrue: `leftConditionIsTrue` = true;
-    //   ==> VAR = true;
-    Statement setLeftConditionIsTrue = inferenceVisitor.engine.forest
-        .createExpressionStatement(
-            fileOffset,
-            inferenceVisitor.engine.forest.createVariableSet(
-                fileOffset,
-                leftConditionIsTrue,
-                inferenceVisitor.engine.forest
-                    .createBoolLiteral(fileOffset, true)));
-
-    PatternTransformationResult leftTransformationResult = left.transform(
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
-        matchedType,
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
-        inferenceVisitor);
-    leftTransformationResult = leftTransformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.logicalOrPatternLeftBegin,
-            condition: null,
-            variableInitializers: []),
-        inferenceVisitor);
-    // Initialize variables to values captured by [left].
-    leftTransformationResult = leftTransformationResult.combine(
-        new PatternTransformationResult([
-          new PatternTransformationElement(
-              kind: PatternTransformationElementKind.regular,
-              condition: null,
-              variableInitializers: [
-                setLeftConditionIsTrue,
-                for (VariableDeclaration variable in left.declaredVariables)
-                  inferenceVisitor.engine.forest.createExpressionStatement(
-                      fileOffset,
-                      inferenceVisitor.engine.forest.createVariableSet(
-                          fileOffset, variable, variable.initializer!))
-              ])
-        ]),
-        inferenceVisitor);
-    for (VariableDeclaration variable in left.declaredVariables) {
-      variable.name = null;
-      variable.initializer = null;
-      variable.type = const DynamicType();
-    }
-
-    // rightConditionIsTrue: bool RVAR = false;
-    VariableDeclaration rightConditionIsTrue = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(
-            inferenceVisitor.engine.forest.createBoolLiteral(fileOffset, false),
-            type: inferenceVisitor.coreTypes.boolNonNullableRawType);
-
-    // setRightConditionIsTrue: `rightConditionIsTrue` = true;
-    //   ==> VAR = true;
-    Statement setRightConditionIsTrue = inferenceVisitor.engine.forest
-        .createExpressionStatement(
-            fileOffset,
-            inferenceVisitor.engine.forest.createVariableSet(
-                fileOffset,
-                rightConditionIsTrue,
-                inferenceVisitor.engine.forest
-                    .createBoolLiteral(fileOffset, true)));
-
-    PatternTransformationResult rightTransformationResult = right.transform(
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
-        matchedType,
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
-        inferenceVisitor);
-    rightTransformationResult = rightTransformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            // condition: !`leftConditionIsTrue`
-            condition: inferenceVisitor.engine.forest.createNot(
-                fileOffset,
-                inferenceVisitor.engine.forest
-                    .createVariableGet(fileOffset, leftConditionIsTrue)),
-            variableInitializers: []),
-        inferenceVisitor);
-    rightTransformationResult = rightTransformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.logicalOrPatternRightBegin,
-            condition: null,
-            variableInitializers: []),
-        inferenceVisitor);
-    // Initialize variables to values captured by [right].
-    rightTransformationResult = rightTransformationResult.combine(
-        new PatternTransformationResult([
-          new PatternTransformationElement(
-              kind: PatternTransformationElementKind.regular,
-              condition: null,
-              variableInitializers: [
-                setRightConditionIsTrue,
-                for (VariableDeclaration variable in right.declaredVariables)
-                  inferenceVisitor.engine.forest.createExpressionStatement(
-                      fileOffset,
-                      inferenceVisitor.engine.forest.createVariableSet(
-                          fileOffset, variable, variable.initializer!))
-              ])
-        ]),
-        inferenceVisitor);
-    for (VariableDeclaration variable in right.declaredVariables) {
-      variable.name = null;
-      variable.initializer = null;
-      variable.type = const DynamicType();
-    }
-
-    PatternTransformationResult transformationResult = leftTransformationResult
-        .combine(rightTransformationResult, inferenceVisitor)
-        .combine(
-            new PatternTransformationResult([
-              new PatternTransformationElement(
-                  kind: PatternTransformationElementKind.logicalOrPatternEnd,
-                  condition: null,
-                  variableInitializers: []),
-              new PatternTransformationElement(
-                  kind: PatternTransformationElementKind.regular,
-                  // condition:
-                  //     `leftConditionIsTrue` || `rightConditionIsTrue`
-                  condition: inferenceVisitor.engine.forest
-                      .createLogicalExpression(
-                          fileOffset,
-                          inferenceVisitor.engine.forest.createVariableGet(
-                              fileOffset, leftConditionIsTrue),
-                          doubleBarName.text,
-                          inferenceVisitor.engine.forest.createVariableGet(
-                              fileOffset, rightConditionIsTrue)),
-                  variableInitializers: [])
-            ]),
-            inferenceVisitor);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [
-              intermediateVariable,
-              leftConditionIsTrue,
-              rightConditionIsTrue,
-              ...left.declaredVariables,
-              ...right.declaredVariables
-            ]),
-        inferenceVisitor);
-
-    return transformationResult;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    left.toTextInternal(printer);
-    printer.write(' | ');
-    right.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "BinaryPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `pattern as type`.
-class CastPattern extends Pattern {
-  Pattern pattern;
-  DartType type;
-
-  CastPattern(this.pattern, this.type, int fileOffset) : super(fileOffset) {
-    pattern.parent = this;
-  }
-
-  @override
-  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitCastPattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    // castExpression: `matchedExpression` as `type`
-    Expression castExpression = inferenceVisitor.engine.forest
-        .createAsExpression(fileOffset, matchedExpression, type,
-            forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault);
-
-    // intermediateVariable: `type` VAR = `castExpression`;
-    //   ==> `type` VAR = `matchedExpression` as `type`;
-    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(castExpression, type: type);
-
-    PatternTransformationResult transformationResult = pattern.transform(
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
-        type,
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
-        inferenceVisitor);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [intermediateVariable]),
-        inferenceVisitor);
-
-    return transformationResult;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    pattern.toTextInternal(printer);
-    printer.write(' as ');
-    printer.writeType(type);
-  }
-
-  @override
-  String toString() {
-    return "CastPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `pattern!`.
-class NullAssertPattern extends Pattern {
-  Pattern pattern;
-
-  NullAssertPattern(this.pattern, int fileOffset) : super(fileOffset) {
-    pattern.parent = this;
-  }
-
-  @override
-  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitNullAssertPattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    // nullCheckCondition: `matchedExpression`!
-    Expression nullCheckExpression = inferenceVisitor.engine.forest
-        .createNullCheck(fileOffset, matchedExpression);
-
-    DartType typeWithoutNullabilityMarkers = matchedType.toNonNull();
-
-    // intermediateVariable: `typeWithoutNullabilityMarkers` VAR =
-    //     `nullCheckExpression`;
-    //   ==> `typeWithoutNullabilityMarkers` VAR = `matchedExpression`!;
-    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(nullCheckExpression,
-            type: typeWithoutNullabilityMarkers);
-
-    PatternTransformationResult transformationResult = pattern.transform(
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
-        typeWithoutNullabilityMarkers,
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
-        inferenceVisitor);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [intermediateVariable]),
-        inferenceVisitor);
-
-    return transformationResult;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    pattern.toTextInternal(printer);
-    printer.write('!');
-  }
-
-  @override
-  String toString() {
-    return "NullAssertPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `pattern?`.
-class NullCheckPattern extends Pattern {
-  Pattern pattern;
-
-  NullCheckPattern(this.pattern, int fileOffset) : super(fileOffset) {
-    pattern.parent = this;
-  }
-
-  @override
-  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitNullCheckPattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    // intermediateVariable: `matchedType` VAR = `matchedExpression`
-    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
-
-    // nullCheckCondition: !(`intermediateVariable` == null)
-    Expression nullCheckCondition = inferenceVisitor.engine.forest.createNot(
-        fileOffset,
-        inferenceVisitor.engine.forest.createEqualsNull(
-            fileOffset,
-            inferenceVisitor.engine.forest
-                .createVariableGet(fileOffset, intermediateVariable)));
-
-    DartType promotedType = matchedType.toNonNull();
-    PatternTransformationResult transformationResult = pattern.transform(
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable)
-          ..promotedType = matchedType != promotedType ? promotedType : null,
-        promotedType,
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
-        inferenceVisitor);
-
-    // This needs to be added to the transformation elements since we need to
-    // create the [intermediateVariable] unconditionally before applying the
-    // [nullCheckCondition], as opposed to passing [nullCheckCondition] as the
-    // condition in the last transformation element.
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: nullCheckCondition,
-            variableInitializers: []),
-        inferenceVisitor);
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [intermediateVariable]),
-        inferenceVisitor);
-
-    return transformationResult;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    pattern.toTextInternal(printer);
-    printer.write('?');
-  }
-
-  @override
-  String toString() {
-    return "NullCheckPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `<typeArgument>[pattern0, ... patternN]`.
-class ListPattern extends Pattern {
-  DartType typeArgument;
-  List<Pattern> patterns;
-
-  @override
-  List<VariableDeclaration> get declaredVariables =>
-      [for (Pattern pattern in patterns) ...pattern.declaredVariables];
-
-  ListPattern(this.typeArgument, this.patterns, int fileOffset)
-      : super(fileOffset) {
-    setParents(patterns, this);
-  }
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitListPattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    // targetListType: List<`typeArgument`>
-    DartType targetListType = new InterfaceType(
-        inferenceVisitor.coreTypes.listClass,
-        Nullability.nonNullable,
-        <DartType>[typeArgument]);
-
-    ObjectAccessTarget lengthTarget = inferenceVisitor.findInterfaceMember(
-        targetListType, lengthName, fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-    bool typeCheckForTargetListNeeded =
-        !inferenceVisitor.isAssignable(targetListType, matchedType) ||
-            matchedType is DynamicType;
-
-    // listVariable: `matchedType` LVAR = `matchedExpression`
-    VariableDeclaration listVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
-
-    // lengthGet: `listVariable`.length
-    //   ==> LVAR.length
-    Expression lengthGet = new InstanceGet(
-        InstanceAccessKind.Instance,
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, listVariable)
-          ..promotedType = typeCheckForTargetListNeeded ? targetListType : null,
-        lengthName,
-        resultType: lengthTarget.getGetterType(inferenceVisitor),
-        interfaceTarget: lengthTarget.member as Procedure)
-      ..fileOffset = fileOffset;
-
-    ObjectAccessTarget greaterThanOrEqualsTarget =
-        inferenceVisitor.findInterfaceMember(
-            inferenceVisitor.coreTypes.intNonNullableRawType,
-            greaterThanOrEqualsName,
-            fileOffset,
-            callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-
-    // greaterThanOrEqualsInvocation: `lengthGet` >= `patterns.length`
-    //   ==> LVAR.length >= `patterns.length`
-    Expression greaterThanOrEqualsInvocation = new InstanceInvocation(
-        InstanceAccessKind.Instance,
-        lengthGet,
-        greaterThanOrEqualsName,
-        inferenceVisitor.engine.forest.createArguments(fileOffset, [
-          inferenceVisitor.engine.forest
-              .createIntLiteral(fileOffset, patterns.length)
-        ]),
-        functionType:
-            greaterThanOrEqualsTarget.getFunctionType(inferenceVisitor),
-        interfaceTarget: greaterThanOrEqualsTarget.member as Procedure)
-      ..fileOffset = fileOffset;
-
-    // typeAndLengthCheck: `listVariable` is `targetListType`
-    //     && `greaterThanOrEqualsInvocation`
-    //   ==> [LVAR is List<`typeArgument`> &&]?
-    //       LVAR.length >= `patterns.length`
-    Expression typeAndLengthCheck;
-    if (typeCheckForTargetListNeeded) {
-      typeAndLengthCheck = inferenceVisitor.engine.forest
-          .createLogicalExpression(
-              fileOffset,
-              inferenceVisitor.engine.forest.createIsExpression(
-                  fileOffset,
-                  inferenceVisitor.engine.forest
-                      .createVariableGet(fileOffset, listVariable),
-                  targetListType,
-                  forNonNullableByDefault: false),
-              doubleAmpersandName.text,
-              greaterThanOrEqualsInvocation);
-    } else {
-      typeAndLengthCheck = greaterThanOrEqualsInvocation;
-    }
-
-    ObjectAccessTarget elementAccess = inferenceVisitor.findInterfaceMember(
-        targetListType, indexGetName, fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-    FunctionType elementAccessFunctionType =
-        elementAccess.getFunctionType(inferenceVisitor);
-    PatternTransformationResult transformationResult =
-        new PatternTransformationResult([]);
-    List<VariableDeclaration> elementAccessVariables = [];
-    for (int i = 0; i < patterns.length; i++) {
-      // listElement: `listVariable`[`i`]
-      //   ==> LVAR[`i`]
-      Expression listElement = new InstanceInvocation(
-          InstanceAccessKind.Instance,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, listVariable)
-            ..promotedType = targetListType,
-          indexGetName,
-          inferenceVisitor.engine.forest.createArguments(fileOffset,
-              [inferenceVisitor.engine.forest.createIntLiteral(fileOffset, i)]),
-          functionType: elementAccessFunctionType,
-          interfaceTarget: elementAccess.member as Procedure);
-
-      // listElementVariable: `typeArgument` EVAR = `listElement`
-      //   ==> `typeArgument` EVAR = LVAR[`i`]
-      VariableDeclaration listElementVariable = inferenceVisitor.engine.forest
-          .createVariableDeclarationForValue(listElement, type: typeArgument);
-
-      PatternTransformationResult subpatternTransformationResult = patterns[i]
-          .transform(
-              inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, listElementVariable),
-              typeArgument,
-              inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, listElementVariable),
-              inferenceVisitor);
-
-      // If the sub-pattern transformation doesn't declare captured variables
-      // and consists of a single empty element, it means that it simply
-      // doesn't have a place where it could refer to the element expression.
-      // In that case we can avoid creating the intermediary variable for the
-      // element expression.
-      //
-      // An example of such sub-pattern is in the following:
-      //
-      // if (x case [var _]) { /* ... */ }
-      if (patterns[i].declaredVariables.isNotEmpty ||
-          !(subpatternTransformationResult.elements.length == 1 &&
-              subpatternTransformationResult.elements.single.isEmpty)) {
-        elementAccessVariables.add(listElementVariable);
-        transformationResult = transformationResult.combine(
-            subpatternTransformationResult, inferenceVisitor);
-      }
-    }
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: typeAndLengthCheck,
-            variableInitializers: elementAccessVariables),
-        inferenceVisitor);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [listVariable]),
-        inferenceVisitor);
-
-    return transformationResult;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('<');
-    printer.writeType(typeArgument);
-    printer.write('>');
-    printer.write('[');
-    String comma = '';
-    for (Pattern pattern in patterns) {
-      printer.write(comma);
-      pattern.toTextInternal(printer);
-      comma = ', ';
-    }
-    printer.write(']');
-  }
-
-  @override
-  String toString() {
-    return "ListPattern(${toStringInternal()})";
-  }
-}
-
-enum RelationalPatternKind {
-  equals,
-  notEquals,
-  lessThan,
-  lessThanEqual,
-  greaterThan,
-  greaterThanEqual,
-}
-
-/// A [Pattern] for `operator expression` where `operator  is either ==, !=,
-/// <, <=, >, or >=.
-class RelationalPattern extends Pattern {
-  final RelationalPatternKind kind;
-  Expression expression;
-
-  RelationalPattern(this.kind, this.expression, int fileOffset)
-      : super(fileOffset) {
-    expression.parent = this;
-  }
-
-  @override
-  List<VariableDeclaration> get declaredVariables => const [];
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitRelationalPattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    Expression? condition;
-    Name? name;
-    switch (kind) {
-      case RelationalPatternKind.equals:
-      case RelationalPatternKind.notEquals:
-        if (expression is NullLiteral || expression is NullConstant) {
-          condition = inferenceVisitor.engine.forest
-              .createEqualsNull(fileOffset, matchedExpression);
-        } else {
-          ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
-              matchedType, equalsName, fileOffset,
-              callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-          condition = inferenceVisitor.engine.forest.createEqualsCall(
-              fileOffset,
-              matchedExpression,
-              expression,
-              target.getFunctionType(inferenceVisitor),
-              target.member as Procedure);
-        }
-        if (kind == RelationalPatternKind.notEquals) {
-          condition =
-              inferenceVisitor.engine.forest.createNot(fileOffset, condition);
-        }
-        break;
-      case RelationalPatternKind.lessThan:
-        name = lessThanName;
-        break;
-      case RelationalPatternKind.lessThanEqual:
-        name = lessThanOrEqualsName;
-        break;
-      case RelationalPatternKind.greaterThan:
-        name = greaterThanName;
-        break;
-      case RelationalPatternKind.greaterThanEqual:
-        name = greaterThanOrEqualsName;
-        break;
-    }
-    if (condition == null) {
-      ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
-          matchedType, name!, fileOffset,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-      if (target.kind == ObjectAccessTargetKind.dynamic) {
-        condition = new DynamicInvocation(
-            DynamicAccessKind.Dynamic,
-            matchedExpression,
-            name,
-            inferenceVisitor.engine.forest
-                .createArguments(fileOffset, [expression]));
-      } else if (target.member is! Procedure) {
-        inferenceVisitor.helper.addProblem(
-            templateUndefinedOperator.withArguments(name.text, matchedType,
-                inferenceVisitor.isNonNullableByDefault),
-            fileOffset,
-            noLength);
-        condition = null;
-      } else {
-        condition = new InstanceInvocation(
-            InstanceAccessKind.Instance,
-            matchedExpression,
-            name,
-            inferenceVisitor.engine.forest
-                .createArguments(fileOffset, [expression]),
-            functionType: target.getFunctionType(inferenceVisitor),
-            interfaceTarget: target.member as Procedure)
-          ..fileOffset = fileOffset;
-      }
-    }
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition: condition,
-          variableInitializers: [])
-    ]);
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    switch (kind) {
-      case RelationalPatternKind.equals:
-        printer.write('== ');
-        break;
-      case RelationalPatternKind.notEquals:
-        printer.write('!= ');
-        break;
-      case RelationalPatternKind.lessThan:
-        printer.write('< ');
-        break;
-      case RelationalPatternKind.lessThanEqual:
-        printer.write('<= ');
-        break;
-      case RelationalPatternKind.greaterThan:
-        printer.write('> ');
-        break;
-      case RelationalPatternKind.greaterThanEqual:
-        printer.write('>= ');
-        break;
-    }
-    printer.writeExpression(expression);
-  }
-
-  @override
-  String toString() {
-    return "RelationalPattern(${toStringInternal()})";
-  }
-}
-
-class WildcardPattern extends Pattern {
-  final DartType? type;
-
-  WildcardPattern(this.type, int fileOffset) : super(fileOffset);
-
-  @override
-  List<VariableDeclaration> get declaredVariables => const [];
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitWildcardBinder(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    Expression? condition;
-    if (type != null) {
-      condition = inferenceVisitor.engine.forest.createIsExpression(
-          fileOffset, matchedExpression, type!,
-          forNonNullableByDefault: false);
-    } else {
-      condition = null;
-    }
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition: condition,
-          variableInitializers: [])
-    ]);
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    if (type != null) {
-      type!.toTextInternal(printer);
-      printer.write(" ");
-    }
-    printer.write("_");
-  }
-
-  @override
-  String toString() {
-    return "WildcardBinder(${toStringInternal()})";
-  }
-}
-
-class PatternVariableDeclaration extends InternalStatement {
-  final Pattern pattern;
-  final Expression initializer;
-
-  PatternVariableDeclaration(this.pattern, this.initializer,
-      {required int offset}) {
-    fileOffset = offset;
-  }
-
-  @override
-  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    throw new UnimplementedError("PatternVariableDeclaration.acceptInference");
-  }
-
-  @override
-  R accept<R>(StatementVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultStatement(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(StatementVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    pattern.toTextInternal(printer);
-    printer.write(" = ");
-    printer.writeExpression(initializer);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  String toString() {
-    return "PatternVariableDeclaration(${toStringInternal()})";
-  }
-}
-
-final Pattern dummyPattern = new ExpressionPattern(dummyExpression);
-
-/// Internal statement for a if-case statements:
-///
-///     if (expression case pattern) then
-///     if (expression case pattern) then else otherwise
-///     if (expression case pattern when guard) then
-///     if (expression case pattern when guard) then else otherwise
-///
-class IfCaseStatement extends InternalStatement {
+class IfCaseElement extends InternalExpression with ControlFlowElement {
   Expression expression;
   PatternGuard patternGuard;
-  Statement then;
-  Statement? otherwise;
+  Expression then;
+  Expression? otherwise;
+  List<Statement> prelude;
 
-  IfCaseStatement(this.expression, this.patternGuard, this.then, this.otherwise,
-      int fileOffset) {
-    this.fileOffset = fileOffset;
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  DartType? matchedValueType;
+
+  IfCaseElement(
+      {required this.prelude,
+      required this.expression,
+      required this.patternGuard,
+      required this.then,
+      this.otherwise}) {
+    setParents(prelude, this);
     expression.parent = this;
     patternGuard.parent = this;
     then.parent = this;
@@ -6332,8 +3454,9 @@ class IfCaseStatement extends InternalStatement {
   }
 
   @override
-  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitIfCaseStatement(this);
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    throw new UnsupportedError("IfCaseElement.acceptInference");
   }
 
   @override
@@ -6343,701 +3466,235 @@ class IfCaseStatement extends InternalStatement {
     printer.write(' case ');
     patternGuard.toTextInternal(printer);
     printer.write(') ');
-    printer.writeStatement(then);
+    printer.writeExpression(then);
     if (otherwise != null) {
       printer.write(' else ');
-      printer.writeStatement(otherwise!);
+      printer.writeExpression(otherwise!);
     }
   }
 
   @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  MapLiteralEntry? toMapLiteralEntry(
+      void Function(TreeNode from, TreeNode to) onConvertElement) {
+    MapLiteralEntry? thenEntry;
+    Expression then = this.then;
+    if (then is ControlFlowElement) {
+      ControlFlowElement thenElement = then;
+      thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
+    }
+    if (thenEntry == null) return null;
+    MapLiteralEntry? otherwiseEntry;
+    Expression? otherwise = this.otherwise;
+    if (otherwise != null) {
+      if (otherwise is ControlFlowElement) {
+        ControlFlowElement otherwiseElement = otherwise;
+        otherwiseEntry = otherwiseElement.toMapLiteralEntry(onConvertElement);
+      }
+      if (otherwiseEntry == null) return null;
+    }
+    IfCaseMapEntry result = new IfCaseMapEntry(
+        prelude: prelude,
+        expression: expression,
+        patternGuard: patternGuard,
+        then: thenEntry,
+        otherwise: otherwiseEntry)
+      ..matchedValueType = matchedValueType
+      ..fileOffset = fileOffset;
+    onConvertElement(this, result);
+    return result;
   }
 
   @override
   String toString() {
-    return "IfCaseStatement(${toStringInternal()})";
+    return "IfCaseElement(${toStringInternal()})";
   }
 }
 
-final MapPatternEntry dummyMapPatternEntry =
-    new MapPatternEntry(dummyPattern, dummyPattern, TreeNode.noOffset);
+class IfCaseMapEntry extends TreeNode
+    with InternalTreeNode, ControlFlowMapEntry {
+  Expression expression;
+  PatternGuard patternGuard;
+  MapLiteralEntry then;
+  MapLiteralEntry? otherwise;
+  List<Statement> prelude;
 
-class MapPatternEntry extends TreeNode with InternalTreeNode {
-  final Pattern key;
-  final Pattern value;
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  DartType? matchedValueType;
 
-  @override
-  final int fileOffset;
+  IfCaseMapEntry(
+      {required this.prelude,
+      required this.expression,
+      required this.patternGuard,
+      required this.then,
+      this.otherwise}) {
+    expression.parent = this;
+    patternGuard.parent = this;
+    then.parent = this;
+    otherwise?.parent = this;
+  }
 
-  MapPatternEntry(this.key, this.value, this.fileOffset) {
-    key.parent = this;
-    value.parent = this;
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    throw new UnsupportedError("IfCaseMapEntry.acceptInference");
   }
 
   @override
   void toTextInternal(AstPrinter printer) {
-    key.toTextInternal(printer);
-    printer.write(': ');
-    value.toTextInternal(printer);
+    printer.write('if (');
+    expression.toTextInternal(printer);
+    printer.write(' case ');
+    patternGuard.toTextInternal(printer);
+    printer.write(') ');
+    then.toTextInternal(printer);
+    if (otherwise != null) {
+      printer.write(' else ');
+      otherwise!.toTextInternal(printer);
+    }
   }
 
   @override
   String toString() {
-    return 'MapMatcherEntry(${toStringInternal()})';
+    return "IfCaseMapEntry(${toStringInternal()})";
   }
 }
 
-class MapPattern extends Pattern {
-  final DartType? keyType;
-  final DartType? valueType;
-  final List<MapPatternEntry> entries;
-  late final InterfaceType type;
+class PatternForElement extends InternalExpression
+    with ControlFlowElement
+    implements ForElement {
+  PatternVariableDeclaration patternVariableDeclaration;
+  List<VariableDeclaration> intermediateVariables;
 
   @override
-  List<VariableDeclaration> get declaredVariables =>
-      [for (MapPatternEntry entry in entries) ...entry.value.declaredVariables];
-
-  MapPattern(this.keyType, this.valueType, this.entries, int fileOffset)
-      : assert((keyType == null) == (valueType == null)),
-        super(fileOffset);
+  final List<VariableDeclaration> variables; // May be empty, but not null.
 
   @override
-  void toTextInternal(AstPrinter printer) {
-    if (keyType != null && valueType != null) {
-      printer.writeTypeArguments([keyType!, valueType!]);
-    }
-    printer.write('{');
-    String comma = '';
-    for (MapPatternEntry entry in entries) {
-      printer.write(comma);
-      entry.toTextInternal(printer);
-      comma = ', ';
-    }
-    printer.write('}');
-  }
+  Expression? condition; // May be null.
 
   @override
-  String toString() {
-    return 'MapPattern(${toStringInternal()})';
-  }
+  final List<Expression> updates; // May be empty, but not null.
 
   @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitMapPattern(this,
-        matchedType: matchedType, context: context);
-  }
+  Expression body;
+
+  PatternForElement(
+      {required this.patternVariableDeclaration,
+      required this.intermediateVariables,
+      required this.variables,
+      required this.condition,
+      required this.updates,
+      required this.body});
 
   @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    DartType valueType = type.typeArguments[1];
-
-    ObjectAccessTarget containsKeyTarget = inferenceVisitor.findInterfaceMember(
-        type, containsKeyName, fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.methodInvocation);
-    bool typeCheckForTargetMapNeeded =
-        !inferenceVisitor.isAssignable(type, matchedType) ||
-            matchedType is DynamicType;
-
-    // mapVariable: `matchedType` MVAR = `matchedExpression`
-    VariableDeclaration mapVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
-
-    Expression? keysCheck;
-    for (int i = entries.length - 1; i >= 0; i--) {
-      MapPatternEntry entry = entries[i];
-      ExpressionPattern keyPattern = entry.key as ExpressionPattern;
-
-      // containsKeyCheck: `mapVariable`.containsKey(`keyPattern.expression`)
-      //   ==> MVAR.containsKey(`keyPattern.expression`)
-      Expression containsKeyCheck = new InstanceInvocation(
-          InstanceAccessKind.Instance,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, mapVariable)
-            ..promotedType = typeCheckForTargetMapNeeded ? type : null,
-          containsKeyName,
-          inferenceVisitor.engine.forest
-              .createArguments(fileOffset, [keyPattern.expression]),
-          functionType: containsKeyTarget.getFunctionType(inferenceVisitor),
-          interfaceTarget: containsKeyTarget.member as Procedure)
-        ..fileOffset = fileOffset;
-
-      if (keysCheck == null) {
-        // keyCheck: `containsKeyCheck`
-        keysCheck = containsKeyCheck;
-      } else {
-        // keyCheck: `containsKeyCheck` && `keyCheck`
-        keysCheck = inferenceVisitor.engine.forest.createLogicalExpression(
-            fileOffset, containsKeyCheck, doubleAmpersandName.text, keysCheck);
-      }
-    }
-
-    Expression? typeCheck;
-    if (typeCheckForTargetMapNeeded) {
-      // typeCheck: `mapVariable` is `targetMapType`
-      //   ==> MVAR is Map<`keyType`, `valueType`>
-      typeCheck = inferenceVisitor.engine.forest.createIsExpression(
-          fileOffset,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, mapVariable),
-          type,
-          forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault);
-    }
-
-    Expression? typeAndKeysCheck;
-    if (typeCheck != null && keysCheck != null) {
-      // typeAndKeysCheck: `typeCheck` && `keysCheck`
-      typeAndKeysCheck = inferenceVisitor.engine.forest.createLogicalExpression(
-          fileOffset, typeCheck, doubleAmpersandName.text, keysCheck);
-    } else if (typeCheck != null && keysCheck == null) {
-      typeAndKeysCheck = typeCheck;
-    } else if (typeCheck == null && keysCheck != null) {
-      typeAndKeysCheck = keysCheck;
-    } else {
-      typeAndKeysCheck = null;
-    }
-
-    ObjectAccessTarget valueAccess = inferenceVisitor.findInterfaceMember(
-        type, indexGetName, fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-    FunctionType valueAccessFunctionType =
-        valueAccess.getFunctionType(inferenceVisitor);
-    PatternTransformationResult transformationResult =
-        new PatternTransformationResult([]);
-    List<VariableDeclaration> valueAccessVariables = [];
-    CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
-    for (MapPatternEntry entry in entries) {
-      ExpressionPattern keyPattern = entry.key as ExpressionPattern;
-
-      // [keyPattern.expression] can be cloned without caching because it's a
-      // const expression according to the spec, and the constant
-      // canonicalization will eliminate the duplicated code.
-      //
-      // mapValue: `mapVariable`[`keyPattern.expression`]
-      //   ==> MVAR[`keyPattern.expression`]
-      Expression mapValue = new InstanceInvocation(
-          InstanceAccessKind.Instance,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, mapVariable)
-            ..promotedType = typeCheckForTargetMapNeeded ? type : null,
-          indexGetName,
-          inferenceVisitor.engine.forest.createArguments(
-              fileOffset, [cloner.clone(keyPattern.expression)]),
-          functionType: valueAccessFunctionType,
-          interfaceTarget: valueAccess.member as Procedure);
-
-      // mapValueVariable: `valueType` VVAR = `mapValue`
-      //   ==> `valueType` VVAR = MVAR[`keyPattern.expression`]
-      VariableDeclaration mapValueVariable = inferenceVisitor.engine.forest
-          .createVariableDeclarationForValue(mapValue, type: valueType);
-
-      PatternTransformationResult subpatternTransformationResult = entry.value
-          .transform(
-              inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, mapValueVariable),
-              valueType,
-              inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, mapValueVariable),
-              inferenceVisitor);
-
-      // If the sub-pattern transformation doesn't declare captured variables
-      // and consists of a single empty element, it means that it simply
-      // doesn't have a place where it could refer to the element expression.
-      // In that case we can avoid creating the intermediary variable for the
-      // element expression.
-      //
-      // An example of such sub-pattern is in the following:
-      //
-      // if (x case {"key": var _}) { /* ... */ }
-      if (entry.value.declaredVariables.isNotEmpty ||
-          !(subpatternTransformationResult.elements.length == 1 &&
-              subpatternTransformationResult.elements.single.isEmpty)) {
-        valueAccessVariables.add(mapValueVariable);
-        transformationResult = transformationResult.combine(
-            subpatternTransformationResult, inferenceVisitor);
-      }
-    }
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: typeAndKeysCheck,
-            variableInitializers: valueAccessVariables),
-        inferenceVisitor);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [mapVariable]),
-        inferenceVisitor);
-
-    return transformationResult;
-  }
-}
-
-class NamedPattern extends Pattern {
-  final String name;
-  final Pattern pattern;
-
-  @override
-  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
-
-  NamedPattern(this.name, this.pattern, int fileOffset) : super(fileOffset) {
-    pattern.parent = this;
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    throw new UnsupportedError("PatternForElement.acceptInference");
   }
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(name);
-    printer.write(': ');
-    pattern.toTextInternal(printer);
+    patternVariableDeclaration.toTextInternal(printer);
+    printer.write('for (');
+    for (int index = 0; index < variables.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(variables[index],
+          includeModifiersAndType: index == 0);
+    }
+    printer.write('; ');
+    if (condition != null) {
+      printer.writeExpression(condition!);
+    }
+    printer.write('; ');
+    printer.writeExpressions(updates);
+    printer.write(') ');
+    printer.writeExpression(body);
+  }
+
+  @override
+  MapLiteralEntry? toMapLiteralEntry(
+      void Function(TreeNode from, TreeNode to) onConvertElement) {
+    throw new UnimplementedError("toMapLiteralEntry");
   }
 
   @override
   String toString() {
-    return 'NamedPattern(${toStringInternal()})';
-  }
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitNamedPattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition:
-              new InvalidExpression("Unimplemented NamedPattern.transform"),
-          variableInitializers: [])
-    ]);
+    return "PatternForElement(${toStringInternal()})";
   }
 }
 
-class RecordPattern extends Pattern {
-  final List<Pattern> patterns;
-  late final RecordType type;
+class PatternForMapEntry extends TreeNode
+    with InternalTreeNode, ControlFlowMapEntry
+    implements ForMapEntry {
+  PatternVariableDeclaration patternVariableDeclaration;
+  List<VariableDeclaration> intermediateVariables;
 
   @override
-  List<VariableDeclaration> get declaredVariables =>
-      [for (Pattern pattern in patterns) ...pattern.declaredVariables];
+  final List<VariableDeclaration> variables;
 
-  RecordPattern(this.patterns, int fileOffset) : super(fileOffset) {
-    setParents(patterns, this);
+  @override
+  Expression? condition;
+
+  @override
+  final List<Expression> updates;
+
+  @override
+  MapLiteralEntry body;
+
+  PatternForMapEntry(
+      {required this.patternVariableDeclaration,
+      required this.intermediateVariables,
+      required this.variables,
+      required this.condition,
+      required this.updates,
+      required this.body});
+
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    throw new UnsupportedError("PatternForElement.acceptInference");
   }
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write('(');
-    String comma = '';
-    for (Pattern pattern in patterns) {
-      printer.write(comma);
-      pattern.toTextInternal(printer);
-      comma = ', ';
+    patternVariableDeclaration.toTextInternal(printer);
+    printer.write('for (');
+    for (int index = 0; index < variables.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(variables[index],
+          includeModifiersAndType: index == 0);
     }
-    printer.write(')');
+    printer.write('; ');
+    if (condition != null) {
+      printer.writeExpression(condition!);
+    }
+    printer.write('; ');
+    printer.writeExpressions(updates);
+    printer.write(') ');
+    body.toTextInternal(printer);
   }
 
   @override
   String toString() {
-    return 'RecordPattern(${toStringInternal()})';
-  }
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitRecordPattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    bool typeCheckNeeded = !inferenceVisitor.isAssignable(type, matchedType) ||
-        matchedType is DynamicType;
-
-    // recordVariable: `matchedType` RVAR = `matchedExpression`
-    VariableDeclaration recordVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
-
-    PatternTransformationResult transformationResult =
-        new PatternTransformationResult([]);
-    int recordFieldIndex = 0;
-    List<VariableDeclaration> fieldAccessVariables = [];
-    for (Pattern fieldPattern in patterns) {
-      Expression recordField;
-      DartType fieldType;
-      Pattern subpattern;
-      if (fieldPattern is NamedPattern) {
-        // recordField: `recordVariable`[`fieldPattern.name`]
-        //   ==> RVAR[`fieldPattern.name`]
-        recordField = new RecordNameGet(
-            inferenceVisitor.engine.forest
-                .createVariableGet(fileOffset, recordVariable)
-              ..promotedType = typeCheckNeeded ? type : null,
-            type,
-            fieldPattern.name);
-
-        // [type] is computed by the CFE, so the absence of the named field is
-        // an internal error, and we check the condition with an assert rather
-        // than reporting a compile-time error.
-        assert(type.named.any((named) => named.name == fieldPattern.name));
-        fieldType = type.named
-            .firstWhere((named) => named.name == fieldPattern.name)
-            .type;
-
-        subpattern = fieldPattern.pattern;
-      } else {
-        // recordField: `recordVariable`[`recordFieldIndex`]
-        //   ==> RVAR[`recordFieldIndex`]
-        recordField = new RecordIndexGet(
-            inferenceVisitor.engine.forest
-                .createVariableGet(fileOffset, recordVariable)
-              ..promotedType = typeCheckNeeded ? type : null,
-            type,
-            recordFieldIndex);
-
-        // [type] is computed by the CFE, so the field index out of range is an
-        // internal error, and we check the condition with an assert rather than
-        // reporting a compile-time error.
-        assert(recordFieldIndex < type.positional.length);
-        fieldType = type.positional[recordFieldIndex];
-
-        subpattern = fieldPattern;
-        recordFieldIndex++;
-      }
-
-      // recordFieldIndex: `fieldType` FVAR = `recordField`
-      VariableDeclaration recordFieldVariable = inferenceVisitor.engine.forest
-          .createVariableDeclarationForValue(recordField, type: fieldType);
-
-      PatternTransformationResult subpatternTransformationResult =
-          subpattern.transform(
-              inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, recordFieldVariable),
-              fieldType,
-              inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, recordFieldVariable),
-              inferenceVisitor);
-
-      // If the sub-pattern transformation doesn't declare captured variables
-      // and consists of a single empty element, it means that it simply
-      // doesn't have a place where it could refer to the element expression.
-      // In that case we can avoid creating the intermediary variable for the
-      // element expression.
-      //
-      // An example of such sub-pattern is in the following:
-      //
-      // if (x case (var _,)) { /* ... */ }
-      if (subpattern.declaredVariables.isNotEmpty ||
-          !(subpatternTransformationResult.elements.length == 1 &&
-              subpatternTransformationResult.elements.single.isEmpty)) {
-        fieldAccessVariables.add(recordFieldVariable);
-        transformationResult = transformationResult.combine(
-            subpatternTransformationResult, inferenceVisitor);
-      }
-    }
-
-    // condition: [`recordVariable` is `type`]?
-    //   ==> [RVAR is `type`]?
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: !typeCheckNeeded
-                ? null
-                : inferenceVisitor.engine.forest.createIsExpression(
-                    fileOffset,
-                    inferenceVisitor.engine.forest
-                        .createVariableGet(fileOffset, recordVariable),
-                    type,
-                    forNonNullableByDefault:
-                        inferenceVisitor.isNonNullableByDefault),
-            variableInitializers: fieldAccessVariables),
-        inferenceVisitor);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [recordVariable]),
-        inferenceVisitor);
-
-    return transformationResult;
+    return "PatternForMapEntry(${toStringInternal()})";
   }
 }
 
-class VariablePattern extends Pattern {
-  final DartType? type;
-  String name;
-  VariableDeclaration variable;
+/// Data structure used by the body builder in place of [ObjectPattern], to
+/// allow additional information to be captured that is needed during type
+/// inference.
+class ObjectPatternInternal extends ObjectPattern {
+  /// If the type name in the object pattern refers to a typedef, the typedef in
+  /// question; otherwise `null`.
+  final Typedef? typedef;
 
-  @override
-  List<VariableDeclaration> get declaredVariables => [variable];
+  /// Indicates whether the object pattern included explicit type arguments; if
+  /// `true` this means that no further type inference needs to be performed.
+  final bool hasExplicitTypeArguments;
 
-  VariablePattern(this.type, this.name, this.variable, int fileOffset)
-      : super(fileOffset);
-
-  @override
-  PatternInferenceResult acceptInference(
-    InferenceVisitorImpl visitor, {
-    required DartType matchedType,
-    required SharedMatchContext context,
-  }) {
-    return visitor.visitVariablePattern(this,
-        matchedType: matchedType, context: context);
-  }
-
-  @override
-  PatternTransformationResult transform(
-      Expression matchedExpression,
-      DartType matchedType,
-      Expression variableInitializingContext,
-      InferenceVisitorBase inferenceVisitor) {
-    PatternTransformationResult transformationResult;
-
-    if (type != null) {
-      VariableDeclaration? matchedExpressionVariable;
-      matchedExpressionVariable = inferenceVisitor.engine.forest
-          .createVariableDeclarationForValue(matchedExpression,
-              type: matchedType);
-      Expression condition = inferenceVisitor.engine.forest.createIsExpression(
-          variable.fileOffset,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, matchedExpressionVariable),
-          type!,
-          forNonNullableByDefault: false);
-      transformationResult = new PatternTransformationResult([
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [matchedExpressionVariable]),
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: condition,
-            variableInitializers: [])
-      ]);
-      variable.initializer = inferenceVisitor.engine.forest
-          .createVariableGet(fileOffset, matchedExpressionVariable)
-        ..promotedType = type!
-        ..parent = variable;
-    } else {
-      transformationResult = new PatternTransformationResult([]);
-      variable.initializer = matchedExpression..parent = variable;
-    }
-
-    return transformationResult;
-  }
-
-  @override
-  R accept<R>(TreeVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultTreeNode(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    if (type != null) {
-      type!.toTextInternal(printer);
-      printer.write(" ");
-    } else {
-      printer.write("var ");
-    }
-    printer.write(name);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  String toString() {
-    return "VariableBinder(${toStringInternal()})";
-  }
-}
-
-enum PatternTransformationElementKind {
-  regular,
-  logicalOrPatternLeftBegin,
-  logicalOrPatternRightBegin,
-  logicalOrPatternEnd
-}
-
-class PatternTransformationElement {
-  /// Part of a matching condition of a pattern
-  ///
-  /// The desugared condition for matching a pattern is broken into several
-  /// elements. This is needed in order to declare the intermediate variables
-  /// for storing values that should be computed only once.
-  final Expression? condition;
-
-  /// Declaration and initialization of captured and intermediate variables
-  ///
-  /// These are the statements that needs to present in the desugared code in
-  /// order to properly initialize [declaredVariables] and any intermediate
-  /// variables.
-  final List<Statement> variableInitializers;
-
-  final PatternTransformationResult? otherwise;
-
-  final PatternTransformationElementKind kind;
-
-  PatternTransformationElement(
-      {required this.condition,
-      required this.variableInitializers,
-      required this.kind,
-      this.otherwise});
-
-  bool get isEmpty => condition == null && variableInitializers.isEmpty;
-}
-
-class PatternTransformationResult {
-  final List<PatternTransformationElement> elements;
-
-  PatternTransformationResult(this.elements);
-
-  /// Combines the results of two pattern transformations into a single result
-  ///
-  /// The typical use case of [combine] is to combine the results of
-  /// transforming two sub-patterns of the same pattern into a single result
-  /// that can later be combined with the results of transforming of other
-  /// sub-patterns as well. So the overall result of transforming a pattern is
-  /// a combination of the results of transforming of all of the sub-patterns.
-  ///
-  /// [combine] uses [prependElement] on [other] for the purpose of optimization
-  /// and simplification.
-  PatternTransformationResult combine(PatternTransformationResult other,
-      InferenceVisitorBase inferenceVisitor) {
-    if (elements.isEmpty) {
-      return other;
-    } else if (other.elements.isEmpty) {
-      return this;
-    } else {
-      // TODO(cstefantsova): Does it make sense to use [prependElement] on each
-      // element from [elements], last to the first, prepending them to the
-      // accumulated result?
-      return new PatternTransformationResult([
-        ...elements.sublist(0, elements.length - 1),
-        ...other.prependElement(elements.last, inferenceVisitor).elements
-      ]);
-    }
-  }
-
-  /// Adds [element] to the beginning of the transformation result
-  ///
-  /// The condition and the intermediate variables declared by the [element] are
-  /// assumed to affect the scope of the transformation result they are
-  /// prepended to. Some optimizations are performed to minimize the count of
-  /// the elements in the overall result. The optimizations include combining
-  /// conditions via logical `&&` operation and concatenating lists of variable
-  /// declarations.
-  PatternTransformationResult prependElement(
-      PatternTransformationElement element,
-      InferenceVisitorBase inferenceVisitor) {
-    if (elements.isEmpty) {
-      return new PatternTransformationResult([element]);
-    }
-    if (element.kind != PatternTransformationElementKind.regular ||
-        elements.first.kind != PatternTransformationElementKind.regular) {
-      return new PatternTransformationResult([element, ...elements]);
-    }
-    PatternTransformationElement outermost = elements.first;
-    Expression? elementCondition = element.condition;
-    Expression? outermostCondition = outermost.condition;
-    if (outermostCondition == null) {
-      elements[0] = new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition: elementCondition,
-          variableInitializers: [
-            ...element.variableInitializers,
-            ...outermost.variableInitializers
-          ]);
-      return this;
-    } else if (element.variableInitializers.isEmpty) {
-      if (elementCondition == null) {
-        // Trivial case: [element] has empty components.
-        return this;
-      } else {
-        elements[0] = new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: inferenceVisitor.engine.forest.createLogicalExpression(
-                elementCondition.fileOffset,
-                elementCondition,
-                doubleAmpersandName.text,
-                outermostCondition),
-            variableInitializers: outermost.variableInitializers);
-        return this;
-      }
-    } else {
-      return new PatternTransformationResult([element, ...elements]);
-    }
-  }
-}
-
-class ContinuationStackElement {
-  List<Statement> statements;
-
-  ContinuationStackElement(this.statements);
+  ObjectPatternInternal(super.requiredType, super.fields, this.typedef,
+      {required this.hasExplicitTypeArguments});
 }

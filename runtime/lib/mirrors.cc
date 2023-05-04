@@ -530,6 +530,12 @@ static InstancePtr CreateTypeMirror(const AbstractType& type) {
   if (type.IsFunctionType()) {
     return CreateFunctionTypeMirror(type);
   }
+  if (type.IsRecordType()) {
+    const Class& cls =
+        Class::Handle(IsolateGroup::Current()->object_store()->record_class());
+    return CreateClassMirror(cls, AbstractType::Handle(cls.DeclarationType()),
+                             Bool::False(), Object::null_instance());
+  }
   if (type.HasTypeClass()) {
     const Class& cls = Class::Handle(type.type_class());
     // Handle void and dynamic types.
@@ -1411,7 +1417,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(), arg_names));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  if (!lookup_constructor.AreValidArguments(args_descriptor, NULL)) {
+  if (!lookup_constructor.AreValidArguments(args_descriptor, nullptr)) {
     external_constructor_name = lookup_constructor.name();
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       external_constructor_name, explicit_args, arg_names,
@@ -1604,7 +1610,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
     const String& uri = String::Handle(zone, script.url());
     return CreateSourceLocation(uri, 1, 1);
   } else {
-    FATAL1("Unexpected declaration type: %s", decl.ToCString());
+    FATAL("Unexpected declaration type: %s", decl.ToCString());
   }
 
   ASSERT(!script.IsNull());

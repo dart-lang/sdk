@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import '../helpers/compiler_helper.dart';
@@ -21,10 +19,10 @@ class C implements A {
   noSuchMethod(_) {}
 }
 main() {
-  new A();
-  new B();
-  new C();
-  new A().foo();
+  A();
+  B();
+  C();
+  A().foo();
 }
 """;
 

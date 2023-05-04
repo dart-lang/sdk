@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:webdriver/io.dart';
+import 'package:webdriver/async_io.dart';
 
 import 'android.dart';
 import 'configuration.dart';
@@ -160,8 +160,8 @@ abstract class Browser {
       var doneCompleter = Completer<bool>();
       done = doneCompleter.future;
 
-      var stdoutDone = Completer<Null>();
-      var stderrDone = Completer<Null>();
+      var stdoutDone = Completer<void>();
+      var stderrDone = Completer<void>();
 
       var stdoutIsDone = false;
       var stderrIsDone = false;
@@ -463,7 +463,7 @@ class IE extends Browser {
     // Allow popups from localhost
     await _setRegistryKey("$ieKey\\New Windows\\Allow", "127.0.0.1");
     // Disable IE first run wizard
-    await _setRegistryKey("$ieKey\Main", "DisableFirstRunCustomize",
+    await _setRegistryKey("$ieKey\\Main", "DisableFirstRunCustomize",
         data: "1", type: "REG_DWORD");
 
     var localAppData = Platform.environment['LOCALAPPDATA'];
@@ -564,6 +564,7 @@ class AndroidChrome extends Browser {
     return true;
   }
 
+  @override
   void logBrowserInfoToTestBrowserOutput() {
     _testBrowserOutput.stdout
         .write('Android device id: ${_adbDevice.deviceId}\n');
@@ -624,10 +625,10 @@ class Firefox extends Browser {
       };
       var args = [
         "-profile",
-        "${userDir.path}",
+        userDir.path,
         "-no-remote",
         "-new-instance",
-        url
+        url,
       ];
       var environment = Map<String, String>.from(Platform.environment);
       environment["MOZ_CRASHREPORTER_DISABLE"] = "1";
@@ -1363,8 +1364,8 @@ body div {
 
       function run(url) {
         number_of_tests++;
-        number_div.innerHTML = number_of_tests;
-        executing_div.innerHTML = url;
+        number_div.textContent = number_of_tests;
+        executing_div.textContent = url;
         if (use_iframe) {
           embedded_iframe.onload = null;
           embedded_iframe_div.removeChild(embedded_iframe);
@@ -1395,7 +1396,7 @@ body div {
       function reportError(msg) {
         function handleReady() {
           if (this.readyState == this.DONE && this.status != 200) {
-            var error = 'Sending back error did not succeeed: ' + this.status;
+            var error = 'Sending back error did not succeed: ' + this.status;
             error = error + '. Failed to send msg: ' + msg;
             error_div.innerHTML = error;
           }

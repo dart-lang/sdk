@@ -36,6 +36,7 @@ main() {
   final genKernelResult = runAndPrintOutput(
     genKernel,
     [
+      '--no-sound-null-safety',
       '--aot',
       '--platform=$platformDill',
       '-o',

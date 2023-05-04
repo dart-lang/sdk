@@ -33,7 +33,27 @@ class ForCondition extends LiteralEntryInfo {
     assert(optional('for', forToken));
     parser.listener.beginForControlFlow(awaitToken, forToken);
 
-    token = parser.parseForLoopPartsStart(awaitToken, forToken);
+    ForPartsContext forPartsContext = new ForPartsContext();
+    token =
+        parser.parseForLoopPartsStart(awaitToken, forToken, forPartsContext);
+    Token? patternKeyword = forPartsContext.patternKeyword;
+    if (patternKeyword != null) {
+      if (optional('=', token.next!)) {
+        // Process `for ( pattern = expression ; ... ; ... )`
+        Token equals = token.next!;
+        token = parser.parseExpression(equals);
+        parser.listener.handleForInitializerPatternVariableAssignment(
+            patternKeyword, equals);
+        _inStyle = false;
+        return parser.parseForLoopPartsRest(token, forToken, awaitToken);
+      } else {
+        // Process `for ( pattern in expression )`
+        assert(optional('in', token.next!));
+        _inStyle = true;
+        return parser.parseForInLoopPartsRest(token, awaitToken, forToken,
+            patternKeyword, /* identifier = */ null);
+      }
+    }
     Token identifier = token.next!;
     token = parser.parseForLoopPartsMid(token, awaitToken, forToken);
 
@@ -41,7 +61,7 @@ class ForCondition extends LiteralEntryInfo {
       // Process `for ( ... in ... )`
       _inStyle = true;
       token = parser.parseForInLoopPartsRest(
-          token, awaitToken, forToken, identifier);
+          token, awaitToken, forToken, /* patternKeyword = */ null, identifier);
     } else {
       // Process `for ( ... ; ... ; ... )`
       _inStyle = false;

@@ -9,11 +9,11 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/src/norm.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../kernel/benchmarker.dart' show Benchmarker;
-import '../kernel/forest.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
@@ -50,7 +50,7 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   bool visitExtensionType(ExtensionType node) => false;
 
   @override
-  bool visitViewType(ViewType node) => false;
+  bool visitInlineType(InlineType node) => false;
 
   @override
   bool visitNeverType(NeverType node) => false;
@@ -141,9 +141,6 @@ abstract class TypeInferenceEngine {
 
   late CoreTypes coreTypes;
 
-  // TODO(johnniwinther): Shared this with the BodyBuilder.
-  final Forest forest = const Forest();
-
   /// Indicates whether the "prepare" phase of type inference is complete.
   bool isTypeInferencePrepared = false;
 
@@ -155,14 +152,14 @@ abstract class TypeInferenceEngine {
   /// This is represented as a map from a constructor to its library
   /// builder because the builder is used to report errors due to cyclic
   /// inference dependencies.
-  final Map<Constructor, SourceConstructorBuilder> toBeInferred = {};
+  final Map<Member, SourceConstructorBuilder> toBeInferred = {};
 
   /// A map containing constructors in the process of being inferred.
   ///
   /// This is used to detect cyclic inference dependencies.  It is represented
   /// as a map from a constructor to its library builder because the builder
   /// is used to report errors.
-  final Map<Constructor, SourceConstructorBuilder> beingInferred = {};
+  final Map<Member, SourceConstructorBuilder> beingInferred = {};
 
   final Map<Member, TypeDependency> typeDependencies = {};
 
@@ -520,7 +517,8 @@ class OperationsCfe
 
   @override
   DartType glb(DartType type1, DartType type2) {
-    throw new UnimplementedError('TODO(paulberry)');
+    return typeEnvironment.getStandardLowerBound(type1, type2,
+        isNonNullableByDefault: true);
   }
 
   @override
@@ -543,41 +541,90 @@ class OperationsCfe
 
   @override
   DartType lub(DartType type1, DartType type2) {
-    throw new UnimplementedError('TODO(paulberry)');
+    return typeEnvironment.getStandardUpperBound(type1, type2,
+        isNonNullableByDefault: true);
   }
 
   @override
   DartType makeNullable(DartType type) {
-    throw new UnimplementedError('TODO(paulberry)');
+    return type.withDeclaredNullability(Nullability.nullable);
   }
 
   @override
   DartType? matchListType(DartType type) {
-    throw new UnimplementedError('TODO(paulberry)');
+    if (type is InterfaceType) {
+      List<DartType>? typeArguments =
+          typeEnvironment.getTypeArgumentsAsInstanceOf(
+              type, typeEnvironment.coreTypes.listClass);
+      if (typeArguments == null || typeArguments.length != 1) {
+        return null;
+      } else {
+        return typeArguments.single;
+      }
+    } else {
+      return null;
+    }
   }
 
   @override
   MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
-    // TODO: implement matchMapType
-    throw new UnimplementedError('TODO(scheglov)');
+    if (type is! InterfaceType) {
+      return null;
+    } else {
+      InterfaceType? mapType = typeEnvironment.getTypeAsInstanceOf(
+          type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes,
+          isNonNullableByDefault: isNonNullableByDefault);
+      if (mapType == null) {
+        return null;
+      } else {
+        return new MapPatternTypeArguments<DartType>(
+            keyType: mapType.typeArguments[0],
+            valueType: mapType.typeArguments[1]);
+      }
+    }
+  }
+
+  @override
+  DartType? matchStreamType(DartType type) {
+    if (type is InterfaceType) {
+      List<DartType>? typeArguments =
+          typeEnvironment.getTypeArgumentsAsInstanceOf(
+              type, typeEnvironment.coreTypes.streamClass);
+      if (typeArguments == null || typeArguments.length != 1) {
+        return null;
+      } else {
+        return typeArguments.single;
+      }
+    } else {
+      return null;
+    }
   }
 
   @override
   bool areStructurallyEqual(DartType type1, DartType type2) {
-    // TODO(scheglov): implement areStructurallyEqual
-    throw new UnimplementedError('TODO(scheglov)');
+    // TODO(cstefantsova): Use the actual algorithm for structural equality.
+    return type1 == type2;
   }
 
   @override
   DartType normalize(DartType type) {
-    // TODO(scheglov): implement normalize
-    throw new UnimplementedError('TODO(scheglov)');
+    return norm(typeEnvironment.coreTypes, type);
   }
 
   @override
   DartType? matchIterableType(DartType type) {
-    // TODO(scheglov): implement matchIterableType
-    throw new UnimplementedError('TODO(scheglov)');
+    if (type is! InterfaceType) {
+      return null;
+    } else {
+      InterfaceType? interfaceType = typeEnvironment.getTypeAsInstanceOf(type,
+          typeEnvironment.coreTypes.iterableClass, typeEnvironment.coreTypes,
+          isNonNullableByDefault: isNonNullableByDefault);
+      if (interfaceType == null) {
+        return null;
+      } else {
+        return interfaceType.typeArguments.single;
+      }
+    }
   }
 }
 

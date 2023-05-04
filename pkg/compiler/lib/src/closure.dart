@@ -23,7 +23,8 @@ abstract class ClosureData {
   void writeToDataSink(DataSinkWriter sink);
 
   /// Look up information about the variables that have been mutated and are
-  /// used inside the scope of [node].
+  /// used inside the scope of [node]. Assumes member is not abstract and
+  /// therefore scope info exists.
   ScopeInfo getScopeInfo(MemberEntity member);
 
   ClosureRepresentationInfo getClosureInfo(ir.LocalFunction localFunction);
@@ -224,7 +225,7 @@ class CapturedLoopScope extends CapturedScope {
 ///
 ///  and then to execute this closure, for example:
 ///
-///     var foo = new FooClosure(1);
+///     var foo = FooClosure(1);
 ///     foo.call(2);
 ///
 /// if `y` is modified elsewhere within its scope, accesses to y anywhere in the

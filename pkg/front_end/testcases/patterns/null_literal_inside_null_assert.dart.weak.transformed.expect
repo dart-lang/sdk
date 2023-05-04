@@ -3,8 +3,14 @@ import self as self;
 
 static method test(dynamic x) → dynamic {
   #L1:
-  invalid-expression "PatternSwitchStatement(switch (x) {
-  case null!:
-    break label0;
-})";
+  {
+    final synthesized dynamic #0#0 = x;
+    {
+      if(let final dynamic #t1 = #0#0! in #0#0! == null) {
+        {
+          break #L1;
+        }
+      }
+    }
+  }
 }

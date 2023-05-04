@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test that dump-info has no effect on the compiler output.
 
 import 'dart:io';
@@ -21,7 +19,7 @@ copyDirectory(Directory sourceDir, Directory destinationDir) {
     if (element is File) {
       element.copySync(newPath);
     } else if (element is Directory) {
-      Directory newDestinationDir = new Directory(newPath);
+      Directory newDestinationDir = Directory(newPath);
       newDestinationDir.createSync();
       copyDirectory(element, newDestinationDir);
     }
@@ -30,14 +28,14 @@ copyDirectory(Directory sourceDir, Directory destinationDir) {
 
 void main() {
   Directory tmpDir = Directory.systemTemp.createTempSync('dump_info_test_');
-  Directory out1 = new Directory.fromUri(tmpDir.uri.resolve('without'));
+  Directory out1 = Directory.fromUri(tmpDir.uri.resolve('without'));
   out1.createSync();
-  Directory out2 = new Directory.fromUri(tmpDir.uri.resolve('json'));
+  Directory out2 = Directory.fromUri(tmpDir.uri.resolve('json'));
   out2.createSync();
-  Directory out3 = new Directory.fromUri(tmpDir.uri.resolve('binary'));
+  Directory out3 = Directory.fromUri(tmpDir.uri.resolve('binary'));
   out3.createSync();
-  Directory appDir = new Directory.fromUri(
-      Uri.base.resolve('pkg/compiler/test/codesize/swarm'));
+  Directory appDir =
+      Directory.fromUri(Uri.base.resolve('pkg/compiler/test/codesize/swarm'));
 
   print("Copying '${appDir.path}' to '${tmpDir.path}'.");
   copyDirectory(appDir, tmpDir);
@@ -52,8 +50,8 @@ void main() {
     print('stderr:');
     print(result.stderr);
     Expect.equals(0, result.exitCode);
-    String output1 = new File.fromUri(tmpDir.uri.resolve('without/out.js'))
-        .readAsStringSync();
+    String output1 =
+        File.fromUri(tmpDir.uri.resolve('without/out.js')).readAsStringSync();
 
     command =
         dart2JsCommand(['--out=json/out.js', 'swarm.dart', '--dump-info']);
@@ -67,7 +65,7 @@ void main() {
     print(result.stderr);
     Expect.equals(0, result.exitCode);
     String output2 =
-        new File.fromUri(tmpDir.uri.resolve('json/out.js')).readAsStringSync();
+        File.fromUri(tmpDir.uri.resolve('json/out.js')).readAsStringSync();
 
     print('Compare outputs...');
     Expect.equals(output1, output2);
@@ -83,8 +81,8 @@ void main() {
     print('stderr:');
     print(result.stderr);
     Expect.equals(0, result.exitCode);
-    String output3 = new File.fromUri(tmpDir.uri.resolve('binary/out.js'))
-        .readAsStringSync();
+    String output3 =
+        File.fromUri(tmpDir.uri.resolve('binary/out.js')).readAsStringSync();
 
     print('Compare outputs...');
     Expect.equals(output1, output3);

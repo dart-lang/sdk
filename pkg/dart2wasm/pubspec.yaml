@@ -9,6 +9,7 @@ dependencies:
   _fe_analyzer_shared: any
   _js_interop_checks: any
   args: any
+  build_integration: any
   front_end: any
   kernel: any
   vm: any

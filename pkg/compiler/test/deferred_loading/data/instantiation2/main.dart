@@ -42,8 +42,6 @@
   c=(f3, f2)]
 */
 
-// @dart = 2.7
-
 // Test instantiations with the same type argument count used only in two
 // deferred libraries.
 

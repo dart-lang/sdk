@@ -79,6 +79,7 @@ class RuntimeCompletionComputer {
     ).computeSuggestions(
       dartRequest,
       OperationPerformanceImpl('<root>'),
+      useFilter: false,
     );
     var suggestions = serverSuggestions.map((e) => e.build()).toList();
 

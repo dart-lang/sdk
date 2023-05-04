@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
@@ -25,10 +23,9 @@ main(List<String> args) {
   runTests(args);
 }
 
-runTests(List<String> args, [int shardIndex]) {
+runTests(List<String> args, [int? shardIndex]) {
   asyncTest(() async {
-    Directory dataDir =
-        new Directory.fromUri(Platform.script.resolve('emission'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('emission'));
     await checkTests(dataDir, const RtiEmissionDataComputer(),
         args: args,
         shardIndex: shardIndex ?? 0,
@@ -51,21 +48,20 @@ class Tags {
 
 abstract class ComputeValueMixin {
   Compiler get compiler;
-  ProgramLookup lookup;
+  late final ProgramLookup lookup = ProgramLookup(backendStrategy);
 
   JsBackendStrategy get backendStrategy => compiler.backendStrategy;
 
   RuntimeTypesImpl get checksBuilder =>
-      backendStrategy.rtiChecksBuilderForTesting;
+      backendStrategy.rtiChecksBuilderForTesting as RuntimeTypesImpl;
 
   String getClassValue(ClassEntity element) {
-    lookup ??= new ProgramLookup(backendStrategy);
-    Class cls = lookup.getClass(element);
-    Features features = new Features();
+    Class? cls = lookup.getClass(element);
+    Features features = Features();
     if (cls != null) {
       features.addElement(Tags.isChecks);
       for (StubMethod stub in cls.isChecks) {
-        features.addElement(Tags.isChecks, stub.name.key);
+        features.addElement(Tags.isChecks, stub.name!.key);
       }
       if (cls.functionTypeIndex != null) {
         features.add(Tags.functionType);
@@ -77,7 +73,7 @@ abstract class ComputeValueMixin {
         features.add(Tags.onlyForConstructor);
       }
     }
-    ClassUse classUse = checksBuilder.classUseMapForTesting[element];
+    ClassUse? classUse = checksBuilder.classUseMapForTesting![element];
     if (classUse != null) {
       if (classUse.directInstance) {
         features.add(Tags.directInstance);
@@ -101,9 +97,9 @@ abstract class ComputeValueMixin {
     return features.getText();
   }
 
-  String getMemberValue(MemberEntity member) {
-    if (member.enclosingClass != null && member.enclosingClass.isClosure) {
-      return getClassValue(member.enclosingClass);
+  String? getMemberValue(MemberEntity member) {
+    if (member.enclosingClass != null && member.enclosingClass!.isClosure) {
+      return getClassValue(member.enclosingClass!);
     }
     return null;
   }
@@ -116,11 +112,11 @@ class RtiEmissionDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap,
-            compiler, closedWorld.closureDataLookup)
+    RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap, compiler,
+            closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -128,11 +124,11 @@ class RtiEmissionDataComputer extends DataComputer<String> {
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
-    new RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap,
-            compiler, closedWorld.closureDataLookup)
-        .computeForClass(elementMap.getClassDefinition(cls).node);
+    RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap, compiler,
+            closedWorld.closureDataLookup)
+        .computeForClass(elementMap.getClassDefinition(cls).node as ir.Class);
   }
 
   @override
@@ -160,15 +156,16 @@ class RtiEmissionIrComputer extends IrDataExtractor<String>
   }
 
   @override
-  String computeMemberValue(Id id, ir.Member node) {
+  String? computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod);
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      return getMemberValue(info.callMethod!);
     }
     return null;
   }

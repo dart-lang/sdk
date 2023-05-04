@@ -426,14 +426,14 @@ String source;
     await _prepareCompletion(
         'Sample',
         '''
-class M {}
+mixin class M {}
 class Sample extends Object with M
 ''',
         atEnd: true);
     _assertHasChange(
         'Complete class declaration',
         '''
-class M {}
+mixin class M {}
 class Sample extends Object with M {
   ////
 }
@@ -1373,7 +1373,7 @@ class Thing extends Object {
     _assertHasChange('Add a semicolon and newline', '''
 class Thing extends Object {
   int foo() => 1;
-  
+  ////
 }
 ''');
   }
@@ -1455,7 +1455,7 @@ void f() {
         '''
 void f() {
   int g();
-  
+  ////
 }
 ''',
         (s) => _afterLast(s, '();\n  '));
@@ -1557,6 +1557,7 @@ void f() {
 
 @reflectiveTest
 class _SwitchCompletionTest extends StatementCompletionTest {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_caseNoColon() async {
     await _prepareCompletion(
         'label',
@@ -1571,6 +1572,31 @@ void f(x) {
     _assertHasChange(
         'Complete switch-statement',
         '''
+void f(x) {
+  switch (x) {
+    case label: ////
+  }
+}
+''',
+        (s) => _after(s, 'label: '));
+  }
+
+  Future<void> test_caseNoColon_language219() async {
+    await _prepareCompletion(
+        'label',
+        '''
+// @dart=2.19
+void f(x) {
+  switch (x) {
+    case label
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete switch-statement',
+        '''
+// @dart=2.19
 void f(x) {
   switch (x) {
     case label: ////

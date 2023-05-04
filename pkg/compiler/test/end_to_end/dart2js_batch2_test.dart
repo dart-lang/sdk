@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -21,7 +19,7 @@ copyDirectory(Directory sourceDir, Directory destinationDir) {
     if (element is File) {
       element.copySync(newPath);
     } else if (element is Directory) {
-      Directory newDestinationDir = new Directory(newPath);
+      Directory newDestinationDir = Directory(newPath);
       newDestinationDir.createSync();
       copyDirectory(element, newDestinationDir);
     }
@@ -40,8 +38,8 @@ Future setup() {
   return createTempDir().then((Directory directory) {
     tmpDir = directory;
     String newPath = path.join(directory.path, "dart2js_batch2_run.dart");
-    File source = new File.fromUri(
-        Platform.script.resolve("data/dart2js_batch2_run.dart"));
+    File source =
+        File.fromUri(Platform.script.resolve("data/dart2js_batch2_run.dart"));
     source.copySync(newPath);
   });
 }

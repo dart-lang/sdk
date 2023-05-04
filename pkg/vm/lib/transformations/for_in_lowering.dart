@@ -68,7 +68,8 @@ class ForInLowering {
 
       final streamVariable = new VariableDeclaration(ForInVariables.stream,
           initializer: stmt.iterable,
-          type: stmt.iterable.getStaticType(staticTypeContext));
+          type: stmt.iterable.getStaticType(staticTypeContext),
+          isSynthesized: true);
 
       final streamIteratorType = new InterfaceType(
           coreTypes.streamIteratorClass,
@@ -80,7 +81,8 @@ class ForInLowering {
               coreTypes.streamIteratorDefaultConstructor,
               new Arguments(<Expression>[new VariableGet(streamVariable)],
                   types: [valueVariable.type])),
-          type: streamIteratorType);
+          type: streamIteratorType,
+          isSynthesized: true);
 
       // await :for-iterator.moveNext()
       final condition = new AwaitExpression(new InstanceInvocation(
@@ -105,7 +107,8 @@ class ForInLowering {
 
         // let _ = asyncStarMoveNextCall in (condition)
         whileCondition = new Let(
-            new VariableDeclaration(null, initializer: asyncStarMoveNextCall),
+            new VariableDeclaration(null,
+                initializer: asyncStarMoveNextCall, isSynthesized: true),
             condition);
       }
 
@@ -194,7 +197,8 @@ class ForInLowering {
             interfaceTarget: coreTypes.iterableGetIterator,
             resultType: iteratorType)
           ..fileOffset = iterable.fileOffset,
-        type: iteratorType)
+        type: iteratorType,
+        isSynthesized: true)
       ..fileOffset = iterable.fileOffset;
 
     final condition = InstanceInvocation(

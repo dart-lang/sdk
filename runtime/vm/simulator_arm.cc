@@ -1419,7 +1419,7 @@ void Simulator::SupervisorCall(Instr* instr) {
           THR_Print("Call to host function at 0x%" Pd "\n", external);
         }
         if (redirection->call_kind() == kRuntimeCall) {
-          NativeArguments arguments(NULL, 0, NULL, NULL);
+          NativeArguments arguments;
           ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
           arguments.thread_ = reinterpret_cast<Thread*>(get_register(R0));
           arguments.argc_tag_ = get_register(R1);
@@ -3040,7 +3040,7 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bit(23) == 0) && (instr->Bits(25, 3) == 1)) {
       // Format(instr, "vshlqu'sz 'qd, 'qm, 'qn");
       // Format(instr, "vshlqi'sz 'qd, 'qm, 'qn");
-      const bool signd = instr->Bit(24) == 0;
+      const bool is_signed = instr->Bit(24) == 0;
       const int size = instr->Bits(20, 2);
       if (size == 0) {
         for (int i = 0; i < 16; i++) {
@@ -3048,7 +3048,7 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
           if (shift > 0) {
             s8d_u8[i] = s8m_u8[i] << shift;
           } else if (shift < 0) {
-            if (signd) {
+            if (is_signed) {
               s8d_8[i] = s8m_8[i] >> (-shift);
             } else {
               s8d_u8[i] = s8m_u8[i] >> (-shift);
@@ -3061,7 +3061,7 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
           if (shift > 0) {
             s8d_u16[i] = s8m_u16[i] << shift;
           } else if (shift < 0) {
-            if (signd) {
+            if (is_signed) {
               s8d_16[i] = s8m_16[i] >> (-shift);
             } else {
               s8d_u16[i] = s8m_u16[i] >> (-shift);
@@ -3074,7 +3074,7 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
           if (shift > 0) {
             s8d_u32[i] = s8m_u32[i] << shift;
           } else if (shift < 0) {
-            if (signd) {
+            if (is_signed) {
               s8d_32[i] = s8m_32[i] >> (-shift);
             } else {
               s8d_u32[i] = s8m_u32[i] >> (-shift);
@@ -3088,7 +3088,7 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
           if (shift > 0) {
             s8d_u64[i] = s8m_u64[i] << shift;
           } else if (shift < 0) {
-            if (signd) {
+            if (is_signed) {
               s8d_64[i] = s8m_64[i] >> (-shift);
             } else {
               s8d_u64[i] = s8m_u64[i] >> (-shift);

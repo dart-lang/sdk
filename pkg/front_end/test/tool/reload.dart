@@ -34,8 +34,21 @@ class RemoteVm {
 
   /// The main isolate ID of the running VM. Needed to indicate to the VM which
   /// isolate to reload.
-  FutureOr<String> get mainId async => _mainId ??= await _computeMainId();
+  Future<String> get mainId async => _mainId ??= await _computeMainId();
   String? _mainId;
+
+  /// The incoming message stream from the VM.
+  final Map<String, StreamController> _eventStreams = {};
+
+  Future<Stream> getEventStream(String streamId) async {
+    final existing = _eventStreams[streamId];
+    if (existing != null) return existing.stream;
+
+    final controller = _eventStreams[streamId] = StreamController.broadcast();
+    await rpc.sendRequest('streamListen', {'streamId': streamId});
+
+    return controller.stream;
+  }
 
   RemoteVm([this.port = 8181]);
 
@@ -50,20 +63,24 @@ class RemoteVm {
       if (VERBOSE_DEBUG) print('error connecting to the vm-service');
       return disconnect();
     });
+    peer.registerMethod('streamNotify', (arg) {
+      final response = (arg as json_rpc.Parameters).asMap;
+      final streamId = response['streamId'];
+      final controller = _eventStreams[streamId];
+      if (controller != null) {
+        controller.add(response['event']);
+      }
+    });
     return peer;
   }
 
   /// Retrieves the ID of the main isolate using the service protocol.
   Future<String> _computeMainId() async {
-    var completer = new Completer<String>();
-    rpc.registerMethod('streamNotify', (response) {
-      if (response['streamId'] == 'Isolate') return;
-      var event = response['event'];
-      if (event['kind'] != 'IsolateStart') return;
-      var isolate = event['isolate'];
-      completer.complete(isolate['id']);
+    final isolateStartEventFuture =
+        (await getEventStream('Isolate')).firstWhere((event) {
+      return event['kind'] == 'IsolateStart';
     });
-    await rpc.sendRequest('streamListen', {'streamId': 'Isolate'});
+
     var vm = await rpc.sendRequest('getVM', {});
     var isolates = vm['isolates'];
     for (var isolate in isolates) {
@@ -74,7 +91,9 @@ class RemoteVm {
     for (var isolate in isolates) {
       return isolate['id'];
     }
-    return completer.future;
+
+    final isolateStartEvent = await isolateStartEventFuture;
+    return isolateStartEvent['isolate']['id'];
   }
 
   /// Send a request to the VM to reload sources from [entryUri].

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: constant_identifier_names, library_names
+
 /// Contains the names of globals that are embedded into the output by the
 /// compiler.
 ///
@@ -165,6 +167,11 @@ const RUNTIME_METRICS_CONTAINER = 'runtimeMetrics';
 
 /// An embedded global used to collect and access startup metrics.
 const STARTUP_METRICS = 'sm';
+
+/// An embedded global that contains combinator functions for generating record
+/// type checks.
+// TODO(51016): This might be moved to improve deferred loading.
+const RECORD_TYPE_TEST_COMBINATORS_PROPERTY = 'rttc';
 
 /// Names of fields of collected tear-off parameters object.
 ///

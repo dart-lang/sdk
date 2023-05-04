@@ -1,0 +1,9 @@
+f(x) => [switch(x) {
+int() => 0 : 1
+}, 0];
+
+
+f[StringToken]([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] [[BeginToken]switch[KeywordToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+int[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 0[StringToken] :[SimpleToken] 1[StringToken]
+}[SimpleToken],[SimpleToken] 0[StringToken]][SimpleToken];[SimpleToken]
+[SimpleToken]

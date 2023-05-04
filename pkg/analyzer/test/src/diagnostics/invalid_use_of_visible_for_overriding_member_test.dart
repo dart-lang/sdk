@@ -40,7 +40,7 @@ class Child extends Parent {
   }
 }
 ''', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 63, 3),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 63, 3),
     ]);
   }
 
@@ -107,7 +107,30 @@ class B {
   }
 }
 ''', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 56, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 56, 1),
+    ]);
+  }
+
+  test_getter_inObjectPattern() async {
+    newFile('$testPackageLibPath/a.dart', '''
+import 'package:meta/meta.dart';
+
+class A {
+  @visibleForOverriding
+  int get g => 0;
+}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+void f(Object o) {
+  switch (o) {
+    case A(g: 7): print('yes');
+  }
+}
+''', [
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 63, 1),
     ]);
   }
 
@@ -128,7 +151,7 @@ class B {
   void m(A a) => a > A();
 }
 ''', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 47, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 47, 1),
     ]);
   }
 
@@ -152,7 +175,7 @@ class B extends A {
   int get x => super.g + 1;
 }
 ''', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 100, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 100, 1),
     ]);
   }
 
@@ -176,7 +199,7 @@ class B extends A {
   void x() => super.m();
 }
 ''', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 96, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 96, 1),
     ]);
   }
 
@@ -200,7 +223,7 @@ class B extends A {
   void m() => super > A();
 }
 ''', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 111, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 111, 1),
     ]);
   }
 
@@ -224,7 +247,7 @@ class B extends A {
   set x(int i) => super.s = i;
 }
 ''', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 106, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 106, 1),
     ]);
   }
 
@@ -264,7 +287,7 @@ class B {
   }
 }
 ''', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 50, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 50, 1),
     ]);
   }
 }

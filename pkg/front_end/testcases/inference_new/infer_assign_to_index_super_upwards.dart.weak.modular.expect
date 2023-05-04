@@ -43,6 +43,7 @@ abstract class Base<T extends core::Object* = dynamic, U extends core::Object* =
     return this.{self::Base::setValue}(s, v){(core::String*, self::Base::U*) →* void};
   abstract method getValue(core::String* s) → self::Base::T*;
   abstract method setValue(core::String* s, covariant-by-class self::Base::U* v) → void;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -51,7 +52,6 @@ abstract class Base<T extends core::Object* = dynamic, U extends core::Object* =
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class Test1 extends self::Base<core::int*, core::int*> {

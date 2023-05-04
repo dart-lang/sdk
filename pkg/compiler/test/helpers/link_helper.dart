@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library link_helper;
 
 import 'package:_fe_analyzer_shared/src/util/link.dart';
@@ -12,16 +10,15 @@ import 'package:_fe_analyzer_shared/src/util/link_implementation.dart';
 Link LinkFromList(List list) {
   switch (list.length) {
     case 0:
-      return new Link();
+      return Link();
     case 1:
-      return new LinkEntry(list[0]);
+      return LinkEntry(list[0]);
     case 2:
-      return new LinkEntry(list[0], new LinkEntry(list[1]));
+      return LinkEntry(list[0], LinkEntry(list[1]));
     case 3:
-      return new LinkEntry(
-          list[0], new LinkEntry(list[1], new LinkEntry(list[2])));
+      return LinkEntry(list[0], LinkEntry(list[1], LinkEntry(list[2])));
   }
-  Link link = new Link();
+  Link link = Link();
   for (int i = list.length; i > 0; i--) {
     link = link.prepend(list[i - 1]);
   }

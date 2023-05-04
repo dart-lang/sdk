@@ -70,7 +70,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_int8x10) {
 
   const auto& struct_type = RunStructTest(Z, "struct_int8x10", members);
 
-  EXPECT(!struct_type.ContainsHomogenuousFloats());
+  EXPECT(!struct_type.ContainsHomogeneousFloats());
   EXPECT(!struct_type.ContainsOnlyFloats(Range::StartAndEnd(0, 8)));
   EXPECT_EQ(0, struct_type.NumberOfWordSizeChunksOnlyFloat());
   EXPECT_EQ(
@@ -94,7 +94,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_floatx4) {
   //
   // On Arm64 iOS stack alignment of homogenous floats is not word size see
   // runtime/vm/compiler/ffi/unit_tests/struct_floatx4/arm64_ios.expect.
-  EXPECT(struct_type.ContainsHomogenuousFloats());
+  EXPECT(struct_type.ContainsHomogeneousFloats());
 
   // On x64, 8-byte parts of the chunks contain only floats and will be passed
   // in FPU registers.
@@ -164,7 +164,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_int8array) {
   const auto& struct_type = RunStructTest(Z, "struct_int8array", members);
 
   EXPECT_EQ(8, struct_type.SizeInBytes());
-  EXPECT(!struct_type.ContainsHomogenuousFloats());
+  EXPECT(!struct_type.ContainsHomogeneousFloats());
   EXPECT(!struct_type.ContainsOnlyFloats(Range::StartAndEnd(0, 8)));
   EXPECT_EQ(0, struct_type.NumberOfWordSizeChunksOnlyFloat());
   EXPECT_EQ(
@@ -191,7 +191,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_floatarray) {
   const auto& struct_type = RunStructTest(Z, "struct_floatarray", members);
 
   EXPECT_EQ(16, struct_type.SizeInBytes());
-  EXPECT(struct_type.ContainsHomogenuousFloats());
+  EXPECT(struct_type.ContainsHomogeneousFloats());
   EXPECT(struct_type.ContainsOnlyFloats(Range::StartAndEnd(0, 8)));
   EXPECT_EQ(16 / compiler::target::kWordSize,
             struct_type.NumberOfWordSizeChunksOnlyFloat());
@@ -310,7 +310,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_union_primitive_members) {
 
   EXPECT_EQ(4, union_type.NumPrimitiveMembersRecursive());
   EXPECT(union_type.FirstPrimitiveMember().Equals(float_type));
-  EXPECT(union_type.ContainsHomogenuousFloats());
+  EXPECT(union_type.ContainsHomogeneousFloats());
 
   EXPECT(!union_type.ContainsUnalignedMembers());
 }

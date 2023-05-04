@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -18,17 +19,18 @@ main() {
 @reflectiveTest
 class SdkVersionNeverTest extends SdkConstraintVerifierTest {
   test_experimentEnabled() async {
-    await verifyVersion('2.7.0', r'''
+    await verifyVersion('>=2.7.0', r'''
 Never foo = (throw 42);
 ''');
   }
 
   test_experimentEnabled_libraryOptedOut() async {
-    await verifyVersion('2.7.0', r'''
+    noSoundNullSafety = false;
+    await verifyVersion('>=2.7.0', r'''
 // @dart = 2.7
 Never foo = (throw 42);
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_NEVER, 15, 5),
+      error(WarningCode.SDK_VERSION_NEVER, 15, 5),
     ]);
   }
 }
@@ -37,10 +39,10 @@ Never foo = (throw 42);
 class SdkVersionNeverWithoutNullSafetyTest extends SdkConstraintVerifierTest
     with WithoutNullSafetyMixin {
   test_languageVersionBeforeNullSafety() async {
-    await verifyVersion('2.7.0', r'''
+    await verifyVersion('>=2.7.0', r'''
 Never foo;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_NEVER, 0, 5),
+      error(WarningCode.SDK_VERSION_NEVER, 0, 5),
     ]);
   }
 }

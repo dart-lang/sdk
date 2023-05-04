@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -35,6 +36,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -400,7 +402,7 @@ class FileResolver {
   }) async {
     performance ??= OperationPerformanceImpl('<default>');
 
-    var uri = Uri.parse(uriStr);
+    var uri = uriCache.parse(uriStr);
     var path = sourceFactory.forUri2(uri)?.fullName;
 
     if (path == null) {
@@ -494,13 +496,17 @@ class FileResolver {
     );
 
     // Release the linked data, the reference count is `>= 1`.
-    byteStore.release(linkedKeysToRelease);
+    if (linkedKeysToRelease.isNotEmpty) {
+      byteStore.release(linkedKeysToRelease);
+    }
   }
 
   /// Releases from the cache and clear [removedCacheKeys].
   void releaseAndClearRemovedIds() {
-    byteStore.release(removedCacheKeys);
-    removedCacheKeys.clear();
+    if (removedCacheKeys.isNotEmpty) {
+      byteStore.release(removedCacheKeys);
+      removedCacheKeys.clear();
+    }
   }
 
   /// Remove cached [FileState]'s that were not used in the current analysis
@@ -737,6 +743,7 @@ class FileResolver {
         prefetchFiles: prefetchFiles,
         isGenerated: isGenerated,
         testData: testData?.fileSystem,
+        unlinkedUnitStore: UnlinkedUnitStoreImpl(),
       );
     }
 

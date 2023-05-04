@@ -20,7 +20,20 @@ OSThread* OSThread::thread_list_head_ = NULL;
 Mutex* OSThread::thread_list_lock_ = NULL;
 bool OSThread::creation_enabled_ = false;
 
-thread_local ThreadState* OSThread::current_vm_thread_ = NULL;
+#if defined(SUPPORT_TIMELINE)
+inline void UpdateTimelineTrackMetadata(const OSThread& thread) {
+  RecorderSynchronizationLockScope ls;
+  if (!ls.IsActive()) {
+    return;
+  }
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder != nullptr) {
+    recorder->AddTrackMetadataBasedOnThread(
+        OS::ProcessId(), OSThread::ThreadIdToIntPtr(thread.trace_id()),
+        thread.name());
+  }
+}
+#endif  // defined(SUPPORT_TIMELINE)
 
 OSThread::OSThread()
     : BaseThread(true),
@@ -31,7 +44,7 @@ OSThread::OSThread()
 #ifdef SUPPORT_TIMELINE
       trace_id_(OSThread::GetCurrentThreadTraceId()),
 #endif
-      name_(NULL),
+      name_(OSThread::GetCurrentThreadName()),
       timeline_block_lock_(),
       timeline_block_(NULL),
       thread_list_next_(NULL),
@@ -54,6 +67,10 @@ OSThread::OSThread()
   ASSERT(stack_base_ > GetCurrentStackPointer());
   ASSERT(stack_limit_ < GetCurrentStackPointer());
   RELEASE_ASSERT(HasStackHeadroom());
+
+#if defined(SUPPORT_TIMELINE)
+  UpdateTimelineTrackMetadata(*this);
+#endif  // defined(SUPPORT_TIMELINE)
 }
 
 OSThread* OSThread::CreateOSThread() {
@@ -93,10 +110,16 @@ void OSThread::SetName(const char* name) {
     free(name_);
     name_ = NULL;
   }
-  set_name(name);
+  ASSERT(OSThread::Current() == this);
+  ASSERT(name != nullptr);
+  name_ = Utils::StrDup(name);
+
+#if defined(SUPPORT_TIMELINE)
+  UpdateTimelineTrackMetadata(*this);
+#endif  // defined(SUPPORT_TIMELINE)
 }
 
-// Disable AdressSanitizer and SafeStack transformation on this function. In
+// Disable AddressSanitizer and SafeStack transformation on this function. In
 // particular, taking the address of a local gives an address on the stack
 // instead of an address in the shadow memory (AddressSanitizer) or the safe
 // stack (SafeStack).
@@ -153,11 +176,11 @@ void OSThread::Init() {
   // Enable creation of OSThread structures in the VM.
   EnableOSThreadCreation();
 
-  // Create a new OSThread strcture and set it as the TLS.
+  // Create a new OSThread structure and set it as the TLS.
   OSThread* os_thread = CreateOSThread();
   ASSERT(os_thread != NULL);
   OSThread::SetCurrent(os_thread);
-  os_thread->set_name("Dart_Initialize");
+  os_thread->SetName("Dart_Initialize");
 }
 
 void OSThread::Cleanup() {
@@ -183,7 +206,9 @@ OSThread* OSThread::CreateAndSetUnknownThread() {
   OSThread* os_thread = CreateOSThread();
   if (os_thread != NULL) {
     OSThread::SetCurrent(os_thread);
-    os_thread->set_name("Unknown");
+    if (os_thread->name() == nullptr) {
+      os_thread->SetName("Unknown");
+    }
   }
   return os_thread;
 }

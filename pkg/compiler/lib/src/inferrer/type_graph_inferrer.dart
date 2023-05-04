@@ -7,7 +7,7 @@ library type_graph_inferrer;
 import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common/metrics.dart' show Metrics;
-import '../compiler_interfaces.dart';
+import '../compiler.dart';
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/elements.dart' show JClosureCallMethod;
@@ -23,7 +23,7 @@ class TypeGraphInferrer implements TypesInferrer {
   late InferrerEngine inferrer;
   final JClosedWorld closedWorld;
 
-  final CompilerInferrerFacade _compiler;
+  final Compiler _compiler;
   final GlobalLocalsMap _globalLocalsMap;
   final InferredDataBuilder _inferredDataBuilder;
   Metrics _metrics = Metrics.none();
@@ -93,7 +93,7 @@ class TypeGraphInferrer implements TypesInferrer {
           // Always throws if the return type was inferred to be non-null empty.
           abstractValueDomain.isEmpty(returnType).isDefinitelyTrue;
 
-      bool isCalledOnce = typeInformation.isCalledOnce();
+      bool isCalledOnce = typeInformation.isCalledExactlyOnce;
 
       memberResults[member] = GlobalTypeInferenceMemberResultImpl(
           data, returnType, type,
@@ -117,7 +117,6 @@ class TypeGraphInferrer implements TypesInferrer {
       if (!memberResults.containsKey(field)) {
         MemberTypeInformation typeInformation =
             inferrer.types.getInferredTypeOfMember(field);
-        typeInformation.computeIsCalledOnce();
         createMemberResults(field, typeInformation);
       }
     }
@@ -129,9 +128,14 @@ class TypeGraphInferrer implements TypesInferrer {
     });
 
     Map<ir.TreeNode, AbstractValue> allocatedLists = {};
+    Map<ir.TreeNode, AbstractValue> allocatedRecords = {};
     inferrer.types.allocatedLists
         .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
       allocatedLists[node] = typeInformation.type;
+    });
+    inferrer.types.allocatedRecords
+        .forEach((ir.TreeNode node, RecordTypeInformation typeInformation) {
+      allocatedRecords[node] = typeInformation.type;
     });
 
     GlobalTypeInferenceResults results = GlobalTypeInferenceResultsImpl(
@@ -141,7 +145,8 @@ class TypeGraphInferrer implements TypesInferrer {
         memberResults,
         parameterResults,
         inferrer.returnsListElementTypeSet,
-        allocatedLists);
+        allocatedLists,
+        allocatedRecords);
 
     inferrer.clear();
 

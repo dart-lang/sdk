@@ -8,13 +8,10 @@ import 'import_set.dart';
 import 'work_queue.dart';
 
 import '../common.dart';
-import '../compiler_interfaces.dart' show CompilerDeferredLoadingFacade;
+import '../compiler.dart';
 import '../elements/entities.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kernel_world.dart' show KClosedWorld;
-
-// TODO(48820): delete typedef after the migration is complete.
-typedef Compiler = CompilerDeferredLoadingFacade;
 
 /// Manages the state of the [EntityData] model. Every class, member, constant,
 /// etc, is wrapped in the deferred loading algorithm by an [EntityData] which

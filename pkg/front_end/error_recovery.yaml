@@ -51,7 +51,7 @@ NameConflictDuplicateMethod:
       int /*@error=DuplicatedName*/ m /*@errorEnd*/(StringBuffer foo) => '$foo';
     }
 
-NameConflictInconsitentMemberKind:
+NameConflictInconsistentMemberKind:
   description: "A method and a field have the same name."
   recovery:
     - "both can be seen in the generated output."

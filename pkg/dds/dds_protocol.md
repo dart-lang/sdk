@@ -1,6 +1,6 @@
-# Dart Development Service Protocol 1.3
+# Dart Development Service Protocol 1.4
 
-This document describes _version 1.3_ of the Dart Development Service Protocol.
+This document describes _version 1.4_ of the Dart Development Service Protocol.
 This protocol is an extension of the Dart VM Service Protocol and implements it
 in it's entirety. For details on the VM Service Protocol, see the [Dart VM Service Protocol Specification][service-protocol].
 
@@ -68,6 +68,8 @@ consist of the following:
 
 In addition, subscribing to the `Service` stream will result in a `ServiceRegistered`
 event being sent to the subscribing client for each existing service extension.
+
+From protocol version 1.4, custom streams of any name can be listened to via DDS.
 
 ## Public RPCs
 
@@ -281,6 +283,7 @@ version | comments
 1.1 | Added `getDartDevelopmentServiceVersion` RPC.
 1.2 | Added `getStreamHistory` RPC.
 1.3 | Added `getAvailableCachedCpuSamples` and `getCachedCpuSamples` RPCs.
+1.4 | Added the ability to subscribe to custom streams (which can be specified when calling `dart:developer`'s `postEvent`).
 
 [resume]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#resume
 [success]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#success

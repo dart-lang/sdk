@@ -26,9 +26,9 @@ class Class2<T> {
 }
 
 main() {
-  var c = new Class1<int>();
+  var c = Class1<int>();
 
   makeLive(c.method1a.runtimeType == c.method1b.runtimeType);
   makeLive(c.method1a.runtimeType == c.method2.runtimeType);
-  new Class2<int>();
+  Class2<int>();
 }

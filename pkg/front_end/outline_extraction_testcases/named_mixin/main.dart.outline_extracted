@@ -7,7 +7,7 @@ class Foo = Object with Bar implements Baz;
 
 org-dartlang-testcase:///bar.dart:
 export "baz.dart";
-class Bar {}
+mixin Bar {}
 
 
 

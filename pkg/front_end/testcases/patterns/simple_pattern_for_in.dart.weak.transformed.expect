@@ -1,0 +1,110 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1(dynamic x) → dynamic {
+  {
+    synthesized core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final dynamic #t1 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      {
+        hoisted core::int y;
+        {
+          final synthesized dynamic #0#0 = #t1;
+          function ##0#6#initializer() → dynamic
+            return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+          late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+          if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#6{core::int} in true))))
+            throw new core::StateError::•("Pattern matching error");
+        }
+        if(y.{core::num::%}(10){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
+          return y;
+        }
+      }
+    }
+  }
+  return 1.{core::int::unary-}(){() → core::int};
+}
+static method test2(core::Iterable<core::List<core::String>> x) → dynamic {
+  {
+    synthesized core::Iterator<core::List<core::String>> :sync-for-iterator = x.{core::Iterable::iterator}{core::Iterator<core::List<core::String>>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::List<core::String> #t3 = :sync-for-iterator.{core::Iterator::current}{core::List<core::String>};
+      {
+        hoisted core::String y;
+        {
+          final synthesized dynamic #0#0 = #t3;
+          function ##0#1#initializer() → core::int
+            return #0#0{core::List<core::String>}.{core::List::length}{core::int};
+          late final synthesized core::int #0#1 = ##0#1#initializer(){() → core::int};
+          function ##0#4#initializer() → core::String
+            return #0#0{core::List<core::String>}.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::String};
+          late final synthesized core::String #0#4 = ##0#4#initializer(){() → core::String};
+          if(!(#0#1.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#4 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y = #0#4 in true))))
+            throw new core::StateError::•("Pattern matching error");
+        }
+        if(y.{core::String::startsWith}("f"){(core::Pattern, [core::int]) → core::bool}) {
+          return y;
+        }
+      }
+    }
+  }
+  return "";
+}
+static method test3(core::Iterable<dynamic> x) → dynamic {
+  {
+    synthesized core::Iterator<dynamic> :sync-for-iterator = x.{core::Iterable::iterator}{core::Iterator<dynamic>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final dynamic #t5 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      {
+        hoisted core::int y;
+        {
+          final synthesized dynamic #0#0 = #t5;
+          function ##0#6#initializer() → dynamic
+            return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+          late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+          if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t6 = y = #0#6{core::int} in true))))
+            throw new core::StateError::•("Pattern matching error");
+        }
+        return y;
+      }
+    }
+  }
+  return 1.{core::int::unary-}(){() → core::int};
+}
+static method main() → dynamic {
+  self::expectEquals(self::test1(core::_GrowableList::_literal3<core::List<core::int>>(core::_GrowableList::_literal1<core::int>(1), core::_GrowableList::_literal1<core::int>(2), core::_GrowableList::_literal1<core::int>(3))), 1.{core::int::unary-}(){() → core::int});
+  self::expectEquals(self::test1(core::_GrowableList::_literal3<core::List<core::int>>(core::_GrowableList::_literal1<core::int>(1), core::_GrowableList::_literal1<core::int>(2), core::_GrowableList::_literal1<core::int>(30))), 30);
+  self::expectEquals(self::test2(core::_GrowableList::_literal3<core::List<core::String>>(core::_GrowableList::_literal3<core::String>("foo", "bar", "baz"), core::_GrowableList::_literal3<core::String>("bar", "foo", "baz"), core::_GrowableList::_literal3<core::String>("bar", "baz", "foo"))), "foo");
+  self::expectEquals(self::test2(core::_GrowableList::•<core::List<core::String>>(0)), "");
+  self::expectThrows(() → void => self::test3(core::_GrowableList::_literal1<dynamic>(core::_GrowableList::_literal3<core::int?>(null, 1, 2))));
+  self::expectEquals(self::test3(core::_GrowableList::•<dynamic>(0)), 1.{core::int::unary-}(){() → core::int});
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected '${x}' to be equal to '${y}'.";
+  }
+}
+static method expectThrows(() → void f) → dynamic {
+  core::bool hasThrown = true;
+  try {
+    f(){() → void};
+    hasThrown = false;
+  }
+  on core::Object catch(final core::Object e) {
+  }
+  if(!hasThrown) {
+    throw "Expected function to throw.";
+  }
+}
+
+constants  {
+  #C1 = 1
+}
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:7:10 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:23:10 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:27:40 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:32:27 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 135, effectively constant: 4

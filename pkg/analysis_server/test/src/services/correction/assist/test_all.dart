@@ -32,7 +32,6 @@ import 'convert_to_field_parameter_test.dart' as convert_to_field_parameter;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
-import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_multiline_string_test.dart' as convert_to_multiline_string;
 import 'convert_to_normal_parameter_test.dart' as convert_to_normal_parameter;
@@ -43,6 +42,7 @@ import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
 import 'convert_to_spread_test.dart' as convert_to_spread;
 import 'convert_to_super_parameters_test.dart' as convert_to_super_parameters;
+import 'convert_to_switch_expression_test.dart' as convert_to_switch_expression;
 import 'encapsulate_field_test.dart' as encapsulate_field;
 import 'exchange_operands_test.dart' as exchange_operands;
 import 'flutter_convert_to_children_test.dart' as flutter_convert_to_children;
@@ -118,7 +118,6 @@ void main() {
     convert_to_for_element.main();
     convert_to_if_element.main();
     convert_to_int_literal.main();
-    convert_to_list_literal.main();
     convert_to_map_literal.main();
     convert_to_multiline_string.main();
     convert_to_normal_parameter.main();
@@ -128,6 +127,7 @@ void main() {
     convert_to_single_quoted_string.main();
     convert_to_spread.main();
     convert_to_super_parameters.main();
+    convert_to_switch_expression.main();
     encapsulate_field.main();
     exchange_operands.main();
     flutter_convert_to_children.main();

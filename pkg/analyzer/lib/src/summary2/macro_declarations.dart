@@ -20,8 +20,13 @@ class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
     required super.identifier,
     required super.typeParameters,
     required super.interfaces,
-    required super.isAbstract,
-    required super.isExternal,
+    required super.hasAbstract,
+    required super.hasBase,
+    required super.hasExternal,
+    required super.hasFinal,
+    required super.hasInterface,
+    required super.hasMixin,
+    required super.hasSealed,
     required super.mixins,
     required super.superclass,
   });
@@ -140,8 +145,13 @@ class DeclarationBuilderFromElement {
           .map(_dartType)
           .cast<macro.NamedTypeAnnotationImpl>()
           .toList(),
-      isAbstract: element.isAbstract,
-      isExternal: false,
+      hasAbstract: element.isAbstract,
+      hasBase: element.isBase,
+      hasExternal: false,
+      hasFinal: element.isFinal,
+      hasInterface: element.isInterface,
+      hasMixin: element.isMixinClass,
+      hasSealed: element.isSealed,
       mixins: element.mixins
           .map(_dartType)
           .cast<macro.NamedTypeAnnotationImpl>()
@@ -217,8 +227,13 @@ class DeclarationBuilderFromNode {
       identifier: _declaredIdentifier(node.name, node.declaredElement!),
       typeParameters: _typeParameters(node.typeParameters),
       interfaces: _typeAnnotations(node.implementsClause?.interfaces),
-      isAbstract: node.abstractKeyword != null,
-      isExternal: false,
+      hasAbstract: node.abstractKeyword != null,
+      hasBase: node.baseKeyword != null,
+      hasExternal: false,
+      hasFinal: node.finalKeyword != null,
+      hasInterface: node.interfaceKeyword != null,
+      hasMixin: node.mixinKeyword != null,
+      hasSealed: node.sealedKeyword != null,
       mixins: _typeAnnotations(node.withClause?.mixinTypes),
       superclass: node.extendsClause?.superclass.mapOrNull(
         _typeAnnotation,
@@ -348,8 +363,13 @@ class IntrospectableClassDeclarationImpl
     required super.identifier,
     required super.typeParameters,
     required super.interfaces,
-    required super.isAbstract,
-    required super.isExternal,
+    required super.hasAbstract,
+    required super.hasBase,
+    required super.hasFinal,
+    required super.hasExternal,
+    required super.hasInterface,
+    required super.hasMixin,
+    required super.hasSealed,
     required super.mixins,
     required super.superclass,
   });

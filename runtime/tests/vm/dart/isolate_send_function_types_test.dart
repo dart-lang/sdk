@@ -5,41 +5,24 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:async_helper/async_helper.dart' show asyncEnd, asyncStart;
 import 'package:expect/expect.dart';
 
 class A<T> {}
 
 main(args) async {
+  asyncStart();
   final x = A<void Function()>();
 
-  {
-    final caughtErrorCompleter = Completer<String>();
-    await runZonedGuarded(() {
-      Isolate.spawn(isolate, x);
-    }, (e, s) {
-      caughtErrorCompleter.complete(e.toString());
-    });
-    Expect.equals(
-        await caughtErrorCompleter.future,
-        "Invalid argument(s): Illegal argument in isolate message : "
-        "(object is a FunctionType)");
-  }
+  await Isolate.spawn(isolate, x);
 
   Future<void> genericFunc<T>() async {
     final y = A<void Function(T)>();
-    final caughtErrorCompleter = Completer<String>();
-    await runZoned(() {
-      Isolate.spawn(isolate, y);
-    }, onError: (e) {
-      caughtErrorCompleter.complete(e.toString());
-    });
-    Expect.equals(
-        await caughtErrorCompleter.future,
-        "Invalid argument(s): Illegal argument in isolate message : "
-        "(object is a FunctionType)");
+    await Isolate.spawn(isolate, y);
   }
 
   await genericFunc<int>();
+  asyncEnd();
 }
 
 void isolate(A foo) async {

@@ -91,14 +91,14 @@ returnInt8() {
 
 /*member: returnEmpty1:[empty]*/
 returnEmpty1() {
-  // Ensure that we don't intrisify a wrong call to [int.remainder].
+  // Ensure that we don't intrinsify a wrong call to [int.remainder].
   dynamic a = 42;
   return a. /*invoke: [exact=JSUInt31]*/ remainder();
 }
 
 /*member: returnEmpty2:[empty]*/
 returnEmpty2() {
-  // Ensure that we don't intrisify a wrong call to [int.abs].
+  // Ensure that we don't intrinsify a wrong call to [int.abs].
   dynamic a = 42;
   return a. /*invoke: [exact=JSUInt31]*/ abs(42);
 }
@@ -560,12 +560,15 @@ testDoWhile2() {
   return a;
 }
 
+/*member: flag:Value([null|exact=JSBool], value: true)*/
+bool flag; // late
+
 /*member: testDoWhile3:Value([exact=JSBool], value: false)*/
 testDoWhile3() {
   dynamic a = 42;
   do {
     a = 'foo';
-    if (true) continue;
+    if (flag = true) continue;
     return false;
   } while (true);
   // ignore: dead_code
@@ -577,7 +580,7 @@ testDoWhile4() {
   dynamic a = 'foo';
   do {
     a = 54;
-    if (true) break;
+    if (flag = true) break;
     return 3.5;
   } while (true);
   return a;
@@ -652,11 +655,11 @@ testReturnNull6() {
 
 /*member: testReturnNotEquals:[exact=JSBool]*/
 testReturnNotEquals() {
-  return new A() /*invoke: [exact=A]*/ != 54;
+  return A() /*invoke: [exact=A]*/ != 54;
 }
 
 /*member: testReturnInvokeDynamicGetter:[null|subclass=Object]*/
-testReturnInvokeDynamicGetter() => new A().myFactory /*invoke: [exact=A]*/ ();
+testReturnInvokeDynamicGetter() => A().myFactory /*invoke: [exact=A]*/ ();
 
 /*member: topLevelConstList:Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/
 var topLevelConstList = const [42];
@@ -686,11 +689,12 @@ class A {
   set myField(/*[subclass=JSUInt32]*/ a) {}
 
   /*member: A.returnInt1:[subclass=JSUInt32]*/
-  returnInt1() => /*invoke: [exact=JSUInt31]*/ ++ /*[subclass=A]*/ /*update: [subclass=A]*/ myField;
+  returnInt1() => /*invoke: [exact=JSUInt31]*/
+      ++ /*[subclass=A]*/ /*update: [subclass=A]*/ myField;
 
   /*member: A.returnInt2:[subclass=JSUInt32]*/
-  returnInt2() => /*invoke: [exact=JSUInt31]*/ ++this
-      . /*[subclass=A]*/ /*update: [subclass=A]*/ myField;
+  returnInt2() => /*invoke: [exact=JSUInt31]*/
+      ++this. /*[subclass=A]*/ /*update: [subclass=A]*/ myField;
 
   /*member: A.returnInt3:[subclass=JSUInt32]*/
   returnInt3() =>
@@ -698,8 +702,8 @@ class A {
           42;
 
   /*member: A.returnInt4:[subclass=JSUInt32]*/
-  returnInt4() => /*[subclass=A]*/ /*update: [subclass=A]*/ myField /*invoke: [exact=JSUInt31]*/ +=
-      42;
+  returnInt4() => /*[subclass=A]*/ /*update: [subclass=A]*/
+      myField /*invoke: [exact=JSUInt31]*/ += 42;
 
   /*member: A.[]:[exact=JSUInt31]*/
   operator [](/*[exact=JSUInt31]*/ index) => 42;
@@ -708,8 +712,8 @@ class A {
   operator []=(/*[exact=JSUInt31]*/ index, /*[subclass=JSUInt32]*/ value) {}
 
   /*member: A.returnInt5:[subclass=JSUInt32]*/
-  returnInt5() => /*invoke: [exact=JSUInt31]*/ ++this /*[subclass=A]*/ /*update: [subclass=A]*/ [
-      0];
+  returnInt5() => /*invoke: [exact=JSUInt31]*/
+      ++this /*[subclass=A]*/ /*update: [subclass=A]*/ [0];
 
   /*member: A.returnInt6:[subclass=JSUInt32]*/
   returnInt6() => this /*[subclass=A]*/ /*update: [subclass=A]*/ [
@@ -724,19 +728,20 @@ class B extends A {
   B() : super.generative();
 
   /*member: B.returnInt1:[subclass=JSUInt32]*/
-  returnInt1() => /*invoke: [exact=JSUInt31]*/ ++new A()
-      . /*[exact=A]*/ /*update: [exact=A]*/ myField;
+  returnInt1() => /*invoke: [exact=JSUInt31]*/
+      ++new A(). /*[exact=A]*/ /*update: [exact=A]*/ myField;
 
   /*member: B.returnInt2:[subclass=JSUInt32]*/
-  returnInt2() => new A()
-      . /*[exact=A]*/ /*update: [exact=A]*/ myField /*invoke: [exact=JSUInt31]*/ += 4;
+  returnInt2() =>
+      A(). /*[exact=A]*/ /*update: [exact=A]*/ myField /*invoke: [exact=JSUInt31]*/ +=
+          4;
 
   /*member: B.returnInt3:[subclass=JSUInt32]*/
-  returnInt3() => /*invoke: [exact=JSUInt31]*/ ++new A() /*[exact=A]*/ /*update: [exact=A]*/ [
-      0];
+  returnInt3() => /*invoke: [exact=JSUInt31]*/
+      ++new A() /*[exact=A]*/ /*update: [exact=A]*/ [0];
 
   /*member: B.returnInt4:[subclass=JSUInt32]*/
-  returnInt4() => new A() /*[exact=A]*/ /*update: [exact=A]*/ [
+  returnInt4() => A() /*[exact=A]*/ /*update: [exact=A]*/ [
       0] /*invoke: [exact=JSUInt31]*/ += 42;
 
   /*member: B.returnInt5:[subclass=JSUInt32]*/
@@ -763,11 +768,12 @@ class C {
   C();
 
   /*member: C.returnInt1:[subclass=JSPositiveInt]*/
-  returnInt1() => /*invoke: [subclass=JSPositiveInt]*/ ++ /*update: [exact=C]*/ /*[exact=C]*/ myField;
+  returnInt1() => /*invoke: [subclass=JSPositiveInt]*/
+      ++ /*update: [exact=C]*/ /*[exact=C]*/ myField;
 
   /*member: C.returnInt2:[subclass=JSPositiveInt]*/
-  returnInt2() => /*invoke: [subclass=JSPositiveInt]*/ ++this
-      . /*[exact=C]*/ /*update: [exact=C]*/ myField;
+  returnInt2() => /*invoke: [subclass=JSPositiveInt]*/
+      ++this. /*[exact=C]*/ /*update: [exact=C]*/ myField;
 
   /*member: C.returnInt3:[subclass=JSPositiveInt]*/
   returnInt3() =>
@@ -775,8 +781,8 @@ class C {
           42;
 
   /*member: C.returnInt4:[subclass=JSPositiveInt]*/
-  returnInt4() => /*[exact=C]*/ /*update: [exact=C]*/ myField /*invoke: [subclass=JSPositiveInt]*/ +=
-      42;
+  returnInt4() => /*[exact=C]*/ /*update: [exact=C]*/
+      myField /*invoke: [subclass=JSPositiveInt]*/ += 42;
 
   /*member: C.[]:[subclass=JSPositiveInt]*/
   operator [](/*[exact=JSUInt31]*/ index) => /*[exact=C]*/ myField;
@@ -786,8 +792,8 @@ class C {
       /*[exact=JSUInt31]*/ index, /*[subclass=JSPositiveInt]*/ value) {}
 
   /*member: C.returnInt5:[subclass=JSPositiveInt]*/
-  returnInt5() => /*invoke: [subclass=JSPositiveInt]*/ ++this /*[exact=C]*/ /*update: [exact=C]*/ [
-      0];
+  returnInt5() => /*invoke: [subclass=JSPositiveInt]*/
+      ++this /*[exact=C]*/ /*update: [exact=C]*/ [0];
 
   /*member: C.returnInt6:[subclass=JSPositiveInt]*/
   returnInt6() => this /*[exact=C]*/ /*update: [exact=C]*/ [
@@ -805,7 +811,7 @@ testCascade1() {
 
 /*member: testCascade2:[exact=CascadeHelper]*/
 testCascade2() {
-  return new CascadeHelper()
+  return CascadeHelper()
     .. /*update: [exact=CascadeHelper]*/ a = "hello"
     .. /*update: [exact=CascadeHelper]*/ b = 42
     .. /*[exact=CascadeHelper]*/ i /*invoke: [subclass=JSPositiveInt]*/ /*update: [exact=CascadeHelper]*/ +=
@@ -894,8 +900,8 @@ main() {
   testDoWhile2();
   testDoWhile3();
   testDoWhile4();
-  new A() /*invoke: [null|subclass=A]*/ == null;
-  new A()
+  A() /*invoke: [null|subclass=A]*/ == null;
+  A()
     .. /*invoke: [exact=A]*/ returnInt1()
     .. /*invoke: [exact=A]*/ returnInt2()
     .. /*invoke: [exact=A]*/ returnInt3()
@@ -903,7 +909,7 @@ main() {
     .. /*invoke: [exact=A]*/ returnInt5()
     .. /*invoke: [exact=A]*/ returnInt6();
 
-  new B()
+  B()
     .. /*invoke: [exact=B]*/ returnInt1()
     .. /*invoke: [exact=B]*/ returnInt2()
     .. /*invoke: [exact=B]*/ returnInt3()
@@ -914,7 +920,7 @@ main() {
     .. /*invoke: [exact=B]*/ returnInt8()
     .. /*invoke: [exact=B]*/ returnInt9();
 
-  new C()
+  C()
     .. /*invoke: [exact=C]*/ returnInt1()
     .. /*invoke: [exact=C]*/ returnInt2()
     .. /*invoke: [exact=C]*/ returnInt3()

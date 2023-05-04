@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:expect/expect.dart';
@@ -39,7 +37,7 @@ class A {
 }
 
 main () {
-  var a = new A("42" as dynamic);
+  var a = A("42" as dynamic);
   print(a.aField);
   print(a.foo("42"));
   print(a.foo(42));
@@ -59,29 +57,29 @@ void main() {
     var result = await runCompiler(
         memorySourceFiles: {'main.dart': TEST}, options: options);
     Compiler compiler = result.compiler;
-    var results = compiler.globalInference.resultsForTesting;
+    var results = compiler.globalInference.resultsForTesting!;
     var closedWorld = results.closedWorld;
     var elementEnvironment = closedWorld.elementEnvironment;
 
     ClassEntity classA =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, "A");
+        elementEnvironment.lookupClass(elementEnvironment.mainLibrary!, "A")!;
 
     checkReturn(String name, TypeMask type) {
       MemberEntity element =
-          elementEnvironment.lookupClassMember(classA, PublicName(name));
-      var mask = results.resultOfMember(element).returnType;
+          elementEnvironment.lookupClassMember(classA, PublicName(name))!;
+      var mask = results.resultOfMember(element).returnType as TypeMask;
       Expect.isTrue(type.containsMask(mask, closedWorld));
     }
 
     checkType(String name, type) {
       MemberEntity element =
-          elementEnvironment.lookupClassMember(classA, PublicName(name));
+          elementEnvironment.lookupClassMember(classA, PublicName(name))!;
       Expect.isTrue(
           type.containsMask(results.resultOfMember(element).type, closedWorld));
     }
 
     var intMask =
-        new TypeMask.subtype(closedWorld.commonElements.intClass, closedWorld);
+        TypeMask.subtype(closedWorld.commonElements.intClass, closedWorld);
 
     checkReturn('foo', intMask);
     checkReturn('faa', intMask);

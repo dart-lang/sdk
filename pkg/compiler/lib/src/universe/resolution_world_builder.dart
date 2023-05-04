@@ -8,7 +8,7 @@ import '../common/names.dart' show Identifiers, Names;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../ir/class_relation.dart';
+import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/backend_usage.dart'
@@ -28,7 +28,6 @@ import 'call_structure.dart';
 import 'class_hierarchy.dart' show ClassHierarchyBuilder;
 import 'class_set.dart';
 import 'member_usage.dart';
-import 'resolution_world_builder_interfaces.dart' as interfaces;
 import 'selector.dart' show Selector;
 import 'use.dart'
     show ConstantUse, DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
@@ -79,7 +78,7 @@ class InstantiationInfo {
   ///
   ///    abstract class AbstractClass<S> {
   ///      factory AbstractClass.a() = Class<S>.a;
-  ///      factory AbstractClass.b() => new Class<S>.b();
+  ///      factory AbstractClass.b() => Class<S>.b();
   ///    }
   ///    class Class<T> implements AbstractClass<T> {
   ///      Class.a();
@@ -89,13 +88,13 @@ class InstantiationInfo {
   ///
   ///
   ///    main() {
-  ///      new Class.a();
-  ///      new Class<int>.a();
-  ///      new Class<String>.b();
-  ///      new Class<num>.c();
-  ///      new AbstractClass<double>.a();
-  ///      new AbstractClass<bool>.b();
-  ///      new DivElement(); // native instantiation
+  ///      Class.a();
+  ///      Class<int>.a();
+  ///      Class<String>.b();
+  ///      Class<num>.c();
+  ///      AbstractClass<double>.a();
+  ///      AbstractClass<bool>.b();
+  ///      DivElement(); // native instantiation
   ///    }
   ///
   /// will generate the mappings
@@ -189,8 +188,7 @@ class InstantiationInfo {
   }
 }
 
-class ResolutionWorldBuilder extends WorldBuilder
-    implements World, interfaces.ResolutionWorldBuilder {
+class ResolutionWorldBuilder extends WorldBuilder implements World {
   /// Instantiation information for all classes with instantiated types.
   ///
   /// Invariant: Elements are declaration elements.
@@ -241,6 +239,8 @@ class ResolutionWorldBuilder extends WorldBuilder
   final Set<DartType> _isChecks = {};
   final Set<TypeVariableType> _namedTypeVariablesNewRti = {};
 
+  final Set<RecordType> _instantiatedRecordTypes = {};
+
   /// Set of all closures in the program. Used by the mirror tracking system
   /// to find all live closure instances.
   final Set<Local> _localFunctions = {};
@@ -274,6 +274,8 @@ class ResolutionWorldBuilder extends WorldBuilder
 
   final Set<Local> _genericLocalFunctions = {};
 
+  final Set<MemberEntity> _pendingWeakTearOffs = {};
+
   final Set<MemberEntity> _processedMembers = {};
 
   bool get isClosed => _closed;
@@ -302,16 +304,13 @@ class ResolutionWorldBuilder extends WorldBuilder
   Iterable<ClassEntity> get processedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls]!.isInstantiated);
 
-  @override
   bool isMemberProcessed(MemberEntity member) =>
       _processedMembers.contains(member);
 
-  @override
   void registerProcessedMember(MemberEntity member) {
     _processedMembers.add(member);
   }
 
-  @override
   Iterable<MemberEntity> get processedMembers => _processedMembers;
 
   /// The closed world computed by this world builder.
@@ -326,7 +325,6 @@ class ResolutionWorldBuilder extends WorldBuilder
   }
 
   // TODO(johnniwinther): Improve semantic precision.
-  @override
   Iterable<ClassEntity> get directlyInstantiatedClasses {
     Set<ClassEntity> classes = {};
     getInstantiationMap().forEach((ClassEntity cls, InstantiationInfo info) {
@@ -338,7 +336,6 @@ class ResolutionWorldBuilder extends WorldBuilder
   }
 
   /// Registers that [element] has been closurized.
-  @override
   void registerClosurizedMember(MemberEntity element) {
     FunctionType type =
         _elementEnvironment.getFunctionType(element as FunctionEntity);
@@ -351,7 +348,6 @@ class ResolutionWorldBuilder extends WorldBuilder
   // TODO(johnniwinther): Fully enforce the separation between exact, through
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
-  @override
   void registerTypeInstantiation(
       InterfaceType type, ClassUsedCallback classUsed,
       {ConstructorEntity? constructor}) {
@@ -390,6 +386,10 @@ class ResolutionWorldBuilder extends WorldBuilder
         }
       });
     }
+  }
+
+  void registerRecordTypeInstantiation(RecordType type) {
+    _instantiatedRecordTypes.add(type);
   }
 
   Iterable<CallStructure> _getMatchingCallStructures(
@@ -441,7 +441,6 @@ class ResolutionWorldBuilder extends WorldBuilder
 
   /// Applies the [dynamicUse] to applicable instance members. Calls
   /// [membersUsed] with the usage changes for each member.
-  @override
   void registerDynamicUse(
       DynamicUse dynamicUse, MemberUsedCallback memberUsed) {
     Selector selector = dynamicUse.selector;
@@ -522,26 +521,22 @@ class ResolutionWorldBuilder extends WorldBuilder
   }
 
   /// Registers that [type] is checked in this world builder.
-  @override
   void registerIsCheck(covariant DartType type) {
     _isChecks.add(type);
   }
 
-  @override
   void registerNamedTypeVariableNewRti(TypeVariableType type) {
     _namedTypeVariablesNewRti.add(type);
   }
 
   /// Register the constant [use] with this world builder. Returns `true` if
   /// the constant use was new to the world.
-  @override
   bool registerConstantUse(ConstantUse use) {
     return _constantValues.add(use.value);
   }
 
   /// Applies the [staticUse] to applicable members. Calls [membersUsed] with
   /// the usage changes for each member.
-  @override
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     if (staticUse.kind == StaticUseKind.CLOSURE) {
       Local localFunction = staticUse.element as Local;
@@ -600,6 +595,13 @@ class ResolutionWorldBuilder extends WorldBuilder
       case StaticUseKind.STATIC_TEAR_OFF:
         useSet.addAll(usage.read(Accesses.staticAccess));
         break;
+      case StaticUseKind.WEAK_STATIC_TEAR_OFF:
+        if (usage.hasUse) {
+          useSet.addAll(usage.read(Accesses.staticAccess));
+        } else {
+          _pendingWeakTearOffs.add(element);
+        }
+        break;
       case StaticUseKind.SUPER_SETTER_SET:
         useSet.addAll(usage.write(Accesses.superAccess));
         break;
@@ -621,6 +623,9 @@ class ResolutionWorldBuilder extends WorldBuilder
         registerStaticInvocation(staticUse);
         useSet.addAll(
             usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
+        if (_pendingWeakTearOffs.remove(element)) {
+          useSet.addAll(usage.read(Accesses.staticAccess));
+        }
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
@@ -677,7 +682,6 @@ class ResolutionWorldBuilder extends WorldBuilder
   /// If [checkEnqueuerConsistency] is `true` we check that no new member
   /// usage can be found. This check is performed without changing the already
   /// collected member usage.
-  @override
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
       {bool checkEnqueuerConsistency = false}) {
     _elementEnvironment.forEachClassMember(cls,
@@ -687,7 +691,6 @@ class ResolutionWorldBuilder extends WorldBuilder
     });
   }
 
-  @override
   void processAbstractClassMembers(
       ClassEntity cls, MemberUsedCallback memberUsed) {
     _elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
@@ -869,7 +872,6 @@ class ResolutionWorldBuilder extends WorldBuilder
     }
   }
 
-  @override
   void registerUsedElement(MemberEntity element) {
     if (element.isInstanceMember) {
       if (element.isAbstract) {
@@ -927,7 +929,6 @@ class ResolutionWorldBuilder extends WorldBuilder
     return assignedInstanceMembers;
   }
 
-  @override
   void registerClass(ClassEntity cls) {
     _classHierarchyBuilder.registerClass(cls);
   }
@@ -945,7 +946,6 @@ class ResolutionWorldBuilder extends WorldBuilder
   /// Here `A.m` is inherited into `A`, `B`, and `C`. Because `B` and
   /// `C` implement `I`, `isInheritedInSubtypeOf(A.m, I)` is true, but
   /// `isInheritedInSubtypeOf(A.m, J)` is false.
-  @override
   bool isInheritedIn(
       MemberEntity member, ClassEntity type, ClassRelation relation) {
     // TODO(johnniwinther): Use the [member] itself to avoid enqueueing members
@@ -1037,6 +1037,7 @@ class ResolutionWorldBuilder extends WorldBuilder
             _closurizedMembersWithFreeTypeVariables,
         localFunctions: _localFunctions,
         instantiatedTypes: instantiatedTypes,
+        instantiatedRecordTypes: _instantiatedRecordTypes,
         namedTypeVariablesNewRti: _namedTypeVariablesNewRti);
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;

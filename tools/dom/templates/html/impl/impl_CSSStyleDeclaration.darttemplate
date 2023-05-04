@@ -1850,12 +1850,12 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
   // Important note: CssStyleDeclarationSet does NOT implement every method
   // available in CssStyleDeclaration. Some of the methods don't make so much
-  // sense in terms of having a resonable value to return when you're
+  // sense in terms of having a reasonable value to return when you're
   // considering a list of Elements. You will need to manually add any of the
   // items in the MEMBERS set if you want that functionality.
 }
 
-abstract class CssStyleDeclarationBase {
+abstract mixin class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String$NULLABLE value,
       [String$NULLABLE priority]);

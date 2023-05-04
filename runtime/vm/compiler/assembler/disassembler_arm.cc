@@ -941,11 +941,11 @@ void ARMDecoder::DecodeType3(Instr* instr) {
       }
       // Check differences between A8.8.{165,248} and FormatRegister.
       static_assert(kDivRdShift == kRnShift,
-                    "div 'rd does not corresspond to 'rn");
+                    "div 'rd does not correspond to 'rn");
       static_assert(kDivRmShift == kRsShift,
-                    "div 'rm does not corresspond to 'rs");
+                    "div 'rm does not correspond to 'rs");
       static_assert(kDivRnShift == kRmShift,
-                    "div 'rn does not corresspond to 'rm");
+                    "div 'rn does not correspond to 'rm");
       if (instr->IsDivUnsigned()) {
         Format(instr, "udiv'cond 'rn, 'rs, 'rm");
       } else {
@@ -1510,13 +1510,13 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     *out_instr_size = Instr::kInstrSize;
   }
 
-  *object = NULL;
+  *object = nullptr;
   // TODO(36839): Make DecodeLoadObjectFromPoolOrThread work on simarm_x64.
 #if !defined(IS_SIMARM_HOST64)
   if (!code.IsNull()) {
     *object = &Object::Handle();
     if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
-      *object = NULL;
+      *object = nullptr;
     }
   }
 #endif  // !defined(IS_SIMARM_HOST64)

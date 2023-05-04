@@ -185,6 +185,7 @@ class Class<T extends core::Object* = dynamic> extends core::Object /*hasConstCo
     core::print(#C17);
     core::print(#C18);
   }
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -193,7 +194,6 @@ class Class<T extends core::Object* = dynamic> extends core::Object /*hasConstCo
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method id<T extends core::Object* = dynamic>(self::id::T* t) → self::id::T*
@@ -637,7 +637,7 @@ constants  {
   #C1 = TypeLiteralConstant(invalid-type)
   #C2 = <invalid-type>[]
   #C3 = <invalid-type>{}
-  #C4 = <invalid-type, invalid-type>{)
+  #C4 = <invalid-type, invalid-type>{}
   #C5 = true
   #C6 = false
   #C7 = null

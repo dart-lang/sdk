@@ -10,7 +10,6 @@
 // dart --verbose_gc foo.dart 2> foo.gclog
 // dart verbose_gc_to_bmu.dart < foo.gclog > foo.bmu
 // gnuplot -p -e "set yr [0:1]; set logscale x; plot 'foo.bmu' with linespoints"
-// @dart=2.9
 
 import 'dart:io';
 import 'dart:math';
@@ -18,19 +17,19 @@ import 'dart:math';
 const WINDOW_STEP_FACTOR = 0.9;
 const MINIMUM_WINDOW_SIZE_MS = 1;
 
-class Interval<T extends int> {
-  T begin;
-  T end;
+class Interval {
+  int begin;
+  int end;
   Interval(this.begin, this.end);
-  T get length => max(0, end - begin);
-  Interval<T> overlap(Interval<T> other) =>
+  int get length => max(0, end - begin);
+  Interval overlap(Interval other) =>
       new Interval(max(this.begin, other.begin), min(this.end, other.end));
 }
 
 class Timeline {
   // Pauses must be added in non-decreasing order of 'begin'.
-  void addPause(Interval<int> pause) {
-    var last = _pauses.isEmpty ? new Interval<int>(0, 0) : _pauses.last;
+  void addPause(Interval pause) {
+    var last = _pauses.isEmpty ? new Interval(0, 0) : _pauses.last;
     assert(last.begin <= pause.begin);
     // Trim any initial overlap.
     _pauses.add(new Interval(max(pause.begin, last.end), pause.end));
@@ -59,24 +58,24 @@ class Timeline {
   }
 
   // Returns the fraction of non-pause time, or 1.0 for an invalid interval.
-  double _utilization(Interval<int> iv) {
+  double _utilization(Interval iv) {
     if (_run.begin > iv.begin || iv.end > _run.end || iv.length == 0) {
       return 1.0;
     }
     int paused = 0;
-    for (Interval<int> p in _pauses) {
+    for (Interval p in _pauses) {
       paused += p.overlap(iv).length;
     }
     return 1.0 - (paused / iv.length);
   }
 
-  final Interval<int> _run = new Interval<int>(0, 0);
-  final List<Interval<int>> _pauses = [];
+  final Interval _run = new Interval(0, 0);
+  final List<Interval> _pauses = [];
 }
 
 // Returns a GC pause as an interval in microseconds since program start, or
 // the interval [0, 0) on parse error.
-Interval<int> parseVerboseGCLine(String line) {
+Interval parseVerboseGCLine(String line) {
   var fields = line.split(',');
   // Update this (and indices below, if needed) when logging format changes.
   if (fields.length < 10) {
@@ -84,17 +83,17 @@ Interval<int> parseVerboseGCLine(String line) {
     // We assume these have very few commas in them, so that fields.length
     // is < 10.
     assert(line.contains("|"));
-    return new Interval<int>(0, 0);
+    return new Interval(0, 0);
   }
   var begin = (1e6 * double.parse(fields[2])).floor();
   var duration = (1000 * double.parse(fields[3])).floor();
   var end = begin + duration;
-  return new Interval<int>(begin, end);
+  return new Interval(begin, end);
 }
 
 void main() {
   Timeline t = new Timeline();
-  for (String line = stdin.readLineSync();
+  for (String? line = stdin.readLineSync();
       line != null;
       line = stdin.readLineSync()) {
     t.addPause(parseVerboseGCLine(line));

@@ -4,7 +4,7 @@
 
 typedef A = Function()?;
 
-class B {}
+mixin B {}
 
 class C = A with B;
 

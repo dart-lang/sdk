@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/error/inference_error_listener.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -223,7 +222,7 @@ class ExtensionMemberResolver {
       substitution,
     );
 
-    if (receiverType.isVoid) {
+    if (receiverType is VoidType) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
     } else if (!_typeSystem.isAssignableTo(receiverType, extendedType)) {
@@ -345,11 +344,7 @@ class ExtensionMemberResolver {
       }
     } else {
       var inferrer = GenericInferrer(_typeSystem, typeParameters,
-          inferenceErrorListener: InferenceErrorReporter(
-            _errorReporter,
-            isNonNullableByDefault: _isNonNullableByDefault,
-            isGenericMetadataEnabled: _genericMetadataIsEnabled,
-          ),
+          errorReporter: _errorReporter,
           errorNode: node.extensionName,
           genericMetadataIsEnabled: _genericMetadataIsEnabled);
       inferrer.constrainArgument(
@@ -357,7 +352,7 @@ class ExtensionMemberResolver {
         element.extendedType,
         'extendedType',
       );
-      return inferrer.upwardsInfer();
+      return inferrer.chooseFinalTypes();
     }
   }
 

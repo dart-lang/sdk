@@ -46,7 +46,7 @@ class IOPipeline extends Pipeline<IOModularStep> {
 
   /// A unique number to denote the current modular test configuration.
   ///
-  /// When using [cacheSharedModules], a test can resuse the output of a
+  /// When using [cacheSharedModules], a test can reuse the output of a
   /// previous run of this pipeline if that output was generated with the same
   /// configuration.
   int? _currentConfiguration;
@@ -120,7 +120,7 @@ class IOPipeline extends Pipeline<IOModularStep> {
     // issues, we include one of the step data ids in the name of the folder.
     var stepId = step.resultData.first;
     var stepFolder =
-        await Directory.systemTemp.createTemp('modular_test_${stepId}-');
+        await Directory.systemTemp.createTemp('modular_test_$stepId-');
     for (var module in visibleData.keys) {
       for (var dataId in visibleData[module]!) {
         var assetUri = resultsFolderUri

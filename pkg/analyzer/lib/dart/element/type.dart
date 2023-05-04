@@ -22,6 +22,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
+import 'package:analyzer/src/dart/element/type.dart' show RecordTypeImpl;
 import 'package:meta/meta.dart';
 
 /// The type associated with elements in the element model.
@@ -117,10 +118,15 @@ abstract class DartType {
   /// dart:core library.
   bool get isDartCoreSymbol;
 
+  /// Return `true` if this type represents the type 'Type' defined in the
+  /// dart:core library.
+  bool get isDartCoreType;
+
   /// Return `true` if this type represents the type 'dynamic'.
   bool get isDynamic;
 
   /// Return `true` if this type represents the type 'void'.
+  @Deprecated('Use `is VoidType` instead')
   bool get isVoid;
 
   /// Return the name of this type, or `null` if the type does not have a name,
@@ -431,6 +437,13 @@ abstract class ParameterizedType implements DartType {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordType implements DartType {
+  /// Creates a record type from of [positional] and [named] fields.
+  factory RecordType({
+    required List<DartType> positional,
+    required Map<String, DartType> named,
+    required NullabilitySuffix nullabilitySuffix,
+  }) = RecordTypeImpl.fromApi;
+
   @override
   Null get element;
 

@@ -19,6 +19,7 @@ const libs = <String>[
 const snapshots = <String>[
   'analysis_server',
   'dart2js',
+  'dart2wasm',
   'dartdev',
   'dartdevc',
   'dds',
@@ -26,6 +27,10 @@ const snapshots = <String>[
   'gen_kernel',
   'kernel-service',
   'kernel_worker',
+];
+
+const resources = <String>[
+  'devtools',
 ];
 
 void reportFileSize(String path, String name) {
@@ -73,6 +78,11 @@ void main() {
     final snapshotPath =
         '$rootDir/dart-sdk/bin/snapshots/$snapshot.dart.snapshot';
     reportFileSize(snapshotPath, snapshot);
+  }
+
+  for (final resource in resources) {
+    final resourcePath = '$rootDir/dart-sdk/bin/resources/$resource';
+    reportDirectorySize(resourcePath, resource);
   }
 
   // Measure the sdk size.

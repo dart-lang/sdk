@@ -9,9 +9,15 @@
 /// function body).
 enum SnippetContext {
   atTopLevel,
-  inClass,
+  inAnnotation,
   inBlock,
-  inExpressionOrStatement,
+  inClass,
   inComment,
+  inConstructorInvocation,
+  inExpression,
+  inIdentifierDeclaration,
+  inPattern,
+  inQualifiedMemberAccess,
+  inStatement,
   inString,
 }

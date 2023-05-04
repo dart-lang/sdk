@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
+import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/transformations/flags.dart';
 
 import '../builder/builder.dart';
@@ -208,9 +209,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     NameScheme staticFieldNameScheme = new NameScheme(
         isInstanceMember: false,
-        className: name,
-        isExtensionMember: false,
-        extensionName: null,
+        containerName: new ClassName(name),
+        containerType: ContainerType.Class,
         libraryName: libraryName);
 
     Reference? constructorReference;
@@ -335,6 +335,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
               charEndOffset,
               constructorReference,
               tearOffReference,
+              new NameScheme(
+                  isInstanceMember: false,
+                  containerName: new ClassName(name),
+                  containerType: ContainerType.Class,
+                  libraryName: libraryName),
               forAbstractClassOrEnum: true);
       synthesizedDefaultConstructorBuilder
           .registerInitializedField(valuesBuilder);
@@ -388,12 +393,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
         AsyncMarker.Sync,
         new NameScheme(
             isInstanceMember: true,
-            className: name,
-            isExtensionMember: false,
-            extensionName: null,
+            containerName: new ClassName(name),
+            containerType: ContainerType.Class,
             libraryName: new LibraryName(coreLibrary.library.reference)),
-        isExtensionMember: false,
-        isInstanceMember: true,
         isSynthetic: true);
     members["_enumToString"] = toStringBuilder;
     String className = name;
@@ -495,6 +497,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         supertypeBuilder,
         interfaceBuilders,
         new Scope(
+            kind: ScopeKind.declaration,
             local: members,
             setters: setters,
             parent: scope.parent,
@@ -766,7 +769,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         }
       } else {
         Expression initializer = bodyBuilder.buildStaticInvocation(
-            constructorBuilder.constructor, arguments,
+            constructorBuilder.invokeTarget, arguments,
             constness: Constness.explicitConst,
             charOffset: fieldBuilder.charOffset);
         ExpressionInferenceResult inferenceResult = bodyBuilder.typeInferrer
@@ -800,7 +803,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         }
       } else {
         Expression initializer = new ConstructorInvocation(
-            constructorBuilder.constructor, arguments,
+            constructorBuilder.invokeTarget as Constructor, arguments,
             isConst: true)
           ..fileOffset = fieldBuilder.charOffset;
         if (!fieldBuilder.hasBodyBeenBuilt) {
@@ -834,7 +837,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
     valuesBuilder.buildBody(
         classHierarchy.coreTypes,
         new ListLiteral(values,
-            typeArgument: rawType(libraryBuilder.nonNullable), isConst: true));
+            typeArgument: instantiateToBounds(
+                rawType(libraryBuilder.nonNullable),
+                classHierarchy.coreTypes.objectClass,
+                isNonNullableByDefault: libraryBuilder.isNonNullableByDefault),
+            isConst: true));
 
     for (SourceFieldBuilder elementBuilder in elementBuilders) {
       elementBuilder.type.registerInferredType(

@@ -8,7 +8,7 @@ part of dart.ffi;
 ///
 /// A dynamically loaded library is a mapping from symbols to memory addresses.
 /// These memory addresses can be accessed through [lookup].
-class DynamicLibrary {
+final class DynamicLibrary {
   /// Creates a [DynamicLibrary] holding all global symbols.
   ///
   /// Any symbol in a library currently loaded with global visibility

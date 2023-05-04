@@ -91,6 +91,30 @@ abstract class ExpressionVisitor<R> {
   R visitTypedefTearOff(TypedefTearOff node) => defaultExpression(node);
   R visitRecordIndexGet(RecordIndexGet node) => defaultExpression(node);
   R visitRecordNameGet(RecordNameGet node) => defaultExpression(node);
+  R visitSwitchExpression(SwitchExpression node) => defaultExpression(node);
+  R visitPatternAssignment(PatternAssignment node) => defaultExpression(node);
+}
+
+abstract class PatternVisitor<R> {
+  R defaultPattern(Pattern node);
+  R visitAndPattern(AndPattern node) => defaultPattern(node);
+  R visitAssignedVariablePattern(AssignedVariablePattern node) =>
+      defaultPattern(node);
+  R visitCastPattern(CastPattern node) => defaultPattern(node);
+  R visitConstantPattern(ConstantPattern node) => defaultPattern(node);
+  R visitInvalidPattern(InvalidPattern node) => defaultPattern(node);
+  R visitListPattern(ListPattern node) => defaultPattern(node);
+  R visitMapPattern(MapPattern node) => defaultPattern(node);
+  R visitNamedPattern(NamedPattern node) => defaultPattern(node);
+  R visitNullAssertPattern(NullAssertPattern node) => defaultPattern(node);
+  R visitNullCheckPattern(NullCheckPattern node) => defaultPattern(node);
+  R visitObjectPattern(ObjectPattern node) => defaultPattern(node);
+  R visitOrPattern(OrPattern node) => defaultPattern(node);
+  R visitRecordPattern(RecordPattern node) => defaultPattern(node);
+  R visitRelationalPattern(RelationalPattern node) => defaultPattern(node);
+  R visitRestPattern(RestPattern node) => defaultPattern(node);
+  R visitVariablePattern(VariablePattern node) => defaultPattern(node);
+  R visitWildcardPattern(WildcardPattern node) => defaultPattern(node);
 }
 
 abstract class StatementVisitor<R> {
@@ -111,14 +135,19 @@ abstract class StatementVisitor<R> {
   R visitForStatement(ForStatement node) => defaultStatement(node);
   R visitForInStatement(ForInStatement node) => defaultStatement(node);
   R visitSwitchStatement(SwitchStatement node) => defaultStatement(node);
+  R visitPatternSwitchStatement(PatternSwitchStatement node) =>
+      defaultStatement(node);
   R visitContinueSwitchStatement(ContinueSwitchStatement node) =>
       defaultStatement(node);
   R visitIfStatement(IfStatement node) => defaultStatement(node);
+  R visitIfCaseStatement(IfCaseStatement node) => defaultStatement(node);
   R visitReturnStatement(ReturnStatement node) => defaultStatement(node);
   R visitTryCatch(TryCatch node) => defaultStatement(node);
   R visitTryFinally(TryFinally node) => defaultStatement(node);
   R visitYieldStatement(YieldStatement node) => defaultStatement(node);
   R visitVariableDeclaration(VariableDeclaration node) =>
+      defaultStatement(node);
+  R visitPatternVariableDeclaration(PatternVariableDeclaration node) =>
       defaultStatement(node);
   R visitFunctionDeclaration(FunctionDeclaration node) =>
       defaultStatement(node);
@@ -187,6 +216,7 @@ abstract class InitializerVisitor1<R, A> {
 abstract class TreeVisitor<R>
     implements
         ExpressionVisitor<R>,
+        PatternVisitor<R>,
         StatementVisitor<R>,
         MemberVisitor<R>,
         InitializerVisitor<R> {
@@ -342,6 +372,49 @@ abstract class TreeVisitor<R>
   R visitRecordIndexGet(RecordIndexGet node) => defaultExpression(node);
   @override
   R visitRecordNameGet(RecordNameGet node) => defaultExpression(node);
+  @override
+  R visitSwitchExpression(SwitchExpression node) => defaultExpression(node);
+  @override
+  R visitPatternAssignment(PatternAssignment node) => defaultExpression(node);
+
+  // Patterns
+  @override
+  R defaultPattern(Pattern node) => defaultTreeNode(node);
+  @override
+  R visitAndPattern(AndPattern node) => defaultPattern(node);
+  @override
+  R visitAssignedVariablePattern(AssignedVariablePattern node) =>
+      defaultPattern(node);
+  @override
+  R visitCastPattern(CastPattern node) => defaultPattern(node);
+  @override
+  R visitConstantPattern(ConstantPattern node) => defaultPattern(node);
+  @override
+  R visitInvalidPattern(InvalidPattern node) => defaultPattern(node);
+  @override
+  R visitListPattern(ListPattern node) => defaultPattern(node);
+  @override
+  R visitMapPattern(MapPattern node) => defaultPattern(node);
+  @override
+  R visitNamedPattern(NamedPattern node) => defaultPattern(node);
+  @override
+  R visitNullAssertPattern(NullAssertPattern node) => defaultPattern(node);
+  @override
+  R visitNullCheckPattern(NullCheckPattern node) => defaultPattern(node);
+  @override
+  R visitObjectPattern(ObjectPattern node) => defaultPattern(node);
+  @override
+  R visitOrPattern(OrPattern node) => defaultPattern(node);
+  @override
+  R visitRecordPattern(RecordPattern node) => defaultPattern(node);
+  @override
+  R visitRelationalPattern(RelationalPattern node) => defaultPattern(node);
+  @override
+  R visitRestPattern(RestPattern node) => defaultPattern(node);
+  @override
+  R visitVariablePattern(VariablePattern node) => defaultPattern(node);
+  @override
+  R visitWildcardPattern(WildcardPattern node) => defaultPattern(node);
 
   // Statements
   @override
@@ -372,10 +445,15 @@ abstract class TreeVisitor<R>
   @override
   R visitSwitchStatement(SwitchStatement node) => defaultStatement(node);
   @override
+  R visitPatternSwitchStatement(PatternSwitchStatement node) =>
+      defaultStatement(node);
+  @override
   R visitContinueSwitchStatement(ContinueSwitchStatement node) =>
       defaultStatement(node);
   @override
   R visitIfStatement(IfStatement node) => defaultStatement(node);
+  @override
+  R visitIfCaseStatement(IfCaseStatement node) => defaultStatement(node);
   @override
   R visitReturnStatement(ReturnStatement node) => defaultStatement(node);
   @override
@@ -386,6 +464,9 @@ abstract class TreeVisitor<R>
   R visitYieldStatement(YieldStatement node) => defaultStatement(node);
   @override
   R visitVariableDeclaration(VariableDeclaration node) =>
+      defaultStatement(node);
+  @override
+  R visitPatternVariableDeclaration(PatternVariableDeclaration node) =>
       defaultStatement(node);
   @override
   R visitFunctionDeclaration(FunctionDeclaration node) =>
@@ -408,7 +489,7 @@ abstract class TreeVisitor<R>
   // Classes
   R visitClass(Class node) => defaultTreeNode(node);
   R visitExtension(Extension node) => defaultTreeNode(node);
-  R visitView(View node) => defaultTreeNode(node);
+  R visitInlineClass(InlineClass node) => defaultTreeNode(node);
 
   // Initializers
   @override
@@ -439,14 +520,21 @@ abstract class TreeVisitor<R>
   R visitArguments(Arguments node) => defaultTreeNode(node);
   R visitNamedExpression(NamedExpression node) => defaultTreeNode(node);
   R visitSwitchCase(SwitchCase node) => defaultTreeNode(node);
+  R visitPatternSwitchCase(PatternSwitchCase node) => defaultTreeNode(node);
+  R visitSwitchExpressionCase(SwitchExpressionCase node) =>
+      defaultTreeNode(node);
   R visitCatch(Catch node) => defaultTreeNode(node);
   R visitMapLiteralEntry(MapLiteralEntry node) => defaultTreeNode(node);
+  R visitMapPatternEntry(MapPatternEntry node) => defaultTreeNode(node);
+  R visitMapPatternRestEntry(MapPatternRestEntry node) => defaultTreeNode(node);
+  R visitPatternGuard(PatternGuard node) => defaultTreeNode(node);
   R visitComponent(Component node) => defaultTreeNode(node);
 }
 
 abstract class TreeVisitor1<R, A>
     implements
         ExpressionVisitor1<R, A>,
+        PatternVisitor1<R, A>,
         StatementVisitor1<R, A>,
         MemberVisitor1<R, A>,
         InitializerVisitor1<R, A> {
@@ -634,6 +722,58 @@ abstract class TreeVisitor1<R, A>
   @override
   R visitRecordNameGet(RecordNameGet node, A arg) =>
       defaultExpression(node, arg);
+  @override
+  R visitSwitchExpression(SwitchExpression node, A arg) =>
+      defaultExpression(node, arg);
+  @override
+  R visitPatternAssignment(PatternAssignment node, A arg) =>
+      defaultExpression(node, arg);
+
+  // Patterns
+  @override
+  R defaultPattern(Pattern node, A arg) => defaultTreeNode(node, arg);
+  @override
+  R visitAndPattern(AndPattern node, A arg) => defaultPattern(node, arg);
+  @override
+  R visitAssignedVariablePattern(AssignedVariablePattern node, A arg) =>
+      defaultPattern(node, arg);
+  @override
+  R visitCastPattern(CastPattern node, A arg) => defaultPattern(node, arg);
+  @override
+  R visitConstantPattern(ConstantPattern node, A arg) =>
+      defaultPattern(node, arg);
+  @override
+  R visitInvalidPattern(InvalidPattern node, A arg) =>
+      defaultPattern(node, arg);
+  @override
+  R visitListPattern(ListPattern node, A arg) => defaultPattern(node, arg);
+  @override
+  R visitMapPattern(MapPattern node, A arg) => defaultPattern(node, arg);
+  @override
+  R visitNamedPattern(NamedPattern node, A arg) => defaultPattern(node, arg);
+  @override
+  R visitNullAssertPattern(NullAssertPattern node, A arg) =>
+      defaultPattern(node, arg);
+  @override
+  R visitNullCheckPattern(NullCheckPattern node, A arg) =>
+      defaultPattern(node, arg);
+  @override
+  R visitObjectPattern(ObjectPattern node, A arg) => defaultPattern(node, arg);
+  @override
+  R visitOrPattern(OrPattern node, A arg) => defaultPattern(node, arg);
+  @override
+  R visitRecordPattern(RecordPattern node, A arg) => defaultPattern(node, arg);
+  @override
+  R visitRelationalPattern(RelationalPattern node, A arg) =>
+      defaultPattern(node, arg);
+  @override
+  R visitRestPattern(RestPattern node, A arg) => defaultPattern(node, arg);
+  @override
+  R visitVariablePattern(VariablePattern node, A arg) =>
+      defaultPattern(node, arg);
+  @override
+  R visitWildcardPattern(WildcardPattern node, A arg) =>
+      defaultPattern(node, arg);
 
   // Statements
   @override
@@ -671,10 +811,16 @@ abstract class TreeVisitor1<R, A>
   R visitSwitchStatement(SwitchStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
+  R visitPatternSwitchStatement(PatternSwitchStatement node, A arg) =>
+      defaultStatement(node, arg);
+  @override
   R visitContinueSwitchStatement(ContinueSwitchStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
   R visitIfStatement(IfStatement node, A arg) => defaultStatement(node, arg);
+  @override
+  R visitIfCaseStatement(IfCaseStatement node, A arg) =>
+      defaultStatement(node, arg);
   @override
   R visitReturnStatement(ReturnStatement node, A arg) =>
       defaultStatement(node, arg);
@@ -687,6 +833,9 @@ abstract class TreeVisitor1<R, A>
       defaultStatement(node, arg);
   @override
   R visitVariableDeclaration(VariableDeclaration node, A arg) =>
+      defaultStatement(node, arg);
+  @override
+  R visitPatternVariableDeclaration(PatternVariableDeclaration node, A arg) =>
       defaultStatement(node, arg);
   @override
   R visitFunctionDeclaration(FunctionDeclaration node, A arg) =>
@@ -709,7 +858,7 @@ abstract class TreeVisitor1<R, A>
   // Classes
   R visitClass(Class node, A arg) => defaultTreeNode(node, arg);
   R visitExtension(Extension node, A arg) => defaultTreeNode(node, arg);
-  R visitView(View node, A arg) => defaultTreeNode(node, arg);
+  R visitInlineClass(InlineClass node, A arg) => defaultTreeNode(node, arg);
 
   // Initializers
   @override
@@ -746,9 +895,18 @@ abstract class TreeVisitor1<R, A>
   R visitNamedExpression(NamedExpression node, A arg) =>
       defaultTreeNode(node, arg);
   R visitSwitchCase(SwitchCase node, A arg) => defaultTreeNode(node, arg);
+  R visitPatternSwitchCase(PatternSwitchCase node, A arg) =>
+      defaultTreeNode(node, arg);
+  R visitSwitchExpressionCase(SwitchExpressionCase node, A arg) =>
+      defaultTreeNode(node, arg);
   R visitCatch(Catch node, A arg) => defaultTreeNode(node, arg);
   R visitMapLiteralEntry(MapLiteralEntry node, A arg) =>
       defaultTreeNode(node, arg);
+  R visitMapPatternEntry(MapPatternEntry node, A arg) =>
+      defaultTreeNode(node, arg);
+  R visitMapPatternRestEntry(MapPatternRestEntry node, A arg) =>
+      defaultTreeNode(node, arg);
+  R visitPatternGuard(PatternGuard node, A arg) => defaultTreeNode(node, arg);
   R visitComponent(Component node, A arg) => defaultTreeNode(node, arg);
 }
 
@@ -768,32 +926,32 @@ abstract class DartTypeVisitor<R> {
   R visitNeverType(NeverType node) => defaultDartType(node);
   R visitNullType(NullType node) => defaultDartType(node);
   R visitExtensionType(ExtensionType node) => defaultDartType(node);
-  R visitViewType(ViewType node) => defaultDartType(node);
+  R visitInlineType(InlineType node) => defaultDartType(node);
   R visitIntersectionType(IntersectionType node) => defaultDartType(node);
   R visitRecordType(RecordType node) => defaultDartType(node);
 }
 
-abstract class DartTypeVisitor1<R, T> {
+abstract class DartTypeVisitor1<R, A> {
   const DartTypeVisitor1();
 
-  R defaultDartType(DartType node, T arg);
+  R defaultDartType(DartType node, A arg);
 
-  R visitInvalidType(InvalidType node, T arg) => defaultDartType(node, arg);
-  R visitDynamicType(DynamicType node, T arg) => defaultDartType(node, arg);
-  R visitVoidType(VoidType node, T arg) => defaultDartType(node, arg);
-  R visitInterfaceType(InterfaceType node, T arg) => defaultDartType(node, arg);
-  R visitFutureOrType(FutureOrType node, T arg) => defaultDartType(node, arg);
-  R visitFunctionType(FunctionType node, T arg) => defaultDartType(node, arg);
-  R visitTypeParameterType(TypeParameterType node, T arg) =>
+  R visitInvalidType(InvalidType node, A arg) => defaultDartType(node, arg);
+  R visitDynamicType(DynamicType node, A arg) => defaultDartType(node, arg);
+  R visitVoidType(VoidType node, A arg) => defaultDartType(node, arg);
+  R visitInterfaceType(InterfaceType node, A arg) => defaultDartType(node, arg);
+  R visitFutureOrType(FutureOrType node, A arg) => defaultDartType(node, arg);
+  R visitFunctionType(FunctionType node, A arg) => defaultDartType(node, arg);
+  R visitTypeParameterType(TypeParameterType node, A arg) =>
       defaultDartType(node, arg);
-  R visitTypedefType(TypedefType node, T arg) => defaultDartType(node, arg);
-  R visitNeverType(NeverType node, T arg) => defaultDartType(node, arg);
-  R visitNullType(NullType node, T arg) => defaultDartType(node, arg);
-  R visitExtensionType(ExtensionType node, T arg) => defaultDartType(node, arg);
-  R visitViewType(ViewType node, T arg) => defaultDartType(node, arg);
-  R visitIntersectionType(IntersectionType node, T arg) =>
+  R visitTypedefType(TypedefType node, A arg) => defaultDartType(node, arg);
+  R visitNeverType(NeverType node, A arg) => defaultDartType(node, arg);
+  R visitNullType(NullType node, A arg) => defaultDartType(node, arg);
+  R visitExtensionType(ExtensionType node, A arg) => defaultDartType(node, arg);
+  R visitInlineType(InlineType node, A arg) => defaultDartType(node, arg);
+  R visitIntersectionType(IntersectionType node, A arg) =>
       defaultDartType(node, arg);
-  R visitRecordType(RecordType node, T arg) => defaultDartType(node, arg);
+  R visitRecordType(RecordType node, A arg) => defaultDartType(node, arg);
 }
 
 /// Visitor for [Constant] nodes.
@@ -1024,6 +1182,8 @@ abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
   @override
   R visitSetConstant(SetConstant node) => defaultConstant(node);
   @override
+  R visitRecordConstant(RecordConstant node) => defaultConstant(node);
+  @override
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   @override
   R visitInstantiationConstant(InstantiationConstant node) =>
@@ -1091,9 +1251,14 @@ abstract class VisitOnceConstantVisitor implements _ConstantCallback<void> {
   @override
   void visitSetConstant(SetConstant node) => defaultConstant(node);
   @override
+  void visitRecordConstant(RecordConstant node) => defaultConstant(node);
+  @override
   void visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   @override
   void visitInstantiationConstant(InstantiationConstant node) =>
+      defaultConstant(node);
+  @override
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
       defaultConstant(node);
   @override
   void visitStaticTearOffConstant(StaticTearOffConstant node) =>
@@ -1179,7 +1344,7 @@ abstract class Visitor<R> extends TreeVisitor<R>
   @override
   R visitExtensionType(ExtensionType node) => defaultDartType(node);
   @override
-  R visitViewType(ViewType node) => defaultDartType(node);
+  R visitInlineType(InlineType node) => defaultDartType(node);
   @override
   R visitIntersectionType(IntersectionType node) => defaultDartType(node);
   @override
@@ -1238,7 +1403,7 @@ abstract class Visitor<R> extends TreeVisitor<R>
 
   R visitExtensionReference(Extension node);
 
-  R visitViewReference(View node);
+  R visitInlineClassReference(InlineClass node);
 
   // Constant references
   R defaultConstantReference(Constant node);
@@ -1340,7 +1505,7 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
   @override
   R visitExtensionType(ExtensionType node, A arg) => defaultDartType(node, arg);
   @override
-  R visitViewType(ViewType node, A arg) => defaultDartType(node, arg);
+  R visitInlineType(InlineType node, A arg) => defaultDartType(node, arg);
 
   // Constants
   @override
@@ -1367,6 +1532,9 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
   @override
   R visitSetConstant(SetConstant node, A arg) => defaultConstant(node, arg);
   @override
+  R visitRecordConstant(RecordConstant node, A arg) =>
+      defaultConstant(node, arg);
+  @override
   R visitInstanceConstant(InstanceConstant node, A arg) =>
       defaultConstant(node, arg);
   @override
@@ -1386,7 +1554,7 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
 
   R visitExtensionReference(Extension node, A arg);
 
-  R visitViewReference(View node, A arg);
+  R visitInlineClassReference(InlineClass node, A arg);
 
   // Constant references
   R defaultConstantReference(Constant node, A arg);
@@ -1481,9 +1649,9 @@ mixin VisitorThrowingMixin<R> implements Visitor<R> {
   }
 
   @override
-  R visitViewReference(View node) {
+  R visitInlineClassReference(InlineClass node) {
     throw new UnimplementedError(
-        'Unimplemented ${runtimeType}.visitViewReference for '
+        'Unimplemented ${runtimeType}.visitInlineClassReference for '
         '${node} (${node.runtimeType})');
   }
 
@@ -1518,7 +1686,7 @@ mixin VisitorNullMixin<R> implements Visitor<R?> {
   R? visitExtensionReference(Extension node) => null;
 
   @override
-  R? visitViewReference(View node) => null;
+  R? visitInlineClassReference(InlineClass node) => null;
 
   @override
   R? defaultConstantReference(Constant node) => null;
@@ -1542,7 +1710,7 @@ mixin VisitorVoidMixin implements Visitor<void> {
   void visitExtensionReference(Extension node) {}
 
   @override
-  void visitViewReference(View node) {}
+  void visitInlineClassReference(InlineClass node) {}
 
   @override
   void defaultConstantReference(Constant node) {}
@@ -1568,7 +1736,7 @@ mixin VisitorDefaultValueMixin<R> implements Visitor<R> {
   R visitExtensionReference(Extension node) => defaultValue;
 
   @override
-  R visitViewReference(View node) => defaultValue;
+  R visitInlineClassReference(InlineClass node) => defaultValue;
 
   @override
   R defaultConstantReference(Constant node) => defaultValue;
@@ -1671,7 +1839,6 @@ class Transformer extends TreeVisitor<TreeNode> {
           result != null,
           'Attempting to remove ${nodes[i]} (${nodes[i].runtimeType}) '
           'in transformer.');
-      // ignore: invalid_null_aware_operator
       result.parent = parent;
       nodes[i] = result;
     }
@@ -1891,13 +2058,13 @@ class RemovingTransformer extends TreeVisitor1<TreeNode, TreeNode?> {
     transformList(nodes, parent, dummyExtension);
   }
 
-  /// Transforms or removes [View] nodes in [nodes] as children of
+  /// Transforms or removes [InlineClass] nodes in [nodes] as children of
   /// [parent].
   ///
   /// This is convenience method for calling [transformList] with removal
-  /// sentinel for [View] nodes.
-  void transformViewList(List<View> nodes, TreeNode parent) {
-    transformList(nodes, parent, dummyView);
+  /// sentinel for [InlineClass] nodes.
+  void transformInlineClassList(List<InlineClass> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyInlineClass);
   }
 
   /// Transforms or removes [Constructor] nodes in [nodes] as children of
@@ -2061,219 +2228,258 @@ class RemovingTransformer extends TreeVisitor1<TreeNode, TreeNode?> {
   }
 }
 
-abstract class ExpressionVisitor1<R, T> {
+abstract class ExpressionVisitor1<R, A> {
   const ExpressionVisitor1();
 
-  R defaultExpression(Expression node, T arg);
-  R defaultBasicLiteral(BasicLiteral node, T arg) =>
+  R defaultExpression(Expression node, A arg);
+  R defaultBasicLiteral(BasicLiteral node, A arg) =>
       defaultExpression(node, arg);
-  R visitInvalidExpression(InvalidExpression node, T arg) =>
+  R visitInvalidExpression(InvalidExpression node, A arg) =>
       defaultExpression(node, arg);
-  R visitVariableGet(VariableGet node, T arg) => defaultExpression(node, arg);
-  R visitVariableSet(VariableSet node, T arg) => defaultExpression(node, arg);
-  R visitDynamicGet(DynamicGet node, T arg) => defaultExpression(node, arg);
-  R visitDynamicSet(DynamicSet node, T arg) => defaultExpression(node, arg);
-  R visitFunctionTearOff(FunctionTearOff node, T arg) =>
+  R visitVariableGet(VariableGet node, A arg) => defaultExpression(node, arg);
+  R visitVariableSet(VariableSet node, A arg) => defaultExpression(node, arg);
+  R visitDynamicGet(DynamicGet node, A arg) => defaultExpression(node, arg);
+  R visitDynamicSet(DynamicSet node, A arg) => defaultExpression(node, arg);
+  R visitFunctionTearOff(FunctionTearOff node, A arg) =>
       defaultExpression(node, arg);
-  R visitInstanceGet(InstanceGet node, T arg) => defaultExpression(node, arg);
-  R visitInstanceSet(InstanceSet node, T arg) => defaultExpression(node, arg);
-  R visitInstanceTearOff(InstanceTearOff node, T arg) =>
+  R visitInstanceGet(InstanceGet node, A arg) => defaultExpression(node, arg);
+  R visitInstanceSet(InstanceSet node, A arg) => defaultExpression(node, arg);
+  R visitInstanceTearOff(InstanceTearOff node, A arg) =>
       defaultExpression(node, arg);
-  R visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node, T arg) =>
+  R visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node, A arg) =>
       defaultExpression(node, arg);
-  R visitAbstractSuperPropertySet(AbstractSuperPropertySet node, T arg) =>
+  R visitAbstractSuperPropertySet(AbstractSuperPropertySet node, A arg) =>
       defaultExpression(node, arg);
-  R visitSuperPropertyGet(SuperPropertyGet node, T arg) =>
+  R visitSuperPropertyGet(SuperPropertyGet node, A arg) =>
       defaultExpression(node, arg);
-  R visitSuperPropertySet(SuperPropertySet node, T arg) =>
+  R visitSuperPropertySet(SuperPropertySet node, A arg) =>
       defaultExpression(node, arg);
-  R visitStaticGet(StaticGet node, T arg) => defaultExpression(node, arg);
-  R visitStaticSet(StaticSet node, T arg) => defaultExpression(node, arg);
-  R visitStaticTearOff(StaticTearOff node, T arg) =>
+  R visitStaticGet(StaticGet node, A arg) => defaultExpression(node, arg);
+  R visitStaticSet(StaticSet node, A arg) => defaultExpression(node, arg);
+  R visitStaticTearOff(StaticTearOff node, A arg) =>
       defaultExpression(node, arg);
-  R visitLocalFunctionInvocation(LocalFunctionInvocation node, T arg) =>
+  R visitLocalFunctionInvocation(LocalFunctionInvocation node, A arg) =>
       defaultExpression(node, arg);
-  R visitDynamicInvocation(DynamicInvocation node, T arg) =>
+  R visitDynamicInvocation(DynamicInvocation node, A arg) =>
       defaultExpression(node, arg);
-  R visitFunctionInvocation(FunctionInvocation node, T arg) =>
+  R visitFunctionInvocation(FunctionInvocation node, A arg) =>
       defaultExpression(node, arg);
-  R visitInstanceInvocation(InstanceInvocation node, T arg) =>
+  R visitInstanceInvocation(InstanceInvocation node, A arg) =>
       defaultExpression(node, arg);
-  R visitInstanceGetterInvocation(InstanceGetterInvocation node, T arg) =>
+  R visitInstanceGetterInvocation(InstanceGetterInvocation node, A arg) =>
       defaultExpression(node, arg);
-  R visitEqualsNull(EqualsNull node, T arg) => defaultExpression(node, arg);
-  R visitEqualsCall(EqualsCall node, T arg) => defaultExpression(node, arg);
+  R visitEqualsNull(EqualsNull node, A arg) => defaultExpression(node, arg);
+  R visitEqualsCall(EqualsCall node, A arg) => defaultExpression(node, arg);
   R visitAbstractSuperMethodInvocation(
-          AbstractSuperMethodInvocation node, T arg) =>
+          AbstractSuperMethodInvocation node, A arg) =>
       defaultExpression(node, arg);
-  R visitSuperMethodInvocation(SuperMethodInvocation node, T arg) =>
+  R visitSuperMethodInvocation(SuperMethodInvocation node, A arg) =>
       defaultExpression(node, arg);
-  R visitStaticInvocation(StaticInvocation node, T arg) =>
+  R visitStaticInvocation(StaticInvocation node, A arg) =>
       defaultExpression(node, arg);
-  R visitConstructorInvocation(ConstructorInvocation node, T arg) =>
+  R visitConstructorInvocation(ConstructorInvocation node, A arg) =>
       defaultExpression(node, arg);
-  R visitNot(Not node, T arg) => defaultExpression(node, arg);
-  R visitNullCheck(NullCheck node, T arg) => defaultExpression(node, arg);
-  R visitLogicalExpression(LogicalExpression node, T arg) =>
+  R visitNot(Not node, A arg) => defaultExpression(node, arg);
+  R visitNullCheck(NullCheck node, A arg) => defaultExpression(node, arg);
+  R visitLogicalExpression(LogicalExpression node, A arg) =>
       defaultExpression(node, arg);
-  R visitConditionalExpression(ConditionalExpression node, T arg) =>
+  R visitConditionalExpression(ConditionalExpression node, A arg) =>
       defaultExpression(node, arg);
-  R visitStringConcatenation(StringConcatenation node, T arg) =>
+  R visitStringConcatenation(StringConcatenation node, A arg) =>
       defaultExpression(node, arg);
-  R visitListConcatenation(ListConcatenation node, T arg) =>
+  R visitListConcatenation(ListConcatenation node, A arg) =>
       defaultExpression(node, arg);
-  R visitSetConcatenation(SetConcatenation node, T arg) =>
+  R visitSetConcatenation(SetConcatenation node, A arg) =>
       defaultExpression(node, arg);
-  R visitMapConcatenation(MapConcatenation node, T arg) =>
+  R visitMapConcatenation(MapConcatenation node, A arg) =>
       defaultExpression(node, arg);
-  R visitInstanceCreation(InstanceCreation node, T arg) =>
+  R visitInstanceCreation(InstanceCreation node, A arg) =>
       defaultExpression(node, arg);
-  R visitFileUriExpression(FileUriExpression node, T arg) =>
+  R visitFileUriExpression(FileUriExpression node, A arg) =>
       defaultExpression(node, arg);
-  R visitIsExpression(IsExpression node, T arg) => defaultExpression(node, arg);
-  R visitAsExpression(AsExpression node, T arg) => defaultExpression(node, arg);
-  R visitSymbolLiteral(SymbolLiteral node, T arg) =>
+  R visitIsExpression(IsExpression node, A arg) => defaultExpression(node, arg);
+  R visitAsExpression(AsExpression node, A arg) => defaultExpression(node, arg);
+  R visitSymbolLiteral(SymbolLiteral node, A arg) =>
       defaultExpression(node, arg);
-  R visitTypeLiteral(TypeLiteral node, T arg) => defaultExpression(node, arg);
-  R visitThisExpression(ThisExpression node, T arg) =>
+  R visitTypeLiteral(TypeLiteral node, A arg) => defaultExpression(node, arg);
+  R visitThisExpression(ThisExpression node, A arg) =>
       defaultExpression(node, arg);
-  R visitConstantExpression(ConstantExpression node, T arg) =>
+  R visitConstantExpression(ConstantExpression node, A arg) =>
       defaultExpression(node, arg);
-  R visitRethrow(Rethrow node, T arg) => defaultExpression(node, arg);
-  R visitThrow(Throw node, T arg) => defaultExpression(node, arg);
-  R visitListLiteral(ListLiteral node, T arg) => defaultExpression(node, arg);
-  R visitSetLiteral(SetLiteral node, T arg) => defaultExpression(node, arg);
-  R visitMapLiteral(MapLiteral node, T arg) => defaultExpression(node, arg);
-  R visitAwaitExpression(AwaitExpression node, T arg) =>
+  R visitRethrow(Rethrow node, A arg) => defaultExpression(node, arg);
+  R visitThrow(Throw node, A arg) => defaultExpression(node, arg);
+  R visitListLiteral(ListLiteral node, A arg) => defaultExpression(node, arg);
+  R visitSetLiteral(SetLiteral node, A arg) => defaultExpression(node, arg);
+  R visitMapLiteral(MapLiteral node, A arg) => defaultExpression(node, arg);
+  R visitAwaitExpression(AwaitExpression node, A arg) =>
       defaultExpression(node, arg);
-  R visitFunctionExpression(FunctionExpression node, T arg) =>
+  R visitFunctionExpression(FunctionExpression node, A arg) =>
       defaultExpression(node, arg);
-  R visitIntLiteral(IntLiteral node, T arg) => defaultBasicLiteral(node, arg);
-  R visitStringLiteral(StringLiteral node, T arg) =>
+  R visitIntLiteral(IntLiteral node, A arg) => defaultBasicLiteral(node, arg);
+  R visitStringLiteral(StringLiteral node, A arg) =>
       defaultBasicLiteral(node, arg);
-  R visitDoubleLiteral(DoubleLiteral node, T arg) =>
+  R visitDoubleLiteral(DoubleLiteral node, A arg) =>
       defaultBasicLiteral(node, arg);
-  R visitBoolLiteral(BoolLiteral node, T arg) => defaultBasicLiteral(node, arg);
-  R visitNullLiteral(NullLiteral node, T arg) => defaultBasicLiteral(node, arg);
-  R visitLet(Let node, T arg) => defaultExpression(node, arg);
-  R visitBlockExpression(BlockExpression node, T arg) =>
+  R visitBoolLiteral(BoolLiteral node, A arg) => defaultBasicLiteral(node, arg);
+  R visitNullLiteral(NullLiteral node, A arg) => defaultBasicLiteral(node, arg);
+  R visitLet(Let node, A arg) => defaultExpression(node, arg);
+  R visitBlockExpression(BlockExpression node, A arg) =>
       defaultExpression(node, arg);
-  R visitInstantiation(Instantiation node, T arg) =>
+  R visitInstantiation(Instantiation node, A arg) =>
       defaultExpression(node, arg);
-  R visitLoadLibrary(LoadLibrary node, T arg) => defaultExpression(node, arg);
-  R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, T arg) =>
+  R visitLoadLibrary(LoadLibrary node, A arg) => defaultExpression(node, arg);
+  R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, A arg) =>
       defaultExpression(node, arg);
-  R visitConstructorTearOff(ConstructorTearOff node, T arg) =>
+  R visitConstructorTearOff(ConstructorTearOff node, A arg) =>
       defaultExpression(node, arg);
-  R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node, T arg) =>
+  R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node, A arg) =>
       defaultExpression(node, arg);
-  R visitTypedefTearOff(TypedefTearOff node, T arg) =>
+  R visitTypedefTearOff(TypedefTearOff node, A arg) =>
       defaultExpression(node, arg);
-  R visitRecordIndexGet(RecordIndexGet node, T arg) =>
+  R visitRecordIndexGet(RecordIndexGet node, A arg) =>
       defaultExpression(node, arg);
-  R visitRecordNameGet(RecordNameGet node, T arg) =>
+  R visitRecordNameGet(RecordNameGet node, A arg) =>
       defaultExpression(node, arg);
-  R visitRecordLiteral(RecordLiteral node, T arg) =>
+  R visitRecordLiteral(RecordLiteral node, A arg) =>
+      defaultExpression(node, arg);
+  R visitSwitchExpression(SwitchExpression node, A arg) =>
+      defaultExpression(node, arg);
+  R visitPatternAssignment(PatternAssignment node, A arg) =>
       defaultExpression(node, arg);
 }
 
-abstract class StatementVisitor1<R, T> {
+abstract class PatternVisitor1<R, A> {
+  R defaultPattern(Pattern node, A arg);
+  R visitAndPattern(AndPattern node, A arg) => defaultPattern(node, arg);
+  R visitAssignedVariablePattern(AssignedVariablePattern node, A arg) =>
+      defaultPattern(node, arg);
+  R visitCastPattern(CastPattern node, A arg) => defaultPattern(node, arg);
+  R visitConstantPattern(ConstantPattern node, A arg) =>
+      defaultPattern(node, arg);
+  R visitInvalidPattern(InvalidPattern node, A arg) =>
+      defaultPattern(node, arg);
+  R visitListPattern(ListPattern node, A arg) => defaultPattern(node, arg);
+  R visitMapPattern(MapPattern node, A arg) => defaultPattern(node, arg);
+  R visitNamedPattern(NamedPattern node, A arg) => defaultPattern(node, arg);
+  R visitNullAssertPattern(NullAssertPattern node, A arg) =>
+      defaultPattern(node, arg);
+  R visitNullCheckPattern(NullCheckPattern node, A arg) =>
+      defaultPattern(node, arg);
+  R visitObjectPattern(ObjectPattern node, A arg) => defaultPattern(node, arg);
+  R visitOrPattern(OrPattern node, A arg) => defaultPattern(node, arg);
+  R visitRecordPattern(RecordPattern node, A arg) => defaultPattern(node, arg);
+  R visitRelationalPattern(RelationalPattern node, A arg) =>
+      defaultPattern(node, arg);
+  R visitRestPattern(RestPattern node, A arg) => defaultPattern(node, arg);
+  R visitVariablePattern(VariablePattern node, A arg) =>
+      defaultPattern(node, arg);
+  R visitWildcardPattern(WildcardPattern node, A arg) =>
+      defaultPattern(node, arg);
+}
+
+abstract class StatementVisitor1<R, A> {
   const StatementVisitor1();
 
-  R defaultStatement(Statement node, T arg);
+  R defaultStatement(Statement node, A arg);
 
-  R visitExpressionStatement(ExpressionStatement node, T arg) =>
+  R visitExpressionStatement(ExpressionStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitBlock(Block node, T arg) => defaultStatement(node, arg);
-  R visitAssertBlock(AssertBlock node, T arg) => defaultStatement(node, arg);
-  R visitEmptyStatement(EmptyStatement node, T arg) =>
+  R visitBlock(Block node, A arg) => defaultStatement(node, arg);
+  R visitAssertBlock(AssertBlock node, A arg) => defaultStatement(node, arg);
+  R visitEmptyStatement(EmptyStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitAssertStatement(AssertStatement node, T arg) =>
+  R visitAssertStatement(AssertStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitLabeledStatement(LabeledStatement node, T arg) =>
+  R visitLabeledStatement(LabeledStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitBreakStatement(BreakStatement node, T arg) =>
+  R visitBreakStatement(BreakStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitWhileStatement(WhileStatement node, T arg) =>
+  R visitWhileStatement(WhileStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitDoStatement(DoStatement node, T arg) => defaultStatement(node, arg);
-  R visitForStatement(ForStatement node, T arg) => defaultStatement(node, arg);
-  R visitForInStatement(ForInStatement node, T arg) =>
+  R visitDoStatement(DoStatement node, A arg) => defaultStatement(node, arg);
+  R visitForStatement(ForStatement node, A arg) => defaultStatement(node, arg);
+  R visitForInStatement(ForInStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitSwitchStatement(SwitchStatement node, T arg) =>
+  R visitSwitchStatement(SwitchStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitContinueSwitchStatement(ContinueSwitchStatement node, T arg) =>
+  R visitPatternSwitchStatement(PatternSwitchStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitIfStatement(IfStatement node, T arg) => defaultStatement(node, arg);
-  R visitReturnStatement(ReturnStatement node, T arg) =>
+  R visitContinueSwitchStatement(ContinueSwitchStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitTryCatch(TryCatch node, T arg) => defaultStatement(node, arg);
-  R visitTryFinally(TryFinally node, T arg) => defaultStatement(node, arg);
-  R visitYieldStatement(YieldStatement node, T arg) =>
+  R visitIfStatement(IfStatement node, A arg) => defaultStatement(node, arg);
+  R visitIfCaseStatement(IfCaseStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitVariableDeclaration(VariableDeclaration node, T arg) =>
+  R visitReturnStatement(ReturnStatement node, A arg) =>
       defaultStatement(node, arg);
-  R visitFunctionDeclaration(FunctionDeclaration node, T arg) =>
+  R visitTryCatch(TryCatch node, A arg) => defaultStatement(node, arg);
+  R visitTryFinally(TryFinally node, A arg) => defaultStatement(node, arg);
+  R visitYieldStatement(YieldStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitVariableDeclaration(VariableDeclaration node, A arg) =>
+      defaultStatement(node, arg);
+  R visitPatternVariableDeclaration(PatternVariableDeclaration node, A arg) =>
+      defaultStatement(node, arg);
+  R visitFunctionDeclaration(FunctionDeclaration node, A arg) =>
       defaultStatement(node, arg);
 }
 
-abstract class BodyVisitor1<R, T> extends ExpressionVisitor1<R, T>
-    implements StatementVisitor1<R, T> {
+abstract class BodyVisitor1<R, A> extends ExpressionVisitor1<R, A>
+    implements StatementVisitor1<R, A> {
   const BodyVisitor1();
 
   @override
-  R defaultStatement(Statement node, T arg);
+  R defaultStatement(Statement node, A arg);
   @override
-  R visitExpressionStatement(ExpressionStatement node, T arg) =>
+  R visitExpressionStatement(ExpressionStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitBlock(Block node, T arg) => defaultStatement(node, arg);
+  R visitBlock(Block node, A arg) => defaultStatement(node, arg);
   @override
-  R visitAssertBlock(AssertBlock node, T arg) => defaultStatement(node, arg);
+  R visitAssertBlock(AssertBlock node, A arg) => defaultStatement(node, arg);
   @override
-  R visitEmptyStatement(EmptyStatement node, T arg) =>
+  R visitEmptyStatement(EmptyStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitAssertStatement(AssertStatement node, T arg) =>
+  R visitAssertStatement(AssertStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitLabeledStatement(LabeledStatement node, T arg) =>
+  R visitLabeledStatement(LabeledStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitBreakStatement(BreakStatement node, T arg) =>
+  R visitBreakStatement(BreakStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitWhileStatement(WhileStatement node, T arg) =>
+  R visitWhileStatement(WhileStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitDoStatement(DoStatement node, T arg) => defaultStatement(node, arg);
+  R visitDoStatement(DoStatement node, A arg) => defaultStatement(node, arg);
   @override
-  R visitForStatement(ForStatement node, T arg) => defaultStatement(node, arg);
+  R visitForStatement(ForStatement node, A arg) => defaultStatement(node, arg);
   @override
-  R visitForInStatement(ForInStatement node, T arg) =>
+  R visitForInStatement(ForInStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitSwitchStatement(SwitchStatement node, T arg) =>
+  R visitSwitchStatement(SwitchStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitContinueSwitchStatement(ContinueSwitchStatement node, T arg) =>
+  R visitContinueSwitchStatement(ContinueSwitchStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitIfStatement(IfStatement node, T arg) => defaultStatement(node, arg);
+  R visitIfStatement(IfStatement node, A arg) => defaultStatement(node, arg);
   @override
-  R visitReturnStatement(ReturnStatement node, T arg) =>
+  R visitReturnStatement(ReturnStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitTryCatch(TryCatch node, T arg) => defaultStatement(node, arg);
+  R visitTryCatch(TryCatch node, A arg) => defaultStatement(node, arg);
   @override
-  R visitTryFinally(TryFinally node, T arg) => defaultStatement(node, arg);
+  R visitTryFinally(TryFinally node, A arg) => defaultStatement(node, arg);
   @override
-  R visitYieldStatement(YieldStatement node, T arg) =>
+  R visitYieldStatement(YieldStatement node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitVariableDeclaration(VariableDeclaration node, T arg) =>
+  R visitVariableDeclaration(VariableDeclaration node, A arg) =>
       defaultStatement(node, arg);
   @override
-  R visitFunctionDeclaration(FunctionDeclaration node, T arg) =>
+  R visitFunctionDeclaration(FunctionDeclaration node, A arg) =>
       defaultStatement(node, arg);
 }

@@ -38,8 +38,8 @@ class G<T> extends C<T> {}
 class H<T> extends D<Map<String, T>> {}
 
 main() {
-  makeLive("num" == new E().t().toString());
-  makeLive("String" == new F().t().toString());
-  makeLive("List<bool>" == new G<bool>().t().toString());
-  makeLive("List<Set<Map<String, int>>>" == new H<int>().t().toString());
+  makeLive("num" == E().t().toString());
+  makeLive("String" == F().t().toString());
+  makeLive("List<bool>" == G<bool>().t().toString());
+  makeLive("List<Set<Map<String, int>>>" == H<int>().t().toString());
 }

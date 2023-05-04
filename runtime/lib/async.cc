@@ -15,7 +15,7 @@ DEFINE_NATIVE_ENTRY(AsyncStarMoveNext_debuggerStepCheck, 0, 1) {
 #if !defined(PRODUCT)
   GET_NON_NULL_NATIVE_ARGUMENT(Closure, async_op, arguments->NativeArgAt(0));
   Debugger* debugger = isolate->debugger();
-  if (debugger != NULL) {
+  if (debugger != nullptr) {
     debugger->MaybeAsyncStepInto(async_op);
   }
 #endif

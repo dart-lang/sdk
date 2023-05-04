@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
+    show StaticWeakReferences;
 
 import '../closure.dart';
 import '../common.dart';
@@ -24,6 +26,7 @@ import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/js_world.dart';
 import '../native/behavior.dart';
 import '../options.dart';
+import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../util/util.dart';
@@ -729,7 +732,19 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
   @override
   TypeInformation visitRecordLiteral(ir.RecordLiteral node) {
-    return defaultExpression(node);
+    final recordType = _elementMap.getDartType(node.recordType) as RecordType;
+    final fieldValues = [
+      for (final expression in node.positional) visit(expression)!,
+      for (final namedExpression in node.named) visit(namedExpression.value)!
+    ];
+    return createRecordTypeInformation(node, recordType, fieldValues,
+        isConst: node.isConst);
+  }
+
+  TypeInformation createRecordTypeInformation(
+      ir.TreeNode node, RecordType recordType, List<TypeInformation> fieldTypes,
+      {required bool isConst}) {
+    return _types.allocateRecord(node, recordType, fieldTypes, isConst);
   }
 
   @override
@@ -1365,24 +1380,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
     var commonElements = _elementMap.commonElements;
 
-    if (commonElements.isUnnamedListConstructor(constructor)) {
-      // We have `new List(...)`.
-      if (arguments.positional.isEmpty && arguments.named.isEmpty) {
-        // We have `new List()`.
-        return _inferrer.concreteTypes.putIfAbsent(
-            node,
-            () => _types.allocateList(_types.growableListType, node,
-                _analyzedMember, _types.nonNullEmpty(), 0));
-      } else {
-        // We have `new List(len)`.
-        final length = _findLength(arguments);
-        return _inferrer.concreteTypes.putIfAbsent(
-            node,
-            () => _types.allocateList(_types.fixedListType, node,
-                _analyzedMember, _types.nullType, length));
-      }
-    }
-
     if (commonElements.isNamedListConstructor('filled', constructor)) {
       // We have something like `List.filled(len, fill)`.
       final length = _findLength(arguments);
@@ -1546,6 +1543,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
   @override
   TypeInformation visitStaticInvocation(ir.StaticInvocation node) {
+    if (ir.StaticWeakReferences.isWeakReference(node)) {
+      final weakTarget = ir.StaticWeakReferences.getWeakReferenceTarget(node);
+      if (_elementMap.containsMethod(weakTarget)) {
+        return visit(ir.StaticWeakReferences.getWeakReferenceArgument(node))!;
+      }
+      return _types.nullType;
+    }
     MemberEntity member = _elementMap.getMember(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
@@ -1683,6 +1687,25 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   @override
   TypeInformation visitDynamicGet(ir.DynamicGet node) {
     return _handlePropertyGet(node, node.receiver);
+  }
+
+  TypeInformation _handleRecordFieldGet(
+      ir.Expression node, ir.Expression receiver, String fieldName) {
+    final receiverType = visit(receiver)!;
+    (_memberData as KernelGlobalTypeInferenceElementData)
+        .setReceiverTypeMask(node, receiverType.type);
+    return _types.allocateRecordFieldGet(node, fieldName, receiverType);
+  }
+
+  @override
+  TypeInformation visitRecordIndexGet(ir.RecordIndexGet node) {
+    return _handleRecordFieldGet(node, node.receiver,
+        RecordShape.positionalFieldIndexToGetterName(node.index));
+  }
+
+  @override
+  TypeInformation visitRecordNameGet(ir.RecordNameGet node) {
+    return _handleRecordFieldGet(node, node.receiver, node.name);
   }
 
   @override
@@ -1989,7 +2012,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       // and exit-edge. For now, avoid strengthening on the condition until the
       // proper fix is found.
       //
-      //     _state = new LocalState.childPath(_stateAfterWhenTrue, node.body);
+      //     _state = LocalState.childPath(_stateAfterWhenTrue, node.body);
     });
   }
 
@@ -2014,7 +2037,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     _state = LocalState.tryBlock(stateBefore, node);
     _state.markInitializationAsIndefinite();
     visit(node.body);
-    final stateAfterBody = _state;
+    final stateAfterTry = _state;
     // If the try block contains a throw, then `stateAfterBody.aborts` will be
     // true. The catch needs to be aware of the results of inference from the
     // try block since we may get there via the abortive control flow:
@@ -2040,15 +2063,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     // } catch (_) {
     //   print(x + 42); <-- x cannot be 0 here.
     // }
-    _state =
-        stateBefore.mergeFlow(_inferrer, stateAfterBody, ignoreAborts: true);
+    _state = stateBefore.mergeTry(_inferrer, stateAfterTry);
     for (ir.Catch catchBlock in node.catches) {
       final stateBeforeCatch = _state;
       _state = LocalState.childPath(stateBeforeCatch);
       visit(catchBlock);
       final stateAfterCatch = _state;
-      _state = stateBeforeCatch.mergeFlow(_inferrer, stateAfterCatch);
+      _state = stateBeforeCatch.mergeCatch(_inferrer, stateAfterCatch);
     }
+
     return null;
   }
 
@@ -2058,7 +2081,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     _state = LocalState.tryBlock(stateBefore, node);
     _state.markInitializationAsIndefinite();
     visit(node.body);
-    final stateAfterBody = _state;
     // Even if the try block contains abortive control flow, the finally block
     // needs to be aware of the results of inference from the try block since we
     // still reach the finally after abortive control flow:
@@ -2071,9 +2093,20 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     // } finally {
     //   print(x + 42); <-- x may be 0 here.
     // }
-    _state =
-        stateBefore.mergeFlow(_inferrer, stateAfterBody, ignoreAborts: true);
+    _state = stateBefore.mergeTry(_inferrer, _state);
+    final stateBeforeFinalizer = _state;
+    // Use a child path to reset abort state before continuing into the
+    // `finally` block.
+    _state = LocalState.childPath(stateBeforeFinalizer);
     visit(node.finalizer);
+    // Continue with a copy of the state after the finalizer since control flow
+    // should continue linearly. Update abort state to account for try/catch
+    // aborting.
+    _state = LocalState.childPath(_state)
+      ..seenReturnOrThrow =
+          _state.seenReturnOrThrow || stateBeforeFinalizer.seenReturnOrThrow
+      ..seenBreakOrContinue = _state.seenBreakOrContinue ||
+          stateBeforeFinalizer.seenBreakOrContinue;
     return null;
   }
 
@@ -2092,7 +2125,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       Local local = _localsMap.getLocalVariable(exception);
       _state.updateLocal(
           _inferrer, _capturedAndBoxed, local, mask, _dartTypes.dynamicType(),
-          excludeNull: true /* `throw null` produces a NullThrownError */);
+          excludeNull: true /* `throw null` produces a TypeError */);
     }
     final stackTrace = node.stackTrace;
     if (stackTrace != null) {
@@ -2328,7 +2361,15 @@ class TypeInformationConstantVisitor
 
   @override
   TypeInformation visitRecordConstant(ir.RecordConstant node) {
-    return defaultConstant(node);
+    final recordType =
+        builder._elementMap.getDartType(node.recordType) as RecordType;
+    final fieldValues = [
+      for (final value in node.positional) visitConstant(value),
+      for (final value in node.named.values) visitConstant(value)
+    ];
+    return builder.createRecordTypeInformation(
+        ConstantReference(expression, node), recordType, fieldValues,
+        isConst: true);
   }
 
   @override
@@ -2467,18 +2508,25 @@ class LocalState {
     }
   }
 
-  LocalState mergeFlow(InferrerEngine inferrer, LocalState other,
-      {bool ignoreAborts = false}) {
-    seenReturnOrThrow = false;
-    seenBreakOrContinue = false;
-
-    if (!ignoreAborts && other.aborts) {
-      return this;
-    }
-    LocalsHandler locals = _locals.mergeFlow(inferrer, other._locals);
+  LocalState mergeTry(InferrerEngine inferrer, LocalState other) {
+    final locals = _locals.mergeFlow(inferrer, other._locals);
     return LocalState.internal(locals, _fields, _tryBlock,
-        seenReturnOrThrow: seenReturnOrThrow,
-        seenBreakOrContinue: seenBreakOrContinue);
+        seenReturnOrThrow: seenReturnOrThrow || other.seenReturnOrThrow,
+        seenBreakOrContinue: seenBreakOrContinue || other.seenBreakOrContinue);
+  }
+
+  LocalState mergeCatch(InferrerEngine inferrer, LocalState other) {
+    LocalsHandler locals;
+    if (aborts) {
+      locals = other._locals;
+    } else if (other.aborts) {
+      locals = _locals;
+    } else {
+      locals = _locals.mergeFlow(inferrer, other._locals);
+    }
+    return LocalState.internal(locals, _fields, _tryBlock,
+        seenReturnOrThrow: seenReturnOrThrow && other.seenReturnOrThrow,
+        seenBreakOrContinue: seenBreakOrContinue && other.seenReturnOrThrow);
   }
 
   LocalState mergeDiamondFlow(

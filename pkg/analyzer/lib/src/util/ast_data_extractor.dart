@@ -77,6 +77,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
     registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
+  void computeForNode(AstNode node, NodeId? id) {
+    if (id == null) return;
+    T? value = computeNodeValue(id, node);
+    registerValue(uri, _nodeOffset(node), id, value, node);
+  }
+
   void computeForStatement(Statement node, NodeId? id) {
     if (id == null) return;
     T? value = computeNodeValue(id, node);
@@ -187,6 +193,18 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitSwitchExpressionCase(node);
+  }
+
+  @override
+  void visitSwitchMember(SwitchMember node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitSwitchMember(node);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.parent!.parent is TopLevelVariableDeclaration) {
       computeForMember(node, createMemberId(node));
@@ -210,6 +228,8 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
       offset = node.argumentList.leftParenthesis.offset;
     } else if (node is PrefixedIdentifier) {
       offset = node.identifier.offset;
+    } else if (node is SwitchExpressionCase) {
+      offset = node.arrow.offset;
     } else {
       offset = node.offset;
     }

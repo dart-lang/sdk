@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library compiler_helper;
 
 import 'dart:async';
@@ -38,17 +36,17 @@ String _commonTestPath(bool soundNullSafety) {
 /// returning.
 Future<String> compile(String code,
     {String entry = 'main',
-    String methodName,
+    String? methodName,
     bool enableTypeAssertions = false,
     bool minify = false,
     bool disableInlining = true,
     bool disableTypeInference = true,
     bool omitImplicitChecks = true,
     bool enableVariance = false,
-    void check(String generatedEntry),
+    void check(String generatedEntry)?,
     bool returnAll = false,
     bool soundNullSafety = false}) async {
-  OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
+  OutputCollector? outputCollector = returnAll ? OutputCollector() : null;
   List<String> options = <String>[];
   if (disableTypeInference) {
     options.add(Flags.disableTypeInference);
@@ -93,18 +91,18 @@ Future<String> compile(String code,
       outputProvider: outputCollector);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-  LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
-  FunctionEntity element =
-      elementEnvironment.lookupLibraryMember(mainLibrary, methodName);
+  LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
+  final element = elementEnvironment.lookupLibraryMember(
+      mainLibrary, methodName) as FunctionEntity;
   JsBackendStrategy backendStrategy = compiler.backendStrategy;
-  String generated = backendStrategy.getGeneratedCodeForTesting(element);
+  String generated = backendStrategy.getGeneratedCodeForTesting(element)!;
   if (check != null) {
     check(generated);
   }
   return returnAll
-      ? outputCollector.getOutput('', api.OutputType.js)
+      ? outputCollector!.getOutput('', api.OutputType.js)!
       : generated;
 }
 
@@ -112,10 +110,10 @@ Future<String> compileAll(String code,
     {bool disableInlining = true,
     bool minify = false,
     bool soundNullSafety = false,
-    int expectedErrors,
-    int expectedWarnings}) async {
-  OutputCollector outputCollector = new OutputCollector();
-  DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+    int? expectedErrors,
+    int? expectedWarnings}) async {
+  OutputCollector outputCollector = OutputCollector();
+  DiagnosticCollector diagnosticCollector = DiagnosticCollector();
   List<String> options = <String>[];
   if (disableInlining) {
     options.add(Flags.disableInlining);
@@ -142,7 +140,7 @@ Future<String> compileAll(String code,
       result.isSuccess,
       'Unexpected compilation error(s): '
       '${diagnosticCollector.errors}');
-  return outputCollector.getOutput('', api.OutputType.js);
+  return outputCollector.getOutput('', api.OutputType.js)!;
 }
 
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
@@ -179,7 +177,7 @@ Future compileAndDoNotMatch(String code, String entry, RegExp regexp) {
   });
 }
 
-int length(Link link) => link.isEmpty ? 0 : length(link.tail) + 1;
+int length(Link link) => link.isEmpty ? 0 : length(link.tail!) + 1;
 
 // Does a compile and then a match where every 'x' is replaced by something
 // that matches any variable, and every space is optional.
@@ -192,16 +190,16 @@ Future compileAndDoNotMatchFuzzy(String code, String entry, String regexp) {
 }
 
 Future compileAndMatchFuzzyHelper(String code, String entry, String regexp,
-    {bool shouldMatch}) {
+    {required bool shouldMatch}) {
   return compile(code, entry: entry, check: (String generated) {
     String originalRegexp = regexp;
-    final xRe = new RegExp('\\bx\\b');
+    final xRe = RegExp('\\bx\\b');
     regexp = regexp.replaceAll(xRe, '(?:$anyIdentifier)');
-    final spaceRe = new RegExp('\\s+');
+    final spaceRe = RegExp('\\s+');
     regexp = regexp.replaceAll(spaceRe, '(?:\\s*)');
     if (shouldMatch) {
       Expect.isTrue(
-          new RegExp(regexp).hasMatch(generated),
+          RegExp(regexp).hasMatch(generated),
           "Pattern '$originalRegexp' not found in\n$generated\n"
           "from source\n$code");
     } else {
@@ -227,9 +225,9 @@ checkerForAbsentPresent(String test) {
       Expect.fail("No 'absent:' or 'present:' directives in '$test'");
     }
     for (Match match in matches) {
-      String directive = match.group(1);
-      Pattern pattern = match.groups([2, 3, 4]).where((s) => s != null).single;
-      if (match.group(4) != null) pattern = RegExp(pattern);
+      String? directive = match.group(1);
+      Pattern pattern = match.groups([2, 3, 4]).where((s) => s != null).single!;
+      if (match.group(4) != null) pattern = RegExp(pattern as String);
       if (directive == 'present') {
         Expect.isTrue(generated.contains(pattern),
             "Cannot find '$pattern' in:\n$generated");
@@ -244,7 +242,7 @@ checkerForAbsentPresent(String test) {
   return checker;
 }
 
-RegExp _directivePattern = new RegExp(
+RegExp _directivePattern = RegExp(
     //      \1                     \2        \3         \4
     r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)'|/(.*)/)''',
     multiLine: true);

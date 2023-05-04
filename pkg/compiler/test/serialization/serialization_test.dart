@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -13,8 +11,8 @@ import 'serialization_test_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    Directory libDir = new Directory.fromUri(Platform.script.resolve('libs'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
+    Directory libDir = Directory.fromUri(Platform.script.resolve('libs'));
     await checkTests(dataDir, options: [], args: args, libDirectory: libDir);
   });
 }
@@ -22,11 +20,11 @@ main(List<String> args) {
 Future checkTests(Directory dataDir,
     {List<String> options = const <String>[],
     List<String> args = const <String>[],
-    Directory libDirectory = null,
+    Directory? libDirectory,
     bool forUserLibrariesOnly = true,
     int shards = 1,
     int shardIndex = 0,
-    void onTest(Uri uri)}) async {
+    void onTest(Uri uri)?}) async {
   args = args.toList();
   bool shouldContinue = args.remove('-c');
   bool continued = false;
@@ -62,7 +60,7 @@ Future checkTests(Directory dataDir,
     String commonTestPath = 'sdk/tests/compiler';
     Uri entryPoint =
         Uri.parse('memory:$commonTestPath/dart2js_native/main.dart');
-    String mainCode = await new File.fromUri(entity.uri).readAsString();
+    String mainCode = await File.fromUri(entity.uri).readAsString();
     Map<String, String> memorySourceFiles = {entryPoint.path: mainCode};
 
     if (libDirectory != null) {
@@ -74,7 +72,7 @@ Future checkTests(Directory dataDir,
           print('    - libs/$libFileName');
           Uri libFileUri =
               Uri.parse('memory:$commonTestPath/libs/$libFileName');
-          String libCode = await new File.fromUri(libEntity.uri).readAsString();
+          String libCode = await File.fromUri(libEntity.uri).readAsString();
           memorySourceFiles[libFileUri.path] = libCode;
         }
       }

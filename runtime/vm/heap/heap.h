@@ -48,6 +48,9 @@ class Heap {
     kCanonicalHashes,
     kObjectIds,
     kLoadingUnits,
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+    kHeapSamplingData,
+#endif
     kNumWeakSelectors
   };
 
@@ -190,7 +193,7 @@ class Heap {
   static const char* GCTypeToString(GCType type);
   static const char* GCReasonToString(GCReason reason);
 
-  // Associate a peer with an object.  A non-existent peer is equal to NULL.
+  // Associate a peer with an object.  A nonexistent peer is equal to nullptr.
   void SetPeer(ObjectPtr raw_obj, void* peer) {
     SetWeakEntry(raw_obj, kPeers, reinterpret_cast<intptr_t>(peer));
   }
@@ -200,7 +203,7 @@ class Heap {
   int64_t PeerCount() const;
 
 #if !defined(HASH_IN_OBJECT_HEADER)
-  // Associate an identity hashCode with an object. An non-existent hashCode
+  // Associate an identity hashCode with an object. An nonexistent hashCode
   // is equal to 0.
   intptr_t SetHashIfNotSet(ObjectPtr raw_obj, intptr_t hash) {
     return SetWeakEntryIfNonExistent(raw_obj, kIdentityHashes, hash);
@@ -239,6 +242,12 @@ class Heap {
     return GetWeakEntry(raw_obj, kLoadingUnits);
   }
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  void SetHeapSamplingData(ObjectPtr obj, void* data) {
+    SetWeakEntry(obj, kHeapSamplingData, reinterpret_cast<intptr_t>(data));
+  }
+#endif
+
   // Used by the GC algorithms to propagate weak entries.
   intptr_t GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const;
   void SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val);
@@ -264,6 +273,16 @@ class Heap {
 
   void ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object);
   void ForwardWeakTables(ObjectPointerVisitor* visitor);
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  void ReportSurvivingAllocations(Dart_HeapSamplingReportCallback callback,
+                                  void* context) {
+    new_weak_tables_[kHeapSamplingData]->ReportSurvivingAllocations(callback,
+                                                                    context);
+    old_weak_tables_[kHeapSamplingData]->ReportSurvivingAllocations(callback,
+                                                                    context);
+  }
+#endif
 
   void UpdateGlobalMaxUsed();
 

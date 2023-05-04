@@ -12,6 +12,11 @@ library log;
 import 'package:js/js.dart';
 
 @JS()
+class Class {
+  external Class();
+}
+
+@JS()
 class Console {
   @JS()
   external void log(arg);

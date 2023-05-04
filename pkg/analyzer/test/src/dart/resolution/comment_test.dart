@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CommentDriverResolution_PrefixedIdentifierTest);
-    defineReflectiveTests(CommentDriverResolution_PropertyAccessTest);
-    defineReflectiveTests(CommentDriverResolution_SimpleIdentifierTest);
+    defineReflectiveTests(CommentResolutionTest_PrefixedIdentifier);
+    defineReflectiveTests(CommentResolutionTest_PropertyAccess);
+    defineReflectiveTests(CommentResolutionTest_SimpleIdentifier);
   });
 }
 
 @reflectiveTest
-class CommentDriverResolution_PrefixedIdentifierTest
+class CommentResolutionTest_PrefixedIdentifier
     extends PubPackageResolutionTest {
   test_class_constructor_named() async {
     // TODO(srawlins): improve coverage regarding constructors, operators, the
@@ -439,8 +439,7 @@ CommentReference
 }
 
 @reflectiveTest
-class CommentDriverResolution_PropertyAccessTest
-    extends PubPackageResolutionTest {
+class CommentResolutionTest_PropertyAccess extends PubPackageResolutionTest {
   test_class_constructor_named() async {
     await assertNoErrorsInCode('''
 import '' as self;
@@ -934,8 +933,7 @@ CommentReference
 }
 
 @reflectiveTest
-class CommentDriverResolution_SimpleIdentifierTest
-    extends PubPackageResolutionTest {
+class CommentResolutionTest_SimpleIdentifier extends PubPackageResolutionTest {
   test_associatedSetterAndGetter() async {
     await assertNoErrorsInCode('''
 int get foo => 0;
@@ -1194,8 +1192,8 @@ class A {
 /// [new A] or [new A.named]
 main() {}
 ''', [
-      error(HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 38, 3),
-      error(HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 49, 3),
+      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 38, 3),
+      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 49, 3),
     ]);
 
     assertResolvedNodeText(findNode.commentReference('A]'), r'''

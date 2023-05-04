@@ -16,8 +16,11 @@ part of dart.core;
 /// is discouraged in library code since it doesn't give users a precise
 /// type they can catch. It may be reasonable to use instances of this
 /// class in tests or during development.
+///
+/// For failures that are not intended to be caught, use [Error]
+/// and its subclasses.
 @pragma('flutter:keep-to-string-in-subtypes')
-abstract class Exception {
+abstract interface class Exception {
   factory Exception([var message]) => _Exception(message);
 }
 

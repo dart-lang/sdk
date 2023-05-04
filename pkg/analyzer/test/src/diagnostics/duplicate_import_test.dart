@@ -26,7 +26,7 @@ class B {}
 export 'lib1.dart';
 export 'lib1.dart';
 ''', [
-      error(HintCode.DUPLICATE_EXPORT, 27, 11),
+      error(WarningCode.DUPLICATE_EXPORT, 27, 11),
     ]);
   }
 
@@ -50,7 +50,7 @@ class B {}
 export 'lib1.dart' show A;
 export 'lib1.dart' show A;
 ''', [
-      error(HintCode.DUPLICATE_EXPORT, 34, 11),
+      error(WarningCode.DUPLICATE_EXPORT, 34, 11),
     ]);
   }
 }
@@ -68,7 +68,7 @@ import 'package:test/a.dart';
 
 final a = A();
 ''', [
-      error(HintCode.DUPLICATE_IMPORT, 37, 21),
+      error(WarningCode.DUPLICATE_IMPORT, 37, 21),
     ]);
   }
 
@@ -83,7 +83,7 @@ import 'package:test/a.dart';
 
 final a = A();
 ''', [
-      error(HintCode.DUPLICATE_IMPORT, 24, 21),
+      error(WarningCode.DUPLICATE_IMPORT, 24, 21),
     ]);
   }
 
@@ -98,7 +98,7 @@ import 'a.dart';
 
 final a = A();
 ''', [
-      error(HintCode.DUPLICATE_IMPORT, 24, 8),
+      error(WarningCode.DUPLICATE_IMPORT, 24, 8),
     ]);
   }
 
@@ -118,7 +118,7 @@ M.A a = M.A();
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.DUPLICATE_IMPORT, 57, 11),
+      error(WarningCode.DUPLICATE_IMPORT, 57, 11),
     ]);
   }
 
@@ -190,8 +190,8 @@ A a = A();
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.DUPLICATE_IMPORT, 38, 11),
-      error(HintCode.DUPLICATE_IMPORT, 58, 11),
+      error(WarningCode.DUPLICATE_IMPORT, 38, 11),
+      error(WarningCode.DUPLICATE_IMPORT, 58, 11),
     ]);
   }
 

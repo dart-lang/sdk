@@ -12,12 +12,8 @@ const int kDefaultFieldLimit = 100;
 /// Helper function for canceling a Future<StreamSubscription>.
 Future cancelFutureSubscription(
     Future<StreamSubscription> subscriptionFuture) async {
-  if (subscriptionFuture != null) {
-    var subscription = await subscriptionFuture;
-    return subscription.cancel();
-  } else {
-    return null;
-  }
+  var subscription = await subscriptionFuture;
+  return subscription.cancel();
 }
 
 /// An RpcException represents an exceptional event that happened
@@ -58,7 +54,7 @@ class ServerRpcException extends RpcException implements M.RequestException {
   Map? data;
 
   static _getMessage(Map errorMap) {
-    Map data = errorMap['data'];
+    Map? data = errorMap['data'];
     if (data != null && data['details'] != null) {
       return data['details'];
     } else {
@@ -83,12 +79,14 @@ class NetworkRpcException extends RpcException
   String toString() => 'NetworkRpcException(${message})';
 }
 
-Future<ServiceObject?> ignoreNetworkErrors(Object error, StackTrace st,
-    [ServiceObject? resultOnNetworkError]) {
-  if (error is NetworkRpcException) {
-    return new Future.value(resultOnNetworkError);
-  }
-  return new Future.error(error, st);
+Future<void> ignoreNetworkErrors(Future<ServiceObject> future) {
+  // Can't use catchError because we're changing the future's type.
+  return future.then((value) => null, onError: (exception, stack) {
+    if (exception is NetworkRpcException) {
+      return null;
+    }
+    return new Future<void>.error(exception, stack);
+  });
 }
 
 class MalformedResponseRpcException extends RpcException {
@@ -418,9 +416,7 @@ abstract class HeapObject extends ServiceObject implements M.Object {
       if (clazz!.isolate!.runnable) {
         // No one awaits on this request so we silence any network errors
         // that occur here but forward other errors.
-        clazz!
-            .load()
-            .catchError((error, st) => ignoreNetworkErrors(error, st, clazz));
+        ignoreNetworkErrors(clazz!.load());
       }
     }
 
@@ -450,7 +446,7 @@ abstract class ServiceObjectOwner extends ServiceObject {
 }
 
 abstract class Location implements M.Location {
-  Script get script;
+  Script? get script;
   int? get tokenPos;
   Future<int?> getLine();
   Future<int?> getColumn();
@@ -482,8 +478,6 @@ class SourceLocation extends ServiceObject
     script = map['script'];
     tokenPos = map['tokenPos'];
     endTokenPos = map['endTokenPos'];
-
-    assert(script != null && tokenPos != null);
   }
 
   Future<String> toUserString() async {
@@ -505,7 +499,7 @@ class SourceLocation extends ServiceObject
 // code which has not been precisely mapped to a token position.
 class UnresolvedSourceLocation extends ServiceObject
     implements Location, M.UnresolvedSourceLocation {
-  late Script script;
+  Script? script;
   String? scriptUri;
   int? line;
   int? column;
@@ -513,8 +507,8 @@ class UnresolvedSourceLocation extends ServiceObject
 
   Future<int?> getLine() async {
     if (tokenPos != null) {
-      await script.load();
-      return script.tokenToLine(tokenPos);
+      await script!.load();
+      return script!.tokenToLine(tokenPos);
     } else {
       return line;
     }
@@ -522,8 +516,8 @@ class UnresolvedSourceLocation extends ServiceObject
 
   Future<int?> getColumn() async {
     if (tokenPos != null) {
-      await script.load();
-      return script.tokenToCol(tokenPos);
+      await script!.load();
+      return script!.tokenToCol(tokenPos);
     } else {
       return column;
     }
@@ -552,7 +546,7 @@ class UnresolvedSourceLocation extends ServiceObject
     int? column = await getColumn();
 
     if (script != null) {
-      sb.write('${script.name}:');
+      sb.write('${script!.name}:');
     } else {
       sb.write('${scriptUri}:');
     }
@@ -567,7 +561,7 @@ class UnresolvedSourceLocation extends ServiceObject
   String toString() {
     StringBuffer sb = new StringBuffer();
     if (script != null) {
-      sb.write('${script.name}:');
+      sb.write('${script!.name}:');
     } else {
       sb.write('${scriptUri}:');
     }
@@ -680,9 +674,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   int architectureBits = 0;
   int nativeZoneMemoryUsage = 0;
   int pid = 0;
-  int mallocUsed = 0;
-  int mallocCapacity = 0;
-  String mallocImplementation = 'unknown';
   int currentMemory = 0;
   int maxRSS = 0;
   int currentRSS = 0;
@@ -794,7 +785,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       return this;
     }
 
-    String id = map['id'];
+    String? id = map['id'];
     if ((id != null)) {
       if (id.startsWith(_isolateIdPrefix)) {
         // Check cache.
@@ -905,7 +896,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     return invokeRpcNoUpgrade(method, params)
         .then<ServiceObject>((Map response) {
       var obj = ServiceObject._fromMap(this, response);
-      if ((obj != null) && obj.canCache) {
+      if (obj.canCache) {
         String objId = obj.id!;
         _cache.putIfAbsent(objId, () => obj);
       }
@@ -962,22 +953,20 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     return invokeRpc("_enableProfiler", {});
   }
 
-  Future<ServiceObject> _streamListen(String streamId) {
+  Future<void> _streamListen(String streamId) {
     Map params = {
       'streamId': streamId,
     };
     // Ignore network errors on stream listen.
-    return invokeRpc('streamListen', params)
-        .catchError((e, st) => ignoreNetworkErrors(e, st));
+    return ignoreNetworkErrors(invokeRpc('streamListen', params));
   }
 
-  Future<ServiceObject> _streamCancel(String streamId) {
+  Future<void> _streamCancel(String streamId) {
     Map params = {
       'streamId': streamId,
     };
     // Ignore network errors on stream cancel.
-    return invokeRpc('streamCancel', params)
-        .catchError((e, st) => ignoreNetworkErrors(e, st));
+    return ignoreNetworkErrors(invokeRpc('streamCancel', params));
   }
 
   // A map from stream id to event stream state.
@@ -1043,9 +1032,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
     }
     pid = map['pid'];
-    mallocUsed = map['_mallocUsed'] ?? -1;
-    mallocCapacity = map['_mallocCapacity'] ?? -1;
-    mallocImplementation = map['_mallocImplementation'] ?? 'unknown';
     embedder = map['_embedder'];
     currentMemory = map['_currentMemory'];
     maxRSS = map['_maxRSS'];
@@ -1168,9 +1154,9 @@ class InboundReferences implements M.InboundReferences {
 
 class InboundReference implements M.InboundReference {
   final ServiceObject /*HeapObject*/ source;
-  final HeapObject parentField;
-  final int parentListIndex;
-  final int parentWordOffset;
+  final dynamic parentField;
+  final int? parentListIndex;
+  final int? parentWordOffset;
 
   InboundReference(Map map)
       : source = map['source'],
@@ -1192,9 +1178,9 @@ class RetainingPath implements M.RetainingPath {
 
 class RetainingPathItem implements M.RetainingPathItem {
   final ServiceObject /*HeapObject*/ source;
-  final String parentField;
-  final int parentListIndex;
-  final int parentWordOffset;
+  final dynamic parentField;
+  final int? parentListIndex;
+  final int? parentWordOffset;
 
   RetainingPathItem(Map map)
       : source = map['value'],
@@ -1336,14 +1322,14 @@ class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
       return vm.getFromMap(map);
     }
     String mapId = map['id'];
-    var obj = (mapId != null) ? _cache[mapId] : null;
+    var obj = _cache[mapId];
     if (obj != null) {
       obj.updateFromServiceMap(map);
       return obj;
     }
     // Build the object from the map directly.
     obj = ServiceObject._fromMap(this, map);
-    if ((obj != null) && obj.canCache) {
+    if (obj.canCache) {
       _cache[mapId] = obj;
     }
     return obj;
@@ -1557,7 +1543,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
     // Build the object from the map directly.
     obj = ServiceObject._fromMap(this, map);
-    if ((obj != null) && obj.canCache) {
+    if (obj.canCache) {
       _cache[mapId!] = obj;
     }
     return obj;
@@ -1576,7 +1562,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   Future<ServiceObject> getObject(String objectId,
       {bool reload = true, int count = kDefaultFieldLimit}) {
-    assert(objectId != null && objectId != '');
+    assert(objectId != '');
     var obj = _cache[objectId];
     if (obj != null) {
       if (reload) {
@@ -1664,7 +1650,9 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     runnable = map['runnable'] == true;
     _upgradeCollection(map, isolate);
     originNumber = int.tryParse(map['_originNumber']);
-    rootLibrary = map['rootLib'];
+    if (map['rootLib'] != null) {
+      rootLibrary = map['rootLib'];
+    }
     if (map['entry'] != null) {
       entry = map['entry'];
     }
@@ -1886,8 +1874,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('setName', {'name': newName});
   }
 
-  Future setExceptionPauseMode(String mode) {
-    return invokeRpc('setExceptionPauseMode', {'mode': mode});
+  Future setIsolatePauseMode(String mode) {
+    return invokeRpc('setIsolatePauseMode', {'exceptionPauseMode': mode});
   }
 
   Future<ServiceMap> getStack({int? limit}) {
@@ -2454,7 +2442,7 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
   }
 
   Future<void> setState(bool enable) {
-    return location!.script.isolate!.invokeRpcNoUpgrade('setBreakpointState', {
+    return location!.script!.isolate!.invokeRpcNoUpgrade('setBreakpointState', {
       'breakpointId': 'breakpoints/$number',
       'enable': enable,
     }).then((Map result) {
@@ -2463,7 +2451,7 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
   }
 
   void remove() {
-    location!.script._removeBreakpoint(this);
+    location!.script!._removeBreakpoint(this);
   }
 
   String toString() {
@@ -2794,9 +2782,9 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.typeRef;
     case 'ReceivePort':
       return M.InstanceKind.receivePort;
-    case '_RecordType':
+    case 'RecordType':
       return M.InstanceKind.recordType;
-    case '_Record':
+    case 'Record':
       return M.InstanceKind.record;
     case 'Finalizer':
       return M.InstanceKind.finalizer;
@@ -3232,8 +3220,10 @@ class ServiceFunction extends HeapObject implements M.ServiceFunction {
       Class ownerClass = dartOwner as Class;
       library = ownerClass.library;
       qualifiedName = "${ownerClass.name}.${name}";
-    } else {
+    } else if (dartOwner is Library) {
       library = dartOwner as Library;
+      qualifiedName = name;
+    } else {
       qualifiedName = name;
     }
 
@@ -3623,7 +3613,9 @@ class Script extends HeapObject implements M.Script {
     super._update(map, mapIsRef);
 
     uri = map['uri'];
-    kind = map['_kind'];
+    if (map['_kind'] != null) {
+      kind = map['_kind'];
+    }
     _shortUri = uri.substring(uri.lastIndexOf('/') + 1);
     name = _shortUri;
     vmName = uri;
@@ -3642,9 +3634,6 @@ class Script extends HeapObject implements M.Script {
   }
 
   void _parseTokenPosTable(List table) {
-    if (table == null) {
-      return;
-    }
     _tokenToLine.clear();
     _tokenToCol.clear();
     firstTokenPos = null;
@@ -3676,7 +3665,7 @@ class Script extends HeapObject implements M.Script {
     }
   }
 
-  void _processSource(String source) {
+  void _processSource(String? source) {
     if (source == null) {
       return;
     }
@@ -3761,7 +3750,7 @@ class Script extends HeapObject implements M.Script {
   }
 
   List<LocalVarLocation> scanForLocalVariableLocations(
-      String name, int tokenPos, int endTokenPos) {
+      String name, int? tokenPos, int? endTokenPos) {
     // A pattern that matches:
     // start of line OR non-(alpha numeric OR period) character followed by
     // name followed by
@@ -4177,7 +4166,7 @@ class CodeInstruction {
   final int pcOffset;
   final String machine;
   final String human;
-  final ServiceObject object;
+  final ServiceObject? object;
   CodeInstruction? jumpTarget;
   List<PcDescriptor> descriptors = <PcDescriptor>[];
 
@@ -4299,14 +4288,10 @@ class Code extends HeapObject implements M.Code {
     if (function == null) {
       return null;
     }
-    if ((function!.location == null) || (function!.location!.script == null)) {
+    if (function!.location == null) {
       // Attempt to load the function.
       return function!.load().then((func) {
         var script = function!.location!.script;
-        if (script == null) {
-          // Function doesn't have an associated script.
-          return null;
-        }
         // Load the script and then update descriptors.
         return script.load().then((_) => _updateDescriptors(script));
       });
@@ -4412,7 +4397,6 @@ class Code extends HeapObject implements M.Code {
   bool hasDisassembly = false;
 
   void _processDisassembly(List disassembly) {
-    assert(disassembly != null);
     instructions.clear();
     instructionsByAddressOffset =
         new List<CodeInstruction?>.filled(endAddress - startAddress, null);
@@ -4515,7 +4499,7 @@ class SocketStats {
 }
 
 /// A peer to a Socket in dart:io. Sockets can represent network sockets or
-/// OS pipes. Each socket is owned by another ServceObject, for example,
+/// OS pipes. Each socket is owned by another ServiceObject, for example,
 /// a process or an HTTP server.
 class Socket extends ServiceObject {
   Socket._empty(ServiceObjectOwner? owner) : super._empty(owner);
@@ -4644,9 +4628,6 @@ class Frame extends ServiceObject implements M.Frame {
   }
 
   M.FrameKind _fromString(String frameKind) {
-    if (frameKind == null) {
-      return M.FrameKind.regular;
-    }
     switch (frameKind) {
       case 'Regular':
         return M.FrameKind.regular;
@@ -4751,7 +4732,7 @@ Set<int> getPossibleBreakpointLines(ServiceMap report, Script script) {
 // Returns true if [map] is a service map. i.e. it has the following keys:
 // 'id' and a 'type'.
 bool _isServiceMap(Map m) {
-  return (m != null) && (m['type'] != null);
+  return m['type'] != null;
 }
 
 bool _hasRef(String type) => type.startsWith('@');
@@ -4808,11 +4789,7 @@ class Service implements M.Service {
   final String method;
   final String service;
 
-  Service(this.alias, this.method, this.service) {
-    assert(this.alias != null);
-    assert(this.method != null);
-    assert(this.service != null);
-  }
+  Service(this.alias, this.method, this.service);
 }
 
 class TimelineRecorder implements M.TimelineRecorder {

@@ -4,10 +4,10 @@
 
 part of dart._http;
 
-abstract class HttpProfiler {
+final class HttpProfiler {
   static const _kType = 'HttpProfile';
 
-  static final Map<int, _HttpProfileData> _profile = {};
+  static final Map<String, _HttpProfileData> _profile = {};
 
   static _HttpProfileData startRequest(
     String method,
@@ -19,7 +19,7 @@ abstract class HttpProfiler {
     return data;
   }
 
-  static _HttpProfileData? getHttpProfileRequest(int id) => _profile[id];
+  static _HttpProfileData? getHttpProfileRequest(String id) => _profile[id];
 
   static void clear() => _profile.clear();
 
@@ -63,7 +63,7 @@ class _HttpProfileData {
         ) {
     // Grab the ID from the timeline event so HTTP profile IDs can be matched
     // to the timeline.
-    id = _timeline.pass();
+    id = _timeline.pass().toString();
     requestInProgress = true;
     requestStartTimestamp = Timeline.now;
     _timeline.start('HTTP CLIENT $method', arguments: {
@@ -261,7 +261,7 @@ class _HttpProfileData {
   bool requestInProgress = true;
   bool? responseInProgress;
 
-  late final int id;
+  late final String id;
   final String method;
   final Uri uri;
 
@@ -289,7 +289,7 @@ class _HttpProfileData {
 int _nextServiceId = 1;
 
 // TODO(ajohnsen): Use other way of getting a unique id.
-abstract class _ServiceObject {
+mixin _ServiceObject {
   int __serviceId = 0;
   int get _serviceId {
     if (__serviceId == 0) __serviceId = _nextServiceId++;
@@ -528,6 +528,18 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   Uri get requestedUri {
     var requestedUri = _requestedUri;
     if (requestedUri != null) return requestedUri;
+
+    // `uri` can be an absoluteURI or an abs_path (RFC 2616 section 5.1.2).
+    // If `uri` is already absolute then use it as-is. Otherwise construct an
+    // absolute URI using `uri` and header information.
+
+    // RFC 3986 section 4.3 says that an absolute URI must have a scheme and
+    // cannot have a fragment. But any URI with a scheme is sufficient for the
+    // purpose of providing the `requestedUri`.
+    if (uri.hasScheme) {
+      return _requestedUri = uri;
+    }
+
     var proto = headers['x-forwarded-proto'];
     var scheme = proto != null
         ? proto.first
@@ -1746,7 +1758,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
       return close();
     }
     // Use new stream so we are able to pause (see below listen). The
-    // alternative is to use stream.extand, but that won't give us a way of
+    // alternative is to use stream.expand, but that won't give us a way of
     // pausing.
     var controller = StreamController<List<int>>(sync: true);
 
@@ -2065,13 +2077,19 @@ class _HttpClientConnection {
             message = error.message;
           } else if (error is SocketException) {
             message = error.message;
+          } else if (error is TlsException) {
+            message = error.message;
           } else {
             throw error;
           }
           _nextResponseCompleter!.completeError(
               HttpException(message, uri: _currentUri), stackTrace);
           _nextResponseCompleter = null;
-        }, test: (error) => error is HttpException || error is SocketException);
+        },
+            test: (error) =>
+                error is HttpException ||
+                error is SocketException ||
+                error is TlsException);
       } else {
         _nextResponseCompleter!.complete(incoming);
         _nextResponseCompleter = null;
@@ -2081,6 +2099,8 @@ class _HttpClientConnection {
       if (error is HttpException) {
         message = error.message;
       } else if (error is SocketException) {
+        message = error.message;
+      } else if (error is TlsException) {
         message = error.message;
       } else {
         throw error;
@@ -2497,26 +2517,24 @@ class _ConnectionTarget {
           return _ConnectionInfo(connection, proxy);
         }
       }, onError: (error) {
-        // When there is a timeout, there is a race in which the connectionTask
-        // Future won't be completed with an error before the socketFuture here
-        // is completed with a TimeoutException by the onTimeout callback above.
-        // In this case, propagate a SocketException as specified by the
-        // HttpClient.connectionTimeout docs.
+        _connecting--;
+        _socketTasks.remove(task);
+        _checkPending();
+        // When there is a timeout, cancel the ConnectionTask and propagate a
+        // SocketException as specified by the HttpClient.connectionTimeout
+        // docs.
         if (error is TimeoutException) {
           assert(connectionTimeout != null);
-          _connecting--;
-          _socketTasks.remove(task);
           task.cancel();
           throw SocketException(
               "HTTP connection timed out after $connectionTimeout, "
               "host: $host, port: $port");
         }
-        _socketTasks.remove(task);
-        _checkPending();
         throw error;
       });
     }, onError: (error) {
       _connecting--;
+      _checkPending();
       throw error;
     });
   }
@@ -3020,7 +3038,7 @@ class _HttpClient implements HttpClient {
       Platform.environment;
 }
 
-class _HttpConnection extends LinkedListEntry<_HttpConnection>
+final class _HttpConnection extends LinkedListEntry<_HttpConnection>
     with _ServiceObject {
   static const _ACTIVE = 0;
   static const _IDLE = 1;
@@ -3138,7 +3156,8 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
 
 // Common interface of [ServerSocket] and [SecureServerSocket] used by
 // [_HttpServer].
-abstract class ServerSocketBase<T extends Socket> implements Stream<T> {
+abstract interface class ServerSocketBase<T extends Socket>
+    implements Stream<T> {
   int get port;
   InternetAddress get address;
   Future<void> close();
@@ -3653,7 +3672,7 @@ abstract class _HttpClientCredentials implements HttpClientCredentials {
   void authorizeProxy(_ProxyCredentials credentials, HttpClientRequest request);
 }
 
-class _HttpClientBasicCredentials extends _HttpClientCredentials
+final class _HttpClientBasicCredentials extends _HttpClientCredentials
     implements HttpClientBasicCredentials {
   String username;
   String password;
@@ -3682,7 +3701,7 @@ class _HttpClientBasicCredentials extends _HttpClientCredentials
   }
 }
 
-class _HttpClientDigestCredentials extends _HttpClientCredentials
+final class _HttpClientDigestCredentials extends _HttpClientCredentials
     implements HttpClientDigestCredentials {
   String username;
   String password;

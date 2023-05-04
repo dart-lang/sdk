@@ -14,7 +14,7 @@ test(List a, int v) {
 }
 
 main() {
-  var list = new List(2);
+  var list = new List<dynamic>.filled(2, null);
   for (var i = 0; i < 20; i++) test(list, 1);
   Expect.equals(null, list[0]);
   Expect.equals(1, list[1]);

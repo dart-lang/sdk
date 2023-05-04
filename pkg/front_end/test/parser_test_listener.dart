@@ -214,24 +214,36 @@ class ParserTestListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
-    seen(viewToken);
+    seen(inlineToken);
     seen(sealedToken);
+    seen(baseToken);
+    seen(interfaceToken);
+    seen(finalToken);
     seen(augmentToken);
+    seen(mixinToken);
     seen(name);
     doPrint('beginClassDeclaration('
         '$begin, '
         '$abstractToken, '
         '$macroToken, '
-        '$viewToken, '
+        '$inlineToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
+        '$finalToken, '
         '$augmentToken, '
+        '$mixinToken, '
         '$name)');
     indent++;
   }
@@ -283,14 +295,14 @@ class ParserTestListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     seen(augmentToken);
-    seen(sealedToken);
+    seen(baseToken);
     seen(mixinKeyword);
     seen(name);
     doPrint('beginMixinDeclaration('
         '$augmentToken, '
-        '$sealedToken, '
+        '$baseToken, '
         '$mixinKeyword, '
         '$name)');
     indent++;
@@ -866,6 +878,16 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleForInitializerPatternVariableAssignment(
+      Token keyword, Token equals) {
+    seen(keyword);
+    seen(equals);
+    doPrint('handleForInitializerPatternVariableAssignment('
+        '$keyword, '
+        '$equals)');
+  }
+
+  @override
   void beginForStatement(Token token) {
     seen(token);
     doPrint('beginForStatement(' '$token)');
@@ -908,15 +930,17 @@ class ParserTestListener implements Listener {
 
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token inKeyword) {
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
     seen(awaitToken);
     seen(forToken);
     seen(leftParenthesis);
+    seen(patternKeyword);
     seen(inKeyword);
     doPrint('handleForInLoopParts('
         '$awaitToken, '
         '$forToken, '
         '$leftParenthesis, '
+        '$patternKeyword, '
         '$inKeyword)');
   }
 
@@ -1068,24 +1092,36 @@ class ParserTestListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
-    seen(viewToken);
+    seen(inlineToken);
     seen(sealedToken);
+    seen(baseToken);
+    seen(interfaceToken);
+    seen(finalToken);
     seen(augmentToken);
+    seen(mixinToken);
     seen(name);
     doPrint('beginNamedMixinApplication('
         '$begin, '
         '$abstractToken, '
         '$macroToken, '
-        '$viewToken, '
+        '$inlineToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
+        '$finalToken, '
         '$augmentToken, '
+        '$mixinToken, '
         '$name)');
     indent++;
   }
@@ -2062,10 +2098,27 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable) {
+  void handleAssignedVariablePattern(Token variable) {
+    seen(variable);
+    doPrint('handleAssignedVariablePattern(' '$variable)');
+  }
+
+  @override
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
+      {required bool inAssignmentPattern}) {
     seen(keyword);
     seen(variable);
-    doPrint('handleVariablePattern(' '$keyword, ' '$variable)');
+    doPrint('handleDeclaredVariablePattern('
+        '$keyword, '
+        '$variable, '
+        '$inAssignmentPattern)');
+  }
+
+  @override
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
+    seen(keyword);
+    seen(wildcard);
+    doPrint('handleWildcardPattern(' '$keyword, ' '$wildcard)');
   }
 
   @override
@@ -2689,6 +2742,18 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleSwitchCaseNoWhenClause(Token token) {
+    seen(token);
+    doPrint('handleSwitchCaseNoWhenClause(' '$token)');
+  }
+
+  @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    seen(token);
+    doPrint('handleSwitchExpressionCasePattern(' '$token)');
+  }
+
+  @override
   void handleSymbolVoid(Token token) {
     seen(token);
     doPrint('handleSymbolVoid(' '$token)');
@@ -2717,9 +2782,23 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginPatternGuard(Token when) {
+    seen(when);
+    doPrint('beginPatternGuard(' '$when)');
+    indent++;
+  }
+
+  @override
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {
     seen(token);
     doPrint('beginParenthesizedExpressionOrRecordLiteral(' '$token)');
+    indent++;
+  }
+
+  @override
+  void beginSwitchCaseWhenClause(Token when) {
+    seen(when);
+    doPrint('beginSwitchCaseWhenClause(' '$when)');
     indent++;
   }
 
@@ -2738,10 +2817,24 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void endPatternGuard(Token token) {
+    indent--;
+    seen(token);
+    doPrint('endPatternGuard(' '$token)');
+  }
+
+  @override
   void endParenthesizedExpression(Token token) {
     indent--;
     seen(token);
     doPrint('endParenthesizedExpression(' '$token)');
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
+    indent--;
+    seen(token);
+    doPrint('endSwitchCaseWhenClause(' '$token)');
   }
 
   @override
@@ -2751,9 +2844,17 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleConstantPattern(Token? constKeyword) {
+  void beginConstantPattern(Token? constKeyword) {
     seen(constKeyword);
-    doPrint('handleConstantPattern(' '$constKeyword)');
+    doPrint('beginConstantPattern(' '$constKeyword)');
+    indent++;
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
+    indent--;
+    seen(constKeyword);
+    doPrint('endConstantPattern(' '$constKeyword)');
   }
 
   @override
@@ -2887,10 +2988,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleValuedFormalParameter(Token equals, Token token) {
+  void handleValuedFormalParameter(
+      Token equals, Token token, FormalParameterKind kind) {
     seen(equals);
     seen(token);
-    doPrint('handleValuedFormalParameter(' '$equals, ' '$token)');
+    doPrint('handleValuedFormalParameter(' '$equals, ' '$token, ' '$kind)');
   }
 
   @override

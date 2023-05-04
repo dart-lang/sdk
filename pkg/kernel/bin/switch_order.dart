@@ -154,9 +154,9 @@ class WrappedBinaryBuilder extends BinaryBuilder {
   @override
   Expression readExpression() {
     int tagByte = peekByte();
-    int tag = tagByte & Tag.SpecializedTagHighBit == 0
-        ? tagByte
-        : (tagByte & Tag.SpecializedTagMask);
+    int tag = tagByte & Tag.SpecializedTagHighBits == Tag.SpecializedTagHighBits
+        ? (tagByte & Tag.SpecializedTagMask)
+        : tagByte;
     expressionTypes[tag]++;
     return super.readExpression();
   }
@@ -308,7 +308,7 @@ String? getNameOfTag(int tag) {
   if (tag == Tag.NeverType) return "NeverType";
   if (tag == Tag.IntersectionType) return "IntersectionType";
   if (tag == Tag.RecordType) return "RecordType";
-  if (tag == Tag.ViewType) return "ViewType";
+  if (tag == Tag.InlineType) return "InlineType";
 
   return null;
 }

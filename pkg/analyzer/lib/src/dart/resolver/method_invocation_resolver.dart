@@ -522,7 +522,7 @@ class MethodInvocationResolver with ScopeHelpers {
           .resolveInvocation(rawType: null);
 
       _resolver.errorReporter.reportErrorForNode(
-        HintCode.RECEIVER_OF_TYPE_NEVER,
+        WarningCode.RECEIVER_OF_TYPE_NEVER,
         receiver,
       );
       return;

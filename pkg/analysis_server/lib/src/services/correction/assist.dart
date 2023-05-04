@@ -151,11 +151,6 @@ class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Convert to an int literal',
   );
-  static const CONVERT_TO_LIST_LITERAL = AssistKind(
-    'dart.assist.convert.toListLiteral',
-    DartAssistKindPriority.DEFAULT,
-    'Convert to list literal',
-  );
   static const CONVERT_TO_MAP_LITERAL = AssistKind(
     'dart.assist.convert.toMapLiteral',
     DartAssistKindPriority.DEFAULT,
@@ -205,6 +200,11 @@ class DartAssistKind {
     'dart.assist.convert.toSuperParameters',
     DartAssistKindPriority.DEFAULT,
     'Convert to using super parameters',
+  );
+  static const CONVERT_TO_SWITCH_EXPRESSION = AssistKind(
+    'dart.assist.convert.switchExpression',
+    DartAssistKindPriority.DEFAULT,
+    'Convert to switch expression',
   );
   static const ENCAPSULATE_FIELD = AssistKind(
     'dart.assist.encapsulateField',

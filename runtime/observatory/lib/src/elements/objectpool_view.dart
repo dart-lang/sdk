@@ -7,8 +7,6 @@ library objectpool_view;
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/context_ref.dart';
-import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
@@ -56,17 +54,6 @@ class ObjectPoolViewElement extends CustomElement implements Renderable {
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(pool != null);
-    assert(pools != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(objects != null);
     ObjectPoolViewElement e = new ObjectPoolViewElement.created();
     e._r = new RenderingScheduler<ObjectPoolViewElement>(e, queue: queue);
     e._vm = vm;
@@ -159,6 +146,5 @@ class ObjectPoolViewElement extends CustomElement implements Renderable {
             ..text = 'NativeEntry 0x${entry.asInteger!.toRadixString(16)}'
         ];
     }
-    throw new Exception('Unknown ObjectPoolEntryKind (${entry.kind})');
   }
 }

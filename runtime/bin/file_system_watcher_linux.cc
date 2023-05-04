@@ -27,7 +27,7 @@ intptr_t FileSystemWatcher::Init() {
   if (id < 0) {
     return -1;
   }
-  // Some systems dosn't support setting this as non-blocking. Since watching
+  // Some systems don't support setting this as non-blocking. Since watching
   // internals are kept away from the user, we know it's possible to continue,
   // even if setting non-blocking fails.
   FDUtils::SetNonBlocking(id);

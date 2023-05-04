@@ -16,7 +16,7 @@ abstract class Super {
   void set extendedSetterImplementedGetter(int value) {}
 }
 
-abstract class Mixin {
+mixin Mixin {
   int extendedGetterMixedInField = 0;
   void set extendedGetterMixedInSetter(int value) {}
   void set extendedFieldMixedInSetter(int value) {}

@@ -58,7 +58,7 @@ class ExpectationSet {
     for (var part in entry.path.split('/')) {
       if (part.contains("*")) {
         var regExp = _globCache.putIfAbsent(part, () {
-          return RegExp("^" + part.replaceAll("*", ".*") + r"$");
+          return RegExp("^${part.replaceAll("*", ".*")}" r"$");
         });
         tree = tree.regExpChildren.putIfAbsent(regExp, () => _PathNode());
       } else {
@@ -101,7 +101,7 @@ class _PathNode {
   /// The glob child directory and file paths within this directory.
   final Map<RegExp, _PathNode> regExpChildren = {};
 
-  /// The test expectatations that any test within this directory should
+  /// The test expectations that any test within this directory should
   /// include.
   final Set<Expectation> expectations = {};
 

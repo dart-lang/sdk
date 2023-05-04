@@ -30,7 +30,7 @@ class AddParameter extends ParameterModification {
   /// invocations of the function, or `null` if the parameter is optional and no
   /// argument needs to be added. The only time an argument needs to be added
   /// for an optional parameter is if the parameter is positional and there are
-  /// pre-existing optional positional parameters after the ones being added.
+  /// preexisting optional positional parameters after the ones being added.
   final CodeTemplate? argumentValue;
 
   /// Initialize a newly created parameter modification to represent the

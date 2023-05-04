@@ -56,7 +56,8 @@ bool LocalScope::IsNestedWithin(LocalScope* scope) const {
 
 bool LocalScope::AddVariable(LocalVariable* variable) {
   ASSERT(variable != NULL);
-  if (LocalLookupVariable(variable->name()) != NULL) {
+  if (LocalLookupVariable(variable->name(), variable->kernel_offset()) !=
+      nullptr) {
     return false;
   }
   variables_.Add(variable);
@@ -70,7 +71,8 @@ bool LocalScope::AddVariable(LocalVariable* variable) {
 
 bool LocalScope::InsertParameterAt(intptr_t pos, LocalVariable* parameter) {
   ASSERT(parameter != NULL);
-  if (LocalLookupVariable(parameter->name()) != NULL) {
+  if (LocalLookupVariable(parameter->name(), parameter->kernel_offset()) !=
+      nullptr) {
     return false;
   }
   variables_.InsertAt(pos, parameter);
@@ -256,14 +258,14 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
   return min_index;
 }
 
-// The parser creates internal variables that start with ":"
-static bool IsFilteredIdentifier(const String& str) {
-  ASSERT(str.Length() > 0);
-  if (str.ptr() == Symbols::FunctionTypeArgumentsVar().ptr()) {
+// VM creates internal variables that start with ":"
+bool LocalVariable::IsFilteredIdentifier(const String& name) {
+  ASSERT(name.Length() > 0);
+  if (name.ptr() == Symbols::FunctionTypeArgumentsVar().ptr()) {
     // Keep :function_type_arguments for accessing type variables in debugging.
     return false;
   }
-  return str.CharAt(0) == ':';
+  return name.CharAt(0) == ':';
 }
 
 LocalVarDescriptorsPtr LocalScope::GetVarDescriptors(
@@ -278,17 +280,15 @@ LocalVarDescriptorsPtr LocalScope::GetVarDescriptors(
   if (!context_scope.IsNull()) {
     ASSERT(func.HasParent());
     for (int i = 0; i < context_scope.num_variables(); i++) {
-      String& name = String::Handle(context_scope.NameAt(i));
-      UntaggedLocalVarDescriptors::VarInfoKind kind;
-      if (!IsFilteredIdentifier(name)) {
-        kind = UntaggedLocalVarDescriptors::kContextVar;
-      } else {
+      if (context_scope.IsInvisibleAt(i)) {
         continue;
       }
+      String& name = String::Handle(context_scope.NameAt(i));
+      ASSERT(!LocalVariable::IsFilteredIdentifier(name));
 
       LocalVarDescriptorsBuilder::VarDesc desc;
       desc.name = &name;
-      desc.info.set_kind(kind);
+      desc.info.set_kind(UntaggedLocalVarDescriptors::kContextVar);
       desc.info.scope_id = context_scope.ContextLevelAt(i);
       desc.info.declaration_pos = context_scope.DeclarationTokenIndexAt(i);
       desc.info.begin_pos = begin_token_pos();
@@ -313,7 +313,7 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
   (*scope_id)++;
   for (int i = 0; i < this->variables_.length(); i++) {
     LocalVariable* var = variables_[i];
-    if ((var->owner() == this) && !var->is_invisible()) {
+    if (var->owner() == this) {
       if (var->name().ptr() == Symbols::CurrentContextVar().ptr()) {
         // This is the local variable in which the function saves its
         // own context before calling a closure function.
@@ -326,7 +326,8 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
         desc.info.end_pos = TokenPosition::kMinSource;
         desc.info.set_index(var->index().value());
         vars->Add(desc);
-      } else if (!IsFilteredIdentifier(var->name())) {
+      } else if (!var->is_invisible()) {
+        ASSERT(!LocalVariable::IsFilteredIdentifier(var->name()));
         // This is a regular Dart variable, either stack-based or captured.
         LocalVarDescriptorsBuilder::VarDesc desc;
         desc.name = &var->name();
@@ -354,22 +355,27 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
   }
 }
 
-LocalVariable* LocalScope::LocalLookupVariable(const String& name) const {
+LocalVariable* LocalScope::LocalLookupVariable(const String& name,
+                                               intptr_t kernel_offset) const {
   ASSERT(name.IsSymbol());
   for (intptr_t i = 0; i < variables_.length(); i++) {
     LocalVariable* var = variables_[i];
     ASSERT(var->name().IsSymbol());
-    if (var->name().ptr() == name.ptr()) {
+    if ((var->name().ptr() == name.ptr()) &&
+        (var->kernel_offset() == kernel_offset)) {
       return var;
     }
   }
   return NULL;
 }
 
-LocalVariable* LocalScope::LookupVariable(const String& name, bool test_only) {
+LocalVariable* LocalScope::LookupVariable(const String& name,
+                                          intptr_t kernel_offset,
+                                          bool test_only) {
   LocalScope* current_scope = this;
   while (current_scope != NULL) {
-    LocalVariable* var = current_scope->LocalLookupVariable(name);
+    LocalVariable* var =
+        current_scope->LocalLookupVariable(name, kernel_offset);
     // If testing only, return the variable even if invisible.
     if ((var != NULL) && (!var->is_invisible_ || test_only)) {
       if (!test_only && (var->owner()->function_level() != function_level())) {
@@ -380,6 +386,20 @@ LocalVariable* LocalScope::LookupVariable(const String& name, bool test_only) {
     current_scope = current_scope->parent();
   }
   return NULL;
+}
+
+LocalVariable* LocalScope::LookupVariableByName(const String& name) {
+  ASSERT(name.IsSymbol());
+  for (LocalScope* scope = this; scope != nullptr; scope = scope->parent()) {
+    for (intptr_t i = 0, n = scope->variables_.length(); i < n; ++i) {
+      LocalVariable* var = scope->variables_[i];
+      ASSERT(var->name().IsSymbol());
+      if (var->name().ptr() == name.ptr()) {
+        return var;
+      }
+    }
+  }
+  return nullptr;
 }
 
 void LocalScope::CaptureVariable(LocalVariable* variable) {
@@ -469,6 +489,7 @@ ContextScopePtr LocalScope::PreserveOuterScope(
       } else {
         context_scope.SetTypeAt(captured_idx, variable->type());
       }
+      context_scope.SetIsInvisibleAt(captured_idx, variable->is_invisible());
       context_scope.SetContextIndexAt(captured_idx, variable->index().value());
       // Adjust the context level relative to the current context level,
       // since the context of the current scope will be at level 0 when
@@ -476,6 +497,7 @@ ContextScopePtr LocalScope::PreserveOuterScope(
       int adjusted_context_level =
           variable->owner()->context_level() - current_context_level;
       context_scope.SetContextLevelAt(captured_idx, adjusted_context_level);
+      context_scope.SetKernelOffsetAt(captured_idx, variable->kernel_offset());
       captured_idx++;
     }
   }
@@ -494,7 +516,8 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
       variable = new LocalVariable(context_scope.DeclarationTokenIndexAt(i),
                                    context_scope.TokenIndexAt(i),
                                    String::ZoneHandle(context_scope.NameAt(i)),
-                                   Object::dynamic_type());
+                                   Object::dynamic_type(),
+                                   context_scope.KernelOffsetAt(i));
       variable->SetConstValue(
           Instance::ZoneHandle(context_scope.ConstValueAt(i)));
     } else {
@@ -502,7 +525,8 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
           new LocalVariable(context_scope.DeclarationTokenIndexAt(i),
                             context_scope.TokenIndexAt(i),
                             String::ZoneHandle(context_scope.NameAt(i)),
-                            AbstractType::ZoneHandle(context_scope.TypeAt(i)));
+                            AbstractType::ZoneHandle(context_scope.TypeAt(i)),
+                            context_scope.KernelOffsetAt(i));
     }
     variable->set_is_captured();
     variable->set_index(VariableIndex(context_scope.ContextIndexAt(i)));
@@ -512,6 +536,9 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
     if (context_scope.IsLateAt(i)) {
       variable->set_is_late();
       variable->set_late_init_offset(context_scope.LateInitOffsetAt(i));
+    }
+    if (context_scope.IsInvisibleAt(i)) {
+      variable->set_invisible(true);
     }
     // Create a fake owner scope describing the index and context level of the
     // variable. Function level and loop level are unused (set to 0), since
@@ -565,6 +592,7 @@ ContextScopePtr LocalScope::CreateImplicitClosureScope(const Function& func) {
   context_scope.SetTypeAt(0, type);
   context_scope.SetContextIndexAt(0, 0);
   context_scope.SetContextLevelAt(0, 0);
+  context_scope.SetKernelOffsetAt(0, LocalVariable::kNoKernelOffset);
   ASSERT(context_scope.num_variables() == kNumCapturedVars);  // Verify count.
   return context_scope.ptr();
 }

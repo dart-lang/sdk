@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Square extends core::Object /*hasConstConstructor*/  {
+  final field (core::String) →? void logFunction;
+  final field core::double length;
+  const constructor •(core::double length, [has-declared-initializer (core::String) →? void logFunction = null]) → self::Square
+    : self::Square::length = length, self::Square::logFunction = logFunction, super core::Object::•()
+    ;
+  method _log(core::String toLog) → void
+    ;
+  get area() → core::double
+    ;
+}
+static field core::String log;
+static method logger(core::String s) → void
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

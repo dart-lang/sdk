@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test that the enqueuers are not dependent upon in which order impacts are
 // applied.
 
@@ -31,7 +29,11 @@ class Test {
   final List<Impact> impacts;
   final Map<String, List<String>> expectedLiveMap;
 
-  const Test({this.name, this.code, this.impacts, this.expectedLiveMap});
+  const Test(
+      {required this.name,
+      required this.code,
+      required this.impacts,
+      required this.expectedLiveMap});
 
   Map<String, List<String>> get expectedLiveResolutionMap {
     Map<String, List<String>> map = {};
@@ -143,7 +145,7 @@ Iterable<List<Impact>> permutations(List<Impact> impacts) sync* {
   } else {
     for (int index = 0; index < length; index++) {
       Impact head = impacts[index];
-      List<Impact> tail = new List<Impact>.from(impacts)..removeAt(index);
+      List<Impact> tail = List<Impact>.from(impacts)..removeAt(index);
       for (List<Impact> permutation in permutations(tail)) {
         yield [head]..addAll(permutation);
       }
@@ -175,11 +177,11 @@ main() {}
   void instantiate(
       Enqueuer enqueuer, ElementEnvironment elementEnvironment, String name) {
     ClassEntity cls =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, name);
+        elementEnvironment.lookupClass(elementEnvironment.mainLibrary!, name)!;
     ConstructorEntity constructor =
-        elementEnvironment.lookupConstructor(cls, '');
+        elementEnvironment.lookupConstructor(cls, '')!;
     InterfaceType type = elementEnvironment.getRawType(cls);
-    WorldImpact impact = new WorldImpactBuilderImpl()
+    WorldImpact impact = WorldImpactBuilderImpl()
       ..registerStaticUse(new StaticUse.typedConstructorInvoke(constructor,
           constructor.parameterStructure.callStructure, type, null));
     enqueuer.applyImpact(impact);
@@ -192,13 +194,13 @@ main() {}
       String methodName,
       Object Function(ClassEntity cls) createConstraint) {
     ClassEntity cls = elementEnvironment.lookupClass(
-        elementEnvironment.mainLibrary, className);
-    Selector selector = new Selector.call(
-        new Name(methodName, elementEnvironment.mainLibrary.canonicalUri),
+        elementEnvironment.mainLibrary!, className)!;
+    Selector selector = Selector.call(
+        Name(methodName, elementEnvironment.mainLibrary!.canonicalUri),
         CallStructure.NO_ARGS);
-    WorldImpact impact = new WorldImpactBuilderImpl()
+    WorldImpact impact = WorldImpactBuilderImpl()
       ..registerDynamicUse(
-          new DynamicUse(selector, createConstraint(cls), const <DartType>[]));
+          DynamicUse(selector, createConstraint(cls), const <DartType>[]));
     enqueuer.applyImpact(impact);
   }
 
@@ -224,8 +226,8 @@ main() {}
       if (member != elementEnvironment.mainFunction &&
           member.library == elementEnvironment.mainLibrary) {
         actualLiveMap
-            .putIfAbsent(member.enclosingClass.name, () => [])
-            .add(member.name);
+            .putIfAbsent(member.enclosingClass!.name, () => [])
+            .add(member.name!);
       }
     }
 
@@ -236,7 +238,7 @@ main() {}
         "Expected: ${expectedLiveMap.keys}\n "
         "Actual  : ${actualLiveMap.keys}");
     expectedLiveMap.forEach((String clsName, List<String> expectedMembers) {
-      List<String> actualMembers = actualLiveMap[clsName];
+      List<String> actualMembers = actualLiveMap[clsName]!;
       Expect.setEquals(
           expectedMembers,
           actualMembers,
@@ -253,7 +255,7 @@ main() {}
     checkInvariant(enqueuer, elementEnvironment);
 
     Object createConstraint(ClassEntity cls) {
-      return new StrongModeConstraint(compiler.frontendStrategy.commonElements,
+      return StrongModeConstraint(compiler.frontendStrategy.commonElements,
           compiler.frontendStrategy.elementMap.nativeBasicData, cls);
     }
 
@@ -263,13 +265,13 @@ main() {}
   };
   compiler.onCodegenQueueEmptyForTesting = () {
     Enqueuer enqueuer = compiler.codegenEnqueuerForTesting;
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     ElementEnvironment elementEnvironment =
-        compiler.backendClosedWorldForTesting.elementEnvironment;
+        compiler.backendClosedWorldForTesting!.elementEnvironment;
     checkInvariant(enqueuer, elementEnvironment);
 
     Object createConstraint(ClassEntity cls) {
-      return new TypeMask.subtype(cls, closedWorld);
+      return TypeMask.subtype(cls, closedWorld);
     }
 
     for (Impact impact in impacts) {
@@ -286,6 +288,6 @@ main() {}
 
   checkLiveMembers(
       compiler.codegenEnqueuerForTesting,
-      compiler.backendClosedWorldForTesting.elementEnvironment,
+      compiler.backendClosedWorldForTesting!.elementEnvironment,
       test.expectedLiveCodegenMap);
 }

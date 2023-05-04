@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:convert';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
@@ -11,7 +9,7 @@ import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/util/memory_compiler.dart';
 
 void testLoadMap() async {
-  var collector = new OutputCollector();
+  var collector = OutputCollector();
   await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES,
       options: ['--deferred-map=deferred_map.json'],
@@ -20,7 +18,7 @@ void testLoadMap() async {
   var deferredMap =
       collector.getOutput("deferred_map.json", api.OutputType.deferredMap);
   Expect.isNotNull(deferredMap);
-  var mapping = jsonDecode(deferredMap);
+  var mapping = jsonDecode(deferredMap!);
 
   // Test structure of mapping.
   Expect.equals("<unnamed>", mapping["main.dart"]["name"]);
@@ -33,13 +31,13 @@ void testLoadMap() async {
 }
 
 void testDumpDeferredGraph() async {
-  var collector = new OutputCollector();
+  var collector = OutputCollector();
   await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES,
       options: ['--dump-deferred-graph=deferred_graph.txt'],
       outputProvider: collector);
   var actual = collector
-      .getOutput("deferred_graph.txt", api.OutputType.debug)
+      .getOutput("deferred_graph.txt", api.OutputType.debug)!
       .split('\n');
 
   // This program has 5 deferred imports `convert`, `lib1`, `lib2`, `lib4_1`,
@@ -70,13 +68,13 @@ import 'lib2.dart' deferred as lib2;
 void main() {
   lib1.loadLibrary().then((_) {
         lib1.foo1();
-        new lib1.C();
+        lib1.C();
     lib2.loadLibrary().then((_) {
         lib2.foo2();
     });
   });
   convert.loadLibrary().then((_) {
-    new convert.JsonCodec();
+    convert.JsonCodec();
   });
 }
 """,
@@ -91,7 +89,7 @@ import "lib4.dart" deferred as lib4_1;
 class C {}
 
 foo1() {
-  new InputElement();
+  InputElement();
   lib4_1.loadLibrary().then((_) {
     lib4_1.bar1();
   });

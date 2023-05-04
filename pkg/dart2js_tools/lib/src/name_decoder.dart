@@ -33,8 +33,8 @@ abstract class ErrorMapDecoder {
   String? decode(String? error, Dart2jsMapping? mapping, StackTraceLine? line,
       TargetEntry? entry) {
     if (error == null) return null;
-    Match? lastMatch = null;
-    var result = new StringBuffer();
+    Match? lastMatch;
+    var result = StringBuffer();
     for (var match in _matcher.allMatches(error)) {
       var decodedMatch = _decodeInternal(match, mapping, line, entry);
       if (decodedMatch == null) {
@@ -53,12 +53,14 @@ abstract class ErrorMapDecoder {
       StackTraceLine? line, TargetEntry? entry);
 }
 
-typedef String ErrorDecoder(Match match, Dart2jsMapping mapping,
+typedef ErrorDecoder = String Function(Match match, Dart2jsMapping mapping,
     StackTraceLine line, TargetEntry entry);
 
 class MinifiedNameDecoder extends ErrorMapDecoder {
-  final RegExp _matcher = new RegExp("minified:([a-zA-Z0-9_\$]*)");
+  @override
+  final RegExp _matcher = RegExp("minified:([a-zA-Z0-9_\$]*)");
 
+  @override
   String? _decodeInternal(Match match, Dart2jsMapping? mapping,
       StackTraceLine? line, TargetEntry? entry) {
     var minifiedName = match.group(1);
@@ -67,8 +69,10 @@ class MinifiedNameDecoder extends ErrorMapDecoder {
 }
 
 class CannotReadPropertyDecoder extends ErrorMapDecoder {
-  final RegExp _matcher = new RegExp("Cannot read property '([^']*)' of");
+  @override
+  final RegExp _matcher = RegExp("Cannot read property '([^']*)' of");
 
+  @override
   String? _decodeInternal(Match match, Dart2jsMapping? mapping,
       StackTraceLine? line, TargetEntry? entry) {
     var minifiedName = match.group(1);
@@ -82,7 +86,7 @@ abstract class NoSuchMethodDecoderBase extends ErrorMapDecoder {
   String? _translateMinifiedName(Dart2jsMapping mapping, String? minifiedName) {
     var name = mapping.instanceNames[minifiedName];
     if (name != null) return "'$name'";
-    if (minifiedName!.startsWith(new RegExp(r'(call)?\$[0-9]'))) {
+    if (minifiedName!.startsWith(RegExp(r'(call)?\$[0-9]'))) {
       int first$ = minifiedName.indexOf(r'$');
       return _expandCallSignature(minifiedName.substring(first$));
     }
@@ -96,8 +100,8 @@ abstract class NoSuchMethodDecoderBase extends ErrorMapDecoder {
     //   $3$name    // positional and named arguments
     //   $1$3$name  // type parameters and positional and named args
     var signature = callSignature.split(r'$');
-    int? typeArgs = null;
-    int? totalArgs = null;
+    int? typeArgs;
+    int? totalArgs;
     var namedArgs = <String>[];
     for (var arg in signature) {
       if (arg == "") continue;
@@ -116,7 +120,7 @@ abstract class NoSuchMethodDecoderBase extends ErrorMapDecoder {
       }
     }
     if (totalArgs == null) return null;
-    var sb = new StringBuffer();
+    var sb = StringBuffer();
     sb.write("'call'");
     sb.write(" (with ");
     if (typeArgs != null) {
@@ -134,9 +138,11 @@ abstract class NoSuchMethodDecoderBase extends ErrorMapDecoder {
 }
 
 class NoSuchMethodDecoder1 extends NoSuchMethodDecoderBase {
-  final RegExp _matcher = new RegExp(
+  @override
+  final RegExp _matcher = RegExp(
       "NoSuchMethodError: method not found: '([^']*)'( on [^\\(]*)? \\(.*\\)");
 
+  @override
   String? _decodeInternal(Match match, Dart2jsMapping? mapping,
       StackTraceLine? line, TargetEntry? entry) {
     var minifiedName = match.group(1);
@@ -148,9 +154,11 @@ class NoSuchMethodDecoder1 extends NoSuchMethodDecoderBase {
 }
 
 class NoSuchMethodDecoder2 extends NoSuchMethodDecoderBase {
+  @override
   final RegExp _matcher =
-      new RegExp("NoSuchMethodError: method not found: '([^']*)'");
+      RegExp("NoSuchMethodError: method not found: '([^']*)'");
 
+  @override
   String? _decodeInternal(Match match, Dart2jsMapping? mapping,
       StackTraceLine? line, TargetEntry? entry) {
     var minifiedName = match.group(1);
@@ -161,8 +169,10 @@ class NoSuchMethodDecoder2 extends NoSuchMethodDecoderBase {
 }
 
 class UnhandledNotAFunctionError extends ErrorMapDecoder {
-  final RegExp _matcher = new RegExp("Error: ([^']*) is not a function");
+  @override
+  final RegExp _matcher = RegExp("Error: ([^']*) is not a function");
 
+  @override
   String? _decodeInternal(Match match, Dart2jsMapping? mapping,
       StackTraceLine? line, TargetEntry? entry) {
     var minifiedName = match.group(1);
@@ -173,9 +183,9 @@ class UnhandledNotAFunctionError extends ErrorMapDecoder {
 }
 
 List<ErrorMapDecoder> _errorMapDecoders = [
-  new MinifiedNameDecoder(),
-  new CannotReadPropertyDecoder(),
-  new NoSuchMethodDecoder1(),
-  new NoSuchMethodDecoder2(),
-  new UnhandledNotAFunctionError(),
+  MinifiedNameDecoder(),
+  CannotReadPropertyDecoder(),
+  NoSuchMethodDecoder1(),
+  NoSuchMethodDecoder2(),
+  UnhandledNotAFunctionError(),
 ];

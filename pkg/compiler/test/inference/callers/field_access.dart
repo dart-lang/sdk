@@ -17,6 +17,6 @@ class B {
 }
 
 main() {
-  new A().field;
-  new B().field;
+  A().field;
+  B().field;
 }

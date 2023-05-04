@@ -17,6 +17,7 @@ import 'memory_tests.dart';
 ///   - analysis-server-completion
 class AnalysisBenchmark extends Benchmark {
   final AbstractBenchmarkTest Function() testConstructor;
+
   AnalysisBenchmark(ServerBenchmark benchmarkTest)
       : testConstructor = benchmarkTest.testConstructor,
         super(
@@ -67,7 +68,7 @@ class AnalysisBenchmark extends Benchmark {
     const kGroupCount = 10;
 
     var filePath =
-        path.join(analysisServerSrcPath, 'lib/src/analysis_server.dart');
+        path.join(analysisServerSrcPath, 'lib', 'src', 'analysis_server.dart');
     var contents = File(filePath).readAsStringSync();
 
     await test.openFile(filePath, contents);
@@ -75,7 +76,7 @@ class AnalysisBenchmark extends Benchmark {
     var completionCount = 0;
     var stopwatch = Stopwatch()..start();
 
-    Future complete(int offset) async {
+    Future<void> complete(int offset) async {
       await test.complete(filePath, offset, isWarmUp: false);
       completionCount++;
     }
@@ -112,7 +113,7 @@ class AnalysisBenchmark extends Benchmark {
     const kGroupCount = 5;
 
     var filePath =
-        path.join(analysisServerSrcPath, 'lib/src/analysis_server.dart');
+        path.join(analysisServerSrcPath, 'lib', 'src', 'analysis_server.dart');
     var contents = File(filePath).readAsStringSync();
 
     // Get the future for `analysisFinished` *before* the call to [openFile]
@@ -147,6 +148,7 @@ class AnalysisBenchmark extends Benchmark {
 ///   - analysis-server-cold-memory
 class ColdAnalysisBenchmark extends Benchmark {
   final AbstractBenchmarkTest Function() testConstructor;
+
   ColdAnalysisBenchmark(ServerBenchmark benchmarkTest)
       : testConstructor = benchmarkTest.testConstructor,
         super(
@@ -189,10 +191,10 @@ class ColdAnalysisBenchmark extends Benchmark {
 }
 
 class ServerBenchmark {
-  static final das = ServerBenchmark('analysis-server', 'Analysis Server',
-      () => AnalysisServerBenchmarkTest());
+  static final das = ServerBenchmark(
+      'analysis-server', 'Analysis Server', AnalysisServerBenchmarkTest.new);
   static final lsp = ServerBenchmark('lsp-analysis-server',
-      'LSP Analysis Server', () => LspAnalysisServerBenchmarkTest());
+      'LSP Analysis Server', LspAnalysisServerBenchmarkTest.new);
   final String id;
 
   final String name;

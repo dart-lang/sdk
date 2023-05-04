@@ -48,9 +48,9 @@ main(List<String> args) async {
 
   await withTempDir("incompatible-loading-unit-test", (String tempDir) async {
     final source1 = path.join(
-        sdkDir, "runtime/tests/vm/dart_2/incompatible_loading_unit_1.dart");
+        sdkDir, "runtime/tests/vm/dart/incompatible_loading_unit_1.dart");
     final source2 = path.join(
-        sdkDir, "runtime/tests/vm/dart_2/incompatible_loading_unit_2.dart");
+        sdkDir, "runtime/tests/vm/dart/incompatible_loading_unit_2.dart");
     final dill1 = path.join(tempDir, "incompatible_loading_unit_1.dart.dill");
     final dill2 = path.join(tempDir, "incompatible_loading_unit_2.dart.dill");
     final snapshot1 = path.join(tempDir, "incompatible_loading_unit_1.so");
@@ -107,15 +107,15 @@ main(List<String> args) async {
     Expect.isTrue(await new File(deferredSnapshot2).exists());
 
     // Works when used normally.
-    var lines = await runOutput(aotRuntime, <String>[snapshot1]);
+    var lines = await runOutput(dartPrecompiledRuntime, <String>[snapshot1]);
     Expect.listEquals(["One!"], lines);
 
-    lines = await runOutput(aotRuntime, <String>[snapshot2]);
+    lines = await runOutput(dartPrecompiledRuntime, <String>[snapshot2]);
     Expect.listEquals(["Two!"], lines);
 
     // Fails gracefully when mixing snapshot parts.
     await new File(deferredSnapshot2).rename(deferredSnapshot1);
-    lines = await runError(aotRuntime, <String>[snapshot1]);
+    lines = await runError(dartPrecompiledRuntime, <String>[snapshot1]);
     Expect.equals(
         "DeferredLoadException: 'Deferred loading unit is from a different program than the main loading unit'",
         lines[1]);

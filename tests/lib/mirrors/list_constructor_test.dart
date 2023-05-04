@@ -8,9 +8,9 @@ import 'dart:mirrors';
 
 main() {
   var cls = reflectClass(List);
-  Expect.throwsArgumentError(() => cls.newInstance(Symbol.empty, [null]));
+  Expect.throwsNoSuchMethodError(() => cls.newInstance(Symbol('empty'), [null]));
 
-  var list = cls.newInstance(Symbol.empty, [42]).reflectee;
+  var list = cls.newInstance(Symbol('filled'), [42, null]).reflectee;
   // Check that the list is fixed.
   Expect.equals(42, list.length);
   Expect.throwsUnsupportedError(() => list.add(2));
@@ -22,7 +22,7 @@ main() {
 
 testGrowableList() {
   var cls = reflectClass(List);
-  var list = cls.newInstance(Symbol.empty, []).reflectee;
+  var list = cls.newInstance(Symbol('empty'), [], const {Symbol('growable'): true}).reflectee;
   // Check that the list is growable.
   Expect.equals(0, list.length);
   list.add(42);

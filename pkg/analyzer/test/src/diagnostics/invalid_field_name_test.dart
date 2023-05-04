@@ -40,7 +40,7 @@ var r = (0, hashCode: 1, noSuchMethod: 2, runtimeType: 3, toString: 4);
 
   void test_positional_named_conflict() async {
     await assertErrorsInCode(r'''
-var r = (0, $0: 2);
+var r = (0, $1: 2);
 ''', [
       error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 12, 2),
     ]);
@@ -48,7 +48,7 @@ var r = (0, $0: 2);
 
   void test_positional_named_conflict_namedBeforePositional() async {
     await assertErrorsInCode(r'''
-var r = ($0: 2, 1);
+var r = ($1: 2, 1);
 ''', [
       error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 9, 2),
     ]);
@@ -56,13 +56,13 @@ var r = ($0: 2, 1);
 
   void test_positional_named_leadingZero() async {
     await assertNoErrorsInCode(r'''
-var r = (0, 1, $01: 2);
+var r = (0, 1, $02: 2);
 ''');
   }
 
   void test_positional_named_noConflict() async {
     await assertNoErrorsInCode(r'''
-var r = (0, $1: 2);
+var r = (0, $2: 2);
 ''');
   }
 
@@ -102,7 +102,7 @@ void f((int hashCode, int noSuchMethod, int runtimeType, int toString) r) {}
 
   void test_positional_named_conflict() async {
     await assertErrorsInCode(r'''
-void f((int, String, {int $1}) r) {}
+void f((int, String, {int $2}) r) {}
 ''', [
       error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 26, 2),
     ]);
@@ -110,19 +110,19 @@ void f((int, String, {int $1}) r) {}
 
   void test_positional_named_leadingZero() async {
     await assertNoErrorsInCode(r'''
-void f((int, String, {int $01}) r) {}
+void f((int, String, {int $02}) r) {}
 ''');
   }
 
   void test_positional_named_noConflict() async {
     await assertNoErrorsInCode(r'''
-void f(({int $21}) r) {}
+void f(({int $22}) r) {}
 ''');
   }
 
   void test_positional_positional_conflict() async {
     await assertErrorsInCode(r'''
-void f((int $1, int b) r) {}
+void f((int $2, int b) r) {}
 ''', [
       error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 12, 2),
     ]);
@@ -130,13 +130,13 @@ void f((int $1, int b) r) {}
 
   void test_positional_positional_noConflict_same() async {
     await assertNoErrorsInCode(r'''
-void f((int $0, int b) r) {}
+void f((int $1, int b) r) {}
 ''');
   }
 
   void test_positional_positional_noConflict_unused() async {
     await assertNoErrorsInCode(r'''
-void f((int $3, int b) r) {}
+void f((int $4, int b) r) {}
 ''');
   }
 

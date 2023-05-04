@@ -1,0 +1,32 @@
+import "main_lib1.dart";
+import "main_lib2.dart";
+
+base class Base {}
+
+base class BaseA extends A {}
+
+base class BaseA2 extends BaseA {}
+
+base class DirectA implements A {}
+
+base class IndirectA implements BaseA {}
+
+base class IndirectBaseA extends Base implements BaseA {}
+
+base class IndirectA2 implements BaseA2 {}
+
+base class IndirectBaseA2 extends Base implements BaseA2 {}
+
+base class BaseB extends B {}
+
+base class BaseB2 extends BaseB {}
+
+base class DirectB implements B {}
+
+base class IndirectB implements BaseB {}
+
+base class IndirectB2 implements BaseB2 {}
+
+base class IndirectBaseB extends Base implements BaseB {}
+
+base class IndirectBaseB2 extends Base implements BaseB2 {}

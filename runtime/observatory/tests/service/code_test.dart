@@ -64,7 +64,6 @@ var tests = <IsolateTest>[
     var codeId0 = frame0.code.id;
     var codeId1 = frame1.code.id;
 
-    List tests = <IsolateTest>[];
     // Load code from frame 0.
     Code code = await isolate.getObject(codeId0) as Code;
     expect(code.type, equals('Code'));

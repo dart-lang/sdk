@@ -567,8 +567,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
       if (rightOperand is NullLiteral) {
         buildNullConditionInfo(rightOperand, leftOperand, leftType);
+        _graph.makeNullable(leftType.node, NullAwareAccessOrigin(source, node));
       } else if (leftOperand is NullLiteral) {
         buildNullConditionInfo(leftOperand, rightOperand, rightType);
+        _graph.makeNullable(
+            rightType.node, NullAwareAccessOrigin(source, node));
       }
 
       return _makeNonNullableBoolType(node);
@@ -637,7 +640,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitBreakStatement(BreakStatement node) {
     _flowAnalysis!.handleBreak(FlowAnalysisHelper.getLabelTarget(
-        node, node.label?.staticElement as LabelElement?)!);
+        node, node.label?.staticElement as LabelElement?,
+        isBreak: true));
     // Later statements no longer post-dominate the declarations because we
     // exited (or, in parent scopes, conditionally exited).
     // TODO(mfairhurst): don't clear post-dominators beyond the current loop.
@@ -845,7 +849,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitContinueStatement(ContinueStatement node) {
     _flowAnalysis!.handleContinue(FlowAnalysisHelper.getLabelTarget(
-        node, node.label?.staticElement as LabelElement?)!);
+        node, node.label?.staticElement as LabelElement?,
+        isBreak: false));
     // Later statements no longer post-dominate the declarations because we
     // exited (or, in parent scopes, conditionally exited).
     // TODO(mfairhurst): don't clear post-dominators beyond the current loop.
@@ -920,7 +925,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitExpressionStatement(ExpressionStatement node) {
     var decoratedType = _dispatch(node.expression)!;
-    _graph.connectDummy(decoratedType.node, DummyOrigin(source, node));
+    if (node.expression is! CascadeExpression) {
+      // Don't add a dummy edge for cascade expression, since
+      // it forces the target of cascade to be nullable, which
+      // is almost always wrong.
+      _graph.connectDummy(decoratedType.node, DummyOrigin(source, node));
+    }
     return decoratedType;
   }
 
@@ -1028,6 +1038,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                 node, null, getter.declaration, declaredElement);
           }
         }
+      } else if (declaredElement != null && declaredElement.isPublic) {
+        _makeArgumentsNullable(declaredElement, node);
       }
     }
     return null;
@@ -1939,15 +1951,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitSwitchStatement(SwitchStatement node) {
-    _dispatch(node.expression);
-    _flowAnalysis!.switchStatement_expressionEnd(node);
+    var scrutineeType = _dispatch(node.expression)!;
+    _flowAnalysis!
+        .switchStatement_expressionEnd(node, node.expression, scrutineeType);
     var hasDefault = false;
     for (var member in node.members) {
       _postDominatedLocals.doScoped(action: () {
         var hasLabel = member.labels.isNotEmpty;
-        _flowAnalysis!.switchStatement_beginCase();
         _flowAnalysis!.switchStatement_beginAlternatives();
-        _flowAnalysis!.switchStatement_endAlternative();
+        _flowAnalysis!.switchStatement_beginAlternative();
+        _flowAnalysis!.constantPattern_end(node.expression, scrutineeType,
+            patternsEnabled: false);
+        _flowAnalysis!.switchStatement_endAlternative(null, {});
         _flowAnalysis!
             .switchStatement_endAlternatives(node, hasLabels: hasLabel);
         if (member is SwitchCase) {
@@ -1956,6 +1971,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           hasDefault = true;
         }
         _dispatchList(member.statements);
+        _flowAnalysis!.switchStatement_afterCase();
       });
     }
     _flowAnalysis!.switchStatement_end(hasDefault);
@@ -2056,7 +2072,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       try {
         if (declaredElement is PromotableElement) {
-          _flowAnalysis!.declare(declaredElement, initializer != null);
+          _flowAnalysis!.declare(
+              declaredElement, _variables.decoratedElementType(declaredElement),
+              initialized: initializer != null);
         }
         if (initializer == null) {
           // For top level variables and static fields, we have to generate an
@@ -2113,7 +2131,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   void _addParametersToFlowAnalysis(FormalParameterList? parameters) {
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        _flowAnalysis!.declare(parameter.declaredElement!, true);
+        var declaredElement = parameter.declaredElement!;
+        // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
+        // around a failure in api_test.dart; fix this.
+        _flowAnalysis!.declare(
+            declaredElement, _variables.decoratedElementType(declaredElement),
+            initialized: true, skipDuplicateCheck: true);
       }
     }
   }
@@ -2195,7 +2218,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         respectImplicitlyTypedVarInitializers: true);
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        _flowAnalysis!.declare(parameter.declaredElement!, true);
+        var declaredElement = parameter.declaredElement!;
+        _flowAnalysis!.declare(
+            declaredElement, _variables.decoratedElementType(declaredElement),
+            initialized: true);
       }
     }
   }
@@ -2249,7 +2275,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         ? NullabilityNode.forLUB(left.node, right.node)
         : _nullabilityNodeForGLB(astNode, left.node, right.node);
 
-    if (type!.isDynamic || type.isVoid) {
+    if (type!.isDynamic || type is VoidType) {
       return DecoratedType(type, node);
     } else if (leftType!.isBottom) {
       return right.withNode(node);
@@ -2500,7 +2526,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _graph.makeNonNullable(
           destinationType.node,
           AssignmentFromAngularInjectorGetOrigin(
-              source, assignmentExpression!.leftHandSide as SimpleIdentifier));
+              source, assignmentExpression!.leftHandSide as SimpleIdentifier,
+              isSetupAssignment: sourceIsSetupCall));
     }
 
     if (questionAssignNode != null) {
@@ -2661,6 +2688,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _dispatch(returnType);
     _createFlowAnalysis(node, parameters);
     _dispatch(parameters);
+
+    // Be over conservative with public methods' arguments:
+    // Unless we have reasons for non-nullability, assume they are nullable.
+    // Soft edge to `always` node does exactly this.
+    bool isOverride = false;
+    final thisClass = declaredElement.enclosingElement;
+    if (thisClass is InterfaceElement) {
+      final name = Name(thisClass.library.source.uri, declaredElement.name);
+      isOverride = _inheritanceManager.getOverridden2(thisClass, name) != null;
+    }
+    if (!isOverride &&
+        declaredElement.isPublic &&
+        declaredElement is! PropertyAccessorElement &&
+        // operator == treats `null` specially.
+        !(declaredElement.isOperator && declaredElement.name == '==')) {
+      _makeArgumentsNullable(declaredElement, node);
+    }
     _currentFunctionType = _variables.decoratedElementType(declaredElement);
     _currentFieldFormals = declaredElement is ConstructorElement
         ? _computeFieldFormalMap(declaredElement)
@@ -2771,7 +2815,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       ClassElement classElement,
       Element overriddenElement) {
     overriddenElement = overriddenElement.declaration!;
-    var overriddenClass = overriddenElement.enclosingElement as ClassElement;
+    var overriddenClass =
+        overriddenElement.enclosingElement as InterfaceElement;
     var decoratedSupertype = _decoratedClassHierarchy!
         .getDecoratedSupertype(classElement, overriddenClass);
     var substitution = decoratedSupertype.asSubstitution;
@@ -2932,7 +2977,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       DecoratedType? lhsType;
       if (parts is ForEachPartsWithDeclaration) {
         var variableElement = parts.loopVariable.declaredElement!;
-        _flowAnalysis!.declare(variableElement, true);
+        _flowAnalysis!.declare(
+            variableElement, _variables.decoratedElementType(variableElement),
+            initialized: true);
         lhsElement = variableElement;
         _dispatch(parts.loopVariable.type);
         lhsType = _variables.decoratedElementType(lhsElement);
@@ -3376,10 +3423,25 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
+  void _makeArgumentsNullable(
+      ExecutableElement declaredElement, Declaration node) {
+    for (final p in declaredElement.parameters) {
+      if (p is! FieldFormalParameterElement &&
+          p is! SuperFormalParameterElement &&
+          p is! ConstVariableElement) {
+        final decoratedType = _variables.decoratedElementType(p);
+        if (decoratedType.type is TypeParameterType) continue;
+        _graph.makeNullable(
+            decoratedType.node, PublicMethodArgumentOrigin(source, node));
+      }
+    }
+  }
+
   EdgeOrigin _makeEdgeOrigin(DecoratedType sourceType, Expression expression,
       {bool isSetupAssignment = false}) {
     if (sourceType.type!.isDynamic) {
-      return DynamicAssignmentOrigin(source, expression);
+      return DynamicAssignmentOrigin(source, expression,
+          isSetupAssignment: isSetupAssignment);
     } else {
       ExpressionChecksOrigin expressionChecksOrigin = ExpressionChecksOrigin(
           source, expression, ExpressionChecks(),
@@ -3852,7 +3914,7 @@ mixin _AssignmentChecker {
         return;
       }
     } else if (destinationType.isDynamic ||
-        destinationType.isVoid ||
+        destinationType is VoidType ||
         destinationType.isDartCoreObject) {
       // No further edges need to be created, since all types are trivially
       // subtypes of dynamic, Object, and void, since all are treated as
@@ -3926,7 +3988,7 @@ mixin _AssignmentChecker {
 
     if (sourceType.isDynamic ||
         sourceType.isDartCoreObject ||
-        sourceType.isVoid) {
+        sourceType is VoidType) {
       if (destinationType is InterfaceType) {
         for (final param in destinationType.element.typeParameters) {
           assert(param.bound == null,

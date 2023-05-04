@@ -35,7 +35,7 @@ DEFINE_NATIVE_ENTRY(SecureRandom_getBytes, 0, 1) {
   ASSERT((n > 0) && (n <= 8));
   uint8_t buffer[8];
   Dart_EntropySource entropy_source = Dart::entropy_source_callback();
-  if ((entropy_source == NULL) || !entropy_source(buffer, n)) {
+  if ((entropy_source == nullptr) || !entropy_source(buffer, n)) {
     const String& error = String::Handle(String::New(
         "No source of cryptographically secure random numbers available."));
     const Array& args = Array::Handle(Array::New(1));

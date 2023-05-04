@@ -120,7 +120,7 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
     vm_data_mapping =
         file->Map(File::kReadOnly, vm_data_position, vm_data_size);
     if (vm_data_mapping == nullptr) {
-      FATAL1("Failed to memory map snapshot: %s\n", script_name);
+      FATAL("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
@@ -129,7 +129,7 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
     vm_instr_mapping = file->Map(File::kReadExecute, vm_instructions_position,
                                  vm_instructions_size);
     if (vm_instr_mapping == nullptr) {
-      FATAL1("Failed to memory map snapshot: %s\n", script_name);
+      FATAL("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
@@ -138,7 +138,7 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
     isolate_data_mapping =
         file->Map(File::kReadOnly, isolate_data_position, isolate_data_size);
     if (isolate_data_mapping == nullptr) {
-      FATAL1("Failed to memory map snapshot: %s\n", script_name);
+      FATAL("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
@@ -148,7 +148,7 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
         file->Map(File::kReadExecute, isolate_instructions_position,
                   isolate_instructions_size);
     if (isolate_instr_mapping == nullptr) {
-      FATAL1("Failed to memory map snapshot: %s\n", script_name);
+      FATAL("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
@@ -476,15 +476,15 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
       reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
           library, kIsolateSnapshotDataCSymbol));
   if (isolate_data_buffer == nullptr) {
-    FATAL1("Failed to resolve symbol '%s'\n", kIsolateSnapshotDataCSymbol);
+    FATAL("Failed to resolve symbol '%s'\n", kIsolateSnapshotDataCSymbol);
   }
 
   const uint8_t* isolate_instructions_buffer =
       reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
           library, kIsolateSnapshotInstructionsCSymbol));
   if (isolate_instructions_buffer == nullptr) {
-    FATAL1("Failed to resolve symbol '%s'\n",
-           kIsolateSnapshotInstructionsCSymbol);
+    FATAL("Failed to resolve symbol '%s'\n",
+          kIsolateSnapshotInstructionsCSymbol);
   }
 
   return new DylibAppSnapshot(library, vm_data_buffer, vm_instructions_buffer,
@@ -729,20 +729,8 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
     WriteSnapshotFile(snapshot_filename, kernel_buffer, kernel_buffer_size);
     free(kernel_buffer);
   } else {
-    PathSanitizer script_uri_sanitizer(script_name);
-    PathSanitizer packages_config_sanitizer(package_config);
-
-    bool null_safety =
-        Dart_DetectNullSafety(script_uri_sanitizer.sanitized_uri(),
-                              packages_config_sanitizer.sanitized_uri(),
-                              DartUtils::original_working_directory,
-                              /*isolate_snapshot_data=*/nullptr,
-                              /*isolate_snapshot_instructions=*/nullptr,
-                              /*kernel_buffer=*/nullptr,
-                              /*kernel_buffer_size=*/0);
-
-    Dart_KernelCompilationResult result = dfe.CompileScriptWithGivenNullsafety(
-        script_name, package_config, /*snapshot=*/true, null_safety);
+    Dart_KernelCompilationResult result = dfe.CompileScript(
+        script_name, /*incremental*/ false, package_config, /*snapshot=*/true);
     if (result.status != Dart_KernelCompilationStatus_Ok) {
       Syslog::PrintErr("%s\n", result.error);
       Platform::Exit(kCompilationErrorExitCode);

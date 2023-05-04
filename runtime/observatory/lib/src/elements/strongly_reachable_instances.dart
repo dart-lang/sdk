@@ -6,7 +6,6 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/curly_block.dart';
-import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
@@ -34,10 +33,6 @@ class StronglyReachableInstancesElement extends CustomElement
       M.StronglyReachableInstancesRepository stronglyReachable,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(cls != null);
-    assert(stronglyReachable != null);
-    assert(objects != null);
     StronglyReachableInstancesElement e =
         new StronglyReachableInstancesElement.created();
     e._r = new RenderingScheduler<StronglyReachableInstancesElement>(e,

@@ -22,12 +22,6 @@ main(List<String> args) async {
     return; // SDK tree and gen_snapshot not available on the test device.
   }
 
-  final buildDir = path.dirname(Platform.executable);
-  final sdkDir = path.dirname(path.dirname(buildDir));
-  final platformDill = path.join(buildDir, 'vm_platform_strong.dill');
-  final genSnapshot = path.join(buildDir, 'gen_snapshot');
-  final aotRuntime = path.join(buildDir, 'dart_precompiled_runtime');
-
   await withTempDir('emit_aot_size_info_flag', (String tempDir) async {
     final script = path.join(sdkDir, 'pkg/kernel/bin/dump.dart');
     final scriptDill = path.join(tempDir, 'kernel_dump.dill');
@@ -57,7 +51,7 @@ main(List<String> args) async {
 
     // Ensure we can actually run the code.
     await Future.wait(<Future>[
-      run(aotRuntime, <String>[
+      run(dartPrecompiledRuntime, <String>[
         elfFile,
         scriptDill,
         path.join(tempDir, 'ignored.txt'),

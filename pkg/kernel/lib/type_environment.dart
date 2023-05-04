@@ -35,6 +35,8 @@ abstract class TypeEnvironment extends Types {
   Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
+  InterfaceType get objectNonNullableRawType =>
+      coreTypes.objectNonNullableRawType;
   InterfaceType get objectNullableRawType => coreTypes.objectNullableRawType;
   InterfaceType get functionLegacyRawType => coreTypes.functionLegacyRawType;
 
@@ -86,31 +88,63 @@ abstract class TypeEnvironment extends Types {
         uniteNullabilities(type.declaredNullability, nullability));
   }
 
-  /// Returns the `flatten` of [type] as defined in the spec, which unwraps a
-  /// layer of Future or FutureOr from a type.
-  DartType flatten(DartType t) {
-    // if T is S? then flatten(T) = flatten(S)?
-    // otherwise if T is S* then flatten(T) = flatten(S)*
-    // -- this is preserve with the calls to [_withDeclaredNullability] below.
-
-    // otherwise if T is FutureOr<S> then flatten(T) = S
-    if (t is FutureOrType) {
-      return _withDeclaredNullability(t.typeArgument, t.declaredNullability);
-    }
-
-    // otherwise if T <: Future then let S be a type such that T <: Future<S>
-    //   and for all R, if T <: Future<R> then S <: R; then flatten(T) = S
+  DartType? _futureTypeOf(DartType t) {
+    // We say that S is the "future type of a type" T in the following cases,
+    // using the first applicable case:
+    //
+    // * T implements S and there is a U such that S is Future<U>.
+    // * T is S bounded and there is a U such that S is FutureOr<U>,
+    //   Future<U>?, or FutureOr<U>?.
+    //
+    // When none of these cases are applicable, we say that T does not have a
+    // future type.
     DartType resolved = t.resolveTypeParameterType;
     if (resolved is InterfaceType) {
-      List<DartType>? futureArguments =
-          getTypeArgumentsAsInstanceOf(resolved, coreTypes.futureClass);
-      if (futureArguments != null) {
-        return _withDeclaredNullability(futureArguments.single, t.nullability);
+      DartType? futureType = getTypeAsInstanceOf(
+          resolved, coreTypes.futureClass, coreTypes,
+          isNonNullableByDefault: true);
+      if (futureType != null) {
+        // TODO(johnniwinther): The two implementations are inconsistent wrt.
+        //  how [isNonNullableByDefault] is treated.
+        return futureType.withDeclaredNullability(resolved.nullability);
+      }
+    } else if (resolved is FutureOrType) {
+      return resolved;
+    }
+    return null;
+  }
+
+  DartType flatten(DartType t) {
+    // We define the auxiliary function flatten(T) as follows, using the first
+    // applicable case:
+    //
+    // * If T is S? for some S then flatten(T) = flatten(S)?.
+    // * If T is X & S for some type variable X and type S then
+    //   - if S has future type U then flatten(T) = flatten(U).
+    //   - otherwise, flatten(T) = flatten(X).
+    // * If T has future type Future<S> or FutureOr<S> then flatten(T) = S.
+    // * If T has future type Future<S>? or FutureOr<S>? then flatten(T) = S?.
+    // * Otherwise, flatten(T) = T.
+    if (t is IntersectionType) {
+      DartType bound = t.right;
+      DartType? futureType = _futureTypeOf(bound);
+      if (futureType != null) {
+        return _withDeclaredNullability(flatten(futureType), t.nullability);
+      } else {
+        return _withDeclaredNullability(flatten(t.left), t.nullability);
+      }
+    } else {
+      DartType? futureType = _futureTypeOf(t);
+      if (futureType is InterfaceType) {
+        assert(futureType.classNode == coreTypes.futureClass);
+        return _withDeclaredNullability(
+            futureType.typeArguments.single, t.nullability);
+      } else if (futureType is FutureOrType) {
+        return _withDeclaredNullability(futureType.typeArgument, t.nullability);
+      } else {
+        return t;
       }
     }
-
-    // otherwise flatten(T) = T
-    return t;
   }
 
   /// True if [member] is a binary operator whose return type is defined by
@@ -544,6 +578,9 @@ abstract class StaticTypeContext {
   /// The static type of a `this` expression.
   InterfaceType? get thisType;
 
+  /// The enclosing library of this context.
+  Library get enclosingLibrary;
+
   /// Creates a static type context for computing static types in the body
   /// of [member].
   factory StaticTypeContext(Member member, TypeEnvironment typeEnvironment,
@@ -603,19 +640,28 @@ class StaticTypeContextImpl implements StaticTypeContext {
 
   /// Creates a static type context for computing static types in the body
   /// of [member].
-  StaticTypeContextImpl(Member member, this.typeEnvironment,
+  StaticTypeContextImpl(Member member, TypeEnvironment typeEnvironment,
       {StaticTypeCache? cache})
-      : _library = member.enclosingLibrary,
-        thisType = member.enclosingClass?.getThisType(
-            typeEnvironment.coreTypes, member.enclosingLibrary.nonNullable),
-        _cache = cache;
+      : this.direct(member.enclosingLibrary, typeEnvironment,
+            thisType: member.enclosingClass?.getThisType(
+                typeEnvironment.coreTypes, member.enclosingLibrary.nonNullable),
+            cache: cache);
+
+  /// Creates a static type context for computing static types in the body of
+  /// a member, provided the enclosing [_library] and [thisType].
+  StaticTypeContextImpl.direct(this._library, this.typeEnvironment,
+      {this.thisType, StaticTypeCache? cache})
+      : _cache = cache;
 
   /// Creates a static type context for computing static types of annotations
   /// in [library].
-  StaticTypeContextImpl.forAnnotations(this._library, this.typeEnvironment,
+  StaticTypeContextImpl.forAnnotations(
+      Library library, TypeEnvironment typeEnvironment,
       {StaticTypeCache? cache})
-      : thisType = null,
-        _cache = cache;
+      : this.direct(library, typeEnvironment, cache: cache);
+
+  @override
+  Library get enclosingLibrary => _library;
 
   /// The [Nullability] used for non-nullable types.
   ///
@@ -721,6 +767,9 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   _FlatStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
       : super._internal(typeEnvironment);
 
+  @override
+  Library get enclosingLibrary => _library;
+
   Library get _library {
     Library? library = _currentLibrary ?? _currentMember?.enclosingLibrary;
     assert(library != null,
@@ -825,6 +874,9 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
 
   _StackedStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
       : super._internal(typeEnvironment);
+
+  @override
+  Library get enclosingLibrary => _library;
 
   Library get _library {
     assert(_contextStack.isNotEmpty,

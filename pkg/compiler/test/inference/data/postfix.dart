@@ -84,7 +84,7 @@ class Class1 {
 
 /*member: instanceFieldPostfixInc:[subclass=JSPositiveInt]*/
 instanceFieldPostfixInc() {
-  var c = new Class1();
+  var c = Class1();
   if (c. /*[exact=Class1]*/ field1 == null) {
     c. /*update: [exact=Class1]*/ field1 = 0;
   }
@@ -106,7 +106,7 @@ class Class2 {
 
 /*member: instanceFieldPostfixDec:[subclass=JSInt]*/
 instanceFieldPostfixDec() {
-  var c = new Class2();
+  var c = Class2();
   if (c. /*[exact=Class2]*/ field2 == null) {
     c. /*update: [exact=Class2]*/ field2 = 0;
   }
@@ -128,7 +128,7 @@ class Class3 {
 
 /*member: conditionalInstanceFieldPostfixInc:[null|subclass=JSPositiveInt]*/
 conditionalInstanceFieldPostfixInc() {
-  var c = new Class3();
+  var c = Class3();
   if (c. /*[exact=Class3]*/ field3 == null) {
     c. /*update: [exact=Class3]*/ field3 = 0;
   }
@@ -150,7 +150,7 @@ class Class4 {
 
 /*member: conditionalInstanceFieldPostfixDec:[null|subclass=JSInt]*/
 conditionalInstanceFieldPostfixDec() {
-  var c = new Class4();
+  var c = Class4();
   if (c. /*[exact=Class4]*/ field4 == null) {
     c. /*update: [exact=Class4]*/ field4 = 0;
   }

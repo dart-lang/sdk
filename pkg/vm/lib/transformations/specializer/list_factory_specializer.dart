@@ -9,8 +9,6 @@ import 'package:vm/transformations/specializer/factory_specializer.dart';
 /// Replaces invocation of List factory constructors with
 /// factories of VM-specific classes.
 ///
-/// new List() => new _GrowableList(0)
-/// new List(n) => new _List(n)
 /// new List.empty() => new _List.empty()
 /// new List.empty(growable: false) => new _List.empty()
 /// new List.empty(growable: true) => new _GrowableList.empty()
@@ -22,7 +20,6 @@ import 'package:vm/transformations/specializer/factory_specializer.dart';
 /// new List.generate(n, y, growable: false) => new _List.generate(n, y)
 ///
 class ListFactorySpecializer extends BaseSpecializer {
-  final Procedure _defaultListFactory;
   final Procedure _listEmptyFactory;
   final Procedure _listFilledFactory;
   final Procedure _listGenerateFactory;
@@ -36,9 +33,7 @@ class ListFactorySpecializer extends BaseSpecializer {
   final Procedure _fixedListGenerateFactory;
 
   ListFactorySpecializer(CoreTypes coreTypes)
-      : _defaultListFactory =
-            coreTypes.index.getProcedure('dart:core', 'List', ''),
-        _listEmptyFactory =
+      : _listEmptyFactory =
             coreTypes.index.getProcedure('dart:core', 'List', 'empty'),
         _listFilledFactory =
             coreTypes.index.getProcedure('dart:core', 'List', 'filled'),
@@ -60,7 +55,6 @@ class ListFactorySpecializer extends BaseSpecializer {
             coreTypes.index.getProcedure('dart:core', '_List', 'filled'),
         _fixedListGenerateFactory =
             coreTypes.index.getProcedure('dart:core', '_List', 'generate') {
-    assert(_defaultListFactory.isFactory);
     assert(_listEmptyFactory.isFactory);
     assert(_listFilledFactory.isFactory);
     assert(_listGenerateFactory.isFactory);
@@ -73,23 +67,10 @@ class ListFactorySpecializer extends BaseSpecializer {
     assert(_fixedListFilledFactory.isFactory);
     assert(_fixedListGenerateFactory.isFactory);
     transformers.addAll({
-      _defaultListFactory: transformDefaultFactory,
       _listEmptyFactory: transformListEmptyFactory,
       _listFilledFactory: transformListFilledFactory,
       _listGenerateFactory: transformListGeneratorFactory,
     });
-  }
-
-  TreeNode transformDefaultFactory(StaticInvocation node) {
-    final args = node.arguments;
-    if (args.positional.isEmpty) {
-      return StaticInvocation(_growableListFactory,
-          Arguments([new IntLiteral(0)], types: args.types))
-        ..fileOffset = node.fileOffset;
-    } else {
-      return StaticInvocation(_fixedListFactory, args)
-        ..fileOffset = node.fileOffset;
-    }
   }
 
   TreeNode transformListEmptyFactory(StaticInvocation node) {
@@ -116,8 +97,7 @@ class ListFactorySpecializer extends BaseSpecializer {
     assert(args.positional.length == 2);
     final length = args.positional[0];
     final fill = args.positional[1];
-    final fillingWithNull = fill is NullLiteral ||
-        (fill is ConstantExpression && fill.constant is NullConstant);
+    final fillingWithNull = _isNullConstant(fill);
     final bool? growable =
         _getConstantOptionalArgument(args, 'growable', false);
     if (growable == null) {
@@ -176,7 +156,7 @@ class ListFactorySpecializer extends BaseSpecializer {
     }
     final namedArg = args.named.single;
     assert(namedArg.name == name);
-    final value = namedArg.value;
+    final value = _unwrapFinalVariableGet(namedArg.value);
     if (value is BoolLiteral) {
       return value.value;
     } else if (value is ConstantExpression) {
@@ -186,5 +166,27 @@ class ListFactorySpecializer extends BaseSpecializer {
       }
     }
     return null;
+  }
+
+  bool _isNullConstant(Expression value) {
+    value = _unwrapFinalVariableGet(value);
+    return value is NullLiteral ||
+        (value is ConstantExpression && value.constant is NullConstant);
+  }
+
+  // Front-end can create extra temporary variables ("Let v = e, call(v)")
+  // to hoist expressions when rearraning named parameters.
+  // Unwrap such variables and return their initializers.
+  Expression _unwrapFinalVariableGet(Expression expr) {
+    if (expr is VariableGet) {
+      final variable = expr.variable;
+      if (variable.isFinal) {
+        final initializer = variable.initializer;
+        if (initializer != null) {
+          return initializer;
+        }
+      }
+    }
+    return expr;
   }
 }

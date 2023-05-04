@@ -30,8 +30,8 @@ const B = a.V;
       error(
           CompileTimeErrorCode
               .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
-          58,
-          3),
+          60,
+          1),
     ]);
   }
 
@@ -48,8 +48,8 @@ const B = a.V + 1;
       error(
           CompileTimeErrorCode
               .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
-          58,
-          7),
+          60,
+          1),
     ]);
   }
 }

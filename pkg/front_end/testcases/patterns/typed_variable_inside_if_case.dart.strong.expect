@@ -3,11 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
-  final dynamic #t1 = x;
-  final dynamic #t2 = #t1;
-  if(#t2 is core::int) {
-    {
-      core::int y = #t2{core::int};
+  {
+    hoisted core::int y;
+    final synthesized dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = y = #0#0{core::int} in true)) {
     }
   }
 }

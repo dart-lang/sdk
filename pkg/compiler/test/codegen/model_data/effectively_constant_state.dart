@@ -86,7 +86,7 @@ class Class {
 
 /*member: main:calls=*,params=0*/
 main() {
-  var c = new Class();
+  var c = Class();
   c.method1a();
   c.method1b();
   c.method2a();

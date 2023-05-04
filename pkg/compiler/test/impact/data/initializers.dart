@@ -136,7 +136,7 @@ class ClassFieldInitializer1 {
   inst:JSUInt31,
   inst:JSUInt32]
 */
-testFieldInitializer1() => new ClassFieldInitializer1(42);
+testFieldInitializer1() => ClassFieldInitializer1(42);
 
 class ClassFieldInitializer2 {
   /*member: ClassFieldInitializer2.field:type=[inst:JSNull]*/
@@ -156,7 +156,7 @@ class ClassFieldInitializer2 {
   inst:JSUInt31,
   inst:JSUInt32]
 */
-testFieldInitializer2() => new ClassFieldInitializer2(42);
+testFieldInitializer2() => ClassFieldInitializer2(42);
 
 class ClassFieldInitializer3 {
   /*member: ClassFieldInitializer3.field:type=[inst:JSNull]*/
@@ -182,8 +182,8 @@ class ClassFieldInitializer3 {
   inst:JSUInt32]
 */
 testFieldInitializer3() {
-  new ClassFieldInitializer3.a();
-  new ClassFieldInitializer3.b(42);
+  ClassFieldInitializer3.a();
+  ClassFieldInitializer3.b(42);
 }
 
 /*member: ClassInstanceFieldWithInitializer.:static=[Object.(0)]*/
@@ -234,7 +234,7 @@ class ClassInstanceFieldWithInitializer {
 }
 
 /*member: testInstanceFieldWithInitializer:static=[ClassInstanceFieldWithInitializer.(0)]*/
-testInstanceFieldWithInitializer() => new ClassInstanceFieldWithInitializer();
+testInstanceFieldWithInitializer() => ClassInstanceFieldWithInitializer();
 
 /*member: ClassInstanceFieldTyped.:static=[Object.(0)]*/
 class ClassInstanceFieldTyped {
@@ -285,7 +285,7 @@ class ClassInstanceFieldTyped {
 }
 
 /*member: testInstanceFieldTyped:static=[ClassInstanceFieldTyped.(0)]*/
-testInstanceFieldTyped() => new ClassInstanceFieldTyped();
+testInstanceFieldTyped() => ClassInstanceFieldTyped();
 
 class ClassThisInitializer {
   /*member: ClassThisInitializer.:static=[ClassThisInitializer.internal(0)]*/
@@ -296,7 +296,7 @@ class ClassThisInitializer {
 }
 
 /*member: testThisInitializer:static=[ClassThisInitializer.(0)]*/
-testThisInitializer() => new ClassThisInitializer();
+testThisInitializer() => ClassThisInitializer();
 
 class ClassSuperInitializer extends ClassThisInitializer {
   /*member: ClassSuperInitializer.:static=[ClassThisInitializer.internal(0)]*/
@@ -304,7 +304,7 @@ class ClassSuperInitializer extends ClassThisInitializer {
 }
 
 /*member: testSuperInitializer:static=[ClassSuperInitializer.(0)]*/
-testSuperInitializer() => new ClassSuperInitializer();
+testSuperInitializer() => ClassSuperInitializer();
 
 class ClassGeneric<T> {
   /*member: ClassGeneric.:
@@ -371,4 +371,4 @@ class ClassGeneric<T> {
   inst:JSUInt31,
   inst:JSUInt32]
 */
-testGenericClass() => new ClassGeneric<int>(0);
+testGenericClass() => ClassGeneric<int>(0);

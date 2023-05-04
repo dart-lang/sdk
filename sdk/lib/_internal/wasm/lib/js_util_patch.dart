@@ -4,18 +4,17 @@
 
 library dart.js_util;
 
-import "dart:_js_annotations" as js;
 import "dart:_internal";
 import "dart:_js_helper";
+import "dart:_js_types";
+import "dart:_wasm";
 import "dart:async" show Completer, FutureOr;
 import "dart:collection";
 import "dart:typed_data";
-import "dart:wasm";
 
 @patch
 dynamic jsify(Object? object) {
-  HashMap<Object?, Object?> convertedObjects =
-      HashMap<Object?, Object?>.identity();
+  final convertedObjects = HashMap<Object?, Object?>.identity();
   Object? convert(Object? o) {
     if (convertedObjects.containsKey(o)) {
       return convertedObjects[o];
@@ -24,7 +23,6 @@ dynamic jsify(Object? object) {
     if (o == null ||
         o is num ||
         o is bool ||
-        o is Function ||
         o is JSValue ||
         o is String ||
         o is Int8List ||
@@ -38,28 +36,28 @@ dynamic jsify(Object? object) {
         o is Float64List ||
         o is ByteBuffer ||
         o is ByteData) {
-      return JSValue.box(jsifyRaw(o));
+      return JSValue(jsifyRaw(o));
     }
 
-    if (o is Map) {
-      JSValue convertedMap = newObject<JSValue>();
+    if (o is Map<Object?, Object?>) {
+      final convertedMap = newObject<JSValue>();
       convertedObjects[o] = convertedMap;
       for (final key in o.keys) {
-        JSValue? convertedKey = convert(key) as JSValue?;
-        setPropertyRaw(convertedMap.toExternRef(), convertedKey?.toExternRef(),
-            (convert(o[key]) as JSValue?)?.toExternRef());
+        final convertedKey = convert(key) as JSValue?;
+        setPropertyRaw(convertedMap.toExternRef, convertedKey?.toExternRef,
+            (convert(o[key]) as JSValue?)?.toExternRef);
       }
       return convertedMap;
-    } else if (o is Iterable) {
-      JSValue convertedIterable = _newArray();
+    } else if (o is Iterable<Object?>) {
+      final convertedIterable = _newArray();
       convertedObjects[o] = convertedIterable;
-      for (Object? item in o) {
+      for (final item in o) {
         callMethod(convertedIterable, 'push', [convert(item)]);
       }
       return convertedIterable;
     } else {
       // None of the objects left will require recursive conversions.
-      return JSValue.box(jsifyRaw(o));
+      return JSValue(jsifyRaw(o));
     }
   }
 
@@ -67,37 +65,37 @@ dynamic jsify(Object? object) {
 }
 
 @patch
-Object get globalThis => JSValue(globalThisRaw()!);
+Object get globalThis => JSValue(globalThisRaw());
 
 @patch
-T newObject<T>() => JSValue(newObjectRaw()!) as T;
+T newObject<T>() => JSValue(newObjectRaw()) as T;
 
-JSValue _newArray() => JSValue(newArrayRaw()!);
-
-@patch
-bool hasProperty(Object o, String name) =>
-    hasPropertyRaw(jsifyRaw(o)!, name.toJS().toExternRef());
+JSValue _newArray() => JSValue(newArrayRaw());
 
 @patch
-T getProperty<T>(Object o, String name) =>
-    dartifyRaw(getPropertyRaw(jsifyRaw(o)!, name.toJS().toExternRef())) as T;
+bool hasProperty(Object o, Object name) =>
+    hasPropertyRaw(jsifyRaw(o), jsifyRaw(name));
 
 @patch
-T setProperty<T>(Object o, String name, T? value) => dartifyRaw(setPropertyRaw(
-    jsifyRaw(o)!, name.toJS().toExternRef(), jsifyRaw(value))) as T;
+T getProperty<T>(Object o, Object name) =>
+    dartifyRaw(getPropertyRaw(jsifyRaw(o), jsifyRaw(name))) as T;
 
 @patch
-T callMethod<T>(Object o, String method, List<Object?> args) =>
-    dartifyRaw(callMethodVarArgsRaw(jsifyRaw(o)!, method.toJS().toExternRef(),
-        args.toJS().toExternRef())) as T;
+T setProperty<T>(Object o, Object name, T? value) =>
+    dartifyRaw(setPropertyRaw(jsifyRaw(o), jsifyRaw(name), jsifyRaw(value)))
+        as T;
+
+@patch
+T callMethod<T>(Object o, Object method, List<Object?> args) => dartifyRaw(
+    callMethodVarArgsRaw(jsifyRaw(o), jsifyRaw(method), jsifyRaw(args))) as T;
 
 @patch
 bool instanceof(Object? o, Object type) =>
-    instanceofRaw(jsifyRaw(o), jsifyRaw(type));
+    JS<bool>("(o, t) => o instanceof t", jsifyRaw(o), jsifyRaw(type));
 
 @patch
-T callConstructor<T>(Object o, List<Object?> args) => dartifyRaw(
-    callConstructorVarArgsRaw(jsifyRaw(o)!, args.toJS().toExternRef()))! as T;
+T callConstructor<T>(Object o, List<Object?>? args) =>
+    dartifyRaw(callConstructorVarArgsRaw(jsifyRaw(o), jsifyRaw(args))) as T;
 
 @patch
 T add<T>(Object? first, Object? second) => throw 'unimplemented';
@@ -142,6 +140,10 @@ bool lessThan<T>(Object? first, Object? second) => throw 'unimplemented';
 @patch
 bool lessThanOrEqual<T>(Object? first, Object? second) => throw 'unimplemented';
 
+@patch
+bool typeofEquals<T>(Object? o, String type) =>
+    JS<bool>('(o, t) => typeof o === t', jsifyRaw(o), jsifyRaw(type));
+
 typedef _PromiseSuccessFunc = void Function(Object? value);
 typedef _PromiseFailureFunc = void Function(Object? error);
 
@@ -149,10 +151,10 @@ typedef _PromiseFailureFunc = void Function(Object? error);
 Future<T> promiseToFuture<T>(Object jsPromise) {
   Completer<T> completer = Completer<T>();
 
-  final success = js.allowInterop<_PromiseSuccessFunc>((r) {
+  final success = allowInterop<_PromiseSuccessFunc>((r) {
     return completer.complete(r as FutureOr<T>?);
   });
-  final error = js.allowInterop<_PromiseFailureFunc>((e) {
+  final error = allowInterop<_PromiseFailureFunc>((e) {
     // Note that `completeError` expects a non-nullable error regardless of
     // whether null-safety is enabled, so a `NullRejectionException` is always
     // provided if the error is `null` or `undefined`.
@@ -160,12 +162,12 @@ Future<T> promiseToFuture<T>(Object jsPromise) {
     // so we cannot tell them apart. In the future we should reify `undefined`
     // in Dart.
     if (e == null) {
-      return completer.completeError(NullRejectionException._(false));
+      return completer.completeError(NullRejectionException(false));
     }
     return completer.completeError(e);
   });
 
-  promiseThen(jsifyRaw(jsPromise)!, jsifyRaw(success)!, jsifyRaw(error)!);
+  promiseThen(jsifyRaw(jsPromise), jsifyRaw(success), jsifyRaw(error));
   return completer.future;
 }
 
@@ -176,13 +178,13 @@ Object? objectGetPrototypeOf(Object? object) => throw 'unimplemented';
 Object? get objectPrototype => throw 'unimplemented';
 
 @patch
-List<Object?> objectKeys(Object? object) =>
-    dartifyRaw(objectKeysRaw(jsifyRaw(object))) as List<Object?>;
+List<Object?> objectKeys(Object? o) =>
+    dartifyRaw(JS<WasmExternRef?>('o => Object.keys(o)', jsifyRaw(o)))
+        as List<Object?>;
 
 @patch
 Object? dartify(Object? object) {
-  HashMap<Object?, Object?> convertedObjects =
-      HashMap<Object?, Object?>.identity();
+  final convertedObjects = HashMap<Object?, Object?>.identity();
   Object? convert(Object? o) {
     if (convertedObjects.containsKey(o)) {
       return convertedObjects[o];
@@ -191,8 +193,8 @@ Object? dartify(Object? object) {
     // Because [List] needs to be shallowly converted across the interop
     // boundary, we have to double check for the case where a shallowly
     // converted [List] is passed back into [dartify].
-    if (o is List) {
-      List<Object?> converted = [];
+    if (o is List<Object?>) {
+      final converted = <Object?>[];
       for (final item in o) {
         converted.add(convert(item));
       }
@@ -203,8 +205,9 @@ Object? dartify(Object? object) {
       return o;
     }
 
-    WasmExternRef ref = o.toExternRef();
-    if (isJSBoolean(ref) ||
+    WasmExternRef? ref = o.toExternRef;
+    if (ref.isNull ||
+        isJSBoolean(ref) ||
         isJSNumber(ref) ||
         isJSString(ref) ||
         isJSUndefined(ref) ||
@@ -228,24 +231,24 @@ Object? dartify(Object? object) {
     // TODO(joshualitt) handle Date and Promise.
 
     if (isJSSimpleObject(ref)) {
-      Map<Object?, Object?> dartMap = {};
+      final dartMap = <Object?, Object?>{};
       convertedObjects[o] = dartMap;
       // Keys will be a list of Dart [String]s.
-      List<Object?> keys = objectKeys(o);
+      final keys = objectKeys(o);
       for (int i = 0; i < keys.length; i++) {
-        Object? key = keys[i];
+        final key = keys[i];
         if (key != null) {
-          dartMap[key] = convert(
-              JSValue.box(getPropertyRaw(ref, (key as String).toExternRef())));
+          dartMap[key] =
+              convert(JSValue.box(getPropertyRaw(ref, jsifyRaw(key))));
         }
       }
       return dartMap;
     } else if (isJSArray(ref)) {
-      List<Object?> dartList = [];
+      final dartList = <Object?>[];
       convertedObjects[o] = dartList;
-      int length = getProperty<double>(o, 'length').toInt();
+      final length = getProperty<double>(o, 'length').toInt();
       for (int i = 0; i < length; i++) {
-        dartList.add(convert(JSValue.box(objectReadIndex(ref, i))));
+        dartList.add(convert(JSValue.box(objectReadIndex(ref, i.toDouble()))));
       }
       return dartList;
     } else {
@@ -255,3 +258,10 @@ Object? dartify(Object? object) {
 
   return convert(object);
 }
+
+/// This will be lowered to a a call to `_wrapDartCallback`.
+@patch
+F allowInterop<F extends Function>(F f) => throw UnimplementedError();
+
+@patch
+Function allowInteropCaptureThis(Function f) => throw UnimplementedError();

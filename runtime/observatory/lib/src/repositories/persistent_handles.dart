@@ -7,7 +7,6 @@ part of repositories;
 class PersistentHandlesRepository implements M.PersistentHandlesRepository {
   Future<M.PersistentHandles> get(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     final response = await isolate.invokeRpc('_getPersistentHandles', {});
     return new S.PersistentHandles(response as S.ServiceMap);
   }

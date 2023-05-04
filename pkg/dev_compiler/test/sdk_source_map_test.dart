@@ -5,17 +5,23 @@
 import 'dart:io';
 
 import 'package:expect/expect.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' as sm;
 
+/// Verifies that the compiled SDK modules used in the SDK test suites have
+/// source maps, and those mappings correctly point to the .dart source files.
+///
+/// There are no longer any precompiled SDK modules distributed with the Dart
+/// SDK so this test depends on built assets from the gen/utils/dartdevc
+/// directory.
 void main() async {
-  final binDir = p.dirname(Platform.resolvedExecutable);
-  final sdkDir = p.dirname(binDir);
-  // This test expects to run in a build SDK.
-  Expect.isTrue(binDir.endsWith('bin'));
-
-  final sdkJsMapDir =
-      p.joinAll([sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd']);
+  // This test relies on source maps for the built SDK when working inside the
+  // Dart SDK repo.
+  final buildDir = computePlatformBinariesLocation(forceBuildDir: true);
+  final sdkJsMapDir = buildDir
+      .resolve(p.joinAll(['gen', 'utils', 'dartdevc', 'sound', 'amd']))
+      .toFilePath();
   final sdkJsMapFile = p.join(sdkJsMapDir, 'dart_sdk.js.map');
 
   final sdkJsMapText = await File(sdkJsMapFile).readAsString();

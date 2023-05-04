@@ -7,10 +7,12 @@ library dart._interceptors;
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
 import 'dart:_js_helper';
-import 'dart:_foreign_helper' show JS, JS_GET_FLAG, JSExportName;
+import 'dart:_foreign_helper'
+    show JS, JS_EMBEDDED_GLOBAL, JS_GET_FLAG, JSExportName;
 import 'dart:math' show Random, ln2;
 import 'dart:_rti' as rti show createRuntimeType, Rti;
 import 'dart:_runtime' as dart;
+import 'dart:_js_shared_embedded_names' show ARRAY_RTI_PROPERTY;
 
 part 'js_array.dart';
 part 'js_number.dart';
@@ -28,7 +30,7 @@ abstract class Interceptor {
  * The interceptor class for [bool].
  */
 @JsPeerInterface(name: 'Boolean')
-class JSBool extends Interceptor implements bool {
+final class JSBool extends Interceptor implements bool {
   const JSBool();
 
   // Note: if you change this, also change the function [S].
@@ -82,9 +84,8 @@ abstract class JSObject {}
 /// Superclass of all interop objects and native types defined in the web
 /// libraries.
 ///
-/// This is the class static interop classes erase to and the class interop
-/// extension types should use as the on-type.
-class JavaScriptObject extends Interceptor {
+/// This is the class @staticInterop classes erase to.
+class JavaScriptObject extends Interceptor implements JSObject {
   const JavaScriptObject();
 }
 
@@ -92,7 +93,7 @@ class JavaScriptObject extends Interceptor {
 /// specific native type.
 ///
 /// Note that this used to be `JavaScriptObject`.
-class LegacyJavaScriptObject extends JavaScriptObject implements JSObject {
+class LegacyJavaScriptObject extends JavaScriptObject {
   const LegacyJavaScriptObject();
 }
 
@@ -115,7 +116,8 @@ class UnknownJavaScriptObject extends LegacyJavaScriptObject {
   const UnknownJavaScriptObject();
 }
 
-class NativeError extends Interceptor {
+@JsPeerInterface(name: 'Error')
+class NativeError extends JavaScriptObject {
   String dartStack() => JS<String>('!', '#.stack', this);
 }
 
@@ -285,7 +287,7 @@ final Object jsNull = JSNull();
 // Note that this needs to be in interceptors.dart in order for
 // it to be picked up as an extension type.
 @JsPeerInterface(name: 'RangeError')
-class JSRangeError extends Interceptor implements ArgumentError {
+class JSRangeError extends JavaScriptObject implements ArgumentError {
   StackTrace get stackTrace => dart.stackTrace(this);
 
   get invalidValue => null;
@@ -306,7 +308,7 @@ getNativeInterceptor(object) {}
 setDispatchProperty(object, value) {}
 
 // Added to allow dart2js and dartdevc to share tests
-// TODO(sigmund): revisit whether this method is still needed after reoganizing
+// TODO(sigmund): revisit whether this method is still needed after reorganizing
 // all web tests.
 findInterceptorForType(Type? type) {}
 

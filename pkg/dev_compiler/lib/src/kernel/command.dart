@@ -32,9 +32,7 @@ import 'module_symbols.dart';
 import 'module_symbols_collector.dart';
 import 'target.dart';
 
-const _binaryName = 'dartdevc -k';
-
-// ignore_for_file: DEPRECATED_MEMBER_USE
+const _binaryName = 'dartdevc';
 
 /// Invoke the compiler with [args].
 ///
@@ -106,34 +104,18 @@ Future<CompilerResult> _compile(List<String> args,
         help: 'The directories to search when encountering uris with the '
             'specified multi-root scheme.',
         defaultsTo: [Uri.base.path])
-    ..addOption('dart-sdk',
-        help: '(unsupported with --kernel) path to the Dart SDK.', hide: true)
     ..addFlag('compile-sdk',
         help: 'Build an SDK module.', defaultsTo: false, hide: true)
     ..addOption('libraries-file',
         help: 'The path to the libraries.json file for the sdk.')
     ..addOption('used-inputs-file',
-        help: 'If set, the file to record inputs used.', hide: true)
-    ..addFlag('kernel',
-        abbr: 'k',
-        help: 'Deprecated and ignored. To be removed in a future release.',
-        hide: true);
+        help: 'If set, the file to record inputs used.', hide: true);
   SharedCompilerOptions.addArguments(argParser);
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
   ArgResults argResults;
   try {
     argResults = argParser.parse(filterUnknownArguments(args, argParser));
   } on FormatException catch (error) {
-    if (args.any((arg) => arg.contains('ddc_sdk.sum'))) {
-      print('Compiling with analyzer based DDC is no longer supported.\n');
-      print('The most likely reason you are seeing this message is due to an '
-          'old version of build_web_compilers.');
-      print('Update your package pubspec.yaml to depend on a newer version of '
-          'build_web_compilers:\n\n'
-          'dev_dependency:\n'
-          '  build_web_compilers: ^2.0.0\n');
-      return CompilerResult(64);
-    }
     print(error);
     print(_usageMessage(argParser));
     return CompilerResult(64);
@@ -157,6 +139,29 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var options = SharedCompilerOptions.fromArguments(argResults);
+  addGeneratedVariables(declaredVariables,
+      enableAsserts: options.enableAsserts);
+
+  Uri toCustomUri(Uri uri) {
+    if (!uri.hasScheme) {
+      return Uri(scheme: options.multiRootScheme, path: '/${uri.path}');
+    }
+    return uri;
+  }
+
+  // TODO(jmesserly): this is a workaround for the CFE, which does not
+  // understand relative URIs, and we'd like to avoid absolute file URIs
+  // being placed in the summary if possible.
+  // TODO(jmesserly): investigate if Analyzer has a similar issue.
+  Uri sourcePathToCustomUri(String source) {
+    return toCustomUri(sourcePathToRelativeUri(source));
+  }
+
+  // Compile SDK module directly from a provided .dill file.
+  var inputs = [for (var arg in argResults.rest) sourcePathToCustomUri(arg)];
+  if (inputs.length == 1 && inputs.single.path.endsWith('.dill')) {
+    return compileSdkFromDill(args);
+  }
 
   // To make the output .dill agnostic of the current working directory,
   // we use a custom-uri scheme for all app URIs (these are files outside the
@@ -180,42 +185,34 @@ Future<CompilerResult> _compile(List<String> args,
 
   var fileSystem = MultiRootFileSystem(
       options.multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
-
-  Uri toCustomUri(Uri uri) {
-    if (!uri.hasScheme) {
-      return Uri(scheme: options.multiRootScheme, path: '/${uri.path}');
-    }
-    return uri;
-  }
-
-  // TODO(jmesserly): this is a workaround for the CFE, which does not
-  // understand relative URIs, and we'd like to avoid absolute file URIs
-  // being placed in the summary if possible.
-  // TODO(jmesserly): investigate if Analyzer has a similar issue.
-  Uri sourcePathToCustomUri(String source) {
-    return toCustomUri(sourcePathToRelativeUri(source));
-  }
-
   var summaryPaths = options.summaryModules.keys.toList();
   var summaryModules = Map.fromIterables(
       summaryPaths.map(sourcePathToUri).cast<Uri>(),
       options.summaryModules.values);
   var sdkSummaryPath = argResults['dart-sdk-summary'] as String?;
   var librarySpecPath = argResults['libraries-file'] as String?;
+  var compileSdk = argResults['compile-sdk'] == true;
   if (sdkSummaryPath == null) {
-    sdkSummaryPath =
-        defaultSdkSummaryPath(soundNullSafety: options.soundNullSafety);
-    librarySpecPath ??= defaultLibrarySpecPath;
+    if (!compileSdk) {
+      if (!options.soundNullSafety) {
+        // Technically if you can produce an SDK outline .dill and pass it
+        // this error can be avoided and the compile will still work for now.
+        // If you are reading this comment be warned, this loophole will be
+        // removed without warning in the future.
+        print('Dart 3 only supports sound null safety, '
+            'see https://dart.dev/null-safety.\n');
+        return CompilerResult(64);
+      }
+      sdkSummaryPath = defaultSdkSummaryPath;
+      librarySpecPath ??= defaultLibrarySpecPath;
+    }
+    // Compiling without manually passing or getting a default SDK summary is
+    // only allowed when `compileSdk` is true.
   }
   var invalidSummary = summaryPaths.any((s) => !s.endsWith('.dill')) ||
-      !sdkSummaryPath.endsWith('.dill');
+      (sdkSummaryPath != null && !sdkSummaryPath.endsWith('.dill'));
   if (invalidSummary) {
     throw StateError('Non-dill file detected in input: $summaryPaths');
-  }
-
-  var inputs = [for (var arg in argResults.rest) sourcePathToCustomUri(arg)];
-  if (inputs.length == 1 && inputs.single.path.endsWith('.dill')) {
-    return compileSdkFromDill(args);
   }
 
   if (librarySpecPath == null) {
@@ -228,10 +225,12 @@ Future<CompilerResult> _compile(List<String> args,
     // (if the user is doing something custom).
     //
     // Another option: we could make an in-memory file with the relevant info.
-    librarySpecPath =
-        p.join(p.dirname(p.dirname(sdkSummaryPath)), 'libraries.json');
+    librarySpecPath = p.join(
+        p.dirname(p.dirname(sdkSummaryPath ?? defaultSdkSummaryPath)),
+        'libraries.json');
     if (!File(librarySpecPath).existsSync()) {
-      librarySpecPath = p.join(p.dirname(sdkSummaryPath), 'libraries.json');
+      librarySpecPath = p.join(
+          p.dirname(sdkSummaryPath ?? defaultSdkSummaryPath), 'libraries.json');
     }
   }
 
@@ -263,8 +262,6 @@ Future<CompilerResult> _compile(List<String> args,
       onError: stderr.writeln, onWarning: print);
 
   var trackWidgetCreation = argResults['track-widget-creation'] as bool;
-
-  var compileSdk = argResults['compile-sdk'] == true;
   var oldCompilerState = compilerState;
   var recordUsedInputs = argResults['used-inputs-file'] != null;
   var additionalDills = summaryModules.keys.toList();
@@ -280,13 +277,13 @@ Future<CompilerResult> _compile(List<String> args,
         oldCompilerState,
         compileSdk,
         sourcePathToUri(getSdkPath()),
-        compileSdk ? null : sourcePathToUri(sdkSummaryPath),
+        compileSdk ? null : sourcePathToUri(sdkSummaryPath!),
         packageFile != null ? sourcePathToUri(packageFile) : null,
         sourcePathToUri(librarySpecPath),
         additionalDills,
         DevCompilerTarget(TargetFlags(
             trackWidgetCreation: trackWidgetCreation,
-            enableNullSafety: options.soundNullSafety)),
+            soundNullSafety: options.soundNullSafety)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
@@ -302,7 +299,7 @@ Future<CompilerResult> _compile(List<String> args,
       oldCompilerState = null;
 
       if (!compileSdk) {
-        inputDigests[sourcePathToUri(sdkSummaryPath)] = const [0];
+        inputDigests[sourcePathToUri(sdkSummaryPath!)] = const [0];
       }
       for (var uri in summaryModules.keys) {
         inputDigests[uri] = const [0];
@@ -320,14 +317,14 @@ Future<CompilerResult> _compile(List<String> args,
         doneAdditionalDills,
         compileSdk,
         sourcePathToUri(getSdkPath()),
-        compileSdk ? null : sourcePathToUri(sdkSummaryPath),
+        compileSdk ? null : sourcePathToUri(sdkSummaryPath!),
         packageFile != null ? sourcePathToUri(packageFile) : null,
         sourcePathToUri(librarySpecPath),
         additionalDills,
         inputDigests,
         DevCompilerTarget(TargetFlags(
             trackWidgetCreation: trackWidgetCreation,
-            enableNullSafety: options.soundNullSafety)),
+            soundNullSafety: options.soundNullSafety)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
@@ -335,8 +332,9 @@ Future<CompilerResult> _compile(List<String> args,
         nnbdMode:
             options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
     var incrementalCompiler = compilerState.incrementalCompiler!;
-    var cachedSdkInput =
-        compilerState.workerInputCache![sourcePathToUri(sdkSummaryPath)];
+    var cachedSdkInput = compileSdk
+        ? null
+        : compilerState.workerInputCache![sourcePathToUri(sdkSummaryPath!)];
     compilerState.options.onDiagnostic = diagnosticMessageHandler;
     var incrementalCompilerResult = await incrementalCompiler.computeDelta(
         entryPoints: inputs,
@@ -754,7 +752,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 /// names used when outputting the JavaScript.
 ModuleSymbols _emitSymbols(ProgramCompiler compiler, String moduleName,
     Map<js_ast.Identifier, String> identifierNames, Component component) {
-  /// Returns the name selected in the final Javascript for [id].
+  /// Returns the name selected in the final JavaScript for [id].
   String lookupName(js_ast.Identifier id) {
     var name = identifierNames[id];
     if (name == null) {
@@ -837,12 +835,16 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   return declaredVariables;
 }
 
-/// The default path of the kernel summary for the Dart SDK given the
-/// [soundNullSafety] mode.
-String defaultSdkSummaryPath({required bool soundNullSafety}) {
-  var outlineDill = soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_sdk.dill';
-  return p.join(getSdkPath(), 'lib', '_internal', outlineDill);
+/// Adds all synthesized environment variables to [variables].
+Map<String, String> addGeneratedVariables(Map<String, String> variables,
+    {required bool enableAsserts}) {
+  variables['dart.web.assertions_enabled'] = '$enableAsserts';
+  return variables;
 }
+
+/// The default path of the kernel summary for the Dart SDK.
+final defaultSdkSummaryPath =
+    p.join(getSdkPath(), 'lib', '_internal', 'ddc_outline.dill');
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 

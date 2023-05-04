@@ -112,7 +112,7 @@ class ClassHierarchyNode {
   /// For instance `C` but _not_ `B` in:
   ///   class B {}
   ///   class C extends B {}
-  ///   main() => new C();
+  ///   main() => C();
   ///
   bool get isDirectlyInstantiated =>
       _mask.contains(Instantiation.DIRECTLY_INSTANTIATED);
@@ -177,7 +177,7 @@ class ClassHierarchyNode {
   ///   class A {}
   ///   class B extends A {}
   ///   class C extends B {}
-  ///   main() => [new B(), new C()];
+  ///   main() => [B(), C()];
   ///
   bool get isIndirectlyInstantiated => _instantiatedSubclassCount > 0;
 
@@ -865,7 +865,7 @@ class ClassHierarchyNodeIterable extends IterableBase<ClassEntity> {
   ClassHierarchyNodeIterable(this.root, this.mask, {this.includeRoot = true});
 
   @override
-  Iterator<ClassEntity> get iterator {
+  ClassHierarchyNodeIterator get iterator {
     return ClassHierarchyNodeIterator(this);
   }
 }
@@ -967,7 +967,7 @@ class SubtypesIterable extends IterableBase<ClassEntity> {
 }
 
 /// Iterator for the subtypes in a [ClassSet].
-class SubtypesIterator extends Iterator<ClassEntity> {
+class SubtypesIterator implements Iterator<ClassEntity> {
   final SubtypesIterable iterable;
   Iterator<ClassEntity>? elements;
   Iterator<ClassHierarchyNode>? hierarchyNodes;

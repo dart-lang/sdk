@@ -7,7 +7,6 @@ library repositories;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
-import 'dart:typed_data';
 import 'package:observatory_2/allocation_profile.dart';
 import 'package:observatory_2/sample_profile.dart';
 import 'package:observatory_2/object_graph.dart';

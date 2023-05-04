@@ -287,8 +287,12 @@ class RunningProcess {
                 command.executable.contains("SIMARM64C") ||
                 command.executable.contains("SIMRISCV64");
             if (configuration.windowsSdkPath != null) {
-              executable = configuration.windowsSdkPath! +
-                  "\\Debuggers\\${isX64 ? 'x64' : 'x86'}\\cdb.exe";
+              executable = [
+                configuration.windowsSdkPath!,
+                'Debuggers',
+                if (isX64) 'x64' else 'x86',
+                'cdb.exe',
+              ].join('\\');
               diagnostics.add("Using $executable to print stack traces");
             } else {
               diagnostics.add("win_sdk_path not found");

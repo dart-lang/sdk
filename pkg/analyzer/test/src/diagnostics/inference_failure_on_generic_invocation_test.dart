@@ -13,7 +13,7 @@ main() {
   });
 }
 
-/// Tests of HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION with the
+/// Tests of WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION with the
 /// "strict-inference" static analysis option.
 @reflectiveTest
 class InferenceFailureOnGenericInvocationTest extends PubPackageResolutionTest {
@@ -50,17 +50,7 @@ void f(void Function<T>()? m, void Function<T>() n) {
   (m ?? n)();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 56, 8),
-    ]);
-  }
-
-  test_genericFunctionExpression_noInference_topLevel() async {
-    await assertErrorsInCode('''
-int Function<T>()? m = <T>() => 1;
-int Function<T>() n = <T>() => 2;
-var x = (m ?? n)();
-''', [
-      error(HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 77, 8),
+      error(WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 56, 8),
     ]);
   }
 
@@ -78,7 +68,7 @@ void f() {
   (<T>() {})();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 13, 10),
+      error(WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 13, 10),
     ]);
   }
 }

@@ -21,7 +21,7 @@ import '../resident_frontend_utils.dart';
 import '../sdk.dart';
 import '../utils.dart';
 import '../vm_interop_handler.dart';
-import 'compile_server_shutdown.dart';
+import 'compilation_server.dart';
 
 class RunCommand extends DartdevCommand {
   static const bool isProductMode = bool.fromEnvironment('dart.vm.product');
@@ -55,16 +55,12 @@ class RunCommand extends DartdevCommand {
         negatable: false,
         help:
             'Enable faster startup times with the resident frontend compiler.\n'
-            "See 'dart ${CompileServerShutdownCommand.commandName} -h' for more information.",
+            "See 'dart ${CompilationServerCommand.commandName} -h' for more information.",
       )
       ..addOption(
-        CompileServerShutdownCommand.residentServerInfoFileFlag,
+        CompilationServerCommand.residentServerInfoFileFlag,
         hide: !verbose,
-        help: 'Specify the file that the Dart CLI uses to communicate with the '
-            'resident frontend compiler. Passing this flag results in having '
-            'one unique resident frontend compiler per file. This is needed '
-            'when writing unit tests that utilize resident mode in order to '
-            'maintain isolation.',
+        help: CompilationServerCommand.residentServerInfoFileFlagDescription,
       );
     // NOTE: When updating this list of flags, be sure to add any VM flags to
     // the list of flags in Options::ProcessVMDebuggingOptions in
@@ -133,7 +129,19 @@ class RunCommand extends DartdevCommand {
         ..addFlag(
           'enable-asserts',
           help: 'Enable assert statements.',
-        );
+        )
+        ..addOption('timeline-recorder',
+            help: 'Selects the timeline recorder to use.\n'
+                'Valid recorders include: none, ring, endless, startup, '
+                'systrace, file, callback.\n'
+                'Defaults to ring.',
+            valueHelp: 'recorder');
+    } else {
+      argParser.addOption('timeline-recorder',
+          help: 'Selects the timeline recorder to use.\n'
+              'Valid recorders include: none, systrace, file, callback.\n'
+              'Defaults to none.',
+          valueHelp: 'recorder');
     }
     argParser.addOption(
       'verbosity',
@@ -170,7 +178,7 @@ class RunCommand extends DartdevCommand {
           hide: !verbose,
           negatable: false,
           help: 'When the VM service is told to bind to a particular port, '
-              'fallback to 0 if it fails to bind instread of failing to '
+              'fallback to 0 if it fails to bind instead of failing to '
               'start.',
         );
     }
@@ -201,6 +209,13 @@ class RunCommand extends DartdevCommand {
         hide: !verbose,
         negatable: false,
         help: 'Enables tracing of library and script loading.',
+      )
+      ..addOption(
+        'packages',
+        hide: !verbose,
+        valueHelp: 'path',
+        help: 'The path to the package resolution configuration file, which '
+            'supplies a mapping of package names\ninto paths.',
       );
 
     if (!isProductMode) {
@@ -284,10 +299,11 @@ class RunCommand extends DartdevCommand {
     final useResidentServer =
         args.wasParsed(residentOption) || hasServerInfoOption;
     DartExecutableWithPackageConfig executable;
+    final hasExperiments = args.enabledExperiments.isNotEmpty;
     try {
       executable = await getExecutableForCommand(
         mainCommand,
-        allowSnapshot: !useResidentServer,
+        allowSnapshot: !(useResidentServer || hasExperiments),
       );
     } on CommandResolutionFailedException catch (e) {
       log.stderr(e.message);
@@ -334,7 +350,7 @@ class RunCommand extends DartdevCommand {
     VmInteropHandler.run(
       executable.executable,
       runArgs,
-      packageConfigOverride: executable.packageConfig,
+      packageConfigOverride: args['packages'] ?? executable.packageConfig,
     );
     return 0;
   }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -34,13 +32,13 @@ class I<T> {
 }
 
 main() {
-  new A();
-  new C();
-  new D();
-  new E();
-  new F();
-  new H();
-  new I();
+  A();
+  C();
+  D();
+  E();
+  F();
+  H();
+  I();
   method<int>();
 }
 
@@ -81,10 +79,10 @@ main() {
         options: [Flags.disableRtiOptimization, Flags.disableInlining]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
-    ProgramLookup programLookup = new ProgramLookup(compiler.backendStrategy);
+    ProgramLookup programLookup = ProgramLookup(compiler.backendStrategy);
 
     List<ClassEntity> closures = <ClassEntity>[];
 
@@ -96,7 +94,7 @@ main() {
             "Expected $element to need signature.");
         elementEnvironment.forEachNestedClosure(element,
             (FunctionEntity local) {
-          closures.add(local.enclosingClass);
+          closures.add(local.enclosingClass!);
         });
       }
     }
@@ -107,10 +105,10 @@ main() {
       elementEnvironment.forEachConstructor(element, processMember);
       elementEnvironment.forEachLocalClassMember(element, processMember);
 
-      List<String> expectedIsChecks = expectedIsChecksMap[element.name];
+      List<String> expectedIsChecks = expectedIsChecksMap[element.name]!;
       if (!expectedIsChecks.isEmpty) {
-        Class cls = programLookup.getClass(element);
-        List<String> isChecks = cls.isChecks.map((m) => m.name.key).toList();
+        Class cls = programLookup.getClass(element)!;
+        List<String> isChecks = cls.isChecks.map((m) => m.name!.key).toList();
         if (cls.functionTypeIndex != null) {
           isChecks.add(r'$signature');
         }
@@ -122,7 +120,7 @@ main() {
       }
     }
 
-    LibraryEntity library = elementEnvironment.mainLibrary;
+    LibraryEntity library = elementEnvironment.mainLibrary!;
     elementEnvironment.forEachClass(library, processClass);
     elementEnvironment.forEachLibraryMember(library, processMember);
     closures.forEach(processClass);

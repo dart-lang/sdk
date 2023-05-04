@@ -21,6 +21,8 @@ import '../fasta_codes.dart';
 import '../problems.dart' as problems
     show internalProblem, unhandled, unsupported;
 
+import '../scope.dart';
+
 import 'source_library_builder.dart';
 
 abstract class StackListenerImpl extends StackListener {
@@ -63,7 +65,9 @@ abstract class StackListenerImpl extends StackListener {
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  void exitLocalScope() => problems.unsupported("exitLocalScope", -1, uri);
+  void exitLocalScope({required List<ScopeKind> expectedScopeKinds}) {
+    problems.unsupported("exitLocalScope", -1, uri);
+  }
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart.
   dynamic parseSingleExpression(

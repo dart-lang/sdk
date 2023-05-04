@@ -79,7 +79,7 @@ main() {
   /*spec.explicit=[localFunction3.U*],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)],test*/
   localFunction3<U>(U u, {c1}) => u;
 
-  var c = new Class();
+  var c = Class();
 
   var local1 = localFunction1;
   var local2 = localFunction2;

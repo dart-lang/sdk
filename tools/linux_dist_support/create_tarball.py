@@ -108,7 +108,7 @@ def GenerateCopyright(filename):
     with open(filename, 'w') as f:
         f.write('Name: dart\n')
         f.write('Maintainer: Dart Team <misc@dartlang.org>\n')
-        f.write('Source: https://code.google.com/p/dart/\n')
+        f.write('Source: https://dart.googlesource.com/sdk\n')
         f.write('License:\n')
         for line in license_lines:
             f.write(' %s' % line)  # Line already contains trailing \n.
@@ -133,6 +133,9 @@ def GenerateGitRevision(filename, git_revision):
     with open(filename, 'w') as f:
         f.write(str(git_revision))
 
+def GenerateGitTimestamp(filename, git_timestamp):
+    with open(filename, 'w') as f:
+        f.write(str(git_timestamp))
 
 def CreateTarball(tarfilename):
     global ignoredPaths  # Used for adding the output directory.
@@ -177,6 +180,11 @@ def CreateTarball(tarfilename):
                 tar.add(git_revision,
                         arcname='%s/dart/tools/GIT_REVISION' % versiondir)
 
+            # Add GIT_TIMESTAMP file as git is not available in tarball.
+            git_timestamp = join(temp_dir, 'GIT_TIMESTAMP')
+            GenerateGitTimestamp(git_timestamp, utils.GetGitTimestamp())
+            tar.add(git_timestamp,
+                    arcname='%s/dart/tools/GIT_TIMESTAMP' % versiondir)
 
 def Main():
     if HOST_OS != 'linux':

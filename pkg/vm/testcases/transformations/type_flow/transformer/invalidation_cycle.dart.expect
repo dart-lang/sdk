@@ -3,18 +3,15 @@ import self as self;
 import "dart:core" as core;
 
 abstract class StreamSubscription extends core::Object {
-  synthetic constructor •() → self::StreamSubscription
+}
+class _BufferingStreamSubscription extends core::Object implements self::StreamSubscription {
+  synthetic constructor •() → self::_BufferingStreamSubscription
     : super core::Object::•()
     ;
 }
-class _BufferingStreamSubscription extends self::StreamSubscription {
-  synthetic constructor •() → self::_BufferingStreamSubscription
-    : super self::StreamSubscription::•()
-    ;
-}
-class _BroadcastSubscription extends self::StreamSubscription {
+class _BroadcastSubscription extends core::Object implements self::StreamSubscription {
   synthetic constructor •() → self::_BroadcastSubscription
-    : super self::StreamSubscription::•()
+    : super core::Object::•()
     ;
 }
 abstract class Stream extends core::Object {
@@ -53,7 +50,7 @@ abstract class StreamView extends self::Stream {
     : self::StreamView::_stream = stream, super self::Stream::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foobar() → self::StreamSubscription {
-    return [@vm.direct-call.metadata=#lib::StreamView._stream] [@vm.inferred-type.metadata=!] this.{self::StreamView::_stream}{self::Stream}.{self::Stream::foobar}(){((dynamic) →? void, {onError: core::Function?}) → self::StreamSubscription};
+    return [@vm.inferred-type.metadata=!] [@vm.direct-call.metadata=#lib::StreamView._stream] [@vm.inferred-type.metadata=!] this.{self::StreamView::_stream}{self::Stream}.{self::Stream::foobar}(){((dynamic) →? void, {onError: core::Function?}) → self::StreamSubscription};
   }
 }
 class ByteStream extends self::StreamView {
@@ -100,7 +97,7 @@ static method round4() → void {
   self::ByteStream x = new self::ByteStream::•(new self::_ControllerStream::•());
   self::Stream y = [@vm.direct-call.metadata=#lib::ByteStream.super_stream] [@vm.inferred-type.metadata=!] x.{self::ByteStream::super_stream}{self::Stream};
   self::Stream z = [@vm.direct-call.metadata=#lib::StreamView._stream] [@vm.inferred-type.metadata=!] x.{self::StreamView::_stream}{self::Stream};
-  if([@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] y =={core::Object::==}{(core::Object) → core::bool} z) {
+  if([@vm.direct-call.metadata=dart.core::Object.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] y =={core::Object::==}{(core::Object) → core::bool} z) {
     [@vm.direct-call.metadata=#lib::ByteStream.super_foobar2] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar2}(){((dynamic) →? void) → dynamic};
   }
 }

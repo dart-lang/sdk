@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library subtype_test;
 
 import 'dart:async';
@@ -59,7 +57,7 @@ Future testInterfaceSubtype() async {
       class C<T1, T2> extends B<T2, T1> /*implements A<A<T1>>*/ {}
 
       main() {
-        new C();
+        C();
       }
       """, options: [Flags.noSoundNullSafety], expectNoErrors: true)
       .then((env) {
@@ -311,8 +309,8 @@ Future testCallableSubtype() async {
       }
 
       main() {
-        new W();
-        var a = new A();
+        W();
+        var a = A();
         a.call(null, null);
         a.m1(null, null);
         a.m2(null, null);
@@ -614,12 +612,12 @@ Future testTypeVariableSubtype() async {
       class F<T extends num, S extends T> {}
 
       main() {
-        new A();
-        new B();
-        new C();
-        new D();
-        new E<int, num>();
-        new F();
+        A();
+        B();
+        C();
+        D();
+        E<int, num>();
+        F();
       }
       """, options: [Flags.noSoundNullSafety], expectNoErrors: true)
       .then((env) {
@@ -628,7 +626,8 @@ Future testTypeVariableSubtype() async {
     }
 
     TypeVariableType getTypeVariable(ClassEntity cls, int index) {
-      return env.elementEnvironment.getThisType(cls).typeArguments[index];
+      return env.elementEnvironment.getThisType(cls).typeArguments[index]
+          as TypeVariableType;
     }
 
     ClassEntity A = env.getClass('A');
@@ -744,7 +743,7 @@ Future testStrongModeSubtyping() async {
       takeObject(Object o) => null;
       
       main() {
-        new ClassWithCall().call;
+        ClassWithCall().call;
         returnNum();
         returnInt();
         returnVoid();
@@ -764,7 +763,7 @@ Future testStrongModeSubtyping() async {
       }
     }
 
-    InterfaceType ClassWithCall = env['ClassWithCall'];
+    InterfaceType ClassWithCall = env['ClassWithCall'] as InterfaceType;
     DartType Object_ = env['Object'];
     DartType dynamic_ = env['dynamic'];
     DartType void_ = env['void'];

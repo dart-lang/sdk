@@ -82,13 +82,6 @@ class DriverOptions {
   set enableAssertInitializer(bool enable) {
     // Ignored because the option is now always enabled.
   }
-
-  /// Whether to use Dart 2.0 features.
-  @deprecated
-  bool get previewDart2 => true;
-
-  @deprecated
-  set previewDart2(bool value) {}
 }
 
 class LintDriver {

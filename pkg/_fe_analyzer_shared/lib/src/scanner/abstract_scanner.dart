@@ -390,8 +390,9 @@ abstract class AbstractScanner implements Scanner {
 
   /**
    * Appends a token that begins an end group, represented by [type].
-   * It handles the group end tokens '}', ')' and ']'. The tokens '>' and
-   * '>>' are handled separately by [appendGt] and [appendGtGt].
+   * It handles the group end tokens '}', ')' and ']'. The tokens '>',
+   * '>>' and '>>>' are handled separately by [appendGt], [appendGtGt]
+   * and [appendGtGtGt].
    */
   int appendEndGroup(TokenType type, int openKind) {
     assert(!identical(openKind, LT_TOKEN)); // openKind is < for > and >>
@@ -463,6 +464,30 @@ abstract class AbstractScanner implements Scanner {
     }
   }
 
+  /// Appends a token for '>>>'.
+  ///
+  /// This method does not issue unmatched errors, because >>> is also the
+  /// triple shift operator. It does not necessarily have to close a group.
+  void appendGtGtGt(TokenType type) {
+    appendPrecedenceToken(type);
+    if (groupingStack.isEmpty) return;
+
+    // Don't assign endGroup: in "T<U<V<X>>>", the '>>>' token closes the
+    // outer '<', all the inner '<' are left without endGroups.
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+      groupingStack = groupingStack.tail!;
+    }
+    if (groupingStack.isEmpty) return;
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+      groupingStack = groupingStack.tail!;
+    }
+    if (groupingStack.isEmpty) return;
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+      groupingStack.head.endGroup = tail;
+      groupingStack = groupingStack.tail!;
+    }
+  }
+
   /// Prepend [token] to the token stream.
   void prependErrorToken(ErrorToken token) {
     hasErrors = true;
@@ -513,7 +538,7 @@ abstract class AbstractScanner implements Scanner {
    * If a begin group token matches [openKind],
    * then discard begin group tokens up to that match and return `true`,
    * otherwise return `false`.
-   * This recovers nicely from from situations like "{[}" and "{foo());}",
+   * This recovers nicely from situations like "{[}" and "{foo());}",
    * but not "foo(() {bar());});"
    */
   bool discardBeginGroupUntil(int openKind) {
@@ -543,7 +568,7 @@ abstract class AbstractScanner implements Scanner {
 
     // If the stack does not have any opener of the given type,
     // then return without discarding anything.
-    // This recovers nicely from from situations like "{foo());}".
+    // This recovers nicely from situations like "{foo());}".
     if (groupingStack.isEmpty) {
       groupingStack = originalStack;
       return false;
@@ -613,7 +638,7 @@ abstract class AbstractScanner implements Scanner {
     }
 
     // Insert synthetic closers and report errors for any unbalanced openers.
-    // This recovers nicely from from situations like "{[}".
+    // This recovers nicely from situations like "{[}".
     insertSyntheticClosers(originalStack, groupingStack);
     return true;
   }
@@ -621,7 +646,7 @@ abstract class AbstractScanner implements Scanner {
   void insertSyntheticClosers(
       Link<BeginToken> originalStack, Link<BeginToken> entryToUse) {
     // Insert synthetic closers and report errors for any unbalanced openers.
-    // This recovers nicely from from situations like "{[}".
+    // This recovers nicely from situations like "{[}".
     while (!identical(originalStack, entryToUse)) {
       // Don't report unmatched errors for <; it is also the less-than operator.
       if (!identical(entryToUse.head.kind, LT_TOKEN)) {
@@ -1174,26 +1199,35 @@ abstract class AbstractScanner implements Scanner {
     // > >= >> >>= >>> >>>=
     next = advance();
     if (identical($EQ, next)) {
+      // Saw `>=` only.
       appendPrecedenceToken(TokenType.GT_EQ);
       return advance();
     } else if (identical($GT, next)) {
+      // Saw `>>` so far.
       next = advance();
       if (identical($EQ, next)) {
+        // Saw `>>=` only.
         appendPrecedenceToken(TokenType.GT_GT_EQ);
         return advance();
       } else if (_enableTripleShift && identical($GT, next)) {
+        // Saw `>>>` so far.
         next = advance();
-        if (_enableTripleShift && identical($EQ, next)) {
+        if (identical($EQ, next)) {
+          // Saw `>>>=` only.
           appendPrecedenceToken(TokenType.GT_GT_GT_EQ);
           return advance();
+        } else {
+          // Saw `>>>` only.
+          appendGtGtGt(TokenType.GT_GT_GT);
+          return next;
         }
-        appendPrecedenceToken(TokenType.GT_GT_GT);
-        return next;
       } else {
+        // Saw `>>` only.
         appendGtGt(TokenType.GT_GT);
         return next;
       }
     } else {
+      // Saw `>` only.
       appendGt(TokenType.GT);
       return next;
     }

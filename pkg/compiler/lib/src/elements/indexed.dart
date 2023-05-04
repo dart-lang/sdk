@@ -77,7 +77,6 @@ class EntityMap<E extends _Indexed> extends EntityMapBase<E> {
   E0 register<E0 extends E>(E0 entity) {
     assert(
         !_closed, "Trying to register $entity @ ${_list.length} when closed.");
-    assert((entity as dynamic) != null); // TODO(48820): Remove.
     entity._index = _list.length;
     _list.add(entity);
     _size++;
@@ -136,7 +135,6 @@ class EntityDataMap<E extends _Indexed, D> extends EntityDataMapBase<E, D> {
   E0 register<E0 extends E, D0 extends D>(E0 entity, D0 data) {
     assert(
         !_closed, "Trying to register $entity @ ${_list.length} when closed.");
-    assert((entity as dynamic) != null); // TODO(48820): Remove.
     assert(
         _list.length == _data.length,
         'Data list length ${_data.length} inconsistent '
@@ -202,7 +200,6 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
       E0 entity, D0 data, V0 env) {
     assert(
         !_closed, "Trying to register $entity @ ${_list.length} when closed.");
-    assert((entity as dynamic) != null); // TODO(48820): Remove.
     assert(
         _list.length == _data.length,
         'Data list length ${_data.length} inconsistent '
@@ -233,7 +230,6 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
   void _preRegister<E0 extends E, V0 extends V>(E0 entity, V0 env) {
     assert(
         !_closed, "Trying to register $entity @ ${_list.length} when closed.");
-    assert((entity as dynamic) != null); // TODO(48820): Remove.
     assert(
         _list.length == _env.length,
         'Env list length ${_env.length} inconsistent '
@@ -260,7 +256,6 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
   void postRegisterData<E0 extends E, D0 extends D>(E0 entity, D0 data) {
     assert(
         !_closed, "Trying to register $entity @ ${_list.length} when closed.");
-    assert((entity as dynamic) != null); // TODO(48820): Remove.
     assert(
         (_list.length - 1) == _data.length,
         'Data list length ${_data.length} inconsistent '

@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This file contains tests written in a deprecated way. Please do not add any
+/// tests to this file. Instead, add tests to the files in `declaration`,
+/// `location`, or `relevance`.
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -24,7 +28,7 @@ class TypeMemberContributorTest extends DartCompletionContributorTest {
   /// shadows a declaration of the form [shadowee] in a base class, for the
   /// purposes of what is shown during completion.  [shouldBeShadowed] indicates
   /// whether shadowing is expected.
-  Future check_shadowing(
+  Future<void> check_shadowing(
       String shadower, String shadowee, bool shouldBeShadowed) async {
     addTestSource('''
 class Base {
@@ -1374,7 +1378,7 @@ void f() {new A().f^}''');
     addSource('/partAB.dart', '''
         part of libAB;
         var T1;
-        PB F1() => new PB();
+        PB F1() => PB();
         class PB { }''');
     addSource('/testCD.dart', '''
         class C { }
@@ -1397,7 +1401,7 @@ void f() {new A().f^}''');
     addSource('/partAB.dart', '''
         part of libAB;
         var T1;
-        PB F1() => new PB();
+        PB F1() => PB();
         typedef PB2 F2(int blat);
         class Clz = Object with Object;
         class PB { }''');
@@ -2669,7 +2673,7 @@ class C {
 }
 
 void f() {
-  new C().^
+  C().^
 }
 ''');
     await computeSuggestions();
@@ -2689,7 +2693,7 @@ class C {
 }
 
 void f() {
-  new C().^
+  C().^
 }
 ''');
     await computeSuggestions();
@@ -2709,7 +2713,7 @@ class C {
 }
 
 void f() {
-  new C().^
+  C().^
 }
 ''');
     await computeSuggestions();
@@ -2729,7 +2733,7 @@ class C {
 }
 
 void f() {
-  new C().^
+  C().^
 }
 ''');
     await computeSuggestions();
@@ -3059,10 +3063,10 @@ void f() {new C().^}''');
     // MethodInvocation  ExpressionStatement  Block
     addTestSource(r'''
         void f() { }
-        class I {X get f => new A();get _g => new A(); F $p; void $q(){}}
+        class I {X get f => A();get _g => A(); F $p; void $q(){}}
         class A implements I {
           var b; X _c;
-          X get d => new A();get _e => new A();
+          X get d => A();get _e => A();
           // no semicolon between completion point and next statement
           set s1(I x) {} set _s2(I x) {x.^ m(null);}
           m(X x) {} I _n(X x) {}}
@@ -3155,7 +3159,7 @@ void f() {new C().^}''');
 class C {
   int get x => null;
 }
-void f() {int y = new C().^}''');
+void f() {int y = C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestGetter('x', 'int');
     assertHasNoParameterInfo(suggestion);
@@ -3166,7 +3170,7 @@ void f() {int y = new C().^}''');
 class C {
   set x(int value) {};
 }
-void f() {int y = new C().^}''');
+void f() {int y = C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestSetter('x');
     assertHasNoParameterInfo(suggestion);
@@ -3177,7 +3181,7 @@ void f() {int y = new C().^}''');
 class C {
   set x() {};
 }
-void f() {int y = new C().^}''');
+void f() {int y = C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestSetter('x');
     assertHasNoParameterInfo(suggestion);
@@ -3342,12 +3346,12 @@ void f() {C.^ print("something");}''');
         lib B;
         class I {
           static const scI = 'boo';
-          X get f => new A();
-          get _g => new A();}
+          X get f => A();
+          get _g => A();}
         class B implements I {
           static const int scB = 12;
           var b; X _c;
-          X get d => new A();get _e => new A();
+          X get d => A();get _e => A();
           set s1(I x) {} set _s2(I x) {}
           m(X x) {} I _n(X x) {}}
         class X{}''');
@@ -3386,11 +3390,11 @@ void f() {C.^ print("something");}''');
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addSource('$testPackageLibPath/b.dart', '''
         lib B;
-        class I {X get f => new A();get _g => new A();}
+        class I {X get f => A();get _g => A();}
         class A implements I {
           static const int sc = 12;
           @deprecated var b; X _c;
-          X get d => new A();get _e => new A();
+          X get d => A();get _e => A();
           set s1(I x) {} set _s2(I x) {}
           m(X x) {} I _n(X x) {}}
         class X{}''');
@@ -3422,11 +3426,11 @@ void f() {C.^ print("something");}''');
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
         void f() {A a; a.^}
-        class I {X get f => new A();get _g => new A();}
+        class I {X get f => A();get _g => A();}
         class A implements I {
           static const int sc = 12;
           var b; X _c;
-          X get d => new A();get _e => new A();
+          X get d => A();get _e => A();
           set s1(I x) {} set _s2(I x) {}
           m(X x) {} I _n(X x) {}}
         class X{}''');
@@ -3926,12 +3930,12 @@ class C with M {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''
         void f() { }
-        class I {X get f => new A();get _g => new A();}
+        class I {X get f => A();get _g => A();}
         class A implements I {
           A() {}
           A.z() {}
           var b; X _c;
-          X get d => new A();get _e => new A();
+          X get d => A();get _e => A();
           // no semicolon between completion point and next statement
           set s1(I x) {} set _s2(I x) {this.^ m(null);}
           m(X x) {} I _n(X x) {}}
@@ -3961,12 +3965,12 @@ class C with M {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''
         void f() { }
-        class I {X get f => new A();get _g => new A();}
+        class I {X get f => A();get _g => A();}
         class A implements I {
           A() {this.^}
           A.z() {}
           var b; X _c;
-          X get d => new A();get _e => new A();
+          X get d => A();get _e => A();
           // no semicolon between completion point and next statement
           set s1(I x) {} set _s2(I x) {m(null);}
           m(X x) {} I _n(X x) {}}
@@ -3996,12 +4000,12 @@ class C with M {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         void f() { }
-        class I {X get f => new A();get _g => new A();}
+        class I {X get f => A();get _g => A();}
         class A implements I {
           A(this.^) {}
           A.z() {}
           var b; X _c; static sb;
-          X get d => new A();get _e => new A();
+          X get d => A();get _e => A();
           // no semicolon between completion point and next statement
           set s1(I x) {} set _s2(I x) {m(null);}
           m(X x) {} I _n(X x) {}}
@@ -4033,12 +4037,12 @@ class C with M {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         void f() { }
-        class I {X get f => new A();get _g => new A();}
+        class I {X get f => A();get _g => A();}
         class A implements I {
           A(this.b^) {}
           A.z() {}
           var b; X _c;
-          X get d => new A();get _e => new A();
+          X get d => A();get _e => A();
           // no semicolon between completion point and next statement
           set s1(I x) {} set _s2(I x) {m(null);}
           m(X x) {} I _n(X x) {}}
@@ -4069,12 +4073,12 @@ class C with M {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         void f() { }
-        class I {X get f => new A();get _g => new A();}
+        class I {X get f => A();get _g => A();}
         class A implements I {
           A(this.^b) {}
           A.z() {}
           var b; X _c;
-          X get d => new A();get _e => new A();
+          X get d => A();get _e => A();
           // no semicolon between completion point and next statement
           set s1(I x) {} set _s2(I x) {m(null);}
           m(X x) {} I _n(X x) {}}
@@ -4105,12 +4109,12 @@ class C with M {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         void f() { }
-        class I {X get f => new A();get _g => new A();}
+        class I {X get f => A();get _g => A();}
         class A implements I {
           A(this.b, this.^) {}
           A.z() {}
           var b; X _c;
-          X get d => new A();get _e => new A();
+          X get d => A();get _e => A();
           // no semicolon between completion point and next statement
           set s1(I x) {} set _s2(I x) {m(null);}
           m(X x) {} I _n(X x) {}}

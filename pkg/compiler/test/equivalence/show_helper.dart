@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Helper program that shows the equivalence-based data on a dart program.
 
 import 'dart:io';
@@ -16,7 +14,7 @@ import 'package:compiler/src/source_file_provider.dart';
 import 'id_equivalence_helper.dart';
 
 ArgParser createArgParser() {
-  ArgParser argParser = new ArgParser(allowTrailingOptions: true);
+  ArgParser argParser = ArgParser(allowTrailingOptions: true);
   argParser.addFlag('verbose', negatable: true, defaultsTo: false);
   argParser.addFlag('colors', negatable: true);
   argParser.addFlag('all', negatable: false, defaultsTo: false);
@@ -38,7 +36,7 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
 
   String file = argResults.rest.first;
   Uri entryPoint = Uri.base.resolve(nativeToUriPath(file));
-  List<String> show;
+  List<String>? show;
   if (argResults['all']) {
     show = null;
   } else if (argResults.rest.length > 1) {
@@ -47,22 +45,22 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
     show = [entryPoint.pathSegments.last];
   }
 
-  options = new List<String>.from(options);
+  options = List<String>.from(options);
   if (omitImplicitChecks) {
     options.add(Flags.omitImplicitChecks);
   }
-  Dart2jsCompiledData<T> data = await computeData<T>(
+  Dart2jsCompiledData<T>? data = await computeData<T>(
       file, entryPoint, const {}, dataComputer,
       options: options,
       testFrontend: dataComputer.testFrontend,
       forUserLibrariesOnly: false,
       skipUnprocessedMembers: true,
       skipFailedCompilations: true,
-      verbose: verbose);
+      verbose: verbose) as Dart2jsCompiledData<T>?;
   if (data == null) {
     print('Compilation failed.');
   } else {
-    SourceFileProvider provider = data.compiler.provider;
+    final provider = data.compiler.provider as SourceFileProvider;
     for (Uri uri in data.actualMaps.keys) {
       Uri fileUri = uri;
       if (fileUri.isScheme('org-dartlang-sdk')) {
@@ -71,18 +69,14 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
       if (show != null && !show.any((f) => '$fileUri'.endsWith(f))) {
         continue;
       }
-      SourceFile<List<int>> sourceFile =
-          provider.readUtf8FromFileSyncForTesting(fileUri);
-      String sourceCode = sourceFile?.slowText();
+      final sourceFile =
+          provider.readUtf8FromFileSyncForTesting(fileUri) as SourceFile?;
+      String? sourceCode = sourceFile?.slowText();
       if (sourceCode == null) {
-        sourceCode = new File.fromUri(fileUri).readAsStringSync();
+        sourceCode = File.fromUri(fileUri).readAsStringSync();
       }
-      if (sourceCode == null) {
-        print('--source code missing for $uri--------------------------------');
-      } else {
-        print('--annotations for $uri----------------------------------------');
-        print(withAnnotations(sourceCode, data.computeAnnotations(uri)));
-      }
+      print('--annotations for $uri----------------------------------------');
+      print(withAnnotations(sourceCode, data.computeAnnotations(uri)));
     }
   }
 }

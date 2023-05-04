@@ -5,10 +5,8 @@
 import 'dart:async';
 import 'test_helper.dart';
 import 'service_test_common.dart';
-import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
 
-const int LINE_A = 28, LINE_B = 33, LINE_C = 37;
+const int LINE_A = 26, LINE_B = 31, LINE_C = 35;
 
 class VMServiceClient {
   VMServiceClient(this.x);
@@ -23,7 +21,7 @@ collect() async {
     try {
       vmService = new VMServiceClient(uri);
       await new Future.microtask(() => throw new TimeoutException("here"));
-    } on dynamic {
+    } on Object {
       vmService.close();
       rethrow; // LINE_A
     }

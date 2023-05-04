@@ -4,11 +4,15 @@
 
 #include "platform/assert.h"
 #include "vm/bootstrap_natives.h"
+#include "vm/canonical_tables.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/regexp_assembler_bytecode.h"
 #include "vm/regexp_parser.h"
+#include "vm/reusable_handles.h"
+#include "vm/symbols.h"
 #include "vm/thread.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -21,25 +25,36 @@ DEFINE_NATIVE_ENTRY(RegExp_factory, 0, 6) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, pattern, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, handle_multi_line,
-                               arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, handle_case_sensitive,
-                               arguments->NativeArgAt(3));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, handle_unicode,
-                               arguments->NativeArgAt(4));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, handle_dot_all,
-                               arguments->NativeArgAt(5));
-  bool ignore_case = handle_case_sensitive.ptr() != Bool::True().ptr();
-  bool multi_line = handle_multi_line.ptr() == Bool::True().ptr();
-  bool unicode = handle_unicode.ptr() == Bool::True().ptr();
-  bool dot_all = handle_dot_all.ptr() == Bool::True().ptr();
+
+  bool multi_line = arguments->NativeArgAt(2) == Bool::True().ptr();
+  bool ignore_case = arguments->NativeArgAt(3) != Bool::True().ptr();
+  bool unicode = arguments->NativeArgAt(4) == Bool::True().ptr();
+  bool dot_all = arguments->NativeArgAt(5) == Bool::True().ptr();
 
   RegExpFlags flags;
-
+  flags.SetGlobal();  // All dart regexps are global.
   if (ignore_case) flags.SetIgnoreCase();
   if (multi_line) flags.SetMultiLine();
   if (unicode) flags.SetUnicode();
   if (dot_all) flags.SetDotAll();
+
+  RegExpKey lookup_key(pattern, flags);
+  RegExp& regexp = RegExp::Handle(thread->zone());
+  {
+    REUSABLE_OBJECT_HANDLESCOPE(thread);
+    REUSABLE_SMI_HANDLESCOPE(thread);
+    REUSABLE_WEAK_ARRAY_HANDLESCOPE(thread);
+    Object& key = thread->ObjectHandle();
+    Smi& value = thread->SmiHandle();
+    WeakArray& data = thread->WeakArrayHandle();
+    data = thread->isolate_group()->object_store()->regexp_table();
+    CanonicalRegExpSet table(&key, &value, &data);
+    regexp ^= table.GetOrNull(lookup_key);
+    table.Release();
+    if (!regexp.IsNull()) {
+      return regexp.ptr();
+    }
+  }
 
   // Parse the pattern once in order to throw any format exceptions within
   // the factory constructor. It is parsed again upon compilation.
@@ -47,8 +62,19 @@ DEFINE_NATIVE_ENTRY(RegExp_factory, 0, 6) {
   // Throws an exception on parsing failure.
   RegExpParser::ParseRegExp(pattern, flags, &compileData);
 
-  // Create a RegExp object containing only the initial parameters.
-  return RegExpEngine::CreateRegExp(thread, pattern, flags);
+  {
+    RegExpKey lookup_symbol_key(String::Handle(Symbols::New(thread, pattern)),
+                                flags);
+    SafepointMutexLocker ml(thread->isolate_group()->symbols_mutex());
+    CanonicalRegExpSet table(
+        thread->zone(),
+        thread->isolate_group()->object_store()->regexp_table());
+    regexp ^= table.InsertNewOrGet(lookup_symbol_key);
+    thread->isolate_group()->object_store()->set_regexp_table(table.Release());
+  }
+
+  ASSERT(regexp.flags() == flags);
+  return regexp.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getPattern, 0, 1) {

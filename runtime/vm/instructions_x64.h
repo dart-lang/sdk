@@ -10,6 +10,8 @@
 #error "Do not include instructions_x64.h directly; use instructions.h instead."
 #endif
 
+#include <limits>
+
 #include "platform/unaligned.h"
 #include "vm/allocation.h"
 
@@ -110,8 +112,16 @@ class SetFramePointerPattern
 // callq *[rip+offset]
 class PcRelativeCallPattern : public InstructionPattern<PcRelativeCallPattern> {
  public:
-  static constexpr intptr_t kLowerCallingRange = -(DART_UINT64_C(1) << 31);
-  static constexpr intptr_t kUpperCallingRange = (DART_UINT64_C(1) << 31) - 1;
+  static const int kLengthInBytes = 5;
+
+  // Theoretically we can encode offsets 5 bytes more than INT_MAX since the
+  // instruction encoding uses the PC after current instruction.
+  // Though in order to use int32_t as type on all architectures for distances,
+  // we make the upper limit not have `+ kLengthInBytes`.
+  static constexpr int32_t kLowerCallingRange =
+      std::numeric_limits<int32_t>::min() + kLengthInBytes;
+  static constexpr int32_t kUpperCallingRange =
+      std::numeric_limits<int32_t>::max();
 
   explicit PcRelativeCallPattern(uword pc) : InstructionPattern(pc) {}
 
@@ -133,8 +143,6 @@ class PcRelativeCallPattern : public InstructionPattern<PcRelativeCallPattern> {
   }
 
   static int pattern_length_in_bytes() { return kLengthInBytes; }
-
-  static const int kLengthInBytes = 5;
 };
 
 // Instruction pattern for a tail call to a signed 32-bit PC-relative offset
@@ -187,8 +195,10 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
 
 class PcRelativeTailCallPattern : public PcRelativeTrampolineJumpPattern {
  public:
-  static constexpr intptr_t kLowerCallingRange = -(DART_INT64_C(1) << 31) + kLengthInBytes;
-  static constexpr intptr_t kUpperCallingRange = (DART_INT64_C(1) << 31) - 1;
+  static constexpr int32_t kLowerCallingRange =
+      PcRelativeCallPattern::kLowerCallingRange;
+  static constexpr int32_t kUpperCallingRange =
+      PcRelativeCallPattern::kUpperCallingRange;
 
   explicit PcRelativeTailCallPattern(uword pc)
       : PcRelativeTrampolineJumpPattern(pc) {}

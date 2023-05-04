@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Decode a lax JSON encoded text, that is, JSON with Dart-like comments and
 /// trailing commas.
 ///
@@ -13,7 +11,7 @@
 library lazon;
 
 decode(String text) {
-  return new _Decoder(text)._decode();
+  return _Decoder(text)._decode();
 }
 
 class _Decoder {
@@ -55,7 +53,7 @@ class _Decoder {
     var result = _decodeValue();
     _trimWhitespace();
     if (position != codeUnits.length) {
-      throw new ArgumentError("Unexpected trailing text: "
+      throw ArgumentError("Unexpected trailing text: "
           "'${new String.fromCharCodes(codeUnits, position)}'.");
     }
     return result;
@@ -82,7 +80,7 @@ class _Decoder {
         result = _decodeNumber();
       }
     } else {
-      throw new ArgumentError("No value found in text: "
+      throw ArgumentError("No value found in text: "
           "'${new String.fromCharCodes(codeUnits, 0)}'.");
     }
     return result;
@@ -157,7 +155,7 @@ class _Decoder {
         } else if (codeUnit == T) {
           codeUnit = TAB;
         } else if (codeUnit == U) {
-          throw new UnsupportedError('unicode escapes');
+          throw UnsupportedError('unicode escapes');
         } else if (codeUnit == QUOTE ||
             codeUnit == SLASH ||
             codeUnit == BACKSLASH) {
@@ -173,7 +171,7 @@ class _Decoder {
       _fail();
     }
     position++;
-    return new String.fromCharCodes(charCodes);
+    return String.fromCharCodes(charCodes);
   }
 
   Map _decodeMap() {
@@ -286,11 +284,11 @@ class _Decoder {
   }
 
   num _decodeNumber() {
-    throw new UnsupportedError('_decodeNumber');
+    throw UnsupportedError('_decodeNumber');
   }
 
   void _fail() {
-    throw new ArgumentError("Unexpected value: "
+    throw ArgumentError("Unexpected value: "
         "'${new String.fromCharCodes(codeUnits, position)}'.");
   }
 }

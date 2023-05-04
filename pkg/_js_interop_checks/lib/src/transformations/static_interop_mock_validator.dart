@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show templateJsInteropStaticInteropMockNotStaticInteropType;
-import 'package:kernel/ast.dart';
-import 'package:kernel/target/targets.dart';
-import 'package:kernel/type_environment.dart';
+// ignore_for_file: implementation_imports
+
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         Message,
@@ -14,6 +11,11 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropStaticInteropMockMissingGetterOrSetter,
         templateJsInteropStaticInteropMockMissingImplements;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show templateJsInteropStaticInteropMockNotStaticInteropType;
+import 'package:kernel/ast.dart';
+import 'package:kernel/target/targets.dart';
+import 'package:kernel/type_environment.dart';
 
 import 'export_checker.dart';
 
@@ -230,7 +232,7 @@ class StaticInteropMockValidator {
   /// an error. Considering this API should primarily be used in tests, such a
   /// compilation will be unlikely, but we should revisit this.
   Map<Reference, Set<Extension>> _computeStaticInteropExtensionMap() {
-    // Process the stored libaries, and create a mapping between @staticInterop
+    // Process the stored libraries, and create a mapping between @staticInterop
     // classes and their extensions.
     var staticInteropClassesWithExtensions = <Reference, Set<Extension>>{};
     for (var library in ExportChecker.libraryExtensionMap.keys) {
@@ -289,9 +291,9 @@ class StaticInteropMockValidator {
             }
           }
         }
-        cls.supers.forEach((Supertype supertype) {
+        for (var supertype in cls.supers) {
           getAllDescriptors(supertype.classNode);
-        });
+        }
       }
     }
 

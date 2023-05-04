@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -11,6 +9,7 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/kernel/kelements.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -23,22 +22,22 @@ import '../helpers/ir_types.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir =
-        new Directory.fromUri(Platform.script.resolve('type_promotion_data'));
-    await checkTests(dataDir, new TypePromotionDataComputer(), args: args);
+        Directory.fromUri(Platform.script.resolve('type_promotion_data'));
+    await checkTests(dataDir, TypePromotionDataComputer(), args: args);
   });
 }
 
 class TypePromotionDataComputer extends DataComputer<String> {
-  ir.TypeEnvironment _typeEnvironment;
+  ir.TypeEnvironment? _typeEnvironment;
 
   ir.TypeEnvironment getTypeEnvironment(KernelToElementMap elementMap) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
-      ir.CoreTypes coreTypes = new ir.CoreTypes(component);
-      _typeEnvironment = new ir.TypeEnvironment(
-          coreTypes, new ir.ClassHierarchy(component, coreTypes));
+      ir.CoreTypes coreTypes = ir.CoreTypes(component);
+      _typeEnvironment = ir.TypeEnvironment(
+          coreTypes, ir.ClassHierarchy(component, coreTypes));
     }
-    return _typeEnvironment;
+    return _typeEnvironment!;
   }
 
   /// Compute type inference data for [member] from kernel based inference.
@@ -51,10 +50,9 @@ class TypePromotionDataComputer extends DataComputer<String> {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     Map<ir.Expression, TypeMap> typeMaps =
-        elementMap.getTypeMapsForTesting(member);
+        elementMap.getTypeMapsForTesting(member as KMember)!;
     ir.Member node = elementMap.getMemberNode(member);
-    new TypePromotionIrComputer(compiler.reporter, actualMap, typeMaps)
-        .run(node);
+    TypePromotionIrComputer(compiler.reporter, actualMap, typeMaps).run(node);
   }
 
   @override
@@ -73,9 +71,9 @@ class TypePromotionIrComputer extends IrDataExtractor<String> {
       : super(reporter, actualMap);
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.VariableGet) {
-      TypeMap type = typeMaps[node];
+      TypeMap type = typeMaps[node]!;
       return type.getText(typesToText);
     }
     return null;

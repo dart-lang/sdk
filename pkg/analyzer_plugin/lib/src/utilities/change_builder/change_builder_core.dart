@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/results.dart';
@@ -118,8 +119,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
   }
 
   @override
-  Future<void> addDartFileEdit(
-      String path, void Function(DartFileEditBuilder builder) buildFileEdit,
+  Future<void> addDartFileEdit(String path,
+      FutureOr<void> Function(DartFileEditBuilder builder) buildFileEdit,
       {ImportPrefixGenerator? importPrefixGenerator,
       bool createEditsForImports = true}) async {
     if (_genericFileEditBuilders.containsKey(path)) {
@@ -147,7 +148,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
     if (builder != null) {
       builder.importPrefixGenerator = importPrefixGenerator;
-      buildFileEdit(builder);
+      await buildFileEdit(builder);
     }
   }
 
@@ -187,11 +188,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
           this,
           path,
           loadYamlDocument(
-              workspace
-                  .getSession(path)!
-                  .resourceProvider
-                  .getFile(path)
-                  .readAsStringSync(),
+              workspace.resourceProvider.getFile(path).readAsStringSync(),
               recover: true),
           0);
       _yamlFileEditBuilders[path] = builder;

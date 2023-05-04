@@ -32,10 +32,10 @@ abstract class RuntimeConfiguration {
         return DummyRuntimeConfiguration();
 
       case Runtime.jsshell:
-        return JsshellRuntimeConfiguration();
+        return JsshellRuntimeConfiguration(configuration.compiler);
 
       case Runtime.d8:
-        return D8RuntimeConfiguration();
+        return D8RuntimeConfiguration(configuration.compiler);
 
       case Runtime.none:
         return NoneRuntimeConfiguration();
@@ -108,7 +108,13 @@ abstract class RuntimeConfiguration {
     var dartExecutable = _configuration.dartPrecompiledPath;
 
     if (dartExecutable == null || dartExecutable == '') {
-      dartExecutable = '$buildDir/dart_precompiled_runtime$executableExtension';
+      var dir = buildDir;
+
+      // gen_snapshot can run with different word sizes, but the simulators
+      // cannot.
+      dir = dir.replaceAll("SIMARM_X64", "SIMARM");
+
+      dartExecutable = '$dir/dart_precompiled_runtime$executableExtension';
     }
 
     TestUtils.ensureExists(dartExecutable, _configuration);
@@ -150,6 +156,7 @@ abstract class RuntimeConfiguration {
 class NoneRuntimeConfiguration extends RuntimeConfiguration {
   NoneRuntimeConfiguration() : super._subclass();
 
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -175,8 +182,11 @@ class CommandLineJavaScriptRuntime extends RuntimeConfiguration {
 
 /// Chrome/V8-based development shell (d8).
 class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
-  D8RuntimeConfiguration() : super('d8');
+  final Compiler compiler;
 
+  D8RuntimeConfiguration(this.compiler) : super('d8');
+
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -185,11 +195,20 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
       bool isCrashExpected) {
     // TODO(ahe): Avoid duplication of this method between d8 and jsshell.
     checkArtifact(artifact!);
-    return [
-      JSCommandLineCommand(moniker, d8FileName, arguments, environmentOverrides)
-    ];
+    if (compiler == Compiler.dart2wasm) {
+      return [
+        Dart2WasmCommandLineCommand(
+            moniker, d8FileName, arguments, environmentOverrides)
+      ];
+    } else {
+      return [
+        JSCommandLineCommand(
+            moniker, d8FileName, arguments, environmentOverrides)
+      ];
+    }
   }
 
+  @override
   List<String> dart2jsPreambles(Uri preambleDir) {
     return [preambleDir.resolve('d8.js').toFilePath()];
   }
@@ -197,8 +216,11 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
 /// Firefox/SpiderMonkey-based development shell (jsshell).
 class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
-  JsshellRuntimeConfiguration() : super('jsshell');
+  final Compiler compiler;
 
+  JsshellRuntimeConfiguration(this.compiler) : super('jsshell');
+
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -206,12 +228,20 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
       List<String> extraLibs,
       bool isCrashExpected) {
     checkArtifact(artifact!);
-    return [
-      JSCommandLineCommand(
-          moniker, jsShellFileName, arguments, environmentOverrides)
-    ];
+    if (compiler == Compiler.dart2wasm) {
+      return [
+        Dart2WasmCommandLineCommand(
+            moniker, jsShellFileName, arguments, environmentOverrides)
+      ];
+    } else {
+      return [
+        JSCommandLineCommand(
+            moniker, jsShellFileName, arguments, environmentOverrides)
+      ];
+    }
   }
 
+  @override
   List<String> dart2jsPreambles(Uri preambleDir) {
     return ['-f', preambleDir.resolve('jsshell.js').toFilePath(), '-f'];
   }
@@ -243,6 +273,7 @@ class QemuConfig {
 class DartVmRuntimeConfiguration extends RuntimeConfiguration {
   DartVmRuntimeConfiguration() : super._subclass();
 
+  @override
   int timeoutMultiplier(
       {required Mode mode,
       bool isChecked = false,
@@ -263,6 +294,9 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         multiplier *= 4;
         break;
     }
+    if (_configuration.useQemu) {
+      multiplier *= 2;
+    }
 
     if (mode.isDebug) {
       multiplier *= 2;
@@ -282,6 +316,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 
 //// The standalone Dart VM binary, "dart" or "dart.exe".
 class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -322,6 +357,7 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
   final bool useElf;
   DartPrecompiledRuntimeConfiguration(this.useElf);
 
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -355,6 +391,7 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
   static const String deviceDir = '/data/local/tmp/testing';
   static const String deviceTestDir = '/data/local/tmp/testing/test';
 
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -385,6 +422,7 @@ class DartPrecompiledAdbRuntimeConfiguration
   final bool useElf;
   DartPrecompiledAdbRuntimeConfiguration(this.useElf);
 
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -408,6 +446,7 @@ class DartPrecompiledAdbRuntimeConfiguration
 
 class DartkFuchsiaEmulatorRuntimeConfiguration
     extends DartVmRuntimeConfiguration {
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -439,6 +478,7 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
 /// migrated yet.
 // TODO(ahe): Remove this class.
 class DummyRuntimeConfiguration extends DartVmRuntimeConfiguration {
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,

@@ -26,9 +26,6 @@ class FieldRefElement extends CustomElement implements Renderable {
   factory FieldRefElement(
       M.IsolateRef isolate, M.FieldRef field, M.ObjectRepository objects,
       {RenderingQueue? queue, bool expandable = true}) {
-    assert(isolate != null);
-    assert(field != null);
-    assert(objects != null);
     FieldRefElement e = new FieldRefElement.created();
     e._r = new RenderingScheduler<FieldRefElement>(e, queue: queue);
     e._isolate = isolate;

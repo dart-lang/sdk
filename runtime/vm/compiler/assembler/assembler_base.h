@@ -331,7 +331,7 @@ class Label : public ZoneAllocated {
   // On ARM/ARM64 we track LR state: whether it contains return address or
   // whether it can be clobbered. To make sure that our tracking it correct
   // for non linear code sequences we additionally verify at labels that
-  // incomming states are compatible.
+  // incoming states are compatible.
   LRState lr_state_ = LRState::Unknown();
 
   void UpdateLRState(LRState new_state) {
@@ -694,6 +694,19 @@ class AssemblerBase : public StackResource {
   virtual void StoreToOffset(Register src,
                              const Address& address,
                              OperandSize sz = kWordBytes) = 0;
+
+  virtual void BranchIfSmi(Register reg,
+                           Label* label,
+                           JumpDistance distance = kFarJump) = 0;
+
+  virtual void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) = 0;
+  virtual void CompareWords(Register reg1,
+                            Register reg2,
+                            intptr_t offset,
+                            Register count,
+                            Register temp,
+                            Label* equals) = 0;
+
   enum CanBeSmi {
     kValueCanBeSmi,
     kValueIsNotSmi,
@@ -811,12 +824,44 @@ class AssemblerBase : public StackResource {
   virtual void CompareImmediate(Register reg,
                                 target::word imm,
                                 OperandSize width = kWordBytes) = 0;
+
   virtual void LsrImmediate(Register dst, int32_t shift) = 0;
+
+  virtual void MulImmediate(Register dst,
+                            target::word imm,
+                            OperandSize = kWordBytes) = 0;
 
   // If src2 == kNoRegister, dst = dst & src1, otherwise dst = src1 & src2.
   virtual void AndRegisters(Register dst,
                             Register src1,
                             Register src2 = kNoRegister) = 0;
+
+  // dst = dst << shift. On some architectures, we must use a specific register
+  // for the shift, so either the shift register must be that specific register
+  // or the architecture must define a TMP register, which is clobbered.
+  virtual void LslRegister(Register dst, Register shift) = 0;
+
+  // Performs CombineHashes from runtime/vm/hash.h on the hashes contained in
+  // dst and other. Puts the result in dst. Clobbers other.
+  //
+  // Note: Only uses the lower 32 bits of the hashes and returns a 32 bit hash.
+  virtual void CombineHashes(Register dst, Register other) = 0;
+  // Performs FinalizeHash from runtime/vm/hash.h on the hash contained in
+  // dst. May clobber scratch if provided, otherwise may clobber TMP.
+  //
+  // Note: Only uses the lower 32 bits of the hash and returns a 32 bit hash.
+  void FinalizeHash(Register hash, Register scratch = TMP) {
+    return FinalizeHashForSize(/*bit_size=*/kBitsPerInt32, hash, scratch);
+  }
+  // Performs FinalizeHash from runtime/vm/hash.h on the hash contained in
+  // dst and returns the result, masked to a maximum of [bit_size] bits.
+  // May clobber scratch if provided, otherwise may clobber TMP.
+  //
+  // Note: Only uses the lower 32 bits of the hash. Since the underlying
+  // algorithm produces 32-bit values, assumes 0 < [bit_size] <= 32.
+  virtual void FinalizeHashForSize(intptr_t bit_size,
+                                   Register hash,
+                                   Register scratch = TMP) = 0;
 
   void LoadTypeClassId(Register dst, Register src) {
 #if !defined(TARGET_ARCH_IA32)

@@ -14,5 +14,5 @@ class B<T> {
 }
 
 main() {
-  new B<A>().method(new A());
+  B<A>().method(new A());
 }

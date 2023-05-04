@@ -55,7 +55,7 @@ static method main() → void {
 }
 
 constants  {
-  #C1 = <core::Symbol*, dynamic>{)
+  #C1 = <core::Symbol*, dynamic>{}
   #C2 = static-tearoff self::A::n
   #C3 = instantiation #C2 <core::int*>
   #C4 = instantiation #C2 <core::String*>

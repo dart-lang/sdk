@@ -292,6 +292,7 @@ void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
   libs->Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   libs->Add(&Library::ZoneHandle(Library::ConvertLibrary()));
   libs->Add(&Library::ZoneHandle(Library::InternalLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::IsolateLibrary()));
   libs->Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   libs->Add(&Library::ZoneHandle(Library::AsyncLibrary()));
   libs->Add(&Library::ZoneHandle(Library::FfiLibrary()));
@@ -368,7 +369,7 @@ static const struct {
   const uint32_t finger_print;
   const char* const name;
 } factory_recognizer_list[] = {RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY){
-    Symbols::kIllegal, -1, 0, NULL}};
+    Symbols::kIllegal, -1, 0, nullptr}};
 
 #undef RECOGNIZE_FACTORY
 

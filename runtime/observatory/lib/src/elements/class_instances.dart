@@ -5,12 +5,9 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/inbound_references.dart';
-import 'package:observatory/src/elements/retaining_path.dart';
 import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/src/elements/strongly_reachable_instances.dart';
 import 'package:observatory/utils.dart';
@@ -48,12 +45,6 @@ class ClassInstancesElement extends CustomElement implements Renderable {
       M.StronglyReachableInstancesRepository stronglyReachableInstances,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(cls != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(stronglyReachableInstances != null);
-    assert(objects != null);
     ClassInstancesElement e = new ClassInstancesElement.created();
     e._r = new RenderingScheduler<ClassInstancesElement>(e, queue: queue);
     e._isolate = isolate;

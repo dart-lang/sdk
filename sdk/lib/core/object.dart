@@ -99,7 +99,7 @@ class Object {
   /// mainly for debugging or logging.
   external String toString();
 
-  /// Invoked when a non-existent method or property is accessed.
+  /// Invoked when a nonexistent method or property is accessed.
   ///
   /// A dynamic member invocation can attempt to call a member which
   /// doesn't exist on the receiving object. Example:
@@ -556,7 +556,7 @@ class Object {
       sum = (sum + objectHash) & mask;
       count += 1;
     }
-    return SystemHash.hash2(sum, count);
+    return SystemHash.hash2(sum, count, 0);
   }
 }
 

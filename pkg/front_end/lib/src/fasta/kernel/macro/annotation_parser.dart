@@ -492,9 +492,13 @@ class _MacroListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     _unexpected();
   }
@@ -802,7 +806,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     _unexpected();
   }
 
@@ -816,9 +820,13 @@ class _MacroListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     _unexpected();
   }
@@ -1767,7 +1775,7 @@ class _MacroListener implements Listener {
 
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token inKeyword) {
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
     _unsupported();
   }
 
@@ -1783,6 +1791,12 @@ class _MacroListener implements Listener {
 
   @override
   void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
+    _unsupported();
+  }
+
+  @override
+  void handleForInitializerPatternVariableAssignment(
+      Token keyword, Token equals) {
     _unsupported();
   }
 
@@ -2026,7 +2040,18 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable) {
+  void handleAssignedVariablePattern(Token variable) {
+    _unsupported();
+  }
+
+  @override
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
+      {required bool inAssignmentPattern}) {
+    _unsupported();
+  }
+
+  @override
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
     _unsupported();
   }
 
@@ -2046,7 +2071,17 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginPatternGuard(Token token) {
+    _unhandled();
+  }
+
+  @override
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {
+    _unhandled();
+  }
+
+  @override
+  void beginSwitchCaseWhenClause(Token when) {
     _unhandled();
   }
 
@@ -2061,7 +2096,17 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void endPatternGuard(Token token) {
+    _unhandled();
+  }
+
+  @override
   void endParenthesizedExpression(Token token) {
+    _unhandled();
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
     _unhandled();
   }
 
@@ -2071,7 +2116,12 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleConstantPattern(Token? constKeyword) {
+  void beginConstantPattern(Token? constKeyword) {
+    _unsupported();
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
     _unsupported();
   }
 
@@ -2139,6 +2189,16 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleSwitchCaseNoWhenClause(Token token) {
+    _unhandled();
+  }
+
+  @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    _unhandled();
+  }
+
+  @override
   void handleSymbolVoid(Token token) {
     _unhandled();
   }
@@ -2200,7 +2260,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleValuedFormalParameter(Token equals, Token token) {
+  void handleValuedFormalParameter(
+      Token equals, Token token, FormalParameterKind kind) {
     _unsupported();
   }
 

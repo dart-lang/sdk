@@ -27,13 +27,34 @@ void main() {
 abstract class AbstractCompletionDriverTest
     extends PubPackageAnalysisServerTest {
   late CompletionDriver driver;
+
   late List<CompletionSuggestion> suggestions;
 
-  /// The configuration for [assertResponseText].
-  /// You almost always want to change it, usually in [setUp].
-  printer.Configuration printerConfiguration = printer.Configuration(
-    filter: (suggestion) => true,
-  );
+  late CompletionResponseForTesting response;
+
+  /// The configuration used by [assertResponse] to limit the number of
+  /// suggestions that will be compared by a test. The reasons for the filter
+  /// are
+  /// - to prevent uninteresting changes to the SDK from breaking the completion
+  ///   tests, and
+  /// - to keep the expected response text shorter.
+  ///
+  /// The default filter, initialized in [setUp], prints
+  /// - identifier suggestions consisting of a single letter followed by one or
+  ///   more digits,
+  /// - identifier suggestions that are in the set of [allowedIdentifiers], and
+  /// - non-identifier suggestions.
+  ///
+  /// Tests can override this configuration to change the set of suggestions to
+  /// be printed.
+  late printer.Configuration printerConfiguration;
+
+  /// A set of identifiers that will be included in the printed version of the
+  /// selections. Individual tests can replace the default set.
+  Set<String> allowedIdentifiers = const {};
+
+  /// Return `true` if keywords should be included in the text to be compared.
+  bool get includeKeywords => true;
 
   bool get isProtocolVersion1 {
     return protocol == TestingCompletionProtocol.version1;
@@ -76,11 +97,7 @@ abstract class AbstractCompletionDriverTest
 
   /// Asserts that the [response] has the [expected] textual dump produced
   /// using [printerConfiguration].
-  void assertResponseText(
-    CompletionResponseForTesting response,
-    String expected, {
-    bool printIfFailed = true,
-  }) {
+  void assertResponse(String expected) {
     final buffer = StringBuffer();
     printer.CompletionResponsePrinter(
       buffer: buffer,
@@ -90,12 +107,22 @@ abstract class AbstractCompletionDriverTest
     final actual = buffer.toString();
 
     if (actual != expected) {
-      if (printIfFailed) {
-        print(actual);
+      var target = driver.server.server.completionState.currentRequest?.target;
+      var where = '';
+      if (target != null) {
+        var containingNode = target.containingNode.runtimeType;
+        var entity = target.entity;
+        where = ' (containingNode = $containingNode, entity = $entity)';
       }
       TextExpectationsCollector.add(actual);
+      fail('''
+The actual suggestions do not match the expected suggestions$where.
+
+To accept the current state change the expectation to
+
+$actual
+''');
     }
-    expect(actual, expected);
   }
 
   void assertSuggestion({
@@ -116,6 +143,24 @@ abstract class AbstractCompletionDriverTest
         isNotNull);
   }
 
+  /// TODO(scheglov) Use it everywhere instead of [addTestFile].
+  Future<void> computeSuggestions(
+    String content,
+  ) async {
+    // Give the server time to create analysis contexts.
+    await pumpEventQueue(times: 1000);
+
+    await addTestFile(content);
+
+    response = CompletionResponseForTesting(
+      requestOffset: driver.completionOffset,
+      replacementOffset: driver.replacementOffset,
+      replacementLength: driver.replacementLength,
+      isIncomplete: false, // TODO(scheglov) not correct
+      suggestions: suggestions,
+    );
+  }
+
   Future<List<CompletionSuggestion>> getSuggestions() async {
     if (isProtocolVersion1) {
       await waitForSetWithUri('dart:core');
@@ -131,24 +176,6 @@ abstract class AbstractCompletionDriverTest
         break;
     }
     return suggestions;
-  }
-
-  /// TODO(scheglov) Use it everywhere instead of [addTestFile].
-  Future<CompletionResponseForTesting> getTestCodeSuggestions(
-    String content,
-  ) async {
-    // Give the server time to create analysis contexts.
-    await pumpEventQueue(times: 1000);
-
-    await addTestFile(content);
-
-    return CompletionResponseForTesting(
-      requestOffset: driver.completionOffset,
-      replacementOffset: driver.replacementOffset,
-      replacementLength: driver.replacementLength,
-      isIncomplete: false, // TODO(scheglov) not correct
-      suggestions: suggestions,
-    );
   }
 
   /// Display sorted suggestions.
@@ -175,6 +202,21 @@ name: test
     await driver.createProject();
 
     // todo (pq): add logic (possibly to driver) that waits for SDK suggestions
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) {
+        var kind = suggestion.kind;
+        if (kind == CompletionSuggestionKind.IDENTIFIER ||
+            kind == CompletionSuggestionKind.INVOCATION) {
+          var completion = suggestion.completion;
+          return RegExp(r'^_?[a-zA-Z][0-9]+$').hasMatch(completion) ||
+              allowedIdentifiers.contains(completion);
+        } else if (kind == CompletionSuggestionKind.KEYWORD) {
+          return includeKeywords;
+        }
+        return true;
+      },
+    );
   }
 
   SuggestionMatcher suggestionHas({
@@ -199,7 +241,7 @@ name: test
           return false;
         }
         // Library URIs are not available in protocol v1 so skip the check to
-        // allow the the same test to verify for v2.
+        // allow the same test to verify for v2.
         if (!isProtocolVersion1 &&
             libraryUri != null &&
             s.libraryUri != libraryUri) {
@@ -271,7 +313,7 @@ class BasicCompletionTest2 extends AbstractCompletionDriverTest
 }
 
 mixin BasicCompletionTestCases on AbstractCompletionDriverTest {
-  /// Duplicates (and potentially replaces DeprecatedMemberRelevanceTest).
+  /// Duplicates (and potentially replaces) [DeprecatedMemberRelevanceTest].
   Future<void> test_deprecated_member_relevance() async {
     await addTestFile('''
 class A {
@@ -827,7 +869,7 @@ void f(List<String> args) {
   Future<void> test_project_suggestMixins() async {
     newFile('$testPackageLibPath/a.dart', r'''
 mixin M { }
-class A { }
+mixin class A { }
 ''');
 
     if (isProtocolVersion1) {

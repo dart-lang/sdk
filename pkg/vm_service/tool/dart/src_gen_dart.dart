@@ -11,7 +11,7 @@ import '../common/src_gen_common.dart';
 /// dartdoc comments, automatically manages indent by counting curly braces, and
 /// automatically wraps doc comments on 80 char column boundaries.
 class DartGenerator {
-  static const DEFAULT_COLUMN_BOUNDARY = 80;
+  static const defaultColumnBoundary = 80;
 
   final int colBoundary;
 
@@ -20,19 +20,23 @@ class DartGenerator {
 
   bool _previousWasEol = false;
 
-  DartGenerator({this.colBoundary = DEFAULT_COLUMN_BOUNDARY});
+  DartGenerator({this.colBoundary = defaultColumnBoundary});
 
   /// Write out the given dartdoc text, wrapping lines as necessary to flow
-  /// along the column boundary. If [preferSingle] is true, and the docs would
-  /// fit on a single line, use `///` dartdoc style.
-  void writeDocs(String? docs) {
-    if (docs == null) return;
+  /// along the column boundary.
+  void writeDocs(String docs) {
+    docs = docs
+        .replaceAll('[RPC error] code', 'RPC error code')
+        .replaceAll('[RPC error]', '[RPCError]')
+        .replaceAllMapped(RegExp(r'\[([gs]et[a-zA-Z]+)\]'), (match) {
+      return '[VmServiceInterface.${match[1]}]';
+    });
 
     docs = wrap(docs.trim(), colBoundary - _indent.length - 4);
     // docs = docs.replaceAll('*/', '/');
     // docs = docs.replaceAll('/*', r'/\*');
 
-    docs.split('\n').forEach((line) => _writeln('/// ${line}'.trimRight()));
+    docs.split('\n').forEach((line) => _writeln('/// $line'.trimRight()));
 
     // if (!docs.contains('\n') && preferSingle) {
     //   _writeln("/// ${docs}", true);
@@ -63,34 +67,35 @@ class DartGenerator {
     }
   }
 
-  void writeln([String str = '']) => _write('${str}\n');
+  void writeln([String str = '']) => _write('$str\n');
 
   void write(String str) => _write(str);
 
   void out(String str) => _buf.write(str);
 
   void _writeln([String str = '', bool ignoreCurlies = false]) =>
-      _write('${str}\n', ignoreCurlies);
+      _write('$str\n', ignoreCurlies);
 
   void _write(String str, [bool ignoreCurlies = false]) {
     for (final int rune in str.runes) {
       if (!ignoreCurlies) {
-        if (rune == RUNE_LEFT_CURLY) {
-          _indent = '${_indent}  ';
-        } else if (rune == RUNE_RIGHT_CURLY && _indent.length >= 2) {
+        if (rune == $leftCurly) {
+          _indent = '$_indent  ';
+        } else if (rune == $rightCurly && _indent.length >= 2) {
           _indent = _indent.substring(2);
         }
       }
 
-      if (_previousWasEol && rune != RUNE_EOL) {
+      if (_previousWasEol && rune != $eol) {
         _buf.write(_indent);
       }
 
       _buf.write(String.fromCharCode(rune));
 
-      _previousWasEol = rune == RUNE_EOL;
+      _previousWasEol = rune == $eol;
     }
   }
 
+  @override
   String toString() => _buf.toString();
 }

@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_check.dart';
 import '../completion_printer.dart' as printer;
 
 void main() {
@@ -44,8 +43,8 @@ mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
     await _checkContainers(
       declarations: 'var foo = 0;',
       constructorParameters: 'this.f^',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -61,8 +60,8 @@ suggestions
     await _checkContainers(
       declarations: 'var foo = 0;',
       constructorParameters: 'this.^f',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 replacement
   right: 1
 suggestions
@@ -75,7 +74,7 @@ suggestions
   }
 
   Future<void> test_class_suggestions_instanceFields_local() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   static final superStatic = 0;
   var inherited = 0;
@@ -100,7 +99,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
   first
     kind: field
@@ -115,8 +114,8 @@ suggestions
     await _checkContainers(
       declarations: 'final int x; final int y;',
       constructorParameters: '{this.x, this.^}',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 suggestions
   y
     kind: field
@@ -131,8 +130,8 @@ suggestions
     await _checkContainers(
       declarations: 'final int x; final int y;',
       constructorParameters: 'this.x, this.^',
-      validator: (response) {
-        assertResponseText(response, r'''
+      validator: () {
+        assertResponse(r'''
 suggestions
   y
     kind: field
@@ -143,7 +142,7 @@ suggestions
   }
 
   Future<void> test_enum_suggestions_instanceFields() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E {
   v();
 
@@ -160,7 +159,7 @@ enum E {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
   first
     kind: field
@@ -173,14 +172,14 @@ suggestions
 
   /// https://github.com/dart-lang/sdk/issues/39028
   Future<void> test_mixin_constructor() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 mixin M {
   var field = 0;
   M(this.^);
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -188,28 +187,28 @@ suggestions
   Future<void> _checkContainers({
     required String declarations,
     required String constructorParameters,
-    required void Function(CompletionResponseForTesting response) validator,
+    required void Function() validator,
   }) async {
     // class
     {
-      var response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 class A {
   $declarations
   A($constructorParameters);
 }
 ''');
-      validator(response);
+      validator();
     }
     // enum
     {
-      var response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 enum E {
   v;
   $declarations
   E($constructorParameters);
 }
 ''');
-      validator(response);
+      validator();
     }
   }
 }

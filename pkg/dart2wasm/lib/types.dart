@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' show max;
+import 'dart:typed_data' show Uint8List;
+
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/code_generator.dart';
 import 'package:dart2wasm/translator.dart';
@@ -10,6 +13,17 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+/// Values for the type category table. Entries for masqueraded classes contain
+/// the class ID of the masquerade.
+class TypeCategory {
+  static const abstractClass = 0;
+  static const function = 1;
+  static const record = 2;
+  static const notMasqueraded = 3;
+  static const minMasqueradeClassId = 4;
+  static const maxMasqueradeClassId = 63; // Leaves 2 unused bits for future use
+}
 
 class InterfaceTypeEnvironment {
   final Map<TypeParameter, int> _typeOffsets = {};
@@ -28,57 +42,6 @@ class InterfaceTypeEnvironment {
   int lookup(TypeParameter typeParameter) => _typeOffsets[typeParameter]!;
 }
 
-/// Environment that maps function type parameters to their runtime
-/// representation when inside a generic function type.
-class FunctionTypeEnvironment {
-  /// Mapping from function type parameters to their runtime representation.
-  late final Map<TypeParameter, FunctionTypeParameterType> _typeOffsets = {};
-
-  /// Current nesting depth of function types (number of function types
-  /// enclosing the current function type), or -1 if currently not inside a
-  /// function type.
-  int _depth = -1;
-
-  FunctionTypeEnvironment();
-
-  /// Enter the scope of a function type and add its type parameters to the
-  /// environment.
-  void enterFunctionType(FunctionType type) {
-    _depth++;
-    for (int i = 0; i < type.typeParameters.length; i++) {
-      _typeOffsets[type.typeParameters[i]] =
-          FunctionTypeParameterType(_depth, i);
-    }
-  }
-
-  /// Leave the scope of a function type.
-  void leaveFunctionType() {
-    if (--_depth == -1) {
-      // This clear is not strictly necessary, since type parameters for
-      // different function types are distinct, but it avoids bloating the
-      // map throughout the compilation.
-      _typeOffsets.clear();
-    }
-  }
-
-  /// Look up a function type parameter in the environment.
-  FunctionTypeParameterType lookup(TypeParameter typeParameter) =>
-      _typeOffsets[typeParameter]!;
-}
-
-/// Description of the runtime representation of a function type parameter.
-class FunctionTypeParameterType {
-  /// The nesting depth of the function type declaring this type parameter,
-  /// i.e. the number of function types it is embedded inside.
-  final int depth;
-
-  /// The index of this type parameter in the function type's list of type
-  /// parameters.
-  final int index;
-
-  FunctionTypeParameterType(this.depth, this.index);
-}
-
 /// Helper class for building runtime types.
 class Types {
   final Translator translator;
@@ -94,6 +57,10 @@ class Types {
   /// Wasm value type of `List<_NamedParameter>`
   late final w.ValueType namedParametersExpectedType = classAndFieldToType(
       translator.functionTypeClass, FieldIndex.functionTypeNamedParameters);
+
+  /// Wasm value type of `_RecordType.names` field.
+  late final w.ValueType recordTypeNamesFieldExpectedType = classAndFieldToType(
+      translator.recordTypeClass, FieldIndex.recordTypeNames);
 
   /// A mapping from concrete subclass `classID` to [Map]s of superclass
   /// `classID` and the necessary substitutions which must be performed to test
@@ -124,9 +91,16 @@ class Types {
   /// A list which maps class ID to the classes [String] name.
   late final List<String> typeNames = _buildTypeNames();
 
-  /// Environment that maps function type parameters to their runtime
-  /// representation when inside a generic function type.
-  FunctionTypeEnvironment _env = FunctionTypeEnvironment();
+  /// Type parameter offset for function types, specifying the lower end of
+  /// their index range for type parameter types.
+  Map<FunctionType, int> functionTypeParameterOffset = Map.identity();
+
+  /// Index value for function type parameter types, indexing into the type
+  /// parameter index range of their corresponding function type.
+  Map<TypeParameter, int> functionTypeParameterIndex = Map.identity();
+
+  /// An `i8` array of type category values, indexed by class ID.
+  late final w.Global typeCategoryTable = _buildTypeCategoryTable();
 
   Types(this.translator);
 
@@ -284,19 +258,64 @@ class Types {
   w.ValueType makeTypeNames(w.Instructions b) {
     w.ValueType expectedType =
         translator.classInfo[translator.immutableListClass]!.nonNullableType;
-    DartType stringType = InterfaceType(
-        translator.stringBaseClass,
-        Nullability.nonNullable,
-        [translator.coreTypes.stringNonNullableRawType]);
     List<StringConstant> listStringConstant = [];
     for (String name in typeNames) {
       listStringConstant.add(StringConstant(name));
     }
     DartType listStringType = InterfaceType(
-        translator.immutableListClass, Nullability.nonNullable, [stringType]);
+        translator.immutableListClass,
+        Nullability.nonNullable,
+        [translator.coreTypes.stringNonNullableRawType]);
     translator.constants.instantiateConstant(null, b,
         ListConstant(listStringType, listStringConstant), expectedType);
     return expectedType;
+  }
+
+  /// Build a global array of byte values used to categorize runtime types.
+  w.Global _buildTypeCategoryTable() {
+    Set<Class> recordClasses = Set.from(translator.recordClasses.values);
+    Uint8List table = Uint8List(translator.classes.length);
+    for (int i = 0; i < translator.classes.length; i++) {
+      ClassInfo info = translator.classes[i];
+      ClassInfo? masquerade = info.masquerade;
+      Class? cls = info.cls;
+      int category;
+      if (cls == null || cls.isAbstract) {
+        category = TypeCategory.abstractClass;
+      } else if (cls == translator.closureClass) {
+        category = TypeCategory.function;
+      } else if (recordClasses.contains(cls)) {
+        category = TypeCategory.record;
+      } else if (masquerade == null || masquerade.classId == i) {
+        category = TypeCategory.notMasqueraded;
+      } else {
+        // Masqueraded class
+        assert(cls.enclosingLibrary.importUri.scheme == "dart");
+        assert(cls.name.startsWith('_'));
+        assert(masquerade.classId >= TypeCategory.minMasqueradeClassId);
+        assert(masquerade.classId <= TypeCategory.maxMasqueradeClassId);
+        category = masquerade.classId;
+      }
+      table[i] = category;
+    }
+
+    w.DataSegment segment = translator.m.addDataSegment(table);
+    w.ArrayType arrayType =
+        translator.wasmArrayType(w.PackedType.i8, "const i8", mutable: false);
+    w.DefinedGlobal global = translator.m
+        .addGlobal(w.GlobalType(w.RefType.def(arrayType, nullable: false)));
+    // Initialize the global to a dummy array, since `array.new_data` is not
+    // a constant instruction and thus can't be used in the initializer.
+    global.initializer.array_new_fixed(arrayType, 0);
+    global.initializer.end();
+    // Create the actual table in the init function.
+    w.Instructions b = translator.initFunction.body;
+    b.i32_const(0);
+    b.i32_const(table.length);
+    b.array_new_data(arrayType, segment);
+    b.global_set(global);
+
+    return global;
   }
 
   bool isFunctionTypeParameter(TypeParameterType type) =>
@@ -314,7 +333,12 @@ class Types {
             type.positionalParameters.every(_isTypeConstant) &&
             type.namedParameters.every((n) => _isTypeConstant(n.type))) ||
         type is InterfaceType && type.typeArguments.every(_isTypeConstant) ||
-        type is TypeParameterType && isFunctionTypeParameter(type);
+        (type is RecordType &&
+            type.positional.every(_isTypeConstant) &&
+            type.named.every((n) => _isTypeConstant(n.type))) ||
+        type is TypeParameterType && isFunctionTypeParameter(type) ||
+        type is InlineType &&
+            _isTypeConstant(type.instantiatedRepresentationType);
   }
 
   Class classForType(DartType type) {
@@ -344,15 +368,24 @@ class Types {
       } else {
         return translator.interfaceTypeParameterTypeClass;
       }
+    } else if (type is InlineType) {
+      return classForType(type.instantiatedRepresentationType);
+    } else if (type is RecordType) {
+      return translator.recordTypeClass;
     }
     throw "Unexpected DartType: $type";
   }
 
   /// Allocates a `List<_Type>` from [types] and pushes it to the stack.
-  void _makeTypeList(CodeGenerator codeGen, List<DartType> types) {
-    w.ValueType listType = codeGen.makeListFromExpressions(
-        types.map((t) => TypeLiteral(t)).toList(), typeType);
-    translator.convertType(codeGen.function, listType, typeListExpectedType);
+  void _makeTypeList(CodeGenerator codeGen, Iterable<DartType> types) {
+    if (types.every(_isTypeConstant)) {
+      translator.constants.instantiateConstant(codeGen.function, codeGen.b,
+          translator.constants.makeTypeList(types), typeListExpectedType);
+    } else {
+      w.ValueType listType = codeGen.makeListFromExpressions(
+          types.map((t) => TypeLiteral(t)).toList(), typeType);
+      translator.convertType(codeGen.function, listType, typeListExpectedType);
+    }
   }
 
   void _makeInterfaceType(CodeGenerator codeGen, InterfaceType type) {
@@ -361,6 +394,21 @@ class Types {
     b.i32_const(encodedNullability(type));
     b.i64_const(typeInfo.classId);
     _makeTypeList(codeGen, type.typeArguments);
+  }
+
+  void _makeRecordType(CodeGenerator codeGen, RecordType type) {
+    codeGen.b.i32_const(encodedNullability(type));
+    translator.constants.instantiateConstant(
+        codeGen.function,
+        codeGen.b,
+        ListConstant(
+          InterfaceType(
+              translator.coreTypes.stringClass, Nullability.nonNullable),
+          type.named.map((t) => StringConstant(t.name)).toList(),
+        ),
+        recordTypeNamesFieldExpectedType);
+    _makeTypeList(
+        codeGen, type.positional.followedBy(type.named.map((t) => t.type)));
   }
 
   /// Normalizes a Dart type. Many rules are already applied for us, but we
@@ -398,21 +446,33 @@ class Types {
   }
 
   void _makeFunctionType(CodeGenerator codeGen, FunctionType type) {
+    int typeParameterOffset = computeFunctionTypeParameterOffset(type);
     w.Instructions b = codeGen.b;
     b.i32_const(encodedNullability(type));
-    _env.enterFunctionType(type);
-    _makeTypeList(codeGen, type.typeParameters.map((p) => p.bound).toList());
+    b.i64_const(typeParameterOffset);
+
+    // List<_Type> typeParameterBounds
+    _makeTypeList(codeGen, type.typeParameters.map((p) => p.bound));
+
+    // List<_Type> typeParameterDefaults
+    _makeTypeList(codeGen, type.typeParameters.map((p) => p.defaultType));
+
+    // _Type returnType
     makeType(codeGen, type.returnType);
-    if (type.positionalParameters.every(_isTypeConstant)) {
-      translator.constants.instantiateTypeConstant(codeGen.function, b,
-          translator.constants.makeTypeList(type.positionalParameters), _env);
-    } else {
-      _makeTypeList(codeGen, type.positionalParameters);
-    }
+
+    // List<_Type> positionalParameters
+    _makeTypeList(codeGen, type.positionalParameters);
+
+    // int requiredParameterCount
     b.i64_const(type.requiredParameterCount);
+
+    // List<_NamedParameter> namedParameters
     if (type.namedParameters.every((n) => _isTypeConstant(n.type))) {
-      translator.constants.instantiateTypeConstant(codeGen.function, b,
-          translator.constants.makeNamedParametersList(type), _env);
+      translator.constants.instantiateConstant(
+          codeGen.function,
+          b,
+          translator.constants.makeNamedParametersList(type),
+          namedParametersExpectedType);
     } else {
       Class namedParameterClass = translator.namedParameterClass;
       Constructor namedParameterConstructor =
@@ -436,7 +496,6 @@ class Types {
       translator.convertType(codeGen.function, namedParametersListType,
           namedParametersExpectedType);
     }
-    _env.leaveFunctionType();
   }
 
   /// Makes a `_Type` object on the stack.
@@ -447,16 +506,18 @@ class Types {
     type = normalize(type);
     w.Instructions b = codeGen.b;
     if (_isTypeConstant(type)) {
-      translator.constants.instantiateTypeConstant(
-          codeGen.function, b, TypeLiteralConstant(type), _env);
+      translator.constants.instantiateConstant(
+          codeGen.function, b, TypeLiteralConstant(type), nonNullableTypeType);
       return nonNullableTypeType;
     }
     // All of the singleton types represented by canonical objects should be
     // created const.
     assert(type is TypeParameterType ||
+        type is InlineType ||
         type is InterfaceType ||
         type is FutureOrType ||
-        type is FunctionType);
+        type is FunctionType ||
+        type is RecordType);
     if (type is TypeParameterType) {
       assert(!isFunctionTypeParameter(type));
       codeGen.instantiateTypeParameter(type.parameter);
@@ -464,6 +525,10 @@ class Types {
         codeGen.call(translator.typeAsNullable.reference);
       }
       return nonNullableTypeType;
+    }
+
+    if (type is InlineType) {
+      return makeType(codeGen, type.instantiatedRepresentationType);
     }
 
     ClassInfo info = translator.classInfo[classForType(type)]!;
@@ -479,6 +544,8 @@ class Types {
       _makeInterfaceType(codeGen, type);
     } else if (type is FunctionType) {
       _makeFunctionType(codeGen, type);
+    } else if (type is RecordType) {
+      _makeRecordType(codeGen, type);
     } else {
       throw '`$type` should have already been handled.';
     }
@@ -486,11 +553,36 @@ class Types {
     return info.nonNullableType;
   }
 
+  /// Compute the lower end of the type parameter index range for this function
+  /// type. This is computed such that it avoids overlap between the index range
+  /// of this function type and the index ranges of all generic function types
+  /// nested within it that contain references to the type parameters of this
+  /// function type.
+  ///
+  /// This will also compute the index values for all of the function's type
+  /// parameters, which can subsequently be queried using
+  /// [getFunctionTypeParameterIndex].
+  int computeFunctionTypeParameterOffset(FunctionType type) {
+    if (type.typeParameters.isEmpty) return 0;
+    int? offset = functionTypeParameterOffset[type];
+    if (offset != null) return offset;
+    _FunctionTypeParameterOffsetCollector(this).visitFunctionType(type);
+    return functionTypeParameterOffset[type]!;
+  }
+
+  /// Get the index value for a function type parameter, indexing into the
+  /// type parameter index range of its corresponding function type.
+  int getFunctionTypeParameterIndex(TypeParameter type) {
+    assert(functionTypeParameterIndex.containsKey(type),
+        "Type parameter offset has not been computed for function type");
+    return functionTypeParameterIndex[type]!;
+  }
+
   /// Test value against a Dart type. Expects the value on the stack as a
   /// (ref null #Top) and leaves the result on the stack as an i32.
   /// TODO(joshualitt): Remove dependency on [CodeGenerator]
-  void emitTypeTest(CodeGenerator codeGen, DartType type, DartType operandType,
-      TreeNode node) {
+  void emitTypeTest(
+      CodeGenerator codeGen, DartType type, DartType operandType) {
     w.Instructions b = codeGen.b;
     if (type is! InterfaceType) {
       makeType(codeGen, type);
@@ -524,7 +616,9 @@ class Types {
       // necessary to test the type arguments.
       Class cls = translator.classForType(operandType);
       InterfaceType? base = translator.hierarchy
-          .getTypeAsInstanceOf(type, cls, codeGen.member.enclosingLibrary)
+          .getTypeAsInstanceOf(type, cls,
+              isNonNullableByDefault:
+                  codeGen.member.enclosingLibrary.isNonNullableByDefault)
           ?.withDeclaredNullability(operandType.declaredNullability);
       if (base != operandType) {
         makeType(codeGen, type);
@@ -538,8 +632,7 @@ class Types {
       b.drop();
       b.i32_const(1);
     } else if (type.classNode == coreTypes.functionClass) {
-      ClassInfo functionInfo = translator.classInfo[translator.functionClass]!;
-      b.ref_test(functionInfo.struct);
+      b.ref_test(translator.closureInfo.nonNullableType);
     } else if (concrete.isEmpty) {
       b.drop();
       b.i32_const(0);
@@ -570,4 +663,70 @@ class Types {
 
   int encodedNullability(DartType type) =>
       type.declaredNullability == Nullability.nullable ? 1 : 0;
+}
+
+/// For a function type F = `... Function<X0, ..., Xn-1>(...)` compute offset(F)
+/// such that for any function type G = `... Function<Y0, ..., Ym-1>(...)`
+/// nested inside F, if G contains a reference to any type parameters of F, then
+/// offset(F) >= offset(G) + m.
+///
+/// Conceptually, the type parameters of F are indexed from offset(F) inclusive
+/// to offset(F) + n exclusive.
+///
+/// Also assign to each type parameter Xi the index offset(F) + i such that it
+/// indexes the correct type parameter in the conceptual type parameter index
+/// range of F.
+///
+/// This ensures that for every reference to a type parameter, its corresponding
+/// function type is the innermost function type enclosing it for which the
+/// index falls within the type parameter index range of the function type.
+class _FunctionTypeParameterOffsetCollector extends RecursiveVisitor {
+  final Types types;
+
+  final List<FunctionType> _functionStack = [];
+  final List<Set<FunctionType>> _functionsContainingParameters = [];
+  final Map<TypeParameter, int> _functionForParameter = {};
+
+  _FunctionTypeParameterOffsetCollector(this.types);
+
+  @override
+  void visitFunctionType(FunctionType node) {
+    int slot = _functionStack.length;
+    _functionStack.add(node);
+    _functionsContainingParameters.add({});
+
+    for (int i = 0; i < node.typeParameters.length; i++) {
+      TypeParameter parameter = node.typeParameters[i];
+      _functionForParameter[parameter] = slot;
+    }
+
+    super.visitFunctionType(node);
+
+    int offset = 0;
+    for (FunctionType inner in _functionsContainingParameters.last) {
+      offset = max(
+          offset,
+          types.functionTypeParameterOffset[inner]! +
+              inner.typeParameters.length);
+    }
+    types.functionTypeParameterOffset[node] = offset;
+
+    for (int i = 0; i < node.typeParameters.length; i++) {
+      TypeParameter parameter = node.typeParameters[i];
+      types.functionTypeParameterIndex[parameter] = offset + i;
+    }
+
+    _functionsContainingParameters.removeLast();
+    _functionStack.removeLast();
+  }
+
+  @override
+  void visitTypeParameterType(TypeParameterType node) {
+    if (types.isFunctionTypeParameter(node)) {
+      int slot = _functionForParameter[node.parameter]!;
+      for (int inner = slot + 1; inner < _functionStack.length; inner++) {
+        _functionsContainingParameters[slot].add(_functionStack[inner]);
+      }
+    }
+  }
 }

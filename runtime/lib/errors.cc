@@ -30,7 +30,7 @@ static ScriptPtr FindScript(DartFrameIterator* iterator) {
       Class::Handle(Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!assert_error_class.IsNull());
   bool hit_assertion_error = false;
-  for (; stack_frame != NULL; stack_frame = iterator->NextFrame()) {
+  for (; stack_frame != nullptr; stack_frame = iterator->NextFrame()) {
     code = stack_frame->LookupDartCode();
     if (code.is_optimized()) {
       InlinedFunctionsIterator inlined_iterator(code, stack_frame->pc());
@@ -144,7 +144,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNewSource, 0, 4) {
   return Object::null();
 }
 
-// Allocate and throw a new TypeError or CastError.
+// Allocate and throw a new TypeError.
 // Arg0: index of the token of the failed type check.
 // Arg1: src value.
 // Arg2: dst type.

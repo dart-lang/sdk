@@ -6,7 +6,7 @@ class Foo extends core::Object {
   synthetic constructor •() → self::Foo
     ;
 }
-static method main() → void
+static method notMain() → void
   ;
 static method a() → void
   ;

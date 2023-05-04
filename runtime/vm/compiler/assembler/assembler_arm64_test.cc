@@ -843,7 +843,7 @@ ASSEMBLER_TEST_GENERATE(PushRegisterPair, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(PushRegisterPair, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*PushRegisterPair)() DART_UNUSED;
   EXPECT_EQ(12, EXECUTE_TEST_CODE_INT64(PushRegisterPair, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -870,7 +870,7 @@ ASSEMBLER_TEST_GENERATE(PushRegisterPairReversed, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(PushRegisterPairReversed, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*PushRegisterPairReversed)() DART_UNUSED;
   EXPECT_EQ(12,
             EXECUTE_TEST_CODE_INT64(PushRegisterPairReversed, test->entry()));
@@ -898,7 +898,7 @@ ASSEMBLER_TEST_GENERATE(PopRegisterPair, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(PopRegisterPair, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*PopRegisterPair)() DART_UNUSED;
   EXPECT_EQ(12, EXECUTE_TEST_CODE_INT64(PopRegisterPair, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -925,7 +925,7 @@ ASSEMBLER_TEST_GENERATE(PopRegisterPairReversed, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(PopRegisterPairReversed, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*PopRegisterPairReversed)() DART_UNUSED;
   EXPECT_EQ(12,
             EXECUTE_TEST_CODE_INT64(PopRegisterPairReversed, test->entry()));
@@ -1018,7 +1018,7 @@ ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Semaphore, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*Semaphore)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Semaphore, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -1051,7 +1051,7 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*FailedSemaphore)() DART_UNUSED;
   EXPECT_EQ(41, EXECUTE_TEST_CODE_INT64(FailedSemaphore, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -1092,7 +1092,7 @@ ASSEMBLER_TEST_GENERATE(Semaphore32, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Semaphore32, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*Semaphore32)() DART_UNUSED;
   // Lower word has been atomically switched from 40 to 42k, whereas upper word
   // is unchanged at 40.
@@ -1134,7 +1134,7 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore32, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*FailedSemaphore32)() DART_UNUSED;
   // Lower word has had the failure code (1) added to it.  Upper word is
   // unchanged at 40.
@@ -1154,6 +1154,50 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
       "ldr r0, [sp], #8 !\n"
       "add r0, r0, tmp\n"
       "mov csp, sp\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(AtomicLoadClear, assembler) {
+  __ mov(R1, R0);
+  __ LoadImmediate(R2, 2);
+  __ ldclr(/*value in*/ R2, /*value out*/ R0, /*address*/ R1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(AtomicLoadClear, test) {
+  typedef intptr_t (*AtomicLoadClear)(intptr_t) DART_UNUSED;
+  intptr_t x = 42;
+  EXPECT_EQ(42,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(AtomicLoadClear, test->entry(),
+                                            reinterpret_cast<intptr_t>(&x)));
+  EXPECT_EQ(40, x);
+
+  EXPECT_DISASSEMBLY(
+      "mov r1, r0\n"
+      "movz r2, #0x2\n"
+      "ldclr r2, r0, [r1]\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(AtomicLoadSet, assembler) {
+  __ mov(R1, R0);
+  __ LoadImmediate(R2, 1);
+  __ ldset(/*value in*/ R2, /*value out*/ R0, /*address*/ R1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(AtomicLoadSet, test) {
+  typedef intptr_t (*AtomicLoadSet)(intptr_t) DART_UNUSED;
+  int64_t x = 42;
+  EXPECT_EQ(42,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(AtomicLoadSet, test->entry(),
+                                            reinterpret_cast<intptr_t>(&x)));
+  EXPECT_EQ(43, x);
+
+  EXPECT_DISASSEMBLY(
+      "mov r1, r0\n"
+      "movz r2, #0x1\n"
+      "ldset r2, r0, [r1]\n"
       "ret\n");
 }
 
@@ -2990,7 +3034,7 @@ ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Udiv, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(3, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -3011,7 +3055,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Sdiv, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-3, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -3032,7 +3076,7 @@ ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Udiv_zero, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -3052,7 +3096,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -3072,7 +3116,7 @@ ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Udiv_corner, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -3092,7 +3136,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(static_cast<int64_t>(0x8000000000000000),
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
@@ -3645,7 +3689,7 @@ ASSEMBLER_TEST_GENERATE(LoadHalfWordUnaligned, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*LoadHalfWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
       0x89, 0xAB, 0xCD, 0xEF,
@@ -3672,7 +3716,7 @@ ASSEMBLER_TEST_GENERATE(LoadHalfWordUnsignedUnaligned, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*LoadHalfWordUnsignedUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
       0x89, 0xAB, 0xCD, 0xEF,
@@ -3698,7 +3742,7 @@ ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*StoreHalfWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
       0, 0, 0, 0,
@@ -3731,7 +3775,7 @@ ASSEMBLER_TEST_GENERATE(LoadWordUnaligned, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int32_t (*LoadWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[8] = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0};
 
@@ -3765,7 +3809,7 @@ ASSEMBLER_TEST_GENERATE(StoreWordUnaligned, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*StoreWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -5311,7 +5355,7 @@ ASSEMBLER_TEST_GENERATE(VinswVmovrs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VinswVmovrs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(174, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -5348,7 +5392,7 @@ ASSEMBLER_TEST_GENERATE(VinsxVmovrd, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VinsxVmovrd, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(85, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -5383,7 +5427,7 @@ ASSEMBLER_TEST_GENERATE(Vnot, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vnot, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
@@ -7104,7 +7148,7 @@ ASSEMBLER_TEST_GENERATE(Vrecpes, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vrecpes, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef double (*DoubleReturn)() DART_UNUSED;
   float res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(arm_recip_estimate(147.0), res, 0.0001);
@@ -7136,7 +7180,7 @@ ASSEMBLER_TEST_GENERATE(Vrecpss, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vrecpss, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(2.0 - 10.0 * 5.0, res, 0.0001);
@@ -7270,7 +7314,7 @@ ASSEMBLER_TEST_GENERATE(Vrsqrtes, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vrsqrtes, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(arm_reciprocal_sqrt_estimate(147.0), res, 0.0001);
@@ -7298,7 +7342,7 @@ ASSEMBLER_TEST_GENERATE(Vrsqrtss, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vrsqrtss, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ((3.0 - 10.0 * 5.0) / 2.0, res, 0.0001);
@@ -7323,7 +7367,7 @@ ASSEMBLER_TEST_GENERATE(ReciprocalSqrt, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(1.0 / sqrt(147000.0), res, 0.0001);
@@ -7384,7 +7428,7 @@ ASSEMBLER_TEST_GENERATE(Drop, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Drop, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMaxPushedNumber,
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));

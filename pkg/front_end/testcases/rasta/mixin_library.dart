@@ -10,7 +10,7 @@ V() => 87;
 
 _private() => 117;
 
-class Mixin<T> {
+mixin Mixin<T> {
   var x = f(), y, z;
   T? t;
   foo() => super.foo() + f();

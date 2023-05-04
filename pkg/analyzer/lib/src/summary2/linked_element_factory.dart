@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:meta/meta.dart';
 
 final _logRing = Queue<String>();
@@ -25,8 +26,8 @@ void addToLogRing(String entry) {
 }
 
 class LinkedElementFactory {
-  static final _dartCoreUri = Uri.parse('dart:core');
-  static final _dartAsyncUri = Uri.parse('dart:async');
+  static final _dartCoreUri = uriCache.parse('dart:core');
+  static final _dartAsyncUri = uriCache.parse('dart:async');
 
   final AnalysisContextImpl analysisContext;
   AnalysisSessionImpl analysisSession;
@@ -112,12 +113,25 @@ class LinkedElementFactory {
 
     var reader = _libraryReaders[uri];
     if (reader == null) {
-      final rootChildren = rootReference.children.map((e) => e.name).toList();
+      var rootChildren = rootReference.children.map((e) => e.name).toList();
+      if (rootChildren.length > 50) {
+        rootChildren = [
+          ...rootChildren.take(50),
+          '... (${rootChildren.length} total)',
+        ];
+      }
+      var readers = _libraryReaders.keys.map((uri) => uri.toString()).toList();
+      if (readers.length > 50) {
+        readers = [
+          ...readers.take(50),
+          '... (${readers.length} total)',
+        ];
+      }
       throw ArgumentError(
         'Missing library: $uri\n'
         'Libraries: $uriListWithLibraryElements\n'
         'Root children: $rootChildren\n'
-        'Readers: ${_libraryReaders.keys.toList()}\n'
+        'Readers: $readers\n'
         'Log: ${_logRing.join('\n')}\n',
       );
     }
@@ -176,7 +190,7 @@ class LinkedElementFactory {
     }
 
     if (reference.isLibrary) {
-      final uri = Uri.parse(reference.name);
+      final uri = uriCache.parse(reference.name);
       return createLibraryElementForReading(uri);
     }
 

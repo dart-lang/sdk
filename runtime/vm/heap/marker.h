@@ -25,7 +25,7 @@ class Thread;
 
 // The class GCMarker is used to mark reachable old generation objects as part
 // of the mark-sweep collection. The marking bit used is defined in RawObject.
-// Instances have a lifetime that spans from the beginining of concurrent
+// Instances have a lifetime that spans from the beginning of concurrent
 // marking (or stop-the-world marking) until marking is complete. In particular,
 // an instance may be created and destroyed on different threads if the isolate
 // is exited during concurrent marking.

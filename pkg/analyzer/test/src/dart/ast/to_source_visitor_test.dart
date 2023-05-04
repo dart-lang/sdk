@@ -100,6 +100,15 @@ void f() {
     );
   }
 
+  void test_visitAssignedVariablePattern() {
+    var findNode = _parseStringToFindNode('''
+void f(int foo) {
+  (foo) = 0;
+}
+''');
+    _assertSource('foo', findNode.assignedVariablePattern('foo) = 0'));
+  }
+
   void test_visitAssignmentExpression() {
     final code = 'a = b';
     final findNode = _parseStringToFindNode('''
@@ -147,21 +156,6 @@ var v = a * (b + c);
     _assertSource(
       'a * (b + c)',
       findNode.binary('a *'),
-    );
-  }
-
-  void test_visitBinaryPattern() {
-    var findNode = _parseStringToFindNode('''
-void f(x) {
-  switch (x) {
-    case int? _ & double? _ & Object? _:
-      break;
-  }
-}
-''');
-    _assertSource(
-      'int? _ & double? _ & Object? _',
-      findNode.binaryPattern('Object?'),
     );
   }
 
@@ -370,6 +364,16 @@ augment class A {}
     );
   }
 
+  void test_visitClassDeclaration_base() {
+    var findNode = _parseStringToFindNode(r'''
+base class A {}
+''');
+    _assertSource(
+      'base class A {}',
+      findNode.classDeclaration('class A'),
+    );
+  }
+
   void test_visitClassDeclaration_empty() {
     final code = 'class C {}';
     final findNode = _parseStringToFindNode(code);
@@ -410,6 +414,16 @@ void f() {}
     _assertSource(code, findNode.classDeclaration(code));
   }
 
+  void test_visitClassDeclaration_final() {
+    var findNode = _parseStringToFindNode(r'''
+final class A {}
+''');
+    _assertSource(
+      'final class A {}',
+      findNode.classDeclaration('class A'),
+    );
+  }
+
   void test_visitClassDeclaration_implements() {
     final code = 'class C implements B {}';
     final findNode = _parseStringToFindNode('''
@@ -418,12 +432,32 @@ $code
     _assertSource(code, findNode.classDeclaration(code));
   }
 
+  void test_visitClassDeclaration_interface() {
+    var findNode = _parseStringToFindNode(r'''
+interface class A {}
+''');
+    _assertSource(
+      'interface class A {}',
+      findNode.classDeclaration('class A'),
+    );
+  }
+
   void test_visitClassDeclaration_macro() {
     var findNode = _parseStringToFindNode(r'''
 macro class A {}
 ''');
     _assertSource(
       'macro class A {}',
+      findNode.classDeclaration('class A'),
+    );
+  }
+
+  void test_visitClassDeclaration_mixin() {
+    var findNode = _parseStringToFindNode(r'''
+mixin class A {}
+''');
+    _assertSource(
+      'mixin class A {}',
       findNode.classDeclaration('class A'),
     );
   }
@@ -482,6 +516,16 @@ $code
     _assertSource(code, findNode.classDeclaration(code));
   }
 
+  void test_visitClassDeclaration_sealed() {
+    var findNode = _parseStringToFindNode(r'''
+sealed class A {}
+''');
+    _assertSource(
+      'sealed class A {}',
+      findNode.classDeclaration('class A'),
+    );
+  }
+
   void test_visitClassDeclaration_singleMember() {
     final code = 'class C {var a;}';
     final findNode = _parseStringToFindNode(code);
@@ -537,6 +581,26 @@ augment class A = S with M;
     );
   }
 
+  void test_visitClassTypeAlias_base() {
+    var findNode = _parseStringToFindNode(r'''
+base class A = S with M;
+''');
+    _assertSource(
+      'base class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
+  }
+
+  void test_visitClassTypeAlias_final() {
+    var findNode = _parseStringToFindNode(r'''
+final class A = S with M;
+''');
+    _assertSource(
+      'final class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
+  }
+
   void test_visitClassTypeAlias_generic() {
     final code = 'class C<E> = S<E> with M<E>;';
     final findNode = _parseStringToFindNode('''
@@ -551,6 +615,16 @@ $code
 $code
 ''');
     _assertSource(code, findNode.classTypeAlias(code));
+  }
+
+  void test_visitClassTypeAlias_interface() {
+    var findNode = _parseStringToFindNode(r'''
+interface class A = S with M;
+''');
+    _assertSource(
+      'interface class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
   }
 
   void test_visitClassTypeAlias_macro() {
@@ -569,6 +643,16 @@ macro class A = S with M;
 $code
 ''');
     _assertSource(code, findNode.classTypeAlias(code));
+  }
+
+  void test_visitClassTypeAlias_mixin() {
+    var findNode = _parseStringToFindNode(r'''
+mixin class A = S with M;
+''');
+    _assertSource(
+      'mixin class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
   }
 
   void test_visitClassTypeAlias_parameters_abstract() {
@@ -593,6 +677,16 @@ $code
 $code
 ''');
     _assertSource(code, findNode.classTypeAlias(code));
+  }
+
+  void test_visitClassTypeAlias_sealed() {
+    var findNode = _parseStringToFindNode(r'''
+sealed class A = S with M;
+''');
+    _assertSource(
+      'sealed class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
   }
 
   void test_visitClassTypeAlias_withMetadata() {
@@ -852,6 +946,21 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.continueStatement('continue'));
+  }
+
+  void test_visitDeclaredVariablePattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? a:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? a',
+      findNode.declaredVariablePattern('int?'),
+    );
   }
 
   void test_visitDefaultFormalParameter_annotation() {
@@ -2269,6 +2378,36 @@ void f(x) {
     );
   }
 
+  void test_visitLogicalAndPattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? _ && double? _ && Object? _:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? _ && double? _ && Object? _',
+      findNode.logicalAndPattern('Object?'),
+    );
+  }
+
+  void test_visitLogicalOrPattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? _ || double? _ || Object? _:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? _ || double? _ || Object? _',
+      findNode.logicalOrPattern('Object?'),
+    );
+  }
+
   void test_visitMapLiteral_const() {
     final code = 'const {}';
     final findNode = _parseStringToFindNode('''
@@ -2551,6 +2690,16 @@ void f() {
     _assertSource(code, findNode.methodInvocation(code));
   }
 
+  void test_visitMixinDeclaration_base() {
+    var findNode = _parseStringToFindNode(r'''
+base mixin M {}
+''');
+    _assertSource(
+      'base mixin M {}',
+      findNode.mixinDeclaration('mixin M'),
+    );
+  }
+
   void test_visitNamedExpression() {
     final code = 'a: 0';
     final findNode = _parseStringToFindNode('''
@@ -2673,6 +2822,51 @@ void f(x) {
     fail('Unable to parse patterns');
   }
 
+  void test_visitPatternField_named() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case (a: 1):
+      break;
+  }
+}
+''');
+    _assertSource(
+      'a: 1',
+      findNode.patternField('1'),
+    );
+  }
+
+  void test_visitPatternField_positional() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case (1,):
+      break;
+  }
+}
+''');
+    _assertSource(
+      '1',
+      findNode.patternField('1'),
+    );
+  }
+
+  void test_visitPatternFieldName() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case (b: 2):
+      break;
+  }
+}
+''');
+    _assertSource(
+      'b:',
+      findNode.patternFieldName('b:'),
+    );
+  }
+
   @failingTest
   void test_visitPatternVariableDeclaration() {
     // TODO(brianwilkerson) Test this when the parser allows.
@@ -2714,7 +2908,7 @@ void f(x) {
 ''');
     _assertSource(
       'true!',
-      findNode.postfixPattern('true'),
+      findNode.nullAssertPattern('true'),
     );
   }
 
@@ -2809,51 +3003,6 @@ void f(x) {
     _assertSource(
       '(1, 2)',
       findNode.recordPattern('(1'),
-    );
-  }
-
-  void test_visitRecordPatternField_named() {
-    var findNode = _parseStringToFindNode('''
-void f(x) {
-  switch (x) {
-    case (a: 1):
-      break;
-  }
-}
-''');
-    _assertSource(
-      'a: 1',
-      findNode.recordPatternField('1'),
-    );
-  }
-
-  void test_visitRecordPatternField_positional() {
-    var findNode = _parseStringToFindNode('''
-void f(x) {
-  switch (x) {
-    case (1,):
-      break;
-  }
-}
-''');
-    _assertSource(
-      '1',
-      findNode.recordPatternField('1'),
-    );
-  }
-
-  void test_visitRecordPatternFieldName() {
-    var findNode = _parseStringToFindNode('''
-void f(x) {
-  switch (x) {
-    case (b: 2):
-      break;
-  }
-}
-''');
-    _assertSource(
-      'b:',
-      findNode.recordPatternFieldName('b:'),
     );
   }
 
@@ -3482,6 +3631,14 @@ $code
     _assertSource(code, findNode.topLevelVariableDeclaration(code));
   }
 
+  void test_visitTopLevelVariableDeclaration_withMetadata() {
+    final code = '@deprecated var a;';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.topLevelVariableDeclaration(code));
+  }
+
   void test_visitTryStatement_catch() {
     final code = 'try {} on E {}';
     final findNode = _parseStringToFindNode('''
@@ -3706,7 +3863,17 @@ $code;
     _assertSource(code, findNode.variableDeclarationList(code));
   }
 
-  void test_visitVariablePattern() {
+  void test_visitWhileStatement() {
+    final code = 'while (true) {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.whileStatement(code));
+  }
+
+  void test_visitWildcardPattern() {
     var findNode = _parseStringToFindNode('''
 void f(x) {
   switch (x) {
@@ -3717,18 +3884,8 @@ void f(x) {
 ''');
     _assertSource(
       'int? _',
-      findNode.variablePattern('int?'),
+      findNode.wildcardPattern('int?'),
     );
-  }
-
-  void test_visitWhileStatement() {
-    final code = 'while (true) {}';
-    final findNode = _parseStringToFindNode('''
-void f() {
-  $code
-}
-''');
-    _assertSource(code, findNode.whileStatement(code));
   }
 
   void test_visitWithClause_multiple() {

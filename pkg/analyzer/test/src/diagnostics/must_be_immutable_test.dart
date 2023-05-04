@@ -29,7 +29,7 @@ class A {
   int x = 0;
 }
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 50, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 50, 1),
     ]);
   }
 
@@ -41,7 +41,7 @@ mixin A {
   int x = 0;
 }
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 50, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 50, 1),
     ]);
   }
 
@@ -54,7 +54,7 @@ class B extends A {
   int x = 0;
 }
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 61, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 61, 1),
     ]);
   }
 
@@ -73,12 +73,12 @@ class A {
 import 'package:meta/meta.dart';
 @immutable
 class A {}
-class B {
+mixin B {
   int x = 0;
 }
 class C extends A with B {}
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 86, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 86, 1),
     ]);
   }
 
@@ -87,12 +87,12 @@ class C extends A with B {}
 import 'package:meta/meta.dart';
 @immutable
 class A {}
-class B {
+mixin B {
   int x = 0;
 }
 class C = A with B;
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 86, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 86, 1),
     ]);
   }
 
@@ -102,11 +102,11 @@ import 'package:meta/meta.dart';
 class A {
   int x = 0;
 }
-class B {}
+mixin B {}
 @immutable
 class C = A with B;
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 86, 1),
+      error(WarningCode.MUST_BE_IMMUTABLE, 86, 1),
     ]);
   }
 

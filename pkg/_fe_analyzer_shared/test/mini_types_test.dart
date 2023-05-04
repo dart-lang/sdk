@@ -114,16 +114,14 @@ main() {
         var t = Type('({int x})') as RecordType;
         expect(t.positional, isEmpty);
         expect(t.named, hasLength(1));
-        expect(t.named[0].name, 'x');
-        expect(t.named[0].type.type, 'int');
+        expect(t.named['x']!.type, 'int');
       });
 
       test('named field followed by comma', () {
         var t = Type('({int x,})') as RecordType;
         expect(t.positional, isEmpty);
         expect(t.named, hasLength(1));
-        expect(t.named[0].name, 'x');
-        expect(t.named[0].type.type, 'int');
+        expect(t.named['x']!.type, 'int');
       });
 
       test('named field followed by invalid token', () {
@@ -138,10 +136,8 @@ main() {
         var t = Type('({int x, String y})') as RecordType;
         expect(t.positional, isEmpty);
         expect(t.named, hasLength(2));
-        expect(t.named[0].name, 'x');
-        expect(t.named[0].type.type, 'int');
-        expect(t.named[1].name, 'y');
-        expect(t.named[1].type.type, 'String');
+        expect(t.named['x']!.type, 'int');
+        expect(t.named['y']!.type, 'String');
       });
 
       test('curly braces followed by invalid token', () {
@@ -183,8 +179,7 @@ main() {
         expect(t.positional, hasLength(1));
         expect(t.positional[0].type, 'int');
         expect(t.named, hasLength(1));
-        expect(t.named[0].name, 'x');
-        expect(t.named[0].type.type, 'String');
+        expect(t.named['x']!.type, 'String');
       });
 
       test('terminated by invalid token', () {
@@ -315,9 +310,9 @@ main() {
       test('unchanged', () {
         var type = RecordType(positional: [
           Type('int'),
-        ], named: [
-          NamedType('a', Type('double')),
-        ]);
+        ], named: {
+          'a': Type('double')
+        });
         expect(type.recursivelyDemote(covariant: true), isNull);
         expect(type.recursivelyDemote(covariant: false), isNull);
       });
@@ -326,9 +321,9 @@ main() {
         group('positional:', () {
           var type = RecordType(positional: [
             Type('T&int'),
-          ], named: [
-            NamedType('a', Type('double')),
-          ]);
+          ], named: {
+            'a': Type('double')
+          });
           test('covariant', () {
             expect(
               type.recursivelyDemote(covariant: true)!.type,
@@ -345,9 +340,9 @@ main() {
         group('named:', () {
           var type = RecordType(positional: [
             Type('double'),
-          ], named: [
-            NamedType('a', Type('T&int')),
-          ]);
+          ], named: {
+            'a': Type('T&int')
+          });
           test('covariant', () {
             expect(
               type.recursivelyDemote(covariant: true)!.type,

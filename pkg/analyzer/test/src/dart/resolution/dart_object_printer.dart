@@ -10,12 +10,14 @@ import 'package:collection/collection.dart';
 
 /// Prints [DartObjectImpl] as a tree, with values and fields.
 class DartObjectPrinter {
+  final DartObjectPrinterConfiguration configuration;
   final StringBuffer sink;
   final String selfUriStr;
 
   String indent = '';
 
   DartObjectPrinter({
+    required this.configuration,
     required this.sink,
     required this.selfUriStr,
   });
@@ -56,14 +58,13 @@ class DartObjectPrinter {
             _withIndent(() {
               for (final element in elements) {
                 sink.write(indent);
-                write(element as DartObjectImpl);
+                write(element);
               }
             });
           }
         });
       } else if (object.isUserDefinedObject) {
-        final typeStr = type.getDisplayString(withNullability: true);
-        sink.writeln(typeStr);
+        _writelnType(type);
         _withIndent(() {
           final fields = object.fields;
           if (fields != null) {
@@ -115,6 +116,32 @@ class DartObjectPrinter {
     indent = savedIndent;
   }
 
+  void _writeElementReference(String name, ElementImpl element) {
+    final reference = element.reference!;
+    final referenceStr = _referenceToString(reference);
+    _writelnWithIndent('$name: $referenceStr');
+  }
+
+  void _writelnType(DartType type) {
+    final typeStr = type.getDisplayString(withNullability: true);
+    sink.writeln(typeStr);
+
+    final alias = type.alias;
+    if (alias != null) {
+      _withIndent(() {
+        final element = alias.element as TypeAliasElementImpl;
+        _writeElementReference('alias', element);
+        _writeTypeArguments(alias.typeArguments);
+      });
+    }
+
+    if (configuration.withTypeArguments) {
+      if (type is InterfaceType) {
+        _writeTypeArguments(type.typeArguments);
+      }
+    }
+  }
+
   void _writelnWithIndent(String line) {
     sink.write(indent);
     sink.writeln(line);
@@ -129,7 +156,7 @@ class DartObjectPrinter {
         _withIndent(() {
           positionalFields.forEachIndexed((index, field) {
             sink.write(indent);
-            sink.write('\$$index: ');
+            sink.write('\$${index + 1}: ');
             write(field);
           });
         });
@@ -150,14 +177,30 @@ class DartObjectPrinter {
     });
   }
 
+  void _writeTypeArguments(List<DartType> typeArguments) {
+    if (typeArguments.isNotEmpty) {
+      _withIndent(() {
+        _writelnWithIndent('typeArguments');
+        _withIndent(() {
+          for (final typeArgument in typeArguments) {
+            sink.write(indent);
+            _writelnType(typeArgument);
+          }
+        });
+      });
+    }
+  }
+
   void _writeVariable(DartObjectImpl object) {
     final variable = object.variable;
     if (variable is VariableElementImpl) {
       _withIndent(() {
-        final reference = variable.reference!;
-        final referenceStr = _referenceToString(reference);
-        _writelnWithIndent('variable: $referenceStr');
+        _writeElementReference('variable', variable);
       });
     }
   }
+}
+
+class DartObjectPrinterConfiguration {
+  bool withTypeArguments = false;
 }

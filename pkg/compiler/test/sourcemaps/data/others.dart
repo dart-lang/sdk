@@ -23,7 +23,7 @@ main() {
   stringInterpolation(null);
   boxing();
   captureTwice();
-  var c = new Class();
+  var c = Class();
   equals(c, 0);
   c.property1 = 1;
   c.property2 = 2;
@@ -31,11 +31,11 @@ main() {
   c.captureTwice();
   equals2(c, null);
   equals2(c, c);
-  var c2 = new Class2();
-  c2.field1 = new Class2();
-  c2.field2 = new Class2();
+  var c2 = Class2();
+  c2.field1 = Class2();
+  c2.field2 = Class2();
   c2 == c2.field1;
-  new Class3(87);
+  Class3(87);
   switchStatement(1);
   switchStatement(0);
   switchStatementConst(const Const(0));

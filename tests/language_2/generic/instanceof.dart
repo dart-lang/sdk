@@ -42,91 +42,91 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo();
-      Expect.equals(true, foo.isT(new List(5)));
-      Expect.equals(true, foo.isT(new List<Object>(5)));
-      Expect.equals(true, foo.isT(new List<int>(5)));
-      Expect.equals(true, foo.isT(new List<num>(5)));
-      Expect.equals(true, foo.isT(new List<String>(5)));
+      Expect.equals(true, foo.isT(new List<dynamic>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<Object>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<int>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<num>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<String>.filled(5, null)));
     }
     {
       Foo foo = new Foo<List>();
-      Expect.equals(true, foo.isT(new List(5)));
-      Expect.equals(true, foo.isT(new List<Object>(5)));
-      Expect.equals(true, foo.isT(new List<int>(5)));
-      Expect.equals(true, foo.isT(new List<num>(5)));
-      Expect.equals(true, foo.isT(new List<String>(5)));
+      Expect.equals(true, foo.isT(new List<dynamic>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<Object>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<int>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<num>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<String>.filled(5, null)));
     }
     {
       Foo foo = new Foo<List<Object>>();
-      Expect.equals(true, foo.isT(new List(5)));
-      Expect.equals(true, foo.isT(new List<Object>(5)));
-      Expect.equals(true, foo.isT(new List<int>(5)));
-      Expect.equals(true, foo.isT(new List<num>(5)));
-      Expect.equals(true, foo.isT(new List<String>(5)));
+      Expect.equals(true, foo.isT(new List<dynamic>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<Object>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<int>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<num>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<String>.filled(5, null)));
     }
     {
       Foo foo = new Foo<List<int>>();
-      Expect.equals(false, foo.isT(new List(5)));
-      Expect.equals(false, foo.isT(new List<Object>(5)));
-      Expect.equals(true, foo.isT(new List<int>(5)));
-      Expect.equals(false, foo.isT(new List<num>(5)));
-      Expect.equals(false, foo.isT(new List<String>(5)));
+      Expect.equals(false, foo.isT(new List<dynamic>.filled(5, null)));
+      Expect.equals(false, foo.isT(new List<Object>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<int>.filled(5, null)));
+      Expect.equals(false, foo.isT(new List<num>.filled(5, null)));
+      Expect.equals(false, foo.isT(new List<String>.filled(5, null)));
     }
     {
       Foo foo = new Foo<List<num>>();
-      Expect.equals(false, foo.isT(new List(5)));
-      Expect.equals(false, foo.isT(new List<Object>(5)));
-      Expect.equals(true, foo.isT(new List<int>(5)));
-      Expect.equals(true, foo.isT(new List<num>(5)));
-      Expect.equals(false, foo.isT(new List<String>(5)));
+      Expect.equals(false, foo.isT(new List<dynamic>.filled(5, null)));
+      Expect.equals(false, foo.isT(new List<Object>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<int>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<num>.filled(5, null)));
+      Expect.equals(false, foo.isT(new List<String>.filled(5, null)));
     }
     {
       Foo foo = new Foo<List<String>>();
-      Expect.equals(false, foo.isT(new List(5)));
-      Expect.equals(false, foo.isT(new List<Object>(5)));
-      Expect.equals(false, foo.isT(new List<int>(5)));
-      Expect.equals(false, foo.isT(new List<num>(5)));
-      Expect.equals(true, foo.isT(new List<String>(5)));
+      Expect.equals(false, foo.isT(new List<dynamic>.filled(5, null)));
+      Expect.equals(false, foo.isT(new List<Object>.filled(5, null)));
+      Expect.equals(false, foo.isT(new List<int>.filled(5, null)));
+      Expect.equals(false, foo.isT(new List<num>.filled(5, null)));
+      Expect.equals(true, foo.isT(new List<String>.filled(5, null)));
     }
     {
       Foo foo = new Foo();
-      Expect.equals(true, foo.isListT(new List(5)));
-      Expect.equals(true, foo.isListT(new List<Object>(5)));
-      Expect.equals(true, foo.isListT(new List<int>(5)));
-      Expect.equals(true, foo.isListT(new List<num>(5)));
-      Expect.equals(true, foo.isListT(new List<String>(5)));
+      Expect.equals(true, foo.isListT(new List<dynamic>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<Object>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<int>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<num>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<String>.filled(5, null)));
     }
     {
       Foo foo = new Foo<Object>();
-      Expect.equals(true, foo.isListT(new List(5)));
-      Expect.equals(true, foo.isListT(new List<Object>(5)));
-      Expect.equals(true, foo.isListT(new List<int>(5)));
-      Expect.equals(true, foo.isListT(new List<num>(5)));
-      Expect.equals(true, foo.isListT(new List<String>(5)));
+      Expect.equals(true, foo.isListT(new List<dynamic>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<Object>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<int>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<num>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<String>.filled(5, null)));
     }
     {
       Foo foo = new Foo<int>();
-      Expect.equals(false, foo.isListT(new List(5)));
-      Expect.equals(false, foo.isListT(new List<Object>(5)));
-      Expect.equals(true, foo.isListT(new List<int>(5)));
-      Expect.equals(false, foo.isListT(new List<num>(5)));
-      Expect.equals(false, foo.isListT(new List<String>(5)));
+      Expect.equals(false, foo.isListT(new List<dynamic>.filled(5, null)));
+      Expect.equals(false, foo.isListT(new List<Object>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<int>.filled(5, null)));
+      Expect.equals(false, foo.isListT(new List<num>.filled(5, null)));
+      Expect.equals(false, foo.isListT(new List<String>.filled(5, null)));
     }
     {
       Foo foo = new Foo<num>();
-      Expect.equals(false, foo.isListT(new List(5)));
-      Expect.equals(false, foo.isListT(new List<Object>(5)));
-      Expect.equals(true, foo.isListT(new List<int>(5)));
-      Expect.equals(true, foo.isListT(new List<num>(5)));
-      Expect.equals(false, foo.isListT(new List<String>(5)));
+      Expect.equals(false, foo.isListT(new List<dynamic>.filled(5, null)));
+      Expect.equals(false, foo.isListT(new List<Object>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<int>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<num>.filled(5, null)));
+      Expect.equals(false, foo.isListT(new List<String>.filled(5, null)));
     }
     {
       Foo foo = new Foo<String>();
-      Expect.equals(false, foo.isListT(new List(5)));
-      Expect.equals(false, foo.isListT(new List<Object>(5)));
-      Expect.equals(false, foo.isListT(new List<int>(5)));
-      Expect.equals(false, foo.isListT(new List<num>(5)));
-      Expect.equals(true, foo.isListT(new List<String>(5)));
+      Expect.equals(false, foo.isListT(new List<dynamic>.filled(5, null)));
+      Expect.equals(false, foo.isListT(new List<Object>.filled(5, null)));
+      Expect.equals(false, foo.isListT(new List<int>.filled(5, null)));
+      Expect.equals(false, foo.isListT(new List<num>.filled(5, null)));
+      Expect.equals(true, foo.isListT(new List<String>.filled(5, null)));
     }
   }
 }

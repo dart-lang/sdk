@@ -1,0 +1,87 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/crashes/crash_03/main.dart:7:57: Error: Type 'MouseTrackerAnnotation' not found.
+// mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
+//                                                         ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/crashes/crash_03/main.dart:9:7: Error: The getter '_hitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
+//  - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named '_hitTestBehavior'.
+//       _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
+//       ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/crashes/crash_03/main.dart:9:27: Error: The getter 'PlatformViewHitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
+//  - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'PlatformViewHitTestBehavior'.
+//       _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
+//                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class Offset extends core::Object {
+  synthetic constructor •() → self::Offset
+    : super core::Object::•()
+    ;
+}
+abstract class _PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin extends mai::RenderBox implements self::_PlatformViewGestureMixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin
+    : super mai::RenderBox::•()
+    ;
+  method hitTestSelf(self::Offset position) → core::bool
+    return !(invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:9:7: Error: The getter '_hitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
+ - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_hitTestBehavior'.
+      _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
+      ^^^^^^^^^^^^^^^^" in this{<unresolved>}._hitTestBehavior =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:9:27: Error: The getter 'PlatformViewHitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
+ - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'PlatformViewHitTestBehavior'.
+      _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}.PlatformViewHitTestBehavior{dynamic}.transparent);
+}
+class PlatformViewRenderBox extends self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin {
+  synthetic constructor •() → self::PlatformViewRenderBox
+    : super self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin::•()
+    ;
+}
+abstract class _PlatformViewGestureMixin extends mai::RenderBox /*isMixinDeclaration*/  {
+  method hitTestSelf(self::Offset position) → core::bool
+    return !(invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:9:7: Error: The getter '_hitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
+ - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_hitTestBehavior'.
+      _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
+      ^^^^^^^^^^^^^^^^" in this{<unresolved>}._hitTestBehavior =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:9:27: Error: The getter 'PlatformViewHitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
+ - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'PlatformViewHitTestBehavior'.
+      _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}.PlatformViewHitTestBehavior{dynamic}.transparent);
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/crashes/crash_03/main_lib.dart:2:20: Error: Type 'Offset' not found.
+//   bool hitTestSelf(Offset position) => false;
+//                    ^^^^^^
+//
+// pkg/front_end/testcases/general/crashes/crash_03/main_lib.dart:2:20: Error: 'Offset' isn't a type.
+//   bool hitTestSelf(Offset position) => false;
+//                    ^^^^^^
+//
+import self as mai;
+import "dart:core" as core;
+
+abstract class RenderBox extends core::Object {
+  synthetic constructor •() → mai::RenderBox
+    : super core::Object::•()
+    ;
+  method hitTestSelf(invalid-type position) → core::bool
+    return false;
+}

@@ -2,25 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Unit test of the [NativeBehavior.processSpecString] method.
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/native/behavior.dart';
-import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/universe/side_effects.dart' show SideEffects;
+import 'package:expect/expect.dart';
 import '../helpers/type_test_helper.dart';
 
 const OBJECT = 'Object';
 const NULL = 'Null';
 
-class Listener extends DiagnosticReporter {
-  Listener() : super(null);
+class Listener implements DiagnosticReporter {
+  String? errorMessage;
 
-  String errorMessage;
   @override
   internalError(spannable, message) {
     errorMessage = message;
@@ -35,10 +32,16 @@ class Listener extends DiagnosticReporter {
   }
 
   @override
+  reportErrorMessage(Spannable spannable, MessageKind messageKind,
+      [Map<String, String> arguments = const {}]) {
+    reportError(createMessage(spannable, messageKind, arguments));
+  }
+
+  @override
   DiagnosticMessage createMessage(spannable, messageKind,
       [arguments = const {}]) {
-    return new DiagnosticMessage(null, spannable,
-        MessageTemplate.TEMPLATES[messageKind].message(arguments, null));
+    return DiagnosticMessage(SourceSpan.unknown(), spannable,
+        MessageTemplate.TEMPLATES[messageKind]!.message(arguments, null));
   }
 
   @override
@@ -46,27 +49,28 @@ class Listener extends DiagnosticReporter {
 }
 
 void test(DartTypes dartTypes, String specString,
-    {List returns,
-    List creates,
-    SideEffects expectedSideEffects,
-    NativeThrowBehavior expectedThrows,
-    bool expectedNew,
-    bool expectedGvn,
+    {List<Object>? returns,
+    List<Object>? creates,
+    SideEffects? expectedSideEffects,
+    NativeThrowBehavior? expectedThrows,
+    bool? expectedNew,
+    bool? expectedGvn,
     bool expectError = false}) {
-  List actualReturns = [];
-  List actualCreates = [];
-  SideEffects actualSideEffects;
-  NativeThrowBehavior actualThrows;
-  bool actualNew;
-  bool actualGvn;
-  Listener listener = new Listener();
+  List<Object> actualReturns = [];
+  List<Object> actualCreates = [];
+  SideEffects? actualSideEffects;
+  NativeThrowBehavior? actualThrows;
+  bool? actualNew;
+  bool? actualGvn;
+  Listener listener = Listener();
   try {
-    NativeBehavior.processSpecString(dartTypes, listener, null, specString,
+    NativeBehavior.processSpecString(
+        dartTypes, listener, NO_LOCATION_SPANNABLE, specString,
         setSideEffects: (effects) => actualSideEffects = effects,
         setThrows: (b) => actualThrows = b,
         setIsAllocation: (b) => actualNew = b,
         setUseGvn: (b) => actualGvn = b,
-        lookupType: (t, {required}) => t,
+        lookupType: (t, {bool? required}) => t,
         typesReturned: actualReturns,
         typesInstantiated: actualCreates,
         objectType: OBJECT,
@@ -91,9 +95,9 @@ void test(DartTypes dartTypes, String specString,
 }
 
 void testWithSideEffects(DartTypes dartTypes, String specString,
-    {List returns, List creates, bool expectError = false}) {
+    {List<Object>? returns, List<Object>? creates, bool expectError = false}) {
   void sideEffectsTest(String newSpecString, SideEffects expectedSideEffects,
-      {bool sideEffectsExpectError}) {
+      {bool? sideEffectsExpectError}) {
     test(dartTypes, newSpecString,
         returns: returns,
         creates: creates,
@@ -101,65 +105,65 @@ void testWithSideEffects(DartTypes dartTypes, String specString,
         expectError: sideEffectsExpectError ?? expectError);
   }
 
-  SideEffects emptySideEffects = new SideEffects.empty();
+  SideEffects emptySideEffects = SideEffects.empty();
   sideEffectsTest(specString + "effects:none;depends:none;", emptySideEffects);
   sideEffectsTest(specString + "depends:none;effects:none;", emptySideEffects);
   sideEffectsTest("effects:none;depends:none;" + specString, emptySideEffects);
   sideEffectsTest("depends:none;effects:none;" + specString, emptySideEffects);
 
-  SideEffects effects = new SideEffects();
+  SideEffects effects = SideEffects();
   effects.clearChangesIndex();
   effects.clearAllDependencies();
   sideEffectsTest(specString + "effects:no-index;depends:none;", effects);
 
-  effects = new SideEffects();
+  effects = SideEffects();
   effects.clearAllSideEffects();
   effects.clearDependsOnIndexStore();
   sideEffectsTest(specString + "effects:none;depends:no-index;", effects);
 
-  effects = new SideEffects();
+  effects = SideEffects();
   effects.clearChangesInstanceProperty();
   effects.clearChangesStaticProperty();
   effects.clearAllDependencies();
   sideEffectsTest(
       specString + "effects:no-instance,no-static;depends:none;", effects);
 
-  effects = new SideEffects();
+  effects = SideEffects();
   effects.clearAllSideEffects();
   effects.clearDependsOnInstancePropertyStore();
   effects.clearDependsOnStaticPropertyStore();
   sideEffectsTest(
       specString + "effects:none;depends:no-instance,no-static;", effects);
 
-  effects = new SideEffects();
+  effects = SideEffects();
   effects.clearChangesInstanceProperty();
   effects.clearChangesStaticProperty();
   effects.clearDependsOnIndexStore();
   sideEffectsTest(
       specString + "effects:no-instance,no-static;depends:no-index;", effects);
 
-  effects = new SideEffects();
+  effects = SideEffects();
   effects.clearChangesIndex();
   effects.clearDependsOnInstancePropertyStore();
   effects.clearDependsOnStaticPropertyStore();
   sideEffectsTest(
       specString + "effects:no-index;depends:no-instance,no-static;", effects);
 
-  effects = new SideEffects();
+  effects = SideEffects();
   effects.clearChangesIndex();
   sideEffectsTest(specString + "effects:no-index;depends:all;", effects);
 
-  effects = new SideEffects();
+  effects = SideEffects();
   effects.clearDependsOnIndexStore();
   sideEffectsTest(specString + "effects:all;depends:no-index;", effects);
 
-  effects = new SideEffects();
+  effects = SideEffects();
   effects.clearChangesInstanceProperty();
   effects.clearChangesStaticProperty();
   sideEffectsTest(
       specString + "effects:no-instance,no-static;depends:all;", effects);
 
-  effects = new SideEffects();
+  effects = SideEffects();
   effects.clearDependsOnInstancePropertyStore();
   effects.clearDependsOnStaticPropertyStore();
   sideEffectsTest(

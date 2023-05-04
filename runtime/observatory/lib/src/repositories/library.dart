@@ -9,7 +9,6 @@ class LibraryRepository extends M.LibraryRepository {
 
   Future<M.Library> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     return (await isolate.getObject(id)) as S.Library;
   }
 }

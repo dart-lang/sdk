@@ -108,7 +108,7 @@ class BaseTest {
     return '$uriPrefix${path.join(testDirectory, relativePath)}';
   }
 
-  /// Convert the given posix [filePath] to conform to to the platform style.
+  /// Convert the given posix [filePath] to conform to the platform style.
   ///
   /// This is a utility method for testing; paths passed in to other methods in
   /// this class are never converted automatically.
@@ -259,7 +259,7 @@ linter:
   Future<void> test_pubspec_lintsInOptions_generatedLints() async {
     await drive('data/linter_project/pubspec.yaml',
         options: 'data/linter_project/$analysisOptionsYaml');
-    expect(bulletToDash(outSink), contains('lint - Sort pub dependencies'));
+    expect(bulletToDash(outSink), contains('lint - Unsorted dependencies.'));
   }
 
   YamlMap _parseOptions(String src) =>
@@ -409,7 +409,7 @@ class OptionsTest extends BaseTest {
 
     // missing_return: error
     var missing_return =
-        AnalysisError(TestSource(), 0, 1, HintCode.MISSING_RETURN, [
+        AnalysisError(TestSource(), 0, 1, WarningCode.MISSING_RETURN, [
       ['x']
     ]);
     expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);

@@ -7,7 +7,6 @@ part of repositories;
 class VMRepository implements M.VMRepository {
   Future<M.VM> get(M.VMRef ref) async {
     S.VM vm = ref as S.VM;
-    assert(vm != null);
     await vm.reload();
     return vm;
   }

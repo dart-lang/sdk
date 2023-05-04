@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <cstring>
+#include <memory>
 
 #include "platform/assert.h"
 
@@ -204,7 +205,7 @@ TEST_CASE(TimelineEventPrintSystrace) {
 
   // Test a duration event. This event kind is not supported so we should
   // serialize it to an empty string.
-  event.Duration("DUR", 0, 1, 2, 3);
+  event.Duration("DUR", 0, 1);
   TimelineEventSystraceRecorder::PrintSystrace(&event, &buffer[0],
                                                kBufferLength);
   EXPECT_STREQ("", buffer);
@@ -372,6 +373,72 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
   const char* beta = strstr(js.ToCString(), "Beta");
   EXPECT(alpha < beta);
 }
+
+// |OSThread::Start()| takes in a function pointer, and only lambdas that don't
+// capture can be converted to function pointers. So, we use these macros to
+// avoid needing to capture.
+#define FAKE_PROCESS_ID 1
+#define FAKE_TRACE_ID 1
+
+TEST_CASE(TimelineTrackMetadataRace) {
+  struct ReportMetadataArguments {
+    Monitor& synchronization_monitor;
+    TimelineEventRingRecorder& recorder;
+    ThreadJoinId join_id = OSThread::kInvalidThreadJoinId;
+  };
+
+  Monitor synchronization_monitor;
+  TimelineEventRingRecorder recorder;
+
+  // Try concurrently reading from / writing to the metadata map. I don't think
+  // it's possible to assert anything about the outcome, because of scheduling
+  // uncertainty. This test is just used to ensure that TSAN checks the metadata
+  // map code.
+  JSONStream js;
+  TimelineEventFilter filter;
+  ReportMetadataArguments report_metadata_1_arguments{synchronization_monitor,
+                                                      recorder};
+  ReportMetadataArguments report_metadata_2_arguments{synchronization_monitor,
+                                                      recorder};
+  OSThread::Start(
+      "ReportMetadata1",
+      [](uword arguments_ptr) {
+        ReportMetadataArguments& arguments =
+            *reinterpret_cast<ReportMetadataArguments*>(arguments_ptr);
+        arguments.recorder.AddTrackMetadataBasedOnThread(
+            FAKE_PROCESS_ID, FAKE_TRACE_ID, "Thread 1");
+        MonitorLocker ml(&arguments.synchronization_monitor);
+        arguments.join_id =
+            OSThread::GetCurrentThreadJoinId(OSThread::Current());
+        ml.Notify();
+      },
+      reinterpret_cast<uword>(&report_metadata_1_arguments));
+  OSThread::Start(
+      "ReportMetadata2",
+      [](uword arguments_ptr) {
+        ReportMetadataArguments& arguments =
+            *reinterpret_cast<ReportMetadataArguments*>(arguments_ptr);
+        arguments.recorder.AddTrackMetadataBasedOnThread(
+            FAKE_PROCESS_ID, FAKE_TRACE_ID, "Incorrect Name");
+        MonitorLocker ml(&arguments.synchronization_monitor);
+        arguments.join_id =
+            OSThread::GetCurrentThreadJoinId(OSThread::Current());
+        ml.Notify();
+      },
+      reinterpret_cast<uword>(&report_metadata_2_arguments));
+  recorder.PrintJSON(&js, &filter);
+  MonitorLocker ml(&synchronization_monitor);
+  while (
+      report_metadata_1_arguments.join_id == OSThread::kInvalidThreadJoinId ||
+      report_metadata_2_arguments.join_id == OSThread::kInvalidThreadJoinId) {
+    ml.Wait();
+  }
+  OSThread::Join(report_metadata_1_arguments.join_id);
+  OSThread::Join(report_metadata_2_arguments.join_id);
+}
+
+#undef FAKE_PROCESS_ID
+#undef FAKE_TRACE_ID
 
 #endif  // !PRODUCT
 

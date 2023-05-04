@@ -125,10 +125,8 @@ class FlowAnalysisHelper {
   }
 
   void breakStatement(BreakStatement node) {
-    var target = getLabelTarget(node, node.label?.staticElement);
-    if (target != null) {
-      flow!.handleBreak(target);
-    }
+    var target = getLabelTarget(node, node.label?.staticElement, isBreak: true);
+    flow!.handleBreak(target);
   }
 
   /// Mark the [node] as unreachable if it is not covered by another node that
@@ -143,10 +141,9 @@ class FlowAnalysisHelper {
   }
 
   void continueStatement(ContinueStatement node) {
-    var target = getLabelTarget(node, node.label?.staticElement);
-    if (target != null) {
-      flow!.handleContinue(target);
-    }
+    var target =
+        getLabelTarget(node, node.label?.staticElement, isBreak: false);
+    flow!.handleContinue(target);
   }
 
   void executableDeclaration_enter(
@@ -158,7 +155,11 @@ class FlowAnalysisHelper {
 
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        flow!.declare(parameter.declaredElement!, true);
+        var declaredElement = parameter.declaredElement!;
+        // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
+        // around a failure in duplicate_definition_test.dart; fix this.
+        flow!.declare(declaredElement, declaredElement.type,
+            initialized: true, skipDuplicateCheck: true);
       }
     }
   }
@@ -283,8 +284,9 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        flow!.declare(variable.declaredElement as PromotableElement,
-            variable.initializer != null);
+        var declaredElement = variable.declaredElement as PromotableElement;
+        flow!.declare(declaredElement, declaredElement.type,
+            initialized: variable.initializer != null);
       }
     }
   }
@@ -312,12 +314,15 @@ class FlowAnalysisHelper {
   /// Return the target of the `break` or `continue` statement with the
   /// [element] label. The [element] might be `null` (when the statement does
   /// not specify a label), so the default enclosing target is returned.
-  static Statement? getLabelTarget(AstNode? node, Element? element) {
+  ///
+  /// [isBreak] is `true` for `break`, and `false` for `continue`.
+  static Statement? getLabelTarget(AstNode? node, Element? element,
+      {required bool isBreak}) {
     for (; node != null; node = node.parent) {
       if (element == null) {
         if (node is DoStatement ||
             node is ForStatement ||
-            node is SwitchStatement ||
+            (isBreak && node is SwitchStatement) ||
             node is WhileStatement) {
           return node as Statement;
         }
@@ -325,7 +330,12 @@ class FlowAnalysisHelper {
         if (node is LabeledStatement) {
           if (_hasLabel(node.labels, element)) {
             var statement = node.statement;
+            // The inner statement is returned for labeled loops and
+            // switch statements, while the LabeledStatement is returned
+            // for the other known targets. This could be possibly changed
+            // so that the inner statement is always returned.
             if (statement is Block ||
+                statement is BreakStatement ||
                 statement is IfStatement ||
                 statement is TryStatement) {
               return node;
@@ -447,7 +457,7 @@ class TypeSystemOperations
 
   @override
   DartType lub(DartType type1, DartType type2) {
-    throw UnimplementedError('TODO(paulberry)');
+    return typeSystem.leastUpperBound(type1, type2);
   }
 
   @override
@@ -480,6 +490,13 @@ class TypeSystemOperations
       );
     }
     return null;
+  }
+
+  @override
+  DartType? matchStreamType(DartType type) {
+    var streamElement = typeSystem.typeProvider.streamElement;
+    var listType = type.asInstanceOf(streamElement);
+    return listType?.typeArguments[0];
   }
 
   @override
@@ -621,13 +638,13 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPatternVariableDeclarationStatement(
-    covariant PatternVariableDeclarationStatementImpl node,
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
   ) {
-    for (var variable in node.declaration.elements) {
+    for (var variable in node.elements) {
       assignedVariables.declare(variable);
     }
-    super.visitPatternVariableDeclarationStatement(node);
+    super.visitPatternVariableDeclaration(node);
   }
 
   @override
@@ -664,20 +681,52 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     if (element is PromotableElement &&
         node.inGetterContext() &&
         node.parent is! FormalParameter &&
-        node.parent is! CatchClause) {
+        node.parent is! CatchClause &&
+        node.parent is! CommentReference) {
       assignedVariables.read(element);
     }
   }
 
   @override
-  void visitSwitchStatement(SwitchStatement node) {
-    var expression = node.expression;
-    var members = node.members;
+  void visitSwitchExpression(covariant SwitchExpressionImpl node) {
+    node.expression.accept(this);
 
-    expression.accept(this);
+    for (var case_ in node.cases) {
+      var guardedPattern = case_.guardedPattern;
+      var variables = guardedPattern.variables;
+      for (var variable in variables.values) {
+        assignedVariables.declare(variable);
+      }
+      case_.accept(this);
+    }
+  }
+
+  @override
+  void visitSwitchStatement(covariant SwitchStatementImpl node) {
+    node.expression.accept(this);
 
     assignedVariables.beginNode();
-    members.accept(this);
+    for (var group in node.memberGroups) {
+      for (var member in group.members) {
+        if (member is SwitchCaseImpl) {
+          member.expression.accept(this);
+        } else if (member is SwitchPatternCaseImpl) {
+          var guardedPattern = member.guardedPattern;
+          guardedPattern.pattern.accept(this);
+          for (var variable in guardedPattern.variables.values) {
+            assignedVariables.declare(variable);
+          }
+          guardedPattern.whenClause?.accept(this);
+        }
+      }
+      for (var variable in group.variables.values) {
+        // We pass `ignoreDuplicates: true` because this variable might be the
+        // same as one of the variables declared earlier under a specific switch
+        // case.
+        assignedVariables.declare(variable, ignoreDuplicates: true);
+      }
+      group.statements.accept(this);
+    }
     assignedVariables.endNode(node);
   }
 
@@ -733,6 +782,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         forLoopParts.initialization?.accept(this);
       } else if (forLoopParts is ForPartsWithDeclarations) {
         forLoopParts.variables.accept(this);
+      } else if (forLoopParts is ForPartsWithPattern) {
+        forLoopParts.variables.accept(this);
       } else {
         throw StateError('Unrecognized for loop parts');
       }
@@ -755,6 +806,10 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
         var variable = forLoopParts.loopVariable.declaredElement!;
         assignedVariables.declare(variable);
+      } else if (forLoopParts is ForEachPartsWithPatternImpl) {
+        for (var variable in forLoopParts.variables) {
+          assignedVariables.declare(variable);
+        }
       } else {
         throw StateError('Unrecognized for loop parts');
       }

@@ -7,6 +7,7 @@
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -18,6 +19,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:path/path.dart' as path;
@@ -84,6 +86,13 @@ Future<bool> validateLibrary(Directory dir) async {
   return validDocs;
 }
 
+final Future<AllowedExperiments> allowedExperiments = () async {
+  final allowedExperimentsFile =
+      File('sdk/lib/_internal/allowed_experiments.json');
+  final contents = await allowedExperimentsFile.readAsString();
+  return parseAllowedExperiments(contents);
+}();
+
 Future<bool> verifyFile(
   AnalysisHelper analysisHelper,
   String coreLibName,
@@ -93,7 +102,10 @@ Future<bool> verifyFile(
   final text = file.readAsStringSync();
   var parseResult = parseString(
     content: text,
-    featureSet: FeatureSet.latestLanguageVersion(),
+    featureSet: FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
+      flags: (await allowedExperiments).sdkDefaultExperiments,
+    ),
     path: file.path,
     throwIfDiagnostics: false,
   );
@@ -221,13 +233,13 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   // instead of writing them explicitly to.
   //
   // Captures:
-  // 1/libdecl: Non-null if mathcing a `library` declaration.
+  // 1/libdecl: Non-null if matching a `library` declaration.
   // 2: Internal use, quote around import URI.
   // 3/importuri: Import URI.
   final _toplevelDeclarationRE = RegExp(r'^\s*(?:'
       r'library\b(?<libdecl>)|'
       r'''import (['"])(?<importuri>.*?)\2|'''
-      r'class\b|mixin\b|enum\b|extension\b|typedef\b|.*\bmain\('
+      r'final class\b|class\b|mixin\b|enum\b|extension\b|typedef\b|.*\bmain\('
       r')');
 
   validateCodeSample(CodeSample sample) async {
@@ -325,7 +337,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
       // Filter out unused imports, since we speculatively add imports to some
       // samples.
       errors.removeWhere(
-        (e) => e.errorCode == HintCode.UNUSED_IMPORT,
+        (e) => e.errorCode == WarningCode.UNUSED_IMPORT,
       );
 
       // Also, don't worry about 'unused_local_variable' and related; this may
@@ -334,14 +346,6 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
         (e) =>
             e.errorCode == HintCode.UNUSED_LOCAL_VARIABLE ||
             e.errorCode == HintCode.UNUSED_ELEMENT,
-      );
-
-      // Remove warnings about deprecated member use from the same library.
-      errors.removeWhere(
-        (e) =>
-            e.errorCode == HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE ||
-            e.errorCode ==
-                HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
       );
 
       // Handle edge case around dart:_http
@@ -486,7 +490,8 @@ class AnalysisHelper {
   final String libraryName;
   final resourceProvider =
       OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
-  final pathRoot = Platform.isWindows ? r'c:\' : '/';
+  late final String separator = resourceProvider.pathContext.separator;
+  late final pathRoot = Directory('sdk${separator}lib$separator').absolute.path;
   late AnalysisContextCollection collection;
   int index = 0;
 
@@ -500,8 +505,7 @@ class AnalysisHelper {
   }
 
   Future<SomeResolvedUnitResult> resolveFile(String contents) async {
-    final samplePath =
-        '$pathRoot$libraryName${resourceProvider.pathContext.separator}'
+    final samplePath = '$pathRoot$libraryName$separator'
         'sample_${index++}.dart';
     resourceProvider.setOverlay(
       samplePath,

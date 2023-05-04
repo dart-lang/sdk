@@ -172,7 +172,7 @@ class InfiniteLoopTask : public ThreadPool::Task {
       ml.Notify();
     }
     Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
-    // Test should run an inifinite loop and expect that to be killed.
+    // Test should run an infinite loop and expect that to be killed.
     EXPECT(Dart_IsError(result));
     EXPECT_STREQ("isolate terminated by Isolate.kill", Dart_GetError(result));
     {
@@ -590,7 +590,7 @@ static Dart_NativeFunction CurrentStackTraceNativeLookup(
 
 TEST_CASE(DartAPI_CurrentStackTraceInfo) {
   const char* kScriptChars = R"(
-@pragma("vm:external-name", "CurrentStackTraceNatve")
+@pragma("vm:external-name", "CurrentStackTraceNative")
 external inspectStack();
 foo(n) => n == 1 ? inspectStack() : foo(n-1);
 testMain() => foo(100);
@@ -775,7 +775,7 @@ void Func1() {
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING("isolate terminated by Isolate.kill", Dart_GetError(result));
+  EXPECT_SUBSTRING("isolate terminated by Isolate.exit", Dart_GetError(result));
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
@@ -1559,6 +1559,9 @@ TEST_CASE(DartAPI_ArrayValues) {
   }
 }
 
+static void MallocFinalizer(void* isolate_callback_data, void* peer) {
+  free(peer);
+}
 static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 TEST_CASE(DartAPI_IsString) {
@@ -1750,19 +1753,23 @@ TEST_CASE(DartAPI_ExternalStringCallback) {
 TEST_CASE(DartAPI_ExternalStringPretenure) {
   {
     Dart_EnterScope();
-    static const uint8_t big_data8[16 * MB] = {
-        0,
-    };
+
+    size_t kBig = 16 * MB;
+    uint8_t* big_data8 = reinterpret_cast<uint8_t*>(calloc(kBig, 1));
     Dart_Handle big8 =
-        Dart_NewExternalLatin1String(big_data8, ARRAY_SIZE(big_data8), NULL,
-                                     sizeof(big_data8), NoopFinalizer);
+        Dart_NewExternalLatin1String(big_data8,               // data
+                                     kBig / sizeof(uint8_t),  // length
+                                     big_data8,               // peer
+                                     kBig,                    // external size
+                                     MallocFinalizer);
     EXPECT_VALID(big8);
-    static const uint16_t big_data16[16 * MB / 2] = {
-        0,
-    };
+    uint16_t* big_data16 = reinterpret_cast<uint16_t*>(calloc(kBig, 1));
     Dart_Handle big16 =
-        Dart_NewExternalUTF16String(big_data16, ARRAY_SIZE(big_data16), NULL,
-                                    sizeof(big_data16), NoopFinalizer);
+        Dart_NewExternalUTF16String(big_data16,               // data
+                                    kBig / sizeof(uint16_t),  // length
+                                    big_data16,               // peer
+                                    kBig,                     // external size
+                                    MallocFinalizer);
     static const uint8_t small_data8[] = {'f', 'o', 'o'};
     Dart_Handle small8 =
         Dart_NewExternalLatin1String(small_data8, ARRAY_SIZE(small_data8), NULL,
@@ -3287,7 +3294,7 @@ static void SlowWeakPersistentHandle(void* isolate_callback_data, void* peer) {
   (*count)++;
 }
 
-TEST_CASE(DartAPI_SlowWeakPersistenhandle) {
+TEST_CASE(DartAPI_SlowWeakPersistentHandle) {
   Dart_WeakPersistentHandle handles[20];
   intptr_t count = 0;
 
@@ -3821,11 +3828,11 @@ TEST_CASE(DartAPI_WeakPersistentHandleErrors) {
   const char* kScriptChars = R"(
       import 'dart:ffi';
 
-      class MyStruct extends Struct {
+      final class MyStruct extends Struct {
         external Pointer notEmpty;
       }
 
-      class MyUnion extends Union {
+      final class MyUnion extends Union {
         external Pointer notEmpty;
       }
   )";
@@ -3881,11 +3888,11 @@ TEST_CASE(DartAPI_FinalizableHandleErrors) {
   const char* kScriptChars = R"(
       import 'dart:ffi';
 
-      class MyStruct extends Struct {
+      final class MyStruct extends Struct {
         external Pointer notEmpty;
       }
 
-      class MyUnion extends Union {
+      final class MyUnion extends Union {
         external Pointer notEmpty;
       }
   )";
@@ -4594,7 +4601,7 @@ void FUNCTION_NAME(ExampleResource_Dispose)(Dart_NativeArguments native_args) {
 TEST_CASE(DartAPI_WeakPersistentHandleUpdateSize) {
   const char* kScriptChars = R"(
     import "dart:nativewrappers";
-    class ExampleResource extends NativeFieldWrapperClass1 {
+    base class ExampleResource extends NativeFieldWrapperClass1 {
       ExampleResource() { _allocate(); }
       @pragma("vm:external-name", "ExampleResource_Allocate")
       external void _allocate();
@@ -4653,7 +4660,7 @@ TEST_CASE(DartAPI_NativeFieldAccess) {
   const char* kScriptChars = R"(
     import 'dart:ffi';
     import 'dart:nativewrappers';
-    class SecretKeeper extends NativeFieldWrapperClass1 {
+    base class SecretKeeper extends NativeFieldWrapperClass1 {
       SecretKeeper(int secret) { _keepSecret(secret); }
       @pragma("vm:external-name", "SecretKeeper_KeepSecret")
       external void _keepSecret(int secret);
@@ -4687,7 +4694,7 @@ TEST_CASE(DartAPI_NativeFieldAccess_Throws) {
   const char* kScriptChars = R"(
     import 'dart:ffi';
     import 'dart:nativewrappers';
-    class ForgetfulSecretKeeper extends NativeFieldWrapperClass1 {
+    base class ForgetfulSecretKeeper extends NativeFieldWrapperClass1 {
       ForgetfulSecretKeeper(int secret) { /* Forget to init. native field. */ }
     }
     // Argument auto-conversion will wrap `o` in `_getNativeField()`.
@@ -5091,7 +5098,7 @@ TEST_CASE(DartAPI_SetStickyError) {
   EXPECT(Dart_GetStickyError() == Dart_Null());
 }
 
-TEST_CASE(DartAPI_TypeGetNonParamtericTypes) {
+TEST_CASE(DartAPI_TypeGetNonParametricTypes) {
   const char* kScriptChars =
       "class MyClass0 {\n"
       "}\n"
@@ -5692,7 +5699,8 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
                   "import 'dart:nativewrappers';"
-                  "class NativeFields extends NativeFieldWrapperClass2 {\n"
+                  "final class NativeFields "
+                  "extends NativeFieldWrapperClass2 {\n"
                   "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
                   "  int fld1;\n"
                   "  final int fld2;\n"
@@ -5836,7 +5844,7 @@ TEST_CASE(DartAPI_TestNativeFieldsAccess) {
       OS::SCreate(
           nullptr, R"(
           import 'dart:nativewrappers';
-          class NativeFields extends NativeFieldWrapperClass2 {
+          base class NativeFields extends NativeFieldWrapperClass2 {
             NativeFields(int i, int j) : fld1 = i, fld2 = j {}
             int fld1;
             final int fld2;
@@ -5876,11 +5884,11 @@ TEST_CASE(DartAPI_TestNativeFieldsAccess) {
 TEST_CASE(DartAPI_InjectNativeFieldsSuperClass) {
   const char* kScriptChars =
       "import 'dart:nativewrappers';"
-      "class NativeFieldsSuper extends NativeFieldWrapperClass1 {\n"
+      "base class NativeFieldsSuper extends NativeFieldWrapperClass1 {\n"
       "  NativeFieldsSuper() : fld1 = 42 {}\n"
       "  int fld1;\n"
       "}\n"
-      "class NativeFields extends NativeFieldsSuper {\n"
+      "base class NativeFields extends NativeFieldsSuper {\n"
       "  fld() => fld1;\n"
       "}\n"
       "int testMain() {\n"
@@ -5983,7 +5991,8 @@ TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
                   "import 'dart:nativewrappers';"
-                  "class NativeFields extends NativeFieldWrapperClass4 {\n"
+                  "final class NativeFields extends "
+                  "NativeFieldWrapperClass4 {\n"
                   "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
                   "  int%s fld0;\n"
                   "  int fld1;\n"
@@ -6587,24 +6596,6 @@ TEST_CASE(DartAPI_InvokeClosure_Issue44205) {
   dart_arguments[0] = Dart_EmptyString();
   result = Dart_InvokeClosure(retobj, 1, dart_arguments);
   EXPECT_ERROR(result, "String' is not a subtype of type 'int' of 'j'");
-}
-
-TEST_CASE(DartAPI_New_Issue2971) {
-  // Issue 2971: We were unable to use Dart_New to construct an
-  // instance of List, due to problems implementing interface
-  // factories.
-  Dart_Handle core_lib = Dart_LookupLibrary(NewString("dart:core"));
-  EXPECT_VALID(core_lib);
-  Dart_Handle list_type =
-      Dart_GetNonNullableType(core_lib, NewString("List"), 0, NULL);
-  EXPECT_VALID(list_type);
-
-  const int kNumArgs = 1;
-  Dart_Handle args[kNumArgs];
-  args[0] = Dart_NewInteger(1);
-  Dart_Handle list_obj = Dart_New(list_type, Dart_Null(), kNumArgs, args);
-  EXPECT_VALID(list_obj);
-  EXPECT(Dart_IsList(list_obj));
 }
 
 TEST_CASE(DartAPI_NewListOf) {
@@ -7435,7 +7426,7 @@ static Dart_NativeFunction native_args_lookup(Dart_Handle name,
 TEST_CASE(DartAPI_GetNativeArguments) {
   const char* kScriptChars = R"(
 import 'dart:nativewrappers';
-class MyObject extends NativeFieldWrapperClass2 {
+base class MyObject extends NativeFieldWrapperClass2 {
   @pragma("vm:external-name", "NativeArgument_Create")
   external static MyObject createObject();
   @pragma("vm:external-name", "NativeArgument_Access")
@@ -10149,7 +10140,7 @@ void main() {
 
 // There exists another test by name DartAPI_Invoke_CrossLibrary.
 // However, that currently fails for the dartk configuration as it
-// uses Dart_LoadLibray. This test here effectively tests the same
+// uses Dart_LoadLibrary. This test here effectively tests the same
 // functionality but invokes a function from an imported standard
 // library.
 TEST_CASE(DartAPI_InvokeImportedFunction) {
@@ -10494,96 +10485,260 @@ TEST_CASE(DartAPI_UserTags) {
       "Dart_SetCurrentUserTag expects argument 'user_tag' to be non-null");
 }
 
-void* last_isolate_group_data = nullptr;
-Dart_PersistentHandle last_allocation_cls = nullptr;
-intptr_t heap_samples = 0;
+#endif  // !PRODUCT
 
-void HeapSamplingCallback(void* isolate_group_data,
-                          Dart_PersistentHandle cls_type,
-                          Dart_WeakPersistentHandle obj,
-                          uintptr_t size) {
-  last_isolate_group_data = isolate_group_data;
-  last_allocation_cls = cls_type;
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+static void* HeapSamplingCreate(Dart_Isolate isolate,
+                                Dart_IsolateGroup isolate_group) {
+  return strdup("test data");
+}
+
+static void HeapSamplingDelete(void* data) {
+  free(data);
+}
+
+static void* last_allocation_context = nullptr;
+static intptr_t last_allocation_size = 0;
+static const char* last_allocation_cls = nullptr;
+static void* last_allocation_data = nullptr;
+static intptr_t heap_samples = 0;
+static const char* expected_allocation_cls = nullptr;
+static bool found_allocation = false;
+
+void HeapSamplingReport(void* context,
+                        intptr_t heap_size,
+                        const char* cls_name,
+                        void* data) {
+  last_allocation_context = context;
+  last_allocation_size = heap_size;
+  last_allocation_cls = cls_name;
+  last_allocation_data = data;
+  if (strcmp(cls_name, expected_allocation_cls) == 0) {
+    found_allocation = true;
+  }
   heap_samples++;
 }
 
-TEST_CASE(DartAPI_HeapSampling) {
-  Dart_RegisterHeapSamplingCallback(HeapSamplingCallback);
+void ResetHeapSamplingState(const char* expected_cls = nullptr) {
+  heap_samples = 0;
+  expected_allocation_cls = expected_cls;
+  found_allocation = false;
+  last_allocation_context = nullptr;
+  last_allocation_size = 0;
+  last_allocation_cls = nullptr;
+  last_allocation_data = nullptr;
+}
 
+// Threads won't pick up heap sampling profiler state changes until they
+// process outstanding VM interrupts. Invoke this method after calling
+// any of the following APIs in a test to ensure changes are applied:
+//
+//  - Dart_EnableHeapSampling()
+//  - Dart_DisableHeapSampling()
+//  - Dart_SetHeapSamplingPeriod(...)
+void HandleInterrupts(Thread* thread) {
+  TransitionNativeToVM transition(thread);
+  thread->HandleInterrupts();
+}
+
+void InitHeapSampling(Thread* thread, const char* expected_cls) {
+  ResetHeapSamplingState(expected_cls);
+  Dart_RegisterHeapSamplingCallback(HeapSamplingCreate, HeapSamplingDelete);
   Dart_EnableHeapSampling();
   // Start with sampling on every byte allocated.
   Dart_SetHeapSamplingPeriod(1);
+  HandleInterrupts(thread);
+}
 
-  auto isolate_group_data = Dart_CurrentIsolateGroupData();
+TEST_CASE(DartAPI_HeapSampling_UserDefinedClass) {
+  DisableBackgroundCompilationScope scope;
+  const char* kScriptChars = R"(
+    class Bar {}
+    final list = [];
+    foo() {
+      for (int i = 0; i < 100000; ++i) {
+        list.add(Bar());
+      }
+    }
+    )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+
+  InitHeapSampling(thread, "Bar");
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  EXPECT_VALID(result);
+
+  // Exit the isolate before getting the profile.
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  Dart_ExitIsolate();
+
+  void* context = reinterpret_cast<void*>(42);  // Fake data, not used.
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, context);
+  EXPECT(heap_samples > 0);
+  EXPECT(heap_samples < 100000);
+  EXPECT(last_allocation_context == context);
+  EXPECT(found_allocation);
+  EXPECT_STREQ(reinterpret_cast<char*>(last_allocation_data), "test data");
+  Dart_EnterIsolate(isolate);
+}
+
+TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
+  InitHeapSampling(thread, "List");
+
   // Some simple allocations
-  USE(Dart_NewList(100));
+  EXPECT_VALID(Dart_NewList(100));
 
-  const char* name = nullptr;
-  Dart_Handle result = Dart_StringToCString(last_allocation_cls, &name);
-  EXPECT_VALID(result);
+  // Exit the isolate before getting the profile.
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  EXPECT(isolate != nullptr);
+  Dart_ExitIsolate();
 
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
   EXPECT(heap_samples > 0);
-  EXPECT_STREQ("List", name);
-  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+#if !defined(PRODUCT)
+  EXPECT_STREQ("List", last_allocation_cls);
+  ResetHeapSamplingState("String");
+#else
+  EXPECT_STREQ("_List", last_allocation_cls);
+  ResetHeapSamplingState("_OneByteString");
+#endif
 
-  heap_samples = 0;
-  USE(Dart_NewStringFromCString("Foo"));
-  result = Dart_StringToCString(last_allocation_cls, &name);
-  EXPECT_VALID(result);
+  // Re-enter the isolate.
+  Dart_EnterIsolate(isolate);
+
+  const intptr_t kNumAllocations = 1000;
+  for (intptr_t i = 0; i < kNumAllocations; ++i) {
+    EXPECT_VALID(AllocateOldString("str"));
+  }
+
+  // Exit the isolate after performing allocations.
+  Dart_ExitIsolate();
+
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
   EXPECT(heap_samples > 0);
-  EXPECT_STREQ("String", name);
-  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+  EXPECT(found_allocation);
+
+#if !defined(PRODUCT)
+  ResetHeapSamplingState("String");
+#else
+  ResetHeapSamplingState("_OneByteString");
+#endif
+
+  // Re-enter the isolate.
+  Dart_EnterIsolate(isolate);
+
+  EXPECT_VALID(Dart_NewStringFromCString("Foo"));
+
+  // Exit the isolate after performing allocations.
+  Dart_ExitIsolate();
+
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  EXPECT(heap_samples > 0);
+  EXPECT(found_allocation);
+
+  ResetHeapSamplingState("Uint8List");
+
+  // Re-enter the isolate.
+  Dart_EnterIsolate(isolate);
+
+  EXPECT_VALID(Dart_NewTypedData(Dart_TypedData_kUint8, 1000000));
+
+  // Exit the isolate after performing allocations.
+  Dart_ExitIsolate();
+
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  EXPECT(heap_samples > 0);
+  EXPECT(found_allocation);
+
+  Dart_EnterIsolate(isolate);
+}
+
+TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
+  DisableBackgroundCompilationScope scope;
+  InitHeapSampling(thread, "List");
 
   // Increase the sampling period and check that we don't sample each
   // allocation. This should cause samples to be collected for approximately
   // every 1KiB allocated.
   Dart_SetHeapSamplingPeriod(1 << 10);
-  heap_samples = 0;
+  HandleInterrupts(thread);
 
+  // Allocate via the embedding API.
   const intptr_t kNumAllocations = 1000;
   for (intptr_t i = 0; i < kNumAllocations; ++i) {
-    USE(Dart_NewList(10));
+    EXPECT_VALID(Dart_NewList(10));
   }
+
+  // Exit the isolate before getting the profile.
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  EXPECT(isolate != nullptr);
+  Dart_ExitIsolate();
+
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < kNumAllocations);
 
-  heap_samples = 0;
-  last_allocation_cls = nullptr;
+  // Re-enter the isolate.
+  Dart_EnterIsolate(isolate);
+
   const char* kScriptChars = R"(
+    final list = [];
     foo() {
-      final list = [];
       for (int i = 0; i < 1000; ++i) {
         list.add(List.filled(100, 0));
       }
     }
     )";
   Dart_DisableHeapSampling();
+  HandleInterrupts(thread);
+
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
+
+  ResetHeapSamplingState("List");
+
   Dart_EnableHeapSampling();
-  result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  HandleInterrupts(thread);
+
+  // Allocate via Dart code.
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
   EXPECT_VALID(result);
+
+  // Exit the isolate after performing allocations.
+  Dart_ExitIsolate();
+
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < kNumAllocations);
 
+  Dart_EnterIsolate(isolate);
   Dart_DisableHeapSampling();
-
-  // Sampling on every byte allocated.
-  Dart_SetHeapSamplingPeriod(1);
-
-  // Ensure no more samples are collected.
-  heap_samples = 0;
-  last_allocation_cls = nullptr;
-  last_isolate_group_data = nullptr;
-  USE(Dart_NewList(10));
-  EXPECT_EQ(heap_samples, 0);
-  EXPECT_NULLPTR(last_allocation_cls);
-  EXPECT_NULLPTR(last_isolate_group_data);
-
-  // Clear heap sampling callback state.
-  Dart_RegisterHeapSamplingCallback(nullptr);
 }
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
-#endif  // !PRODUCT
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
+TEST_CASE(DartAPI_WriteHeapSnapshot) {
+  struct WriterContext {
+    intptr_t bytes_written;
+    bool saw_last_chunk;
+  };
+
+  WriterContext context = {0, false};
+  char* error = Dart_WriteHeapSnapshot(
+      [](void* context, uint8_t* buffer, intptr_t size, bool is_last) {
+        auto ctx = static_cast<WriterContext*>(context);
+        ctx->bytes_written += size;
+        EXPECT(!ctx->saw_last_chunk);
+        ctx->saw_last_chunk = is_last;
+
+        free(buffer);
+      },
+      &context);
+  EXPECT(error == nullptr);
+  EXPECT_GT(context.bytes_written, 0);
+  EXPECT(context.saw_last_chunk);
+}
+#endif  // defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
 
 }  // namespace dart

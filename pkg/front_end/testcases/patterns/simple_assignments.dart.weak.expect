@@ -1,0 +1,67 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1(dynamic x) → dynamic {
+  core::int a;
+  block {
+    core::int #t1;
+    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
+    if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = #t1 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true)))
+      throw new core::StateError::•("Pattern matching error");
+    a = #t1;
+  } =>#0#0;
+  return a;
+}
+static method test2(dynamic x) → dynamic {
+  core::int a;
+  core::int b;
+  core::int c;
+  block {
+    core::int #t3;
+    final synthesized dynamic #1#0 = ( block {
+      core::int #t4;
+      core::int #t5;
+      final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
+      late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && ((let final dynamic #t6 = #t4 = #0#6 as{ForNonNullableByDefault} core::int in true) && (let final dynamic #t7 = #t5 = #0#6{core::int} in true))))
+        throw new core::StateError::•("Pattern matching error");
+      a = #t4;
+      b = #t5;
+    } =>#0#0) as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
+    if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t8 = #t3 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true)))
+      throw new core::StateError::•("Pattern matching error");
+    c = #t3;
+  } =>#1#0;
+  return a.{core::num::+}(b){(core::num) → core::int}.{core::num::+}(c){(core::num) → core::int};
+}
+static method main() → dynamic {
+  self::expectEquals(self::test1(<core::int>[1]), 1);
+  self::expectThrows(() → void => self::test1(<dynamic>[]));
+  self::expectThrows(() → void => self::test1(<core::int>[1, 2, 3]));
+  self::expectThrows(() → void => self::test1("foo"));
+  self::expectThrows(() → void => self::test1(null));
+  self::expectEquals(self::test2(<core::int>[1]), 3);
+  self::expectThrows(() → void => self::test2(1));
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected ${x} to be equal to ${y}.";
+  }
+}
+static method expectThrows(() → void f) → dynamic {
+  core::bool hasThrown = true;
+  try {
+    f(){() → void};
+    hasThrown = false;
+  }
+  on core::Object catch(final core::Object e) {
+  }
+  if(!hasThrown) {
+    throw "Expected the function to throw.";
+  }
+}
+
+constants  {
+  #C1 = 1
+}

@@ -42,7 +42,7 @@ void main() {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 56, 1),
+      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 56, 1),
     ]);
   }
 
@@ -77,7 +77,7 @@ extension E on A {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 51, 1),
+      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 51, 1),
     ]);
   }
 
@@ -111,7 +111,7 @@ abstract class B {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 60, 1),
+      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 60, 1),
     ]);
   }
 
@@ -167,7 +167,7 @@ main() {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 40, 1),
+      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 40, 1),
     ]);
   }
 
@@ -227,7 +227,30 @@ class B {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 58, 1),
+      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 58, 1),
+    ]);
+  }
+
+  test_getter_outsideClassAndLibrary_inObjectPattern() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int get a => 42;
+}
+''');
+    newFile('$testPackageLibPath/lib2.dart', r'''
+import 'lib1.dart';
+void f(Object o) {
+  switch (o) {
+    case A(a: 7): print('yes');
+  }
+}
+''');
+
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
+      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 65, 1),
     ]);
   }
 
@@ -286,7 +309,7 @@ class B {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 53, 1),
+      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 53, 1),
     ]);
   }
 
@@ -313,7 +336,7 @@ class Button extends State<Object> {
   test_mixingIn() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
-class A {
+mixin A {
   @protected
   void a(){ }
 }
@@ -374,7 +397,7 @@ class B {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 62, 1),
+      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 62, 1),
     ]);
   }
 
@@ -390,7 +413,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_FIELD, 49, 2),
+      error(WarningCode.UNUSED_FIELD, 49, 2),
     ]);
   }
 

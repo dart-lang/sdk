@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -23,7 +21,7 @@ copyDirectory(Directory sourceDir, Directory destinationDir) {
     if (element is File) {
       element.copySync(newPath);
     } else if (element is Directory) {
-      Directory newDestinationDir = new Directory(newPath);
+      Directory newDestinationDir = Directory(newPath);
       newDestinationDir.createSync();
       copyDirectory(element, newDestinationDir);
     }
@@ -70,7 +68,7 @@ Future runTests(Process process) {
   process.stdin.writeln('--out="$outFile" "$inFile"');
   process.stdin.writeln('--out="$outFile2" "$inFile"');
   process.stdin.writeln('too many arguments');
-  process.stdin.writeln(r'"non existing file.dart"');
+  process.stdin.writeln(r'"nonexistent file.dart"');
   process.stdin.close();
   Future<String> output = process.stdout.transform(utf8.decoder).join();
   Future<String> errorOut = process.stderr.transform(utf8.decoder).join();

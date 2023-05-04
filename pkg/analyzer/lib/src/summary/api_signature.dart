@@ -101,6 +101,14 @@ class ApiSignature {
     addBytes(bytes);
   }
 
+  /// Collect a string list, with the length.
+  void addStringList(List<String> values) {
+    addInt(values.length);
+    for (var value in values) {
+      addString(value);
+    }
+  }
+
   /// Collect the given [Uint32List].
   void addUint32List(Uint32List data) {
     addBytes(data.buffer.asUint8List());

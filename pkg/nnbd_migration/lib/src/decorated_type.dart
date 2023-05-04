@@ -430,7 +430,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
             assert(oldDecoratedBound == newDecoratedBound);
           } else {
             DecoratedTypeParameterBounds.current!
-                .put(typeFormal, newDecoratedBound);
+                .put(undecoratedResult.typeFormals[i], newDecoratedBound);
           }
         }
       }
@@ -450,7 +450,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
       } else {
         return inner._performSubstitution(this, undecoratedResult!);
       }
-    } else if (type!.isVoid || type.isDynamic) {
+    } else if (type is VoidType || type!.isDynamic) {
       return this;
     }
     throw '$type.substitute($type | $substitution)'; // TODO(paulberry)

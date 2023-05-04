@@ -1,150 +1,121 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'equal.dart';
+import 'key.dart';
+import 'path.dart';
 import 'static_type.dart';
 
-/// The main space for matching types and destructuring.
+/// The main pattern for matching types and destructuring.
 ///
 /// It has a type which determines the type of values it contains. The type may
-/// be [StaticType.top] to indicate that it doesn't filter by type.
+/// be [StaticType.nullableObject] to indicate that it doesn't filter by type.
 ///
-/// It may also contain zero or more named fields. The space then only contains
-/// values where the field values are contained by the corresponding field
-/// spaces.
-class ExtractSpace extends Space {
-  /// The type of values the space matches.
+/// It may also contain zero or more named properties. The pattern then only
+/// matches values where the property values are matched by the corresponding
+/// property patterns.
+class SingleSpace {
+  static final SingleSpace empty = new SingleSpace(StaticType.neverType);
+
+  /// The type of values the pattern matches.
   final StaticType type;
 
-  /// Any field subspaces the space matches.
-  final Map<String, Space> fields;
+  /// Any property subpatterns the pattern matches.
+  final Map<Key, Space> properties;
 
-  ExtractSpace._(this.type, [this.fields = const {}]) : super._();
+  /// Additional properties for map/list semantics.
+  final Map<Key, Space> additionalProperties;
 
-  /// An [ExtractSpace] with no type and no fields contains all values.
+  SingleSpace(this.type,
+      {this.properties = const {}, this.additionalProperties = const {}});
+
   @override
-  bool get isTop => type == StaticType.top && fields.isEmpty;
+  late final int hashCode = Object.hash(
+      type,
+      Object.hashAllUnordered(properties.keys),
+      Object.hashAllUnordered(properties.values));
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SingleSpace) return false;
+    if (type != other.type) return false;
+    if (properties.length != other.properties.length) return false;
+    if (properties.isNotEmpty) {
+      for (MapEntry<Key, Space> entry in properties.entries) {
+        if (entry.value != other.properties[entry.key]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
   @override
   String toString() {
-    if (isTop) return '()';
-
-    // If there are no fields, just show the type.
-    if (fields.isEmpty) return type.name;
-
-    StringBuffer buffer = new StringBuffer();
-
-    // We model a bare record pattern by treating it like an extractor on top.
-    if (type != StaticType.top) buffer.write(type.name);
-
-    buffer.write('(');
-    bool first = true;
-
-    // Positional fields have stringified number names.
-    for (int i = 0;; i++) {
-      Space? pattern = fields[i.toString()];
-      if (pattern == null) break;
-
-      if (!first) buffer.write(', ');
-      buffer.write(pattern);
-      first = false;
-    }
-
-    fields.forEach((name, pattern) {
-      // Skip positional fields.
-      if (int.tryParse(name) != null) return;
-
-      if (!first) buffer.write(', ');
-      buffer.write('$name: $pattern');
-      first = false;
-    });
-
-    buffer.write(')');
-
-    return buffer.toString();
+    return type.spaceToText(properties, additionalProperties);
   }
 }
 
-// TODO(paulberry, rnystrom): List spaces.
+/// A set of runtime values encoded as a union of [SingleSpace]s.
+///
+/// This is used to support logical-or patterns without having to eagerly
+/// expand the subpatterns in the parent context.
+class Space {
+  /// The path of getters that led from the original matched value to value
+  /// matched by this pattern. Used to generate a human-readable witness.
+  final Path path;
 
-abstract class Space {
-  static final _EmptySpace empty = new _EmptySpace._();
-  static final Space top = new Space(StaticType.top);
+  final List<SingleSpace> singleSpaces;
 
-  factory Space(StaticType type, [Map<String, Space> fields = const {}]) =>
-      new ExtractSpace._(type, fields);
+  /// Create an empty space.
+  Space.empty(this.path) : singleSpaces = [SingleSpace.empty];
 
-  factory Space.record([Map<String, Space> fields = const {}]) =>
-      new Space(StaticType.top, fields);
+  Space(Path path, StaticType type,
+      {Map<Key, Space> properties = const {},
+      Map<Key, Space> additionalProperties = const {}})
+      : this._(path, [
+          new SingleSpace(type,
+              properties: properties,
+              additionalProperties: additionalProperties)
+        ]);
 
-  factory Space.union(List<Space> arms) {
-    // Simplify the arms if possible.
-    List<Space> allArms = <Space>[];
+  Space._(this.path, this.singleSpaces);
 
-    void addSpace(Space space) {
-      // Discard duplicate arms. Duplicates can appear when working through a
-      // series of cases that destructure multiple fields with different types.
-      // Discarding the duplicates isn't necessary for correctness (a union with
-      // redundant arms contains the same set of values), but improves
-      // performance greatly. In the "sealed subtypes large T with all cases"
-      // test, you end up with a union containing 2520 arms, 2488 are
-      // duplicates. With this check, the largest union has only 5 arms.
-      //
-      // This is O(n^2) since we define only equality on spaces, but a real
-      // implementation would likely define hash code too and then simply
-      // create a hash set to merge duplicates in O(n) time.
-      for (Space existing in allArms) {
-        if (equal(existing, space, 'dedupe union')) return;
+  factory Space.fromSingleSpaces(Path path, List<SingleSpace> singleSpaces) {
+    Set<SingleSpace> singleSpacesSet = {};
+
+    for (SingleSpace singleSpace in singleSpaces) {
+      // Discard empty space.
+      if (singleSpace == SingleSpace.empty) {
+        continue;
       }
 
-      allArms.add(space);
+      singleSpacesSet.add(singleSpace);
     }
 
-    for (Space space in arms) {
-      // Discard empty arms.
-      if (space == empty) continue;
-
-      // Flatten unions. We don't need to flatten recursively since we always
-      // go through this constructor to create unions. A UnionSpace will never
-      // contain UnionSpaces.
-      if (space is UnionSpace) {
-        for (Space arm in space.arms) {
-          addSpace(arm);
-        }
-      } else {
-        addSpace(space);
+    List<SingleSpace> singleSpacesList = singleSpacesSet.toList();
+    if (singleSpacesSet.isEmpty) {
+      singleSpacesList.add(SingleSpace.empty);
+    } else if (singleSpacesList.length == 2) {
+      if (singleSpacesList[0].type == StaticType.nullType &&
+          singleSpacesList[0].properties.isEmpty &&
+          singleSpacesList[1].properties.isEmpty) {
+        singleSpacesList = [new SingleSpace(singleSpacesList[1].type.nullable)];
+      } else if (singleSpacesList[1].type == StaticType.nullType &&
+          singleSpacesList[1].properties.isEmpty &&
+          singleSpacesList[0].properties.isEmpty) {
+        singleSpacesList = [new SingleSpace(singleSpacesList[0].type.nullable)];
       }
     }
-
-    if (allArms.isEmpty) return empty;
-    if (allArms.length == 1) return allArms.first;
-    return new UnionSpace._(allArms);
+    return new Space._(path, singleSpacesList);
   }
 
-  Space._();
-
-  /// An untyped record space with no fields matches all values and thus isn't
-  /// very useful.
-  bool get isTop => false;
-}
-
-/// A union of spaces. The space A|B contains all of the values of A and B.
-class UnionSpace extends Space {
-  final List<Space> arms;
-
-  UnionSpace._(this.arms) : super._() {
-    assert(arms.length > 1);
+  Space union(Space other) {
+    return new Space.fromSingleSpaces(
+        path, [...singleSpaces, ...other.singleSpaces]);
   }
 
   @override
-  String toString() => arms.join('|');
-}
-
-/// The uninhabited space.
-class _EmptySpace extends Space {
-  _EmptySpace._() : super._();
-
-  @override
-  String toString() => '∅';
+  String toString() => singleSpaces.join('|');
 }

@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/profile.dart' as profile;
-import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 
+import '../../test/exhaustiveness/env.dart';
 import '../../test/exhaustiveness/utils.dart';
 
 void main() {
@@ -15,13 +17,14 @@ void main() {
   //   (A)
   //   /|\
   //  B C D
-  var a = StaticType('A', isSealed: true);
-  var b = StaticType('B', inherits: [a]);
-  var c = StaticType('C', inherits: [a]);
-  var d = StaticType('D', inherits: [a]);
-  var t = StaticType('T', fields: {'w': a, 'x': a, 'y': a, 'z': a});
+  var env = TestEnvironment();
+  var a = env.createClass('A', isSealed: true);
+  var b = env.createClass('B', inherits: [a]);
+  var c = env.createClass('C', inherits: [a]);
+  var d = env.createClass('D', inherits: [a]);
+  var t = env.createRecordType({'w': a, 'x': a, 'y': a, 'z': a});
 
-  expectExhaustiveOnlyAll(t, [
+  expectExhaustiveOnlyAll(env, t, [
     {'w': b, 'x': b, 'y': b, 'z': b},
     {'w': b, 'x': b, 'y': b, 'z': c},
     {'w': b, 'x': b, 'y': b, 'z': d},
@@ -108,9 +111,11 @@ void main() {
 
 /// Test that [cases] are exhaustive over [type] if and only if all cases are
 /// included and that all subsets of the cases are not exhaustive.
-void expectExhaustiveOnlyAll(StaticType type, List<Object> cases) {
-  var spaces = parseSpaces(cases);
+void expectExhaustiveOnlyAll(ObjectPropertyLookup objectFieldLookup,
+    StaticType type, List<Map<String, Object>> cases) {
+  var spaces = cases.map((c) => ty(type, c)).toList();
   profile.reset();
-  print(isExhaustive(Space(type), spaces));
+  print(
+      isExhaustive(objectFieldLookup, Space(const Path.root(), type), spaces));
   profile.log();
 }

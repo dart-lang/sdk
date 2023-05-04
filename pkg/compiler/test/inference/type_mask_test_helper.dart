@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library type_mask_test_helper;
 
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
@@ -16,7 +14,7 @@ AbstractValue simplify(AbstractValue value, AbstractValueDomain domain) {
   if (value is ForwardingTypeMask) {
     return simplify(value.forwardTo, domain);
   } else if (value is UnionTypeMask) {
-    return UnionTypeMask.flatten(value.disjointMasks, domain,
+    return UnionTypeMask.flatten(value.disjointMasks, domain as CommonMasks,
         includeNull: value.isNullable,
         includeLateSentinel: value.hasLateSentinel);
   } else {
@@ -31,14 +29,14 @@ TypeMask interceptorOrComparable(JClosedWorld closedWorld,
   // 'Interceptor' and not 'Comparable'. Maybe the union mask should be changed
   // to favor 'Interceptor' when flattening.
   if (nullable) {
-    return new TypeMask.subtype(
+    return TypeMask.subtype(
         closedWorld.elementEnvironment
-            .lookupClass(closedWorld.commonElements.coreLibrary, 'Comparable'),
+            .lookupClass(closedWorld.commonElements.coreLibrary, 'Comparable')!,
         closedWorld);
   } else {
-    return new TypeMask.nonNullSubtype(
+    return TypeMask.nonNullSubtype(
         closedWorld.elementEnvironment
-            .lookupClass(closedWorld.commonElements.coreLibrary, 'Comparable'),
+            .lookupClass(closedWorld.commonElements.coreLibrary, 'Comparable')!,
         closedWorld);
   }
 }

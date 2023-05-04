@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
@@ -54,17 +53,6 @@ class SubtypeTestCacheViewElement extends CustomElement implements Renderable {
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(subtypeTestCache != null);
-    assert(subtypeTestCaches != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(objects != null);
     SubtypeTestCacheViewElement e = new SubtypeTestCacheViewElement.created();
     e._r = new RenderingScheduler<SubtypeTestCacheViewElement>(e, queue: queue);
     e._vm = vm;

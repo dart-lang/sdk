@@ -5,8 +5,6 @@
 import 'dart:io';
 
 import 'package:observatory/service_io.dart';
-// Already a dependency of package:test.
-import 'package:pool/pool.dart';
 import 'package:test/test.dart';
 
 import 'test_helper.dart';
@@ -20,6 +18,7 @@ final tests = <IsolateTest>[
       'dart:io', // dart:io -> org-dartlang-sdk:///sdk/lib/io/io.dart
       'package:pool/pool.dart', // package:pool/pool.dart -> file:///some_dir/pool/lib/pool.dart
       scriptUri, // file:///abc.dart -> file:///abc.dart
+      if (Platform.isWindows || Platform.isMacOS) scriptUri.toUpperCase(),
     ];
 
     var result = await isolate.invokeRpcNoUpgrade('lookupResolvedPackageUris', {
@@ -27,26 +26,33 @@ final tests = <IsolateTest>[
     });
     expect(result['uris'], isNotNull);
     var uris = result['uris'].cast<String?>();
-    expect(uris.length, 4);
+    expect(uris.length, unresolvedUris.length);
     expect(uris[0], isNull);
     expect(uris[1], 'org-dartlang-sdk:///sdk/lib/io/io.dart');
     expect(uris[2], startsWith('file:///'));
     expect(uris[2], endsWith('third_party/pkg/pool/lib/pool.dart'));
     expect(uris[3], scriptUri);
+    if (Platform.isWindows || Platform.isMacOS) {
+      expect(uris[4], scriptUri);
+    }
 
     result = await isolate.invokeRpcNoUpgrade('lookupPackageUris', {
       'uris': [
         'does_not_exist.dart',
         ...uris.sublist(1, 4),
+        if (Platform.isWindows || Platform.isMacOS) scriptUri.toUpperCase(),
       ]
     });
     expect(result['uris'], isNotNull);
     uris = result['uris'].cast<String?>();
-    expect(uris.length, 4);
+    expect(uris.length, unresolvedUris.length);
     expect(uris[0], isNull);
     expect(uris[1], unresolvedUris[1]);
     expect(uris[2], unresolvedUris[2]);
     expect(uris[3], unresolvedUris[3]);
+    if (Platform.isWindows || Platform.isMacOS) {
+      expect(uris[4], scriptUri);
+    }
   },
 ];
 

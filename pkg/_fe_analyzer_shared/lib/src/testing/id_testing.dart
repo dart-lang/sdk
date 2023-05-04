@@ -708,7 +708,8 @@ class MarkerOptions {
     File file = new File.fromUri(dataDir.uri.resolve('marker.options'));
     File script = new File.fromUri(Platform.script);
     if (!file.existsSync()) {
-      throw new ArgumentError("Marker option file '$file' doesn't exist.");
+      throw new ArgumentError(
+          "Marker option file '${file.uri}' doesn't exist.");
     }
 
     Map<String, MarkerTester> markers = {};
@@ -748,21 +749,31 @@ class MarkerOptions {
   Iterable<String> get supportedMarkers => markers.keys;
 
   Future<void> runAll(List<String> args) async {
+    bool assertsEnabled = true;
+    try {
+      assert(false);
+      assertsEnabled = false;
+    } catch (_) {}
     Set<MarkerTester> testers = markers.values.toSet();
-    bool allOk = true;
+    int errorsCount = 0;
     for (MarkerTester tester in testers) {
       print('================================================================');
       print('Running tester: ${tester.path} ${args.join(' ')}');
       print('================================================================');
       Process process = await Process.start(
-          Platform.resolvedExecutable, [tester.uri.toString(), ...args],
+          Platform.resolvedExecutable,
+          [
+            if (assertsEnabled) '--enable_asserts',
+            tester.uri.toString(),
+            ...args
+          ],
           mode: ProcessStartMode.inheritStdio);
       if (await process.exitCode != 0) {
-        allOk = false;
+        errorsCount++;
       }
     }
-    if (!allOk) {
-      throw "Error(s) occurred.";
+    if (errorsCount != 0) {
+      throw "Error${errorsCount == 1 ? "" : "s"} occurred.";
     }
   }
 }

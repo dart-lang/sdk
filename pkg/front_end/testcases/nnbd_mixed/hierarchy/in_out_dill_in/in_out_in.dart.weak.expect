@@ -97,6 +97,7 @@ Try removing the extra positional arguments.
     this.{self::Class::nullabilitySetter} = null;
     super.{in_2::Super::nullabilitySetter} = null;
   }
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature method nullabilityMethod(core::int? i, {core::int? j}) → core::int?; -> in_2::Super::nullabilityMethod
   abstract member-signature get nullabilityGetter() → core::int?; -> in_2::Super::nullabilityGetter
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
@@ -106,7 +107,6 @@ Try removing the extra positional arguments.
   abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfFalse
   abstract member-signature get hashCode() → core::int; -> core::Object::hashCode
   abstract member-signature method toString() → core::String; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
   abstract member-signature set nullabilitySetter(core::int? value) → void; -> in_2::Super::nullabilitySetter
 }
@@ -131,6 +131,7 @@ Try removing the extra positional arguments.
                         ^" in null as{TypeError,ForNonNullableByDefault} core::int;
     super.{in_2::SuperQ::nullabilitySetter} = null;
   }
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get nullabilityGetter() → core::int; -> in_2::SuperQ::nullabilityGetter
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
@@ -139,7 +140,6 @@ Try removing the extra positional arguments.
   abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfFalse
   abstract member-signature get hashCode() → core::int; -> core::Object::hashCode
   abstract member-signature method toString() → core::String; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
   abstract member-signature set nullabilitySetter(core::int value) → void; -> in_2::SuperQ::nullabilitySetter
 }
@@ -162,6 +162,7 @@ Try removing the extra positional arguments.
     this.{self::ClassMixedIn::nullabilitySetter} = null;
     super.{in_::_LegacyMixedIn&Object&Super::nullabilitySetter} = null;
   }
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature method nullabilityMethod(core::int? i, {core::int? j}) → core::int?; -> in_::_LegacyMixedIn&Object&Super::nullabilityMethod
   abstract member-signature get nullabilityGetter() → core::int?; -> in_::_LegacyMixedIn&Object&Super::nullabilityGetter
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
@@ -171,7 +172,6 @@ Try removing the extra positional arguments.
   abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfFalse
   abstract member-signature get hashCode() → core::int; -> core::Object::hashCode
   abstract member-signature method toString() → core::String; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
   abstract member-signature set nullabilitySetter(core::int? value) → void; -> in_::_LegacyMixedIn&Object&Super::nullabilitySetter
 }
@@ -196,6 +196,7 @@ Try removing the extra positional arguments.
                         ^" in null as{TypeError,ForNonNullableByDefault} core::int;
     super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilitySetter} = null;
   }
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get nullabilityGetter() → core::int; -> in_::_LegacyMixedInQ&Object&SuperQ::nullabilityGetter
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
@@ -204,7 +205,6 @@ Try removing the extra positional arguments.
   abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfFalse
   abstract member-signature get hashCode() → core::int; -> core::Object::hashCode
   abstract member-signature method toString() → core::String; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
   abstract member-signature set nullabilitySetter(core::int value) → void; -> in_::_LegacyMixedInQ&Object&SuperQ::nullabilitySetter
 }
@@ -221,6 +221,7 @@ abstract class LegacyClass extends in_2::Super implements in_2::SuperExtra {
   synthetic constructor •() → in_::LegacyClass*
     : super in_2::Super::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature method nullabilityMethod(core::int* i, {core::int* j = #C1}) → core::int*; -> in_2::Super::nullabilityMethod
   abstract member-signature get nullabilityGetter() → core::int*; -> in_2::Super::nullabilityGetter
   abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j = #C1]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
@@ -232,7 +233,6 @@ abstract class LegacyClass extends in_2::Super implements in_2::SuperExtra {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   abstract member-signature set nullabilitySetter(core::int* value) → void; -> in_2::Super::nullabilitySetter
 }
@@ -240,6 +240,7 @@ abstract class LegacyClassQ extends in_2::SuperQ implements in_2::SuperExtra {
   synthetic constructor •() → in_::LegacyClassQ*
     : super in_2::SuperQ::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature method nullabilityMethod(core::int* i, {core::int* j = #C1}) → core::int*; -> in_2::SuperQ::nullabilityMethod
   abstract member-signature get nullabilityGetter() → core::int*; -> in_2::SuperQ::nullabilityGetter
   abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j = #C1]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
@@ -251,7 +252,6 @@ abstract class LegacyClassQ extends in_2::SuperQ implements in_2::SuperExtra {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   abstract member-signature set nullabilitySetter(core::int* value) → void; -> in_2::SuperQ::nullabilitySetter
 }
@@ -259,6 +259,7 @@ abstract class _LegacyMixedIn&Object&Super = core::Object with in_2::Super /*isA
   const synthetic constructor •() → in_::_LegacyMixedIn&Object&Super*
     : super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   mixin-super-stub method nullabilityMethod(core::int* i, {core::int* j = #C1}) → core::int*
     return super.{in_2::Super::nullabilityMethod}(i, j: j);
   mixin-super-stub get nullabilityGetter() → core::int*
@@ -273,7 +274,6 @@ abstract class _LegacyMixedIn&Object&Super = core::Object with in_2::Super /*isA
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   mixin-super-stub set nullabilitySetter(core::int* value) → void
     return super.{in_2::Super::nullabilitySetter} = value;
@@ -288,6 +288,7 @@ abstract class _LegacyMixedInQ&Object&SuperQ = core::Object with in_2::SuperQ /*
   const synthetic constructor •() → in_::_LegacyMixedInQ&Object&SuperQ*
     : super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   mixin-super-stub method nullabilityMethod(core::int* i, {core::int* j = #C1}) → core::int*
     return super.{in_2::SuperQ::nullabilityMethod}(i, j: j);
   mixin-super-stub get nullabilityGetter() → core::int*
@@ -302,7 +303,6 @@ abstract class _LegacyMixedInQ&Object&SuperQ = core::Object with in_2::SuperQ /*
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   mixin-super-stub set nullabilitySetter(core::int* value) → void
     return super.{in_2::SuperQ::nullabilitySetter} = value;
@@ -318,7 +318,7 @@ library /*isNonNullableByDefault*/;
 import self as in_2;
 import "dart:core" as core;
 
-class Super extends core::Object {
+mixin class Super extends core::Object {
   synthetic constructor •() → in_2::Super
     : super core::Object::•()
     ;
@@ -337,7 +337,7 @@ abstract class SuperExtra extends core::Object {
   method optionalArgumentsMethod(core::int i, [core::int? j = #C1]) → core::int
     return i;
 }
-abstract class SuperQ extends core::Object {
+abstract mixin class SuperQ extends core::Object {
   synthetic constructor •() → in_2::SuperQ
     : super core::Object::•()
     ;

@@ -74,6 +74,8 @@ class InterceptorStubGenerator {
         condition = js('(typeof receiver) == "string"');
       } else if (cls == _commonElements.jsNullClass) {
         condition = js('receiver == null');
+      } else if (cls == _commonElements.jsJavaScriptFunctionClass) {
+        condition = js('(typeof receiver) == "function"');
       } else {
         throw 'internal error';
       }
@@ -89,6 +91,8 @@ class InterceptorStubGenerator {
     bool hasString = false;
     bool hasNative = false;
     bool anyNativeClasses = _nativeCodegenEnqueuer.hasInstantiatedNativeClasses;
+    bool hasJavaScriptFunction = false;
+    bool hasJavaScriptObject = false;
 
     for (ClassEntity cls in classes) {
       if (cls == _commonElements.jsArrayClass ||
@@ -108,6 +112,10 @@ class InterceptorStubGenerator {
         hasNumber = true;
       else if (cls == _commonElements.jsStringClass)
         hasString = true;
+      else if (cls == _commonElements.jsJavaScriptFunctionClass)
+        hasJavaScriptFunction = true;
+      else if (cls == _commonElements.jsJavaScriptObjectClass)
+        hasJavaScriptObject = true;
       else {
         // The set of classes includes classes mixed-in to interceptor classes
         // and user extensions of native classes.
@@ -178,6 +186,29 @@ class InterceptorStubGenerator {
     // function and bool.
     if (hasArray) {
       statements.add(buildInterceptorCheck(_commonElements.jsArrayClass));
+    }
+
+    // If a program `hasNative` then we will insert a check for
+    // `JavaScriptFunction` in the `hasNative` block of the interceptor logic.
+    // Otherwise, we have to insert a specific check for `JavScriptFunction.
+    if (hasJavaScriptFunction && !hasNative) {
+      statements.add(
+          buildInterceptorCheck(_commonElements.jsJavaScriptFunctionClass));
+    }
+
+    if (hasJavaScriptObject && !hasNative) {
+      statements.add(js.statement(r'''
+          if (typeof receiver == "object") {
+            if (receiver instanceof #) {
+              return receiver;
+            } else {
+              return #;
+            }
+          }
+      ''', [
+        _emitter.constructorAccess(_commonElements.objectClass),
+        interceptorFor(_commonElements.jsJavaScriptObjectClass),
+      ]));
     }
 
     if (hasNative) {

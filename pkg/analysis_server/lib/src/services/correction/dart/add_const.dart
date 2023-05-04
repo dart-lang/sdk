@@ -41,6 +41,57 @@ class AddConst extends CorrectionProducer {
       return;
     }
 
+    Future<void> addParensAndConst(AstNode node_final) async {
+      var offset = node_final.offset;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(offset + node_final.length, ')');
+        builder.addSimpleInsertion(offset, 'const (');
+      });
+    }
+
+    if (targetNode is TypeArgumentList) {
+      while (targetNode is! CompilationUnit && targetNode is! ConstantPattern) {
+        targetNode = targetNode?.parent;
+      }
+    }
+    if (targetNode is CompilationUnit) {
+      return;
+    }
+    if (targetNode is ConstantPattern) {
+      var expression = targetNode.expression;
+      var canBeConst = getLinterContext().canBeConst(expression);
+      if (canBeConst) {
+        await builder.addDartFileEdit(file, (builder) {
+          final offset = expression.offset;
+          builder.addSimpleInsertion(offset, 'const ');
+        });
+      } else if (expression is TypeLiteral) {
+        var node_final = targetNode.parent;
+        if (node_final is ParenthesizedPattern) {
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addSimpleInsertion(node_final.offset, 'const ');
+          });
+        } else {
+          await addParensAndConst(node_final!);
+        }
+      }
+      return;
+    }
+    if (targetNode is BinaryExpression || targetNode is PrefixExpression) {
+      var node_final = targetNode?.parent;
+      if (node_final?.parent is ParenthesizedPattern) {
+        // add const
+        var offset = node_final!.parent!.offset;
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleInsertion(offset, 'const ');
+        });
+      } else {
+        // add const and parenthesis
+        await addParensAndConst(node_final!);
+      }
+      return;
+    }
+
     bool isParentConstant(
         DartFileEditBuilderImpl builder, Expression targetNode) {
       var edits = builder.fileEdit.edits;

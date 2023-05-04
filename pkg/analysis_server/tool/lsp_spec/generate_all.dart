@@ -257,6 +257,9 @@ List<LspEntity> getCustomClasses() {
       field('uri', type: 'Uri'),
       field('labels', type: 'ClosingLabel', array: true),
     ]),
+    interface('OpenUriParams', [
+      field('uri', type: 'Uri'),
+    ]),
     interface('ClosingLabel',
         [field('range', type: 'Range'), field('label', type: 'string')]),
     interface('Element', [

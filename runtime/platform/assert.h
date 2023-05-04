@@ -99,9 +99,9 @@ class Expect : public DynamicAssertionHelper {
 
 template <typename T>
 T Assert::NotNull(const T p) {
-  if (p != NULL) return p;
-  Fail("expected: not NULL, found NULL");
-  return NULL;
+  if (p != nullptr) return p;
+  Fail("expected: not nullptr, found nullptr");
+  return nullptr;
 }
 
 #if defined(TESTING)
@@ -222,8 +222,8 @@ void Expect::GreaterEqual(const E& left, const A& right) {
 
 template <typename T>
 void Expect::NotNull(const T p) {
-  if (p != NULL) return;
-  Fail("expected: not NULL, found NULL");
+  if (p != nullptr) return;
+  Fail("expected: not nullptr, found nullptr");
 }
 
 template <typename T>
@@ -242,16 +242,6 @@ void Expect::Null(const T p) {
 #define FATAL(format, ...)                                                     \
   dart::Assert(__FILE__, __LINE__).Fail(format, ##__VA_ARGS__);
 #endif
-
-// Leaving old non-varargs versions to avoid having to rewrite all uses.
-
-#define FATAL1(format, p1) dart::Assert(__FILE__, __LINE__).Fail(format, (p1))
-
-#define FATAL2(format, p1, p2)                                                 \
-  dart::Assert(__FILE__, __LINE__).Fail(format, (p1), (p2))
-
-#define FATAL3(format, p1, p2, p3)                                             \
-  dart::Assert(__FILE__, __LINE__).Fail(format, (p1), (p2), (p3))
 
 #define UNIMPLEMENTED() FATAL("unimplemented code")
 
@@ -281,6 +271,13 @@ void Expect::Null(const T p) {
     }                                                                          \
   } while (false)
 
+#define ASSERT_IMPLIES(antecedent, consequent)                                 \
+  do {                                                                         \
+    if (antecedent) {                                                          \
+      ASSERT(consequent);                                                      \
+    }                                                                          \
+  } while (false)
+
 // DEBUG_ASSERT allows identifiers in condition to be undeclared in release
 // mode.
 #define DEBUG_ASSERT(cond) ASSERT(cond)
@@ -300,7 +297,11 @@ void Expect::Null(const T p) {
 
 #define ASSERT_EQUAL(expected, actual)                                         \
   do {                                                                         \
-  } while (false && (expected) != (actual))
+  } while (false && ((expected) != (actual)))
+
+#define ASSERT_IMPLIES(antecedent, consequent)                                 \
+  do {                                                                         \
+  } while (false && (!(antecedent) || (consequent)))
 
 #define DEBUG_ASSERT(cond)
 
@@ -368,13 +369,6 @@ void Expect::Null(const T p) {
 #define FAIL(format, ...)                                                      \
   dart::Expect(__FILE__, __LINE__).Fail(format, ##__VA_ARGS__);
 #endif
-
-// Leaving old non-varargs versions to avoid having to rewrite all uses.
-
-#define FAIL1(format, p1) dart::Expect(__FILE__, __LINE__).Fail(format, (p1))
-
-#define FAIL2(format, p1, p2)                                                  \
-  dart::Expect(__FILE__, __LINE__).Fail(format, (p1), (p2))
 
 #endif  // defined(TESTING)
 

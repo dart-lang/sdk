@@ -26,8 +26,23 @@ DEFINE_FLAG(bool,
             print_flow_graph_as_json,
             false,
             "Use machine readable output when printing IL graphs.");
+DEFINE_FLAG(bool, print_redundant_il, false, "Print redundant IL instructions");
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
+
+static bool IsRedundant(Instruction* instr) {
+  if (auto constant = instr->AsConstant()) {
+    return !constant->HasUses();
+  } else if (auto move = instr->AsParallelMove()) {
+    return move->IsRedundant();
+  } else {
+    return false;
+  }
+}
+
+static bool ShouldPrintInstruction(Instruction* instr) {
+  return FLAG_print_redundant_il || !IsRedundant(instr);
+}
 
 const char* RepresentationToCString(Representation rep) {
   switch (rep) {
@@ -96,8 +111,9 @@ class IlTestPrinter : public AllStatic {
           block_with_defs->initial_definitions()->length() > 0) {
         writer->OpenArray("d");
         for (auto defn : *block_with_defs->initial_definitions()) {
-          if (defn->IsConstant() && !defn->HasUses()) continue;
-          PrintInstruction(writer, defn);
+          if (ShouldPrintInstruction(defn)) {
+            PrintInstruction(writer, defn);
+          }
         }
         writer->CloseArray();
       }
@@ -105,11 +121,15 @@ class IlTestPrinter : public AllStatic {
     writer->OpenArray("is");
     if (auto join = block->AsJoinEntry()) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
-        PrintInstruction(writer, it.Current());
+        if (ShouldPrintInstruction(it.Current())) {
+          PrintInstruction(writer, it.Current());
+        }
       }
     }
     for (auto instr : block->instructions()) {
-      PrintInstruction(writer, instr);
+      if (ShouldPrintInstruction(instr)) {
+        PrintInstruction(writer, instr);
+      }
     }
     writer->CloseArray();
     writer->CloseObject();
@@ -135,7 +155,7 @@ class IlTestPrinter : public AllStatic {
         }
         writer->CloseArray();
       } else if (instr->ArgumentCount() != 0 &&
-                 instr->GetPushArguments() != nullptr) {
+                 instr->GetMoveArguments() != nullptr) {
         writer->OpenArray("i");
         for (intptr_t i = 0; i < instr->ArgumentCount(); i++) {
           writer->PrintValue(
@@ -261,6 +281,12 @@ void FlowGraphPrinter::PrintBlock(BlockEntryInstr* block,
   // And all the successors in the block.
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
+
+    // Skip redundant parallel moves.
+    if (!ShouldPrintInstruction(current)) {
+      continue;
+    }
+
     PrintOneInstruction(current, print_locations);
     THR_Print("\n");
   }
@@ -294,7 +320,7 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
   char str[4000];
   BufferFormatter f(str, sizeof(str));
   instr->PrintTo(&f);
-  if (FLAG_print_environments && (instr->env() != NULL)) {
+  if (FLAG_print_environments && (instr->env() != nullptr)) {
     instr->env()->PrintTo(&f);
   }
   if (print_locations && (instr->HasLocs())) {
@@ -317,7 +343,7 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
                                       const String& dst_name,
                                       bool eliminated) {
   const char* compile_type_name = "unknown";
-  if (value != NULL && value->reaching_type_ != NULL) {
+  if (value != nullptr && value->reaching_type_ != nullptr) {
     compile_type_name = value->reaching_type_->ToCString();
   }
   THR_Print(
@@ -501,7 +527,7 @@ void Instruction::PrintTo(BaseTextBuffer* f) const {
 void Instruction::PrintOperandsTo(BaseTextBuffer* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->AddString(", ");
-    if (InputAt(i) != NULL) InputAt(i)->PrintTo(f);
+    if (InputAt(i) != nullptr) InputAt(i)->PrintTo(f);
   }
 }
 
@@ -515,12 +541,12 @@ void Definition::PrintTo(BaseTextBuffer* f) const {
   }
   PrintOperandsTo(f);
   f->AddString(")");
-  if (range_ != NULL) {
+  if (range_ != nullptr) {
     f->AddString(" ");
     range_->PrintTo(f);
   }
 
-  if (type_ != NULL) {
+  if (type_ != nullptr) {
     f->AddString(" ");
     type_->PrintTo(f);
   }
@@ -544,7 +570,7 @@ void CheckNullInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void Definition::PrintOperandsTo(BaseTextBuffer* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->AddString(", ");
-    if (InputAt(i) != NULL) {
+    if (InputAt(i) != nullptr) {
       InputAt(i)->PrintTo(f);
     }
   }
@@ -571,7 +597,7 @@ const char* Value::ToCString() const {
 void Value::PrintTo(BaseTextBuffer* f) const {
   PrintUse(f, *definition());
 
-  if ((reaching_type_ != NULL) && (reaching_type_ != definition()->type_)) {
+  if ((reaching_type_ != nullptr) && (reaching_type_ != definition()->type_)) {
     f->AddString(" ");
     reaching_type_->PrintTo(f);
   }
@@ -580,7 +606,7 @@ void Value::PrintTo(BaseTextBuffer* f) const {
 void ConstantInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   const char* cstr = value().ToCString();
   const char* new_line = strchr(cstr, '\n');
-  if (new_line == NULL) {
+  if (new_line == nullptr) {
     f->Printf("#%s", cstr);
   } else {
     const intptr_t pos = new_line - cstr;
@@ -610,7 +636,7 @@ void Range::PrintTo(BaseTextBuffer* f) const {
 }
 
 const char* Range::ToCString(const Range* range) {
-  if (range == NULL) return "[_|_, _|_]";
+  if (range == nullptr) return "[_|_, _|_]";
 
   char buffer[256];
   BufferFormatter f(buffer, sizeof(buffer));
@@ -651,7 +677,7 @@ void MakeTempInstr::PrintOperandsTo(BaseTextBuffer* f) const {}
 
 void DropTempsInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%" Pd "", num_temps());
-  if (value() != NULL) {
+  if (value() != nullptr) {
     f->AddString(", ");
     value()->PrintTo(f);
   }
@@ -1081,7 +1107,9 @@ void BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(
     for (intptr_t i = 0; i < defns.length(); ++i) {
       Definition* def = defns[i];
       // Skip constants which are not used in the graph.
-      if (def->IsConstant() && !def->HasUses()) continue;
+      if (!ShouldPrintInstruction(def)) {
+        continue;
+      }
       f->AddString("\n      ");
       def->PrintTo(f);
     }
@@ -1106,10 +1134,10 @@ void JoinEntryInstr::PrintTo(BaseTextBuffer* f) const {
     f->Printf("B%" Pd, predecessors_[i]->block_id());
   }
   f->AddString(")");
-  if (phis_ != NULL) {
+  if (phis_ != nullptr) {
     f->AddString(" {");
     for (intptr_t i = 0; i < phis_->length(); ++i) {
-      if ((*phis_)[i] == NULL) continue;
+      if ((*phis_)[i] == nullptr) continue;
       f->AddString("\n      ");
       (*phis_)[i]->PrintTo(f);
     }
@@ -1132,10 +1160,10 @@ void IndirectEntryInstr::PrintTo(BaseTextBuffer* f) const {
     f->Printf("B%" Pd, predecessors_[i]->block_id());
   }
   f->AddString(")");
-  if (phis_ != NULL) {
+  if (phis_ != nullptr) {
     f->AddString(" {");
     for (intptr_t i = 0; i < phis_->length(); ++i) {
-      if ((*phis_)[i] == NULL) continue;
+      if ((*phis_)[i] == nullptr) continue;
       f->AddString("\n      ");
       (*phis_)[i]->PrintTo(f);
     }
@@ -1150,12 +1178,12 @@ void IndirectEntryInstr::PrintTo(BaseTextBuffer* f) const {
 void PhiInstr::PrintTo(BaseTextBuffer* f) const {
   f->Printf("v%" Pd " <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
-    if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
+    if (inputs_[i] != nullptr) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->AddString(", ");
   }
   f->AddString(")");
   f->AddString(is_alive() ? " alive" : " dead");
-  if (range_ != NULL) {
+  if (range_ != nullptr) {
     f->AddString(" ");
     range_->PrintTo(f);
   }
@@ -1194,7 +1222,7 @@ void BitCastInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void ParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%" Pd, index());
+  f->Printf("%" Pd, env_index());
 }
 
 void SpecialParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -1385,6 +1413,9 @@ void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     case StubId::kAwait:
       name = "Await";
       break;
+    case StubId::kAwaitWithTypeCheck:
+      name = "AwaitWithTypeCheck";
+      break;
     case StubId::kYieldAsyncStar:
       name = "YieldAsyncStar";
       break;
@@ -1396,12 +1427,13 @@ void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
       break;
   }
   f->Printf("%s(", name);
-  operand()->PrintTo(f);
+  Definition::PrintOperandsTo(f);
   f->AddString(")");
 }
 
-void PushArgumentInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+void MoveArgumentInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
+  f->Printf(", SP+%" Pd "", sp_relative_index());
 }
 
 void GotoInstr::PrintTo(BaseTextBuffer* f) const {
@@ -1455,19 +1487,19 @@ void Environment::PrintTo(BaseTextBuffer* f) const {
   int arg_count = 0;
   for (intptr_t i = 0; i < values_.length(); ++i) {
     if (i > 0) f->AddString(", ");
-    if (values_[i]->definition()->IsPushArgument()) {
+    if (values_[i]->definition()->IsMoveArgument()) {
       f->Printf("a%d", arg_count++);
     } else {
       values_[i]->PrintTo(f);
     }
-    if ((locations_ != NULL) && !locations_[i].IsInvalid()) {
+    if ((locations_ != nullptr) && !locations_[i].IsInvalid()) {
       f->AddString(" [");
       locations_[i].PrintTo(f);
       f->AddString("]");
     }
   }
   f->AddString(" }");
-  if (outer_ != NULL) outer_->PrintTo(f);
+  if (outer_ != nullptr) outer_->PrintTo(f);
 }
 
 const char* Environment::ToCString() const {

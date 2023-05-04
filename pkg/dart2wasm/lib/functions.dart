@@ -31,7 +31,7 @@ class FunctionCollector {
   final w.ValueType asyncStackType = const w.RefType.extern(nullable: true);
 
   late final w.FunctionType asyncStubFunctionType = m.addFunctionType(
-      [const w.RefType.data(nullable: false), asyncStackType],
+      [const w.RefType.struct(nullable: false), asyncStackType],
       [translator.topInfo.nullableType]);
 
   late final w.StructType asyncStubBaseStruct = m.addStructType("#AsyncStub",
@@ -66,9 +66,14 @@ class FunctionCollector {
         String module = importName.substring(0, dot);
         String name = importName.substring(dot + 1);
         if (member is Procedure) {
+          // Define the function type in a singular recursion group to enable it
+          // to be unified with function types defined in FFI modules or using
+          // `WebAssembly.Function`.
+          m.splitRecursionGroup();
           w.FunctionType ftype = _makeFunctionType(
               translator, member.reference, member.function.returnType, null,
               isImportOrExport: true);
+          m.splitRecursionGroup();
           _functions[member.reference] =
               m.importFunction(module, name, ftype, "$importName (import)");
         }
@@ -77,6 +82,18 @@ class FunctionCollector {
     String? exportName =
         translator.getPragma(member, "wasm:export", member.name.text);
     if (exportName != null) {
+      if (member is Procedure) {
+        // Although we don't need type unification for the types of exported
+        // functions, we still place these types in singleton recursion groups,
+        // since Binaryen's `--closed-world` optimization mode requires all
+        // publicly exposed types to be defined in separate recursion groups
+        // from GC types.
+        m.splitRecursionGroup();
+        _makeFunctionType(
+            translator, member.reference, member.function.returnType, null,
+            isImportOrExport: true);
+        m.splitRecursionGroup();
+      }
       addExport(member.reference, exportName);
     }
   }
@@ -123,22 +140,52 @@ class FunctionCollector {
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
       _worklist.add(target);
-      if (target.isAsyncInnerReference) {
-        w.BaseFunction outer = getFunction(target.asProcedure.reference);
-        return addAsyncInnerFunctionFor(outer);
-      }
-      w.FunctionType ftype = target.isTearOffReference
-          ? translator.dispatchTable.selectorForTarget(target).signature
-          : target.asMember.accept1(_FunctionTypeGenerator(translator), target);
-      return m.addFunction(ftype, "${target.asMember}");
+      return _getFunctionTypeAndName(target, m.addFunction);
     });
   }
 
+  w.FunctionType getFunctionType(Reference target) {
+    return _getFunctionTypeAndName(target, (ftype, name) => ftype);
+  }
+
+  T _getFunctionTypeAndName<T>(
+      Reference target, T Function(w.FunctionType, String) action) {
+    if (target.isTypeCheckerReference) {
+      Member member = target.asMember;
+      if (member is Field || (member is Procedure && member.isSetter)) {
+        return action(translator.dynamicSetForwarderFunctionType,
+            '${target.asMember} setter type checker');
+      } else {
+        return action(translator.dynamicInvocationForwarderFunctionType,
+            '${target.asMember} invocation type checker');
+      }
+    }
+
+    if (target.isTearOffReference) {
+      return action(
+          translator.dispatchTable.selectorForTarget(target).signature,
+          "${target.asMember}");
+    }
+
+    if (target.isAsyncInnerReference) {
+      w.BaseFunction outer = getFunction(target.asProcedure.reference);
+      return action(
+          _asyncInnerFunctionTypeFor(outer), "${outer.functionName} inner");
+    }
+
+    final ftype =
+        target.asMember.accept1(_FunctionTypeGenerator(translator), target);
+    return action(ftype, "${target.asMember}");
+  }
+
   w.DefinedFunction addAsyncInnerFunctionFor(w.BaseFunction outer) {
-    w.FunctionType ftype = m.addFunctionType(
-        [...outer.type.inputs, asyncStackType],
-        [translator.topInfo.nullableType]);
+    w.FunctionType ftype = _asyncInnerFunctionTypeFor(outer);
     return m.addFunction(ftype, "${outer.functionName} inner");
+  }
+
+  w.FunctionType _asyncInnerFunctionTypeFor(w.BaseFunction outer) {
+    return m.addFunctionType([...outer.type.inputs, asyncStackType],
+        [translator.topInfo.nullableType]);
   }
 
   void activateSelector(SelectorInfo selector) {
@@ -163,6 +210,10 @@ class FunctionCollector {
       }
     }
   }
+
+  /// Returns an iterable of translated procedures.
+  Iterable<Procedure> get translatedProcedures =>
+      _functions.keys.map((k) => k.node).whereType<Procedure>();
 }
 
 class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
@@ -229,34 +280,31 @@ w.FunctionType _makeFunctionType(Translator translator, Reference target,
     function.positionalParameters.map((p) => p.type);
   }
 
-  List<w.ValueType> typeParameters = List.filled(typeParamCount,
-      translator.classInfo[translator.typeClass]!.nonNullableType);
+  // Translate types differently for imports and exports.
+  w.ValueType translateType(DartType type) => isImportOrExport
+      ? translator.translateExternalType(type)
+      : translator.translateType(type);
 
-  // The only reference types allowed as parameters and returns on imported or
-  // exported functions for JS interop are `externref` and `funcref`.
-  w.ValueType adjustExternalType(w.ValueType type) {
-    if (isImportOrExport && type is w.RefType) {
-      if (type.heapType.isSubtypeOf(w.HeapType.func)) {
-        return w.RefType.func(nullable: true);
-      }
-      return w.RefType.extern(nullable: true);
-    }
-    return type;
-  }
+  final List<w.ValueType> typeParameters = List.filled(
+      typeParamCount,
+      translateType(
+          InterfaceType(translator.typeClass, Nullability.nonNullable)));
 
-  List<w.ValueType> inputs = [];
+  final List<w.ValueType> inputs = [];
   if (receiverType != null) {
-    inputs.add(adjustExternalType(receiverType));
+    assert(!isImportOrExport);
+    inputs.add(receiverType);
   }
-  inputs.addAll(typeParameters.map(adjustExternalType));
-  inputs.addAll(
-      params.map((t) => adjustExternalType(translator.translateType(t))));
+  inputs.addAll(typeParameters);
+  inputs.addAll(params.map(translateType));
 
-  List<w.ValueType> outputs = returnType is VoidType
-      ? member.function?.asyncMarker == AsyncMarker.Async
-          ? [adjustExternalType(translator.topInfo.nullableType)]
-          : const []
-      : [adjustExternalType(translator.translateType(returnType))];
+  final bool emptyOutputList = member is Constructor ||
+      member is Procedure && member.isSetter ||
+      isImportOrExport && returnType is VoidType ||
+      returnType is InterfaceType &&
+          returnType.classNode == translator.wasmVoidClass;
+  final List<w.ValueType> outputs =
+      emptyOutputList ? const [] : [translateType(returnType)];
 
   return translator.m.addFunctionType(inputs, outputs);
 }

@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 typedef HtmlElement VirtualTreeCreateCallback(
     toggle({bool autoToggleSingleChildNodes, bool autoToggleWholeTree}));
 typedef void VirtualTreeUpdateCallback(HtmlElement el, dynamic item, int depth);
-typedef Iterable<dynamic> VritualTreeGetChildrenCallback(dynamic value);
+typedef Iterable<dynamic> VirtualTreeGetChildrenCallback(dynamic value);
 typedef bool VirtualTreeSearchCallback(Pattern pattern, dynamic item);
 
 void virtualTreeUpdateLines(SpanElement element, int n) {
@@ -31,7 +31,7 @@ class VirtualTreeElement extends CustomElement implements Renderable {
 
   Stream<RenderedEvent<VirtualTreeElement>> get onRendered => _r.onRendered;
 
-  late VritualTreeGetChildrenCallback _children;
+  late VirtualTreeGetChildrenCallback _children;
   late List _items;
   late List _depths;
   final Set _expanded = new Set();
@@ -45,14 +45,10 @@ class VirtualTreeElement extends CustomElement implements Renderable {
   }
 
   factory VirtualTreeElement(VirtualTreeCreateCallback create,
-      VirtualTreeUpdateCallback update, VritualTreeGetChildrenCallback children,
+      VirtualTreeUpdateCallback update, VirtualTreeGetChildrenCallback children,
       {Iterable items = const [],
       VirtualTreeSearchCallback? search,
       RenderingQueue? queue}) {
-    assert(create != null);
-    assert(update != null);
-    assert(children != null);
-    assert(items != null);
     VirtualTreeElement e = new VirtualTreeElement.created();
     e._r = new RenderingScheduler<VirtualTreeElement>(e, queue: queue);
     e._children = children;

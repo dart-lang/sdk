@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
@@ -20,7 +18,7 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir =
-        new Directory.fromUri(Platform.script.resolve('side_effects'));
+        Directory.fromUri(Platform.script.resolve('side_effects'));
     await checkTests(dataDir, const SideEffectsDataComputer(),
         args: args,
         options: [stopAfterTypeInference],
@@ -38,11 +36,11 @@ class SideEffectsDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new SideEffectsIrComputer(compiler.reporter, actualMap, closedWorld,
-            compiler.globalInference.resultsForTesting.inferredData)
+    SideEffectsIrComputer(compiler.reporter, actualMap, closedWorld,
+            compiler.globalInference.resultsForTesting!.inferredData)
         .run(definition.node);
   }
 
@@ -65,7 +63,7 @@ class SideEffectsIrComputer extends IrDataExtractor<String> {
   JsToElementMap get _elementMap => closedWorld.elementMap;
   ClosureData get _closureDataLookup => closedWorld.closureDataLookup;
 
-  String getMemberValue(MemberEntity member) {
+  String? getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
       return inferredData.getSideEffectsOfElement(member).toString();
     }
@@ -73,15 +71,16 @@ class SideEffectsIrComputer extends IrDataExtractor<String> {
   }
 
   @override
-  String computeMemberValue(Id id, ir.Member node) {
+  String? computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod);
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      return getMemberValue(info.callMethod!);
     }
     return null;
   }

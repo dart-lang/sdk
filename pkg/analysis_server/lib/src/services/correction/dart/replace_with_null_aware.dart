@@ -5,9 +5,9 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithNullAware extends CorrectionProducer {
   /// The kind of correction to be made.
@@ -57,10 +57,10 @@ class ReplaceWithNullAware extends CorrectionProducer {
           if (parent is MethodInvocation && parent.target == node) {
             var operator = parent.operator;
             if (operator != null) {
-              builder.addSimpleReplacement(range.token(operator), '?.');
+              builder.addSimpleInsertion(operator.offset, '?');
             }
           } else if (parent is PropertyAccess && parent.target == node) {
-            builder.addSimpleReplacement(range.token(parent.operator), '?.');
+            builder.addSimpleInsertion(parent.operator.offset, '?');
           } else {
             break;
           }
@@ -76,39 +76,33 @@ class ReplaceWithNullAware extends CorrectionProducer {
     if (node is CascadeExpression) {
       node = node.cascadeSections.first;
     } else {
+      var coveredNode = this.coveredNode;
+      if (coveredNode is IndexExpression) {
+        await _insert(builder, coveredNode.leftBracket);
+        return;
+      }
       var parent = node?.parent;
       if (parent is CascadeExpression) {
         node = parent.cascadeSections.first;
       }
     }
     if (node is MethodInvocation) {
-      var operator = node.operator;
-      if (operator != null) {
-        _operator = operator.lexeme;
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.token(operator), '?$_operator');
-        });
-      }
+      await _insert(builder, node.operator);
     } else if (node is PrefixedIdentifier) {
-      var operator = node.period;
-      _operator = operator.lexeme;
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.token(operator), '?$_operator');
-      });
+      await _insert(builder, node.period);
     } else if (node is PropertyAccess) {
-      var operator = node.operator;
-      _operator = operator.lexeme;
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.token(operator), '?$_operator');
-      });
+      await _insert(builder, node.operator);
     } else if (node is IndexExpression) {
-      var period = node.period;
-      if (period != null) {
-        _operator = period.lexeme;
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.token(period), '?$_operator');
-        });
-      }
+      await _insert(builder, node.period);
+    }
+  }
+
+  Future<void> _insert(ChangeBuilder builder, Token? token) async {
+    if (token != null) {
+      _operator = token.lexeme;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(token.offset, '?');
+      });
     }
   }
 }

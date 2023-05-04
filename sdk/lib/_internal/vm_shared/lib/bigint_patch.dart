@@ -1173,7 +1173,7 @@ class _BigIntImpl implements BigInt {
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:never-inline")
   static int _sqrAdd(
-      Uint32List xDigits, int i, Uint32List acculumatorDigits, int used) {
+      Uint32List xDigits, int i, Uint32List accumulatorDigits, int used) {
     int x = xDigits[i];
     if (x == 0) return _isIntrinsified ? 2 : 1;
     int j = 2 * i;
@@ -1183,9 +1183,9 @@ class _BigIntImpl implements BigInt {
     int ph = 2 * xh * xl;
     int pl = xl * xl +
         ((ph & _halfDigitMask) << _halfDigitBits) +
-        acculumatorDigits[j];
+        accumulatorDigits[j];
     carry = (pl >> _digitBits) + (ph >> _halfDigitBits) + xh * xh;
-    acculumatorDigits[j] = pl & _digitMask;
+    accumulatorDigits[j] = pl & _digitMask;
     x <<= 1;
     xl = x & _halfDigitMask;
     xh = x >> _halfDigitBits;
@@ -1198,17 +1198,17 @@ class _BigIntImpl implements BigInt {
       int ph = xh * l + h * xl;
       int pl = xl * l +
           ((ph & _halfDigitMask) << _halfDigitBits) +
-          acculumatorDigits[j] +
+          accumulatorDigits[j] +
           carry;
       carry = (pl >> _digitBits) + (ph >> _halfDigitBits) + xh * h;
-      acculumatorDigits[j++] = pl & _digitMask;
+      accumulatorDigits[j++] = pl & _digitMask;
     }
-    carry += acculumatorDigits[i + used];
+    carry += accumulatorDigits[i + used];
     if (carry >= _digitBase) {
-      acculumatorDigits[i + used] = carry - _digitBase;
-      acculumatorDigits[i + used + 1] = 1;
+      accumulatorDigits[i + used] = carry - _digitBase;
+      accumulatorDigits[i + used + 1] = 1;
     } else {
-      acculumatorDigits[i + used] = carry;
+      accumulatorDigits[i + used] = carry;
     }
     return _isIntrinsified ? 2 : 1;
   }
@@ -1427,7 +1427,7 @@ class _BigIntImpl implements BigInt {
     if (resultUsed.isOdd) {
       resultDigits[resultUsed] = 0; // Leading zero for 64-bit processing.
     }
-    // Negate y so we can later use _mulAdd instead of non-existent _mulSub.
+    // Negate y so we can later use _mulAdd instead of nonexistent _mulSub.
     var nyDigits = _newDigits(yUsed + 2);
     nyDigits[yUsed] = 1;
     _absSub(nyDigits, yUsed + 1, yDigits, yUsed, nyDigits);

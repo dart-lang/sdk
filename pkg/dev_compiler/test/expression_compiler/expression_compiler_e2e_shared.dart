@@ -64,6 +64,46 @@ main() {
 // TODO(nshahan) Merge with [runAgnosticSharedTests] after we no longer need to
 // test support for evaluation in legacy (pre-null safety) code.
 void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
+  group('Exceptions', () {
+    const exceptionSource = r'''
+    void main() {
+      try {
+        throw Exception('meow!');
+      } catch (e, s) {
+        // Breakpoint: bp
+        print('Cat says: \$e:\$s');
+      }
+    }
+    ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, exceptionSource);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('error', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'e.toString()',
+          expectedResult: 'meow!');
+    });
+
+    test('stack trace', () async {
+      await driver.check(
+          breakpointId: 'bp', expression: 's.toString()', expectedResult: '');
+    });
+
+    test('scope', () async {
+      await driver.checkScope(breakpointId: 'bp', expectedScope: {
+        'e': 'e',
+        's': 's',
+      });
+    });
+  });
+
   group('Correct null safety mode used', () {
     var source = '''
         const soundNullSafety = !(<Null>[] is List<int>);
@@ -355,6 +395,11 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           expression: 'e != E2.id2 && E.id2 != E2.id2',
           expectedResult: 'true');
     });
+    test('scope', () async {
+      await driver.checkScope(breakpointId: 'bp', expectedScope: {
+        'e': 'e',
+      });
+    });
   });
 
   group('Automatically inserted argument null checks', () {
@@ -420,7 +465,11 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
 ///
 /// Tests that exercise language features introduced strictly before 2.12 are
 /// valid here.
-void runAgnosticSharedTests(SetupCompilerOptions setup, TestDriver driver) {
+///
+/// This group of tests has been sharded manually. The others are in
+/// [runAgnosticSharedTestsShard2].
+void runAgnosticSharedTestsShard1(
+    SetupCompilerOptions setup, TestDriver driver) {
   group('Correct null safety mode used', () {
     var source = '''
         const soundNullSafety = !(<Null>[] is List<int>);
@@ -593,11 +642,18 @@ void runAgnosticSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           expression: 'this',
           expectedError: "Error: Expected identifier, but got 'this'");
     });
+
+    test('scope', () async {
+      await driver.checkScope(breakpointId: 'bp', expectedScope: {
+        r'$this': '\'1234\'',
+        'ret': '1234',
+      });
+    });
   });
 
   group('Expression compiler tests in static function:', () {
     var source = '''
-        int foo(int x, {int y: 0}) {
+        int foo(int x, {int y = 0}) {
           int z = 3;
           // Breakpoint: bp
           return x + y + z;
@@ -717,7 +773,7 @@ void runAgnosticSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           expectedResult: '52');
     });
 
-    test('expression using fields not referred to in the original  code',
+    test('expression using fields not referred to in the original code',
         () async {
       await driver.check(
           breakpointId: 'methodBP',
@@ -888,7 +944,18 @@ void runAgnosticSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           expectedResult: 'true');
     });
   });
+}
 
+/// Shared tests that are valid in legacy (before 2.12) and are agnostic to
+/// changes in modern versions of Dart.
+///
+/// Tests that exercise language features introduced strictly before 2.12 are
+/// valid here.
+///
+/// This group of tests has been sharded manually. The others are in
+/// [runAgnosticSharedTestsShard1].
+void runAgnosticSharedTestsShard2(
+    SetupCompilerOptions setup, TestDriver driver) {
   group('Expression compiler tests in constructor:', () {
     var source = simpleClassSource;
 

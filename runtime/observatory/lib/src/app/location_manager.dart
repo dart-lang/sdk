@@ -93,9 +93,8 @@ class LocationManager {
     Chain.capture(() => _app._visit(_uri!, internalArguments),
         onError: (e, st) {
       if (e is IsolateNotFound) {
-        var newPath = ((_app.vm == null || _app.vm.isDisconnected)
-            ? '/vm-connect'
-            : '/isolate-reconnect');
+        var newPath =
+            _app.vm.isDisconnected ? '/vm-connect' : '/isolate-reconnect';
         var parameters = <String, dynamic>{};
         parameters.addAll(_uri!.queryParameters);
         parameters['originalUri'] = _uri.toString();

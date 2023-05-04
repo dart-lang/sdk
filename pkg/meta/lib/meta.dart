@@ -51,6 +51,7 @@ import 'meta_meta.dart';
 /// Tools, such as the analyzer, can also expect this contract to be enforced;
 /// that is, tools may emit warnings if a function with this annotation
 /// _doesn't_ always throw.
+@Deprecated("Use a return type of 'Never' instead")
 const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 
 /// Used to annotate a parameter of an instance method that overrides another
@@ -266,6 +267,37 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 // mentions tearing off, here and on the other annotations which use the word
 // "referenced."
 const _Protected protected = _Protected();
+
+// todo(pq): add a link to `implicit_reopen` once implemented.
+
+/// Annotation for intentionally loosening restrictions on subtyping that would
+/// otherwise cause lint warnings to be produced by the `implicit_reopen` lint.
+///
+/// Indicates that the annotated class, mixin, or mixin class declaration
+/// intentionally allows subtypes outside the library to implement it, or extend
+/// it, or mix it in, even though it has some superinterfaces whose restrictions
+/// prevent inheritance.
+///
+/// A class, mixin, or mixin class declaration prevents inheritance if:
+///
+/// * it is marked `interface` or `final`
+/// * it is marked `sealed`, and is implicitly `interface` or `final`
+///   based on the modifiers of its superinterfaces
+/// * it is an anonymous mixin application, and is implicitly `interface` or
+///   `final` based on the modifiers of its superinterfaces
+///
+/// A declaration annotated with `@reopen` will suppress warnings from the
+/// `implicit_reopen` lint. That lint will otherwise warn when a subtype has
+/// restrictions that are not sufficient to enforce the restrictions declared
+/// by class modifiers on one or more superinterfaces.
+///
+/// In addition, tools, such as the analyzer, can provide feedback if
+///
+/// * The annotation is applied to anything other than a class, mixin, or mixin
+///   class.
+/// * The annotation is applied to a class or mixin which does not require it.
+///   (The intent to reopen was not satisfied.)
+const _Reopen reopen = _Reopen();
 
 /// Used to annotate a named parameter `p` in a method or function `f`.
 /// Indicates that every invocation of `f` must include an argument
@@ -486,6 +518,14 @@ class _OptionalTypeArgs {
 
 class _Protected {
   const _Protected();
+}
+
+@Target({
+  TargetKind.classType,
+  TargetKind.mixinType,
+})
+class _Reopen {
+  const _Reopen();
 }
 
 class _Sealed {

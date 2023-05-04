@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:frontend_server/starter.dart';
 import 'package:frontend_server/src/resident_frontend_server.dart';
+import 'package:frontend_server/starter.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -16,7 +16,7 @@ void main() async {
   // granularity of file stat on windows.
   // Waiting for this number of milliseconds guarantees that the files in
   // the unit tests will not be counted as modified.
-  const STAT_GRANULARITY = 1100;
+  const statGranularity = 1100;
 
   group('Resident Frontend Server: invalid input: ', () {
     test('no command given', () async {
@@ -91,7 +91,7 @@ void main() async {
     });
 
     tearDown(() async {
-      d.delete(recursive: true);
+      d.deleteSync(recursive: true);
       ResidentFrontendServer.compilers.clear();
     });
 
@@ -121,7 +121,7 @@ void main() async {
         soundNullSafety: true,
         verbosity: 'all',
         define: <String>['-Dvar=2'],
-        enableExperiement: <String>['experiemental-flag=vm_name'],
+        enableExperiment: <String>['experimental-flag=vm_name'],
       )));
 
       expect(compileResult1['success'], true);
@@ -160,7 +160,7 @@ void main() async {
     });
 
     test('incremental compilation', () async {
-      await Future.delayed(Duration(milliseconds: STAT_GRANULARITY));
+      await Future.delayed(Duration(milliseconds: statGranularity));
       final compileResults1 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
@@ -198,7 +198,7 @@ void main() async {
     test(
         'compiling twice with no modifications returns cached kernel without invoking compiler',
         () async {
-      await Future.delayed(Duration(milliseconds: STAT_GRANULARITY));
+      await Future.delayed(Duration(milliseconds: statGranularity));
       final compileResults1 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
@@ -260,7 +260,7 @@ void main() async {
     });
 
     test('Cached kernel is removed between compilation requests', () async {
-      await Future.delayed(Duration(milliseconds: STAT_GRANULARITY));
+      await Future.delayed(Duration(milliseconds: statGranularity));
       final compileResults1 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
@@ -290,7 +290,7 @@ void main() async {
     });
 
     test('maintains tracked sources', () async {
-      await Future.delayed(Duration(milliseconds: STAT_GRANULARITY));
+      await Future.delayed(Duration(milliseconds: statGranularity));
       final executable2 = File(path.join(d.path, 'src2.dart'))
         ..createSync()
         ..writeAsStringSync('''
@@ -341,7 +341,7 @@ void main() async {
       package.writeAsStringSync(package.readAsStringSync());
       // Forces package to be behind the next computed kernel by 1 second
       // so that the final compilation will be incremental
-      await Future.delayed(Duration(milliseconds: STAT_GRANULARITY));
+      await Future.delayed(Duration(milliseconds: statGranularity));
 
       final compileResult2 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
@@ -382,7 +382,7 @@ void main() async {
     test('continues to work after compiler error is produced', () async {
       final originalContent = executable.readAsStringSync();
       final newContent = originalContent.replaceAll(';', '@');
-      await Future.delayed(Duration(milliseconds: STAT_GRANULARITY));
+      await Future.delayed(Duration(milliseconds: statGranularity));
 
       executable.writeAsStringSync(newContent);
       final compileResults1 = jsonDecode(
@@ -418,7 +418,7 @@ void main() async {
     test('using cached kernel maintains error messages', () async {
       final originalContent = executable.readAsStringSync();
       executable.writeAsStringSync(originalContent.replaceFirst(';', ''));
-      await Future.delayed(Duration(milliseconds: STAT_GRANULARITY));
+      await Future.delayed(Duration(milliseconds: statGranularity));
 
       final compileResults1 = jsonDecode(
           await ResidentFrontendServer.handleRequest(

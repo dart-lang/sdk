@@ -3,12 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2wasm ]
-Language/Statements/Continue/async_loops_t07: Skip # https://github.com/dart-lang/sdk/issues/50122
-Language/Statements/Continue/async_loops_t08: Skip # https://github.com/dart-lang/sdk/issues/50122
-LibTest/async/Stream/Stream.fromFutures_all_t01: Skip # https://github.com/dart-lang/sdk/issues/50122
-LibTest/async/Stream/Stream.fromIterable_all_t01: Skip # https://github.com/dart-lang/sdk/issues/50122
-LibTest/async/StreamController/StreamController.broadcast_Stream_all_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/50122
-LibTest/async/StreamController/stream_all_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/50122
+LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # Uses FFI OS calls to trigger GC
+LibTest/ffi/*: SkipByDesign
+LibTest/html/*: SkipByDesign
+LibTest/io/*: SkipByDesign
+LibTest/isolate/*: SkipByDesign
+LibTest/mirrors/*: SkipByDesign
 
 [ $runtime == dart_precompiled ]
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported:
@@ -17,6 +17,9 @@ LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported:
 LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass # Does many calls
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow, Pass # Does many calls
 LibTest/core/List/List_class_A01_t02: Slow, Pass # Does many calls
+
+[ $simulator ]
+LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # https://github.com/dart-lang/sdk/issues/37299
 
 [ $compiler == dartk && $runtime == vm && $system == macos ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass
@@ -29,16 +32,13 @@ LibTest/core/List/List_class_A01_t03: Slow, Pass
 [ $runtime == dart_precompiled && $system == windows ]
 LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
 
-[ $runtime == dart_precompiled && ($arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $runtime == dart_precompiled && $simulator ]
 LibTest/collection/ListBase/ListBase_class_A01_t01: SkipSlow # Issue 43036
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: SkipSlow # Issue 43036
-
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
-LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # https://github.com/dart-lang/sdk/issues/37299
 
 # It makes no sense to run any test that uses spawnURI under the simulator
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $runtime == dart_precompiled || $runtime == vm && $simulator ]
 LibTest/isolate/Isolate/spawnUri*: Skip

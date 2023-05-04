@@ -188,9 +188,9 @@ class TypeVariableTests {
   ///       m(o) => o is T;
   ///     }
   ///     class B<S> {
-  ///       m(o) => new A<S>().m(o);
+  ///       m(o) => A<S>().m(o);
   ///     }
-  ///     main() => new B<int>().m(0);
+  ///     main() => B<int>().m(0);
   ///
   Iterable<ClassEntity> get classTestsForTesting =>
       _classes.values.where((n) => n.hasTest).map((n) => n.cls).toSet();
@@ -213,10 +213,10 @@ class TypeVariableTests {
   /// For instance:
   ///
   ///     class A<T> {
-  ///       m() => new B<T>();
+  ///       m() => B<T>();
   ///     }
   ///     class B<T> {}
-  ///     main() => new A<String>().m() is B<int>;
+  ///     main() => A<String>().m() is B<int>;
   ///
   /// Here `A` needs type arguments at runtime because the key entity `B` needs
   /// it in order to generate the check against `B<int>`.
@@ -224,7 +224,7 @@ class TypeVariableTests {
   /// This can also involve generic methods:
   ///
   ///    class A<T> {}
-  ///    method<T>() => new A<T>();
+  ///    method<T>() => A<T>();
   ///    main() => method<int>() is A<int>();
   ///
   /// Here `method` need type arguments at runtime because the key entity `A`
@@ -305,7 +305,7 @@ class TypeVariableTests {
     /// For instance if `A` needs type arguments then so does `B` in:
     ///
     ///   class A<T> {}
-    ///   class B<T> { m() => new A<T>(); }
+    ///   class B<T> { m() => A<T>(); }
     ///
     void registerDependencies(RtiNode node, DartType type) {
       type.forEachTypeVariable((TypeVariableType typeVariable) {
@@ -540,6 +540,8 @@ class TypeVariableTests {
         _addImplicitCheck(typeWithoutNullability.typeArgument);
       } else if (typeWithoutNullability is TypeVariableType) {
         _addImplicitChecksViaInstantiation(typeWithoutNullability);
+      } else if (typeWithoutNullability is RecordType) {
+        _addImplicitChecks(typeWithoutNullability.fields);
       }
     }
   }
@@ -584,6 +586,8 @@ class TypeVariableTests {
         _addImplicitCheck(typeWithoutNullability.typeArgument);
       } else if (typeWithoutNullability is TypeVariableType) {
         _addImplicitChecksViaInstantiation(typeWithoutNullability);
+      } else if (typeWithoutNullability is RecordType) {
+        _addImplicitChecks(typeWithoutNullability.fields);
       }
     });
 
@@ -672,8 +676,8 @@ abstract class RuntimeTypesNeed {
   ///
   ///   class C<T> {}
   ///   main() {
-  ///     new C<int>() is C<int>;
-  ///     new C<String>() is C<String>;
+  ///     C<int>() is C<int>;
+  ///     C<String>() is C<String>;
   ///   }
   ///
   bool classNeedsTypeArguments(ClassEntity cls);
@@ -706,8 +710,8 @@ abstract class RuntimeTypesNeed {
   ///       method(T t) {}
   ///     }
   ///     main() {
-  ///       new C<int>().method is void Function(int);
-  ///       new C<String>().method is void Function(String);
+  ///       C<int>().method is void Function(int);
+  ///       C<String>().method is void Function(String);
   ///     }
   ///
   /// Since type of the method depends on the type argument of its enclosing
@@ -1197,8 +1201,10 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
         // TODO(johnniwinther): Can we do better?
         return impliedClasses(
             _elementEnvironment.getTypeVariableBound(type.element));
+      } else if (type is RecordType) {
+        return [commonElements.recordClass];
       }
-      throw UnsupportedError('Unexpected type $type');
+      throw UnsupportedError('Unexpected type $type (${type.runtimeType})');
     }
 
     void addClass(ClassEntity? cls) {

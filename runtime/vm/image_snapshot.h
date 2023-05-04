@@ -212,10 +212,10 @@ struct ImageWriterCommand {
 
   ImageWriterCommand(intptr_t expected_offset,
                      uint8_t* trampoline_bytes,
-                     intptr_t trampoine_length)
+                     intptr_t trampoline_length)
       : expected_offset(expected_offset),
         op(ImageWriterCommand::InsertBytesOfTrampoline),
-        insert_trampoline_bytes({trampoline_bytes, trampoine_length}) {}
+        insert_trampoline_bytes({trampoline_bytes, trampoline_length}) {}
 
   // The offset (relative to the very first [ImageWriterCommand]) we expect
   // this [ImageWriterCommand] to have.
@@ -564,7 +564,7 @@ class ImageWriter : public ValueObject {
 
   SnapshotTextObjectNamer namer_;
 
-  // Reserve two postive labels for each of the ProgramSection values (one for
+  // Reserve two positive labels for each of the ProgramSection values (one for
   // vm, one for isolate).
   intptr_t next_label_ = 1 + 2 * kNumProgramSections;
 #endif

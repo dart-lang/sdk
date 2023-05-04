@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -284,10 +285,11 @@ void f() {
 }
 ''',
         errorFilter: (error) =>
-            error.errorCode == HintCode.MISSING_REQUIRED_PARAM);
+            error.errorCode == WarningCode.MISSING_REQUIRED_PARAM);
   }
 
   Future<void> test_constructor_single_closure_nnbd_into_legacy() async {
+    noSoundNullSafety = false;
     addSource('$testPackageLibPath/a.dart', r'''
 typedef int Callback(int? a);
 

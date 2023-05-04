@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test the command line options of dart2js.
 
 import 'dart:async';
@@ -42,10 +40,11 @@ main() {
     await test([Flags.cfeOnly, 'foo.dart', Flags.writeCodegen], exitCode: 1);
     await test(['foo.dart', Flags.writeCodegen, Flags.cfeOnly], exitCode: 1);
 
-    await test([Flags.writeData, 'foo.dart'],
-        out: 'out.dill', writeData: 'out.dill.data');
+    await test([Flags.writeData, 'foo.dart'], writeData: 'global.data');
     await test(['${Flags.writeData}=foo.data', 'foo.dart', '--out=foo.dill'],
         out: 'foo.dill', writeData: 'foo.data');
+    await test(['${Flags.writeData}=foo.data', 'foo.dart'],
+        writeData: 'foo.data');
     await test([Flags.readClosedWorld, Flags.writeClosedWorld, 'foo.dart'],
         exitCode: 1);
     await test([Flags.writeClosedWorld, Flags.readClosedWorld, 'foo.dart'],
@@ -80,9 +79,8 @@ main() {
         out: 'foo.js', readClosedWorld: 'out.world');
     await test(
       [Flags.readClosedWorld, Flags.writeData, 'foo.dill'],
-      out: 'out.dill',
       readClosedWorld: 'foo.dill.world',
-      writeData: 'out.dill.data',
+      writeData: 'global.data',
     );
     await test([
       '${Flags.readClosedWorld}=foo.world',
@@ -127,10 +125,9 @@ main() {
       '${Flags.codegenShard}=0',
       '${Flags.codegenShards}=2'
     ],
-        out: 'out',
         readClosedWorld: 'foo.dill.world',
         readData: 'foo.dill.data',
-        writeCodegen: 'out.code',
+        writeCodegen: 'codegen.code',
         codegenShard: 0,
         codegenShards: 2);
     await test([
@@ -141,10 +138,9 @@ main() {
       '${Flags.codegenShard}=1',
       '${Flags.codegenShards}=2'
     ],
-        out: 'out',
         readClosedWorld: 'foo.dill.world',
         readData: 'foo.dill.data',
-        writeCodegen: 'out.code',
+        writeCodegen: 'codegen.code',
         codegenShard: 1,
         codegenShards: 2);
     await test([
@@ -155,7 +151,6 @@ main() {
       '${Flags.codegenShard}=0',
       '${Flags.codegenShards}=3'
     ],
-        out: 'out',
         readClosedWorld: 'foo.world',
         readData: 'foo.data',
         writeCodegen: 'foo.code',
@@ -364,28 +359,27 @@ main() {
 }
 
 Future test(List<String> arguments,
-    {int exitCode,
-    String out,
-    String readClosedWorld,
-    String writeClosedWorld,
-    String readData,
-    String writeData,
-    String readCodegen,
-    String writeCodegen,
-    int codegenShard,
-    int codegenShards}) async {
+    {int? exitCode,
+    String? out,
+    String? readClosedWorld,
+    String? writeClosedWorld,
+    String? readData,
+    String? writeData,
+    String? readCodegen,
+    String? writeCodegen,
+    int? codegenShard,
+    int? codegenShards}) async {
   print('--------------------------------------------------------------------');
   print('dart2js ${arguments.join(' ')}');
   print('--------------------------------------------------------------------');
   entry.CompileFunc oldCompileFunc = entry.compileFunc;
   entry.ExitFunc oldExitFunc = entry.exitFunc;
 
-  CompilerOptions options;
-  int actualExitCode;
+  late final CompilerOptions options;
+  int? actualExitCode;
   entry.compileFunc = (_options, input, diagnostics, output) {
     options = _options;
-    return new Future<api.CompilationResult>.value(
-        new api.CompilationResult(null));
+    return Future<api.CompilationResult>.value(api.CompilationResult(null));
   };
   entry.exitFunc = (_exitCode) {
     actualExitCode = _exitCode;
@@ -398,7 +392,6 @@ Future test(List<String> arguments,
   }
   Expect.equals(exitCode, actualExitCode, "Unexpected exit code");
   if (actualExitCode == null) {
-    Expect.isNotNull(options, "Missing options object");
     Expect.equals(toUri(out), options.outputUri, "Unexpected output uri.");
     Expect.equals(toUri(readClosedWorld), options.readClosedWorldUri,
         "Unexpected readClosedWorld uri");
@@ -422,4 +415,4 @@ Future test(List<String> arguments,
   entry.exitFunc = oldExitFunc;
 }
 
-Uri toUri(String path) => path != null ? Uri.base.resolve(path) : null;
+Uri? toUri(String? path) => path != null ? Uri.base.resolve(path) : null;

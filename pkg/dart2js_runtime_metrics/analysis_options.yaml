@@ -1,6 +1,8 @@
+include: package:lints/recommended.yaml
+
 analyzer:
   errors:
     import_internal_library: ignore
     export_internal_library: ignore
-  strong-mode:
-    implicit-casts: false
+  language:
+    strict-casts: true

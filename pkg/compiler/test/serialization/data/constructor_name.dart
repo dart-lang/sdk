@@ -16,6 +16,6 @@ class Class1 {
 //}
 
 main() {
-  new Class1.foo().foo;
+  Class1.foo().foo;
   //new Class2.bar().bar;
 }

@@ -1686,7 +1686,7 @@ const char* RISCVDisassembler::PrintOption(const char* format, Instr instr) {
     return format + 4;
   }
 
-  FATAL1("Bad format %s\n", format);
+  FATAL("Bad format %s\n", format);
   return nullptr;
 }
 
@@ -1766,7 +1766,7 @@ const char* RISCVDisassembler::PrintOption(const char* format, CInstr instr) {
     return format + 8;
   }
 
-  FATAL1("Bad format %s\n", format);
+  FATAL("Bad format %s\n", format);
   return nullptr;
 }
 
@@ -1792,11 +1792,11 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     *out_instr_size = instr_size;
   }
 
-  *object = NULL;
+  *object = nullptr;
   if (!code.IsNull()) {
     *object = &Object::Handle();
     if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
-      *object = NULL;
+      *object = nullptr;
     }
   }
 }

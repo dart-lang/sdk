@@ -10,12 +10,10 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/error/inference_error_listener.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/task/inference_error.dart';
 
 /// Used to resolve some AST nodes - variable initializers, and annotations.
 class AstResolver {
@@ -25,12 +23,6 @@ class AstResolver {
   final FeatureSet _featureSet;
   final AnalysisErrorListener _errorListener =
       AnalysisErrorListener.NULL_LISTENER;
-  late final _inferenceErrorRecorder = InferenceErrorRecorder(
-    isNonNullableByDefault:
-        _unitElement.library.typeSystem.isNonNullableByDefault,
-    isGenericMetadataEnabled:
-        _unitElement.library.featureSet.isEnabled(Feature.generic_metadata),
-  );
   final InterfaceElement? enclosingClassElement;
   final ExecutableElement? enclosingExecutableElement;
   late final _resolutionVisitor = ResolutionVisitor(
@@ -56,7 +48,6 @@ class AstResolver {
     _errorListener,
     featureSet: _featureSet,
     flowAnalysisHelper: _flowAnalysis,
-    inferenceErrorListener: _inferenceErrorRecorder,
   );
 
   AstResolver(
@@ -66,10 +57,6 @@ class AstResolver {
     this.enclosingClassElement,
     this.enclosingExecutableElement,
   }) : _featureSet = _unitElement.library.featureSet;
-
-  /// All inference errors recorded by [_inferenceErrorRecorder].
-  List<TopLevelInferenceError> get errors =>
-      _inferenceErrorRecorder.errors.toList(growable: false);
 
   void resolveAnnotation(AnnotationImpl node) {
     node.accept(_resolutionVisitor);

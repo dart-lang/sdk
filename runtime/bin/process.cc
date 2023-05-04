@@ -122,7 +122,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     return;
   }
   Dart_Handle working_directory_handle = Dart_GetNativeArgument(args, 4);
-  // Defaults to the current working directoy.
+  // Defaults to the current working directory.
   const char* working_directory = NULL;
   if (Dart_IsString(working_directory_handle)) {
     working_directory = DartUtils::GetStringValue(working_directory_handle);

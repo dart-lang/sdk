@@ -23,7 +23,7 @@ void f(Future<int> future, String? Function(dynamic, StackTrace) cb) {
   future.catchError(cb);
 }
 ''', [
-      error(HintCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR, 91, 2),
+      error(WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR, 91, 2),
     ]);
   }
 }
@@ -52,7 +52,7 @@ void f(Future<int> future, String Function(dynamic, StackTrace) cb) {
   future.catchError(cb);
 }
 ''', [
-      error(HintCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR, 90, 2),
+      error(WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR, 90, 2),
     ]);
   }
 

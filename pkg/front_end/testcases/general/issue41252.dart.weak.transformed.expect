@@ -17,7 +17,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  static final field core::int X = null;
+  static final field core::int X = 0;
   static final field core::int foo = invalid-expression "pkg/front_end/testcases/general/issue41252.dart:9:26: Error: Can't use 'X' because it is declared more than once.
   static final int foo = X + 1;
                          ^"{<invalid>}.+(1);

@@ -9,13 +9,13 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtensionOverrideTest);
-    defineReflectiveTests(ExtensionOverrideWithoutNullSafetyTest);
+    defineReflectiveTests(ExtensionOverrideResolutionTest);
+    defineReflectiveTests(ExtensionOverrideResolutionTest_WithoutNullSafety);
   });
 }
 
 @reflectiveTest
-class ExtensionOverrideTest extends PubPackageResolutionTest
+class ExtensionOverrideResolutionTest extends PubPackageResolutionTest
     with ExtensionOverrideTestCases {
   test_indexExpression_read_nullAware() async {
     await assertNoErrorsInCode('''
@@ -182,6 +182,11 @@ void f(int? a) {
 ''');
   }
 }
+
+@reflectiveTest
+class ExtensionOverrideResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with ExtensionOverrideTestCases, WithoutNullSafetyMixin {}
 
 mixin ExtensionOverrideTestCases on PubPackageResolutionTest {
   test_call_noPrefix_noTypeArguments() async {
@@ -2894,7 +2899,3 @@ PropertyAccess
     }
   }
 }
-
-@reflectiveTest
-class ExtensionOverrideWithoutNullSafetyTest extends PubPackageResolutionTest
-    with ExtensionOverrideTestCases, WithoutNullSafetyMixin {}

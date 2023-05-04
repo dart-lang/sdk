@@ -4,9 +4,9 @@
 
 class Struct {}
 
-class StructA extends Struct {}
+final class StructA extends Struct {}
 
-class StructB extends Struct {}
+final class StructB extends Struct {}
 
 class NonStruct {}
 

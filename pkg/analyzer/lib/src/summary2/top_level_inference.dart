@@ -79,11 +79,6 @@ class ConstantInitializersResolver {
       var astResolver = AstResolver(linker, _unitElement, _scope);
       astResolver.resolveExpression(() => variable.initializer!,
           contextType: element.type);
-      var errors = astResolver.errors;
-      if (errors.isNotEmpty) {
-        assert(errors.length == 1, 'Unexpected errors: $errors');
-        element.typeInferenceError = errors.first;
-      }
     }
 
     if (element is ConstVariableElement) {
@@ -249,7 +244,7 @@ class _PropertyInducingElementTypeInference
 
     final enclosingElement = _element.enclosingElement;
     final enclosingClassElement =
-        enclosingElement is ClassElement ? enclosingElement : null;
+        enclosingElement is InterfaceElement ? enclosingElement : null;
 
     var astResolver = AstResolver(_linker, _unitElement, _scope,
         enclosingClassElement: enclosingClassElement);
@@ -265,12 +260,6 @@ class _PropertyInducingElementTypeInference
       return _element.type;
     } else {
       _status = _InferenceStatus.inferred;
-    }
-
-    var errors = astResolver.errors;
-    if (errors.isNotEmpty) {
-      assert(errors.length == 1, 'Unexpected errors: $errors');
-      _element.typeInferenceError = errors.first;
     }
 
     var initializerType = _node.initializer!.typeOrThrow;

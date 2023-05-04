@@ -1,0 +1,488 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:26:12: Error: Method invocation is not a constant expression.
+//       case super(): // Error
+//            ^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:43:13: Error: Only negation of a numeric literal is supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case -value: // Error
+//             ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:45:13: Error: Only negation of a numeric literal is supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case -local: // Error
+//             ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:48:13: Error: Only negation of a numeric literal is supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case -prefix.value: // Error
+//             ^^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:48:20: Error: Only negation of a numeric literal is supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case -prefix.value: // Error
+//                    ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:50:14: Error: The binary operator + is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case 1 + 2: // Error
+//              ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:51:14: Error: The binary operator * is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case 1 * 2: // Error
+//              ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:52:20: Error: Expected ':' before this.
+//       case void fun() {}: // Error
+//                    ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:52:24: Error: Expected ';' after this.
+//       case void fun() {}: // Error
+//                        ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:52:25: Error: Expected an identifier, but got ':'.
+// Try inserting an identifier before ':'.
+//       case void fun() {}: // Error
+//                         ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:52:25: Error: Unexpected token ':'.
+//       case void fun() {}: // Error
+//                         ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:53:12: Error: `assert` can't be used as an expression.
+//       case assert(false): // Error
+//            ^^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:54:20: Error: Not a constant expression.
+//       case switch (o) { _ => true }: // Error
+//                    ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:56:12: Error: The unary operator ! is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case !false: // Error
+//            ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:57:12: Error: The unary operator ~ is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case ~0: // Error
+//            ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:58:14: Error: Not a constant expression.
+//       case ++variable: // Error
+//              ^^^^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:59:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const 0: // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:60:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const 0x0: // Error
+//                  ^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:61:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const 0.5: // Error
+//                  ^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:62:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const true: // Error
+//                  ^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:63:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const null: // Error
+//                  ^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:64:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const -0: // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:65:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const 'foo': // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:66:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const #a: // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:67:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const value: // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:68:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const local: // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:69:25: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const prefix.value: // Error
+//                         ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:70:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const -prefix.value: // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:71:31: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const prefix.Class.named: // Error
+//                               ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:72:18: Error: The expression can't be prefixed by 'const' to form a constant pattern.
+// Try wrapping the expression in 'const ( ... )' instead.
+//       case const 1 + 2: // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:73:23: Error: A function expression can't have a name.
+//       case const void fun() {}: // Error
+//                       ^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:74:18: Error: `assert` can't be used as an expression.
+//       case const assert(false): // Error
+//                  ^^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:75:26: Error: Not a constant expression.
+//       case const switch (o) { _ => true }: // Error
+//                          ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:77:18: Error: The unary operator ! is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case const !false: // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:78:18: Error: The unary operator ~ is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case const ~0: // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:79:20: Error: Not a constant expression.
+//       case const ++variable: // Error
+//                    ^^^^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:92:18: Error: Duplicate 'const' keyword in constant expression.
+// Try removing one of the 'const' keywords.
+//       case const const Class(): // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:93:18: Error: Duplicate 'const' keyword in constant expression.
+// Try removing one of the 'const' keywords.
+//       case const const Class(0): // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:94:18: Error: Duplicate 'const' keyword in constant expression.
+// Try removing one of the 'const' keywords.
+//       case const const GenericClass(): // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:95:18: Error: Duplicate 'const' keyword in constant expression.
+// Try removing one of the 'const' keywords.
+//       case const const GenericClass(a: 0): // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:96:18: Error: Duplicate 'const' keyword in constant expression.
+// Try removing one of the 'const' keywords.
+//       case const const GenericClass<int>(): // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:97:18: Error: Duplicate 'const' keyword in constant expression.
+// Try removing one of the 'const' keywords.
+//       case const const GenericClass<int>(a: 0): // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:98:18: Error: Duplicate 'const' keyword in constant expression.
+// Try removing one of the 'const' keywords.
+//       case const const []: // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:99:18: Error: Duplicate 'const' keyword in constant expression.
+// Try removing one of the 'const' keywords.
+//       case const const <int>[]: // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:100:18: Error: Duplicate 'const' keyword in constant expression.
+// Try removing one of the 'const' keywords.
+//       case const const {}: // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:101:18: Error: Duplicate 'const' keyword in constant expression.
+// Try removing one of the 'const' keywords.
+//       case const const <int, String>{}: // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:102:18: Error: New expression is not a constant expression.
+//       case const new Class(): // Error
+//                  ^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:103:12: Error: New expression is not a constant expression.
+//       case new Class(): // Error
+//            ^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:104:18: Error: The empty record literal is not supported as a constant pattern.
+//       case const (): // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:105:18: Error: Duplicate 'const' keyword in constant expression.
+// Try removing one of the 'const' keywords.
+//       case const const (): // Error
+//                  ^^^^^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:111:24: Error: This expression is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case GenericClass<int>: // Error
+//                        ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:112:31: Error: This expression is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case prefix.GenericClass<int>: // Error
+//                               ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:113:24: Error: This expression is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case GenericClass<int>.new: // Error
+//                        ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:114:31: Error: This expression is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case prefix.GenericClass<int>.new: // Error
+//                               ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:115:30: Error: This expression is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case const GenericClass<int>: // Error
+//                              ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:116:37: Error: This expression is not supported as a constant pattern.
+// Try wrapping the expression in 'const ( ... )'.
+//       case const prefix.GenericClass<int>: // Error
+//                                     ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:24:12: Error: Not a constant expression.
+//       case this: // Error
+//            ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:25:12: Error: Not a constant expression.
+//       case this(): // Error
+//            ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:54:12: Error: Not a constant expression.
+//       case switch (o) { _ => true }: // Error
+//            ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:55:12: Error: Not a constant expression.
+//       case await 0: // Error
+//            ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:73:18: Error: Not a constant expression.
+//       case const void fun() {}: // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:75:18: Error: Not a constant expression.
+//       case const switch (o) { _ => true }: // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:76:18: Error: Not a constant expression.
+//       case const await 0: // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:102:22: Error: New expression is not a constant expression.
+//       case const new Class(): // Error
+//                      ^
+//
+// pkg/front_end/testcases/patterns/const_patterns.dart:103:16: Error: New expression is not a constant expression.
+//       case new Class(): // Error
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///const_patterns.dart" as prefix;
+
+class Class extends core::Object /*hasConstConstructor*/  {
+  const constructor •([dynamic a = #C1]) → self::Class
+    : super core::Object::•()
+    ;
+  const constructor named() → self::Class
+    : super core::Object::•()
+    ;
+  method call() → dynamic {}
+  method test(dynamic o) → dynamic async /* futureValueType= dynamic */ {
+    dynamic variable = 0;
+    #L1:
+    {
+      final synthesized dynamic #2#0 = o;
+      function ##2#2#initializer() → core::bool
+        return #C2 =={core::Object::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#2 = ##2#2#initializer(){() → core::bool};
+      function ##2#4#initializer() → core::bool
+        return #2#0 == null;
+      late final synthesized core::bool #2#4 = ##2#4#initializer(){() → core::bool};
+      final const synthesized self::Class #2#5 = invalid-expression "Not a constant expression.";
+      final const synthesized dynamic #2#7 = invalid-expression "Not a constant expression.";
+      final const synthesized invalid-type #2#9 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:26:12: Error: Method invocation is not a constant expression.
+      case super(): // Error
+           ^^^^";
+      function ##2#12#initializer() → core::bool
+        return #C3 =={core::num::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#12 = ##2#12#initializer(){() → core::bool};
+      function ##2#14#initializer() → core::bool
+        return #C4 =={core::num::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#14 = ##2#14#initializer(){() → core::bool};
+      function ##2#20#initializer() → core::bool
+        return #C5 =={core::String::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#20 = ##2#20#initializer(){() → core::bool};
+      function ##2#24#initializer() → core::bool
+        return #C3 =={core::num::==}{(core::Object) → core::bool} #2#0!;
+      late final synthesized core::bool #2#24 = ##2#24#initializer(){() → core::bool};
+      function ##2#27#initializer() → core::bool
+        return #C4 =={core::num::==}{(core::Object) → core::bool} #2#0!;
+      late final synthesized core::bool #2#27 = ##2#27#initializer(){() → core::bool};
+      function ##2#31#initializer() → core::bool
+        return #C6 =={core::Object::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#31 = ##2#31#initializer(){() → core::bool};
+      function ##2#35#initializer() → core::bool
+        return #C7 =={core::Object::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#35 = ##2#35#initializer(){() → core::bool};
+      function ##2#37#initializer() → core::bool
+        return #C8 =={core::num::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#37 = ##2#37#initializer(){() → core::bool};
+      final const synthesized invalid-type #2#40 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:53:12: Error: `assert` can't be used as an expression.
+      case assert(false): // Error
+           ^^^^^^";
+      final const synthesized core::bool #2#42 = invalid-expression "Not a constant expression.";
+      final const synthesized core::int #2#44 = invalid-expression "Not a constant expression.";
+      function ##2#47#initializer() → core::bool
+        return #C9 =={core::num::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#47 = ##2#47#initializer(){() → core::bool};
+      final const synthesized invalid-type #2#48 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:58:14: Error: Not a constant expression.
+      case ++variable: // Error
+             ^^^^^^^^";
+      final const synthesized invalid-type #2#54 = invalid-expression "Not a constant expression.";
+      final const synthesized invalid-type #2#56 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:74:18: Error: `assert` can't be used as an expression.
+      case const assert(false): // Error
+                 ^^^^^^";
+      final const synthesized core::bool #2#58 = invalid-expression "Not a constant expression.";
+      final const synthesized core::int #2#60 = invalid-expression "Not a constant expression.";
+      final const synthesized invalid-type #2#62 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:79:20: Error: Not a constant expression.
+      case const ++variable: // Error
+                   ^^^^^^^^";
+      function ##2#65#initializer() → core::bool
+        return #C10 =={core::Object::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#65 = ##2#65#initializer(){() → core::bool};
+      function ##2#67#initializer() → core::bool
+        return #C11 =={core::Object::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#67 = ##2#67#initializer(){() → core::bool};
+      function ##2#69#initializer() → core::bool
+        return #C12 =={core::Object::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#69 = ##2#69#initializer(){() → core::bool};
+      function ##2#71#initializer() → core::bool
+        return #C13 =={core::List::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#71 = ##2#71#initializer(){() → core::bool};
+      function ##2#73#initializer() → core::bool
+        return #C14 =={core::List::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#73 = ##2#73#initializer(){() → core::bool};
+      function ##2#75#initializer() → core::bool
+        return #C15 =={core::Object::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#75 = ##2#75#initializer(){() → core::bool};
+      function ##2#77#initializer() → core::bool
+        return #C16 =={core::Object::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#77 = ##2#77#initializer(){() → core::bool};
+      final const synthesized self::Class #2#78 = invalid-expression "New expression is not a constant expression.";
+      final const synthesized self::Class #2#80 = invalid-expression "New expression is not a constant expression.";
+      function ##2#83#initializer() → core::bool
+        return #C17 =={core::Object::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#83 = ##2#83#initializer(){() → core::bool};
+      function ##2#87#initializer() → core::bool
+        return #C18 =={core::Type::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#87 = ##2#87#initializer(){() → core::bool};
+      function ##2#89#initializer() → core::bool
+        return #C20 =={core::Object::==}{(core::Object) → core::bool} #2#0;
+      late final synthesized core::bool #2#89 = ##2#89#initializer(){() → core::bool};
+      {
+        hoisted void fun;
+        if(#2#2 || #2#4 || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:26:12: Error: Method invocation is not a constant expression.
+      case super(): // Error
+           ^^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || #2#12 || #2#14 || #C21 =={core::num::==}{(core::Object) → core::bool} #2#0 || #C22 =={core::num::==}{(core::Object) → core::bool} #2#0 || #2#20 || #C23 =={core::String::==}{(core::Object) → core::bool} #2#0 || #2#12 || (let final dynamic #t1 = #2#0! in #2#24) || (!(#2#0 == null) ?{core::bool} #2#12 : false) || (let final dynamic #t2 = #2#0! in !(#2#0! == null) ?{core::bool} #2#24 : false) || (!(#2#0 == null) ?{core::bool} let final dynamic #t3 = #2#0! in #2#24 : false) || (let final dynamic #t4 = #2#0! in #2#27) || (!(#2#0 == null) ?{core::bool} #2#14 : false) || (!(#2#0 == null) ?{core::bool} let final dynamic #t5 = #2#0! in #2#27 : false) || (let final dynamic #t6 = #2#0! in !(#2#0! == null) ?{core::bool} #2#27 : false) || (let final core::int #t7 = #2#0 as{ForNonNullableByDefault} core::int in #C3 =={core::num::==}{(core::Object) → core::bool} #2#0 as{ForNonNullableByDefault} core::int) || #2#14 || #2#31 || #2#31 || #C24 =={core::Object::==}{(core::Object) → core::bool} #2#0 || #2#12 || #2#14 || #2#35 || #2#37 || #C25 =={core::num::==}{(core::Object) → core::bool} #2#0 || #2#0{core::int} is{ForNonNullableByDefault} void && (let final core::int #t8 = fun = #2#0{core::int} in true)) {
+          {
+            () → Null {};
+            invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:52:25: Error: This couldn't be parsed.
+      case void fun() {}: // Error
+                        ^";
+            break #L1;
+          }
+        }
+      }
+      {
+        if(invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:53:12: Error: `assert` can't be used as an expression.
+      case assert(false): // Error
+           ^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "Not a constant expression." =={core::num::==}{(core::Object) → core::bool} #2#0 || #2#2 || #2#47 || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:58:14: Error: Not a constant expression.
+      case ++variable: // Error
+             ^^^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || #2#31 || #2#31 || #C26 =={core::num::==}{(core::Object) → core::bool} #2#0 || #2#2 || #2#4 || #2#31 || #2#20 || #C27 =={core::Symbol::==}{(core::Object) → core::bool} #2#0 || #2#12 || #2#31 || #2#12 || #2#14 || #2#35 || #2#37 || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:74:18: Error: `assert` can't be used as an expression.
+      case const assert(false): // Error
+                 ^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "Not a constant expression." =={core::num::==}{(core::Object) → core::bool} #2#0 || #2#2 || #2#47 || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:79:20: Error: Not a constant expression.
+      case const ++variable: // Error
+                   ^^^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || #2#65 || #2#65 || #2#67 || #2#67 || #2#69 || #2#69 || #2#69 || #2#69 || #2#71 || #2#73 || #2#75 || #2#77 || #2#65 || #2#65 || #2#67 || #2#67 || #2#69 || #2#69 || #2#71 || #2#73 || #2#75 || #2#77 || invalid-expression "New expression is not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "New expression is not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || #2#83 || #2#83 || #C28 =={core::num::==}{(core::Object) → core::bool} #2#0 || #2#47 || #2#12 || #2#14 || #2#37 || #2#87 || #2#87 || #2#89 || #2#89 || #2#87 || #2#87 || #2#87 || #2#87 || #2#89 || #2#89) {
+          {
+            core::print(0);
+          }
+        }
+      }
+    }
+  }
+}
+class GenericClass<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •({dynamic a = #C1}) → self::GenericClass<self::GenericClass::T%>
+    : super core::Object::•()
+    ;
+}
+static const field core::int value = #C3;
+static method func() → void {}
+
+constants  {
+  #C1 = null
+  #C2 = true
+  #C3 = 42
+  #C4 = -42
+  #C5 = "foo"
+  #C6 = 0
+  #C7 = constructor-tearoff self::Class::named
+  #C8 = 3
+  #C9 = -1
+  #C10 = self::Class {}
+  #C11 = self::GenericClass<dynamic> {}
+  #C12 = self::GenericClass<core::int*> {}
+  #C13 = <dynamic>[]
+  #C14 = <core::int*>[]
+  #C15 = <dynamic, dynamic>{}
+  #C16 = <core::int*, core::String*>{}
+  #C17 = ()
+  #C18 = TypeLiteralConstant(self::GenericClass<core::int*>*)
+  #C19 = constructor-tearoff self::GenericClass::•
+  #C20 = instantiation #C19 <core::int*>
+  #C21 = 42.5
+  #C22 = -42.5
+  #C23 = "foobar"
+  #C24 = static-tearoff self::func
+  #C25 = 2
+  #C26 = 0.5
+  #C27 = #a
+  #C28 = 1
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_patterns.dart:
+- Class. (from org-dartlang-testcase:///const_patterns.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- GenericClass. (from org-dartlang-testcase:///const_patterns.dart:127:9)

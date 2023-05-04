@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test the exit code of dart2js in case of exceptions, errors, warnings, etc.
 
 import 'dart:async';
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/io/source_information.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler_api.dart' as api;
@@ -35,7 +34,7 @@ class TestCompiler extends Compiler {
   final String testType;
   final Function onTest;
   @override
-  TestDiagnosticReporter reporter;
+  late final TestDiagnosticReporter reporter;
 
   TestCompiler(
       api.CompilerInput inputProvider,
@@ -46,13 +45,13 @@ class TestCompiler extends Compiler {
       String this.testType,
       Function this.onTest)
       : super(inputProvider, outputProvider, handler, options) {
-    reporter = new TestDiagnosticReporter(this);
+    reporter = TestDiagnosticReporter(this);
     test('Compiler');
   }
 
   @override
   JsBackendStrategy createBackendStrategy() {
-    return new TestBackendStrategy(this);
+    return TestBackendStrategy(this);
   }
 
   @override
@@ -71,7 +70,6 @@ class TestCompiler extends Compiler {
         case 'failedAt':
           onTest(testMarker, testType);
           failedAt(NO_LOCATION_SPANNABLE, marker);
-          break;
         case 'warning':
           onTest(testMarker, testType);
           reporter.reportWarningMessage(
@@ -112,10 +110,11 @@ class TestBackendStrategy extends JsBackendStrategy {
       JClosedWorld closedWorld,
       CodegenResults codegenResults,
       EntityLookup entityLookup,
-      ComponentLookup componentLookup) {
+      ComponentLookup componentLookup,
+      SourceLookup sourceLookup) {
     compiler.test('Compiler.codegen');
-    return super.generateCode(
-        work, closedWorld, codegenResults, entityLookup, componentLookup);
+    return super.generateCode(work, closedWorld, codegenResults, entityLookup,
+        componentLookup, sourceLookup);
   }
 }
 
@@ -145,7 +144,7 @@ Future testExitCode(
     }
   }
 
-  return new Future(() {
+  return Future(() {
     Future<api.CompilationResult> compile(
         CompilerOptions compilerOptions,
         api.CompilerInput compilerInput,
@@ -154,14 +153,14 @@ Future testExitCode(
       compilerOutput = const NullCompilerOutput();
       // Use this to silence the test when debugging:
       // handler = (uri, begin, end, message, kind) {};
-      Compiler compiler = new TestCompiler(compilerInput, compilerOutput,
+      Compiler compiler = TestCompiler(compilerInput, compilerOutput,
           compilerDiagnostics, compilerOptions, marker, type, onTest);
       return compiler.run().then((bool success) {
-        return new api.CompilationResult(compiler, isSuccess: success);
+        return api.CompilationResult(compiler, isSuccess: success);
       });
     }
 
-    int foundExitCode;
+    int? foundExitCode;
 
     checkResult() {
       Expect.isTrue(testOccurred, 'testExitCode($marker, $type) did not occur');
@@ -176,18 +175,18 @@ Future testExitCode(
       checkedResults++;
     }
 
-    void exit(exitCode) {
+    // TODO(48220): Make return type `Never` when this test is migrated.
+    /* Never */ exit(exitCode) {
       if (foundExitCode == null) {
         foundExitCode = exitCode;
       }
+      throw 'Exit';
     }
-
-    ;
 
     entry.exitFunc = exit;
     entry.compileFunc = compile;
 
-    List<String> args = new List<String>.from(options)
+    List<String> args = List<String>.from(options)
       ..add("--libraries-spec=$sdkLibrariesSpecificationUri")
       ..add("--platform-binaries=$sdkPlatformBinariesPath")
       ..add("pkg/compiler/test/end_to_end/data/exit_code_helper.dart");
@@ -201,7 +200,7 @@ Future testExitCode(
 Future testExitCodes(
     String marker, Map<String, int> expectedExitCodes, List<String> options) {
   return Future.forEach(expectedExitCodes.keys, (String type) {
-    return testExitCode(marker, type, expectedExitCodes[type], options);
+    return testExitCode(marker, type, expectedExitCodes[type]!, options);
   });
 }
 
@@ -246,12 +245,12 @@ void main() {
 
   asyncTest(() async {
     for (String marker in tests.keys) {
-      var expected = _expectedExitCode(beforeRun: tests[marker]);
+      var expected = _expectedExitCode(beforeRun: tests[marker]!);
       totalExpectedErrors += expected.length;
       await testExitCodes(marker, expected, []);
 
       expected =
-          _expectedExitCode(beforeRun: tests[marker], fatalWarnings: true);
+          _expectedExitCode(beforeRun: tests[marker]!, fatalWarnings: true);
       totalExpectedErrors += expected.length;
       await testExitCodes(marker, expected, [Flags.fatalWarnings]);
     }

@@ -58,8 +58,8 @@ class ImportOrganizer {
 
   bool _isUnusedImport(UriBasedDirective directive) {
     for (var error in errors) {
-      if ((error.errorCode == HintCode.DUPLICATE_IMPORT ||
-              error.errorCode == HintCode.UNUSED_IMPORT ||
+      if ((error.errorCode == WarningCode.DUPLICATE_IMPORT ||
+              error.errorCode == WarningCode.UNUSED_IMPORT ||
               error.errorCode == HintCode.UNNECESSARY_IMPORT) &&
           directive.uri.offset == error.offset) {
         return true;

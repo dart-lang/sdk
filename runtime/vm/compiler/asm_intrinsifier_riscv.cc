@@ -1715,71 +1715,30 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ lx(T0, FieldAddress(A1, target::String::length_offset()));
   __ SmiUntag(T0);
 
-  Label set_to_one, done;
-  // If the string is empty, set the hash to 1, and return.
-  __ beqz(T0, &set_to_one);
-
   __ mv(T1, ZR);
   __ addi(T2, A1, target::OneByteString::data_offset() - kHeapObjectTag);
+
   // A1: Instance of OneByteString.
   // T0: String length, untagged integer.
   // T1: Loop counter, untagged integer.
   // T2: String data.
   // A0: Hash code, untagged integer.
 
-  Label loop;
-  // Add to hash code: (hash_ is uint32)
-  // hash_ += ch;
-  // hash_ += hash_ << 10;
-  // hash_ ^= hash_ >> 6;
-  // Get one characters (ch).
+  Label loop, done;
   __ Bind(&loop);
+  __ beq(T1, T0, &done);
+  // Add to hash code: (hash_ is uint32)
+  // Get one characters (ch).
   __ lbu(T3, Address(T2, 0));
   __ addi(T2, T2, 1);
   // T3: ch.
   __ addi(T1, T1, 1);
-#if XLEN == 32
-  __ add(A0, A0, T3);
-  __ slli(TMP, A0, 10);
-  __ add(A0, A0, TMP);
-  __ srli(TMP, A0, 6);
-#else
-  __ addw(A0, A0, T3);
-  __ slliw(TMP, A0, 10);
-  __ addw(A0, A0, TMP);
-  __ srliw(TMP, A0, 6);
-#endif
-  __ xor_(A0, A0, TMP);
-  __ bne(T1, T0, &loop);
+  __ CombineHashes(A0, T3);
+  __ j(&loop);
 
-  // Finalize.
-  // hash_ += hash_ << 3;
-  // hash_ ^= hash_ >> 11;
-  // hash_ += hash_ << 15;
-#if XLEN == 32
-  __ slli(TMP, A0, 3);
-  __ add(A0, A0, TMP);
-  __ srli(TMP, A0, 11);
-  __ xor_(A0, A0, TMP);
-  __ slli(TMP, A0, 15);
-  __ add(A0, A0, TMP);
-#else
-  __ slliw(TMP, A0, 3);
-  __ addw(A0, A0, TMP);
-  __ srliw(TMP, A0, 11);
-  __ xor_(A0, A0, TMP);
-  __ slliw(TMP, A0, 15);
-  __ addw(A0, A0, TMP);
-#endif
-  // hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
-  __ AndImmediate(A0, A0,
-                  (static_cast<intptr_t>(1) << target::String::kHashBits) - 1);
-  // return hash_ == 0 ? 1 : hash_;
-  __ bnez(A0, &done, Assembler::kNearJump);
-  __ Bind(&set_to_one);
-  __ li(A0, 1);
   __ Bind(&done);
-
+  // Finalize. Allow a zero result to combine checks from empty string branch.
+  __ FinalizeHashForSize(target::String::kHashBits, A0);
 #if defined(HASH_IN_OBJECT_HEADER)
   // A1: Untagged address of header word (lr/sc do not support offsets).
   __ subi(A1, A1, kHeapObjectTag);
@@ -1793,12 +1752,11 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 
   __ srli(A0, A0, target::UntaggedObject::kHashTagPos);
   __ SmiTag(A0);
-  __ ret();
 #else
   __ SmiTag(A0);
   __ sx(A0, FieldAddress(A1, target::String::hash_offset()));
-  __ ret();
 #endif
+  __ ret();
 }
 
 // Allocates a _OneByteString or _TwoByteString. The content is not initialized.
@@ -1995,73 +1953,22 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-// TODO(srdjan): Add combinations (one-byte/two-byte/external strings).
-static void StringEquality(Assembler* assembler,
-                           Label* normal_ir_body,
-                           intptr_t string_cid) {
-  Label is_true, is_false, loop;
+void AsmIntrinsifier::OneByteString_equality(Assembler* assembler,
+                                             Label* normal_ir_body) {
   __ lx(A0, Address(SP, 1 * target::kWordSize));  // This.
   __ lx(A1, Address(SP, 0 * target::kWordSize));  // Other.
 
-  // Are identical?
-  __ beq(A0, A1, &is_true, Assembler::kNearJump);
-
-  // Is other same kind of string?
-  __ BranchIfSmi(A1, normal_ir_body, Assembler::kNearJump);
-  __ CompareClassId(A1, string_cid, TMP);
-  __ BranchIf(NE, normal_ir_body, Assembler::kNearJump);
-
-  // Have same length?
-  __ lx(T2, FieldAddress(A0, target::String::length_offset()));
-  __ lx(T3, FieldAddress(A1, target::String::length_offset()));
-  __ bne(T2, T3, &is_false, Assembler::kNearJump);
-
-  // Check contents, no fall-through possible.
-  ASSERT((string_cid == kOneByteStringCid) ||
-         (string_cid == kTwoByteStringCid));
-  if (string_cid == kOneByteStringCid) {
-    __ SmiUntag(T2);
-  }
-  // T2 is length of data in bytes.
-  // Round up number of bytes to compare to word boundary since we
-  // are doing comparison in word chunks.
-  __ AddImmediate(T2, target::kWordSize - 1);
-  __ srli(T2, T2, target::kWordSizeLog2);
-  ASSERT(target::OneByteString::data_offset() ==
-         target::String::length_offset() + target::kWordSize);
-  ASSERT(target::TwoByteString::data_offset() ==
-         target::String::length_offset() + target::kWordSize);
-  __ Bind(&loop);
-  __ AddImmediate(T2, -1);
-  __ bltz(T2, &is_true, Assembler::kNearJump);
-  __ lx(TMP,
-        FieldAddress(A0, target::String::length_offset() + target::kWordSize));
-  __ lx(TMP2,
-        FieldAddress(A1, target::String::length_offset() + target::kWordSize));
-  __ addi(A0, A0, target::kWordSize);
-  __ addi(A1, A1, target::kWordSize);
-  __ bne(TMP, TMP2, &is_false, Assembler::kNearJump);
-  __ j(&loop);
-
-  __ Bind(&is_true);
-  __ LoadObject(A0, CastHandle<Object>(TrueObject()));
-  __ ret();
-
-  __ Bind(&is_false);
-  __ LoadObject(A0, CastHandle<Object>(FalseObject()));
-  __ ret();
-
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::OneByteString_equality(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  StringEquality(assembler, normal_ir_body, kOneByteStringCid);
+  StringEquality(assembler, A0, A1, T2, TMP2, A0, normal_ir_body,
+                 kOneByteStringCid);
 }
 
 void AsmIntrinsifier::TwoByteString_equality(Assembler* assembler,
                                              Label* normal_ir_body) {
-  StringEquality(assembler, normal_ir_body, kTwoByteStringCid);
+  __ lx(A0, Address(SP, 1 * target::kWordSize));  // This.
+  __ lx(A1, Address(SP, 0 * target::kWordSize));  // Other.
+
+  StringEquality(assembler, A0, A1, T2, TMP2, A0, normal_ir_body,
+                 kTwoByteStringCid);
 }
 
 void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,

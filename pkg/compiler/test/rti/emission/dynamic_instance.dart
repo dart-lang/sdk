@@ -22,7 +22,7 @@ class C {
 class D implements B {}
 
 @pragma('dart2js:noInline')
-test(o) => new C().method1<B>(o);
+test(o) => C().method1<B>(o);
 
 main() {
   makeLive(test(new D()));

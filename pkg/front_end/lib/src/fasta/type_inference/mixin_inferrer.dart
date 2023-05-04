@@ -124,8 +124,9 @@ abstract class MixinInferrer {
     generateConstraints(mixinClass, baseType, mixinSupertype);
     // Solve them to get a map from type parameters to upper and lower
     // bounds.
-    Map<TypeParameter, TypeConstraint> result =
-        gatherer.computeConstraints(classNode.enclosingLibrary);
+    Map<TypeParameter, TypeConstraint> result = gatherer.computeConstraints(
+        isNonNullableByDefault:
+            classNode.enclosingLibrary.isNonNullableByDefault);
     // Generate new type parameters with the solution as bounds.
     List<TypeParameter> parameters = mixinClass.typeParameters.map((p) {
       TypeConstraint? constraint = result[p];
@@ -159,8 +160,9 @@ abstract class MixinInferrer {
       p.bound = substitution.substituteType(p.bound);
     }
     // Use instantiate to bounds.
-    List<DartType> bounds = calculateBounds(
-        parameters, coreTypes.objectClass, classNode.enclosingLibrary);
+    List<DartType> bounds = calculateBounds(parameters, coreTypes.objectClass,
+        isNonNullableByDefault:
+            classNode.enclosingLibrary.isNonNullableByDefault);
     for (int i = 0; i < mixedInType.typeArguments.length; ++i) {
       mixedInType.typeArguments[i] = bounds[i];
     }

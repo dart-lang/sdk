@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
 // Test that parameters keep their names in the output.
 
 import 'dart:async';
@@ -40,10 +39,10 @@ class A {
   }
 }
 
-main() { new A().foo(1); }
+main() { A().foo(1); }
 """;
 
-Future closureInvocation({bool minify, String prefix}) async {
+Future closureInvocation({required bool minify, required String prefix}) async {
   await compile(TEST_INVOCATION0, minify: minify, check: (String generated) {
     Expect.isTrue(generated.contains(".$prefix\$0()"));
   });
@@ -57,9 +56,9 @@ Future closureInvocation({bool minify, String prefix}) async {
 
 // Make sure that the bailout version does not introduce a second version of
 // the closure.
-Future closureBailout({bool minify, String prefix}) async {
+Future closureBailout({required bool minify, required String prefix}) async {
   String generated = await compileAll(TEST_BAILOUT, minify: minify);
-  RegExp regexp = new RegExp("$prefix\\\$0\\(\\)${minify ? "" : " "}{");
+  RegExp regexp = RegExp("$prefix\\\$0\\(\\)${minify ? "" : " "}{");
   Iterator<Match> matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 1);
 }

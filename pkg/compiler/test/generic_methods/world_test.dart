@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/universe/call_structure.dart';
@@ -56,28 +54,28 @@ class Class3 implements Class1 {
 }
 
 main(args) {
-  dynamic c1 = args != null ? new Class1() : new Class2();
+  dynamic c1 = args != null ? Class1() : Class2();
   c1.method1(); // No type arguments are inferred here.
 
-  dynamic c2 = args != null ? new Class1() : new Class2();
+  dynamic c2 = args != null ? Class1() : Class2();
   c2.method2<int>();
 
-  var c3 = args != null ? new Class1() : new Class3();
+  var c3 = args != null ? Class1() : Class3();
   c3.method3(); // Type arguments are inferred here.
 
-  var c4 = args != null ? new Class1() : new Class3();
+  var c4 = args != null ? Class1() : Class3();
   c4.method4<int>();
 
-  dynamic c5 = args != null ? new Class1() : new Class2();
+  dynamic c5 = args != null ? Class1() : Class2();
   c5.method5(); // No type arguments are inferred here.
 
-  var c6 = args != null ? new Class1() : new Class3();
+  var c6 = args != null ? Class1() : Class3();
   c6.method5();  // Type arguments are inferred here.
 
-  dynamic c7 = args != null ? new Class1() : new Class2();
+  dynamic c7 = args != null ? Class1() : Class2();
   c7.method6<int>(); // Type arguments are not needed.
 
-  var c8 = args != null ? new Class1() : new Class3();
+  var c8 = args != null ? Class1() : Class3();
   c8.method6(); // Type arguments are inferred here but not needed.
 }
 ''';
@@ -88,16 +86,16 @@ main() {
         await runCompiler(memorySourceFiles: {'main.dart': code});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    CodegenWorld codegenWorld = compiler.codegenWorldForTesting;
+    CodegenWorld codegenWorld = compiler.codegenWorldForTesting!;
 
-    CallStructure noTypeArguments = new CallStructure(0, [], 0);
-    CallStructure oneTypeArgument = new CallStructure(0, [], 1);
+    CallStructure noTypeArguments = CallStructure(0, [], 0);
+    CallStructure oneTypeArgument = CallStructure(0, [], 1);
 
     Iterable<CallStructure> getCallStructures(String name) {
       return codegenWorld
               .invocationsByName(name)
               ?.keys
-              ?.map((s) => s.callStructure) ??
+              .map((s) => s.callStructure) ??
           [];
     }
 

@@ -115,7 +115,7 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   char* err;
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
-  api_flags.null_safety = (FLAG_sound_null_safety == kNullSafetyOptionStrong);
+  api_flags.null_safety = FLAG_sound_null_safety;
   Dart_Isolate isolate = NULL;
   if (len == 0) {
     isolate = Dart_CreateIsolateGroup(
@@ -284,12 +284,18 @@ void FUNCTION_NAME(Test_CollectOldSpace)(Dart_NativeArguments native_args) {
   GCTestHelper::CollectOldSpace();
 }
 
-static Dart_Handle LoadIsolateReloadTestLib() {
-  return TestCase::LoadTestLibrary(IsolateReloadTestLibUri(),
-                                   kIsolateReloadTestLibSource,
-                                   IsolateReloadTestNativeResolver);
-}
 #endif  // !PRODUCT
+
+static void LoadIsolateReloadTestLibIfNeeded(const char* script) {
+#ifndef PRODUCT
+  if (strstr(script, IsolateReloadTestLibUri()) != nullptr) {
+    Dart_Handle result = TestCase::LoadTestLibrary(
+        IsolateReloadTestLibUri(), kIsolateReloadTestLibSource,
+        IsolateReloadTestNativeResolver);
+    EXPECT_VALID(result);
+  }
+#endif  // ifndef PRODUCT
+}
 
 char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const char* source,
@@ -418,12 +424,7 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
                                      const char* lib_url,
                                      bool finalize_classes,
                                      bool allow_compile_errors) {
-#ifndef PRODUCT
-  if (strstr(script, IsolateReloadTestLibUri()) != NULL) {
-    Dart_Handle result = LoadIsolateReloadTestLib();
-    EXPECT_VALID(result);
-  }
-#endif  // ifndef PRODUCT
+  LoadIsolateReloadTestLibIfNeeded(script);
   Dart_SourceFile* sourcefiles = NULL;
   intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script, lib_url);
   Dart_Handle result =
@@ -433,9 +434,14 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   return result;
 }
 
+static void MallocFinalizer(void* isolate_callback_data, void* peer) {
+  free(peer);
+}
+
 Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
                                       const char* script,
                                       Dart_NativeEntryResolver resolver) {
+  LoadIsolateReloadTestLibIfNeeded(script);
   const char* prefixed_lib_uri =
       OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_uri);
   Dart_SourceFile sourcefiles[] = {{prefixed_lib_uri, script}};
@@ -448,12 +454,14 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
   if ((kernel_buffer == NULL) && (error != NULL)) {
     return Dart_NewApiError(error);
   }
-  Dart_Handle lib =
-      Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
-  EXPECT_VALID(lib);
 
-  // Ensure kernel buffer isn't leaked after test is run.
-  AddToKernelBuffers(kernel_buffer);
+  Dart_Handle td = Dart_NewExternalTypedDataWithFinalizer(
+      Dart_TypedData_kUint8, const_cast<uint8_t*>(kernel_buffer),
+      kernel_buffer_size, const_cast<uint8_t*>(kernel_buffer),
+      kernel_buffer_size, MallocFinalizer);
+  EXPECT_VALID(td);
+  Dart_Handle lib = Dart_LoadLibrary(td);
+  EXPECT_VALID(lib);
 
   // TODO(32618): Kernel doesn't correctly represent the root library.
   lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
@@ -488,12 +496,13 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
     return Dart_NewApiError(error);
   }
 
-  Dart_Handle lib =
-      Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
+  Dart_Handle td = Dart_NewExternalTypedDataWithFinalizer(
+      Dart_TypedData_kUint8, const_cast<uint8_t*>(kernel_buffer),
+      kernel_buffer_size, const_cast<uint8_t*>(kernel_buffer),
+      kernel_buffer_size, MallocFinalizer);
+  EXPECT_VALID(td);
+  Dart_Handle lib = Dart_LoadLibrary(td);
   EXPECT_VALID(lib);
-
-  // Ensure kernel buffer isn't leaked after test is run.
-  AddToKernelBuffers(kernel_buffer);
 
   // BOGUS: Kernel doesn't correctly represent the root library.
   lib = Dart_LookupLibrary(Dart_NewStringFromCString(

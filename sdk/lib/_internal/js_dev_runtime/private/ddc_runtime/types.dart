@@ -16,6 +16,15 @@ external bool compileTimeFlag(String flag);
 _throwInvalidFlagError(String message) =>
     throw UnsupportedError('Invalid flag combination.\n$message');
 
+/// When running the new runtime type system with weak null safety this flag
+/// gets toggled to change the behavior of the dart:_rti library when performing
+/// `is` and `as` checks.
+///
+/// This allows DDC to produce optional warnings or errors when tests pass but
+/// would fail in sound null safety.
+@notNull
+bool legacyTypeChecks = !compileTimeFlag("soundNullSafety");
+
 @notNull
 bool _weakNullSafetyWarnings = false;
 
@@ -69,16 +78,25 @@ void nonNullAsserts(bool enable) {
 }
 
 @notNull
-bool _nativeNonNullAsserts = false;
+bool _nativeNonNullAsserts = compileTimeFlag('soundNullSafety');
 
-/// Enables null assertions on native APIs to make sure value returned from the
-/// browser is sound.
+/// Enables null assertions on native APIs to make sure values returned from the
+/// browser are sound.
 ///
 /// These apply to dart:html and similar web libraries. Note that these only are
 /// added in sound null-safety only.
 void nativeNonNullAsserts(bool enable) {
+  if (enable && !compileTimeFlag('soundNullSafety')) {
+    _warn('Enabling `native-null-assertions` is only supported when sound null '
+        'safety is enabled.');
+  }
+  // This value is only read from `checkNativeNonNull` and calls to that method
+  // are only generated in sound null safe code.
   _nativeNonNullAsserts = enable;
 }
+
+/// A JavaScript Symbol used to store the Rti object on a native array.
+final arrayRti = JS('', r'Symbol("$ti")');
 
 final metadata = JS('', 'Symbol("metadata")');
 
@@ -2265,7 +2283,7 @@ class Shape {
 }
 
 /// Internal base class for all concrete records.
-class _RecordImpl implements Record {
+final class _RecordImpl implements Record {
   Shape shape;
   List values;
 
@@ -2344,7 +2362,8 @@ Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
     return cached;
   }
 
-  Object recordClass = JS('!', 'class _Record extends # {}', _RecordImpl);
+  Object recordClass =
+      JS('!', 'class _Record extends # {}', JS_CLASS_REF(_RecordImpl));
   // Add a 'new' function to be used instead of a constructor
   // (which is disallowed on dart objects).
   Object newRecord = JS(
@@ -2366,7 +2385,7 @@ Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
   // Add convenience getters for accessing the record's field values.
   var count = 0;
   while (count < positionals) {
-    var name = '\$$count';
+    var name = '\$${count + 1}';
     defineAccessor(recordPrototype, name,
         get: _recordGet(count), enumerable: true);
     count++;
@@ -2454,7 +2473,7 @@ class RecordType extends DartType {
     var count = types.length;
 
     var buffer = StringBuffer();
-    buffer.write('RecordType(');
+    buffer.write('(');
     for (var i = 0; i < count; i++) {
       if (i < posCount) {
         buffer.write('${types[i]}');
@@ -2478,7 +2497,7 @@ class RecordType extends DartType {
 
   @JSExportName('is')
   bool is_T(obj) {
-    if (JS('!', '# instanceof #', obj, _RecordImpl)) {
+    if (obj is _RecordImpl) {
       var actual = getReifiedType(obj);
       return actual != null && isSubtypeOf(actual, this);
     }

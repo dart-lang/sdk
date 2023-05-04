@@ -96,5 +96,5 @@ main() {
   field2b = 42;
   field2c = field2c;
 
-  new Class().test();
+  Class().test();
 }

@@ -52,7 +52,7 @@ DEFINE_FLAG(charp,
 //   4 - Compile expressions in context (used by expression evaluation).
 //   5 - Generate dependencies used to create a dependencies file.
 //   6 - Triggers shutdown of the kernel isolate.
-//   7 - Detects the nullability of a script based on it's opt-in status.
+//   7 - Reject last compilation result.
 const int KernelIsolate::kCompileTag = 0;
 const int KernelIsolate::kUpdateSourcesTag = 1;
 const int KernelIsolate::kAcceptTag = 2;
@@ -60,7 +60,7 @@ const int KernelIsolate::kTrainTag = 3;
 const int KernelIsolate::kCompileExpressionTag = 4;
 const int KernelIsolate::kListDependenciesTag = 5;
 const int KernelIsolate::kNotifyIsolateShutdown = 6;
-const int KernelIsolate::kDetectNullabilityTag = 7;
+const int KernelIsolate::kRejectTag = 7;
 
 const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 Dart_IsolateGroupCreateCallback KernelIsolate::create_group_callback_ = NULL;
@@ -792,7 +792,6 @@ class KernelCompilationRequest : public ValueObject {
       const char* package_config,
       const char* multiroot_filepaths,
       const char* multiroot_scheme,
-      intptr_t default_null_safety,
       const MallocGrowableArray<char*>* experimental_flags,
       const char* original_working_directory,
       Dart_KernelCompilationVerbosityLevel verbosity) {
@@ -876,12 +875,10 @@ class KernelCompilationRequest : public ValueObject {
                                        : FLAG_enable_asserts;
 
     Dart_CObject null_safety;
-    null_safety.type = Dart_CObject_kInt32;
-    null_safety.value.as_int32 =
-        (isolate_group != nullptr)
-            ? (isolate_group->null_safety() ? kNullSafetyOptionStrong
-                                            : kNullSafetyOptionWeak)
-            : default_null_safety;
+    null_safety.type = Dart_CObject_kBool;
+    null_safety.value.as_bool = (isolate_group != nullptr)
+                                    ? isolate_group->null_safety()
+                                    : FLAG_sound_null_safety;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
@@ -1129,7 +1126,6 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     const char* package_config,
     const char* multiroot_filepaths,
     const char* multiroot_scheme,
-    intptr_t default_null_safety,
     Dart_KernelCompilationVerbosityLevel verbosity) {
   // Start the kernel Isolate if it is not already running.
   if (!Start()) {
@@ -1154,29 +1150,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
       kCompileTag, kernel_port, script_uri, platform_kernel,
       platform_kernel_size, source_file_count, source_files,
       incremental_compile, snapshot_compile, package_config,
-      multiroot_filepaths, multiroot_scheme, default_null_safety,
-      experimental_flags_, NULL, verbosity);
-}
-
-bool KernelIsolate::DetectNullSafety(const char* script_uri,
-                                     const char* package_config,
-                                     const char* original_working_directory) {
-  // Start the kernel Isolate if it is not already running.
-  if (!Start()) {
-    return false;
-  }
-  // Wait for Kernel isolate to finish initialization.
-  Dart_Port kernel_port = WaitForKernelPort();
-  if (kernel_port == ILLEGAL_PORT) {
-    return false;
-  }
-  KernelCompilationRequest request;
-  Dart_KernelCompilationResult result = request.SendAndWaitForResponse(
-      kDetectNullabilityTag, kernel_port, script_uri, nullptr, -1, 0, nullptr,
-      false, false, package_config, nullptr, nullptr,
-      /*default_null_safety=*/kNullSafetyOptionUnspecified, experimental_flags_,
-      original_working_directory, Dart_KernelCompilationVerbosityLevel_Error);
-  return result.null_safety;
+      multiroot_filepaths, multiroot_scheme, experimental_flags_, NULL,
+      verbosity);
 }
 
 Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
@@ -1191,8 +1166,8 @@ Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kListDependenciesTag, kernel_port, NULL, NULL, 0, 0, NULL, false, false,
-      NULL, NULL, NULL, /*default_null_safety=*/kNullSafetyOptionUnspecified,
-      experimental_flags_, NULL, Dart_KernelCompilationVerbosityLevel_Error);
+      NULL, NULL, NULL, experimental_flags_, NULL,
+      Dart_KernelCompilationVerbosityLevel_Error);
 }
 
 Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
@@ -1209,8 +1184,26 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kAcceptTag, kernel_port, NULL, NULL, 0, 0, NULL, true, false, NULL, NULL,
-      NULL, /*default_null_safety=*/kNullSafetyOptionUnspecified,
-      experimental_flags_, NULL, Dart_KernelCompilationVerbosityLevel_Error);
+      NULL, experimental_flags_, NULL,
+      Dart_KernelCompilationVerbosityLevel_Error);
+}
+
+Dart_KernelCompilationResult KernelIsolate::RejectCompilation() {
+  // This must be the main script to be loaded. Wait for Kernel isolate
+  // to finish initialization.
+  Dart_Port kernel_port = WaitForKernelPort();
+  if (kernel_port == ILLEGAL_PORT) {
+    Dart_KernelCompilationResult result = {};
+    result.status = Dart_KernelCompilationStatus_MsgFailed;
+    result.error = Utils::StrDup("Error while initializing Kernel isolate");
+    return result;
+  }
+
+  KernelCompilationRequest request;
+  return request.SendAndWaitForResponse(
+      kRejectTag, kernel_port, NULL, NULL, 0, 0, NULL, true, false, NULL, NULL,
+      NULL, experimental_flags_, NULL,
+      Dart_KernelCompilationVerbosityLevel_Error);
 }
 
 Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
@@ -1260,9 +1253,8 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kUpdateSourcesTag, kernel_port, NULL, NULL, 0, source_files_count,
-      source_files, true, false, NULL, NULL, NULL,
-      /*default_null_safety=*/kNullSafetyOptionUnspecified, experimental_flags_,
-      NULL, Dart_KernelCompilationVerbosityLevel_Error);
+      source_files, true, false, NULL, NULL, NULL, experimental_flags_, NULL,
+      Dart_KernelCompilationVerbosityLevel_Error);
 }
 
 void KernelIsolate::NotifyAboutIsolateGroupShutdown(

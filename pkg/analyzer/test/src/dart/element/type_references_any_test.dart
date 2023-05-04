@@ -30,7 +30,7 @@ class TypeReferencesAnyTest extends AbstractTypeSystemTest {
   }
 
   test_false() {
-    _checkFalse(dynamicNone);
+    _checkFalse(dynamicType);
     _checkFalse(intNone);
     _checkFalse(neverNone);
     _checkFalse(voidNone);

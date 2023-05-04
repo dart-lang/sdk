@@ -4,6 +4,9 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -27,6 +30,7 @@ import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/dart/element/since_sdk_version.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -48,8 +52,10 @@ import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// A concrete implementation of a [ClassElement].
 abstract class AbstractClassElementImpl extends _ExistingElementImpl
@@ -206,7 +212,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       if (typeParameters.isNotEmpty) {
         typeArguments = typeParameters.map<DartType>((t) {
           return t.instantiate(nullabilitySuffix: _noneOrStarSuffix);
-        }).toList();
+        }).toFixedList();
       } else {
         typeArguments = const <DartType>[];
       }
@@ -409,7 +415,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   /// Return an iterable containing all of the implementations of a getter with
-  /// the given [getterName] that are defined in this class any any superclass
+  /// the given [getterName] that are defined in this class and any superclass
   /// of this class (but not in interfaces).
   ///
   /// The getters that are returned are not filtered in any way. In particular,
@@ -439,7 +445,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   /// Return an iterable containing all of the implementations of a method with
-  /// the given [methodName] that are defined in this class any any superclass
+  /// the given [methodName] that are defined in this class and any superclass
   /// of this class (but not in interfaces).
   ///
   /// The methods that are returned are not filtered in any way. In particular,
@@ -468,7 +474,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   /// Return an iterable containing all of the implementations of a setter with
-  /// the given [setterName] that are defined in this class any any superclass
+  /// the given [setterName] that are defined in this class and any superclass
   /// of this class (but not in interfaces).
   ///
   /// The setters that are returned are not filtered in any way. In particular,
@@ -562,6 +568,17 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitAugmentationImportElement(this);
+}
+
+class BindPatternVariableElementImpl extends PatternVariableElementImpl
+    implements BindPatternVariableElement {
+  final DeclaredVariablePatternImpl node;
+
+  /// This flag is set to `true` if this variable clashes with another
+  /// pattern variable with the same name within the same pattern.
+  bool isDuplicate = false;
+
+  BindPatternVariableElementImpl(this.node, super.name, super.offset);
 }
 
 /// An [AbstractClassElementImpl] which is a class.
@@ -681,6 +698,9 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   }
 
   @override
+  bool get isConstructable => !isSealed && !isAbstract;
+
+  @override
   bool get isDartCoreEnum {
     return name == 'Enum' && library.isDartCore;
   }
@@ -730,6 +750,27 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     return true;
   }
 
+  @override
+  bool get isExhaustive => isSealed;
+
+  @override
+  bool get isFinal {
+    return hasModifier(Modifier.FINAL);
+  }
+
+  set isFinal(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
+  }
+
+  @override
+  bool get isInterface {
+    return hasModifier(Modifier.INTERFACE);
+  }
+
+  set isInterface(bool isInterface) {
+    setModifier(Modifier.INTERFACE, isInterface);
+  }
+
   bool get isMacro {
     return hasModifier(Modifier.MACRO);
   }
@@ -746,6 +787,24 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   /// Set whether this class is a mixin application.
   set isMixinApplication(bool isMixinApplication) {
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
+  }
+
+  @override
+  bool get isMixinClass {
+    return hasModifier(Modifier.MIXIN_CLASS);
+  }
+
+  set isMixinClass(bool isMixinClass) {
+    setModifier(Modifier.MIXIN_CLASS, isMixinClass);
+  }
+
+  @override
+  bool get isSealed {
+    return hasModifier(Modifier.SEALED);
+  }
+
+  set isSealed(bool isSealed) {
+    setModifier(Modifier.SEALED, isSealed);
   }
 
   @override
@@ -768,6 +827,24 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     super.methods = methods;
   }
 
+  /// If the class is final, returns all its subtypes.
+  /// All these subtypes can be only in the same library.
+  List<InterfaceType>? get subtypesOfFinal {
+    if (isFinal) {
+      final result = <InterfaceType>[];
+      for (final element in library.topLevelElements) {
+        if (element is InterfaceElement && element != this) {
+          final elementThis = element.thisType;
+          if (elementThis.asInstanceOf(this) != null) {
+            result.add(elementThis);
+          }
+        }
+      }
+      return result;
+    }
+    return null;
+  }
+
   @override
   List<InterfaceType> get superclassConstraints => const [];
 
@@ -787,13 +864,40 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     builder.writeClassElement(this);
   }
 
+  @override
+  bool isExtendableIn(LibraryElement library) {
+    if (library == this.library) {
+      return true;
+    }
+    return !isInterface && !isFinal && !isSealed;
+  }
+
+  @override
+  bool isImplementableIn(LibraryElement library) {
+    if (library == this.library) {
+      return true;
+    }
+    return !isBase && !isFinal && !isSealed;
+  }
+
+  @override
+  bool isMixableIn(LibraryElement library) {
+    if (library == this.library) {
+      return true;
+    } else if (this.library.featureSet.isEnabled(Feature.class_modifiers)) {
+      return isMixinClass && !isInterface && !isFinal && !isSealed;
+    }
+    return true;
+  }
+
   /// Compute a list of constructors for this class, which is a mixin
   /// application.  If specified, [visitedClasses] is a list of the other mixin
   /// application classes which have been visited on the way to reaching this
   /// one (this is used to detect cycles).
   List<ConstructorElementImpl> _computeMixinAppConstructors(
       [List<ClassElementImpl>? visitedClasses]) {
-    if (supertype == null) {
+    final superType = supertype;
+    if (superType == null) {
       // Shouldn't ever happen, since the only classes with no supertype are
       // Object and mixins, and they aren't a mixin application. But for
       // safety's sake just assume an empty list.
@@ -801,7 +905,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
       return <ConstructorElementImpl>[];
     }
 
-    var superElement = supertype!.element as ClassElementImpl;
+    final superElement = superType.element as ClassElementImpl;
 
     // First get the list of constructors of the superclass which need to be
     // forwarded to this class.
@@ -837,11 +941,11 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     var superClassParameters = superElement.typeParameters;
     List<DartType> argumentTypes = List<DartType>.filled(
         superClassParameters.length, DynamicTypeImpl.instance);
-    for (int i = 0; i < supertype!.typeArguments.length; i++) {
+    for (int i = 0; i < superType.typeArguments.length; i++) {
       if (i >= argumentTypes.length) {
         break;
       }
-      argumentTypes[i] = supertype!.typeArguments[i];
+      argumentTypes[i] = superType.typeArguments[i];
     }
     var substitution =
         Substitution.fromPairs(superClassParameters, argumentTypes);
@@ -906,12 +1010,12 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
               ..staticType = implicitParameter.type,
           );
         }
-        implicitConstructor.parameters = implicitParameters;
+        implicitConstructor.parameters = implicitParameters.toFixedList();
       }
       implicitConstructor.enclosingElement = this;
       // TODO(scheglov) Why do we manually map parameters types above?
       implicitConstructor.superConstructor =
-          ConstructorMember.from(superclassConstructor, supertype!);
+          ConstructorMember.from(superclassConstructor, superType);
 
       var isNamed = superclassConstructor.name.isNotEmpty;
       implicitConstructor.constantInitializers = [
@@ -996,6 +1100,14 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
   List<InterfaceType> get interfacesInternal {
     linkedData?.read(this);
     return _interfaces;
+  }
+
+  bool get isBase {
+    return hasModifier(Modifier.BASE);
+  }
+
+  set isBase(bool isBase) {
+    setModifier(Modifier.BASE, isBase);
   }
 
   @override
@@ -1935,9 +2047,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// protected.
   static const String _protectedVariableName = 'protected';
 
-  /// The name of the top-level variable used to mark a class as implementing a
-  /// proxy object.
-  static const String _proxyVariableName = 'proxy';
+  /// The name of the top-level variable used to mark a class or mixin as being
+  /// reopened.
+  static const String _reopenVariableName = 'reopen';
 
   /// The name of the class used to mark a parameter as being required.
   static const String _requiredClassName = 'Required';
@@ -1980,7 +2092,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   /// The AST of the annotation itself, cloned from the resolved AST for the
   /// source code.
-  late Annotation annotationAst;
+  late AnnotationImpl annotationAst;
 
   /// The result of evaluating this annotation as a compile-time constant
   /// expression, or `null` if the compilation unit containing the variable has
@@ -2003,6 +2115,15 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isConstantEvaluated => evaluationResult != null;
+
+  bool get isDartInternalSince {
+    final element = this.element;
+    if (element is ConstructorElement) {
+      return element.enclosingElement.name == 'Since' &&
+          element.library.source.uri.toString() == 'dart:_internal';
+    }
+    return false;
+  }
 
   @override
   bool get isDeprecated {
@@ -2073,7 +2194,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isProtected => _isPackageMetaGetter(_protectedVariableName);
 
   @override
-  bool get isProxy => _isDartCoreGetter(_proxyVariableName);
+  bool get isProxy => false;
+
+  @override
+  bool get isReopen => _isPackageMetaGetter(_reopenVariableName);
 
   @override
   bool get isRequired =>
@@ -2175,6 +2299,14 @@ abstract class ElementImpl implements Element {
   static const _metadataFlag_isReady = 1 << 0;
   static const _metadataFlag_hasDeprecated = 1 << 1;
   static const _metadataFlag_hasOverride = 1 << 2;
+
+  /// Cached values for [sinceSdkVersion].
+  ///
+  /// Only very few elements have `@Since()` annotations, so instead of adding
+  /// an instance field to [ElementImpl], we attach this information this way.
+  /// We ask it only when [Modifier.HAS_SINCE_SDK_VERSION_VALUE] is `true`, so
+  /// don't pay for a hash lookup when we know that the result is `null`.
+  static final Expando<Version> _sinceSdkVersion = Expando<Version>();
 
   static int _NEXT_ID = 0;
 
@@ -2460,6 +2592,18 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get hasReopen {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isReopen) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get hasRequired {
     final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
@@ -2615,6 +2759,22 @@ abstract class ElementImpl implements Element {
   @override
   AnalysisSession? get session {
     return enclosingElement?.session;
+  }
+
+  @override
+  Version? get sinceSdkVersion {
+    if (!hasModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED)) {
+      setModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED, true);
+      final result = SinceSdkVersionComputer().compute(this);
+      if (result != null) {
+        _sinceSdkVersion[this] = result;
+        setModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE, true);
+      }
+    }
+    if (hasModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE)) {
+      return _sinceSdkVersion[this];
+    }
+    return null;
   }
 
   @override
@@ -2811,7 +2971,7 @@ class ElementLocationImpl implements ElementLocation {
       components.insert(0, (ancestor as ElementImpl).identifier);
       ancestor = ancestor.enclosingElement;
     }
-    _components = components;
+    _components = components.toFixedList();
   }
 
   /// Initialize a newly created location from the given [encoding].
@@ -3563,7 +3723,7 @@ class FunctionElementImpl extends ExecutableElementImpl
     if (enclosing is ExecutableElement || enclosing is VariableElement) {
       identifier += "@$nameOffset";
     }
-    return identifier;
+    return considerCanonicalizeString(identifier);
   }
 
   @override
@@ -3736,24 +3896,67 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
   });
 }
 
+class JoinPatternVariableElementImpl extends PatternVariableElementImpl
+    implements JoinPatternVariableElement {
+  @override
+  final List<PatternVariableElementImpl> variables;
+
+  shared.JoinedPatternVariableInconsistency inconsistency;
+
+  /// The identifiers that reference this element.
+  final List<SimpleIdentifier> references = [];
+
+  JoinPatternVariableElementImpl(
+    super.name,
+    super.offset,
+    this.variables,
+    this.inconsistency,
+  ) {
+    for (var component in variables) {
+      component.join = this;
+    }
+  }
+
+  @override
+  int get hashCode => identityHashCode(this);
+
+  @override
+  bool get isConsistent {
+    return inconsistency == shared.JoinedPatternVariableInconsistency.none;
+  }
+
+  /// Returns this variable, and variables that join into it.
+  List<PatternVariableElementImpl> get transitiveVariables {
+    var result = <PatternVariableElementImpl>[];
+
+    void append(PatternVariableElementImpl variable) {
+      result.add(variable);
+      if (variable is JoinPatternVariableElementImpl) {
+        for (var variable in variable.variables) {
+          append(variable);
+        }
+      }
+    }
+
+    append(this);
+    return result;
+  }
+
+  @override
+  bool operator ==(Object other) => identical(other, this);
+}
+
 /// A concrete implementation of a [LabelElement].
 class LabelElementImpl extends ElementImpl implements LabelElement {
-  /// A flag indicating whether this label is associated with a `switch`
-  /// statement.
-  // TODO(brianwilkerson) Make this a modifier.
-  final bool _onSwitchStatement;
-
   /// A flag indicating whether this label is associated with a `switch` member
   /// (`case` or `default`).
   // TODO(brianwilkerson) Make this a modifier.
   final bool _onSwitchMember;
 
   /// Initialize a newly created label element to have the given [name].
-  /// [onSwitchStatement] should be `true` if this label is associated with a
-  /// `switch` statement and [onSwitchMember] should be `true` if this label is
-  /// associated with a `switch` member.
-  LabelElementImpl(String super.name, super.nameOffset, this._onSwitchStatement,
-      this._onSwitchMember);
+  /// [onSwitchMember] should be `true` if this label is associated with a
+  /// `switch` member.
+  LabelElementImpl(String super.name, super.nameOffset, this._onSwitchMember);
 
   @override
   String get displayName => name;
@@ -3769,9 +3972,6 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   /// Return `true` if this label is associated with a `switch` member (`case
   /// ` or`default`).
   bool get isOnSwitchMember => _onSwitchMember;
-
-  /// Return `true` if this label is associated with a `switch` statement.
-  bool get isOnSwitchStatement => _onSwitchStatement;
 
   @override
   ElementKind get kind => ElementKind.LABEL;
@@ -4295,7 +4495,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
 
     visitAugmentations(this);
-    return result;
+    return result.toFixedList();
   }
 
   @override
@@ -4487,6 +4687,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
         definingCompilationUnit,
         ...libraryExports,
         ...libraryImports,
+        ...augmentationImports,
       ];
 
   @override
@@ -4610,7 +4811,11 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
 mixin MacroTargetElement {
   /// Errors registered while applying macros to this element.
-  List<MacroApplicationError> macroApplicationErrors = [];
+  List<MacroApplicationError> macroApplicationErrors = const [];
+
+  void addMacroApplicationError(MacroApplicationError error) {
+    macroApplicationErrors = [...macroApplicationErrors, error];
+  }
 }
 
 /// Marker interface for elements that may have [MacroTargetElement]s.
@@ -4750,7 +4955,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
 
   @override
   set supertype(InterfaceType? supertype) {
-    throw StateError('Attempt to set a supertype for a mixin declaratio.');
+    throw StateError('Attempt to set a supertype for a mixin declaration.');
   }
 
   @override
@@ -4761,6 +4966,14 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeMixinElement(this);
+  }
+
+  @override
+  bool isImplementableIn(LibraryElement library) {
+    if (library == this.library) {
+      return true;
+    }
+    return !isBase;
   }
 }
 
@@ -4776,91 +4989,118 @@ class Modifier implements Comparable<Modifier> {
   /// asynchronous.
   static const Modifier ASYNCHRONOUS = Modifier('ASYNCHRONOUS', 1);
 
+  /// Indicates that the modifier 'base' was applied to the element.
+  static const Modifier BASE = Modifier('BASE', 2);
+
   /// Indicates that the modifier 'const' was applied to the element.
-  static const Modifier CONST = Modifier('CONST', 2);
+  static const Modifier CONST = Modifier('CONST', 3);
 
   /// Indicates that the modifier 'covariant' was applied to the element.
-  static const Modifier COVARIANT = Modifier('COVARIANT', 3);
+  static const Modifier COVARIANT = Modifier('COVARIANT', 4);
 
   /// Indicates that the class is `Object` from `dart:core`.
-  static const Modifier DART_CORE_OBJECT = Modifier('DART_CORE_OBJECT', 4);
+  static const Modifier DART_CORE_OBJECT = Modifier('DART_CORE_OBJECT', 5);
 
   /// Indicates that the import element represents a deferred library.
-  static const Modifier DEFERRED = Modifier('DEFERRED', 5);
+  static const Modifier DEFERRED = Modifier('DEFERRED', 6);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier ENUM = Modifier('ENUM', 6);
+  static const Modifier ENUM = Modifier('ENUM', 7);
 
   /// Indicates that the element is an enum constant field.
-  static const Modifier ENUM_CONSTANT = Modifier('ENUM_CONSTANT', 7);
+  static const Modifier ENUM_CONSTANT = Modifier('ENUM_CONSTANT', 8);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier EXTERNAL = Modifier('EXTERNAL', 8);
+  static const Modifier EXTERNAL = Modifier('EXTERNAL', 9);
 
   /// Indicates that the modifier 'factory' was applied to the element.
-  static const Modifier FACTORY = Modifier('FACTORY', 9);
+  static const Modifier FACTORY = Modifier('FACTORY', 10);
 
   /// Indicates that the modifier 'final' was applied to the element.
-  static const Modifier FINAL = Modifier('FINAL', 10);
+  static const Modifier FINAL = Modifier('FINAL', 11);
 
   /// Indicates that an executable element has a body marked as being a
   /// generator.
-  static const Modifier GENERATOR = Modifier('GENERATOR', 11);
+  static const Modifier GENERATOR = Modifier('GENERATOR', 12);
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
-  static const Modifier GETTER = Modifier('GETTER', 12);
+  static const Modifier GETTER = Modifier('GETTER', 13);
 
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.
-  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 13);
+  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 14);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// has a `part of` directive, meaning that this unit should be a part,
   /// but is used as a library.
   static const Modifier HAS_PART_OF_DIRECTIVE =
-      Modifier('HAS_PART_OF_DIRECTIVE', 14);
+      Modifier('HAS_PART_OF_DIRECTIVE', 15);
+
+  /// Indicates that the value of [Element.sinceSdkVersion] was computed.
+  static const Modifier HAS_SINCE_SDK_VERSION_COMPUTED =
+      Modifier('HAS_SINCE_SDK_VERSION_COMPUTED', 16);
+
+  /// [HAS_SINCE_SDK_VERSION_COMPUTED] and the value was not `null`.
+  static const Modifier HAS_SINCE_SDK_VERSION_VALUE =
+      Modifier('HAS_SINCE_SDK_VERSION_VALUE', 17);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 15);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 18);
+
+  /// Indicates that the modifier 'interface' was applied to the element.
+  static const Modifier INTERFACE = Modifier('INTERFACE', 19);
 
   /// Indicates that the method invokes the super method with the same name.
-  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 16);
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 20);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 17);
+  static const Modifier LATE = Modifier('LATE', 21);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 18);
+  static const Modifier MACRO = Modifier('MACRO', 22);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 19);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 23);
 
-  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 20);
+  /// Indicates that a class is a mixin class.
+  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 24);
+
+  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 25);
+
+  /// Indicates whether the type of a [PropertyInducingElementImpl] should be
+  /// used to infer the initializer. We set it to `false` if the type was
+  /// inferred from the initializer itself.
+  static const Modifier SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE =
+      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 26);
+
+  /// Indicates that the modifier 'sealed' was applied to the element.
+  static const Modifier SEALED = Modifier('SEALED', 27);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 21);
+  static const Modifier SETTER = Modifier('SETTER', 28);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 22);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 29);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 23);
+  static const Modifier STATIC = Modifier('STATIC', 30);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 24);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 31);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 25);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 32);
 
   static const List<Modifier> values = [
     ABSTRACT,
     ASYNCHRONOUS,
+    BASE,
     CONST,
     COVARIANT,
     DART_CORE_OBJECT,
@@ -4874,11 +5114,17 @@ class Modifier implements Comparable<Modifier> {
     GETTER,
     HAS_INITIALIZER,
     HAS_PART_OF_DIRECTIVE,
+    HAS_SINCE_SDK_VERSION_COMPUTED,
+    HAS_SINCE_SDK_VERSION_VALUE,
     IMPLICIT_TYPE,
+    INTERFACE,
+    INVOKES_SUPER_SELF,
     LATE,
     MACRO,
     MIXIN_APPLICATION,
+    MIXIN_CLASS,
     PROMOTABLE,
+    SEALED,
     SETTER,
     STATIC,
     SIMPLY_BOUNDED,
@@ -4994,6 +5240,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get hasProtected => false;
 
   @override
+  bool get hasReopen => false;
+
+  @override
   bool get hasRequired => false;
 
   @override
@@ -5047,6 +5296,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   Element get nonSynthetic => this;
+
+  @override
+  Version? get sinceSdkVersion => null;
 
   @override
   Source? get source => null;
@@ -5324,7 +5576,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
   ParameterElementImpl_ofImplicitSetter(this.setter)
       : super(
-          name: '_${setter.variable.name}',
+          name: considerCanonicalizeString('_${setter.variable.name}'),
           nameOffset: -1,
           parameterKind: ParameterKind.REQUIRED,
         ) {
@@ -5462,6 +5714,23 @@ class PartElementImpl extends _ExistingElementImpl implements PartElement {
   }
 }
 
+class PatternVariableElementImpl extends LocalVariableElementImpl
+    implements PatternVariableElement {
+  @override
+  JoinPatternVariableElementImpl? join;
+
+  /// This flag is set to `true` while we are visiting the [WhenClause] of
+  /// the [GuardedPattern] that declares this variable.
+  bool isVisitingWhenClause = false;
+
+  PatternVariableElementImpl(super.name, super.offset);
+
+  /// Return the root [join], or self.
+  PatternVariableElementImpl get rootVariable {
+    return join?.rootVariable ?? this;
+  }
+}
+
 /// A concrete implementation of a [PrefixElement].
 class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   /// The scope of this prefix, `null` if it has not been created yet.
@@ -5570,7 +5839,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   String get identifier {
     String name = displayName;
     String suffix = isGetter ? "?" : "=";
-    return "$name$suffix";
+    return considerCanonicalizeString("$name$suffix");
   }
 
   /// Set whether this class is abstract.
@@ -5615,7 +5884,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   @override
   String get name {
     if (isSetter) {
-      return "${super.name}=";
+      return considerCanonicalizeString("${super.name}=");
     }
     return super.name;
   }
@@ -5681,6 +5950,9 @@ class PropertyAccessorElementImpl_ImplicitGetter
   DartType get returnTypeInternal => variable.type;
 
   @override
+  Version? get sinceSdkVersion => variable.sinceSdkVersion;
+
+  @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
 
   @override
@@ -5733,9 +6005,9 @@ class PropertyAccessorElementImpl_ImplicitSetter
       return _parameters;
     }
 
-    return _parameters = <ParameterElement>[
-      ParameterElementImpl_ofImplicitSetter(this)
-    ];
+    return _parameters = List.generate(
+        1, (_) => ParameterElementImpl_ofImplicitSetter(this),
+        growable: false);
   }
 
   @override
@@ -5749,6 +6021,9 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   DartType get returnTypeInternal => VoidTypeImpl.instance;
+
+  @override
+  Version? get sinceSdkVersion => variable.sinceSdkVersion;
 
   @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
@@ -5794,7 +6069,9 @@ abstract class PropertyInducingElementImpl
 
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].
-  PropertyInducingElementImpl(super.name, super.offset);
+  PropertyInducingElementImpl(super.name, super.offset) {
+    setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, true);
+  }
 
   @override
   bool get isConstantEvaluated => true;
@@ -5817,6 +6094,14 @@ abstract class PropertyInducingElementImpl
     } else {
       return this;
     }
+  }
+
+  bool get shouldUseTypeForInitializerInference {
+    return hasModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE);
+  }
+
+  set shouldUseTypeForInitializerInference(bool value) {
+    setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, value);
   }
 
   @override
@@ -5858,7 +6143,9 @@ abstract class PropertyInducingElementImpl
     }
 
     // We must be linking, and the type has not been set yet.
-    return _type = typeInference!.perform();
+    _type = typeInference!.perform();
+    shouldUseTypeForInitializerInference = false;
+    return _type!;
   }
 
   /// Return `true` if this variable needs the setter.
@@ -6532,34 +6819,6 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   DartObject? computeConstantValue() => null;
-}
-
-class VariablePatternBindElementImpl extends VariablePatternElementImpl
-    implements VariablePatternBindElement {
-  final VariablePatternImpl node;
-
-  VariablePatternBindElementImpl(this.node, super.name, super.offset);
-}
-
-class VariablePatternElementImpl extends LocalVariableElementImpl
-    implements VariablePatternElement {
-  VariablePatternElementImpl(super.name, super.offset);
-}
-
-class VariablePatternJoinElementImpl extends VariablePatternElementImpl
-    implements VariablePatternJoinElement {
-  @override
-  final List<VariablePatternElementImpl> components;
-
-  @override
-  bool isConsistent;
-
-  VariablePatternJoinElementImpl(
-    super.name,
-    super.offset,
-    this.components,
-    this.isConsistent,
-  );
 }
 
 abstract class _ExistingElementImpl extends ElementImpl with _HasLibraryMixin {

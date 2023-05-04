@@ -2,19 +2,14 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/if_case_disabled.dart:8:9: Error: The 'patterns' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
+// pkg/front_end/testcases/general/if_case_disabled.dart:8:9: Error: Expected ')' before this.
 //   if (x case true) {}
 //         ^^^^
-// pkg/front_end/testcases/general/if_case_disabled.dart:5:1: Context: This is the annotation that opts out this library from the 'patterns' language feature.
-// // @dart=2.18
-// ^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
-  final dynamic #t1 = x;
-  if(#t1 =={core::Object::==}{(core::Object) → core::bool} true) {
+  if(x as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool) {
   }
 }

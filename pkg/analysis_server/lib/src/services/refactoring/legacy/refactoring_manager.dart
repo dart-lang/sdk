@@ -41,7 +41,7 @@ class RefactoringManager {
   final LegacyAnalysisServer server;
   final RefactoringWorkspace refactoringWorkspace;
   final SearchEngine searchEngine;
-  StreamSubscription? subscriptionToReset;
+  StreamSubscription<void>? subscriptionToReset;
 
   RefactoringKind? kind;
   String? file;
@@ -288,7 +288,7 @@ class RefactoringManager {
 
   /// Initializes this context to perform a refactoring with the specified
   /// parameters. The existing [Refactoring] is reused or created as needed.
-  Future _init(RefactoringKind kind, String file, int offset, int length,
+  Future<void> _init(RefactoringKind kind, String file, int offset, int length,
       CancellationToken cancellationToken) async {
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&

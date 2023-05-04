@@ -8,6 +8,7 @@ See http://dev.chromium.org/developers/how-tos/depottools/presubmit-scripts
 for more details about the presubmit API built into gcl.
 """
 
+import datetime
 import imp
 import os
 import os.path
@@ -22,6 +23,10 @@ USE_PYTHON3 = True
 
 def is_cpp_file(path):
     return path.endswith('.cc') or path.endswith('.h')
+
+
+def is_dart_file(path):
+    return path.endswith('.dart')
 
 
 def _CheckNnbdTestSync(input_api, output_api):
@@ -353,6 +358,30 @@ def _CheckTestMatrixValid(input_api, output_api):
         ]
 
 
+def _CheckCopyrightYear(input_api, output_api):
+    """Check copyright year in new files."""
+
+    files = []
+    year = str(datetime.datetime.now().year)
+    for f in input_api.AffectedFiles(include_deletes=False):
+        path = f.LocalPath()
+        if (is_dart_file(path) or is_cpp_file(path)
+           ) and f.Action() == 'A' and os.path.isfile(path):
+            with open(path) as f:
+                first_line = f.readline()
+                if 'Copyright' in first_line and year not in first_line:
+                    files.append(path)
+
+    if not files:
+        return []
+
+    return [
+        output_api.PresubmitPromptWarning(
+            'Copyright year for new files should be ' + year + ':\n' +
+            '\n'.join(files))
+    ]
+
+
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckNnbdTestSync(input_api, output_api))
@@ -364,6 +393,7 @@ def _CommonChecks(input_api, output_api):
     results.extend(_CheckTestMatrixValid(input_api, output_api))
     results.extend(
         input_api.canned_checks.CheckPatchFormatted(input_api, output_api))
+    results.extend(_CheckCopyrightYear(input_api, output_api))
     return results
 
 

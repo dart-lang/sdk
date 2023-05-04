@@ -117,7 +117,7 @@ Future<kernel_service.Status> singleShotCompile(
     /* [3] = various = platformKernel = */ null,
     /* [4] = bool = incremental = */ false,
     /* [5] = bool = snapshot = */ false,
-    /* [6] = int = nullSafety = */ kernel_service.kNullSafetyOptionStrong,
+    /* [6] = bool = nullSafety = */ true,
     /* [7] = int = isolateGroupId = */ 42,
     /* [8] = List = sourceFiles = */ sourceFiles,
     /* [9] = bool = enableAsserts = */ true,

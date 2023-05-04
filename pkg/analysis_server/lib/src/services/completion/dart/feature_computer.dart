@@ -19,7 +19,9 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
@@ -747,6 +749,16 @@ Class: ${parent.parent}
   }
 
   @override
+  DartType? visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    if (range
+        .startOffsetEndOffset(node.inKeyword.end, node.end)
+        .contains(offset)) {
+      return typeProvider.iterableDynamicType;
+    }
+    return null;
+  }
+
+  @override
   DartType? visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     if (range
         .endStart(node.leftSeparator, node.rightSeparator)
@@ -758,6 +770,16 @@ Class: ${parent.parent}
 
   @override
   DartType? visitForPartsWithExpression(ForPartsWithExpression node) {
+    if (range
+        .endStart(node.leftSeparator, node.rightSeparator)
+        .contains(offset)) {
+      return typeProvider.boolType;
+    }
+    return null;
+  }
+
+  @override
+  DartType? visitForPartsWithPattern(ForPartsWithPattern node) {
     if (range
         .endStart(node.leftSeparator, node.rightSeparator)
         .contains(offset)) {
@@ -845,11 +867,56 @@ parent3: ${node.parent?.parent?.parent}
   }
 
   @override
+  DartType? visitListPattern(ListPattern node) {
+    if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
+      final type = node.requiredType;
+      if (type == null) {
+        throw '''
+No required type.
+node: $node
+parent: ${node.parent}
+parent2: ${node.parent?.parent}
+parent3: ${node.parent?.parent?.parent}
+''';
+      }
+      return (type as InterfaceType).typeArguments[0];
+    }
+    return null;
+  }
+
+  @override
   DartType? visitMapLiteralEntry(MapLiteralEntry node) {
     var literal = node.thisOrAncestorOfType<SetOrMapLiteral>();
     var literalType = literal?.staticType;
     if (literalType is InterfaceType && literalType.isDartCoreMap) {
       var typeArguments = literalType.typeArguments;
+      if (offset <= node.separator.offset) {
+        return typeArguments[0];
+      } else {
+        return typeArguments[1];
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType? visitMapPattern(MapPattern node) {
+    if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
+      var type = node.requiredType;
+      if (type is InterfaceType && type.isDartCoreMap) {
+        var typeArguments = type.typeArguments;
+        return typeArguments[0];
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType? visitMapPatternEntry(MapPatternEntry node) {
+    var pattern = node.parent.ifTypeOrNull<MapPattern>();
+    var type = pattern?.requiredType;
+    if (type is InterfaceType && type.isDartCoreMap) {
+      var typeArguments = type.typeArguments;
       if (offset <= node.separator.offset) {
         return typeArguments[0];
       } else {
@@ -888,6 +955,33 @@ parent3: ${node.parent?.parent?.parent}
     }
 
     return type;
+  }
+
+  @override
+  DartType? visitPatternAssignment(PatternAssignment node) {
+    if (offset >= node.equals.end) {
+      return _requiredTypeOfPattern(node.pattern);
+    }
+    return null;
+  }
+
+  @override
+  DartType? visitPatternField(PatternField node) {
+    var parent = node.parent;
+    if (parent is ObjectPattern) {
+      return _visitFieldInObjectPattern(parent, node);
+    } else if (parent is RecordPattern) {
+      return _visitFieldInRecordPattern(parent, node);
+    }
+    return null;
+  }
+
+  @override
+  DartType? visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    if (offset >= node.equals.end) {
+      return _requiredTypeOfPattern(node.pattern);
+    }
+    return null;
   }
 
   @override
@@ -947,6 +1041,25 @@ parent3: ${node.parent?.parent?.parent}
     }
 
     return typeOfIndexPositionalField();
+  }
+
+  @override
+  DartType? visitRecordPattern(RecordPattern node) {
+    if (!range
+        .endStart(node.leftParenthesis, node.rightParenthesis)
+        .contains(offset)) {
+      return null;
+    }
+    var recordType = node.matchedValueType;
+    if (recordType is! RecordType) {
+      return null;
+    }
+    var positionalIndex = _computePositionalIndex(node);
+    var positionalFields = recordType.positionalFields;
+    if (positionalIndex < positionalFields.length) {
+      return positionalFields[positionalIndex].type;
+    }
+    return null;
   }
 
   @override
@@ -1050,6 +1163,11 @@ parent3: ${node.parent?.parent?.parent}
   }
 
   @override
+  DartType? visitWhenClause(WhenClause node) {
+    return typeProvider.boolType;
+  }
+
+  @override
   DartType? visitWhileStatement(WhileStatement node) {
     if (range
         .endStart(node.leftParenthesis, node.rightParenthesis)
@@ -1065,6 +1183,123 @@ parent3: ${node.parent?.parent?.parent}
       var functionBody = node.thisOrAncestorOfType<FunctionBody>();
       if (functionBody != null) {
         return BodyInferenceContext.of(functionBody)?.contextType;
+      }
+    }
+    return null;
+  }
+
+  int _computePositionalIndex(RecordPattern node) {
+    var fields = node.fields;
+    if (fields.isEmpty) {
+      return 0;
+    }
+    var index = 0;
+    for (var field in fields) {
+      var rightToken = field.endToken;
+      if (rightToken.next!.type == TokenType.COMMA) {
+        rightToken = rightToken.next!;
+      }
+      if (offset <= rightToken.offset) {
+        return index;
+      }
+      if (field.name == null) {
+        index++;
+      }
+    }
+    return index;
+  }
+
+  /// Given a [pattern] that can appear on the left of either a
+  /// `PatternAssignment` or a `PatternVariableDeclaration`, return the context
+  /// type for the right-hand side.
+  DartType? _requiredTypeOfPattern(DartPattern pattern) {
+    // TODO(brianwilkerson) Replace with `patternTypeSchema` (on AST) where
+    //  possible.
+    pattern = pattern.unParenthesized;
+    Element? element;
+    if (pattern is AssignedVariablePattern) {
+      element = pattern.element;
+    } else if (pattern is DeclaredVariablePattern) {
+      element = pattern.declaredElement;
+      // } else if (pattern is RecordPattern) {
+      //   pattern.fields.map((e) => _requiredTypeOfPattern(e.pattern)).toList();
+    } else if (pattern is ListPattern) {
+      return pattern.requiredType;
+    }
+    if (element is VariableElement) {
+      return element.type;
+    }
+    return null;
+  }
+
+  DartType? _visitFieldInObjectPattern(
+      ObjectPattern parent, PatternField field) {
+    var fieldName = field.name;
+    if (fieldName == null || offset < fieldName.end) {
+      return null;
+    }
+    var name = fieldName.name?.lexeme;
+    if (name == null) {
+      return null;
+    }
+    var type = parent.type.type;
+    if (type is! InterfaceType) {
+      return null;
+    }
+    var declaredElement2 = (field.root as CompilationUnit).declaredElement;
+    var uri = declaredElement2?.source.uri;
+    if (uri == null) {
+      return null;
+    }
+    var manager = InheritanceManager3();
+    var member = manager.getMember(type, Name(uri, name));
+    if (member is PropertyAccessorElement) {
+      if (member.isGetter) {
+        return member.type.returnType;
+      }
+    } else if (member is MethodElement) {
+      return member.type;
+    }
+    return null;
+  }
+
+  DartType? _visitFieldInRecordPattern(
+      RecordPattern parent, PatternField field) {
+    var recordType = parent.matchedValueType;
+    if (recordType is! RecordType) {
+      return null;
+    }
+    var fieldName = field.name;
+    if (fieldName == null) {
+      // Completing a positional field.
+      var fields = parent.fields;
+      var index = fields.indexOf(field);
+      int fieldIndex = 0; // The index of the positional field being matched.
+      for (int i = 0; i < index; i++) {
+        if (fields[i].name == null) {
+          fieldIndex++;
+        }
+      }
+      var positionalFields = recordType.positionalFields;
+      if (fieldIndex < positionalFields.length) {
+        return positionalFields[fieldIndex].type;
+      }
+      return null;
+    }
+    // Completing a named field.
+    if (offset < fieldName.end) {
+      // Completing before the end of the colon means we're not in the field's
+      // value, so there is no context type.
+      return null;
+    }
+    var name = fieldName.name?.lexeme;
+    if (name == null) {
+      return null;
+    }
+    var namedFields = recordType.namedFields;
+    for (var field in namedFields) {
+      if (field.name == name) {
+        return field.type;
       }
     }
     return null;

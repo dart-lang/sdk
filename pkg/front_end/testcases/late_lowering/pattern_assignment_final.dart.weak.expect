@@ -1,0 +1,139 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:31:4: Error: Can't assign to the final variable 'initializedFinal'.
+//   (initializedFinal, // Error
+//    ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:32:7: Error: Can't assign to the final variable '#initializedLateFinal'.
+//       initializedLateFinal, // Error
+//       ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:35:5: Error: Final variable 'definitelyAssignedFinal' might already be assigned at this point.
+//     definitelyAssignedFinal] = y; // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:36:17: Error: Late final variable '#definitelyAssignedLateFinal' definitely assigned.
+//   Class(field1: definitelyAssignedLateFinal, // Error
+//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:37:17: Error: Final variable 'notDefinitelyAssignedFinal' might already be assigned at this point.
+//       field2: [[notDefinitelyAssignedFinal, _], // Error
+//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Class extends core::Object {
+  field dynamic field1 = null;
+  field dynamic field2 = null;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+}
+static method method(dynamic x, dynamic y, dynamic z) → dynamic {
+  final core::int initializedFinal = 5;
+  lowered final has-declared-initializer core::int? #initializedLateFinal;
+  lowered core::bool #initializedLateFinal#isSet = false;
+  function #initializedLateFinal#get() → core::int {
+    if(!#initializedLateFinal#isSet) {
+      final core::int #t1 = 5;
+      if(#initializedLateFinal#isSet)
+        throw new _in::LateError::localADI("initializedLateFinal");
+      #initializedLateFinal = #t1;
+      #initializedLateFinal#isSet = true;
+    }
+    return #initializedLateFinal{core::int};
+  }
+  final dynamic definitelyUnassignedFinal;
+  lowered final core::int? #definitelyUnassignedLateFinal;
+  lowered core::bool #definitelyUnassignedLateFinal#isSet = false;
+  function #definitelyUnassignedLateFinal#get() → core::int
+    return #definitelyUnassignedLateFinal#isSet ?{core::int} #definitelyUnassignedLateFinal{core::int} : throw new _in::LateError::localNI("definitelyUnassignedLateFinal");
+  function #definitelyUnassignedLateFinal#set(core::int definitelyUnassignedLateFinal#param) → dynamic
+    if(#definitelyUnassignedLateFinal#isSet)
+      throw new _in::LateError::localAI("definitelyUnassignedLateFinal");
+    else {
+      #definitelyUnassignedLateFinal#isSet = true;
+      return #definitelyUnassignedLateFinal = definitelyUnassignedLateFinal#param;
+    }
+  final dynamic definitelyAssignedFinal;
+  lowered final dynamic #definitelyAssignedLateFinal;
+  lowered core::bool #definitelyAssignedLateFinal#isSet = false;
+  function #definitelyAssignedLateFinal#get() → dynamic
+    return #definitelyAssignedLateFinal#isSet ?{dynamic} #definitelyAssignedLateFinal : throw new _in::LateError::localNI("definitelyAssignedLateFinal");
+  function #definitelyAssignedLateFinal#set(dynamic definitelyAssignedLateFinal#param) → dynamic
+    if(#definitelyAssignedLateFinal#isSet)
+      throw new _in::LateError::localAI("definitelyAssignedLateFinal");
+    else {
+      #definitelyAssignedLateFinal#isSet = true;
+      return #definitelyAssignedLateFinal = definitelyAssignedLateFinal#param;
+    }
+  final core::int notDefinitelyAssignedFinal;
+  lowered final core::int? #notDefinitelyAssignedLateFinal;
+  lowered core::bool #notDefinitelyAssignedLateFinal#isSet = false;
+  function #notDefinitelyAssignedLateFinal#get() → core::int
+    return #notDefinitelyAssignedLateFinal#isSet ?{core::int} #notDefinitelyAssignedLateFinal{core::int} : throw new _in::LateError::localNI("notDefinitelyAssignedLateFinal");
+  function #notDefinitelyAssignedLateFinal#set(core::int notDefinitelyAssignedLateFinal#param) → dynamic
+    if(#notDefinitelyAssignedLateFinal#isSet)
+      throw new _in::LateError::localAI("notDefinitelyAssignedLateFinal");
+    else {
+      #notDefinitelyAssignedLateFinal#isSet = true;
+      return #notDefinitelyAssignedLateFinal = notDefinitelyAssignedLateFinal#param;
+    }
+  if(x =={core::Object::==}{(core::Object) → core::bool} 5) {
+    notDefinitelyAssignedFinal = 5;
+    #notDefinitelyAssignedLateFinal#set(15){(core::int) → dynamic};
+  }
+  definitelyAssignedFinal = 10;
+  #definitelyAssignedLateFinal#set(20){(dynamic) → dynamic};
+  block {
+    dynamic #t2;
+    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} (core::int, core::int, dynamic);
+    if(!(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, core::Object?) && invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:31:4: Error: Can't assign to the final variable 'initializedFinal'.
+  (initializedFinal, // Error
+   ^^^^^^^^^^^^^^^^" && invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:32:7: Error: Can't assign to the final variable '#initializedLateFinal'.
+      initializedLateFinal, // Error
+      ^^^^^^^^^^^^^^^^^^^^^" && (let final dynamic #t3 = #t2 = #0#0{(core::Object?, core::Object?, core::Object?)}.$3{core::Object?} in true)))
+      throw new core::StateError::•("Pattern matching error");
+    definitelyUnassignedFinal = #t2;
+  } =>#0#0;
+  block {
+    core::int? #t4;
+    final synthesized dynamic #1#0 = y as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
+    if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t5 = #t4 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int? in true) && invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:35:5: Error: Final variable 'definitelyAssignedFinal' might already be assigned at this point.
+    definitelyAssignedFinal] = y; // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^"))
+      throw new core::StateError::•("Pattern matching error");
+    #definitelyUnassignedLateFinal#set(#t4){(core::int) → dynamic};
+  } =>#1#0;
+  block {
+    core::int? #t6;
+    final synthesized dynamic #2#0 = z as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class;
+    synthesized dynamic #2#3;
+    synthesized core::bool #2#3#isSet = false;
+    function #2#3#func() → dynamic
+      return #2#3#isSet ?{dynamic} #2#3 : let final dynamic #t7 = #2#3#isSet = true in #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic};
+    synthesized dynamic #2#9;
+    synthesized core::bool #2#9#isSet = false;
+    function #2#9#func() → dynamic
+      return #2#9#isSet ?{dynamic} #2#9 : let final dynamic #t8 = #2#9#isSet = true in #2#9 = (#2#3#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    synthesized dynamic #2#16;
+    synthesized core::bool #2#16#isSet = false;
+    function #2#16#func() → dynamic
+      return #2#16#isSet ?{dynamic} #2#16 : let final dynamic #t9 = #2#16#isSet = true in #2#16 = (#2#3#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
+    if(!(#2#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t10 = #2#0{self::Class}.{self::Class::field1}{dynamic} in invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:36:17: Error: Late final variable '#definitelyAssignedLateFinal' definitely assigned.
+  Class(field1: definitelyAssignedLateFinal, // Error
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#3#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#3#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#9#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:37:17: Error: Final variable 'notDefinitelyAssignedFinal' might already be assigned at this point.
+      field2: [[notDefinitelyAssignedFinal, _], // Error
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#16#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#16#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t11 = #t6 = (#2#16#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic} as{ForNonNullableByDefault} core::int? in true)))))
+      throw new core::StateError::•("Pattern matching error");
+    #notDefinitelyAssignedLateFinal#set(#t6){(core::int) → dynamic};
+  } =>#2#0;
+}
+
+constants  {
+  #C1 = 2
+}

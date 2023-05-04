@@ -199,7 +199,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
         mapping->Add({from_field.HostOffset(), from_box_cid});
         mapping->Add({to_field.HostOffset(), to_box_cid});
 
-        // Field did exist in old class deifnition.
+        // Field did exist in old class definition.
         new_field = false;
         break;
       }
@@ -213,17 +213,19 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
 
   ASSERT(from.id() == to.id());
   return new (zone)
-      InstanceMorpher(zone, to.id(), class_table, mapping, new_fields_offsets);
+      InstanceMorpher(zone, to.id(), from, to, mapping, new_fields_offsets);
 }
 
 InstanceMorpher::InstanceMorpher(Zone* zone,
                                  classid_t cid,
-                                 ClassTable* class_table,
+                                 const Class& old_class,
+                                 const Class& new_class,
                                  FieldMappingArray* mapping,
                                  FieldOffsetArray* new_fields_offsets)
     : zone_(zone),
       cid_(cid),
-      class_table_(class_table),
+      old_class_(Class::Handle(zone, old_class.ptr())),
+      new_class_(Class::Handle(zone, new_class.ptr())),
       mapping_(mapping),
       new_fields_offsets_(new_fields_offsets),
       before_(zone, 16) {}
@@ -235,6 +237,104 @@ void InstanceMorpher::AddObject(ObjectPtr object) {
 }
 
 void InstanceMorpher::CreateMorphedCopies(Become* become) {
+  // Enum migriation needs to run in same phase as instance morphing since it
+  // may also involve a shape change.
+  if (old_class_.is_enum_class()) {
+    Field& field = Field::Handle(Z);
+    String& name = String::Handle(Z);
+    Array& old_values = Array::Handle(Z);
+    Array& new_values = Array::Handle(Z);
+    Instance& old_value = Instance::Handle(Z);
+    Instance& new_value = Instance::Handle(Z);
+    Instance& old_deleted = Instance::Handle(Z);
+    Instance& new_deleted = Instance::Handle(Z);
+
+    field = old_class_.LookupStaticField(Symbols::_DeletedEnumSentinel());
+    old_deleted ^= field.StaticConstFieldValue();
+
+    new_deleted = Instance::New(new_class_, Heap::kOld);
+    Thread* thread = Thread::Current();
+    field = thread->isolate_group()->object_store()->enum_name_field();
+    name = new_class_.ScrubbedName();
+    name = Symbols::FromConcat(thread, Symbols::_DeletedEnumPrefix(), name);
+    new_deleted.SetField(field, name);
+    field = thread->isolate_group()->object_store()->enum_index_field();
+    new_value = Smi::New(-1);
+    new_deleted.SetField(field, new_value);
+    field = new_class_.LookupStaticField(Symbols::_DeletedEnumSentinel());
+    // The static const field contains `Object::null()` instead of
+    // `Object::sentinel()` - so it's not considered an initializing store.
+    field.SetStaticConstFieldValue(new_deleted,
+                                   /*assert_initializing_store*/ false);
+
+    field = old_class_.LookupField(Symbols::Values());
+    old_values ^= field.StaticConstFieldValue();
+
+    field = new_class_.LookupField(Symbols::Values());
+    new_values ^= field.StaticConstFieldValue();
+
+    field = thread->isolate_group()->object_store()->enum_name_field();
+    for (intptr_t i = 0; i < old_values.Length(); i++) {
+      old_value ^= old_values.At(i);
+      ASSERT(old_value.GetClassId() == cid_);
+      bool found = false;
+      for (intptr_t j = 0; j < new_values.Length(); j++) {
+        new_value ^= new_values.At(j);
+        ASSERT(new_value.GetClassId() == cid_);
+        if (old_value.GetField(field) == new_value.GetField(field)) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        new_value = new_deleted.ptr();
+      }
+
+      if (old_value.ptr() == new_value.ptr()) {
+        // This probably shouldn't happen and means canonicalization is mixing
+        // before and after. At any rate, don't submit a self-fowarding to
+        // become.
+        ASSERT(old_value.ptr()->untag()->HeapSize() ==
+               new_class_.host_instance_size());
+      } else {
+        // Convert the old instance into a filler object. We will switch to the
+        // new class table before the next heap walk, so there must be no
+        // instances of any class with the old size.
+        Become::MakeDummyObject(old_value);
+
+        become->Add(old_value, new_value);
+      }
+    }
+
+    // The deleted sentinel is not part of Enum.values. It doesn't exist yet for
+    // the first reload.
+    if (!old_deleted.IsNull()) {
+      // Convert the old instance into a filler object. We will switch to the
+      // new class table before the next heap walk, so there must be no
+      // instances of any class with the old size.
+      Become::MakeDummyObject(old_deleted);
+
+      become->Add(old_deleted, new_deleted);
+    }
+
+    // We also forward Enum.values. No filler is needed because arrays never
+    // change shape.
+    ASSERT(old_values.ptr() != new_values.ptr());
+    become->Add(old_values, new_values);
+
+#if defined(DEBUG)
+    for (intptr_t i = 0; i < before_.length(); i++) {
+      const Instance& before = *before_.At(i);
+      // All instances are accounted for.
+      ASSERT((before.GetClassId() == kForwardingCorpse) ||
+             (before.ptr()->untag()->HeapSize() ==
+              new_class_.host_instance_size()));
+    }
+#endif
+
+    return;
+  }
+
   Instance& after = Instance::Handle(Z);
   Object& value = Object::Handle(Z);
   for (intptr_t i = 0; i < before_.length(); i++) {
@@ -260,7 +360,7 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
     // objects to old space.
     const bool is_canonical = before.IsCanonical();
     const Heap::Space space = is_canonical ? Heap::kOld : Heap::kNew;
-    after = Instance::NewFromCidAndSize(class_table_, cid_, space);
+    after = Instance::NewAlreadyFinalized(new_class_, space);
 
     // We preserve the canonical bit of the object, since this object is present
     // in the class's constants.
@@ -348,9 +448,9 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
       after.RawSetFieldAtOffset(field_offset, Object::sentinel());
     }
 
-    // Convert the old instance into a filler object. We will switch to the new
-    // class table before the next heap walk, so there must be no instances of
-    // any class with the old size.
+    // Convert the old instance into a filler object. We will switch to the
+    // new class table before the next heap walk, so there must be no
+    // instances of any class with the old size.
     Become::MakeDummyObject(before);
 
     become->Add(before, after);
@@ -639,13 +739,35 @@ static ObjectPtr AcceptCompilation(Thread* thread) {
   Dart_KernelCompilationResult result = KernelIsolate::AcceptCompilation();
   if (result.status != Dart_KernelCompilationStatus_Ok) {
     if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
-      FATAL1(
+      FATAL(
           "An error occurred while accepting the most recent"
           " compilation results: %s",
           result.error);
     }
     TIR_Print(
         "An error occurred while accepting the most recent"
+        " compilation results: %s",
+        result.error);
+    Zone* zone = thread->zone();
+    const auto& error_str = String::Handle(zone, String::New(result.error));
+    free(result.error);
+    return ApiError::New(error_str);
+  }
+  return Object::null();
+}
+
+static ObjectPtr RejectCompilation(Thread* thread) {
+  TransitionVMToNative transition(thread);
+  Dart_KernelCompilationResult result = KernelIsolate::RejectCompilation();
+  if (result.status != Dart_KernelCompilationStatus_Ok) {
+    if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
+      FATAL(
+          "An error occurred while rejecting the most recent"
+          " compilation results: %s",
+          result.error);
+    }
+    TIR_Print(
+        "An error occurred while rejecting the most recent"
         " compilation results: %s",
         result.error);
     Zone* zone = thread->zone();
@@ -711,6 +833,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           AddReasonForCancelling(new Aborted(Z, error));
           ReportReasonsForCancelling();
           CommonFinalizeTail(num_old_libs_);
+
+          RejectCompilation(thread);
           return false;
         }
       }
@@ -1136,7 +1260,7 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
         /*snapshot_compile=*/false,
         /*package_config=*/nullptr,
         /*multiroot_filepaths=*/nullptr,
-        /*multiroot_scheme=*/nullptr, FLAG_sound_null_safety);
+        /*multiroot_scheme=*/nullptr);
   }
   if (retval.status != Dart_KernelCompilationStatus_Ok) {
     if (retval.kernel != nullptr) {
@@ -1361,7 +1485,7 @@ void ProgramReloadContext::CheckpointClasses() {
 
   // Before this operation class table which is used for heap scanning and
   // the class table used for program loading are the same. After this step
-  // they will become different until reload is commited (or rolled back).
+  // they will become different until reload is committed (or rolled back).
   //
   // Note that because GC is always reading from heap_walk_class_table and
   // we are not changing that, there is no reason to wait for sweeping
@@ -1661,9 +1785,6 @@ void ProgramReloadContext::CommitBeforeInstanceMorphing() {
         old_cls = Class::RawCast(class_map.GetPayload(entry, 0));
         if (new_cls.ptr() != old_cls.ptr()) {
           ASSERT(new_cls.is_enum_class() == old_cls.is_enum_class());
-          if (new_cls.is_enum_class() && new_cls.is_finalized()) {
-            new_cls.ReplaceEnum(this, old_cls);
-          }
           new_cls.CopyStaticFieldValues(this, old_cls);
           old_cls.PatchFieldsAndFunctions();
           old_cls.MigrateImplicitStaticClosures(this, new_cls);
@@ -1981,8 +2102,11 @@ void ProgramReloadContext::RunInvalidationVisitors() {
 
   InvalidateKernelInfos(zone, kernel_infos);
   InvalidateSuspendStates(zone, suspend_states);
-  InvalidateFunctions(zone, functions);
   InvalidateFields(zone, fields, instances);
+
+  // After InvalidateFields in order to invalidate
+  // implicit getters which need load guards.
+  InvalidateFunctions(zone, functions);
 }
 
 void ProgramReloadContext::InvalidateKernelInfos(
@@ -2027,6 +2151,7 @@ void ProgramReloadContext::InvalidateFunctions(
   Class& owning_class = Class::Handle(zone);
   Library& owning_lib = Library::Handle(zone);
   Code& code = Code::Handle(zone);
+  Field& field = Field::Handle(zone);
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   for (intptr_t i = 0; i < functions.length(); i++) {
     const Function& func = *functions[i];
@@ -2038,9 +2163,20 @@ void ProgramReloadContext::InvalidateFunctions(
     code = func.CurrentCode();
     ASSERT(!code.IsNull());
 
+    // Force recompilation of unoptimized code of implicit getters
+    // in order to add load guards. This is needed for future
+    // deoptimizations which will expect load guard in the unoptimized code.
+    bool recompile_for_load_guard = false;
+    if (func.IsImplicitGetterFunction() ||
+        func.IsImplicitStaticGetterFunction()) {
+      field = func.accessor_field();
+      recompile_for_load_guard = field.needs_load_guard();
+    }
+
     owning_class = func.Owner();
     owning_lib = owning_class.library();
-    const bool clear_code = IsDirty(owning_lib);
+    const bool clear_unoptimized_code =
+        IsDirty(owning_lib) || recompile_for_load_guard;
     const bool stub_code = code.IsStubCode();
 
     // Zero edge counters, before clearing the ICDataArray, since that's where
@@ -2049,7 +2185,7 @@ void ProgramReloadContext::InvalidateFunctions(
 
     if (stub_code) {
       // Nothing to reset.
-    } else if (clear_code) {
+    } else if (clear_unoptimized_code) {
       VTIR_Print("Marking %s for recompilation, clearing code\n",
                  func.ToCString());
       // Null out the ICData array and code.
@@ -2323,15 +2459,14 @@ class FieldInvalidator {
     }
 
     const Record& record = Record::Cast(value);
-    const intptr_t num_fields = record.num_fields();
-    if (num_fields != type.NumFields() ||
-        record.field_names() != type.field_names()) {
+    if (record.shape() != type.shape()) {
       return false;
     }
 
     // This method can be called recursively, so cannot reuse handles.
     auto& field_value = Object::Handle(zone_);
     auto& field_type = AbstractType::Handle(zone_);
+    const intptr_t num_fields = record.num_fields();
     for (intptr_t i = 0; i < num_fields; ++i) {
       field_value = record.FieldAt(i);
       field_type = type.FieldTypeAt(i);
@@ -2356,7 +2491,16 @@ class FieldInvalidator {
       // Even if doing an identity reload, type check can fail if hot reload
       // happens while constructor is still running and field is not
       // initialized yet, so it has a null value.
-      ASSERT(!FLAG_identity_reload || value.IsNull());
+#ifdef DEBUG
+      if (FLAG_identity_reload && !value.IsNull()) {
+        FATAL(
+            "Type check failed during identity hot reload.\n"
+            "  field: %s\n"
+            "  type: %s\n"
+            "  value: %s\n",
+            field.ToCString(), type_.ToCString(), value.ToCString());
+      }
+#endif
       field.set_needs_load_guard(true);
     }
   }

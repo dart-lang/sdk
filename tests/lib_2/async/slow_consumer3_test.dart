@@ -67,7 +67,7 @@ Stream<List<int>> dataGenerator(int bytesTotal, int chunkSize) {
   int chunks = bytesTotal ~/ chunkSize;
   return new Stream.fromIterable(new Iterable.generate(chunks, (_) {
     // This assumes one byte per entry. In practice it will be more.
-    return new List<int>(chunkSize);
+    return new List<int>.filled(chunkSize, null);
   }));
 }
 

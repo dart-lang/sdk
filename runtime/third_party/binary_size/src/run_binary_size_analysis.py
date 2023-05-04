@@ -155,7 +155,7 @@ def MakeCompactTree(symbols, symbol_path_origin_dir):
 
         path_parts = file_path.split('/')
 
-        # Find pre-existing node in tree, or update if it already exists
+        # Find preexisting node in tree, or update if it already exists
         node = result
         depth = 0
         while len(path_parts) > 0:

@@ -10,8 +10,18 @@ class C extends core::Object {
 }
 static method test(dynamic x) → dynamic {
   #L1:
-  invalid-expression "PatternSwitchStatement(switch (x) {
-  case <dummy-pattern>!:
-    break label0;
-})";
+  {
+    final synthesized dynamic #0#0 = x;
+    {
+      if(let final dynamic #t1 = #0#0! in #0#0! is{ForNonNullableByDefault} self::C && #C1 =={core::num::==}{(core::Object) → core::bool} (#0#0! as{ForNonNullableByDefault} self::C).{self::C::f}{core::int?}) {
+        {
+          break #L1;
+        }
+      }
+    }
+  }
+}
+
+constants  {
+  #C1 = 1
 }

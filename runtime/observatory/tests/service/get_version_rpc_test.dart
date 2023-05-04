@@ -11,8 +11,8 @@ var tests = <VMTest>[
   (VM vm) async {
     final result = await vm.invokeRpcNoUpgrade('getVersion', {});
     expect(result['type'], 'Version');
-    expect(result['major'], 3);
-    expect(result['minor'], 62);
+    expect(result['major'], 4);
+    expect(result['minor'], 4);
     expect(result['_privateMajor'], 0);
     expect(result['_privateMinor'], 0);
   },

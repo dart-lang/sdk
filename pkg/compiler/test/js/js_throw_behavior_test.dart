@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:compiler/src/native/behavior.dart';
 import 'package:compiler/src/native/js.dart';
@@ -12,7 +10,7 @@ import 'package:compiler/src/js/js.dart' as js;
 void test(String source, NativeThrowBehavior expectedThrowBehavior) {
   js.Template template = js.js.parseForeignJS(source);
   NativeThrowBehavior throwBehavior =
-      new ThrowBehaviorVisitor().analyze(template.ast);
+      ThrowBehaviorVisitor().analyze(template.ast);
   Expect.equals(expectedThrowBehavior, throwBehavior, 'source "$source"');
 }
 

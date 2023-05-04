@@ -1018,6 +1018,56 @@ class NotificationMessage implements IncomingMessage, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class OpenUriParams implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    OpenUriParams.canParse,
+    OpenUriParams.fromJson,
+  );
+
+  OpenUriParams({
+    required this.uri,
+  });
+  static OpenUriParams fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = Uri.parse(uriJson as String);
+    return OpenUriParams(
+      uri: uri,
+    );
+  }
+
+  final Uri uri;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['uri'] = uri.toString();
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseUri(obj, reporter, 'uri',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type OpenUriParams');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is OpenUriParams &&
+        other.runtimeType == OpenUriParams &&
+        uri == other.uri;
+  }
+
+  @override
+  int get hashCode => uri.hashCode;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class Outline implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Outline.canParse,

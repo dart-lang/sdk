@@ -22,60 +22,66 @@ PSEntry? _findEntry(
 }
 
 PSDependencyList? _processDependencies(
-    YamlScalar key, YamlNode v, ResourceProvider? resourceProvider) {
-  if (v is! YamlMap) {
+    YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+  if (value is! YamlMap) {
     return null;
   }
-  YamlMap depsMap = v;
 
   _PSDependencyList deps = _PSDependencyList(_PSNode(key, resourceProvider));
-  depsMap.nodes.forEach((k, v) {
+  value.nodes.forEach((k, v) {
     if (k is YamlScalar) deps.add(_PSDependency(k, v, resourceProvider));
   });
   return deps;
 }
 
-PSGitRepo? _processGitRepo(
-    YamlScalar key, YamlNode v, ResourceProvider? resourceProvider) {
-  if (v is YamlScalar) {
-    _PSGitRepo repo = _PSGitRepo();
-    repo.token = _PSNode(key, resourceProvider);
-    repo.url = PSEntry(repo.token, _PSNode(v, resourceProvider));
-    return repo;
-  }
-  if (v is! YamlMap) {
+PSEnvironment? _processEnvironment(
+    YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+  if (value is! YamlMap) {
     return null;
   }
-  YamlMap hostMap = v;
+
+  _PSEnvironment env = _PSEnvironment(_PSNode(key, resourceProvider));
+  env.flutter = _findEntry(value, 'flutter', resourceProvider);
+  env.sdk = _findEntry(value, 'sdk', resourceProvider);
+  return env;
+}
+
+PSGitRepo? _processGitRepo(
+    YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+  if (value is YamlScalar) {
+    _PSGitRepo repo = _PSGitRepo(_PSNode(key, resourceProvider));
+    repo.url = PSEntry(repo.token, _PSNode(value, resourceProvider));
+    return repo;
+  }
+  if (value is! YamlMap) {
+    return null;
+  }
+
   // url: git://github.com/munificent/kittens.git
   // ref: some-branch
-  _PSGitRepo repo = _PSGitRepo();
-  repo.token = _PSNode(key, resourceProvider);
-  repo.ref = _findEntry(hostMap, 'ref', resourceProvider);
-  repo.url = _findEntry(hostMap, 'url', resourceProvider);
+  _PSGitRepo repo = _PSGitRepo(_PSNode(key, resourceProvider));
+  repo.ref = _findEntry(value, 'ref', resourceProvider);
+  repo.url = _findEntry(value, 'url', resourceProvider);
   return repo;
 }
 
 PSHost? _processHost(
-    YamlScalar key, YamlNode v, ResourceProvider? resourceProvider) {
-  if (v is YamlScalar) {
+    YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+  if (value is YamlScalar) {
     // dependencies:
     //   mypkg:
     //     hosted:  https://some-pub-server.com
     //     version: ^1.2.3
-    _PSHost host = _PSHost(isShortForm: true);
-    host.token = _PSNode(key, resourceProvider);
-    host.url = _processScalar(key, v, resourceProvider);
+    _PSHost host = _PSHost(_PSNode(key, resourceProvider), isShortForm: true);
+    host.url = _processScalar(key, value, resourceProvider);
     return host;
   }
-  if (v is YamlMap) {
-    YamlMap hostMap = v;
+  if (value is YamlMap) {
     // name: transmogrify
     // url: http://your-package-server.com
-    _PSHost host = _PSHost(isShortForm: false);
-    host.token = _PSNode(key, resourceProvider);
-    host.name = _findEntry(hostMap, 'name', resourceProvider);
-    host.url = _findEntry(hostMap, 'url', resourceProvider);
+    _PSHost host = _PSHost(_PSNode(key, resourceProvider), isShortForm: false);
+    host.name = _findEntry(value, 'name', resourceProvider);
+    host.url = _findEntry(value, 'url', resourceProvider);
     return host;
   }
   return null;
@@ -92,15 +98,13 @@ PSEntry? _processScalar(
 }
 
 PSNodeList? _processScalarList(
-    YamlScalar key, YamlNode v, ResourceProvider? resourceProvider) {
-  if (v is! YamlList) {
+    YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+  if (value is! YamlList) {
     return null;
   }
-  YamlList nodeList = v;
-
   return _PSNodeList(
       _PSNode(key, resourceProvider),
-      nodeList.nodes
+      value.nodes
           .whereType<YamlScalar>()
           .map((n) => _PSNode(n, resourceProvider)));
 }
@@ -117,9 +121,13 @@ PSNodeList? _processScalarList(
 /// ```
 abstract class PSDependency {
   PSGitRepo? get git;
+
   PSHost? get host;
+
   PSNode? get name;
+
   PSEntry? get path;
+
   PSEntry? get version;
 }
 
@@ -130,10 +138,27 @@ abstract class PSDependencyList with IterableMixin<PSDependency> {}
 class PSEntry {
   final PSNode? key;
   final PSNode value;
+
   PSEntry(this.key, this.value);
 
   @override
   String toString() => '${key != null ? ('$key: ') : ''}$value';
+}
+
+/// Representation of environment in `pubspec.yaml`.
+///
+/// **Example** of an environment:
+/// ```yaml
+/// environment:
+///   sdk: '>=2.12.0 <4.0.0'
+///   flutter: ^3.3.10
+/// ```
+abstract class PSEnvironment {
+  PSEntry? get flutter;
+
+  PSEntry? get sdk;
+
+  PSNode get token;
 }
 
 /// Representation of git-dependency in `pubspec.yaml`.
@@ -162,7 +187,7 @@ abstract class PSGitRepo {
 
   /// The `'git'` from the `pubspec.yaml`, this is the key that indicates this
   /// is a git-dependency.
-  PSNode? get token;
+  PSNode get token;
 
   /// [PSEntry] for `url: https://...` or `git: https://`, where [PSEntry.key]
   /// is either `url` or `git`, and [PSEntry.key] is the URL.
@@ -206,13 +231,16 @@ abstract class PSHost {
   bool get isShortForm;
 
   PSEntry? get name;
-  PSNode? get token;
+
+  PSNode get token;
+
   PSEntry? get url;
 }
 
 /// Representation of a leaf-node from `pubspec.yaml`.
 abstract class PSNode {
   Source get source;
+
   SourceSpan get span;
 
   /// String value of the node, or `null` if value in pubspec.yaml is `null` or
@@ -232,6 +260,7 @@ abstract class PSNode {
 abstract class PSNodeList with IterableMixin<PSNode> {
   @override
   Iterator<PSNode> get iterator;
+
   PSNode get token;
 }
 
@@ -240,36 +269,67 @@ abstract class Pubspec {
           {Uri? sourceUrl, ResourceProvider? resourceProvider}) =>
       _Pubspec(source,
           sourceUrl: sourceUrl, resourceProvider: resourceProvider);
+
   PSEntry? get author;
+
   PSNodeList? get authors;
+
   PSDependencyList? get dependencies;
+
   PSDependencyList? get dependencyOverrides;
+
   PSEntry? get description;
+
   PSDependencyList? get devDependencies;
+
   PSEntry? get documentation;
+
+  PSEnvironment? get environment;
+
   PSEntry? get homepage;
+
   PSEntry? get issueTracker;
+
   PSEntry? get name;
+
   PSEntry? get repository;
+
   PSEntry? get version;
+
   void accept(PubspecVisitor visitor);
 }
 
 abstract class PubspecVisitor<T> {
   T? visitPackageAuthor(PSEntry author) => null;
+
   T? visitPackageAuthors(PSNodeList authors) => null;
+
   T? visitPackageDependencies(PSDependencyList dependencies) => null;
+
   T? visitPackageDependency(PSDependency dependency) => null;
+
   T? visitPackageDependencyOverride(PSDependency dependency) => null;
+
   T? visitPackageDependencyOverrides(PSDependencyList dependencies) => null;
+
   T? visitPackageDescription(PSEntry description) => null;
+
   T? visitPackageDevDependencies(PSDependencyList dependencies) => null;
+
   T? visitPackageDevDependency(PSDependency dependency) => null;
+
   T? visitPackageDocumentation(PSEntry documentation) => null;
+
+  T? visitPackageEnvironment(PSEnvironment environment) => null;
+
   T? visitPackageHomepage(PSEntry homepage) => null;
+
   T? visitPackageIssueTracker(PSEntry issueTracker) => null;
+
   T? visitPackageName(PSEntry name) => null;
-  T? visitPackageRepository(PSEntry repostory) => null;
+
+  T? visitPackageRepository(PSEntry repository) => null;
+
   T? visitPackageVersion(PSEntry version) => null;
 }
 
@@ -370,13 +430,33 @@ class _PSDependencyList extends PSDependencyList {
   String toString() => '$token\n${dependencies.join('  ')}';
 }
 
+class _PSEnvironment implements PSEnvironment {
+  @override
+  PSNode token;
+  @override
+  PSEntry? flutter;
+  @override
+  PSEntry? sdk;
+
+  _PSEnvironment(this.token);
+
+  @override
+  String toString() => '''
+    $token:
+      $sdk
+      $flutter''';
+}
+
 class _PSGitRepo implements PSGitRepo {
   @override
-  PSNode? token;
+  PSNode token;
   @override
   PSEntry? ref;
   @override
   PSEntry? url;
+
+  _PSGitRepo(this.token);
+
   @override
   String toString() => '''
     $token:
@@ -392,12 +472,12 @@ class _PSHost implements PSHost {
   PSEntry? name;
 
   @override
-  PSNode? token;
+  PSNode token;
 
   @override
   PSEntry? url;
 
-  _PSHost({required this.isShortForm});
+  _PSHost(this.token, {required this.isShortForm});
 
   @override
   String toString() => '''
@@ -453,6 +533,8 @@ class _Pubspec implements Pubspec {
   @override
   PSEntry? documentation;
   @override
+  PSEnvironment? environment;
+  @override
   PSEntry? homepage;
   @override
   PSEntry? issueTracker;
@@ -490,6 +572,9 @@ class _Pubspec implements Pubspec {
     }
     if (documentation != null) {
       visitor.visitPackageDocumentation(documentation!);
+    }
+    if (environment != null) {
+      visitor.visitPackageEnvironment(environment!);
     }
     if (homepage != null) {
       visitor.visitPackageHomepage(homepage!);
@@ -583,6 +668,9 @@ class _Pubspec implements Pubspec {
         case 'dependency_overrides':
           dependencyOverrides = _processDependencies(key, v, resourceProvider);
           break;
+        case 'environment':
+          environment = _processEnvironment(key, v, resourceProvider);
+          break;
         case 'version':
           version = _processScalar(key, v, resourceProvider);
           break;
@@ -593,8 +681,10 @@ class _Pubspec implements Pubspec {
 
 class _StringBuilder {
   StringBuffer buffer = StringBuffer();
+
   @override
   String toString() => buffer.toString();
+
   void writelin(Object? value) {
     if (value != null) {
       buffer.writeln(value);

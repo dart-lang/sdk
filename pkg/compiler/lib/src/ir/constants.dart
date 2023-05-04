@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/src/printer.dart' as ir;
@@ -11,173 +10,21 @@ import 'package:kernel/type_environment.dart' as ir;
 import '../environment.dart';
 import '../kernel/dart2js_target.dart';
 
-typedef ReportErrorFunction = void Function(
-    ir.LocatedMessage message, List<ir.LocatedMessage>? context);
-
-class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
-  final bool _supportReevaluationForTesting;
-
+class Dart2jsConstantEvaluator extends ir.TryConstantEvaluator {
   Dart2jsConstantEvaluator(ir.Component component,
-      ir.TypeEnvironment typeEnvironment, ReportErrorFunction reportError,
+      ir.TypeEnvironment typeEnvironment, ir.ReportErrorFunction reportError,
       {Environment? environment,
-      bool supportReevaluationForTesting = false,
-      required ir.EvaluationMode evaluationMode})
-      : _supportReevaluationForTesting = supportReevaluationForTesting,
-        assert((evaluationMode as dynamic) != null),
+      super.supportReevaluationForTesting,
+      super.evaluationMode})
+      : assert((evaluationMode as dynamic) != null),
         super(
-            const Dart2jsDartLibrarySupport(),
-            const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
-            component,
-            environment?.definitions ?? const {},
-            typeEnvironment,
-            ErrorReporter(reportError),
-            enableTripleShift: true,
-            evaluationMode: evaluationMode);
-
-  @override
-  ErrorReporter get errorReporter => super.errorReporter as ErrorReporter;
-  // TODO(48820): ^Store another reference to the error reporter with the
-  // refined type and use that.
-
-  // We can't override [ir.ConstantEvaluator.evaluate] and have a nullable
-  // return type.
-  // TODO(48820): Consider using composition. We will need to ensure that
-  // [Dart2jsConstantEvaluator] is not referenced via [ir.ConstantEvaluator].
-  @override
-  ir.Constant evaluate(
-      ir.StaticTypeContext staticTypeContext, ir.Expression node,
-      {ir.TreeNode? contextNode}) {
-    return evaluateOrNull(staticTypeContext, node, contextNode: contextNode)!;
-  }
-
-  /// Evaluates [node] to a constant in the given [staticTypeContext].
-  ///
-  /// If [requireConstant] is `true`, an error is reported if [node] is not
-  /// a valid constant. Otherwise, `null` if [node] is not a valid constant.
-  ///
-  /// If [replaceImplicitConstant] is `true`, if [node] is not a constant
-  /// expression but evaluates to a constant, [node] is replaced with an
-  /// [ir.ConstantExpression] holding the constant. Otherwise the [node] is not
-  /// replaced even when it evaluated to a constant.
-  ir.Constant? evaluateOrNull(
-      ir.StaticTypeContext staticTypeContext, ir.Expression node,
-      {ir.TreeNode? contextNode,
-      bool requireConstant = true,
-      bool replaceImplicitConstant = true}) {
-    errorReporter.requiresConstant = requireConstant;
-    if (node is ir.ConstantExpression) {
-      ir.Constant constant = node.constant;
-      if (constant is ir.UnevaluatedConstant) {
-        ir.Constant result = super.evaluate(
-            staticTypeContext, constant.expression,
-            contextNode: contextNode);
-        assert(
-            result is ir.UnevaluatedConstant ||
-                !result.accept(const UnevaluatedConstantFinder()),
-            "Invalid constant result $result from ${constant.expression}.");
-        if (!_supportReevaluationForTesting) {
-          node.constant = result;
-        }
-        return result;
-      }
-      return constant;
-    }
-    if (requireConstant) {
-      return super.evaluate(staticTypeContext, node, contextNode: contextNode);
-    } else {
-      try {
-        ir.Constant constant =
-            super.evaluate(staticTypeContext, node, contextNode: contextNode);
-        if (constant is ir.UnevaluatedConstant &&
-            constant.expression is ir.InvalidExpression) {
-          return null;
-        }
-        if (replaceImplicitConstant) {
-          // Note: Using [replaceWith] is slow and should be avoided.
-          node.replaceWith(ir.ConstantExpression(
-              constant, node.getStaticType(staticTypeContext))
-            ..fileOffset = node.fileOffset);
-        }
-        return constant;
-      } catch (e) {
-        return null;
-      }
-    }
-  }
-}
-
-class ErrorReporter implements ir.ErrorReporter {
-  final ReportErrorFunction _reportError;
-  late bool requiresConstant;
-
-  ErrorReporter(this._reportError);
-
-  @override
-  void report(ir.LocatedMessage message, [List<ir.LocatedMessage>? context]) {
-    if (requiresConstant) {
-      _reportError(message, context);
-    }
-  }
-}
-
-/// [ir.Constant] visitor that returns `true` if the visitor constant contains
-/// an [ir.UnevaluatedConstant].
-class UnevaluatedConstantFinder extends ir.ConstantVisitor<bool> {
-  const UnevaluatedConstantFinder();
-
-  @override
-  bool defaultConstant(ir.Constant node) => false;
-
-  @override
-  bool visitUnevaluatedConstant(ir.UnevaluatedConstant node) => true;
-
-  @override
-  bool visitInstantiationConstant(ir.InstantiationConstant node) {
-    return node.tearOffConstant.accept(this);
-  }
-
-  @override
-  bool visitInstanceConstant(ir.InstanceConstant node) {
-    for (ir.Constant value in node.fieldValues.values) {
-      if (value.accept(this)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool visitSetConstant(ir.SetConstant node) {
-    for (ir.Constant value in node.entries) {
-      if (value.accept(this)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool visitListConstant(ir.ListConstant node) {
-    for (ir.Constant value in node.entries) {
-      if (value.accept(this)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool visitMapConstant(ir.MapConstant node) {
-    for (ir.ConstantMapEntry entry in node.entries) {
-      if (entry.key.accept(this)) {
-        return true;
-      }
-      if (entry.value.accept(this)) {
-        return true;
-      }
-    }
-    return false;
-  }
+          const Dart2jsDartLibrarySupport(),
+          const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
+          component,
+          typeEnvironment,
+          reportError,
+          environmentDefines: environment?.definitions ?? const {},
+        );
 }
 
 /// Class to represent a reference to a constant in allocation nodes.

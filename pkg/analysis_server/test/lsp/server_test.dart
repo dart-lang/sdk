@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -15,11 +16,111 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ServerTest);
+    defineReflectiveTests(ServerDartFixPromptTest);
   });
+}
+
+/// Checks server interacts with [DartFixPromptManager] correctly.
+///
+/// Tests for [DartFixPromptManager]'s behaviour are in
+/// test/services/user_prompts/dart_fix_prompt_manager_test.dart.
+@reflectiveTest
+class ServerDartFixPromptTest extends AbstractLspAnalysisServerTest {
+  late TestDartFixPromptManager promptManager;
+
+  @override
+  DartFixPromptManager? get dartFixPromptManager => promptManager;
+
+  @override
+  void setUp() {
+    promptManager = TestDartFixPromptManager();
+    super.setUp();
+  }
+
+  Future<void> test_trigger_afterInitialAnalysis() async {
+    await Future.wait([
+      waitForAnalysisComplete(),
+      initialize(),
+    ]);
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksTriggered, 1);
+  }
+
+  Future<void> test_trigger_afterPackageConfigChange() async {
+    // Set up and let initial analysis complete.
+    await Future.wait([
+      waitForAnalysisComplete(),
+      initialize(),
+    ]);
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksTriggered, 1);
+
+    // Expect that writing package config attempts to trigger another check.
+    writePackageConfig(projectFolderPath);
+    await waitForAnalysisComplete();
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksTriggered, 2);
+  }
 }
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerTest {
+  List<String> get currentContextPaths => server.contextManager.analysisContexts
+      .map((context) => context.contextRoot.root.path)
+      .toList();
+
+  /// Ensure an analysis root that doesn't exist does not cause an infinite
+  /// rebuild loop.
+  /// https://github.com/Dart-Code/Dart-Code/issues/4280
+  Future<void> test_analysisRoot_doesNotExist() async {
+    final notExistingPath = convertPath('/does/not/exist');
+    resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
+    await initialize(workspaceFolders: [Uri.file(notExistingPath)]);
+
+    // Wait a short period and ensure there was exactly one context build.
+    await pumpEventQueue(times: 10000);
+    expect(server.contextBuilds, 1);
+    // And that the roots are as expected.
+    expect(
+      currentContextPaths,
+      unorderedEquals([
+        // TODO(dantup): It may be a bug that ContextLocator is producing
+        //  contexts at the root for missing folders.
+        convertPath('/'), // the first existing ancestor of the requested folder
+      ]),
+    );
+  }
+
+  Future<void> test_analysisRoot_existsAndDoesNotExist() async {
+    final notExistingPath = convertPath('/does/not/exist');
+    resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
+
+    // Track diagnostics for the file to ensure we're analyzing the existing
+    // root.
+    final diagnosticsFuture = waitForDiagnostics(mainFileUri);
+    newFile(mainFilePath, 'NotAClass a;');
+
+    await initialize(
+      workspaceFolders: [projectFolderUri, Uri.file(notExistingPath)],
+    );
+
+    // Wait a short period and ensure there was exactly one context build.
+    await pumpEventQueue(times: 10000);
+    expect(server.contextBuilds, 1);
+    // And that the roots are as expected.
+    expect(
+      currentContextPaths,
+      unorderedEquals([
+        projectFolderPath,
+        convertPath('/'), // the first existing ancestor of the requested folder
+      ]),
+    );
+
+    final diagnostics = await diagnosticsFuture;
+    expect(diagnostics, hasLength(1));
+    expect(diagnostics!.single.code, 'undefined_class');
+  }
+
   Future<void> test_capturesLatency_afterStartup() async {
     await initialize(includeClientRequestTime: true);
     await openFile(mainFileUri, '');
@@ -206,5 +307,17 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(response.error, isNotNull);
     expect(response.error!.code, equals(ErrorCodes.MethodNotFound));
     expect(response.result, isNull);
+  }
+}
+
+class TestDartFixPromptManager implements DartFixPromptManager {
+  var checksTriggered = 0;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  void triggerCheck() {
+    checksTriggered++;
   }
 }

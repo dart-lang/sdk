@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 
-// Test re-entrant initializer - calls throw CyclicInitializationError.
+// Test reentrant initializer - calls throw Error.
 
 var trace;
 
@@ -17,12 +17,12 @@ get bar {
   try {
     return foo ?? 1;
   } catch (e) {
-    trace.add(e is CyclicInitializationError);
+    trace.add(e is Error);
   }
   try {
     return foo ?? 2;
   } catch (e) {
-    trace.add(e is CyclicInitializationError);
+    trace.add(e is Error);
   }
   return 42;
 }
@@ -46,12 +46,12 @@ class X {
     try {
       return foo ?? 1;
     } catch (e) {
-      trace.add(e is CyclicInitializationError);
+      trace.add(e is Error);
     }
     try {
       return foo ?? 2;
     } catch (e) {
-      trace.add(e is CyclicInitializationError);
+      trace.add(e is Error);
     }
     return 49;
   }

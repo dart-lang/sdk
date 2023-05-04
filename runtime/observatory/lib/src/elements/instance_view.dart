@@ -7,12 +7,8 @@ library instance_view_element;
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/class_ref.dart';
-import 'package:observatory/src/elements/context_ref.dart';
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/eval_box.dart';
-import 'package:observatory/src/elements/field_ref.dart';
-import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
@@ -28,7 +24,6 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/source_inset.dart';
-import 'package:observatory/src/elements/source_link.dart';
 import 'package:observatory/utils.dart';
 
 class InstanceViewElement extends CustomElement implements Renderable {
@@ -79,22 +74,6 @@ class InstanceViewElement extends CustomElement implements Renderable {
       M.BreakpointRepository breakpoints,
       M.FunctionRepository functions,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(instance != null);
-    assert(objects != null);
-    assert(classes != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(scripts != null);
-    assert(eval != null);
-    assert(arguments != null);
-    assert(breakpoints != null);
-    assert(functions != null);
     InstanceViewElement e = new InstanceViewElement.created();
     e._r = new RenderingScheduler<InstanceViewElement>(e, queue: queue);
     e._vm = vm;

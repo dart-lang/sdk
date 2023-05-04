@@ -12,6 +12,8 @@
 | `dart2js:noElision` | Disables an optimization whereby unused fields or unused parameters are removed |
 | `dart2js:load-priority:normal` | [Affects deferred library loading](#load-priority) |
 | `dart2js:load-priority:high` | [Affects deferred library loading](#load-priority) |
+| `dart2js:resource-identifer` | [Collects data references to resources](resource-identifers.md) |
+| `weak-tearoff-reference` | [Declaring a static weak reference intrinsic method.](#declaring-a-static-weak-reference-intrinsic-method) |
 
 ## Unsafe pragmas for general use
 
@@ -73,7 +75,7 @@ caller can create more opportunities for optimization, for example, it becomes
 possible to recognize and remove repeated operations.
 
 The compiler automatically makes a decision whether or not to inline a function
-or method based on heuristics. One heuristic is to inline if the the inlined
+or method based on heuristics. One heuristic is to inline if the inlined
 code is likely to be smaller that the call, as this results in a smaller _and_
 faster program. Another heuristic is to inline even if the code is likely to be
 slightly larger when the call is in a loop, as loops here is a chance that some
@@ -246,5 +248,21 @@ annotation on the variable called "`_`":
 ```
 
 `dart2js:load-priority` annotations are _scoped_: when there are multiple
-annotations, the one on the nearest element enclosing the call to `loadLibary()`
-is in effect.
+annotations, the one on the nearest element enclosing the call to
+`loadLibrary()` is in effect.
+
+### Declaring a static weak reference intrinsic method
+
+```dart
+@pragma('weak-tearoff-reference')
+T Function()? weakRef<T>(T Function()? x) => x;
+```
+
+Declares a special static method `weakRef` which can be used to create weak references
+to tearoffs of static methods. Weak reference declaration should be a static method taking
+one positional required argument. Its return type should be nullable and should match
+argument type. It should be either `external` or return its argument (for backwards compatibility).
+
+Compiler replaces `weakRef(foo)` expression with either `foo` if method `foo()` is used and retained during
+tree shaking, or `null` if `foo()` is only used through weak references.
+Target `foo` should be a constant tearoff of a static method without arguments.

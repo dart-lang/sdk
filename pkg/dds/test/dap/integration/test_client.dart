@@ -52,6 +52,9 @@ class DapTestClient {
   /// testing.
   bool? forceBreakpointDriveLetterCasingLower;
 
+  /// All stderr OutputEvents that have occurred so far.
+  final StringBuffer _stderr = StringBuffer();
+
   DapTestClient._(
     this._channel,
     this._logger, {
@@ -76,6 +79,12 @@ class DapTestClient {
         _pendingRequests.clear();
       },
     );
+
+    // Collect stderr output events so if we can write this to the real
+    // stderr when the app terminates to help track down things like VM crashes.
+    outputEvents
+        .where((event) => event.category == 'stderr')
+        .listen((event) => _stderr.write(event.output));
   }
 
   /// Returns a stream of [OutputEventBody] events.
@@ -97,6 +106,12 @@ class DapTestClient {
   Stream<Map<String, Object?>> get testNotificationEvents =>
       events('dart.testNotification')
           .map((e) => e.body as Map<String, Object?>);
+
+  /// Waits for a 'breakpoint' event that changes the breakpoint with [id].
+  Stream<BreakpointEventBody> get breakpointChangeEvents => events('breakpoint')
+      .map((event) =>
+          BreakpointEventBody.fromJson(event.body as Map<String, Object?>))
+      .where((body) => body.reason == 'changed');
 
   /// Send an attachRequest to the server, asking it to attach to an existing
   /// Dart program.
@@ -177,11 +192,13 @@ class DapTestClient {
     String expression, {
     int? frameId,
     String? context,
+    ValueFormat? format,
   }) {
     return sendRequest(EvaluateArguments(
       expression: expression,
       frameId: frameId,
       context: context,
+      format: format,
     ));
   }
 
@@ -429,11 +446,13 @@ class DapTestClient {
     int variablesReference, {
     int? start,
     int? count,
+    ValueFormat? format,
   }) {
     return sendRequest(VariablesArguments(
       variablesReference: variablesReference,
       start: start,
       count: count,
+      format: format,
     ));
   }
 
@@ -459,6 +478,11 @@ class DapTestClient {
       // a useful location.
       if (message.event == 'terminated') {
         unawaited(_eventController.close());
+
+        if (_stderr.isNotEmpty) {
+          stderr.writeln('STDERR output collected before app terminated:');
+          stderr.write(_stderr.toString());
+        }
       }
     } else if (message is Request) {
       // The server sent a request to the client. Call the handler and then send
@@ -479,14 +503,11 @@ class DapTestClient {
   ///
   /// Returns [future].
   Future<T> _logIfSlow<T>(String name, Future<T> future) {
-    var didComplete = false;
-    Future.delayed(_requestWarningDuration).then((_) {
-      if (!didComplete) {
-        print(
-            '$name has taken longer than ${_requestWarningDuration.inSeconds}s');
-      }
+    final timer = Timer(_requestWarningDuration, () {
+      print(
+          '$name has taken longer than ${_requestWarningDuration.inSeconds}s');
     });
-    return future.whenComplete(() => didComplete = true);
+    return future.whenComplete(timer.cancel);
   }
 
   /// Creates a [DapTestClient] that connects the server listening on
@@ -540,6 +561,7 @@ extension DapTestClientExtension on DapTestClient {
     String? condition,
     String? cwd,
     List<String>? args,
+    List<String>? toolArgs,
     Future<Response> Function()? launch,
   }) async {
     assert(condition == null || additionalBreakpoints == null,
@@ -553,19 +575,30 @@ extension DapTestClientExtension on DapTestClient {
         setBreakpoints(file, [line, ...additionalBreakpoints])
       else
         setBreakpoint(file, line, condition: condition),
-      launch?.call() ?? this.launch(entryFile.path, cwd: cwd, args: args),
+      launch?.call() ??
+          this.launch(
+            entryFile.path,
+            cwd: cwd,
+            args: args,
+            toolArgs: toolArgs,
+          ),
     ], eagerError: true);
 
     return stop;
   }
 
   /// Sets a breakpoint at [line] in [file].
-  Future<void> setBreakpoint(File file, int line, {String? condition}) async {
-    await sendRequest(
+  Future<SetBreakpointsResponseBody> setBreakpoint(File file, int line,
+      {String? condition}) async {
+    final response = await sendRequest(
       SetBreakpointsArguments(
         source: Source(path: _normalizeBreakpointPath(file.path)),
         breakpoints: [SourceBreakpoint(line: line, condition: condition)],
       ),
+    );
+
+    return SetBreakpointsResponseBody.fromJson(
+      response.body as Map<String, Object?>,
     );
   }
 
@@ -842,6 +875,7 @@ extension DapTestClientExtension on DapTestClient {
     String expectedVariables, {
     bool ignorePrivate = true,
     Set<String>? ignore,
+    ValueFormat? format,
   }) async {
     final scope = await getValidScope(frameId, expectedName);
     await expectVariables(
@@ -849,6 +883,7 @@ extension DapTestClientExtension on DapTestClient {
       expectedVariables,
       ignorePrivate: ignorePrivate,
       ignore: ignore,
+      format: format,
     );
     return scope;
   }
@@ -875,18 +910,7 @@ extension DapTestClientExtension on DapTestClient {
     bool ignorePrivate = true,
     Set<String>? ignore,
   }) async {
-    final stack = await getValidStack(
-      threadId,
-      startFrame: 0,
-      numFrames: 1,
-    );
-    final topFrame = stack.stackFrames.first;
-
-    final variablesScope = await getValidScope(topFrame.id, 'Locals');
-    final variables =
-        await getValidVariables(variablesScope.variablesReference);
-    final expectedVariable = variables.variables
-        .singleWhere((variable) => variable.name == expectedName);
+    final expectedVariable = await getLocalVariable(threadId, expectedName);
 
     // Check basic variable values.
     expect(expectedVariable.value, equals(expectedDisplayString));
@@ -903,6 +927,31 @@ extension DapTestClientExtension on DapTestClient {
     );
   }
 
+  /// A helper that finds a named variable in the Variables scope for the top
+  /// frame.
+  Future<Variable> getLocalVariable(int threadId, String name) async {
+    final stack = await getValidStack(
+      threadId,
+      startFrame: 0,
+      numFrames: 1,
+    );
+    final topFrame = stack.stackFrames.first;
+
+    final variablesScope = await getValidScope(topFrame.id, 'Locals');
+    return getChildVariable(variablesScope.variablesReference, name);
+  }
+
+  /// A helper that finds a named variable in the child variables for
+  /// [variablesReference].
+  Future<Variable> getChildVariable(int variablesReference, String name) async {
+    final variables = await getValidVariables(variablesReference);
+    return variables.variables.singleWhere(
+      (variable) => variable.name == name,
+      orElse: () =>
+          throw 'Did not find $name in ${variables.variables.map((v) => v.name).join(', ')}',
+    );
+  }
+
   /// Requests variables scopes for a frame and asserts a valid response.
   Future<ScopesResponseBody> getValidScopes(int frameId) async {
     final response = await scopes(frameId);
@@ -916,11 +965,13 @@ extension DapTestClientExtension on DapTestClient {
     int variablesReference, {
     int? start,
     int? count,
+    ValueFormat? format,
   }) async {
     final response = await variables(
       variablesReference,
       start: start,
       count: count,
+      format: format,
     );
     expect(response.success, isTrue);
     expect(response.command, equals('variables'));
@@ -939,6 +990,7 @@ extension DapTestClientExtension on DapTestClient {
     int? count,
     bool ignorePrivate = true,
     Set<String>? ignore,
+    ValueFormat? format,
   }) async {
     final expectedLines =
         expectedVariables.trim().split('\n').map((l) => l.trim()).toList();
@@ -947,6 +999,7 @@ extension DapTestClientExtension on DapTestClient {
       variablesReference,
       start: start,
       count: count,
+      format: format,
     );
 
     // If a variable was set to be ignored but wasn't in the list, that's
@@ -1018,9 +1071,14 @@ extension DapTestClientExtension on DapTestClient {
   Future<EvaluateResponseBody> expectEvalResult(
     int frameId,
     String expression,
-    String expectedResult,
-  ) async {
-    final response = await evaluate(expression, frameId: frameId);
+    String expectedResult, {
+    ValueFormat? format,
+  }) async {
+    final response = await evaluate(
+      expression,
+      frameId: frameId,
+      format: format,
+    );
     expect(response.success, isTrue);
     expect(response.command, equals('evaluate'));
     final body =

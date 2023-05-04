@@ -10,7 +10,7 @@ class _FailingTest {
   const _FailingTest();
 }
 
-class MyTest {
+mixin MyTest {
   @failingTest
   void foo() {}
 }

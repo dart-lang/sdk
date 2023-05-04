@@ -8,12 +8,8 @@ class Flag implements M.Flag {
   final String name;
   final String comment;
   final bool modified;
-  final String valueAsString;
-  Flag(this.name, this.comment, this.modified, this.valueAsString) {
-    assert(name != null);
-    assert(comment != null);
-    assert(modified != null);
-  }
+  final String? valueAsString;
+  Flag(this.name, this.comment, this.modified, this.valueAsString);
 }
 
 class FlagsRepository implements M.FlagsRepository {

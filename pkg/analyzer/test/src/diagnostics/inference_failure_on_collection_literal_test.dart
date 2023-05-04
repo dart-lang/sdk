@@ -54,7 +54,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
-      error(HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 49, 2),
+      error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 49, 2),
     ]);
   }
 
@@ -62,8 +62,8 @@ void main() {
     await assertErrorsInCode(r'''
 void f([list = const []]) => print(list);
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 4),
-      error(HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 15, 8),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 4),
+      error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 15, 8),
     ]);
   }
 
@@ -71,8 +71,8 @@ void f([list = const []]) => print(list);
     await assertErrorsInCode(r'''
 void f([map = const {}]) => print(map);
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 3),
-      error(HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 14, 8),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 3),
+      error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 14, 8),
     ]);
   }
 
@@ -118,7 +118,7 @@ void main() {
     await assertErrorsInCode(r'''
 dynamic f() => [];
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 15, 2),
+      error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 15, 2),
     ]);
   }
 
@@ -151,7 +151,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-      error(HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 26, 2),
+      error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 26, 2),
     ]);
   }
 
@@ -162,7 +162,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-      error(HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 26, 2),
+      error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 26, 2),
     ]);
   }
 
@@ -173,7 +173,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
-      error(HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 24, 2),
+      error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 24, 2),
     ]);
   }
 
@@ -184,7 +184,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
-      error(HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 24, 2),
+      error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 24, 2),
     ]);
   }
 
@@ -195,8 +195,8 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
-      error(HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 25, 2),
-      error(HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 29, 2),
+      error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 25, 2),
+      error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 29, 2),
     ]);
   }
 }

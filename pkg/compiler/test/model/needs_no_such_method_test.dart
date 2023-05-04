@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
@@ -35,45 +33,39 @@ class Subtype implements Superclass {
 """;
 
 testClassSets() async {
-  Selector foo, bar, baz;
-  JClosedWorld closedWorld;
-  ClassEntity superclass, subclass, subtype;
-  String testMode;
+  late Selector foo, bar, baz;
+  late JClosedWorld closedWorld;
+  late ClassEntity superclass, subclass, subtype;
+  late String testMode;
 
   Future run(List<String> instantiated) async {
     print('---- testing $instantiated ---------------------------------------');
-    StringBuffer main = new StringBuffer();
+    StringBuffer main = StringBuffer();
     main.writeln(CLASSES);
     main.writeln('main() {');
     main.writeln('  dynamic d;');
     main.writeln('  d.foo(); d.bar(); d.baz();');
     for (String cls in instantiated) {
-      main.writeln('  new $cls();');
+      main.writeln('  $cls();');
     }
     main.writeln('}');
     testMode = '$instantiated';
 
     var env =
         await TypeEnvironment.create(main.toString(), testBackendWorld: true);
-    foo = new Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
-    bar = new Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
-    baz = new Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);
+    foo = Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
+    bar = Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
+    baz = Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);
 
     closedWorld = env.jClosedWorld;
-    superclass = env.getElement('Superclass');
-    subclass = env.getElement('Subclass');
-    subtype = env.getElement('Subtype');
+    superclass = env.getElement('Superclass') as ClassEntity;
+    subclass = env.getElement('Subclass') as ClassEntity;
+    subtype = env.getElement('Subtype') as ClassEntity;
   }
 
   void check(ClassEntity cls, ClassQuery query, Selector selector,
       bool expectedResult) {
-    bool result;
-    if (closedWorld.classHierarchy.getClassSet(cls) == null) {
-      // The class isn't live, so it can't need a noSuchMethod for [selector].
-      result = false;
-    } else {
-      result = closedWorld.needsNoSuchMethod(cls, selector, query);
-    }
+    bool result = closedWorld.needsNoSuchMethod(cls, selector, query);
     Expect.equals(
         expectedResult,
         result,

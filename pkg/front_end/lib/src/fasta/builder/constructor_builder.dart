@@ -7,6 +7,11 @@ import 'package:kernel/ast.dart';
 import 'function_builder.dart';
 
 abstract class ConstructorBuilder implements FunctionBuilder {
-  /// The [Constructor] built by this builder.
-  Constructor get constructor;
+  /// The member target used for tearing of the constructor.
+  @override
+  Member get readTarget;
+
+  /// The member target used for calling the constructor.
+  @override
+  Member get invokeTarget;
 }

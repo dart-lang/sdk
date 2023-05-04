@@ -18,7 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kSupportedKernelFormatVersion = 89;
+static const uint32_t kSupportedKernelFormatVersion = 101;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -26,7 +26,7 @@ static const uint32_t kSupportedKernelFormatVersion = 89;
   V(Something, 1)                                                              \
   V(Class, 2)                                                                  \
   V(Extension, 115)                                                            \
-  V(View, 85)                                                                  \
+  V(InlineClass, 85)                                                           \
   V(FunctionNode, 3)                                                           \
   V(Field, 4)                                                                  \
   V(Constructor, 5)                                                            \
@@ -134,7 +134,7 @@ static const uint32_t kSupportedKernelFormatVersion = 89;
   V(NeverType, 98)                                                             \
   V(IntersectionType, 99)                                                      \
   V(RecordType, 100)                                                           \
-  V(ViewType, 103)                                                             \
+  V(InlineType, 103)                                                           \
   V(ConstantExpression, 106)                                                   \
   V(InstanceGet, 118)                                                          \
   V(InstanceSet, 119)                                                          \
@@ -147,11 +147,35 @@ static const uint32_t kSupportedKernelFormatVersion = 89;
   V(FunctionInvocation, 125)                                                   \
   V(FunctionTearOff, 126)                                                      \
   V(LocalFunctionInvocation, 127)                                              \
-  V(SpecializedVariableGet, 128)                                               \
-  V(SpecializedVariableSet, 136)                                               \
-  V(SpecializedIntLiteral, 144)
+  V(AndPattern, 128)                                                           \
+  V(AssignedVariablePattern, 129)                                              \
+  V(CastPattern, 130)                                                          \
+  V(ConstantPattern, 131)                                                      \
+  V(InvalidPattern, 132)                                                       \
+  V(ListPattern, 133)                                                          \
+  V(MapPattern, 134)                                                           \
+  V(NamedPattern, 135)                                                         \
+  V(NullAssertPattern, 136)                                                    \
+  V(NullCheckPattern, 137)                                                     \
+  V(ObjectPattern, 138)                                                        \
+  V(OrPattern, 139)                                                            \
+  V(RecordPattern, 140)                                                        \
+  V(RelationalPattern, 141)                                                    \
+  V(RestPattern, 142)                                                          \
+  V(VariablePattern, 143)                                                      \
+  V(WildcardPattern, 144)                                                      \
+  V(MapPatternEntry, 145)                                                      \
+  V(MapPatternRestEntry, 146)                                                  \
+  V(PatternSwitchStatement, 147)                                               \
+  V(SwitchExpression, 148)                                                     \
+  V(IfCaseStatement, 149)                                                      \
+  V(PatternAssignment, 150)                                                    \
+  V(PatternVariableDeclaration, 151)                                           \
+  V(SpecializedVariableGet, 224)                                               \
+  V(SpecializedVariableSet, 232)                                               \
+  V(SpecializedIntLiteral, 240)
 
-static const intptr_t kSpecializedTagHighBit = 0x80;
+static const intptr_t kSpecializedTagHighBits = 0xe0;
 static const intptr_t kSpecializedTagMask = 0xf8;
 static const intptr_t kSpecializedPayloadMask = 0x7;
 
@@ -208,6 +232,7 @@ enum AsExpressionFlags {
   kAsExpressionFlagCovarianceCheck = 1 << 1,
   kAsExpressionFlagForDynamic = 1 << 2,
   kAsExpressionFlagForNonNullableByDefault = 1 << 3,
+  kAsExpressionFlagUnchecked = 1 << 4,
 };
 
 // Keep in sync with package:kernel/lib/ast.dart
@@ -378,7 +403,8 @@ class Reader : public ValueObject {
 
   Tag ReadTag(uint8_t* payload = NULL) {
     uint8_t byte = ReadByte();
-    bool has_payload = (byte & kSpecializedTagHighBit) != 0;
+    bool has_payload =
+        (byte & kSpecializedTagHighBits) == kSpecializedTagHighBits;
     if (has_payload) {
       if (payload != NULL) {
         *payload = byte & kSpecializedPayloadMask;
@@ -391,7 +417,8 @@ class Reader : public ValueObject {
 
   Tag PeekTag(uint8_t* payload = NULL) {
     uint8_t byte = PeekByte();
-    bool has_payload = (byte & kSpecializedTagHighBit) != 0;
+    bool has_payload =
+        (byte & kSpecializedTagHighBits) == kSpecializedTagHighBits;
     if (has_payload) {
       if (payload != NULL) {
         *payload = byte & kSpecializedPayloadMask;
@@ -427,7 +454,7 @@ class Reader : public ValueObject {
 
   void EnsureEnd() {
     if (offset_ != size_) {
-      FATAL2(
+      FATAL(
           "Reading Kernel file: Expected to be at EOF "
           "(offset: %" Pd ", size: %" Pd ")",
           offset_, size_);

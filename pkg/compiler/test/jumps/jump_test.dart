@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
@@ -19,7 +17,7 @@ import 'package:kernel/ast.dart' as ir;
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const JumpDataComputer(),
         options: [stopAfterTypeInference], args: args);
   });
@@ -36,13 +34,12 @@ class JumpDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     GlobalLocalsMap localsMap =
-        compiler.globalInference.resultsForTesting.globalLocalsMap;
+        compiler.globalInference.resultsForTesting!.globalLocalsMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new JumpsIrChecker(
-            compiler.reporter, actualMap, localsMap.getLocalsMap(member))
+    JumpsIrChecker(compiler.reporter, actualMap, localsMap.getLocalsMap(member))
         .run(definition.node);
   }
 
@@ -88,7 +85,7 @@ class JumpsIrChecker extends IrDataExtractor<String> {
 
   void processData() {
     targets.forEach((JumpTarget target, TargetData data) {
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.write(data.index);
       sb.write('@');
       bool needsComma = false;
@@ -108,10 +105,9 @@ class JumpsIrChecker extends IrDataExtractor<String> {
           data.sourceSpan.uri, data.sourceSpan.begin, data.id, value, target);
     });
     gotos.forEach((GotoData data) {
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.write('target=');
-      TargetData targetData = targets[data.target];
-      assert(targetData != null, "No TargetData for ${data.target}");
+      TargetData targetData = targets[data.target]!;
       sb.write(targetData.index);
       String value = sb.toString();
       registerValue(
@@ -126,51 +122,50 @@ class JumpsIrChecker extends IrDataExtractor<String> {
   }
 
   @override
-  String computeNodeValue(Id id, ir.Node node) {
+  String? computeNodeValue(Id id, ir.Node node) {
     // Node values are computed post-visit in [processData].
     return null;
   }
 
-  void addTargetData(ir.TreeNode node, NodeId id, JumpTarget target) {
+  void addTargetData(ir.TreeNode node, NodeId id, JumpTarget? target) {
     if (target != null) {
       SourceSpan sourceSpan = computeSourceSpan(node);
-      targets[target] = new TargetData(index++, id, sourceSpan, target);
+      targets[target] = TargetData(index++, id, sourceSpan, target);
     }
   }
 
   @override
   visitForStatement(ir.ForStatement node) {
     addTargetData(
-        node, createLoopId(node), _localsMap.getJumpTargetForFor(node));
+        node, createLoopId(node)!, _localsMap.getJumpTargetForFor(node));
     super.visitForStatement(node);
   }
 
   @override
   visitForInStatement(ir.ForInStatement node) {
     addTargetData(
-        node, createLoopId(node), _localsMap.getJumpTargetForForIn(node));
+        node, createLoopId(node)!, _localsMap.getJumpTargetForForIn(node));
     super.visitForInStatement(node);
   }
 
   @override
   visitWhileStatement(ir.WhileStatement node) {
     addTargetData(
-        node, createLoopId(node), _localsMap.getJumpTargetForWhile(node));
+        node, createLoopId(node)!, _localsMap.getJumpTargetForWhile(node));
     super.visitWhileStatement(node);
   }
 
   @override
   visitDoStatement(ir.DoStatement node) {
     addTargetData(
-        node, createLoopId(node), _localsMap.getJumpTargetForDo(node));
+        node, createLoopId(node)!, _localsMap.getJumpTargetForDo(node));
     super.visitDoStatement(node);
   }
 
   @override
   visitBreakStatement(ir.BreakStatement node) {
     JumpTarget target = _localsMap.getJumpTargetForBreak(node);
-    assert(target != null, 'No target for $node.');
-    NodeId id = createGotoId(node);
+    NodeId id = createGotoId(node)!;
     SourceSpan sourceSpan = computeSourceSpan(node);
     gotos.add(new GotoData(id, sourceSpan, target));
     super.visitBreakStatement(node);
@@ -178,11 +173,11 @@ class JumpsIrChecker extends IrDataExtractor<String> {
 
   @override
   visitLabeledStatement(ir.LabeledStatement node) {
-    JumpTarget target = _localsMap.getJumpTargetForLabel(node);
+    JumpTarget? target = _localsMap.getJumpTargetForLabel(node);
     if (target != null) {
-      NodeId id = createLabeledStatementId(node);
+      NodeId id = createLabeledStatementId(node)!;
       SourceSpan sourceSpan = computeSourceSpan(node);
-      targets[target] = new TargetData(index++, id, sourceSpan, target);
+      targets[target] = TargetData(index++, id, sourceSpan, target);
     }
     super.visitLabeledStatement(node);
   }
@@ -190,7 +185,7 @@ class JumpsIrChecker extends IrDataExtractor<String> {
   @override
   visitSwitchStatement(ir.SwitchStatement node) {
     addTargetData(
-        node, createSwitchId(node), _localsMap.getJumpTargetForSwitch(node));
+        node, createSwitchId(node)!, _localsMap.getJumpTargetForSwitch(node));
     super.visitSwitchStatement(node);
   }
 
@@ -204,8 +199,7 @@ class JumpsIrChecker extends IrDataExtractor<String> {
   @override
   visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
     JumpTarget target = _localsMap.getJumpTargetForContinueSwitch(node);
-    assert(target != null, 'No target for $node.');
-    NodeId id = createGotoId(node);
+    NodeId id = createGotoId(node)!;
     SourceSpan sourceSpan = computeSourceSpan(node);
     gotos.add(new GotoData(id, sourceSpan, target));
     super.visitContinueSwitchStatement(node);

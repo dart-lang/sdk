@@ -5,28 +5,32 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/type_algebra.dart';
 
-void transformLibraries(
-    List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy) {
-  final transformer = _WasmTransformer(coreTypes, hierarchy);
+void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
+    ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter) {
+  final transformer =
+      _WasmTransformer(coreTypes, hierarchy, diagnosticReporter);
   libraries.forEach(transformer.visitLibrary);
 }
 
 void transformProcedure(
     Procedure procedure, CoreTypes coreTypes, ClassHierarchy hierarchy) {
-  final transformer = _WasmTransformer(coreTypes, hierarchy);
+  final transformer = _WasmTransformer(coreTypes, hierarchy, null);
   procedure.accept(transformer);
 }
 
 class _WasmTransformer extends Transformer {
   final TypeEnvironment env;
+  final DiagnosticReporter? diagnosticReporter;
 
   Member? _currentMember;
   StaticTypeContext? _cachedTypeContext;
   final Library _coreLibrary;
   final InterfaceType _nonNullableTypeType;
+  final Class _wasmBaseClass;
   final List<_AsyncStarFrame> _asyncStarFrames = [];
   bool _enclosingIsAsyncStar = false;
   late final controllerNullableObjectType = InterfaceType(
@@ -43,11 +47,13 @@ class _WasmTransformer extends Transformer {
 
   CoreTypes get coreTypes => env.coreTypes;
 
-  _WasmTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy)
+  _WasmTransformer(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, this.diagnosticReporter)
       : env = TypeEnvironment(coreTypes, hierarchy),
         _nonNullableTypeType = coreTypes.index
             .getClass('dart:core', '_Type')
             .getThisType(coreTypes, Nullability.nonNullable),
+        _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', '_WasmBase'),
         _coreLibrary = coreTypes.index.getLibrary('dart:core');
 
   @override
@@ -104,6 +110,7 @@ class _WasmTransformer extends Transformer {
     // `Type` object.
     if (!cls.isAbstract &&
         cls != coreTypes.objectClass &&
+        !env.hierarchy.isSubclassOf(cls, _wasmBaseClass) &&
         !canReuseSuperMethod(cls)) {
       Procedure getTypeArguments = Procedure(
           Name("_typeArguments", _coreLibrary),
@@ -202,13 +209,15 @@ class _WasmTransformer extends Transformer {
 
     final iterator = VariableDeclaration("#forIterator",
         initializer: iteratorInitializer..fileOffset = iterable.fileOffset,
-        type: iteratorType)
+        type: iteratorType,
+        isSynthesized: true)
       ..fileOffset = iterable.fileOffset;
 
     // Only used when `isAsync` is true.
     final jumpSentinel = VariableDeclaration("#jumpSentinel",
         initializer: ConstantExpression(BoolConstant(false)),
-        type: InterfaceType(coreTypes.boolClass, Nullability.nonNullable));
+        type: InterfaceType(coreTypes.boolClass, Nullability.nonNullable),
+        isSynthesized: true);
 
     final condition = InstanceInvocation(InstanceAccessKind.Instance,
         VariableGet(iterator), Name('moveNext'), Arguments(const []),
@@ -303,7 +312,7 @@ class _WasmTransformer extends Transformer {
   TreeNode _lowerAsyncStar(FunctionNode functionNode) {
     // TODO(joshualitt): This lowering is mostly reasonable, but if possible we
     // should try and figure out a way to remove the even / odd dance. That
-    // said, this will be replaced by an intrinsic implemntation ASAP so it may
+    // said, this will be replaced by an intrinsic implementation ASAP so it may
     // not be worth spending anymore time on this(aside from bug fixes).
     //
     // Transform
@@ -369,13 +378,15 @@ class _WasmTransformer extends Transformer {
         Arguments([], types: [coreTypes.objectNullableRawType]));
     final controller = VariableDeclaration('#controller',
         initializer: controllerInitializer..fileOffset = fileOffset,
-        type: controllerNullableObjectType)
+        type: controllerNullableObjectType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
 
     // Initialize `#completer`.
     final completer = VariableDeclaration('#completer',
         initializer: _completerBoolInitializer()..fileOffset = fileOffset,
-        type: completerBoolType)
+        type: completerBoolType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
 
     // Close `#controller`.
@@ -422,7 +433,8 @@ class _WasmTransformer extends Transformer {
         bodyFunction.computeThisFunctionType(Nullability.nonNullable);
     final body = VariableDeclaration('#body',
         initializer: bodyInitializer..fileOffset = fileOffset,
-        type: bodyFunctionType)
+        type: bodyFunctionType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
 
     // Invoke body.
@@ -434,12 +446,14 @@ class _WasmTransformer extends Transformer {
     final isEven = VariableDeclaration('#isEven',
         initializer: ConstantExpression(BoolConstant(false))
           ..fileOffset = fileOffset,
-        type: coreTypes.boolNonNullableRawType)
+        type: coreTypes.boolNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     final isFirst = VariableDeclaration('#isFirst',
         initializer: ConstantExpression(BoolConstant(true))
           ..fileOffset = fileOffset,
-        type: coreTypes.boolNonNullableRawType)
+        type: coreTypes.boolNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
 
     // Get `controller.stream`
@@ -463,8 +477,8 @@ class _WasmTransformer extends Transformer {
                 completerComplete.function
                     .computeThisFunctionType(Nullability.nonNullable))
             as FunctionType;
-    final completerPrePassArg =
-        VariableDeclaration('value', type: coreTypes.objectNullableRawType);
+    final completerPrePassArg = VariableDeclaration('value',
+        type: coreTypes.objectNullableRawType, isSynthesized: true);
     final completerPrePass = FunctionExpression(FunctionNode(
       Block([
         IfStatement(
@@ -514,11 +528,12 @@ class _WasmTransformer extends Transformer {
         functionType: asyncMapType);
 
     // Call `where`.
-    final whereFilterArg =
-        VariableDeclaration('value', type: coreTypes.objectNullableRawType);
+    final whereFilterArg = VariableDeclaration('value',
+        type: coreTypes.objectNullableRawType, isSynthesized: true);
     final whereKeep = VariableDeclaration('keep',
         initializer: VariableGet(isEven),
-        type: coreTypes.boolNonNullableRawType);
+        type: coreTypes.boolNonNullableRawType,
+        isSynthesized: true);
 
     final whereFilter = FunctionExpression(FunctionNode(
         Block([
@@ -607,7 +622,8 @@ class _WasmTransformer extends Transformer {
           awaitVarType = yieldExpressionType.typeArguments.single;
         }
       }
-      awaitForVar = VariableDeclaration('#awaitForVar', type: awaitVarType)
+      awaitForVar = VariableDeclaration('#awaitForVar',
+          type: awaitVarType, isSynthesized: true)
         ..fileOffset = fileOffset;
     }
 

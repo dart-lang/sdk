@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This file contains tests written in a deprecated way. Please do not add any
+/// tests to this file. Instead, add tests to the files in `declaration`,
+/// `location`, or `relevance`.
+
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
@@ -2394,8 +2398,32 @@ void f(E e) {
     assertSuggestEnumConst('F.four');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_enum_filter_switchCase() async {
     addTestSource('''
+enum E { one, two }
+enum F { three, four }
+
+void f(E e) {
+  switch (e) {
+    case ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one');
+    assertSuggestEnumConst('E.two');
+
+    assertSuggestEnum('F');
+    assertNotSuggested('F.three');
+    assertNotSuggested('F.four');
+  }
+
+  Future<void> test_enum_filter_switchCase_language219() async {
+    addTestSource('''
+// @dart=2.19
 enum E { one, two }
 enum F { three, four }
 
@@ -5827,7 +5855,24 @@ class C<T> {
 
   Future<void> test_SwitchStatement_case_var() async {
     // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('g(int x) {var t; switch(x) {case 0: var bar; b^}}');
+    addTestSource('''
+g(int x) {var t; switch(x) {case 0: var bar; b^}}
+''');
+    await computeSuggestions();
+
+    assertSuggestFunction('g', 'dynamic');
+    assertSuggestLocalVariable('t', 'dynamic');
+    assertSuggestParameter('x', 'int');
+    assertSuggestLocalVariable('bar', 'dynamic');
+    assertNotSuggested('String');
+  }
+
+  Future<void> test_SwitchStatement_case_var_language219() async {
+    // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('''
+// @dart=2.19
+g(int x) {var t; switch(x) {case 0: var bar; b^}}
+''');
     await computeSuggestions();
 
     assertSuggestFunction('g', 'dynamic');

@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 main() {
   use1(new Class1());
   use2(new Class2());
 }
 
 @pragma('dart2js:noInline')
-use(Object o) {
+use(Object? o) {
   print(o);
 }
 
@@ -58,6 +56,7 @@ use1(Class1 c1) {
   use(c1.field10b);
   use(c1.field10c);
   use(c1.field10d);
+  use(c1.field10e);
   use(c1.field11a);
   use(c1.field11b);
   use(c1.field12a);
@@ -107,6 +106,7 @@ use2(Class2 c2) {
   use(c2.field10b);
   use(c2.field10c);
   use(c2.field10d);
+  use(c2.field10e);
   use(c2.field11a);
   use(c2.field11b);
   use(c2.field12a);
@@ -131,37 +131,37 @@ class Class1 {
   var field1b = null;
 
   /*member: Class1.field2a:allocator,initial=BoolConstant(true)*/
-  var field2a = true;
+  bool? field2a = true;
 
   /*member: Class1.field2b:constant=BoolConstant(true)*/
   var field2b = true;
 
   /*member: Class1.field3a:allocator,initial=BoolConstant(false)*/
-  var field3a = false;
+  bool? field3a = false;
 
   /*member: Class1.field3b:constant=BoolConstant(false)*/
   var field3b = false;
 
   /*member: Class1.field4a:allocator,initial=IntConstant(0)*/
-  var field4a = 0;
+  int? field4a = 0;
 
   /*member: Class1.field4b:constant=IntConstant(0)*/
   var field4b = 0;
 
   /*member: Class1.field5a:allocator,initial=IntConstant(1)*/
-  var field5a = 1;
+  int? field5a = 1;
 
   /*member: Class1.field5b:constant=IntConstant(1)*/
   var field5b = 1;
 
   /*member: Class1.field6a:allocator,initial=StringConstant("")*/
-  var field6a = '';
+  String? field6a = '';
 
   /*member: Class1.field6b:constant=StringConstant("")*/
   var field6b = '';
 
   /*member: Class1.field7a:allocator,initial=StringConstant("foo")*/
-  var field7a = 'foo';
+  String? field7a = 'foo';
 
   /*member: Class1.field7b:constant=StringConstant("foo")*/
   var field7b = 'foo';
@@ -170,49 +170,52 @@ class Class1 {
    allocator,
    initial=DoubleConstant(0.5)
   */
-  var field8a = 0.5;
+  double? field8a = 0.5;
 
   /*member: Class1.field8b:constant=DoubleConstant(0.5)*/
   var field8b = 0.5;
 
   /*member: Class1.field9a:initial=ListConstant([])*/
-  var field9a = const [];
+  List? field9a = const [];
 
   /*member: Class1.field9b:constant=ListConstant([])*/
   var field9b = const [];
 
-  /*member: Class1.field9c:initial=ListConstant(<int*>[IntConstant(0), IntConstant(1)])*/
-  var field9c = const [0, 1];
+  /*member: Class1.field9c:initial=ListConstant(<int>[IntConstant(0), IntConstant(1)])*/
+  List<int>? field9c = const [0, 1];
 
-  /*member: Class1.field9d:constant=ListConstant(<int*>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
+  /*member: Class1.field9d:constant=ListConstant(<int>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
   var field9d = const [0, 1, 2];
 
   /*member: Class1.field10a:initial=MapConstant({})*/
-  var field10a = const {};
+  Map? field10a = const {};
 
   /*member: Class1.field10b:constant=MapConstant({})*/
   var field10b = const {};
 
-  /*member: Class1.field10c:initial=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
-  var field10c = const {0: 1, 2: 3};
+  /*member: Class1.field10c:initial=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
+  Map<int, int>? field10c = const {0: 1, 2: 3};
 
-  /*member: Class1.field10d:constant=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
+  /*member: Class1.field10d:constant=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
   var field10d = const {0: 1, 2: 3, 4: 5};
 
+  /*member: Class1.field10e:constant=MapConstant(<int?, int?>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5), NullConstant: IntConstant(6), IntConstant(7): NullConstant})*/
+  var field10e = const {0: 1, 2: 3, 4: 5, null: 6, 7: null};
+
   /*member: Class1.field11a:initial=ConstructedConstant(Symbol(_name=StringConstant("foo")))*/
-  var field11a = #foo;
+  Symbol? field11a = #foo;
 
   /*member: Class1.field11b:constant=ConstructedConstant(Symbol(_name=StringConstant("foo")))*/
   var field11b = #foo;
 
   /*member: Class1.field12a:allocator,initial=IntConstant(5)*/
-  var field12a = 2 + 3;
+  int? field12a = 2 + 3;
 
   /*member: Class1.field12b:constant=IntConstant(5)*/
   var field12b = 2 + 3;
 
   /*member: Class1.field13a:allocator,initial=BoolConstant(true)*/
-  var field13a = const1;
+  bool? field13a = const1;
 
   /*member: Class1.field13b:constant=BoolConstant(true)*/
   var field13b = const1;
@@ -276,10 +279,10 @@ class Class2 {
   /*member: Class2.field9b:constant=ListConstant([])*/
   var field9b;
 
-  /*member: Class2.field9c:initial=ListConstant(<int*>[IntConstant(0), IntConstant(1)])*/
+  /*member: Class2.field9c:initial=ListConstant(<int>[IntConstant(0), IntConstant(1)])*/
   var field9c;
 
-  /*member: Class2.field9d:constant=ListConstant(<int*>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
+  /*member: Class2.field9d:constant=ListConstant(<int>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
   var field9d;
 
   /*member: Class2.field10a:initial=MapConstant({})*/
@@ -288,11 +291,14 @@ class Class2 {
   /*member: Class2.field10b:constant=MapConstant({})*/
   var field10b;
 
-  /*member: Class2.field10c:initial=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
+  /*member: Class2.field10c:initial=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
   var field10c;
 
-  /*member: Class2.field10d:constant=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
+  /*member: Class2.field10d:constant=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
   var field10d;
+
+  /*member: Class2.field10e:constant=MapConstant(<int?, int?>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5), NullConstant: IntConstant(6), IntConstant(7): NullConstant})*/
+  var field10e;
 
   /*member: Class2.field11a:initial=ConstructedConstant(Symbol(_name=StringConstant("foo")))*/
   var field11a;
@@ -337,6 +343,7 @@ class Class2 {
         field10b = const {},
         field10c = const {0: 1, 2: 3},
         field10d = const {0: 1, 2: 3, 4: 5},
+        field10e = const {0: 1, 2: 3, 4: 5, null: 6, 7: null},
         field11a = #foo,
         field11b = #foo,
         field12a = 2 + 3,

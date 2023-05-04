@@ -543,8 +543,8 @@ f() {
   for (int x in list) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
     ]);
     verifyTestResolved();
   }
@@ -575,10 +575,10 @@ class A {
   test_getter_fromMixins_bare_identifier() async {
     await assertNoErrorsInCode('''
 class B {}
-class M1 {
+mixin M1 {
   get x => null;
 }
-class M2 {
+mixin M2 {
   get x => null;
 }
 class C extends B with M1, M2 {
@@ -600,10 +600,10 @@ class C extends B with M1, M2 {
   test_getter_fromMixins_property_access() async {
     await assertErrorsInCode('''
 class B {}
-class M1 {
+mixin M1 {
   get x => null;
 }
-class M2 {
+mixin M2 {
   get x => null;
 }
 class C extends B with M1, M2 {}
@@ -611,7 +611,7 @@ void main() {
   var y = new C().x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
     ]);
     verifyTestResolved();
 
@@ -808,7 +808,7 @@ class C = Object with A;''', [
 
   test_isValidMixin_factoryConstructor() async {
     await assertNoErrorsInCode(r'''
-class A {
+mixin class A {
   factory A() => throw 0;
 }
 class C = Object with A;''');
@@ -820,7 +820,7 @@ class C = Object with A;''');
 
   test_isValidMixin_super_toString() async {
     await assertNoErrorsInCode(r'''
-class A {
+mixin class A {
   toString() {
     return super.toString();
   }
@@ -834,7 +834,7 @@ class C = Object with A;''');
 
   test_isValidMixin_valid() async {
     await assertNoErrorsInCode('''
-class A {}
+mixin class A {}
 class C = Object with A;''');
     verifyTestResolved();
 
@@ -905,7 +905,7 @@ const A = null;
 const A = null;
 @A class C<A> = D with E;
 class D {}
-class E {}
+mixin E {}
 ''');
     verifyTestResolved();
 
@@ -1169,7 +1169,7 @@ const A = null;
 class B {
   bar() => 1;
 }
-class A {
+mixin class A {
   foo() => 2;
 }
 
@@ -1183,10 +1183,10 @@ class C extends B with A {
   test_method_fromMixins() async {
     await assertNoErrorsInCode('''
 class B {}
-class M1 {
+mixin M1 {
   void f() {}
 }
-class M2 {
+mixin M2 {
   void f() {}
 }
 class C extends B with M1, M2 {}
@@ -1205,10 +1205,10 @@ void main() {
   test_method_fromMixins_bare_identifier() async {
     await assertNoErrorsInCode('''
 class B {}
-class M1 {
+mixin M1 {
   void f() {}
 }
-class M2 {
+mixin M2 {
   void f() {}
 }
 class C extends B with M1, M2 {
@@ -1228,10 +1228,10 @@ class C extends B with M1, M2 {
   test_method_fromMixins_invoked_from_outside_class() async {
     await assertNoErrorsInCode('''
 class B {}
-class M1 {
+mixin M1 {
   void f() {}
 }
-class M2 {
+mixin M2 {
   void f() {}
 }
 class C extends B with M1, M2 {}
@@ -1249,7 +1249,7 @@ void main() {
 
   test_method_fromSuperclassMixin() async {
     await assertNoErrorsInCode(r'''
-class A {
+mixin A {
   void m1() {}
 }
 class B extends Object with A {

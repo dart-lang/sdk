@@ -27,7 +27,7 @@ class DeleteContextTest extends AbstractAnalysisServerIntegrationTest {
         await sendExecutionMapUri(contextId, uri: 'package:test/main.dart');
     expect(result.file, pathname);
 
-    expect(await sendExecutionDeleteContext(contextId), isNull);
+    await sendExecutionDeleteContext(contextId);
 
     // After the delete, expect this to fail.
     try {

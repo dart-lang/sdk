@@ -117,7 +117,7 @@ This will:
       if (argResults.wasParsed('target'))
         argResults['target']
       else
-        'origin/HEAD',
+        'origin/${defaultBranchTarget(pkgDir)}',
     ], workingDirectory: pkgDir, explanation: 'Finding sha-id');
 
     final target = gitRevParseResult.first;
@@ -146,15 +146,19 @@ This will:
       '--format=%C(auto) $originUrl/+/%h %s ',
       '$currentRev..$target',
     ], workingDirectory: pkgDir, explanation: 'Listing new commits');
+    // To avoid github notifying issues in the sdk when it sees #issueid
+    // we remove all '#' characters.
+    final cleanedGitLogResult =
+        gitLogResult.map((x) => x.replaceAll('#', '')).join('\n');
     final commitMessage = '''
 Bump $toUpdate to $target
 
 Changes:
 ```
 > git log --format="%C(auto) %h %s" ${currentRev.substring(0, 7)}..${target.substring(0, 7)}
-${gitLogResult.join('\n')}
+$cleanedGitLogResult
 ```
-Diff: $originUrl/+/$currentRev~..$target/
+Diff: $originUrl/+/$currentRev..$target/
 ''';
     runProcessAssumingSuccess(['git', 'commit', '-am', commitMessage],
         explanation: 'Committing');
@@ -260,4 +264,20 @@ int runProcessForExitCode(List<String> cmd,
   );
   stdout.writeln(' => ${result.exitCode}');
   return result.exitCode;
+}
+
+String defaultBranchTarget(String dir) {
+  var branchNames = Directory(p.join(dir, '.git', 'refs', 'heads'))
+      .listSync()
+      .whereType<File>()
+      .map((f) => p.basename(f.path))
+      .toSet();
+
+  for (var name in ['main', 'master']) {
+    if (branchNames.contains(name)) {
+      return name;
+    }
+  }
+
+  return 'HEAD';
 }

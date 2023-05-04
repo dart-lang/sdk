@@ -348,7 +348,7 @@ void Become::FollowForwardingPointers(Thread* thread) {
     WritableCodeLiteralsScope writable_code(heap);
     ForwardHeapPointersVisitor object_visitor(&pointer_visitor);
     heap->VisitObjects(&object_visitor);
-    pointer_visitor.VisitingObject(NULL);
+    pointer_visitor.VisitingObject(nullptr);
   }
 
   // C++ pointers.

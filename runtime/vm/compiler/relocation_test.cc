@@ -236,6 +236,7 @@ struct RelocatorTestHelper {
           case ImageWriterCommand::InsertBytesOfTrampoline: {
             const auto entry = (*commands)[i].insert_trampoline_bytes;
             const auto current_size = entry.buffer_length;
+            ASSERT(addr + current_size <= instructions.PayloadStart() + size);
             memmove(reinterpret_cast<void*>(addr), entry.buffer, current_size);
             addr += current_size;
             break;
@@ -244,14 +245,11 @@ struct RelocatorTestHelper {
             const auto entry = (*commands)[i].insert_instruction_of_code;
             const auto current_size =
                 ImageWriter::SizeInSnapshot(Code::InstructionsOf(entry.code));
-            const auto alias_offset =
-                Page::Of(Code::InstructionsOf(entry.code))->AliasOffset();
-            memmove(
-                reinterpret_cast<void*>(addr),
-                reinterpret_cast<void*>(Instructions::PayloadStart(
-                                            Code::InstructionsOf(entry.code)) -
-                                        alias_offset),
-                current_size);
+            ASSERT(addr + current_size <= instructions.PayloadStart() + size);
+            memmove(reinterpret_cast<void*>(addr),
+                    reinterpret_cast<void*>(Instructions::PayloadStart(
+                        Code::InstructionsOf(entry.code))),
+                    current_size);
             addr += current_size;
             break;
           }
@@ -333,7 +331,7 @@ ISOLATE_UNIT_TEST_CASE(CodeRelocator_OutOfRangeForwardCall) {
     // no later.
     EXPECT_EQ(ImageWriterCommand::InsertBytesOfTrampoline, commands[1].op);
     EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[2].op);
-    // This is the target of the forwwards call.
+    // This is the target of the forwards call.
     EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[3].op);
 
     *entry_point = commands[0].expected_offset;

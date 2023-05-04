@@ -95,7 +95,7 @@ class _AssertionError extends Error implements AssertionError {
   final Object? message;
 }
 
-class _TypeError extends Error implements TypeError, CastError {
+class _TypeError extends Error implements TypeError {
   @pragma("vm:entry-point")
   _TypeError._create(this._url, this._line, this._column, this._message);
 
@@ -106,43 +106,10 @@ class _TypeError extends Error implements TypeError, CastError {
 
   String toString() => _message;
 
-  final String _url;
-  final int _line;
-  final int _column;
-  final String _message;
-}
-
-class _CastError extends Error implements CastError, TypeError {
-  @pragma("vm:entry-point")
-  _CastError._create(this._url, this._line, this._column, this._errorMsg);
-
-  // A CastError is allocated by TypeError._throwNew() when dstName equals
-  // Symbols::InTypeCast().
-
-  String toString() => _errorMsg;
-
-  // Fields _url, _line, and _column are only used for debugging purposes.
   final String? _url;
   final int? _line;
   final int? _column;
-  final String _errorMsg;
-}
-
-@patch
-class FallThroughError {
-  @patch
-  @pragma("vm:entry-point")
-  FallThroughError._create(this._url, this._line);
-
-  @patch
-  String toString() {
-    return "'$_url': Switch case fall-through at line $_line.";
-  }
-
-  // These new fields cannot be declared final, because a constructor exists
-  // in the original version of this patched class.
-  String? _url;
-  int _line = 0;
+  final String _message;
 }
 
 class _InternalError {
@@ -169,29 +136,28 @@ class StateError {
   }
 }
 
-@patch
-class CyclicInitializationError {
-  static _throwNew(String variableName) {
-    throw new CyclicInitializationError(variableName);
-  }
-}
-
-@patch
-class AbstractClassInstantiationError {
+/// Error thrown when a lazily initialized variable cannot be initialized.
+///
+/// Cyclic dependencies are no longer detected at runtime in null safe code.
+/// Such code will fail in other ways instead,
+/// possibly with a [StackOverflowError].
+///
+/// Will be removed when support for non-null-safe code is discontinued.
+@Deprecated("Remove when no longer supporting non-null-safe code.")
+class _CyclicInitializationError extends Error {
+  final String? variableName;
   @pragma("vm:entry-point")
-  AbstractClassInstantiationError._create(
-      this._className, this._url, this._line);
-
-  @patch
+  _CyclicInitializationError([this.variableName]);
   String toString() {
-    return "Cannot instantiate abstract class $_className: "
-        "_url '$_url' line $_line";
+    var variableName = this.variableName;
+    return variableName == null
+        ? "Reading static variable during its initialization"
+        : "Reading static variable '$variableName' during its initialization";
   }
 
-  // These new fields cannot be declared final, because a constructor exists
-  // in the original version of this patched class.
-  String? _url;
-  int _line = 0;
+  static _throwNew(String variableName) {
+    throw new _CyclicInitializationError(variableName);
+  }
 }
 
 @patch
@@ -225,18 +191,6 @@ class NoSuchMethodError {
     throw new NoSuchMethodError._withType(receiver, memberName, invocationType,
         typeArgumentsLength, typeArguments, arguments, argumentNames);
   }
-
-  // Deprecated constructor.
-  @patch
-  NoSuchMethodError(this._receiver, Symbol memberName,
-      List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
-      [List? existingArgumentNames = null]) // existingArgumentNames ignored.
-      : this._invocation = new _InvocationMirror._withType(
-            memberName,
-            _InvocationMirror._UNINITIALIZED,
-            null, // Type arguments not supported in deprecated constructor.
-            positionalArguments,
-            namedArguments);
 
   // Helper to build a map of named arguments.
   static Map<Symbol, dynamic> _NamedArgumentsMap(

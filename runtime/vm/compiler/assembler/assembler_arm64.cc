@@ -297,7 +297,7 @@ static int CountOneBits(uint64_t value, int width) {
 // If it can't be encoded, the function returns false, and the operand is
 // undefined.
 bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
-  ASSERT(imm_op != NULL);
+  ASSERT(imm_op != nullptr);
   ASSERT((width == kWRegSizeInBits) || (width == kXRegSizeInBits));
   if (width == kWRegSizeInBits) {
     value &= 0xffffffffUL;
@@ -858,9 +858,12 @@ void Assembler::CompareImmediate(Register rn, int64_t imm, OperandSize sz) {
 
 Address Assembler::PrepareLargeOffset(Register base,
                                       int32_t offset,
-                                      OperandSize sz) {
-  if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
-    return Address(base, offset);
+                                      OperandSize sz,
+                                      Address::AddressType addr_type) {
+  ASSERT(addr_type == Address::AddressType::Offset ||
+         addr_type == Address::AddressType::PairOffset);
+  if (Address::CanHoldOffset(offset, addr_type, sz)) {
+    return Address(base, offset, addr_type);
   }
   ASSERT(base != TMP2);
   Operand op;
@@ -868,19 +871,23 @@ Address Assembler::PrepareLargeOffset(Register base,
   const uint32_t lower12 = offset & 0x00000fff;
   if ((base != CSP) &&
       (Operand::CanHold(upper20, kXRegSizeInBits, &op) == Operand::Immediate) &&
-      Address::CanHoldOffset(lower12, Address::Offset, sz)) {
+      Address::CanHoldOffset(lower12, addr_type, sz)) {
     add(TMP2, base, op);
-    return Address(TMP2, lower12);
+    return Address(TMP2, lower12, addr_type);
   }
   LoadImmediate(TMP2, offset);
-  return Address(base, TMP2);
+  if (addr_type == Address::AddressType::Offset) {
+    return Address(base, TMP2);
+  } else {
+    add(TMP2, TMP2, Operand(base));
+    return Address(TMP2, 0, Address::AddressType::PairOffset);
+  }
 }
 
 void Assembler::LoadFromOffset(Register dest,
-                               Register base,
-                               int32_t offset,
+                               const Address& addr,
                                OperandSize sz) {
-  LoadFromOffset(dest, PrepareLargeOffset(base, offset, sz), sz);
+  ldr(dest, PrepareLargeOffset(addr.base(), addr.offset(), sz), sz);
 }
 
 void Assembler::LoadSFromOffset(VRegister dest, Register base, int32_t offset) {
@@ -896,10 +903,19 @@ void Assembler::LoadQFromOffset(VRegister dest, Register base, int32_t offset) {
 }
 
 void Assembler::StoreToOffset(Register src,
-                              Register base,
-                              int32_t offset,
+                              const Address& addr,
                               OperandSize sz) {
-  StoreToOffset(src, PrepareLargeOffset(base, offset, sz), sz);
+  str(src, PrepareLargeOffset(addr.base(), addr.offset(), sz), sz);
+}
+
+void Assembler::StorePairToOffset(Register low,
+                                  Register high,
+                                  Register base,
+                                  int32_t offset,
+                                  OperandSize sz) {
+  stp(low, high,
+      PrepareLargeOffset(base, offset, sz, Address::AddressType::PairOffset),
+      sz);
 }
 
 void Assembler::StoreSToOffset(VRegister src, Register base, int32_t offset) {
@@ -1534,6 +1550,31 @@ void Assembler::SetReturnAddress(Register value) {
   RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(MoveRegister(LR, value));
 }
 
+void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
+  AsrImmediate(reg, reg, shift);
+}
+
+void Assembler::CompareWords(Register reg1,
+                             Register reg2,
+                             intptr_t offset,
+                             Register count,
+                             Register temp,
+                             Label* equals) {
+  Label loop;
+
+  AddImmediate(reg1, offset - kHeapObjectTag);
+  AddImmediate(reg2, offset - kHeapObjectTag);
+
+  COMPILE_ASSERT(target::kWordSize == 8);
+  Bind(&loop);
+  BranchIfZero(count, equals, Assembler::kNearJump);
+  AddImmediate(count, -1);
+  ldr(temp, Address(reg1, 8, Address::PostIndex));
+  ldr(TMP, Address(reg2, 8, Address::PostIndex));
+  cmp(temp, Operand(TMP));
+  BranchIf(EQUAL, &loop, Assembler::kNearJump);
+}
+
 void Assembler::EnterFrame(intptr_t frame_size) {
   SPILLS_LR_TO_FRAME(PushPair(FP, LR));  // low: FP, high: LR.
   mov(FP, SP);
@@ -1910,6 +1951,38 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   }
 }
 
+void Assembler::CombineHashes(Register hash, Register other) {
+  // hash += other_hash
+  add(hash, hash, Operand(other), kFourBytes);
+  // hash += hash << 10
+  add(hash, hash, Operand(hash, LSL, 10), kFourBytes);
+  // hash ^= hash >> 6
+  eor(hash, hash, Operand(hash, LSR, 6), kFourBytes);
+}
+
+void Assembler::FinalizeHashForSize(intptr_t bit_size,
+                                    Register hash,
+                                    Register scratch) {
+  ASSERT(bit_size > 0);  // Can't avoid returning 0 if there are no hash bits!
+  // While any 32-bit hash value fits in X bits, where X > 32, the caller may
+  // reasonably expect that the returned values fill the entire bit space.
+  ASSERT(bit_size <= kBitsPerInt32);
+  // hash += hash << 3;
+  add(hash, hash, Operand(hash, LSL, 3), kFourBytes);
+  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
+  eor(hash, hash, Operand(hash, LSR, 11), kFourBytes);
+  // hash += hash << 15;
+  if (bit_size < kBitsPerInt32) {
+    add(hash, hash, Operand(hash, LSL, 15), kFourBytes);
+    // Size to fit.
+    andis(hash, hash, Immediate(Utils::NBitMask(bit_size)));
+  } else {
+    adds(hash, hash, Operand(hash, LSL, 15), kFourBytes);
+  }
+  // return (hash == 0) ? 1 : hash;
+  cinc(hash, hash, ZERO);
+}
+
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
@@ -1935,7 +2008,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
                                   JumpDistance distance,
                                   Register instance_reg,
                                   Register temp_reg) {
-  ASSERT(failure != NULL);
+  ASSERT(failure != nullptr);
   ASSERT(instance_size != 0);
   ASSERT(instance_reg != temp_reg);
   ASSERT(temp_reg != kNoRegister);

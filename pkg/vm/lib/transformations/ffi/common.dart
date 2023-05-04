@@ -113,7 +113,7 @@ const Map<NativeType, int> nativeTypeSizes = <NativeType, int>{
   NativeType.kBool: 1,
 };
 
-/// Load, store, and elementAt are rewired to their static type for these types.
+/// Load and store are rewired to their static type for these types.
 const List<NativeType> optimizedTypes = [
   NativeType.kBool,
   NativeType.kInt8,
@@ -185,6 +185,7 @@ class FfiTransformer extends Transformer {
   final Class unionClass;
   final Class abiSpecificIntegerClass;
   final Class abiSpecificIntegerMappingClass;
+  final Class varArgsClass;
   final Class ffiNativeClass;
   final Class nativeFieldWrapperClass1Class;
   final Class ffiStructLayoutClass;
@@ -201,16 +202,19 @@ class FfiTransformer extends Transformer {
   final Procedure allocatorAllocateMethod;
   final Procedure castMethod;
   final Procedure offsetByMethod;
-  final Procedure elementAtMethod;
   final Procedure addressGetter;
   final Procedure structPointerGetRef;
   final Procedure structPointerSetRef;
   final Procedure structPointerGetElemAt;
   final Procedure structPointerSetElemAt;
+  final Procedure structPointerElementAt;
+  final Procedure structPointerElementAtTearoff;
   final Procedure unionPointerGetRef;
   final Procedure unionPointerSetRef;
   final Procedure unionPointerGetElemAt;
   final Procedure unionPointerSetElemAt;
+  final Procedure unionPointerElementAt;
+  final Procedure unionPointerElementAtTearoff;
   final Procedure structArrayElemAt;
   final Procedure unionArrayElemAt;
   final Procedure arrayArrayElemAt;
@@ -219,6 +223,8 @@ class FfiTransformer extends Transformer {
   final Procedure abiSpecificIntegerPointerSetValue;
   final Procedure abiSpecificIntegerPointerElemAt;
   final Procedure abiSpecificIntegerPointerSetElemAt;
+  final Procedure abiSpecificIntegerPointerElementAt;
+  final Procedure abiSpecificIntegerPointerElementAtTearoff;
   final Procedure abiSpecificIntegerArrayElemAt;
   final Procedure abiSpecificIntegerArraySetElemAt;
   final Procedure asFunctionMethod;
@@ -246,7 +252,6 @@ class FfiTransformer extends Transformer {
   final Map<NativeType, Procedure> loadUnalignedMethods;
   final Map<NativeType, Procedure> storeMethods;
   final Map<NativeType, Procedure> storeUnalignedMethods;
-  final Map<NativeType, Procedure> elementAtMethods;
   final Procedure loadAbiSpecificIntMethod;
   final Procedure loadAbiSpecificIntAtIndexMethod;
   final Procedure storeAbiSpecificIntMethod;
@@ -337,6 +342,7 @@ class FfiTransformer extends Transformer {
             index.getClass('dart:ffi', 'AbiSpecificInteger'),
         abiSpecificIntegerMappingClass =
             index.getClass('dart:ffi', 'AbiSpecificIntegerMapping'),
+        varArgsClass = index.getClass('dart:ffi', 'VarArgs'),
         ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
         nativeFieldWrapperClass1Class =
             index.getClass('dart:nativewrappers', 'NativeFieldWrapperClass1'),
@@ -363,8 +369,6 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'Allocator', 'allocate'),
         castMethod = index.getProcedure('dart:ffi', 'Pointer', 'cast'),
         offsetByMethod = index.getProcedure('dart:ffi', 'Pointer', '_offsetBy'),
-        elementAtMethod =
-            index.getProcedure('dart:ffi', 'Pointer', 'elementAt'),
         addressGetter =
             index.getProcedure('dart:ffi', 'Pointer', 'get:address'),
         compoundTypedDataBaseField =
@@ -397,6 +401,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'StructPointer', '[]'),
         structPointerSetElemAt =
             index.getProcedure('dart:ffi', 'StructPointer', '[]='),
+        structPointerElementAt =
+            index.getProcedure('dart:ffi', 'StructPointer', 'elementAt'),
+        structPointerElementAtTearoff = index.getProcedure('dart:ffi',
+            'StructPointer', LibraryIndex.tearoffPrefix + 'elementAt'),
         unionPointerGetRef =
             index.getProcedure('dart:ffi', 'UnionPointer', 'get:ref'),
         unionPointerSetRef =
@@ -405,6 +413,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'UnionPointer', '[]'),
         unionPointerSetElemAt =
             index.getProcedure('dart:ffi', 'UnionPointer', '[]='),
+        unionPointerElementAt =
+            index.getProcedure('dart:ffi', 'UnionPointer', 'elementAt'),
+        unionPointerElementAtTearoff = index.getProcedure('dart:ffi',
+            'UnionPointer', LibraryIndex.tearoffPrefix + 'elementAt'),
         structArrayElemAt = index.getProcedure('dart:ffi', 'StructArray', '[]'),
         unionArrayElemAt = index.getProcedure('dart:ffi', 'UnionArray', '[]'),
         arrayArrayElemAt = index.getProcedure('dart:ffi', 'ArrayArray', '[]'),
@@ -418,6 +430,12 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '[]'),
         abiSpecificIntegerPointerSetElemAt =
             index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '[]='),
+        abiSpecificIntegerPointerElementAt = index.getProcedure(
+            'dart:ffi', 'AbiSpecificIntegerPointer', 'elementAt'),
+        abiSpecificIntegerPointerElementAtTearoff = index.getProcedure(
+            'dart:ffi',
+            'AbiSpecificIntegerPointer',
+            LibraryIndex.tearoffPrefix + 'elementAt'),
         abiSpecificIntegerArrayElemAt =
             index.getProcedure('dart:ffi', 'AbiSpecificIntegerArray', '[]'),
         abiSpecificIntegerArraySetElemAt =
@@ -461,10 +479,6 @@ class FfiTransformer extends Transformer {
           final name = nativeTypeClassNames[t];
           return index.getTopLevelProcedure(
               'dart:ffi', "_store${name}Unaligned");
-        }),
-        elementAtMethods = Map.fromIterable(optimizedTypes, value: (t) {
-          final name = nativeTypeClassNames[t];
-          return index.getTopLevelProcedure('dart:ffi', "_elementAt$name");
         }),
         loadAbiSpecificIntMethod =
             index.getTopLevelProcedure('dart:ffi', "_loadAbiSpecificInt"),
@@ -540,10 +554,13 @@ class FfiTransformer extends Transformer {
   /// [Handle]                             -> [Object]
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
-  DartType? convertNativeTypeToDartType(DartType nativeType,
-      {bool allowCompounds = false,
-      bool allowHandle = false,
-      bool allowInlineArray = false}) {
+  DartType? convertNativeTypeToDartType(
+    DartType nativeType, {
+    bool allowCompounds = false,
+    bool allowHandle = false,
+    bool allowInlineArray = false,
+    bool allowVoid = false,
+  }) {
     if (nativeType is! InterfaceType) {
       return null;
     }
@@ -553,6 +570,14 @@ class FfiTransformer extends Transformer {
 
     if (nativeClass == arrayClass) {
       if (!allowInlineArray) {
+        return null;
+      }
+      final nested = convertNativeTypeToDartType(
+        nativeType.typeArguments.single,
+        allowInlineArray: true,
+        allowCompounds: true,
+      );
+      if (nested == null) {
         return null;
       }
       return nativeType;
@@ -582,6 +607,9 @@ class FfiTransformer extends Transformer {
       return InterfaceType(boolClass, Nullability.legacy);
     }
     if (nativeType_ == NativeType.kVoid) {
+      if (!allowVoid) {
+        return null;
+      }
       return VoidType();
     }
     if (nativeType_ == NativeType.kHandle && allowHandle) {
@@ -600,16 +628,61 @@ class FfiTransformer extends Transformer {
     if (fun.typeParameters.isNotEmpty) return null;
 
     final DartType? returnType = convertNativeTypeToDartType(fun.returnType,
-        allowCompounds: true, allowHandle: true);
+        allowCompounds: true, allowHandle: true, allowVoid: true);
     if (returnType == null) return null;
-    final List<DartType> argumentTypes = fun.positionalParameters
-        .map((t) =>
-            convertNativeTypeToDartType(t,
+    final argumentTypes = <DartType>[];
+    for (final paramDartType in flattenVarargs(fun).positionalParameters) {
+      argumentTypes.add(
+        convertNativeTypeToDartType(paramDartType,
                 allowCompounds: true, allowHandle: true) ??
-            dummyDartType)
-        .toList();
+            dummyDartType,
+      );
+    }
     if (argumentTypes.contains(dummyDartType)) return null;
     return FunctionType(argumentTypes, returnType, Nullability.legacy);
+  }
+
+  /// Removes the VarArgs from a DartType list.
+  ///
+  /// ```
+  /// [Int8, Int8] -> [Int8, Int8]
+  /// [Int8, VarArgs<(Int8,)>] -> [Int8, Int8]
+  /// [Int8, VarArgs<(Int8, Int8)>] -> [Int8, Int8, Int8]
+  /// ```
+  FunctionType flattenVarargs(FunctionType functionTypeWithPossibleVarArgs) {
+    final positionalParameters =
+        functionTypeWithPossibleVarArgs.positionalParameters;
+    if (positionalParameters.isEmpty) {
+      return functionTypeWithPossibleVarArgs;
+    }
+    final lastPositionalParameter = positionalParameters.last;
+    if (lastPositionalParameter is InterfaceType &&
+        lastPositionalParameter.classNode == varArgsClass) {
+      final typeArgument = lastPositionalParameter.typeArguments.single;
+      if (typeArgument is! RecordType) {
+        return functionTypeWithPossibleVarArgs;
+      }
+
+      if (typeArgument.named.isNotEmpty) {
+        // Named record fields are not supported.
+        return functionTypeWithPossibleVarArgs;
+      }
+
+      final positionalParameters = [
+        ...functionTypeWithPossibleVarArgs.positionalParameters.sublist(
+            0, functionTypeWithPossibleVarArgs.positionalParameters.length - 1),
+        for (final paramDartType in typeArgument.positional) paramDartType,
+      ];
+      return FunctionType(
+        positionalParameters,
+        functionTypeWithPossibleVarArgs.returnType,
+        functionTypeWithPossibleVarArgs.declaredNullability,
+        namedParameters: functionTypeWithPossibleVarArgs.namedParameters,
+        typeParameters: functionTypeWithPossibleVarArgs.typeParameters,
+        requiredParameterCount: positionalParameters.length,
+      );
+    }
+    return functionTypeWithPossibleVarArgs;
   }
 
   /// The [NativeType] corresponding to [c]. Returns `null` for user-defined
@@ -695,7 +768,8 @@ class FfiTransformer extends Transformer {
       Expression length, int fileOffset) {
     final typedDataVar = VariableDeclaration("#typedData",
         initializer: typedData,
-        type: InterfaceType(typedDataClass, Nullability.nonNullable))
+        type: InterfaceType(typedDataClass, Nullability.nonNullable),
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     return Let(
         typedDataVar,
@@ -741,10 +815,14 @@ class FfiTransformer extends Transformer {
   Expression typedDataBaseOffset(Expression typedDataBase, Expression offset,
       Expression length, DartType dartType, int fileOffset) {
     final typedDataBaseVar = VariableDeclaration("#typedDataBase",
-        initializer: typedDataBase, type: coreTypes.objectNonNullableRawType)
+        initializer: typedDataBase,
+        type: coreTypes.objectNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     final offsetVar = VariableDeclaration("#offset",
-        initializer: offset, type: coreTypes.intNonNullableRawType)
+        initializer: offset,
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     return BlockExpression(
         Block([typedDataBaseVar, offsetVar]),
@@ -829,13 +907,16 @@ class FfiTransformer extends Transformer {
   ///
   /// `Array<Array<Array<Unknown>>>` -> [InvalidType].
   DartType arraySingleElementType(DartType dartType) {
-    InterfaceType elementType = dartType as InterfaceType;
+    if (dartType is! InterfaceType) {
+      return InvalidType();
+    }
+    InterfaceType elementType = dartType;
     while (elementType.classNode == arrayClass) {
       final elementTypeAny = elementType.typeArguments[0];
-      if (elementTypeAny is InvalidType) {
-        return elementTypeAny;
+      if (elementTypeAny is! InterfaceType) {
+        return InvalidType();
       }
-      elementType = elementTypeAny as InterfaceType;
+      elementType = elementTypeAny;
     }
     return elementType;
   }
@@ -1124,12 +1205,18 @@ class FfiTransformer extends Transformer {
   }
 
   void ensureNativeTypeToDartType(
-      DartType nativeType, DartType dartType, TreeNode reportErrorOn,
-      {bool allowHandle = false}) {
+    DartType nativeType,
+    DartType dartType,
+    TreeNode reportErrorOn, {
+    bool allowHandle = false,
+    allowVoid = false,
+  }) {
     final DartType correspondingDartType = convertNativeTypeToDartType(
-        nativeType,
-        allowCompounds: true,
-        allowHandle: allowHandle)!;
+      nativeType,
+      allowCompounds: true,
+      allowHandle: allowHandle,
+      allowVoid: allowVoid,
+    )!;
     if (dartType == correspondingDartType) return;
     if (env.isSubtypeOf(correspondingDartType, dartType,
         SubtypeCheckMode.ignoringNullabilities)) {
@@ -1151,14 +1238,19 @@ class FfiTransformer extends Transformer {
     throw FfiStaticTypeError();
   }
 
-  void ensureNativeTypeValid(DartType nativeType, TreeNode reportErrorOn,
-      {bool allowHandle = false,
-      bool allowCompounds = false,
-      bool allowInlineArray = false}) {
+  void ensureNativeTypeValid(
+    DartType nativeType,
+    TreeNode reportErrorOn, {
+    bool allowHandle = false,
+    bool allowCompounds = false,
+    bool allowInlineArray = false,
+    bool allowVoid = false,
+  }) {
     if (!_nativeTypeValid(nativeType,
         allowCompounds: allowCompounds,
         allowHandle: allowHandle,
-        allowInlineArray: allowInlineArray)) {
+        allowInlineArray: allowInlineArray,
+        allowVoid: allowVoid)) {
       diagnosticReporter.report(
           templateFfiTypeInvalid.withArguments(
               nativeType, currentLibrary.isNonNullableByDefault),
@@ -1171,14 +1263,18 @@ class FfiTransformer extends Transformer {
 
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
-  bool _nativeTypeValid(DartType nativeType,
-      {bool allowCompounds = false,
-      bool allowHandle = false,
-      bool allowInlineArray = false}) {
+  bool _nativeTypeValid(
+    DartType nativeType, {
+    bool allowCompounds = false,
+    bool allowHandle = false,
+    bool allowInlineArray = false,
+    bool allowVoid = false,
+  }) {
     return convertNativeTypeToDartType(nativeType,
             allowCompounds: allowCompounds,
             allowHandle: allowHandle,
-            allowInlineArray: allowInlineArray) !=
+            allowInlineArray: allowInlineArray,
+            allowVoid: allowVoid) !=
         null;
   }
 }

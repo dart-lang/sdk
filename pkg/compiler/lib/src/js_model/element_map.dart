@@ -67,6 +67,9 @@ abstract class JsToElementMap {
   /// Returns the [FunctionEntity] corresponding to the procedure [node].
   FunctionEntity getMethod(ir.Procedure node);
 
+  /// Returns `true` if [node] has been included into this map.
+  bool containsMethod(ir.Procedure node);
+
   /// Returns the [ConstructorEntity] corresponding to the generative or factory
   /// constructor [node].
   ConstructorEntity getConstructor(ir.Member node);
@@ -101,7 +104,7 @@ abstract class JsToElementMap {
   //  only needed because effectively constant expressions are not replaced by
   //  constant expressions during resolution.
   ConstantValue? getConstantValue(
-      ir.Member memberContext, ir.Expression? expression,
+      ir.Member? memberContext, ir.Expression? expression,
       {bool requireConstant = true, bool implicitNull = false});
 
   /// Returns the [ConstantValue] for the sentinel used to indicate that a
@@ -168,32 +171,36 @@ abstract class KernelToTypeInferenceMap {
   /// Returns the inferred receiver type of the dynamic [invocation].
   // TODO(johnniwinther): Improve the type of the [invocation] once the new
   // method invocation encoding is fully utilized.
-  AbstractValue receiverTypeOfInvocation(
+  AbstractValue? receiverTypeOfInvocation(
       ir.Expression invocation, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred receiver type of the dynamic [read].
   // TODO(johnniwinther): Improve the type of the [invocation] once the new
   // method invocation encoding is fully utilized.
-  AbstractValue receiverTypeOfGet(ir.Expression read);
+  AbstractValue? receiverTypeOfGet(ir.Expression read);
 
   /// Returns the inferred receiver type of the dynamic [write].
   // TODO(johnniwinther): Improve the type of the [invocation] once the new
   // method invocation encoding is fully utilized.
-  AbstractValue receiverTypeOfSet(
+  AbstractValue? receiverTypeOfSet(
       ir.Expression write, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of [listLiteral].
   AbstractValue typeOfListLiteral(
       ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain);
 
+  /// Returns the inferred type of [recordLiteral].
+  AbstractValue? typeOfRecordLiteral(
+      ir.RecordLiteral recordLiteral, AbstractValueDomain abstractValueDomain);
+
   /// Returns the inferred type of iterator in [forInStatement].
-  AbstractValue typeOfIterator(ir.ForInStatement forInStatement);
+  AbstractValue? typeOfIterator(ir.ForInStatement forInStatement);
 
   /// Returns the inferred type of `current` in [forInStatement].
-  AbstractValue typeOfIteratorCurrent(ir.ForInStatement forInStatement);
+  AbstractValue? typeOfIteratorCurrent(ir.ForInStatement forInStatement);
 
   /// Returns the inferred type of `moveNext` in [forInStatement].
-  AbstractValue typeOfIteratorMoveNext(ir.ForInStatement forInStatement);
+  AbstractValue? typeOfIteratorMoveNext(ir.ForInStatement forInStatement);
 
   /// Returns `true` if [forInStatement] is inferred to be a JavaScript
   /// indexable iterator.
@@ -341,6 +348,9 @@ enum MemberKind {
 
   /// A separated body of a generator (sync*/async/async*) function.
   generatorBody,
+
+  /// A dynamic getter for a field of a record.
+  recordGetter,
 }
 
 /// Definition information for a [MemberEntity].
@@ -372,6 +382,8 @@ abstract class MemberDefinition {
       case MemberKind.closureCall:
       case MemberKind.closureField:
         return ClosureMemberDefinition.readFromDataSource(source, kind);
+      case MemberKind.recordGetter:
+        return RecordGetterDefinition.readFromDataSource(source);
     }
   }
 
@@ -508,6 +520,47 @@ class ClosureMemberDefinition implements MemberDefinition {
   String toString() => 'ClosureMemberDefinition(kind:$kind,location:$location)';
 }
 
+/// Definition for a record getter member.
+class RecordGetterDefinition implements MemberDefinition {
+  /// Tag used for identifying serialized [RecordMemberDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'record-getter-definition';
+
+  @override
+  final SourceSpan location;
+
+  final int indexInShape;
+
+  @override
+  ir.TreeNode get node => throw UnsupportedError('RecordGetterDefinition.node');
+
+  RecordGetterDefinition(this.location, this.indexInShape);
+
+  factory RecordGetterDefinition.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    SourceSpan location = source.readSourceSpan();
+    int indexInShape = source.readInt();
+    source.end(tag);
+    return RecordGetterDefinition(location, indexInShape);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(kind);
+    sink.begin(tag);
+    sink.writeSourceSpan(location);
+    sink.writeInt(indexInShape);
+    sink.end(tag);
+  }
+
+  @override
+  MemberKind get kind => MemberKind.recordGetter;
+
+  @override
+  String toString() =>
+      'RecordGetterDefinition(indexInShape:$indexInShape,location:$location)';
+}
+
 void forEachOrderedParameterByFunctionNode(
     ir.FunctionNode node,
     ParameterStructure parameterStructure,
@@ -588,6 +641,7 @@ enum ClassKind {
   // TODO(efortuna, johnniwinther): Context is not a class, but is
   // masquerading as one currently for consistency with the old element model.
   context,
+  record,
 }
 
 /// Definition information for a [ClassEntity].
@@ -612,6 +666,8 @@ abstract class ClassDefinition {
         return ClosureClassDefinition.readFromDataSource(source);
       case ClassKind.context:
         return ContextContainerDefinition.readFromDataSource(source);
+      case ClassKind.record:
+        return RecordClassDefinition.readFromDataSource(source);
     }
   }
 
@@ -728,4 +784,40 @@ class ContextContainerDefinition implements ClassDefinition {
   @override
   String toString() =>
       'ContextContainerDefinition(kind:$kind,location:$location)';
+}
+
+class RecordClassDefinition implements ClassDefinition {
+  /// Tag used for identifying serialized [RecordClassDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'record-class-definition';
+
+  @override
+  final SourceSpan location;
+
+  RecordClassDefinition(this.location);
+
+  factory RecordClassDefinition.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    SourceSpan location = source.readSourceSpan();
+    source.end(tag);
+    return RecordClassDefinition(location);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(ClassKind.record);
+    sink.begin(tag);
+    sink.writeSourceSpan(location);
+    sink.end(tag);
+  }
+
+  @override
+  ClassKind get kind => ClassKind.record;
+
+  @override
+  ir.Node get node =>
+      throw UnsupportedError('RecordClassDefinition.node for $location');
+
+  @override
+  String toString() => 'RecordClassDefinition(kind:$kind,location:$location)';
 }

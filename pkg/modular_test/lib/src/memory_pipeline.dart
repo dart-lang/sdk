@@ -44,7 +44,7 @@ class MemoryPipeline extends Pipeline<MemoryModularStep> {
   @override
   Future<void> run(ModularTest test) async {
     var results = _results = {};
-    Map<Module, Map<DataId, Object>>? cache = null;
+    Map<Module, Map<DataId, Object>>? cache;
     if (cacheSharedModules) {
       int id = _registry!.computeConfigurationId(test);
       if (id < _resultCache.length) {
@@ -94,10 +94,10 @@ class MemoryPipeline extends Pipeline<MemoryModularStep> {
     });
     Map<Uri, String> inputSources = {};
     if (step.needsSources) {
-      module.sources.forEach((relativeUri) {
+      for (var relativeUri in module.sources) {
         var uri = module.rootUri.resolveUri(relativeUri);
         inputSources[uri] = _sources[uri]!;
-      });
+      }
     }
     Map<DataId, Object> result = await step.execute(
         module,

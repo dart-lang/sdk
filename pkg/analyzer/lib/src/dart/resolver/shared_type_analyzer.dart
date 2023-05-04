@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,43 +14,28 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:collection/collection.dart';
 
-typedef SharedRecordPatternField
-    = shared.RecordPatternField<RecordPatternFieldImpl, DartPattern>;
+typedef SharedPatternField
+    = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
 
 /// Implementation of [shared.TypeAnalyzerErrors] that reports errors using the
 /// analyzer's [ErrorReporter] class.
 class SharedTypeAnalyzerErrors
     implements
         shared.TypeAnalyzerErrors<AstNode, Statement, Expression,
-            PromotableElement, DartType, DartPattern> {
+            PromotableElement, DartType, DartPattern, void> {
   final ErrorReporter _errorReporter;
 
   SharedTypeAnalyzerErrors(this._errorReporter);
 
   @override
-  void argumentTypeNotAssignable({
-    required Expression argument,
-    required DartType argumentType,
-    required DartType parameterType,
-  }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-      argument,
-      [argumentType, parameterType],
-    );
-  }
-
-  @override
-  void assertInErrorRecovery() {
-    throw UnimplementedError('TODO(paulberry)');
-  }
+  void assertInErrorRecovery() {}
 
   @override
   void caseExpressionTypeMismatch(
       {required Expression scrutinee,
       required Expression caseExpression,
-      required scrutineeType,
-      required caseExpressionType,
+      required DartType scrutineeType,
+      required DartType caseExpressionType,
       required bool nullSafetyEnabled}) {
     if (nullSafetyEnabled) {
       _errorReporter.reportErrorForNode(
@@ -76,13 +62,30 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void duplicateRecordPatternField({
-    required String name,
-    required covariant SharedRecordPatternField original,
-    required covariant SharedRecordPatternField duplicate,
+  void duplicateAssignmentPatternVariable({
+    required covariant PromotableElement variable,
+    required covariant AssignedVariablePatternImpl original,
+    required covariant AssignedVariablePatternImpl duplicate,
   }) {
     _errorReporter.reportError(
-      DiagnosticFactory().duplicateRecordPatternField(
+      DiagnosticFactory().duplicateAssignmentPatternVariable(
+        source: _errorReporter.source,
+        variable: variable,
+        original: original,
+        duplicate: duplicate,
+      ),
+    );
+  }
+
+  @override
+  void duplicateRecordPatternField({
+    required DartPattern objectOrRecordPattern,
+    required String name,
+    required covariant SharedPatternField original,
+    required covariant SharedPatternField duplicate,
+  }) {
+    _errorReporter.reportError(
+      DiagnosticFactory().duplicatePatternField(
         source: _errorReporter.source,
         name: name,
         duplicateField: duplicate.node,
@@ -92,58 +95,179 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateRestPattern({
+    required DartPattern mapOrListPattern,
+    required covariant RestPatternElementImpl original,
+    required covariant RestPatternElementImpl duplicate,
+  }) {
+    _errorReporter.reportError(
+      DiagnosticFactory().duplicateRestElementInPattern(
+        source: _errorReporter.source,
+        originalElement: original,
+        duplicateElement: duplicate,
+      ),
+    );
+  }
+
+  @override
+  void emptyMapPattern({
+    required DartPattern pattern,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.EMPTY_MAP_PATTERN,
+      pattern,
+    );
+  }
+
+  @override
   void inconsistentJoinedPatternVariable({
     required PromotableElement variable,
     required PromotableElement component,
   }) {
     _errorReporter.reportErrorForElement(
-      CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN,
+      CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
       component,
       [variable.name],
     );
   }
 
   @override
-  void nonBooleanCondition(Expression node) {
+  void matchedTypeIsStrictlyNonNullable({
+    required DartPattern pattern,
+    required DartType matchedType,
+  }) {
+    if (pattern is NullAssertPattern) {
+      _errorReporter.reportErrorForToken(
+        StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
+        pattern.operator,
+      );
+    } else if (pattern is NullCheckPattern) {
+      _errorReporter.reportErrorForToken(
+        StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
+        pattern.operator,
+      );
+    } else {
+      throw UnimplementedError('(${pattern.runtimeType}) $pattern');
+    }
+  }
+
+  @override
+  void matchedTypeIsSubtypeOfRequired({
+    required covariant CastPatternImpl pattern,
+    required DartType matchedType,
+    required DartType requiredType,
+  }) {
+    _errorReporter.reportErrorForToken(
+      WarningCode.UNNECESSARY_CAST_PATTERN,
+      pattern.asToken,
+    );
+  }
+
+  @override
+  void nonBooleanCondition({required Expression node}) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.NON_BOOL_CONDITION,
+      node,
+    );
+  }
+
+  @override
+  void patternDoesNotAllowLate({required AstNode pattern}) {
     throw UnimplementedError('TODO(paulberry)');
   }
 
   @override
-  void patternDoesNotAllowLate(AstNode pattern) {
-    throw UnimplementedError('TODO(paulberry)');
+  void patternForInExpressionIsNotIterable({
+    required AstNode node,
+    required Expression expression,
+    required DartType expressionType,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+      expression,
+      [expressionType, 'Iterable'],
+    );
   }
 
   @override
-  void patternTypeMismatchInIrrefutableContext(
-      {required AstNode pattern,
-      required AstNode context,
-      required DartType matchedType,
-      required DartType requiredType}) {
-    throw UnimplementedError('TODO(paulberry)');
+  void patternTypeMismatchInIrrefutableContext({
+    required covariant DartPatternImpl pattern,
+    required AstNode context,
+    required DartType matchedType,
+    required DartType requiredType,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+      pattern,
+      [matchedType, requiredType],
+    );
   }
 
   @override
-  void refutablePatternInIrrefutableContext(AstNode pattern, AstNode context) {
-    throw UnimplementedError('TODO(paulberry)');
+  void refutablePatternInIrrefutableContext(
+      {required AstNode pattern, required AstNode context}) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+      pattern,
+    );
+  }
+
+  @override
+  void relationalPatternOperandTypeNotAssignable({
+    required covariant RelationalPatternImpl pattern,
+    required DartType operandType,
+    required DartType parameterType,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+      pattern.operand,
+      [operandType, parameterType, pattern.operator.lexeme],
+    );
   }
 
   @override
   void relationalPatternOperatorReturnTypeNotAssignableToBool({
-    required covariant RelationalPatternImpl node,
+    required covariant RelationalPatternImpl pattern,
     required DartType returnType,
   }) {
     _errorReporter.reportErrorForToken(
       CompileTimeErrorCode
           .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
-      node.operator,
+      pattern.operator,
+    );
+  }
+
+  @override
+  void restPatternInMap({
+    required covariant MapPatternImpl node,
+    required covariant RestPatternElementImpl element,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN,
+      element,
     );
   }
 
   @override
   void switchCaseCompletesNormally(
-      covariant SwitchStatement node, int caseIndex, int numHeads) {
+      {required covariant SwitchStatement node, required int caseIndex}) {
     _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
-        node.members[caseIndex + numHeads - 1].keyword);
+        node.members[caseIndex].keyword);
+  }
+
+  @override
+  void unnecessaryWildcardPattern({
+    required covariant WildcardPatternImpl pattern,
+    required UnnecessaryWildcardKind kind,
+  }) {
+    switch (kind) {
+      case UnnecessaryWildcardKind.logicalAndPatternOperand:
+        _errorReporter.reportErrorForNode(
+          WarningCode.UNNECESSARY_WILDCARD_PATTERN,
+          pattern,
+        );
+        break;
+    }
   }
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -78,19 +76,19 @@ main() {
     main() {
       ${createUses(existentialTypeData)}
 
-      new C1();
-      new C2();
-      new C3.fact();
-      new C4();
+      C1();
+      C2();
+      C3.fact();
+      C4();
 
       F9(null, null);
       F10();
       F11(null);
       F12(null);
-      new C5<num>().F15<int, int>(1, 2);
-      new C5<num>().F16<int, int>(1, 2);
-      new C5<num>().F17(null, null, null);
-      new C5<num>().F18();
+      C5<num>().F15<int, int>(1, 2);
+      C5<num>().F16<int, int>(1, 2);
+      C5<num>().F17(null, null, null);
+      C5<num>().F18();
     }
     """),
         options: [Flags.noSoundNullSafety, Flags.printLegacyStars]);
@@ -155,34 +153,35 @@ main() {
       }
     }
 
-    InterfaceType Object_ = env['Object'];
-    InterfaceType num_ = env['num'];
-    InterfaceType int_ = env['int'];
-    InterfaceType C1 = env.instantiate(env.getClass('C1'), []);
-    InterfaceType C2 = env.instantiate(env.getClass('C2'), []);
-    ClassEntity C3 = env.getClass('C3');
-    InterfaceType C4 = env.instantiate(env.getClass('C4'), []);
-    DartType F1 = env.getFieldType('F1');
-    DartType F2 = env.getFieldType('F2');
-    DartType F3 = env.getFieldType('F3');
-    DartType F4 = env.getFieldType('F4');
-    DartType F5 = env.getFieldType('F5');
-    DartType F6 = env.getFieldType('F6');
-    DartType F7 = env.getFieldType('F7');
-    DartType F8 = env.getFieldType('F8');
-    FunctionType F9 = env.getMemberType('F9');
-    FunctionType F10 = env.getClosureType('F10');
-    FunctionType F11 = env.getMemberType('F11');
-    FunctionType F12 = env.getMemberType('F12');
-    DartType F13 = env.getFieldType('F13');
-    DartType F14 = env.getFieldType('F14');
-    ClassEntity C5 = env.getClass('C5');
-    TypeVariableType C5_T =
-        (env.getElementType('C5') as InterfaceType).typeArguments.single;
-    FunctionType F15 = env.getMemberType('F15', C5);
-    FunctionType F16 = env.getMemberType('F16', C5);
-    FunctionType F17 = env.getMemberType('F17', C5);
-    FunctionType F18 = env.getMemberType('F18', C5);
+    final Object_ = env['Object'] as InterfaceType;
+    final num_ = env['num'] as InterfaceType;
+    final int_ = env['int'] as InterfaceType;
+    final C1 = env.instantiate(env.getClass('C1'), []) as InterfaceType;
+    final C2 = env.instantiate(env.getClass('C2'), []) as InterfaceType;
+    final C3 = env.getClass('C3');
+    final C4 = env.instantiate(env.getClass('C4'), []) as InterfaceType;
+    final F1 = env.getFieldType('F1');
+    final F2 = env.getFieldType('F2');
+    final F3 = env.getFieldType('F3');
+    final F4 = env.getFieldType('F4');
+    final F5 = env.getFieldType('F5');
+    final F6 = env.getFieldType('F6');
+    final F7 = env.getFieldType('F7');
+    final F8 = env.getFieldType('F8');
+    final F9 = env.getMemberType('F9') as FunctionType;
+    final F10 = env.getClosureType('F10') as FunctionType;
+    final F11 = env.getMemberType('F11') as FunctionType;
+    final F12 = env.getMemberType('F12') as FunctionType;
+    final F13 = env.getFieldType('F13');
+    final F14 = env.getFieldType('F14');
+    final C5 = env.getClass('C5');
+    final C5_T = (env.getElementType('C5') as InterfaceType)
+        .typeArguments
+        .single as TypeVariableType;
+    final F15 = env.getMemberType('F15', C5) as FunctionType;
+    final F16 = env.getMemberType('F16', C5) as FunctionType;
+    final F17 = env.getMemberType('F17', C5) as FunctionType;
+    final F18 = env.getMemberType('F18', C5) as FunctionType;
 
     List<DartType> all = [
       F1,

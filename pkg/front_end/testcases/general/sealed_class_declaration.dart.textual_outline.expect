@@ -1,8 +1,4 @@
 // @dart = 2.18
-sealed
-class A {}
-sealed
+sealed class A {}
 mixin M {}
-mixin MM {}
-sealed
-class B = Object with MM;
+sealed class B = Object with M;

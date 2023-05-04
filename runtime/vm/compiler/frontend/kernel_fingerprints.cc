@@ -272,12 +272,12 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       }
       break;
     }
-    case kViewType: {
-      // We skip the view type and only use the representation type.
+    case kInlineType: {
+      // We skip the inline type and only use the representation type.
       ReadNullability();
       SkipCanonicalNameReference();    // read index for canonical name.
       SkipListOfDartTypes();           // read type arguments
-      CalculateDartTypeFingerprint();  // read representation type.
+      CalculateDartTypeFingerprint();  // read instantiated representation type.
       break;
     }
     default:
@@ -673,7 +673,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read operand.
       if (ReadTag() == kSomething) {
-        SkipDartType();  // read runtime check type.
+        CalculateDartTypeFingerprint();  // read runtime check type.
       }
       return;
     case kConstStaticInvocation:
@@ -688,8 +688,10 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kInstanceCreation:
     case kFileUriExpression:
     case kStaticTearOff:
-      // These nodes are internal to the front end and
-      // removed by the constant evaluator.
+    case kSwitchExpression:
+    case kPatternAssignment:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();
@@ -831,6 +833,11 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateVariableDeclarationFingerprint();  // read variable.
       CalculateFunctionNodeFingerprint();         // read function node.
       return;
+    case kIfCaseStatement:
+    case kPatternSwitchStatement:
+    case kPatternVariableDeclaration:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("statement", tag);
       UNREACHABLE();

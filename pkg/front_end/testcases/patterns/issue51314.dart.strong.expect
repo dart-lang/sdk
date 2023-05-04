@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/issue51314.dart:7:14: Error: A value of type 'num?' can't be assigned to a variable of type 'String'.
+//   String s = v2; // Error
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  hoisted has-declared-initializer core::num? v1;
+  hoisted has-declared-initializer core::num? v2;
+  {
+    final synthesized dynamic #0#0 = <core::Object, core::num?>{"one": 1, 2: 2};
+    late final synthesized core::num? #0#3 = #0#0{core::Map<core::Object, core::num?>}.{core::Map::[]}(#C1){(core::Object?) → core::num?};
+    late final synthesized core::num? #0#6 = #0#0{core::Map<core::Object, core::num?>}.{core::Map::[]}(#C2){(core::Object?) → core::num?};
+    if(!((!(#0#3 == null) || null is{ForNonNullableByDefault} core::num? && #0#0{core::Map<core::Object, core::num?>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (#0#3 is{ForNonNullableByDefault} core::num? && (let final dynamic #t1 = v1 = #0#3 in true)) && (!(#0#6 == null) || null is{ForNonNullableByDefault} core::num? && #0#0{core::Map<core::Object, core::num?>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final dynamic #t2 = v2 = #0#6 in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  core::String s = invalid-expression "pkg/front_end/testcases/patterns/issue51314.dart:7:14: Error: A value of type 'num?' can't be assigned to a variable of type 'String'.
+  String s = v2; // Error
+             ^" in v2 as{TypeError,ForNonNullableByDefault} core::String;
+}
+
+constants  {
+  #C1 = "one"
+  #C2 = 2
+}

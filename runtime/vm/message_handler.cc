@@ -44,8 +44,6 @@ const char* MessageHandler::MessageStatusString(MessageStatus status) {
       return "OK";
     case kError:
       return "Error";
-    case kRestart:
-      return "Restart";
     case kShutdown:
       return "Shutdown";
     default:
@@ -66,6 +64,7 @@ MessageHandler::MessageHandler()
       should_pause_on_exit_(false),
       is_paused_on_start_(false),
       is_paused_on_exit_(false),
+      remembered_paused_on_exit_status_(kOK),
       paused_timestamp_(-1),
 #endif
       task_running_(false),
@@ -357,9 +356,8 @@ bool MessageHandler::ShouldPauseOnStart(MessageStatus status) const {
   }
   // If we are restarting or shutting down, we do not want to honor
   // should_pause_on_start or should_pause_on_exit.
-  return (status != MessageHandler::kRestart &&
-          status != MessageHandler::kShutdown) &&
-         should_pause_on_start() && owning_isolate->is_runnable();
+  return (status != MessageHandler::kShutdown) && should_pause_on_start() &&
+         owning_isolate->is_runnable();
 }
 
 bool MessageHandler::ShouldPauseOnExit(MessageStatus status) const {
@@ -367,9 +365,8 @@ bool MessageHandler::ShouldPauseOnExit(MessageStatus status) const {
   if (owning_isolate == NULL) {
     return false;
   }
-  return (status != MessageHandler::kRestart &&
-          status != MessageHandler::kShutdown) &&
-         should_pause_on_exit() && owning_isolate->is_runnable();
+  return (status != MessageHandler::kShutdown) && should_pause_on_exit() &&
+         owning_isolate->is_runnable();
 }
 #endif
 
@@ -427,6 +424,9 @@ void MessageHandler::TaskCallback() {
         return;
       } else {
         PausedOnExitLocked(&ml, false);
+        if (status != kShutdown) {
+          status = remembered_paused_on_exit_status_;
+        }
       }
     }
 #endif  // !defined(PRODUCT)
@@ -462,9 +462,11 @@ void MessageHandler::TaskCallback() {
               "Use the Observatory to release it.\n",
               name());
         }
+        remembered_paused_on_exit_status_ = status;
         PausedOnExitLocked(&ml, true);
         // More messages may have come in while we released the monitor.
-        status = HandleMessages(&ml, false, false);
+        status = HandleMessages(&ml, /*allow_normal_messages=*/false,
+                                /*allow_multiple_normal_messagesfalse=*/false);
         if (ShouldPauseOnExit(status)) {
           // Still paused.
           ASSERT(oob_queue_->IsEmpty());

@@ -1,18 +1,16 @@
-/**
- * HTML elements and other resources for web-based applications that need to
- * interact with the browser and the DOM (Document Object Model).
- *
- * This library includes DOM element types, CSS styling, local storage,
- * media, speech, events, and more.
- * To get started,
- * check out the [Element] class, the base class for many of the HTML
- * DOM types.
- *
- * For information on writing web apps with Dart, see https://dart.dev/web.
- *
- * {@category Web}
- * {@canonicalFor dart:_internal.HttpStatus}
- */
+/// HTML elements and other resources for web-based applications that need to
+/// interact with the browser and the DOM (Document Object Model).
+///
+/// This library includes DOM element types, CSS styling, local storage,
+/// media, speech, events, and more.
+/// To get started,
+/// check out the [Element] class, the base class for many of the HTML
+/// DOM types.
+///
+/// For information on writing web apps with Dart, see https://dart.dev/web.
+///
+/// {@category Web}
+/// {@canonicalFor dart:_internal.HttpStatus}
 library dart.dom.html;
 
 import 'dart:async';
@@ -5908,12 +5906,12 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
   // Important note: CssStyleDeclarationSet does NOT implement every method
   // available in CssStyleDeclaration. Some of the methods don't make so much
-  // sense in terms of having a resonable value to return when you're
+  // sense in terms of having a reasonable value to return when you're
   // considering a list of Elements. You will need to manually add any of the
   // items in the MEMBERS set if you want that functionality.
 }
 
-abstract class CssStyleDeclarationBase {
+abstract mixin class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String? value, [String? priority]);
 
@@ -10112,22 +10110,6 @@ class Document extends Node {
 
   String queryCommandValue(String commandId) native;
 
-  @deprecated
-  Function registerElement2(String type, [Map? options]) {
-    if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _registerElement2_1(type, options_1);
-    }
-    return _registerElement2_2(type);
-  }
-
-  @JSName('registerElement')
-  @deprecated
-  Function _registerElement2_1(type, options) native;
-  @JSName('registerElement')
-  @deprecated
-  Function _registerElement2_2(type) native;
-
   @JSName('webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -10423,29 +10405,6 @@ class Document extends Node {
    */
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
       new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
-
-  /// Checks if [registerElement] is supported on the current platform.
-  @deprecated
-  bool get supportsRegisterElement {
-    return JS('bool', '("registerElement" in #)', this);
-  }
-
-  /// *Deprecated*: use [supportsRegisterElement] instead.
-  @deprecated
-  bool get supportsRegister => supportsRegisterElement;
-
-  /// **Deprecated**: This is a legacy API based on a deprecated Web Components
-  /// v0.5 specification. Web Components v0.5 doesn't work on modern browsers
-  /// and can only be used with a polyfill.
-  ///
-  /// The latest Web Components specification is supported indirectly via
-  /// JSInterop and doesn't have an explicit API in the `dart:html` library.
-  @deprecated
-  void registerElement(String tag, Type customElementClass,
-      {String? extendsTag}) {
-    registerElement2(
-        tag, {'prototype': customElementClass, 'extends': extendsTag});
-  }
 
   @pragma('dart2js:tryInline') // Almost all call sites have one argument.
   Element createElement(String tagName, [String? typeExtension]) {
@@ -17841,67 +17800,6 @@ class HtmlDocument extends Document {
   }
 
   /**
-   * **Deprecated**: This is a legacy API based on a deprecated Web Components
-   * v0.5 specification. This method doesn't work on modern browsers and can
-   * only be used with a polyfill.
-   *
-   * The latest Web Components specification is supported indirectly via
-   * JSInterop and doesn't have an explicit API in the `dart:html` library.
-   *
-   * *Original documentation before deprecation*:
-   *
-   * Register a custom subclass of Element to be instantiatable by the DOM.
-   *
-   * This is necessary to allow the construction of any custom elements.
-   *
-   * The class being registered must either subclass HtmlElement or SvgElement.
-   * If they subclass these directly then they can be used as:
-   *
-   *     class FooElement extends HtmlElement{
-   *        void created() {
-   *          print('FooElement created!');
-   *        }
-   *     }
-   *
-   *     main() {
-   *       document.registerElement('x-foo', FooElement);
-   *       var myFoo = new Element.tag('x-foo');
-   *       // prints 'FooElement created!' to the console.
-   *     }
-   *
-   * The custom element can also be instantiated via HTML using the syntax
-   * `<x-foo></x-foo>`
-   *
-   * Other elements can be subclassed as well:
-   *
-   *     class BarElement extends InputElement{
-   *        void created() {
-   *          print('BarElement created!');
-   *        }
-   *     }
-   *
-   *     main() {
-   *       document.registerElement('x-bar', BarElement);
-   *       var myBar = new Element.tag('input', 'x-bar');
-   *       // prints 'BarElement created!' to the console.
-   *     }
-   *
-   * This custom element can also be instantiated via HTML using the syntax
-   * `<input is="x-bar"></input>`
-   *
-   */
-  @deprecated
-  Function registerElement2(String tag, [Map? options]) {
-    return _registerCustomElement(JS('', 'window'), this, tag, options);
-  }
-
-  /** *Deprecated*: use [registerElement] instead. */
-  @deprecated
-  void register(String tag, Type customElementClass, {String? extendsTag}) {
-    return registerElement(tag, customElementClass, extendsTag: extendsTag);
-  }
-
-  /**
    * Static factory designed to expose `visibilitychange` events to event
    * handlers that are not necessarily instances of [Document].
    *
@@ -23562,7 +23460,7 @@ class Node extends EventTarget {
   @JSName('textContent')
 
   /**
-   * All text within this node and its descendents.
+   * All text within this node and its descendants.
    *
    * ## Other resources
    *
@@ -23591,7 +23489,7 @@ class Node extends EventTarget {
   /**
    * Returns a copy of this node.
    *
-   * If [deep] is `true`, then all of this node's children and descendents are
+   * If [deep] is `true`, then all of this node's children and descendants are
    * copied as well. If [deep] is `false`, then only this node is copied.
    *
    * ## Other resources
@@ -28646,7 +28544,7 @@ class SpeechGrammarList extends JavaScriptObject
 // BSD-style license that can be found in the LICENSE file.
 
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Native("SpeechRecognition")
+@Native("SpeechRecognition,webkitSpeechRecognition")
 class SpeechRecognition extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognition._() {
@@ -32835,7 +32733,7 @@ class Window extends EventTarget
    * ## Other resources
    *
    * * [Measuring page load speed with navigation
-   *   timeing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)
+   *   timing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)
    *   from HTML5Rocks.
    * * [Navigation timing
    *   specification](http://www.w3.org/TR/navigation-timing/) from W3C.
@@ -34637,7 +34535,6 @@ abstract class _DocumentType extends Node implements ChildNode {
   }
 
   // From ChildNode
-
 }
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -35752,7 +35649,6 @@ abstract class _WorkerLocation extends JavaScriptObject
   }
 
   // From URLUtilsReadOnly
-
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35770,7 +35666,6 @@ abstract class _WorkerNavigator extends NavigatorConcurrentHardware
   // From NavigatorID
 
   // From NavigatorOnLine
-
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36973,7 +36868,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   // A collection of static methods for DomTokenList. These methods are a
-  // work-around for the lack of annotations to express the full behaviour of
+  // workaround for the lack of annotations to express the full behaviour of
   // the DomTokenList methods.
 
   static DomTokenList _classListOf(Element e) => JS(
@@ -37323,7 +37218,8 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   bool get isBroadcast => true;
 }
 
-class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
+class _EventStreamSubscription<T extends Event>
+    implements StreamSubscription<T> {
   int _pauseCount = 0;
   EventTarget? _target;
   final String _eventType;
@@ -38002,7 +37898,7 @@ class _Html5NodeValidator implements NodeValidator {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class ImmutableListMixin<E> implements List<E> {
+abstract mixin class ImmutableListMixin<E> implements List<E> {
   // From Iterable<$E>:
   Iterator<E> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
@@ -38171,7 +38067,7 @@ abstract class KeyCode {
   static const int Y = 89;
   static const int Z = 90;
   static const int META = 91;
-  static const int WIN_KEY_LEFT = 91;
+  static const int WIN_KEY_LEFT = 91; // Note that it's the same value as META.
   static const int WIN_KEY_RIGHT = 92;
   static const int CONTEXT_MENU = 93;
   static const int NUM_ZERO = 96;
@@ -38396,7 +38292,8 @@ abstract class KeyCode {
         return _KeyName.UP;
       case KeyCode.WIN_IME:
       case KeyCode.WIN_KEY:
-      case KeyCode.WIN_KEY_LEFT:
+      // Covered by `KeyCode.META` above.
+      // case KeyCode.WIN_KEY_LEFT:
       case KeyCode.WIN_KEY_RIGHT:
         return _KeyName.WIN;
       default:
@@ -38490,7 +38387,7 @@ abstract class _KeyName {
   static const String BROWSER_BACK = "BrowserBack";
 
   /** The Browser Favorites key */
-  static const String BROWSER_FAVORTIES = "BrowserFavorites";
+  static const String BROWSER_FAVORITES = "BrowserFavorites";
 
   /** The Browser Forward key */
   static const String BROWSER_FORWARD = "BrowserForward";

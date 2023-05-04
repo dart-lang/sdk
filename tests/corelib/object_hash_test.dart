@@ -102,7 +102,7 @@ main() {
 
 /// Lazily emits all permutations of [values].
 ///
-/// Modifes [values] rather than create a new list.
+/// Modifies [values] rather than create a new list.
 /// The [values] list is guaranteed to end up in its original state
 /// after all permutations have been read.
 Iterable<List<T>> permutations<T>(List<T> values) {

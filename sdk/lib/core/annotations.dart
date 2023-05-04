@@ -76,9 +76,6 @@ class Deprecated {
   /// is expected to be removed.
   const Deprecated(this.message);
 
-  @Deprecated('Use `message` instead. Will be removed in Dart 3.0.0')
-  String get expires => message;
-
   String toString() => "Deprecated feature: $message";
 }
 
@@ -117,27 +114,6 @@ class _Override {
 /// can be used to enable more warnings based on `@override` annotations.
 const Object override = _Override();
 
-/// An annotation class that was used during development of Dart 2.
-///
-/// Should not be used any more.
-@deprecated
-class Provisional {
-  String? get message => null;
-  const Provisional({String? message});
-}
-
-/// An annotation that was used during development of Dart 2.
-///
-/// The annotation has no effect, and will be removed.
-@deprecated
-const Null provisional = null;
-
-/// This annotation was used in Dart prior to version 2.
-///
-/// The annotation has no effect, and will be removed.
-@deprecated
-const Null proxy = null;
-
 /// A hint to tools.
 ///
 /// Tools that work with Dart programs may accept hints to guide their behavior
@@ -171,7 +147,7 @@ const Null proxy = null;
 /// function `foo` is annotated with a pragma 'other-pragma'
 /// specific to OtherTool.
 @pragma('vm:entry-point')
-class pragma {
+final class pragma {
   /// The name of the hint.
   ///
   /// A string that is recognized by one or more tools, or such a string prefixed

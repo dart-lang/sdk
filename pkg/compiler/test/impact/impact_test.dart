@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
@@ -22,7 +20,7 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     print('Testing computation of WorldImpact through ImpactData');
     print('==================================================================');
     await checkTests(dataDir, const ImpactDataComputer(),
@@ -48,9 +46,9 @@ class ImpactDataComputer extends DataComputer<Features> {
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose = false}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
-    WorldImpact impact = compiler.impactCache[member];
+    WorldImpact impact = compiler.impactCache[member]!;
     ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
-    Features features = new Features();
+    Features features = Features();
     if (impact.typeUses.length > 50) {
       features.addElement(Tags.typeUse, wildcard);
     } else {
@@ -71,12 +69,12 @@ class ImpactDataComputer extends DataComputer<Features> {
     for (ConstantUse use in impact.constantUses) {
       features.addElement(Tags.constantUse, use.shortText);
     }
-    final impactData = frontendStrategy.elementMap.impactDataForTesting[node];
+    final impactData = frontendStrategy.elementMap.impactDataForTesting![node]!;
     impactData.apply(ImpactDataGoldener(frontendStrategy.elementMap, features));
     Id id = computeMemberId(node);
-    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
-    actualMap[id] = new ActualData<Features>(id, features,
-        nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);
+    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
+    actualMap[id] = ActualData<Features>(id, features,
+        nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
   }
 
   @override
@@ -95,7 +93,7 @@ class ImpactDataGoldener implements ImpactRegistry {
 
   @override
   void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
-      ir.DartType argumentType) {
+      ir.DartType? argumentType) {
     final runtimeTypeUse = RuntimeTypeUse(
         kind,
         elementMap.getDartType(receiverType),

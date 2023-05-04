@@ -169,7 +169,7 @@ static void NullErrorHelper(Zone* zone,
     args.SetAt(
         3, String::Handle(
                zone, String::New("Null check operator used on a null value")));
-    Exceptions::ThrowByType(Exceptions::kCast, args);
+    Exceptions::ThrowByType(Exceptions::kType, args);
     return;
   }
 
@@ -270,7 +270,7 @@ DEFINE_RUNTIME_ENTRY(DispatchTableNullError, 1) {
   const Smi& cid = Smi::CheckedHandle(zone, arguments.ArgAt(0));
   if (cid.Value() != kNullCid) {
     // We hit null error, but receiver is not null itself. This most likely
-    // is a memory corruption. Crash the VM but provide some additonal
+    // is a memory corruption. Crash the VM but provide some additional
     // information about the arguments on the stack.
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
@@ -504,12 +504,12 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
 
   // If we eliminate a generational write barriers on allocations of an object
   // we need to ensure it's either a new-space object or it has been added to
-  // the remebered set.
+  // the remembered set.
   //
   // NOTE: We use reinterpret_cast<>() instead of ::RawCast() to avoid handle
   // allocations in debug mode. Handle allocations in leaf runtimes can cause
   // memory leaks because they will allocate into a handle scope from the next
-  // outermost runtime code (to which the genenerated Dart code might not return
+  // outermost runtime code (to which the generated Dart code might not return
   // in a long time).
   bool add_to_remembered_set = true;
   if (object->untag()->IsRemembered()) {
@@ -721,36 +721,31 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
 }
 
 // Allocate a new record instance.
-// Arg0: number of fields.
-// Arg1: field names.
+// Arg0: record shape id.
 // Return value: newly allocated record.
-DEFINE_RUNTIME_ENTRY(AllocateRecord, 2) {
-  const Smi& num_fields = Smi::CheckedHandle(zone, arguments.ArgAt(0));
-  const auto& field_names = Array::CheckedHandle(zone, arguments.ArgAt(1));
+DEFINE_RUNTIME_ENTRY(AllocateRecord, 1) {
+  const RecordShape shape(Smi::RawCast(arguments.ArgAt(0)));
   const Record& record =
-      Record::Handle(zone, Record::New(num_fields.Value(), field_names,
-                                       SpaceForRuntimeAllocation()));
+      Record::Handle(zone, Record::New(shape, SpaceForRuntimeAllocation()));
   arguments.SetReturn(record);
 }
 
 // Allocate a new small record instance and initialize its fields.
-// Arg0: number of fields.
-// Arg1: field names.
-// Arg2-Arg4: field values.
+// Arg0: record shape id.
+// Arg1-Arg3: field values.
 // Return value: newly allocated record.
-DEFINE_RUNTIME_ENTRY(AllocateSmallRecord, 5) {
-  const Smi& num_fields = Smi::CheckedHandle(zone, arguments.ArgAt(0));
-  const auto& field_names = Array::CheckedHandle(zone, arguments.ArgAt(1));
-  const auto& value0 = Instance::CheckedHandle(zone, arguments.ArgAt(2));
-  const auto& value1 = Instance::CheckedHandle(zone, arguments.ArgAt(3));
-  const auto& value2 = Instance::CheckedHandle(zone, arguments.ArgAt(4));
+DEFINE_RUNTIME_ENTRY(AllocateSmallRecord, 4) {
+  const RecordShape shape(Smi::RawCast(arguments.ArgAt(0)));
+  const auto& value0 = Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& value1 = Instance::CheckedHandle(zone, arguments.ArgAt(2));
+  const auto& value2 = Instance::CheckedHandle(zone, arguments.ArgAt(3));
   const Record& record =
-      Record::Handle(zone, Record::New(num_fields.Value(), field_names,
-                                       SpaceForRuntimeAllocation()));
-  ASSERT(num_fields.Value() == 2 || num_fields.Value() == 3);
+      Record::Handle(zone, Record::New(shape, SpaceForRuntimeAllocation()));
+  const intptr_t num_fields = shape.num_fields();
+  ASSERT(num_fields == 2 || num_fields == 3);
   record.SetFieldAt(0, value0);
   record.SetFieldAt(1, value1);
-  if (num_fields.Value() > 2) {
+  if (num_fields > 2) {
     record.SetFieldAt(2, value2);
   }
   arguments.SetReturn(record);
@@ -2399,7 +2394,7 @@ FunctionPtr PatchableCallHandler::ResolveTargetFunction(const Object& data) {
 }
 
 void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
-  // Find out actual target (which can be time consuminmg) without holding any
+  // Find out actual target (which can be time consuming) without holding any
   // locks.
   const auto& target_function =
       Function::Handle(zone_, ResolveTargetFunction(old_data));
@@ -2645,7 +2640,8 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
 
     if (receiver.IsRecord()) {
       const Record& record = Record::Cast(receiver);
-      const intptr_t field_index = record.GetFieldIndexByName(function_name);
+      const intptr_t field_index =
+          record.GetFieldIndexByName(thread, function_name);
       if (field_index >= 0) {
         return record.FieldAt(field_index);
       }
@@ -2720,7 +2716,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     if (receiver.IsRecord()) {
       const Record& record = Record::Cast(receiver);
       const intptr_t field_index =
-          record.GetFieldIndexByName(demangled_target_name);
+          record.GetFieldIndexByName(thread, demangled_target_name);
       if (field_index >= 0) {
         const Object& getter_result =
             Object::Handle(zone, record.FieldAt(field_index));
@@ -2890,7 +2886,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     const bool success =
         isolate_group->ReloadSources(&js, /*force_reload=*/true, script_uri);
     if (!success) {
-      FATAL1("*** Isolate reload failed:\n%s\n", js.ToCString());
+      FATAL("*** Isolate reload failed:\n%s\n", js.ToCString());
     }
   }
   if (do_stacktrace) {

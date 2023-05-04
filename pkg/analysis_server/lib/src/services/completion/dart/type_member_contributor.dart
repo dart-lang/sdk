@@ -9,6 +9,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 import 'package:collection/collection.dart';
 
@@ -21,12 +23,47 @@ class TypeMemberContributor extends DartCompletionContributor {
   TypeMemberContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
+    final patternLocation = request.opType.patternLocation;
+    if (patternLocation is NamedPatternFieldWantsFinalOrVar) {
+      return;
+    } else if (patternLocation is NamedPatternFieldWantsName) {
+      var excludedGetters = patternLocation.existingFields
+          .map((field) => field.name?.name?.lexeme)
+          .whereNotNull()
+          .toSet();
+      _suggestFromType(
+        expression: null,
+        expressionType: patternLocation.matchedType,
+        excludedGetters: excludedGetters,
+        includeSetters: false,
+      );
+      return;
+    }
+
     // Recompute the target because resolution might have changed it.
     var expression = request.target.dotTarget;
     if (expression == null ||
         expression.isSynthetic ||
         expression is ExtensionOverride) {
+      var containingNode = request.target.containingNode;
+      if (containingNode is ObjectPattern) {
+        // TODO(brianwilkerson) This is really only intended to be reached when
+        //  `expression` is `null`. It's not ideal that we're using this
+        //  contributor this way, and we should look into better ways to
+        //  structure the code.
+        var excludedGetters = containingNode.fields
+            .map((field) => field.name?.name?.lexeme)
+            .whereNotNull()
+            .toSet();
+        _suggestFromType(
+            expression: null,
+            expressionType: containingNode.type.type,
+            excludedGetters: excludedGetters,
+            includeSetters: false);
+      }
       return;
     }
     if (expression is Identifier) {
@@ -40,9 +77,53 @@ class TypeMemberContributor extends DartCompletionContributor {
         return;
       }
     }
+    _suggestFromType(
+        expression: expression,
+        expressionType: expression.staticType,
+        excludedGetters: const {},
+        includeSetters: true);
+  }
 
+  void _suggestFromDartCoreObject() {
+    _suggestFromInterfaceType(request.objectType,
+        excludedGetters: const {}, includeSetters: true);
+  }
+
+  void _suggestFromInterfaceType(InterfaceType type,
+      {required Set<String> excludedGetters, required bool includeSetters}) {
+    _SuggestionBuilder(request, builder).buildSuggestions(
+        baseType: type,
+        excludedGetters: excludedGetters,
+        includeSetters: includeSetters);
+  }
+
+  void _suggestFromRecordType({
+    required RecordType type,
+    required Set<String> excludedFields,
+  }) {
+    type.positionalFields.forEachIndexed((index, field) {
+      builder.suggestRecordField(
+        field: field,
+        name: '\$${index + 1}',
+      );
+    });
+
+    for (final field in type.namedFields) {
+      if (!excludedFields.contains(field.name)) {
+        builder.suggestRecordField(
+          field: field,
+          name: field.name,
+        );
+      }
+    }
+  }
+
+  void _suggestFromType(
+      {Expression? expression,
+      DartType? expressionType,
+      required Set<String> excludedGetters,
+      required bool includeSetters}) {
     // Determine the target expression's type.
-    final expressionType = expression.staticType;
     var type = expressionType != null
         ? request.libraryElement.typeSystem.resolveToBound(expressionType)
         : null;
@@ -76,42 +157,24 @@ class TypeMemberContributor extends DartCompletionContributor {
     } else if (type is InterfaceType) {
       if (expression is SuperExpression) {
         _SuggestionBuilder(request, builder).buildSuggestions(
-          type.superclass ?? request.objectType,
+          baseType: type.superclass ?? request.objectType,
+          excludedGetters: excludedGetters,
+          includeSetters: includeSetters,
           mixins: type.mixins,
           superclassConstraints: type.superclassConstraints,
         );
       } else {
-        _suggestFromInterfaceType(type);
+        _suggestFromInterfaceType(type,
+            excludedGetters: excludedGetters, includeSetters: includeSetters);
       }
     } else if (type is RecordType) {
-      _suggestFromRecordType(type);
+      _suggestFromRecordType(
+        type: type,
+        excludedFields: excludedGetters,
+      );
       _suggestFromDartCoreObject();
     } else {
       _suggestFromDartCoreObject();
-    }
-  }
-
-  void _suggestFromDartCoreObject() {
-    _suggestFromInterfaceType(request.objectType);
-  }
-
-  void _suggestFromInterfaceType(InterfaceType type) {
-    _SuggestionBuilder(request, builder).buildSuggestions(type);
-  }
-
-  void _suggestFromRecordType(RecordType type) {
-    type.positionalFields.forEachIndexed((index, field) {
-      builder.suggestRecordField(
-        field: field,
-        name: '\$$index',
-      );
-    });
-
-    for (final field in type.namedFields) {
-      builder.suggestRecordField(
-        field: field,
-        name: field.name,
-      );
     }
   }
 }
@@ -253,17 +316,20 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
   /// Initialize a newly created suggestion builder.
   _SuggestionBuilder(super.request, super.builder);
 
-  /// Return completion suggestions for 'dot' completions on the given [type].
+  /// Add completion suggestions for 'dot' completions on the given [baseType].
   /// If the 'dot' completion is a super expression, then [containingMethodName]
   /// is the name of the method in which the completion is requested.
-  void buildSuggestions(InterfaceType type,
-      {List<InterfaceType>? mixins,
+  void buildSuggestions(
+      {required InterfaceType baseType,
+      required Set<String> excludedGetters,
+      required bool includeSetters,
+      List<InterfaceType>? mixins,
       List<InterfaceType>? superclassConstraints}) {
     // Visit all of the types in the class hierarchy, collecting possible
     // completions.  If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
     // exceptions to handle getter/setter pairs).
-    var types = _getTypeOrdering(type);
+    var types = _getTypeOrdering(baseType);
     if (mixins != null) {
       types.addAll(mixins);
     }
@@ -272,7 +338,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     }
     for (var targetType in types) {
       var inheritanceDistance = request.featureComputer
-          .inheritanceDistanceFeature(type.element, targetType.element);
+          .inheritanceDistanceFeature(baseType.element, targetType.element);
       for (var method in targetType.methods) {
         // Exclude static methods when completion on an instance.
         if (!method.isStatic) {
@@ -285,8 +351,11 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
       }
       for (var accessor in targetType.accessors) {
         if (!accessor.isStatic) {
-          addSuggestionForAccessor(
-              accessor: accessor, inheritanceDistance: inheritanceDistance);
+          if (accessor.isGetter && !excludedGetters.contains(accessor.name) ||
+              accessor.isSetter && includeSetters) {
+            addSuggestionForAccessor(
+                accessor: accessor, inheritanceDistance: inheritanceDistance);
+          }
         }
       }
       if (targetType.isDartCoreFunction) {

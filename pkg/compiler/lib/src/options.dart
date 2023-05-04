@@ -10,7 +10,6 @@ import 'commandline_options.dart' show Flags;
 import 'util/util.dart';
 
 enum NullSafetyMode {
-  unspecified,
   unsound,
   sound,
 }
@@ -392,6 +391,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// this RegExp pattern.
   String? dumpSsaPattern = null;
 
+  /// Whether to generate a `.resources.json` file detailing the use of resource
+  /// identifiers.
+  bool writeResources = false;
+
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
   ///
@@ -552,24 +555,20 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
-  /// When null-safety is enabled, whether the compiler should emit code with
-  /// unsound or sound semantics.
-  ///
-  /// If unspecified, the mode must be inferred from the entrypoint.
+  /// Whether the compiler should emit code with unsound or sound semantics.
+  /// Since Dart 3.0 this is no longer inferred from sources, but defaults to
+  /// sound semantics.
   ///
   /// This option should rarely need to be accessed directly. Consider using
   /// [useLegacySubtyping] instead.
-  NullSafetyMode nullSafetyMode = NullSafetyMode.unspecified;
+  NullSafetyMode nullSafetyMode = NullSafetyMode.sound;
   bool _soundNullSafety = false;
   bool _noSoundNullSafety = false;
 
   /// Whether to use legacy subtype semantics rather than null-safe semantics.
-  /// This is `true` if null-safety is disabled, i.e. all code is legacy code,
-  /// or if unsound null-safety semantics are being used, since we do not emit
-  /// warnings.
+  /// This is `true` if unsound null-safety semantics are being used, since
+  /// dart2js does not emit warnings for unsound null-safety.
   bool get useLegacySubtyping {
-    assert(nullSafetyMode != NullSafetyMode.unspecified,
-        "Null safety mode unspecified");
     return nullSafetyMode == NullSafetyMode.unsound;
   }
 
@@ -659,6 +658,7 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, "${Flags.dumpInfo}=binary")
       ..dumpSsaPattern =
           _extractStringOption(options, '${Flags.dumpSsa}=', null)
+      ..writeResources = _hasOption(options, Flags.writeResources)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
       ..omitLateNames = _hasOption(options, Flags.omitLateNames)
@@ -832,13 +832,28 @@ class CompilerOptions implements DiagnosticOptions {
       omitLateNames = false;
     }
 
-    if (_noNativeNullAssertions || nullSafetyMode != NullSafetyMode.sound) {
+    if (nullSafetyMode != NullSafetyMode.sound) {
+      // Technically, we should still assert if the user passed in a flag to
+      // assert, but this was not the behavior before, so to avoid a breaking
+      // change, we don't assert in unsound mode.
       nativeNullAssertions = false;
+    } else if (_noNativeNullAssertions) {
+      // Never assert if the user tells us not to.
+      nativeNullAssertions = false;
+    } else if (!nativeNullAssertions &&
+        (optimizationLevel != null && optimizationLevel! >= 3)) {
+      // If the user didn't tell us to assert and we're in >= -O3, optimize away
+      // the check. This should reduce issues in production.
+      nativeNullAssertions = false;
+    } else {
+      nativeNullAssertions = true;
     }
 
     if (_mergeFragmentsThreshold != null) {
       mergeFragmentsThreshold = _mergeFragmentsThreshold;
     }
+
+    environment['dart.web.assertions_enabled'] = '$enableUserAssertions';
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

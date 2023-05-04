@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
@@ -223,7 +224,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Create the LibraryCycle instance for the cycle.
     var cycle = LibraryCycle(
-      libraries: libraries,
+      libraries: libraries.toFixedList(),
       directDependencies: directDependencies,
       apiSignature: apiSignature.toHex(),
       implSignature: implSignature.toHex(),

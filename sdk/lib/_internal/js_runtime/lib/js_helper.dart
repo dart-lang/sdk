@@ -17,6 +17,7 @@ import 'dart:_js_embedded_names'
         IS_HUNK_INITIALIZED,
         LEAF_TAGS,
         NATIVE_SUPERCLASS_TAG_NAME,
+        RECORD_TYPE_TEST_COMBINATORS_PROPERTY,
         RUNTIME_METRICS,
         STARTUP_METRICS,
         STATIC_FUNCTION_NAME_PROPERTY_NAME,
@@ -49,6 +50,7 @@ import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
 import 'dart:_internal'
     show
+        checkNotNullable,
         EfficientLengthIterable,
         MappedIterable,
         IterableElementError,
@@ -62,11 +64,16 @@ import 'dart:_rti' as newRti
     show
         createRuntimeType,
         evalInInstance,
+        evaluateRtiForRecord,
         getRuntimeType,
+        getRuntimeTypeOfClosure,
+        getRuntimeTypeOfRecord,
         getTypeFromTypesTable,
         instanceTypeName,
         instantiatedGenericFunctionType,
-        throwTypeError;
+        pairwiseIsTest,
+        throwTypeError,
+        Rti;
 
 import 'dart:_load_library_priority';
 
@@ -77,6 +84,10 @@ part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'linked_hash_map.dart';
+part 'records.dart';
+
+const JS_FUNCTION_PROPERTY_NAME = r'$dart_jsFunction';
+const JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS = r'_$dart_jsFunctionCaptureThis';
 
 /// Marks the internal map in dart2js, so that internal libraries can is-check
 /// them.
@@ -377,6 +388,33 @@ class Primitives {
     return result;
   }
 
+  static bool? parseBool(String source, bool caseSensitive) {
+    checkNotNullable(source, "source");
+    checkNotNullable(caseSensitive, "caseSensitive");
+    if (caseSensitive) {
+      return source == "true"
+          ? true
+          : source == "false"
+              ? false
+              : null;
+    }
+    return _compareIgnoreCase(source, "true")
+        ? true
+        : _compareIgnoreCase(source, "false")
+            ? false
+            : null;
+  }
+
+  static bool _compareIgnoreCase(String input, String lowerCaseTarget) {
+    if (input.length != lowerCaseTarget.length) return false;
+    for (var i = 0; i < input.length; i++) {
+      if (input.codeUnitAt(i) | 0x20 != lowerCaseTarget.codeUnitAt(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /// [: r"$".codeUnitAt(0) :]
   static const int DOLLAR_CHAR_VALUE = 36;
 
@@ -446,6 +484,28 @@ class Primitives {
     return "Instance of '$name'";
   }
 
+  static String stringSafeToString(String string) {
+    return jsonEncodeNative(string);
+  }
+
+  static String safeToString(Object? object) {
+    if (object == null || object is num || object is bool) {
+      return object.toString();
+    }
+    if (object is String) {
+      return stringSafeToString(object);
+    }
+    // Closures all have useful and safe toString methods.
+    if (object is Closure) {
+      return object.toString();
+    }
+    if (object is _Record) {
+      return object._toString(true);
+    }
+
+    return Primitives.objectToHumanReadableString(object);
+  }
+
   static int dateNow() => JS('int', r'Date.now()');
 
   static void initTicker() {
@@ -455,6 +515,13 @@ class Primitives {
     if (JS('bool', 'typeof window == "undefined"')) return;
     var window = JS('var', 'window');
     if (window == null) return;
+
+    // This property is set in the preambles that fake `Date.now()` to simulate
+    // the passage of time by advancing the clock rather than waiting. The
+    // simulated passage of time is not implemented for the browser
+    // `Performance` APIs, so we must use `Date.now()` to measure time.
+    if (JS('bool', '!!#.dartUseDateNowForTicks', window)) return;
+
     var performance = JS('var', '#.performance', window);
     if (performance == null) return;
     if (JS('bool', 'typeof #.now != "function"', performance)) return;
@@ -1010,7 +1077,7 @@ class Primitives {
           }
         }
         if (used != namedArguments.length) {
-          // Named argument with name not accected by function.
+          // Named argument with name not accepted by function.
           return functionNoSuchMethod(function, arguments, namedArguments);
         }
       }
@@ -1122,7 +1189,7 @@ String checkString(value) {
 /// object out of the wrapper again.
 @pragma('dart2js:noInline')
 wrapException(ex) {
-  if (ex == null) ex = new NullThrownError();
+  if (ex == null) ex = new TypeError();
   var wrapper = JS('', 'new Error()');
   // [unwrapException] looks for the property 'dartException'.
   JS('void', '#.dartException = #', wrapper, ex);
@@ -1586,8 +1653,8 @@ class ExceptionAndStackTrace {
 /// Some native exceptions are mapped to new Dart instances, others are
 /// returned unmodified.
 Object unwrapException(Object? ex) {
-  // Dart converts `null` to `NullThrownError()`. JavaScript can still throw a
-  // nullish value.
+  // Null safe Dart can't throw null, and it is now a `TypeError` in unsound
+  // code. JavaScript can still throw a nullish value.
   if (ex == null) {
     return NullThrownFromJavaScriptException(ex);
   }
@@ -1875,7 +1942,7 @@ convertDartClosureToJS(closure, int arity) {
 ///
 /// All static, tear-off, function declaration and function expression closures
 /// extend this class.
-abstract class Closure implements Function {
+abstract final class Closure implements Function {
   /// Global counter to prevent reusing function code objects.
   ///
   /// V8 will share the underlying function code objects when the same string is
@@ -2353,6 +2420,8 @@ abstract class Closure implements Function {
     if (name == null) name = 'unknown';
     return "Closure '${unminifyOrTag(name)}'";
   }
+
+  Type get runtimeType => newRti.getRuntimeTypeOfClosure(this);
 }
 
 /// This is called by the fragment emitter.
@@ -2362,15 +2431,15 @@ closureFromTearOff(parameters) {
 }
 
 /// Base class for closures with no arguments.
-abstract class Closure0Args extends Closure {}
+abstract final class Closure0Args extends Closure {}
 
 /// Base class for closures with two positional arguments.
-abstract class Closure2Args extends Closure {}
+abstract final class Closure2Args extends Closure {}
 
 /// Represents an implicit closure of a function.
-abstract class TearOffClosure extends Closure {}
+abstract final class TearOffClosure extends Closure {}
 
-class StaticClosure extends TearOffClosure {
+final class StaticClosure extends TearOffClosure {
   String toString() {
     String? name =
         JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
@@ -2384,7 +2453,7 @@ class StaticClosure extends TearOffClosure {
 ///
 /// This is a base class that is extended to create a separate closure class for
 /// each instance method. The subclass is created at run time.
-class BoundClosure extends TearOffClosure {
+final class BoundClosure extends TearOffClosure {
   /// The Dart receiver.
   final _receiver;
 
@@ -2570,11 +2639,6 @@ void checkDeferredIsLoaded(String loadId) {
 /// visible to anyone, and is only injected into special libraries.
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
-class FallThroughErrorImplementation extends FallThroughError {
-  FallThroughErrorImplementation();
-  String toString() => 'Switch case fall-through.';
-}
-
 /// Helper function for implementing asserts. The compiler treats this
 /// specially.
 ///
@@ -2606,7 +2670,26 @@ void assertHelper(condition) {
 /// Called by generated code when a static field's initializer references the
 /// field that is currently being initialized.
 void throwCyclicInit(String staticName) {
-  throw new CyclicInitializationError(staticName);
+  throw new _CyclicInitializationError(staticName);
+}
+
+/// Error thrown when a lazily initialized variable cannot be initialized.
+///
+/// Cyclic dependencies are no longer detected at runtime in null safe code.
+/// Such code will fail in other ways instead,
+/// possibly with a [StackOverflowError].
+///
+/// Will be removed when support for non-null-safe code is discontinued.
+@Deprecated("Remove when no longer supporting non-null-safe code.")
+class _CyclicInitializationError extends Error {
+  final String? variableName;
+  _CyclicInitializationError([this.variableName]);
+  String toString() {
+    var variableName = this.variableName;
+    return variableName == null
+        ? "Reading static variable during its initialization"
+        : "Reading static variable '$variableName' during its initialization";
+  }
 }
 
 /// Error thrown when a runtime error occurs.
@@ -2678,14 +2761,13 @@ DeferredLoadCallback? deferredLoadHook;
 ///
 ///   - `0` for `LoadLibraryPriority.normal`
 ///   - `1` for `LoadLibraryPriority.high`
+@pragma('dart2js:resource-identifier')
 Future<Null> loadDeferredLibrary(String loadId, int priority) {
-  // Convert [priority] to the enum value as form of validation:
-  final unusedPriorityEnum = LoadLibraryPriority.values[priority];
-  // The enum's values may be checked via the `index`:
-  assert(priority == LoadLibraryPriority.normal.index ||
-      priority == LoadLibraryPriority.high.index);
-
-  // TODO(sra): Implement prioritization.
+  // Validate the priority using the index to allow the actual enum to get
+  // tree-shaken.
+  if (priority < 0 || priority >= LoadLibraryPriority.values.length) {
+    throw DeferredLoadException('Invalid library priority: $priority');
+  }
 
   // For each loadId there is a list of parts to load. The parts are represented
   // by an index. There are two arrays, one that maps the index into a Uri and
@@ -2749,7 +2831,7 @@ Future<Null> loadDeferredLibrary(String loadId, int priority) {
       waitingForLoad[i] = false;
       return new Future.value();
     }
-    return _loadHunk(uris[i], loadId).then((Null _) {
+    return _loadHunk(uris[i], loadId, priority).then((Null _) {
       waitingForLoad[i] = false;
       initializeSomeLoadedHunks();
     });
@@ -2905,7 +2987,7 @@ String _computeThisScriptFromTrace() {
   throw new UnsupportedError('Cannot extract URI from "$stack"');
 }
 
-Future<Null> _loadHunk(String hunkName, String loadId) {
+Future<Null> _loadHunk(String hunkName, String loadId, int priority) {
   var future = _loadingLibraries[hunkName];
   _eventLog.add(' - _loadHunk: $hunkName');
   if (future != null) {
@@ -2949,8 +3031,8 @@ Future<Null> _loadHunk(String hunkName, String loadId) {
     try {
       // Share the loadId that hunk belongs to, this will allow for any
       // additional loadId based bundling optimizations.
-      JS('void', '#(#, #, #, #)', deferredLibraryLoader, uriAsString, jsSuccess,
-          jsFailure, loadId);
+      JS('void', '#(#, #, #, #, #)', deferredLibraryLoader, uriAsString,
+          jsSuccess, jsFailure, loadId, priority);
     } catch (error, stackTrace) {
       failure(error, "invoking dartDeferredLibraryLoader hook", stackTrace);
     }
@@ -2997,6 +3079,9 @@ Future<Null> _loadHunk(String hunkName, String loadId) {
     }
     if (_crossOrigin != null && _crossOrigin != '') {
       JS('', '#.crossOrigin = #', script, _crossOrigin);
+    }
+    if (priority == LoadLibraryPriority.high.index) {
+      JS('', '#.fetchPriority = "high"', script);
     }
     JS('', '#.addEventListener("load", #, false)', script, jsSuccess);
     JS('', '#.addEventListener("error", #, false)', script, jsFailure);

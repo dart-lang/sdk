@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
@@ -26,7 +24,7 @@ main() {
       Expect.isFalse(generated.contains('iae'));
       // Also make sure that we are not just in bailout mode without speculative
       // types by grepping for the integer-bailout check on argument j.
-      RegExp regexp = new RegExp(getIntTypeCheck('[aji]'));
+      RegExp regexp = RegExp(getIntTypeCheck('[aji]'));
       Expect.isTrue(regexp.hasMatch(generated));
     });
   }

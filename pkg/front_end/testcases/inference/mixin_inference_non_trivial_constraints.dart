@@ -4,7 +4,7 @@
 
 class I<X> {}
 
-class M0<T> extends I<List<T>> {}
+mixin class M0<T> extends I<List<T>> {}
 
 class M1<T> extends I<List<T>> {}
 

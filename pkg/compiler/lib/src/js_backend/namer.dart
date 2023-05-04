@@ -178,7 +178,7 @@ class Namer extends ModularNamer {
   }
 
   Map<String, String> createMinifiedGlobalNameMap() {
-    var map = <String, String /*!*/ >{};
+    var map = <String, String>{};
     userGlobals.forEach((entity, jsName) {
       _registerName(map, jsName, entity.name!);
     });
@@ -933,8 +933,8 @@ class Namer extends ModularNamer {
         name = 'lib_$name';
       }
     }
-    // Names constructed based on a libary name will be further disambiguated.
-    // However, as names from the same libary should have the same library
+    // Names constructed based on a library name will be further disambiguated.
+    // However, as names from the same library should have the same library
     // name part, we disambiguate the library name here.
     String disambiguated = name;
     for (int c = 0; libraryLongNames.containsValue(disambiguated); c++) {
@@ -1029,8 +1029,8 @@ class Namer extends ModularNamer {
   // This name is used as part of the name of a TypeConstant
   String uniqueNameForTypeConstantElement(
       LibraryEntity library, Entity element) {
-    // TODO(sra): If we replace the period with an identifier character,
-    // TypeConstants will have better names in unminified code.
+    // TODO(51473): Move the library naming to be as-needed in the context of
+    // the thing being named.
     String libraryName = _proposeNameForLibrary(library);
     return "${libraryName}.${element.name}";
   }
@@ -1087,11 +1087,12 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
   String _represent(DartType type) => visit(type, null);
 
   @override
-  String visitLegacyType(LegacyType type, _) => '${_represent(type.baseType)}*';
+  String visitLegacyType(LegacyType type, _) =>
+      'legacy_${_represent(type.baseType)}';
 
   @override
   String visitNullableType(NullableType type, _) =>
-      '${_represent(type.baseType)}?';
+      'nullable_${_represent(type.baseType)}';
 
   @override
   String visitNeverType(NeverType type, _) => 'Never';
@@ -1111,8 +1112,7 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
 
   @override
   String visitFunctionType(FunctionType type, _) {
-    // TODO(johnniwinther): Add naming scheme for function type literals.
-    // These currently only occur from kernel.
+    // TODO(51473): Add naming scheme for function type literals.
     return '()->';
   }
 
@@ -1120,13 +1120,9 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
   String visitInterfaceType(InterfaceType type, _) {
     String name = _namer.uniqueNameForTypeConstantElement(
         type.element.library, type.element);
-
-    // Type constants can currently only be raw types, so there is no point
-    // adding ground-term type parameters, as they would just be 'dynamic'.
-    // TODO(sra): Since the result string is used only in constructing constant
-    // names, it would result in more readable names if the final string was a
-    // legal JavaScript identifier.
     if (type.typeArguments.isEmpty) return name;
+    // TODO(51473): Use the structure of the type rather than assuming all
+    // `Type` constants for interface types are top types of the interface type.
     String arguments =
         List.filled(type.typeArguments.length, 'dynamic').join(', ');
     return '$name<$arguments>';
@@ -1134,10 +1130,15 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
 
   @override
   String visitRecordType(RecordType type, _) {
-    // TODO(49718): Test with
-    //    typedef X = (int,{String s});
-    //    print(X);
-    throw UnimplementedError();
+    // TODO(51473): Use full type, but only to the extent it distinguishes from
+    // other `Type` constants.
+    final sb = StringBuffer('Record_');
+    sb.write(type.shape.fieldCount);
+    for (final name in type.shape.fieldNames) {
+      sb.write('_');
+      sb.write(name);
+    }
+    return sb.toString();
   }
 
   @override
@@ -1155,7 +1156,7 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
 
   @override
   String visitFutureOrType(FutureOrType type, _) =>
-      'FutureOr<${_represent(type.typeArgument)}>';
+      'FutureOr_${_represent(type.typeArgument)}';
 }
 
 /// Generator of names for [ConstantValue] values.
@@ -1363,6 +1364,20 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
+  void visitRecord(RecordConstantValue constant, [_]) {
+    final shape = constant.shape;
+    final values = constant.values;
+    addRoot('Record${values.length}');
+    for (int i = 0; i < values.length; i++) {
+      if (i >= shape.positionalFieldCount) {
+        add(shape.fieldNames[i - shape.positionalFieldCount]);
+      }
+      _visit(values[i]);
+      if (failed) break;
+    }
+  }
+
+  @override
   void visitType(TypeConstantValue constant, [_]) {
     // Generates something like 'Type_String_k8F', using the simple name of the
     // type and a hash to disambiguate the same name in different libraries.
@@ -1427,6 +1442,19 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   final JClosedWorld _closedWorld;
   final Map<ConstantValue, int> _hashes = {};
 
+  // Hash seeds by kind of constant. These mostly ensure that similar
+  // collections of different kinds do not collide.
+  static const int _seedFunction = 1;
+  static const int _seedString = 2;
+  static const int _seedConstructed = 3;
+  static const int _seedType = 4;
+  static const int _seedInterceptor = 5;
+  static const int _seedInfinity = 6;
+  static const int _seedRecord = 7;
+  static const int _seedList = 10;
+  static const int _seedSet = 11;
+  static const int _seedMap = 12;
+
   ConstantCanonicalHasher(this._namer, this._closedWorld);
 
   JElementEnvironment get _elementEnvironment =>
@@ -1436,12 +1464,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int getHash(ConstantValue constant) => _visit(constant);
 
   int _visit(ConstantValue constant) {
-    int? hash = _hashes[constant];
-    if (hash == null) {
-      hash = _finish(constant.accept(this, null));
-      _hashes[constant] = hash;
-    }
-    return hash;
+    return _hashes[constant] ??= _finish(constant.accept(this, null));
   }
 
   @override
@@ -1457,7 +1480,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitFunction(FunctionConstantValue constant, [_]) {
-    return _hashString(1, constant.element.name!);
+    return _hashString(_seedFunction, constant.element.name!);
   }
 
   @override
@@ -1481,28 +1504,28 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitString(StringConstantValue constant, [_]) {
-    return _hashString(2, constant.stringValue);
+    return _hashString(_seedString, constant.stringValue);
   }
 
   @override
   int visitList(ListConstantValue constant, [_]) {
-    return _hashList(constant.length, constant.entries);
+    return _hashList(_seedList, constant.entries);
   }
 
   @override
   int visitSet(SetConstantValue constant, [_]) {
-    return _hashList(constant.length, constant.values);
+    return _hashList(_seedSet, constant.values);
   }
 
   @override
   int visitMap(MapConstantValue constant, [_]) {
-    int hash = _hashList(constant.length, constant.keys);
+    int hash = _hashList(_seedMap, constant.keys);
     return _hashList(hash, constant.values);
   }
 
   @override
   int visitConstructed(ConstructedConstantValue constant, [_]) {
-    int hash = _hashString(3, constant.type.element.name);
+    int hash = _hashString(_seedConstructed, constant.type.element.name);
     _elementEnvironment.forEachInstanceField(constant.type.element,
         (_, FieldEntity field) {
       if (_fieldAnalysis.getFieldData(field as JField).isElided) return;
@@ -1512,17 +1535,26 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 
   @override
+  int visitRecord(RecordConstantValue constant, [_]) {
+    int hash = _combine(_seedRecord, _hashInt(constant.shape.fieldCount));
+    for (String name in constant.shape.fieldNames) {
+      hash = _hashString(hash, name);
+    }
+    return _hashList(hash, constant.values);
+  }
+
+  @override
   int visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType;
     // This name includes the library name and type parameters.
     String name = _namer.getTypeRepresentationForTypeConstant(type);
-    return _hashString(4, name);
+    return _hashString(_seedType, name);
   }
 
   @override
   int visitInterceptor(InterceptorConstantValue constant, [_]) {
     String typeName = constant.cls.name;
-    return _hashString(5, typeName);
+    return _hashString(_seedInterceptor, typeName);
   }
 
   @override
@@ -1599,7 +1631,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
       hash = _combine(hash, fraction);
       return hash;
     } else if (value.isInfinite) {
-      return _combine(6, sign);
+      return _combine(_seedInfinity, sign);
     } else if (value.isNaN) {
       return 7;
     } else {
@@ -1943,6 +1975,10 @@ abstract class ModularNamer {
         return instanceFieldPropertyName(_commonElements.rtiAsField);
       case JsGetName.RTI_FIELD_IS:
         return instanceFieldPropertyName(_commonElements.rtiIsField);
+      case JsGetName.RECORD_SHAPE_TAG_PROPERTY:
+        return asName(fixedNames.recordShapeTag);
+      case JsGetName.RECORD_SHAPE_TYPE_PROPERTY:
+        return asName(fixedNames.recordShapeRecipe);
       default:
         throw failedAt(spannable ?? CURRENT_ELEMENT_SPANNABLE,
             'Error: Namer has no name for "$name".');
@@ -2147,6 +2183,9 @@ class FixedNames {
   String get operatorSignature => r'$signature';
   String get requiredParameterField => r'$requiredArgCount';
   String get rtiName => r'$ti';
+
+  String get recordShapeRecipe => r'$recipe';
+  String get recordShapeTag => r'$shape';
 }
 
 /// Minified version of the fixed names usage by the namer.
@@ -2171,6 +2210,11 @@ class MinifiedFixedNames extends FixedNames {
   String get defaultValuesField => r'$D';
   @override
   String get operatorSignature => r'$S';
+
+  @override
+  String get recordShapeRecipe => r'$r';
+  @override
+  String get recordShapeTag => r'$s';
 }
 
 String? operatorNameToIdentifier(String? name) {
@@ -2356,7 +2400,7 @@ const Set<String> reservedCapitalizedGlobalSymbols = {
 
   // Window methods (https://developer.mozilla.org/en/DOM/window)
   "GeckoActiveXObject", "QueryInterface", "XPCNativeWrapper",
-  "XPCSafeJSOjbectWrapper",
+  "XPCSafeJSObjectWrapper",
 
   // Common browser-defined identifiers not defined in ECMAScript
   "Debug", "Enumerator", "Global", "Image",

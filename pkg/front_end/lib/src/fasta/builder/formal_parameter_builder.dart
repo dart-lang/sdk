@@ -7,6 +7,7 @@ library fasta.formal_parameter_builder;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show FormalParameterKind, FormalParameterKindExtension;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/fasta/source/constructor_declaration.dart';
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, NullLiteral, VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
@@ -21,8 +22,8 @@ import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
-import 'class_builder.dart';
 import 'constructor_builder.dart';
+import 'declaration_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
@@ -34,6 +35,7 @@ import 'variable_builder.dart';
 abstract class ParameterBuilder {
   /// List of metadata builders for the metadata declared on this parameter.
   List<MetadataBuilder>? get metadata;
+
   TypeBuilder get type;
 
   /// The kind of this parameter, i.e. if it's required, positional optional,
@@ -41,8 +43,11 @@ abstract class ParameterBuilder {
   FormalParameterKind get kind;
 
   bool get isPositional;
+
   bool get isRequiredPositional;
+
   bool get isNamed;
+
   bool get isRequiredNamed;
 
   String? get name;
@@ -161,7 +166,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           isCovariantByDeclaration: isCovariantByDeclaration,
           isRequired: isRequiredNamed,
           hasDeclaredInitializer: hasDeclaredInitializer,
-          isLowered: isExtensionThis)
+          isLowered: isExtensionThis,
+          isSynthesized: name == noNameSentinel)
         ..fileOffset = charOffset;
     }
     return variable!;
@@ -220,10 +226,14 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   }
 
   void finalizeInitializingFormal(
-      ClassBuilder classBuilder, ClassHierarchyBase hierarchy) {
-    Builder? fieldBuilder = classBuilder.lookupLocalMember(name);
+      DeclarationBuilder declarationBuilder,
+      ConstructorDeclaration constructorDeclaration,
+      ClassHierarchyBase hierarchy) {
+    Builder? fieldBuilder = declarationBuilder.lookupLocalMember(name);
     if (fieldBuilder is SourceFieldBuilder) {
-      type.registerInferredType(fieldBuilder.inferType(hierarchy));
+      DartType fieldType = fieldBuilder.inferType(hierarchy);
+      fieldType = constructorDeclaration.substituteFieldType(fieldType);
+      type.registerInferredType(fieldType);
     } else {
       type.registerInferredType(const DynamicType());
     }
@@ -250,11 +260,12 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     }
     if (needsDefaultValues) {
       if (initializerToken != null) {
-        final ClassBuilder classBuilder = parent!.parent as ClassBuilder;
-        Scope scope = classBuilder.scope;
+        final DeclarationBuilder declarationBuilder =
+            parent!.parent as DeclarationBuilder;
+        Scope scope = declarationBuilder.scope;
         BodyBuilder bodyBuilder = library.loader
             .createBodyBuilderForOutlineExpression(
-                library, classBuilder, this, scope, fileUri!);
+                library, declarationBuilder, this, scope, fileUri!);
         bodyBuilder.constantContext = ConstantContext.required;
         assert(!initializerWasInferred);
         Expression initializer =

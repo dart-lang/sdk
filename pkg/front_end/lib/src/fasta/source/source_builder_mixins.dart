@@ -19,6 +19,7 @@ import '../kernel/kernel_helper.dart';
 import '../problems.dart';
 import '../scope.dart';
 import '../util/helpers.dart';
+import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
@@ -60,7 +61,8 @@ mixin SourceDeclarationBuilderMixin
       if (objectGetter != null && !objectGetter.isStatic ||
           objectSetter != null && !objectSetter.isStatic) {
         addProblem(
-            // TODO(johnniwinther): Use a different error message for views.
+            // TODO(johnniwinther): Use a different error message for inline
+            //  classes.
             templateExtensionMemberConflictsWithObjectMember
                 .withArguments(name),
             declaration.charOffset,
@@ -88,13 +90,18 @@ mixin SourceDeclarationBuilderMixin
     }
 
     scope.unfilteredNameIterator.forEach(buildBuilders);
+    constructorScope.unfilteredNameIterator.forEach(buildBuilders);
   }
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
-    Iterator<SourceMemberBuilder> iterator =
-        scope.filteredIterator<SourceMemberBuilder>(
-            parent: this, includeDuplicates: false, includeAugmentations: true);
+    Iterator<SourceMemberBuilder> iterator = scope
+        .filteredIterator<SourceMemberBuilder>(
+            parent: this, includeDuplicates: false, includeAugmentations: true)
+        .join(constructorScope.filteredIterator<SourceMemberBuilder>(
+            parent: this,
+            includeDuplicates: false,
+            includeAugmentations: true));
     while (iterator.moveNext()) {
       SourceMemberBuilder declaration = iterator.current;
       count +=
@@ -122,6 +129,8 @@ mixin SourceDeclarationBuilderMixin
                 setterDeclaration as ProcedureBuilder, typeEnvironment);
           }
         }
+      } else if (builder is SourceConstructorBuilder) {
+        builder.checkTypes(libraryBuilder, typeEnvironment);
       } else {
         assert(false, "Unexpected member: $builder.");
       }
@@ -141,9 +150,8 @@ mixin SourceDeclarationBuilderMixin
       }
     }
 
-    Iterator<SourceMemberBuilder> iterator =
-        scope.filteredIterator<SourceMemberBuilder>(
-            parent: this, includeDuplicates: false, includeAugmentations: true);
+    Iterator<SourceMemberBuilder> iterator = scope.filteredIterator(
+        parent: this, includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
       iterator.current.buildOutlineExpressions(
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);

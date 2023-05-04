@@ -5,7 +5,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that parameter types types are checked correctly in the face of
+// Test that parameter types are checked correctly in the face of
 // mixin application upon a generic constructor.
 
 import '../dynamic_type_helper.dart';
@@ -14,7 +14,7 @@ class A<X> {
   A(X x);
 }
 
-class B {}
+mixin B {}
 
 class C1 = A<int> with B;
 class C2 = A<String> with B;

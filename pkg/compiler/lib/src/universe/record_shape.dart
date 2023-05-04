@@ -6,6 +6,13 @@ import '../serialization/serialization.dart';
 
 /// A canonicalized record shape comprising zero or more positional fields
 /// followed by zero or more named fields in sorted order.
+///
+/// A RecordShape is used in conjunction with a simple [List] of length
+/// [fieldCount] to represent data about a record, for example, the types or
+/// values of the fields. Unnamed (indexed) fields correspond to the same index
+/// in the List. Named fields follow the unnamed fields in the canonical
+/// (sorted) order. [RecordShape.indexOfFieldName] can be used to find the index
+/// corresponding to a name.
 class RecordShape {
   /// Tag used for identifying serialized [RecordShape] objects in a debugging
   /// data stream.
@@ -22,6 +29,10 @@ class RecordShape {
   int get fieldCount => positionalFieldCount + namedFieldCount;
 
   RecordShape._(this.positionalFieldCount, [this.fieldNames = const []]);
+
+  static String positionalFieldIndexToGetterName(int i) {
+    return '\$${i + 1}';
+  }
 
   factory RecordShape(int positionalFieldCount, List<String> names) {
     assert(positionalFieldCount >= 0);
@@ -66,6 +77,53 @@ class RecordShape {
     sink.writeInt(positionalFieldCount);
     sink.writeStrings(fieldNames);
     sink.end(tag);
+  }
+
+  /// Ordering for shapes. Shapes with fewer fields sort before shapes with more
+  /// fields. Shapes with the same number of fields are ordered
+  /// lexicographically, with unnamed fields coming before named fields.
+  static int compare(RecordShape a, RecordShape b) {
+    // Group by total field count, smaller shapes first.
+    int r = a.fieldCount.compareTo(b.fieldCount);
+    if (r != 0) return r;
+    final aNames = a.fieldNames;
+    final bNames = b.fieldNames;
+    r = aNames.length.compareTo(bNames.length);
+    if (r != 0) return r;
+    for (int i = 0; i < aNames.length; i++) {
+      r = aNames[i].compareTo(bNames[i]);
+      if (r != 0) return r;
+    }
+    assert(a == b);
+    return 0;
+  }
+
+  int indexOfFieldName(String name) {
+    int nameIndex = fieldNames.indexOf(name);
+    if (nameIndex < 0) throw ArgumentError.value(name, 'name');
+    return positionalFieldCount + nameIndex;
+  }
+
+  int indexOfGetterName(String name) {
+    int nameIndex = fieldNames.indexOf(name);
+    if (nameIndex < 0) {
+      if (name[0] == '\$') {
+        final position = int.tryParse(name.substring(1));
+        if (position != null && position <= positionalFieldCount) {
+          return position - 1;
+        }
+      }
+      return -1;
+    }
+    return positionalFieldCount + nameIndex;
+  }
+
+  String getterNameOfIndex(int index) => index < positionalFieldCount
+      ? positionalFieldIndexToGetterName(index)
+      : fieldNames[index - positionalFieldCount];
+
+  bool nameMatchesGetter(String name) {
+    return indexOfGetterName(name) >= 0;
   }
 
   @override

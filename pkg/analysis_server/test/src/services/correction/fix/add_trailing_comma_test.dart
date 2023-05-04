@@ -15,6 +15,7 @@ void main() {
     defineReflectiveTests(AddTrailingCommaBulkTest);
     defineReflectiveTests(AddTrailingCommaInFileTest);
     defineReflectiveTests(AddTrailingCommaTest);
+    defineReflectiveTests(AddTrailingCommaRecordTest);
   });
 }
 
@@ -60,6 +61,66 @@ Object f(a, b) {
       'b',), 'b',);
   return a;
 }
+''');
+  }
+}
+
+@reflectiveTest
+class AddTrailingCommaRecordTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_TRAILING_COMMA;
+
+  Future<void> test_parse_literal_initialization() async {
+    // ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
+    await resolveTestCode('''
+var r = const (1);
+''');
+    await assertHasFix('''
+var r = const (1,);
+''');
+  }
+
+  Future<void> test_parse_type_initialization() async {
+    // ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
+    await resolveTestCode('''
+(int) record = const (1,);    
+''');
+    await assertHasFix('''
+(int,) record = const (1,);    
+''');
+  }
+
+  Future<void> test_warning_literal_assignment() async {
+    // WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
+    await resolveTestCode('''
+void f((int,) r) {
+  r = (1);
+}
+''');
+    await assertHasFix('''
+void f((int,) r) {
+  r = (1,);
+}
+''');
+  }
+
+  Future<void> test_warning_literal_initialization() async {
+    // WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
+    await resolveTestCode('''
+(int,) r = (1);
+''');
+    await assertHasFix('''
+(int,) r = (1,);
+''');
+  }
+
+  Future<void> test_warning_literal_return() async {
+    // WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
+    await resolveTestCode('''
+(int,) f() { return (1); }
+''');
+    await assertHasFix('''
+(int,) f() { return (1,); }
 ''');
   }
 }

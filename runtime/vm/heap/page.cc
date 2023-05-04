@@ -22,7 +22,7 @@
 namespace dart {
 
 // This cache needs to be at least as big as FLAG_new_gen_semi_max_size or
-// munmap will noticably impact performance.
+// munmap will noticeably impact performance.
 static constexpr intptr_t kPageCacheCapacity = 8 * kWordSize;
 static Mutex* page_cache_mutex = nullptr;
 static VirtualMemory* page_cache[kPageCacheCapacity] = {nullptr};
@@ -93,7 +93,7 @@ Page* Page::Allocate(intptr_t size, PageType type, bool can_use_cache) {
   }
 
   Page* result = reinterpret_cast<Page*>(memory->address());
-  ASSERT(result != NULL);
+  ASSERT(result != nullptr);
   result->type_ = type;
   result->memory_ = memory;
   result->next_ = nullptr;
@@ -191,7 +191,7 @@ void Page::VisitRememberedCards(ObjectPointerVisitor* visitor) {
          (Thread::Current()->task_kind() == Thread::kScavengerTask));
   NoSafepointScope no_safepoint;
 
-  if (card_table_ == NULL) {
+  if (card_table_ == nullptr) {
     return;
   }
 

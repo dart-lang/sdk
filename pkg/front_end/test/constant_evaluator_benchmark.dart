@@ -185,7 +185,7 @@ CompilerContext setupCompilerContext(bool nnbd, String targetString,
   }
 
   TargetFlags targetFlags = new TargetFlags(
-      enableNullSafety: nnbd, trackWidgetCreation: widgetTransformation);
+      soundNullSafety: nnbd, trackWidgetCreation: widgetTransformation);
   Target target;
   switch (targetString) {
     case "VM":

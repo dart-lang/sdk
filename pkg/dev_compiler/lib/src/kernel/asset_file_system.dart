@@ -72,7 +72,7 @@ class AssetFileSystemEntity implements FileSystemEntity {
       if (response.statusCode != HttpStatus.ok) {
         unawaited(_ignore(response));
         throw FileSystemException(
-            uri, 'Asset rerver returned ${response.statusCode}');
+            uri, 'Asset server returned ${response.statusCode}');
       }
       return await collectBytes(response);
     });

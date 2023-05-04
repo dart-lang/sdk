@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Test that the expected output targets are generated for various compiler
 /// options.
 
@@ -33,25 +31,27 @@ class TestRandomAccessFileOutputProvider implements api.CompilerOutput {
   @override
   api.OutputSink createOutputSink(
       String name, String extension, api.OutputType type) {
-    outputs.add(fe.relativizeUri(provider.out,
+    outputs.add(fe.relativizeUri(provider.out!,
         provider.createUri(name, extension, type), Platform.isWindows));
     return NullSink.outputProvider(name, extension, type);
   }
 
   @override
-  api.BinaryOutputSink createBinarySink(Uri uri) => new NullBinarySink(uri);
+  api.BinaryOutputSink createBinarySink(Uri uri) => NullBinarySink(uri);
 }
 
-CompileFunc oldCompileFunc;
+late CompileFunc oldCompileFunc;
 
 Future<Null> test(List<String> arguments, List<String> expectedOutput,
     {List<String> groupOutputs = const <String>[]}) async {
-  List<String> options = new List<String>.from(arguments)
-    ..add('--platform-binaries=$sdkPlatformBinariesPath')
+  List<String> options = List<String>.from(arguments)
+    // TODO(nshahan) Should change to sdkPlatformBinariesPath when testing
+    // with unsound null safety is no longer needed.
+    ..add('--platform-binaries=$buildPlatformBinariesPath')
     ..add('--libraries-spec=$sdkLibrariesSpecificationUri');
   print('--------------------------------------------------------------------');
   print('dart2js ${options.join(' ')}');
-  TestRandomAccessFileOutputProvider outputProvider;
+  late TestRandomAccessFileOutputProvider outputProvider;
   compileFunc = (CompilerOptions compilerOptions,
       api.CompilerInput compilerInput,
       api.CompilerDiagnostics compilerDiagnostics,
@@ -60,8 +60,8 @@ Future<Null> test(List<String> arguments, List<String> expectedOutput,
         compilerOptions,
         compilerInput,
         compilerDiagnostics,
-        outputProvider =
-            new TestRandomAccessFileOutputProvider(compilerOutput));
+        outputProvider = TestRandomAccessFileOutputProvider(
+            compilerOutput as RandomAccessFileOutputProvider));
   };
   await internalMain(options);
   List<String> outputs = outputProvider.outputs;
@@ -88,6 +88,7 @@ main() {
       'pkg/compiler/test/deferred/data/deferred_helper.dart',
       '--out=custom.js',
       '--deferred-map=def/deferred.json',
+      '--no-sound-null-safety',
       '--no-csp',
       Flags.dumpInfo,
     ], [
@@ -112,9 +113,23 @@ main() {
 
     await test([
       'pkg/compiler/test/deferred/data/deferred_helper.dart',
+      '--no-sound-null-safety',
       '--csp',
       ...additionOptionals,
     ], expectedOutput);
+
+    // If we add the '--write-resources' flag, we get another file
+    // `out.js.resources.json'.
+    await test([
+      'pkg/compiler/test/deferred/data/deferred_helper.dart',
+      '--no-sound-null-safety',
+      '--csp',
+      Flags.writeResources,
+      ...additionOptionals,
+    ], [
+      ...expectedOutput,
+      'out.js.resources.json',
+    ]);
   }
 
   asyncTest(() async {

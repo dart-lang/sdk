@@ -4,7 +4,7 @@
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -28,7 +28,7 @@ class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest {
 // @dart = ${latestVersion.major}.${latestVersion.minor + 1}
 class A {}
 ''', [
-      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 15),
+      error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 14),
     ]);
     _assertUnitLanguageVersion(
       package: latestVersion,
@@ -49,14 +49,14 @@ int? a;
   }
 
   test_lessThanPackage() async {
-    _configureTestPackageLanguageVersion('2.5');
+    _configureTestPackageLanguageVersion('2.19');
     await assertNoErrorsInCode(r'''
-// @dart = 2.4
+// @dart = 2.18
 class A {}
 ''');
     _assertUnitLanguageVersion(
-      package: Version.parse('2.5.0'),
-      override: Version.parse('2.4.0'),
+      package: Version.parse('2.19.0'),
+      override: Version.parse('2.18.0'),
     );
   }
 

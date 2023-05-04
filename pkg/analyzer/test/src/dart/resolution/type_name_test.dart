@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -12,7 +12,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeNameResolutionTest);
-    defineReflectiveTests(TypeNameResolutionWithoutNullSafetyTest);
+    defineReflectiveTests(TypeNameResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -24,6 +24,7 @@ class TypeNameResolutionTest extends PubPackageResolutionTest
   }
 
   test_optIn_fromOptOut_class() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
@@ -43,6 +44,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_toBounds() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T extends num> {}
 ''');
@@ -62,6 +64,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_toBounds_dynamic() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 ''');
@@ -81,6 +84,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_typeArguments() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 ''');
@@ -100,6 +104,7 @@ f(A<int> a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef F = int Function(bool);
 ''');
@@ -111,19 +116,20 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.typeAlias('F');
-
-    var typeName = findNode.namedType('F a');
-    assertNamedType(typeName, element, 'int* Function(bool*)*');
-
-    assertTypeAlias(
-      typeName.typeOrThrow,
-      element: element,
-      typeArguments: [],
-    );
+    final node = findNode.namedType('F a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: SimpleIdentifier
+    token: F
+    staticElement: package:test/a.dart::@typeAlias::F
+    staticType: null
+  type: int* Function(bool*)*
+    alias: package:test/a.dart::@typeAlias::F
+''');
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_dynamic() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T> = T Function(bool);
 ''');
@@ -135,19 +141,22 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.typeAlias('F');
-
-    var typeName = findNode.namedType('F a');
-    assertNamedType(typeName, element, 'dynamic Function(bool*)*');
-
-    assertTypeAlias(
-      typeName.typeOrThrow,
-      element: element,
-      typeArguments: ['dynamic'],
-    );
+    final node = findNode.namedType('F a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: SimpleIdentifier
+    token: F
+    staticElement: package:test/a.dart::@typeAlias::F
+    staticType: null
+  type: dynamic Function(bool*)*
+    alias: package:test/a.dart::@typeAlias::F
+      typeArguments
+        dynamic
+''');
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_toBounds() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T extends num> = T Function(bool);
 ''');
@@ -159,19 +168,22 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.typeAlias('F');
-
-    var typeName = findNode.namedType('F a');
-    assertNamedType(typeName, element, 'num* Function(bool*)*');
-
-    assertTypeAlias(
-      typeName.typeOrThrow,
-      element: element,
-      typeArguments: ['num*'],
-    );
+    final node = findNode.namedType('F a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: SimpleIdentifier
+    token: F
+    staticElement: package:test/a.dart::@typeAlias::F
+    staticType: null
+  type: num* Function(bool*)*
+    alias: package:test/a.dart::@typeAlias::F
+      typeArguments
+        num*
+''');
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_typeArguments() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T> = T Function(bool);
 ''');
@@ -183,19 +195,32 @@ import 'a.dart';
 f(F<int> a) {}
 ''');
 
-    var element = import_a.typeAlias('F');
-
-    var typeName = findNode.namedType('F<int> a');
-    assertNamedType(typeName, element, 'int* Function(bool*)*');
-
-    assertTypeAlias(
-      typeName.typeOrThrow,
-      element: element,
-      typeArguments: ['int*'],
-    );
+    final node = findNode.namedType('F<int>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: SimpleIdentifier
+    token: F
+    staticElement: package:test/a.dart::@typeAlias::F
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int*
+    rightBracket: >
+  type: int* Function(bool*)*
+    alias: package:test/a.dart::@typeAlias::F
+      typeArguments
+        int*
+''');
   }
 
   test_optOut_fromOptIn_class() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A {}
@@ -217,6 +242,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_toBounds() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T extends num> {}
@@ -238,6 +264,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_toBounds_dynamic() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T> {}
@@ -259,6 +286,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_typeArguments() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T> {}
@@ -280,6 +308,7 @@ f(A<int> a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F = int Function();
@@ -301,6 +330,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T extends num> = T Function();
@@ -322,6 +352,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds_dynamic() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T> = T Function();
@@ -343,6 +374,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_typeArguments() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T> = T Function();
@@ -437,6 +469,7 @@ void f(X<String> a, X<String?> b) {}
   }
 
   test_typeAlias_asParameterType_interfaceType_none_inLegacy() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef X<T> = Map<int, T>;
 ''');
@@ -473,6 +506,7 @@ void f(X<int> a, X<int?> b) {}
   }
 
   test_typeAlias_asParameterType_interfaceType_question_inLegacy() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef X<T> = List<T?>;
 ''');
@@ -509,6 +543,7 @@ void f(X a, X? b) {}
   }
 
   test_typeAlias_asParameterType_Never_none_inLegacy() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef X = Never;
 ''');
@@ -582,6 +617,13 @@ Nothing f() {}
       'void',
     );
   }
+}
+
+@reflectiveTest
+class TypeNameResolutionTest_WithoutNullSafety extends PubPackageResolutionTest
+    with TypeNameResolutionTestCases, WithoutNullSafetyMixin {
+  @override
+  bool get isNullSafetyEnabled => true;
 }
 
 mixin TypeNameResolutionTestCases on PubPackageResolutionTest {
@@ -850,11 +892,4 @@ f(Never a) {}
       typeStr('Never', 'Null*'),
     );
   }
-}
-
-@reflectiveTest
-class TypeNameResolutionWithoutNullSafetyTest extends PubPackageResolutionTest
-    with TypeNameResolutionTestCases, WithoutNullSafetyMixin {
-  @override
-  bool get isNullSafetyEnabled => true;
 }

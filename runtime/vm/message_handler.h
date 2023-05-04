@@ -25,7 +25,6 @@ class MessageHandler {
   enum MessageStatus {
     kOK,        // We successfully handled a message.
     kError,     // We encountered an error handling a message.
-    kRestart,   // The VM is restarting.
     kShutdown,  // The VM is shutting down.
   };
   static const char* MessageStatusString(MessageStatus status);
@@ -265,6 +264,9 @@ class MessageHandler {
   bool should_pause_on_exit_;
   bool is_paused_on_start_;
   bool is_paused_on_exit_;
+  // When isolate gets paused, remember the status of the message being
+  // processed so that we can resume correctly(into potentially not-OK status).
+  MessageStatus remembered_paused_on_exit_status_;
   int64_t paused_timestamp_;
 #endif
   bool task_running_;

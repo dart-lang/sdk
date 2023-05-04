@@ -12,6 +12,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/uri.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
@@ -86,7 +87,7 @@ class PackageBuildPackageUriResolver extends UriResolver {
     if (_context.isWithin(_workspace.root, path)) {
       var uriParts = _restoreUriParts(path);
       if (uriParts != null) {
-        return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
+        return uriCache.parse('package:${uriParts[0]}/${uriParts[1]}');
       }
     }
 

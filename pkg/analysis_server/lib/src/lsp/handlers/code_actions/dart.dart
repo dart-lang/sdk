@@ -144,9 +144,15 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     try {
       final workspace = DartChangeWorkspace(await server.currentSessions);
       for (final error in unit.errors) {
-        // Server lineNumber is one-based so subtract one.
-        var errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
-        if (errorLine < range.start.line || errorLine > range.end.line) {
+        // Return fixes for any part of the line where a diagnostic is.
+        // If a diagnostic spans multiple lines, the fix will be included for
+        // all of those lines.
+        // Server lineNumbers are one-based so subtract one.
+        var errorStartLine = lineInfo.getLocation(error.offset).lineNumber - 1;
+        var errorEndLine =
+            lineInfo.getLocation(error.offset + error.length).lineNumber - 1;
+        if (range.end.line < errorStartLine ||
+            range.start.line > errorEndLine) {
           continue;
         }
         var context = DartFixContextImpl(
@@ -183,19 +189,19 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     final refactorActions = <Either2<CodeAction, Command>>[];
 
     try {
-      // New refactors.
-      if (server.clientConfiguration.global.experimentalNewRefactors) {
-        final context = RefactoringContext(
-          server: server,
-          resolvedLibraryResult: library,
-          resolvedUnitResult: unit,
-          selectionOffset: offset,
-          selectionLength: length,
-        );
-        final processor = RefactoringProcessor(context);
-        final actions = await processor.compute();
-        refactorActions.addAll(actions.map(Either2<CodeAction, Command>.t1));
-      }
+      // New interactive refactors.
+      final context = RefactoringContext(
+        server: server,
+        resolvedLibraryResult: library,
+        resolvedUnitResult: unit,
+        selectionOffset: offset,
+        selectionLength: length,
+        includeExperimental:
+            server.clientConfiguration.global.experimentalRefactors,
+      );
+      final processor = RefactoringProcessor(context);
+      final actions = await processor.compute();
+      refactorActions.addAll(actions.map(Either2<CodeAction, Command>.t1));
 
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {

@@ -18,8 +18,6 @@ import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 import 'dart:_async_await_error_codes' as async_error_codes;
 
-import "dart:collection" show IterableBase;
-
 @patch
 class _AsyncRun {
   @patch
@@ -88,15 +86,6 @@ class _AsyncRun {
 
   static void _scheduleImmediateWithTimer(void callback()) {
     Timer._createTimer(Duration.zero, callback);
-  }
-}
-
-@patch
-class DeferredLibrary {
-  @patch
-  Future<Null> load() {
-    throw 'DeferredLibrary not supported. '
-        'please use the `import "lib.dart" deferred as lib` syntax.';
   }
 }
 
@@ -695,7 +684,7 @@ _SyncStarIterable<T> _makeSyncStarIterable<T>(body) {
 /// An Iterable corresponding to a sync* method.
 ///
 /// Each invocation of a sync* method will return a new instance of this class.
-class _SyncStarIterable<T> extends IterableBase<T> {
+class _SyncStarIterable<T> extends Iterable<T> {
   // This is a function that will return a helper function that does the
   // iteration of the sync*.
   //

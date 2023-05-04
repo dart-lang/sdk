@@ -6,7 +6,7 @@
 
 import 'package:expect/expect.dart';
 
-class M<T> {
+mixin M<T> {
   T field1 = 0;
   //         ^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT

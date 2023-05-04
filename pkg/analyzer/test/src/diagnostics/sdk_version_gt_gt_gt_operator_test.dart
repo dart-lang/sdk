@@ -22,21 +22,21 @@ class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
       '${ExperimentStatus.currentVersion.minor}';
 
   test_const_equals() async {
-    await verifyVersion('2.15.0', '''
+    await verifyVersion('>=2.15.0', '''
 const a = 42 >>> 3;
 ''');
   }
 
   test_const_lessThan() async {
-    await verifyVersion('2.13.0', '''
+    await verifyVersion('>=2.13.0', '''
 const a = 42 >>> 3;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 13, 3),
+      error(WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 13, 3),
     ]);
   }
 
   test_declaration_equals() async {
-    await verifyVersion('2.15.0', '''
+    await verifyVersion('>=2.15.0', '''
 class A {
   A operator >>>(A a) => this;
 }
@@ -44,26 +44,26 @@ class A {
   }
 
   test_declaration_lessThan() async {
-    await verifyVersion('2.13.0', '''
+    await verifyVersion('>=2.13.0', '''
 class A {
   A operator >>>(A a) => this;
 }
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 23, 3),
+      error(WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 23, 3),
     ]);
   }
 
   test_nonConst_equals() async {
-    await verifyVersion('2.15.0', '''
+    await verifyVersion('>=2.15.0', '''
 var a = 42 >>> 3;
 ''');
   }
 
   test_nonConst_lessThan() async {
-    await verifyVersion('2.13.0', '''
+    await verifyVersion('>=2.13.0', '''
 var a = 42 >>> 3;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 11, 3),
+      error(WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 11, 3),
     ]);
   }
 }

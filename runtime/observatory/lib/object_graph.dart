@@ -5,7 +5,6 @@
 library object_graph;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -58,7 +57,7 @@ class _SnapshotReader implements SnapshotReader {
 Uint8List _newUint8Array(int size) {
   try {
     return new Uint8List(size);
-  } on ArgumentError catch (e) {
+  } on ArgumentError {
     // JS throws a misleading invalid argument error. Convert to a more user-friendly message.
     throw new Exception(
         "OutOfMemoryError: Not enough memory available to analyze the snapshot.");
@@ -68,7 +67,7 @@ Uint8List _newUint8Array(int size) {
 Uint16List _newUint16Array(int size) {
   try {
     return new Uint16List(size);
-  } on ArgumentError catch (e) {
+  } on ArgumentError {
     // JS throws a misleading invalid argument error. Convert to a more user-friendly message.
     throw new Exception(
         "OutOfMemoryError: Not enough memory available to analyze the snapshot.");
@@ -78,7 +77,7 @@ Uint16List _newUint16Array(int size) {
 Uint32List _newUint32Array(int size) {
   try {
     return new Uint32List(size);
-  } on ArgumentError catch (e) {
+  } on ArgumentError {
     // JS throws a misleading invalid argument error. Convert to a more user-friendly message.
     throw new Exception(
         "OutOfMemoryError: Not enough memory available to analyze the snapshot.");
@@ -815,7 +814,7 @@ class _SnapshotGraph implements SnapshotGraph {
     _ReadStream? stream = _ReadStream._new(chunks!);
     chunks = null;
 
-    // The phases of loading are placed in explicit `new Future(compuation)` so
+    // The phases of loading are placed in explicit `new Future(computation)` so
     // they will be deferred to the message loop. Ordinary async-await will only
     // defer to the microtask loop.
 
@@ -876,13 +875,10 @@ class _SnapshotGraph implements SnapshotGraph {
     return this;
   }
 
-  Uint8List? _encoded;
-
   String? _description;
 
   int? _kStackCid;
   int? _kFieldCid;
-  int? _numCids;
   int? _N; // Objects in the snapshot.
   int? _Nconnected; // Objects reachable from root.
   int? _E; // References in the snapshot.
@@ -951,7 +947,6 @@ class _SnapshotGraph implements SnapshotGraph {
       classes[cid] = cls;
     }
 
-    _numCids = K;
     _classes = classes;
   }
 

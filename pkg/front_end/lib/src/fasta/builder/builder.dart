@@ -111,25 +111,27 @@ abstract class Builder {
   ///
   bool get isExtensionMember;
 
-  /// Returns `true` if this builder is a member of a view class declaration.
+  /// Returns `true` if this builder is a member of an inline class declaration.
   ///
   /// For instance `method3a` and `method3b` in:
   ///
   ///     class A {
-  ///       A.constructor();     // Not an view member.
-  ///       method1a() {}        // Not an view member.
-  ///       static method1b() {} // Not an view member.
+  ///       A.constructor();     // Not an inline class member.
+  ///       method1a() {}        // Not an inline class member.
+  ///       static method1b() {} // Not an inline class member.
   ///     }
   ///     mixin B {
-  ///       method2a() {}        // Not an view member.
-  ///       static method2b() {} // Not an view member.
+  ///       method2a() {}        // Not an inline class member.
+  ///       static method2b() {} // Not an inline class member.
   ///     }
-  ///     view class C on A {
+  ///     inline class C {
+  ///       final A it;
+  ///       C(this.t);
   ///       method3a() {}
   ///       static method3b() {}
   ///     }
   ///
-  bool get isViewMember;
+  bool get isInlineClassMember;
 
   /// Returns `true` if this builder is an instance member of a class, mixin, or
   /// extension declaration.
@@ -193,6 +195,29 @@ abstract class Builder {
   ///     }
   ///
   bool get isExtensionInstanceMember;
+
+  /// Returns `true` if this builder is an instance member of an extension
+  /// declaration.
+  ///
+  /// For instance `method3a` in:
+  ///
+  ///     class A {
+  ///       A.constructor();     // Not an inline class instance member.
+  ///       method1a() {}        // Not an inline class instance member.
+  ///       static method1b() {} // Not an inline class instance member.
+  ///     }
+  ///     mixin B {
+  ///       method2a() {}        // Not an inline class instance member.
+  ///       static method2b() {} // Not an inline class instance member.
+  ///     }
+  ///     inline class C {
+  ///       final A it;
+  ///       A(this.is);          // Not an inline class instance member.
+  ///       method3a() {}
+  ///       static method3b() {} // Not an inline class instance member.
+  ///     }
+  ///
+  bool get isInlineClassInstanceMember;
 
   bool get isLocal;
 
@@ -265,7 +290,7 @@ abstract class BuilderImpl implements Builder {
   bool get isExtensionMember => false;
 
   @override
-  bool get isViewMember => false;
+  bool get isInlineClassMember => false;
 
   @override
   bool get isDeclarationInstanceMember => false;
@@ -275,6 +300,9 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isExtensionInstanceMember => false;
+
+  @override
+  bool get isInlineClassInstanceMember => false;
 
   @override
   bool get isLocal => false;

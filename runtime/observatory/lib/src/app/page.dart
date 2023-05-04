@@ -89,16 +89,12 @@ abstract class MatchingPage extends Page {
   MatchingPage(this.path, app) : super(app);
 
   void _visit(Uri uri) {
-    assert(uri != null);
     assert(canVisit(uri));
   }
 
   Future<Isolate> getIsolate(Uri uri) {
     var isolateId = uri.queryParameters['isolateId'];
     return app.vm.getIsolate(isolateId!).then((isolate) {
-      if (isolate == null) {
-        throw new IsolateNotFound(isolateId);
-      }
       return isolate;
     });
   }
@@ -161,12 +157,6 @@ class VMPage extends MatchingPage {
 
   void _visit(Uri uri) {
     super._visit(uri);
-    if (app.vm == null) {
-      Logger.root.severe('VMPage has no VM');
-      // Reroute to vm-connect.
-      app.locationManager.go(Uris.vmConnect());
-      return;
-    }
     app.vm.reload().then((serviceObject) {
       VM vm = serviceObject as VM;
       container.children = <Element>[

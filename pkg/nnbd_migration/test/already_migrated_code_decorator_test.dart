@@ -352,7 +352,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
     expect(decoratedSupertypes, hasLength(2));
     // TODO(scheglov) Use location matcher.
     withElement.checkObject(decoratedSupertypes[0],
-        withElement.checkExplicitlyNonNullable, 'Future (async.dart:7:16)');
+        withElement.checkExplicitlyNonNullable, 'Future (async.dart:8:16)');
     // Since Future<T> is a subtype of FutureOr<T>, we consider FutureOr<T> to
     // be an immediate supertype, even though the class declaration for Future
     // doesn't mention FutureOr.
@@ -362,7 +362,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
         withElement.checkExplicitlyNonNullable,
         (t, displayName) => withElement.checkTypeParameter(
             t!, withElement.checkExplicitlyNonNullable, typeParam, displayName),
-        'Future (async.dart:7:16)');
+        'Future (async.dart:8:16)');
   }
 
   Future<void> test_getImmediateSupertypes_generic() async {

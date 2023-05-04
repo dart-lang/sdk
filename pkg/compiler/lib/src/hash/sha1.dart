@@ -45,7 +45,7 @@ class _DigestSink extends Sink<Digest> {
   Digest? _value;
 
   /// The value added to the sink, if any.
-  Digest /*!*/ get value {
+  Digest get value {
     assert(_value != null);
     return _value!;
   }

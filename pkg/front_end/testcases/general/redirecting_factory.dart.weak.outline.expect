@@ -55,9 +55,7 @@ class Base<M extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::Base<self::Base::M%>
     ;
 }
-class Mixin<M extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::Mixin<self::Mixin::M%>
-    ;
+abstract class Mixin<M extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
 }
 class Mix<M extends core::Object? = dynamic> = self::Base<self::Mix::M%> with self::Mixin<self::Mix::M%> {
   synthetic constructor •() → self::Mix<self::Mix::M%>

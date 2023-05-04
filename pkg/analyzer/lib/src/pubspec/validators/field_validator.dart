@@ -21,7 +21,9 @@ class FieldValidator extends BasePubspecValidator {
   void validate(ErrorReporter reporter, Map<dynamic, YamlNode> contents) {
     for (var field in contents.keys) {
       var name = asString(field);
-      if (name != null && deprecatedFields.contains(name)) {
+      if (field is YamlNode &&
+          name != null &&
+          deprecatedFields.contains(name)) {
         reportErrorForNode(
             reporter, field, PubspecWarningCode.DEPRECATED_FIELD, [name]);
       }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // All of these types are considered instantiated because we create an instance
 // of [C].
 
@@ -21,7 +19,7 @@ class A {}
 /*member: Box.:member_unit=1{lib}*/
 class Box<T> {
   /*member: Box.value:member_unit=1{lib}*/
-  int value;
+  int? value;
 }
 
 /*class: B:
@@ -31,7 +29,7 @@ class Box<T> {
 /*member: B.:member_unit=1{lib}*/
 class B<T> extends A {
   /*member: B.box:member_unit=1{lib}*/
-  final box = new Box<T>();
+  final box = Box<T>();
 }
 
 /*class: C:

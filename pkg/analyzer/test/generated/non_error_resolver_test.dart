@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -120,6 +121,24 @@ class A<E> extends B<E> implements D<E> {
 ''');
   }
 
+  test_mixinDeclaresConstructor() async {
+    await assertNoErrorsInCode(r'''
+mixin class A {
+  m() {}
+}
+class B extends Object with A {}
+''');
+  }
+
+  test_mixinDeclaresConstructor_factory() async {
+    await assertNoErrorsInCode(r'''
+mixin class A {
+  factory A() => throw 0;
+}
+class B extends Object with A {}
+''');
+  }
+
   test_no_call_tearoff_on_promoted_var() async {
     await assertNoErrorsInCode('''
 class B {
@@ -211,7 +230,7 @@ library L;
 export 'lib.dart';
 export 'lib.dart';
 ''', [
-      error(HintCode.DUPLICATE_EXPORT, 37, 10),
+      error(WarningCode.DUPLICATE_EXPORT, 37, 10),
     ]);
   }
 
@@ -276,7 +295,7 @@ main() {
   new N2();
 }
 ''', [
-      error(HintCode.UNUSED_SHOWN_NAME, 44, 1),
+      error(WarningCode.UNUSED_SHOWN_NAME, 44, 1),
     ]);
   }
 
@@ -474,7 +493,7 @@ f() {
   -x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
     ]);
   }
 
@@ -548,7 +567,7 @@ main() {
   F f = (int i) async => i;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
     ]);
   }
 
@@ -675,7 +694,7 @@ f(list) async {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
     ]);
   }
 
@@ -686,7 +705,7 @@ f(list) async* {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
     ]);
   }
 
@@ -769,7 +788,7 @@ f() {
   dynamic x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
     ]);
   }
 
@@ -781,7 +800,7 @@ f() {
 class C = D with E;
 
 class D {}
-class E {}
+mixin E {}
 ''');
     CompilationUnit unit = result.unit;
     ClassElement classC = unit.declaredElement!.getClass('C')!;
@@ -1035,7 +1054,7 @@ main() {
   const int x = 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
     ]);
   }
 
@@ -1152,7 +1171,7 @@ main() {
   var v = dynamic;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
   }
 
@@ -1492,6 +1511,7 @@ bool test(C c) => c.method<bool>(arg: true);
   }
 
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
+    noSoundNullSafety = false;
     await assertNoErrorsInCode('''
 // @dart = 2.9
 typedef Foo<S> = S Function<T>(T x);
@@ -1510,6 +1530,7 @@ main(Object p) {
   }
 
   test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
+    noSoundNullSafety = false;
     await assertNoErrorsInCode('''
 // @dart = 2.9
 typedef Foo = T Function<T>(T x);
@@ -1644,9 +1665,9 @@ library test;
 import 'lib.dart';
 import 'lib.dart';
 ''', [
-      error(HintCode.UNUSED_IMPORT, 21, 10),
-      error(HintCode.UNUSED_IMPORT, 40, 10),
-      error(HintCode.DUPLICATE_IMPORT, 40, 10),
+      error(WarningCode.UNUSED_IMPORT, 21, 10),
+      error(WarningCode.UNUSED_IMPORT, 40, 10),
+      error(WarningCode.DUPLICATE_IMPORT, 40, 10),
     ]);
   }
 
@@ -1659,8 +1680,8 @@ library test;
 import 'lib1.dart';
 import 'lib2.dart';
 ''', [
-      error(HintCode.UNUSED_IMPORT, 21, 11),
-      error(HintCode.UNUSED_IMPORT, 41, 11),
+      error(WarningCode.UNUSED_IMPORT, 21, 11),
+      error(WarningCode.UNUSED_IMPORT, 41, 11),
     ]);
   }
 
@@ -1971,9 +1992,9 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 5),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 5),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 5),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 5),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 5),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 5),
     ]);
   }
 
@@ -2047,7 +2068,7 @@ class C implements B {
 
   test_invalidOverrideReturnType_returnType_mixin() async {
     await assertNoErrorsInCode(r'''
-class A {
+mixin A {
   num m() { return 0; }
 }
 class B extends Object with A {
@@ -2167,7 +2188,7 @@ void main() {
   String p = z;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 93, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 93, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 1),
     ]);
     var z = result.unit.declaredElement!.topLevelVariables
@@ -2224,7 +2245,7 @@ h(bool b) {
   Map<num, String> m = (b ? f : g)('x');
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 104, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 104, 1),
     ]);
     var parameter = findNode.stringLiteral("'x'").staticParameterElement;
     expect(parameter!.library, isNull);
@@ -2384,24 +2405,6 @@ class C {
 ''');
   }
 
-  test_mixinDeclaresConstructor() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  m() {}
-}
-class B extends Object with A {}
-''');
-  }
-
-  test_mixinDeclaresConstructor_factory() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  factory A() => throw 0;
-}
-class B extends Object with A {}
-''');
-  }
-
   test_multipleSuperInitializers_no() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -2463,7 +2466,7 @@ f2() {
   !dynamic;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 7),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 7),
     ]);
   }
 
@@ -2595,7 +2598,7 @@ f() {
   var m = {'a' : 0, 'b' : 1};
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
     ]);
   }
 
@@ -2625,7 +2628,7 @@ class A {
   const A.b2(bool p) : v = true || p;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 167, 4),
+      error(WarningCode.DEAD_CODE, 167, 4),
     ]);
   }
 
@@ -2946,7 +2949,7 @@ f() {
   var x = new A.x();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
     ]);
   }
 
@@ -2959,7 +2962,7 @@ f(A a) {
   var x = a.x();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
     ]);
   }
 
@@ -2972,7 +2975,7 @@ f(A a) {
   var x = a.x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
     ]);
   }
 
@@ -3123,6 +3126,7 @@ main(Object p) {
   }
 
   test_typePromotion_if_is_and_subThenSuper() async {
+    noSoundNullSafety = false;
     await assertNoErrorsInCode(r'''
 // @dart = 2.9
 class A {
@@ -3269,7 +3273,7 @@ void testNewSet(Set<C> setEls) {
       newSet: <T>() => customNewSet = new Set<T>());
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 12),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 12),
     ]);
   }
 
@@ -3318,6 +3322,24 @@ main(p) {
     ]);
   }
 
+  test_mixinDeclaresConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  m() {}
+}
+class B extends Object with A {}
+''');
+  }
+
+  test_mixinDeclaresConstructor_factory() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory A() => throw 0;
+}
+class B extends Object with A {}
+''');
+  }
+
   test_typePromotion_conditional_issue14655() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -3357,7 +3379,7 @@ main(FuncAtoDyn f) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 115, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 115, 1),
     ]);
   }
 
@@ -3372,7 +3394,7 @@ main(FuncDynToVoid f) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
     ]);
   }
 

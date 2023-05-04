@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library lib2;
 
 import "package:expect/expect.dart";
@@ -11,8 +9,8 @@ import "lib1.dart";
 
 /*member: foo:
  constants=[
-  ListConstant(<Map<int*,int*>*>[MapConstant(<int*, int*>{IntConstant(1): IntConstant(3)})])=1{lib2},
-  MapConstant(<int*, int*>{IntConstant(1): IntConstant(3)})=1{lib2}],
+  ListConstant(<Map<int,int>>[MapConstant(<int, int>{IntConstant(1): IntConstant(3)})])=1{lib2},
+  MapConstant(<int, int>{IntConstant(1): IntConstant(3)})=1{lib2}],
  member_unit=1{lib2}
 */
 foo() {

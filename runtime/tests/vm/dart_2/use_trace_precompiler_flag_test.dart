@@ -30,8 +30,8 @@ main(List<String> args) async {
   if (!await testExecutable(genSnapshot)) {
     throw "Cannot run test as $genSnapshot not available";
   }
-  if (!await testExecutable(aotRuntime)) {
-    throw "Cannot run test as $aotRuntime not available";
+  if (!await testExecutable(dartPrecompiledRuntime)) {
+    throw "Cannot run test as $dartPrecompiledRuntime not available";
   }
   if (!File(platformDill).existsSync()) {
     throw "Cannot run test as $platformDill does not exist";
@@ -46,6 +46,7 @@ main(List<String> args) async {
 
     // Compile script to Kernel IR.
     await run(genKernel, <String>[
+      '--no-sound-null-safety',
       '--aot',
       '--platform=$platformDill',
       '-o',
@@ -81,6 +82,7 @@ Future<void> testTracePrecompiler(
   final snapshot = path.join(tempDir, 'snapshot.so');
   final result = await run(genSnapshot, <String>[
     ...flags,
+    '--no-sound-null-safety',
     '--write-retained-reasons-to=$reasonsFile',
     '--snapshot-kind=app-aot-elf',
     '--elf=$snapshot',

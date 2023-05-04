@@ -69,7 +69,6 @@ abstract class CustomElementsAnalysisBase {
   }
 
   void registerStaticUse(MemberEntity element) {
-    assert((element as dynamic) != null); // TODO(48820): Remove.
     if (_commonElements.isFindIndexForNativeSubclassType(element)) {
       join.demanded = true;
     }
@@ -91,9 +90,9 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
       : join = CustomElementsAnalysisJoin(
             elementEnvironment, commonElements, nativeData,
             backendUsageBuilder: backendUsageBuilder) {
-    // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
+    // TODO(sra): Remove this workaround.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
-    // we can't currently recognize all cases.  In particular, the work-around
+    // we can't currently recognize all cases.  In particular, the workaround
     // for the unimplemented `ClassMirror.reflectedType` is not recognizable.
     // TODO(12607): Match on [ClassMirror.reflectedType]
     join.allClassesSelected = true;
@@ -124,9 +123,9 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
       : join = CustomElementsAnalysisJoin(
             elementEnvironment, commonElements, nativeData),
         super(elementEnvironment, commonElements, nativeData) {
-    // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
+    // TODO(sra): Remove this workaround.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
-    // we can't currently recognize all cases.  In particular, the work-around
+    // we can't currently recognize all cases.  In particular, the workaround
     // for the unimplemented `ClassMirror.reflectedType` is not recognizable.
     // TODO(12607): Match on [ClassMirror.reflectedType]
     join.allClassesSelected = true;

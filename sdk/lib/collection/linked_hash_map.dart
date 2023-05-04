@@ -110,7 +110,7 @@ part of dart.collection;
 /// * [Map], the general interface of key/value pair collections.
 /// * [HashMap] is unordered (the order of iteration is not guaranteed).
 /// * [SplayTreeMap] iterates the keys in sorted order.
-abstract class LinkedHashMap<K, V> implements Map<K, V> {
+abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates an insertion-ordered hash-table based [Map].
   ///
   /// If [equals] is provided, it is used to compare the keys in the table with

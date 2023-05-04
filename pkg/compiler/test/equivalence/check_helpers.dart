@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// General equivalence test functions.
 
 library dart2js.equivalence.helpers;
@@ -11,16 +9,16 @@ library dart2js.equivalence.helpers;
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
 
-Check currentCheck;
+Check? currentCheck;
 
 class Check {
-  final Check parent;
+  final Check? parent;
   final Object object1;
   final Object object2;
   final String property;
-  final Object value1;
-  final Object value2;
-  final Function toStringFunc;
+  final Object? value1;
+  final Object? value2;
+  final Function? toStringFunc;
 
   Check(this.parent, this.object1, this.object2, this.property, this.value1,
       this.value2,
@@ -28,7 +26,7 @@ class Check {
 
   String printOn(StringBuffer sb, String indent) {
     if (parent != null) {
-      indent = parent.printOn(sb, indent);
+      indent = parent!.printOn(sb, indent);
       sb.write('\n$indent|\n');
     }
     sb.write("${indent}property='$property'\n ");
@@ -37,7 +35,7 @@ class Check {
     if (value1 == null) {
       sb.write("null");
     } else if (toStringFunc != null) {
-      sb.write(toStringFunc(value1));
+      sb.write(toStringFunc!(value1));
     } else {
       sb.write("'$value1'");
     }
@@ -47,7 +45,7 @@ class Check {
     if (value2 == null) {
       sb.write("null");
     } else if (toStringFunc != null) {
-      sb.write(toStringFunc(value2));
+      sb.write(toStringFunc!(value2));
     } else {
       sb.write("'$value2'");
     }
@@ -57,7 +55,7 @@ class Check {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     printOn(sb, '');
     return sb.toString();
   }
@@ -69,13 +67,13 @@ bool equality(a, b) => a == b;
 /// Check that the values [property] of [object1] and [object2], [value1] and
 /// [value2] respectively, are equal and throw otherwise.
 bool check<T>(var object1, var object2, String property, T value1, T value2,
-    [bool equivalence(T a, T b) = equality, String toString(T a)]) {
-  currentCheck = new Check(
-      currentCheck, object1, object2, property, value1, value2, toString);
+    [bool equivalence(T a, T b) = equality, String toString(T a)?]) {
+  currentCheck =
+      Check(currentCheck, object1, object2, property, value1, value2, toString);
   if (!equivalence(value1, value2)) {
-    throw currentCheck;
+    throw currentCheck!;
   }
-  currentCheck = currentCheck.parent;
+  currentCheck = currentCheck!.parent;
   return true;
 }
 
@@ -90,25 +88,26 @@ bool checkListEquivalence<T>(
     Iterable<T> list1,
     Iterable<T> list2,
     void checkEquivalence(Object o1, Object o2, String property, T a, T b)) {
-  currentCheck =
-      new Check(currentCheck, object1, object2, property, list1, list2);
+  currentCheck = Check(currentCheck, object1, object2, property, list1, list2);
   for (int i = 0; i < list1.length && i < list2.length; i++) {
     checkEquivalence(
         object1, object2, property, list1.elementAt(i), list2.elementAt(i));
   }
-  for (int i = list1.length; i < list2.length; i++) {
+  if (list1.length < list2.length) {
     throw 'Missing equivalent for element '
-        '#$i ${list2.elementAt(i)} in `${property}` on $object2.\n'
+        '#${list1.length} ${list2.elementAt(list1.length)} in '
+        '`${property}` on $object2.\n'
         '`${property}` on $object1:\n ${list1.join('\n ')}\n'
         '`${property}` on $object2:\n ${list2.join('\n ')}';
   }
-  for (int i = list2.length; i < list1.length; i++) {
+  if (list2.length < list1.length) {
     throw 'Missing equivalent for element '
-        '#$i ${list1.elementAt(i)} in `${property}` on $object1.\n'
+        '#${list2.length} ${list1.elementAt(list2.length)} in '
+        '`${property}` on $object1.\n'
         '`${property}` on $object1:\n ${list1.join('\n ')}\n'
         '`${property}` on $object2:\n ${list2.join('\n ')}';
   }
-  currentCheck = currentCheck.parent;
+  currentCheck = currentCheck!.parent;
   return true;
 }
 
@@ -120,14 +119,14 @@ bool checkListEquivalence<T>(
 /// but not in [set1] are returned.
 Set<E> computeSetDifference<E>(
     Iterable<E> set1, Iterable<E> set2, List<List<E>> common, List<E> unfound,
-    {bool sameElement(E a, E b) = equality, void checkElements(E a, E b)}) {
+    {bool sameElement(E a, E b) = equality, void checkElements(E a, E b)?}) {
   // TODO(johnniwinther): Avoid the quadratic cost here. Some ideas:
   // - convert each set to a list and sort it first, then compare by walking
   // both lists in parallel
   // - map each element to a canonical object, create a map containing those
   // mappings, use the mapped sets to compare (then operations like
   // set.difference would work)
-  Set remaining = set2.toSet();
+  Set<E> remaining = set2.toSet();
   for (var element1 in set1) {
     bool found = false;
     var correspondingElement;
@@ -157,7 +156,7 @@ Set<E> computeSetDifference<E>(
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkSetEquivalence<E>(var object1, var object2, String property,
     Iterable<E> set1, Iterable<E> set2, bool sameElement(E a, E b),
-    {void onSameElement(E a, E b)}) {
+    {void onSameElement(E a, E b)?}) {
   var common = <List<E>>[];
   var unfound = <E>[];
   Set<E> remaining = computeSetDifference(set1, set2, common, unfound,
@@ -184,7 +183,7 @@ bool checkMapEquivalence<K, V>(
     Map<K, V> map1,
     Map<K, V> map2,
     bool sameKey(K a, K b),
-    bool sameValue(V a, V b),
+    bool sameValue(V? a, V? b),
     {bool allowExtra = false}) {
   var common = <List<K>>[];
   var unfound = <K>[];
@@ -208,10 +207,10 @@ bool checkMapEquivalence<K, V>(
 void checkLists<T>(List<T> list1, List<T> list2, String messagePrefix,
     bool sameElement(T a, T b),
     {bool verbose = false,
-    void onSameElement(T a, T b),
-    void onDifferentElements(T a, T b),
-    void onUnfoundElement(T a),
-    void onExtraElement(T b),
+    void onSameElement(T a, T b)?,
+    void onDifferentElements(T a, T b)?,
+    void onUnfoundElement(T a)?,
+    void onExtraElement(T b)?,
     String elementToString(key) = defaultToString}) {
   List<List> common = <List>[];
   List mismatch = [];
@@ -249,7 +248,7 @@ void checkLists<T>(List<T> list1, List<T> list2, String messagePrefix,
     }
     extra.add(element2);
   }
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.write("$messagePrefix:");
   if (verbose) {
     sb.write("\n Common: \n");
@@ -284,11 +283,11 @@ void checkSets<E>(Iterable<E> set1, Iterable<E> set2, String messagePrefix,
     {bool failOnUnfound = true,
     bool failOnExtra = true,
     bool verbose = false,
-    void onSameElement(E a, E b),
-    void onUnfoundElement(E a),
-    void onExtraElement(E b),
-    bool elementFilter(E element),
-    elementConverter(E element),
+    void onSameElement(E a, E b)?,
+    void onUnfoundElement(E a)?,
+    void onExtraElement(E b)?,
+    bool elementFilter(E element)?,
+    E elementConverter(E element)?,
     String elementToString(E key) = defaultToString}) {
   if (elementFilter != null) {
     set1 = set1.where(elementFilter);
@@ -308,7 +307,7 @@ void checkSets<E>(Iterable<E> set1, Iterable<E> set2, String messagePrefix,
   if (onExtraElement != null) {
     remaining.forEach(onExtraElement);
   }
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.write("$messagePrefix:");
   if (verbose) {
     sb.write("\n Common: \n");
@@ -341,10 +340,10 @@ void checkSets<E>(Iterable<E> set1, Iterable<E> set2, String messagePrefix,
 String defaultToString(obj) => '$obj';
 
 void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
-    bool sameKey(K a, K b), bool sameValue(V a, V b),
+    bool sameKey(K a, K b), bool sameValue(V? a, V? b),
     {bool failOnUnfound = true,
     bool failOnMismatch = true,
-    bool keyFilter(K key),
+    bool keyFilter(K key)?,
     bool verbose = false,
     String keyToString(K key) = defaultToString,
     String valueToString(V key) = defaultToString}) {
@@ -359,22 +358,22 @@ void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
     keys2 = keys2.where(keyFilter);
   }
   var remaining = computeSetDifference(keys1, keys2, common, unfound,
-      sameElement: sameKey, checkElements: (k1, k2) {
+      sameElement: sameKey, checkElements: (K k1, K k2) {
     var v1 = map1[k1];
     var v2 = map2[k2];
     if (!sameValue(v1, v2)) {
       mismatch.add([k1, k2]);
     }
   });
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.write("$messagePrefix:");
   if (verbose) {
     sb.write("\n Common: \n");
     for (List pair in common) {
       var k1 = pair[0];
       var k2 = pair[1];
-      var v1 = map1[k1];
-      var v2 = map2[k2];
+      var v1 = map1[k1]!;
+      var v2 = map2[k2]!;
       sb.write(" key1   =${keyToString(k1)}\n");
       sb.write(" key2   =${keyToString(k2)}\n");
       sb.write("  value1=${valueToString(v1)}\n");
@@ -384,7 +383,7 @@ void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
   if (unfound.isNotEmpty || verbose) {
     sb.write("\n Unfound: \n");
     for (var k1 in unfound) {
-      var v1 = map1[k1];
+      var v1 = map1[k1]!;
       sb.write(" key1   =${keyToString(k1)}\n");
       sb.write("  value1=${valueToString(v1)}\n");
     }
@@ -392,7 +391,7 @@ void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
   if (remaining.isNotEmpty || verbose) {
     sb.write("\n Extra: \n");
     for (var k2 in remaining) {
-      var v2 = map2[k2];
+      var v2 = map2[k2]!;
       sb.write(" key2   =${keyToString(k2)}\n");
       sb.write("  value2=${valueToString(v2)}\n");
     }
@@ -402,8 +401,8 @@ void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
     for (List pair in mismatch) {
       var k1 = pair[0];
       var k2 = pair[1];
-      var v1 = map1[k1];
-      var v2 = map2[k2];
+      var v1 = map1[k1]!;
+      var v2 = map2[k2]!;
       sb.write(" key1   =${keyToString(k1)}\n");
       sb.write(" key2   =${keyToString(k2)}\n");
       sb.write("  value1=${valueToString(v1)}\n");
@@ -425,7 +424,7 @@ void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
 }
 
 class DartTypePrinter implements DartTypeVisitor {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
 
   @override
   void visit(DartType type, [_]) {
@@ -548,7 +547,7 @@ class DartTypePrinter implements DartTypeVisitor {
 
 /// Normalized toString on types.
 String typeToString(DartType type) {
-  DartTypePrinter printer = new DartTypePrinter();
+  DartTypePrinter printer = DartTypePrinter();
   printer.visit(type);
   return printer.getText();
 }

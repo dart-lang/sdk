@@ -171,7 +171,7 @@ void CodeStatistics::Finalize() {
   const intptr_t unaligned_bytes = Instructions::HeaderSize() + function_size;
   alignment_bytes_ =
       Utils::RoundUp(unaligned_bytes, kObjectAlignment) - unaligned_bytes;
-  assembler_ = NULL;
+  assembler_ = nullptr;
 }
 
 void CodeStatistics::AppendTo(CombinedCodeStatistics* stat) {

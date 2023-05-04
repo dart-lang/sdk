@@ -1,1 +1,8 @@
-include: package:lints/core.yaml
+include: package:lints/recommended.yaml
+
+linter:
+  rules:
+    - depend_on_referenced_packages
+    - directives_ordering
+    - sort_pub_dependencies
+    - unawaited_futures

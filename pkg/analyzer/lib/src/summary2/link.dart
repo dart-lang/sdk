@@ -26,6 +26,7 @@ import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 
 Future<LinkResult> link({
   required LinkedElementFactory elementFactory,
@@ -73,7 +74,7 @@ class Linker {
   Reference get rootReference => elementFactory.rootReference;
 
   bool get _isLinkingDartCore {
-    var dartCoreUri = Uri.parse('dart:core');
+    var dartCoreUri = uriCache.parse('dart:core');
     return builders.containsKey(dartCoreUri);
   }
 

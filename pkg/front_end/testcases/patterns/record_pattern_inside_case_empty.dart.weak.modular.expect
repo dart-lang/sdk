@@ -3,8 +3,14 @@ import self as self;
 
 static method test(dynamic x) → dynamic {
   #L1:
-  invalid-expression "PatternSwitchStatement(switch (x) {
-  case ():
-    break label0;
-})";
+  {
+    final synthesized dynamic #0#0 = x;
+    {
+      if(#0#0 is{ForNonNullableByDefault} ()) {
+        {
+          break #L1;
+        }
+      }
+    }
+  }
 }

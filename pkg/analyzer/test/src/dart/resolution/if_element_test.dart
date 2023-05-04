@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class IfElementResolutionTest extends PatternsResolutionTest {
+class IfElementResolutionTest extends PubPackageResolutionTest {
   test_caseClause() async {
     await assertNoErrorsInCode(r'''
 void f(Object x) {
@@ -38,6 +38,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 1
@@ -45,6 +46,38 @@ IfElement
   elseKeyword: else
   elseElement: IntegerLiteral
     literal: 2
+    staticType: int
+''');
+  }
+
+  test_caseClause_topLevelVariableInitializer() async {
+    await assertNoErrorsInCode(r'''
+final x = 0;
+final y = [ if (x case var a) a ];
+''');
+
+    final node = findNode.singleIfElement;
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@getter::x
+    staticType: int
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: DeclaredVariablePattern
+        keyword: var
+        name: a
+        declaredElement: hasImplicitType a@40
+          type: int
+        matchedValueType: int
+  rightParenthesis: )
+  thenElement: SimpleIdentifier
+    token: a
+    staticElement: a@40
     staticType: int
 ''');
   }
@@ -67,6 +100,8 @@ void f(Object x) {
   ];
 }
 ''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 62,
+          1),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
           contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
@@ -86,7 +121,7 @@ IfElement
       pattern: ListPattern
         leftBracket: [
         elements
-          VariablePattern
+          DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -96,6 +131,7 @@ IfElement
             name: a
             declaredElement: a@56
               type: int
+            matchedValueType: Object?
           RelationalPattern
             operator: ==
             operand: SimpleIdentifier
@@ -103,7 +139,9 @@ IfElement
               staticElement: a@56
               staticType: int
             element: dart:core::@class::Object::@method::==
+            matchedValueType: Object?
         rightBracket: ]
+        matchedValueType: Object
         requiredType: List<Object?>
       whenClause: WhenClause
         whenKeyword: when
@@ -159,7 +197,7 @@ IfElement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -169,6 +207,7 @@ IfElement
         name: a
         declaredElement: a@42
           type: int
+        matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
@@ -199,8 +238,12 @@ IfElement
 
   test_rewrite_caseClause_pattern() async {
     await assertNoErrorsInCode(r'''
-void f(Object x, int Function() a) {
-  [if (x case const a()) 0];
+void f(Object x) {
+  [if (x case const A()) 0];
+}
+
+class A {
+  const A();
 }
 ''');
 
@@ -218,17 +261,20 @@ IfElement
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
         const: const
-        expression: FunctionExpressionInvocation
-          function: SimpleIdentifier
-            token: a
-            staticElement: self::@function::f::@parameter::a
-            staticType: int Function()
+        expression: InstanceCreationExpression
+          constructorName: ConstructorName
+            type: NamedType
+              name: SimpleIdentifier
+                token: A
+                staticElement: self::@class::A
+                staticType: null
+              type: A
+            staticElement: self::@class::A::@constructor::new
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticElement: <null>
-          staticInvokeType: int Function()
-          staticType: int
+          staticType: A
+        matchedValueType: Object
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 0
@@ -296,6 +342,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: int
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 1
@@ -326,6 +373,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
         expression: FunctionExpressionInvocation
@@ -369,6 +417,7 @@ IfElement
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
         expression: BooleanLiteral

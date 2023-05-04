@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Utility library for creating web colors.
 
 library sourcemaps.colors;
@@ -26,7 +24,7 @@ class RGB implements Color {
 
   @override
   String get toCss {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('#');
 
     void writeHex(double value) {
@@ -55,7 +53,7 @@ class RGBA extends RGB {
 
   @override
   String get toCss {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
 
     void writeInt(double value) {
       int i = (value * 255.0).round();
@@ -98,7 +96,7 @@ class HSV implements Color {
     double v = hsv.v;
     if (s == 0.0) {
       // Grey.
-      return new RGB(v, v, v);
+      return RGB(v, v, v);
     }
     h /= 60.0; // Sector 0 to 5.
     int i = h.floor();
@@ -108,17 +106,17 @@ class HSV implements Color {
     double t = v * (1.0 - s * (1.0 - f));
     switch (i) {
       case 0:
-        return new RGB(v, t, p);
+        return RGB(v, t, p);
       case 1:
-        return new RGB(q, v, p);
+        return RGB(q, v, p);
       case 2:
-        return new RGB(p, v, t);
+        return RGB(p, v, t);
       case 3:
-        return new RGB(p, q, v);
+        return RGB(p, q, v);
       case 4:
-        return new RGB(t, p, v);
+        return RGB(t, p, v);
       default: // case 5:
-        return new RGB(v, p, q);
+        return RGB(v, p, q);
     }
   }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
@@ -45,14 +43,14 @@ main() {
         options: ['--experimental-powersets']);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    var results = compiler.globalInference.resultsForTesting;
+    var results = compiler.globalInference.resultsForTesting!;
     JClosedWorld closedWorld = results.closedWorld;
-    PowersetDomain powersetDomain = closedWorld.abstractValueDomain;
+    final powersetDomain = closedWorld.abstractValueDomain as PowersetDomain;
     PowersetBitsDomain powersetBitsDomain = powersetDomain.powersetBitsDomain;
 
     checkBits(String name, bits) {
       var element = findMember(closedWorld, name);
-      PowersetValue mask = results.resultOfMember(element).type;
+      final mask = results.resultOfMember(element).type as PowersetValue;
       Expect.equals(bits, mask.powersetBits);
     }
 

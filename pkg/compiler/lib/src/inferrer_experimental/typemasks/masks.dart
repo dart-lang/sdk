@@ -9,14 +9,17 @@ import 'package:kernel/ast.dart' as ir;
 import '../../common.dart';
 import '../../common/elements.dart' show CommonElements;
 import '../../common/metrics.dart';
+import '../../common/names.dart';
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
-import '../../ir/class_relation.dart';
+import '../../ir/static_type.dart';
 import '../../js_model/js_world.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
+import '../../universe/member_hierarchy.dart';
+import '../../universe/record_shape.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
@@ -31,6 +34,7 @@ part 'dictionary_type_mask.dart';
 part 'flat_type_mask.dart';
 part 'forwarding_type_mask.dart';
 part 'map_type_mask.dart';
+part 'record_type_mask.dart';
 part 'set_type_mask.dart';
 part 'type_mask.dart';
 part 'union_type_mask.dart';
@@ -50,8 +54,9 @@ class CommonMasks with AbstractValueDomain {
 
   /// Cache of [FlatTypeMask]s grouped by the possible values of the
   /// `FlatTypeMask.flags` property.
-  final List<Map<ClassEntity, TypeMask>?> _canonicalizedTypeMasks = List.filled(
-      _FlatTypeMaskKind.values.length << FlatTypeMask._USED_INDICES, null);
+  final List<Map<ClassEntity?, TypeMask>?> _canonicalizedTypeMasks =
+      List.filled(
+          _FlatTypeMaskKind.values.length << FlatTypeMask._USED_INDICES, null);
 
   /// Return the cached mask for [base] with the given flags, or
   /// calls [createMask] to create the mask and cache it.
@@ -107,6 +112,17 @@ class CommonMasks with AbstractValueDomain {
   @override
   late final TypeMask functionType =
       TypeMask.nonNullSubtype(commonElements.functionClass, _closedWorld);
+
+  @override
+  // TODO(50701): Use:
+  //
+  //     TypeMask.nonNullSubtype(commonElements.recordClass, _closedWorld);
+  //
+  // This will require either (1) open reasoning on the as-yet undefined
+  // subtypes of Record or (2) several live subtypes of Record. Everything
+  // 'works' for the similar interface `Function` because there are multiple
+  // live subclasses of `Closure`.
+  late final TypeMask recordType = dynamicType;
 
   @override
   late final TypeMask listType =
@@ -353,6 +369,21 @@ class CommonMasks with AbstractValueDomain {
       return finish(
           TypeMask.nonNullSubtype(commonElements.functionClass, _closedWorld),
           false);
+    }
+
+    if (type is RecordType) {
+      final types = <TypeMask>[];
+      final shape = type.shape;
+      final fields = type.fields;
+      for (final field in fields) {
+        final fieldType = createFromStaticType(field, nullable: nullable);
+        types.add(fieldType.abstractValue as TypeMask);
+        isPrecise &= fieldType.isPrecise;
+      }
+      return finish(
+          RecordTypeMask.createRecord(this, types, shape,
+              isNullable: nullable, hasLateSentinel: false),
+          isPrecise);
     }
 
     if (type is NeverType) {
@@ -868,6 +899,31 @@ class CommonMasks with AbstractValueDomain {
   }
 
   @override
+  AbstractValue createRecordValue(
+      RecordShape shape, List<AbstractValue> types) {
+    return RecordTypeMask.createRecord(
+        this, List.from(types, growable: false), shape);
+  }
+
+  @override
+  bool isRecord(TypeMask value) {
+    return value is RecordTypeMask;
+  }
+
+  @override
+  bool recordHasGetter(AbstractValue value, String field) {
+    return value is RecordTypeMask && value.shape.nameMatchesGetter(field);
+  }
+
+  @override
+  AbstractValue getGetterTypeInRecord(AbstractValue value, String getterName) {
+    final type = value is RecordTypeMask
+        ? value.types[value.shape.indexOfGetterName(getterName)]
+        : null;
+    return type ?? dynamicType;
+  }
+
+  @override
   AbstractValue createSetValue(
       covariant TypeMask forwardTo,
       covariant ir.Node? allocationNode,
@@ -922,6 +978,13 @@ class CommonMasks with AbstractValueDomain {
   @override
   String getCompactText(covariant TypeMask value) {
     return formatType(dartTypes, value);
+  }
+
+  @override
+  Iterable<DynamicCallTarget> findRootsOfTargets(covariant TypeMask receiver,
+      Selector selector, MemberHierarchyBuilder memberHierarchyBuilder) {
+    return receiver.findRootsOfTargets(
+        selector, memberHierarchyBuilder, _closedWorld);
   }
 
   @override

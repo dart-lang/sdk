@@ -10,8 +10,8 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:args/args.dart';
 import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
+import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:frontend_server/frontend_server.dart';
 import 'package:frontend_server/starter.dart';
@@ -54,7 +54,7 @@ class _MockedCompiler implements CompilerInterface {
       this.verifyRecompileDelta = nopVerifyRecompileDelta,
       this.verifyInvalidate = nopVerifyInvalidate,
       this.verifyAcceptLastDelta = nopVerify,
-      this.verifyResetIncrementalCompiler= nopVerify}) {}
+      this.verifyResetIncrementalCompiler = nopVerify});
 
   @override
   void acceptLastDelta() {
@@ -62,7 +62,7 @@ class _MockedCompiler implements CompilerInterface {
   }
 
   @override
-  Future<Null> recompileDelta({String? entryPoint}) async {
+  Future<void> recompileDelta({String? entryPoint}) async {
     verifyRecompileDelta(entryPoint);
   }
 
@@ -124,11 +124,12 @@ void main() async {
 
   group('batch compile with mocked compiler', () {
     test('compile from command line', () async {
-      final verify = (String entryPoint, ArgResults opts) {
+      verify(String entryPoint, ArgResults opts) {
         expect(entryPoint, equals('server.dart'));
         expect(opts['sdk-root'], equals('sdkroot'));
-      };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      }
+
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final List<String> args = <String>[
         'server.dart',
         '--sdk-root',
@@ -138,12 +139,13 @@ void main() async {
     });
 
     test('compile from command line with link platform', () async {
-      final verify = (String entryPoint, ArgResults opts) {
+      verify(String entryPoint, ArgResults opts) {
         expect(entryPoint, equals('server.dart'));
         expect(opts['sdk-root'], equals('sdkroot'));
         expect(opts['link-platform'], equals(true));
-      };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      }
+
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final List<String> args = <String>[
         'server.dart',
         '--sdk-root',
@@ -154,13 +156,14 @@ void main() async {
     });
 
     test('compile from command line with widget cache', () async {
-      final verify = (String entryPoint, ArgResults opts) {
+      verify(String entryPoint, ArgResults opts) {
         expect(entryPoint, equals('server.dart'));
         expect(opts['sdk-root'], equals('sdkroot'));
         expect(opts['link-platform'], equals(true));
         expect(opts['flutter-widget-cache'], equals(true));
-      };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      }
+
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final List<String> args = <String>[
         'server.dart',
         '--sdk-root',
@@ -179,12 +182,13 @@ void main() async {
 
     test('compile one file', () async {
       final compileCalled = ReceivePort();
-      final verify = (String entryPoint, ArgResults opts) {
+      verify(String entryPoint, ArgResults opts) {
         expect(entryPoint, equals('server.dart'));
         expect(opts['sdk-root'], equals('sdkroot'));
         compileCalled.sendPort.send(true);
-      };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      }
+
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
       Future<int> result = starter(
@@ -196,17 +200,18 @@ void main() async {
       await compileCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('compile one file to JavaScript', () async {
       final compileCalled = ReceivePort();
-      final verify = (String entryPoint, ArgResults opts) {
+      verify(String entryPoint, ArgResults opts) {
         expect(entryPoint, equals('server.dart'));
         expect(opts['sdk-root'], equals('sdkroot'));
         compileCalled.sendPort.send(true);
-      };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      }
+
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
 
@@ -219,7 +224,7 @@ void main() async {
       await compileCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
   });
 
@@ -231,12 +236,13 @@ void main() async {
 
     test('compile one file', () async {
       final compileCalled = ReceivePort();
-      final verify = (String entryPoint, ArgResults opts) {
+      verify(String entryPoint, ArgResults opts) {
         expect(entryPoint, equals('server.dart'));
         expect(opts['sdk-root'], equals('sdkroot'));
         compileCalled.sendPort.send(true);
-      };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      }
+
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
       Future<int> result = starter(
@@ -248,18 +254,19 @@ void main() async {
       await compileCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('compile few files', () async {
       final compileCalled = ReceivePort();
       int counter = 1;
-      final verify = (String entryPoint, ArgResults opts) {
+      verify(String entryPoint, ArgResults opts) {
         expect(entryPoint, equals('server${counter++}.dart'));
         expect(opts['sdk-root'], equals('sdkroot'));
         compileCalled.sendPort.send(true);
-      };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      }
+
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
       Future<int> result = starter(
@@ -272,7 +279,7 @@ void main() async {
       await compileCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
   });
 
@@ -287,17 +294,19 @@ void main() async {
       final recompileDeltaCalled = ReceivePort();
       int invalidated = 0;
       int counter = 1;
-      final verifyI = (Uri uri) {
+      verifyI(Uri uri) {
         expect(uri.path, contains('file${counter++}.dart'));
         invalidated += 1;
-      };
-      final verifyR = (String? entryPoint) {
+      }
+
+      verifyR(String? entryPoint) {
         expect(invalidated, equals(2));
         expect(entryPoint, equals(null));
         recompileDeltaCalled.sendPort.send(true);
-      };
+      }
+
       final compiler = _MockedCompiler(
-        verifyInvalidate : verifyI, verifyRecompileDelta : verifyR);
+          verifyInvalidate: verifyI, verifyRecompileDelta: verifyR);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
 
@@ -312,25 +321,27 @@ void main() async {
 
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('recompile one file with widget cache does not fail', () async {
       final recompileDeltaCalled = ReceivePort();
       bool invalidated = false;
-      final verifyR = (String? entryPoint) {
+      verifyR(String? entryPoint) {
         expect(invalidated, equals(true));
         expect(entryPoint, equals(null));
         recompileDeltaCalled.sendPort.send(true);
-      };
-      final verifyI = (Uri uri) {
+      }
+
+      verifyI(Uri uri) {
         invalidated = true;
         expect(uri.path, contains('file1.dart'));
-      };
+      }
+
       // The component will not contain the flutter framework sources so
       // this should no-op.
       final compiler = _MockedCompiler(
-        verifyRecompileDelta : verifyR, verifyInvalidate : verifyI);
+          verifyRecompileDelta: verifyR, verifyInvalidate: verifyI);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
 
@@ -343,24 +354,26 @@ void main() async {
       await recompileDeltaCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('recompile few files with new entrypoint', () async {
       int invalidated = 0;
       final recompileDeltaCalled = ReceivePort();
       int counter = 1;
-      final verifyI = (Uri uri) {
+      verifyI(Uri uri) {
         expect(uri.path, contains('file${counter++}.dart'));
         invalidated += 1;
-      };
-      final verifyR = (String? entryPoint) {
+      }
+
+      verifyR(String? entryPoint) {
         expect(invalidated, equals(2));
         expect(entryPoint, equals('file2.dart'));
         recompileDeltaCalled.sendPort.send(true);
-      };
+      }
+
       final compiler = _MockedCompiler(
-        verifyRecompileDelta : verifyR, verifyInvalidate : verifyI);
+          verifyRecompileDelta: verifyR, verifyInvalidate: verifyI);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
 
@@ -374,15 +387,16 @@ void main() async {
       await recompileDeltaCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('accept', () async {
       final acceptCalled = ReceivePort();
-      final verify = () {
+      verify() {
         acceptCalled.sendPort.send(true);
-      };
-      final compiler = _MockedCompiler(verifyAcceptLastDelta : verify);
+      }
+
+      final compiler = _MockedCompiler(verifyAcceptLastDelta: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
       Future<int> result = starter(
@@ -394,15 +408,16 @@ void main() async {
       await acceptCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('reset', () async {
       final resetCalled = ReceivePort();
-      final verify = () {
+      verify() {
         resetCalled.sendPort.send(true);
-      };
-      final compiler = _MockedCompiler(verifyResetIncrementalCompiler : verify);
+      }
+
+      final compiler = _MockedCompiler(verifyResetIncrementalCompiler: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
       Future<int> result = starter(
@@ -414,7 +429,7 @@ void main() async {
       await resetCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('compile then recompile', () async {
@@ -422,31 +437,37 @@ void main() async {
       bool compile = false;
       int invalidate = 0;
       bool acceptDelta = false;
-      final verifyC = (String entryPoint, ArgResults opts) {
+      verifyC(String entryPoint, ArgResults opts) {
         compile = true;
         expect(entryPoint, equals('file1.dart'));
-      };
-      final verifyA = () {
+      }
+
+      verifyA() {
         expect(compile, equals(true));
         acceptDelta = true;
-      };
+      }
+
       int counter = 2;
-      final verifyI = (Uri uri) {
+      verifyI(Uri uri) {
         expect(compile, equals(true));
         expect(acceptDelta, equals(true));
         expect(uri.path, contains('file${counter++}.dart'));
         invalidate += 1;
-      };
-      final verifyR = (String? entryPoint) {
+      }
+
+      verifyR(String? entryPoint) {
         expect(compile, equals(true));
         expect(invalidate, equals(2));
         expect(acceptDelta, equals(true));
         expect(entryPoint, equals(null));
         recompileDeltaCalled.sendPort.send(true);
-      };
-      final compiler = _MockedCompiler(verifyCompile : verifyC,
-        verifyRecompileDelta : verifyR, verifyInvalidate : verifyI,
-        verifyAcceptLastDelta : verifyA);
+      }
+
+      final compiler = _MockedCompiler(
+          verifyCompile: verifyC,
+          verifyRecompileDelta: verifyR,
+          verifyInvalidate: verifyI,
+          verifyAcceptLastDelta: verifyA);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
 
@@ -462,7 +483,7 @@ void main() async {
       await recompileDeltaCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
   });
 
@@ -478,7 +499,7 @@ void main() async {
       tempDir = Directory.systemTemp.createTempSync();
     });
     tearDown(() {
-      tempDir.delete(recursive: true);
+      tempDir.deleteSync(recursive: true);
     });
 
     test('compile then accept', () async {
@@ -494,10 +515,10 @@ void main() async {
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((String s) {
-        const String RESULT_OUTPUT_SPACE = 'result ';
+        const String resultOutputSpace = 'result ';
         if (boundaryKey == null) {
-          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
-            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
+          if (s.startsWith(resultOutputSpace)) {
+            boundaryKey = s.substring(resultOutputSpace.length);
           }
         } else {
           if (s.startsWith(boundaryKey!)) {
@@ -530,14 +551,15 @@ void main() async {
 
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     group('compile with output path', () {
-      final verify = (String entryPoint, ArgResults opts) {
+      verify(String entryPoint, ArgResults opts) {
         expect(opts['sdk-root'], equals('sdkroot'));
-      };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      }
+
+      final compiler = _MockedCompiler(verifyCompile: verify);
       test('compile from command line', () async {
         final List<String> args = <String>[
           'server.dart',
@@ -557,20 +579,20 @@ void main() async {
     final platformKernel =
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
     final ddcPlatformKernel =
-        computePlatformBinariesLocation().resolve('ddc_outline_sound.dill');
+        computePlatformBinariesLocation().resolve('ddc_outline.dill');
     final ddcPlatformKernelWeak =
-        computePlatformBinariesLocation().resolve('ddc_sdk.dill');
+        computePlatformBinariesLocation().resolve('ddc_outline_unsound.dill');
     final sdkRoot = computePlatformBinariesLocation();
 
     late Directory tempDir;
     setUp(() {
       var systemTempDir = Directory.systemTemp;
       tempDir = systemTempDir.createTempSync('frontendServerTest');
-      new Directory('${tempDir.path}/.dart_tool').createSync();
+      Directory('${tempDir.path}/.dart_tool').createSync();
     });
 
     tearDown(() {
-      tempDir.delete(recursive: true);
+      tempDir.deleteSync(recursive: true);
     });
 
     test('compile expression', () async {
@@ -636,7 +658,7 @@ void main() async {
           count += 1;
         } else {
           expect(count, 3);
-          // Third request is to 'compile' non-existent file, that should fail.
+          // Third request is to 'compile' nonexistent file, that should fail.
           expect(result.errorsCount, greaterThan(0));
 
           frontendServer.quit();
@@ -1679,16 +1701,16 @@ class BarState extends State<FizzWidget> {
           try {
             await f(requestChannel);
           } finally {
-            requestChannel.sendRequest('stop', {});
+            unawaited(requestChannel.sendRequest('stop', {}));
             socket.destroy();
-            serverSocket.close();
+            await serverSocket.close();
             testFinished.complete();
           }
         });
 
         final host = serverSocket.address.address;
         final addressStr = '$host:${serverSocket.port}';
-        expect(await starter(['--binary-protocol-address=${addressStr}']), 0);
+        expect(await starter(['--binary-protocol-address=$addressStr']), 0);
 
         await testFinished.future;
       }
@@ -1935,7 +1957,7 @@ void main(List<String> arguments, SendPort sendPort) {
       expect(await starter(args), 0);
     }, skip: 'https://github.com/dart-lang/sdk/issues/43959');
 
-    test('compile to JavaScript weak null safety then non-existent file',
+    test('compile to JavaScript weak null safety then nonexistent file',
         () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n}\n");
@@ -1981,7 +2003,7 @@ void main(List<String> arguments, SendPort sendPort) {
           frontendServer.compile('foo.bar');
         } else {
           expect(count, 2);
-          // Second request is to 'compile' non-existent file, that should fail.
+          // Second request is to 'compile' nonexistent file, that should fail.
           expect(result.errorsCount, greaterThan(0));
           frontendServer.quit();
         }
@@ -2239,8 +2261,7 @@ e() {
 
             var source = sourceFile.readAsStringSync();
             // Split on the comment at the end of each module.
-            var jsModules =
-                source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+            var jsModules = source.split(RegExp("//# sourceMappingURL=.*.map"));
 
             expect(jsModules[0], contains('<<a>>'));
             expect(jsModules[0], contains('<<b>>'));
@@ -2279,8 +2300,7 @@ d() {
 
             var source = incrementalSourceFile.readAsStringSync();
             // Split on the comment at the end of each module.
-            var jsModules =
-                source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+            var jsModules = source.split(RegExp("//# sourceMappingURL=.*.map"));
 
             expect(jsModules[0], not(contains('<<a>>')));
             expect(jsModules[0], not(contains('<<b>>')));
@@ -2315,8 +2335,7 @@ e() {
 
             var source = incrementalSourceFile.readAsStringSync();
             // Split on the comment at the end of each module.
-            var jsModules =
-                source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+            var jsModules = source.split(RegExp("//# sourceMappingURL=.*.map"));
 
             expect(jsModules[0], not(contains('<<a>>')));
             expect(jsModules[0], not(contains('<<b>>')));
@@ -2398,7 +2417,7 @@ e() {
 
         var source = sourceFile.readAsStringSync();
         // Split on the comment at the end of each module.
-        var jsModules = source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+        var jsModules = source.split(RegExp("//# sourceMappingURL=.*.map"));
 
         // Both modules should include the unsound null safety check.
         expect(
@@ -2470,7 +2489,7 @@ e() {
 
         var source = sourceFile.readAsStringSync();
         // Split on the comment at the end of each module.
-        var jsModules = source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+        var jsModules = source.split(RegExp("//# sourceMappingURL=.*.map"));
 
         // Both modules should include the sound null safety validation.
         expect(
@@ -2488,7 +2507,7 @@ e() {
       frontendServer.close();
     });
 
-    test('compile expression to Javascript', () async {
+    test('compile expression to JavaScript', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n}\n");
       var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
@@ -2565,7 +2584,7 @@ e() {
           count += 1;
         } else {
           expect(count, 3);
-          // Fourth request is to 'compile' non-existent file, that should fail.
+          // Fourth request is to 'compile' nonexistent file, that should fail.
           expect(result.errorsCount, greaterThan(0));
 
           frontendServer.quit();
@@ -2576,7 +2595,7 @@ e() {
       expect(count, 3);
     });
 
-    test('compiled Javascript includes web library environment defines',
+    test('compiled JavaScript includes web library environment defines',
         () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync(
@@ -3004,7 +3023,7 @@ method(int i) => i?.isEven;
           if (hideWarnings) '--verbosity=error',
           file.path,
         ];
-        StringBuffer output = new StringBuffer();
+        StringBuffer output = StringBuffer();
         expect(await starter(args, output: output), 0);
         String result = output.toString();
         Matcher matcher =
@@ -3060,7 +3079,7 @@ class CompilationResult {
 
 class OutputParser {
   bool expectSources = true;
-  StreamController<Result> _receivedResults;
+  final StreamController<Result> _receivedResults;
 
   List<String>? _receivedSources;
   String? _boundaryKey;
@@ -3070,9 +3089,9 @@ class OutputParser {
 
   void listener(String s) {
     if (_boundaryKey == null) {
-      const String RESULT_OUTPUT_SPACE = 'result ';
-      if (s.startsWith(RESULT_OUTPUT_SPACE)) {
-        _boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
+      const String resultOutputSpace = 'result ';
+      if (s.startsWith(resultOutputSpace)) {
+        _boundaryKey = s.substring(resultOutputSpace.length);
       }
       _readingSources = false;
       _receivedSources?.clear();
@@ -3091,16 +3110,12 @@ class OutputParser {
       // Second boundaryKey indicates end of frontend server response
       expectSources = true;
       _receivedResults.add(Result(
-          s.length > bKey.length
-              ? s.substring(bKey.length + 1)
-              : null,
+          s.length > bKey.length ? s.substring(bKey.length + 1) : null,
           _receivedSources!));
       _boundaryKey = null;
     } else {
       if (_readingSources) {
-        if (_receivedSources == null) {
-          _receivedSources = <String>[];
-        }
+        _receivedSources ??= <String>[];
         _receivedSources!.add(s);
       }
     }
@@ -3160,7 +3175,7 @@ class FrontendServer {
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen(outputParser.listener);
-    return new FrontendServer._internal(inputStreamController,
+    return FrontendServer._internal(inputStreamController,
         stdoutStreamController, ioSink, receivedResults, outputParser);
   }
 
@@ -3211,7 +3226,7 @@ class FrontendServer {
   // TODO(johnniwinther): Use (required) named arguments.
   void compile(String path) {
     outputParser.expectSources = true;
-    inputStreamController.add('compile ${path}\n'.codeUnits);
+    inputStreamController.add('compile $path\n'.codeUnits);
   }
 
   /// Recompiles the program.
@@ -3232,11 +3247,17 @@ class FrontendServer {
     invalidatedUris ??= [if (invalidatedUri != null) invalidatedUri];
     outputParser.expectSources = true;
     inputStreamController.add('recompile '
-            '${entryPoint != null ? '${entryPoint} ' : ''}'
-            '${boundaryKey}\n'
+            '${entryPoint != null ? '$entryPoint ' : ''}'
+            '$boundaryKey\n'
             '${invalidatedUris.map((uri) => '$uri\n').join()}'
-            '${boundaryKey}\n'
+            '$boundaryKey\n'
         .codeUnits);
+  }
+
+  /// Sets the native assets yaml [uri].
+  void setNativeAssets({required Uri uri}) {
+    outputParser.expectSources = true;
+    inputStreamController.add('native-assets $uri\n'.codeUnits);
   }
 
   /// Compiles the [expression] as if it occurs in [library].
@@ -3264,12 +3285,12 @@ class FrontendServer {
     // <klass: String>
     // <isStatic: true|false>
     outputParser.expectSources = false;
-    inputStreamController.add('compile-expression ${boundaryKey}\n'
-            '${expression}\n'
-            '${boundaryKey}\n'
-            '${boundaryKey}\n'
-            '${library}\n'
-            '${className}\n'
+    inputStreamController.add('compile-expression $boundaryKey\n'
+            '$expression\n'
+            '$boundaryKey\n'
+            '$boundaryKey\n'
+            '$library\n'
+            '$className\n'
             '${isStatic != null ? '$isStatic' : ''}\n'
         .codeUnits);
   }
@@ -3296,14 +3317,14 @@ class FrontendServer {
     // moduleName
     // expression
     outputParser.expectSources = false;
-    inputStreamController.add('compile-expression-to-js ${boundaryKey}\n'
-            '${libraryUri}\n'
-            '${line}\n'
-            '${column}\n'
-            '${boundaryKey}\n'
-            '${boundaryKey}\n'
-            '${moduleName}\n'
-            '${expression}\n'
+    inputStreamController.add('compile-expression-to-js $boundaryKey\n'
+            '$libraryUri\n'
+            '$line\n'
+            '$column\n'
+            '$boundaryKey\n'
+            '$boundaryKey\n'
+            '$moduleName\n'
+            '$expression\n'
         .codeUnits);
   }
 }

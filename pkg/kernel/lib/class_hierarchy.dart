@@ -33,14 +33,25 @@ abstract class ClassHierarchyBase {
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass] at all.
-  InterfaceType? getTypeAsInstanceOf(
-      InterfaceType type, Class superclass, Library clientLibrary);
+  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      {required bool isNonNullableByDefault});
 
   /// Returns the type arguments of the instantiation of [superclass] that is
   /// implemented by [type], or `null` if [type] does not implement [superclass]
   /// at all.
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass);
+
+  /// Returns the instantiation of [superclass] that is implemented by [type],
+  /// or `null` if [type] does not implement [superclass] at all.
+  InlineType? getInlineTypeAsInstanceOf(InlineType type, InlineClass superclass,
+      {required bool isNonNullableByDefault});
+
+  /// Returns the type arguments of the instantiation of [superclass] that is
+  /// implemented by [type], or `null` if [type] does not implement [superclass]
+  /// at all.
+  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
+      InlineType type, InlineClass superclass);
 
   /// True if [subtype] inherits from [superclass] though zero or more
   /// `extends`, `with`, and `implements` relationships.
@@ -62,7 +73,60 @@ abstract class ClassHierarchyBase {
   /// one type is a subtype of the other, or where both types are based on the
   /// same class.
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2, Library clientLibrary);
+      InterfaceType type1, InterfaceType type2,
+      {required bool isNonNullableByDefault});
+}
+
+mixin ClassHierarchyInlineClassMixin {
+  CoreTypes get coreTypes;
+
+  InlineType? getInlineClassAsInstanceOf(
+      InlineClass subclass, InlineClass superclass,
+      {required bool isNonNullableByDefault}) {
+    // TODO(johnniwinther): Improve lookup performance.
+    if (identical(subclass, superclass)) {
+      return coreTypes.thisInlineType(
+          subclass,
+          isNonNullableByDefault
+              ? Nullability.nonNullable
+              : Nullability.legacy);
+    }
+    for (InlineType implement in subclass.implements) {
+      InlineType? supertype = getInlineClassAsInstanceOf(
+          implement.inlineClass, superclass,
+          isNonNullableByDefault: isNonNullableByDefault);
+      if (supertype != null) {
+        if (implement.typeArguments.isNotEmpty) {
+          supertype = Substitution.fromInlineType(implement)
+              .substituteType(supertype) as InlineType;
+        }
+        return supertype;
+      }
+    }
+    return null;
+  }
+
+  InlineType? getInlineTypeAsInstanceOf(InlineType type, InlineClass superclass,
+      {required bool isNonNullableByDefault}) {
+    InlineType? supertype = getInlineClassAsInstanceOf(
+        type.inlineClass, superclass,
+        isNonNullableByDefault: isNonNullableByDefault);
+    if (supertype != null) {
+      if (type.typeArguments.isNotEmpty) {
+        supertype = Substitution.fromInlineType(type).substituteType(supertype)
+            as InlineType;
+      }
+      return supertype;
+    }
+    return null;
+  }
+
+  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
+      InlineType type, InlineClass superclass) {
+    return getInlineTypeAsInstanceOf(type, superclass,
+            isNonNullableByDefault: true)
+        ?.typeArguments;
+  }
 }
 
 abstract class ClassHierarchyMembers {
@@ -306,9 +370,7 @@ abstract class ClassHierarchy
     Library? firstLibrary = firstName.library;
     Library? secondLibrary = secondName.library;
     if (firstLibrary != secondLibrary) {
-      // ignore: unnecessary_null_comparison
       if (firstLibrary == null) return -1;
-      // ignore: unnecessary_null_comparison
       if (secondLibrary == null) return 1;
       return firstLibrary.compareTo(secondLibrary);
     }
@@ -456,7 +518,9 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 }
 
 /// Implementation of [ClassHierarchy] for closed world.
-class ClosedWorldClassHierarchy implements ClassHierarchy {
+class ClosedWorldClassHierarchy
+    with ClassHierarchyInlineClassMixin
+    implements ClassHierarchy {
   @override
   CoreTypes coreTypes;
   late HandleAmbiguousSupertypes _onAmbiguousSupertypes;
@@ -630,7 +694,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2, Library clientLibrary) {
+      InterfaceType type1, InterfaceType type2,
+      {required bool isNonNullableByDefault}) {
     // The algorithm is: first we compute a list of superclasses for both types,
     // ordered from greatest to least depth, and ordered by topological sort
     // index within each depth.  Due to the sort order, we can find the
@@ -655,7 +720,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     // libraries.  In opt-out libraries the legacy behavior is preserved, so
     // LLUB(Null, List<dynamic>*) = List<dynamic>*.  In opt-in libraries the
     // rules imply that LLUB(Null, List<dynamic>*) = List<dynamic>?.
-    if (!clientLibrary.isNonNullableByDefault) {
+    if (!isNonNullableByDefault) {
       if (type1 is NullType) return type2;
       if (type2 is NullType) return type1;
     }
@@ -735,7 +800,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
             : Substitution.fromInterfaceType(type2).substituteType(
                     info2.genericSuperType![next.classNode]!.asInterfaceType)
                 as InterfaceType;
-        if (!clientLibrary.isNonNullableByDefault) {
+        if (!isNonNullableByDefault) {
           superType1 = legacyErasure(superType1) as InterfaceType;
           superType2 = legacyErasure(superType2) as InterfaceType;
         }
@@ -761,17 +826,16 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  InterfaceType? getTypeAsInstanceOf(
-      InterfaceType type, Class superclass, Library clientLibrary) {
+  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      {required bool isNonNullableByDefault}) {
     List<DartType>? typeArguments =
         getTypeArgumentsAsInstanceOf(type, superclass);
     if (typeArguments == null) return null;
     // The return value should be a legacy type if it's computed for an
     // opted-out library, unless the return value is Null? which is always
     // nullable.
-    Nullability nullability = clientLibrary.isNonNullableByDefault
-        ? type.nullability
-        : Nullability.legacy;
+    Nullability nullability =
+        isNonNullableByDefault ? type.nullability : Nullability.legacy;
     return new InterfaceType(superclass, nullability, typeArguments);
   }
 

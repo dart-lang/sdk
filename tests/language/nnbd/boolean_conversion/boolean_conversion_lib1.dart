@@ -4,7 +4,7 @@
 
 // This library defines a set of test functions 'xxxAsBoolean" and a check
 // combinator called `check` which test the runtime behavior of conversions
-// of values in boolean condional positions (e.g. the condition of a conditional
+// of values in boolean conditional positions (e.g. the condition of a conditional
 // statement).
 //
 // For example: calling `check(dynamicAsBoolean, value, expectation)` tests that

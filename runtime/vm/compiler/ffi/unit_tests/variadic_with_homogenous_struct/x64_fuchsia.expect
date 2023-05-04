@@ -1,0 +1,15 @@
+xmm0 double
+xmm1 double
+xmm2 double
+xmm3 double
+xmm4 double
+xmm5 double
+xmm6 double
+xmm7 double
+S+0 float
+S+8 Struct(size: 12)
+rdi int64
+rsi int32
+S+24 Struct(size: 12)
+=>
+xmm0 double

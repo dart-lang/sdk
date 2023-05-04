@@ -83,7 +83,6 @@ List<String> _selectBuildTargets(Configuration inner) {
     Compiler.dartkp: ['runtime', 'dart_precompiled_runtime'],
     Compiler.appJitk: ['runtime'],
     Compiler.fasta: ['create_sdk', 'dartdevc_test', 'kernel_platform_files'],
-    Compiler.dartdevk: ['dartdevc_test'],
     Compiler.ddc: ['dartdevc_test'],
     Compiler.dart2js: ['create_sdk'],
     Compiler.dart2analyzer: ['create_sdk', 'utils/dartanalyzer'],
@@ -96,9 +95,21 @@ List<String> _selectBuildTargets(Configuration inner) {
           .contains(inner.architecture)) {
     result.add('gen_snapshot');
   }
+  if ([Mode.release, Mode.product].contains(inner.mode) &&
+      [Compiler.dartkp, Compiler.dartk].contains(compiler) &&
+      [
+        Architecture.arm64,
+        Architecture.x64,
+        Architecture.arm64c,
+        Architecture.x64c,
+        Architecture.simarm64,
+        Architecture.simarm64c
+      ].contains(inner.architecture) &&
+      [System.linux, System.android].contains(inner.system)) {
+    result.add('analyze_snapshot');
+  }
 
-  if ((compiler == Compiler.dartdevk || compiler == Compiler.ddc) &&
-      !inner.useSdk) {
+  if (compiler == Compiler.ddc && !inner.useSdk) {
     result
       ..remove('dartdevc_test')
       ..add('dartdevc_test_local');

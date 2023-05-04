@@ -1,7 +1,16 @@
+## 1.9.1
+
+* Update SDK constraints to `>=2.12.0 <4.0.0`.
+* Mark `@reopen` stable.
+
 ## 1.9.0
 
+* Introduce `@reopen` to annotate class or mixin declarations that can safely
+  extend classes marked `base`, `final` or `interface`.
 * Introduce `@MustBeOverridden` to annotate class or mixin members which must be
   overridden in all subclasses.
+* Deprecate `@alwaysThrows`, which can be replaced by using a return type of
+  'Never'.
 
 ## 1.8.0
 

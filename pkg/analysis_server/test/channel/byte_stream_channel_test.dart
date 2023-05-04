@@ -111,13 +111,13 @@ class ByteStreamServerChannelTest {
   late Stream<String> outputLineStream;
 
   /// Stream of requests received from the channel via [listen()].
-  late Stream<Request> requestStream;
+  late Stream<RequestOrResponse> requestStream;
 
   /// Stream of errors received from the channel via [listen()].
-  late Stream errorStream;
+  late Stream<Object?> errorStream;
 
   /// Future which is completed when then [listen()] reports [onDone].
-  late Future doneFuture;
+  late Future<void> doneFuture;
 
   void setUp() {
     var inputStream = StreamController<List<int>>();
@@ -127,16 +127,16 @@ class ByteStreamServerChannelTest {
         .transform(Utf8Codec().decoder)
         .transform(LineSplitter());
     var outputSink = IOSink(outputStream);
-    channel = ByteStreamServerChannel(
+    channel = InputOutputByteStreamServerChannel(
         inputStream.stream, outputSink, InstrumentationService.NULL_SERVICE);
-    var requestStreamController = StreamController<Request>();
+    var requestStreamController = StreamController<RequestOrResponse>();
     requestStream = requestStreamController.stream;
-    var errorStreamController = StreamController();
+    var errorStreamController = StreamController<Object?>();
     errorStream = errorStreamController.stream;
     var doneCompleter = Completer();
     doneFuture = doneCompleter.future;
-    channel.requests.listen((Request request) {
-      requestStreamController.add(request);
+    channel.requests.listen((RequestOrResponse requestOrResponse) {
+      requestStreamController.add(requestOrResponse);
     }, onError: (error) {
       errorStreamController.add(error);
     }, onDone: () {
@@ -164,7 +164,7 @@ class ByteStreamServerChannelTest {
   }
 
   Future<void> test_listen_invalidRequest() {
-    inputSink.writeln('{"id":"0"}');
+    inputSink.writeln('{"garbage":"true"}');
     return inputSink
         .flush()
         .then((_) => outputLineStream.first.timeout(Duration(seconds: 1)))
@@ -198,9 +198,12 @@ class ByteStreamServerChannelTest {
     return inputSink
         .flush()
         .then((_) => requestStream.first.timeout(Duration(seconds: 1)))
-        .then((Request request) {
-      expect(request.id, equals('0'));
-      expect(request.method, equals('server.version'));
+        .then((RequestOrResponse requestOrResponse) {
+      if (requestOrResponse is! Request) {
+        fail('Expected a Request');
+      }
+      expect(requestOrResponse.id, equals('0'));
+      expect(requestOrResponse.method, equals('server.version'));
     });
   }
 
@@ -220,8 +223,10 @@ class ByteStreamServerChannelTest {
     // This IOSink asynchronously throws an exception on any writeln().
     var outputSink = _IOSinkThatAsyncThrowsOnWrite();
 
-    var channel = ByteStreamServerChannel(StreamController<List<int>>().stream,
-        outputSink, InstrumentationService.NULL_SERVICE);
+    var channel = InputOutputByteStreamServerChannel(
+        StreamController<List<int>>().stream,
+        outputSink,
+        InstrumentationService.NULL_SERVICE);
 
     // Attempt to send a notification.
     channel.sendNotification(Notification('foo'));

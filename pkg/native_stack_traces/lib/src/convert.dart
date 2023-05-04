@@ -125,16 +125,16 @@ const _symbolOffsetREString = r'(?<symbol>' +
     constants.isolateSymbolName +
     r')\+(?<offset>(?:0x)?[\da-f]+)';
 final _symbolOffsetRE = RegExp(_symbolOffsetREString);
-final _traceLineRE = RegExp(
-    r'    #(\d+) abs (?<absolute>[\da-f]+)(?: virt (?<virtual>[\da-f]+))? '
-    r'(?<rest>.*)$');
+final _traceLineRE =
+    RegExp(r'\s*#(\d+) abs (?<absolute>[\da-f]+)(?: virt (?<virtual>[\da-f]+))?'
+        r' (?<rest>.*)$');
 
 /// Parses strings of the format <static symbol>+<integer offset>, where
 /// <static symbol> is one of the static symbols used for Dart instruction
 /// sections.
 ///
 /// Unless forceHexadecimal is true, an integer offset without a "0x" prefix or
-/// any hexdecimal digits will be parsed as decimal.
+/// any hexadecimal digits will be parsed as decimal.
 ///
 /// Returns null if the string is not of the expected format.
 PCOffset? tryParseSymbolOffset(String s,
@@ -272,8 +272,15 @@ class DwarfStackTraceDecoder extends StreamTransformerBase<String, String> {
       // No lines to output (as this corresponds to Dart internals).
       if (callInfo.isEmpty) continue;
       // Output the lines for the symbolic frame with the prefix found on the
-      // original non-symbolic frame line.
-      final prefix = line.substring(0, lineMatch!.start);
+      // original non-symbolic frame line, modulo all whitespace between the
+      // prefix and stack trace information converted to a single space.
+      //
+      // If there was no prefix, just swallow any initial whitespace, since
+      // symbolic Dart stacktrace lines have no initial whitespace.
+      String prefix = line.substring(0, lineMatch!.start);
+      if (prefix.isNotEmpty) {
+        prefix += ' ';
+      }
       for (final call in callInfo) {
         yield prefix + _stackTracePiece(call, depth++);
       }

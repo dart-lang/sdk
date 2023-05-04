@@ -61,10 +61,6 @@ class OS {
   // If the tracing/timeline configuration on takes timestamps as input, returns
   // the same value as |GetCurrentMonotonicMicros|. Otherwise, returns -1.
   static int64_t GetCurrentMonotonicMicrosForTimeline();
-  // If the tracing/timeline configuration on the current OS supports thread
-  // timestamps, returns the same value as |GetCurrentThreadCPUMicros|.
-  // Otherwise, returns -1.
-  static int64_t GetCurrentThreadCPUMicrosForTimeline();
 
   // Returns the activation frame alignment constraint or one if
   // the platform doesn't care. Guaranteed to be a power of two.

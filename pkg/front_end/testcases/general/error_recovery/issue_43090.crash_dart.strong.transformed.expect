@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/issue_43090.crash_dart:1:12: Error: Expected an identifier, but got '='.
+// Try inserting an identifier before '='.
+// typedef A< = void Function();
+//            ^
+//
+import self as self;
+
+typedef A = () → void;
+static method main() → dynamic {}

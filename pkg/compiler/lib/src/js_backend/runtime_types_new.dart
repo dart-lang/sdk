@@ -15,6 +15,7 @@ import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart';
 import '../js_emitter/js_emitter.dart' show ModularEmitter;
 import '../universe/class_hierarchy.dart';
+import '../universe/record_shape.dart';
 import 'namer.dart' show StringBackedName;
 import 'native_data.dart';
 import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
@@ -22,12 +23,10 @@ import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
 abstract class RecipeEncoder {
   /// Returns a [RecipeEncoding] representing the given [recipe] to be
   /// evaluated against a type environment with shape [structure].
-  RecipeEncoding encodeRecipe(covariant ModularEmitter emitter,
+  RecipeEncoding encodeRecipe(ModularEmitter emitter,
       TypeEnvironmentStructure environmentStructure, TypeRecipe recipe);
 
-  // TODO(48820): Remove covariant when ModularEmitter is migrated.
-  jsAst.Literal encodeGroundRecipe(
-      covariant ModularEmitter emitter, TypeRecipe recipe);
+  jsAst.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe);
 
   /// Returns a [jsAst.Literal] representing [supertypeArgument] to be evaluated
   /// against a [FullTypeEnvironmentStructure] representing [declaringType]. Any
@@ -36,6 +35,10 @@ abstract class RecipeEncoder {
   /// assumed to never be erased.
   jsAst.Literal encodeMetadataRecipe(ModularEmitter emitter,
       InterfaceType declaringType, DartType supertypeArgument);
+
+  /// Returns a [jsAst.Literal] representing the recipe for converting a binding
+  /// Rti with N bindings into a record Rti for a record shape with N fields.
+  jsAst.Literal encodeRecordFromBindingRecipe(RecordShape shape);
 }
 
 class RecipeEncoderImpl implements RecipeEncoder {
@@ -69,6 +72,21 @@ class RecipeEncoderImpl implements RecipeEncoder {
             metadata: true)
         .run()
         .recipe;
+  }
+
+  @override
+  jsAst.Literal encodeRecordFromBindingRecipe(RecordShape shape) {
+    final sb = StringBuffer();
+    sb.write(Recipe.startRecordString);
+    // Partial shape tag. The full shape is this plus the number of fields.
+    sb.write(partialShapeTagOf(shape));
+    sb.write(Recipe.startFunctionArgumentsString);
+    for (int i = 0; i < shape.fieldCount; i++) {
+      if (i > 0) sb.write(Recipe.separatorString);
+      sb.write(i + 1);
+    }
+    sb.write(Recipe.endFunctionArgumentsString);
+    return js.string(sb.toString());
   }
 }
 
@@ -285,7 +303,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   void visitRecordType(RecordType type, _) {
     _emitCode(Recipe.startRecord);
     // Partial shape tag. The full shape is this plus the number of fields.
-    _emitStringUnescaped(type.shape.fieldNames.join(Recipe.separatorString));
+    _emitStringUnescaped(partialShapeTagOf(type.shape));
     _emitCode(Recipe.startFunctionArguments);
     bool first = true;
     for (DartType field in type.fields) {
@@ -404,6 +422,10 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
     visit(type.typeArgument, _);
     _emitCode(Recipe.wrapFutureOr);
   }
+}
+
+String partialShapeTagOf(RecordShape shape) {
+  return shape.fieldNames.join(Recipe.separatorString);
 }
 
 class _RulesetEntry {
@@ -608,9 +630,7 @@ int? indexTypeVariable(
   }
 
   TypeVariableEntity element = type.element;
-  // TODO(48820): remove `!`. Added to increase coverage of null assertions
-  // while the compiler runs in unsound null safety.
-  ClassEntity cls = element.typeDeclaration! as ClassEntity;
+  ClassEntity cls = element.typeDeclaration as ClassEntity;
 
   if (metadata) {
     if (identical(environment.classType!.element, cls)) {

@@ -7,8 +7,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
 import 'package:_js_interop_checks/src/transformations/export_creator.dart';
-import 'package:_js_interop_checks/src/transformations/js_util_wasm_optimizer.dart';
-import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -25,17 +23,25 @@ import 'package:vm/transformations/ffi/definitions.dart'
     as transformFfiDefinitions show transformLibraries;
 import 'package:vm/transformations/ffi/use_sites.dart' as transformFfiUseSites
     show transformLibraries;
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    as constantEvaluator show EvaluationMode;
+import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
+    show ConstConditionalSimplifier;
 
 import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
+import 'package:dart2wasm/records.dart' show RecordShape;
 
 class WasmTarget extends Target {
+  WasmTarget({this.constantBranchPruning = true});
+
+  bool constantBranchPruning;
   Class? _growableList;
   Class? _immutableList;
-  Class? _wasmImmutableLinkedHashMap;
-  Class? _wasmImmutableLinkedHashSet;
-  Class? _compactLinkedCustomHashMap;
-  Class? _compactLinkedCustomHashSet;
+  Class? _wasmDefaultMap;
+  Class? _wasmDefaultSet;
+  Class? _wasmImmutableMap;
+  Class? _wasmImmutableSet;
   Class? _oneByteString;
   Class? _twoByteString;
   Map<String, Class>? _nativeClasses;
@@ -50,7 +56,7 @@ class WasmTarget extends Target {
   String get name => 'wasm';
 
   @override
-  TargetFlags get flags => TargetFlags(enableNullSafety: true);
+  TargetFlags get flags => TargetFlags();
 
   @override
   List<String> get extraRequiredLibraries => const <String>[
@@ -62,9 +68,10 @@ class WasmTarget extends Target {
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
+        'dart:js_interop',
         'dart:js',
         'dart:js_util',
-        'dart:wasm',
+        'dart:_wasm',
         'dart:developer',
       ];
 
@@ -73,10 +80,14 @@ class WasmTarget extends Target {
         'dart:_js_helper',
         'dart:collection',
         'dart:typed_data',
-        'dart:js',
+        'dart:js_interop',
         'dart:js_util',
-        'dart:wasm',
+        'dart:_wasm',
       ];
+
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
+      importer.path.contains('tests/web/wasm');
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
@@ -103,28 +114,19 @@ class WasmTarget extends Target {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     final jsInteropChecks = JsInteropChecks(
         coreTypes,
+        hierarchy,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!,
-        enableDisallowedExternalCheck: false);
+        enableDisallowedExternalCheck: false,
+        enableStrictMode: true);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
     }
     final exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
         diagnosticReporter, jsInteropChecks.exportChecker);
-    final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
     for (Library library in interopDependentLibraries) {
       exportCreator.visitLibrary(library);
-      jsUtilOptimizer.visitLibrary(library);
-    }
-    // Do the erasure after any possible mock creation to avoid erasing types
-    // that need to be used during mock conformance checking.
-    final staticInteropClassEraser = StaticInteropClassEraser(
-        coreTypes, referenceFromIndex,
-        libraryForJavaScriptObject: 'dart:_js_helper',
-        classNameOfJavaScriptObject: 'JSValue');
-    for (Library library in interopDependentLibraries) {
-      staticInteropClassEraser.visitLibrary(library);
     }
   }
 
@@ -163,6 +165,31 @@ class WasmTarget extends Target {
           transitiveImportingJSInterop, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed JS interop classes");
     }
+
+    if (constantBranchPruning) {
+      final reportError =
+          (LocatedMessage message, [List<LocatedMessage>? context]) {
+        diagnosticReporter.report(message.messageObject, message.charOffset,
+            message.length, message.uri);
+        if (context != null) {
+          for (final m in context) {
+            diagnosticReporter.report(
+                m.messageObject, m.charOffset, m.length, m.uri);
+          }
+        }
+      };
+
+      ConstConditionalSimplifier(
+        dartLibrarySupport,
+        constantsBackend,
+        component,
+        reportError,
+        environmentDefines: environmentDefines ?? {},
+        evaluationMode: constantEvaluator.EvaluationMode.strong,
+        coreTypes: coreTypes,
+        classHierarchy: hierarchy,
+      ).run();
+    }
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
@@ -187,7 +214,8 @@ class WasmTarget extends Target {
       logger?.call("Transformed ffi annotations");
     }
 
-    wasmTrans.transformLibraries(libraries, coreTypes, hierarchy);
+    wasmTrans.transformLibraries(
+        libraries, coreTypes, hierarchy, diagnosticReporter);
   }
 
   @override
@@ -209,6 +237,7 @@ class WasmTarget extends Target {
       return StaticInvocation(invocationSetter,
           Arguments([SymbolLiteral(name), arguments.positional.single]));
     } else if (name.startsWith("get:")) {
+      name = name.substring(4);
       Procedure invocationGetter = coreTypes.invocationClass.procedures
           .firstWhere((c) => c.name.text == "getter");
       return StaticInvocation(
@@ -304,26 +333,26 @@ class WasmTarget extends Target {
 
   @override
   Class concreteMapLiteralClass(CoreTypes coreTypes) {
-    return _compactLinkedCustomHashMap ??= coreTypes.index
-        .getClass('dart:collection', '_CompactLinkedCustomHashMap');
+    return _wasmDefaultMap ??=
+        coreTypes.index.getClass('dart:collection', '_WasmDefaultMap');
   }
 
   @override
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
-    return _wasmImmutableLinkedHashMap ??= coreTypes.index
-        .getClass('dart:collection', '_WasmImmutableLinkedHashMap');
+    return _wasmImmutableMap ??=
+        coreTypes.index.getClass('dart:collection', '_WasmImmutableMap');
   }
 
   @override
   Class concreteSetLiteralClass(CoreTypes coreTypes) {
-    return _compactLinkedCustomHashSet ??= coreTypes.index
-        .getClass('dart:collection', '_CompactLinkedCustomHashSet');
+    return _wasmDefaultSet ??=
+        coreTypes.index.getClass('dart:collection', '_WasmDefaultSet');
   }
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
-    return _wasmImmutableLinkedHashSet ??= coreTypes.index
-        .getClass('dart:collection', '_WasmImmutableLinkedHashSet');
+    return _wasmImmutableSet ??=
+        coreTypes.index.getClass('dart:collection', '_WasmImmutableSet');
   }
 
   @override
@@ -341,4 +370,11 @@ class WasmTarget extends Target {
 
   @override
   bool isSupportedPragma(String pragmaName) => pragmaName.startsWith("wasm:");
+
+  late final Map<RecordShape, Class> recordClasses;
+
+  @override
+  Class getRecordImplementationClass(CoreTypes coreTypes,
+          int numPositionalFields, List<String> namedFields) =>
+      recordClasses[RecordShape(numPositionalFields, namedFields)]!;
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'dart:io';
 
 import 'package:expect/expect.dart';
@@ -44,7 +42,7 @@ void unorderedListEquals(List<String> expected, List<String> actual) {
 void verifyGeneratedFile(
     String filename, StringBuffer contents, Map<String, String> expectations) {
   Expect.stringEquals(
-      DartFormatter().format(contents.toString()), expectations[filename]);
+      DartFormatter().format(contents.toString()), expectations[filename]!);
 }
 
 GraphIsomorphizer generateFiles(List<String> graphFileLines,
@@ -82,7 +80,7 @@ void verifyGraphFileLines(
       options: ['--dump-deferred-graph=deferred_graph.txt'],
       outputProvider: collector);
   var actual = collector
-      .getOutput("deferred_graph.txt", api.OutputType.debug)
+      .getOutput("deferred_graph.txt", api.OutputType.debug)!
       .split('\n');
 
   // Confirm new graph is isomorphic.

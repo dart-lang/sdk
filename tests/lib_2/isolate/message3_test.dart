@@ -115,7 +115,7 @@ void runTests(SendPort ping, Queue checks) {
     Expect.equals(3, x[2]);
   });
 
-  List fixed = new List(2);
+  List fixed = new List.filled(2, null);
   fixed[0] = 0;
   fixed[1] = 1;
   ping.send(fixed);
@@ -146,7 +146,7 @@ void runTests(SendPort ping, Queue checks) {
     Expect.equals(42, x[1]);
   });
 
-  List cyclic2 = new List(1);
+  List cyclic2 = new List.filled(1, null);
   cyclic2[0] = cyclic2;
   ping.send(cyclic2);
   checks.add((x) {

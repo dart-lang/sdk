@@ -27,10 +27,41 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   final Map<Element, List<int>> elementsOffsets = <Element, List<int>>{};
 
   @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    final element = node.element;
+    if (element != null) {
+      _addOccurrence(element, node.name.offset);
+    }
+
+    super.visitAssignedVariablePattern(node);
+  }
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitClassDeclaration(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitDeclaredVariablePattern(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _addOccurrence(node.declaredElement!, node.name.offset);
 
     super.visitEnumConstantDeclaration(node);
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitEnumDeclaration(node);
   }
 
   @override
@@ -56,6 +87,23 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     _addOccurrence(node.declaredElement!, node.name.offset);
     super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitMixinDeclaration(node);
+  }
+
+  @override
+  void visitPatternField(PatternField node) {
+    final element = node.element;
+    final name = node.name;
+    if (element != null && name != null) {
+      _addOccurrence(element, name.offset);
+    }
+    super.visitPatternField(node);
   }
 
   @override

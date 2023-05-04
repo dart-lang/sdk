@@ -56,7 +56,7 @@ import '../model.dart';
 /// cleanly, we use various abstractions to merge [OutputUnits].
 ///
 /// First, we emit the code for each [OutputUnit] into an [EmittedOutputUnit].
-/// An [EmittedOutputUnit] is the Javascript representation of an [OutputUnit].
+/// An [EmittedOutputUnit] is the JavaScript representation of an [OutputUnit].
 /// [EmittedOutputUnits] map 1:1 to [OutputUnits].
 ///
 /// We wrap each [EmittedOutputUnit] in a [PreFragment], which is just a wrapper
@@ -65,7 +65,7 @@ import '../model.dart';
 /// threshold.
 ///
 /// Once we are finished merging [PreFragments], we must now decide on their
-/// final representation in Javascript.
+/// final representation in JavaScript.
 ///
 /// Depending on the results of the merge, we chose one of two representations.
 /// For example, say we merge {a, b} and {a} into {a, b}+{a}. In this case our
@@ -474,7 +474,7 @@ class FragmentMerger {
     });
   }
 
-  /// Given a list of OutputUnits sorted by their import entites,
+  /// Given a list of OutputUnits sorted by their import entities,
   /// returns a map of all the direct edges between output units.
   Map<OutputUnit, Set<OutputUnit>> createDirectEdges(
       List<OutputUnit> allOutputUnits) {

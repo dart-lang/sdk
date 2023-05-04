@@ -7,7 +7,7 @@
 import 'package:js/js.dart';
 import 'dart:ffi';
 
-@FfiNative<Void Function()>("ffi.empty")
+@Native<Void Function()>()
 external void empty();
 
 @JS()

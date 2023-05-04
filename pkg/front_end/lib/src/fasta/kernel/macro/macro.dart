@@ -701,8 +701,13 @@ class MacroApplications {
             typeParameters: [],
             interfaces: _typeBuildersToAnnotations(
                 builder.libraryBuilder, builder.interfaceBuilders),
-            isAbstract: builder.isAbstract,
-            isExternal: builder.isExternal,
+            hasAbstract: builder.isAbstract,
+            hasBase: builder.isBase,
+            hasExternal: builder.isExternal,
+            hasFinal: builder.isFinal,
+            hasInterface: builder.isInterface,
+            hasMixin: builder.isMixinClass,
+            hasSealed: builder.isSealed,
             mixins: _typeBuildersToAnnotations(builder.libraryBuilder, mixins),
             superclass: supertypeBuilder != null
                 ? _computeTypeAnnotation(
@@ -1100,7 +1105,7 @@ class _TypeIntrospector implements macro.TypeIntrospector {
     }
     ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
     List<macro.ConstructorDeclaration> result = [];
-    Iterator<MemberBuilder> iterator = classBuilder.fullConstructorIterator;
+    Iterator<MemberBuilder> iterator = classBuilder.fullConstructorIterator();
     while (iterator.moveNext()) {
       MemberBuilder memberBuilder = iterator.current;
       if (memberBuilder is DeclaredSourceConstructorBuilder) {
@@ -1122,13 +1127,11 @@ class _TypeIntrospector implements macro.TypeIntrospector {
     }
     ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
     List<macro.FieldDeclaration> result = [];
-    Iterator<Builder> iterator = classBuilder.fullMemberIterator;
+    Iterator<SourceFieldBuilder> iterator =
+        classBuilder.fullMemberIterator<SourceFieldBuilder>();
     while (iterator.moveNext()) {
-      Builder memberBuilder = iterator.current;
-      if (memberBuilder is SourceFieldBuilder) {
-        result.add(macroApplications._getMemberDeclaration(memberBuilder)
-            as macro.FieldDeclaration);
-      }
+      result.add(macroApplications._getMemberDeclaration(iterator.current)
+          as macro.FieldDeclaration);
     }
     return new Future.value(result);
   }
@@ -1141,13 +1144,11 @@ class _TypeIntrospector implements macro.TypeIntrospector {
     }
     ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
     List<macro.MethodDeclaration> result = [];
-    Iterator<Builder> iterator = classBuilder.fullMemberIterator;
+    Iterator<SourceProcedureBuilder> iterator =
+        classBuilder.fullMemberIterator<SourceProcedureBuilder>();
     while (iterator.moveNext()) {
-      Builder memberBuilder = iterator.current;
-      if (memberBuilder is SourceProcedureBuilder) {
-        result.add(macroApplications._getMemberDeclaration(memberBuilder)
-            as macro.MethodDeclaration);
-      }
+      result.add(macroApplications._getMemberDeclaration(iterator.current)
+          as macro.MethodDeclaration);
     }
     return new Future.value(result);
   }

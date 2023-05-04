@@ -26,7 +26,7 @@ main() {
   final exePath = path.join(buildDir, 'dart$_execSuffix');
   Expect.isTrue(File(exePath).existsSync(),
       "Can't locate dart$_execSuffix on this platform");
-  final powTest = path.join(sdkDir, 'tests', 'standalone_2', 'pow_test.dart');
+  final powTest = path.join(sdkDir, 'tests', 'standalone', 'pow_test.dart');
   Expect.isTrue(File(powTest).existsSync(),
       "Can't locate dart$_execSuffix on this platform");
   final d = Directory.systemTemp.createTempSync('aot_tmp');

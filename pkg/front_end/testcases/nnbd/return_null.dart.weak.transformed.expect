@@ -108,30 +108,32 @@ static method returnAsync7() → asy::Future<core::int?> async /* futureValueTyp
 static method yieldSync() → core::Iterable<dynamic> sync* {}
 static method yieldAsync() → asy::Stream<dynamic> async* {}
 static method caseReturn1(self::Enum e) → self::Enum {
+  #L1:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L1:
-    case #C3:
-      {
-        return e;
-      }
     #L2:
-    case #C6:
+    case #C3:
       {
         return e;
       }
     #L3:
+    case #C6:
+      {
+        return e;
+      }
+    #L4:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method caseReturn2(self::Enum e) → self::Enum {
+  #L5:
   switch(e) {
-    #L4:
+    #L6:
     case #C3:
       {
         return e;
       }
-    #L5:
+    #L7:
     default:
       {}
   }
@@ -180,30 +182,32 @@ static method localFunctions() → dynamic {
   function yieldSync() → core::Iterable<dynamic> sync* {}
   function yieldAsync() → asy::Stream<dynamic> async* {}
   function caseReturn1(self::Enum e) → self::Enum {
+    #L8:
     switch(e) /*isExplicitlyExhaustive*/ {
-      #L6:
-      case #C3:
-        {
-          return e;
-        }
-      #L7:
-      case #C6:
-        {
-          return e;
-        }
-      #L8:
-      default:
-        throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
-    }
-  }
-  function caseReturn2(self::Enum e) → self::Enum {
-    switch(e) {
       #L9:
       case #C3:
         {
           return e;
         }
       #L10:
+      case #C6:
+        {
+          return e;
+        }
+      #L11:
+      default:
+        throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+    }
+  }
+  function caseReturn2(self::Enum e) → self::Enum {
+    #L12:
+    switch(e) {
+      #L13:
+      case #C3:
+        {
+          return e;
+        }
+      #L14:
       default:
         {}
     }

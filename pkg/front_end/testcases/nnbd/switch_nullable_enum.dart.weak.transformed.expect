@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/switch_nullable_enum.dart:7:5: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/switch_nullable_enum.dart:9:5: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
 // int method1(Enum? e) {
 //     ^
 //
@@ -29,7 +29,7 @@ static method method1(self::Enum? e) → core::int {
         return 0;
       }
   }
-  return invalid-expression "pkg/front_end/testcases/nnbd/switch_nullable_enum.dart:7:5: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+  return invalid-expression "pkg/front_end/testcases/nnbd/switch_nullable_enum.dart:9:5: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
 int method1(Enum? e) {
     ^" in null;
 }
@@ -67,7 +67,7 @@ static method method3(self::Enum? e) → core::int {
   }
 }
 static method method4(self::Enum? e) → core::int {
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) {
     #L7:
     case #C3:
     case #C6:
@@ -116,6 +116,6 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///switch_nullable_enum.dart:
-- Enum. (from org-dartlang-testcase:///switch_nullable_enum.dart:5:6)
+- Enum. (from org-dartlang-testcase:///switch_nullable_enum.dart:7:6)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

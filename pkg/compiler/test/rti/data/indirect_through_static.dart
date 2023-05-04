@@ -16,7 +16,7 @@ class C<T> {}
 final Map<String, C> map = {};
 
 void setup() {
-  map['x'] = new C<B>();
+  map['x'] = C<B>();
 }
 
 /*member: lookup:explicit=[C<lookup.T*>*],needsArgs,test*/

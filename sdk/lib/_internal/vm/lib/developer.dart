@@ -178,3 +178,10 @@ external void _webServerControl(
 @patch
 @pragma("vm:external-name", "Developer_getIsolateIDFromSendPort")
 external String _getIsolateIDFromSendPort(SendPort sendPort);
+
+@patch
+abstract final class NativeRuntime {
+  @patch
+  @pragma("vm:external-name", "Developer_NativeRuntime_writeHeapSnapshotToFile")
+  external static void writeHeapSnapshotToFile(String filepath);
+}

@@ -13,7 +13,8 @@ part of dart.async;
 /// It is a compile-time error for any class to extend, mix in or implement
 /// `FutureOr`.
 ///
-/// # Examples
+/// ### Examples
+///
 /// ```dart
 /// // The `Future<T>.then` function takes a callback [f] that returns either
 /// // an `S` or a `Future<S>`.
@@ -23,7 +24,8 @@ part of dart.async;
 /// void complete(FutureOr<T> value);
 /// ```
 ///
-/// # Advanced
+/// ### Advanced
+///
 /// The `FutureOr<int>` type is actually the "type union" of the types `int` and
 /// `Future<int>`. This type union is defined in such a way that
 /// `FutureOr<Object>` is both a super- and sub-type of `Object` (sub-type
@@ -36,10 +38,10 @@ part of dart.async;
 /// `Future<Object>`.
 @pragma("vm:entry-point")
 abstract class FutureOr<T> {
-  // Private generative constructor, so that it is not subclassable, mixable, or
-  // instantiable.
+  // Private generative constructor, so that it is not subclassable, mixable,
+  // or instantiable.
   FutureOr._() {
-    throw new UnsupportedError("FutureOr can't be instantiated");
+    throw new UnsupportedError("FutureOr cannot be instantiated");
   }
 }
 
@@ -72,7 +74,7 @@ abstract class FutureOr<T> {
 ///    return haystack.contains(needle);
 /// }
 /// ```
-/// Here the `File.readAsString` method from `dart:io` is an asychronous
+/// Here the `File.readAsString` method from `dart:io` is an asynchronous
 /// function returning a `Future<String>`.
 /// The `fileContains` function is marked with `async` right before its body,
 /// which means that you can use `await` inside it,
@@ -222,7 +224,8 @@ abstract class FutureOr<T> {
 /// called. That situation should generally be avoided if possible, unless
 /// it's very clearly documented.
 @pragma("wasm:entry-point")
-abstract class Future<T> {
+@vmIsolateUnsendable
+abstract interface class Future<T> {
   /// A `Future<Null>` completed with `null`.
   ///
   /// Currently shared with `dart:internal`.
@@ -639,7 +642,8 @@ abstract class Future<T> {
   ///
   /// Any error from [action], synchronous or asynchronous,
   /// will stop the iteration and be reported in the returned [Future].
-  static Future forEach<T>(Iterable<T> elements, FutureOr action(T element)) {
+  static Future<void> forEach<T>(
+      Iterable<T> elements, FutureOr action(T element)) {
     var iterator = elements.iterator;
     return doWhile(() {
       if (!iterator.moveNext()) return false;
@@ -689,7 +693,7 @@ abstract class Future<T> {
   /// }
   /// // Outputs: 'Finished with 3'
   /// ```
-  static Future doWhile(FutureOr<bool> action()) {
+  static Future<void> doWhile(FutureOr<bool> action()) {
     _Future<void> doneSignal = new _Future<void>();
     late void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
@@ -748,8 +752,11 @@ abstract class Future<T> {
   /// and a stack trace for the error.
   /// In the case of `onError`,
   /// if the exception thrown is `identical` to the error argument to `onError`,
+  /// and it is thrown *synchronously*
   /// the throw is considered a rethrow,
   /// and the original stack trace is used instead.
+  /// To rethrow with the same stack trace in an asynchronous callback,
+  /// use [Error.throwWithStackTrace].
   ///
   /// If the callback returns a [Future],
   /// the future returned by `then` will be completed with
@@ -905,6 +912,9 @@ abstract class Future<T> {
   /// at a later time.
   /// It just won't be used as the result of the timeout future
   /// unless it completes within the time bound.
+  /// Even if the source future completes with an error,
+  /// if that error happens after [timeLimit] has passed,
+  /// the error is ignored, just like a value result would be.
   ///
   /// Examples:
   /// ```dart
@@ -919,7 +929,7 @@ abstract class Future<T> {
   ///
   ///   result = await waitTask("first").timeout(const Duration(seconds: 2),
   ///       onTimeout: () => waitTask("second"));
-  ///   // Prints "second" after 7 seconds.
+  ///   print(result); // Prints "second" after 7 seconds.
   ///
   ///   try {
   ///     await waitTask("completed").timeout(const Duration(seconds: 2));
@@ -929,23 +939,33 @@ abstract class Future<T> {
   ///
   ///   var printFuture = waitPrint();
   ///   await printFuture.timeout(const Duration(seconds: 2), onTimeout: () {
-  ///     print("timeout");
+  ///     print("timeout"); // Prints "timeout" after 2 seconds.
   ///   });
-  ///   // Prints "timeout" after 2 seconds.
-  ///   await printFuture;
-  ///   // Prints "printed" after additional 3 seconds.
+  ///   await printFuture; // Prints "printed" after additional 3 seconds.
+  ///
+  ///   try {
+  ///     await waitThrow("error").timeout(const Duration(seconds: 2));
+  ///   } on TimeoutException {
+  ///     print("throws"); // Prints "throws" after 2 seconds.
+  ///   }
+  ///   // StateError is ignored
   /// }
   ///
-  /// // Returns [string] after five seconds.
+  /// /// Returns [string] after five seconds.
   /// Future<String> waitTask(String string) async {
   ///   await Future.delayed(const Duration(seconds: 5));
   ///   return string;
   /// }
   ///
-  /// // Prints "printed" after five seconds.
+  /// /// Prints "printed" after five seconds.
   /// Future<void> waitPrint() async {
   ///   await Future.delayed(const Duration(seconds: 5));
   ///   print("printed");
+  /// }
+  /// /// Throws a [StateError] with [message] after five seconds.
+  /// Future<void> waitThrow(String message) async {
+  ///   await Future.delayed(const Duration(seconds: 5));
+  ///   throw Exception(message);
   /// }
   /// ```
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?});
@@ -1017,7 +1037,7 @@ extension FutureExtensions<T> on Future<T> {
   /// error in [test].
   /// Example:
   /// ```dart
-  /// // Unwraps an an exceptions cause, if it has one.
+  /// // Unwraps an exceptions cause, if it has one.
   /// someFuture.onError<SomeException>((e, _) {
   ///   throw e.cause ?? e;
   /// });
@@ -1041,12 +1061,20 @@ extension FutureExtensions<T> on Future<T> {
   Future<T> onError<E extends Object>(
       FutureOr<T> handleError(E error, StackTrace stackTrace),
       {bool test(E error)?}) {
-    // There are various ways to optimize this to avoid the double is E/as E
-    // type check, but for now we are not optimizing the error path.
-    return this.catchError(
-        (Object error, StackTrace stackTrace) =>
-            handleError(error as E, stackTrace),
-        test: (Object error) => error is E && (test == null || test(error)));
+    FutureOr<T> onError(Object error, StackTrace stackTrace) {
+      if (error is! E || test != null && !test(error)) {
+        // Counts as rethrow, preserves stack trace.
+        throw error;
+      }
+      return handleError(error, stackTrace);
+    }
+    if (this is _Future<Object?>) {
+      // Internal method working like `catchError`,
+      // but allows specifying a different result future type.
+      return unsafeCast<_Future<T>>(this)._safeOnError<T>(onError);
+    }
+
+    return this.then<T>((T value) => value, onError: onError);
   }
 
   /// Completely ignores this future and its result.
@@ -1097,7 +1125,7 @@ class TimeoutException implements Exception {
 /// A way to produce Future objects and to complete them later
 /// with a value or error.
 ///
-/// Most of the time, the simplest way to create a future is to just use
+/// Most of the time, the simples t way to create a future is to just use
 /// one of the [Future] constructors to capture the result of a single
 /// asynchronous computation:
 /// ```dart
@@ -1136,7 +1164,8 @@ class TimeoutException implements Exception {
 ///   }
 /// }
 /// ```
-abstract class Completer<T> {
+@vmIsolateUnsendable
+abstract interface class Completer<T> {
   /// Creates a new completer.
   ///
   /// The general workflow for creating a new future is to 1) create a
@@ -1237,7 +1266,7 @@ abstract class Completer<T> {
   /// Completing a future with an error indicates that an exception was thrown
   /// while trying to produce a value.
   ///
-  /// If `error` is a `Future`, the future itself is used as the error value.
+  /// If [error] is a [Future], the future itself is used as the error value.
   /// If you want to complete with the result of the future, you can use:
   /// ```dart
   /// thisCompleter.complete(theFuture)
@@ -1245,6 +1274,35 @@ abstract class Completer<T> {
   /// or if you only want to handle an error from the future:
   /// ```dart
   /// theFuture.catchError(thisCompleter.completeError);
+  /// ```
+  ///
+  /// The [future] must have an error handler installed before the call to
+  /// [completeError]) or [error] will be considered an uncaught error.
+  ///
+  /// ```dart
+  /// void doStuff() {
+  ///   // Outputs a message like:
+  ///   // Uncaught Error: Assertion failed: "future not consumed"
+  ///   Completer().completeError(AssertionError('future not consumed'));
+  /// }
+  /// ```
+  ///
+  /// You can install an error handler through [Future.catchError],
+  /// [Future.then] or the `await` operation.
+  ///
+  /// ```dart
+  /// void doStuff() {
+  ///   final c = Completer();
+  ///   c.future.catchError((e) {
+  ///     // Handle the error.
+  ///   });
+  ///   c.completeError(AssertionError('future not consumed'));
+  /// }
+  /// ```
+  ///
+  /// See the
+  /// [Zones article](https://dart.dev/articles/archive/zones#handling-uncaught-errors)
+  /// for details on uncaught errors.
   /// ```
   void completeError(Object error, [StackTrace? stackTrace]);
 

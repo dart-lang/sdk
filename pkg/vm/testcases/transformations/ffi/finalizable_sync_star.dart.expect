@@ -15,18 +15,18 @@ static method doSomething() → core::int
   return 3;
 static method useFinalizableSyncStar(ffi::Finalizable finalizable) → core::Iterable<core::int> sync* {
   yield block {
-    final core::int :expressionValueWrappedFinalizable = self::doSomething();
+    final synthesized core::int :expressionValueWrappedFinalizable = self::doSomething();
     _in::reachabilityFence(finalizable);
   } =>:expressionValueWrappedFinalizable;
   final self::MyFinalizable finalizable2 = new self::MyFinalizable::•();
   yield block {
-    final core::int :expressionValueWrappedFinalizable = 5;
+    final synthesized core::int :expressionValueWrappedFinalizable = 5;
     _in::reachabilityFence(finalizable);
     _in::reachabilityFence(finalizable2);
   } =>:expressionValueWrappedFinalizable;
   final self::MyFinalizable finalizable3 = new self::MyFinalizable::•();
   yield block {
-    final core::int :expressionValueWrappedFinalizable = 10;
+    final synthesized core::int :expressionValueWrappedFinalizable = 10;
     _in::reachabilityFence(finalizable);
     _in::reachabilityFence(finalizable2);
     _in::reachabilityFence(finalizable3);
@@ -38,7 +38,7 @@ static method useFinalizableSyncStar(ffi::Finalizable finalizable) → core::Ite
 static method main() → void {
   final self::MyFinalizable finalizable = new self::MyFinalizable::•();
   {
-    core::Iterator<core::int> :sync-for-iterator = self::useFinalizableSyncStar(finalizable).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = self::useFinalizableSyncStar(finalizable).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
       {

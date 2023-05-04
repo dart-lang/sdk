@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:test/test.dart';
+import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/deferred_loading.dart'
     show transformComponent;
 
@@ -17,7 +18,7 @@ import '../common_test_utils.dart';
 final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
 runTestCase(Uri source) async {
-  final target = new TestingVmTarget(new TargetFlags());
+  final target = new VmTarget(new TargetFlags());
   Component component =
       await compileTestCaseToKernelProgram(source, target: target);
 

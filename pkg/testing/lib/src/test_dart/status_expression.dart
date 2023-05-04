@@ -33,25 +33,26 @@ class ExprEvaluationException {
 
   ExprEvaluationException(this.error);
 
+  @override
   toString() => error;
 }
 
 class Token {
-  static const String LEFT_PAREN = "(";
-  static const String RIGHT_PAREN = ")";
-  static const String DOLLAR_SYMBOL = r"$";
-  static const String UNION = ",";
-  static const String EQUALS = "==";
-  static const String NOT_EQUALS = "!=";
-  static const String AND = "&&";
-  static const String OR = "||";
+  static const String $leftParan = "(";
+  static const String $rightParen = ")";
+  static const String $dollarSign = r"$";
+  static const String $comma = ",";
+  static const String $equals = "==";
+  static const String $notEquals = "!=";
+  static const String $and = "&&";
+  static const String $or = "||";
 }
 
 class Tokenizer {
   String expression;
   List<String> tokens;
 
-  Tokenizer(String this.expression) : tokens = <String>[];
+  Tokenizer(this.expression) : tokens = <String>[];
 
   // Tokens are : "(", ")", "$", ",", "&&", "||", "==", "!=", and (maximal) \w+.
   static final testRegexp =
@@ -84,11 +85,13 @@ class Comparison implements BooleanExpression {
 
   Comparison(this.left, this.right, this.negate);
 
+  @override
   bool evaluate(environment) {
     return negate !=
         (left.termValue(environment) == right.termValue(environment));
   }
 
+  @override
   String toString() =>
       "(\$${left.name} ${negate ? '!=' : '=='} ${right.value})";
 }
@@ -111,7 +114,7 @@ class TermVariable {
 class TermConstant {
   String value;
 
-  TermConstant(String this.value);
+  TermConstant(this.value);
 
   String termValue(environment) => value;
 }
@@ -121,7 +124,9 @@ class BooleanVariable implements BooleanExpression {
 
   BooleanVariable(this.variable);
 
+  @override
   bool evaluate(environment) => variable.termValue(environment) == 'true';
+  @override
   String toString() => "(bool \$${variable.name})";
 }
 
@@ -132,9 +137,11 @@ class BooleanOperation implements BooleanExpression {
 
   BooleanOperation(this.op, this.left, this.right);
 
-  bool evaluate(environment) => (op == Token.AND)
+  @override
+  bool evaluate(environment) => (op == Token.$and)
       ? left.evaluate(environment) && right.evaluate(environment)
       : left.evaluate(environment) || right.evaluate(environment);
+  @override
   String toString() => "($left $op $right)";
 }
 
@@ -146,12 +153,14 @@ class SetUnion implements SetExpression {
 
   // Overwrites left.evaluate(env).
   // Set.addAll does not return this.
+  @override
   Set<String> evaluate(environment) {
     Set<String> result = left.evaluate(environment);
     result.addAll(right.evaluate(environment));
     return result;
   }
 
+  @override
   String toString() => "($left || $right)";
 }
 
@@ -161,8 +170,10 @@ class SetIf implements SetExpression {
 
   SetIf(this.left, this.right);
 
+  @override
   Set<String> evaluate(environment) =>
-      right.evaluate(environment) ? left.evaluate(environment) : Set<String>();
+      right.evaluate(environment) ? left.evaluate(environment) : <String>{};
+  @override
   String toString() => "($left if $right)";
 }
 
@@ -171,7 +182,9 @@ class SetConstant implements SetExpression {
 
   SetConstant(String v) : value = v.toLowerCase();
 
-  Set<String> evaluate(environment) => Set<String>.from([value]);
+  @override
+  Set<String> evaluate(environment) => <String>{value};
+  @override
   String toString() => value;
 }
 
@@ -202,7 +215,7 @@ class ExpressionParser {
 
   SetExpression parseSetUnion() {
     SetExpression left = parseSetIf();
-    while (scanner.hasMore() && scanner.current == Token.UNION) {
+    while (scanner.hasMore() && scanner.current == Token.$comma) {
       scanner.advance();
       SetExpression right = parseSetIf();
       left = SetUnion(left, right);
@@ -222,7 +235,7 @@ class ExpressionParser {
 
   SetExpression parseSetOr() {
     SetExpression left = parseSetAtomic();
-    while (scanner.hasMore() && scanner.current == Token.OR) {
+    while (scanner.hasMore() && scanner.current == Token.$or) {
       scanner.advance();
       SetExpression right = parseSetAtomic();
       left = SetUnion(left, right);
@@ -231,10 +244,10 @@ class ExpressionParser {
   }
 
   SetExpression parseSetAtomic() {
-    if (scanner.current == Token.LEFT_PAREN) {
+    if (scanner.current == Token.$leftParan) {
       scanner.advance();
       SetExpression value = parseSetExpression();
-      if (scanner.current != Token.RIGHT_PAREN) {
+      if (scanner.current != Token.$rightParen) {
         throw FormatException("Missing right parenthesis in expression");
       }
       scanner.advance();
@@ -253,29 +266,29 @@ class ExpressionParser {
 
   BooleanExpression parseBooleanOr() {
     BooleanExpression left = parseBooleanAnd();
-    while (scanner.hasMore() && scanner.current == Token.OR) {
+    while (scanner.hasMore() && scanner.current == Token.$or) {
       scanner.advance();
       BooleanExpression right = parseBooleanAnd();
-      left = BooleanOperation(Token.OR, left, right);
+      left = BooleanOperation(Token.$or, left, right);
     }
     return left;
   }
 
   BooleanExpression parseBooleanAnd() {
     BooleanExpression left = parseBooleanAtomic();
-    while (scanner.hasMore() && scanner.current == Token.AND) {
+    while (scanner.hasMore() && scanner.current == Token.$and) {
       scanner.advance();
       BooleanExpression right = parseBooleanAtomic();
-      left = BooleanOperation(Token.AND, left, right);
+      left = BooleanOperation(Token.$and, left, right);
     }
     return left;
   }
 
   BooleanExpression parseBooleanAtomic() {
-    if (scanner.current == Token.LEFT_PAREN) {
+    if (scanner.current == Token.$leftParan) {
       scanner.advance();
       BooleanExpression value = parseBooleanExpression();
-      if (scanner.current != Token.RIGHT_PAREN) {
+      if (scanner.current != Token.$rightParen) {
         throw FormatException("Missing right parenthesis in expression");
       }
       scanner.advance();
@@ -284,7 +297,7 @@ class ExpressionParser {
 
     // The only atomic booleans are of the form $variable == value or
     // of the form $variable.
-    if (scanner.current != Token.DOLLAR_SYMBOL) {
+    if (scanner.current != Token.$dollarSign) {
       throw FormatException(
           "Expected \$ in expression, got ${scanner.current}");
     }
@@ -295,9 +308,9 @@ class ExpressionParser {
     }
     TermVariable left = TermVariable(scanner.current!);
     scanner.advance();
-    if (scanner.current == Token.EQUALS ||
-        scanner.current == Token.NOT_EQUALS) {
-      bool negate = scanner.current == Token.NOT_EQUALS;
+    if (scanner.current == Token.$equals ||
+        scanner.current == Token.$notEquals) {
+      bool negate = scanner.current == Token.$notEquals;
       scanner.advance();
       if (!RegExp(r"^\w+$").hasMatch(scanner.current!)) {
         throw FormatException(

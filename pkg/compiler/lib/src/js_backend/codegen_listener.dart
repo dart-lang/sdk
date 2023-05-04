@@ -12,6 +12,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
+import '../js_model/records.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
 import '../universe/call_structure.dart' show CallStructure;
@@ -21,6 +22,7 @@ import '../universe/world_impact.dart'
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
+import 'records_codegen.dart';
 import 'runtime_types_resolution.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
@@ -31,8 +33,10 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   final BackendUsage _backendUsage;
   final RuntimeTypesNeed _rtiNeed;
+  final RecordData _recordData;
 
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
+  final RecordsCodegen _recordsCodegen;
 
   final NativeCodegenEnqueuer _nativeEnqueuer;
 
@@ -46,7 +50,9 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._impacts,
       this._backendUsage,
       this._rtiNeed,
+      this._recordData,
       this._customElementsAnalysis,
+      this._recordsCodegen,
       this._nativeEnqueuer);
 
   @override
@@ -114,6 +120,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush());
+
+    enqueuer.applyImpact(_recordsCodegen.flush(recentClasses));
 
     if (_backendUsage.isNoSuchMethodUsed && !_isNoSuchMethodUsed) {
       enqueuer.applyImpact(
@@ -209,6 +217,12 @@ class CodegenEnqueuerListener extends EnqueuerListener {
         // that contains that call.
         _impacts.typeLiteral.registerImpact(impactBuilder, _elementEnvironment);
       }
+    }
+    if (type is RecordType) {
+      final representation = _recordData.representationForStaticType(type);
+      impactBuilder.registerTypeUse(TypeUse.instantiation(_commonElements
+          .dartTypes
+          .interfaceType(representation.cls, const [])));
     }
   }
 

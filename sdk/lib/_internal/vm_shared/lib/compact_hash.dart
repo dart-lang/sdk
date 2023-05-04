@@ -148,7 +148,7 @@ abstract class _HashVMImmutableBase extends _HashVMBase
 }
 
 // This mixin can be applied to _HashFieldBase or _HashVMBase (for
-// normal and VM-internalized classes, respectiveley), which provide the
+// normal and VM-internalized classes, respectively), which provide the
 // actual fields/accessors that this mixin assumes.
 mixin _HashBase on _HashAbstractBase {
   // The number of bits used for each component is determined by table size.
@@ -285,7 +285,7 @@ final _uninitializedData = new List.filled(0, null);
 // VM-internalized implementation of a default-constructed LinkedHashMap. Map
 // literals also create instances of this class.
 @pragma("vm:entry-point")
-class _Map<K, V> extends _HashVMBase
+base class _Map<K, V> extends _HashVMBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -315,7 +315,7 @@ class _Map<K, V> extends _HashVMBase
 // not permit any modification of map entries from Dart code. We use
 // this class for maps constructed from Dart constant maps.
 @pragma("vm:entry-point")
-class _ConstMap<K, V> extends _HashVMImmutableBase
+base class _ConstMap<K, V> extends _HashVMImmutableBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -633,7 +633,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   Iterable<V> get values => _CompactIterable<V>(this, _data, _usedData, -1, 2);
 }
 
-class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
+base class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -651,7 +651,7 @@ class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
   }
 }
 
-class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
+base class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -665,9 +665,6 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   bool containsKey(Object? o) => _validKey(o) ? super.containsKey(o) : false;
   V? operator [](Object? o) => _validKey(o) ? super[o] : null;
   V? remove(Object? o) => _validKey(o) ? super.remove(o) : null;
-
-  @pragma("wasm:entry-point")
-  void operator []=(K key, V value);
 
   _CompactLinkedCustomHashMap(
       this._equality, this._hasher, bool Function(Object?)? validKey)
@@ -950,7 +947,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
 // Set implementation, analogous to _Map. Set literals create instances of this
 // class.
 @pragma('vm:entry-point')
-class _Set<E> extends _HashVMBase
+base class _Set<E> extends _HashVMBase
     with
         SetMixin<E>,
         _HashBase,
@@ -986,7 +983,7 @@ class _Set<E> extends _HashVMBase
 }
 
 @pragma("vm:entry-point")
-class _ConstSet<E> extends _HashVMImmutableBase
+base class _ConstSet<E> extends _HashVMImmutableBase
     with
         SetMixin<E>,
         _HashBase,
@@ -1068,7 +1065,7 @@ mixin _ImmutableLinkedHashSetMixin<E>
       _CompactIteratorImmutable<E>(this, _data, _usedData, -1, 1);
 }
 
-class _CompactLinkedIdentityHashSet<E> extends _HashFieldBase
+base class _CompactLinkedIdentityHashSet<E> extends _HashFieldBase
     with
         SetMixin<E>,
         _HashBase,
@@ -1091,7 +1088,7 @@ class _CompactLinkedIdentityHashSet<E> extends _HashFieldBase
   }
 }
 
-class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
+base class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
     with
         SetMixin<E>,
         _HashBase,
@@ -1105,9 +1102,6 @@ class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
   bool contains(Object? o) => _validKey(o) ? super.contains(o) : false;
   E? lookup(Object? o) => _validKey(o) ? super.lookup(o) : null;
   bool remove(Object? o) => _validKey(o) ? super.remove(o) : false;
-
-  @pragma("wasm:entry-point")
-  bool add(E key);
 
   _CompactLinkedCustomHashSet(
       this._equality, this._hasher, bool Function(Object?)? validKey)

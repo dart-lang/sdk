@@ -3,6 +3,7 @@ include: package:lints/recommended.yaml
 analyzer:
   language:
     strict-casts: true
+    strict-raw-types: true
   exclude:
     - test/mock_packages/**
   errors:
@@ -12,14 +13,19 @@ analyzer:
     # Lints from the recommended set that conflict w/ analyzer style or will
     # require some work to reach compliance.
     # See: https://github.com/dart-lang/sdk/issues/48785
+
+    # We have some long test class names which include one or more underscores
+    # to improve readability.
     camel_case_types: ignore
     constant_identifier_names: ignore
     file_names: ignore
+    # This package imports much of the implementation libraries of the
+    # 'analyzer' (and sometimes the '_fe_analyzer_shared' package), because it
+    # is tightly integrated. This will not likely change any time soon.
     implementation_imports: ignore
     non_constant_identifier_names: ignore
     overridden_fields: ignore
     prefer_void_to_null: ignore
-    provide_deprecation_message: ignore
 
 linter:
   rules:

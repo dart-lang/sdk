@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import "package:expect/expect.dart";
 
 import 'package:compiler/src/constants/values.dart' show StringConstantValue;
@@ -30,8 +28,6 @@ void test(List<String> strings, String expected, {bool minified = false}) {
 }
 
 extension on List<String> {
-  // TODO(42122): Remove when analyzer doesn't think `*` is unused.
-  // ignore: unused_element
   List<String> operator *(int count) {
     return List.filled(count, this).expand((list) => list).toList();
   }

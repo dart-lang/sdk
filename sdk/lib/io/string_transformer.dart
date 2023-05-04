@@ -15,7 +15,7 @@ const SystemEncoding systemEncoding = const SystemEncoding();
 
 /// The system encoding is the current code page on Windows and UTF-8 on Linux
 /// and Mac.
-class SystemEncoding extends Encoding {
+final class SystemEncoding extends Encoding {
   /// Creates a const SystemEncoding.
   ///
   /// Users should use the top-level constant, [systemEncoding].
@@ -62,7 +62,7 @@ class _WindowsCodePageEncoder extends Converter<String, List<int>> {
   external static List<int> _encodeString(String string);
 }
 
-class _WindowsCodePageEncoderSink extends StringConversionSinkBase {
+class _WindowsCodePageEncoderSink extends StringConversionSink {
   // TODO(floitsch): provide more efficient conversions when the input is
   // not a String.
 
@@ -106,7 +106,7 @@ class _WindowsCodePageDecoder extends Converter<List<int>, String> {
   external static String _decodeBytes(List<int> bytes);
 }
 
-class _WindowsCodePageDecoderSink extends ByteConversionSinkBase {
+class _WindowsCodePageDecoderSink extends ByteConversionSink {
   // TODO(floitsch): provide more efficient conversions when the input is
   // a slice.
 

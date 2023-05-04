@@ -8,10 +8,10 @@ import "package:expect/expect.dart";
 
 class ConstListTest {
   static testConstructors() {
-    List fixedList = new List(4);
-    List fixedList2 = new List(4);
-    List growableList = new List();
-    List growableList2 = new List();
+    List fixedList = new List.filled(4, null);
+    List fixedList2 = new List.filled(4, null);
+    List growableList = [];
+    List growableList2 = [];
     for (int i = 0; i < 4; i++) {
       fixedList[i] = i;
       fixedList2[i] = i;

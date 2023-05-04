@@ -56,7 +56,7 @@ class CompletionResolveHandler
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return error(ErrorCodes.ServerNotInitialized,
-          'Requests not before server is initilized');
+          'Requests not before server is initialized');
     }
 
     final file = data.file;
@@ -176,8 +176,8 @@ class CompletionResolveHandler
           insertTextMode: item.insertTextMode,
           textEdit: item.textEdit,
           additionalTextEdits: thisFilesChanges
-              .expand((change) =>
-                  change.edits.map((edit) => toTextEdit(result.lineInfo, edit)))
+              .expand((change) => sortSourceEditsForLsp(change.edits)
+                  .map((edit) => toTextEdit(result.lineInfo, edit)))
               .toList(),
           commitCharacters: item.commitCharacters,
           command: command ?? item.command,

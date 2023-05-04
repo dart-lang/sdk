@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library sourcemap.js_tracer;
 
 import 'package:compiler/src/io/source_information.dart';
@@ -15,15 +13,14 @@ import 'trace_graph.dart';
 
 /// Create a [TraceGraph] for [info] registering usage in [coverage].
 TraceGraph createTraceGraph(SourceMapInfo info, Coverage coverage) {
-  TraceGraph graph = new TraceGraph();
-  TraceListener listener = new StepTraceListener(graph);
+  TraceGraph graph = TraceGraph();
+  TraceListener listener = StepTraceListener(graph);
   CodePositionMap codePositions =
-      new CodePositionCoverage(info.jsCodePositions, coverage);
-  JavaScriptTracer tracer = new JavaScriptTracer(
-      codePositions, const SourceInformationReader(), [
-    new CoverageListener(coverage, const SourceInformationReader()),
-    listener
-  ]);
+      CodePositionCoverage(info.jsCodePositions, coverage);
+  JavaScriptTracer tracer = JavaScriptTracer(
+      codePositions,
+      const SourceInformationReader(),
+      [CoverageListener(coverage, const SourceInformationReader()), listener]);
   info.node.accept(tracer);
   return graph;
 }
@@ -40,7 +37,7 @@ class StepTraceListener extends TraceListener
 
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
-    SourceInformation sourceInformation = computeSourceInformation(node);
+    SourceInformation? sourceInformation = computeSourceInformation(node);
     SourcePositionKind sourcePositionKind = SourcePositionKind.START;
     List text = [node];
     switch (kind) {
@@ -53,7 +50,7 @@ class StepTraceListener extends TraceListener
         break;
       case StepKind.CALL:
         CallPosition callPosition =
-            CallPosition.getSemanticPositionForCall(node);
+            CallPosition.getSemanticPositionForCall(node as js.Call);
         sourcePositionKind = callPosition.sourcePositionKind;
         break;
       case StepKind.ACCESS:
@@ -65,31 +62,31 @@ class StepTraceListener extends TraceListener
       case StepKind.EXPRESSION_STATEMENT:
         break;
       case StepKind.IF_CONDITION:
-        js.If ifNode = node;
+        final ifNode = node as js.If;
         text = ['if(', ifNode.condition, ') ...'];
         break;
       case StepKind.FOR_INITIALIZER:
-        js.For forNode = node;
+        final forNode = node as js.For;
         text = ['for(', forNode.init, '; ...) ...'];
         break;
       case StepKind.FOR_CONDITION:
-        js.For forNode = node;
+        final forNode = node as js.For;
         text = ['for(...;', forNode.condition, '; ...) ...'];
         break;
       case StepKind.FOR_UPDATE:
-        js.For forNode = node;
+        final forNode = node as js.For;
         text = ['for(...; ...', forNode.update, ') ...'];
         break;
       case StepKind.WHILE_CONDITION:
-        js.While whileNode = node;
+        final whileNode = node as js.While;
         text = ['while(', whileNode.condition, ') ...'];
         break;
       case StepKind.DO_CONDITION:
-        js.Do doNode = node;
+        final doNode = node as js.Do;
         text = ['do {... } (', doNode.condition, ')'];
         break;
       case StepKind.SWITCH_EXPRESSION:
-        js.Switch switchNode = node;
+        final switchNode = node as js.Switch;
         text = ['switch(', switchNode.key, ') ...'];
         break;
       case StepKind.NO_INFO:
@@ -98,20 +95,22 @@ class StepTraceListener extends TraceListener
     createTraceStep(kind, node,
         offset: offset,
         sourceLocation:
-            getSourceLocation(sourceInformation, sourcePositionKind),
+            getSourceLocation(sourceInformation!, sourcePositionKind),
         text: text);
   }
 
   void createTraceStep(StepKind kind, js.Node node,
-      {Offset offset, List text, String note, SourceLocation sourceLocation}) {
+      {required Offset offset,
+      List? text,
+      String? note,
+      SourceLocation? sourceLocation}) {
     int id = steppableMap.length;
 
     if (text == null) {
       text = [node];
     }
 
-    TraceStep step =
-        new TraceStep(kind, id, node, offset, text, sourceLocation);
+    TraceStep step = TraceStep(kind, id, node, offset, text, sourceLocation);
     graph.addStep(step);
 
     steppableMap[node] = step;

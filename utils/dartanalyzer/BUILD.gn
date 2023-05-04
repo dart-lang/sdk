@@ -8,45 +8,11 @@ import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
 group("dartanalyzer") {
-  deps = [
-    ":generate_dartanalyzer_snapshot",
-    ":generate_summary_strong",
-  ]
+  deps = [ ":generate_dartanalyzer_snapshot" ]
 }
 
 application_snapshot("generate_dartanalyzer_snapshot") {
   main_dart = "../../pkg/analyzer_cli/bin/analyzer.dart"
-  training_args = [
-    "--help",
-    # TODO(34616): This is broken on Fuchsia.
-    # "--dart-sdk=" + rebase_path("../../sdk/"),
-    # "--train-snapshot",
-    # rebase_path("../../tests/language_2/first_test.dart")
-  ]
+  training_args = [ "--help" ]
   name = "dartanalyzer"
-}
-
-sdk_root = "../../sdk"
-
-create_timestamp_file("sdk_lib_files") {
-  path = rebase_path("$sdk_root/lib")
-  output = "$target_gen_dir/sdk_lib_files.stamp"
-}
-
-prebuilt_dart_action("generate_summary_strong") {
-  deps = [
-    ":sdk_lib_files",
-    "../../sdk:copy_libraries",
-    "../../sdk:write_version_file",
-  ]
-  script = "../../pkg/analyzer/tool/summary/build_sdk_summaries.dart"
-  packages = "../../.dart_tool/package_config.json"
-  output = "$root_gen_dir/strong.sum"
-  outputs = [ output ]
-  vm_args = [ "-Dsdk_hash=$sdk_hash" ]
-  args = [
-    "build",
-    rebase_path(output),
-    rebase_path("$root_out_dir/$dart_sdk_output"),
-  ]
 }

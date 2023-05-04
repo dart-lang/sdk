@@ -47,6 +47,29 @@ class RemoveQuestionMarkTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_QUESTION_MARK;
 
+  Future<void> test_casePattern() async {
+    await resolveTestCode('''
+void f() {
+  String? maybeString = 'hello';
+  switch (maybeString) {
+    case
+      var s?:
+      print(s);
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  String? maybeString = 'hello';
+  switch (maybeString) {
+    case
+      var s:
+      print(s);
+  }
+}
+''');
+  }
+
   Future<void> test_catchClause() async {
     await resolveTestCode('''
 class A {}
@@ -99,13 +122,22 @@ mixin B on A {}
 ''');
   }
 
+  Future<void> test_unnecessaryQuestionMark() async {
+    await resolveTestCode('''
+dynamic? a;
+''');
+    await assertHasFix('''
+dynamic a;
+''');
+  }
+
   Future<void> test_withClause_class() async {
     await resolveTestCode('''
-class A {}
+mixin class A {}
 class B with A? {}
 ''');
     await assertHasFix('''
-class A {}
+mixin class A {}
 class B with A {}
 ''');
   }
@@ -187,6 +219,36 @@ final int? zero = 0;
 ''');
     await assertHasFix('''
 final int zero = 0;
+''');
+  }
+
+  Future<void> test_record() async {
+    await resolveTestCode('''
+f() {
+  final (List<int>? a, num c) = ([], 1);
+  print(a); print(c);
+}
+''');
+    await assertHasFix('''
+f() {
+  final (List<int> a, num c) = ([], 1);
+  print(a); print(c);
+}
+''');
+  }
+
+  Future<void> test_variable_declaration_pattern() async {
+    await resolveTestCode('''
+f() {
+  final [int a, num? c] = [0, 1];
+  print(a); print(c);
+}
+''');
+    await assertHasFix('''
+f() {
+  final [int a, num c] = [0, 1];
+  print(a); print(c);
+}
 ''');
   }
 }

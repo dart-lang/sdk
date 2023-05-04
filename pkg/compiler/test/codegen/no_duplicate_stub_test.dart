@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import "package:async_helper/async_helper.dart";
 import '../helpers/compiler_helper.dart';
 
@@ -33,7 +31,7 @@ baz(a) {
 main() {
   runTest() async {
     String generated = await compileAll(TEST);
-    RegExp regexp = new RegExp(r'foo\$1\$a\(\w+\) {');
+    RegExp regexp = RegExp(r'foo\$1\$a\(\w+\) {');
     Iterator<Match> matches = regexp.allMatches(generated).iterator;
     checkNumberOfMatches(matches, 1);
   }

@@ -71,11 +71,11 @@ final primitiveCType = {
   PrimitiveType.uint16: "uint16_t",
   PrimitiveType.uint32: "uint32_t",
   PrimitiveType.uint64: "uint64_t",
-  PrimitiveType.intptr: "intptr",
+  PrimitiveType.intptr: "intptr_t",
   PrimitiveType.float: "float",
   PrimitiveType.double_: "double",
   // People should use explicit sizes. But we also want to test `long`.
-  // Surpressing lint.
+  // Suppressing lint.
   PrimitiveType.long: "/* NOLINT(runtime/int) */long",
   PrimitiveType.ulong: "/* NOLINT(runtime/int) */unsigned long",
   PrimitiveType.uintptr: "uintptr_t",
@@ -92,7 +92,7 @@ final primitiveDartCType = {
   PrimitiveType.uint16: "Uint16",
   PrimitiveType.uint32: "Uint32",
   PrimitiveType.uint64: "Uint64",
-  PrimitiveType.intptr: "Intptr",
+  PrimitiveType.intptr: "IntPtr",
   PrimitiveType.float: "Float",
   PrimitiveType.double_: "Double",
   PrimitiveType.long: "Long",
@@ -456,19 +456,55 @@ class FixedLengthArrayType extends CType {
 
 class FunctionType extends CType {
   final List<Member> arguments;
+  final int? varArgsIndex;
   final CType returnValue;
   final String reason;
 
   List<CType> get argumentTypes => arguments.map((a) => a.type).toList();
 
-  FunctionType(List<CType> argumentTypes, this.returnValue, this.reason)
-      : this.arguments = generateMemberNames(argumentTypes);
+  FunctionType(
+    List<CType> argumentTypes,
+    this.returnValue,
+    this.reason, {
+    this.varArgsIndex,
+  }) : this.arguments = generateMemberNames(argumentTypes);
+
+  FunctionType withVariadicArguments({int index = 1}) {
+    if (index == 0) {
+      throw "C does not support varargs at 0th argument";
+    }
+    if (arguments.length <= index) {
+      throw "Cannot start varargs after arguments";
+    }
+    return FunctionType(
+      argumentTypes,
+      returnValue,
+      reason,
+      varArgsIndex: index,
+    );
+  }
 
   String get cType =>
       throw "Are not represented without function or variable name in C.";
 
   String get dartCType {
-    final argumentsDartCType = argumentTypes.map((e) => e.dartCType).join(", ");
+    String argumentsDartCType;
+    final varArgsIndex_ = varArgsIndex;
+    if (varArgsIndex_ == null) {
+      argumentsDartCType = argumentTypes.map((e) => e.dartCType).join(', ');
+    } else {
+      final normalArgTypes = argumentTypes.take(varArgsIndex_).toList();
+      final varArgTypes = argumentTypes.skip(varArgsIndex_).toList();
+      final normalArgsString =
+          normalArgTypes.map((e) => e.dartCType).join(', ');
+      final varArgString = varArgTypes.map((e) => e.dartCType).join(', ');
+      final unaryRecordType = varArgTypes.length == 1;
+      if (unaryRecordType) {
+        argumentsDartCType = '$normalArgsString, VarArgs<($varArgString,)>';
+      } else {
+        argumentsDartCType = '$normalArgsString, VarArgs<($varArgString)>';
+      }
+    }
     return "${returnValue.dartCType} Function($argumentsDartCType)";
   }
 
@@ -506,7 +542,9 @@ class FunctionType extends CType {
   /// A suitable name based on the signature.
   String get cName {
     String result = "";
-    if (arguments.containsComposites && returnValue is FundamentalType) {
+    if (varArgsIndex != null) {
+      result = "VariadicAt$varArgsIndex";
+    } else if (arguments.containsComposites && returnValue is FundamentalType) {
       result = "Pass";
     } else if (returnValue is StructType &&
         argumentTypes.contains(returnValue)) {
@@ -545,4 +583,9 @@ class FunctionType extends CType {
 extension MemberList on List<Member> {
   bool get containsComposites =>
       map((m) => m.type is CompositeType).contains(true);
+}
+
+extension ListT<T> on List<T> {
+  Iterable<S> mapWithIndex<S>(S Function(int, T) f) =>
+      asMap().entries.map((e) => f(e.key, e.value));
 }

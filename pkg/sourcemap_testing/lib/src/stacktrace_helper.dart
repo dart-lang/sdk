@@ -176,7 +176,7 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
         Map<int, List<FrameEntry>> frames =
             _loadInlinedFrameData(sourceMap, sourceMapText);
         List<int> indices = frames.keys.toList()..sort();
-        int key = binarySearch(indices, (i) => i > offset) - 1;
+        int key = binarySearch<int>(indices, (i) => i > offset) - 1;
         int depth = 0;
         outer:
         while (key >= 0) {
@@ -391,7 +391,8 @@ TargetLineEntry? _findLine(SingleMapping sourceMap, StackTraceLine stLine) {
 }
 
 TargetLineEntry? _findLineInternal(SingleMapping sourceMap, int line) {
-  int index = binarySearch(sourceMap.lines, (e) => e.line > line);
+  int index =
+      binarySearch<TargetLineEntry>(sourceMap.lines, (e) => e.line > line);
   return (index <= 0) ? null : sourceMap.lines[index - 1];
 }
 
@@ -406,7 +407,7 @@ TargetEntry? _findColumn(int line, int column, TargetLineEntry? lineEntry) {
   if (lineEntry == null || lineEntry.entries.isEmpty) return null;
   if (lineEntry.line != line) return lineEntry.entries.last;
   var entries = lineEntry.entries;
-  int index = binarySearch(entries, (e) => e.column > column);
+  int index = binarySearch<TargetEntry>(entries, (e) => e.column > column);
   return (index <= 0) ? null : entries[index - 1];
 }
 

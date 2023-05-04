@@ -490,7 +490,6 @@ class B = Object with A {}''', codes:
     CompilationUnit unit =
         parseCompilationUnit("class A { A() : a = (){}; var v; }", codes: [
       ParserErrorCode.EXPECTED_CLASS_MEMBER,
-      ParserErrorCode.EXPERIMENT_NOT_ENABLED,
     ]);
 // Make sure we recovered and parsed "var v" correctly
     ClassDeclaration declaration = unit.declarations[0] as ClassDeclaration;
@@ -1298,7 +1297,7 @@ class C {
     expect(member, isNull);
   }
 
-  void test_missingSemicolon_varialeDeclarationList() {
+  void test_missingSemicolon_variableDeclarationList() {
     void verify(CompilationUnitMember member, String expectedTypeName,
         String expectedName, String expectedSemicolon) {
       expect(member, isTopLevelVariableDeclaration);

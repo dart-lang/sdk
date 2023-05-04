@@ -567,9 +567,9 @@ class MicroAssembler : public AssemblerBase {
   void ctzw(Register rd, Register rs);
   void cpop(Register rd, Register rs);
   void cpopw(Register rd, Register rs);
-  void max(Register rd, Register rs1, Register rs2);
+  void max(Register rd, Register rs1, Register rs2);  // NOLINT
   void maxu(Register rd, Register rs1, Register rs2);
-  void min(Register rd, Register rs1, Register rs2);
+  void min(Register rd, Register rs1, Register rs2);  // NOLINT
   void minu(Register rd, Register rs1, Register rs2);
   void sextb(Register rd, Register rs);
   void sexth(Register rd, Register rs);
@@ -959,7 +959,15 @@ class Assembler : public MicroAssembler {
                       JumpDistance distance = kFarJump);
   void BranchIfSmi(Register reg,
                    Label* label,
-                   JumpDistance distance = kFarJump);
+                   JumpDistance distance = kFarJump) override;
+
+  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void CompareWords(Register reg1,
+                    Register reg2,
+                    intptr_t offset,
+                    Register count,
+                    Register temp,
+                    Label* equals) override;
 
   void Jump(const Code& code,
             Register pp,
@@ -995,16 +1003,25 @@ class Assembler : public MicroAssembler {
   void AddImmediate(Register dest, intx_t imm) {
     AddImmediate(dest, dest, imm);
   }
-  void AddRegisters(Register dest, Register src) {
-    add(dest, dest, src);
+  void MulImmediate(Register dest,
+                    intx_t imm,
+                    OperandSize width = kWordBytes) override {
+    MulImmediate(dest, dest, imm, width);
   }
+  void AddRegisters(Register dest, Register src) { add(dest, dest, src); }
+  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
                  Register src,
                  ScaleFactor scale,
                  int32_t value) {
-    slli(dest, src, scale);
-    addi(dest, dest, value);
+    if (scale == 0) {
+      AddImmediate(dest, src, value);
+    } else {
+      slli(dest, src, scale);
+      AddImmediate(dest, dest, value);
+    }
   }
+  void AddShifted(Register dest, Register base, Register index, intx_t shift);
   void SubRegisters(Register dest, Register src) {
     sub(dest, dest, src);
   }
@@ -1018,6 +1035,10 @@ class Assembler : public MicroAssembler {
                     Register rn,
                     intx_t imm,
                     OperandSize sz = kWordBytes);
+  void MulImmediate(Register dest,
+                    Register rn,
+                    intx_t imm,
+                    OperandSize width = kWordBytes);
   void AndImmediate(Register rd,
                     Register rn,
                     intx_t imm,
@@ -1048,6 +1069,9 @@ class Assembler : public MicroAssembler {
   void LslImmediate(Register rd, int32_t shift) {
     slli(rd, rd, shift);
   }
+  void LslRegister(Register dst, Register shift) override {
+    sll(dst, dst, shift);
+  }
   void LsrImmediate(Register rd, int32_t shift) override {
     srli(rd, rd, shift);
   }
@@ -1056,13 +1080,16 @@ class Assembler : public MicroAssembler {
                         intx_t imm,
                         OperandSize sz = kWordBytes) override;
 
+  Address PrepareLargeOffset(Register base, int32_t offset);
   void LoadFromOffset(Register dest,
                       const Address& address,
                       OperandSize sz = kWordBytes) override;
   void LoadFromOffset(Register dest,
                       Register base,
                       int32_t offset,
-                      OperandSize sz = kWordBytes);
+                      OperandSize sz = kWordBytes) {
+    LoadFromOffset(dest, Address(base, offset), sz);
+  }
   void LoadFieldFromOffset(Register dest,
                            Register base,
                            int32_t offset,
@@ -1108,15 +1135,17 @@ class Assembler : public MicroAssembler {
   void StoreToOffset(Register src,
                      Register base,
                      int32_t offset,
-                     OperandSize sz = kWordBytes);
+                     OperandSize sz = kWordBytes) {
+    StoreToOffset(src, Address(base, offset), sz);
+  }
   void StoreFieldToOffset(Register src,
                           Register base,
                           int32_t offset,
                           OperandSize sz = kWordBytes) {
-    StoreToOffset(src, base, offset - kHeapObjectTag, sz);
+    StoreToOffset(src, FieldAddress(base, offset), sz);
   }
   void StoreZero(const Address& address, Register temp = kNoRegister) {
-    sx(ZR, address);
+    StoreToOffset(ZR, address);
   }
   void StoreSToOffset(FRegister src, Register base, int32_t offset);
   void StoreDToOffset(FRegister src, Register base, int32_t offset);
@@ -1148,13 +1177,13 @@ class Assembler : public MicroAssembler {
   }
 
   void LoadCompressed(Register dest, const Address& slot) {
-    lx(dest, slot);
+    LoadFromOffset(dest, slot);
   }
   void LoadCompressedFromOffset(Register dest, Register base, int32_t offset) {
     LoadFromOffset(dest, base, offset);
   }
   void LoadCompressedSmi(Register dest, const Address& slot) override {
-    lx(dest, slot);
+    LoadFromOffset(dest, slot);
 #if defined(DEBUG)
     Label done;
     BranchIfSmi(dest, &done, kNearJump);
@@ -1355,6 +1384,8 @@ class Assembler : public MicroAssembler {
   void EnterFullSafepoint(Register scratch);
   void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
 
+  void CheckFpSpDist(intptr_t fp_sp_dist);
+
   void CheckCodePointer();
   void RestoreCodePointer();
   void RestorePoolPointer();
@@ -1388,6 +1419,11 @@ class Assembler : public MicroAssembler {
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
+
+  void CombineHashes(Register dst, Register other) override;
+  void FinalizeHashForSize(intptr_t bit_size,
+                           Register dst,
+                           Register scratch = TMP) override;
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.

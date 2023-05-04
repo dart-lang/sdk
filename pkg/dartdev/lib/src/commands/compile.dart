@@ -10,6 +10,7 @@ import 'package:dart2native/generate.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:path/path.dart' as path;
+import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import '../core.dart';
 import '../experiments.dart';
@@ -24,6 +25,7 @@ class Option {
   final String help;
   final String? abbr;
   final String? defaultsTo;
+  final bool? flagDefaultsTo;
   final String? valueHelp;
   final List<String>? allowed;
   final Map<String, String>? allowedHelp;
@@ -33,6 +35,7 @@ class Option {
     required this.help,
     this.abbr,
     this.defaultsTo,
+    this.flagDefaultsTo,
     this.valueHelp,
     this.allowed,
     this.allowedHelp,
@@ -78,7 +81,6 @@ class CompileJSCommand extends CompileSubcommandCommand {
         ...argResults!.arguments,
       ],
       packageConfigOverride: null,
-      forceNoSoundNullSafety: true,
     );
 
     return 0;
@@ -127,9 +129,10 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
       )
-      ..addFlag('sound-null-safety',
-          help: 'Respect the nullability of types at runtime.',
-          defaultsTo: null)
+      ..addFlag(soundNullSafetyOption.flag,
+          help: soundNullSafetyOption.help,
+          defaultsTo: soundNullSafetyOption.flagDefaultsTo,
+          hide: true)
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -186,9 +189,12 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     buildArgs.add('--snapshot-kind=$formatName');
     buildArgs.add('--snapshot=${path.canonicalize(outputFile)}');
 
-    final bool? soundNullSafety = args['sound-null-safety'];
-    if (soundNullSafety != null) {
-      buildArgs.add('--${soundNullSafety ? '' : 'no-'}sound-null-safety');
+    final bool soundNullSafety = args['sound-null-safety'];
+    if (!soundNullSafety) {
+      if (!shouldAllowNoSoundNullSafety()) {
+        return compileErrorExitCode;
+      }
+      buildArgs.add('--no-sound-null-safety');
     }
 
     final String? packages = args[packagesOption.flag];
@@ -256,18 +262,23 @@ class CompileNativeCommand extends CompileSubcommandCommand {
         help: defineOption.help,
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
-      )
-      ..addFlag('enable-asserts',
-          negatable: false, help: 'Enable assert statements.')
+      );
+    if (commandName != exeCmdName) {
+      // dart compile exe creates a product mode binary, which doesn't support asserts.
+      argParser.addFlag('enable-asserts',
+          negatable: false, help: 'Enable assert statements.');
+    }
+    argParser
       ..addOption(
         packagesOption.flag,
         abbr: packagesOption.abbr,
         valueHelp: packagesOption.valueHelp,
         help: packagesOption.help,
       )
-      ..addFlag('sound-null-safety',
-          help: 'Respect the nullability of types at runtime.',
-          defaultsTo: null)
+      ..addFlag(soundNullSafetyOption.flag,
+          help: soundNullSafetyOption.help,
+          defaultsTo: soundNullSafetyOption.flagDefaultsTo,
+          hide: true)
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file.
 <path> can be relative or absolute.''')
@@ -277,6 +288,9 @@ Remove debugging information from the output and save it separately to the speci
         hide: true,
         valueHelp: 'opt1,opt2,...',
       )
+      ..addOption('target-os',
+          help: 'Compile to a specific target operating system.',
+          allowed: TargetOS.names)
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -308,6 +322,10 @@ Remove debugging information from the output and save it separately to the speci
       return -1;
     }
 
+    if (!args['sound-null-safety'] && !shouldAllowNoSoundNullSafety()) {
+      return compileErrorExitCode;
+    }
+
     try {
       await generateNative(
         kind: format,
@@ -315,13 +333,15 @@ Remove debugging information from the output and save it separately to the speci
         outputFile: args['output'],
         defines: args['define'],
         packages: args['packages'],
-        enableAsserts: args['enable-asserts'],
+        enableAsserts:
+            commandName != exeCmdName ? args['enable-asserts'] : false,
         enableExperiment: args.enabledExperiments.join(','),
         soundNullSafety: args['sound-null-safety'],
         debugFile: args['save-debugging-info'],
         verbose: verbose,
         verbosity: args['verbosity'],
         extraOptions: args['extra-gen-snapshot-options'],
+        targetOS: args['target-os'],
       );
       return 0;
     } catch (e, st) {
@@ -353,6 +373,11 @@ Sets the verbosity level of the compilation.
     allowed: Verbosity.allowedValues,
     allowedHelp: Verbosity.allowedValuesHelp,
   );
+  final soundNullSafetyOption = Option(
+    flag: 'sound-null-safety',
+    help: 'DEPRECATED: Respect the nullability of types at runtime.',
+    flagDefaultsTo: true,
+  );
 
   late final Option defineOption;
   late final Option packagesOption;
@@ -376,6 +401,23 @@ For example: dart compile $name -Da=1,b=2 main.dart''',
 <path> can be relative or absolute.
 For example: dart compile $name --packages=/tmp/pkgs.json main.dart'''),
         super(name, description, verbose, hidden: hidden);
+
+  bool shouldAllowNoSoundNullSafety() {
+    // We need to maintain support for generating AOT snapshots and kernel
+    // files with no-sound-null-safety internal Flutter aplications are
+    // fully null-safe.
+    //
+    // See https://github.com/dart-lang/sdk/issues/51513 for context.
+    if (name == CompileNativeCommand.aotSnapshotCmdName ||
+        name == CompileSnapshotCommand.kernelCmdName) {
+      log.stdout(
+          'Warning: the flag --no-sound-null-safety is deprecated and pending removal.');
+      return true;
+    }
+    log.stdout(
+        'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
+    return false;
+  }
 }
 
 class CompileCommand extends DartdevCommand {

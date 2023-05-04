@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
+
 /// Helper for reading primitive types from bytes.
 class SummaryDataReader {
   final Uint8List bytes;
@@ -97,7 +99,7 @@ class SummaryDataReader {
 
   String readStringUtf8() {
     var bytes = readUint8List();
-    return utf8.decode(bytes);
+    return considerCanonicalizeString(utf8.decode(bytes));
   }
 
   List<String> readStringUtf8List() {
@@ -116,9 +118,12 @@ class SummaryDataReader {
 
   List<T> readTypedList<T>(T Function() read) {
     var length = readUInt30();
+    if (length == 0) {
+      return const <Never>[];
+    }
     return List<T>.generate(length, (_) {
       return read();
-    });
+    }, growable: false);
   }
 
   int readUInt30() {
@@ -213,6 +218,7 @@ class _StringTable {
 
     if (result == null) {
       result = _readStringEntry(_offsets[index], _lengths[index]);
+      result = considerCanonicalizeString(result);
       _strings[index] = result;
     }
 

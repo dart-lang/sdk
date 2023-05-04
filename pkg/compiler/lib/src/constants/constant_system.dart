@@ -162,12 +162,8 @@ MapConstantValue createMap(
       key is StringConstantValue &&
       key.stringValue != JavaScriptMapConstant.PROTO_PROPERTY);
 
-  InterfaceType keysType;
-  if (commonElements.dartTypes.treatAsRawType(sourceType)) {
-    keysType = commonElements.listType();
-  } else {
-    keysType = commonElements.listType(sourceType.typeArguments.first);
-  }
+  InterfaceType keysType =
+      commonElements.listType(sourceType.typeArguments.first);
   ListConstantValue keysList = createList(commonElements, keysType, keys);
   InterfaceType type = commonElements.getConstantMapTypeFor(sourceType,
       onlyStringKeys: onlyStringKeys);

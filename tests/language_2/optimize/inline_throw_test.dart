@@ -119,7 +119,7 @@ throwConstructor() {
 }
 
 cascade() {
-  return new List()..add(callMeTrue())..add(kast("cascade"));
+  return []..add(callMeTrue())..add(kast("cascade"));
 }
 
 interpole() => "inter${kast('tada!')}pole";

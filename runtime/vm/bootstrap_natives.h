@@ -58,7 +58,6 @@ namespace dart {
   V(Capability_get_hashcode, 1)                                                \
   V(RawReceivePort_factory, 2)                                                 \
   V(RawReceivePort_get_id, 1)                                                  \
-  V(RawReceivePort_get_sendport, 1)                                            \
   V(RawReceivePort_closeInternal, 1)                                           \
   V(RawReceivePort_setActive, 2)                                               \
   V(SendPort_get_id, 1)                                                        \
@@ -80,6 +79,7 @@ namespace dart {
   V(Developer_log, 8)                                                          \
   V(Developer_postEvent, 2)                                                    \
   V(Developer_webServerControl, 3)                                             \
+  V(Developer_NativeRuntime_writeHeapSnapshotToFile, 1)                        \
   V(Developer_reachability_barrier, 0)                                         \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
@@ -116,7 +116,6 @@ namespace dart {
   V(RegExp_getGroupNameMap, 1)                                                 \
   V(RegExp_ExecuteMatch, 3)                                                    \
   V(RegExp_ExecuteMatchSticky, 3)                                              \
-  V(List_new, 2)                                                               \
   V(List_allocate, 2)                                                          \
   V(List_getIndexed, 2)                                                        \
   V(List_setIndexed, 3)                                                        \
@@ -126,6 +125,7 @@ namespace dart {
   V(StringBase_createFromCodePoints, 3)                                        \
   V(StringBase_substringUnchecked, 3)                                          \
   V(StringBase_joinReplaceAllResult, 4)                                        \
+  V(StringBase_intern, 1)                                                      \
   V(StringBuffer_createStringFromUint16Array, 3)                               \
   V(OneByteString_substringUnchecked, 3)                                       \
   V(OneByteString_allocateFromOneByteList, 3)                                  \
@@ -332,7 +332,6 @@ namespace dart {
   V(Internal_unsafeCast, 1)                                                    \
   V(Internal_nativeEffect, 1)                                                  \
   V(Internal_collectAllGarbage, 0)                                             \
-  V(Internal_writeHeapSnapshotToFile, 1)                                       \
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_extractTypeArguments, 2)                                          \
@@ -390,7 +389,6 @@ namespace dart {
   V(Ffi_address, 1)                                                            \
   V(Ffi_fromAddress, 1)                                                        \
   V(Ffi_asFunctionInternal, 2)                                                 \
-  V(Ffi_nativeCallbackFunction, 2)                                             \
   V(Ffi_pointerFromFunction, 1)                                                \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_lookup, 2)                                                          \

@@ -68,7 +68,7 @@ class B {
   String f = A().v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 5,
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 5,
           messageContains: ["'v'"]),
     ]);
   }
@@ -87,7 +87,7 @@ class B {
   String f = A().f;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 99, 5),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 99, 5),
     ]);
   }
 
@@ -104,7 +104,7 @@ class B {
   String f = A.v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 113, 3),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 113, 3),
     ]);
   }
 
@@ -122,7 +122,7 @@ class B {
   String f = A.f;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 3),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 3),
     ]);
   }
 
@@ -150,7 +150,7 @@ class A {
   final f = getV();
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 90, 6),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 90, 6),
     ]);
   }
 
@@ -167,7 +167,7 @@ class B {
   final f = A().getV();
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 10),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 10),
     ]);
   }
 
@@ -195,7 +195,7 @@ class A {
   final f = v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 89, 1),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 89, 1),
     ]);
   }
 
@@ -211,7 +211,7 @@ class A {
   final f = v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 83, 1),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 83, 1),
     ]);
   }
 
@@ -227,7 +227,7 @@ class A{
   final f = '';
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 5,
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 5,
           messageContains: ["'f'"]),
     ]);
   }
@@ -244,7 +244,7 @@ var c = ()=> _v;
 
 String v = c();
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 76, 2),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 76, 2),
     ]);
   }
 
@@ -257,7 +257,7 @@ String top = v;
 @doNotStore
 String get v => '';
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 1,
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 1,
           messageContains: ["'v'"]),
     ]);
   }
@@ -273,7 +273,7 @@ class A{
   String v() => '';
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 7,
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 7,
           messageContains: ["'v'"]),
     ]);
   }
@@ -290,8 +290,8 @@ class A {
   final f = v ?? v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 91, 1),
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 96, 1),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 91, 1),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 96, 1),
     ]);
   }
 
@@ -312,7 +312,7 @@ class A {
   final f = v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 46, 1),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 46, 1),
     ]);
   }
 
@@ -329,8 +329,8 @@ class A {
   final f = c ? v : v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 112, 1),
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 116, 1),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 112, 1),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 116, 1),
     ]);
   }
 }

@@ -137,9 +137,13 @@ class Listener implements UnescapeErrorListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
@@ -199,8 +203,8 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Handle the beginning of a mixin declaration.
-  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
-      Token mixinKeyword, Token name) {}
+  void beginMixinDeclaration(
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {}
 
   /// Handle an on clause in a mixin declaration. Substructures:
   /// - implemented types
@@ -585,9 +589,18 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and
-  /// it was a `localVariableDeclaration`.
+  /// it was a `localVariableDeclaration` of the form
+  /// `metadata initializedVariableDeclaration ';'`.
   void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
     logEvent("ForInitializerLocalVariableDeclaration");
+  }
+
+  /// Marks that the grammar term `forInitializerStatement` has been parsed and
+  /// it was a `localVariableDeclaration` of the form
+  /// `metadata patternVariableDeclaration ';'`.
+  void handleForInitializerPatternVariableAssignment(
+      Token keyword, Token equals) {
+    logEvent("handleForInitializerPatternVariableAssignment");
   }
 
   /// Marks the start of a for statement which is ended by either
@@ -612,9 +625,13 @@ class Listener implements UnescapeErrorListener {
 
   /// Marks the end of parsing the control structure of a for-in statement
   /// or for control flow entry up to and including the closing parenthesis.
-  /// `for` `(` (type)? identifier `in` iterator `)`
+  /// If [patternKeyword] is `null`, this takes the form:
+  ///   `for` `(` (type)? identifier `in` iterator `)`
+  /// If [patternKeyword] is not `null`, it is either a `var` or `final` token,
+  /// and this takes the form:
+  ///   `for` `(` patternKeyword pattern `in` iterator `)`
   void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token inKeyword) {}
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {}
 
   // One of the two possible corresponding end events for [beginForStatement].
   void endForIn(Token endToken) {
@@ -634,7 +651,7 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Handle the beginning of a named function expression which isn't legal
-  /// syntax in Dart.  Useful for recovering from Javascript code being pasted
+  /// syntax in Dart.  Useful for recovering from JavaScript code being pasted
   /// into a Dart program, as it will interpret `function foo() {}` as a named
   /// function expression with return type `function` and name `foo`.
   ///
@@ -643,7 +660,7 @@ class Listener implements UnescapeErrorListener {
   void beginNamedFunctionExpression(Token token) {}
 
   /// A named function expression which isn't legal syntax in Dart.
-  /// Useful for recovering from Javascript code being pasted into a Dart
+  /// Useful for recovering from JavaScript code being pasted into a Dart
   /// program, as it will interpret `function foo() {}` as a named function
   /// expression with return type `function` and name `foo`.
   ///
@@ -769,9 +786,13 @@ class Listener implements UnescapeErrorListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {}
 
   /// Handle a named mixin application with clause (e.g. "A with B, C").
@@ -1417,11 +1438,35 @@ class Listener implements UnescapeErrorListener {
     logEvent('NullCheckPattern');
   }
 
-  /// Called after the parser has consumed a variable pattern, consisting of an
-  /// optional `var` or `final` keyword, an optional type annotation, and a
-  /// variable name identifier.
-  void handleVariablePattern(Token? keyword, Token variable) {
-    logEvent('VariablePattern');
+  /// Called after the parser has consumed an assigned variable pattern,
+  /// consisting of a variable name identifier (other than `_`).
+  ///
+  /// This method will only be called for a variable pattern that is part of a
+  /// `patternAssignment` (and hence should refer to a previously declared
+  /// variable rather than declaring a fresh one).
+  void handleAssignedVariablePattern(Token variable) {
+    logEvent('AssignedVariablePattern');
+  }
+
+  /// Called after the parser has consumed a declared variable pattern,
+  /// consisting of an optional `var` or `final` keyword, an optional type
+  /// annotation, and a variable name identifier (other than `_`).
+  ///
+  /// The flag [inAssignmentPattern] indicates whether this variable pattern is
+  /// part of a `patternAssignment`.  If this is `true`, it indicates that the
+  /// parser has recovered from an error (since declared variable patterns are
+  /// not allowed inside a `patternAssignment`).  The error has already been
+  /// reported.
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
+      {required bool inAssignmentPattern}) {
+    logEvent('DeclaredVariablePattern');
+  }
+
+  /// Called after the parser has consumed a wildcard pattern, consisting of an
+  /// optional `var` or `final` keyword, an optional type annotation, and the
+  /// identifier `_`.
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
+    logEvent('WildcardPattern');
   }
 
   void handleNoName(Token token) {
@@ -1592,7 +1637,7 @@ class Listener implements UnescapeErrorListener {
   void beginBinaryPattern(Token token) {}
 
   /// Called when the parser has consumed a binary pattern, consisting of a LHS
-  /// pattern, `&` or `|` operator, and a RHS pattern.
+  /// pattern, `&&` or `||` operator, and a RHS pattern.
   void endBinaryPattern(Token token) {
     logEvent("BinaryPattern");
   }
@@ -1854,6 +1899,15 @@ class Listener implements UnescapeErrorListener {
     logEvent("Operator");
   }
 
+  /// Invoked when a pattern switch case doesn't have the 'when' clause
+  void handleSwitchCaseNoWhenClause(Token token) {
+    logEvent("SwitchCaseNoWhenClause");
+  }
+
+  void handleSwitchExpressionCasePattern(Token token) {
+    logEvent("SwitchExpressionCasePattern");
+  }
+
   void handleSymbolVoid(Token token) {
     logEvent("SymbolVoid");
   }
@@ -1878,9 +1932,19 @@ class Listener implements UnescapeErrorListener {
     logEvent("ParenthesizedCondition");
   }
 
+  /// Starts a pattern guard, the expression that follows the 'when' keyword
+  void beginPatternGuard(Token when) {
+    logEvent("PatternGuard");
+  }
+
   /// Starts a parenthesized expression or a record literal. Will be ended with
   /// either [endParenthesizedExpression] or [endRecordLiteral].
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {}
+
+  /// Starts a guard expression in a switch case, after the 'when' keyword
+  void beginSwitchCaseWhenClause(Token when) {
+    logEvent("SwitchCaseWhenClause");
+  }
 
   /// Ends a record literal with [count] entries.
   void endRecordLiteral(Token token, int count, Token? constKeyword) {
@@ -1893,11 +1957,21 @@ class Listener implements UnescapeErrorListener {
     logEvent("RecordPattern");
   }
 
+  /// End a pattern guard, the expression that follows the 'when' keyword
+  void endPatternGuard(Token token) {
+    logEvent("PatternGuard");
+  }
+
   /// End a parenthesized expression.
   /// These may be within the condition expression of a control structure
   /// but will not be the condition of a control structure.
   void endParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
+  }
+
+  /// Starts a guard expression in a switch case, after the 'when' keyword
+  void endSwitchCaseWhenClause(Token token) {
+    logEvent("SwitchCaseWhenClause");
   }
 
   /// Called after the parser has consumed a parenthesized pattern, consisting
@@ -1914,8 +1988,23 @@ class Listener implements UnescapeErrorListener {
   /// pattern or the constant expression.  This ambiguity is resolved in favor
   /// of associating the `const` keyword with the constant pattern.  So for
   /// example, in `case const []` the `const` keyword is passed to
-  /// [handleConstantPattern] rather than [handleLiteralList].
-  void handleConstantPattern(Token? constKeyword) {
+  /// [beginConstantPattern] and [endConstantPattern] rather than
+  /// [handleLiteralList].
+  void beginConstantPattern(Token? constKeyword) {
+    logEvent("ConstantPattern");
+  }
+
+  /// Called after the parser has consumed a constant pattern, consisting of an
+  /// optional `const` and an expression.
+  ///
+  /// Note that some expressions can legally begin with `const`, so there is
+  /// ambiguity as to whether to associate the `const` keyword with the constant
+  /// pattern or the constant expression.  This ambiguity is resolved in favor
+  /// of associating the `const` keyword with the constant pattern.  So for
+  /// example, in `case const []` the `const` keyword is passed to
+  /// [beginConstantPattern] and [endConstantPattern] rather than
+  /// [handleLiteralList].
+  void endConstantPattern(Token? constKeyword) {
     logEvent("ConstantPattern");
   }
 
@@ -1997,7 +2086,8 @@ class Listener implements UnescapeErrorListener {
     logEvent("FormalParameterDefaultValueExpression");
   }
 
-  void handleValuedFormalParameter(Token equals, Token token) {
+  void handleValuedFormalParameter(
+      Token equals, Token token, FormalParameterKind kind) {
     logEvent("ValuedFormalParameter");
   }
 

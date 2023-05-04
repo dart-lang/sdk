@@ -6,9 +6,9 @@ import "package:expect/expect.dart";
 
 class S {}
 
-class M1 {}
+mixin M1 {}
 
-class M2 {}
+mixin M2 {}
 
 class C extends S with M1 {}
 

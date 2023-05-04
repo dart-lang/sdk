@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Position;
 import 'package:test/test.dart';
@@ -33,6 +34,7 @@ class Bar {
 ''';
 
   Future<void> test_documentChange_notifiesPlugins() async {
+    if (!AnalysisServer.supportsPlugins) return;
     await _initializeAndOpen();
     await changeFile(2, mainFileUri, [
       TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
@@ -88,6 +90,7 @@ class Bar {
   }
 
   Future<void> test_documentClose_notifiesPlugins() async {
+    if (!AnalysisServer.supportsPlugins) return;
     await _initializeAndOpen();
     await closeFile(mainFileUri);
 
@@ -166,10 +169,59 @@ class Bar {
   }
 
   Future<void> test_documentOpen_notifiesPlugins() async {
+    if (!AnalysisServer.supportsPlugins) return;
     await _initializeAndOpen();
 
     expect(pluginManager.analysisUpdateContentParams!.files,
         equals({mainFilePath: AddContentOverlay(content)}));
+  }
+
+  /// Verifies the fix for a race condition where an overlay would not be
+  /// processed if the file was created on disk before the overlay was processed
+  /// (but the watch event had also not yet been processed).
+  ///
+  /// https://github.com/dart-lang/sdk/issues/51159
+  Future<void> test_documentOpen_processesOverlay_dartSdk_issue51159() async {
+    final binFolder = convertPath(join(projectFolderPath, 'bin'));
+    final binMainFilePath = convertPath(join(binFolder, 'main.dart'));
+    final fooFilePath = convertPath(join(binFolder, 'foo.dart'));
+    final fooUri = Uri.file(fooFilePath);
+
+    const binMainContent = '''
+import 'foo.dart';
+
+Foo? f;
+''';
+    const fooContent = '''
+class Foo {}
+''';
+
+    newFolder(binFolder);
+    newFile(binMainFilePath, binMainContent);
+
+    // Track the latest diagnostics we've had for all files.
+    Map<String, List<Diagnostic>> diagnostics = {};
+    trackDiagnostics(diagnostics);
+
+    // Initialize the server and wait for initial analysis to complete.
+    await Future.wait([
+      waitForAnalysisComplete(),
+      initialize(),
+    ]);
+
+    // Expect diagnostics because 'foo.dart' doesn't exist.
+    expect(diagnostics[binMainFilePath], isNotEmpty);
+
+    // Create the file and _immediately_ open it, so the file exists when the
+    // overlay is created, even though the watcher event has not been processed.
+    newFile(fooFilePath, fooContent);
+    await Future.wait([
+      openFile(fooUri, fooContent),
+      waitForAnalysisComplete(),
+    ]);
+
+    // Expect the diagnostics have gone.
+    expect(diagnostics[binMainFilePath], isEmpty);
   }
 
   Future<void> test_documentOpen_setsPriorityFileIfEarly() async {

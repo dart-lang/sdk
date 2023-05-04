@@ -191,36 +191,6 @@ int64_t MetricPeakRSS::Value() const {
 }
 #endif  // !defined(PRODUCT)
 
-#if !defined(PRODUCT)
-
-#define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
-  type vm_metric_##variable;
-VM_METRIC_LIST(VM_METRIC_VARIABLE);
-#undef VM_METRIC_VARIABLE
-
-void Metric::Init() {
-#define VM_METRIC_INIT(type, variable, name, unit)                             \
-  vm_metric_##variable.InitInstance(name, NULL, Metric::unit);
-  VM_METRIC_LIST(VM_METRIC_INIT);
-#undef VM_METRIC_INIT
-}
-
-void Metric::Cleanup() {
-  if (FLAG_print_metrics) {
-    // Create a zone to allocate temporary strings in.
-    StackZone sz(Thread::Current());
-    OS::PrintErr("Printing metrics for VM\n");
-
-#define VM_METRIC_INIT(type, variable, name, unit)                             \
-  OS::PrintErr("%s\n", vm_metric_##variable.ToString());
-    VM_METRIC_LIST(VM_METRIC_INIT);
-#undef VM_METRIC_INIT
-    OS::PrintErr("\n");
-  }
-}
-
-#endif  // !defined(PRODUCT)
-
 MaxMetric::MaxMetric() : Metric() {
   set_value(kMinInt64);
 }

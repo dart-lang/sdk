@@ -2345,7 +2345,7 @@ Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
                      FLAG_use_compressed_instructions ? RV_GC : RV_G),
       constant_pool_allowed_(false) {
   generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
-    // Note this does not destory RA.
+    // Note this does not destroy RA.
     lx(TMP,
        Address(THR, target::Thread::write_barrier_wrappers_thread_offset(reg)));
     jalr(TMP, TMP);
@@ -2779,11 +2779,11 @@ void Assembler::SetIf(Condition condition, Register rd) {
     intx_t right = deferred_imm_;
     switch (condition) {
       case EQUAL:
-        xori(rd, left, right);
+        subi(rd, left, right);
         seqz(rd, rd);
         break;
       case NOT_EQUAL:
-        xori(rd, left, right);
+        subi(rd, left, right);
         snez(rd, rd);
         break;
       case LESS:
@@ -2868,18 +2868,53 @@ void Assembler::SetIf(Condition condition, Register rd) {
       default:
         UNREACHABLE();
     }
-  } else if (deferred_compare_ == kTestImm || deferred_compare_ == kTestReg) {
-    if (deferred_compare_ == kTestImm) {
-      AndImmediate(TMP2, deferred_left_, deferred_imm_);
+  } else if (deferred_compare_ == kTestImm) {
+    uintx_t uimm = deferred_imm_;
+    if (deferred_imm_ == 1) {
+      switch (condition) {
+        case ZERO:
+          andi(rd, deferred_left_, 1);
+          xori(rd, rd, 1);
+          break;
+        case NOT_ZERO:
+          andi(rd, deferred_left_, 1);
+          break;
+        default:
+          UNREACHABLE();
+      }
+    } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(uimm)) {
+      switch (condition) {
+        case ZERO:
+          bexti(rd, deferred_left_, Utils::ShiftForPowerOfTwo(uimm));
+          xori(rd, rd, 1);
+          break;
+        case NOT_ZERO:
+          bexti(rd, deferred_left_, Utils::ShiftForPowerOfTwo(uimm));
+          break;
+        default:
+          UNREACHABLE();
+      }
     } else {
-      and_(TMP2, deferred_left_, deferred_reg_);
+      AndImmediate(rd, deferred_left_, deferred_imm_);
+      switch (condition) {
+        case ZERO:
+          seqz(rd, rd);
+          break;
+        case NOT_ZERO:
+          snez(rd, rd);
+          break;
+        default:
+          UNREACHABLE();
+      }
     }
+  } else if (deferred_compare_ == kTestReg) {
+    and_(rd, deferred_left_, deferred_reg_);
     switch (condition) {
       case ZERO:
-        seqz(rd, TMP2);
+        seqz(rd, rd);
         break;
       case NOT_ZERO:
-        snez(rd, TMP2);
+        snez(rd, rd);
         break;
       default:
         UNREACHABLE();
@@ -2924,6 +2959,27 @@ void Assembler::BranchIfSmi(Register reg, Label* label, JumpDistance distance) {
   beqz(TMP2, label, distance);
 }
 
+void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
+  srai(reg, reg, shift);
+}
+
+void Assembler::CompareWords(Register reg1,
+                             Register reg2,
+                             intptr_t offset,
+                             Register count,
+                             Register temp,
+                             Label* equals) {
+  Label loop;
+  Bind(&loop);
+  BranchIfZero(count, equals, Assembler::kNearJump);
+  AddImmediate(count, -1);
+  lx(temp, FieldAddress(reg1, offset));
+  lx(TMP, FieldAddress(reg2, offset));
+  addi(reg1, reg1, target::kWordSize);
+  addi(reg2, reg2, target::kWordSize);
+  beq(temp, TMP, &loop, Assembler::kNearJump);
+}
+
 void Assembler::Jump(const Code& target,
                      Register pp,
                      ObjectPoolBuilderEntry::Patchability patchable) {
@@ -2960,6 +3016,37 @@ void Assembler::Call(Register target) {
   jalr(target);
 }
 
+void Assembler::AddShifted(Register dest,
+                           Register base,
+                           Register index,
+                           intx_t shift) {
+  if (shift == 0) {
+    add(dest, index, base);
+  } else if (Supports(RV_Zba) && (shift == 1)) {
+    sh1add(dest, index, base);
+  } else if (Supports(RV_Zba) && (shift == 2)) {
+    sh2add(dest, index, base);
+  } else if (Supports(RV_Zba) && (shift == 3)) {
+    sh3add(dest, index, base);
+  } else if (shift < 0) {
+    if (base != dest) {
+      srai(dest, index, -shift);
+      add(dest, dest, base);
+    } else {
+      srai(TMP2, index, -shift);
+      add(dest, TMP2, base);
+    }
+  } else {
+    if (base != dest) {
+      slli(dest, index, shift);
+      add(dest, dest, base);
+    } else {
+      slli(TMP2, index, shift);
+      add(dest, TMP2, base);
+    }
+  }
+}
+
 void Assembler::AddImmediate(Register rd,
                              Register rs1,
                              intx_t imm,
@@ -2975,12 +3062,59 @@ void Assembler::AddImmediate(Register rd,
     add(rd, rs1, TMP2);
   }
 }
+
+void Assembler::MulImmediate(Register rd,
+                             Register rs1,
+                             intx_t imm,
+                             OperandSize sz) {
+  if (Utils::IsPowerOfTwo(imm)) {
+    const intx_t shift = Utils::ShiftForPowerOfTwo(imm);
+#if XLEN >= 64
+    ASSERT(sz == kFourBytes || sz == kEightBytes);
+    if (sz == kFourBytes) {
+      slliw(rd, rs1, shift);
+    } else {
+      slli(rd, rs1, shift);
+    }
+#else
+    ASSERT(sz == kFourBytes);
+    slli(rd, rs1, shift);
+#endif
+  } else {
+    LoadImmediate(TMP, imm);
+#if XLEN >= 64
+    ASSERT(sz == kFourBytes || sz == kEightBytes);
+    if (sz == kFourBytes) {
+      mulw(rd, rs1, TMP);
+    } else {
+      mul(rd, rs1, TMP);
+    }
+#else
+    ASSERT(sz == kFourBytes);
+    mul(rd, rs1, TMP);
+#endif
+  }
+}
+
 void Assembler::AndImmediate(Register rd,
                              Register rs1,
                              intx_t imm,
                              OperandSize sz) {
-  if (IsITypeImm(imm)) {
+  uintx_t uimm = imm;
+  if (imm == -1) {
+    MoveRegister(rd, rs1);
+  } else if (IsITypeImm(imm)) {
     andi(rd, rs1, imm);
+  } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(~uimm)) {
+    bclri(rd, rs1, Utils::ShiftForPowerOfTwo(~uimm));
+  } else if (Utils::IsPowerOfTwo(uimm + 1)) {
+    intptr_t shift = Utils::ShiftForPowerOfTwo(uimm + 1);
+    if (Supports(RV_Zbb) && (shift == 16)) {
+      zexth(rd, rs1);
+    } else {
+      slli(rd, rs1, XLEN - shift);
+      srli(rd, rd, XLEN - shift);
+    }
   } else {
     ASSERT(rs1 != TMP2);
     LoadImmediate(TMP2, imm);
@@ -2991,8 +3125,13 @@ void Assembler::OrImmediate(Register rd,
                             Register rs1,
                             intx_t imm,
                             OperandSize sz) {
-  if (IsITypeImm(imm)) {
+  uintx_t uimm = imm;
+  if (imm == 0) {
+    MoveRegister(rd, rs1);
+  } else if (IsITypeImm(imm)) {
     ori(rd, rs1, imm);
+  } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(uimm)) {
+    bseti(rd, rs1, Utils::ShiftForPowerOfTwo(uimm));
   } else {
     ASSERT(rs1 != TMP2);
     LoadImmediate(TMP2, imm);
@@ -3003,8 +3142,13 @@ void Assembler::XorImmediate(Register rd,
                              Register rs1,
                              intx_t imm,
                              OperandSize sz) {
-  if (IsITypeImm(imm)) {
+  uintx_t uimm = imm;
+  if (imm == 0) {
+    MoveRegister(rd, rs1);
+  } else if (IsITypeImm(imm)) {
     xori(rd, rs1, imm);
+  } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(uimm)) {
+    binvi(rd, rs1, Utils::ShiftForPowerOfTwo(uimm));
   } else {
     ASSERT(rs1 != TMP2);
     LoadImmediate(TMP2, imm);
@@ -3025,48 +3169,43 @@ void Assembler::CompareImmediate(Register rn, intx_t imm, OperandSize sz) {
   deferred_imm_ = imm;
 }
 
+Address Assembler::PrepareLargeOffset(Register base, int32_t offset) {
+  ASSERT(base != TMP2);
+  if (IsITypeImm(offset)) {
+    return Address(base, offset);
+  }
+  intx_t lo = ImmLo(offset);
+  intx_t hi = ImmHi(offset);
+  ASSERT(hi != 0);
+  lui(TMP2, hi);
+  add(TMP2, TMP2, base);
+  return Address(TMP2, lo);
+}
+
 void Assembler::LoadFromOffset(Register dest,
                                const Address& address,
                                OperandSize sz) {
-  LoadFromOffset(dest, address.base(), address.offset(), sz);
-}
-void Assembler::LoadFromOffset(Register dest,
-                               Register base,
-                               int32_t offset,
-                               OperandSize sz) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
+  Address addr = PrepareLargeOffset(address.base(), address.offset());
   switch (sz) {
 #if XLEN == 64
     case kEightBytes:
-      return ld(dest, Address(base, offset));
+      return ld(dest, addr);
     case kUnsignedFourBytes:
-      return lwu(dest, Address(base, offset));
+      return lwu(dest, addr);
 #elif XLEN == 32
     case kUnsignedFourBytes:
-      return lw(dest, Address(base, offset));
+      return lw(dest, addr);
 #endif
     case kFourBytes:
-      return lw(dest, Address(base, offset));
+      return lw(dest, addr);
     case kUnsignedTwoBytes:
-      return lhu(dest, Address(base, offset));
+      return lhu(dest, addr);
     case kTwoBytes:
-      return lh(dest, Address(base, offset));
+      return lh(dest, addr);
     case kUnsignedByte:
-      return lbu(dest, Address(base, offset));
+      return lbu(dest, addr);
     case kByte:
-      return lb(dest, Address(base, offset));
+      return lb(dest, addr);
     default:
       UNREACHABLE();
   }
@@ -3080,8 +3219,7 @@ void Assembler::LoadIndexedPayload(Register dest,
                                    Register index,
                                    ScaleFactor scale,
                                    OperandSize sz) {
-  slli(TMP, index, scale);
-  add(TMP, TMP, base);
+  AddShifted(TMP, base, index, scale);
   LoadFromOffset(dest, TMP, payload_offset - kHeapObjectTag, sz);
 }
 void Assembler::LoadIndexedCompressed(Register dest,
@@ -3092,37 +3230,11 @@ void Assembler::LoadIndexedCompressed(Register dest,
 }
 
 void Assembler::LoadSFromOffset(FRegister dest, Register base, int32_t offset) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
-  flw(dest, Address(base, offset));
+  flw(dest, PrepareLargeOffset(base, offset));
 }
 
 void Assembler::LoadDFromOffset(FRegister dest, Register base, int32_t offset) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
-  fld(dest, Address(base, offset));
+  fld(dest, PrepareLargeOffset(base, offset));
 }
 
 void Assembler::LoadFromStack(Register dst, intptr_t depth) {
@@ -3138,76 +3250,32 @@ void Assembler::CompareToStack(Register src, intptr_t depth) {
 void Assembler::StoreToOffset(Register src,
                               const Address& address,
                               OperandSize sz) {
-  StoreToOffset(src, address.base(), address.offset(), sz);
-}
-void Assembler::StoreToOffset(Register src,
-                              Register base,
-                              int32_t offset,
-                              OperandSize sz) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
+  Address addr = PrepareLargeOffset(address.base(), address.offset());
   switch (sz) {
 #if XLEN == 64
     case kEightBytes:
-      return sd(src, Address(base, offset));
+      return sd(src, addr);
 #endif
     case kUnsignedFourBytes:
     case kFourBytes:
-      return sw(src, Address(base, offset));
+      return sw(src, addr);
     case kUnsignedTwoBytes:
     case kTwoBytes:
-      return sh(src, Address(base, offset));
+      return sh(src, addr);
     case kUnsignedByte:
     case kByte:
-      return sb(src, Address(base, offset));
+      return sb(src, addr);
     default:
       UNREACHABLE();
   }
 }
 
 void Assembler::StoreSToOffset(FRegister src, Register base, int32_t offset) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
-  fsw(src, Address(base, offset));
+  fsw(src, PrepareLargeOffset(base, offset));
 }
 
 void Assembler::StoreDToOffset(FRegister src, Register base, int32_t offset) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
-  fsd(src, Address(base, offset));
+  fsd(src, PrepareLargeOffset(base, offset));
 }
 
 // Store into a heap object and apply the generational and incremental write
@@ -3222,7 +3290,7 @@ void Assembler::StoreIntoObject(Register object,
                                 MemoryOrder memory_order) {
   // stlr does not feature an address operand.
   ASSERT(memory_order == kRelaxedNonAtomic);
-  sx(value, dest);
+  StoreToOffset(value, dest);
   StoreBarrier(object, value, can_value_be_smi);
 }
 void Assembler::StoreCompressedIntoObject(Register object,
@@ -3374,7 +3442,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          Register value,
                                          MemoryOrder memory_order) {
   ASSERT(memory_order == kRelaxedNonAtomic);
-  sx(value, dest);
+  StoreToOffset(value, dest);
 #if defined(DEBUG)
   // We can't assert the incremental barrier is not needed here, only the
   // generational barrier. We sometimes omit the write barrier when 'value' is
@@ -3677,8 +3745,7 @@ void Assembler::LoadClassById(Register result, Register class_id) {
 
   LoadIsolateGroup(result);
   LoadFromOffset(result, result, table_offset);
-  slli(TMP, class_id, target::kWordSizeLog2);
-  add(result, result, TMP);
+  AddShifted(result, result, class_id, target::kWordSizeLog2);
   lx(result, Address(result, 0));
 }
 void Assembler::CompareClassId(Register object,
@@ -3866,6 +3933,19 @@ void Assembler::ExitFullSafepoint(Register state,
   jalr(addr);
 
   Bind(&done);
+}
+
+void Assembler::CheckFpSpDist(intptr_t fp_sp_dist) {
+  ASSERT(fp_sp_dist <= 0);
+#if defined(DEBUG)
+  Label ok;
+  Comment("CheckFpSpDist");
+  sub(TMP, SP, FP);
+  CompareImmediate(TMP, fp_sp_dist);
+  BranchIf(EQ, &ok, compiler::Assembler::kNearJump);
+  ebreak();
+  Bind(&ok);
+#endif
 }
 
 void Assembler::CheckCodePointer() {
@@ -4239,6 +4319,66 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   }
 }
 
+void Assembler::CombineHashes(Register hash, Register other) {
+#if XLEN >= 64
+  // hash += other_hash
+  addw(hash, hash, other);
+  // hash += hash << 10
+  slliw(other, hash, 10);
+  addw(hash, hash, other);
+  // hash ^= hash >> 6
+  srliw(other, hash, 6);
+  xor_(hash, hash, other);
+#else
+  // hash += other_hash
+  add(hash, hash, other);
+  // hash += hash << 10
+  slli(other, hash, 10);
+  add(hash, hash, other);
+  // hash ^= hash >> 6
+  srli(other, hash, 6);
+  xor_(hash, hash, other);
+#endif
+}
+
+void Assembler::FinalizeHashForSize(intptr_t bit_size,
+                                    Register hash,
+                                    Register scratch) {
+  ASSERT(bit_size > 0);  // Can't avoid returning 0 if there are no hash bits!
+  // While any 32-bit hash value fits in X bits, where X > 32, the caller may
+  // reasonably expect that the returned values fill the entire bit space.
+  ASSERT(bit_size <= kBitsPerInt32);
+  ASSERT(scratch != kNoRegister);
+#if XLEN >= 64
+  // hash += hash << 3;
+  slliw(scratch, hash, 3);
+  addw(hash, hash, scratch);
+  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
+  srliw(scratch, hash, 11);
+  xor_(hash, hash, scratch);
+  // hash += hash << 15;
+  slliw(scratch, hash, 15);
+  addw(hash, hash, scratch);
+#else
+  // hash += hash << 3;
+  slli(scratch, hash, 3);
+  add(hash, hash, scratch);
+  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
+  srli(scratch, hash, 11);
+  xor_(hash, hash, scratch);
+  // hash += hash << 15;
+  slli(scratch, hash, 15);
+  add(hash, hash, scratch);
+#endif
+  // Size to fit.
+  if (bit_size < kBitsPerInt32) {
+    AndImmediate(hash, hash, Utils::NBitMask(bit_size));
+  }
+  // return (hash == 0) ? 1 : hash;
+  seqz(scratch, hash);
+  add(hash, hash, scratch);
+}
+
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
@@ -4263,7 +4403,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
                                   JumpDistance distance,
                                   Register instance_reg,
                                   Register temp_reg) {
-  ASSERT(failure != NULL);
+  ASSERT(failure != nullptr);
   ASSERT(instance_size != 0);
   ASSERT(instance_reg != temp_reg);
   ASSERT(temp_reg != kNoRegister);
@@ -4468,16 +4608,7 @@ Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,
   const int32_t offset = HeapDataOffset(is_external, cid);
   ASSERT(array != temp);
   ASSERT(index != temp);
-  if (shift == 0) {
-    add(temp, array, index);
-  } else if (shift < 0) {
-    ASSERT(shift == -1);
-    srai(temp, index, 1);
-    add(temp, array, temp);
-  } else {
-    slli(temp, index, shift);
-    add(temp, array, temp);
-  }
+  AddShifted(temp, array, index, shift);
   return Address(temp, offset);
 }
 
@@ -4494,16 +4625,7 @@ void Assembler::ComputeElementAddressForRegIndex(Register address,
   const int32_t offset = HeapDataOffset(is_external, cid);
   ASSERT(array != address);
   ASSERT(index != address);
-  if (shift == 0) {
-    add(address, array, index);
-  } else if (shift < 0) {
-    ASSERT(shift == -1);
-    srai(address, index, 1);
-    add(address, array, address);
-  } else {
-    slli(address, index, shift);
-    add(address, array, address);
-  }
+  AddShifted(address, array, index, shift);
   if (offset != 0) {
     AddImmediate(address, address, offset);
   }
@@ -4525,18 +4647,17 @@ void Assembler::LoadCompressedFieldAddressForRegOffset(
     Register address,
     Register instance,
     Register offset_in_words_as_smi) {
-  slli(TMP, offset_in_words_as_smi,
-       target::kCompressedWordSizeLog2 - kSmiTagShift);
-  add(TMP, TMP, instance);
-  addi(address, TMP, -kHeapObjectTag);
+  AddShifted(address, instance, offset_in_words_as_smi,
+             target::kCompressedWordSizeLog2 - kSmiTagShift);
+  addi(address, address, -kHeapObjectTag);
 }
 
 void Assembler::LoadFieldAddressForRegOffset(Register address,
                                              Register instance,
                                              Register offset_in_words_as_smi) {
-  slli(TMP, offset_in_words_as_smi, target::kWordSizeLog2 - kSmiTagShift);
-  add(TMP, TMP, instance);
-  addi(address, TMP, -kHeapObjectTag);
+  AddShifted(address, instance, offset_in_words_as_smi,
+             target::kWordSizeLog2 - kSmiTagShift);
+  addi(address, address, -kHeapObjectTag);
 }
 
 // Note: the function never clobbers TMP, TMP2 scratch registers.
@@ -4730,10 +4851,10 @@ void Assembler::MultiplyBranchOverflow(Register rd,
 }
 
 void Assembler::CountLeadingZeroes(Register rd, Register rs) {
-  // Note: clz will appear in the Zbb extension.
-  // if (Supports(RV_Zbb)) {
-  //   clz(rd, rs);
-  // }
+  if (Supports(RV_Zbb)) {
+    clz(rd, rs);
+    return;
+  }
 
   //  n = XLEN
   //  y = x >>32; if (y != 0) { n = n - 32; x = y; }

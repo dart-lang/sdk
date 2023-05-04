@@ -36,7 +36,6 @@ String _concatArgs(List<String> args, int count) {
 // Shared functionality for RootCommand and Command.
 abstract class _CommandBase {
   _CommandBase(List<Command> children) {
-    assert(children != null);
     _children.addAll(children);
     for (var child in _children) {
       child._parent = this;
@@ -158,7 +157,7 @@ class RootCommand extends _CommandBase {
     var completions =
         commands.map((command) => '${prefix}${command.name} ').toList();
     if (matchLen == args.length) {
-      // If we are showing all possiblities, also include local
+      // If we are showing all possibilities, also include local
       // completions for the parent command.
       return commands[0]
           ._parent!

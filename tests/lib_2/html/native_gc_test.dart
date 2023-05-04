@@ -17,7 +17,7 @@ void testEventListener() {
   for (int i = 0; i < M; ++i) {
     // This memory should be freed when the listener below is
     // collected.
-    List l = new List(N);
+    List l = new List.filled(N, null);
 
     // Record the iteration number.
     l[N - 1] = i;
@@ -62,7 +62,7 @@ main() async {
 }
 
 void triggerMajorGC() {
-  List list = new List(1000000);
+  List list = new List.filled(1000000, null);
   Element div = new DivElement();
   div.onClick.listen((e) => print(list[0]));
 }

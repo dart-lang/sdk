@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Partial test that the closed world computed from [WorldImpact]s derived from
 // kernel is equivalent to the original computed from resolution.
 library dart2js.kernel.compiler_helper;
@@ -11,6 +9,7 @@ library dart2js.kernel.compiler_helper;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
@@ -26,7 +25,7 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
       print('--- create temp directory $dir -------------------------------');
     }
     memorySourceFiles.forEach((String name, String source) {
-      new File.fromUri(dir.uri.resolve(name)).writeAsStringSync(source);
+      File.fromUri(dir.uri.resolve(name)).writeAsStringSync(source);
     });
     entryPoint = dir.uri.resolve(entryPoint.path);
   }
@@ -34,10 +33,10 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
 }
 
 Future<D8Result> runWithD8(
-    {Uri entryPoint,
+    {Uri? entryPoint,
     Map<String, String> memorySourceFiles = const <String, String>{},
     List<String> options = const <String>[],
-    String expectedOutput,
+    String? expectedOutput,
     bool printJs = false,
     bool printSteps = false}) async {
   retainDataForTesting = true;
@@ -48,8 +47,13 @@ Future<D8Result> runWithD8(
   List<String> dart2jsArgs = [
     mainFile.toString(),
     '-o$output',
-    '--packages=${Platform.packageConfig}',
-  ]..addAll(options);
+    if (Platform.packageConfig != null) '--packages=${Platform.packageConfig}',
+    ...options,
+    if (options.contains(Flags.noSoundNullSafety))
+      // Unsound platform dill files are no longer packaged in the SDK and must
+      // be read from the build directory during tests.
+      '--platform-binaries=$buildPlatformBinariesPath',
+  ];
   if (printSteps) print('Running: dart2js ${dart2jsArgs.join(' ')}');
 
   CompilationResult result = await dart2js.internalMain(dart2jsArgs);
@@ -73,7 +77,7 @@ Future<D8Result> runWithD8(
     Expect.stringEquals(expectedOutput.trim(),
         runResult.stdout.replaceAll('\r\n', '\n').trim());
   }
-  return new D8Result(result, runResult, output);
+  return D8Result(result, runResult, output);
 }
 
 class D8Result {

@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends core::Object? = dynamic> = self::A<X%, () → X%>;
+class A<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::Object {
+  constructor •(self::A::X% x, self::A::Y% y) → self::A<self::A::X%, self::A::Y%>
+    ;
+}
+static method main() → void
+  ;
+static method _#F#new#tearOff<X extends core::Object? = dynamic>(self::_#F#new#tearOff::X% x, () → self::_#F#new#tearOff::X% y) → self::A<self::_#F#new#tearOff::X%, () → self::_#F#new#tearOff::X%>
+  return new self::A::•<self::_#F#new#tearOff::X%, () → self::_#F#new#tearOff::X%>(x, y);

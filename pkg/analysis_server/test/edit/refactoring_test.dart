@@ -121,7 +121,7 @@ void f(A a, B b, C c, D d) {
             0,
             false)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 }
 
@@ -233,7 +233,7 @@ void f(A a, B b, C c, D d) {
             0,
             false)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 }
 
@@ -810,7 +810,7 @@ int? res(int b) {
     return result.feedback as ExtractMethodFeedback;
   }
 
-  Future _prepareOptions() {
+  Future<void> _prepareOptions() {
     return getRefactoringResult(() {
       // get initial feedback
       return _sendExtractRequest();
@@ -855,7 +855,7 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
 
   /// Tests that there is refactoring of the given [kind] is available at the
   /// [search] offset.
-  Future assertHasKind(
+  Future<void> assertHasKind(
       String code, String search, RefactoringKind kind, bool expected) async {
     addTestFile(code);
     await waitForTasksFinished();
@@ -869,28 +869,28 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   }
 
   /// Tests that there is a RENAME refactoring available at the [search] offset.
-  Future assertHasRenameRefactoring(String code, String search) async {
+  Future<void> assertHasRenameRefactoring(String code, String search) async {
     return assertHasKind(code, search, RefactoringKind.RENAME, true);
   }
 
   /// Returns the list of available refactorings for the given [offset] and
   /// [length].
-  Future getRefactorings(int offset, int length) async {
+  Future<void> getRefactorings(int offset, int length) async {
     var request =
         EditGetAvailableRefactoringsParams(testFile.path, offset, length)
             .toRequest('0');
-    var response = await serverChannel.sendRequest(request);
+    var response = await serverChannel.simulateRequestFromClient(request);
     var result = EditGetAvailableRefactoringsResult.fromResponse(response);
     kinds = result.kinds;
   }
 
   /// Returns the list of available refactorings at the offset of [search].
-  Future getRefactoringsAtString(String search) {
+  Future<void> getRefactoringsAtString(String search) {
     var offset = findOffset(search);
     return getRefactorings(offset, 0);
   }
 
-  Future getRefactoringsForString(String search) {
+  Future<void> getRefactoringsForString(String search) {
     var offset = findOffset(search);
     return getRefactorings(offset, search.length);
   }
@@ -901,13 +901,13 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
-  Future test_convertMethodToGetter_hasElement() {
+  Future<void> test_convertMethodToGetter_hasElement() {
     return assertHasKind('''
 int getValue() => 42;
 ''', 'getValue', RefactoringKind.CONVERT_METHOD_TO_GETTER, true);
   }
 
-  Future test_extractLocal() async {
+  Future<void> test_extractLocal() async {
     addTestFile('''
 void f() {
   var a = 1 + 2;
@@ -919,7 +919,7 @@ void f() {
     expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
   }
 
-  Future test_extractLocal_withoutSelection() async {
+  Future<void> test_extractLocal_withoutSelection() async {
     addTestFile('''
 void f() {
   var a = 1 + 2;
@@ -931,7 +931,7 @@ void f() {
     expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
   }
 
-  Future test_extractWidget() async {
+  Future<void> test_extractWidget() async {
     addFlutterPackage();
     addTestFile('''
 import 'package:flutter/material.dart';
@@ -939,12 +939,12 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Text('AAA');
+    return Text('AAA');
   }
 }
 ''');
     await waitForTasksFinished();
-    await getRefactoringsForString('new Text');
+    await getRefactoringsForString('Text');
     expect(kinds, contains(RefactoringKind.EXTRACT_WIDGET));
   }
 
@@ -971,7 +971,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  Future test_rename_hasElement_class() {
+  Future<void> test_rename_hasElement_class() {
     return assertHasRenameRefactoring('''
 class Test {}
 void f() {
@@ -980,18 +980,18 @@ void f() {
 ''', 'Test v');
   }
 
-  Future test_rename_hasElement_constructor() {
+  Future<void> test_rename_hasElement_constructor() {
     return assertHasRenameRefactoring('''
 class A {
   A.test() {}
 }
 void f() {
-  new A.test();
+  A.test();
 }
 ''', 'test();');
   }
 
-  Future test_rename_hasElement_function() {
+  Future<void> test_rename_hasElement_function() {
     return assertHasRenameRefactoring('''
 void f() {
   test();
@@ -1000,7 +1000,7 @@ test() {}
 ''', 'test();');
   }
 
-  Future test_rename_hasElement_importElement_directive() {
+  Future<void> test_rename_hasElement_importElement_directive() {
     return assertHasRenameRefactoring('''
 import 'dart:math' as math;
 void f() {
@@ -1009,7 +1009,7 @@ void f() {
 ''', 'import ');
   }
 
-  Future test_rename_hasElement_importElement_prefixDecl() {
+  Future<void> test_rename_hasElement_importElement_prefixDecl() {
     return assertHasRenameRefactoring('''
 import 'dart:math' as math;
 void f() {
@@ -1018,7 +1018,7 @@ void f() {
 ''', 'math;');
   }
 
-  Future test_rename_hasElement_importElement_prefixRef() {
+  Future<void> test_rename_hasElement_importElement_prefixRef() {
     return assertHasRenameRefactoring('''
 import 'dart:async' as test;
 import 'dart:math' as test;
@@ -1028,7 +1028,7 @@ void f() {
 ''', 'test.pi;');
   }
 
-  Future test_rename_hasElement_instanceGetter() {
+  Future<void> test_rename_hasElement_instanceGetter() {
     return assertHasRenameRefactoring('''
 class A {
   get test => 0;
@@ -1039,7 +1039,7 @@ void f(A a) {
 ''', 'test;');
   }
 
-  Future test_rename_hasElement_instanceSetter() {
+  Future<void> test_rename_hasElement_instanceSetter() {
     return assertHasRenameRefactoring('''
 class A {
   set test(x) {}
@@ -1050,13 +1050,13 @@ void f(A a) {
 ''', 'test = 2;');
   }
 
-  Future test_rename_hasElement_library() {
+  Future<void> test_rename_hasElement_library() {
     return assertHasRenameRefactoring('''
 library my.lib;
 ''', 'library ');
   }
 
-  Future test_rename_hasElement_localVariable() {
+  Future<void> test_rename_hasElement_localVariable() {
     return assertHasRenameRefactoring('''
 void f() {
   int test = 0;
@@ -1065,7 +1065,7 @@ void f() {
 ''', 'test = 0;');
   }
 
-  Future test_rename_hasElement_method() {
+  Future<void> test_rename_hasElement_method() {
     return assertHasRenameRefactoring('''
 class A {
   test() {}
@@ -1076,7 +1076,7 @@ void f(A a) {
 ''', 'test();');
   }
 
-  Future test_rename_noElement() async {
+  Future<void> test_rename_noElement() async {
     addTestFile('''
 void f() {
   // not an element
@@ -1191,7 +1191,7 @@ void f() {
             0,
             false)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 }
 
@@ -1313,7 +1313,7 @@ void f() {
             testFile.path, findOffset(search), 0, false,
             options: options)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 }
 
@@ -1369,7 +1369,7 @@ import 'new_folder/file.dart';
     // 0 is the id from _sendMoveRequest
     // 1 is another arbitrary id for the cancel request
     var request = ServerCancelRequestParams('0').toRequest('1');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 
   Future<Response> _sendAndCancelMoveRequest(String item) async {
@@ -1385,7 +1385,7 @@ import 'new_folder/file.dart';
             RefactoringKind.MOVE_FILE, item, 0, 0, false,
             options: options)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 
   void _setOptions(String newFile) {
@@ -1402,7 +1402,7 @@ class RenameTest extends _AbstractGetRefactoring_Test {
             testFile.path, findOffset(search), 0, validateOnly,
             options: options)
         .toRequest(id);
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 
   @override
@@ -1441,8 +1441,8 @@ class Test {
 }
 void f() {
   Test v;
-  new Test();
-  new Test.named();
+  Test();
+  Test.named();
 }
 ''');
     return assertSuccessfulRefactoring(() {
@@ -1454,8 +1454,8 @@ class NewName {
 }
 void f() {
   NewName v;
-  new NewName();
-  new NewName.named();
+  NewName();
+  NewName.named();
 }
 ''');
   }
@@ -1495,7 +1495,7 @@ class Test {
   Test() {}
 }
 void f() {
-  new Test();
+  Test();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -1507,12 +1507,12 @@ class NewName {
   NewName() {}
 }
 void f() {
-  new NewName();
+  NewName();
 }
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 44);
+        expect(renameFeedback.offset, 40);
         expect(renameFeedback.length, 4);
       },
     );
@@ -1524,7 +1524,7 @@ class Test {
   Test.named() {}
 }
 void f() {
-  new Test.named();
+  Test.named();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -1536,12 +1536,12 @@ class NewName {
   NewName.named() {}
 }
 void f() {
-  new NewName.named();
+  NewName.named();
 }
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 50);
+        expect(renameFeedback.offset, 46);
         expect(renameFeedback.length, 4);
       },
     );
@@ -1603,6 +1603,56 @@ void f() {
         expect(renameFeedback.length, 4);
       },
     );
+  }
+
+  Future<void> test_class_getter_in_objectPattern() {
+    addTestFile('''
+void f(Object? x) {
+  if (x case A(test: 0)) {}
+  if (x case A(: var test)) {}
+}
+
+class A {
+  int get test => 0;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test =>', 'newName');
+    }, '''
+void f(Object? x) {
+  if (x case A(newName: 0)) {}
+  if (x case A(newName: var test)) {}
+}
+
+class A {
+  int get newName => 0;
+}
+''');
+  }
+
+  Future<void> test_class_method_in_objectPattern() {
+    addTestFile('''
+void f(Object? x) {
+  if (x case A(test: _)) {}
+  if (x case A(: var test)) {}
+}
+
+class A {
+  void test() {}
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test() {}', 'newName');
+    }, '''
+void f(Object? x) {
+  if (x case A(newName: _)) {}
+  if (x case A(newName: var test)) {}
+}
+
+class A {
+  void newName() {}
+}
+''');
   }
 
   Future<void> test_class_options_fatalError() {
@@ -1729,7 +1779,7 @@ class A {
   A({this.test: 0});
 }
 void f() {
-  new A(test: 42);
+  A(test: 42);
 }
 ''');
     return assertSuccessfulRefactoring(() {
@@ -1740,7 +1790,7 @@ class A {
   A({this.newName: 0});
 }
 void f() {
-  new A(newName: 42);
+  A(newName: 42);
 }
 ''');
   }
@@ -1896,7 +1946,7 @@ class A {
   A.test() {}
 }
 void f() {
-  new A.test();
+  A.test();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -1908,12 +1958,12 @@ class A {
   A.newName() {}
 }
 void f() {
-  new A.newName();
+  A.newName();
 }
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 45);
+        expect(renameFeedback.offset, 41);
         expect(renameFeedback.length, 4);
       },
     );
@@ -1967,6 +2017,64 @@ enum E {
         var renameFeedback = feedback as RenameFeedback;
         expect(renameFeedback.offset, 24);
         expect(renameFeedback.length, 5);
+      },
+    );
+  }
+
+  Future<void> test_extension_atDeclaration() {
+    addTestFile('''
+extension Test on int {
+  void foo() {}
+}
+void f() {
+  Test(0).foo();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test on int', 'NewName');
+      },
+      '''
+extension NewName on int {
+  void foo() {}
+}
+void f() {
+  NewName(0).foo();
+}
+''',
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, 10);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  Future<void> test_extension_atReference() {
+    addTestFile('''
+extension Test on int {
+  void foo() {}
+}
+void f() {
+  Test(0).foo();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test(0)', 'NewName');
+      },
+      '''
+extension NewName on int {
+  void foo() {}
+}
+void f() {
+  NewName(0).foo();
+}
+''',
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, 55);
+        expect(renameFeedback.length, 4);
       },
     );
   }
@@ -2229,6 +2337,48 @@ void f() {
     });
   }
 
+  Future<void> test_patternVariable_ifCase() {
+    addTestFile('''
+void f(Object? x) {
+  if (x case int test) {
+    test;
+    test = 1;
+    test += 2;
+  }
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test) {', 'newName');
+    }, '''
+void f(Object? x) {
+  if (x case int newName) {
+    newName;
+    newName = 1;
+    newName += 2;
+  }
+}
+''');
+  }
+
+  Future<void> test_patternVariable_patternAssignment() {
+    addTestFile('''
+void f(Object? x) {
+  int test;
+  (test, _) = (0, 1);
+  test;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test,', 'newName');
+    }, '''
+void f(Object? x) {
+  int newName;
+  (newName, _) = (0, 1);
+  newName;
+}
+''');
+  }
+
   Future<void> test_reset_afterCreateChange() {
     test_simulateRefactoringReset_afterCreateChange = true;
     addTestFile('''
@@ -2334,7 +2484,7 @@ void f() {
 class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
   bool shouldWaitForFullAnalysis = true;
 
-  Future assertEmptySuccessfulRefactoring(
+  Future<void> assertEmptySuccessfulRefactoring(
       Future<Response> Function() requestSender,
       {void Function(RefactoringFeedback?)? feedbackValidator}) async {
     var result = await getRefactoringResult(requestSender);
@@ -2396,7 +2546,7 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
     }
   }
 
-  Future assertSuccessfulRefactoring(
+  Future<void> assertSuccessfulRefactoring(
       Future<Response> Function() requestSender, String expectedCode,
       {void Function(RefactoringFeedback?)? feedbackValidator}) async {
     var result = await getRefactoringResult(requestSender);
@@ -2439,7 +2589,7 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
             kind, testFile.path, offset, length, validateOnly,
             options: options)
         .toRequest('0');
-    return serverChannel.sendRequest(request);
+    return serverChannel.simulateRequestFromClient(request);
   }
 
   @override

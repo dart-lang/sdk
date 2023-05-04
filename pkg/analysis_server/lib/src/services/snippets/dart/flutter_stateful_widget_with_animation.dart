@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
-/// Produces a [Snippet] that creates a Flutter StatefulWidget with a
+/// Produces a [Snippet] that creates a Flutter StatefulWidget with an
 /// AnimationController and related State class.
 class FlutterStatefulWidgetWithAnimationController
     extends FlutterSnippetProducer with FlutterWidgetSnippetProducerMixin {
@@ -24,7 +24,11 @@ class FlutterStatefulWidgetWithAnimationController
   late ClassElement? classAnimationController;
   late MixinElement? classSingleTickerProviderStateMixin;
 
-  FlutterStatefulWidgetWithAnimationController(super.request);
+  FlutterStatefulWidgetWithAnimationController(super.request,
+      {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   @override
   Future<Snippet> compute() async {
@@ -37,7 +41,9 @@ class FlutterStatefulWidgetWithAnimationController
     final classSingleTickerProviderStateMixin =
         this.classSingleTickerProviderStateMixin!;
 
-    await builder.addDartFileEdit(request.filePath, (builder) {
+    await builder.addDartFileEdit(request.filePath, (builder) async {
+      await addImports(builder);
+
       builder.addReplacement(request.replacementRange, (builder) {
         // Write the StatefulWidget class
         builder.writeClassDeclaration(

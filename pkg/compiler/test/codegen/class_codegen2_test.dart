@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
 // Test that parameters keep their names in the output.
 
 import 'dart:async';
@@ -15,8 +14,8 @@ class A { foo() => 499; }
 class B { bar() => 42; }
 
 main() {
-  new A().foo();
-  new B().bar();
+  A().foo();
+  B().bar();
 }
 """;
 
@@ -27,8 +26,8 @@ class A {
 }
 
 main() {
-  new A().foo();
-  new A().bar();
+  A().foo();
+  A().bar();
 }
 """;
 
@@ -67,8 +66,8 @@ id(x) {
 }
 
 main() {
-  var a = new A();
-  var b = new B();
+  var a = A();
+  var b = B();
   var x = a;
   if (makeStaticInliningHard()) x = b;
   x.foo();
@@ -89,7 +88,7 @@ main() {
 main() {
   // At some point Dart2js generated bad object literals with dangling commas:
   // { a: true, }. Make sure this doesn't happen again.
-  RegExp danglingComma = new RegExp(r',[ \n]*}');
+  RegExp danglingComma = RegExp(r',[ \n]*}');
 
   Future runTests() async {
     for (String test in [TEST_ONE, TEST_TWO, TEST_THREE, TEST_FOUR]) {

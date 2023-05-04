@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import "package:expect/expect.dart";
 import "package:compiler/src/inferrer/abstract_value_domain.dart";
 import "package:compiler/src/ssa/nodes.dart";
 import "package:compiler/src/ssa/value_range_analyzer.dart";
 
-ValueRangeInfo info = new ValueRangeInfo();
+ValueRangeInfo info = ValueRangeInfo();
 
 class AbstractValueDomainMock implements AbstractValueDomain {
   const AbstractValueDomainMock();
@@ -20,10 +18,13 @@ class AbstractValueDomainMock implements AbstractValueDomain {
 
 AbstractValueDomain abstractValueDomain = const AbstractValueDomainMock();
 
-Value instructionValue =
-    info.newInstructionValue(new HBreak(abstractValueDomain, null, null));
-Value lengthValue =
-    info.newPositiveValue(new HBreak(abstractValueDomain, null, null));
+class HBreakMock implements HBreak {
+  @override
+  noSuchMethod(Invocation invocation) => null;
+}
+
+Value instructionValue = info.newInstructionValue(HBreakMock());
+Value lengthValue = info.newPositiveValue(HBreakMock());
 
 Range createSingleRange(Value value) => info.newNormalizedRange(value, value);
 

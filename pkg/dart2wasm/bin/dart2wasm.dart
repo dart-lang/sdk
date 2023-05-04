@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:args/args.dart' as args;
 import 'package:front_end/src/api_unstable/vm.dart'
@@ -35,6 +34,14 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.printKernel),
   Flag("print-wasm", (o, value) => o.translatorOptions.printWasm = value,
       defaultsTo: _d.translatorOptions.printWasm),
+  Flag(
+      "enable-asserts", (o, value) => o.translatorOptions.enableAsserts = value,
+      defaultsTo: _d.translatorOptions.enableAsserts),
+  Flag("constant-branch-pruning", (o, value) => o.constantBranchPruning = value,
+      defaultsTo: _d.constantBranchPruning),
+  Flag("omit-type-checks",
+      (o, value) => o.translatorOptions.omitTypeChecks = value,
+      defaultsTo: _d.translatorOptions.omitTypeChecks),
   IntOption(
       "inlining-limit", (o, value) => o.translatorOptions.inliningLimit = value,
       defaultsTo: "${_d.translatorOptions.inliningLimit}"),
@@ -50,8 +57,13 @@ final List<Option> options = [
   StringMultiOption(
       "define", (o, values) => o.environment = processEnvironment(values),
       abbr: "D"),
-  StringMultiOption("enable-experiment",
-      (o, values) => o.feExperimentalFlags = processFeExperimentalFlags(values))
+  StringMultiOption(
+      "enable-experiment",
+      (o, values) =>
+          o.feExperimentalFlags = processFeExperimentalFlags(values)),
+  StringOption("multi-root-scheme", (o, value) => o.multiRootScheme = value),
+  UriMultiOption("multi-root", (o, values) => o.multiRoots = values),
+  StringOption("depfile", (o, value) => o.depFile = value),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(
@@ -114,15 +126,16 @@ CompilerOptions parseArguments(List<String> arguments) {
 
 Future<int> main(List<String> args) async {
   CompilerOptions options = parseArguments(args);
-  Uint8List? module = await compileToModule(
+  CompilerOutput? output = await compileToModule(
       options, (message) => printDiagnosticMessage(message, print));
 
-  if (module == null) {
+  if (output == null) {
     exitCode = 1;
     return exitCode;
   }
 
-  await File(options.outputFile).writeAsBytes(module);
+  await File(options.outputFile).writeAsBytes(output.wasmModule);
+  await File(options.outputJSRuntimeFile).writeAsString(output.jsRuntime);
 
   return 0;
 }

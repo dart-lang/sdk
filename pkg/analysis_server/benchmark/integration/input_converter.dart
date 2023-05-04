@@ -31,7 +31,7 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
   /// for those requests for which a response has not been processed.
   /// The completer is called with the actual json response
   /// when it becomes available.
-  final Map<String, Completer> responseCompleters = {};
+  final Map<String, Completer<Object?>> responseCompleters = {};
 
   /// A mapping from request/response id to the actual response result
   /// for those responses that have not been processed.
@@ -184,7 +184,8 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
   /// Return a future that completes when the response is received
   /// or `null` if the response has already been received
   /// and the completer completed.
-  Future<void>? processExpectedResponse(String id, Completer completer) {
+  Future<void>? processExpectedResponse(
+      String id, Completer<Object?> completer) {
     if (responseMap.containsKey(id)) {
       logger.log(Level.INFO, 'processing cached response $id');
       completer.complete(responseMap.remove(id));
@@ -344,7 +345,7 @@ class PathMapEntry {
   }
 }
 
-class _InputSink extends ChunkedConversionSink<String> {
+class _InputSink implements ChunkedConversionSink<String> {
   final Converter<String, Operation?> converter;
   final Sink<Operation?> outSink;
 

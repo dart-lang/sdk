@@ -2,66 +2,66 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:7:13: Error: 'element' is already declared in this scope.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:8:13: Error: 'element' is already declared in this scope.
 //   final int element = 42; // Error.
 //             ^^^^^^^
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:6:3: Context: Previous declaration of 'element'.
 //   element;
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:12:3: Error: 'element' is already declared in this scope.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:13:3: Error: 'element' is already declared in this scope.
 //   element; // Error.
 //   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:11:3: Context: Previous declaration of 'element'.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:12:3: Context: Previous declaration of 'element'.
 //   element,
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:18:8: Error: 'element' is already declared in this scope.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:19:8: Error: 'element' is already declared in this scope.
 //   void element() {} // Error.
 //        ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:16:3: Context: Previous declaration of 'element'.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:17:3: Context: Previous declaration of 'element'.
 //   element;
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:24:15: Error: 'element' is already declared in this scope.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:25:15: Error: 'element' is already declared in this scope.
 //   static void element() {} // Error.
 //               ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:22:3: Context: Previous declaration of 'element'.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:23:3: Context: Previous declaration of 'element'.
 //   element;
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:30:14: Error: 'element' is already declared in this scope.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:31:14: Error: 'element' is already declared in this scope.
 //   static int element = 42; // Error.
 //              ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:28:3: Context: Previous declaration of 'element'.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:29:3: Context: Previous declaration of 'element'.
 //   element;
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:34:3: Error: This static member conflicts with an instance member.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:35:3: Error: This static member conflicts with an instance member.
 //   element; // Error.
 //   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:36:12: Context: This is the instance member.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:37:12: Context: This is the instance member.
 //   void set element(E6 value) {}
 //            ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:50:3: Error: Can't declare a member that conflicts with an inherited one.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:51:3: Error: Can't declare a member that conflicts with an inherited one.
 //   element // Error.
 //   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:46:12: Context: This is the inherited member.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:47:12: Context: This is the inherited member.
 //   void set element(dynamic value) {}
 //            ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:58:3: Error: Can't declare a member that conflicts with an inherited one.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:59:3: Error: Can't declare a member that conflicts with an inherited one.
 //   element // Error.
 //   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:54:7: Context: This is the inherited member.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:55:7: Context: This is the inherited member.
 //   int element = 42;
 //       ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:66:3: Error: Can't declare a member that conflicts with an inherited one.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:67:3: Error: Can't declare a member that conflicts with an inherited one.
 //   element // Error.
 //   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:62:8: Context: This is the inherited member.
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:63:8: Context: This is the inherited member.
 //   void element() {}
 //        ^^^^^^^
 //
@@ -137,9 +137,7 @@ class E7 extends core::_Enum /*isEnum*/  {
   static set element(self::E7 value) → void
     ;
 }
-class A8 extends core::Object {
-  synthetic constructor •() → self::A8
-    ;
+abstract class A8 extends core::Object /*isMixinDeclaration*/  {
   set element(dynamic value) → void
     ;
 }
@@ -158,10 +156,8 @@ class E8 extends self::_E8&_Enum&A8 /*isEnum*/  {
   method _enumToString() → core::String
     return "E8.${this.{core::_Enum::_name}{core::String}}";
 }
-class A9 extends core::Object {
+abstract class A9 extends core::Object /*isMixinDeclaration*/  {
   field core::int element;
-  synthetic constructor •() → self::A9
-    ;
 }
 abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin*/  {
   synthetic constructor •(core::int index, core::String _name) → self::_E9&_Enum&A9
@@ -180,9 +176,7 @@ class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   method _enumToString() → core::String
     return "E9.${this.{core::_Enum::_name}{core::String}}";
 }
-class A10 extends core::Object {
-  synthetic constructor •() → self::A10
-    ;
+abstract class A10 extends core::Object /*isMixinDeclaration*/  {
   method element() → void
     ;
 }
@@ -207,19 +201,19 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:5:6 -> ListConstant(const <E1*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:10:6 -> ListConstant(const <E2*>[const E2{_Enum.index: 0, _Enum._name: "element"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:11:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:15:6 -> ListConstant(const <E3*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:21:6 -> ListConstant(const <E4*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:27:6 -> ListConstant(const <E5*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:33:6 -> ListConstant(const <E6*>[const E6{_Enum.index: 0, _Enum._name: "element"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:34:3 -> InstanceConstant(const E6{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:39:6 -> ListConstant(const <E7*>[const E7{_Enum.index: 0, _Enum._name: "element"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:40:3 -> InstanceConstant(const E7{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:49:6 -> ListConstant(const <E8*>[const E8{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:50:3 -> InstanceConstant(const E8{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:57:6 -> ListConstant(const <E9*>[const E9{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:58:3 -> InstanceConstant(const E9{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:65:6 -> ListConstant(const <E10*>[const E10{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:66:3 -> InstanceConstant(const E10{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:11:6 -> ListConstant(const <E2*>[const E2{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:12:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:16:6 -> ListConstant(const <E3*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:22:6 -> ListConstant(const <E4*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:28:6 -> ListConstant(const <E5*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:34:6 -> ListConstant(const <E6*>[const E6{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:35:3 -> InstanceConstant(const E6{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:40:6 -> ListConstant(const <E7*>[const E7{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:41:3 -> InstanceConstant(const E7{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:50:6 -> ListConstant(const <E8*>[const E8{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:51:3 -> InstanceConstant(const E8{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:58:6 -> ListConstant(const <E9*>[const E9{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:59:3 -> InstanceConstant(const E9{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:66:6 -> ListConstant(const <E10*>[const E10{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:67:3 -> InstanceConstant(const E10{})
 Extra constant evaluation: evaluated: 72, effectively constant: 16

@@ -43,8 +43,9 @@ class FixAllCommandHandler extends SimpleEditCommandHandler {
       final workspace = DartChangeWorkspace(
         await server.currentSessions,
       );
-      final processor =
-          BulkFixProcessor(server.instrumentationService, workspace);
+      final processor = BulkFixProcessor(
+          server.instrumentationService, workspace,
+          cancellationToken: cancellationToken);
 
       final context = server.contextManager.getContextFor(path);
       if (context == null) {

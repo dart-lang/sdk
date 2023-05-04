@@ -34,8 +34,20 @@ class ElementDisplayStringBuilder {
   }
 
   void writeClassElement(ClassElementImpl element) {
-    if (element.isAbstract) {
+    if (element.isSealed) {
+      _write('sealed ');
+    } else if (element.isAbstract) {
       _write('abstract ');
+    }
+    if (element.isBase) {
+      _write('base ');
+    } else if (element.isInterface) {
+      _write('interface ');
+    } else if (element.isFinal) {
+      _write('final ');
+    }
+    if (element.isMixinClass) {
+      _write('mixin ');
     }
 
     _write('class ');
@@ -150,6 +162,9 @@ class ElementDisplayStringBuilder {
   }
 
   void writeMixinElement(MixinElementImpl element) {
+    if (element.isBase) {
+      _write('base ');
+    }
     _write('mixin ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);

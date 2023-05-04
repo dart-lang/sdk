@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
@@ -36,7 +37,9 @@ class LocalReferenceContributor extends DartCompletionContributor {
   LocalReferenceContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     var opType = request.opType;
     AstNode? node = request.target.containingNode;
 
@@ -126,7 +129,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     for (var method in type.methods) {
       if (!method.isStatic) {
         if (_visibilityTracker._isVisible(method.declaration)) {
-          if (!method.returnType.isVoid) {
+          if (method.returnType is! VoidType) {
             if (opType.includeReturnValueSuggestions) {
               memberBuilder.addSuggestionForMethod(
                   method: method,
@@ -430,7 +433,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           includeConstructors &&
           element is ClassElement) {
         for (final constructor in element.constructors) {
-          if (element.isAbstract && !constructor.isFactory) {
+          if (!element.isConstructable && !constructor.isFactory) {
             continue;
           }
           if (includeOnlyConstConstructors && !constructor.isConst) {

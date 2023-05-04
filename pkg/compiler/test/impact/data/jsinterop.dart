@@ -30,21 +30,9 @@ class JsInteropClass {
   /*member: JsInteropClass.:*/
   external JsInteropClass();
 
-  /*member: JsInteropClass.method:
-   type=[
-    native:ApplicationCacheErrorEvent,
-    native:DomError,
-    native:DomException,
-    native:ErrorEvent,
+  /*member: JsInteropClass.method:type=[
     native:GenericClass<dynamic>,
-    native:JsInteropClass,
-    native:MediaError,
-    native:NavigatorUserMediaError,
-    native:OverconstrainedError,
-    native:PositionError,
-    native:SensorErrorEvent,
-    native:SpeechRecognitionError]
-  */
+    native:JsInteropClass]*/
   @JS()
   external double method();
 }
@@ -53,7 +41,7 @@ class JsInteropClass {
  dynamic=[LegacyJavaScriptObject.method(0)],
  static=[JsInteropClass.(0)]
 */
-testJsInteropClass() => new JsInteropClass().method();
+testJsInteropClass() => JsInteropClass().method();
 
 typedef void Callback<T>(T value);
 
@@ -116,4 +104,4 @@ class GenericClass<T> {
  dynamic=[LegacyJavaScriptObject.method(0)],
  static=[GenericClass.(0)]
 */
-testOptionalGenericFunctionTypeArgument() => new GenericClass().method();
+testOptionalGenericFunctionTypeArgument() => GenericClass().method();

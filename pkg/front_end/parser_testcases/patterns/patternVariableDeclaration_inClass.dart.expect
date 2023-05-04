@@ -1,0 +1,38 @@
+Problems reported:
+
+parser/patterns/patternVariableDeclaration_inClass:2:7: A pattern variable declaration may not appear outside a function or method.
+  var (a, b) = (0, 1);
+      ^^^^^^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, null, null, C)
+      handleNoType(C)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(var)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(PatternVariableDeclarationOutsideFunctionOrMethod, (, ))
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, var, {)
+            handleNoType(var)
+            handleIdentifier(, fieldDeclaration)
+            beginFieldInitializer(=)
+              beginParenthesizedExpressionOrRecordLiteral(()
+                handleLiteralInt(0)
+                handleLiteralInt(1)
+              endRecordLiteral((, 2, null)
+            endFieldInitializer(=, ;)
+          endClassFields(null, null, null, null, null, null, var, 1, var, ;)
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 1, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

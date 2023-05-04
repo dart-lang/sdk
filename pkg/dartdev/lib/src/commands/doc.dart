@@ -36,7 +36,7 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     argParser.addFlag(
       'validate-links',
       negatable: false,
-      help: 'Display warnings for broken links.',
+      help: 'Display warnings for broken links.  Incompatible with --dry-run.',
     );
     argParser.addFlag(
       'sdk-docs',
@@ -75,6 +75,10 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
         usageException('Input directory doesn\'t exist: ${directory.path}');
       }
       options.add('--input=${directory.path}');
+    }
+
+    if (args['dry-run'] && args['validate-links']) {
+      usageException("'dart doc' can not validate links when dry-running.");
     }
 
     // Specify where dartdoc resources are located.

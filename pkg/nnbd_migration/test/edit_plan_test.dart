@@ -1308,7 +1308,7 @@ C<int, String>? c;
     var propertyAccess = findNode.propertyAccess('?.');
     checkPlan(
         planner!.passThrough(propertyAccess, innerPlans: [
-          (planner!.replace(findNode.simple('x?.'), [AtomicEdit.insert('z')])),
+          planner!.replace(findNode.simple('x?.'), [AtomicEdit.insert('z')]),
           planner!.removeNullAwareness(propertyAccess),
           planner!.replace(findNode.simple('y'), [AtomicEdit.insert('w')])
         ]),

@@ -66,7 +66,7 @@ void CallSpecializer::ApplyICData() {
 // Attempts to convert an instance call (IC call) using propagated class-ids,
 // e.g., receiver class id, guarded-cid, or by guessing cid-s.
 void CallSpecializer::ApplyClassIds() {
-  ASSERT(current_iterator_ == NULL);
+  ASSERT(current_iterator_ == nullptr);
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
     thread()->CheckForSafepoint();
@@ -89,7 +89,7 @@ void CallSpecializer::ApplyClassIds() {
         SpecializePolymorphicInstanceCall(instr->AsPolymorphicInstanceCall());
       }
     }
-    current_iterator_ = NULL;
+    current_iterator_ = nullptr;
   }
 }
 
@@ -183,7 +183,7 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
 
   const intptr_t receiver_cid = call->Receiver()->Type()->ToCid();
   if (receiver_cid == kDynamicCid) {
-    return;  // No information about receiver was infered.
+    return;  // No information about receiver was inferred.
   }
 
   const ICData& ic_data = *call->ic_data();
@@ -192,7 +192,7 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
       FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
           receiver_cid, String::Handle(zone(), ic_data.target_name()),
           Array::Handle(zone(), ic_data.arguments_descriptor()));
-  if (targets == NULL) {
+  if (targets == nullptr) {
     // No specialization.
     return;
   }
@@ -207,7 +207,7 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
 void CallSpecializer::ReplaceCallWithResult(Definition* call,
                                             Instruction* replacement,
                                             Definition* result) {
-  ASSERT(!call->HasPushArguments());
+  ASSERT(!call->HasMoveArguments());
   if (result == nullptr) {
     ASSERT(replacement->IsDefinition());
     call->ReplaceWith(replacement->AsDefinition(), current_iterator());
@@ -302,8 +302,8 @@ bool CallSpecializer::TryStringLengthOneEquality(InstanceCallInstr* call,
   // or results of string-from-char-code.
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
-  Value* left_val = NULL;
-  Definition* to_remove_left = NULL;
+  Value* left_val = nullptr;
+  Definition* to_remove_left = nullptr;
   if (IsLengthOneString(right)) {
     // Swap, since we know that both arguments are strings
     Definition* temp = left;
@@ -331,8 +331,8 @@ bool CallSpecializer::TryStringLengthOneEquality(InstanceCallInstr* call,
       UNREACHABLE();
     }
 
-    Definition* to_remove_right = NULL;
-    Value* right_val = NULL;
+    Definition* to_remove_right = nullptr;
+    Value* right_val = nullptr;
     if (right->IsOneByteStringFromCharCode()) {
       // Skip string-from-char-code, and use its input as right value.
       OneByteStringFromCharCodeInstr* right_instr =
@@ -356,13 +356,13 @@ bool CallSpecializer::TryStringLengthOneEquality(InstanceCallInstr* call,
     ReplaceCall(call, comp);
 
     // Remove dead instructions.
-    if ((to_remove_left != NULL) &&
-        (to_remove_left->input_use_list() == NULL)) {
+    if ((to_remove_left != nullptr) &&
+        (to_remove_left->input_use_list() == nullptr)) {
       to_remove_left->ReplaceUsesWith(flow_graph()->constant_null());
       to_remove_left->RemoveFromGraph();
     }
-    if ((to_remove_right != NULL) &&
-        (to_remove_right->input_use_list() == NULL)) {
+    if ((to_remove_right != nullptr) &&
+        (to_remove_right->input_use_list() == nullptr)) {
       to_remove_right->ReplaceUsesWith(flow_graph()->constant_null());
       to_remove_right->RemoveFromGraph();
     }
@@ -432,8 +432,8 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
       // be hoisted out of this function.
       ConstantInstr* right_const = right->AsConstant();
       ConstantInstr* left_const = left->AsConstant();
-      if ((right_const != NULL && right_const->value().IsNull()) ||
-          (left_const != NULL && left_const->value().IsNull())) {
+      if ((right_const != nullptr && right_const->value().IsNull()) ||
+          (left_const != nullptr && left_const->value().IsNull())) {
         StrictCompareInstr* comp = new (Z)
             StrictCompareInstr(call->source(), Token::kEQ_STRICT,
                                new (Z) Value(left), new (Z) Value(right),
@@ -696,7 +696,7 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
   ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 1);
   Definition* input = call->ArgumentAt(0);
-  Definition* unary_op = NULL;
+  Definition* unary_op = nullptr;
   if (call->Targets().ReceiverIs(kSmiCid)) {
     InsertBefore(call,
                  new (Z) CheckSmiInstr(new (Z) Value(input), call->deopt_id(),
@@ -716,7 +716,7 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
   } else {
     return false;
   }
-  ASSERT(unary_op != NULL);
+  ASSERT(unary_op != nullptr);
   ReplaceCall(call, unary_op);
   return true;
 }
@@ -1005,7 +1005,7 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         ASSERT(call->HasICData());
         const ICData& ic_data = *call->ic_data();
         Definition* input = call->ArgumentAt(0);
-        Definition* d2i_instr = NULL;
+        Definition* d2i_instr = nullptr;
         if (ic_data.HasDeoptReason(ICData::kDeoptDoubleToSmi)) {
           // Do not repeatedly deoptimize because result didn't fit into Smi.
           d2i_instr = new (Z) DoubleToIntegerInstr(
@@ -1203,8 +1203,8 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
 void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
-  Definition* instantiator_type_args = NULL;
-  Definition* function_type_args = NULL;
+  Definition* instantiator_type_args = nullptr;
+  Definition* function_type_args = nullptr;
   AbstractType& type = AbstractType::ZoneHandle(Z);
   ASSERT(call->type_args_len() == 0);
   if (call->ArgumentCount() == 2) {
@@ -1226,7 +1226,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   intptr_t type_cid;
   if (TypeCheckAsClassEquality(type, &type_cid)) {
     LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
-    InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
+    InsertBefore(call, left_cid, nullptr, FlowGraph::kValue);
     ConstantInstr* cid =
         flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
 
@@ -1268,7 +1268,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       // One result only.
       AddReceiverCheck(call);
       ConstantInstr* bool_const = flow_graph()->GetConstant(as_bool);
-      ASSERT(!call->HasPushArguments());
+      ASSERT(!call->HasMoveArguments());
       call->ReplaceUsesWith(bool_const);
       ASSERT(current_iterator()->Current() == call);
       current_iterator()->RemoveCurrentFromGraph();

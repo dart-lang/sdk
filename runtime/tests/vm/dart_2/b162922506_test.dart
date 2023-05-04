@@ -54,7 +54,7 @@ class C$i {
 """);
     if (i == (n - 1)) {
       sb.write("""
-  test({bool rareCase: false}) {
+  test({bool rareCase = false}) {
     final v = this.f;
     if (rareCase) {
       return v.f;

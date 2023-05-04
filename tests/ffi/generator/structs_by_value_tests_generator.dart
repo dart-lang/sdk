@@ -40,7 +40,9 @@ extension on FunctionType {
         return TestType.structReturn;
       }
     }
-    throw Exception("Unknown test type: $this");
+
+    // No structs, sum the arguments as well.
+    return TestType.structArguments;
   }
 }
 
@@ -104,7 +106,7 @@ extension on CType {
       case FundamentalType:
         final this_ = this as FundamentalType;
         final boolToInt = this_.isBool ? ' ? 1 : 0' : '';
-        return "result += $variableName$boolToInt;\n";
+        return "  result += $variableName$boolToInt;\n";
 
       case StructType:
         final this_ = this as StructType;
@@ -147,7 +149,7 @@ extension on CType {
     switch (this.runtimeType) {
       case FundamentalType:
         final this_ = this as FundamentalType;
-        return "$variableName = ${a.nextValue(this_)};\n";
+        return "  $variableName = ${a.nextValue(this_)};\n";
 
       case StructType:
         final this_ = this as StructType;
@@ -247,14 +249,14 @@ extension on CType {
   String dartAllocateStatements(String variableName) {
     switch (this.runtimeType) {
       case FundamentalType:
-        return "${dartType} ${variableName};\n";
+        return "  ${dartType} ${variableName};\n";
 
       case StructType:
       case UnionType:
         return """
-final ${variableName}Pointer = calloc<$dartType>();
-final ${dartType} ${variableName} = ${variableName}Pointer.ref;
-""";
+  final ${variableName}Pointer = calloc<$dartType>();
+  final ${dartType} ${variableName} = ${variableName}Pointer.ref;
+  """;
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -557,7 +559,7 @@ extension on CompositeType {
 }
 
 extension on FunctionType {
-  String dartCallCode({bool isLeaf: false}) {
+  String dartCallCode({required bool isLeaf, required bool isNative}) {
     final a = ArgumentValueAssigner();
     final assignValues = arguments.assignValueStatements(a);
     final argumentFrees = arguments.dartFreeStatements();
@@ -581,26 +583,31 @@ extension on FunctionType {
         break;
     }
 
-    final namePostfix = isLeaf ? "Leaf" : "";
+    var namePostfix = isNative ? "Native" : "";
+    namePostfix += isLeaf ? "Leaf" : "";
     return """
-    final $dartName$namePostfix =
-      ffiTestFunctions.lookupFunction<$dartCType, $dartType>(
-          "$cName"${isLeaf ? ", isLeaf:true" : ""});
 
-    ${reason.makeDartDocComment()}
-    void $dartTestName$namePostfix() {
-      ${arguments.dartAllocateStatements()}
+${isNative ? '''
+@Native<$dartCType>(symbol: '$cName'${isLeaf ? ", isLeaf:true" : ""})
+external ${returnValue.dartType} $dartName$namePostfix(${arguments.map((m) => '${m.type.dartType} ${m.name}').join(', ')});
+''' : '''
+final $dartName$namePostfix =
+  ffiTestFunctions.lookupFunction<$dartCType, $dartType>(
+      "$cName"${isLeaf ? ", isLeaf:true" : ""});
+'''}
+${reason.makeDartDocComment()}
+void $dartTestName$namePostfix() {
+${arguments.dartAllocateStatements()}
+${assignValues}
 
-      ${assignValues}
+  final result = $dartName$namePostfix($argumentNames);
 
-      final result = $dartName$namePostfix($argumentNames);
+  print("result = \$result");
 
-      print("result = \$result");
+  $expects
 
-      $expects
-
-      $argumentFrees
-    }
+  $argumentFrees
+}
     """;
   }
 
@@ -626,27 +633,27 @@ extension on FunctionType {
         // Sum all input values.
 
         buildReturnValue = """
-        $returnValueType result = 0;
+  $returnValueType result = 0;
 
-        ${arguments.addToResultStatements('${dartName}_')}
-        """;
+${arguments.addToResultStatements('${dartName}_')}
+  """;
         assignReturnGlobal = "${dartName}Result = $result;";
         break;
       case TestType.structReturn:
         // Allocate a struct.
         buildReturnValue = """
-        final resultPointer = calloc<${returnValue.dartType}>();
-        final result = resultPointer.ref;
+  final resultPointer = calloc<${returnValue.dartType}>();
+  final result = resultPointer.ref;
 
-        ${arguments.copyValueStatements("${dartName}_", "result.")}
-        """;
+  ${arguments.copyValueStatements("${dartName}_", "result.")}
+  """;
         assignReturnGlobal = "${dartName}ResultPointer = resultPointer;";
         structsAsPointers = true;
         break;
       case TestType.structReturnArgument:
         buildReturnValue = """
-        ${returnValue.cType} result = ${dartName}_${structReturnArgument.name};
-        """;
+  ${returnValue.cType} result = ${dartName}_${structReturnArgument.name};
+  """;
         assignReturnGlobal = "${dartName}Result = result;";
         break;
     }
@@ -654,7 +661,7 @@ extension on FunctionType {
     final globals = arguments.dartAllocateZeroStatements("${dartName}_");
 
     final copyToGlobals =
-        arguments.map((a) => '${dartName}_${a.name} = ${a.name};').join("\n");
+        arguments.map((a) => '${dartName}_${a.name} = ${a.name};').join("\n  ");
 
     // Simulate assigning values the same way as in C, so that we know what the
     // final return value should be.
@@ -690,58 +697,58 @@ extension on FunctionType {
     }
 
     return """
-    typedef ${cName}Type = $dartCType;
+typedef ${cName}Type = $dartCType;
 
-    // Global variables to be able to test inputs after callback returned.
-    $globals
+// Global variables to be able to test inputs after callback returned.
+$globals
 
-    // Result variable also global, so we can delete it after the callback.
-    ${returnValue.dartAllocateZeroStatements("${dartName}Result", structsAsPointers: structsAsPointers)}
+// Result variable also global, so we can delete it after the callback.
+${returnValue.dartAllocateZeroStatements("${dartName}Result", structsAsPointers: structsAsPointers)}
 
-    ${returnValue.dartType} ${dartName}CalculateResult() {
-      $buildReturnValue
+${returnValue.dartType} ${dartName}CalculateResult() {
+$buildReturnValue
 
-      $assignReturnGlobal
+  $assignReturnGlobal
 
-      return $result;
-    }
+  return $result;
+}
 
-    ${reason.makeDartDocComment()}
-    ${returnValue.dartType} $dartName($argumentss) {
-      print("$dartName($prints)");
+${reason.makeDartDocComment()}
+${returnValue.dartType} $dartName($argumentss) {
+  print("$dartName($prints)");
 
-      // In legacy mode, possibly return null.
-      $returnNull
+  // In legacy mode, possibly return null.
+  $returnNull
 
-      // In both nnbd and legacy mode, possibly throw.
-      if (${arguments.firstArgumentName()} == $throwExceptionValue ||
-          ${arguments.firstArgumentName()} == $returnNullValue) {
-        print("throwing!");
-        throw Exception("$cName throwing on purpose!");
-      }
+  // In both nnbd and legacy mode, possibly throw.
+  if (${arguments.firstArgumentName()} == $throwExceptionValue ||
+      ${arguments.firstArgumentName()} == $returnNullValue) {
+    print("throwing!");
+    throw Exception("$cName throwing on purpose!");
+  }
 
-      $copyToGlobals
+  $copyToGlobals
 
-      final result = ${dartName}CalculateResult();
+  final result = ${dartName}CalculateResult();
 
-      print(\"result = \$result\");
+  print(\"result = \$result\");
 
-      return result;
-    }
+  return result;
+}
 
-    void ${dartName}AfterCallback() {
-      $afterCallbackFrees
+void ${dartName}AfterCallback() {
+  $afterCallbackFrees
 
-      final result = ${dartName}CalculateResult();
+  final result = ${dartName}CalculateResult();
 
-      print(\"after callback result = \$result\");
+  print(\"after callback result = \$result\");
 
-      $afterCallbackExpects
+  $afterCallbackExpects
 
-      $afterCallbackFrees
-    }
+  $afterCallbackFrees
+}
 
-    """;
+""";
   }
 
   String get dartCallbackTestConstructor {
@@ -759,10 +766,10 @@ extension on FunctionType {
       }
     }
     return """
-    CallbackTest.withCheck("$cName",
-      Pointer.fromFunction<${cName}Type>($dartName$exceptionalReturn),
-      ${dartName}AfterCallback),
-    """;
+  CallbackTest.withCheck("$cName",
+    Pointer.fromFunction<${cName}Type>($dartName$exceptionalReturn),
+    ${dartName}AfterCallback),
+""";
   }
 
   String get cCallCode {
@@ -796,21 +803,41 @@ extension on FunctionType {
         break;
     }
 
-    final argumentss =
-        arguments.map((e) => "${e.type.cType} ${e.name}").join(", ");
+    final argumentss = [
+      for (final argument in arguments.take(varArgsIndex ?? arguments.length))
+        "${argument.type.cType} ${argument.name}",
+      if (varArgsIndex != null) "...",
+    ].join(", ");
+
+    final varArgUnpackArguments = [
+      for (final argument in arguments.skip(varArgsIndex ?? arguments.length))
+        "  ${argument.type.cType} ${argument.name} = va_arg(var_args, ${argument.type.cType});",
+    ].join("\n");
+
+    String varArgsUnpack = '';
+    if (varArgsIndex != null) {
+      varArgsUnpack = """
+  va_list var_args;
+  va_start(var_args, ${arguments[varArgsIndex! - 1].name});
+$varArgUnpackArguments
+  va_end(var_args);
+""";
+    }
 
     return """
-    // Used for testing structs and unions by value.
-    ${reason.makeCComment()}
-    DART_EXPORT ${returnValue.cType} $cName($argumentss) {
-      std::cout << \"$cName\" ${arguments.coutExpression()} << \"\\n\";
+// Used for testing structs and unions by value.
+${reason.makeCComment()}
+DART_EXPORT ${returnValue.cType} $cName($argumentss) {
+$varArgsUnpack
 
-      $body
+  std::cout << \"$cName\" ${arguments.coutExpression()} << \"\\n\";
 
-      ${returnValue.coutStatement("result")}
+  $body
 
-      $returnStatement
-    }
+  ${returnValue.coutStatement("result")}
+
+  $returnStatement
+}
 
     """;
   }
@@ -820,8 +847,11 @@ extension on FunctionType {
     final argumentAllocations = arguments.cAllocateStatements();
     final assignValues = arguments.assignValueStatements(a);
 
-    final argumentss =
-        arguments.map((e) => "${e.type.cType} ${e.name}").join(", ");
+    final argumentss = [
+      for (final argument in arguments.take(varArgsIndex ?? arguments.length))
+        "${argument.type.cType} ${argument.name}",
+      if (varArgsIndex != null) "...",
+    ].join(", ");
 
     final argumentNames = arguments.map((e) => e.name).join(", ");
 
@@ -946,17 +976,24 @@ Future<void> writeDartCompounds() async {
   }));
 }
 
-headerDartCallTest({required bool isNnbd, required int copyrightYear}) {
+headerDartCallTest({
+  required bool isNnbd,
+  required int copyrightYear,
+  String vmFlags = '',
+}) {
   final dartVersion = isNnbd ? '' : dart2dot9;
+  if (vmFlags.length != 0 && !vmFlags.endsWith(' ')) {
+    vmFlags += ' ';
+  }
 
   return """
 ${headerCommon(copyrightYear: copyrightYear)}
 //
 // SharedObjects=ffi_test_functions
-// VMOptions=
-// VMOptions=--deterministic --optimization-counter-threshold=90
-// VMOptions=--use-slow-path
-// VMOptions=--use-slow-path --stacktrace-every=100
+// VMOptions=${vmFlags.trim()}
+// VMOptions=$vmFlags--deterministic --optimization-counter-threshold=90
+// VMOptions=$vmFlags--use-slow-path
+// VMOptions=$vmFlags--use-slow-path --stacktrace-every=100
 
 $dartVersion
 
@@ -975,51 +1012,96 @@ final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 """;
 }
 
-Future<void> writeDartCallTest(String nameSuffix, List<FunctionType> functions,
-    {required bool isLeaf}) async {
-  await Future.wait([true, false].map((isNnbd) async {
+Future<void> writeDartCallTest(
+  String nameSuffix,
+  List<FunctionType> functions, {
+  required bool isLeaf,
+  required bool isNative,
+  required bool isVarArgs,
+}) async {
+  await Future.wait([
+    true,
+    if (!isVarArgs && !isNative) false,
+  ].map((isNnbd) async {
     final StringBuffer buffer = StringBuffer();
     buffer.write(headerDartCallTest(
-        isNnbd: isNnbd, copyrightYear: isLeaf ? 2021 : 2020));
+      isNnbd: isNnbd,
+      copyrightYear: isVarArgs || isNative
+          ? 2023
+          : isLeaf
+              ? 2021
+              : 2020,
+      vmFlags: isVarArgs ? '--enable-experiment=records' : '',
+    ));
+    var suffix = isNative ? 'Native' : '';
+    suffix += isLeaf ? 'Leaf' : '';
 
-    final suffix = isLeaf ? 'Leaf' : '';
+    final forceDlOpen = !isNative
+        ? ''
+        : '''
+  // Force dlopen so @Native lookups in DynamicLibrary.process() succeed.
+  dlopenGlobalPlatformSpecific('ffi_test_functions');
+''';
+
     buffer.write("""
-    void main() {
-      for (int i = 0; i < 100; ++i) {
-        ${functions.map((e) => "${e.dartTestName}$suffix();").join("\n")}
-      }
-    }
-    """);
-    buffer.writeAll(functions.map((e) => e.dartCallCode(isLeaf: isLeaf)));
+void main() {$forceDlOpen
+  for (int i = 0; i < 100; ++i) {
+    ${functions.map((e) => "${e.dartTestName}$suffix();").join("\n    ")}
+  }
+}
+""");
+    buffer.writeAll(functions
+        .map((e) => e.dartCallCode(isLeaf: isLeaf, isNative: isNative)));
 
-    final path =
-        callTestPath(isNnbd: isNnbd, isLeaf: isLeaf, nameSuffix: nameSuffix);
+    final path = callTestPath(
+        isNnbd: isNnbd,
+        isLeaf: isLeaf,
+        isNative: isNative,
+        nameSuffix: nameSuffix,
+        isVarArgs: isVarArgs);
     await File(path).writeAsString(buffer.toString());
-    await runProcess("dart", ["format", path]);
+    if (!isVarArgs) {
+      // TODO(https://dartbug.com/50798): Dart format support for records.
+      await runProcess("dart", ["format", path]);
+    }
   }));
 }
 
-String callTestPath(
-    {required bool isNnbd, required bool isLeaf, String nameSuffix = ''}) {
+String callTestPath({
+  required bool isNnbd,
+  required bool isLeaf,
+  required bool isNative,
+  String nameSuffix = '',
+  required bool isVarArgs,
+}) {
   final folder = isNnbd ? 'ffi' : 'ffi_2';
-  final suffix = nameSuffix + (isLeaf ? '_leaf' : '');
+  final baseName = isVarArgs ? 'varargs' : 'structs_by_value';
+  final suffix =
+      '$nameSuffix${isNative ? '_native' : ''}${isLeaf ? '_leaf' : ''}';
   return Platform.script
       .resolve(
-          "../../$folder/function_structs_by_value_generated${suffix}_test.dart")
+          "../../$folder/function_${baseName}_generated${suffix}_test.dart")
       .toFilePath();
 }
 
-headerDartCallbackTest({required bool isNnbd, required int copyrightYear}) {
+headerDartCallbackTest({
+  required bool isNnbd,
+  required int copyrightYear,
+  String vmFlags = '',
+}) {
   final dartVersion = isNnbd ? '' : dart2dot9;
+  if (vmFlags.length != 0 && !vmFlags.endsWith(' ')) {
+    vmFlags += ' ';
+  }
 
   return """
 ${headerCommon(copyrightYear: copyrightYear)}
 //
 // SharedObjects=ffi_test_functions
-// VMOptions=
-// VMOptions=--deterministic --optimization-counter-threshold=20
-// VMOptions=--use-slow-path
-// VMOptions=--use-slow-path --stacktrace-every=100
+// VMOptions=${vmFlags.trim()}
+// VMOptions=$vmFlags--deterministic --optimization-counter-threshold=20
+// VMOptions=$vmFlags--use-slow-path
+// VMOptions=$vmFlags--use-slow-path --stacktrace-every=100
 
 $dartVersion
 
@@ -1049,30 +1131,45 @@ void main() {
 """;
 }
 
-Future<void> writeDartCallbackTest() async {
-  await Future.wait([true, false].map((isNnbd) async {
+Future<void> writeDartCallbackTest(
+  List<FunctionType> functions, {
+  required bool isVarArgs,
+}) async {
+  await Future.wait([
+    true,
+    if (!isVarArgs) false,
+  ].map((isNnbd) async {
     final StringBuffer buffer = StringBuffer();
-    buffer.write(headerDartCallbackTest(isNnbd: isNnbd, copyrightYear: 2020));
+    buffer.write(headerDartCallbackTest(
+      isNnbd: isNnbd,
+      copyrightYear: isVarArgs ? 2023 : 2020,
+      vmFlags: isVarArgs ? '--enable-experiment=records' : '',
+    ));
 
     buffer.write("""
-  final testCases = [
-    ${functions.map((e) => e.dartCallbackTestConstructor).join("\n")}
-  ];
-  """);
+final testCases = [
+${functions.map((e) => e.dartCallbackTestConstructor).join("\n")}
+];
+""");
 
     buffer.writeAll(functions.map((e) => e.dartCallbackCode(isNnbd: isNnbd)));
 
-    final path = callbackTestPath(isNnbd: isNnbd);
+    final path = callbackTestPath(isNnbd: isNnbd, isVarArgs: isVarArgs);
     await File(path).writeAsString(buffer.toString());
-    await runProcess("dart", ["format", path]);
+    if (!isVarArgs) {
+      // TODO(https://github.com/dart-lang/dart_style/issues/1128): Dart
+      // format support for records.
+      await runProcess("dart", ["format", path]);
+    }
   }));
 }
 
-String callbackTestPath({required bool isNnbd}) {
+String callbackTestPath({required bool isNnbd, required bool isVarArgs}) {
   final folder = isNnbd ? "ffi" : "ffi_2";
+  final baseName = isVarArgs ? "varargs" : "structs_by_value";
   return Platform.script
       .resolve(
-          "../../$folder/function_callbacks_structs_by_value_generated_test.dart")
+          "../../$folder/function_callbacks_${baseName}_generated_test.dart")
       .toFilePath();
 }
 
@@ -1080,6 +1177,7 @@ headerC({required int copyrightYear}) {
   return """
 ${headerCommon(copyrightYear: copyrightYear)}
 
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -1125,6 +1223,8 @@ Future<void> writeC() async {
   buffer.writeAll(compounds.map((e) => e.cDefinition));
   buffer.writeAll(functions.map((e) => e.cCallCode));
   buffer.writeAll(functions.map((e) => e.cCallbackCode));
+  buffer.writeAll(functionsVarArgs.map((e) => e.cCallCode));
+  buffer.writeAll(functionsVarArgs.map((e) => e.cCallbackCode));
 
   buffer.write(footerC);
 
@@ -1139,17 +1239,6 @@ final ccPath = Platform.script
 void printUsage() {
   print("""
 Generates structs by value tests.
-
-Generates:
-- $ccPath
-- ${compoundsPath(isNnbd: true)}
-- ${callbackTestPath(isNnbd: true)}
-- ${callTestPath(isNnbd: true, isLeaf: false)}
-- ${callTestPath(isNnbd: true, isLeaf: true)}
-- ${compoundsPath(isNnbd: false)}
-- ${callbackTestPath(isNnbd: false)}
-- ${callTestPath(isNnbd: false, isLeaf: false)}
-- ${callTestPath(isNnbd: false, isLeaf: true)}
 """);
 }
 
@@ -1162,11 +1251,39 @@ void main(List<String> arguments) async {
   await Future.wait([
     writeDartCompounds(),
     for (bool isLeaf in [false, true]) ...[
-      writeDartCallTest('_args', functionsStructArguments, isLeaf: isLeaf),
-      writeDartCallTest('_ret', functionsStructReturn, isLeaf: isLeaf),
-      writeDartCallTest('_ret_arg', functionsReturnArgument, isLeaf: isLeaf),
+      for (bool isNative in [false, true]) ...[
+        writeDartCallTest(
+          '_args',
+          functionsStructArguments,
+          isLeaf: isLeaf,
+          isNative: isNative,
+          isVarArgs: false,
+        ),
+        writeDartCallTest(
+          '_ret',
+          functionsStructReturn,
+          isLeaf: isLeaf,
+          isNative: isNative,
+          isVarArgs: false,
+        ),
+        writeDartCallTest(
+          '_ret_arg',
+          functionsReturnArgument,
+          isLeaf: isLeaf,
+          isNative: isNative,
+          isVarArgs: false,
+        ),
+        writeDartCallTest(
+          '',
+          functionsVarArgs,
+          isLeaf: isLeaf,
+          isNative: isNative,
+          isVarArgs: true,
+        ),
+      ],
     ],
-    writeDartCallbackTest(),
+    writeDartCallbackTest(functions, isVarArgs: false),
+    writeDartCallbackTest(functionsVarArgs, isVarArgs: true),
     writeC(),
   ]);
 }

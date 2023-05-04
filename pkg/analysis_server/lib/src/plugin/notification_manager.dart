@@ -224,7 +224,7 @@ abstract class AbstractNotificationManager {
       Map<server.AnalysisService, Set<String>> newSubscriptions) {
     /// Return the collector associated with the given service, or `null` if the
     /// service is not handled by this manager.
-    ResultCollector? collectorFor(server.AnalysisService service) {
+    ResultCollector<Object?>? collectorFor(server.AnalysisService service) {
       switch (service) {
         case server.AnalysisService.FOLDING:
           return folding;

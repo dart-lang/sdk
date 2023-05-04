@@ -57,6 +57,7 @@ class ObjectPointerVisitor;
   LAZY_CORE(Function, _object_to_string_function)                              \
   LAZY_INTERNAL(Class, symbol_class)                                           \
   LAZY_INTERNAL(Field, symbol_name_field)                                      \
+  LAZY_FFI(Class, varargs_class)                                               \
   LAZY_FFI(Function, handle_finalizer_message_function)                        \
   LAZY_FFI(Function, handle_native_finalizer_message_function)                 \
   LAZY_ASYNC(Type, non_nullable_future_rare_type)                              \
@@ -139,7 +140,8 @@ class ObjectPointerVisitor;
   RW(Class, finalizer_class)                                                   \
   RW(Class, finalizer_entry_class)                                             \
   RW(Class, native_finalizer_class)                                            \
-  ARW_AR(Array, symbol_table)                                                  \
+  ARW_AR(WeakArray, symbol_table)                                              \
+  ARW_AR(WeakArray, regexp_table)                                              \
   RW(Array, canonical_types)                                                   \
   RW(Array, canonical_function_types)                                          \
   RW(Array, canonical_record_types)                                            \
@@ -159,6 +161,8 @@ class ObjectPointerVisitor;
   RW(Library, root_library)                                                    \
   RW(Library, typed_data_library)                                              \
   RW(Library, _vmservice_library)                                              \
+  RW(Library, native_assets_library)                                           \
+  RW(Array, native_assets_map)                                                 \
   RW(GrowableObjectArray, libraries)                                           \
   RW(Array, libraries_map)                                                     \
   RW(Array, uri_to_resolved_uri_map)                                           \
@@ -167,6 +171,8 @@ class ObjectPointerVisitor;
   RW(Array, loading_units)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
   RW(GrowableObjectArray, pending_classes)                                     \
+  RW(Array, record_field_names_map)                                            \
+  ARW_RELAXED(Array, record_field_names)                                       \
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
   RW(Function, growable_list_factory)                                          \
@@ -177,6 +183,7 @@ class ObjectPointerVisitor;
   RW(Function, async_star_stream_controller_add_stream)                        \
   RW(Function, suspend_state_init_async)                                       \
   RW(Function, suspend_state_await)                                            \
+  RW(Function, suspend_state_await_with_type_check)                            \
   RW(Function, suspend_state_return_async)                                     \
   RW(Function, suspend_state_return_async_not_future)                          \
   RW(Function, suspend_state_init_async_star)                                  \
@@ -268,8 +275,11 @@ class ObjectPointerVisitor;
   RW(Code, nullable_type_parameter_tts_stub)                                   \
   RW(Code, type_parameter_tts_stub)                                            \
   RW(Code, unreachable_tts_stub)                                               \
+  RW(Array, ffi_callback_functions)                                            \
   RW(Code, slow_tts_stub)                                                      \
+  /* Roots for JIT/AOT snapshots are up until here (see to_snapshot() below)*/ \
   RW(Code, await_stub)                                                         \
+  RW(Code, await_with_type_check_stub)                                         \
   RW(Code, clone_suspend_state_stub)                                           \
   RW(Code, init_async_stub)                                                    \
   RW(Code, resume_stub)                                                        \
@@ -285,7 +295,6 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, instructions_tables)                                 \
   RW(Array, obfuscation_map)                                                   \
   RW(Array, loading_unit_uris)                                                 \
-  RW(Array, ffi_callback_functions)                                            \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
   // Please remember the last entry must be referred in the 'to' function below.
@@ -365,6 +374,7 @@ class ObjectPointerVisitor;
   DO(init_late_instance_field_stub, InitLateInstanceField)                     \
   DO(init_late_final_instance_field_stub, InitLateFinalInstanceField)          \
   DO(await_stub, Await)                                                        \
+  DO(await_with_type_check_stub, AwaitWithTypeCheck)                           \
   DO(clone_suspend_state_stub, CloneSuspendState)                              \
   DO(init_async_stub, InitAsync)                                               \
   DO(resume_stub, Resume)                                                      \

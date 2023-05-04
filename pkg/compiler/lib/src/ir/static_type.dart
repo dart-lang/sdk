@@ -4,6 +4,8 @@
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show operatorFromString;
+import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
+    show StaticWeakReferences;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
@@ -14,7 +16,20 @@ import 'runtime_type_analysis.dart';
 import 'scope.dart';
 import 'static_type_base.dart';
 import 'static_type_cache.dart';
-import 'class_relation.dart';
+
+/// Enum values for how the target of a static type should be interpreted.
+enum ClassRelation {
+  /// The target is any subtype of the static type.
+  subtype,
+
+  /// The target is a subclass or mixin application of the static type.
+  ///
+  /// This corresponds to accessing a member through a this expression.
+  thisExpression,
+
+  /// The target is an exact instance of the static type.
+  exact,
+}
 
 ClassRelation computeClassRelationFromType(ir.DartType type) {
   if (type is ThisInterfaceType) {
@@ -226,7 +241,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     }
     if (type is ir.InterfaceType) {
       ir.InterfaceType? upcastType = typeEnvironment.getTypeAsInstanceOf(
-          type, superclass, currentLibrary, typeEnvironment.coreTypes);
+          type, superclass, typeEnvironment.coreTypes,
+          isNonNullableByDefault: currentLibrary.isNonNullableByDefault);
       if (upcastType != null) return upcastType;
     }
     // TODO(johnniwinther): Should we assert that this doesn't happen?
@@ -359,6 +375,18 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         "Unexpected .runtimeType instance tear-off.");
     handleInstanceGet(node, receiverType, node.interfaceTarget, resultType);
     return resultType;
+  }
+
+  @override
+  ir.DartType visitRecordIndexGet(ir.RecordIndexGet node) {
+    visitNode(node.receiver);
+    return super.visitRecordIndexGet(node);
+  }
+
+  @override
+  ir.DartType visitRecordNameGet(ir.RecordNameGet node) {
+    visitNode(node.receiver);
+    return super.visitRecordNameGet(node);
   }
 
   @override
@@ -981,19 +1009,22 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitVariableGet(ir.VariableGet node) {
-    typeMapsForTesting?[node] = typeMap;
-    ir.DartType promotedType = typeMap.typeOf(node, typeEnvironment);
-    assert(
-        node.promotedType == null ||
-            promotedType is ir.NullType ||
-            promotedType is ir.FutureOrType ||
-            typeEnvironment.isSubtypeOf(promotedType, node.promotedType!,
-                ir.SubtypeCheckMode.ignoringNullabilities),
-        "Unexpected promotion of ${node.variable} in ${node.parent}. "
-        "Expected ${node.promotedType}, found $promotedType");
-    _staticTypeCache._expressionTypes[node] = promotedType;
-    handleVariableGet(node, promotedType);
-    return promotedType;
+    ir.DartType frontendType = node.getStaticType(staticTypeContext);
+    ir.DartType staticType;
+    if (currentLibrary.isNonNullableByDefault) {
+      staticType = frontendType;
+    } else {
+      typeMapsForTesting?[node] = typeMap;
+      staticType = typeMap.typeOf(node, typeEnvironment);
+      assert(
+          typeEnvironment.isSubtypeOf(staticType, frontendType,
+              ir.SubtypeCheckMode.ignoringNullabilities),
+          "Unexpected promotion of ${node.variable} in ${node.parent}. "
+          "Expected $frontendType, found $staticType");
+    }
+    _staticTypeCache._expressionTypes[node] = staticType;
+    handleVariableGet(node, staticType);
+    return staticType;
   }
 
   void handleVariableSet(ir.VariableSet node, ir.DartType resultType) {}
@@ -1050,14 +1081,22 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   void handleStaticInvocation(ir.StaticInvocation node,
       ArgumentTypes argumentTypes, ir.DartType returnType) {}
 
+  void handleWeakStaticTearOff(ir.Expression node, ir.Procedure target) {}
+
   @override
   ir.DartType visitStaticInvocation(ir.StaticInvocation node) {
-    ArgumentTypes argumentTypes = _visitArguments(node.arguments);
     ir.DartType returnType = ir.Substitution.fromPairs(
             node.target.function.typeParameters, node.arguments.types)
         .substituteType(node.target.function.returnType);
     _staticTypeCache._expressionTypes[node] = returnType;
-    handleStaticInvocation(node, argumentTypes, returnType);
+    if (ir.StaticWeakReferences.isWeakReference(node)) {
+      handleWeakStaticTearOff(
+          ir.StaticWeakReferences.getWeakReferenceArgument(node),
+          ir.StaticWeakReferences.getWeakReferenceTarget(node));
+    } else {
+      ArgumentTypes argumentTypes = _visitArguments(node.arguments);
+      handleStaticInvocation(node, argumentTypes, returnType);
+    }
     return returnType;
   }
 
@@ -1089,7 +1128,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       resultType = interfaceTarget.superGetterType;
     } else {
       ir.InterfaceType receiver = typeEnvironment.getTypeAsInstanceOf(
-          thisType, declaringClass, currentLibrary, typeEnvironment.coreTypes)!;
+          thisType, declaringClass, typeEnvironment.coreTypes,
+          isNonNullableByDefault: currentLibrary.isNonNullableByDefault)!;
       resultType = ir.Substitution.fromInterfaceType(receiver)
           .substituteType(interfaceTarget.superGetterType);
     }
@@ -1118,7 +1158,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     final interfaceTarget = node.interfaceTarget;
     ir.Class superclass = interfaceTarget.enclosingClass!;
     ir.InterfaceType receiverType = typeEnvironment.getTypeAsInstanceOf(
-        thisType, superclass, currentLibrary, typeEnvironment.coreTypes)!;
+        thisType, superclass, typeEnvironment.coreTypes,
+        isNonNullableByDefault: currentLibrary.isNonNullableByDefault)!;
     returnType = ir.Substitution.fromInterfaceType(receiverType)
         .substituteType(interfaceTarget.function.returnType);
     returnType = ir.Substitution.fromPairs(
@@ -1398,6 +1439,18 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return const ir.VoidType();
   }
 
+  void handleRecordLiteral(ir.RecordLiteral node) {}
+
+  @override
+  ir.DartType visitRecordLiteral(ir.RecordLiteral node) {
+    visitNodes(node.positional);
+    for (final namedExpression in node.named) {
+      visitNode(namedExpression.value);
+    }
+    handleRecordLiteral(node);
+    return super.visitRecordLiteral(node);
+  }
+
   void handleFunctionExpression(ir.FunctionExpression node) {}
 
   @override
@@ -1532,8 +1585,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         ir.InterfaceType? streamType = typeEnvironment.getTypeAsInstanceOf(
             iterableInterfaceType,
             typeEnvironment.coreTypes.streamClass,
-            currentLibrary,
-            typeEnvironment.coreTypes);
+            typeEnvironment.coreTypes,
+            isNonNullableByDefault: currentLibrary.isNonNullableByDefault);
         if (streamType != null) {
           iteratorType = ir.InterfaceType(
               typeEnvironment.coreTypes.streamIteratorClass,
@@ -1545,11 +1598,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             iterableInterfaceType.classNode, ir.Name(Identifiers.iterator));
         if (member != null) {
           iteratorType = ir.Substitution.fromInterfaceType(
-                  typeEnvironment.getTypeAsInstanceOf(
-                      iterableInterfaceType,
-                      member.enclosingClass!,
-                      currentLibrary,
-                      typeEnvironment.coreTypes)!)
+                  typeEnvironment.getTypeAsInstanceOf(iterableInterfaceType,
+                      member.enclosingClass!, typeEnvironment.coreTypes,
+                      isNonNullableByDefault:
+                          currentLibrary.isNonNullableByDefault)!)
               .substituteType(member.getterType);
         }
       }

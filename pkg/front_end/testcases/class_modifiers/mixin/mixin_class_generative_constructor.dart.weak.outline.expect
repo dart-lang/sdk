@@ -1,0 +1,93 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:7:3: Error: Can't use 'ErrorMixinClass' as a mixin because it has constructors.
+//   ErrorMixinClass(this.foo); /* Error */
+//   ^
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:12:3: Error: Can't use 'ErrorMixinClassNamed' as a mixin because it has constructors.
+//   ErrorMixinClassNamed.named(this.foo); /* Error */
+//   ^
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:17:3: Error: Can't use 'ErrorMixinClassRedirect' as a mixin because it has constructors.
+//   ErrorMixinClassRedirect.named(int f) { this.foo = f; } /* Error */
+//   ^
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:18:3: Error: Can't use 'ErrorMixinClassRedirect' as a mixin because it has constructors.
+//   ErrorMixinClassRedirect.x(int f) : this.named(f); /* Error */
+//   ^
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:23:12: Error: Can't use 'ErrorMixinClassExternal' as a mixin because it has constructors.
+//   external ErrorMixinClassExternal(); /* Error */
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+mixin class ErrorMixinClass extends core::Object {
+  final field core::int foo;
+  constructor •(core::int foo) → self::ErrorMixinClass
+    ;
+}
+mixin class ErrorMixinClassNamed extends core::Object {
+  final field core::int foo;
+  constructor named(core::int foo) → self::ErrorMixinClassNamed
+    ;
+}
+mixin class ErrorMixinClassRedirect extends core::Object {
+  field core::int foo;
+  constructor named(core::int f) → self::ErrorMixinClassRedirect
+    ;
+  constructor x(core::int f) → self::ErrorMixinClassRedirect
+    ;
+  constructor •() → self::ErrorMixinClassRedirect
+    ;
+}
+mixin class ErrorMixinClassExternal extends core::Object {
+  external constructor •() → self::ErrorMixinClassExternal;
+}
+mixin class ErrorMixinClassSuper extends core::Object {
+  constructor •() → self::ErrorMixinClassSuper
+    ;
+}
+mixin class ErrorMixinClassBody extends core::Object {
+  constructor •() → self::ErrorMixinClassBody
+    ;
+}
+mixin class MixinClassConstructor extends core::Object {
+  field core::int foo;
+  constructor •() → self::MixinClassConstructor
+    ;
+  constructor named() → self::MixinClassConstructor
+    ;
+}
+mixin class ConstMixinClassConstructor extends core::Object /*hasConstConstructor*/  {
+  final field core::int foo = 0;
+  const constructor •() → self::ConstMixinClassConstructor
+    : super core::Object::•()
+    ;
+  const constructor named() → self::ConstMixinClassConstructor
+    : super core::Object::•()
+    ;
+}
+mixin class MixinClassFactory extends core::Object {
+  field core::int foo;
+  static final field dynamic _redirecting# = <dynamic>[self::MixinClassFactory::x, self::MixinClassFactory::y]/*isLegacy*/;
+  constructor •() → self::MixinClassFactory
+    ;
+  constructor named() → self::MixinClassFactory
+    ;
+  static factory x() → self::MixinClassFactory
+    return new self::MixinClassFactory::named();
+  static factory y() → self::MixinClassFactory
+    return new self::MixinClassFactory::•();
+  static factory z() → self::MixinClassFactory
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///mixin_class_generative_constructor.dart:46:13 -> ConstructorTearOffConstant(MixinClassFactory.x)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///mixin_class_generative_constructor.dart:46:13 -> ConstructorTearOffConstant(MixinClassFactory.y)
+Extra constant evaluation: evaluated: 5, effectively constant: 2

@@ -316,7 +316,7 @@ void f(Never a, bool b) async {
   var v = {...a, if (b) throw 0};
 }
 ''', [
-      error(HintCode.DEAD_CODE, 87, 12),
+      error(WarningCode.DEAD_CODE, 87, 12),
     ]);
     assertType(setLiteral('{...'), 'Set<Never>');
   }
@@ -329,7 +329,7 @@ void f(Never a, bool b) async {
 }
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
-      error(HintCode.DEAD_CODE, 88, 12),
+      error(WarningCode.DEAD_CODE, 88, 12),
     ]);
     assertType(setLiteral('{...'), 'Set<Never>');
   }
@@ -362,7 +362,7 @@ void f<T extends Never>(T a, bool b) async {
 }
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
-      error(HintCode.DEAD_CODE, 101, 12),
+      error(WarningCode.DEAD_CODE, 101, 12),
     ]);
     assertType(setLiteral('{...'), 'Set<Never>');
   }
@@ -394,7 +394,7 @@ void f<T extends Never>(T a, bool b) async {
   var v = {...a, if (b) throw 0};
 }
 ''', [
-      error(HintCode.DEAD_CODE, 100, 12),
+      error(WarningCode.DEAD_CODE, 100, 12),
     ]);
     assertType(setLiteral('{...'), 'Set<Never>');
   }

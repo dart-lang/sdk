@@ -1,0 +1,39 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  final(core::int, core::int) x = (1, 2);
+  core::print( block {
+    core::int #t1;
+    final synthesized(core::int, core::int) #0#0 = x;
+    #L1:
+    {
+      {
+        if(true) {
+          #t1 = 1;
+          break #L1;
+        }
+      }
+    }
+  } =>#t1);
+  core::print( block {
+    core::int #t2;
+    final synthesized(core::int, core::int) #1#0 = (1, 2);
+    #L2:
+    {
+      {
+        if(true) {
+          #t2 = 1;
+          break #L2;
+        }
+      }
+    }
+  } =>#t2);
+}
+
+
+Extra constant evaluation status:
+Evaluated: RecordLiteral @ org-dartlang-testcase:///issue50963.dart:6:13 -> RecordConstant(const (1, 2))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///issue50963.dart:9:17 -> RecordConstant(const (1, 2))
+Extra constant evaluation: evaluated: 11, effectively constant: 2

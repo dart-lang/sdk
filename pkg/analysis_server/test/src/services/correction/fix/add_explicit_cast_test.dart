@@ -11,8 +11,223 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddExplicitCastMultiTest);
     defineReflectiveTests(AddExplicitCastTest);
   });
+}
+
+@reflectiveTest
+class AddExplicitCastMultiTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_EXPLICIT_CAST_MULTI;
+
+  Future<void> test_assignment_general() async {
+    await resolveTestCode('''
+f(A a) {
+  B b, b2;
+  b = a;
+  b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+f(A a) {
+  B b, b2;
+  b = a as B;
+  b2 = a as B;
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_assignment_list() async {
+    await resolveTestCode('''
+f(List<A> a) {
+  List<B> b, b2;
+  b = a.where((e) => e is B).toList();
+  b2 = a.where((e) => e is B).toList();
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+f(List<A> a) {
+  List<B> b, b2;
+  b = a.where((e) => e is B).cast<B>().toList();
+  b2 = a.where((e) => e is B).cast<B>().toList();
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_assignment_map() async {
+    await resolveTestCode('''
+f(Map<A, B> a) {
+  Map<B, A> b, b2;
+  b = a;
+  b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+f(Map<A, B> a) {
+  Map<B, A> b, b2;
+  b = a.cast<B, A>();
+  b2 = a.cast<B, A>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_assignment_needsParens() async {
+    await resolveTestCode('''
+f(A a) {
+  B b, b2;
+  b = a..m();
+  b2 = a..m();
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+f(A a) {
+  B b, b2;
+  b = (a..m()) as B;
+  b2 = (a..m()) as B;
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+  }
+
+  Future<void> test_assignment_set() async {
+    await resolveTestCode('''
+f(Set<A> a) {
+  Set<B> b, b2;
+  b = a;
+  b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+f(Set<A> a) {
+  Set<B> b, b2;
+  b = a.cast<B>();
+  b2 = a.cast<B>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_declaration_general() async {
+    await resolveTestCode('''
+f(A a) {
+  B b = a;
+  B b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+f(A a) {
+  B b = a as B;
+  B b2 = a as B;
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_declaration_list() async {
+    await resolveTestCode('''
+f(List<A> a) {
+  List<B> b = a.where((e) => e is B).toList();
+  List<B> b2 = a.where((e) => e is B).toList();
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+f(List<A> a) {
+  List<B> b = a.where((e) => e is B).cast<B>().toList();
+  List<B> b2 = a.where((e) => e is B).cast<B>().toList();
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_declaration_map() async {
+    await resolveTestCode('''
+f(Map<A, B> a) {
+  Map<B, A> b = a;
+  Map<B, A> b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+f(Map<A, B> a) {
+  Map<B, A> b = a.cast<B, A>();
+  Map<B, A> b2 = a.cast<B, A>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_declaration_needsParens() async {
+    await resolveTestCode('''
+f(A a) {
+  B b = a..m();
+  B b2 = a..m();
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+f(A a) {
+  B b = (a..m()) as B;
+  B b2 = (a..m()) as B;
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+  }
+
+  Future<void> test_declaration_set() async {
+    await resolveTestCode('''
+f(Set<A> a) {
+  Set<B> b = a;
+  Set<B> b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+f(Set<A> a) {
+  Set<B> b = a.cast<B>();
+  Set<B> b2 = a.cast<B>();
+}
+class A {}
+class B {}
+''');
+  }
 }
 
 @reflectiveTest
@@ -83,28 +298,6 @@ class B {}
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_assignment_general_all() async {
-    await resolveTestCode('''
-f(A a) {
-  B b, b2;
-  b = a;
-  b2 = a;
-}
-class A {}
-class B {}
-''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
-f(A a) {
-  B b, b2;
-  b = a as B;
-  b2 = a as B;
-}
-class A {}
-class B {}
-''');
-  }
-
   Future<void> test_assignment_iterable_cast() async {
     await resolveTestCode('''
 f(Set<A> a) {
@@ -168,22 +361,21 @@ class B {}
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_assignment_list_all() async {
+  Future<void> test_assignment_list_toSet() async {
     await resolveTestCode('''
 f(List<A> a) {
-  List<B> b, b2;
-  b = a.where((e) => e is B).toList();
-  b2 = a.where((e) => e is B).toList();
+  Set<B> b;
+  b = a.toSet();
+  print(b);
 }
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFix('''
 f(List<A> a) {
-  List<B> b, b2;
-  b = a.where((e) => e is B).cast<B>().toList();
-  b2 = a.where((e) => e is B).cast<B>().toList();
+  Set<B> b;
+  b = a.cast<B>().toSet();
+  print(b);
 }
 class A {}
 class B {}
@@ -205,28 +397,6 @@ f(Map<A, B> a) {
   Map<B, A> b;
   b = a.cast<B, A>();
   print(b);
-}
-class A {}
-class B {}
-''');
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_assignment_map_all() async {
-    await resolveTestCode('''
-f(Map<A, B> a) {
-  Map<B, A> b, b2;
-  b = a;
-  b2 = a;
-}
-class A {}
-class B {}
-''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
-f(Map<A, B> a) {
-  Map<B, A> b, b2;
-  b = a.cast<B, A>();
-  b2 = a.cast<B, A>();
 }
 class A {}
 class B {}
@@ -279,32 +449,6 @@ class B {}
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_assignment_needsParens_all() async {
-    await resolveTestCode('''
-f(A a) {
-  B b, b2;
-  b = a..m();
-  b2 = a..m();
-}
-class A {
-  int m() => 0;
-}
-class B {}
-''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
-f(A a) {
-  B b, b2;
-  b = (a..m()) as B;
-  b2 = (a..m()) as B;
-}
-class A {
-  int m() => 0;
-}
-class B {}
-''');
-  }
-
   Future<void> test_assignment_null() async {
     await resolveTestCode('''
 void f(int x) {
@@ -344,22 +488,21 @@ class B {}
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_assignment_set_all() async {
+  Future<void> test_assignment_set_toList() async {
     await resolveTestCode('''
 f(Set<A> a) {
-  Set<B> b, b2;
-  b = a;
-  b2 = a;
+  List<B> b;
+  b = a.toList();
+  print(b);
 }
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFix('''
 f(Set<A> a) {
-  Set<B> b, b2;
-  b = a.cast<B>();
-  b2 = a.cast<B>();
+  List<B> b;
+  b = a.cast<B>().toList();
+  print(b);
 }
 class A {}
 class B {}
@@ -397,26 +540,6 @@ class B {}
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_declaration_general_all() async {
-    await resolveTestCode('''
-f(A a) {
-  B b = a;
-  B b2 = a;
-}
-class A {}
-class B {}
-''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
-f(A a) {
-  B b = a as B;
-  B b2 = a as B;
-}
-class A {}
-class B {}
-''');
-  }
-
   Future<void> test_declaration_list() async {
     await resolveTestCode('''
 f(List<A> a) {
@@ -436,26 +559,6 @@ class B {}
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_declaration_list_all() async {
-    await resolveTestCode('''
-f(List<A> a) {
-  List<B> b = a.where((e) => e is B).toList();
-  List<B> b2 = a.where((e) => e is B).toList();
-}
-class A {}
-class B {}
-''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
-f(List<A> a) {
-  List<B> b = a.where((e) => e is B).cast<B>().toList();
-  List<B> b2 = a.where((e) => e is B).cast<B>().toList();
-}
-class A {}
-class B {}
-''');
-  }
-
   Future<void> test_declaration_map() async {
     await resolveTestCode('''
 f(Map<A, B> a) {
@@ -469,26 +572,6 @@ class B {}
 f(Map<A, B> a) {
   Map<B, A> b = a.cast<B, A>();
   print(b);
-}
-class A {}
-class B {}
-''');
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_declaration_map_all() async {
-    await resolveTestCode('''
-f(Map<A, B> a) {
-  Map<B, A> b = a;
-  Map<B, A> b2 = a;
-}
-class A {}
-class B {}
-''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
-f(Map<A, B> a) {
-  Map<B, A> b = a.cast<B, A>();
-  Map<B, A> b2 = a.cast<B, A>();
 }
 class A {}
 class B {}
@@ -518,30 +601,6 @@ class B {}
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_declaration_needsParens_all() async {
-    await resolveTestCode('''
-f(A a) {
-  B b = a..m();
-  B b2 = a..m();
-}
-class A {
-  int m() => 0;
-}
-class B {}
-''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
-f(A a) {
-  B b = (a..m()) as B;
-  B b2 = (a..m()) as B;
-}
-class A {
-  int m() => 0;
-}
-class B {}
-''');
-  }
-
   Future<void> test_declaration_set() async {
     await resolveTestCode('''
 f(Set<A> a) {
@@ -555,26 +614,6 @@ class B {}
 f(Set<A> a) {
   Set<B> b = a.cast<B>();
   print(b);
-}
-class A {}
-class B {}
-''');
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_declaration_set_all() async {
-    await resolveTestCode('''
-f(Set<A> a) {
-  Set<B> b = a;
-  Set<B> b2 = a;
-}
-class A {}
-class B {}
-''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
-f(Set<A> a) {
-  Set<B> b = a.cast<B>();
-  Set<B> b2 = a.cast<B>();
 }
 class A {}
 class B {}

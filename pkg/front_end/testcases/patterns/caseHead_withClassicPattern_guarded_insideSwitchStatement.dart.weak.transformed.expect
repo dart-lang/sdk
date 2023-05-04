@@ -1,10 +1,21 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
 static method f(dynamic x) → void {
   #L1:
-  invalid-expression "PatternSwitchStatement(switch (x) {
-  case 0 when true:
-    break label0;
-})";
+  {
+    final synthesized dynamic #0#0 = x;
+    {
+      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 && true) {
+        {
+          break #L1;
+        }
+      }
+    }
+  }
+}
+
+constants  {
+  #C1 = 0
 }

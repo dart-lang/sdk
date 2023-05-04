@@ -27,6 +27,7 @@ import 'devtools/handler.dart';
 import 'expression_evaluator.dart';
 import 'isolate_manager.dart';
 import 'package_uri_converter.dart';
+import 'rpc_error_codes.dart';
 import 'stream_manager.dart';
 
 @visibleForTesting
@@ -206,11 +207,25 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     } on json_rpc.RpcException catch (e) {
       await _server.close(force: true);
       String message = e.toString();
-      if (e.data != null) {
-        message += ' data: ${e.data}';
+      Object? data = e.data;
+      Uri? ddsUri;
+      if (data != null) {
+        message += ' data: $data';
+
+        // Read the existing URI (if provided) so clients can connect to it
+        // directly.
+        if (data is Map<String, Object?>) {
+          final uri = data['ddsUri'];
+          if (uri is String) {
+            ddsUri = Uri.tryParse(uri);
+          }
+        }
       }
       // _yieldControlToDDS fails if DDS is not the only VM service client.
-      throw DartDevelopmentServiceException.existingDdsInstance(message);
+      throw DartDevelopmentServiceException.existingDdsInstance(
+        message,
+        ddsUri: ddsUri,
+      );
     }
 
     _uri = tmpUri;
@@ -320,18 +335,41 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   }
 
   Handler _httpHandler() {
+    final notFoundHandler = proxyHandler(remoteVmServiceUri);
+
+    // If DDS is serving DevTools, install the DevTools handlers and forward
+    // any unhandled HTTP requests to the VM service.
     if (_devToolsConfiguration != null && _devToolsConfiguration!.enable) {
-      // Install the DevTools handlers and forward any unhandled HTTP requests to
-      // the VM service.
       final String buildDir =
           _devToolsConfiguration!.customBuildDirectoryPath.toFilePath();
       return defaultHandler(
         dds: this,
         buildDir: buildDir,
-        notFoundHandler: proxyHandler(remoteVmServiceUri),
+        notFoundHandler: notFoundHandler,
       ) as FutureOr<Response> Function(Request);
     }
-    return proxyHandler(remoteVmServiceUri);
+
+    // Otherwise, DevTools may be served externally, or not at all.
+    return (Request request) {
+      final pathSegments = request.url.pathSegments;
+      if (pathSegments.isEmpty || pathSegments.first != 'devtools') {
+        // Not a DevTools request, forward to the VM service.
+        return notFoundHandler(request);
+      } else {
+        if (_devToolsUri == null) {
+          // DevTools is not being served externally.
+          return Response.notFound(
+            'No DevTools instance is registered with the Dart Development Service (DDS).',
+          );
+        }
+        // Redirect to the external DevTools server.
+        return Response.seeOther(
+          _devToolsUri!.replace(
+            queryParameters: request.requestedUri.queryParameters,
+          ),
+        );
+      }
+    };
   }
 
   List<String> _cleanupPathSegments(Uri uri) {
@@ -365,17 +403,8 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     return uri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
-  Uri? _toDevTools(Uri? uri) {
-    // The DevTools URI is a bit strange as the query parameters appear after
-    // the fragment. There's no nice way to encode the query parameters
-    // properly, so we create another Uri just to grab the formatted query.
-    // The result will need to have '/?' prepended when being used as the
-    // fragment to get the correct format.
-    final query = Uri(
-      queryParameters: {
-        'uri': wsUri.toString(),
-      },
-    ).query;
+  @visibleForTesting
+  Uri? toDevTools(Uri? uri) {
     return Uri(
       scheme: 'http',
       host: uri!.host,
@@ -385,15 +414,15 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
           (e) => e.isNotEmpty,
         ),
         'devtools',
-        '',
       ],
-      fragment: '/?$query',
+      query: 'uri=$wsUri',
     );
   }
 
   String? getNamespace(DartDevelopmentServiceClient client) =>
       clientManager.clients.keyOf(client);
 
+  @override
   bool get authCodesEnabled => _authCodesEnabled;
   final bool _authCodesEnabled;
   String? get authCode => _authCode;
@@ -402,11 +431,12 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   final bool _enableServicePortFallback;
   final bool shouldLogRequests;
 
+  @override
   Uri get remoteVmServiceUri => _remoteVmServiceUri;
 
   @override
   Uri get remoteVmServiceWsUri => _toWebSocket(_remoteVmServiceUri)!;
-  Uri _remoteVmServiceUri;
+  final Uri _remoteVmServiceUri;
 
   @override
   Uri? get uri => _uri;
@@ -419,20 +449,36 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   Uri? get wsUri => _toWebSocket(_uri);
 
   @override
-  Uri? get devToolsUri =>
-      _devToolsConfiguration?.enable ?? false ? _toDevTools(_uri) : null;
+  Uri? get devToolsUri {
+    _devToolsUri ??=
+        _devToolsConfiguration?.enable ?? false ? toDevTools(_uri) : null;
+    return _devToolsUri;
+  }
+
+  @override
+  void setExternalDevToolsUri(Uri uri) {
+    if (_devToolsConfiguration?.enable ?? false) {
+      throw StateError('A hosted DevTools instance is already being served.');
+    }
+    _devToolsUri = uri;
+  }
+
+  Uri? _devToolsUri;
 
   final bool _ipv6;
 
+  @override
   bool get isRunning => _uri != null;
 
   final DevToolsConfiguration? _devToolsConfiguration;
 
+  @override
   List<String> get cachedUserTags => UnmodifiableListView(_cachedUserTags);
   final List<String> _cachedUserTags;
 
+  @override
   Future<void> get done => _done.future;
-  Completer _done = Completer<void>();
+  final Completer _done = Completer<void>();
   bool _initializationComplete = false;
   bool _shuttingDown = false;
 
@@ -457,4 +503,19 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   late json_rpc.Peer vmServiceClient;
   late WebSocketChannel _vmServiceSocket;
   late HttpServer _server;
+}
+
+extension PeerExtension on json_rpc.Peer {
+  Future<dynamic> sendRequestAndIgnoreMethodNotFound(
+    String method, [
+    dynamic parameters,
+  ]) async {
+    try {
+      await sendRequest(method, parameters);
+    } on json_rpc.RpcException catch (e) {
+      if (e.code != RpcErrorCodes.kMethodNotFound) {
+        rethrow;
+      }
+    }
+  }
 }

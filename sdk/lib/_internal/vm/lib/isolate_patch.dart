@@ -73,7 +73,7 @@ class RawReceivePort {
   }
 }
 
-class _ReceivePortImpl extends Stream implements ReceivePort {
+final class _ReceivePortImpl extends Stream implements ReceivePort {
   _ReceivePortImpl([String debugName = ''])
       : this.fromRawReceivePort(new RawReceivePort(null, debugName));
 
@@ -132,12 +132,10 @@ Function _getIsolateScheduleImmediateClosure() {
 }
 
 @pragma("vm:entry-point")
-class _RawReceivePort implements RawReceivePort {
+final class _RawReceivePort implements RawReceivePort {
   factory _RawReceivePort(String debugName) {
     final port = _RawReceivePort._(debugName);
-    _portMap[port._get_id()] = <String, dynamic>{
-      'port': port,
-    };
+    _portMap[port._get_id()] = port;
     return port;
   }
 
@@ -149,9 +147,10 @@ class _RawReceivePort implements RawReceivePort {
     _portMap.remove(this._closeInternal());
   }
 
-  SendPort get sendPort {
-    return _get_sendport();
-  }
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "RawReceivePort_getSendPort")
+  external SendPort get sendPort;
 
   bool operator ==(var other) {
     return (other is _RawReceivePort) && (this._get_id() == other._get_id());
@@ -164,32 +163,30 @@ class _RawReceivePort implements RawReceivePort {
   /**** Internal implementation details ****/
   @pragma("vm:external-name", "RawReceivePort_get_id")
   external int _get_id();
-  @pragma("vm:external-name", "RawReceivePort_get_sendport")
-  external SendPort _get_sendport();
 
   // Called from the VM to retrieve the handler for a message.
   @pragma("vm:entry-point", "call")
   static _lookupHandler(int id) {
-    var result = _portMap[id]?['handler'];
-    return result;
+    return _portMap[id]?._handler;
   }
 
+  // Called from the VM service to enumerate ports.
   @pragma("vm:entry-point", "call")
   static _lookupOpenPorts() {
-    return _portMap.values.map((e) => e['port']).toList();
+    return _portMap.values.toList();
   }
 
-  // Called from the VM to retrieve  the handler and handle a message.
+  // Called from the VM to dispatch a message.
   @pragma("vm:entry-point", "call")
   static _handleMessage(int id, var message) {
-    final handler = _portMap[id]?['handler'];
+    final Function? handler = _portMap[id]?._handler;
     if (handler == null) {
       return null;
     }
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
     // so that we can run the immediate callbacks.
-    (handler as Function)(message);
+    handler(message);
     _runPendingImmediateCallback();
     return handler;
   }
@@ -205,21 +202,24 @@ class _RawReceivePort implements RawReceivePort {
   @pragma("vm:external-name", "RawReceivePort_setActive")
   external _setActive(bool active);
 
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "RawReceivePort_getHandler")
+  external Function? get _handler;
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "RawReceivePort_setHandler")
+  external set _handler(Function? handler);
+
   void set handler(Function? value) {
-    final int id = this._get_id();
-    if (!_portMap.containsKey(id)) {
-      _portMap[id] = <String, dynamic>{
-        'port': this,
-      };
-    }
-    _portMap[id]!['handler'] = value;
+    _handler = value;
   }
 
-  static final _portMap = <int, Map<String, dynamic>>{};
+  static final _portMap = <int, _RawReceivePort>{};
 }
 
 @pragma("vm:entry-point")
-class _SendPort implements SendPort {
+final class _SendPort implements SendPort {
   factory _SendPort._uninstantiable() {
     throw "Unreachable";
   }
@@ -249,7 +249,6 @@ class _SendPort implements SendPort {
   external void _sendInternal(var message);
 }
 
-typedef _NullaryFunction();
 typedef _UnaryFunction(Never args);
 typedef _BinaryFunction(Never args, Never message);
 
@@ -304,7 +303,7 @@ void _delayEntrypointInvocation(Function entryPoint, List<String>? args,
 }
 
 @patch
-class Isolate {
+final class Isolate {
   static final _currentIsolate = _getCurrentIsolate();
   static final _rootUri = _getCurrentRootUri();
 
@@ -348,13 +347,7 @@ class Isolate {
       SendPort? onExit,
       SendPort? onError,
       String? debugName}) async {
-    // `paused` isn't handled yet.
-    // Check for the type of `entryPoint` on the spawning isolate to make
-    // error-handling easier.
-    if (entryPoint is! _UnaryFunction) {
-      throw new ArgumentError(entryPoint);
-    }
-    // The VM will invoke [_startIsolate] with entryPoint as argument.
+    // The VM will invoke [_startIsolate] with [entryPoint] as argument.
 
     // We do not inherit the package config settings from the parent isolate,
     // instead we use the values that were set on the command line.
@@ -685,7 +678,7 @@ class Isolate {
 
 @patch
 @pragma("vm:entry-point")
-abstract class TransferableTypedData {
+abstract final class TransferableTypedData {
   @patch
   factory TransferableTypedData.fromList(List<TypedData> chunks) {
     if (chunks == null) {
@@ -702,7 +695,7 @@ abstract class TransferableTypedData {
 }
 
 @pragma("vm:entry-point")
-class _TransferableTypedDataImpl implements TransferableTypedData {
+final class _TransferableTypedDataImpl implements TransferableTypedData {
   @pragma("vm:external-name", "TransferableTypedData_factory")
   external factory _TransferableTypedDataImpl(List<TypedData> list);
 

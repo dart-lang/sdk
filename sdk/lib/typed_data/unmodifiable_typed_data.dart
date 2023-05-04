@@ -8,7 +8,7 @@ part of dart.typed_data;
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableByteBufferView.
-abstract class UnmodifiableByteBufferView implements ByteBuffer {
+abstract final class UnmodifiableByteBufferView implements ByteBuffer {
   external factory UnmodifiableByteBufferView(ByteBuffer data);
 }
 
@@ -16,7 +16,7 @@ abstract class UnmodifiableByteBufferView implements ByteBuffer {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableByteDataView.
-abstract class UnmodifiableByteDataView implements ByteData {
+abstract final class UnmodifiableByteDataView implements ByteData {
   external factory UnmodifiableByteDataView(ByteData data);
 }
 
@@ -24,7 +24,7 @@ abstract class UnmodifiableByteDataView implements ByteData {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint8ListView.
-abstract class UnmodifiableUint8ListView implements Uint8List {
+abstract final class UnmodifiableUint8ListView implements Uint8List {
   external factory UnmodifiableUint8ListView(Uint8List list);
 }
 
@@ -32,7 +32,7 @@ abstract class UnmodifiableUint8ListView implements Uint8List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt8ListView.
-abstract class UnmodifiableInt8ListView implements Int8List {
+abstract final class UnmodifiableInt8ListView implements Int8List {
   external factory UnmodifiableInt8ListView(Int8List list);
 }
 
@@ -40,7 +40,7 @@ abstract class UnmodifiableInt8ListView implements Int8List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint8ClampedListView.
-abstract class UnmodifiableUint8ClampedListView implements Uint8ClampedList {
+abstract final class UnmodifiableUint8ClampedListView implements Uint8ClampedList {
   external factory UnmodifiableUint8ClampedListView(Uint8ClampedList list);
 }
 
@@ -48,7 +48,7 @@ abstract class UnmodifiableUint8ClampedListView implements Uint8ClampedList {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint16ListView.
-abstract class UnmodifiableUint16ListView implements Uint16List {
+abstract final class UnmodifiableUint16ListView implements Uint16List {
   external factory UnmodifiableUint16ListView(Uint16List list);
 }
 
@@ -56,7 +56,7 @@ abstract class UnmodifiableUint16ListView implements Uint16List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt16ListView.
-abstract class UnmodifiableInt16ListView implements Int16List {
+abstract final class UnmodifiableInt16ListView implements Int16List {
   external factory UnmodifiableInt16ListView(Int16List list);
 }
 
@@ -64,7 +64,7 @@ abstract class UnmodifiableInt16ListView implements Int16List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint32ListView.
-abstract class UnmodifiableUint32ListView implements Uint32List {
+abstract final class UnmodifiableUint32ListView implements Uint32List {
   external factory UnmodifiableUint32ListView(Uint32List list);
 }
 
@@ -72,7 +72,7 @@ abstract class UnmodifiableUint32ListView implements Uint32List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt32ListView.
-abstract class UnmodifiableInt32ListView implements Int32List {
+abstract final class UnmodifiableInt32ListView implements Int32List {
   external factory UnmodifiableInt32ListView(Int32List list);
 }
 
@@ -80,7 +80,7 @@ abstract class UnmodifiableInt32ListView implements Int32List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint64ListView.
-abstract class UnmodifiableUint64ListView implements Uint64List {
+abstract final class UnmodifiableUint64ListView implements Uint64List {
   external factory UnmodifiableUint64ListView(Uint64List list);
 }
 
@@ -88,7 +88,7 @@ abstract class UnmodifiableUint64ListView implements Uint64List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt64ListView.
-abstract class UnmodifiableInt64ListView implements Int64List {
+abstract final class UnmodifiableInt64ListView implements Int64List {
   external factory UnmodifiableInt64ListView(Int64List list);
 }
 
@@ -96,7 +96,7 @@ abstract class UnmodifiableInt64ListView implements Int64List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt32x4ListView.
-abstract class UnmodifiableInt32x4ListView implements Int32x4List {
+abstract final class UnmodifiableInt32x4ListView implements Int32x4List {
   external factory UnmodifiableInt32x4ListView(Int32x4List list);
 }
 
@@ -104,7 +104,7 @@ abstract class UnmodifiableInt32x4ListView implements Int32x4List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat32x4ListView.
-abstract class UnmodifiableFloat32x4ListView implements Float32x4List {
+abstract final class UnmodifiableFloat32x4ListView implements Float32x4List {
   external factory UnmodifiableFloat32x4ListView(Float32x4List list);
 }
 
@@ -112,7 +112,7 @@ abstract class UnmodifiableFloat32x4ListView implements Float32x4List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat64x2ListView.
-abstract class UnmodifiableFloat64x2ListView implements Float64x2List {
+abstract final class UnmodifiableFloat64x2ListView implements Float64x2List {
   external factory UnmodifiableFloat64x2ListView(Float64x2List list);
 }
 
@@ -120,7 +120,7 @@ abstract class UnmodifiableFloat64x2ListView implements Float64x2List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat32ListView.
-abstract class UnmodifiableFloat32ListView implements Float32List {
+abstract final class UnmodifiableFloat32ListView implements Float32List {
   external factory UnmodifiableFloat32ListView(Float32List list);
 }
 
@@ -128,6 +128,6 @@ abstract class UnmodifiableFloat32ListView implements Float32List {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat64ListView.
-abstract class UnmodifiableFloat64ListView implements Float64List {
+abstract final class UnmodifiableFloat64ListView implements Float64List {
   external factory UnmodifiableFloat64ListView(Float64List list);
 }

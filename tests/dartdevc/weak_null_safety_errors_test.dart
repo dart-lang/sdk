@@ -4,7 +4,7 @@
 
 // Requirements=nnbd-weak
 
-// dartdevcOptions=--weak-null-safety-errors
+// ddcOptions=--weak-null-safety-errors
 
 import 'package:expect/expect.dart';
 

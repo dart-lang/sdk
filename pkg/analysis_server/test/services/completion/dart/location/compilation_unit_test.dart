@@ -6,7 +6,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_check.dart';
 import '../completion_printer.dart' as printer;
 
 void main() {
@@ -48,12 +47,12 @@ mixin CompilationUnitTestCases on AbstractCompletionDriverTest {
   }
 
   Future<void> test_definingUnit_export() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 exp^
 ''');
 
     if (isProtocolVersion2) {
-      assertResponseText(response, r'''
+      assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -63,17 +62,17 @@ suggestions
 ''');
     } else {
       // TODO(scheglov) This is wrong, should filter.
-      _protocol1Directives(response);
+      _protocol1Directives();
     }
   }
 
   Future<void> test_definingUnit_import() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 imp^
 ''');
 
     if (isProtocolVersion2) {
-      assertResponseText(response, r'''
+      assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -83,17 +82,17 @@ suggestions
 ''');
     } else {
       // TODO(scheglov) This is wrong, should filter.
-      _protocol1Directives(response);
+      _protocol1Directives();
     }
   }
 
   Future<void> test_definingUnit_part() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 par^
 ''');
 
     if (isProtocolVersion2) {
-      assertResponseText(response, r'''
+      assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -103,19 +102,19 @@ suggestions
 ''');
     } else {
       // TODO(scheglov) This is wrong, should filter.
-      _protocol1Directives(response);
+      _protocol1Directives();
     }
   }
 
-  void _protocol1Directives(CompletionResponseForTesting response) {
-    assertResponseText(response, r'''
+  void _protocol1Directives() {
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
-  import '';
+  export '';
     kind: keyword
     selection: 8
-  export '';
+  import '';
     kind: keyword
     selection: 8
   part '';

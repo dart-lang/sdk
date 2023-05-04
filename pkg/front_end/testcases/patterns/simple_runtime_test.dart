@@ -11,9 +11,12 @@ test(dynamic x) {
 }
 
 main() {
-  expectEquals(test(["one", "two", "three"]), "one");
+  expectEquals(test(["one", "two", "three"]), null);
+  expectEquals(test(["one"]), "one");
   expectEquals(test([1, 2, 3]), null);
+  expectEquals(test([1]), null);
   expectEquals(test([true, false]), null);
+  expectEquals(test([true]), null);
   expectEquals(test([]), null);
 }
 

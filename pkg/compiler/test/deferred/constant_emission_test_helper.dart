@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test that the additional runtime type support is output to the right
 // Files when using deferred loading.
 
@@ -28,17 +26,17 @@ class OutputUnitDescriptor {
 
 run(Map<String, String> sourceFiles, List<OutputUnitDescriptor> outputUnits,
     Map<String, Set<String>> expectedOutputUnits) async {
-  OutputCollector collector = new OutputCollector();
+  OutputCollector collector = OutputCollector();
   CompilationResult result = await runCompiler(
       memorySourceFiles: sourceFiles, outputProvider: collector);
   Compiler compiler = result.compiler;
   DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
-  ProgramLookup lookup = new ProgramLookup(compiler.backendStrategy);
-  var closedWorld = compiler.backendClosedWorldForTesting;
+  ProgramLookup lookup = ProgramLookup(compiler.backendStrategy);
+  var closedWorld = compiler.backendClosedWorldForTesting!;
   var elementEnvironment = closedWorld.elementEnvironment;
 
   LibraryEntity lookupLibrary(name) {
-    return elementEnvironment.lookupLibrary(Uri.parse(name));
+    return elementEnvironment.lookupLibrary(Uri.parse(name))!;
   }
 
   OutputUnit Function(MemberEntity) outputUnitForMember =
@@ -50,9 +48,9 @@ run(Map<String, String> sourceFiles, List<OutputUnitDescriptor> outputUnits,
   for (OutputUnitDescriptor descriptor in outputUnits) {
     LibraryEntity library = lookupLibrary(descriptor.uri);
     MemberEntity member =
-        elementEnvironment.lookupLibraryMember(library, descriptor.member);
+        elementEnvironment.lookupLibraryMember(library, descriptor.member)!;
     OutputUnit outputUnit = outputUnitForMember(member);
-    fragments[descriptor.name] = lookup.getFragment(outputUnit);
+    fragments[descriptor.name] = lookup.getFragment(outputUnit)!;
   }
 
   Map<String, Set<String>> actualOutputUnits = {};
@@ -62,7 +60,7 @@ run(Map<String, String> sourceFiles, List<OutputUnitDescriptor> outputUnits,
   void processFragment(String fragmentName, Fragment fragment) {
     for (Constant constant in fragment.constants) {
       String text = constant.value.toStructuredText(dartTypes);
-      Set<String> expectedConstantUnit = expectedOutputUnits[text];
+      Set<String>? expectedConstantUnit = expectedOutputUnits[text];
       if (expectedConstantUnit == null) {
         if (constant.value is DeferredGlobalConstantValue) {
           print('ERROR: No expectancy for $constant found in $fragmentName');

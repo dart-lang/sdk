@@ -1,0 +1,384 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:20:3: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   F<Object> local7a, local7b; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_variables.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:21:3: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   F<int> local8a, local8b; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_variables.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:28:3: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   G<Object> local7c, local8d; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_variables.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:29:3: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   G<int> local8c, local7d; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_variables.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:39:17: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(F<Object>) local7a, local7b; // Error
+//                 ^
+// pkg/front_end/testcases/general/bounds_variables.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:40:17: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(F<int>) local8a, local8b; // Error
+//                 ^
+// pkg/front_end/testcases/general/bounds_variables.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:47:17: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(G<Object>) local7c, local8d; // Error
+//                 ^
+// pkg/front_end/testcases/general/bounds_variables.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:48:17: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(G<int>) local8c, local7d; // Error
+//                 ^
+// pkg/front_end/testcases/general/bounds_variables.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:58:17: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(F<Object> f) local7a, local7b; // Error
+//                 ^
+// pkg/front_end/testcases/general/bounds_variables.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:59:17: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(F<int> f) local8a, local8b; // Error
+//                 ^
+// pkg/front_end/testcases/general/bounds_variables.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:66:17: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(G<Object> g) local7c, local8d; // Error
+//                 ^
+// pkg/front_end/testcases/general/bounds_variables.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:67:17: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(G<int> g) local8c, local7d; // Error
+//                 ^
+// pkg/front_end/testcases/general/bounds_variables.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:77:31: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(void Function(F<Object>)) local7a, local7b; // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_variables.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:78:31: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(void Function(F<int>)) local8a, local8b; // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_variables.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:85:31: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(void Function(G<Object>)) local7c, local8d; // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_variables.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:86:31: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(void Function(G<int>)) local8c, local7d; // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_variables.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:97:31: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(void Function(F<Object> f) f) local7a, local7b; // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_variables.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:98:31: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(void Function(F<int> f) f) local8a, local8b; // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_variables.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:106:31: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(void Function(G<Object> g) g) local7c, local8d; // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_variables.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_variables.dart:107:31: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_variables.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void Function(void Function(G<int> g) g) local8c, local7d; // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_variables.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends self::Class<X> = self::Class<dynamic>> = X;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+}
+class ConcreteClass extends core::Object implements self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+}
+class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
+  synthetic constructor •() → self::G<self::G::X>
+    : super core::Object::•()
+    ;
+}
+static method test1() → dynamic {
+  self::Class<dynamic> local1a;
+  self::Class<dynamic> local1b;
+  dynamic local2a;
+  dynamic local2b;
+  self::Class<dynamic> local3a;
+  self::Class<dynamic> local3b;
+  self::Class<dynamic> local4a;
+  self::Class<dynamic> local4b;
+  self::ConcreteClass local5a;
+  self::ConcreteClass local5b;
+  self::Class<self::ConcreteClass> local6a;
+  self::Class<self::ConcreteClass> local6b;
+  core::Object local7a;
+  core::Object local7b;
+  core::int local8a;
+  core::int local8b;
+  self::G<self::Class<dynamic>> local1c;
+  self::G<self::Class<dynamic>> local1d;
+  self::G<dynamic> local2c;
+  self::G<dynamic> local2d;
+  self::G<self::Class<dynamic>> local3c;
+  self::G<self::Class<dynamic>> local3d;
+  self::G<self::Class<dynamic>> local4c;
+  self::G<self::Class<dynamic>> local4d;
+  self::G<self::ConcreteClass> local5c;
+  self::G<self::ConcreteClass> local5d;
+  self::G<self::Class<self::ConcreteClass>> local6c;
+  self::G<self::Class<self::ConcreteClass>> local6d;
+  self::G<core::Object> local7c;
+  self::G<core::Object> local8d;
+  self::G<core::int> local8c;
+  self::G<core::int> local7d;
+}
+static method test2() → dynamic {
+  (self::Class<dynamic>) → void local1a;
+  (self::Class<dynamic>) → void local1b;
+  (dynamic) → void local2a;
+  (dynamic) → void local2b;
+  (self::Class<dynamic>) → void local3a;
+  (self::Class<dynamic>) → void local3b;
+  (self::Class<dynamic>) → void local4a;
+  (self::Class<dynamic>) → void local4b;
+  (self::ConcreteClass) → void local5a;
+  (self::ConcreteClass) → void local5b;
+  (self::Class<self::ConcreteClass>) → void local6a;
+  (self::Class<self::ConcreteClass>) → void local6b;
+  (core::Object) → void local7a;
+  (core::Object) → void local7b;
+  (core::int) → void local8a;
+  (core::int) → void local8b;
+  (self::G<self::Class<dynamic>>) → void local1c;
+  (self::G<self::Class<dynamic>>) → void local1d;
+  (self::G<dynamic>) → void local2c;
+  (self::G<dynamic>) → void local2d;
+  (self::G<self::Class<dynamic>>) → void local3c;
+  (self::G<self::Class<dynamic>>) → void local3d;
+  (self::G<self::Class<dynamic>>) → void local4c;
+  (self::G<self::Class<dynamic>>) → void local4d;
+  (self::G<self::ConcreteClass>) → void local5c;
+  (self::G<self::ConcreteClass>) → void local5d;
+  (self::G<self::Class<self::ConcreteClass>>) → void local6c;
+  (self::G<self::Class<self::ConcreteClass>>) → void local6d;
+  (self::G<core::Object>) → void local7c;
+  (self::G<core::Object>) → void local8d;
+  (self::G<core::int>) → void local8c;
+  (self::G<core::int>) → void local7d;
+}
+static method test3() → dynamic {
+  (self::Class<dynamic>) → void local1a;
+  (self::Class<dynamic>) → void local1b;
+  (dynamic) → void local2a;
+  (dynamic) → void local2b;
+  (self::Class<dynamic>) → void local3a;
+  (self::Class<dynamic>) → void local3b;
+  (self::Class<dynamic>) → void local4a;
+  (self::Class<dynamic>) → void local4b;
+  (self::ConcreteClass) → void local5a;
+  (self::ConcreteClass) → void local5b;
+  (self::Class<self::ConcreteClass>) → void local6a;
+  (self::Class<self::ConcreteClass>) → void local6b;
+  (core::Object) → void local7a;
+  (core::Object) → void local7b;
+  (core::int) → void local8a;
+  (core::int) → void local8b;
+  (self::G<self::Class<dynamic>>) → void local1c;
+  (self::G<self::Class<dynamic>>) → void local1d;
+  (self::G<dynamic>) → void local2c;
+  (self::G<dynamic>) → void local2d;
+  (self::G<self::Class<dynamic>>) → void local3c;
+  (self::G<self::Class<dynamic>>) → void local3d;
+  (self::G<self::Class<dynamic>>) → void local4c;
+  (self::G<self::Class<dynamic>>) → void local4d;
+  (self::G<self::ConcreteClass>) → void local5c;
+  (self::G<self::ConcreteClass>) → void local5d;
+  (self::G<self::Class<self::ConcreteClass>>) → void local6c;
+  (self::G<self::Class<self::ConcreteClass>>) → void local6d;
+  (self::G<core::Object>) → void local7c;
+  (self::G<core::Object>) → void local8d;
+  (self::G<core::int>) → void local8c;
+  (self::G<core::int>) → void local7d;
+}
+static method test4() → dynamic {
+  ((self::Class<dynamic>) → void) → void local1a;
+  ((self::Class<dynamic>) → void) → void local1b;
+  ((dynamic) → void) → void local2a;
+  ((dynamic) → void) → void local2b;
+  ((self::Class<dynamic>) → void) → void local3a;
+  ((self::Class<dynamic>) → void) → void local3b;
+  ((self::Class<dynamic>) → void) → void local4a;
+  ((self::Class<dynamic>) → void) → void local4b;
+  ((self::ConcreteClass) → void) → void local5a;
+  ((self::ConcreteClass) → void) → void local5b;
+  ((self::Class<self::ConcreteClass>) → void) → void local6a;
+  ((self::Class<self::ConcreteClass>) → void) → void local6b;
+  ((core::Object) → void) → void local7a;
+  ((core::Object) → void) → void local7b;
+  ((core::int) → void) → void local8a;
+  ((core::int) → void) → void local8b;
+  ((self::G<self::Class<dynamic>>) → void) → void local1c;
+  ((self::G<self::Class<dynamic>>) → void) → void local1d;
+  ((self::G<dynamic>) → void) → void local2c;
+  ((self::G<dynamic>) → void) → void local2d;
+  ((self::G<self::Class<dynamic>>) → void) → void local3c;
+  ((self::G<self::Class<dynamic>>) → void) → void local3d;
+  ((self::G<self::Class<dynamic>>) → void) → void local4c;
+  ((self::G<self::Class<dynamic>>) → void) → void local4d;
+  ((self::G<self::ConcreteClass>) → void) → void local5c;
+  ((self::G<self::ConcreteClass>) → void) → void local5d;
+  ((self::G<self::Class<self::ConcreteClass>>) → void) → void local6c;
+  ((self::G<self::Class<self::ConcreteClass>>) → void) → void local6d;
+  ((self::G<core::Object>) → void) → void local7c;
+  ((self::G<core::Object>) → void) → void local8d;
+  ((self::G<core::int>) → void) → void local8c;
+  ((self::G<core::int>) → void) → void local7d;
+}
+static method test5() → dynamic {
+  ((self::Class<dynamic>) → void) → void local1a;
+  ((self::Class<dynamic>) → void) → void local1b;
+  ((dynamic) → void) → void local2a;
+  ((dynamic) → void) → void local2b;
+  ((self::Class<dynamic>) → void) → void local3a;
+  ((self::Class<dynamic>) → void) → void local3b;
+  ((self::Class<dynamic>) → void) → void local4a;
+  ((self::Class<dynamic>) → void) → void local4b;
+  ((self::ConcreteClass) → void) → void local5a;
+  ((self::ConcreteClass) → void) → void local5b;
+  ((self::Class<self::ConcreteClass>) → void) → void local6a;
+  ((self::Class<self::ConcreteClass>) → void) → void local6b;
+  ((core::Object) → void) → void local7a;
+  ((core::Object) → void) → void local7b;
+  ((core::int) → void) → void local8a;
+  ((core::int) → void) → void local8b;
+  ((self::G<self::Class<dynamic>>) → void) → void local1c;
+  ((self::G<self::Class<dynamic>>) → void) → void local1d;
+  ((self::G<dynamic>) → void) → void local2c;
+  ((self::G<dynamic>) → void) → void local2d;
+  ((self::G<self::Class<dynamic>>) → void) → void local3c;
+  ((self::G<self::Class<dynamic>>) → void) → void local3d;
+  ((self::G<self::Class<dynamic>>) → void) → void local4c;
+  ((self::G<self::Class<dynamic>>) → void) → void local4d;
+  ((self::G<self::ConcreteClass>) → void) → void local5c;
+  ((self::G<self::ConcreteClass>) → void) → void local5d;
+  ((self::G<self::Class<self::ConcreteClass>>) → void) → void local6c;
+  ((self::G<self::Class<self::ConcreteClass>>) → void) → void local6d;
+  ((self::G<core::Object>) → void) → void local7c;
+  ((self::G<core::Object>) → void) → void local8d;
+  ((self::G<core::int>) → void) → void local8c;
+  ((self::G<core::int>) → void) → void local7d;
+}
+static method main() → dynamic {}

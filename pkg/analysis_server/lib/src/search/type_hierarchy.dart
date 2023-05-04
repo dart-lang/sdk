@@ -32,7 +32,8 @@ class TypeHierarchyComputer {
     var pivotClass = helper.pivotClass;
     if (pivotClass != null) {
       _createSuperItem(pivotClass, null);
-      await _createSubclasses(_items[0], 0, pivotClass);
+      var searchEngineCache = SearchEngineCache();
+      await _createSubclasses(_items[0], 0, pivotClass, searchEngineCache);
       return _items;
     }
     return null;
@@ -48,9 +49,13 @@ class TypeHierarchyComputer {
     return null;
   }
 
-  Future _createSubclasses(
-      TypeHierarchyItem item, int itemId, InterfaceElement classElement) async {
-    var subElements = await getDirectSubClasses(_searchEngine, classElement);
+  Future<void> _createSubclasses(
+      TypeHierarchyItem item,
+      int itemId,
+      InterfaceElement classElement,
+      SearchEngineCache searchEngineCache) async {
+    var subElements = await getDirectSubClasses(
+        _searchEngine, classElement, searchEngineCache);
     var subItemIds = <int>[];
     for (var subElement in subElements) {
       // check for recursion
@@ -83,7 +88,8 @@ class TypeHierarchyComputer {
     for (var subItemId in subItemIds) {
       var subItem = _items[subItemId];
       var subItemElement = _itemClassElements[subItemId];
-      await _createSubclasses(subItem, subItemId, subItemElement);
+      await _createSubclasses(
+          subItem, subItemId, subItemElement, searchEngineCache);
     }
   }
 

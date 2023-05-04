@@ -27,7 +27,7 @@ part of _interceptors;
 /// [tryComputeConstantInterceptor] to avoid most interceptor lookups on
 /// numbers.
 
-class JSNumber extends Interceptor implements double {
+final class JSNumber extends Interceptor implements double {
   const JSNumber();
 
   int compareTo(num b) {
@@ -340,7 +340,7 @@ class JSNumber extends Interceptor implements double {
 
   int operator ~/(num other) {
     if (other is! num) throw argumentErrorValue(other);
-    if (false) _tdivFast(other); // Ensure resolution.
+    if (JS_GET_FLAG('FALSE')) _tdivFast(other); // Ensure resolution.
     if (_isInt32(this)) {
       if (other >= 1 || other < -1) {
         return JS('int', r'(# / #) | 0', this, other);
@@ -400,7 +400,7 @@ class JSNumber extends Interceptor implements double {
   num operator >>(num other) {
     if (other is! num) throw argumentErrorValue(other);
     if (other < 0) throw argumentErrorValue(other);
-    if (false) _shrReceiverPositive(other);
+    if (JS_GET_FLAG('FALSE')) _shrReceiverPositive(other);
     return _shrOtherPositive(other);
   }
 
@@ -477,7 +477,8 @@ class JSNumber extends Interceptor implements double {
     return JS('bool', '# >= #', this, other);
   }
 
-  Type get runtimeType => num;
+  // Same as `=> num;`, but without a constant-pool object.
+  Type get runtimeType => createRuntimeType(TYPE_REF<num>());
 }
 
 /// The interceptor class for [int]s.
@@ -486,7 +487,7 @@ class JSNumber extends Interceptor implements double {
 /// JavaScript all numbers are doubles, so while we want to treat `2.0` as an
 /// integer for some operations, its interceptor should answer `true` to `is
 /// double`.
-class JSInt extends JSNumber implements int {
+final class JSInt extends JSNumber implements int, TrustedGetRuntimeType {
   const JSInt();
 
   @override
@@ -683,19 +684,23 @@ class JSInt extends JSNumber implements int {
     return _binaryGcd(x, y, false);
   }
 
-  Type get runtimeType => int;
+  // Same as `=> int;`, but without a constant-pool object.
+  Type get runtimeType => createRuntimeType(TYPE_REF<int>());
 
   int operator ~() => JS('JSUInt32', r'(~#) >>> 0', this);
 }
 
 /// Interceptor for JavaScript values that are not a subclass of [JSInt].
-class JSNumNotInt extends JSNumber implements double {
+final class JSNumNotInt extends JSNumber
+    implements double, TrustedGetRuntimeType {
   const JSNumNotInt();
-  Type get runtimeType => double;
+
+  // Same as `=> double;`, but without a constant-pool object.
+  Type get runtimeType => createRuntimeType(TYPE_REF<double>());
 }
 
-class JSPositiveInt extends JSInt {}
+final class JSPositiveInt extends JSInt {}
 
-class JSUInt32 extends JSPositiveInt {}
+final class JSUInt32 extends JSPositiveInt {}
 
-class JSUInt31 extends JSUInt32 {}
+final class JSUInt31 extends JSUInt32 {}

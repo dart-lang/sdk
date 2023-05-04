@@ -8,7 +8,7 @@ class MyClass {}
 
 @pragma('dart2js:noInline')
 method3() {
-  /*4:method3*/ throw new MyClass();
+  /*4:method3*/ throw MyClass();
 }
 
 method2() => /*3:method2*/ method3();

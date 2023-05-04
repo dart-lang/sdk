@@ -513,8 +513,8 @@ main() {
     test('callMethod with List edge cases', () {
       var o = CallMethodTest();
 
-      expect(js_util.callMethod(o, 'zero', List()), equals('zero'));
-      expect(js_util.callMethod(o, 'zero', List<int>()), equals('zero'));
+      expect(js_util.callMethod(o, 'zero', []), equals('zero'));
+      expect(js_util.callMethod(o, 'zero', <int>[]), equals('zero'));
       expect(js_util.callMethod(o, 'zero', List.empty()), equals('zero'));
       expect(js_util.callMethod(o, 'zero', List<int>.empty()), equals('zero'));
 
@@ -607,12 +607,10 @@ main() {
     });
 
     test('callConstructor with List edge cases', () {
-      expect(
-          js_util.getProperty(js_util.callConstructor(Zero, List()), 'count'),
+      expect(js_util.getProperty(js_util.callConstructor(Zero, []), 'count'),
           equals(0));
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Zero, List<int>()), 'count'),
+          js_util.getProperty(js_util.callConstructor(Zero, <int>[]), 'count'),
           equals(0));
       expect(
           js_util.getProperty(

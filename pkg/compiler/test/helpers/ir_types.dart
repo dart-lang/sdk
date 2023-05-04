@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:kernel/ast.dart' as ir;
 
 class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
@@ -11,7 +9,7 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
 
   @override
   void defaultDartType(ir.DartType node, StringBuffer sb) {
-    throw new UnsupportedError("Unhandled type $node (${node.runtimeType}).");
+    throw UnsupportedError("Unhandled type $node (${node.runtimeType}).");
   }
 
   void writeType(ir.DartType type, StringBuffer sb) {
@@ -130,8 +128,8 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
-  void visitViewType(ir.ViewType node, StringBuffer sb) {
-    writeType(node.representationType, sb);
+  void visitInlineType(ir.InlineType node, StringBuffer sb) {
+    writeType(node.instantiatedRepresentationType, sb);
   }
 
   @override
@@ -168,13 +166,13 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
 }
 
 String typeToText(ir.DartType type) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   const TypeTextVisitor().writeType(type, sb);
   return sb.toString();
 }
 
 String typesToText(Iterable<ir.DartType> types) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   String comma = '';
   for (ir.DartType type in types) {
     sb.write(comma);

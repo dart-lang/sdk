@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -49,12 +47,12 @@ main() {
   method2();
   method3();
   method4();
-  new JsClass1()..jsMethod1()..jsMethod2();
-  new JsClass2();
+  JsClass1()..jsMethod1()..jsMethod2();
+  JsClass2();
   jsMethod3();
-  new NativeClass1()..nativeMethod()..nativeField;
-  new NativeClass2()..nativeField;
-  new NativeClass3()..nativeMethod()..nativeGetter;
+  NativeClass1()..nativeMethod()..nativeField;
+  NativeClass2()..nativeField;
+  NativeClass3()..nativeMethod()..nativeGetter;
   nativeMethod();
 }
 ''',
@@ -183,11 +181,11 @@ main(List<String> args) {
 
   asyncTest(() async {
     ArgResults argResults = argParser.parse(args);
-    Uri librariesSpecificationUri = getLibrariesSpec(argResults);
-    Uri packageConfig = getPackages(argResults);
+    Uri? librariesSpecificationUri = getLibrariesSpec(argResults);
+    Uri? packageConfig = getPackages(argResults);
     List<String> options = getOptions(argResults);
 
-    runTest({bool useIr}) async {
+    runTest({required bool useIr}) async {
       CompilationResult result = await runCompiler(
           entryPoint: Uri.parse('memory:$pathPrefix/main.dart'),
           memorySourceFiles: source,
@@ -204,14 +202,16 @@ main(List<String> args) {
 
       void testAll(NativeData nativeData) {
         void testMember(String idPrefix, ir.Member member,
-            {bool implicitJsInteropMember, bool implicitNativeMember}) {
+            {required bool implicitJsInteropMember,
+            required bool implicitNativeMember}) {
           if (memberIsIgnorable(member)) return;
           String memberId = '$idPrefix::${member.name.text}';
           MemberEntity memberEntity = elementMap.getMember(member);
 
-          String expectedJsInteropMemberName =
+          String? expectedJsInteropMemberName =
               expectedJsInteropMemberNames[memberId];
-          String expectedNativeMemberName = expectedNativeMemberNames[memberId];
+          String? expectedNativeMemberName =
+              expectedNativeMemberNames[memberId];
           Set<String> expectedPragmaNames = {};
           if (expectedNoInlineMethods.contains(memberId)) {
             expectedPragmaNames.add('dart2js:noInline');
@@ -220,8 +220,8 @@ main(List<String> args) {
             expectedPragmaNames.add('dart2js:tryInline');
           }
 
-          String expectedCreatesText = expectedCreates[memberId];
-          String expectedReturnsText = expectedReturns[memberId];
+          String? expectedCreatesText = expectedCreates[memberId];
+          String? expectedReturnsText = expectedReturns[memberId];
 
           if (useIr) {
             Expect.equals(
@@ -306,7 +306,7 @@ main(List<String> args) {
                   .join(',');
             } else {
               createsText = nativeData
-                  .getNativeMethodBehavior(memberEntity)
+                  .getNativeMethodBehavior(memberEntity as FunctionEntity)
                   .typesInstantiated
                   .join(',');
             }
@@ -326,7 +326,7 @@ main(List<String> args) {
                   .join(',');
             } else {
               returnsText = nativeData
-                  .getNativeMethodBehavior(memberEntity)
+                  .getNativeMethodBehavior(memberEntity as FunctionEntity)
                   .typesReturned
                   .join(',');
             }
@@ -354,7 +354,7 @@ main(List<String> args) {
             String libraryId = library.importUri.path;
             LibraryEntity libraryEntity = elementMap.getLibrary(library);
 
-            String expectedJsInteropLibraryName =
+            String? expectedJsInteropLibraryName =
                 expectedJsInteropLibraryNames[libraryId];
             if (useIr) {
               Expect.equals(
@@ -375,7 +375,7 @@ main(List<String> args) {
               String clsId = '$libraryId::${cls.name}';
               ClassEntity classEntity = elementMap.getClass(cls);
 
-              String expectedNativeClassName = expectedNativeClassNames[clsId];
+              String? expectedNativeClassName = expectedNativeClassNames[clsId];
               if (useIr) {
                 Expect.equals(
                     expectedNativeClassName,
@@ -384,7 +384,7 @@ main(List<String> args) {
               }
               bool isNativeClass = nativeData.isNativeClass(classEntity) &&
                   !nativeData.isJsInteropClass(classEntity);
-              String nativeDataClassName;
+              String? nativeDataClassName;
               if (isNativeClass) {
                 nativeDataClassName =
                     nativeData.getNativeTagsOfClass(classEntity).join(',');
@@ -398,7 +398,7 @@ main(List<String> args) {
               Expect.equals(expectedNativeClassName, nativeDataClassName,
                   "Unexpected native class name from native data for $cls");
 
-              String expectedJsInteropClassName =
+              String? expectedJsInteropClassName =
                   expectedJsInteropClassNames[clsId];
               if (useIr) {
                 Expect.equals(
@@ -448,7 +448,7 @@ main(List<String> args) {
         }
       }
 
-      testAll(compiler.frontendClosedWorldForTesting.nativeData);
+      testAll(compiler.frontendClosedWorldForTesting!.nativeData);
       if (useIr) {
         // We need to open the environment because creating annotation data
         // from IR will create K-model classes and members for all annotations

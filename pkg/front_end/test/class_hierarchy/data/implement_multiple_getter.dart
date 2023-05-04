@@ -137,7 +137,10 @@ abstract class AbstractClass implements Interface1, Interface2 {
 /*class: ConcreteSub:
  abstractMembers=[
   AbstractClass.declareAbstractImplementMultipleGetter,
-  AbstractClass.implementMultipleGetter],
+  Interface1.declareAbstractImplementMultipleGetter,
+  Interface1.implementMultipleGetter,
+  Interface2.declareAbstractImplementMultipleGetter,
+  Interface2.implementMultipleGetter],
  interfaces=[
   Interface1,
   Interface2],

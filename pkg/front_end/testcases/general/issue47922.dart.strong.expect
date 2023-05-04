@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue47922.dart:8:5: Error: Can't have modifier 'const' here.
+// Try removing 'const'.
+//   A(const this.foo);
+//     ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::String foo;
+  constructor •(core::String foo) → self::A
+    : self::A::foo = foo, super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

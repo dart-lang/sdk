@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 class Class1<T> {
   /*member: Class1.field:hasThis*/
   var field = /*fields=[T],free=[T],hasThis*/ () => T;
 
   /*member: Class1.funcField:hasThis*/
-  Function funcField;
+  Function? funcField;
 
   /*member: Class1.:hasThis*/
   Class1() {
@@ -20,11 +18,11 @@ class Class1<T> {
   Class1.setFunc(this.funcField);
 
   /*member: Class1.fact:*/
-  factory Class1.fact() => new Class1<T>();
+  factory Class1.fact() => Class1<T>();
 
   /*member: Class1.fact2:*/
   factory Class1.fact2() =>
-      new Class1.setFunc(/*fields=[T],free=[T]*/ () => new Set<T>());
+      Class1.setFunc(/*fields=[T],free=[T]*/ () => Set<T>());
 
   /*member: Class1.method1:hasThis*/
   method1() => T;
@@ -64,7 +62,7 @@ class Class1<T> {
       return
           /*prod.hasThis*/
           /*spec.fields=[S,this],free=[S,this],hasThis*/
-          () => new Map<T, S>();
+          () => Map<T, S>();
     };
     return local2(local<double>());
   }
@@ -93,7 +91,7 @@ class Class1<T> {
     }
 
     var local2 = /*fields=[S],free=[S]*/ (o) {
-      return /*fields=[S],free=[S]*/ () => new Set<S>();
+      return /*fields=[S],free=[S]*/ () => Set<S>();
     };
     return local2(local<double>());
   }
@@ -123,20 +121,20 @@ topLevelMethod4<S>() {
   }
 
   var local2 = /*fields=[S],free=[S]*/ (o) {
-    return /*fields=[S],free=[S]*/ () => new Set<S>();
+    return /*fields=[S],free=[S]*/ () => Set<S>();
   };
   return local2(local<double>());
 }
 
 /*member: main:*/
 main() {
-  new Class1<int>().method1();
-  new Class1<int>.fact().method2();
-  new Class1<int>.fact2().funcField() is Set;
-  new Class1<int>().method3<double>();
-  new Class1<int>().method4<double>();
-  new Class1<int>().method5();
-  new Class1<int>().method6<double>();
+  Class1<int>().method1();
+  Class1<int>.fact().method2();
+  Class1<int>.fact2().funcField!() is Set;
+  Class1<int>().method3<double>();
+  Class1<int>().method4<double>();
+  Class1<int>().method5();
+  Class1<int>().method6<double>();
   Class1.staticMethod1<double>();
   Class1.staticMethod2<double>();
   Class1.staticMethod3();

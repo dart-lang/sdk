@@ -39,6 +39,7 @@ import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
+import 'package:unified_analytics/unified_analytics.dart';
 
 /// The [Driver] class represents a single running instance of the analysis
 /// server application.  It is responsible for parsing command line options
@@ -71,10 +72,10 @@ class Driver implements ServerStarter {
   /// The name of the option used to print usage information.
   static const String HELP_OPTION = 'help';
 
-  /// The name of the flag used to configure reporting analytics.
+  /// The name of the flag used to configure reporting legacy analytics.
   static const String ANALYTICS_FLAG = 'analytics';
 
-  /// Suppress analytics for this session.
+  /// Suppress legacy analytics for this session.
   static const String SUPPRESS_ANALYTICS_FLAG = 'suppress-analytics';
 
   /// The name of the option used to cause instrumentation to also be written to
@@ -182,13 +183,14 @@ class Driver implements ServerStarter {
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
 
-    // Analytics
+    // Analytics (legacy, and unified)
     var disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG] as bool;
+
     if (results.wasParsed(TRAIN_USING)) {
       disableAnalyticsForSession = true;
     }
 
-    // Use sdkConfig to optionally override analytics settings.
+    // Use sdkConfig to optionally override legacy analytics settings.
     final analyticsId = sdkConfig.analyticsId ?? 'UA-26406144-29';
     final forceAnalyticsEnabled = sdkConfig.analyticsForceEnabled == true;
     var analytics = telemetry.createAnalyticsInstance(
@@ -204,7 +206,29 @@ class Driver implements ServerStarter {
     if (analysisServerOptions.clientVersion != null) {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
-    var analyticsManager = AnalyticsManager(NoopAnalytics());
+
+    final defaultSdkPath = _getSdkPath(results);
+    final dartSdkManager = DartSdkManager(defaultSdkPath);
+
+    // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
+    // can't be re-used, but the SDK is needed to create a package map provider
+    // in the case where we need to run `pub` in order to get the package map.
+    var defaultSdk = _createDefaultSdk(defaultSdkPath);
+
+    // Create the analytics manager.
+    AnalyticsManager analyticsManager;
+    if (disableAnalyticsForSession) {
+      analyticsManager = AnalyticsManager(NoopAnalytics());
+    } else {
+      // TODO(jcollins): implement a full map of `clientId`s to tools to cover
+      // more analyzer entry points than vscode.
+      if (clientId == 'VS-Code') {
+        analyticsManager = AnalyticsManager(_createAnalytics(
+            defaultSdk, defaultSdkPath, DashTool.vscodePlugins));
+      } else {
+        analyticsManager = AnalyticsManager(NoopAnalytics());
+      }
+    }
 
     bool shouldSendCallback() {
       // Check sdkConfig to optionally force reporting on.
@@ -212,8 +236,9 @@ class Driver implements ServerStarter {
         return true;
       }
 
-      // TODO(devoncarew): Replace with a real enablement check.
-      return false;
+      // Reuse the unified_analytics consent mechanism to determine whether
+      // we can send a crash report.
+      return analyticsManager.analytics.okToSend;
     }
 
     // Crash reporting
@@ -248,22 +273,12 @@ class Driver implements ServerStarter {
       return;
     }
 
-    final defaultSdkPath = _getSdkPath(results);
-    final dartSdkManager = DartSdkManager(defaultSdkPath);
-
-    // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
-    // can't be re-used, but the SDK is needed to create a package map provider
-    // in the case where we need to run `pub` in order to get the package map.
-    var defaultSdk = _createDefaultSdk(defaultSdkPath);
-    //
     // Record the start of the session.
-    //
     analyticsManager.startUp(
         time: sessionStartTime,
         arguments: _getArgumentsForAnalytics(results),
         clientId: clientId,
-        clientVersion: analysisServerOptions.clientVersion,
-        sdkVersion: defaultSdk.sdkVersion);
+        clientVersion: analysisServerOptions.clientVersion);
     //
     // Initialize the instrumentation service.
     //
@@ -274,8 +289,9 @@ class Driver implements ServerStarter {
         : [this.instrumentationService!];
     if (logFilePath != null) {
       _rollLogFiles(logFilePath, 5);
-      allInstrumentationServices.add(
-          InstrumentationLogAdapter(FileInstrumentationLogger(logFilePath)));
+      allInstrumentationServices.add(InstrumentationLogAdapter(
+          FileInstrumentationLogger(logFilePath),
+          watchEventExclusionFiles: {logFilePath}));
     }
 
     var errorNotifier = ErrorNotifier();
@@ -440,7 +456,7 @@ class Driver implements ServerStarter {
       }();
     } else {
       capture(instrumentationService, () {
-        Future serveResult;
+        Future<void> serveResult;
         if (sendPort == null) {
           var stdioServer = StdioAnalysisServer(socketServer);
           serveResult = stdioServer.serveStdio();
@@ -532,6 +548,29 @@ class Driver implements ServerStarter {
     var zoneSpecification = ZoneSpecification(
         handleUncaughtError: errorFunction, print: printFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
+  }
+
+  /// Create the `Analytics` instance to be used to report analytics.
+  Analytics _createAnalytics(
+      DartSdk dartSdk, String dartSdkPath, DashTool tool) {
+    // TODO(brianwilkerson) Find out whether there's a way to get the channel
+    //  without running `flutter channel`.
+    var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+    var flutterSdkRoot = pathContext
+        .dirname(pathContext.dirname(pathContext.dirname(dartSdkPath)));
+    var flutterVersionFile = PhysicalResourceProvider.INSTANCE
+        .getFile(pathContext.join(flutterSdkRoot, 'version'));
+    String? flutterVersion;
+    try {
+      flutterVersion = flutterVersionFile.readAsStringSync();
+    } catch (exception) {
+      // If we can't read the file, ignore it.
+    }
+    return Analytics(
+        tool: tool,
+        dartVersion: dartSdk.sdkVersion,
+        // flutterChannel: '',
+        flutterVersion: flutterVersion);
   }
 
   DartSdk _createDefaultSdk(String defaultSdkPath) {
@@ -749,12 +788,13 @@ class Driver implements ServerStarter {
     // Hidden; these have not yet been made public.
     //
     parser.addFlag(ANALYTICS_FLAG,
-        help: 'enable or disable sending analytics information to Google',
+        help: 'Allow or disallow sending analytics information to '
+            'Google for this session.',
         hide: !telemetry.showAnalyticsUI);
     parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
         negatable: false,
-        help: 'suppress analytics for this session',
-        hide: !telemetry.showAnalyticsUI);
+        help: 'Suppress analytics for this session.',
+        hide: true);
 
     //
     // Hidden; these are for internal development.
@@ -762,7 +802,7 @@ class Driver implements ServerStarter {
     parser.addOption(TRAIN_USING,
         valueHelp: 'path',
         help: 'Pass in a directory to analyze for purposes of training an '
-            'analysis server snapshot.',
+            'analysis server snapshot.  Disables analytics.',
         hide: true);
     parser.addFlag(DISABLE_SERVER_EXCEPTION_HANDLING,
         // TODO(jcollins-g): Pipeline option through and apply to all
@@ -844,7 +884,7 @@ class _DiagnosticServerImpl extends DiagnosticServer {
   @override
   Future<int> getServerPort() async => (await httpServer.serveHttp())!;
 
-  Future startOnPort(int port) {
+  Future<void> startOnPort(int port) {
     return httpServer.serveHttp(port);
   }
 }

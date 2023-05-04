@@ -120,6 +120,14 @@ struct InstantiationABI {
   static const Register kScratchReg = EDI;  // On ia32 we don't use CODE_REG.
 };
 
+// Registers in addition to those listed in InstantiationABI used inside the
+// implementation of the InstantiateTypeArguments stubs.
+struct InstantiateTAVInternalRegs {
+  // On IA32, we don't do hash cache checks in the stub. We only define
+  // kSavedRegisters to avoid needing to #ifdef uses of it.
+  static const intptr_t kSavedRegisters = 0;
+};
+
 // Calling convention when calling SubtypeTestCacheStub.
 // Although ia32 uses a stack-based calling convention, we keep the same
 // 'TypeTestABI' name for symmetry with other architectures with a proper ABI.
@@ -247,8 +255,7 @@ struct AllocateArrayABI {
 // ABI for AllocateRecordStub.
 struct AllocateRecordABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kNumFieldsReg = EDX;
-  static const Register kFieldNamesReg = ECX;
+  static const Register kShapeReg = EDX;
   static const Register kTemp1Reg = EBX;
   static const Register kTemp2Reg = EDI;
 };
@@ -257,7 +264,7 @@ struct AllocateRecordABI {
 // AllocateRecord3, AllocateRecord3Named).
 struct AllocateSmallRecordABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kFieldNamesReg = EBX;
+  static const Register kShapeReg = EBX;
   static const Register kValue0Reg = ECX;
   static const Register kValue1Reg = EDX;
   static const Register kValue2Reg = kNoRegister;
@@ -284,10 +291,11 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = EAX;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub,
+// ABI for SuspendStub (AwaitStub, AwaitWithTypeCheckStub, YieldAsyncStarStub,
 // SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = EAX;
+  static const Register kTypeArgsReg = EDX;  // Can be the same as kTempReg
   static const Register kTempReg = EDX;
   static const Register kFrameSizeReg = ECX;
   static const Register kSuspendStateReg = EBX;
@@ -481,6 +489,8 @@ class CallingConventions {
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
       kAlignedToWordSize;
+  static constexpr AlignmentStrategy kArgumentRegisterAlignmentVarArgs =
+      kArgumentRegisterAlignment;
 
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =

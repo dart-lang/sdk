@@ -112,5 +112,5 @@ main() {
   field2c = field2c;
   field2d();
 
-  new Class().test();
+  Class().test();
 }

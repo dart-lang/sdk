@@ -44,24 +44,26 @@ void f() {
     await resolveTestCode('''
 // Copyright header.
 
-// ignore_for_file: foo
+// ignore_for_file: referenced_before_declaration
 
 // Some other header.
 
 /// some comment
 void f() {
+  a = 2;
   var a = 1;
 }
 ''');
     await assertHasFix('''
 // Copyright header.
 
-// ignore_for_file: foo, unused_local_variable
+// ignore_for_file: referenced_before_declaration, unused_local_variable
 
 // Some other header.
 
 /// some comment
 void f() {
+  a = 2;
   var a = 1;
 }
 ''');
@@ -149,14 +151,14 @@ void f() {
   Future<void> test_existingIgnore() async {
     await resolveTestCode('''
 void f() {
-  // ignore: foo
-  var a = 1;
+  // ignore: undefined_identifier
+  var a = b;
 }
 ''');
     await assertHasFix('''
 void f() {
-  // ignore: foo, unused_local_variable
-  var a = 1;
+  // ignore: undefined_identifier, unused_local_variable
+  var a = b;
 }
 ''');
   }

@@ -6,9 +6,11 @@ import '../../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart' show DartType;
-import '../../ir/class_relation.dart';
+import '../../ir/static_type.dart';
 import '../../js_model/js_world.dart';
 import '../../serialization/serialization.dart';
+import '../../universe/member_hierarchy.dart';
+import '../../universe/record_shape.dart';
 import '../../universe/selector.dart';
 import '../../universe/world_builder.dart';
 import '../../universe/use.dart';
@@ -233,6 +235,32 @@ class PowersetDomain with AbstractValueDomain {
   bool isDictionary(covariant PowersetValue value) =>
       _powersetBitsDomain.isOther(value._powersetBits).isPotentiallyTrue &&
       _abstractValueDomain.isDictionary(value._abstractValue);
+
+  @override
+  AbstractValue createRecordValue(
+      RecordShape shape, List<AbstractValue> types) {
+    AbstractValue abstractValue = _abstractValueDomain.createRecordValue(
+        shape,
+        types
+            .map((e) => (e as PowersetValue)._abstractValue)
+            .toList(growable: false));
+    return PowersetValue(abstractValue, _powersetBitsDomain.powersetTop);
+  }
+
+  @override
+  bool isRecord(covariant PowersetValue value) =>
+      _powersetBitsDomain.isOther(value._powersetBits).isPotentiallyTrue &&
+      _abstractValueDomain.isRecord(value._abstractValue);
+
+  @override
+  bool recordHasGetter(covariant PowersetValue value, String getterName) =>
+      _abstractValueDomain.recordHasGetter(value._abstractValue, getterName);
+
+  @override
+  AbstractValue getGetterTypeInRecord(
+          covariant PowersetValue value, String getterName) =>
+      _abstractValueDomain.getGetterTypeInRecord(
+          value._abstractValue, getterName);
 
   @override
   AbstractValue getMapValueType(covariant PowersetValue value) {
@@ -804,8 +832,20 @@ class PowersetDomain with AbstractValueDomain {
       _abstractValueDomain.functionType, _powersetBitsDomain.functionType);
 
   @override
+  AbstractValue get recordType => PowersetValue(
+      _abstractValueDomain.recordType, _powersetBitsDomain.recordType);
+
+  @override
   AbstractValue get typeType => PowersetValue(
       _abstractValueDomain.typeType, _powersetBitsDomain.typeType);
+
+  @override
+  Iterable<DynamicCallTarget> findRootsOfTargets(
+          covariant PowersetValue receiver,
+          Selector selector,
+          MemberHierarchyBuilder memberHierarchyBuilder) =>
+      _abstractValueDomain.findRootsOfTargets(
+          receiver.abstractValue, selector, memberHierarchyBuilder);
 }
 
 class PowersetStrategy implements AbstractValueStrategy {

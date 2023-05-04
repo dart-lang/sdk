@@ -84,7 +84,7 @@ class MoveAnnotationToLibraryDirective extends CorrectionProducer {
       while (commentOnFirstToken!.next != null) {
         commentOnFirstToken = commentOnFirstToken.next!;
       }
-      // `token` is now the last of the leading comments (perhaps a Copyight
+      // `token` is now the last of the leading comments (perhaps a Copyright
       // notice, a Dart language version, etc.)
       insertionOffset = commentOnFirstToken.end;
       prefix = '$eol$eol';

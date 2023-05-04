@@ -27,13 +27,13 @@ class Y extends core::Object implements self::X {
 }
 static method main() → dynamic {
   self::Y y = new self::Y::•();
-  y.{self::X::foo}(){() → void};
+  y.{self::Y::foo}(){() → void};
 }
 
 constants  {
   #C1 = #org-dartlang-testcase:///no_such_method_forwarder.dart::_foo
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{)
+  #C4 = <core::Symbol*, dynamic>{}
   #C5 = #foo
 }

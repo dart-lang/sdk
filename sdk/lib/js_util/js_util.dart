@@ -23,12 +23,13 @@ library dart.js_util;
 /// instead to use `@anonymous` `@JS()` annotated classes to create map-like
 /// objects for JS interop.
 ///
-/// The argument must be a [Map] or [Iterable], the contents of which are also
-/// deeply converted. Maps are converted into JavaScript objects. Iterables are
-/// converted into arrays. Strings, numbers, bools, and `@JS()` annotated
-/// objects are passed through unmodified. Dart objects are also passed through
-/// unmodified, but their members aren't usable from JavaScript.
-external dynamic jsify(Object object);
+/// If the argument are a [Map] or [Iterable], then they will be deeply
+/// converted.  Maps are converted into JavaScript objects. Iterables are
+/// converted into arrays. `@JS()` annotated objects are passed through
+/// unmodified. Dart objects are also passed through unmodified, but their
+/// members aren't usable from JavaScript.  The conversion logic for
+/// primitives(numbers, bools, and Strings) is backend specific.
+external dynamic jsify(Object? object);
 
 external Object get globalThis;
 
@@ -45,7 +46,7 @@ external T setProperty<T>(Object o, Object name, T? value);
 // A CFE transformation may optimize calls to `callMethod` when [args] is a
 // a list literal or const list containing at most 4 values, all of which are
 // statically known to be non-functions.
-external T callMethod<T>(Object o, String method, List<Object?> args);
+external T callMethod<T>(Object o, Object method, List<Object?> args);
 
 /// Check whether [o] is an instance of [type].
 ///
@@ -97,6 +98,31 @@ external bool lessThan<T>(Object? first, Object? second);
 /// Perform JavaScript less than or equal comparison (`<=`) of two values.
 external bool lessThanOrEqual<T>(Object? first, Object? second);
 
+/// Perform JavaScript `typeof` operator on the given object and determine if
+/// the result is equal to the given type. Exposes the whole `typeof` equal
+/// expression to maximize browser optimization.
+external bool typeofEquals<T>(Object? o, String type);
+
+/// Perform JavaScript logical not (`!`) on the given object.
+external T not<T>(Object? o);
+
+/// Determines if the given object is truthy or falsy.
+external bool isTruthy<T>(Object? o);
+
+/// Perform JavaScript logical or comparison (`||`) of two expressions.
+external T or<T>(Object? first, Object? second);
+
+/// Perform JavaScript logical and comparison (`&&`) of two expressions.
+external T and<T>(Object? first, Object? second);
+
+/// Perform JavaScript delete operator (`delete`) on the given property of the
+/// given object.
+external bool delete<T>(Object o, Object property);
+
+/// Perform JavaScript unsigned right shift operator (`>>>`) on the given left
+/// operand by the amount specified by the given right operand.
+external num unsignedRightShift(Object? leftOperand, Object? rightOperand);
+
 /// Exception for when the promise is rejected with a `null` or `undefined`
 /// value.
 ///
@@ -106,7 +132,7 @@ class NullRejectionException implements Exception {
   // Indicates whether the value is `undefined` or `null`.
   final bool isUndefined;
 
-  NullRejectionException._(this.isUndefined);
+  NullRejectionException(this.isUndefined);
 
   @override
   String toString() {
@@ -231,3 +257,25 @@ external T createStaticInteropMock<T extends Object, U extends Object>(
 /// Expect.isTrue(counter.stringify(), export.stringify());
 /// ```
 external Object createDartExport<T extends Object>(T dartObject);
+
+/// Returns a wrapper around function [f] that can be called from JavaScript
+/// using `package:js` JavaScript interop.
+///
+/// The calling conventions in Dart web backends differ from JavaScript and so,
+/// by default, it is not possible to call a Dart function directly. Wrapping
+/// with `allowInterop` creates a function that can be called from JavaScript or
+/// Dart. The semantics of the wrapped function are still more strict than
+/// JavaScript, and the function will throw if called with too many or too few
+/// arguments.
+///
+/// Calling this method repeatedly on a function will return the same result.
+external F allowInterop<F extends Function>(F f);
+
+/// Returns a wrapper around function [f] that can be called from JavaScript
+/// using `package:js` JavaScript interop, passing JavaScript `this` as the
+/// first argument.
+///
+/// See [allowInterop].
+///
+/// When called from Dart, `null` will be passed as the first argument.
+external Function allowInteropCaptureThis(Function f);

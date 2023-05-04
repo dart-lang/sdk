@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A contributor that produces suggestions based on the prefixes defined on
 /// import directives.
@@ -10,7 +11,9 @@ class LibraryPrefixContributor extends DartCompletionContributor {
   LibraryPrefixContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     if (!request.includeIdentifiers) {
       return;
     }

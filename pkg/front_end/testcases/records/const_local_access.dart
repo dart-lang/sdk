@@ -9,7 +9,7 @@ class C {
 
 main() {
   const c = const C(42, "Hi");
-  expect(43, c.r.$0);
+  expect(43, c.r.$1);
   expect("Hi!", c.r.name);
 }
 

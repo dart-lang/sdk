@@ -32,6 +32,7 @@ import 'element_map.dart'
         forEachOrderedParameterByFunctionNode;
 import 'element_map_impl.dart';
 import 'elements.dart';
+import 'records.dart' show RecordClassData, RecordGetterData;
 
 /// Environment for fast lookup of component libraries.
 class JProgramEnv {
@@ -179,7 +180,7 @@ class JLibraryData {
 }
 
 /// Enum used for identifying [JClassEnv] subclasses in serialization.
-enum JClassEnvKind { node, closure, context }
+enum JClassEnvKind { node, closure, context, record }
 
 /// Member data for a class.
 abstract class JClassEnv {
@@ -193,6 +194,8 @@ abstract class JClassEnv {
         return ClosureClassEnv.readFromDataSource(source);
       case JClassEnvKind.context:
         return ContextEnv.readFromDataSource(source);
+      case JClassEnvKind.record:
+        return RecordClassEnv.readFromDataSource(source);
     }
   }
 
@@ -404,8 +407,71 @@ class ClosureClassEnv extends ContextEnv {
   }
 }
 
+class RecordClassEnv implements JClassEnv {
+  /// Tag used for identifying serialized [ContextEnv] objects in a debugging
+  /// data stream.
+  static const String tag = 'record-env';
+
+  final Map<Name, IndexedMember> _memberMap;
+
+  RecordClassEnv(this._memberMap);
+
+  factory RecordClassEnv.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    Map<Name, IndexedMember> _memberMap =
+        source.readNameMap(() => source.readMember() as IndexedMember)!;
+    source.end(tag);
+    return RecordClassEnv(_memberMap);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(JClassEnvKind.record);
+    sink.begin(tag);
+    sink.writeNameMap(
+        _memberMap, (IndexedMember member) => sink.writeMember(member));
+    sink.end(tag);
+  }
+
+  @override
+  void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
+    // We do not create constructor bodies for containers.
+  }
+
+  @override
+  void forEachConstructor(
+      IrToElementMap elementMap, void f(ConstructorEntity constructor)) {
+    // We do not create constructors for containers.
+  }
+
+  @override
+  ConstructorEntity? lookupConstructor(IrToElementMap elementMap, String name) {
+    // We do not create constructors for containers.
+    return null;
+  }
+
+  @override
+  void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
+    _memberMap.values.forEach(f);
+  }
+
+  @override
+  MemberEntity? lookupMember(IrToElementMap elementMap, Name name) {
+    return _memberMap[name];
+  }
+
+  @override
+  bool get isUnnamedMixinApplication => false;
+
+  @override
+  bool get isMixinApplicationWithMembers => false;
+
+  @override
+  ir.Class? get cls => null;
+}
+
 /// Enum used for identifying [JClassData] subclasses in serialization.
-enum JClassDataKind { node, closure, context }
+enum JClassDataKind { node, closure, context, record }
 
 abstract class JClassData {
   /// Deserializes a [JClassData] object from [source].
@@ -418,6 +484,8 @@ abstract class JClassData {
         return ClosureClassData.readFromDataSource(source);
       case JClassDataKind.context:
         return ContextClassData.readFromDataSource(source);
+      case JClassDataKind.record:
+        return RecordClassData.readFromDataSource(source);
     }
   }
 
@@ -513,6 +581,7 @@ enum JMemberDataKind {
   generatorBody,
   closureFunction,
   closureField,
+  recordGetter,
 }
 
 abstract class JMemberData {
@@ -546,6 +615,8 @@ abstract class JMemberData {
         return ClosureFunctionData.readFromDataSource(source);
       case JMemberDataKind.closureField:
         return ClosureFieldData.readFromDataSource(source);
+      case JMemberDataKind.recordGetter:
+        return RecordGetterData.readFromDataSource(source);
     }
   }
 

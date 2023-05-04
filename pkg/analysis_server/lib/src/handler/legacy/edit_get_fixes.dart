@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
@@ -25,7 +24,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:yaml/yaml.dart';
 
@@ -34,7 +32,8 @@ class EditGetFixesHandler extends LegacyHandler
     with RequestHandlerMixin<LegacyAnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditGetFixesHandler(super.server, super.request, super.cancellationToken);
+  EditGetFixesHandler(
+      super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {
@@ -54,17 +53,9 @@ class EditGetFixesHandler extends LegacyHandler
     //
     // Allow plugins to start computing fixes.
     //
-    Map<PluginInfo, Future<plugin.Response>> pluginFutures;
     var requestParams = plugin.EditGetFixesParams(file, offset);
     var driver = server.getAnalysisDriver(file);
-    if (driver == null) {
-      pluginFutures = <PluginInfo, Future<plugin.Response>>{};
-    } else {
-      pluginFutures = server.pluginManager.broadcastRequest(
-        requestParams,
-        contextRoot: driver.analysisContext!.contextRoot,
-      );
-    }
+    var pluginFutures = server.broadcastRequestToPlugins(requestParams, driver);
     //
     // Compute fixes associated with server-generated errors.
     //
@@ -117,6 +108,7 @@ class EditGetFixesHandler extends LegacyHandler
       content,
       sourceFactory,
       session.analysisContext.contextRoot.root.path,
+      session.analysisContext.analysisOptions.sdkVersionConstraint,
     );
     var options = _getOptions(sourceFactory, content);
     if (options == null) {

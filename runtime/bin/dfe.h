@@ -74,19 +74,6 @@ class DFE {
                                              const char* package_config,
                                              bool snapshot);
 
-  // Compiles specified script.
-  // Returns result from compiling the script.
-  //
-  // `snapshot` is used by the frontend to determine if compilation
-  // related information should be printed to console (e.g., null safety mode).
-  // `null_safety` specifies compilation mode, which is normally
-  // retrieved either from vm flags or from vm isolate group.
-  Dart_KernelCompilationResult CompileScriptWithGivenNullsafety(
-      const char* script_uri,
-      const char* package_config,
-      bool snapshot,
-      bool null_safety);
-
   // Compiles specified script and reads the resulting kernel file.
   // If the compilation is successful, returns a valid in memory kernel
   // representation of the script, NULL otherwise
@@ -109,7 +96,7 @@ class DFE {
   // If 'kernel_blob_ptr' is not nullptr, then this function can also
   // read kernel blobs. In such case it sets 'kernel_blob_ptr'
   // to a shared pointer which owns the kernel buffer.
-  // Othwerise, the caller is responsible for free()ing 'kernel_buffer'.
+  // Otherwise, the caller is responsible for free()ing 'kernel_buffer'.
   void ReadScript(const char* script_uri,
                   uint8_t** kernel_buffer,
                   intptr_t* kernel_buffer_size,
@@ -125,7 +112,7 @@ class DFE {
   // If 'kernel_blob_ptr' is not nullptr, then this function can also
   // read kernel blobs. In such case it sets 'kernel_blob_ptr'
   // to a shared pointer which owns the kernel buffer.
-  // Othwerise, the caller is responsible for free()ing 'kernel_buffer'
+  // Otherwise, the caller is responsible for free()ing 'kernel_buffer'
   // if `true` was returned.
   bool TryReadKernelFile(const char* script_uri,
                          uint8_t** kernel_buffer,

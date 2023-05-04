@@ -2,16 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:test/test.dart';
 
+import 'env.dart';
+
 void main() {
-  group('isSubtypeOf()', () {
-    var a = StaticType('A');
-    var b = StaticType('B', inherits: [a]);
-    var b2 = StaticType('B2', inherits: [a]);
-    var c = StaticType('C', inherits: [b]);
-    var d = StaticType('D', inherits: [c]);
+  group('isSubtypeOf() |', () {
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', inherits: [a]);
+    var b2 = env.createClass('B2', inherits: [a]);
+    var c = env.createClass('C', inherits: [b]);
+    var d = env.createClass('D', inherits: [c]);
 
     test('subtype includes self', () {
       expect(a.isSubtypeOf(a), isTrue);
@@ -59,12 +63,12 @@ void main() {
       //        I12  I23
       //           \/
       //          I123
-      var i1 = StaticType('I1');
-      var i2 = StaticType('I2');
-      var i3 = StaticType('I3');
-      var i12 = StaticType('I12', inherits: [i1, i2]);
-      var i23 = StaticType('I12', inherits: [i2, i3]);
-      var i123 = StaticType('I12', inherits: [i12, i23]);
+      var i1 = env.createClass('I1');
+      var i2 = env.createClass('I2');
+      var i3 = env.createClass('I3');
+      var i12 = env.createClass('I12', inherits: [i1, i2]);
+      var i23 = env.createClass('I23', inherits: [i2, i3]);
+      var i123 = env.createClass('I123', inherits: [i12, i23]);
 
       expect(i1.isSubtypeOf(i2), isFalse);
       expect(i2.isSubtypeOf(i1), isFalse);
@@ -98,75 +102,90 @@ void main() {
       expect(i23.isSubtypeOf(i123), isFalse);
       expect(i123.isSubtypeOf(i23), isTrue);
     });
+  });
 
-    test('nullable', () {
-      var a = StaticType('A');
-      var b = StaticType('B', inherits: [a]);
+  test('nullable', () {
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B', inherits: [a]);
 
-      expect(StaticType.nullType.isSubtypeOf(a), isFalse);
-      expect(StaticType.nullType.isSubtypeOf(b), isFalse);
-      expect(StaticType.nullType.isSubtypeOf(a.nullable), isTrue);
-      expect(StaticType.nullType.isSubtypeOf(b.nullable), isTrue);
+    expect(StaticType.nullType.isSubtypeOf(a), isFalse);
+    expect(StaticType.nullType.isSubtypeOf(b), isFalse);
+    expect(StaticType.nullType.isSubtypeOf(a.nullable), isTrue);
+    expect(StaticType.nullType.isSubtypeOf(b.nullable), isTrue);
 
-      expect(a.isSubtypeOf(StaticType.nullType), isFalse);
-      expect(b.isSubtypeOf(StaticType.nullType), isFalse);
-      expect(a.nullable.isSubtypeOf(StaticType.nullType), isFalse);
-      expect(b.nullable.isSubtypeOf(StaticType.nullType), isFalse);
+    expect(a.isSubtypeOf(StaticType.nullType), isFalse);
+    expect(b.isSubtypeOf(StaticType.nullType), isFalse);
+    expect(a.nullable.isSubtypeOf(StaticType.nullType), isFalse);
+    expect(b.nullable.isSubtypeOf(StaticType.nullType), isFalse);
 
-      expect(a.isSubtypeOf(a.nullable), isTrue);
-      expect(a.nullable.isSubtypeOf(a), isFalse);
-      expect(a.nullable.isSubtypeOf(a.nullable), isTrue);
+    expect(a.isSubtypeOf(a.nullable), isTrue);
+    expect(a.nullable.isSubtypeOf(a), isFalse);
+    expect(a.nullable.isSubtypeOf(a.nullable), isTrue);
 
-      expect(a.isSubtypeOf(b.nullable), isFalse);
-      expect(a.nullable.isSubtypeOf(b), isFalse);
-      expect(a.nullable.isSubtypeOf(b.nullable), isFalse);
+    expect(a.isSubtypeOf(b.nullable), isFalse);
+    expect(a.nullable.isSubtypeOf(b), isFalse);
+    expect(a.nullable.isSubtypeOf(b.nullable), isFalse);
 
-      expect(b.isSubtypeOf(a.nullable), isTrue);
-      expect(b.nullable.isSubtypeOf(a), isFalse);
-      expect(b.nullable.isSubtypeOf(a.nullable), isTrue);
-    });
+    expect(b.isSubtypeOf(a.nullable), isTrue);
+    expect(b.nullable.isSubtypeOf(a), isFalse);
+    expect(b.nullable.isSubtypeOf(a.nullable), isTrue);
   });
 
   test('fields', () {
-    var a = StaticType('A');
-    var b = StaticType('B');
-    var c = StaticType('C', fields: {'x': a, 'y': b});
-    var d = StaticType('D', fields: {'w': a});
-    var e = StaticType('E', inherits: [c, d], fields: {'z': b});
+    var env = TestEnvironment();
+    var a = env.createClass('A');
+    var b = env.createClass('B');
+    var c = env.createClass('C', fields: {'x': a, 'y': b});
+    var d = env.createClass('D', fields: {'w': a});
+    var e = env.createClass('E', inherits: [c, d], fields: {'z': b});
 
     expect(a.fields, isEmpty);
     expect(b.fields, isEmpty);
 
     expect(c.fields, hasLength(2));
-    expect(c.fields['x'], a);
-    expect(c.fields['y'], b);
+    expect(c.fields[NameKey('x')], a);
+    expect(c.fields[NameKey('y')], b);
 
     // Fields are inherited.
     expect(e.fields, hasLength(4));
-    expect(e.fields['x'], a);
-    expect(e.fields['y'], b);
-    expect(e.fields['w'], a);
-    expect(e.fields['z'], b);
+    expect(e.fields[NameKey('x')], a);
+    expect(e.fields[NameKey('y')], b);
+    expect(e.fields[NameKey('w')], a);
+    expect(e.fields[NameKey('z')], b);
 
     // Overridden field types win.
-    var f = StaticType('F', fields: {'x': a});
-    var g = StaticType('G', inherits: [f], fields: {'x': b});
+    var f = env.createClass('F', fields: {'x': a});
+    var g = env.createClass('G', inherits: [f], fields: {'x': b});
     expect(g.fields, hasLength(1));
-    expect(g.fields['x'], b);
+    expect(g.fields[NameKey('x')], b);
   });
 
   test('subtypes', () {
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [c]);
+    var env = TestEnvironment();
+    var a = env.createClass('A', isSealed: true);
+    var b = env.createClass('B', inherits: [a]);
+    var c = env.createClass('C', inherits: [a]);
+    env.createClass('D', inherits: [c]);
+    var e = env.createClass('E', isSealed: true, inherits: [a]);
+    var f = env.createClass('F', inherits: [e]);
 
     // Gets subtypes for sealed type.
-    var aSubtypes = a.subtypes.toList();
-    expect(aSubtypes, unorderedEquals([b, c]));
+    var aSubtypes = a.getSubtypes(const {}).toList();
+    expect(
+        aSubtypes,
+        unorderedEquals([
+          WrappedStaticType(b, a),
+          WrappedStaticType(c, a),
+          WrappedStaticType(e, a)
+        ]));
 
-    // And unsealed.
-    var cSubtypes = c.subtypes.toList();
-    expect(cSubtypes, unorderedEquals([d]));
+    // Unsealed subtype.
+    var cSubtypes = c.getSubtypes(const {}).toList();
+    expect(cSubtypes, unorderedEquals([]));
+
+    // Sealed subtype.
+    var eSubtypes = e.getSubtypes(const {}).toList();
+    expect(eSubtypes, unorderedEquals([WrappedStaticType(f, e)]));
   });
 }

@@ -20,7 +20,7 @@ class CompletionGetSuggestionsHandler extends CompletionGetSuggestions2Handler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   CompletionGetSuggestionsHandler(
-      super.server, super.request, super.cancellationToken);
+      super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {
@@ -148,6 +148,9 @@ class CompletionGetSuggestionsHandler extends CompletionGetSuggestions2Handler {
               includedElementKinds: includedElementKinds,
               includedElementNames: includedElementNames,
               includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+              // There's no filtering done afterwards,
+              // so don't filter here either.
+              useFilter: false,
             );
           } on AbortCompletion {
             // Continue with empty suggestions list.

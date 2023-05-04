@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -23,6 +21,7 @@ main() {
     await runTest('tests/web_2/jsinterop_test.dart', '', {
       'Class': Kind.regular,
       'JsInteropClass': Kind.jsInterop,
+      'flag': Kind.regular,
       'topLevelField': Kind.regular,
       'topLevelGetter': Kind.regular,
       'topLevelSetter': Kind.regular,
@@ -83,6 +82,7 @@ main() {
     await runTest('tests/web_2/non_jsinterop_test.dart', '', {
       'Class': Kind.regular,
       'JsInteropClass': Kind.jsInterop,
+      'flag': Kind.regular,
       'topLevelField': Kind.regular,
       'topLevelGetter': Kind.regular,
       'topLevelSetter': Kind.regular,
@@ -167,6 +167,7 @@ main() {
       'NativeClass.nativeGenerative': Kind.native,
       'NativeClass.nativeFact': Kind.native,
       'NativeClass.instanceField': Kind.native,
+      'NativeClass.instanceNamedField': Kind.native,
       'NativeClass.instanceGetter': Kind.regular,
       'NativeClass.instanceSetter': Kind.regular,
       'NativeClass.instanceMethod': Kind.regular,
@@ -210,7 +211,7 @@ runTest(String fileName, String location, Map<String, Kind> expectations,
   print('--------------------------------------------------------------------');
   print('Testing $fileName');
   print('--------------------------------------------------------------------');
-  String test = new File(fileName).readAsStringSync();
+  String test = File(fileName).readAsStringSync();
 
   List<String> commonLines = <String>[];
   Map<String, SubTest> subTests = <String, SubTest>{};
@@ -222,7 +223,7 @@ runTest(String fileName, String location, Map<String, Kind> expectations,
       String prefix = line.substring(0, index);
       String suffix = line.substring(index + 3);
       String name = suffix.substring(0, suffix.indexOf((':'))).trim();
-      SubTest subTest = subTests.putIfAbsent(name, () => new SubTest());
+      SubTest subTest = subTests.putIfAbsent(name, () => SubTest());
       subTest.lines[lineIndex] = line;
       int commentIndex = prefix.indexOf('// ');
       if (commentIndex != -1) {
@@ -244,7 +245,7 @@ runTest(String fileName, String location, Map<String, Kind> expectations,
       entryPoint, {path: commonLines.join('\n')}, expectations);
   for (String name in subTests.keys) {
     if (!skipList.contains(name)) {
-      SubTest subTest = subTests[name];
+      SubTest subTest = subTests[name]!;
       await runNegativeTest(
           subTest, entryPoint, {path: subTest.generateCode(commonLines)});
     }
@@ -290,25 +291,25 @@ runPositiveTest(Uri entryPoint, Map<String, String> sources,
     }
   }
 
-  elementEnvironment.forEachLibraryMember(elementEnvironment.mainLibrary,
+  elementEnvironment.forEachLibraryMember(elementEnvironment.mainLibrary!,
       (MemberEntity member) {
     if (member == elementEnvironment.mainFunction) return;
 
-    Kind kind = expectations.remove(member.name);
+    Kind? kind = expectations.remove(member.name);
     Expect.isNotNull(kind, "No expectations for $member");
     checkMember(member,
         isNative: kind == Kind.native, isJsInterop: kind == Kind.jsInterop);
   });
 
-  elementEnvironment.forEachClass(elementEnvironment.mainLibrary,
+  elementEnvironment.forEachClass(elementEnvironment.mainLibrary!,
       (ClassEntity cls) {
-    Kind kind = expectations.remove(cls.name);
+    Kind? kind = expectations.remove(cls.name);
     Expect.isNotNull(kind, "No expectations for $cls");
     checkClass(cls,
         isNative: kind == Kind.native, isJsInterop: kind == Kind.jsInterop);
 
     checkClassMember(MemberEntity member) {
-      Kind kind = expectations.remove('${cls.name}.${member.name}');
+      Kind? kind = expectations.remove('${cls.name}.${member.name}');
       Expect.isNotNull(kind, "No expectations for $member");
       checkMember(member,
           isNative: kind == Kind.native, isJsInterop: kind == Kind.jsInterop);
@@ -323,7 +324,7 @@ runPositiveTest(Uri entryPoint, Map<String, String> sources,
 
 runNegativeTest(
     SubTest subTest, Uri entryPoint, Map<String, String> sources) async {
-  DiagnosticCollector collector = new DiagnosticCollector();
+  DiagnosticCollector collector = DiagnosticCollector();
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: sources,
@@ -345,7 +346,7 @@ class SubTest {
   final Map<int, String> lines = <int, String>{};
 
   String generateCode(List<String> commonLines) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     int i = 0;
     while (i < commonLines.length) {
       if (lines.containsKey(i)) {

@@ -36,9 +36,7 @@ abstract class C extends core::Object {
   synthetic constructor •() → self2::C
     ;
 }
-abstract class D extends core::Object implements self2::C {
-  synthetic constructor •() → self2::D
-    ;
+abstract class D extends core::Object implements self2::C /*isMixinDeclaration*/  {
   operator ==(core::Object dynamic) → core::bool
     ;
   method x() → void
@@ -74,9 +72,7 @@ abstract class C extends core::Object {
   synthetic constructor •() → self3::C
     ;
 }
-abstract class D extends core::Object implements self3::C {
-  synthetic constructor •() → self3::D
-    ;
+abstract class D extends core::Object implements self3::C /*isMixinDeclaration*/  {
   operator ==(core::Object dynamic) → core::bool
     ;
   method x() → void

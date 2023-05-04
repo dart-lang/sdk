@@ -147,8 +147,6 @@ class RuntimeTypeGenerator {
       } else {
         jsAst.Expression? encoding =
             generatedCode[classFunctionType.signatureFunction];
-        // TODO(48820): remove
-        assert((classFunctionType.signatureFunction as dynamic) != null);
         if (functionTypeIndex != null) {
           if (isDeferred) {
             // The function type index must be offset by the number of types
@@ -266,9 +264,9 @@ class _TypeContainedInOutputUnitVisitor
 
   @override
   bool visitRecordType(RecordType type, OutputUnit argument) {
-    // TODO(sra): The record shape is a bit like an implicit interface
-    // type. Does it have an OutputUnit?
-    throw UnimplementedError();
+    // The interface type that implements an allocated record is not needed to
+    // do subtyping.
+    return visitList(type.fields, argument);
   }
 
   @override

@@ -14,7 +14,7 @@ class HelloClass {
 
 void main() {
   () {
-    HelloClass helloClass = new HelloClass();
+    HelloClass helloClass = HelloClass();
     helloClass.printHello();
   }();
 }

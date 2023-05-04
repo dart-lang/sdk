@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -31,7 +29,7 @@ mixin Mixin on SuperA {
 class Class extends SuperB with Mixin {}
 
 main() {
-  var c = new Class();
+  var c = Class();
   Expect.equals("BMC", c.method1('C'));
   Expect.equals("MC", c.method2('C'));
 }
@@ -51,7 +49,7 @@ main() {
     ClassEntity mixin = lookupClass(elementEnvironment, 'Mixin');
     ClassEntity superA = lookupClass(elementEnvironment, 'SuperA');
     ClassEntity superB = lookupClass(elementEnvironment, 'SuperB');
-    ClassEntity superClass = elementEnvironment.getSuperClass(cls);
+    ClassEntity superClass = elementEnvironment.getSuperClass(cls)!;
 
     Expect.isTrue(elementEnvironment.isMixinApplicationWithMembers(superClass));
     Expect.equals(mixin, elementEnvironment.getEffectiveMixinClass(superClass));
@@ -60,13 +58,15 @@ main() {
     Expect.equals(elementEnvironment.getSuperClass(superA),
         elementEnvironment.getSuperClass(mixin));
 
-    MemberEntity method1 = lookupMember(elementEnvironment, 'Class.method1');
+    final method1 =
+        lookupMember(elementEnvironment, 'Class.method1') as FunctionEntity;
     Expect.equals(superClass, method1.enclosingClass);
-    MemberEntity method2 = lookupMember(elementEnvironment, 'Class.method2');
+    final method2 =
+        lookupMember(elementEnvironment, 'Class.method2') as FunctionEntity;
     Expect.equals(mixin, method2.enclosingClass);
 
-    ProgramLookup lookup = new ProgramLookup(result.compiler.backendStrategy);
-    ClassData data = lookup.getClassData(superClass);
+    ProgramLookup lookup = ProgramLookup(result.compiler.backendStrategy);
+    ClassData data = lookup.getClassData(superClass)!;
     Expect.isNotNull(data.getMethod(method1));
     Expect.isNull(data.getMethod(method2));
   });

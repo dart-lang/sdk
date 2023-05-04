@@ -331,10 +331,6 @@ bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
   return false;
 }
 
-bool SocketBase::ListInterfacesSupported() {
-  return true;
-}
-
 AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
     int type,
     OSError** os_error) {

@@ -21,6 +21,7 @@ import 'package:js_runtime/synced/embedded_names.dart'
         MANGLED_NAMES,
         METADATA,
         NATIVE_SUPERCLASS_TAG_NAME,
+        RECORD_TYPE_TEST_COMBINATORS_PROPERTY,
         RUNTIME_METRICS,
         STARTUP_METRICS,
         TearOffParametersPropertyNames,
@@ -88,6 +89,7 @@ import '../js_emitter.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
 import '../model.dart';
+import '../resource_info_emitter.dart' show ResourceInfoCollector;
 import 'fragment_merger.dart';
 
 part 'fragment_emitter.dart';
@@ -104,6 +106,7 @@ class ModelEmitter {
   final DiagnosticReporter _reporter;
   final api.CompilerOutput _outputProvider;
   final DumpInfoTask _dumpInfoTask;
+  final ResourceInfoCollector _resourceInfoCollector = ResourceInfoCollector();
   final Namer _namer;
   final CompilerTask _task;
   final Emitter _emitter;
@@ -128,7 +131,7 @@ class ModelEmitter {
   /// For example {"lib1": [[lib1_lib2_lib3], [lib1_lib2, lib1_lib3],
   /// [lib1]]} would mean that in order to load "lib1" first the hunk
   /// lib1_lib2_lib2 should be loaded, then the hunks lib1_lib2 and lib1_lib3
-  /// can be loaded in parallel. And fially lib1 can be loaded.
+  /// can be loaded in parallel. And finally lib1 can be loaded.
   final Map<String, List<FinalizedFragment>> finalizedFragmentsToLoad = {};
 
   /// Similar to the above map, but more granular as each [FinalizedFragment]
@@ -170,6 +173,7 @@ class ModelEmitter {
         _closedWorld.rtiNeed,
         rtiRecipeEncoder,
         _closedWorld.fieldAnalysis,
+        _closedWorld.recordData,
         _emitter,
         this.generateConstantReference,
         constantListGenerator);
@@ -351,6 +355,10 @@ class ModelEmitter {
       writeDeferredMap();
     }
 
+    if (_options.writeResources) {
+      writeResourceIdentifiers();
+    }
+
     // Return the total program size.
     return emittedOutputBuffers.values.fold(0, (a, b) => a + b.length);
   }
@@ -385,7 +393,7 @@ class ModelEmitter {
 var ${startupMetricsGlobal} =
 (function(){
   // The timestamp metrics use `performance.now()`. We feature-detect and
-  // fall back on `Date.now()` for JavaScript run in a non-browser evironment.
+  // fall back on `Date.now()` for JavaScript run in a non-browser environment.
   var _performance =
       (typeof performance == "object" &&
        performance != null &&
@@ -432,7 +440,9 @@ var ${startupMetricsGlobal} =
 
     CodeBuffer buffer = js.createCodeBuffer(program, _options,
         _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
-        monitor: _dumpInfoTask);
+        monitor: _dumpInfoTask,
+        annotationMonitor: _resourceInfoCollector
+            .monitorFor(_options.outputUri?.pathSegments.last ?? 'out'));
     _task.measureSubtask('emit buffers', () {
       mainOutput.addBuffer(buffer);
     });
@@ -493,7 +503,7 @@ var ${startupMetricsGlobal} =
             outputFileName, deferredExtension, api.OutputType.jsPart),
         outputListeners);
 
-    writeCodeFragments(fragmentCode, fragmentHashes, output);
+    writeCodeFragments(fragmentCode, fragmentHashes, output, outputFileName);
 
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
@@ -527,8 +537,11 @@ var ${startupMetricsGlobal} =
   }
 
   /// Writes a list of [CodeFragments] to [CodeOutput].
-  void writeCodeFragments(List<EmittedCodeFragment> fragmentCode,
-      Map<CodeFragment, String> fragmentHashes, CodeOutput output) {
+  void writeCodeFragments(
+      List<EmittedCodeFragment> fragmentCode,
+      Map<CodeFragment, String> fragmentHashes,
+      CodeOutput output,
+      String outputFileName) {
     bool isFirst = true;
     for (var emittedCodeFragment in fragmentCode) {
       var codeFragment = emittedCodeFragment.codeFragment;
@@ -536,7 +549,8 @@ var ${startupMetricsGlobal} =
       for (var outputUnit in codeFragment.outputUnits) {
         emittedOutputBuffers[outputUnit] = output;
       }
-      fragmentHashes[codeFragment] = writeCodeFragment(output, code, isFirst);
+      fragmentHashes[codeFragment] =
+          writeCodeFragment(output, code, isFirst, outputFileName);
       isFirst = false;
     }
   }
@@ -546,8 +560,8 @@ var ${startupMetricsGlobal} =
   // Returns the deferred fragment's hash.
   //
   // Updates the shared [outputBuffers] field with the output.
-  String writeCodeFragment(
-      CodeOutput output, js.Expression code, bool isFirst) {
+  String writeCodeFragment(CodeOutput output, js.Expression code, bool isFirst,
+      String outputFileName) {
     // The [code] contains the function that must be invoked when the deferred
     // hunk is loaded.
     // That function must be in a map from its hashcode to the function. Since
@@ -566,7 +580,9 @@ var ${startupMetricsGlobal} =
     Hasher hasher = Hasher();
     CodeBuffer buffer = js.createCodeBuffer(program, _options,
         _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
-        monitor: _dumpInfoTask, listeners: [hasher]);
+        monitor: _dumpInfoTask,
+        listeners: [hasher],
+        annotationMonitor: _resourceInfoCollector.monitorFor(outputFileName));
     _task.measureSubtask('emit buffers', () {
       output.addBuffer(buffer);
     });
@@ -596,6 +612,15 @@ var ${startupMetricsGlobal} =
     _outputProvider.createOutputSink(
         _options.deferredMapUri!.path, '', api.OutputType.deferredMap)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
+      ..close();
+  }
+
+  /// Writes out all the referenced resource identifiers as a JSON file.
+  void writeResourceIdentifiers() {
+    _outputProvider.createOutputSink(
+        '', 'resources.json', api.OutputType.resourceIdentifiers)
+      ..add(JsonEncoder.withIndent('  ')
+          .convert(_resourceInfoCollector.finish(_options.environment)))
       ..close();
   }
 }

@@ -9,13 +9,13 @@ import 'dart:convert';
 
 import "package:expect/expect.dart";
 
-// This only works reliabily for "ASCII" cross platform as that is the only
+// This only works reliably for "ASCII" cross platform as that is the only
 // well known part of the default Windows code page.
 void testEncodeDecode(String str) {
   Expect.equals(systemEncoding.decode(systemEncoding.encode(str)), str);
 }
 
-// This only works reliabily for "ASCII" cross platform as that is the only
+// This only works reliably for "ASCII" cross platform as that is the only
 // common set of bytes between UTF-8 Windows code pages that convert back
 // and forth.
 void testDecodeEncode(List<int> bytes) {

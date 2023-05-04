@@ -5,7 +5,7 @@
 import 'dart:collection';
 import 'package:expect/expect.dart';
 
-class OverrideFirstGetter {
+mixin OverrideFirstGetter {
   get first => 9999;
 }
 

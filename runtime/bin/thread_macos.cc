@@ -30,7 +30,7 @@ namespace bin {
     const int kBufferSize = 1024;                                              \
     char error_message[kBufferSize];                                           \
     Utils::StrError(result, error_message, kBufferSize);                       \
-    FATAL2("pthread error: %d (%s)", result, error_message);                   \
+    FATAL("pthread error: %d (%s)", result, error_message);                    \
   }
 
 #ifdef DEBUG
@@ -80,7 +80,11 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
-  // Set the thread name.
+  // Set the thread name. We need to impose a limit on the name length so that
+  // we can know how large of a buffer to use when retrieving the name. We
+  // truncate the name at 16 bytes to be consistent with Android and Linux.
+  char truncated_name[16];
+  snprintf(truncated_name, sizeof(truncated_name), "%s", name);
   pthread_setname_np(name);
 
   // Call the supplied thread start function handing it its parameters.
@@ -114,7 +118,7 @@ int Thread::Start(const char* name,
   return 0;
 }
 
-const ThreadId Thread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
+const ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(NULL);
 
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);

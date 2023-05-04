@@ -27,6 +27,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({
@@ -363,7 +364,8 @@ class LibraryBuilder {
     var unitReference = reference.getChild('@unit').getChild('$unitUri');
     _bindReference(unitReference, unitElement);
 
-    element.parts.add(
+    element.parts = [
+      ...element.parts,
       PartElementImpl(
         uri: DirectiveUriWithUnitImpl(
           relativeUriString: '_macro_types.dart',
@@ -371,7 +373,7 @@ class LibraryBuilder {
           unit: unitElement,
         ),
       ),
-    );
+    ];
 
     ElementBuilder(
       libraryBuilder: this,
@@ -428,7 +430,7 @@ class LibraryBuilder {
   }
 
   void storeExportScope() {
-    element.exportedReferences = exportScope.map.values.toList();
+    element.exportedReferences = exportScope.toReferences();
 
     var definedNames = <String, Element>{};
     for (var entry in exportScope.map.entries) {
@@ -540,7 +542,7 @@ class LibraryBuilder {
         // TODO(scheglov) Why no offsets?
         return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
       }
-    }).toList();
+    }).toFixedList();
   }
 
   /// Builds directive elements, for the library and recursively for its
@@ -549,17 +551,20 @@ class LibraryBuilder {
     required LibraryOrAugmentationFileKind kind,
     required LibraryOrAugmentationElementImpl container,
   }) {
-    container.libraryExports = kind.libraryExports.map(_buildExport).toList();
+    container.libraryExports = kind.libraryExports.map((state) {
+      return _buildExport(state);
+    }).toFixedList();
+
     container.libraryImports = kind.libraryImports.map((state) {
       return _buildImport(
         container: container,
         state: state,
       );
-    }).toList();
+    }).toFixedList();
 
     container.augmentationImports = kind.augmentationImports.map((state) {
       return _buildAugmentationImport(container, state);
-    }).toList();
+    }).toFixedList();
   }
 
   LibraryExportElementImpl _buildExport(LibraryExportState state) {
@@ -819,10 +824,8 @@ class LibraryBuilder {
       libraryElement.definingCompilationUnit = unitElement;
     }
 
-    final parts = <PartElementImpl>[];
-    for (final partState in inputLibrary.parts) {
+    libraryElement.parts = inputLibrary.parts.map((partState) {
       final uriState = partState.uri;
-
       final DirectiveUri directiveUri;
       if (partState is PartWithFile) {
         final includedPart = partState.includedPart;
@@ -880,15 +883,12 @@ class LibraryBuilder {
       } else {
         directiveUri = DirectiveUriImpl();
       }
-
-      parts.add(
-        PartElementImpl(
-          uri: directiveUri,
-        ),
+      return directiveUri;
+    }).map((directiveUri) {
+      return PartElementImpl(
+        uri: directiveUri,
       );
-    }
-
-    libraryElement.parts = parts;
+    }).toFixedList();
 
     final builder = LibraryBuilder._(
       linker: linker,

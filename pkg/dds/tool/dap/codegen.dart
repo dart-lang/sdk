@@ -116,7 +116,7 @@ class CodeGenerator {
 
   /// Writes a `canParse` function for a DAP spec class.
   ///
-  /// The function checks whether an Object? is a a valid map that contains all
+  /// The function checks whether an Object? is a valid map that contains all
   /// required fields and matches the types of the spec class.
   ///
   /// This is used where the spec contains union classes and we need to decide
@@ -375,13 +375,13 @@ class CodeGenerator {
           : <String, JsonType>{};
 
       // Skip creation of Request sub-classes, as we don't use these we just
-      // pass the arguments in to the method directly.
+      // pass the arguments into the method directly.
       if (name != 'Request' && name.endsWith('Request')) {
         continue;
       }
 
       // Skip creation of Event sub-classes, as we don't use these we just
-      // pass the body in to sendEvent directly.
+      // pass the body into sendEvent directly.
       if (name != 'Event' && name.endsWith('Event')) {
         continue;
       }
@@ -480,7 +480,7 @@ class CodeGenerator {
     final nullOp = isOptional ? '?' : '';
 
     if (baseType.isAny || baseType.isSimple) {
-      buffer.write('$valueCode');
+      buffer.write(valueCode);
       if (dartType != 'Object?') {
         buffer.write(' as $dartType');
       }

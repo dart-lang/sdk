@@ -2,16 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: implementation_imports
+
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
 import 'package:dev_compiler/dev_compiler.dart';
+import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:path/path.dart' as p;
 import 'package:package_config/package_config.dart';
+import 'package:path/path.dart' as p;
+
 import 'strong_components.dart';
 
 /// Produce a special bundle format for compiled JavaScript.
@@ -306,8 +309,8 @@ class IncrementalJavaScriptBundler {
     final resolvedUri = packageConfig.resolve(componentUri)!;
     final package = packageConfig.packageOf(resolvedUri)!;
     final root = package.root;
-    final relativeRoot = root.pathSegments
-        .lastWhere((segment) => segment.isNotEmpty, orElse: null);
+    final relativeRoot =
+        root.pathSegments.lastWhere((segment) => segment.isNotEmpty);
     final relativeUrl = resolvedUri.toString().replaceFirst('$root', '');
 
     // Relative component url (used as server path in the browser):

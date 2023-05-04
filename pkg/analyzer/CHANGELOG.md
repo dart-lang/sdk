@@ -1,3 +1,39 @@
+## 5.10.0
+* Added `DartType.isDartCoreType`.
+
+## 5.9.0
+* Deprecated `FunctionBody.isPotentiallyMutatedInClosure`, not used by clients.
+* Fix for `FunctionBody.isPotentiallyMutatedInScope` and pattern assignment.
+
+## 5.8.0
+* Deprecated `DartType.isVoid`, use `is VoidType` instead.
+* `records`, `patterns`, and `class-modifiers` features enabled by default.
+
+## 5.7.1
+* Require SDK `>=2.19.0 <3.0.0` to use `PathNotFoundException` from `dart:io`.
+
+## 5.7.0
+* Work on `class-modifiers` feature.
+* Work on `patterns` feature.
+* Support for primitive equality.
+
+## 5.6.0
+* Fixes for patterns parsing.
+* Implemented `DartPattern.precedence`.
+
+## 5.5.0
+* Rename `RecordPatternField` to `PatternField`.
+* Rename `RecordPatternFieldName` to `PatternFieldName`.
+
+## 5.4.0
+* Bug fixes: 50660
+
+## 5.3.1
+* Require `collection: ^1.17.0` because we use `elementAtOrNull`.
+
+## 5.3.0
+* Use `3.0.0` as the current language version.
+
 ## 5.2.0
 * Deprecated `Element.enclosingElement3`, use `enclosingElement` instead.
 * Deprecated `Directive.element2`, use `element` instead.
@@ -66,7 +102,7 @@
 * Added `FileResult.isAugmentation` and `isLibrary` to complement `isPart`.
 * Deprecated 'XyzDeclaration.name' in AST, use `name2` and `declaredElement` instead.
 * Deprecated `Element.enclosingElement2`, use `enclosingElement3` instead.  The meaningful change is that
-  `ConstructorElement.enclosingElement3` returns now `IntefaceElement`, not `ClassElement`.
+  `ConstructorElement.enclosingElement3` returns now `InterfaceElement`, not `ClassElement`.
 * Deprecated `get enums/mixin`, use `get enums2/mixins2` instead.
 * Deprecated `DartType.element`, check for `InterfaceType`, `TypeParameterType`, and then ask the element.
 * Deprecated `ClassElement.isEnum` and `isMixin`. Check for `is EnumElement` and `is MixinElement` instead.
@@ -910,7 +946,7 @@
   #36678, #36691.
 
 ## 0.36.0
-* Changed the return type of `Expression.precendence` to `Precedence`.  Clients
+* Changed the return type of `Expression.precedence` to `Precedence`.  Clients
   that prepared for this change by switching to `Expression.precedence2` should
   now return to using `Expression.precedence`.
 * AST cleanup related to the "UI as code" feature:

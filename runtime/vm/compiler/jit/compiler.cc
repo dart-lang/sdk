@@ -53,7 +53,10 @@ DEFINE_FLAG(
     max_deoptimization_counter_threshold,
     16,
     "How many times we allow deoptimization before we disallow optimization.");
-DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
+DEFINE_FLAG(charp,
+            optimization_filter,
+            nullptr,
+            "Optimize only named function");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool,
             print_flow_graph_optimized,
@@ -130,10 +133,11 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
     intptr_t osr_id,
     bool optimized) {
   kernel::FlowGraphBuilder builder(parsed_function, ic_data_array,
-                                   /* not building var desc */ NULL,
-                                   /* not inlining */ NULL, optimized, osr_id);
+                                   /* not building var desc */ nullptr,
+                                   /* not inlining */ nullptr, optimized,
+                                   osr_id);
   FlowGraph* graph = builder.BuildGraph();
-  ASSERT(graph != NULL);
+  ASSERT(graph != nullptr);
   return graph;
 }
 
@@ -256,7 +260,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     function.SetUsageCounter(INT32_MIN);
     return false;
   }
-  if (FLAG_optimization_filter != NULL) {
+  if (FLAG_optimization_filter != nullptr) {
     // FLAG_optimization_filter is a comma-separated list of strings that are
     // matched against the fully-qualified function name.
     char* save_ptr;  // Needed for strtok_r.
@@ -266,12 +270,12 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     strncpy(filter, FLAG_optimization_filter, len);  // strtok modifies arg 1.
     char* token = strtok_r(filter, ",", &save_ptr);
     bool found = false;
-    while (token != NULL) {
-      if (strstr(function_name, token) != NULL) {
+    while (token != nullptr) {
+      if (strstr(function_name, token) != nullptr) {
         found = true;
         break;
       }
-      token = strtok_r(NULL, ",", &save_ptr);
+      token = strtok_r(nullptr, ",", &save_ptr);
     }
     delete[] filter;
     if (!found) {
@@ -292,7 +296,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 }
 
 bool Compiler::IsBackgroundCompilation() {
-  // For now: compilation in non mutator thread is the background compoilation.
+  // For now: compilation in non mutator thread is the background compilation.
   return !Thread::Current()->IsMutatorThread();
 }
 
@@ -313,7 +317,6 @@ class CompileParsedFunctionHelper : public ValueObject {
   bool optimized() const { return optimized_; }
   intptr_t osr_id() const { return osr_id_; }
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread_->isolate(); }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   CodePtr FinalizeCompilation(compiler::Assembler* assembler,
                               FlowGraphCompiler* graph_compiler,
@@ -389,19 +392,19 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     const bool trace_compiler =
         FLAG_trace_compiler || FLAG_trace_optimizing_compiler;
     bool code_is_valid = true;
-    if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
-      const ZoneGrowableArray<const Field*>& guarded_fields =
-          *flow_graph->parsed_function().guarded_fields();
+    if (flow_graph->parsed_function().guarded_fields()->Length() != 0) {
+      const FieldSet* guarded_fields =
+          flow_graph->parsed_function().guarded_fields();
       Field& original = Field::Handle();
-      for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-        const Field& field = *guarded_fields[i];
-        ASSERT(!field.IsOriginal());
-        original = field.Original();
-        if (!field.IsConsistentWith(original)) {
+      FieldSet::Iterator it = guarded_fields->GetIterator();
+      while (const Field** field = it.Next()) {
+        ASSERT(!(*field)->IsOriginal());
+        original = (*field)->Original();
+        if (!(*field)->IsConsistentWith(original)) {
           code_is_valid = false;
           if (trace_compiler) {
             THR_Print("--> FAIL: Field %s guarded state changed.",
-                      field.ToCString());
+                      (*field)->ToCString());
           }
           break;
         }
@@ -444,11 +447,12 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
       // to ensure that the code will be deoptimized if they are violated.
       thread()->compiler_state().cha().RegisterDependencies(code);
 
-      const ZoneGrowableArray<const Field*>& guarded_fields =
-          *flow_graph->parsed_function().guarded_fields();
+      const FieldSet* guarded_fields =
+          flow_graph->parsed_function().guarded_fields();
       Field& field = Field::Handle();
-      for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-        field = guarded_fields[i]->Original();
+      FieldSet::Iterator it = guarded_fields->GetIterator();
+      while (const Field** guarded_field = it.Next()) {
+        field = (*guarded_field)->Original();
         field.RegisterDependentCode(code);
       }
     }
@@ -522,7 +526,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         if (FLAG_print_ic_data_map) {
           for (intptr_t i = 0; i < ic_data_array->length(); i++) {
-            if ((*ic_data_array)[i] != NULL) {
+            if ((*ic_data_array)[i] != nullptr) {
               THR_Print("%" Pd " ", i);
               FlowGraphPrinter::PrintICData(*(*ic_data_array)[i]);
             }
@@ -677,12 +681,14 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        volatile bool optimized,
                                        intptr_t osr_id) {
+  Thread* const thread = Thread::Current();
+  NoActiveIsolateScope no_active_isolate(thread);
+
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
   if (function.ForceOptimize()) optimized = true;
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Thread* const thread = Thread::Current();
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
@@ -819,10 +825,10 @@ ObjectPtr Compiler::CompileFunction(Thread* thread, const Function& function) {
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  FATAL3("Precompilation missed function %s (%s, %s)\n",
-         function.ToLibNamePrefixedQualifiedCString(),
-         function.token_pos().ToCString(),
-         Function::KindToCString(function.kind()));
+  FATAL("Precompilation missed function %s (%s, %s)\n",
+        function.ToLibNamePrefixedQualifiedCString(),
+        function.token_pos().ToCString(),
+        Function::KindToCString(function.kind()));
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
@@ -878,7 +884,8 @@ ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
 ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
-  VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
+  VMTagScope tag_scope(thread, VMTag::kCompileOptimizedTagId);
+
 #if defined(SUPPORT_TIMELINE)
   const char* event_name;
   if (osr_id != kNoOSRDeoptId) {
@@ -920,7 +927,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
 
     kernel::FlowGraphBuilder builder(
         parsed_function, ic_data_array, context_level_array,
-        /* not inlining */ NULL, false, Compiler::kNoOSRDeoptId);
+        /* not inlining */ nullptr, false, Compiler::kNoOSRDeoptId);
     builder.BuildGraph();
 
     auto& var_descs = LocalVarDescriptors::Handle(zone);
@@ -965,9 +972,9 @@ void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
   }
 #if !defined(PRODUCT)
   TimelineStream* stream = Timeline::GetCompilerStream();
-  ASSERT(stream != NULL);
+  ASSERT(stream != nullptr);
   TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
+  if (event != nullptr) {
     event->Instant("AbortBackgroundCompilation");
     event->SetNumArguments(1);
     event->CopyArgument(0, "reason", msg);
@@ -983,10 +990,10 @@ void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
 class QueueElement {
  public:
   explicit QueueElement(const Function& function)
-      : next_(NULL), function_(function.ptr()) {}
+      : next_(nullptr), function_(function.ptr()) {}
 
   virtual ~QueueElement() {
-    next_ = NULL;
+    next_ = nullptr;
     function_ = Function::null();
   }
 
@@ -1011,39 +1018,39 @@ class QueueElement {
 // It implements a FIFO queue, using Peek, Add, Remove operations.
 class BackgroundCompilationQueue {
  public:
-  BackgroundCompilationQueue() : first_(NULL), last_(NULL) {}
+  BackgroundCompilationQueue() : first_(nullptr), last_(nullptr) {}
   virtual ~BackgroundCompilationQueue() { Clear(); }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
-    ASSERT(visitor != NULL);
+    ASSERT(visitor != nullptr);
     QueueElement* p = first_;
-    while (p != NULL) {
+    while (p != nullptr) {
       visitor->VisitPointer(p->function_untag());
       p = p->next();
     }
   }
 
-  bool IsEmpty() const { return first_ == NULL; }
+  bool IsEmpty() const { return first_ == nullptr; }
 
   void Add(QueueElement* value) {
-    ASSERT(value != NULL);
-    ASSERT(value->next() == NULL);
-    if (first_ == NULL) {
+    ASSERT(value != nullptr);
+    ASSERT(value->next() == nullptr);
+    if (first_ == nullptr) {
       first_ = value;
-      ASSERT(last_ == NULL);
+      ASSERT(last_ == nullptr);
     } else {
-      ASSERT(last_ != NULL);
+      ASSERT(last_ != nullptr);
       last_->set_next(value);
     }
     last_ = value;
-    ASSERT(first_ != NULL && last_ != NULL);
+    ASSERT(first_ != nullptr && last_ != nullptr);
   }
 
   QueueElement* Peek() const { return first_; }
 
   FunctionPtr PeekFunction() const {
     QueueElement* e = Peek();
-    if (e == NULL) {
+    if (e == nullptr) {
       return Function::null();
     } else {
       return e->Function();
@@ -1051,18 +1058,18 @@ class BackgroundCompilationQueue {
   }
 
   QueueElement* Remove() {
-    ASSERT(first_ != NULL);
+    ASSERT(first_ != nullptr);
     QueueElement* result = first_;
     first_ = first_->next();
-    if (first_ == NULL) {
-      last_ = NULL;
+    if (first_ == nullptr) {
+      last_ = nullptr;
     }
     return result;
   }
 
   bool ContainsObj(const Object& obj) const {
     QueueElement* p = first_;
-    while (p != NULL) {
+    while (p != nullptr) {
       if (p->function() == obj.ptr()) {
         return true;
       }
@@ -1076,7 +1083,7 @@ class BackgroundCompilationQueue {
       QueueElement* e = Remove();
       delete e;
     }
-    ASSERT((first_ == NULL) && (last_ == NULL));
+    ASSERT((first_ == nullptr) && (last_ == nullptr));
   }
 
  private:
@@ -1248,15 +1255,15 @@ void BackgroundCompiler::Disable() {
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
                                               const Function& function) {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  FATAL3("Precompilation missed function %s (%s, %s)\n",
-         function.ToLibNamePrefixedQualifiedCString(),
-         function.token_pos().ToCString(),
-         Function::KindToCString(function.kind()));
+  FATAL("Precompilation missed function %s (%s, %s)\n",
+        function.ToLibNamePrefixedQualifiedCString(),
+        function.token_pos().ToCString(),
+        Function::KindToCString(function.kind()));
 }
 
 bool Compiler::IsBackgroundCompilation() {
@@ -1269,20 +1276,20 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 }
 
 ObjectPtr Compiler::CompileFunction(Thread* thread, const Function& function) {
-  FATAL1("Attempt to compile function %s", function.ToCString());
+  FATAL("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
 
 ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
                                          const Function& function) {
-  FATAL1("Attempt to compile function %s", function.ToCString());
+  FATAL("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
 
 ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
-  FATAL1("Attempt to compile function %s", function.ToCString());
+  FATAL("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
 
@@ -1291,7 +1298,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
 }
 
 ErrorPtr Compiler::CompileAllFunctions(const Class& cls) {
-  FATAL1("Attempt to compile class %s", cls.ToCString());
+  FATAL("Attempt to compile class %s", cls.ToCString());
   return Error::null();
 }
 

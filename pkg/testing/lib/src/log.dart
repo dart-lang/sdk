@@ -78,9 +78,11 @@ abstract class Logger {
 class StdoutLogger implements Logger {
   const StdoutLogger();
 
+  @override
   void logTestStart(int completed, int failed, int total, Suite? suite,
       TestDescription? description) {}
 
+  @override
   void logTestComplete(int completed, int failed, int total, Suite? suite,
       TestDescription? description) {
     String message = formatProgress(completed, failed, total);
@@ -90,6 +92,7 @@ class StdoutLogger implements Logger {
     logProgress(message);
   }
 
+  @override
   void logStepStart(int completed, int failed, int total, Suite? suite,
       TestDescription description, Step step) {
     String message = formatProgress(completed, failed, total);
@@ -102,6 +105,7 @@ class StdoutLogger implements Logger {
     logProgress(message);
   }
 
+  @override
   void logStepComplete(int completed, int failed, int total, Suite? suite,
       TestDescription description, Step step) {
     if (!step.isAsync) return;
@@ -112,6 +116,7 @@ class StdoutLogger implements Logger {
     logProgress(message);
   }
 
+  @override
   void logProgress(String message) {
     if (isVerbose) {
       print(message);
@@ -134,28 +139,32 @@ class StdoutLogger implements Logger {
     return "${suite.name}/${description.shortName}";
   }
 
+  @override
   void logMessage(Object message) {
     if (isVerbose) {
       print("$message");
     }
   }
 
+  @override
   void logNumberedLines(String text) {
     if (isVerbose) {
       print(numberedLines(text));
     }
   }
 
+  @override
   void logExpectedResult(Suite suite, TestDescription description,
       Result result, Set<Expectation> expectedOutcomes) {}
 
+  @override
   void logUnexpectedResult(Suite suite, TestDescription description,
       Result result, Set<Expectation> expectedOutcomes) {
     print("${eraseLine}UNEXPECTED: ${suite.name}/${description.shortName}");
     Uri? statusFile = suite.statusFile;
     if (statusFile != null) {
       String path = statusFile.toFilePath();
-      if (result.outcome == Expectation.Pass) {
+      if (result.outcome == Expectation.pass) {
         print("The test unexpectedly passed, please update $path.");
       } else {
         print("The test had the outcome ${result.outcome}, but the status file "
@@ -174,16 +183,19 @@ class StdoutLogger implements Logger {
     }
   }
 
+  @override
   void logSuiteStarted(Suite suite) {
     print("Running suite ${suite.name}...");
   }
 
+  @override
   void logSuiteComplete(Suite suite) {
     if (!isVerbose) {
       print("");
     }
   }
 
+  @override
   void logUncaughtError(error, StackTrace stackTrace) {
     logMessage(error);
     // ignore: unnecessary_null_comparison
@@ -192,11 +204,12 @@ class StdoutLogger implements Logger {
     }
   }
 
+  @override
   void noticeFrameworkCatchError(error, StackTrace stackTrace) {}
 }
 
 String pad(Object o, int pad, {String filler = " "}) {
-  String result = (filler * pad) + "$o";
+  String result = "${filler * pad}$o";
   return result.substring(result.length - pad);
 }
 

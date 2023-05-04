@@ -7,7 +7,7 @@
 
 part of dart._js_helper;
 
-abstract class InternalMap<K, V> extends MapBase<K, V>
+abstract base class InternalMap<K, V> extends MapBase<K, V>
     implements LinkedHashMap<K, V>, HashMap<K, V> {
   @notNull
   get _map;
@@ -33,7 +33,7 @@ abstract class InternalMap<K, V> extends MapBase<K, V>
 ///
 /// Items that have a custom equality/hashCode are first canonicalized by
 /// looking up the canonical key by its hashCode.
-class LinkedMap<K, V> extends InternalMap<K, V> {
+base class LinkedMap<K, V> extends InternalMap<K, V> {
   /// The backing store for this map.
   ///
   /// Keys that use identity equality are stored directly. For other types of
@@ -46,7 +46,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
   ///
   /// This maps from the item's hashCode to the canonical key, which is then
   /// used to lookup the item in [_map]. Keeping the data in our primary backing
-  /// map gives us the ordering semantics requred by [LinkedHashMap], while
+  /// map gives us the ordering semantics required by [LinkedHashMap], while
   /// also providing convenient access to keys/values.
   @notNull
   final _keyMap = JS('', 'new Map()');
@@ -258,7 +258,7 @@ K putLinkedMapKey<K>(@notNull K key, keyMap) {
   return key;
 }
 
-class ImmutableMap<K, V> extends LinkedMap<K, V> {
+base class ImmutableMap<K, V> extends LinkedMap<K, V> {
   ImmutableMap.from(JSArray entries) : super.from(entries);
 
   void operator []=(K key, V value) {

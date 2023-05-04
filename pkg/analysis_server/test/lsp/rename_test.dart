@@ -179,7 +179,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
         content, 'MyNewClass', expectedContent);
   }
 
-  Future<void> test_rename_class_doesNotRenameFileIfDisabled() async {
+  Future<void> test_rename_class_doesNotRenameFile_disabled() async {
     const content = '''
     class Main {}
     final a = new [[Ma^in]]();
@@ -194,7 +194,38 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     expect(contents.keys.single, equals(mainFilePath));
   }
 
-  Future<void> test_rename_class_doesRenameFileAfterPrompt() async {
+  Future<void>
+      test_rename_class_doesNotRenameFile_showMessageRequestUnsupportedPreventsPrompt() async {
+    const content = '''
+    class Main {}
+    final a = new [[Ma^in]]();
+    ''';
+    const expectedContent = '''
+    class MyNewMain {}
+    final a = new MyNewMain();
+    ''';
+
+    // Do the rename with setting enabled, but showMessageRequest not supported.
+    final contents = await provideConfig(
+      () => _test_rename_withDocumentChanges(
+        content,
+        'MyNewMain',
+        expectedContent,
+        // Rename supported.
+        workspaceCapabilities: withConfigurationSupport(
+            withResourceOperationKinds(emptyWorkspaceClientCapabilities,
+                [ResourceOperationKind.Rename])),
+        // showMessageRequest not supported.
+        supportsWindowShowMessageRequest: false,
+      ),
+      // Rename files with prompt enabled.
+      {'renameFilesWithClasses': 'prompt'},
+    );
+    // Ensure the only file is still called main.dart because we were unable to prompt for the rename.
+    expect(contents.keys.single, equals(mainFilePath));
+  }
+
+  Future<void> test_rename_class_doesRenameFile_afterPrompt() async {
     const content = '''
     class Main {}
     final a = new [[Ma^in]]();
@@ -253,7 +284,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  Future<void> test_rename_class_doesRenameFileIfAlwaysEnabled() async {
+  Future<void> test_rename_class_doesRenameFile_enabledWithoutPrompt() async {
     const content = '''
     class Main {}
     final a = new [[Ma^in]]();
@@ -282,7 +313,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  Future<void> test_rename_class_doesRenameFileIfRenamedFromAnother() async {
+  Future<void> test_rename_class_doesRenameFile_renamedFromOtherFile() async {
     const mainContent = '''
     class Main {}
     ''';
@@ -425,6 +456,23 @@ class RenameTest extends AbstractLspAnalysisServerTest {
       WorkspaceEdit.fromJson(response.result as Map<String, Object?>),
       equals(emptyWorkspaceEdit),
     );
+  }
+
+  Future<void>
+      test_rename_duplicateName_showMessageRequestUnsupportedPreventsPrompt() async {
+    const content = '''
+    class MyOtherClass {}
+    class MyClass {}
+    final a = n^ew MyClass();
+    ''';
+    final error = await _test_rename_failure(
+      content,
+      'MyOtherClass',
+      supportsWindowShowMessageRequest: false,
+    );
+    expect(error.code, equals(ServerErrorCodes.RenameNotValid));
+    expect(error.message,
+        contains('Library already declares class with name \'MyOtherClass\'.'));
   }
 
   Future<void> test_rename_enum() {
@@ -817,10 +865,16 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     String newName, {
     int openFileVersion = 222,
     int renameRequestFileVersion = 222,
+    bool supportsWindowShowMessageRequest = true,
   }) async {
     await initialize(
       workspaceCapabilities:
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+      experimentalCapabilities: supportsWindowShowMessageRequest
+          ? const {
+              'supportsWindowShowMessageRequest': true,
+            }
+          : null,
     );
     await openFile(mainFileUri, withoutMarkers(content),
         version: openFileVersion);
@@ -848,10 +902,16 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     required String action,
     int openFileVersion = 222,
     int renameRequestFileVersion = 222,
+    bool supportsWindowShowMessageRequest = true,
   }) async {
     await initialize(
       workspaceCapabilities:
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+      experimentalCapabilities: supportsWindowShowMessageRequest
+          ? const {
+              'supportsWindowShowMessageRequest': true,
+            }
+          : null,
     );
     await openFile(mainFileUri, withoutMarkers(content),
         version: openFileVersion);
@@ -894,6 +954,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     String? expectedFilePath,
     bool sendRenameVersion = true,
     WorkspaceClientCapabilities? workspaceCapabilities,
+    bool supportsWindowShowMessageRequest = true,
     Map<String, String>? contents,
   }) async {
     contents ??= {};
@@ -913,6 +974,11 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     await initialize(
       workspaceCapabilities: withDocumentChangesSupport(
           workspaceCapabilities ?? emptyWorkspaceClientCapabilities),
+      experimentalCapabilities: supportsWindowShowMessageRequest
+          ? const {
+              'supportsWindowShowMessageRequest': true,
+            }
+          : null,
     );
     await openFile(fileUri, withoutMarkers(content), version: documentVersion);
     await initialAnalysis;

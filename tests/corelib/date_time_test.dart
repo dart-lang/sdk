@@ -30,6 +30,45 @@ void testNow() {
   Expect.isFalse(t1.isUtc);
 }
 
+void testTimestamp() {
+  // Assume `DateTime.now` works.
+  const int N = 1000000;
+  var nowBefore = DateTime.now();
+  var timestamp = DateTime.timestamp();
+  var iterations = 0;
+  while (true) {
+    // Test that `timestamp` is using the same "current time" as `now`.
+    Expect.isTrue(timestamp.isUtc, "Is UTC");
+    Expect.isTrue(
+        nowBefore.microsecondsSinceEpoch <= timestamp.microsecondsSinceEpoch,
+        "After an earlier now");
+
+    var laterNow = DateTime.now();
+    Expect.isTrue(
+        timestamp.microsecondsSinceEpoch <= laterNow.microsecondsSinceEpoch,
+        "Before a later now");
+
+    var newTimestamp = DateTime.timestamp();
+
+    // Succeed if time has also progressed.
+    if (timestamp.microsecondsSinceEpoch <
+        newTimestamp.microsecondsSinceEpoch) {
+      break;
+    }
+    // Otherwise emit diagnostics occasionally, until the test times out
+    // or succeeds. Which should be in at most a few milliseconds if all
+    // is well.
+    if (++iterations >= N) {
+      print("testTimestamp: No DateTime.timestamp() progress in $N loops."
+          "Time: $timestamp");
+      iterations = 0;
+    }
+
+    nowBefore = laterNow;
+    timestamp = newTimestamp;
+  }
+}
+
 void testMillisecondsSinceEpoch() {
   var dt1 = new DateTime.now();
   var millisecondsSinceEpoch = dt1.millisecondsSinceEpoch;
@@ -1218,6 +1257,7 @@ void testRegression46966() {
 
 void main() {
   testNow();
+  testTimestamp();
   testMillisecondsSinceEpoch();
   testMicrosecondsSinceEpoch();
   testConstructors();

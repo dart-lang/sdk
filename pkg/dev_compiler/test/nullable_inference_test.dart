@@ -6,11 +6,13 @@ import 'dart:async';
 import 'dart:convert' show jsonEncode;
 import 'dart:io';
 
-import 'package:dev_compiler/src/kernel/command.dart' show getSdkPath;
+import 'package:dev_compiler/src/kernel/command.dart'
+    show addGeneratedVariables, getSdkPath;
 import 'package:dev_compiler/src/kernel/js_typerep.dart';
 import 'package:dev_compiler/src/kernel/nullable_inference.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
+import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -654,10 +656,12 @@ Future<CompileResult> kernelCompile(String code) async {
   }
 
   var root = Uri.file('/memory');
-  var sdkUri = Uri.file('/memory/dart_sdk.dill');
+  var sdkUri = Uri.file('/memory/ddc_outline_unsound.dill');
   var sdkFile = _fileSystem.entityForUri(sdkUri);
   if (!await sdkFile.exists()) {
-    var outlineDill = p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
+    var buildRoot = computePlatformBinariesLocation(forceBuildDir: true);
+    var outlineDill =
+        buildRoot.resolve('ddc_outline_unsound.dill').toFilePath();
     sdkFile.writeAsBytesSync(File(outlineDill).readAsBytesSync());
   }
   var librariesUri = Uri.file('/memory/libraries.json');
@@ -691,11 +695,18 @@ const nullCheck = const _NullCheck();
   var mainUri = Uri.file('/memory/test.dart');
   _fileSystem.entityForUri(mainUri).writeAsStringSync(code);
   var oldCompilerState = _compilerState;
-  _compilerState = fe.initializeCompiler(oldCompilerState, false, root, sdkUri,
-      packagesUri, librariesUri, [], DevCompilerTarget(TargetFlags()),
+  _compilerState = fe.initializeCompiler(
+      oldCompilerState,
+      false,
+      root,
+      sdkUri,
+      packagesUri,
+      librariesUri,
+      [],
+      DevCompilerTarget(TargetFlags(soundNullSafety: false)),
       fileSystem: _fileSystem,
       explicitExperimentalFlags: const {},
-      environmentDefines: const {},
+      environmentDefines: addGeneratedVariables({}, enableAsserts: true),
       nnbdMode: fe.NnbdMode.Weak);
   if (!identical(oldCompilerState, _compilerState)) inference = null;
   var result =

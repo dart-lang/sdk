@@ -47,7 +47,8 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     implements ExtensionBuilder {
   ExtensionBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
       String name, LibraryBuilder parent, int charOffset, Scope scope)
-      : super(metadata, modifiers, name, parent, charOffset, scope);
+      : super(metadata, modifiers, name, parent, charOffset, scope,
+            new ConstructorScope(name, const {}));
 
   @override
   DartType buildAliasedTypeWithBuiltArguments(

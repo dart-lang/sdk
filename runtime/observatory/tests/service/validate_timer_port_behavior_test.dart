@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:developer';
-import 'dart:isolate' hide Isolate;
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 

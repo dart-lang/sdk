@@ -35,16 +35,16 @@ main() {
 
 /*member: callOnNewB:dynamic=[exact:B.method1(0)],static=[B.(0)]*/
 callOnNewB() {
-  new B().method1();
+  B().method1();
 }
 
 /*member: callOnNewC:dynamic=[exact:C.method2(0)],static=[C.(0)]*/
 callOnNewC() {
-  new C().method2();
+  C().method2();
 }
 
 /*member: callOnEffectivelyFinalB:dynamic=[exact:B.method3(0)],static=[B.(0)]*/
 callOnEffectivelyFinalB() {
-  A a = new B();
+  A a = B();
   a.method3();
 }

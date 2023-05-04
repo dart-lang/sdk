@@ -66,10 +66,10 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
 
 /*member: main:[null]*/
 main() {
-  var c1 = new ViewCardComponent();
-  c1. /*update: [exact=ViewCardComponent]*/ ctx = new CardComponent();
+  var c1 = ViewCardComponent();
+  c1. /*update: [exact=ViewCardComponent]*/ ctx = CardComponent();
   c1. /*update: [exact=ViewCardComponent]*/ ng_title = 'foo';
-  var c2 = new ViewCardComponent2();
-  c2. /*update: [exact=ViewCardComponent2]*/ ctx = new CardComponent2();
+  var c2 = ViewCardComponent2();
+  c2. /*update: [exact=ViewCardComponent2]*/ ctx = CardComponent2();
   c2. /*update: [exact=ViewCardComponent2]*/ ng_title = 'bar';
 }

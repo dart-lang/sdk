@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A contributor that produces suggestions for constructors that are being
 /// redirected to. More concretely, this class produces suggestions for
@@ -14,7 +15,9 @@ class RedirectingContributor extends DartCompletionContributor {
   RedirectingContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     var entity = request.target.entity;
     if (entity is SimpleIdentifier) {
       var parent = entity.parent;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -13,6 +11,7 @@ import 'package:compiler/src/ir/cached_static_type.dart';
 import 'package:compiler/src/ir/static_type_base.dart';
 import 'package:compiler/src/ir/static_type_cache.dart';
 import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/kernel/kelements.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -24,24 +23,24 @@ import '../helpers/ir_types.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, new StaticTypeDataComputer(),
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
+    await checkTests(dataDir, StaticTypeDataComputer(),
         args: args, testedConfigs: allSpecConfigs);
   });
 }
 
 class StaticTypeDataComputer extends DataComputer<String> {
-  ir.TypeEnvironment _typeEnvironment;
+  ir.TypeEnvironment? _typeEnvironment;
 
   ir.StaticTypeContext getStaticTypeContext(
       KernelToElementMap elementMap, ir.Member node) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
-      ir.CoreTypes coreTypes = new ir.CoreTypes(component);
-      _typeEnvironment = new ir.TypeEnvironment(
-          coreTypes, new ir.ClassHierarchy(component, coreTypes));
+      ir.CoreTypes coreTypes = ir.CoreTypes(component);
+      _typeEnvironment = ir.TypeEnvironment(
+          coreTypes, ir.ClassHierarchy(component, coreTypes));
     }
-    return new ir.StaticTypeContext(node, _typeEnvironment);
+    return ir.StaticTypeContext(node, _typeEnvironment!);
   }
 
   /// Compute type inference data for [member] from kernel based inference.
@@ -53,16 +52,17 @@ class StaticTypeDataComputer extends DataComputer<String> {
       {bool verbose = false}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
-    StaticTypeCache staticTypeCache = elementMap.getCachedStaticTypes(member);
+    StaticTypeCache staticTypeCache =
+        elementMap.getCachedStaticTypes(member as KMember);
     ir.Member node = elementMap.getMemberNode(member);
-    new StaticTypeIrComputer(
+    StaticTypeIrComputer(
             compiler.reporter,
             actualMap,
-            new CachedStaticType(
+            CachedStaticType(
                 getStaticTypeContext(elementMap, node),
                 staticTypeCache,
                 ThisInterfaceType.from(node.enclosingClass?.getThisType(
-                    _typeEnvironment.coreTypes,
+                    _typeEnvironment!.coreTypes,
                     node.enclosingLibrary.nonNullable))))
         .run(node);
   }
@@ -83,7 +83,7 @@ class StaticTypeIrComputer extends IrDataExtractor<String> {
       : super(reporter, actualMap);
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.VariableGet) {
       return typeToText(node.accept(staticTypeCache));
     } else if (node is ir.InstanceInvocation) {

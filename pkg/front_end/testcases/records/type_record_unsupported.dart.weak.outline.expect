@@ -28,160 +28,48 @@ library /*isNonNullableByDefault*/;
 // typedef FromSupportedRR = FromSupportedR;
 //         ^
 //
-// pkg/front_end/testcases/records/type_record_unsupported.dart:9:13: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// typedef R = Record; // Error.
-//             ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:11:16: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// typedef AR = A<Record>; // Error.
-//                ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:21:1: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// Record foo1() => throw ''; // Error.
-// ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:33:14: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// dynamic foo7(Record r) => null; // Error.
-//              ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:35:24: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// dynamic foo8({required Record r}) => null; // Error.
-//                        ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:37:6: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// List<Record> foo9() => throw ''; // Error.
-//      ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:39:20: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// dynamic foo10(List<Record> l) => null; // Error.
-//                    ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:59:27: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// abstract class A1 extends Record {} // Error.
-//                           ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:59:27: Error: The type 'Record' can't be used as supertype.
-// abstract class A1 extends Record {} // Error.
-//                           ^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:61:30: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// abstract class A2 implements Record {} // Error.
-//                              ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:61:30: Error: The type 'Record' can't be used as supertype.
-// abstract class A2 implements Record {} // Error.
-//                              ^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:65:29: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// abstract class A4 extends A<Record> {} // Error.
-//                             ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:67:32: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// abstract class A5 implements A<Record> {} // Error.
-//                                ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:69:26: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// abstract class A6 with A<Record> {} // Error.
-//                          ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:63:24: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// abstract class A3 with Record {} // Error.
-//                        ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:63:24: Error: The type 'Record' can't be used as supertype.
-// abstract class A3 with Record {} // Error.
-//                        ^
-//
 import self as self;
-import "type_record_unsupported_lib.dart" as typ;
 import "dart:core" as core;
+import "type_record_unsupported_lib.dart" as typ;
 
 import "org-dartlang-testcase:///type_record_unsupported_lib.dart";
 
-typedef R = invalid-type;
-typedef AR = typ::A<invalid-type>;
+typedef R = core::Record;
+typedef AR = typ::A<core::Record>;
 typedef AR2 = typ::A<core::Record>;
 typedef AR3 = typ::A<core::Record>;
 typedef AR4 = typ::A<typ::A<core::Record>>;
 typedef RR = core::Record;
-abstract class A1 extends core::Object {
+abstract class A1 extends core::Record {
   synthetic constructor •() → self::A1
     ;
 }
-abstract class A2 extends core::Object {
+abstract class A2 extends core::Object implements core::Record {
   synthetic constructor •() → self::A2
     ;
 }
-abstract class _A3&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _A3&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A3&Object&Record
     : super core::Object::•()
     ;
+  abstract mixin-stub get runtimeType() → core::Type; -> core::Record::runtimeType
+  abstract mixin-stub get hashCode() → core::int; -> core::Record::hashCode
+  abstract mixin-stub operator ==(core::Object other) → core::bool; -> core::Record::==
+  abstract mixin-stub method toString() → core::String; -> core::Record::toString
 }
 abstract class A3 extends self::_A3&Object&Record {
   synthetic constructor •() → self::A3
     ;
 }
-abstract class A4 extends typ::A<invalid-type> {
+abstract class A4 extends typ::A<core::Record> {
   synthetic constructor •() → self::A4
     ;
 }
-abstract class A5 extends core::Object implements typ::A<invalid-type> {
+abstract class A5 extends core::Object implements typ::A<core::Record> {
   synthetic constructor •() → self::A5
     ;
 }
-abstract class _A6&Object&A = core::Object with typ::A<invalid-type> /*isAnonymousMixin,hasConstConstructor*/  {
+abstract class _A6&Object&A = core::Object with typ::A<core::Record> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A6&Object&A
     : super core::Object::•()
     ;
@@ -202,7 +90,7 @@ abstract class A9 extends core::Record {
   synthetic constructor •() → self::A9
     ;
 }
-static method foo1() → invalid-type
+static method foo1() → core::Record
   ;
 static method foo2() → dynamic
   ;
@@ -214,13 +102,13 @@ static method foo5() → dynamic
   ;
 static method foo6() → dynamic
   ;
-static method foo7(invalid-type r) → dynamic
+static method foo7(core::Record r) → dynamic
   ;
-static method foo8({required invalid-type r}) → dynamic
+static method foo8({required core::Record r}) → dynamic
   ;
-static method foo9() → core::List<invalid-type>
+static method foo9() → core::List<core::Record>
   ;
-static method foo10(core::List<invalid-type> l) → dynamic
+static method foo10(core::List<core::Record> l) → dynamic
   ;
 static method foo11() → core::Record
   ;
@@ -250,7 +138,7 @@ import "dart:core" as core;
 typedef FromSupportedR = core::Record;
 typedef FromSupportedAR = typ::A<core::Record>;
 typedef FromSupportedRR = core::Record;
-abstract class A<X extends core::Object? = dynamic> extends core::Object {
+abstract mixin class A<X extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → typ::A<typ::A::X%>
     ;
 }

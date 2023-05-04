@@ -6,9 +6,11 @@ import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
-import '../ir/class_relation.dart';
+import '../ir/static_type.dart';
 import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
+import '../universe/member_hierarchy.dart';
+import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';
@@ -75,6 +77,10 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
   @override
   AbstractValue get functionType =>
       ComputableAbstractValue(_wrappedDomain.functionType);
+
+  @override
+  AbstractValue get recordType =>
+      ComputableAbstractValue(_wrappedDomain.recordType);
 
   @override
   AbstractValue get boolType =>
@@ -505,6 +511,31 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
           _wrappedDomain.getDictionaryValueForKey(_unwrap(value), key));
 
   @override
+  AbstractValue createRecordValue(
+      RecordShape shape, List<AbstractValue> types) {
+    AbstractValue abstractValue = _wrappedDomain.createRecordValue(
+        shape,
+        types
+            .map((e) => _unwrap(e as ComputableAbstractValue))
+            .toList(growable: false));
+    return ComputableAbstractValue(abstractValue);
+  }
+
+  @override
+  bool isRecord(covariant ComputableAbstractValue value) =>
+      _wrappedDomain.isRecord(_unwrap(value));
+
+  @override
+  bool recordHasGetter(
+          covariant ComputableAbstractValue value, String getterName) =>
+      _wrappedDomain.recordHasGetter(_unwrap(value), getterName);
+
+  @override
+  AbstractValue getGetterTypeInRecord(
+          covariant ComputableAbstractValue value, String getterName) =>
+      _wrappedDomain.getGetterTypeInRecord(_unwrap(value), getterName);
+
+  @override
   bool isSpecializationOf(covariant ComputableAbstractValue specialization,
           covariant ComputableAbstractValue generalization) =>
       _wrappedDomain.isSpecializationOf(
@@ -587,6 +618,15 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
   AbstractBool isFixedLengthJsIndexable(
           covariant ComputableAbstractValue value) =>
       _wrappedDomain.isFixedLengthJsIndexable(_unwrap(value));
+
+  @override
+  Iterable<DynamicCallTarget> findRootsOfTargets(
+      covariant ComputableAbstractValue receiver,
+      Selector selector,
+      MemberHierarchyBuilder memberHierarchyBuilder) {
+    return _wrappedDomain.findRootsOfTargets(
+        _unwrap(receiver), selector, memberHierarchyBuilder);
+  }
 
   @override
   String getCompactText(covariant ComputableAbstractValue value) =>

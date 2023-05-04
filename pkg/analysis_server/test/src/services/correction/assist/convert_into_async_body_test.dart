@@ -42,12 +42,65 @@ void h() {
 }
 f(g) {}
 ''');
-    await assertHasAssistAt('=>', '''
-void h() {
-  f(() async => 123);
+    await assertNoAssistAt('=>');
+  }
+
+  Future<void> test_closure_assignment() async {
+    await resolveTestCode('''
+void f() {
+  var c = () {};
 }
-f(g) {}
 ''');
+    await assertNoAssistAt('{}');
+  }
+
+  Future<void> test_closure_future() async {
+    await resolveTestCode('''
+import 'dart:async';
+
+void g(Future<int> Function() fun) {}
+
+void f() {
+  g(() => Future.value(1));
+}
+''');
+    await assertNoAssistAt('=>');
+  }
+
+  Future<void> test_closure_futureOr() async {
+    await resolveTestCode('''
+import 'dart:async';
+
+void g(FutureOr<int> Function() fun) {}
+
+void f() {
+  g(() => 1);
+}
+''');
+    await assertNoAssistAt('=>');
+  }
+
+  Future<void> test_closure_int() async {
+    await resolveTestCode('''
+void g(int Function() fun) {}
+
+void f() {
+  g(() => 1);
+}
+''');
+    await assertNoAssistAt('=>');
+  }
+
+  Future<void> test_closure_void() async {
+    await resolveTestCode('''
+void g(void Function() fun) {
+}
+
+void f() {
+  g(() {});
+}
+''');
+    await assertNoAssistAt('{}');
   }
 
   Future<void> test_constructor() async {
@@ -65,6 +118,19 @@ String f() => '';
 ''');
     await assertHasAssistAt('=>', '''
 Future<String> f() async => '';
+''');
+  }
+
+  Future<void> test_function_local() async {
+    await resolveTestCode('''
+void g() {
+  String f() => '';
+}
+''');
+    await assertHasAssistAt('=>', '''
+void g() {
+  Future<String> f() async => '';
+}
 ''');
   }
 

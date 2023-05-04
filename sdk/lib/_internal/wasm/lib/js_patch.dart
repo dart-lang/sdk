@@ -8,8 +8,8 @@ library dart.js;
 
 import 'dart:_internal' show patch;
 import 'dart:_js_helper';
+import 'dart:_wasm';
 import 'dart:collection' show ListMixin;
-import 'dart:wasm';
 
 @patch
 JsObject get context => throw UnimplementedError();
@@ -113,10 +113,3 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   @patch
   void sort([int compare(E a, E b)?]) => throw UnimplementedError();
 }
-
-/// This will be lowered to a a call to `_wrapDartCallback`.
-@patch
-F allowInterop<F extends Function>(F f) => throw UnimplementedError();
-
-@patch
-Function allowInteropCaptureThis(Function f) => throw UnimplementedError();

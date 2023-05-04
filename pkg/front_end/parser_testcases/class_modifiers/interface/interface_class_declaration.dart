@@ -1,0 +1,6 @@
+interface class A {}
+
+abstract interface class B {}
+
+mixin M {}
+interface class C = Object with M;

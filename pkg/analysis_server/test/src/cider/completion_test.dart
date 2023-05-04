@@ -59,10 +59,7 @@ void f() {
 
     _assertHasOperationPerformance(['resolution']);
     _assertHasOperationPerformance(['suggestions']);
-    _assertHasOperationPerformance([
-      'suggestions',
-      'DartCompletionManager - KeywordContributor',
-    ]);
+    _assertHasOperationPerformance(['suggestions', 'KeywordContributor']);
   }
 
   Future<void> test_compute_prefixStart_beforeToken_identifier() async {
@@ -791,7 +788,7 @@ import 'a.dart';
     }
   }
 
-  Future _compute(String content) async {
+  Future<void> _compute(String content) async {
     var context = _updateFile(content);
 
     _completionResult = await _newComputer().compute(

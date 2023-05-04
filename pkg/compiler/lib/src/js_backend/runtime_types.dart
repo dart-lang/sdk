@@ -549,7 +549,7 @@ class RuntimeTypesImpl
     //
     // For instance
     //
-    //    new A<B Function(C)>();
+    //    A<B Function(C)>();
     //
     // makes A and B live but C tested.
     _TypeVisitor liveTypeVisitor = _TypeVisitor(
@@ -630,7 +630,7 @@ class RuntimeTypesImpl
       //    class A {}
       //    class B<T> {}
       //    class C implements B<A> {}
-      //    main() => new C();
+      //    main() => C();
       //
       // Here `A` is live as a type argument through the liveness of `C`.
       for (InterfaceType supertype
@@ -993,7 +993,7 @@ class ClassUse {
   ///
   ///     class A {}
   ///     class B extends A {}
-  ///     main() => new B();
+  ///     main() => B();
   ///
   bool instance = false;
 
@@ -1003,7 +1003,7 @@ class ClassUse {
   ///
   ///     class A {}
   ///     class B extends A {}
-  ///     main() => new B();
+  ///     main() => B();
   ///
   bool directInstance = false;
 
@@ -1021,7 +1021,7 @@ class ClassUse {
   /// For instance `A` in:
   ///
   ///     class A {}
-  ///     main() => new List<A>() is List<String>;
+  ///     main() => List<A>() is List<String>;
   ///
   bool typeArgument = false;
 
@@ -1030,7 +1030,7 @@ class ClassUse {
   /// For instance `A` in:
   ///
   ///     class A {}
-  ///     main() => new List<String>() is List<A>;
+  ///     main() => List<String>() is List<A>;
   ///
   bool checkedTypeArgument = false;
 

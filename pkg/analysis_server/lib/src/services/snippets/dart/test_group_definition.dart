@@ -6,12 +6,15 @@ import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_producer.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
-/// Produces a [Snippet] that creates a `test()` block.
+/// Produces a [Snippet] that creates a `group()` block.
 class TestGroupDefinition extends DartSnippetProducer {
   static const prefix = 'group';
   static const label = 'group';
 
-  TestGroupDefinition(super.request);
+  TestGroupDefinition(super.request, {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   @override
   Future<Snippet> compute() async {

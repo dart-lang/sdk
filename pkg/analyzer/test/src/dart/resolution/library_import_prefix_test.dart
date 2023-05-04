@@ -10,12 +10,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ImportPrefixDriverResolutionTest);
+    defineReflectiveTests(ImportPrefixResolutionTest);
   });
 }
 
 @reflectiveTest
-class ImportPrefixDriverResolutionTest extends PubPackageResolutionTest {
+class ImportPrefixResolutionTest extends PubPackageResolutionTest {
   test_asExpression_expressionStatement() async {
     await assertErrorsInCode(r'''
 import 'dart:async' as p;

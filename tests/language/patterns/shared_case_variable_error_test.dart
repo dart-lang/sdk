@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns
+// SharedOptions=--enable-experiment=patterns,records
 
 import "package:expect/expect.dart";
 
@@ -13,8 +13,8 @@ main() {
     case (1, final int x):
       print(x);
       //    ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+      // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
   }
 
   switch ((0, 1)) {
@@ -22,8 +22,8 @@ main() {
     case (3, final x):
       print(x);
       //    ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+      // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
   }
 
   // Variables in shared cases must agree on type if used in the body.
@@ -32,8 +32,8 @@ main() {
     case (1, num x):
       print(x);
       //    ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+      // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
   }
 
   switch ((0, 's')) {
@@ -41,8 +41,8 @@ main() {
     case (2, var x): // Infer String.
       print(x);
       //    ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+      // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
   }
 
   // Variables must be defined in all cases if used in body.
@@ -52,13 +52,13 @@ main() {
     case (2, var inTwo):
       print(unique);
       //    ^^^^^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+      // [cfe] The variable 'unique' is available in some, but not all cases that share this body.
 
       print(inTwo);
       //    ^^^^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+      // [cfe] The variable 'inTwo' is available in some, but not all cases that share this body.
   }
 
   // Mismatched variable types because of inference from a promoted type.
@@ -70,8 +70,8 @@ main() {
       case (1, Object a):
         print(a);
         //    ^
-        // [analyzer] unspecified
-        // [cfe] unspecified
+        // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+        // [cfe] Variable pattern 'a' doesn't have the same type or finality in all cases.
     }
   }
 }

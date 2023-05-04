@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of view;
 
 /// Holds a number of child views.  As you switch between views, the old
@@ -15,15 +13,15 @@ class ConveyorView extends CompositeView {
   // when we're done sliding
   static const ANIMATE_SECONDS = 0.25;
 
-  View targetView;
+  View? targetView;
   // TODO(rnystrom): Should not be settable.
-  View selectedView;
+  View? selectedView;
   // TODO(rnystrom): Hackish. Should use a real multicast event-like class.
   // Or just have it depend on an Observable to select a view and indicate
   // which view is selected? (e.g. the MVVM pattern)
-  Function viewSelected;
+  Function? viewSelected;
 
-  Timer animationTimer;
+  Timer? animationTimer;
 
   ConveyorView()
       : animationTimer = null,
@@ -56,7 +54,7 @@ class ConveyorView extends CompositeView {
 
     final style = container.style;
     // TODO(jacobr): modify setTransitionDuration so the input is always
-    // specified in miliseconds rather than accepting a string.
+    // specified in milliseconds rather than accepting a string.
     style.transitionDuration = '${durationSeconds}s';
     final xTranslationPercent = -index * 100;
     style.transform = 'translate3d($xTranslationPercent%, 0px, 0px)';
@@ -83,7 +81,7 @@ class ConveyorView extends CompositeView {
   /// Adds a child view to the ConveyorView.  The views are stacked horizontally
   /// in the order they are added.
   @override
-  View addChild(View view) {
+  T addChild<T extends View>(T view) {
     view.addClass('conveyor-item');
     view.transform = 'translate3d(${(childViews.length * 100)}%, 0, 0)';
     return super.addChild(view);
@@ -91,7 +89,7 @@ class ConveyorView extends CompositeView {
 
   void _onAnimationEnd() {
     if (viewSelected != null) {
-      viewSelected(selectedView);
+      viewSelected!(selectedView);
     }
   }
 }

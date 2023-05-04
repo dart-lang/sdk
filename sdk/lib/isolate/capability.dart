@@ -23,7 +23,7 @@ part of dart.isolate;
 /// just using `Object()` to create a unique object,
 /// and it offers no real security against other code
 /// running in the same isolate.
-class Capability {
+abstract interface class Capability {
   /// Create a new unforgeable capability object.
   external factory Capability();
 }

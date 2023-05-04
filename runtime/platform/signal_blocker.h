@@ -43,7 +43,7 @@ class ThreadSignalBlocker {
 
   ~ThreadSignalBlocker() {
     // Restore signal mask.
-    int r = pthread_sigmask(SIG_SETMASK, &old, NULL);
+    int r = pthread_sigmask(SIG_SETMASK, &old, nullptr);
     USE(r);
     ASSERT(r == 0);
   }
@@ -88,7 +88,7 @@ class ThreadSignalBlocker {
 #define CHECK_IS_BLOCKING(signal)                                              \
   ({                                                                           \
     sigset_t signal_mask;                                                      \
-    int __r = pthread_sigmask(SIG_BLOCK, NULL, &signal_mask);                  \
+    int __r = pthread_sigmask(SIG_BLOCK, nullptr, &signal_mask);               \
     USE(__r);                                                                  \
     ASSERT(__r == 0);                                                          \
     sigismember(&signal_mask, signal);                                         \

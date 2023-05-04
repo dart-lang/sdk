@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
 // Test that parameters keep their names in the output.
 
 import 'package:async_helper/async_helper.dart';
@@ -23,7 +22,7 @@ main() {
         '}',
         entry: 'foo',
         minify: false);
-    RegExp re = new RegExp(r"var ");
+    RegExp re = RegExp(r"var ");
     Expect.isTrue(re.hasMatch(generated));
     print(generated);
     Expect.equals(1, re.allMatches(generated).length);

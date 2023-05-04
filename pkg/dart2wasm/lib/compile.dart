@@ -4,6 +4,11 @@
 
 import 'dart:typed_data';
 
+import 'package:build_integration/file_system/multi_root.dart'
+    show MultiRootFileSystem;
+
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerOptions,
@@ -14,24 +19,35 @@ import 'package:front_end/src/api_unstable/vm.dart'
         Severity;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/target/targets.dart';
-import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
+
+import 'package:vm/kernel_front_end.dart' show writeDepfile;
 
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 
 import 'package:dart2wasm/compiler_options.dart' as compiler;
+import 'package:dart2wasm/js_runtime_generator.dart';
+import 'package:dart2wasm/record_class_generator.dart';
+import 'package:dart2wasm/records.dart';
 import 'package:dart2wasm/target.dart';
 import 'package:dart2wasm/translator.dart';
+
+class CompilerOutput {
+  final Uint8List wasmModule;
+  final String jsRuntime;
+
+  CompilerOutput(this.wasmModule, this.jsRuntime);
+}
 
 /// Compile a Dart file into a Wasm module.
 ///
 /// Returns `null` if an error occurred during compilation. The
 /// [handleDiagnosticMessage] callback will have received an error message
 /// describing the error.
-Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
+Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
     void Function(DiagnosticMessage) handleDiagnosticMessage) async {
   var succeeded = true;
   void diagnosticMessageHandler(DiagnosticMessage message) {
@@ -41,7 +57,8 @@ Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
     handleDiagnosticMessage(message);
   }
 
-  Target target = WasmTarget();
+  final WasmTarget target =
+      WasmTarget(constantBranchPruning: options.constantBranchPruning);
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
     ..sdkRoot = options.sdkPath
@@ -52,6 +69,12 @@ Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
     ..verbose = false
     ..onDiagnostic = diagnosticMessageHandler
     ..nnbdMode = NnbdMode.Strong;
+  if (options.multiRootScheme != null) {
+    compilerOptions.fileSystem = new MultiRootFileSystem(
+        options.multiRootScheme!,
+        options.multiRoots.isEmpty ? [Uri.base] : options.multiRoots,
+        StandardFileSystem.instance);
+  }
 
   if (options.platformPath != null) {
     compilerOptions.sdkSummary = options.platformPath;
@@ -66,6 +89,13 @@ Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
   }
   Component component = compilerResult.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
+  ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
+  JSRuntimeFinalizer jsRuntimeFinalizer =
+      createJSRuntimeFinalizer(component, coreTypes, classHierarchy);
+
+  final Map<RecordShape, Class> recordClasses =
+      generateRecordClasses(component, coreTypes);
+  target.recordClasses = recordClasses;
 
   globalTypeFlow.transformComponent(target, coreTypes, component,
       treeShakeSignatures: true,
@@ -79,9 +109,16 @@ Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
   }());
 
   var translator = Translator(
-      component,
-      coreTypes,
-      TypeEnvironment(coreTypes, compilerResult.classHierarchy!),
-      options.translatorOptions);
-  return translator.translate();
+      component, coreTypes, recordClasses, options.translatorOptions);
+
+  String? depFile = options.depFile;
+  if (depFile != null) {
+    writeDepfile(compilerOptions.fileSystem, component.uriToSource.keys,
+        options.outputFile, depFile);
+  }
+
+  Uint8List wasmModule = translator.translate();
+  String jsRuntime =
+      jsRuntimeFinalizer.generate(translator.functions.translatedProcedures);
+  return CompilerOutput(wasmModule, jsRuntime);
 }

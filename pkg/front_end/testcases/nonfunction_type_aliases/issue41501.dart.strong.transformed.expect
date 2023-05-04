@@ -40,7 +40,7 @@ library opted_out_lib;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart:5:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart:5:1: Error: Library doesn't support null safety.
 // // @dart=2.6
 // ^^^^^^^^^^^^
 //
@@ -55,6 +55,7 @@ class A extends core::Object {
   synthetic constructor •() → opt::A*
     : super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -63,7 +64,6 @@ class A extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {

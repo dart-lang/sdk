@@ -41,7 +41,7 @@ class NativeGenerator {
         };
 
         // To ensure that different programs loaded into the same context (page)
-        // use distinct dispatch properies, we place an object on `Object` to
+        // use distinct dispatch properties, we place an object on `Object` to
         // contain the names already in use.
         var tableProperty = "___dart_isolate_tags_";
         var usedProperties = Object[tableProperty] ||

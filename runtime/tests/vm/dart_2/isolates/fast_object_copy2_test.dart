@@ -9,14 +9,13 @@
 // VMOptions=--no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation
 // VMOptions=--enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation
 
-// The tests in this file will only succeed when isolate groups are enabled
-// (hence the VMOptions above).
-
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
+import 'package:ffi/ffi.dart';
 
 import 'fast_object_copy_test.dart'
     show UserObject, SendReceiveTestBase, notAllocatableInTLAB;
@@ -77,6 +76,8 @@ final sharableObjects = [
   RegExp('a'),
   Isolate.current.pauseCapability,
   Int32x4(1, 2, 3, 4),
+  Float32x4(1.0, 2.0, 3.0, 4.0),
+  Float64x2(1.0, 2.0),
   StackTrace.current,
 ];
 

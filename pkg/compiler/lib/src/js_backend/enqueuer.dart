@@ -14,7 +14,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
 import '../js_backend/annotations.dart';
-import '../universe/codegen_world_builder_interfaces.dart';
+import '../universe/codegen_world_builder.dart';
 import '../universe/member_usage.dart';
 import '../universe/use.dart'
     show
@@ -32,7 +32,7 @@ class CodegenEnqueuer extends Enqueuer {
   final String name;
   final Set<ClassEntity> _recentClasses = Setlet();
   bool _recentConstants = false;
-  final CodegenWorldBuilderImplForEnqueuer worldBuilder;
+  final CodegenWorldBuilderImpl worldBuilder;
   final WorkItemBuilder _workItemBuilder;
 
   @override
@@ -175,6 +175,9 @@ class CodegenEnqueuer extends Enqueuer {
       case TypeUseKind.NATIVE_INSTANTIATION:
         _registerInstantiatedType(type as InterfaceType, nativeUsage: true);
         break;
+      case TypeUseKind.RECORD_INSTANTIATION:
+        // TODO(49718): Collect record types for conversion to classes.
+        throw UnimplementedError('processTypeUse  $member  $typeUse');
       case TypeUseKind.IS_CHECK:
       case TypeUseKind.CATCH_TYPE:
         _registerIsCheck(type);

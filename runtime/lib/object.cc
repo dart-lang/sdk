@@ -11,7 +11,6 @@
 #include "vm/heap/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
-#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
@@ -148,13 +147,12 @@ static bool HaveSameRuntimeTypeHelper(Zone* zone,
   if (left_cid == kRecordCid) {
     const auto& left_record = Record::Cast(left);
     const auto& right_record = Record::Cast(right);
-    const intptr_t num_fields = left_record.num_fields();
-    if ((num_fields != right_record.num_fields()) ||
-        (left_record.field_names() != right_record.field_names())) {
+    if (left_record.shape() != right_record.shape()) {
       return false;
     }
     Instance& left_field = Instance::Handle(zone);
     Instance& right_field = Instance::Handle(zone);
+    const intptr_t num_fields = left_record.num_fields();
     for (intptr_t i = 0; i < num_fields; ++i) {
       left_field ^= left_record.FieldAt(i);
       right_field ^= right_record.FieldAt(i);
@@ -332,22 +330,6 @@ DEFINE_NATIVE_ENTRY(Internal_nativeEffect, 0, 1) {
 DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
   isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging,
                                               /*compact=*/true);
-  return Object::null();
-}
-
-DEFINE_NATIVE_ENTRY(Internal_writeHeapSnapshotToFile, 0, 1) {
-#if !defined(PRODUCT)
-  const String& filename =
-      String::CheckedHandle(zone, arguments->NativeArgAt(0));
-  {
-    FileHeapSnapshotWriter file_writer(thread, filename.ToCString());
-    HeapSnapshotWriter writer(thread, &file_writer);
-    writer.Write();
-  }
-#else
-  Exceptions::ThrowUnsupportedError(
-      "Heap snapshots are only supported in non-product mode.");
-#endif  // !defined(PRODUCT)
   return Object::null();
 }
 
@@ -561,7 +543,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
         DartFrameIterator iterator(Thread::Current(),
                                    StackFrameIterator::kNoCrossThreadIteration);
         StackFrame* caller_frame = iterator.NextFrame();
-        ASSERT(caller_frame != NULL);
+        ASSERT(caller_frame != nullptr);
         location = caller_frame->GetTokenPos();
       }
       const auto& parameter_name = String::Handle(zone, type_params.NameAt(i));

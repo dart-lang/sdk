@@ -27,7 +27,7 @@ main() {
       print(interestingLength ~/ elementLength);
 
       Expect.throws(() {
-        var array = new List(interestingLength ~/ elementLength);
+        var array = new List.filled(interestingLength ~/ elementLength, null);
         print(array.first);
       }, (e) => e is OutOfMemoryError);
     }

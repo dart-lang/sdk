@@ -75,11 +75,7 @@ void printMembers(CompilationUnitElement unitElement) {
     print(classElement.name);
     for (ConstructorElement constructorElement in classElement.constructors) {
       if (!constructorElement.isSynthetic) {
-        if (constructorElement.name == null) {
-          print('  ${constructorElement.name}');
-        } else {
-          print('  ${classElement.name}.${constructorElement.name}');
-        }
+        print('  ${constructorElement.displayName}');
       }
     }
     for (FieldElement fieldElement in classElement.fields) {

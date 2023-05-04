@@ -1,0 +1,140 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  core::List<core::int> list = <core::int>[1, 2, 3];
+  core::print(self::f<core::int>(list));
+  core::print(self::subs<core::int>(list));
+  core::print(self::perms<core::int>(list));
+  core::print(self::equals<core::int>(list, list));
+}
+static method f<A extends core::Object? = dynamic>(core::List<self::f::A%> list) → core::List<self::f::A%>
+  return block {
+    core::List<self::f::A%> #t1;
+    final synthesized core::List<self::f::A%> #0#0 = list;
+    #L1:
+    {
+      {
+        if(#0#0.{core::List::length}{core::int}.{core::num::<=}(#C1){(core::num) → core::bool}) {
+          #t1 = <self::f::A%>[];
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = <self::f::A%>[];
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%> list) → core::List<core::List<self::subs::A%>>
+  return block {
+    core::List<core::List<self::subs::A%>> #t2;
+    final synthesized core::List<self::subs::A%> #0#0 = list;
+    late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
+    #L2:
+    {
+      {
+        if(#0#1.{core::num::<=}(#C1){(core::num) → core::bool}) {
+          #t2 = <core::List<self::subs::A%>>[];
+          break #L2;
+        }
+      }
+      {
+        hoisted self::subs::A% x;
+        hoisted core::List<self::subs::A%> xs;
+        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t3 = x = #0#0.{core::List::[]}(0){(core::int) → self::subs::A%} in true) && (let final dynamic #t4 = xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::subs::A%>} in true)) {
+          #t2 = block {
+            final core::List<core::List<self::subs::A%>> #t5 = <core::List<self::subs::A%>>[];
+            for (core::List<self::subs::A%> ys in self::subs<self::subs::A%>(xs))
+              #t5.{core::List::addAll}{Invariant}(<core::List<self::subs::A%>>[<self::subs::A%>[x].{core::List::+}(ys){(core::List<self::subs::A%>) → core::List<self::subs::A%>}, ys]){(core::Iterable<core::List<self::subs::A%>>) → void};
+            #t5.{core::List::add}{Invariant}(<self::subs::A%>[x]){(core::List<self::subs::A%>) → void};
+          } =>#t5;
+          break #L2;
+        }
+      }
+    }
+  } =>#t2;
+static method perms<A extends core::Object? = dynamic>(core::List<self::perms::A%> list) → core::List<core::List<self::perms::A%>>
+  return block {
+    core::List<core::List<self::perms::A%>> #t6;
+    final synthesized core::List<self::perms::A%> #0#0 = list;
+    late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
+    #L3:
+    {
+      {
+        if(#0#1.{core::num::<=}(#C1){(core::num) → core::bool} || #0#1 =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t6 = <core::List<self::perms::A%>>[list];
+          break #L3;
+        }
+      }
+      {
+        hoisted self::perms::A% x;
+        hoisted core::List<self::perms::A%> xs;
+        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t7 = x = #0#0.{core::List::[]}(0){(core::int) → self::perms::A%} in true) && (let final dynamic #t8 = xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::perms::A%>} in true)) {
+          #t6 = block {
+            final core::List<core::List<self::perms::A%>> #t9 = <core::List<self::perms::A%>>[];
+            for (core::int i = 0; i.{core::num::<}(list.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+              for (core::List<self::perms::A%> perm in self::perms<self::perms::A%>(xs))
+                #t9.{core::List::add}{Invariant}( block {
+                  final core::List<self::perms::A%> #t10 = core::List::of<self::perms::A%>(perm.{core::Iterable::take}(i){(core::int) → core::Iterable<self::perms::A%>});
+                  #t10.{core::List::add}{Invariant}(x){(self::perms::A%) → void};
+                  #t10.{core::List::addAll}{Invariant}(perm.{core::Iterable::skip}(i){(core::int) → core::Iterable<self::perms::A%>}){(core::Iterable<self::perms::A%>) → void};
+                } =>#t10){(core::List<self::perms::A%>) → void};
+          } =>#t9;
+          break #L3;
+        }
+      }
+    }
+  } =>#t6;
+static method equals<A extends core::Object? = dynamic>(core::List<self::equals::A%> a, core::List<self::equals::A%> b) → core::bool
+  return block {
+    core::bool #t11;
+    final synthesized(core::List<self::equals::A%>, core::List<self::equals::A%>) #0#0 = (a, b);
+    late final synthesized core::List<self::equals::A%> #0#1 = #0#0.$1{core::List<self::equals::A%>};
+    late final synthesized core::int #0#2 = #0#1.{core::List::length}{core::int};
+    late final synthesized core::bool #0#4 = #0#2.{core::num::<=}(#C1){(core::num) → core::bool};
+    late final synthesized core::List<self::equals::A%> #0#5 = #0#0.$2{core::List<self::equals::A%>};
+    late final synthesized core::int #0#6 = #0#5.{core::List::length}{core::int};
+    late final synthesized core::bool #0#7 = #0#6.{core::num::<=}(#C1){(core::num) → core::bool};
+    late final synthesized core::bool #0#9 = #0#2.{core::num::>=}(#C2){(core::num) → core::bool};
+    late final synthesized core::bool #0#11 = #0#6.{core::num::>=}(#C2){(core::num) → core::bool};
+    #L4:
+    {
+      {
+        if(#0#4 && #0#7) {
+          #t11 = true;
+          break #L4;
+        }
+      }
+      {
+        if(#0#9 && #0#7) {
+          #t11 = false;
+          break #L4;
+        }
+      }
+      {
+        if(#0#4 && #0#11) {
+          #t11 = false;
+          break #L4;
+        }
+      }
+      {
+        hoisted self::equals::A% l;
+        hoisted core::List<self::equals::A%> ls;
+        hoisted self::equals::A% r;
+        hoisted core::List<self::equals::A%> rs;
+        if(#0#9 && (let final dynamic #t12 = l = #0#1.{core::List::[]}(0){(core::int) → self::equals::A%} in true) && (let final dynamic #t13 = ls = #0#1.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::equals::A%>} in true) && (#0#11 && (let final dynamic #t14 = r = #0#5.{core::List::[]}(0){(core::int) → self::equals::A%} in true) && (let final dynamic #t15 = rs = #0#5.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::equals::A%>} in true))) {
+          #t11 = l =={core::Object::==}{(core::Object) → core::bool} r && self::equals<self::equals::A%>(ls, rs);
+          break #L4;
+        }
+      }
+    }
+  } =>#t11;
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+}

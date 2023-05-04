@@ -7,7 +7,7 @@ part of dart.io;
 /// A TCP socket using TLS and SSL.
 ///
 /// A secure socket may be used as either a [Stream] or an [IOSink].
-abstract class SecureSocket implements Socket {
+abstract interface class SecureSocket implements Socket {
   external factory SecureSocket._(RawSecureSocket rawSocket);
 
   /// Constructs a new secure client socket and connects it to the given
@@ -227,7 +227,7 @@ abstract class SecureSocket implements Socket {
 /// using the trusted certificates set in the [SecurityContext] object.
 /// The default [SecurityContext] object contains a built-in set of trusted
 /// root certificates for well-known certificate authorities.
-abstract class RawSecureSocket implements RawSocket {
+abstract interface class RawSecureSocket implements RawSocket {
   /// Constructs a new secure client socket and connect it to the given
   /// host on the given port.
   ///
@@ -446,7 +446,7 @@ abstract class RawSecureSocket implements RawSocket {
 /// X509Certificate represents an SSL certificate, with accessors to
 /// get the fields of the certificate.
 @pragma("vm:entry-point")
-abstract class X509Certificate {
+abstract interface class X509Certificate {
   @pragma("vm:entry-point")
   external factory X509Certificate._();
 
@@ -480,13 +480,13 @@ class _FilterStatus {
 
 // Interface used by [RawSecureServerSocket] and [_RawSecureSocket] that exposes
 // members of [_NativeSocket].
-abstract class _RawSocketBase {
+abstract interface class _RawSocketBase {
   bool get _closedReadEventSent;
   void set _owner(owner);
 }
 
 class _RawSecureSocket extends Stream<RawSocketEvent>
-    implements RawSecureSocket {
+    implements RawSecureSocket, _RawSocketBase {
   // Status states
   static const int handshakeStatus = 201;
   static const int connectedStatus = 202;
@@ -635,7 +635,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       }
       // If we are upgrading a socket that is already closed for read,
       // report an error as if we received readClosed during the handshake.
-      if ((_socket as _RawSocketBase)._closedReadEventSent) {
+      if (_closedReadEventSent) {
         _eventDispatcher(RawSocketEvent.readClosed);
       }
       _socketSubscription
@@ -688,6 +688,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   InternetAddress get remoteAddress => _socket.remoteAddress;
 
   int get remotePort => _socket.remotePort;
+
+  bool get _closedReadEventSent =>
+      (_socket as _RawSocketBase)._closedReadEventSent;
 
   void set _owner(owner) {
     (_socket as _RawSocketBase)._owner = owner;

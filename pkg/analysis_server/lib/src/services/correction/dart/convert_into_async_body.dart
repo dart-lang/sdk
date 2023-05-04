@@ -38,6 +38,9 @@ class ConvertIntoAsyncBody extends CorrectionProducer {
     if (parent is ConstructorDeclaration) {
       return;
     }
+    if (parent is FunctionExpression && parent.parent is! FunctionDeclaration) {
+      return;
+    }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.convertFunctionFromSyncToAsync(body, typeProvider);

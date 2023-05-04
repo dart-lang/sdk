@@ -1,0 +1,100 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/conditional_import.dart:22:11: Error: The getter 'readyState' isn't defined for the class 'HttpRequest'.
+//  - 'HttpRequest' is from 'dart:_http'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+//   request.readyState; // error (from dart:html)
+//           ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/conditional_import.dart:29:11: Error: The getter 'readyState' isn't defined for the class 'HttpRequest'.
+//  - 'HttpRequest' is from 'dart:_http'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+//   request.readyState; // error (from dart:html)
+//           ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/conditional_import.dart:34:11: Error: The getter 'certificate' isn't defined for the class 'HttpRequest'.
+//  - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_import.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'certificate'.
+//   request.certificate; // error
+//           ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/conditional_import.dart:35:11: Error: The getter 'response' isn't defined for the class 'HttpRequest'.
+//  - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_import.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'response'.
+//   request.response; // error
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/general/conditional_import.dart:36:11: Error: The getter 'readyState' isn't defined for the class 'HttpRequest'.
+//  - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_import.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+//   request.readyState; // error
+//           ^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_http" as _ht;
+import "dart:io" as io;
+
+import "dart:io" as a;
+import "dart:io" as b;
+import "org-dartlang-testcase:///conditional_import.dart" as c;
+
+class HttpRequest extends core::Object {
+  synthetic constructor •() → self::HttpRequest
+    : super core::Object::•()
+    ;
+}
+static method testA(_ht::HttpRequest request) → dynamic {
+  request.{_ht::HttpRequest::certificate}{io::X509Certificate?};
+  request.{_ht::HttpRequest::response}{_ht::HttpResponse};
+  invalid-expression "pkg/front_end/testcases/general/conditional_import.dart:22:11: Error: The getter 'readyState' isn't defined for the class 'HttpRequest'.
+ - 'HttpRequest' is from 'dart:_http'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+  request.readyState; // error (from dart:html)
+          ^^^^^^^^^^" in request{<unresolved>}.readyState;
+  request.{core::Object::hashCode}{core::int};
+}
+static method testB(_ht::HttpRequest request) → dynamic {
+  request.{_ht::HttpRequest::certificate}{io::X509Certificate?};
+  request.{_ht::HttpRequest::response}{_ht::HttpResponse};
+  invalid-expression "pkg/front_end/testcases/general/conditional_import.dart:29:11: Error: The getter 'readyState' isn't defined for the class 'HttpRequest'.
+ - 'HttpRequest' is from 'dart:_http'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+  request.readyState; // error (from dart:html)
+          ^^^^^^^^^^" in request{<unresolved>}.readyState;
+  request.{core::Object::hashCode}{core::int};
+}
+static method testC(self::HttpRequest request) → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/conditional_import.dart:34:11: Error: The getter 'certificate' isn't defined for the class 'HttpRequest'.
+ - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_import.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'certificate'.
+  request.certificate; // error
+          ^^^^^^^^^^^" in request{<unresolved>}.certificate;
+  invalid-expression "pkg/front_end/testcases/general/conditional_import.dart:35:11: Error: The getter 'response' isn't defined for the class 'HttpRequest'.
+ - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_import.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'response'.
+  request.response; // error
+          ^^^^^^^^" in request{<unresolved>}.response;
+  invalid-expression "pkg/front_end/testcases/general/conditional_import.dart:36:11: Error: The getter 'readyState' isn't defined for the class 'HttpRequest'.
+ - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_import.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+  request.readyState; // error
+          ^^^^^^^^^^" in request{<unresolved>}.readyState;
+  request.{core::Object::hashCode}{core::int};
+}
+static method main() → void {
+  self::expect(true, #C1);
+  self::expect(false, #C2);
+  self::expect(false, #C2);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = true
+  #C2 = false
+}

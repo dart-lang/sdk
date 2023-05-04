@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Equivalence test functions for data objects.
 
 library dart2js.equivalence.functions;
@@ -12,14 +10,14 @@ import 'package:compiler/src/js/js_debug.dart' as js;
 import 'package:js_ast/js_ast.dart' as js;
 
 bool areJsNodesEquivalent(js.Node node1, js.Node node2) {
-  return new JsEquivalenceVisitor().testNodes(node1, node2);
+  return JsEquivalenceVisitor().testNodes(node1, node2);
 }
 
 class JsEquivalenceVisitor extends js.EquivalenceVisitor {
-  Map<String, String> labelsMap = <String, String>{};
+  final labelsMap = <String?, String?>{};
 
   @override
-  bool failAt(js.Node node1, js.Node node2) {
+  bool failAt(js.Node? node1, js.Node? node2) {
     print('Node mismatch:');
     print('  ${node1 != null ? js.nodeToString(node1) : '<null>'}');
     print('  ${node2 != null ? js.nodeToString(node2) : '<null>'}');
@@ -27,7 +25,8 @@ class JsEquivalenceVisitor extends js.EquivalenceVisitor {
   }
 
   @override
-  bool testValues(js.Node node1, Object value1, js.Node node2, Object value2) {
+  bool testValues(
+      js.Node? node1, Object? value1, js.Node? node2, Object? value2) {
     if (value1 != value2) {
       print('Value mismatch:');
       print('  ${value1}');
@@ -41,10 +40,11 @@ class JsEquivalenceVisitor extends js.EquivalenceVisitor {
   }
 
   @override
-  bool testLabels(js.Node node1, String label1, js.Node node2, String label2) {
+  bool testLabels(
+      js.Node node1, String? label1, js.Node node2, String? label2) {
     if (label1 == null && label2 == null) return true;
     if (labelsMap.containsKey(label1)) {
-      String expectedValue = labelsMap[label1];
+      String? expectedValue = labelsMap[label1];
       if (expectedValue != label2) {
         print('Value mismatch:');
         print('  ${label1}');

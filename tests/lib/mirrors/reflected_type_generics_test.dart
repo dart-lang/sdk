@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(51557): Decide if the mixins being applied in this test should be
+// "mixin", "mixin class" or the test should be left at 2.19.
+// @dart=2.19
+
 library test.reflected_type_generics_test;
 
 import 'dart:mirrors';
@@ -45,8 +49,8 @@ main() {
   expectReflectedType(
       reflectType(FBounded, [new FBounded<Never>().runtimeType]), new FBounded<FBounded<Never>>().runtimeType);
 
-  var predicateHelper = new Helper<Predicate<P>>();
-  expectReflectedType(reflectType(Predicate, [P]), predicateHelper.param); //# 01: ok
+  var predicateHelper = new Helper<Predicate>();
+  expectReflectedType(reflectType(Predicate), predicateHelper.param); //# 01: ok
   var composite = new Composite<P, int>();
   expectReflectedType(reflectType(Composite, [P, int]), composite.runtimeType);
 

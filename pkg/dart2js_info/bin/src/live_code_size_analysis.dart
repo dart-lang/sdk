@@ -21,7 +21,7 @@
 ///     environment flag. The flag only works dart2js version 1.13.0 or newer.
 ///
 ///   * Launch the coverage server tool (in this package) to serve up the
-///     Javascript code in your app:
+///     JavaScript code in your app:
 ///
 ///      dart tool/coverage_log_server.dart main.dart.js
 ///

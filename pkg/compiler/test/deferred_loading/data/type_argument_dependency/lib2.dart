@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*class: A:
  class_unit=1{c},
  type_unit=1{c}
@@ -20,4 +18,4 @@ class A {
 class B extends A {}
 
 /*member: createA:member_unit=1{c}*/
-createA() => new A();
+createA() => A();

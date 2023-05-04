@@ -2053,15 +2053,15 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
       }
 
       // Read the value.
-      const bool signd = instr->Bit(23) == 1;
+      const bool is_signed = instr->Bit(23) == 1;
       // Write the W register for signed values when size < 2.
       // Write the W register for unsigned values when size == 2.
       const bool use_w =
-          (signd && (instr->Bit(22) == 1)) || (!signd && (size == 2));
+          (is_signed && (instr->Bit(22) == 1)) || (!is_signed && (size == 2));
       int64_t val = 0;  // Sign extend into an int64_t.
       switch (size) {
         case 0: {
-          if (signd) {
+          if (is_signed) {
             val = static_cast<int64_t>(ReadB(address));
           } else {
             val = static_cast<int64_t>(ReadBU(address));
@@ -2069,7 +2069,7 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
           break;
         }
         case 1: {
-          if (signd) {
+          if (is_signed) {
             val = static_cast<int64_t>(ReadH(address, instr));
           } else {
             val = static_cast<int64_t>(ReadHU(address, instr));
@@ -2077,7 +2077,7 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
           break;
         }
         case 2: {
-          if (signd) {
+          if (is_signed) {
             val = static_cast<int64_t>(ReadW(address, instr));
           } else {
             val = static_cast<int64_t>(ReadWU(address, instr));
@@ -2217,7 +2217,7 @@ void Simulator::DecodeLoadStoreRegPair(Instr* instr) {
     const Register rt2 = instr->Rt2Field();
     if (instr->Bit(22)) {
       // Format(instr, "ldp'sf 'rt, 'rt2, 'memop");
-      const bool signd = instr->Bit(30) == 1;
+      const bool is_signed = instr->Bit(30) == 1;
       int64_t val1 = 0;  // Sign extend into an int64_t.
       int64_t val2 = 0;
       if (instr->Bit(31) == 1) {
@@ -2225,7 +2225,7 @@ void Simulator::DecodeLoadStoreRegPair(Instr* instr) {
         val1 = ReadX(address, instr);
         val2 = ReadX(address + size, instr);
       } else {
-        if (signd) {
+        if (is_signed) {
           val1 = static_cast<int64_t>(ReadW(address, instr));
           val2 = static_cast<int64_t>(ReadW(address + size, instr));
         } else {
@@ -2340,8 +2340,70 @@ void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
   }
 }
 
+void Simulator::DecodeAtomicMemory(Instr* instr) {
+  const int32_t size = instr->Bits(30, 2);
+  std::memory_order order;
+  switch (instr->Bits(22, 2)) {
+    case 3:
+      order = std::memory_order_acq_rel;
+      break;
+    case 2:
+      order = std::memory_order_acquire;
+      break;
+    case 1:
+      order = std::memory_order_release;
+      break;
+    case 0:
+      order = std::memory_order_relaxed;
+      break;
+  }
+  const Register rs = instr->RsField();
+  const Register rn = instr->RnField();
+  const Register rt = instr->RtField();
+  const int32_t opc = instr->Bits(12, 3);
+
+  if (size == 3) {
+    uint64_t in = get_register(rs, R31IsZR);
+    auto addr =
+        reinterpret_cast<std::atomic<uint64_t>*>(get_register(rn, R31IsSP));
+    uint64_t out;
+    switch (opc) {
+      case 1:
+        out = addr->fetch_and(~in, order);
+        break;
+      case 3:
+        out = addr->fetch_or(in, order);
+        break;
+      default:
+        UNIMPLEMENTED();
+    }
+    set_register(instr, rt, out, R31IsZR);
+  } else if (size == 2) {
+    ASSERT(size == 2);
+    uint32_t in = get_wregister(rs, R31IsZR);
+    auto addr =
+        reinterpret_cast<std::atomic<uint32_t>*>(get_register(rn, R31IsSP));
+    uint32_t out;
+    switch (opc) {
+      case 1:
+        out = addr->fetch_and(~in, order);
+        break;
+      case 3:
+        out = addr->fetch_or(in, order);
+        break;
+      default:
+        UNIMPLEMENTED();
+    }
+    set_wregister(rt, out, R31IsZR);
+  } else {
+    UNIMPLEMENTED();
+  }
+}
+
 void Simulator::DecodeLoadStore(Instr* instr) {
-  if (instr->IsLoadStoreRegOp()) {
+  if (instr->IsAtomicMemoryOp()) {
+    DecodeAtomicMemory(instr);
+  } else if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
   } else if (instr->IsLoadStoreRegPairOp()) {
     DecodeLoadStoreRegPair(instr);
@@ -2576,14 +2638,14 @@ void Simulator::DecodeLogicalShift(Instr* instr) {
   }
 }
 
-static int64_t divide64(int64_t top, int64_t bottom, bool signd) {
+static int64_t divide64(int64_t top, int64_t bottom, bool is_signed) {
   // ARM64 does not trap on integer division by zero. The destination register
   // is instead set to 0.
   if (bottom == 0) {
     return 0;
   }
 
-  if (signd) {
+  if (is_signed) {
     // INT_MIN / -1 = INT_MIN.
     if ((top == static_cast<int64_t>(0x8000000000000000LL)) &&
         (bottom == static_cast<int64_t>(0xffffffffffffffffLL))) {
@@ -2598,14 +2660,14 @@ static int64_t divide64(int64_t top, int64_t bottom, bool signd) {
   }
 }
 
-static int32_t divide32(int32_t top, int32_t bottom, bool signd) {
+static int32_t divide32(int32_t top, int32_t bottom, bool is_signed) {
   // ARM64 does not trap on integer division by zero. The destination register
   // is instead set to 0.
   if (bottom == 0) {
     return 0;
   }
 
-  if (signd) {
+  if (is_signed) {
     // INT_MIN / -1 = INT_MIN.
     if ((top == static_cast<int32_t>(0x80000000)) &&
         (bottom == static_cast<int32_t>(0xffffffff))) {
@@ -2677,11 +2739,12 @@ void Simulator::DecodeMiscDP2Source(Instr* instr) {
     case 3: {
       // Format(instr, "udiv'sf 'rd, 'rn, 'rm");
       // Format(instr, "sdiv'sf 'rd, 'rn, 'rm");
-      const bool signd = instr->Bit(10) == 1;
+      const bool is_signed = instr->Bit(10) == 1;
       if (instr->SFField() == 1) {
-        set_register(instr, rd, divide64(rn_val64, rm_val64, signd), R31IsZR);
+        set_register(instr, rd, divide64(rn_val64, rm_val64, is_signed),
+                     R31IsZR);
       } else {
-        set_wregister(rd, divide32(rn_val32, rm_val32, signd), R31IsZR);
+        set_wregister(rd, divide32(rn_val32, rm_val32, is_signed), R31IsZR);
       }
       break;
     }

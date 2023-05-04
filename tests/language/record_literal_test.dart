@@ -9,9 +9,18 @@ main() {
   print(record1);
 
   // With ending comma.
-  var record2 = (42, 42, 42, );
+  var record2 = (
+    42,
+    42,
+    42,
+  );
   print(record2);
-  var record3 = (foo: 42, bar: 42, 42, baz: 42, );
+  var record3 = (
+    foo: 42,
+    bar: 42,
+    42,
+    baz: 42,
+  );
   print(record3);
 
   // Nested.
@@ -23,11 +32,11 @@ main() {
   print(record5);
 
   // 1 record entry with trailing comma.
-  var record6 = (42, );
+  var record6 = (42,);
   print(record6);
 
   // Const records.
-  var record7 = const (42, );
+  var record7 = const (42,);
   print(record7);
   var record8 = const (42, foo: "bar");
   print(record8);

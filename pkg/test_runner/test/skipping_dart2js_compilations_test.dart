@@ -145,10 +145,11 @@ Command makeCompilationCommand(String testName, FileUtils fileUtils) {
       .resolve('skipping_dart2js_compilations_helper.dart')
       .toFilePath();
   var executable = Platform.executable;
-  var arguments = <String>[]
-    ..addAll(Platform.executableArguments)
-    ..add(createFileScript)
-    ..add(fileUtils.scriptOutputPath.toNativePath());
+  var arguments = [
+    ...Platform.executableArguments,
+    createFileScript,
+    fileUtils.scriptOutputPath.toNativePath(),
+  ];
   var bootstrapDeps = [Uri.parse("file://${fileUtils.testSnapshotFilePath}")];
   return CompilationCommand('dart2js', fileUtils.testJsFilePath.toNativePath(),
       bootstrapDeps, executable, arguments, {},
@@ -159,55 +160,56 @@ void main() {
   // This script is in [sdk]/pkg/test_runner/test.
   Repository.uri = Platform.script.resolve('../../..');
 
-  var fs_noTestJs = FileUtils(
+  var fsNoTestJs = FileUtils(
       createJs: false,
       createJsDeps: true,
       createDart: true,
       createSnapshot: true);
-  var fs_noTestJsDeps = FileUtils(
+  var fsNoTestJsDeps = FileUtils(
       createJs: true,
       createJsDeps: false,
       createDart: true,
       createSnapshot: true);
-  var fs_noTestDart = FileUtils(
+  var fsNoTestDart = FileUtils(
       createJs: true,
       createJsDeps: true,
       createDart: false,
       createSnapshot: true);
-  var fs_noTestSnapshot = FileUtils(
+  var fsNoTestSnapshot = FileUtils(
       createJs: true,
       createJsDeps: true,
       createDart: true,
       createSnapshot: false);
-  var fs_notUpToDate_snapshot = FileUtils(
+  var fsNotUpToDateSnapshot = FileUtils(
       createJs: true,
       createJsDeps: true,
       createDart: true,
       createSnapshot: true);
-  var fs_notUpToDate_dart = FileUtils(
+  var fsNotUpToDateDart = FileUtils(
       createJs: true,
       createJsDeps: true,
       createDart: true,
       createSnapshot: true);
-  var fs_upToDate = FileUtils(
+  var fsUpToDate = FileUtils(
       createJs: true,
       createJsDeps: true,
       createDart: true,
       createSnapshot: true);
+
   void cleanup() {
-    fs_noTestJs.cleanup();
-    fs_noTestJsDeps.cleanup();
-    fs_noTestDart.cleanup();
-    fs_noTestSnapshot.cleanup();
-    fs_notUpToDate_snapshot.cleanup();
-    fs_notUpToDate_dart.cleanup();
-    fs_upToDate.cleanup();
+    fsNoTestJs.cleanup();
+    fsNoTestJsDeps.cleanup();
+    fsNoTestDart.cleanup();
+    fsNoTestSnapshot.cleanup();
+    fsNotUpToDateSnapshot.cleanup();
+    fsNotUpToDateDart.cleanup();
+    fsUpToDate.cleanup();
   }
 
   Future<void> touchFilesAndRunTests() async {
-    fs_notUpToDate_snapshot.touchFile(fs_notUpToDate_snapshot.testSnapshot!);
-    fs_notUpToDate_dart.touchFile(fs_notUpToDate_dart.testDart!);
-    fs_upToDate.touchFile(fs_upToDate.testJs!);
+    fsNotUpToDateSnapshot.touchFile(fsNotUpToDateSnapshot.testSnapshot!);
+    fsNotUpToDateDart.touchFile(fsNotUpToDateDart.testDart!);
+    fsUpToDate.touchFile(fsUpToDate.testJs!);
 
     Future runTest(String name, FileUtils fileUtils, bool shouldRun) {
       var completedHandler = CommandCompletedHandler(fileUtils, shouldRun);
@@ -222,16 +224,16 @@ void main() {
     try {
       // We run the tests in sequence, so that if one of them fails we clean up
       // everything and throw.
-      await runTest("fs_noTestJs", fs_noTestJs, true);
-      await runTest("fs_noTestJsDeps", fs_noTestJsDeps, true);
-      await runTest("fs_noTestDart", fs_noTestDart, true);
-      await runTest("fs_noTestSnapshot", fs_noTestSnapshot, true);
-      await runTest("fs_notUpToDate_snapshot", fs_notUpToDate_snapshot, true);
-      await runTest("fs_notUpToDate_dart", fs_notUpToDate_dart, true);
+      await runTest("fs_noTestJs", fsNoTestJs, true);
+      await runTest("fs_noTestJsDeps", fsNoTestJsDeps, true);
+      await runTest("fs_noTestDart", fsNoTestDart, true);
+      await runTest("fs_noTestSnapshot", fsNoTestSnapshot, true);
+      await runTest("fs_notUpToDate_snapshot", fsNotUpToDateSnapshot, true);
+      await runTest("fs_notUpToDate_dart", fsNotUpToDateDart, true);
       // This is the only test where all dependencies are present and the
       // test.js file is newer than all the others. So we pass 'false' for
       // shouldRun.
-      await runTest("fs_upToDate", fs_upToDate, false);
+      await runTest("fs_upToDate", fsUpToDate, false);
     } finally {
       cleanup();
     }

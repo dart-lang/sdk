@@ -14,7 +14,7 @@ main() {
 testOne() {
   // Dart2JS uses t[0-9]* to declare temporaries, so a local variable
   // with that pattern can conflict with them.
-  var t0 = new List();
+  var t0 = [];
   // By using 'is' check, we make sure 't0.length' does not become
   // generate at use site.
   Expect.isTrue(t0.length is int);
@@ -22,8 +22,8 @@ testOne() {
 }
 
 testTwo() {
-  var x = new List();
-  var x_0 = new List();
+  var x = [];
+  var x_0 = [];
   {
     // This used to introduce x_0.
     var x = new Set();

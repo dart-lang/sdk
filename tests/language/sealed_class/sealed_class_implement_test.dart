@@ -12,30 +12,16 @@ import "package:expect/expect.dart";
 import 'sealed_class_implement_lib.dart';
 
 class AExtends extends A {
-  @override
   int nonAbstractFoo = 0;
-
-  @override
   int foo = 0;
-
-  @override
   int bar(int value) => value;
-
-  @override
   int nonAbstractBar(int value) => value;
 }
 
 class AImplements implements A {
-  @override
   int nonAbstractFoo = 0;
-
-  @override
   int foo = 0;
-
-  @override
   int bar(int value) => value;
-
-  @override
   int nonAbstractBar(int value) => value;
 }
 
@@ -63,4 +49,6 @@ main() {
   Expect.equals(0, aImplements.foo);
   Expect.equals(0, aImplements.bar(0));
   Expect.equals(0, aImplements.nonAbstractBar(0));
+
+  Expect.equals(0, EnumInside.x.index);
 }

@@ -4,10 +4,14 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'include_file_not_found_test.dart' as include_file_not_found_test;
+import 'include_file_not_found_test.dart' as include_file_not_found;
+import 'include_file_warning_test.dart' as include_file_warning;
+import 'recursive_include_file_test.dart' as recursive_include_file;
 
 main() {
   defineReflectiveSuite(() {
-    include_file_not_found_test.main();
+    include_file_not_found.main();
+    include_file_warning.main();
+    recursive_include_file.main();
   });
 }

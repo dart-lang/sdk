@@ -39,7 +39,7 @@ class PersistentHandle;
 // There is a bit for each word in an instance of the class.
 //
 // Words corresponding to set bits must be ignored by the GC because they
-// don't contain pointers. All words beyound the first 64 words of an object
+// don't contain pointers. All words beyond the first 64 words of an object
 // are expected to contain pointers.
 class UnboxedFieldBitmap {
  public:
@@ -147,7 +147,7 @@ class ClassTableAllocator : public ValueObject {
 
 // A table with the given |Columns| indexed by class id.
 //
-// Each column is a continous array of a the given type. All columns have
+// Each column is a continuous array of a the given type. All columns have
 // the same number of used elements (|num_cids()|) and the same capacity.
 template <typename CidType, typename... Columns>
 class CidIndexedTable {
@@ -424,17 +424,25 @@ class ClassTable : public MallocAllocated {
     cached_allocation_tracing_state_table_.store(
         classes_.GetColumn<kAllocationTracingStateIndex>());
   }
-
-  PersistentHandle* UserVisibleNameFor(intptr_t cid) {
-    return classes_.At<kClassNameIndex>(cid);
-  }
-
-  void SetUserVisibleNameFor(intptr_t cid, PersistentHandle* name) {
-    classes_.At<kClassNameIndex>(cid) = name;
-  }
 #else
   void UpdateCachedAllocationTracingStateTablePointer() {}
 #endif  // !defined(PRODUCT)
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  void PopulateUserVisibleNames();
+
+  const char* UserVisibleNameFor(intptr_t cid) {
+    if (!classes_.IsValidIndex(cid)) {
+      return nullptr;
+    }
+    return classes_.At<kClassNameIndex>(cid);
+  }
+
+  void SetUserVisibleNameFor(intptr_t cid, const char* name) {
+    ASSERT(classes_.At<kClassNameIndex>(cid) == nullptr);
+    classes_.At<kClassNameIndex>(cid) = name;
+  }
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
   intptr_t NumCids() const {
     return classes_.num_cids();
@@ -522,6 +530,20 @@ class ClassTable : public MallocAllocated {
         classes_(original.allocator_),
         top_level_classes_(original.allocator_) {
     classes_.CopyFrom(original.classes_);
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+    // Copying classes_ doesn't perform a deep copy. Ensure we duplicate
+    // the class names to avoid double free crashes at shutdown.
+    for (intptr_t cid = 1; cid < classes_.num_cids(); ++cid) {
+      if (classes_.IsValidIndex(cid)) {
+        const char* cls_name = classes_.At<kClassNameIndex>(cid);
+        if (cls_name != nullptr) {
+          classes_.At<kClassNameIndex>(cid) = Utils::StrDup(cls_name);
+        }
+      }
+    }
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+
     top_level_classes_.CopyFrom(original.top_level_classes_);
     UpdateCachedAllocationTracingStateTablePointer();
   }
@@ -551,6 +573,8 @@ class ClassTable : public MallocAllocated {
     kUnboxedFieldBitmapIndex,
 #if !defined(PRODUCT)
     kAllocationTracingStateIndex,
+#endif
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     kClassNameIndex,
 #endif
   };
@@ -561,7 +585,14 @@ class ClassTable : public MallocAllocated {
                   uint32_t,
                   UnboxedFieldBitmap,
                   uint8_t,
-                  PersistentHandle*>
+                  const char*>
+      classes_;
+#elif defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  CidIndexedTable<ClassIdTagType,
+                  ClassPtr,
+                  uint32_t,
+                  UnboxedFieldBitmap,
+                  const char*>
       classes_;
 #else
   CidIndexedTable<ClassIdTagType, ClassPtr, uint32_t, UnboxedFieldBitmap>

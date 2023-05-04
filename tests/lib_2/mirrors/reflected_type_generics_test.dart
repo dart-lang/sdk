@@ -47,8 +47,8 @@ main() {
   expectReflectedType(
       reflectType(FBounded, [new FBounded<Never>().runtimeType]), new FBounded<FBounded<Never>>().runtimeType);
 
-  var predicateHelper = new Helper<Predicate<P>>();
-  expectReflectedType(reflectType(Predicate, [P]), predicateHelper.param); //# 01: ok
+  var predicateHelper = new Helper<Predicate>();
+  expectReflectedType(reflectType(Predicate), predicateHelper.param); //# 01: ok
   var composite = new Composite<P, int>();
   expectReflectedType(reflectType(Composite, [P, int]), composite.runtimeType);
 

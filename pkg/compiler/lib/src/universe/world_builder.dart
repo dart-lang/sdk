@@ -8,13 +8,12 @@ import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../ir/class_relation.dart';
+import '../ir/static_type.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../world.dart' show World;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, StaticUse;
-import 'resolution_world_builder_interfaces.dart' show ResolutionWorldBuilder;
-import 'strong_mode_constraint.dart' show StrongModeConstraintInterface;
+import 'resolution_world_builder.dart' show ResolutionWorldBuilder;
 
 /// The combined constraints on receivers all the dynamic call sites of the same
 /// selector.
@@ -30,8 +29,8 @@ import 'strong_mode_constraint.dart' show StrongModeConstraintInterface;
 ///     class C {
 ///        foo(a, b) {}
 ///     }
-///     new A().foo(a, b);
-///     new B().foo(0, 42);
+///     A().foo(a, b);
+///     B().foo(0, 42);
 ///
 /// the selector constraints for dynamic calls to 'foo' with two positional
 /// arguments could be 'receiver of exact instance `A` or `B`'.
@@ -47,7 +46,7 @@ abstract class SelectorConstraints {
   ///     class B {
   ///        foo(a, b) {}
   ///     }
-  ///     new A().foo(a, b);
+  ///     A().foo(a, b);
   ///
   /// Ideally the selector constraints for calls `foo` with two positional
   /// arguments apply to `A.foo` but `B.foo`.
@@ -60,7 +59,7 @@ abstract class SelectorConstraints {
   ///
   ///     class A {}
   ///     class B { foo() {} }
-  ///     m(b) => (b ? new A() : new B()).foo();
+  ///     m(b) => (b ? A() : B()).foo();
   ///
   /// the potential receiver `new A()` has no implementation of `foo` and thus
   /// needs to handle the call through its `noSuchMethod` handler.
@@ -152,7 +151,7 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
   }
 }
 
-class StrongModeConstraint implements StrongModeConstraintInterface {
+class StrongModeConstraint {
   final ClassEntity cls;
   final ClassRelation relation;
 
@@ -176,13 +175,10 @@ class StrongModeConstraint implements StrongModeConstraintInterface {
     return world.isInheritedIn(element, cls, relation);
   }
 
-  @override
   bool get isExact => relation == ClassRelation.exact;
 
-  @override
   bool get isThis => relation == ClassRelation.thisExpression;
 
-  @override
   String get className => cls.name;
 
   @override

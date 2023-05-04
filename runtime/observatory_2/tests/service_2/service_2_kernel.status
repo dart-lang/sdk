@@ -33,7 +33,7 @@ pause_on_unhandled_async_exceptions2_test: Pass, Slow
 [ $compiler == dartkp ]
 add_breakpoint_rpc_kernel_test: SkipByDesign # Debugger is disabled in AOT mode.
 async_generator_breakpoint_test: SkipByDesign # Debugger is disabled in AOT mode.
-async_next_regession_18877_test: SkipByDesign # Debugger is disabled in AOT mode.
+async_next_regression_18877_test: SkipByDesign # Debugger is disabled in AOT mode.
 async_next_test: SkipByDesign # Debugger is disabled in AOT mode.
 async_scope_test: SkipByDesign # Debugger is disabled in AOT mode.
 async_single_step_exception_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -164,6 +164,7 @@ pause_on_exceptions_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_start_then_step_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_unhandled_async_exceptions2_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_unhandled_async_exceptions3_test: SkipByDesign # Debugger is disabled in AOT mode.
+pause_on_unhandled_async_exceptions4_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_unhandled_async_exceptions_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_unhandled_exceptions_test: SkipByDesign # Debugger is disabled in AOT mode.
 positive_token_pos_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -277,7 +278,7 @@ step_through_setter_test: Skip # Issues 32137 and 32138.
 step_through_switch_test: Skip # Times out. Issue 32137.
 step_through_switch_with_continue_test: Skip # Times out. Issue 32137.
 
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $compiler == dartk && $simulator ]
 add_breakpoint_rpc_kernel_test: RuntimeError # Issue #34736
 async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.

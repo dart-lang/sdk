@@ -1,26 +1,24 @@
-include: package:lints/core.yaml
+include: package:lints/recommended.yaml
 
 analyzer:
   language:
     strict-casts: true
+  errors:
+    # TODO: These issues should be addressed.
+    exhaustive_cases: ignore
 
 linter:
   rules:
-    avoid_bool_literals_in_conditional_expressions: true
-    avoid_returning_null: true
-    avoid_unused_constructor_parameters: true
-    cancel_subscriptions: true
-    comment_references: true
-    directives_ordering: true
-    omit_local_variable_types: true
-    package_api_docs: true
-    prefer_const_constructors: true
-    throw_in_finally: true
-    unnecessary_lambdas: true
-    unnecessary_parenthesis: true
-    unnecessary_statements: true
-
-    # Disabled due to existing violations.
-    non_constant_identifier_names: false
-    only_throw_errors: false
-    prefer_single_quotes: false
+    - avoid_bool_literals_in_conditional_expressions
+    - avoid_unused_constructor_parameters
+    - cancel_subscriptions
+    - comment_references
+    - directives_ordering
+    - omit_local_variable_types
+    - package_api_docs
+    - prefer_const_constructors
+    - throw_in_finally
+    - unnecessary_lambdas
+    - unnecessary_parenthesis
+    - unnecessary_statements
+    - unnecessary_string_escapes

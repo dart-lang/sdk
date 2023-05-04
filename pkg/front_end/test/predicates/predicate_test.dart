@@ -51,6 +51,8 @@ Future<void> main(List<String> args) async {
 }
 
 class Tags {
+  static const String name = 'name';
+
   static const String lateField = 'lateField';
   static const String lateFieldName = 'lateFieldName';
   static const String lateIsSetField = 'lateIsSetField';
@@ -69,6 +71,8 @@ class Tags {
   static const String tearoffLowering = 'tearoffLowering';
   static const String tearoffConstructor = 'tearoffConstructor';
   static const String tearoffTypedef = 'tearoffTypedef';
+
+  static const String joinedIntermediate = 'joinedIntermediate';
 }
 
 class PredicateDataComputer extends DataComputer<Features> {
@@ -99,8 +103,8 @@ class PredicateDataComputer extends DataComputer<Features> {
 }
 
 class PredicateDataExtractor extends CfeDataExtractor<Features> {
-  Map<String, Features> featureMap = {};
-  Map<String, NodeId> nodeIdMap = {};
+  Map<Object?, Features> featureMap = {};
+  Map<Object?, NodeId> nodeIdMap = {};
 
   PredicateDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<Features>> actualMap)
@@ -170,12 +174,12 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
   @override
   void visitProcedure(Procedure node) {
     super.visitProcedure(node);
-    nodeIdMap.forEach((String name, NodeId id) {
-      Features? features = featureMap[name];
+    nodeIdMap.forEach((Object? identity, NodeId id) {
+      Features? features = featureMap[identity];
       if (features != null) {
         TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
         registerValue(
-            nodeWithOffset.location!.file, id.value, id, features, name);
+            nodeWithOffset.location!.file, id.value, id, features, '$identity');
       }
     });
     nodeIdMap.clear();
@@ -184,33 +188,45 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    Object? identity;
     String? name;
     String? tag;
     if (isLateLoweredLocal(node)) {
       name = extractLocalNameFromLateLoweredLocal(node.name!);
       tag = Tags.lateLocal;
+      identity = name;
     } else if (isLateLoweredIsSetLocal(node)) {
       name = extractLocalNameFromLateLoweredIsSet(node.name!);
       tag = Tags.lateIsSetLocal;
+      identity = name;
     } else if (isLateLoweredLocalGetter(node)) {
       name = extractLocalNameFromLateLoweredGetter(node.name!);
       tag = Tags.lateLocalGetter;
+      identity = name;
     } else if (isLateLoweredLocalSetter(node)) {
       name = extractLocalNameFromLateLoweredSetter(node.name!);
       tag = Tags.lateLocalSetter;
+      identity = name;
     } else if (isExtensionThis(node)) {
       name = extractLocalNameForExtensionThis(node.name!);
       tag = Tags.extensionThis;
+      identity = name;
+    } else if (isJoinedIntermediateVariable(node)) {
+      name = extractJoinedIntermediateName(node.name!);
+      tag = Tags.joinedIntermediate;
+      identity = node;
     } else if (node.name != null) {
       name = node.name;
+      identity = name;
     }
     if (name != null) {
       if (node.fileOffset != TreeNode.noOffset) {
-        nodeIdMap[name] ??= new NodeId(node.fileOffset, IdKind.node);
+        nodeIdMap[identity] ??= new NodeId(node.fileOffset, IdKind.node);
       }
       if (tag != null) {
-        Features features = featureMap[name] ??= new Features();
+        Features features = featureMap[identity] ??= new Features();
         features.add(tag);
+        features[Tags.name] = name;
       }
     }
     super.visitVariableDeclaration(node);

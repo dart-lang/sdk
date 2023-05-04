@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
@@ -55,7 +57,7 @@ class EnclosedScope implements Scope {
   void _addSetter(Element element) {
     var name = element.name;
     if (name != null && name.endsWith('=')) {
-      var id = name.substring(0, name.length - 1);
+      var id = considerCanonicalizeString(name.substring(0, name.length - 1));
       _setters[id] ??= element;
     }
   }
@@ -96,7 +98,7 @@ class InterfaceScope extends EnclosedScope {
 
 class LibraryOrAugmentationScope extends EnclosedScope {
   final LibraryOrAugmentationElementImpl _container;
-  final List<ExtensionElement> extensions = [];
+  List<ExtensionElement> extensions = [];
 
   LibraryOrAugmentationScope(LibraryOrAugmentationElementImpl container)
       : _container = container,
@@ -115,6 +117,8 @@ class LibraryOrAugmentationScope extends EnclosedScope {
       _addGetter(DynamicElementImpl.instance);
       _addGetter(NeverElementImpl.instance);
     }
+
+    extensions = extensions.toFixedList();
   }
 
   void _addExtension(ExtensionElement element) {
@@ -382,7 +386,7 @@ class _LibraryOrAugmentationImportScope implements Scope {
       ..._nullPrefixScope._extensions,
       for (var prefix in _container.prefixes)
         ...(prefix.scope as PrefixScope)._extensions,
-    }.toList();
+    }.toFixedList();
   }
 
   @override

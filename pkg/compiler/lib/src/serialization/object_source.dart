@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'data_source.dart';
+import 'serialization.dart' show DataSource;
 import 'tags.dart' show Tag;
 
 /// [DataSource] that read from a list of objects, useful for debugging

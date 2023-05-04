@@ -17,7 +17,7 @@ main() {
 }
 
 testInt64List() {
-  var array = new List(10);
+  var array = new List<dynamic>.filled(10, null);
   testInt64ListImpl(array);
 }
 

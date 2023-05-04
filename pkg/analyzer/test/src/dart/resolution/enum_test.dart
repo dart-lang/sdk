@@ -11,12 +11,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(EnumDriverResolutionTest);
+    defineReflectiveTests(EnumDeclarationResolutionTest);
   });
 }
 
 @reflectiveTest
-class EnumDriverResolutionTest extends PubPackageResolutionTest {
+class EnumDeclarationResolutionTest extends PubPackageResolutionTest {
   test_constructor_argumentList_contextType() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -63,7 +63,7 @@ GenericFunctionType
           staticType: null
         type: double
       declaredElement: @-1
-      declaredElementType: double
+        type: double
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
     parameters

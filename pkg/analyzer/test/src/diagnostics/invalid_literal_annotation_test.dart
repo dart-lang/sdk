@@ -39,7 +39,7 @@ class A {
   A() {}
 }
 ''', [
-      error(HintCode.INVALID_LITERAL_ANNOTATION, 45, 8),
+      error(WarningCode.INVALID_LITERAL_ANNOTATION, 45, 8),
     ]);
   }
 
@@ -51,7 +51,7 @@ class A {
   void m() {}
 }
 ''', [
-      error(HintCode.INVALID_LITERAL_ANNOTATION, 45, 8),
+      error(WarningCode.INVALID_LITERAL_ANNOTATION, 45, 8),
     ]);
   }
 }

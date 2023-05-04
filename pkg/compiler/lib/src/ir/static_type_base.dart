@@ -20,7 +20,7 @@ class DoesNotCompleteType extends ir.NeverType {
 class ThisInterfaceType extends ir.InterfaceType {
   ThisInterfaceType(super.classNode, super.nullability, [super.typeArguments]);
 
-  static from(ir.InterfaceType? type) => type != null
+  static ThisInterfaceType? from(ir.InterfaceType? type) => type != null
       ? ThisInterfaceType(type.classNode, type.nullability, type.typeArguments)
       : null;
 
@@ -76,7 +76,7 @@ abstract class StaticTypeBase extends ir.TreeVisitor<ir.DartType> {
 
   ir.StaticTypeContext get staticTypeContext;
 
-  ThisInterfaceType get thisType;
+  ThisInterfaceType? get thisType;
 
   @override
   ir.DartType defaultTreeNode(ir.TreeNode node) {
@@ -164,7 +164,7 @@ abstract class StaticTypeBase extends ir.TreeVisitor<ir.DartType> {
   }
 
   @override
-  ThisInterfaceType visitThisExpression(ir.ThisExpression node) => thisType;
+  ThisInterfaceType visitThisExpression(ir.ThisExpression node) => thisType!;
 
   @override
   ir.DartType visitStaticGet(ir.StaticGet node) => node.target.getterType;
@@ -281,6 +281,14 @@ abstract class StaticTypeBase extends ir.TreeVisitor<ir.DartType> {
 
   @override
   ir.DartType visitInstanceGet(ir.InstanceGet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitRecordIndexGet(ir.RecordIndexGet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitRecordNameGet(ir.RecordNameGet node) =>
       node.getStaticType(staticTypeContext);
 
   @override

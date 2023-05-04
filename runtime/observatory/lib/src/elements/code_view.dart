@@ -18,7 +18,6 @@ import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -73,16 +72,6 @@ class CodeViewElement extends CustomElement implements Renderable {
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(code != null);
-    assert(objects != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
     CodeViewElement e = new CodeViewElement.created();
     e._r = new RenderingScheduler<CodeViewElement>(e, queue: queue);
     e._vm = vm;
@@ -426,9 +415,6 @@ class CodeViewElement extends CustomElement implements Renderable {
   void _updateDisassemblyTable() {
     S.Code code = _code as S.Code;
     disassemblyTable.clearRows();
-    if (code == null) {
-      return;
-    }
     for (S.CodeInstruction instruction in code.instructions) {
       var row = [
         _formattedAddress(instruction),
@@ -443,7 +429,6 @@ class CodeViewElement extends CustomElement implements Renderable {
 
   void _addDisassemblyDOMRow() {
     var tableBody = _disassemblyTableBody!;
-    assert(tableBody != null);
     var tr = new TableRowElement();
 
     var cell;
@@ -494,7 +479,6 @@ class CodeViewElement extends CustomElement implements Renderable {
 
   void _updateDisassemblyDOMTable() {
     var tableBody = _disassemblyTableBody!;
-    assert(tableBody != null);
     // Resize DOM table.
     if (tableBody.children.length > disassemblyTable.sortedRows.length) {
       // Shrink the table.
@@ -544,7 +528,6 @@ class CodeViewElement extends CustomElement implements Renderable {
 
   void _addInlineDOMRow() {
     var tableBody = _inlineRangeTableBody!;
-    assert(tableBody != null);
     var tr = new TableRowElement();
 
     var cell;
@@ -637,7 +620,8 @@ class CodeViewElement extends CustomElement implements Renderable {
         return 'tag';
       case M.CodeKind.collected:
         return 'collected';
+      default:
+        throw new Exception('Unknown CodeKind ($kind)');
     }
-    throw new Exception('Unknown CodeKind ($kind)');
   }
 }

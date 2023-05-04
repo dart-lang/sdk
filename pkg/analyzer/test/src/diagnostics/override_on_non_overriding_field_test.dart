@@ -22,7 +22,7 @@ class A {
   int? foo;
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 29, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 29, 3),
     ]);
   }
 
@@ -41,7 +41,7 @@ class B extends A {
   @override
   int c = 0;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 131, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 131, 1,
           contextMessages: [message('/home/test/lib/test.dart', 39, 1)]),
     ]);
   }
@@ -61,7 +61,7 @@ class B implements A {
   @override
   int c = 0;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 134, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 134, 1,
           contextMessages: [message('/home/test/lib/test.dart', 39, 1)]),
     ]);
   }
@@ -74,7 +74,7 @@ enum E {
   final int foo = 0;
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 38, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 38, 3),
     ]);
   }
 

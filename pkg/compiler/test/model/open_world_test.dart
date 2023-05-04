@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/ir/class_relation.dart';
+import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/universe/resolution_world_builder.dart';
 import 'package:compiler/src/universe/world_builder.dart';
@@ -50,25 +48,25 @@ class D1 extends D {}
 
 ''';
 
-  CommonElements commonElements;
-  NativeBasicData nativeBasicData;
-  ResolutionWorldBuilder world;
+  late CommonElements commonElements;
+  late NativeBasicData nativeBasicData;
+  late ResolutionWorldBuilder world;
 
-  List<ClassEntity> allClasses;
+  late List<ClassEntity> allClasses;
 
-  ClassEntity A;
-  ClassEntity A1;
-  ClassEntity A2;
-  ClassEntity B;
-  ClassEntity B1;
-  ClassEntity C;
-  ClassEntity C0;
-  ClassEntity C1;
-  ClassEntity C2;
-  ClassEntity C3;
-  ClassEntity C4;
-  ClassEntity D;
-  ClassEntity D1;
+  late ClassEntity A;
+  late ClassEntity A1;
+  late ClassEntity A2;
+  late ClassEntity B;
+  late ClassEntity B1;
+  late ClassEntity C;
+  late ClassEntity C0;
+  late ClassEntity C1;
+  late ClassEntity C2;
+  late ClassEntity C3;
+  late ClassEntity C4;
+  late ClassEntity D;
+  late ClassEntity D1;
 
   List<ClassRelation> allRelations = ClassRelation.values;
   List<ClassRelation> notExact = [
@@ -81,7 +79,7 @@ class D1 extends D {}
     String source = '''
 $classes
 main() {
-${liveClasses.map((c) => '  new $c();').join('\n')}
+${liveClasses.map((c) => '  $c();').join('\n')}
 }
 ''';
     print('------------------------------------------------------------------');
@@ -94,13 +92,13 @@ ${liveClasses.map((c) => '  new $c();').join('\n')}
     ElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
     nativeBasicData = compiler.frontendStrategy.elementMap.nativeBasicData;
-    world = compiler.resolutionWorldBuilderForTesting;
+    world = compiler.resolutionWorldBuilderForTesting!;
 
     ClassEntity findClass(String name) {
-      ClassEntity cls =
-          elementEnvironment.lookupClass(elementEnvironment.mainLibrary, name);
+      ClassEntity? cls =
+          elementEnvironment.lookupClass(elementEnvironment.mainLibrary!, name);
       Expect.isNotNull(cls, 'Class $name not found.');
-      return cls;
+      return cls!;
     }
 
     allClasses = [
@@ -127,10 +125,10 @@ ${liveClasses.map((c) => '  new $c();').join('\n')}
         Map<ClassEntity, List<ClassRelation>> memberResults =
             expectedResults[memberHoldingClass] ?? {};
         for (ClassRelation relation in allRelations) {
-          List<ClassRelation> expectRelations = memberResults[cls];
+          List<ClassRelation>? expectRelations = memberResults[cls];
           bool expectedResult =
               expectRelations != null && expectRelations.contains(relation);
-          StrongModeConstraint constraint = new StrongModeConstraint(
+          StrongModeConstraint constraint = StrongModeConstraint(
               commonElements, nativeBasicData, cls, relation);
           Expect.equals(
               expectedResult,

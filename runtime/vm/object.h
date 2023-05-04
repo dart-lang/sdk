@@ -150,8 +150,8 @@ class BaseTextBuffer;
     object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
     initializeHandle(obj, ptr);                                                \
     if (!obj->Is##object()) {                                                  \
-      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
-             #object);                                                         \
+      FATAL("Handle check failed: saw %s expected %s", obj->ToCString(),       \
+            #object);                                                          \
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
@@ -160,8 +160,8 @@ class BaseTextBuffer;
         reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \
     initializeHandle(obj, ptr);                                                \
     if (!obj->Is##object()) {                                                  \
-      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
-             #object);                                                         \
+      FATAL("Handle check failed: saw %s expected %s", obj->ToCString(),       \
+            #object);                                                          \
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
@@ -176,7 +176,7 @@ class BaseTextBuffer;
     return reinterpret_cast<const object&>(obj);                               \
   }                                                                            \
   static object##Ptr RawCast(ObjectPtr raw) {                                  \
-    ASSERT(Object::Handle(raw).IsNull() || Object::Handle(raw).Is##object());  \
+    ASSERT(Is##object##NoHandle(raw));                                         \
     return static_cast<object##Ptr>(raw);                                      \
   }                                                                            \
   static object##Ptr null() {                                                  \
@@ -217,7 +217,13 @@ class BaseTextBuffer;
   /* with an object id is printed. If ref is false the object is fully   */    \
   /* printed.                                                            */    \
   virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;              \
-  virtual const char* JSONType() const { return "" #object; }
+  /* Prints JSON objects that describe the implementation-level fields of */   \
+  /* the current Object to |jsarr_fields|.                                */   \
+  virtual void PrintImplementationFieldsImpl(const JSONArray& jsarr_fields)    \
+      const;                                                                   \
+  virtual const char* JSONType() const {                                       \
+    return "" #object;                                                         \
+  }
 #else
 #define OBJECT_SERVICE_SUPPORT(object) protected: /* NOLINT */
 #endif                                            // !PRODUCT
@@ -332,7 +338,16 @@ class Object {
 
 // Class testers.
 #define DEFINE_CLASS_TESTER(clazz)                                             \
-  virtual bool Is##clazz() const { return false; }
+  virtual bool Is##clazz() const { return false; }                             \
+  static bool Is##clazz##NoHandle(ObjectPtr ptr) {                             \
+    /* Use a stack handle to make RawCast safe in contexts where handles   */  \
+    /* should not be allocated, such as GC or runtime transitions. Not     */  \
+    /* using Object's constructor to avoid Is##clazz being de-virtualized. */  \
+    char buf[sizeof(Object)];                                                  \
+    Object* obj = reinterpret_cast<Object*>(&buf);                             \
+    initializeHandle(obj, ptr);                                                \
+    return obj->IsNull() || obj->Is##clazz();                                  \
+  }
   CLASS_LIST_FOR_HANDLES(DEFINE_CLASS_TESTER);
 #undef DEFINE_CLASS_TESTER
 
@@ -350,6 +365,9 @@ class Object {
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true) const;
   virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;
+  void PrintImplementationFields(JSONStream* stream) const;
+  virtual void PrintImplementationFieldsImpl(
+      const JSONArray& jsarr_fields) const;
   virtual const char* JSONType() const { return IsNull() ? "null" : "Object"; }
 #endif
 
@@ -377,41 +395,31 @@ class Object {
   bool IsNotTemporaryScopedHandle() const;
 #endif
 
-  static Object& Handle(Zone* zone, ObjectPtr ptr) {
-    Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(zone));
-    initializeHandle(obj, ptr);
-    return *obj;
+  static Object& Handle() {
+    return HandleImpl(Thread::Current()->zone(), null_, kObjectCid);
   }
-  static Object* ReadOnlyHandle() {
-    Object* obj = reinterpret_cast<Object*>(Dart::AllocateReadOnlyHandle());
-    initializeHandle(obj, Object::null());
-    return obj;
+  static Object& Handle(Zone* zone) {
+    return HandleImpl(zone, null_, kObjectCid);
   }
-
-  static Object& Handle() { return Handle(Thread::Current()->zone(), null_); }
-
-  static Object& Handle(Zone* zone) { return Handle(zone, null_); }
-
   static Object& Handle(ObjectPtr ptr) {
-    return Handle(Thread::Current()->zone(), ptr);
+    return HandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
   }
-
-  static Object& ZoneHandle(Zone* zone, ObjectPtr ptr) {
-    Object* obj =
-        reinterpret_cast<Object*>(VMHandles::AllocateZoneHandle(zone));
-    initializeHandle(obj, ptr);
-    return *obj;
+  static Object& Handle(Zone* zone, ObjectPtr ptr) {
+    return HandleImpl(zone, ptr, kObjectCid);
   }
-
-  static Object& ZoneHandle(Zone* zone) { return ZoneHandle(zone, null_); }
-
   static Object& ZoneHandle() {
-    return ZoneHandle(Thread::Current()->zone(), null_);
+    return ZoneHandleImpl(Thread::Current()->zone(), null_, kObjectCid);
   }
-
+  static Object& ZoneHandle(Zone* zone) {
+    return ZoneHandleImpl(zone, null_, kObjectCid);
+  }
   static Object& ZoneHandle(ObjectPtr ptr) {
-    return ZoneHandle(Thread::Current()->zone(), ptr);
+    return ZoneHandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
   }
+  static Object& ZoneHandle(Zone* zone, ObjectPtr ptr) {
+    return ZoneHandleImpl(zone, ptr, kObjectCid);
+  }
+  static Object* ReadOnlyHandle() { return ReadOnlyHandleImpl(kObjectCid); }
 
   static ObjectPtr null() { return null_; }
 
@@ -435,6 +443,8 @@ class Object {
   // initialization.
   // - unknown_constant and non_constant are optimizing compiler's constant
   // propagation constants.
+  // - optimized_out results from deopt environment pruning or failure to
+  // capture variables in a closure's context
 #define SHARED_READONLY_HANDLES_LIST(V)                                        \
   V(Object, null_object)                                                       \
   V(Class, null_class)                                                         \
@@ -462,6 +472,7 @@ class Object {
   V(Sentinel, transition_sentinel)                                             \
   V(Sentinel, unknown_constant)                                                \
   V(Sentinel, non_constant)                                                    \
+  V(Sentinel, optimized_out)                                                   \
   V(Bool, bool_true)                                                           \
   V(Bool, bool_false)                                                          \
   V(Smi, smi_illegal_cid)                                                      \
@@ -524,7 +535,6 @@ class Object {
   static ClassPtr exception_handlers_class() {
     return exception_handlers_class_;
   }
-  static ClassPtr deopt_info_class() { return deopt_info_class_; }
   static ClassPtr context_class() { return context_class_; }
   static ClassPtr context_scope_class() { return context_scope_class_; }
   static ClassPtr sentinel_class() { return sentinel_class_; }
@@ -546,6 +556,7 @@ class Object {
   static ClassPtr weak_serialization_reference_class() {
     return weak_serialization_reference_class_;
   }
+  static ClassPtr weak_array_class() { return weak_array_class_; }
 
   // Initialize the VM isolate.
   static void InitNullAndBool(IsolateGroup* isolate_group);
@@ -839,51 +850,46 @@ class Object {
   static BoolPtr true_;
   static BoolPtr false_;
 
-  static ClassPtr class_class_;            // Class of the Class vm object.
-  static ClassPtr dynamic_class_;          // Class of the 'dynamic' type.
-  static ClassPtr void_class_;             // Class of the 'void' type.
-  static ClassPtr type_parameters_class_;  // Class of TypeParameters vm object.
-  static ClassPtr type_arguments_class_;   // Class of TypeArguments vm object.
-  static ClassPtr patch_class_class_;      // Class of the PatchClass vm object.
-  static ClassPtr function_class_;         // Class of the Function vm object.
-  static ClassPtr closure_data_class_;     // Class of ClosureData vm obj.
-  static ClassPtr ffi_trampoline_data_class_;  // Class of FfiTrampolineData
-                                               // vm obj.
-  static ClassPtr field_class_;                // Class of the Field vm object.
-  static ClassPtr script_class_;               // Class of the Script vm object.
-  static ClassPtr library_class_;    // Class of the Library vm object.
-  static ClassPtr namespace_class_;  // Class of Namespace vm object.
-  static ClassPtr kernel_program_info_class_;  // Class of KernelProgramInfo vm
-                                               // object.
-  static ClassPtr code_class_;                 // Class of the Code vm object.
-
-  static ClassPtr instructions_class_;  // Class of the Instructions vm object.
-  static ClassPtr instructions_section_class_;  // Class of InstructionsSection.
-  static ClassPtr instructions_table_class_;    // Class of InstructionsTable.
-  static ClassPtr object_pool_class_;      // Class of the ObjectPool vm object.
-  static ClassPtr pc_descriptors_class_;   // Class of PcDescriptors vm object.
-  static ClassPtr code_source_map_class_;  // Class of CodeSourceMap vm object.
-  static ClassPtr compressed_stackmaps_class_;  // Class of CompressedStackMaps.
-  static ClassPtr var_descriptors_class_;       // Class of LocalVarDescriptors.
-  static ClassPtr exception_handlers_class_;    // Class of ExceptionHandlers.
-  static ClassPtr deopt_info_class_;            // Class of DeoptInfo.
-  static ClassPtr context_class_;            // Class of the Context vm object.
-  static ClassPtr context_scope_class_;      // Class of ContextScope vm object.
-  static ClassPtr sentinel_class_;           // Class of Sentinel vm object.
-  static ClassPtr singletargetcache_class_;  // Class of SingleTargetCache.
-  static ClassPtr unlinkedcall_class_;       // Class of UnlinkedCall.
-  static ClassPtr
-      monomorphicsmiablecall_class_;         // Class of MonomorphicSmiableCall.
-  static ClassPtr icdata_class_;             // Class of ICData.
-  static ClassPtr megamorphic_cache_class_;  // Class of MegamorphiCache.
-  static ClassPtr subtypetestcache_class_;   // Class of SubtypeTestCache.
-  static ClassPtr loadingunit_class_;        // Class of LoadingUnit.
-  static ClassPtr api_error_class_;          // Class of ApiError.
-  static ClassPtr language_error_class_;     // Class of LanguageError.
-  static ClassPtr unhandled_exception_class_;  // Class of UnhandledException.
-  static ClassPtr unwind_error_class_;         // Class of UnwindError.
-  // Class of WeakSerializationReference.
+  static ClassPtr class_class_;
+  static ClassPtr dynamic_class_;
+  static ClassPtr void_class_;
+  static ClassPtr type_parameters_class_;
+  static ClassPtr type_arguments_class_;
+  static ClassPtr patch_class_class_;
+  static ClassPtr function_class_;
+  static ClassPtr closure_data_class_;
+  static ClassPtr ffi_trampoline_data_class_;
+  static ClassPtr field_class_;
+  static ClassPtr script_class_;
+  static ClassPtr library_class_;
+  static ClassPtr namespace_class_;
+  static ClassPtr kernel_program_info_class_;
+  static ClassPtr code_class_;
+  static ClassPtr instructions_class_;
+  static ClassPtr instructions_section_class_;
+  static ClassPtr instructions_table_class_;
+  static ClassPtr object_pool_class_;
+  static ClassPtr pc_descriptors_class_;
+  static ClassPtr code_source_map_class_;
+  static ClassPtr compressed_stackmaps_class_;
+  static ClassPtr var_descriptors_class_;
+  static ClassPtr exception_handlers_class_;
+  static ClassPtr context_class_;
+  static ClassPtr context_scope_class_;
+  static ClassPtr sentinel_class_;
+  static ClassPtr singletargetcache_class_;
+  static ClassPtr unlinkedcall_class_;
+  static ClassPtr monomorphicsmiablecall_class_;
+  static ClassPtr icdata_class_;
+  static ClassPtr megamorphic_cache_class_;
+  static ClassPtr subtypetestcache_class_;
+  static ClassPtr loadingunit_class_;
+  static ClassPtr api_error_class_;
+  static ClassPtr language_error_class_;
+  static ClassPtr unhandled_exception_class_;
+  static ClassPtr unwind_error_class_;
   static ClassPtr weak_serialization_reference_class_;
+  static ClassPtr weak_array_class_;
 
 #define DECLARE_SHARED_READONLY_HANDLE(Type, name) static Type* name##_;
   SHARED_READONLY_HANDLES_LIST(DECLARE_SHARED_READONLY_HANDLE)
@@ -1187,6 +1193,7 @@ class Class : public Object {
   void set_end_token_pos(TokenPosition value) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  uint32_t Hash() const;
   int32_t SourceFingerprint() const;
 
   // Return the Type with type parameters declared by this class filled in with
@@ -1636,6 +1643,23 @@ class Class : public Object {
   }
   void set_is_transformed_mixin_application() const;
 
+  bool is_sealed() const { return SealedBit::decode(state_bits()); }
+  void set_is_sealed() const;
+
+  bool is_mixin_class() const { return MixinClassBit::decode(state_bits()); }
+  void set_is_mixin_class() const;
+
+  bool is_base_class() const { return BaseClassBit::decode(state_bits()); }
+  void set_is_base_class() const;
+
+  bool is_interface_class() const {
+    return InterfaceClassBit::decode(state_bits());
+  }
+  void set_is_interface_class() const;
+
+  bool is_final() const { return FinalBit::decode(state_bits()); }
+  void set_is_final() const;
+
   bool is_fields_marked_nullable() const {
     return FieldsMarkedNullableBit::decode(state_bits());
   }
@@ -1655,9 +1679,12 @@ class Class : public Object {
   static uint16_t NumNativeFieldsOf(ClassPtr clazz) {
     return clazz->untag()->num_native_fields_;
   }
-  static bool ImplementsFinalizable(ClassPtr clazz) {
-    ASSERT(Class::Handle(clazz).is_type_finalized());
-    return ImplementsFinalizableBit::decode(clazz->untag()->state_bits_);
+  static bool IsIsolateUnsendable(ClassPtr clazz) {
+    return IsIsolateUnsendableBit::decode(clazz->untag()->state_bits_);
+  }
+  static bool IsIsolateUnsendableDueToPragma(ClassPtr clazz) {
+    return IsIsolateUnsendableDueToPragmaBit::decode(
+        clazz->untag()->state_bits_);
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1783,15 +1810,13 @@ class Class : public Object {
   // Return the list of code objects that were compiled using CHA of this class.
   // These code objects will be invalidated if new subclasses of this class
   // are finalized.
-  ArrayPtr dependent_code() const;
-  void set_dependent_code(const Array& array) const;
+  WeakArrayPtr dependent_code() const;
+  void set_dependent_code(const WeakArray& array) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   bool TraceAllocation(IsolateGroup* isolate_group) const;
   void SetTraceAllocation(bool trace_allocation) const;
 
-  void ReplaceEnum(ProgramReloadContext* reload_context,
-                   const Class& old_enum) const;
   void CopyStaticFieldValues(ProgramReloadContext* reload_context,
                              const Class& old_cls) const;
   void PatchFieldsAndFunctions() const;
@@ -1847,6 +1872,10 @@ class Class : public Object {
   void MarkFieldBoxedDuringReload(ClassTable* class_table,
                                   const Field& field) const;
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  void SetUserVisibleNameInClassTable();
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+
  private:
   TypePtr declaration_type() const {
     return untag()->declaration_type<std::memory_order_acquire>();
@@ -1892,7 +1921,21 @@ class Class : public Object {
     kIsAllocatedBit,
     kIsLoadedBit,
     kHasPragmaBit,
-    kImplementsFinalizableBit,
+    kSealedBit,
+    kMixinClassBit,
+    kBaseClassBit,
+    kInterfaceClassBit,
+    kFinalBit,
+    // Whether instances of the class cannot be sent across ports.
+    //
+    // Will be true iff
+    //    - class is marked with `@pramga('vm:isolate-unsendable')
+    //    - super class / super interface classes are marked as unsendable.
+    //    - class has native fields.
+    kIsIsolateUnsendableBit,
+    // True if this class has `@pramga('vm:isolate-unsendable') annotation or
+    // base class or implemented interfaces has this bit.
+    kIsIsolateUnsendableDueToPragmaBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -1915,8 +1958,17 @@ class Class : public Object {
   class IsAllocatedBit : public BitField<uint32_t, bool, kIsAllocatedBit, 1> {};
   class IsLoadedBit : public BitField<uint32_t, bool, kIsLoadedBit, 1> {};
   class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
-  class ImplementsFinalizableBit
-      : public BitField<uint32_t, bool, kImplementsFinalizableBit, 1> {};
+  class SealedBit : public BitField<uint32_t, bool, kSealedBit, 1> {};
+  class MixinClassBit : public BitField<uint32_t, bool, kMixinClassBit, 1> {};
+  class BaseClassBit : public BitField<uint32_t, bool, kBaseClassBit, 1> {};
+  class InterfaceClassBit
+      : public BitField<uint32_t, bool, kInterfaceClassBit, 1> {};
+  class FinalBit : public BitField<uint32_t, bool, kFinalBit, 1> {};
+  class IsIsolateUnsendableBit
+      : public BitField<uint32_t, bool, kIsIsolateUnsendableBit, 1> {};
+  class IsIsolateUnsendableDueToPragmaBit
+      : public BitField<uint32_t, bool, kIsIsolateUnsendableDueToPragmaBit, 1> {
+  };
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -1934,7 +1986,7 @@ class Class : public Object {
   UnboxedFieldBitmap CalculateFieldOffsets() const;
 
   // functions_hash_table is in use iff there are at least this many functions.
-  static const intptr_t kFunctionLookupHashTreshold = 16;
+  static const intptr_t kFunctionLookupHashThreshold = 16;
 
   // Initial value for the cached number of type arguments.
   static const intptr_t kUnknownNumTypeArguments = -1;
@@ -1956,13 +2008,18 @@ class Class : public Object {
   void set_num_type_arguments_unsafe(intptr_t value) const;
 
   bool has_pragma() const { return HasPragmaBit::decode(state_bits()); }
-  void set_has_pragma(bool has_pragma) const;
+  void set_has_pragma(bool value) const;
 
-  bool implements_finalizable() const {
-    ASSERT(is_type_finalized());
-    return ImplementsFinalizable(ptr());
+  void set_is_isolate_unsendable(bool value) const;
+  bool is_isolate_unsendable() const {
+    ASSERT(is_finalized());  // This bit is initialized in class finalizer.
+    return IsIsolateUnsendableBit::decode(state_bits());
   }
-  void set_implements_finalizable(bool value) const;
+
+  void set_is_isolate_unsendable_due_to_pragma(bool value) const;
+  bool is_isolate_unsendable_due_to_pragma() const {
+    return IsIsolateUnsendableDueToPragmaBit::decode(state_bits());
+  }
 
  private:
   void set_functions(const Array& value) const;
@@ -2185,7 +2242,7 @@ class UnlinkedCall : public CallSiteData {
 // compilation. Code may contain only original ICData objects.
 //
 // ICData's backing store is an array that logically contains several valid
-// entries followed by a sentinal entry.
+// entries followed by a sentinel entry.
 //
 //   [<entry-0>, <...>, <entry-N>, <sentinel>]
 //
@@ -2769,6 +2826,9 @@ class Function : public Object {
   // -1 for Dart -> native calls.
   int32_t FfiCallbackId() const;
 
+  // Should be called when ffi trampoline function object is created.
+  void AssignFfiCallbackId(int32_t callback_id) const;
+
   // Can only be called on FFI trampolines.
   bool FfiIsLeaf() const;
 
@@ -3221,7 +3281,7 @@ class Function : public Object {
   bool HasOptionalParameters() const;
   // Returns whether the function has optional named parameters.
   bool HasOptionalNamedParameters() const;
-  // Returns whether the fuction has required named parameters.
+  // Returns whether the function has required named parameters.
   bool HasRequiredNamedParameters() const;
   // Returns whether the function has optional positional parameters.
   bool HasOptionalPositionalParameters() const;
@@ -3793,14 +3853,14 @@ class Function : public Object {
 // VM instantiation. It is independent from presence of type feedback
 // (ic_data_array) and code, which may be loaded from a snapshot.
 // 'WasExecuted' is true if the usage counter has ever been positive.
-// 'ProhibitsHoistingCheckClass' is true if this function deoptimized before on
-// a hoisted check class instruction.
+// 'ProhibitsInstructionHoisting' is true if this function deoptimized before on
+// a hoisted instruction.
 // 'ProhibitsBoundsCheckGeneralization' is true if this function deoptimized
 // before on a generalized bounds check.
 #define STATE_BITS_LIST(V)                                                     \
   V(WasCompiled)                                                               \
   V(WasExecutedBit)                                                            \
-  V(ProhibitsHoistingCheckClass)                                               \
+  V(ProhibitsInstructionHoisting)                                              \
   V(ProhibitsBoundsCheckGeneralization)
 
   enum StateBits {
@@ -3850,7 +3910,7 @@ class Function : public Object {
   //          dispatchers is not visible. Synthetic code that can trigger
   //          exceptions such as the outer async functions that create Futures
   //          is visible.
-  // instrinsic: Has a hand-written assembly prologue.
+  // intrinsic: Has a hand-written assembly prologue.
   // inlinable: Candidate for inlining. False for functions with features we
   //            don't support during inlining (e.g., optional parameters),
   //            functions which are too big, etc.
@@ -3965,6 +4025,11 @@ class Function : public Object {
 #undef DEFINE_BIT
 
  private:
+  enum NativeFunctionData {
+    kNativeName,
+    kTearOff,
+    kLength,
+  };
   // Given the provided defaults type arguments, determines which
   // DefaultTypeArgumentsKind applies.
   DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(
@@ -4134,11 +4199,11 @@ class Field : public Object {
   }
 
   bool initializer_changed_after_initialization() const {
-    return InitializerChangedAfterInitializatonBit::decode(kind_bits());
+    return InitializerChangedAfterInitializationBit::decode(kind_bits());
   }
   void set_initializer_changed_after_initialization(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(InitializerChangedAfterInitializatonBit::update(
+    set_kind_bits(InitializerChangedAfterInitializationBit::update(
         value, untag()->kind_bits_));
   }
 
@@ -4212,6 +4277,8 @@ class Field : public Object {
   ClassPtr Origin() const;  // Either mixin class, or same as owner().
   ScriptPtr Script() const;
   ObjectPtr RawOwner() const;
+
+  uint32_t Hash() const;
 
   AbstractTypePtr type() const { return untag()->type(); }
   // Used by class finalizer, otherwise initialized in constructor.
@@ -4441,8 +4508,8 @@ class Field : public Object {
   // assumptions about guarded class id and nullability of this field.
   // These code objects must be deoptimized when field's properties change.
   // Code objects are held weakly via an indirection through WeakProperty.
-  ArrayPtr dependent_code() const;
-  void set_dependent_code(const Array& array) const;
+  WeakArrayPtr dependent_code() const;
+  void set_dependent_code(const WeakArray& array) const;
 
   // Add the given code object to the list of dependent ones.
   void RegisterDependentCode(const Code& code) const;
@@ -4523,7 +4590,7 @@ class Field : public Object {
     kHasNontrivialInitializerBit,
     kUnboxedBit,
     kReflectableBit,
-    kInitializerChangedAfterInitializatonBit,
+    kInitializerChangedAfterInitializationBit,
     kHasPragmaBit,
     kCovariantBit,
     kGenericCovariantImplBit,
@@ -4539,10 +4606,10 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kHasNontrivialInitializerBit, 1> {};
   class UnboxedBit : public BitField<uint16_t, bool, kUnboxedBit, 1> {};
   class ReflectableBit : public BitField<uint16_t, bool, kReflectableBit, 1> {};
-  class InitializerChangedAfterInitializatonBit
+  class InitializerChangedAfterInitializationBit
       : public BitField<uint16_t,
                         bool,
-                        kInitializerChangedAfterInitializatonBit,
+                        kInitializerChangedAfterInitializationBit,
                         1> {};
   class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
   class CovariantBit : public BitField<uint16_t, bool, kCovariantBit, 1> {};
@@ -5217,22 +5284,6 @@ class KernelProgramInfo : public Object {
 
   ArrayPtr constants() const { return untag()->constants(); }
   void set_constants(const Array& constants) const;
-
-  // If we load a kernel blob with evaluated constants, then we delay setting
-  // the native names of [Function] objects until we've read the constant table
-  // (since native names are encoded as constants).
-  //
-  // This array will hold the functions which might need their native name set.
-  GrowableObjectArrayPtr potential_natives() const {
-    return untag()->potential_natives();
-  }
-  void set_potential_natives(const GrowableObjectArray& candidates) const;
-
-  GrowableObjectArrayPtr potential_pragma_functions() const {
-    return untag()->potential_pragma_functions();
-  }
-  void set_potential_pragma_functions(
-      const GrowableObjectArray& candidates) const;
 
   ScriptPtr ScriptAt(intptr_t index) const;
 
@@ -6354,6 +6405,72 @@ class WeakSerializationReference : public Object {
   friend class Class;
 };
 
+class WeakArray : public Object {
+ public:
+  intptr_t Length() const { return LengthOf(ptr()); }
+  static inline intptr_t LengthOf(const WeakArrayPtr array);
+
+  static intptr_t length_offset() {
+    return OFFSET_OF(UntaggedWeakArray, length_);
+  }
+  static intptr_t data_offset() {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedWeakArray, data);
+  }
+  static intptr_t element_offset(intptr_t index) {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedWeakArray, data) +
+           kBytesPerElement * index;
+  }
+  static intptr_t index_at_offset(intptr_t offset_in_bytes) {
+    intptr_t index = (offset_in_bytes - data_offset()) / kBytesPerElement;
+    ASSERT(index >= 0);
+    return index;
+  }
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() { return WeakArray::data_offset(); }
+
+    static constexpr intptr_t kElementSize = kCompressedWordSize;
+  };
+
+  ObjectPtr At(intptr_t index) const { return untag()->element(index); }
+  void SetAt(intptr_t index, const Object& value) const {
+    untag()->set_element(index, value.ptr());
+  }
+
+  // Access to the array with acquire release semantics.
+  ObjectPtr AtAcquire(intptr_t index) const {
+    return untag()->element<std::memory_order_acquire>(index);
+  }
+  void SetAtRelease(intptr_t index, const Object& value) const {
+    untag()->set_element<std::memory_order_release>(index, value.ptr());
+  }
+
+  static const intptr_t kBytesPerElement = kCompressedWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static constexpr bool IsValidLength(intptr_t length) {
+    return 0 <= length && length <= kMaxElements;
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(UntaggedWeakArray) ==
+           OFFSET_OF_RETURNED_VALUE(UntaggedWeakArray, data));
+    return 0;
+  }
+
+  static constexpr intptr_t InstanceSize(intptr_t len) {
+    return RoundedAllocationSize(sizeof(UntaggedWeakArray) +
+                                 (len * kBytesPerElement));
+  }
+
+  static WeakArrayPtr New(intptr_t length, Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakArray, Object);
+  friend class Class;
+  friend class Object;
+};
+
 class Code : public Object {
  public:
   // When dual mapping, this returns the executable view.
@@ -6818,6 +6935,7 @@ class Code : public Object {
                         UntaggedPcDescriptors::Kind kind) const;
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
+  uint32_t Hash() const;
   const char* Name() const;
   const char* QualifiedName(const NameFormattingParams& params) const;
 
@@ -7115,6 +7233,9 @@ class ContextScope : public Object {
   bool IsConstAt(intptr_t scope_index) const;
   void SetIsConstAt(intptr_t scope_index, bool is_const) const;
 
+  bool IsInvisibleAt(intptr_t scope_index) const;
+  void SetIsInvisibleAt(intptr_t scope_index, bool is_invisible) const;
+
   AbstractTypePtr TypeAt(intptr_t scope_index) const;
   void SetTypeAt(intptr_t scope_index, const AbstractType& type) const;
 
@@ -7126,6 +7247,9 @@ class ContextScope : public Object {
 
   intptr_t ContextLevelAt(intptr_t scope_index) const;
   void SetContextLevelAt(intptr_t scope_index, intptr_t context_level) const;
+
+  intptr_t KernelOffsetAt(intptr_t scope_index) const;
+  void SetKernelOffsetAt(intptr_t scope_index, intptr_t kernel_offset) const;
 
   static const intptr_t kBytesPerElement =
       sizeof(UntaggedContextScope::VariableDesc);
@@ -7184,6 +7308,8 @@ class ContextScope : public Object {
 // initialization of static fields.
 // - Object::unknown_constant() and Object::non_constant() are optimizing
 // compiler's constant propagation constants.
+// - Object::optimized_out() result from deopt environment pruning or failure
+// to capture variables in a closure's context
 class Sentinel : public Object {
  public:
   static intptr_t InstanceSize() {
@@ -7789,10 +7915,6 @@ class Instance : public Object {
     *RawUnboxedFieldAddrAtOffset<T>(offset) = value;
   }
 
-  static InstancePtr NewFromCidAndSize(ClassTable* class_table,
-                                       classid_t cid,
-                                       Heap::Space heap = Heap::kNew);
-
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
   friend class ByteBuffer;
@@ -8115,6 +8237,15 @@ class TypeArguments : public Instance {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  // Update number of parent function type arguments for
+  // all elements of this vector.
+  TypeArgumentsPtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
@@ -8140,10 +8271,28 @@ class TypeArguments : public Instance {
     // type arguments.
 
     enum Header {
-      // The number of occupied entries in the cache.
-      kOccupiedEntriesIndex = 0,
+      // A single Smi that is a bitfield containing two values:
+      // - The number of occupied entries in the cache for all caches.
+      // - For hash-based caches, the upper bits contain log2(N) where N
+      //   is the number of total entries in the cache, so this information can
+      //   be quickly retrieved by stubs.
+      //
+      // Note: accesses outside of the type arguments canonicalization mutex
+      // must have acquire semantics. In C++ code, use NumOccupied to retrieve
+      // the number of occupied entries.
+      kMetadataIndex = 0,
       kHeaderSize,
     };
+
+    using NumOccupiedBits = BitField<intptr_t,
+                                     intptr_t,
+                                     0,
+                                     compiler::target::kSmiBits -
+                                         compiler::target::kBitsPerWordLog2>;
+    using EntryCountLog2Bits = BitField<intptr_t,
+                                        intptr_t,
+                                        NumOccupiedBits::kNextBit,
+                                        compiler::target::kBitsPerWordLog2>;
 
     // The tuple of values stored in a given entry.
     //
@@ -8239,9 +8388,20 @@ class TypeArguments : public Instance {
     // Returns whether the backing store changed.
     bool EnsureCapacity(intptr_t occupied) const;
 
+   public:  // For testing purposes only.
     // Retrieves the number of entries (occupied or unoccupied) in the cache.
     intptr_t NumEntries() const { return NumEntries(data_); }
 
+    // The maximum number of occupied entries for a linear cache of
+    // instantiations before swapping to a hash table-based cache.
+#if defined(TARGET_ARCH_IA32)
+    // We don't generate hash cache probing in the stub on IA32.
+    static constexpr intptr_t kMaxLinearCacheEntries = 500;
+#else
+    static constexpr intptr_t kMaxLinearCacheEntries = 10;
+#endif
+
+   private:
     // Retrieves the number of entries (occupied or unoccupied) in a cache
     // backed by the given array.
     static intptr_t NumEntries(const Array& array);
@@ -8249,7 +8409,7 @@ class TypeArguments : public Instance {
     // If an entry in the given array contains the given instantiator and
     // function type arguments, returns a KeyLocation with the index of the
     // entry and true. Otherwise, returns a KeyLocation with the index that
-    // would be used if the instantiation for the the given type arguments is
+    // would be used if the instantiation for the given type arguments is
     // added and false.
     static KeyLocation FindKeyOrUnused(const Array& array,
                                        const TypeArguments& instantiator_tav,
@@ -8258,11 +8418,7 @@ class TypeArguments : public Instance {
     // The sentinel value in the Smi returned from Sentinel().
     static constexpr intptr_t kSentinelValue = 0;
 
-   public:
-    // The maximum number of occupied entries for a linear cache of
-    // instantiations before swapping to a hash table-based cache.
-    static constexpr intptr_t kMaxLinearCacheEntries = 500;
-
+   public:  // Used in the StubCodeCompiler.
     // The maximum size of the array backing a linear cache. All hash based
     // caches are guaranteed to have sizes larger than this.
     static constexpr intptr_t kMaxLinearCacheSize =
@@ -8319,6 +8475,9 @@ class TypeArguments : public Instance {
   }
   uword Hash() const;
   uword HashForRange(intptr_t from_index, intptr_t len) const;
+  static intptr_t hash_offset() {
+    return OFFSET_OF(UntaggedTypeArguments, hash_);
+  }
 
   static TypeArgumentsPtr New(intptr_t len, Heap::Space space = Heap::kOld);
 
@@ -8432,6 +8591,21 @@ class AbstractType : public Instance {
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  // Update number of parent function type arguments for the
+  // nested function types and their type parameters.
+  //
+  // This adjustment is needed when nesting one generic function type
+  // inside another.
+  // Number of parent function type arguments is adjusted by
+  // [num_parent_type_args_adjustment].
+  // Type parameters up to [num_free_fun_type_params] are not adjusted.
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
       TrailPtr trail = nullptr) const;
@@ -8723,7 +8897,15 @@ class Type : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
+
   virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if type is canonical.
@@ -8863,7 +9045,15 @@ class FunctionType : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
+
   virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if type is canonical.
@@ -9073,7 +9263,7 @@ class FunctionType : public AbstractType {
                                 Heap::Space space) const;
 
   // Returns the index in the parameter names array of the corresponding flag
-  // for the given parametere index. Also returns (via flag_mask) the
+  // for the given parameter index. Also returns (via flag_mask) the
   // corresponding mask within the flag.
   intptr_t GetRequiredFlagIndex(intptr_t index, intptr_t* flag_mask) const;
 
@@ -9103,90 +9293,6 @@ class FunctionType : public AbstractType {
   friend class Class;
   friend class ClearTypeHashVisitor;
   friend class Function;
-};
-
-// A RecordType represents the type of a record. It describes
-// number of named and positional fields, field types and
-// names of the named fields.
-class RecordType : public AbstractType {
- public:
-  static intptr_t hash_offset() { return OFFSET_OF(UntaggedRecordType, hash_); }
-  virtual bool HasTypeClass() const { return false; }
-  RecordTypePtr ToNullability(Nullability value, Heap::Space space) const;
-  virtual classid_t type_class_id() const { return kIllegalCid; }
-  virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = nullptr) const;
-  virtual bool IsEquivalent(const Instance& other,
-                            TypeEquality kind,
-                            TrailPtr trail = nullptr) const;
-  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
-                                                TrailPtr trail = nullptr) const;
-
-  virtual AbstractTypePtr InstantiateFrom(
-      const TypeArguments& instantiator_type_arguments,
-      const TypeArguments& function_type_arguments,
-      intptr_t num_free_fun_type_params,
-      Heap::Space space,
-      TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
-#if defined(DEBUG)
-  // Check if type is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
-  virtual void EnumerateURIs(URIs* uris) const;
-  virtual void PrintName(NameVisibility visibility,
-                         BaseTextBuffer* printer) const;
-
-  virtual uword Hash() const;
-  uword ComputeHash() const;
-
-  bool IsSubtypeOf(const RecordType& other, Heap::Space space) const;
-
-  ArrayPtr field_types() const {
-    return untag()->field_types();
-  }
-
-  AbstractTypePtr FieldTypeAt(intptr_t index) const;
-  void SetFieldTypeAt(intptr_t index, const AbstractType& value) const;
-
-  // Names of the named fields, sorted.
-  ArrayPtr field_names() const {
-    return untag()->field_names();
-  }
-
-  StringPtr FieldNameAt(intptr_t index) const;
-  void SetFieldNameAt(intptr_t index, const String& value) const;
-
-  intptr_t NumFields() const;
-  intptr_t NumNamedFields() const;
-  intptr_t NumPositionalFields() const;
-
-  void Print(NameVisibility name_visibility, BaseTextBuffer* printer) const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(UntaggedRecordType));
-  }
-
-  static RecordTypePtr New(const Array& field_types,
-                           const Array& field_names,
-                           Nullability nullability = Nullability::kLegacy,
-                           Heap::Space space = Heap::kOld);
-
- private:
-  void SetHash(intptr_t value) const;
-
-  void set_field_types(const Array& value) const;
-  void set_field_names(const Array& value) const;
-
-  static RecordTypePtr New(Heap::Space space);
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(RecordType, AbstractType);
-  friend class Class;
-  friend class ClassFinalizer;
-  friend class ClearTypeHashVisitor;
-  friend class Record;
 };
 
 // A TypeRef is used to break cycles in the representation of recursive types.
@@ -9226,7 +9332,15 @@ class TypeRef : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
+
   virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if typeref is canonical.
@@ -9311,7 +9425,15 @@ class TypeParameter : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
+
   virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if type parameter is canonical.
@@ -10018,7 +10140,6 @@ class OneByteString : public AllStatic {
 
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsOneByteString());
-    NoSafepointScope no_safepoint;
     return OneByteString::CharAt(static_cast<OneByteStringPtr>(str.ptr()),
                                  index);
   }
@@ -10148,6 +10269,7 @@ class OneByteString : public AllStatic {
   friend class Utf8;
   friend class OneByteStringMessageSerializationCluster;
   friend class Deserializer;
+  friend class JSONWriter;
 };
 
 class TwoByteString : public AllStatic {
@@ -10156,7 +10278,6 @@ class TwoByteString : public AllStatic {
 
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsTwoByteString());
-    NoSafepointScope no_safepoint;
     return TwoByteString::CharAt(static_cast<TwoByteStringPtr>(str.ptr()),
                                  index);
   }
@@ -10267,6 +10388,7 @@ class TwoByteString : public AllStatic {
   friend class StringHasher;
   friend class Symbols;
   friend class TwoByteStringMessageSerializationCluster;
+  friend class JSONWriter;
 };
 
 class ExternalOneByteString : public AllStatic {
@@ -10275,7 +10397,6 @@ class ExternalOneByteString : public AllStatic {
 
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsExternalOneByteString());
-    NoSafepointScope no_safepoint;
     return ExternalOneByteString::CharAt(
         static_cast<ExternalOneByteStringPtr>(str.ptr()), index);
   }
@@ -10360,6 +10481,7 @@ class ExternalOneByteString : public AllStatic {
   friend class StringHasher;
   friend class Symbols;
   friend class Utf8;
+  friend class JSONWriter;
 };
 
 class ExternalTwoByteString : public AllStatic {
@@ -10368,7 +10490,6 @@ class ExternalTwoByteString : public AllStatic {
 
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsExternalTwoByteString());
-    NoSafepointScope no_safepoint;
     return ExternalTwoByteString::CharAt(
         static_cast<ExternalTwoByteStringPtr>(str.ptr()), index);
   }
@@ -10448,6 +10569,7 @@ class ExternalTwoByteString : public AllStatic {
   friend class String;
   friend class StringHasher;
   friend class Symbols;
+  friend class JSONWriter;
 };
 
 // Matches null_patch.dart / bool_patch.dart.
@@ -10929,23 +11051,168 @@ class Float64x2 : public Instance {
   friend class Class;
 };
 
+// Packed representation of record shape (number of fields and field names).
+class RecordShape {
+  enum {
+    kNumFieldsBits = 16,
+    kFieldNamesIndexBits = kSmiBits - kNumFieldsBits,
+  };
+  using NumFieldsBitField = BitField<intptr_t, intptr_t, 0, kNumFieldsBits>;
+  using FieldNamesIndexBitField = BitField<intptr_t,
+                                           intptr_t,
+                                           NumFieldsBitField::kNextBit,
+                                           kFieldNamesIndexBits>;
+
+ public:
+  static constexpr intptr_t kNumFieldsMask = NumFieldsBitField::mask();
+  static constexpr intptr_t kMaxNumFields = kNumFieldsMask;
+  static constexpr intptr_t kFieldNamesIndexMask =
+      FieldNamesIndexBitField::mask();
+  static constexpr intptr_t kFieldNamesIndexShift =
+      FieldNamesIndexBitField::shift();
+  static constexpr intptr_t kMaxFieldNamesIndex = kFieldNamesIndexMask;
+
+  explicit RecordShape(intptr_t value) : value_(value) { ASSERT(value_ >= 0); }
+  explicit RecordShape(SmiPtr smi_value) : value_(Smi::Value(smi_value)) {
+    ASSERT(value_ >= 0);
+  }
+  RecordShape(intptr_t num_fields, intptr_t field_names_index)
+      : value_(NumFieldsBitField::encode(num_fields) |
+               FieldNamesIndexBitField::encode(field_names_index)) {
+    ASSERT(value_ >= 0);
+  }
+  static RecordShape ForUnnamed(intptr_t num_fields) {
+    return RecordShape(num_fields, 0);
+  }
+
+  bool HasNamedFields() const { return field_names_index() != 0; }
+
+  intptr_t num_fields() const { return NumFieldsBitField::decode(value_); }
+
+  intptr_t field_names_index() const {
+    return FieldNamesIndexBitField::decode(value_);
+  }
+
+  SmiPtr AsSmi() const { return Smi::New(value_); }
+
+  intptr_t AsInt() const { return value_; }
+
+  bool operator==(const RecordShape& other) const {
+    return value_ == other.value_;
+  }
+  bool operator!=(const RecordShape& other) const {
+    return value_ != other.value_;
+  }
+
+  // Registers record shape with [num_fields] and [field_names] in the current
+  // isolate group.
+  static RecordShape Register(Thread* thread,
+                              intptr_t num_fields,
+                              const Array& field_names);
+
+  // Retrieves an array of field names.
+  ArrayPtr GetFieldNames(Thread* thread) const;
+
+ private:
+  intptr_t value_;
+
+  DISALLOW_ALLOCATION();
+};
+
+// A RecordType represents the type of a record. It describes
+// number of named and positional fields, field types and
+// names of the named fields.
+class RecordType : public AbstractType {
+ public:
+  static intptr_t hash_offset() { return OFFSET_OF(UntaggedRecordType, hash_); }
+  virtual bool HasTypeClass() const { return false; }
+  RecordTypePtr ToNullability(Nullability value, Heap::Space space) const;
+  virtual classid_t type_class_id() const { return kIllegalCid; }
+  virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kAllFree,
+                              TrailPtr trail = nullptr) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            TypeEquality kind,
+                            TrailPtr trail = nullptr) const;
+  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
+                                                TrailPtr trail = nullptr) const;
+
+  virtual AbstractTypePtr InstantiateFrom(
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
+      TrailPtr trail = nullptr) const;
+
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
+#if defined(DEBUG)
+  // Check if type is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
+  virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
+
+  virtual uword Hash() const;
+  uword ComputeHash() const;
+
+  bool IsSubtypeOf(const RecordType& other, Heap::Space space) const;
+
+  RecordShape shape() const { return RecordShape(untag()->shape()); }
+
+  ArrayPtr field_types() const { return untag()->field_types(); }
+
+  AbstractTypePtr FieldTypeAt(intptr_t index) const;
+  void SetFieldTypeAt(intptr_t index, const AbstractType& value) const;
+
+  // Names of the named fields, sorted.
+  ArrayPtr GetFieldNames(Thread* thread) const;
+
+  intptr_t NumFields() const;
+
+  void Print(NameVisibility name_visibility, BaseTextBuffer* printer) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedRecordType));
+  }
+
+  static RecordTypePtr New(RecordShape shape,
+                           const Array& field_types,
+                           Nullability nullability = Nullability::kLegacy,
+                           Heap::Space space = Heap::kOld);
+
+ private:
+  void SetHash(intptr_t value) const;
+
+  void set_shape(RecordShape shape) const;
+  void set_field_types(const Array& value) const;
+
+  static RecordTypePtr New(Heap::Space space);
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(RecordType, AbstractType);
+  friend class Class;
+  friend class ClassFinalizer;
+  friend class ClearTypeHashVisitor;
+  friend class Record;
+};
+
 class Record : public Instance {
  public:
   intptr_t num_fields() const { return NumFields(ptr()); }
   static intptr_t NumFields(RecordPtr ptr) {
-    return Smi::Value(ptr->untag()->num_fields());
-  }
-  static intptr_t num_fields_offset() {
-    return OFFSET_OF(UntaggedRecord, num_fields_);
+    return RecordShape(ptr->untag()->shape()).num_fields();
   }
 
-  intptr_t NumNamedFields() const;
-  intptr_t NumPositionalFields() const;
-
-  ArrayPtr field_names() const { return untag()->field_names(); }
-  static intptr_t field_names_offset() {
-    return OFFSET_OF(UntaggedRecord, field_names_);
-  }
+  RecordShape shape() const { return RecordShape(untag()->shape()); }
+  static intptr_t shape_offset() { return OFFSET_OF(UntaggedRecord, shape_); }
 
   ObjectPtr FieldAt(intptr_t field_index) const {
     return untag()->field(field_index);
@@ -10955,7 +11222,7 @@ class Record : public Instance {
   }
 
   static const intptr_t kBytesPerElement = kCompressedWordSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static const intptr_t kMaxElements = RecordShape::kMaxNumFields;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() { return sizeof(UntaggedRecord); }
@@ -10985,9 +11252,7 @@ class Record : public Instance {
                                  (num_fields * kBytesPerElement));
   }
 
-  static RecordPtr New(intptr_t num_fields,
-                       const Array& field_names,
-                       Heap::Space space = Heap::kNew);
+  static RecordPtr New(RecordShape shape, Heap::Space space = Heap::kNew);
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
@@ -11006,15 +11271,16 @@ class Record : public Instance {
 
   // Returns index of the field with given name, or -1
   // if such field doesn't exist.
-  // Supports positional field names ("$0", "$1", etc).
-  intptr_t GetFieldIndexByName(const String& field_name) const;
+  // Supports positional field names ("$1", "$2", etc).
+  intptr_t GetFieldIndexByName(Thread* thread, const String& field_name) const;
+
+  ArrayPtr GetFieldNames(Thread* thread) const {
+    return shape().GetFieldNames(thread);
+  }
 
  private:
-  void set_field_names(const Array& field_names) const;
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Record, Instance);
   friend class Class;
-  friend class DeferredObject;  // For set_field_names.
   friend class Object;
 };
 
@@ -11086,12 +11352,16 @@ class TypedDataBase : public PointerBase {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    NoSafepointScope no_safepoint;                                             \
-    return LoadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
+    ASSERT(static_cast<uintptr_t>(byte_offset) <=                              \
+           static_cast<uintptr_t>(LengthInBytes()) - sizeof(type));            \
+    return LoadUnaligned(                                                      \
+        reinterpret_cast<type*>(untag()->data_ + byte_offset));                \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
-    NoSafepointScope no_safepoint;                                             \
-    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
+    ASSERT(static_cast<uintptr_t>(byte_offset) <=                              \
+           static_cast<uintptr_t>(LengthInBytes()) - sizeof(type));            \
+    StoreUnaligned(reinterpret_cast<type*>(untag()->data_ + byte_offset),      \
+                   value);                                                     \
   }
 
   TYPED_GETTER_SETTER(Int8, int8_t)
@@ -11143,14 +11413,16 @@ class TypedData : public TypedDataBase {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    ASSERT((byte_offset >= 0) &&                                               \
-           (byte_offset + static_cast<intptr_t>(sizeof(type)) - 1) <           \
-               LengthInBytes());                                               \
-    return LoadUnaligned(ReadOnlyDataAddr<type>(byte_offset));                 \
+    ASSERT(static_cast<uintptr_t>(byte_offset) <=                              \
+           static_cast<uintptr_t>(LengthInBytes()) - sizeof(type));            \
+    return LoadUnaligned(                                                      \
+        reinterpret_cast<const type*>(untag()->data() + byte_offset));         \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
-    NoSafepointScope no_safepoint;                                             \
-    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
+    ASSERT(static_cast<uintptr_t>(byte_offset) <=                              \
+           static_cast<uintptr_t>(LengthInBytes()) - sizeof(type));            \
+    return StoreUnaligned(                                                     \
+        reinterpret_cast<type*>(untag()->data() + byte_offset), value);        \
   }
 
   TYPED_GETTER_SETTER(Int8, int8_t)
@@ -11199,50 +11471,9 @@ class TypedData : public TypedDataBase {
                           intptr_t len,
                           Heap::Space space = Heap::kNew);
 
-  static void Copy(const TypedDataBase& dst,
-                   intptr_t dst_offset_in_bytes,
-                   const TypedDataBase& src,
-                   intptr_t src_offset_in_bytes,
-                   intptr_t length_in_bytes) {
-    ASSERT(Utils::RangeCheck(src_offset_in_bytes, length_in_bytes,
-                             src.LengthInBytes()));
-    ASSERT(Utils::RangeCheck(dst_offset_in_bytes, length_in_bytes,
-                             dst.LengthInBytes()));
-    {
-      NoSafepointScope no_safepoint;
-      if (length_in_bytes > 0) {
-        memmove(dst.DataAddr(dst_offset_in_bytes),
-                src.DataAddr(src_offset_in_bytes), length_in_bytes);
-      }
-    }
-  }
-
-  static void ClampedCopy(const TypedDataBase& dst,
-                          intptr_t dst_offset_in_bytes,
-                          const TypedDataBase& src,
-                          intptr_t src_offset_in_bytes,
-                          intptr_t length_in_bytes) {
-    ASSERT(Utils::RangeCheck(src_offset_in_bytes, length_in_bytes,
-                             src.LengthInBytes()));
-    ASSERT(Utils::RangeCheck(dst_offset_in_bytes, length_in_bytes,
-                             dst.LengthInBytes()));
-    {
-      NoSafepointScope no_safepoint;
-      if (length_in_bytes > 0) {
-        uint8_t* dst_data =
-            reinterpret_cast<uint8_t*>(dst.DataAddr(dst_offset_in_bytes));
-        int8_t* src_data =
-            reinterpret_cast<int8_t*>(src.DataAddr(src_offset_in_bytes));
-        for (intptr_t ix = 0; ix < length_in_bytes; ix++) {
-          int8_t v = *src_data;
-          if (v < 0) v = 0;
-          *dst_data = v;
-          src_data++;
-          dst_data++;
-        }
-      }
-    }
-  }
+  static TypedDataPtr Grow(const TypedData& current,
+                           intptr_t len,
+                           Heap::Space space = Heap::kNew);
 
   static bool IsTypedData(const Instance& obj) {
     ASSERT(!obj.IsNull());
@@ -11946,10 +12177,18 @@ class Capability : public Instance {
 class ReceivePort : public Instance {
  public:
   SendPortPtr send_port() const { return untag()->send_port(); }
+  static intptr_t send_port_offset() {
+    return OFFSET_OF(UntaggedReceivePort, send_port_);
+  }
   Dart_Port Id() const { return send_port()->untag()->id_; }
 
   InstancePtr handler() const { return untag()->handler(); }
-  void set_handler(const Instance& value) const;
+  void set_handler(const Instance& value) const {
+    untag()->set_handler(value.ptr());
+  }
+  static intptr_t handler_offset() {
+    return OFFSET_OF(UntaggedReceivePort, handler_);
+  }
 
 #if !defined(PRODUCT)
   StackTracePtr allocation_location() const {
@@ -12233,8 +12472,12 @@ class RegExpFlags {
 
   int value() const { return value_; }
 
-  bool operator==(const RegExpFlags& other) { return value_ == other.value_; }
-  bool operator!=(const RegExpFlags& other) { return value_ != other.value_; }
+  bool operator==(const RegExpFlags& other) const {
+    return value_ == other.value_;
+  }
+  bool operator!=(const RegExpFlags& other) const {
+    return value_ != other.value_;
+  }
 
  private:
   int value_;
@@ -12261,15 +12504,25 @@ class RegExp : public Instance {
   };
 
   class TypeBits : public BitField<int8_t, RegExType, kTypePos, kTypeSize> {};
-  class FlagsBits : public BitField<int8_t, intptr_t, kFlagsPos, kFlagsSize> {};
+  class GlobalBit : public BitField<int8_t, bool, kFlagsPos, 1> {};
+  class IgnoreCaseBit : public BitField<int8_t, bool, GlobalBit::kNextBit, 1> {
+  };
+  class MultiLineBit
+      : public BitField<int8_t, bool, IgnoreCaseBit::kNextBit, 1> {};
+  class UnicodeBit : public BitField<int8_t, bool, MultiLineBit::kNextBit, 1> {
+  };
+  class DotAllBit : public BitField<int8_t, bool, UnicodeBit::kNextBit, 1> {};
+
+  class FlagsBits : public BitField<int8_t, int8_t, kFlagsPos, kFlagsSize> {};
 
   bool is_initialized() const { return (type() != kUninitialized); }
   bool is_simple() const { return (type() == kSimple); }
   bool is_complex() const { return (type() == kComplex); }
 
   intptr_t num_registers(bool is_one_byte) const {
-    return is_one_byte ? untag()->num_one_byte_registers_
-                       : untag()->num_two_byte_registers_;
+    return LoadNonPointer<intptr_t, std::memory_order_relaxed>(
+        is_one_byte ? &untag()->num_one_byte_registers_
+                    : &untag()->num_two_byte_registers_);
   }
 
   StringPtr pattern() const { return untag()->pattern(); }
@@ -12280,11 +12533,13 @@ class RegExp : public Instance {
 
   TypedDataPtr bytecode(bool is_one_byte, bool sticky) const {
     if (sticky) {
-      return TypedData::RawCast(is_one_byte ? untag()->one_byte_sticky()
-                                            : untag()->two_byte_sticky());
+      return TypedData::RawCast(
+          is_one_byte ? untag()->one_byte_sticky<std::memory_order_acquire>()
+                      : untag()->two_byte_sticky<std::memory_order_acquire>());
     } else {
-      return TypedData::RawCast(is_one_byte ? untag()->one_byte()
-                                            : untag()->two_byte());
+      return TypedData::RawCast(
+          is_one_byte ? untag()->one_byte<std::memory_order_acquire>()
+                      : untag()->two_byte<std::memory_order_acquire>());
     }
   }
 
@@ -12357,50 +12612,38 @@ class RegExp : public Instance {
   void set_num_bracket_expressions(intptr_t value) const;
   void set_capture_name_map(const Array& array) const;
   void set_is_global() const {
-    RegExpFlags f = flags();
-    f.SetGlobal();
-    set_flags(f);
+    untag()->type_flags_.UpdateBool<GlobalBit>(true);
   }
   void set_is_ignore_case() const {
-    RegExpFlags f = flags();
-    f.SetIgnoreCase();
-    set_flags(f);
+    untag()->type_flags_.UpdateBool<IgnoreCaseBit>(true);
   }
   void set_is_multi_line() const {
-    RegExpFlags f = flags();
-    f.SetMultiLine();
-    set_flags(f);
+    untag()->type_flags_.UpdateBool<MultiLineBit>(true);
   }
   void set_is_unicode() const {
-    RegExpFlags f = flags();
-    f.SetUnicode();
-    set_flags(f);
+    untag()->type_flags_.UpdateBool<UnicodeBit>(true);
   }
   void set_is_dot_all() const {
-    RegExpFlags f = flags();
-    f.SetDotAll();
-    set_flags(f);
+    untag()->type_flags_.UpdateBool<DotAllBit>(true);
   }
   void set_is_simple() const { set_type(kSimple); }
   void set_is_complex() const { set_type(kComplex); }
   void set_num_registers(bool is_one_byte, intptr_t value) const {
-    if (is_one_byte) {
-      StoreNonPointer(&untag()->num_one_byte_registers_, value);
-    } else {
-      StoreNonPointer(&untag()->num_two_byte_registers_, value);
-    }
+    StoreNonPointer<intptr_t, intptr_t, std::memory_order_relaxed>(
+        is_one_byte ? &untag()->num_one_byte_registers_
+                    : &untag()->num_two_byte_registers_,
+        value);
   }
 
   RegExpFlags flags() const {
-    return RegExpFlags(FlagsBits::decode(untag()->type_flags_));
+    return RegExpFlags(untag()->type_flags_.Read<FlagsBits>());
   }
   void set_flags(RegExpFlags flags) const {
-    StoreNonPointer(&untag()->type_flags_,
-                    FlagsBits::update(flags.value(), untag()->type_flags_));
+    untag()->type_flags_.Update<FlagsBits>(flags.value());
   }
-  const char* Flags() const;
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uint32_t CanonicalizeHash() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedRegExp));
@@ -12410,11 +12653,9 @@ class RegExp : public Instance {
 
  private:
   void set_type(RegExType type) const {
-    StoreNonPointer(&untag()->type_flags_,
-                    TypeBits::update(type, untag()->type_flags_));
+    untag()->type_flags_.Update<TypeBits>(type);
   }
-
-  RegExType type() const { return TypeBits::decode(untag()->type_flags_); }
+  RegExType type() const { return untag()->type_flags_.Read<TypeBits>(); }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(RegExp, Instance);
   friend class Class;
@@ -12734,7 +12975,6 @@ ClassPtr Object::clazz() const {
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
-  ASSERT(!IsolateGroup::Current()->compaction_in_progress());
   return IsolateGroup::Current()->class_table()->At(ptr()->GetClassId());
 }
 
@@ -12809,6 +13049,10 @@ void Field::set_field_id(intptr_t field_id) const {
 void Field::set_field_id_unsafe(intptr_t field_id) const {
   ASSERT(is_static());
   untag()->set_host_offset_or_field_id(Smi::New(field_id));
+}
+
+intptr_t WeakArray::LengthOf(const WeakArrayPtr array) {
+  return Smi::Value(array->untag()->length());
 }
 
 void Context::SetAt(intptr_t index, const Object& value) const {
@@ -12932,14 +13176,6 @@ inline void RecordType::SetHash(intptr_t value) const {
 
 inline intptr_t RecordType::NumFields() const {
   return Array::LengthOf(field_types());
-}
-
-inline intptr_t RecordType::NumNamedFields() const {
-  return Array::LengthOf(field_names());
-}
-
-inline intptr_t RecordType::NumPositionalFields() const {
-  return NumFields() - NumNamedFields();
 }
 
 inline uword TypeParameter::Hash() const {
@@ -13111,10 +13347,6 @@ class ArrayOfTuplesView {
  private:
   const Array& array_;
 };
-
-using InvocationDispatcherTable =
-    ArrayOfTuplesView<Class::InvocationDispatcherEntry,
-                      std::tuple<String, Array, Function>>;
 
 using StaticCallsTable =
     ArrayOfTuplesView<Code::SCallTableEntry, std::tuple<Smi, Object, Function>>;

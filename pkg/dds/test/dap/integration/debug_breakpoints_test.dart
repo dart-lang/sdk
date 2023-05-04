@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:dds/dap.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -25,6 +26,77 @@ main() {
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       await client.hitBreakpoint(testFile, breakpointLine);
+    });
+
+    test('resolves and updates breakpoints', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointResolutionProgram);
+      final setBreakpointLine = lineWith(testFile, breakpointMarker);
+      final expectedResolvedBreakpointLine = setBreakpointLine + 1;
+
+      // Collect any breakpoint changes during the run.
+      final breakpointChangesFuture = client.breakpointChangeEvents.toList();
+
+      Future<SetBreakpointsResponseBody> setBreakpointFuture;
+      await Future.wait([
+        client
+            .expectStop('breakpoint',
+                file: testFile, line: expectedResolvedBreakpointLine)
+            .then((_) => client.terminate()),
+        client.initialize(),
+        setBreakpointFuture = client.setBreakpoint(testFile, setBreakpointLine),
+        client.launch(testFile.path),
+      ], eagerError: true);
+
+      // The initial setBreakpointResponse should always return unverified
+      // because we verify using the BreakpointAdded/BreakpointResolved events.
+      final setBreakpointResponse = await setBreakpointFuture;
+      expect(setBreakpointResponse.breakpoints, hasLength(1));
+      final setBreakpoint = setBreakpointResponse.breakpoints.single;
+      expect(setBreakpoint.verified, isFalse);
+
+      // The last breakpoint change we had should be verified and also update
+      // the line to [expectedResolvedBreakpointLine] since the breakpoint was
+      // on a blank line.
+      final breakpointChanges = await breakpointChangesFuture;
+      final updatedBreakpoint = breakpointChanges.last.breakpoint;
+      expect(updatedBreakpoint.verified, isTrue);
+      expect(updatedBreakpoint.line, expectedResolvedBreakpointLine);
+    });
+
+    test('responds to setBreakpoints before any breakpoint events', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointResolutionProgram);
+      final setBreakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Run the app and get to a breakpoint. This will allow us to add new
+      // breakpoints in the same file that are _immediately_ resolved.
+      await Future.wait([
+        client.initialize(),
+        client.expectStop('breakpoint'),
+        client.setBreakpoint(testFile, setBreakpointLine),
+        client.launch(testFile.path),
+      ], eagerError: true);
+
+      // Call setBreakpoint again, and ensure it response before we get any
+      // breakpoint change events because we require their IDs before the change
+      // events are sent.
+      var setBreakpointsResponded = false;
+      await Future.wait([
+        client.breakpointChangeEvents.first.then((_) {
+          if (!setBreakpointsResponded) {
+            throw 'breakpoint change event arrived before '
+                'setBreakpoints completed';
+          }
+        }),
+        client
+            // Send 50 breakpoints for lines 1-50 to ensure we spend some time
+            // sending requests to the VM to allow events to start coming back
+            // from the VM before we complete. Without this, the test can pass
+            // even without the fix.
+            .setBreakpoints(testFile, List.generate(50, (index) => index))
+            .then((_) => setBreakpointsResponded = true),
+      ]);
     });
 
     test('does not stop at a removed breakpoint', () async {
@@ -108,7 +180,7 @@ void main(List<String> args) async {
     });
 
     /// Tests hitting a simple breakpoint and resuming.
-    Future<void> _testHitBreakpointAndResume() async {
+    Future<void> testHitBreakpointAndResume() async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -124,7 +196,7 @@ void main(List<String> args) async {
     }
 
     test('stops at a line breakpoint and can be resumed', () async {
-      await _testHitBreakpointAndResume();
+      await testHitBreakpointAndResume();
     });
 
     test(
@@ -134,7 +206,7 @@ void main(List<String> args) async {
       final client = dap.client;
       client.forceDriveLetterCasingUpper = true;
       client.forceBreakpointDriveLetterCasingLower = true;
-      await _testHitBreakpointAndResume();
+      await testHitBreakpointAndResume();
     }, skip: !Platform.isWindows);
 
     test(
@@ -144,7 +216,7 @@ void main(List<String> args) async {
       final client = dap.client;
       client.forceDriveLetterCasingLower = true;
       client.forceBreakpointDriveLetterCasingUpper = true;
-      await _testHitBreakpointAndResume();
+      await testHitBreakpointAndResume();
     }, skip: !Platform.isWindows);
 
     test('stops at a line breakpoint and can step over (next)', () async {
@@ -545,7 +617,7 @@ void main(List<String> args) async {
   group('debug mode logpoints', () {
     /// A helper that tests a LogPoint using [logMessage] and expecting the
     /// script not to pause and [expectedMessage] to show up in the output.
-    Future<void> _testLogPoint(
+    Future<void> testLogPoint(
       DapTestSession dap,
       String logMessage,
       String expectedMessage,
@@ -572,7 +644,7 @@ void main(List<String> args) async {
     }
 
     test('print simple messages', () async {
-      await _testLogPoint(
+      await testLogPoint(
         dap,
         r'This is a test message',
         'This is a test message',
@@ -580,7 +652,7 @@ void main(List<String> args) async {
     });
 
     test('print messages with Dart interpolation', () async {
-      await _testLogPoint(
+      await testLogPoint(
         dap,
         r'This is a test message in ${DateTime(2000, 1, 1).year}',
         'This is a test message in ${DateTime(2000, 1, 1).year}',
@@ -588,7 +660,7 @@ void main(List<String> args) async {
     });
 
     test('print messages with just {braces}', () async {
-      await _testLogPoint(
+      await testLogPoint(
         dap,
         // The DAP spec says "Expressions within {} are interpolated" so in the DA
         // we just prefix them with $ and treat them like other Dart interpolation
@@ -599,7 +671,7 @@ void main(List<String> args) async {
     });
 
     test('allows \\{escaped braces}', () async {
-      await _testLogPoint(
+      await testLogPoint(
         dap,
         // Since we treat things in {braces} as expressions, we need to support
         // escaping them.

@@ -1,0 +1,17 @@
+abstract class Abstract extends Super {
+  method2(num i);
+}
+
+class Class extends Abstract {
+  method1();
+  method3(num i);
+  method4(num i);
+}
+
+class Super {
+  method1();
+  method2(int i);
+  method3(int i);
+  method4(int i) {}
+  noSuchMethod(_) => null;
+}

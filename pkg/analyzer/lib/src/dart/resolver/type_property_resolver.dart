@@ -55,7 +55,7 @@ class TypePropertyResolver {
   ///
   /// The [receiver] might be `null`, used to identify `super`.
   ///
-  /// The [propertyErrorNode] is the node to report nullable dereference,
+  /// The [propertyErrorEntity] is the node to report nullable dereference,
   /// if the [receiverType] is potentially nullable.
   ///
   /// The [nameErrorEntity] is used to report an ambiguous extension issue.
@@ -65,6 +65,7 @@ class TypePropertyResolver {
     required String name,
     required SyntacticEntity propertyErrorEntity,
     required SyntacticEntity nameErrorEntity,
+    AstNode? parentNode,
   }) {
     _receiver = receiver;
     _name = name;
@@ -101,36 +102,37 @@ class TypePropertyResolver {
         return _toResult();
       }
 
-      AstNode? parentExpression;
-      if (receiver != null) {
-        parentExpression = receiver.parent;
-      } else if (propertyErrorEntity is AstNode) {
-        parentExpression = propertyErrorEntity.parent;
-      } else {
-        throw StateError('Either `receiver` must be non-null or'
-            '`propertyErrorEntity` must be an AstNode to report an unchecked '
-            'invocation of a nullable value.');
+      if (parentNode == null) {
+        if (receiver != null) {
+          parentNode = receiver.parent;
+        } else if (propertyErrorEntity is AstNode) {
+          parentNode = propertyErrorEntity.parent;
+        } else {
+          throw StateError('Either `receiver` must be non-null or '
+              '`propertyErrorEntity` must be an AstNode to report an unchecked '
+              'invocation of a nullable value.');
+        }
       }
 
       CompileTimeErrorCode errorCode;
       List<String> arguments;
-      if (parentExpression == null) {
+      if (parentNode == null) {
         errorCode = CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
         arguments = [];
       } else {
-        if (parentExpression is CascadeExpression) {
-          parentExpression = parentExpression.cascadeSections.first;
+        if (parentNode is CascadeExpression) {
+          parentNode = parentNode.cascadeSections.first;
         }
-        if (parentExpression is BinaryExpression) {
+        if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
           errorCode = CompileTimeErrorCode
               .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE;
           arguments = [name];
-        } else if (parentExpression is MethodInvocation ||
-            parentExpression is MethodReferenceExpression) {
+        } else if (parentNode is MethodInvocation ||
+            parentNode is MethodReferenceExpression) {
           errorCode = CompileTimeErrorCode
               .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE;
           arguments = [name];
-        } else if (parentExpression is FunctionExpressionInvocation) {
+        } else if (parentNode is FunctionExpressionInvocation) {
           errorCode =
               CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
           arguments = [];

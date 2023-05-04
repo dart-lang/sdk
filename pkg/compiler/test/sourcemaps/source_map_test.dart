@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test that options '--source-map' and '--out' correctly adds
 // `sourceMappingURL` and "file" attributes to source file and source map file.
 
@@ -34,8 +32,8 @@ void find(String text, String substring, bool expected) {
   }
 }
 
-test({String out, String sourceMap, String mapping, String file}) async {
-  OutputCollector collector = new OutputCollector();
+test({String? out, String? sourceMap, String? mapping, String? file}) async {
+  OutputCollector collector = OutputCollector();
   List<String> options = <String>[];
   if (out != null) {
     options.add("--out=$out");
@@ -50,19 +48,19 @@ test({String out, String sourceMap, String mapping, String file}) async {
       showDiagnostics: true,
       outputProvider: collector,
       options: options);
-  String jsOutput = collector.getOutput('', api.OutputType.js);
+  String? jsOutput = collector.getOutput('', api.OutputType.js);
   Expect.isNotNull(jsOutput);
   if (mapping != null) {
-    find(jsOutput, '//# sourceMappingURL=$mapping', true);
+    find(jsOutput!, '//# sourceMappingURL=$mapping', true);
   } else {
-    find(jsOutput, '//# sourceMappingURL=', false);
+    find(jsOutput!, '//# sourceMappingURL=', false);
   }
-  String jsSourceMapOutput = collector.getOutput('', api.OutputType.sourceMap);
+  String? jsSourceMapOutput = collector.getOutput('', api.OutputType.sourceMap);
   Expect.isNotNull(jsSourceMapOutput);
   if (file != null) {
-    find(jsSourceMapOutput, '"file": "$file"', true);
+    find(jsSourceMapOutput!, '"file": "$file"', true);
   } else {
-    find(jsSourceMapOutput, '"file": ', false);
+    find(jsSourceMapOutput!, '"file": ', false);
   }
 }
 

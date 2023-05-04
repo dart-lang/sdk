@@ -1,71 +1,42 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Cat extends core::Object {
-  synthetic constructor •() → self::Cat*
+  synthetic constructor •() → self::Cat
     ;
-  method eatFood(core::String* food) → core::bool*
+  method eatFood(core::String food) → core::bool
     ;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class MockCat extends core::Object implements self::Cat {
-  synthetic constructor •() → self::MockCat*
+  synthetic constructor •() → self::MockCat
     ;
-  method noSuchMethod(core::Invocation* invocation) → dynamic
+  method noSuchMethod(core::Invocation invocation) → dynamic
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  no-such-method-forwarder method eatFood(core::String* food) → core::bool*
-    return this.{self::MockCat::noSuchMethod}(new core::_InvocationMirror::_withType(#eatFood, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::bool*;
+  no-such-method-forwarder method eatFood(core::String food) → core::bool
+    return this.{self::MockCat::noSuchMethod}(new core::_InvocationMirror::_withType(#eatFood, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
 }
 class MockCat2 extends self::MockCat {
-  synthetic constructor •() → self::MockCat2*
+  synthetic constructor •() → self::MockCat2
     ;
-  abstract method noSuchMethod(core::Invocation* _) → dynamic;
+  abstract method noSuchMethod(core::Invocation _) → dynamic;
 }
 class MockCat3 extends self::MockCat2 implements self::Cat {
-  synthetic constructor •() → self::MockCat3*
+  synthetic constructor •() → self::MockCat3
     ;
-  no-such-method-forwarder method eatFood(core::String* food, {core::double* amount = null}) → core::bool*
-    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#eatFood, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#amount: amount}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::bool*;
+  no-such-method-forwarder method eatFood(core::String food, {core::double amount = null}) → core::bool
+    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#eatFood, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#amount: amount}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
 }
 class MockCat4 extends self::MockCat2 implements self::HungryCat {
-  synthetic constructor •() → self::MockCat4*
+  synthetic constructor •() → self::MockCat4
     ;
-  no-such-method-forwarder method eatFood(core::String* food, {core::double* amount, core::double* yetAnother}) → core::bool*
-    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#eatFood, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#amount: amount, #yetAnother: yetAnother}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::bool*;
+  no-such-method-forwarder method eatFood(core::String food, {core::double amount, core::double yetAnother}) → core::bool
+    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#eatFood, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#amount: amount, #yetAnother: yetAnother}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
 }
 abstract class HungryCat extends core::Object {
-  synthetic constructor •() → self::HungryCat*
+  synthetic constructor •() → self::HungryCat
     ;
-  abstract method eatFood(core::String* food, {core::double* amount = null, core::double* yetAnother = null}) → core::bool*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract method eatFood(core::String food, {core::double amount = null, core::double yetAnother = null}) → core::bool;
 }
 static method main() → dynamic
   ;

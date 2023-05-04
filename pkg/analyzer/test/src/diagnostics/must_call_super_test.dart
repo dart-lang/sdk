@@ -49,7 +49,7 @@ class B extends A {
   void a() {}
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 115, 1),
+      error(WarningCode.MUST_CALL_SUPER, 115, 1),
     ]);
   }
 
@@ -93,7 +93,7 @@ class B extends A<int> {
   void a() {}
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 123, 1),
+      error(WarningCode.MUST_CALL_SUPER, 123, 1),
     ]);
   }
 
@@ -109,7 +109,7 @@ class B extends A {
   void a<T>() {}
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 118, 1),
+      error(WarningCode.MUST_CALL_SUPER, 118, 1),
     ]);
   }
 
@@ -125,7 +125,7 @@ class B extends A {
   int get a => 2;
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 122, 1),
+      error(WarningCode.MUST_CALL_SUPER, 122, 1),
     ]);
   }
 
@@ -164,7 +164,7 @@ class B extends A {
   }
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 135, 3),
+      error(WarningCode.MUST_CALL_SUPER, 135, 3),
     ]);
   }
 
@@ -180,7 +180,7 @@ class B extends A {
   operator ==(Object o) => o is B;
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 140, 2),
+      error(WarningCode.MUST_CALL_SUPER, 140, 2),
     ]);
   }
 
@@ -210,7 +210,7 @@ class B extends A {
   set a(int value) {}
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 122, 1),
+      error(WarningCode.MUST_CALL_SUPER, 122, 1),
     ]);
   }
 
@@ -247,7 +247,7 @@ class B extends A {
   }
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 131, 3),
+      error(WarningCode.MUST_CALL_SUPER, 131, 3),
     ]);
   }
 
@@ -268,7 +268,7 @@ class C implements A {
   test_fromMixin() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
-class Mixin {
+mixin Mixin {
   @mustCallSuper
   void a() {}
 }
@@ -277,14 +277,14 @@ class C with Mixin {
   void a() {}
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 120, 1),
+      error(WarningCode.MUST_CALL_SUPER, 120, 1),
     ]);
   }
 
   test_fromMixin_setter() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
-class Mixin {
+mixin Mixin {
   @mustCallSuper
   void set a(int value) {}
 }
@@ -293,7 +293,7 @@ class C with Mixin {
   void set a(int value) {}
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 137, 1),
+      error(WarningCode.MUST_CALL_SUPER, 137, 1),
     ]);
   }
 
@@ -310,7 +310,7 @@ class D extends C {
   void a() {}
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 133, 1),
+      error(WarningCode.MUST_CALL_SUPER, 133, 1),
     ]);
   }
 
@@ -332,14 +332,14 @@ class D extends C {
   void a() {}
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 181, 1),
+      error(WarningCode.MUST_CALL_SUPER, 181, 1),
     ]);
   }
 
   test_indirectlyInheritedFromMixin() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
-class Mixin {
+mixin Mixin {
   @mustCallSuper
   void b() {}
 }
@@ -349,7 +349,7 @@ class D extends C {
   void b() {}
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 156, 1),
+      error(WarningCode.MUST_CALL_SUPER, 156, 1),
     ]);
   }
 
@@ -365,7 +365,7 @@ mixin C on A {
   void a() {}
 }
 ''', [
-      error(HintCode.MUST_CALL_SUPER, 110, 1),
+      error(WarningCode.MUST_CALL_SUPER, 110, 1),
     ]);
   }
 

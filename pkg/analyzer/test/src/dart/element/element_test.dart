@@ -14,6 +14,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/type_system_base.dart';
+import '../../../util/feature_sets.dart';
 import '../resolution/context_collection_resolution.dart';
 
 main() {
@@ -26,6 +27,7 @@ main() {
     defineReflectiveTests(TypeParameterTypeImplTest);
     defineReflectiveTests(VoidTypeImplTest);
     defineReflectiveTests(ClassElementImplTest);
+    defineReflectiveTests(MixinElementImplTest);
     defineReflectiveTests(ElementLocationImplTest);
     defineReflectiveTests(ElementImplTest);
     defineReflectiveTests(TopLevelVariableElementImplTest);
@@ -112,6 +114,365 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     expect(classB.hasNonFinalField, isTrue);
   }
 
+  void test_isExhaustive() {
+    var element = ElementFactory.classElement2("C");
+    expect(element.isExhaustive, isFalse);
+  }
+
+  void test_isExhaustive_base() {
+    var element = ElementFactory.classElement4("C", isBase: true);
+    expect(element.isExhaustive, isFalse);
+  }
+
+  void test_isExhaustive_final() {
+    var element = ElementFactory.classElement4("C", isFinal: true);
+    expect(element.isExhaustive, isFalse);
+  }
+
+  void test_isExhaustive_interface() {
+    var element = ElementFactory.classElement4("C", isInterface: true);
+    expect(element.isExhaustive, isFalse);
+  }
+
+  void test_isExhaustive_mixinClass() {
+    var element = ElementFactory.classElement4("C", isMixinClass: true);
+    expect(element.isExhaustive, isFalse);
+  }
+
+  void test_isExhaustive_sealed() {
+    var element = ElementFactory.classElement4("C", isSealed: true);
+    expect(element.isExhaustive, isTrue);
+  }
+
+  void test_isExtendableIn_base_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement4("C", isBase: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isExtendableIn(library2), isTrue);
+  }
+
+  void test_isExtendableIn_base_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement4("C", isBase: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isExtendableIn(library), isTrue);
+  }
+
+  void test_isExtendableIn_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement2("C");
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isExtendableIn(library2), isTrue);
+  }
+
+  void test_isExtendableIn_final_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement4("C", isFinal: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isExtendableIn(library2), isFalse);
+  }
+
+  void test_isExtendableIn_final_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement4("C", isFinal: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isExtendableIn(library), isTrue);
+  }
+
+  void test_isExtendableIn_interface_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement4("C", isInterface: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isExtendableIn(library2), isFalse);
+  }
+
+  void test_isExtendableIn_interface_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement4("C", isInterface: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isExtendableIn(library), isTrue);
+  }
+
+  void test_isExtendableIn_mixinClass_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement4("C", isMixinClass: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isExtendableIn(library2), isTrue);
+  }
+
+  void test_isExtendableIn_mixinClass_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement4("C", isMixinClass: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isExtendableIn(library), isTrue);
+  }
+
+  void test_isExtendableIn_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement2("C");
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isExtendableIn(library), isTrue);
+  }
+
+  void test_isExtendableIn_sealed_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement4("C", isSealed: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isExtendableIn(library2), isFalse);
+  }
+
+  void test_isExtendableIn_sealed_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement4("C", isSealed: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isExtendableIn(library), isTrue);
+  }
+
+  void test_isImplementableIn_base_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement4("C", isBase: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isImplementableIn(library2), isFalse);
+  }
+
+  void test_isImplementableIn_base_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement4("C", isBase: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isImplementableIn(library), isTrue);
+  }
+
+  void test_isImplementableIn_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement2("C");
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isImplementableIn(library2), isTrue);
+  }
+
+  void test_isImplementableIn_final_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement4("C", isFinal: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isImplementableIn(library2), isFalse);
+  }
+
+  void test_isImplementableIn_final_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement4("C", isFinal: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isImplementableIn(library), isTrue);
+  }
+
+  void test_isImplementableIn_interface_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement4("C", isInterface: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isImplementableIn(library2), isTrue);
+  }
+
+  void test_isImplementableIn_interface_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement4("C", isInterface: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isImplementableIn(library), isTrue);
+  }
+
+  void test_isImplementableIn_mixinClass_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement4("C", isMixinClass: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isImplementableIn(library2), isTrue);
+  }
+
+  void test_isImplementableIn_mixinClass_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement4("C", isMixinClass: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isImplementableIn(library), isTrue);
+  }
+
+  void test_isImplementableIn_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement2("C");
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isImplementableIn(library), isTrue);
+  }
+
+  void test_isImplementableIn_sealed_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var classElement = ElementFactory.classElement4("C", isSealed: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isImplementableIn(library2), isFalse);
+  }
+
+  void test_isImplementableIn_sealed_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var classElement = ElementFactory.classElement4("C", isSealed: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isImplementableIn(library), isTrue);
+  }
+
+  void test_isMixableIn_base_differentLibrary() {
+    LibraryElementImpl library1 = ElementFactory.library(
+        analysisContext, "lib1",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement4("C", isBase: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isMixableIn(library2), isFalse);
+  }
+
+  void test_isMixableIn_base_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement4("C", isBase: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isMixableIn(library), isTrue);
+  }
+
+  void test_isMixableIn_differentLibrary() {
+    LibraryElementImpl library1 = ElementFactory.library(
+        analysisContext, "lib1",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement2("C");
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isMixableIn(library2), isFalse);
+  }
+
+  void test_isMixableIn_differentLibrary_oldVersion() {
+    LibraryElementImpl library1 = ElementFactory.library(
+        analysisContext, "lib1",
+        featureSet: FeatureSets.language_2_19);
+    var classElement = ElementFactory.classElement2("C");
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isMixableIn(library2), isTrue);
+  }
+
+  void test_isMixableIn_final_differentLibrary() {
+    LibraryElementImpl library1 = ElementFactory.library(
+        analysisContext, "lib1",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement4("C", isFinal: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isMixableIn(library2), isFalse);
+  }
+
+  void test_isMixableIn_final_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement4("C", isFinal: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isMixableIn(library), isTrue);
+  }
+
+  void test_isMixableIn_interface_differentLibrary() {
+    LibraryElementImpl library1 = ElementFactory.library(
+        analysisContext, "lib1",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement4("C", isInterface: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isMixableIn(library2), isFalse);
+  }
+
+  void test_isMixableIn_interface_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement4("C", isInterface: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isMixableIn(library), isTrue);
+  }
+
+  void test_isMixableIn_mixinClass_differentLibrary() {
+    LibraryElementImpl library1 = ElementFactory.library(
+        analysisContext, "lib1",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement4("C", isMixinClass: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isMixableIn(library2), isTrue);
+  }
+
+  void test_isMixableIn_mixinClass_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement4("C", isMixinClass: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isMixableIn(library), isTrue);
+  }
+
+  void test_isMixableIn_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement2("C");
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isMixableIn(library), isTrue);
+  }
+
+  void test_isMixableIn_sealed_differentLibrary() {
+    LibraryElementImpl library1 = ElementFactory.library(
+        analysisContext, "lib1",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement4("C", isSealed: true);
+    library1.definingCompilationUnit.classes = [classElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(classElement.isMixableIn(library2), isFalse);
+  }
+
+  void test_isMixableIn_sealed_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib",
+        featureSet: FeatureSets.latestWithExperiments);
+    var classElement = ElementFactory.classElement4("C", isSealed: true);
+    library.definingCompilationUnit.classes = [classElement];
+    expect(classElement.isMixableIn(library), isTrue);
+  }
+
   void test_lookUpConcreteMethod_declared() {
     // class A {
     //   m() {}
@@ -121,7 +482,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     String methodName = "m";
     var method = ElementFactory.methodElement(methodName, intNone);
     classA.methods = [method];
-    (library.definingCompilationUnit).classes = [classA];
+    library.definingCompilationUnit.classes = [classA];
     expect(classA.lookUpConcreteMethod(methodName, library), same(method));
   }
 
@@ -136,7 +497,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
         ElementFactory.methodElement(methodName, intNone);
     method.isAbstract = true;
     classA.methods = [method];
-    (library.definingCompilationUnit).classes = [classA];
+    library.definingCompilationUnit.classes = [classA];
     expect(classA.lookUpConcreteMethod(methodName, library), isNull);
   }
 
@@ -158,7 +519,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
         ElementFactory.methodElement(methodName, intNone);
     method.isAbstract = true;
     classB.methods = [method];
-    (library.definingCompilationUnit).classes = [classA, classB];
+    library.definingCompilationUnit.classes = [classA, classB];
     expect(classB.lookUpConcreteMethod(methodName, library),
         same(inheritedMethod));
   }
@@ -179,7 +540,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     var method = ElementFactory.methodElement(methodName, intNone);
     classB.methods = [method];
-    (library.definingCompilationUnit).classes = [classA, classB];
+    library.definingCompilationUnit.classes = [classA, classB];
     expect(classB.lookUpConcreteMethod(methodName, library), same(method));
   }
 
@@ -202,7 +563,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     var method = ElementFactory.methodElement(methodName, intNone);
     classB.methods = [method];
-    (library.definingCompilationUnit).classes = [classA, classB];
+    library.definingCompilationUnit.classes = [classA, classB];
     expect(classB.lookUpConcreteMethod(methodName, library), same(method));
   }
 
@@ -219,7 +580,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     classA.methods = [inheritedMethod];
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    (library.definingCompilationUnit).classes = [classA, classB];
+    library.definingCompilationUnit.classes = [classA, classB];
     expect(classB.lookUpConcreteMethod(methodName, library),
         same(inheritedMethod));
   }
@@ -229,7 +590,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     // }
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
-    (library.definingCompilationUnit).classes = [classA];
+    library.definingCompilationUnit.classes = [classA];
     expect(classA.lookUpConcreteMethod("m", library), isNull);
   }
 
@@ -242,7 +603,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     String getterName = "g";
     var getter = ElementFactory.getterElement(getterName, false, intNone);
     classA.accessors = [getter];
-    (library.definingCompilationUnit).classes = [classA];
+    library.definingCompilationUnit.classes = [classA];
     expect(classA.lookUpGetter(getterName, library), same(getter));
   }
 
@@ -259,7 +620,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     classA.accessors = [getter];
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    (library.definingCompilationUnit).classes = [classA, classB];
+    library.definingCompilationUnit.classes = [classA, classB];
     expect(classB.lookUpGetter(getterName, library), same(getter));
   }
 
@@ -268,7 +629,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     // }
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
-    (library.definingCompilationUnit).classes = [classA];
+    library.definingCompilationUnit.classes = [classA];
     expect(classA.lookUpGetter("g", library), isNull);
   }
 
@@ -282,7 +643,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     classA.supertype = interfaceTypeStar(classB);
-    (library.definingCompilationUnit).classes = [classA, classB];
+    library.definingCompilationUnit.classes = [classA, classB];
     expect(classA.lookUpGetter("g", library), isNull);
   }
 
@@ -292,7 +653,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     String methodName = "m";
     var method = ElementFactory.methodElement(methodName, intNone);
     classA.methods = [method];
-    (library.definingCompilationUnit).classes = [classA];
+    library.definingCompilationUnit.classes = [classA];
     expect(classA.lookUpMethod(methodName, library), same(method));
   }
 
@@ -304,14 +665,14 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     classA.methods = [method];
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    (library.definingCompilationUnit).classes = [classA, classB];
+    library.definingCompilationUnit.classes = [classA, classB];
     expect(classB.lookUpMethod(methodName, library), same(method));
   }
 
   void test_lookUpMethod_undeclared() {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
-    (library.definingCompilationUnit).classes = [classA];
+    library.definingCompilationUnit.classes = [classA];
     expect(classA.lookUpMethod("m", library), isNull);
   }
 
@@ -321,7 +682,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     classA.supertype = interfaceTypeStar(classB);
-    (library.definingCompilationUnit).classes = [classA, classB];
+    library.definingCompilationUnit.classes = [classA, classB];
     expect(classA.lookUpMethod("m", library), isNull);
   }
 
@@ -334,7 +695,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     String setterName = "s";
     var setter = ElementFactory.setterElement(setterName, false, intNone);
     classA.accessors = [setter];
-    (library.definingCompilationUnit).classes = [classA];
+    library.definingCompilationUnit.classes = [classA];
     expect(classA.lookUpSetter(setterName, library), same(setter));
   }
 
@@ -351,7 +712,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     classA.accessors = [setter];
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    (library.definingCompilationUnit).classes = [classA, classB];
+    library.definingCompilationUnit.classes = [classA, classB];
     expect(classB.lookUpSetter(setterName, library), same(setter));
   }
 
@@ -360,7 +721,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     // }
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
-    (library.definingCompilationUnit).classes = [classA];
+    library.definingCompilationUnit.classes = [classA];
     expect(classA.lookUpSetter("s", library), isNull);
   }
 
@@ -374,7 +735,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     classA.supertype = interfaceTypeStar(classB);
-    (library.definingCompilationUnit).classes = [classA, classB];
+    library.definingCompilationUnit.classes = [classA, classB];
     expect(classA.lookUpSetter("s", library), isNull);
   }
 
@@ -413,7 +774,7 @@ class ElementImplTest extends AbstractTypeSystemTest {
   void test_equals() {
     LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     ClassElementImpl classElement = ElementFactory.classElement2("C");
-    (library.definingCompilationUnit).classes = [classElement];
+    library.definingCompilationUnit.classes = [classElement];
     var field = ElementFactory.fieldElement(
       "next",
       false,
@@ -437,7 +798,7 @@ class ElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library1 =
         ElementFactory.library(analysisContext, "lib1");
     var classElement = ElementFactory.classElement2("_C");
-    (library1.definingCompilationUnit).classes = [classElement];
+    library1.definingCompilationUnit.classes = [classElement];
     LibraryElementImpl library2 =
         ElementFactory.library(analysisContext, "lib2");
     expect(classElement.isAccessibleIn(library2), isFalse);
@@ -446,7 +807,7 @@ class ElementImplTest extends AbstractTypeSystemTest {
   void test_isAccessibleIn_private_sameLibrary() {
     LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     var classElement = ElementFactory.classElement2("_C");
-    (library.definingCompilationUnit).classes = [classElement];
+    library.definingCompilationUnit.classes = [classElement];
     expect(classElement.isAccessibleIn(library), isTrue);
   }
 
@@ -454,7 +815,7 @@ class ElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library1 =
         ElementFactory.library(analysisContext, "lib1");
     var classElement = ElementFactory.classElement2("C");
-    (library1.definingCompilationUnit).classes = [classElement];
+    library1.definingCompilationUnit.classes = [classElement];
     LibraryElementImpl library2 =
         ElementFactory.library(analysisContext, "lib2");
     expect(classElement.isAccessibleIn(library2), isTrue);
@@ -463,7 +824,7 @@ class ElementImplTest extends AbstractTypeSystemTest {
   void test_isAccessibleIn_public_sameLibrary() {
     LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     var classElement = ElementFactory.classElement2("C");
-    (library.definingCompilationUnit).classes = [classElement];
+    library.definingCompilationUnit.classes = [classElement];
     expect(classElement.isAccessibleIn(library), isTrue);
   }
 
@@ -1181,6 +1542,43 @@ class MethodElementImplTest extends AbstractTypeSystemTest {
 }
 
 @reflectiveTest
+class MixinElementImplTest extends AbstractTypeSystemTest {
+  void test_isImplementableIn_base_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var mixinElement = ElementFactory.mixinElement(name: "C", isBase: true);
+    library1.definingCompilationUnit.mixins = [mixinElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(mixinElement.isImplementableIn(library2), isFalse);
+  }
+
+  void test_isImplementableIn_base_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var mixinElement = ElementFactory.mixinElement(name: "C", isBase: true);
+    library.definingCompilationUnit.mixins = [mixinElement];
+    expect(mixinElement.isImplementableIn(library), isTrue);
+  }
+
+  void test_isImplementableIn_differentLibrary() {
+    LibraryElementImpl library1 =
+        ElementFactory.library(analysisContext, "lib1");
+    var mixinElement = ElementFactory.mixinElement(name: "C");
+    library1.definingCompilationUnit.mixins = [mixinElement];
+    LibraryElementImpl library2 =
+        ElementFactory.library(analysisContext, "lib2");
+    expect(mixinElement.isImplementableIn(library2), isTrue);
+  }
+
+  void test_isImplementableIn_sameLibrary() {
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
+    var mixinElement = ElementFactory.mixinElement(name: "C");
+    library.definingCompilationUnit.mixins = [mixinElement];
+    expect(mixinElement.isImplementableIn(library), isTrue);
+  }
+}
+
+@reflectiveTest
 class TopLevelVariableElementImplTest extends PubPackageResolutionTest {
   test_computeConstantValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -1456,6 +1854,7 @@ class VoidTypeImplTest extends AbstractTypeSystemTest {
   /// Reference {code VoidTypeImpl.getInstance()}.
   final DartType _voidType = VoidTypeImpl.instance;
 
+  @deprecated
   void test_isVoid() {
     expect(_voidType.isVoid, isTrue);
   }

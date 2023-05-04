@@ -218,6 +218,20 @@ abstract class AssertStatement implements Assertion, Statement {
   Token get semicolon;
 }
 
+/// A variable pattern in [PatternAssignment].
+///
+///    variablePattern ::= identifier
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class AssignedVariablePattern implements VariablePattern {
+  /// Return the element referenced by this pattern, or `null` if either
+  /// [name] does not resolve to an element, or the AST structure has not
+  /// been resolved. In valid code this will be either [LocalVariableElement]
+  /// or [ParameterElement].
+  Element? get element;
+}
+
 /// An assignment expression.
 ///
 ///    assignmentExpression ::=
@@ -363,6 +377,8 @@ abstract class AstVisitor<R> {
 
   R? visitAssertStatement(AssertStatement assertStatement);
 
+  R? visitAssignedVariablePattern(AssignedVariablePattern node);
+
   R? visitAssignmentExpression(AssignmentExpression node);
 
   R? visitAugmentationImportDirective(AugmentationImportDirective node);
@@ -370,8 +386,6 @@ abstract class AstVisitor<R> {
   R? visitAwaitExpression(AwaitExpression node);
 
   R? visitBinaryExpression(BinaryExpression node);
-
-  R? visitBinaryPattern(BinaryPattern node);
 
   R? visitBlock(Block node);
 
@@ -420,6 +434,8 @@ abstract class AstVisitor<R> {
   R? visitContinueStatement(ContinueStatement node);
 
   R? visitDeclaredIdentifier(DeclaredIdentifier node);
+
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node);
 
   R? visitDefaultFormalParameter(DefaultFormalParameter node);
 
@@ -531,6 +547,10 @@ abstract class AstVisitor<R> {
 
   R? visitListPattern(ListPattern node);
 
+  R? visitLogicalAndPattern(LogicalAndPattern node);
+
+  R? visitLogicalOrPattern(LogicalOrPattern node);
+
   R? visitMapLiteralEntry(MapLiteralEntry node);
 
   R? visitMapPattern(MapPattern node);
@@ -551,6 +571,10 @@ abstract class AstVisitor<R> {
 
   R? visitNativeFunctionBody(NativeFunctionBody node);
 
+  R? visitNullAssertPattern(NullAssertPattern node);
+
+  R? visitNullCheckPattern(NullCheckPattern node);
+
   R? visitNullLiteral(NullLiteral node);
 
   R? visitObjectPattern(ObjectPattern node);
@@ -567,14 +591,16 @@ abstract class AstVisitor<R> {
 
   R? visitPatternAssignment(PatternAssignment node);
 
+  R? visitPatternField(PatternField node);
+
+  R? visitPatternFieldName(PatternFieldName node);
+
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node);
 
   R? visitPatternVariableDeclarationStatement(
       PatternVariableDeclarationStatement node);
 
   R? visitPostfixExpression(PostfixExpression node);
-
-  R? visitPostfixPattern(PostfixPattern node);
 
   R? visitPrefixedIdentifier(PrefixedIdentifier node);
 
@@ -585,10 +611,6 @@ abstract class AstVisitor<R> {
   R? visitRecordLiteral(RecordLiteral node);
 
   R? visitRecordPattern(RecordPattern node);
-
-  R? visitRecordPatternField(RecordPatternField node);
-
-  R? visitRecordPatternFieldName(RecordPatternFieldName node);
 
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node);
 
@@ -668,11 +690,11 @@ abstract class AstVisitor<R> {
 
   R? visitVariableDeclarationStatement(VariableDeclarationStatement node);
 
-  R? visitVariablePattern(VariablePattern node);
-
   R? visitWhenClause(WhenClause node);
 
   R? visitWhileStatement(WhileStatement node);
+
+  R? visitWildcardPattern(WildcardPattern node);
 
   R? visitWithClause(WithClause node);
 
@@ -738,24 +760,6 @@ abstract class BinaryExpression
   /// The function type of the invocation, or `null` if the AST structure has
   /// not been resolved, or if the invocation could not be resolved.
   FunctionType? get staticInvokeType;
-}
-
-/// A binary (infix) pattern.
-///
-///    binaryPattern ::=
-///        [DartPattern] ('|' | '&') [DartPattern]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class BinaryPattern implements DartPattern {
-  /// Return the pattern used to compute the left operand.
-  DartPattern get leftOperand;
-
-  /// Return the binary operator being applied.
-  Token get operator;
-
-  /// Return the pattern used to compute the right operand.
-  DartPattern get rightOperand;
 }
 
 /// A sequence of statements.
@@ -982,9 +986,13 @@ abstract class ClassAugmentationDeclaration
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
-///        'abstract'? 'class' name [TypeParameterList]?
+///        classModifiers 'class' name [TypeParameterList]?
 ///        [ExtendsClause]? [WithClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
+///
+///    classModifiers ::= 'sealed'
+///      | 'abstract'? ('base' | 'interface' | 'final')?
+///      | 'abstract'? 'base'? 'mixin'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
@@ -999,6 +1007,10 @@ abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
   /// class/mixin does not implement any interfaces.
   @override
   ImplementsClause? get implementsClause;
+
+  /// Return the 'inline' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get inlineKeyword;
 
   /// Returns the left curly bracket.
   @override
@@ -1042,6 +1054,9 @@ abstract class ClassOrAugmentationDeclaration
   /// In valid code only [ClassDeclaration] can specify it.
   Token? get abstractKeyword;
 
+  /// Return the 'base' keyword, or `null` if the keyword was absent.
+  Token? get baseKeyword;
+
   /// Returns the token representing the 'class' keyword.
   Token get classKeyword;
 
@@ -1058,9 +1073,15 @@ abstract class ClassOrAugmentationDeclaration
   /// In valid code only [ClassDeclaration] can specify it.
   ExtendsClause? get extendsClause;
 
+  /// Return the 'final' keyword, or `null` if the keyword was absent.
+  Token? get finalKeyword;
+
   /// Returns the `implements` clause for the class, or `null` if the class
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
+
+  /// Return the 'interface' keyword, or `null` if the keyword was absent.
+  Token? get interfaceKeyword;
 
   /// Returns the left curly bracket.
   Token get leftBracket;
@@ -1068,8 +1089,14 @@ abstract class ClassOrAugmentationDeclaration
   /// Returns the members defined by the class.
   NodeList<ClassMember> get members;
 
+  /// Return the 'mixin' keyword, or `null` if the keyword was absent.
+  Token? get mixinKeyword;
+
   /// Returns the right curly bracket.
   Token get rightBracket;
+
+  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
+  Token? get sealedKeyword;
 
   /// Returns the type parameters for the class, or `null` if the class does
   /// not have any type parameters.
@@ -1083,7 +1110,11 @@ abstract class ClassOrAugmentationDeclaration
 /// A class type alias.
 ///
 ///    classTypeAlias ::=
-///        name [TypeParameterList]? '=' 'abstract'? mixinApplication
+///        name [TypeParameterList]? '=' classModifiers mixinApplication
+///
+///    classModifiers ::= 'sealed'
+///      | 'abstract'? ('base' | 'interface' | 'final')?
+///      | 'abstract'? 'base'? 'mixin'
 ///
 ///    mixinApplication ::=
 ///        [TypeName] [WithClause] [ImplementsClause]? ';'
@@ -1093,6 +1124,9 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// Return the token for the 'abstract' keyword, or `null` if this is not
   /// defining an abstract class.
   Token? get abstractKeyword;
+
+  /// Return the 'base' keyword, or `null` if the keyword was absent.
+  Token? get baseKeyword;
 
   @override
   ClassElement? get declaredElement;
@@ -1104,9 +1138,21 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// Return the token for the '=' separating the name from the definition.
   Token get equals;
 
+  /// Return the 'final' keyword, or `null` if the keyword was absent.
+  Token? get finalKeyword;
+
   /// Return the implements clause for this class, or `null` if there is no
   /// implements clause.
   ImplementsClause? get implementsClause;
+
+  /// Return the 'interface' keyword, or `null` if the keyword was absent.
+  Token? get interfaceKeyword;
+
+  /// Return the 'mixin' keyword, or `null` if the keyword was absent.
+  Token? get mixinKeyword;
+
+  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
+  Token? get sealedKeyword;
 
   /// Return the name of the superclass of the class being declared.
   NamedType get superclass;
@@ -1421,7 +1467,7 @@ abstract class Configuration implements AstNode {
 /// - constant constructor invocations
 /// - constant list literals
 /// - constant set or map literals
-/// - constant expressions wrapped in parentheses and preceeded by the `const`
+/// - constant expressions wrapped in parentheses and preceded by the `const`
 ///   keyword
 ///
 /// This node is also used to recover from cases where a different kind of
@@ -1645,27 +1691,33 @@ abstract class ContinueStatement implements Statement {
 /// A pattern.
 ///
 ///    pattern ::=
-///        [BinaryPattern]
+///        [AssignedVariablePattern]
+///      | [DeclaredVariablePattern]
 ///      | [CastPattern]
 ///      | [ConstantPattern]
 ///      | [ListPattern]
+///      | [LogicalAndPattern]
+///      | [LogicalOrPattern]
 ///      | [MapPattern]
+///      | [NullAssertPattern]
+///      | [NullCheckPattern]
 ///      | [ObjectPattern]
 ///      | [ParenthesizedPattern]
-///      | [PostfixPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
-///      | [VariablePattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class DartPattern implements AstNode, ListPatternElement {
+  /// The matched value type, or `null` if the node is not resolved yet.
+  DartType? get matchedValueType;
+
   /// Return the precedence of this pattern.
   ///
   /// The precedence is a positive integer value that defines how the source
   /// code is parsed into an AST. For example `a | b & c` is parsed as `a | (b
   /// & c)` because the precedence of `&` is greater than the precedence of `|`.
-  Precedence get precedence;
+  PatternPrecedence get precedence;
 
   /// If this pattern is a parenthesized pattern, return the result of
   /// unwrapping the pattern inside the parentheses. Otherwise, return this
@@ -1722,6 +1774,26 @@ abstract class DeclaredIdentifier implements Declaration {
 
   /// Return the name of the declared type of the parameter, or `null` if the
   /// parameter does not have a declared type.
+  TypeAnnotation? get type;
+}
+
+/// A variable pattern that declares a variable.
+///
+///    variablePattern ::=
+///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class DeclaredVariablePattern implements VariablePattern {
+  /// Return the element associated with this declaration, or `null` if the AST
+  /// structure has not been resolved.
+  BindPatternVariableElement? get declaredElement;
+
+  /// The 'var' or 'final' keyword.
+  Token? get keyword;
+
+  /// The type that the variable is required to match, or `null` if any type is
+  /// matched.
   TypeAnnotation? get type;
 }
 
@@ -1887,6 +1959,9 @@ abstract class EnumConstantDeclaration implements Declaration {
   /// if the AST structure has not been resolved, or if the constructor could
   /// not be resolved.
   ConstructorElement? get constructorElement;
+
+  @override
+  FieldElement? get declaredElement;
 
   /// Return the name of the constant.
   Token get name;
@@ -2304,6 +2379,9 @@ abstract class ForEachPartsWithPattern implements ForEachParts {
   /// Return the `var` or `final` keyword introducing the pattern.
   Token get keyword;
 
+  /// Returns the annotations associated with this node.
+  NodeList<Annotation> get metadata;
+
   /// The pattern that will match the expression.
   DartPattern get pattern;
 }
@@ -2613,6 +2691,7 @@ abstract class FunctionBody implements AstNode {
   /// level function or method containing this [FunctionBody], return `false`.
   ///
   /// Throws an exception if resolution has not yet been performed.
+  @Deprecated('Not used by clients')
   bool isPotentiallyMutatedInClosure(VariableElement variable);
 
   /// If [variable] is a local variable or parameter declared anywhere within
@@ -3005,6 +3084,7 @@ abstract class IfStatement implements Statement {
   Expression get expression;
 
   /// Return the token representing the 'if' keyword.
+  /// TODO(scheglov) Extract shared `IfCondition`, see the patterns spec.
   Token get ifKeyword;
 
   /// Return the left parenthesis.
@@ -3431,15 +3511,15 @@ abstract class ListLiteral implements TypedLiteral {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class ListPattern implements DartPattern {
-  /// The required type, specified by [typeArguments] or inferred from the
-  /// matched value type; or `null` if the node is not resolved yet.
-  DartType? requiredType;
-
   /// Return the elements in this pattern.
   NodeList<ListPatternElement> get elements;
 
   /// Return the left square bracket.
   Token get leftBracket;
+
+  /// The required type, specified by [typeArguments] or inferred from the
+  /// matched value type; or `null` if the node is not resolved yet.
+  DartType? get requiredType;
 
   /// Return the right square bracket.
   Token get rightBracket;
@@ -3468,6 +3548,42 @@ abstract class ListPatternElement implements AstNode {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Literal implements Expression {}
+
+/// A logical-and pattern.
+///
+///    logicalAndPattern ::=
+///        [DartPattern] '&&' [DartPattern]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class LogicalAndPattern implements DartPattern {
+  /// The left sub-pattern.
+  DartPattern get leftOperand;
+
+  /// The `&&` operator.
+  Token get operator;
+
+  /// The right sub-pattern.
+  DartPattern get rightOperand;
+}
+
+/// A logical-or pattern.
+///
+///    logicalOrPattern ::=
+///        [DartPattern] '||' [DartPattern]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class LogicalOrPattern implements DartPattern {
+  /// The left sub-pattern.
+  DartPattern get leftOperand;
+
+  /// The `||` operator.
+  Token get operator;
+
+  /// The right sub-pattern.
+  DartPattern get rightOperand;
+}
 
 /// A single key/value pair in a map literal.
 ///
@@ -3502,6 +3618,9 @@ abstract class MapPattern implements DartPattern {
 
   /// Return the left curly bracket.
   Token get leftBracket;
+
+  /// The matched value type, or `null` if the node is not resolved yet.
+  DartType? get requiredType;
 
   /// Return the right curly bracket.
   Token get rightBracket;
@@ -3699,7 +3818,7 @@ abstract class MixinAugmentationDeclaration
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
-///        'mixin' name [TypeParameterList]?
+///        'base'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -3741,6 +3860,9 @@ abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
 @experimental
 abstract class MixinOrAugmentationDeclaration
     implements NamedCompilationUnitMember {
+  /// Return the 'base' keyword, or `null` if the keyword was absent.
+  Token? get baseKeyword;
+
   @override
   MixinOrAugmentationElement? get declaredElement;
 
@@ -3947,6 +4069,36 @@ abstract class NormalFormalParameter implements FormalParameter {
   List<AstNode> get sortedCommentAndAnnotations;
 }
 
+/// A null-assert pattern.
+///
+///    nullAssertPattern ::=
+///        [DartPattern] '!'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class NullAssertPattern implements DartPattern {
+  /// The `!` token.
+  Token get operator;
+
+  /// The sub-pattern.
+  DartPattern get pattern;
+}
+
+/// A null-check pattern.
+///
+///    nullCheckPattern ::=
+///        [DartPattern] '?'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class NullCheckPattern implements DartPattern {
+  /// The `?` token.
+  Token get operator;
+
+  /// The sub-pattern.
+  DartPattern get pattern;
+}
+
 /// A null literal expression.
 ///
 ///    nullLiteral ::=
@@ -3979,13 +4131,13 @@ abstract class NullShortableExpression implements Expression {
 /// An object pattern.
 ///
 ///    objectPattern ::=
-///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
+///        [Identifier] [TypeArgumentList]? '(' [PatternField] ')'
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class ObjectPattern implements DartPattern {
   /// Return the patterns matching the properties of the object.
-  NodeList<RecordPatternField> get fields;
+  NodeList<PatternField> get fields;
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
@@ -4111,6 +4263,47 @@ abstract class PatternAssignment implements Expression {
   DartPattern get pattern;
 }
 
+/// A field in an object or record pattern.
+///
+///    patternField ::=
+///        [PatternFieldName]? [DartPattern]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class PatternField implements AstNode {
+  /// The name specified explicitly by [name], or implied by the variable
+  /// pattern inside [pattern]. Always `null` if [name] is `null`. Can be `null`
+  /// if [name] does not have the explicit name and [pattern] is not a variable
+  /// pattern.
+  String? get effectiveName;
+
+  /// The element referenced by [effectiveName]. Is `null` if not resolved yet,
+  /// not `null` inside valid [ObjectPattern]s, always `null` inside
+  /// [RecordPattern]s.
+  Element? get element;
+
+  /// The name of the field, or `null` if the field is a positional field.
+  PatternFieldName? get name;
+
+  /// The pattern used to match the corresponding record field.
+  DartPattern get pattern;
+}
+
+/// A field name in an object or record pattern field.
+///
+///    patternFieldName ::=
+///        [Token]? ':'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class PatternFieldName implements AstNode {
+  /// The colon following the name.
+  Token get colon;
+
+  /// The name of the field.
+  Token? get name;
+}
+
 /// A pattern variable declaration.
 ///
 ///    patternDeclaration ::=
@@ -4163,21 +4356,6 @@ abstract class PostfixExpression
   Expression get operand;
 
   /// Return the postfix operator being applied to the operand.
-  Token get operator;
-}
-
-/// A postfix (unary) pattern.
-///
-///    postfixPattern ::=
-///        [DartPattern] ('?' | '!')
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class PostfixPattern implements DartPattern {
-  /// Return the pattern used to compute the operand.
-  DartPattern get operand;
-
-  /// Return the unary operator being applied.
   Token get operator;
 }
 
@@ -4300,53 +4478,19 @@ abstract class RecordLiteral implements Literal {
 /// A record pattern.
 ///
 ///    recordPattern ::=
-///        '(' [RecordPatternField] (',' [RecordPatternField])* ')'
+///        '(' [PatternField] (',' [PatternField])* ')'
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordPattern implements DartPattern {
   /// Return the fields of the record pattern.
-  NodeList<RecordPatternField> get fields;
+  NodeList<PatternField> get fields;
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
-}
-
-/// A field in a record pattern.
-///
-///    recordPatternField ::=
-///        [RecordPatternFieldName]? [DartPattern]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class RecordPatternField implements AstNode {
-  /// The element referenced explicitly by [fieldName], or implicitly by the
-  /// variable pattern inside [pattern].
-  Element? get fieldElement;
-
-  /// The name of the field, or `null` if the field is a positional field.
-  RecordPatternFieldName? get fieldName;
-
-  /// The pattern used to match the corresponding record field.
-  DartPattern get pattern;
-}
-
-/// A field name in a record pattern field.
-///
-///    recordPatternField ::=
-///        [Token]? ':'
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class RecordPatternFieldName implements AstNode {
-  /// The colon following the name.
-  Token get colon;
-
-  /// The name of the field.
-  Token? get name;
 }
 
 /// A record type.
@@ -5384,29 +5528,14 @@ abstract class VariableDeclarationStatement implements Statement {
   VariableDeclarationList get variables;
 }
 
-/// A variable pattern.
-///
-///    variablePattern ::=
-///        ( 'var' | 'final' | [TypeAnnotation])? [Identifier]
+/// The shared interface of [AssignedVariablePattern] and
+/// [DeclaredVariablePattern].
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class VariablePattern implements DartPattern {
-  /// Return the element associated with this declaration, or `null` if either
-  /// the variable name is `_` (in which case no variable is defined) or the AST
-  /// structure has not been resolved.
-  VariablePatternElement? get declaredElement;
-
-  /// The 'var' or 'final' keyword used when there is no [type], or `null` if a
-  /// type is given.
-  Token? get keyword;
-
-  /// The name of the variable being bound.
+  /// The name of the variable declared or referenced by the pattern.
   Token get name;
-
-  /// The type that the variable is required to match, or `null` if any type is
-  /// matched.
-  TypeAnnotation? get type;
 }
 
 /// A guard in a pattern-based `case` in a `switch` statement, `switch`
@@ -5448,6 +5577,25 @@ abstract class WhileStatement implements Statement {
 
   /// Return the token representing the 'while' keyword.
   Token get whileKeyword;
+}
+
+/// A wildcard pattern.
+///
+///    wildcardPattern ::=
+///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? '_'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class WildcardPattern implements DartPattern {
+  /// The 'var' or 'final' keyword.
+  Token? get keyword;
+
+  /// The `_` token.
+  Token get name;
+
+  /// The type that the pattern is required to match, or `null` if any type is
+  /// matched.
+  TypeAnnotation? get type;
 }
 
 /// The with clause in a class declaration.

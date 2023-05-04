@@ -25,12 +25,12 @@ library from "org-dartlang-test:///main.dart" as main {
 
   static method main() → dynamic {
     lib1::Y y = new lib1::Y::•();
-    y.{lib1::X::foo}(){() → void};
+    y.{lib1::Y::foo}(){() → void};
   }
 }
 constants  {
   #C1 = #foo
   #C2 = <dart.core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <dart.core::Symbol*, dynamic>{)
+  #C4 = <dart.core::Symbol*, dynamic>{}
 }

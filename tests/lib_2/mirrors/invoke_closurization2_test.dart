@@ -51,7 +51,7 @@ confuse(x) {
 }
 
 main() {
-  var list = ["foo", new List(), new A()];
+  var list = ["foo", [], new A()];
 
   getAMirror() => reflect(list[confuse(2)]);
 

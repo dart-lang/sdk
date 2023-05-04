@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:kernel/ast.dart';
-import '../api_prototype/lowering_predicates.dart';
 
 /// Compute a canonical [Id] for kernel-based nodes.
 MemberId computeMemberId(Member node) {
@@ -287,7 +286,11 @@ abstract class DataExtractor<T> extends Visitor<void>
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.name != null && node.parent is! FunctionDeclaration) {
       // Skip synthetic variables and function declaration variables.
-      computeForNode(node, computeDefaultNodeId(node));
+      computeForNode(
+          node,
+          computeDefaultNodeId(node,
+              // Some synthesized nodes don't have an offset.
+              skipNodeWithNoOffset: true));
     }
     // Avoid visiting annotations.
     node.initializer?.accept(this);
@@ -298,9 +301,9 @@ abstract class DataExtractor<T> extends Visitor<void>
     computeForNode(
         node,
         computeDefaultNodeId(node,
-            // TODO(johnniwinther): Remove this when late lowered setter
-            //  functions can have an offset.
-            skipNodeWithNoOffset: isLateLoweredLocalSetter(node.variable)));
+            // TODO(johnniwinther): Remove this when synthesized local functions
+            //  can have (same) offsets without breaking the VM.
+            skipNodeWithNoOffset: true));
     super.visitFunctionDeclaration(node);
   }
 
@@ -314,7 +317,11 @@ abstract class DataExtractor<T> extends Visitor<void>
   void visitVariableGet(VariableGet node) {
     if (node.variable.name != null && !node.variable.isInitializingFormal) {
       // Skip use of synthetic variables.
-      computeForNode(node, computeDefaultNodeId(node));
+      computeForNode(
+          node,
+          computeDefaultNodeId(node,
+              // Some synthesized nodes don't have an offset.
+              skipNodeWithNoOffset: true));
     }
     super.visitVariableGet(node);
   }
@@ -587,6 +594,13 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
+  void visitBlockExpression(BlockExpression node) {
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    return super.visitBlockExpression(node);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     computeForNode(node, computeDefaultNodeId(node));
     return super.visitConditionalExpression(node);
@@ -596,6 +610,18 @@ abstract class DataExtractor<T> extends Visitor<void>
   void visitLogicalExpression(LogicalExpression node) {
     computeForNode(node, computeDefaultNodeId(node));
     return super.visitLogicalExpression(node);
+  }
+
+  @override
+  void visitRecordIndexGet(RecordIndexGet node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitRecordIndexGet(node);
+  }
+
+  @override
+  void visitRecordNameGet(RecordNameGet node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitRecordNameGet(node);
   }
 
   @override

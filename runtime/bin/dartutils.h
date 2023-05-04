@@ -153,7 +153,7 @@ class DartUtils {
   static bool IsHttpSchemeURL(const char* url_name);
   static const char* RemoveScheme(const char* url);
 
-  // Retuns directory name including the last path separtor.
+  // Returns directory name including the last path separator.
   //
   // The return value must be `free`d by the caller.
   static char* DirName(const char* url);
@@ -345,7 +345,6 @@ class CObject {
   static Dart_CObject* NewInt64(int64_t value);
   static Dart_CObject* NewIntptr(intptr_t value);
   static Dart_CObject* NewDouble(double value);
-  static Dart_CObject* NewString(intptr_t length);
   static Dart_CObject* NewString(const char* str);
   static Dart_CObject* NewArray(intptr_t length);
   static Dart_CObject* NewUint8Array(const void* data, intptr_t length);
@@ -501,7 +500,7 @@ class CObjectString : public CObject {
   DECLARE_COBJECT_CONSTRUCTORS(String)
 
   intptr_t Length() const { return strlen(cobject_->value.as_string); }
-  char* CString() const { return cobject_->value.as_string; }
+  const char* CString() const { return cobject_->value.as_string; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectString);

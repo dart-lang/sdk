@@ -196,7 +196,7 @@ callingCallStaticField() => callStaticField();
 
 /*member: main:SideEffects(reads anything; writes anything)*/
 main() {
-  var c = new Class();
+  var c = Class();
 
   callEmptyInstanceMethod(c);
   callEmptyInstanceGetter(c);

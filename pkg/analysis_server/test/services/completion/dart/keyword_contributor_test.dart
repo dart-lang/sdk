@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This file contains tests written in a deprecated way. Please do not add any
+/// tests to this file. Instead, add tests to the files in `declaration`,
+/// `location`, or `relevance`.
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
@@ -10,6 +14,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,6 +34,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NULL,
+    Keyword.SWITCH,
     Keyword.TRUE,
   ];
 
@@ -38,6 +44,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.CONST,
     Keyword.FALSE,
     Keyword.NULL,
+    Keyword.SWITCH,
     Keyword.SUPER,
     Keyword.THIS,
     Keyword.TRUE,
@@ -47,6 +54,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.CONST,
     Keyword.FALSE,
     Keyword.NULL,
+    Keyword.SWITCH,
     Keyword.TRUE,
   ];
 
@@ -94,12 +102,16 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   List<Keyword> get declarationKeywords {
     var keywords = <Keyword>[
       Keyword.ABSTRACT,
+      Keyword.BASE,
       Keyword.CLASS,
       Keyword.CONST,
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
       Keyword.EXTENSION,
       Keyword.FINAL,
+      Keyword.INTERFACE,
+      Keyword.MIXIN,
+      Keyword.SEALED,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
@@ -113,6 +125,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   List<Keyword> get directiveAndDeclarationKeywords {
     var keywords = <Keyword>[
       Keyword.ABSTRACT,
+      Keyword.BASE,
       Keyword.CLASS,
       Keyword.CONST,
       Keyword.COVARIANT,
@@ -121,7 +134,10 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.EXTENSION,
       Keyword.FINAL,
       Keyword.IMPORT,
+      Keyword.INTERFACE,
+      Keyword.MIXIN,
       Keyword.PART,
+      Keyword.SEALED,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
@@ -143,6 +159,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   List<Keyword> get directiveDeclarationKeywords {
     var keywords = <Keyword>[
       Keyword.ABSTRACT,
+      Keyword.BASE,
       Keyword.CLASS,
       Keyword.CONST,
       Keyword.COVARIANT,
@@ -151,7 +168,10 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.EXTENSION,
       Keyword.FINAL,
       Keyword.IMPORT,
+      Keyword.INTERFACE,
+      Keyword.MIXIN,
       Keyword.PART,
+      Keyword.SEALED,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
@@ -433,7 +453,12 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       }
     }
     if (!_equalSets(expectedCompletions, actualCompletions)) {
+      var target = CompletionTarget.forOffset(result.unit, completionOffset);
+
       var msg = StringBuffer();
+      msg.write('Completion at ');
+      msg.write('target = ${target.containingNode.runtimeType}, ');
+      msg.writeln('entity = ${target.entity}.');
       msg.writeln('Expected:');
       _appendCompletions(msg, expectedCompletions, actualCompletions);
       msg.writeln('but found:');
@@ -467,30 +492,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   /// Return `true` if the given [feature] is enabled.
   bool isEnabled(Feature feature) =>
       result.libraryElement.featureSet.isEnabled(feature);
-
-  Future<void> test_after_class_noPrefix() async {
-    addTestSource('class A {} ^');
-    await computeSuggestions();
-    assertSuggestKeywords(declarationKeywords);
-  }
-
-  Future<void> test_after_class_prefix() async {
-    addTestSource('class A {} c^');
-    await computeSuggestions();
-    assertSuggestKeywords(declarationKeywords);
-  }
-
-  Future<void> test_after_import_noPrefix() async {
-    addTestSource('import "foo"; ^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveAndDeclarationKeywords);
-  }
-
-  Future<void> test_after_import_prefix() async {
-    addTestSource('import "foo"; c^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveAndDeclarationKeywords);
-  }
 
   Future<void> test_anonymous_function_async() async {
     addTestSource('void f() {foo(() ^ {}}}');
@@ -625,13 +626,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE,
         pseudoKeywords: ['await']);
-  }
-
-  Future<void> test_before_import() async {
-    addTestSource('^ import foo;');
-    await computeSuggestions();
-    assertSuggestKeywords(
-        [Keyword.EXPORT, Keyword.IMPORT, Keyword.LIBRARY, Keyword.PART]);
   }
 
   Future<void> test_catch_1a() async {
@@ -1066,12 +1060,6 @@ class A {
     assertSuggestKeywords(statementStartInLoopOutsideClass);
   }
 
-  Future<void> test_empty() async {
-    addTestSource('^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
-  }
-
   Future<void> test_extension_body_beginning() async {
     addTestSource('extension E on int {^ foo() {}}');
     await computeSuggestions();
@@ -1162,12 +1150,6 @@ extension E on int {
     addTestSource('void f() {for (int x = in^)}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
-  }
-
-  Future<void> test_for_initialization_var() async {
-    addTestSource('void f() {for (^)}');
-    await computeSuggestions();
-    assertSuggestKeywords([Keyword.VAR]);
   }
 
   Future<void> test_formalParameterList_beforeFunctionType() async {
@@ -1465,13 +1447,13 @@ class A {
   Future<void> test_if_condition_isKeyword() async {
     addTestSource('void f() { if (v i^) {} }');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.IS]);
+    assertSuggestKeywords([Keyword.CASE, Keyword.IS]);
   }
 
   Future<void> test_if_condition_isKeyword2() async {
     addTestSource('void f() { if (v i^ && false) {} }');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.IS]);
+    assertSuggestKeywords([Keyword.CASE, Keyword.IS]);
   }
 
   Future<void> test_if_expression_in_class() async {
@@ -1956,61 +1938,6 @@ f() => <int>{1, ^, 2};
     expect(suggestions, isEmpty);
   }
 
-  Future<void> test_import_partial() async {
-    addTestSource('imp^ import "package:foo/foo.dart"; import "bar.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 0);
-    expect(replacementLength, 3);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
-  }
-
-  Future<void> test_import_partial2() async {
-    addTestSource('^imp import "package:foo/foo.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 0);
-    expect(replacementLength, 3);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
-  }
-
-  Future<void> test_import_partial3() async {
-    addTestSource(' ^imp import "package:foo/foo.dart"; import "bar.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 1);
-    expect(replacementLength, 3);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
-  }
-
-  Future<void> test_import_partial4() async {
-    addTestSource('^ imp import "package:foo/foo.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 0);
-    expect(replacementLength, 0);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
-  }
-
-  Future<void> test_import_partial5() async {
-    addTestSource('library libA; imp^ import "package:foo/foo.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 14);
-    expect(replacementLength, 3);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationKeywords);
-  }
-
-  Future<void> test_import_partial6() async {
-    addTestSource(
-        'library bar; import "zoo.dart"; imp^ import "package:foo/foo.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 32);
-    expect(replacementLength, 3);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationKeywords);
-  }
-
   Future<void> test_integerLiteral_inArgumentList() async {
     addTestSource('void f() { print(42^); }');
     await computeSuggestions();
@@ -2032,7 +1959,7 @@ f() => <int>{1, ^, 2};
   Future<void> test_is_expression_partial() async {
     addTestSource('void f() {if (x i^)}');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.IS]);
+    assertSuggestKeywords([Keyword.CASE, Keyword.IS]);
   }
 
   Future<void> test_library() async {
@@ -2272,24 +2199,6 @@ void m() {
     assertSuggestKeywords([]);
   }
 
-  Future<void> test_part_of() async {
-    addTestSource('part of foo;^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveAndDeclarationKeywords);
-  }
-
-  Future<void> test_partial_class() async {
-    addTestSource('cl^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
-  }
-
-  Future<void> test_partial_class2() async {
-    addTestSource('library a; cl^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveAndDeclarationKeywords);
-  }
-
   Future<void> test_prefixed_field() async {
     addTestSource('class A { int x; foo() {x.^}}');
     await computeSuggestions();
@@ -2401,13 +2310,37 @@ f() => [...^];
   }
 
   Future<void> test_switch_statement_case_break_insideClass() async {
-    addTestSource('class A{foo() {switch(1) {case 1: b^}}}');
+    addTestSource('''
+class A{foo() {switch(1) {case 1: b^}}}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(statementStartInSwitchCaseInClass);
+  }
+
+  Future<void>
+      test_switch_statement_case_break_insideClass_language219() async {
+    addTestSource('''
+// @dart=2.19
+class A{foo() {switch(1) {case 1: b^}}}
+''');
     await computeSuggestions();
     assertSuggestKeywords(statementStartInSwitchCaseInClass);
   }
 
   Future<void> test_switch_statement_case_break_outsideClass() async {
-    addTestSource('foo() {switch(1) {case 1: b^}}');
+    addTestSource('''
+foo() {switch(1) {case 1: b^}}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(statementStartInSwitchCaseOutsideClass);
+  }
+
+  Future<void>
+      test_switch_statement_case_break_outsideClass_language219() async {
+    addTestSource('''
+// @dart=2.19
+foo() {switch(1) {case 1: b^}}
+''');
     await computeSuggestions();
     assertSuggestKeywords(statementStartInSwitchCaseOutsideClass);
   }

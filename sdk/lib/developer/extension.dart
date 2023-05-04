@@ -8,7 +8,7 @@ part of dart.developer;
 ///
 /// If the RPC was successful, use [ServiceExtensionResponse.result], otherwise
 /// use [ServiceExtensionResponse.error].
-class ServiceExtensionResponse {
+final class ServiceExtensionResponse {
   /// The result of a successful service protocol extension RPC.
   final String? result;
 
@@ -122,7 +122,8 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
   }
   // TODO: When NNBD is complete, delete the following line.
   checkNotNullable(handler, 'handler');
-  _registerExtension(method, handler);
+  final zoneHandler = Zone.current.bindBinaryCallback(handler);
+  _registerExtension(method, zoneHandler);
 }
 
 /// Whether the "Extension" stream currently has at least one listener.
@@ -146,14 +147,43 @@ external bool get extensionStreamHasListener;
 /// event stream.
 ///
 /// If [extensionStreamHasListener] is false, this method is a no-op.
-void postEvent(String eventKind, Map eventData) {
+/// Override [stream] to set the destination stream that the event should be
+/// posted to. The [stream] may not start with an underscore or be a core VM
+/// Service stream.
+void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
+  const destinationStreamKey = '__destinationStream';
+  // Keep protected streams in sync with `streams_` in runtime/vm/service.cc
+  // `Extension` is the only stream that should not be protected here.
+  final protectedStreams = <String>[
+    'VM',
+    'Isolate',
+    'Debug',
+    'GC',
+    '_Echo',
+    'HeapSnapshot',
+    'Logging',
+    'Timeline',
+    'Profiler',
+  ];
+
+  if (protectedStreams.contains(stream)) {
+    throw ArgumentError.value(
+        stream, 'stream', 'Cannot be a protected stream.');
+  } else if (stream.startsWith('_')) {
+    throw ArgumentError.value(
+        stream, 'stream', 'Cannot start with an underscore.');
+  }
+
   if (!extensionStreamHasListener) {
     return;
   }
   // TODO: When NNBD is complete, delete the following two lines.
   checkNotNullable(eventKind, 'eventKind');
   checkNotNullable(eventData, 'eventData');
-  String eventDataAsString = json.encode(eventData);
+  checkNotNullable(stream, 'stream');
+  Map mutableEventData = Map.from(eventData); // Shallow copy.
+  mutableEventData[destinationStreamKey] = stream;
+  String eventDataAsString = json.encode(mutableEventData);
   _postEvent(eventKind, eventDataAsString);
 }
 

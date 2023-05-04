@@ -44,16 +44,6 @@ class FunctionType extends Type {
   }
 }
 
-class NamedType {
-  final String name;
-  final Type type;
-
-  NamedType(this.name, this.type);
-
-  @override
-  String toString() => '$type $name';
-}
-
 /// Exception thrown if a type fails to parse properly.
 class ParseError extends Error {
   final String message;
@@ -150,7 +140,7 @@ class QuestionType extends Type {
 
 class RecordType extends Type {
   final List<Type> positional;
-  final List<NamedType> named;
+  final Map<String, Type> named;
 
   RecordType({
     required this.positional,
@@ -168,14 +158,7 @@ class RecordType extends Type {
       }
     }
 
-    List<NamedType>? newNamed;
-    for (var i = 0; i < named.length; i++) {
-      var newType = named[i].type.recursivelyDemote(covariant: covariant);
-      if (newType != null) {
-        newNamed ??= named.toList();
-        newNamed[i] = NamedType(named[i].name, newType);
-      }
-    }
+    Map<String, Type>? newNamed = _recursivelyDemoteNamed(covariant: covariant);
 
     if (newPositional == null && newNamed == null) {
       return null;
@@ -186,16 +169,30 @@ class RecordType extends Type {
     );
   }
 
+  Map<String, Type>? _recursivelyDemoteNamed({required bool covariant}) {
+    Map<String, Type> newNamed = {};
+    bool hasChanged = false;
+    for (var entry in named.entries) {
+      var value = entry.value;
+      var newType = value.recursivelyDemote(covariant: covariant);
+      if (newType != null) hasChanged = true;
+      newNamed[entry.key] = newType ?? value;
+    }
+    return hasChanged ? newNamed : null;
+  }
+
   @override
   String _toString({required bool allowSuffixes}) {
     var positionalStr = positional.map((e) => '$e').join(', ');
-    var namedStr = named.map((e) => '$e').join(', ');
+    var namedStr = named.entries.map((e) => '${e.value} ${e.key}').join(', ');
     if (namedStr.isNotEmpty) {
       if (positional.isNotEmpty) {
         return '($positionalStr, {$namedStr})';
       } else {
         return '({$namedStr})';
       }
+    } else if (positional.length == 1) {
+      return '($positionalStr,)';
     } else {
       return '($positionalStr)';
     }
@@ -295,6 +292,453 @@ abstract class Type {
   }
 }
 
+class TypeSystem {
+  static final Map<String, List<Type> Function(List<Type>)>
+      _coreSuperInterfaceTemplates = {
+    'bool': (_) => [Type('Object')],
+    'double': (_) => [Type('num'), Type('Object')],
+    'Future': (_) => [Type('Object')],
+    'int': (_) => [Type('num'), Type('Object')],
+    'Iterable': (_) => [Type('Object')],
+    'List': (args) => [PrimaryType('Iterable', args: args), Type('Object')],
+    'Map': (_) => [Type('Object')],
+    'Object': (_) => [],
+    'num': (_) => [Type('Object')],
+    'String': (_) => [Type('Object')],
+  };
+
+  static final _nullType = Type('Null');
+
+  static final _objectQuestionType = Type('Object?');
+
+  static final _objectType = Type('Object');
+
+  final Map<String, Type> _typeVarBounds = {};
+
+  final Map<String, List<Type> Function(List<Type>)> _superInterfaceTemplates =
+      Map.of(_coreSuperInterfaceTemplates);
+
+  void addSuperInterfaces(
+      String className, List<Type> Function(List<Type>) template) {
+    _superInterfaceTemplates[className] = template;
+  }
+
+  void addTypeVariable(String name, {String? bound}) {
+    _typeVarBounds[name] = Type(bound ?? 'Object?');
+  }
+
+  Type factor(Type t, Type s) {
+    // If T <: S then Never
+    if (isSubtype(t, s)) return Type('Never');
+
+    // Else if T is R? and Null <: S then factor(R, S)
+    if (t is QuestionType && isSubtype(_nullType, s)) {
+      return factor(t.innerType, s);
+    }
+
+    // Else if T is R? then factor(R, S)?
+    if (t is QuestionType) return QuestionType(factor(t.innerType, s));
+
+    // Else if T is R* and Null <: S then factor(R, S)
+    if (t is StarType && isSubtype(_nullType, s)) return factor(t.innerType, s);
+
+    // Else if T is R* then factor(R, S)*
+    if (t is StarType) return StarType(factor(t.innerType, s));
+
+    // Else if T is FutureOr<R> and Future<R> <: S then factor(R, S)
+    if (t is PrimaryType && t.args.length == 1 && t.name == 'FutureOr') {
+      var r = t.args[0];
+      if (isSubtype(PrimaryType('Future', args: [r]), s)) return factor(r, s);
+    }
+
+    // Else if T is FutureOr<R> and R <: S then factor(Future<R>, S)
+    if (t is PrimaryType && t.args.length == 1 && t.name == 'FutureOr') {
+      var r = t.args[0];
+      if (isSubtype(r, s)) return factor(PrimaryType('Future', args: [r]), s);
+    }
+
+    // Else T
+    return t;
+  }
+
+  bool isSubtype(Type t0, Type t1) {
+    // Reflexivity: if T0 and T1 are the same type then T0 <: T1
+    //
+    // - Note that this check is necessary as the base case for primitive types,
+    //   and type variables but not for composite types.  We only check it for
+    //   types with a single name and no type arguments (this covers both
+    //   primitive types and type variables).
+    if (t0 is PrimaryType &&
+        t0.args.isEmpty &&
+        t1 is PrimaryType &&
+        t1.args.isEmpty &&
+        t0.name == t1.name) {
+      return true;
+    }
+
+    // Unknown types (note: this is not in the spec, but necessary because there
+    // are circumstances where we do subtype tests between types and type
+    // schemas): if T0 or T1 is the unknown type then T0 <: T1.
+    if (t0 is UnknownType || t1 is UnknownType) return true;
+
+    // Right Top: if T1 is a top type (i.e. dynamic, or void, or Object?) then
+    // T0 <: T1
+    if (_isTop(t1)) return true;
+
+    // Left Top: if T0 is dynamic or void then T0 <: T1 if Object? <: T1
+    if (t0 is PrimaryType &&
+        t0.args.isEmpty &&
+        (t0.name == 'dynamic' || t0.name == 'void')) {
+      return isSubtype(_objectQuestionType, t1);
+    }
+
+    // Left Bottom: if T0 is Never then T0 <: T1
+    if (t0 is PrimaryType && t0.args.isEmpty && t0.name == 'Never') return true;
+
+    // Right Object: if T1 is Object then:
+    if (t1 is PrimaryType && t1.args.isEmpty && t1.name == 'Object') {
+      // - if T0 is an unpromoted type variable with bound B then T0 <: T1 iff
+      //   B <: Object
+      if (t0 is PrimaryType && _isTypeVar(t0)) {
+        return isSubtype(_typeVarBound(t0), _objectType);
+      }
+
+      // - if T0 is a promoted type variable X & S then T0 <: T1 iff S <: Object
+      if (t0 is PromotedTypeVariableType) {
+        return isSubtype(t0.promotion, _objectType);
+      }
+
+      // - if T0 is FutureOr<S> for some S, then T0 <: T1 iff S <: Object.
+      if (t0 is PrimaryType && t0.args.length == 1 && t0.name == 'FutureOr') {
+        return isSubtype(t0.args[0], _objectType);
+      }
+
+      // - if T0 is S* for any S, then T0 <: T1 iff S <: T1
+      if (t0 is StarType) return isSubtype(t0.innerType, t1);
+
+      // - if T0 is Null, dynamic, void, or S? for any S, then the subtyping
+      //   does not hold (per above, the result of the subtyping query is
+      //   false).
+      if (t0 is PrimaryType &&
+              t0.args.isEmpty &&
+              (t0.name == 'Null' ||
+                  t0.name == 'dynamic' ||
+                  t0.name == 'void') ||
+          t0 is QuestionType) {
+        return false;
+      }
+
+      // - Otherwise T0 <: T1 is true.
+      return true;
+    }
+
+    // Left Null: if T0 is Null then:
+    if (t0 is PrimaryType && t0.args.isEmpty && t0.name == 'Null') {
+      // - if T1 is a type variable (promoted or not) the query is false
+      if (_isTypeVar(t1)) return false;
+
+      // - If T1 is FutureOr<S> for some S, then the query is true iff
+      //   Null <: S.
+      if (t1 is PrimaryType && t1.args.length == 1 && t1.name == 'FutureOr') {
+        return isSubtype(_nullType, t0.args[0]);
+      }
+
+      // - If T1 is Null, S? or S* for some S, then the query is true.
+      if (t1 is PrimaryType && t1.args.isEmpty && t1.name == 'Null' ||
+          t1 is QuestionType ||
+          t1 is StarType) {
+        return true;
+      }
+
+      // - Otherwise, the query is false
+      return false;
+    }
+
+    // Left Legacy: if T0 is S0* then:
+    if (t0 is StarType) {
+      // - T0 <: T1 iff S0 <: T1.
+      return isSubtype(t0.innerType, t1);
+    }
+
+    // Right Legacy: if T1 is S1* then:
+    if (t1 is StarType) {
+      // - T0 <: T1 iff T0 <: S1?.
+      return isSubtype(t0, QuestionType(t1.innerType));
+    }
+
+    // Left FutureOr: if T0 is FutureOr<S0> then:
+    if (t0 is PrimaryType && t0.args.length == 1 && t0.name == 'FutureOr') {
+      var s0 = t0.args[0];
+
+      // - T0 <: T1 iff Future<S0> <: T1 and S0 <: T1
+      return isSubtype(PrimaryType('Future', args: [s0]), t1) &&
+          isSubtype(s0, t1);
+    }
+
+    // Left Nullable: if T0 is S0? then:
+    if (t0 is QuestionType) {
+      // - T0 <: T1 iff S0 <: T1 and Null <: T1
+      return isSubtype(t0.innerType, t1) && isSubtype(_nullType, t1);
+    }
+
+    // Type Variable Reflexivity 1: if T0 is a type variable X0 or a promoted
+    // type variables X0 & S0 and T1 is X0 then:
+    if (_isTypeVar(t0) &&
+        t1 is PrimaryType &&
+        t1.args.isEmpty &&
+        _typeVarName(t0) == t1.name) {
+      // - T0 <: T1
+      return true;
+    }
+
+    // Type Variable Reflexivity 2: if T0 is a type variable X0 or a promoted
+    // type variables X0 & S0 and T1 is X0 & S1 then:
+    if (_isTypeVar(t0) &&
+        t1 is PromotedTypeVariableType &&
+        _typeVarName(t0) == _typeVarName(t1)) {
+      // - T0 <: T1 iff T0 <: S1.
+      return isSubtype(t0, t1.promotion);
+    }
+
+    // Right Promoted Variable: if T1 is a promoted type variable X1 & S1 then:
+    if (t1 is PromotedTypeVariableType) {
+      // - T0 <: T1 iff T0 <: X1 and T0 <: S1
+      return isSubtype(t0, t1.innerType) && isSubtype(t0, t1.promotion);
+    }
+
+    // Right FutureOr: if T1 is FutureOr<S1> then:
+    if (t1 is PrimaryType && t1.args.length == 1 && t1.name == 'FutureOr') {
+      var s1 = t1.args[0];
+
+      // - T0 <: T1 iff any of the following hold:
+      return
+          //   - either T0 <: Future<S1>
+          isSubtype(t0, PrimaryType('Future', args: [s1])) ||
+              //   - or T0 <: S1
+              isSubtype(t0, s1) ||
+              //   - or T0 is X0 and X0 has bound S0 and S0 <: T1
+              t0 is PrimaryType &&
+                  _isTypeVar(t0) &&
+                  isSubtype(_typeVarBound(t0), t1) ||
+              //   - or T0 is X0 & S0 and S0 <: T1
+              t0 is PromotedTypeVariableType && isSubtype(t0.promotion, t1);
+    }
+
+    // Right Nullable: if T1 is S1? then:
+    if (t1 is QuestionType) {
+      var s1 = t1.innerType;
+
+      // - T0 <: T1 iff any of the following hold:
+      return
+          //   - either T0 <: S1
+          isSubtype(t0, s1) ||
+              //   - or T0 <: Null
+              isSubtype(t0, _nullType) ||
+              //   - or T0 is X0 and X0 has bound S0 and S0 <: T1
+              t0 is PrimaryType &&
+                  _isTypeVar(t0) &&
+                  isSubtype(_typeVarBound(t0), t1) ||
+              //   - or T0 is X0 & S0 and S0 <: T1
+              t0 is PromotedTypeVariableType && isSubtype(t0.promotion, t1);
+    }
+
+    // Left Promoted Variable: T0 is a promoted type variable X0 & S0
+    if (t0 is PromotedTypeVariableType) {
+      // - and S0 <: T1
+      if (isSubtype(t0.promotion, t1)) return true;
+    }
+
+    // Left Type Variable Bound: T0 is a type variable X0 with bound B0
+    if (t0 is PrimaryType && _isTypeVar(t0)) {
+      // - and B0 <: T1
+      if (isSubtype(_typeVarBound(t0), t1)) return true;
+    }
+
+    // Function Type/Function: T0 is a function type and T1 is Function
+    if (t0 is FunctionType &&
+        t1 is PrimaryType &&
+        t1.args.isEmpty &&
+        t1.name == 'Function') {
+      return true;
+    }
+
+    // Record Type/Record: T0 is a record type and T1 is Record
+    if (t0 is RecordType &&
+        t1 is PrimaryType &&
+        t1.args.isEmpty &&
+        t1.name == 'Record') {
+      return true;
+    }
+
+    bool isInterfaceCompositionalitySubtype() {
+      // Interface Compositionality: T0 is an interface type C0<S0, ..., Sk> and
+      // T1 is C0<U0, ..., Uk>
+      if (t0 is! PrimaryType ||
+          t1 is! PrimaryType ||
+          t0.args.length != t1.args.length ||
+          t0.name != t1.name) {
+        return false;
+      }
+      // - and each Si <: Ui
+      for (int i = 0; i < t0.args.length; i++) {
+        if (!isSubtype(t0.args[i], t1.args[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (isInterfaceCompositionalitySubtype()) return true;
+
+    // Super-Interface: T0 is an interface type with super-interfaces S0,...Sn
+    bool isSuperInterfaceSubtype() {
+      if (t0 is! PrimaryType || _isTypeVar(t0)) return false;
+      var superInterfaceTemplate = _superInterfaceTemplates[t0.name];
+      if (superInterfaceTemplate == null) {
+        assert(false, 'Superinterfaces for $t0 not known');
+        return false;
+      }
+      var superInterfaces = superInterfaceTemplate(t0.args);
+
+      // - and Si <: T1 for some i
+      for (var superInterface in superInterfaces) {
+        if (isSubtype(superInterface, t1)) return true;
+      }
+      return false;
+    }
+
+    if (isSuperInterfaceSubtype()) return true;
+
+    bool isPositionalFunctionSubtype() {
+      // Positional Function Types: T0 is U0 Function<X0 extends B00, ...,
+      // Xk extends B0k>(V0 x0, ..., Vn xn, [Vn+1 xn+1, ..., Vm xm])
+      if (t0 is! FunctionType) return false;
+      var n = t0.positionalParameters.length;
+      // (Note: we don't support optional parameters)
+      var m = n;
+
+      // - and T1 is U1 Function<Y0 extends B10, ..., Yk extends B1k>(S0 y0,
+      //   ..., Sp yp, [Sp+1 yp+1, ..., Sq yq])
+      if (t1 is! FunctionType) return false;
+      var p = t1.positionalParameters.length;
+      var q = p;
+
+      // - and p >= n
+      if (p < n) return false;
+
+      // - and m >= q
+      if (m < q) return false;
+
+      // (Note: no substitution is needed in the code below; we don't support
+      // type arguments on function types)
+
+      // - and Si[Z0/Y0, ..., Zk/Yk] <: Vi[Z0/X0, ..., Zk/Xk] for i in 0...q
+      for (int i = 0; i < q; i++) {
+        if (!isSubtype(
+            t1.positionalParameters[i], t0.positionalParameters[i])) {
+          return false;
+        }
+      }
+
+      // - and U0[Z0/X0, ..., Zk/Xk] <: U1[Z0/Y0, ..., Zk/Yk]
+      if (!isSubtype(t0.returnType, t1.returnType)) return false;
+
+      // - and B0i[Z0/X0, ..., Zk/Xk] === B1i[Z0/Y0, ..., Zk/Yk] for i in 0...k
+      // - where the Zi are fresh type variables with bounds B0i[Z0/X0, ...,
+      //   Zk/Xk]
+      // (No check needed here since we don't support type arguments on function
+      // types)
+      return true;
+    }
+
+    if (isPositionalFunctionSubtype()) return true;
+
+    bool isNamedFunctionSubtype() {
+      // Named Function Types: T0 is U0 Function<X0 extends B00, ..., Xk extends
+      // B0k>(V0 x0, ..., Vn xn, {r0n+1 Vn+1 xn+1, ..., r0m Vm xm}) where r0j is
+      // empty or required for j in n+1...m
+      //
+      // - and T1 is U1 Function<Y0 extends B10, ..., Yk extends B1k>(S0 y0,
+      //   ..., Sn yn, {r1n+1 Sn+1 yn+1, ..., r1q Sq yq}) where r1j is empty or
+      //   required for j in n+1...q
+      // - and {yn+1, ... , yq} subsetof {xn+1, ... , xm}
+      // - and Si[Z0/Y0, ..., Zk/Yk] <: Vi[Z0/X0, ..., Zk/Xk] for i in 0...n
+      // - and Si[Z0/Y0, ..., Zk/Yk] <: Tj[Z0/X0, ..., Zk/Xk] for i in n+1...q,
+      //   yj = xi
+      // - and for each j such that r0j is required, then there exists an i in
+      //   n+1...q such that xj = yi, and r1i is required
+      // - and U0[Z0/X0, ..., Zk/Xk] <: U1[Z0/Y0, ..., Zk/Yk]
+      // - and B0i[Z0/X0, ..., Zk/Xk] === B1i[Z0/Y0, ..., Zk/Yk] for i in 0...k
+      // - where the Zi are fresh type variables with bounds B0i[Z0/X0, ...,
+      //   Zk/Xk]
+
+      // Note: nothing to do here; we don't support named arguments on function
+      // types.
+      return false;
+    }
+
+    if (isNamedFunctionSubtype()) return true;
+
+    // Record Types: T0 is (V0, ..., Vn, {Vn+1 dn+1, ..., Vm dm})
+    //
+    // - and T1 is (S0, ..., Sn, {Sn+1 dn+1, ..., Sm dm})
+    // - and Vi <: Si for i in 0...m
+    bool isRecordSubtype() {
+      if (t0 is! RecordType || t1 is! RecordType) return false;
+      if (t0.positional.length != t1.positional.length) return false;
+      for (int i = 0; i < t0.positional.length; i++) {
+        if (!isSubtype(t0.positional[i], t1.positional[i])) return false;
+      }
+      if (t0.named.length != t1.named.length) return false;
+      for (var entry in t0.named.entries) {
+        var vi = entry.value;
+        var si = t1.named[entry.key];
+        if (si == null) return false;
+        if (!isSubtype(vi, si)) return false;
+      }
+      return true;
+    }
+
+    if (isRecordSubtype()) return true;
+
+    return false;
+  }
+
+  bool _isTop(Type t) {
+    if (t is PrimaryType) {
+      return t.args.isEmpty && (t.name == 'dynamic' || t.name == 'void');
+    } else if (t is QuestionType) {
+      var innerType = t.innerType;
+      return innerType is PrimaryType &&
+          innerType.args.isEmpty &&
+          innerType.name == 'Object';
+    }
+    return false;
+  }
+
+  bool _isTypeVar(Type t) {
+    if (t is PromotedTypeVariableType) {
+      assert(_isTypeVar(t.innerType));
+      return true;
+    } else if (t is PrimaryType && t.args.isEmpty) {
+      return _typeVarBounds.containsKey(t.name);
+    } else {
+      return false;
+    }
+  }
+
+  Type _typeVarBound(Type t) => _typeVarBounds[_typeVarName(t)]!;
+
+  String _typeVarName(Type t) {
+    assert(_isTypeVar(t));
+    if (t is PromotedTypeVariableType) {
+      return _typeVarName(t.innerType);
+    } else {
+      return (t as PrimaryType).name;
+    }
+  }
+}
+
 /// Representation of the unknown type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
 class UnknownType extends Type {
@@ -334,17 +778,17 @@ class _TypeParser {
         'Error parsing type `$_typeStr` at token $_currentToken: $message');
   }
 
-  List<NamedType> _parseRecordTypeNamedFields() {
+  Map<String, Type> _parseRecordTypeNamedFields() {
     assert(_currentToken == '{');
     _next();
-    var namedTypes = <NamedType>[];
+    var namedTypes = <String, Type>{};
     while (_currentToken != '}') {
       var type = _parseType();
       var name = _currentToken;
       if (_identifierRegexp.matchAsPrefix(name) == null) {
         _parseFailure('Expected an identifier');
       }
-      namedTypes.add(NamedType(name, type));
+      namedTypes[name] = type;
       _next();
       if (_currentToken == ',') {
         _next();
@@ -363,7 +807,7 @@ class _TypeParser {
   }
 
   Type _parseRecordTypeRest(List<Type> positionalTypes) {
-    List<NamedType>? namedTypes;
+    Map<String, Type>? namedTypes;
     while (_currentToken != ')') {
       if (_currentToken == '{') {
         namedTypes = _parseRecordTypeNamedFields();
@@ -384,7 +828,7 @@ class _TypeParser {
     }
     _next();
     return RecordType(
-        positional: positionalTypes, named: namedTypes ?? const []);
+        positional: positionalTypes, named: namedTypes ?? const {});
   }
 
   Type? _parseSuffix(Type type) {

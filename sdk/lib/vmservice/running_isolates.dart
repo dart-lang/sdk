@@ -115,7 +115,7 @@ class _Evaluator {
     final buildScope =
         Message._fromJsonRpcRequest(_message.client!, buildScopeParams);
 
-    // Decode the JSON and and insert it into the map. The map key
+    // Decode the JSON and insert it into the map. The map key
     // is the request Uri.
     return _isolate.routeRequest(_service, buildScope);
   }

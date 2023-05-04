@@ -173,6 +173,8 @@ class ProcessedOptions {
 
   bool get debugDump => _raw.debugDump;
 
+  bool get debugDumpShowOffsets => _raw.debugDumpShowOffsets;
+
   bool get omitPlatform => _raw.omitPlatform;
 
   bool get setExitCodeOnProblem => _raw.setExitCodeOnProblem;
@@ -371,14 +373,15 @@ class ProcessedOptions {
   String get currentSdkVersion => _raw.currentSdkVersion;
 
   Target? _target;
-  Target get target =>
-      _target ??= _raw.target ?? new NoneTarget(new TargetFlags());
+  Target get target => _target ??= _raw.target ??
+      new NoneTarget(
+          new TargetFlags(soundNullSafety: nnbdMode == NnbdMode.Strong));
 
   /// Returns the global state of the experimental features.
   flags.GlobalFeatures get globalFeatures => _raw.globalFeatures;
 
   /// Returns the minimum language version needed for a library with the given
-  /// [importUri] to opt in to the experiment with the given [flag].
+  /// [importUri] to opt into the experiment with the given [flag].
   ///
   /// Note that the experiment might not be enabled at all for the library, as
   /// computed by [isExperimentEnabledInLibrary].
@@ -786,6 +789,7 @@ class ProcessedOptions {
     sb.writeln('exit on problem: ${setExitCodeOnProblem}');
     sb.writeln('Embed sources: ${embedSourceText}');
     sb.writeln('debugDump: ${debugDump}');
+    sb.writeln('debugDumpShowOffsets: ${debugDumpShowOffsets}');
     sb.writeln('verbose: ${verbose}');
     sb.writeln('verify: ${verify}');
     return '$sb';

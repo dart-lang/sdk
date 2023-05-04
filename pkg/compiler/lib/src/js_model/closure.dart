@@ -1260,8 +1260,8 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
   factory ClosureFieldData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
-    InterfaceType /*?*/ memberThisType =
-        source.readDartTypeOrNull() as InterfaceType /*?*/;
+    InterfaceType? memberThisType =
+        source.readDartTypeOrNull() as InterfaceType?;
     source.end(tag);
     return ClosureFieldData(definition, memberThisType);
   }

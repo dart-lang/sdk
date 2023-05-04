@@ -54,18 +54,26 @@ class ExperimentalFlag {
       const ExperimentalFlag(
           name: 'alternative-invalidation-strategy',
           isEnabledByDefault: true,
-          isExpired: false,
+          isExpired: true,
           enabledVersion: const Version(2, 18),
           experimentEnabledVersion: const Version(2, 18),
           experimentReleasedVersion: const Version(2, 18));
+
+  static const ExperimentalFlag classModifiers = const ExperimentalFlag(
+      name: 'class-modifiers',
+      isEnabledByDefault: true,
+      isExpired: false,
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag constFunctions = const ExperimentalFlag(
       name: 'const-functions',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag constantUpdate2018 = const ExperimentalFlag(
       name: 'constant-update-2018',
@@ -111,9 +119,9 @@ class ExperimentalFlag {
       name: 'extension-types',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag genericMetadata = const ExperimentalFlag(
       name: 'generic-metadata',
@@ -126,7 +134,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag inferenceUpdate1 = const ExperimentalFlag(
       name: 'inference-update-1',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(2, 18),
       experimentEnabledVersion: const Version(2, 18),
       experimentReleasedVersion: const Version(2, 18));
@@ -135,17 +143,25 @@ class ExperimentalFlag {
       name: 'inference-update-2',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
+
+  static const ExperimentalFlag inlineClass = const ExperimentalFlag(
+      name: 'inline-class',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag macros = const ExperimentalFlag(
       name: 'macros',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag namedArgumentsAnywhere = const ExperimentalFlag(
       name: 'named-arguments-anywhere',
@@ -173,27 +189,27 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag patterns = const ExperimentalFlag(
       name: 'patterns',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag records = const ExperimentalFlag(
       name: 'records',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag sealedClass = const ExperimentalFlag(
       name: 'sealed-class',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag setLiterals = const ExperimentalFlag(
       name: 'set-literals',
@@ -223,9 +239,9 @@ class ExperimentalFlag {
       name: 'test-experiment',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag tripleShift = const ExperimentalFlag(
       name: 'triple-shift',
@@ -247,25 +263,17 @@ class ExperimentalFlag {
       name: 'value-class',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag variance = const ExperimentalFlag(
       name: 'variance',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
-
-  static const ExperimentalFlag views = const ExperimentalFlag(
-      name: 'views',
-      isEnabledByDefault: false,
-      isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 }
 
 /// Interface for accessing the global state of experimental features.
@@ -318,6 +326,10 @@ class GlobalFeatures {
       _alternativeInvalidationStrategy ??= _computeGlobalFeature(
           ExperimentalFlag.alternativeInvalidationStrategy);
 
+  GlobalFeature? _classModifiers;
+  GlobalFeature get classModifiers => _classModifiers ??=
+      _computeGlobalFeature(ExperimentalFlag.classModifiers);
+
   GlobalFeature? _constFunctions;
   GlobalFeature get constFunctions => _constFunctions ??=
       _computeGlobalFeature(ExperimentalFlag.constFunctions);
@@ -357,6 +369,10 @@ class GlobalFeatures {
   GlobalFeature? _inferenceUpdate2;
   GlobalFeature get inferenceUpdate2 => _inferenceUpdate2 ??=
       _computeGlobalFeature(ExperimentalFlag.inferenceUpdate2);
+
+  GlobalFeature? _inlineClass;
+  GlobalFeature get inlineClass =>
+      _inlineClass ??= _computeGlobalFeature(ExperimentalFlag.inlineClass);
 
   GlobalFeature? _macros;
   GlobalFeature get macros =>
@@ -417,10 +433,6 @@ class GlobalFeatures {
   GlobalFeature? _variance;
   GlobalFeature get variance =>
       _variance ??= _computeGlobalFeature(ExperimentalFlag.variance);
-
-  GlobalFeature? _views;
-  GlobalFeature get views =>
-      _views ??= _computeGlobalFeature(ExperimentalFlag.views);
 }
 
 /// Interface for accessing the state of experimental features within a
@@ -439,6 +451,11 @@ class LibraryFeatures {
               ExperimentalFlag.alternativeInvalidationStrategy,
               canonicalUri,
               libraryVersion);
+
+  LibraryFeature? _classModifiers;
+  LibraryFeature get classModifiers =>
+      _classModifiers ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.classModifiers, canonicalUri, libraryVersion);
 
   LibraryFeature? _constFunctions;
   LibraryFeature get constFunctions =>
@@ -491,6 +508,11 @@ class LibraryFeatures {
   LibraryFeature get inferenceUpdate2 =>
       _inferenceUpdate2 ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.inferenceUpdate2, canonicalUri, libraryVersion);
+
+  LibraryFeature? _inlineClass;
+  LibraryFeature get inlineClass =>
+      _inlineClass ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.inlineClass, canonicalUri, libraryVersion);
 
   LibraryFeature? _macros;
   LibraryFeature get macros =>
@@ -571,14 +593,12 @@ class LibraryFeatures {
       _variance ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.variance, canonicalUri, libraryVersion);
 
-  LibraryFeature? _views;
-  LibraryFeature get views => _views ??= globalFeatures._computeLibraryFeature(
-      ExperimentalFlag.views, canonicalUri, libraryVersion);
-
   /// Returns the [LibraryFeature] corresponding to [experimentalFlag].
   LibraryFeature fromSharedExperimentalFlags(
       shared.ExperimentalFlag experimentalFlag) {
     switch (experimentalFlag) {
+      case shared.ExperimentalFlag.classModifiers:
+        return classModifiers;
       case shared.ExperimentalFlag.constFunctions:
         return constFunctions;
       case shared.ExperimentalFlag.constantUpdate2018:
@@ -599,6 +619,8 @@ class LibraryFeatures {
         return inferenceUpdate1;
       case shared.ExperimentalFlag.inferenceUpdate2:
         return inferenceUpdate2;
+      case shared.ExperimentalFlag.inlineClass:
+        return inlineClass;
       case shared.ExperimentalFlag.macros:
         return macros;
       case shared.ExperimentalFlag.namedArgumentsAnywhere:
@@ -629,8 +651,6 @@ class LibraryFeatures {
         return valueClass;
       case shared.ExperimentalFlag.variance:
         return variance;
-      case shared.ExperimentalFlag.views:
-        return views;
       default:
         throw new UnsupportedError(
             'LibraryFeatures.fromSharedExperimentalFlags($experimentalFlag)');
@@ -642,6 +662,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
   switch (flag) {
     case "alternative-invalidation-strategy":
       return ExperimentalFlag.alternativeInvalidationStrategy;
+    case "class-modifiers":
+      return ExperimentalFlag.classModifiers;
     case "const-functions":
       return ExperimentalFlag.constFunctions;
     case "constant-update-2018":
@@ -662,6 +684,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.inferenceUpdate1;
     case "inference-update-2":
       return ExperimentalFlag.inferenceUpdate2;
+    case "inline-class":
+      return ExperimentalFlag.inlineClass;
     case "macros":
       return ExperimentalFlag.macros;
     case "named-arguments-anywhere":
@@ -692,8 +716,6 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.valueClass;
     case "variance":
       return ExperimentalFlag.variance;
-    case "views":
-      return ExperimentalFlag.views;
   }
   return null;
 }
@@ -701,6 +723,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
 final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy:
       ExperimentalFlag.alternativeInvalidationStrategy.isEnabledByDefault,
+  ExperimentalFlag.classModifiers:
+      ExperimentalFlag.classModifiers.isEnabledByDefault,
   ExperimentalFlag.constFunctions:
       ExperimentalFlag.constFunctions.isEnabledByDefault,
   ExperimentalFlag.constantUpdate2018:
@@ -721,6 +745,7 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.inferenceUpdate1.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate2:
       ExperimentalFlag.inferenceUpdate2.isEnabledByDefault,
+  ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass.isEnabledByDefault,
   ExperimentalFlag.macros: ExperimentalFlag.macros.isEnabledByDefault,
   ExperimentalFlag.namedArgumentsAnywhere:
       ExperimentalFlag.namedArgumentsAnywhere.isEnabledByDefault,
@@ -742,11 +767,12 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.unnamedLibraries.isEnabledByDefault,
   ExperimentalFlag.valueClass: ExperimentalFlag.valueClass.isEnabledByDefault,
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
-  ExperimentalFlag.views: ExperimentalFlag.views.isEnabledByDefault,
 };
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(sdkDefaultExperiments: {
   ExperimentalFlag.records,
+  ExperimentalFlag.classModifiers,
+  ExperimentalFlag.sealedClass,
 }, sdkLibraryExperiments: {}, packageExperiments: {
   "async": {
     ExperimentalFlag.nonNullable,
@@ -927,6 +953,7 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   },
 });
 const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
+  shared.ExperimentalFlag.classModifiers: ExperimentalFlag.classModifiers,
   shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,
   shared.ExperimentalFlag.constantUpdate2018:
       ExperimentalFlag.constantUpdate2018,
@@ -940,6 +967,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
   shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
   shared.ExperimentalFlag.inferenceUpdate2: ExperimentalFlag.inferenceUpdate2,
+  shared.ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass,
   shared.ExperimentalFlag.macros: ExperimentalFlag.macros,
   shared.ExperimentalFlag.namedArgumentsAnywhere:
       ExperimentalFlag.namedArgumentsAnywhere,
@@ -957,5 +985,4 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.unnamedLibraries: ExperimentalFlag.unnamedLibraries,
   shared.ExperimentalFlag.valueClass: ExperimentalFlag.valueClass,
   shared.ExperimentalFlag.variance: ExperimentalFlag.variance,
-  shared.ExperimentalFlag.views: ExperimentalFlag.views,
 };

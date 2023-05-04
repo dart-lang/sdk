@@ -46,25 +46,27 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   @override
   final ClassHierarchyBuilder hierarchy;
 
-  TypeBuilderConstraintGatherer(this.hierarchy,
-      Iterable<TypeParameter> typeParameters, Library currentLibrary)
-      : super.subclassing(typeParameters, currentLibrary);
+  TypeBuilderConstraintGatherer(
+      this.hierarchy, Iterable<TypeParameter> typeParameters,
+      {required bool isNonNullableByDefault})
+      : super.subclassing(typeParameters,
+            isNonNullableByDefault: isNonNullableByDefault);
 
   @override
   CoreTypes get coreTypes => hierarchy.coreTypes;
 
   @override
-  void addLowerBound(
-      TypeConstraint constraint, DartType lower, Library clientLibrary) {
-    constraint.lower =
-        getStandardUpperBound(constraint.lower, lower, clientLibrary);
+  void addLowerBound(TypeConstraint constraint, DartType lower,
+      {required bool isNonNullableByDefault}) {
+    constraint.lower = getStandardUpperBound(constraint.lower, lower,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override
-  void addUpperBound(
-      TypeConstraint constraint, DartType upper, Library clientLibrary) {
-    constraint.upper =
-        getStandardLowerBound(constraint.upper, upper, clientLibrary);
+  void addUpperBound(TypeConstraint constraint, DartType upper,
+      {required bool isNonNullableByDefault}) {
+    constraint.upper = getStandardLowerBound(constraint.upper, upper,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override
@@ -73,9 +75,11 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes) {
-    return hierarchy.getTypeAsInstanceOf(type, superclass, clientLibrary);
+  InterfaceType getTypeAsInstanceOf(
+      InterfaceType type, Class superclass, CoreTypes coreTypes,
+      {required bool isNonNullableByDefault}) {
+    return hierarchy.getTypeAsInstanceOf(type, superclass,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override

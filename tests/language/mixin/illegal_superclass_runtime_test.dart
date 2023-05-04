@@ -11,9 +11,9 @@ class S1 extends Object {}
 
 class S2 extends S0 {}
 
-class M0 {}
+mixin class M0 {}
 
-class M1 extends Object {}
+mixin class M1 extends Object {}
 
 class M2 extends M0 {}
 

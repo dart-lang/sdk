@@ -5,7 +5,8 @@
 part of 'common_patch.dart';
 
 @pragma("vm:entry-point")
-class _NamespaceImpl extends NativeFieldWrapperClass1 implements _Namespace {
+base class _NamespaceImpl extends NativeFieldWrapperClass1
+    implements _Namespace {
   _NamespaceImpl._();
 
   @pragma("vm:external-name", "Namespace_Create")

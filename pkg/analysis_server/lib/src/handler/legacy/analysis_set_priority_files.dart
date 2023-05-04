@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
 
@@ -14,7 +15,7 @@ class AnalysisSetPriorityFilesHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   AnalysisSetPriorityFilesHandler(
-      super.server, super.request, super.cancellationToken);
+      super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {
@@ -30,12 +31,14 @@ class AnalysisSetPriorityFilesHandler extends LegacyHandler {
     }
 
     server.setPriorityFiles(request.id, params.files);
-    //
-    // Forward the request to the plugins.
-    //
-    var converter = RequestConverter();
-    server.pluginManager.setAnalysisSetPriorityFilesParams(
-        converter.convertAnalysisSetPriorityFilesParams(params));
+    if (AnalysisServer.supportsPlugins) {
+      //
+      // Forward the request to the plugins.
+      //
+      var converter = RequestConverter();
+      server.pluginManager.setAnalysisSetPriorityFilesParams(
+          converter.convertAnalysisSetPriorityFilesParams(params));
+    }
     //
     // Send the response.
     //

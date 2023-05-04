@@ -200,7 +200,7 @@ class Scanner {
           source,
           versionToken.offset,
           versionToken.length,
-          HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
+          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
           [latestVersion.major, latestVersion.minor],
         ),
       );

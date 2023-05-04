@@ -161,6 +161,12 @@ abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
   List<InterfaceType> get superclassConstraints;
 }
 
+/// A pattern variable that is explicitly declared.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class BindPatternVariableElement implements PatternVariableElement {}
+
 /// A class augmentation, defined by a class augmentation declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -194,6 +200,18 @@ abstract class ClassElement
   /// <i>abstract</i> is different from <i>has unimplemented members</i>.
   bool get isAbstract;
 
+  /// Return `true` if this class is a base class.
+  ///
+  /// A class is a base class if it has an explicit `base` modifier, or the
+  /// class has a `base` induced modifier and [isSealed] is `true` as well.
+  /// The base modifier allows the class to be extended but not implemented.
+  @experimental
+  bool get isBase;
+
+  /// Return `true` if this class can be instantiated.
+  @experimental
+  bool get isConstructable;
+
   /// Return `true` if this class represents the class 'Enum' defined in the
   /// dart:core library.
   bool get isDartCoreEnum;
@@ -202,9 +220,43 @@ abstract class ClassElement
   /// dart:core library.
   bool get isDartCoreObject;
 
+  /// Return `true` if this element has the property where, in a switch, if you
+  /// cover all of the subtypes of this element, then the compiler knows that
+  /// you have covered all possible instances of the type.
+  @experimental
+  bool get isExhaustive;
+
+  /// Return `true` if this class is a final class.
+  ///
+  /// A class is a final class if it has an explicit `final` modifier, or the
+  /// class has a `final` induced modifier and [isSealed] is `true` as well.
+  /// The final modifier prohibits this class from being extended, implemented,
+  /// or mixed in.
+  @experimental
+  bool get isFinal;
+
+  /// Return `true` if this class is an interface class.
+  ///
+  /// A class is an interface class if it has an explicit `interface` modifier,
+  /// or the class has an `interface` induced modifier and [isSealed] is `true`
+  /// as well. The interface modifier allows the class to be implemented, but
+  /// not extended or mixed in.
+  @experimental
+  bool get isInterface;
+
   /// Return `true` if this class is a mixin application.  A class is a mixin
   /// application if it was declared using the syntax "class A = B with C;".
   bool get isMixinApplication;
+
+  /// Return `true` if this class is a mixin class. A class is a mixin class if
+  /// it has an explicit `mixin` modifier.
+  @experimental
+  bool get isMixinClass;
+
+  /// Return `true` if this class is a sealed class. A class is a sealed class
+  /// if it has an explicit `sealed` modifier.
+  @experimental
+  bool get isSealed;
 
   /// Return `true` if this class can validly be used as a mixin when defining
   /// another class. For classes defined by a class declaration or a mixin
@@ -231,6 +283,21 @@ abstract class ClassElement
   /// guard against infinite loops.
   @Deprecated('This getter is implemented only for MixinElement')
   List<InterfaceType> get superclassConstraints;
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// extendable to classes in the given [library].
+  @experimental
+  bool isExtendableIn(LibraryElement library);
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// implementable to classes, mixins, and enums in the given [library].
+  @experimental
+  bool isImplementableIn(LibraryElement library);
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// able to be mixed-in by classes and enums in the given [library].
+  @experimental
+  bool isMixableIn(LibraryElement library);
 }
 
 /// An element that is contained within a [ClassElement].
@@ -586,6 +653,9 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@protected`.
   bool get hasProtected;
 
+  /// Return `true` if this element has an annotation of the form `@reopen`.
+  bool get hasReopen;
+
   /// Return `true` if this element has an annotation of the form `@required`.
   bool get hasRequired;
 
@@ -668,6 +738,23 @@ abstract class Element implements AnalysisTarget {
 
   /// Return the analysis session in which this element is defined.
   AnalysisSession? get session;
+
+  /// The version where this SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in SDK, or does not have
+  /// a `@Since()` annotation applicable to it.
+  Version? get sinceSdkVersion;
 
   @override
   Source? get source;
@@ -824,6 +911,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return `true` if this annotation marks the associated class as
   /// implementing a proxy object.
   bool get isProxy;
+
+  /// Return `true` if this annotation marks the associated member as being
+  /// reopened.
+  bool get isReopen;
 
   /// Return `true` if this annotation marks the associated member as being
   /// required.
@@ -984,9 +1075,6 @@ class ElementKind implements Comparable<ElementKind> {
 
   /// Initialize a newly created element kind to have the given [displayName].
   const ElementKind(this.name, this.ordinal, this.displayName);
-
-  @override
-  int get hashCode => ordinal;
 
   @override
   int compareTo(ElementKind other) => ordinal - other.ordinal;
@@ -1627,6 +1715,20 @@ abstract class InterfaceOrAugmentationElement
   String get name;
 }
 
+/// A pattern variable that is a join of other pattern variables, created
+/// for a logical-or patterns, or shared `case` bodies in `switch` statements.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class JoinPatternVariableElement implements PatternVariableElement {
+  /// Returns `true` if [variables] are consistent, present in all branches,
+  /// and have the same type and finality.
+  bool get isConsistent;
+
+  /// Returns the variables that join into this variable.
+  List<PatternVariableElement> get variables;
+}
+
 /// A label associated with a statement.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1916,6 +2018,14 @@ abstract class MixinElement
   /// Returns the result of applying augmentations to this element.
   AugmentedMixinElement get augmented;
 
+  /// Return `true` if this mixin is a base mixin.
+  ///
+  /// A mixin is a base mixin if it has an explicit `base` modifier, or the
+  /// mixin has a `base` induced modifier and [isSealed] is `true` as well.
+  /// The base modifier allows a mixin to be mixed in but not implemented.
+  @experimental
+  bool get isBase;
+
   /// Returns the superclass constraints defined for this mixin. If the
   /// declaration does not have an `on` clause, then the list will contain
   /// the type for the class `Object`.
@@ -1926,6 +2036,11 @@ abstract class MixinElement
   /// a cycle. Clients that traverse the inheritance structure must explicitly
   /// guard against infinite loops.
   List<InterfaceType> get superclassConstraints;
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// implementable to classes, mixins, and enums in the given [library].
+  @experimental
+  bool isImplementableIn(LibraryElement library);
 }
 
 /// Shared interface between [MixinElement] and [MixinAugmentationElement].
@@ -2070,6 +2185,17 @@ abstract class ParameterElement
 abstract class PartElement implements _ExistingElement {
   /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
+}
+
+/// A pattern variable.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class PatternVariableElement implements LocalVariableElement {
+  /// Returns the variable in which this variable joins with other pattern
+  /// variables with the same name, in a logical-or pattern, or shared case
+  /// scope.
+  JoinPatternVariableElement? get join;
 }
 
 /// A prefix used to import one or more libraries into another library.
@@ -2427,33 +2553,6 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /// this variable was not declared with the 'const' modifier or if the value
   /// of this variable could not be computed because of errors.
   DartObject? computeConstantValue();
-}
-
-/// A pattern variable that is explicitly declared.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class VariablePatternBindElement implements VariablePatternElement {}
-
-/// A pattern variable.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class VariablePatternElement implements LocalVariableElement {}
-
-/// A pattern variable that is a join of other pattern variables, created
-/// for a logical-or patterns, or shared `case` bodies in `switch` statements
-/// or expressions.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class VariablePatternJoinElement implements VariablePatternElement {
-  /// Returns the variables that join into this variable.
-  List<VariablePatternElement> get components;
-
-  /// Returns `true` if [components] are consistent, present in all branches,
-  /// and have the same type and finality.
-  bool get isConsistent;
 }
 
 /// This class exists to provide non-nullable overrides for existing elements,

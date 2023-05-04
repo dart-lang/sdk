@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Ensures that closures are in the output unit of their enclosing element.
 
 import 'package:async_helper/async_helper.dart';
@@ -20,10 +18,10 @@ void main() {
 }
 
 runTest() async {
-  OutputCollector collector = new OutputCollector();
+  OutputCollector collector = OutputCollector();
   await runCompiler(memorySourceFiles: sources, outputProvider: collector);
-  String mainOutput = collector.getOutput("", api.OutputType.js);
-  String deferredOutput = collector.getOutput("out_1", api.OutputType.jsPart);
+  String mainOutput = collector.getOutput("", api.OutputType.js)!;
+  String deferredOutput = collector.getOutput("out_1", api.OutputType.jsPart)!;
 
   Expect.isTrue(mainOutput.contains("other_method_name() {"));
   Expect.isFalse(mainOutput.contains("unique_method_name() {"));

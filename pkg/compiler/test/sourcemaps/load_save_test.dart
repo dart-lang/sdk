@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:convert';
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
@@ -54,7 +52,7 @@ void main() {
 }
 
 void testReadWrite() {
-  SingleMapping sourceMap = new SingleMapping.fromJson(json.decode(SOURCEMAP));
+  SingleMapping sourceMap = SingleMapping.fromJson(json.decode(SOURCEMAP));
   String humanReadable = convertToHumanReadableSourceMap(sourceMap);
   SingleMapping sourceMap2 = convertFromHumanReadableSourceMap(humanReadable);
   String humanReadable2 = convertToHumanReadableSourceMap(sourceMap2);

@@ -24,7 +24,7 @@ mixin UndefinedShownNameTestCases on PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 export 'lib1.dart' show a;
 ''', [
-      error(HintCode.UNDEFINED_SHOWN_NAME, 24, 1),
+      error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 1),
     ]);
   }
 
@@ -33,8 +33,8 @@ export 'lib1.dart' show a;
     await assertErrorsInCode(r'''
 import 'lib1.dart' show a;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
-      error(HintCode.UNDEFINED_SHOWN_NAME, 24, 1),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 1),
     ]);
   }
 }

@@ -48,29 +48,17 @@ class FunctionExpressionInvocationResolver {
     }
 
     var receiverType = function.typeOrThrow;
-    if (receiverType is InterfaceType) {
-      // Note: in this circumstance it's not necessary to call
-      // `_nullableDereferenceVerifier.expression` because
-      // `_resolveReceiverInterfaceType` calls `TypePropertyResolver.resolve`,
-      // which does the necessary null checking.
-      _resolveReceiverInterfaceType(
-          node, function, receiverType, whyNotPromotedList,
-          contextType: contextType);
-      return;
-    }
-
     if (_checkForUseOfVoidResult(function, receiverType)) {
       _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
           contextType: contextType);
       return;
     }
 
-    _nullableDereferenceVerifier.expression(
-      CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
-      function,
-    );
-
     if (receiverType is FunctionType) {
+      _nullableDereferenceVerifier.expression(
+        CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+        function,
+      );
       _resolve(node, receiverType, whyNotPromotedList,
           contextType: contextType);
       return;
@@ -78,14 +66,46 @@ class FunctionExpressionInvocationResolver {
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _errorReporter.reportErrorForNode(
-          HintCode.RECEIVER_OF_TYPE_NEVER, function);
+          WarningCode.RECEIVER_OF_TYPE_NEVER, function);
       _unresolved(node, NeverTypeImpl.instance, whyNotPromotedList,
           contextType: contextType);
       return;
     }
 
-    _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
-        contextType: contextType);
+    var result = _typePropertyResolver.resolve(
+      receiver: function,
+      receiverType: receiverType,
+      name: FunctionElement.CALL_METHOD_NAME,
+      propertyErrorEntity: function,
+      nameErrorEntity: function,
+    );
+    var callElement = result.getter;
+
+    if (callElement == null) {
+      if (result.needsGetterError) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          function,
+        );
+      }
+      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
+          contextType: contextType);
+      return;
+    }
+
+    if (callElement.kind != ElementKind.METHOD) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+        function,
+      );
+      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
+          contextType: contextType);
+      return;
+    }
+
+    node.staticElement = callElement;
+    var rawType = callElement.type;
+    _resolve(node, rawType, whyNotPromotedList, contextType: contextType);
   }
 
   /// Check for situations where the result of a method or function is used,
@@ -154,48 +174,6 @@ class FunctionExpressionInvocationResolver {
       );
     }
 
-    var rawType = callElement.type;
-    _resolve(node, rawType, whyNotPromotedList, contextType: contextType);
-  }
-
-  void _resolveReceiverInterfaceType(
-      FunctionExpressionInvocationImpl node,
-      Expression function,
-      InterfaceType receiverType,
-      List<WhyNotPromotedGetter> whyNotPromotedList,
-      {required DartType? contextType}) {
-    var result = _typePropertyResolver.resolve(
-      receiver: function,
-      receiverType: receiverType,
-      name: FunctionElement.CALL_METHOD_NAME,
-      propertyErrorEntity: function,
-      nameErrorEntity: function,
-    );
-    var callElement = result.getter;
-
-    if (callElement == null) {
-      if (result.needsGetterError) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          function,
-        );
-      }
-      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
-          contextType: contextType);
-      return;
-    }
-
-    if (callElement.kind != ElementKind.METHOD) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-        function,
-      );
-      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
-          contextType: contextType);
-      return;
-    }
-
-    node.staticElement = callElement;
     var rawType = callElement.type;
     _resolve(node, rawType, whyNotPromotedList, contextType: contextType);
   }

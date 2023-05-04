@@ -21,10 +21,10 @@ abstract class SourceFileByteReader {
 abstract class SourceFileProvider implements api.CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = Uri.base;
-  Map<Uri, SourceFile<List<int>>> utf8SourceFiles = {};
-  Map<Uri, api.Input<List<int>>> binarySourceFiles = {};
   int dartCharactersRead = 0;
   SourceFileByteReader byteReader;
+  final Set<Uri> _readableUris = {};
+  final Map<Uri, Uri> _mappedUris = {};
 
   SourceFileProvider(this.byteReader);
 
@@ -33,9 +33,6 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
-    api.Input<List<int>>? input = _loadInputFromCache(resourceUri, inputKind);
-    if (input != null) return Future.value(input);
-
     if (resourceUri.isScheme('file')) {
       return _readFromFile(resourceUri, inputKind);
     } else {
@@ -43,37 +40,14 @@ abstract class SourceFileProvider implements api.CompilerInput {
     }
   }
 
-  /// Fetches any existing value of [resourceUri] in a cache.
-  ///
-  /// For `api.InputKind.UTF8` inputs, this looks up both the cache of
-  /// utf8 source files and binary source files. This is done today because of
-  /// how dart2js binds to the CFE's file system. While dart2js reads sources as
-  /// utf8, the CFE file system may read them as binary inputs. In case the CFE
-  /// needs to report errors, dart2js will only find the location data if it
-  /// checks both caches.
-  api.Input<List<int>>? _loadInputFromCache(
-      Uri resourceUri, api.InputKind inputKind) {
-    switch (inputKind) {
-      case api.InputKind.UTF8:
-        api.Input<List<int>>? input = utf8SourceFiles[resourceUri];
-        if (input != null) return input;
-        input = binarySourceFiles[resourceUri];
-        if (input == null) return null;
-        return _storeSourceInCache(resourceUri, input.data, api.InputKind.UTF8);
-      case api.InputKind.binary:
-        return binarySourceFiles[resourceUri];
-    }
-  }
-
   /// Adds [source] to the cache under the [resourceUri] key.
-  api.Input<List<int>> _storeSourceInCache(
+  api.Input<List<int>> _sourceToFile(
       Uri resourceUri, List<int> source, api.InputKind inputKind) {
     switch (inputKind) {
       case api.InputKind.UTF8:
-        return utf8SourceFiles[resourceUri] = CachingUtf8BytesSourceFile(
-            resourceUri, relativizeUri(resourceUri), source);
+        return Utf8BytesSourceFile(resourceUri, source);
       case api.InputKind.binary:
-        return binarySourceFiles[resourceUri] = Binary(resourceUri, source);
+        return Binary(resourceUri, source);
     }
   }
 
@@ -82,13 +56,16 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
-    if (!utf8SourceFiles.containsKey(resourceUri)) {
-      _storeSourceInCache(resourceUri, source, api.InputKind.UTF8);
-    }
+    registerUri(resourceUri);
   }
 
-  api.Input<List<int>> _readFromFileSync(
-      Uri resourceUri, api.InputKind inputKind) {
+  /// Registers the URI and returns true if the URI is new.
+  bool registerUri(Uri uri) {
+    return _readableUris.add(uri);
+  }
+
+  api.Input<List<int>> _readFromFileSync(Uri uri, api.InputKind inputKind) {
+    final resourceUri = _mappedUris[uri] ?? uri;
     assert(resourceUri.isScheme('file'));
     List<int> source;
     try {
@@ -99,8 +76,14 @@ abstract class SourceFileProvider implements api.CompilerInput {
       String detail = message != null ? ' ($message)' : '';
       throw "Error reading '${relativizeUri(resourceUri)}' $detail";
     }
-    dartCharactersRead += source.length;
-    return _storeSourceInCache(resourceUri, source, inputKind);
+    if (registerUri(resourceUri)) {
+      dartCharactersRead += source.length;
+    }
+    if (resourceUri != uri) {
+      registerUri(uri);
+    }
+    return _sourceToFile(
+        Uri.parse(relativizeUri(resourceUri)), source, inputKind);
   }
 
   /// Read [resourceUri] directly as a UTF-8 file. If reading fails, `null` is
@@ -126,18 +109,21 @@ abstract class SourceFileProvider implements api.CompilerInput {
     return Future.value(input);
   }
 
-  relativizeUri(Uri uri) => fe.relativizeUri(cwd, uri, isWindows);
-
+  /// Get the bytes for a previously accessed UTF-8 [Uri].
   api.Input<List<int>>? getUtf8SourceFile(Uri resourceUri) {
-    return _loadInputFromCache(resourceUri, api.InputKind.UTF8);
+    // Only access files we've previously processed and therefore know exist.
+    // This is less expensive than performing an IO exists operation.
+    return _readableUris.contains(resourceUri)
+        ? _readFromFileSync(resourceUri, api.InputKind.UTF8)
+        : null;
   }
 
-  Iterable<Uri> getSourceUris() {
-    // Note: this includes also indirect sources that were used to create
-    // `.dill` inputs to the compiler. This is OK, since this API is only
-    // used to calculate DEPS for gn build systems.
-    return <Uri>{...utf8SourceFiles.keys, ...binarySourceFiles.keys};
-  }
+  String relativizeUri(Uri uri) => fe.relativizeUri(cwd, uri, isWindows);
+
+  // Note: this includes also indirect sources that were used to create
+  // `.dill` inputs to the compiler. This is OK, since this API is only
+  // used to calculate DEPS for gn build systems.
+  Iterable<Uri> getSourceUris() => [..._readableUris, ..._mappedUris.keys];
 }
 
 class MemoryCopySourceFileByteReader implements SourceFileByteReader {
@@ -270,8 +256,8 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     } else {
       api.Input<List<int>>? file = provider.getUtf8SourceFile(uri);
       if (file is SourceFile && begin != null && end != null) {
-        print((file as SourceFile)
-            .getLocationMessage(color(message), begin, end, colorize: color));
+        print(file.getLocationMessage(color(message), begin, end,
+            colorize: color));
       } else {
         String position = begin != null && end != null && end - begin > 0
             ? '@$begin+${end - begin}'
@@ -297,8 +283,11 @@ class _CompilationErrorError {
 typedef MessageCallback = void Function(String message);
 
 class RandomAccessFileOutputProvider implements api.CompilerOutput {
-  final Uri out;
-  final Uri sourceMapOut;
+  // The file name to use for the main output. Also used as the filename prefix
+  // for other URIs generated from this output provider. If `null` there is no
+  // primary output but can still write other files.
+  final Uri? out;
+  final Uri? sourceMapOut;
   final MessageCallback onInfo;
 
   // TODO(48820): Make [onFailure] return `Never`. The value passed in for the
@@ -324,38 +313,39 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
     switch (type) {
       case api.OutputType.js:
         if (name == '') {
-          uri = out;
+          uri = out!;
         } else {
-          uri = out.resolve('$name.$extension');
+          uri = out!.resolve('$name.$extension');
         }
         break;
       case api.OutputType.sourceMap:
         if (name == '') {
-          uri = sourceMapOut;
+          uri = sourceMapOut!;
         } else {
-          uri = out.resolve('$name.$extension');
+          uri = out!.resolve('$name.$extension');
         }
         break;
       case api.OutputType.jsPart:
-        uri = out.resolve('$name.$extension');
+        uri = out!.resolve('$name.$extension');
         break;
       case api.OutputType.dumpInfo:
       case api.OutputType.dumpUnusedLibraries:
       case api.OutputType.deferredMap:
+      case api.OutputType.resourceIdentifiers:
         if (name == '') {
-          name = out.pathSegments.last;
+          name = out!.pathSegments.last;
         }
         if (extension == '') {
-          uri = out.resolve(name);
+          uri = out!.resolve(name);
         } else {
-          uri = out.resolve('$name.$extension');
+          uri = out!.resolve('$name.$extension');
         }
         break;
       case api.OutputType.debug:
         if (name == '') {
-          name = out.pathSegments.last;
+          name = out!.pathSegments.last;
         }
-        uri = out.resolve('$name.$extension');
+        uri = out!.resolve('$name.$extension');
         break;
       default:
         onFailure('Unknown output type: $type');
@@ -575,14 +565,7 @@ class BazelInputProvider extends SourceFileProvider {
       if (!resolvedUri.isAbsolute) {
         resolvedUri = cwd.resolveUri(resolvedUri);
       }
-      switch (inputKind) {
-        case api.InputKind.UTF8:
-          utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri]!;
-          break;
-        case api.InputKind.binary:
-          binarySourceFiles[uri] = binarySourceFiles[resolvedUri]!;
-          break;
-      }
+      _mappedUris[uri] = resolvedUri;
     }
     return result;
   }
@@ -622,14 +605,7 @@ class MultiRootInputProvider extends SourceFileProvider {
     }
     api.Input<List<int>> result =
         await readBytesFromUri(resolvedUri, inputKind);
-    switch (inputKind) {
-      case api.InputKind.UTF8:
-        utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri]!;
-        break;
-      case api.InputKind.binary:
-        binarySourceFiles[uri] = binarySourceFiles[resolvedUri]!;
-        break;
-    }
+    _mappedUris[uri] = resolvedUri;
     return result;
   }
 }

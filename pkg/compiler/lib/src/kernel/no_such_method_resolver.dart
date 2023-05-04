@@ -57,7 +57,7 @@ class NoSuchMethodResolver {
 
   /// Computes whether [method] is of the form
   ///
-  ///     noSuchMethod(i) => throw new Error();
+  ///     noSuchMethod(i) => throw Error();
   ///
   bool hasThrowingSyntax(KFunction method) {
     ir.Procedure node = elementMap.lookupProcedure(method);

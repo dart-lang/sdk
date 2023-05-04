@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -21,24 +19,24 @@ import '../helpers/shared_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script
+    Directory dataDir = Directory.fromUri(Platform.script
         .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data_2'));
-    await checkTests<String>(dataDir, new ConstantDataComputer(),
+    await checkTests<String>(dataDir, ConstantDataComputer(),
         args: args, testedConfigs: [sharedConfig]);
   });
 }
 
 class ConstantDataComputer extends DataComputer<String> {
-  ir.TypeEnvironment _typeEnvironment;
+  ir.TypeEnvironment? _typeEnvironment;
 
   ir.TypeEnvironment getTypeEnvironment(KernelToElementMap elementMap) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
-      ir.CoreTypes coreTypes = new ir.CoreTypes(component);
-      _typeEnvironment = new ir.TypeEnvironment(
-          coreTypes, new ir.ClassHierarchy(component, coreTypes));
+      ir.CoreTypes coreTypes = ir.CoreTypes(component);
+      _typeEnvironment = ir.TypeEnvironment(
+          coreTypes, ir.ClassHierarchy(component, coreTypes));
     }
-    return _typeEnvironment;
+    return _typeEnvironment!;
   }
 
   /// Compute type inference data for [member] from kernel based inference.
@@ -51,7 +49,7 @@ class ConstantDataComputer extends DataComputer<String> {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Member node = elementMap.getMemberNode(member);
-    new ConstantDataExtractor(compiler.reporter, actualMap, elementMap, member)
+    ConstantDataExtractor(compiler.reporter, actualMap, elementMap, member)
         .run(node);
   }
 
@@ -61,7 +59,7 @@ class ConstantDataComputer extends DataComputer<String> {
   @override
   String computeErrorData(
       Compiler compiler, Id id, List<CollectedMessage> errors) {
-    return errors.map((c) => c.message.message).join(',');
+    return errors.map((c) => c.message!.message).join(',');
   }
 
   @override
@@ -81,12 +79,12 @@ class ConstantDataExtractor extends IrDataExtractor<String> {
       : super(reporter, actualMap);
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.ConstantExpression) {
       return constantToText(
           elementMap.types,
           elementMap.getConstantValue(
-              elementMap.getStaticTypeContext(member), node));
+              elementMap.getStaticTypeContext(member), node)!);
     }
     return null;
   }

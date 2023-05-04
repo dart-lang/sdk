@@ -21,6 +21,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -31,13 +32,16 @@ List<AnalysisError> analyzeAnalysisOptions(
   String content,
   SourceFactory sourceFactory,
   String contextRoot,
-) {
-  List<AnalysisError> errors = <AnalysisError>[];
+  VersionConstraint? sdkVersionConstraint, {
+  LintRuleProvider? provider,
+}) {
+  List<AnalysisError> errors = [];
   Source initialSource = source;
   SourceSpan? initialIncludeSpan;
   AnalysisOptionsProvider optionsProvider =
       AnalysisOptionsProvider(sourceFactory);
   String? firstPluginName;
+  Map<Source, SourceSpan> includeChain = {};
 
   // TODO(srawlins): This code is getting quite complex, with multiple local
   // functions, and should be refactored to a class maintaining state, with less
@@ -70,10 +74,14 @@ List<AnalysisError> analyzeAnalysisOptions(
   }
 
   // Validate the specified options and any included option files.
-  void validate(Source source, YamlMap options) {
+  void validate(Source source, YamlMap options, LintRuleProvider? provider) {
     var sourceIsOptionsForContextRoot = initialIncludeSpan == null;
-    List<AnalysisError> validationErrors =
-        OptionsFileValidator(source).validate(options);
+    var validationErrors = OptionsFileValidator(
+      source,
+      sdkVersionConstraint: sdkVersionConstraint,
+      sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+      provider: provider,
+    ).validate(options);
     addDirectErrorOrIncludedError(validationErrors, source,
         sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot);
 
@@ -90,6 +98,15 @@ List<AnalysisError> analyzeAnalysisOptions(
     initialIncludeSpan ??= includeSpan;
     String includeUri = includeSpan.text;
     var includedSource = sourceFactory.resolveUri(source, includeUri);
+    if (includedSource == initialSource) {
+      errors.add(AnalysisError(
+          initialSource,
+          initialIncludeSpan!.start.offset,
+          initialIncludeSpan!.length,
+          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          [includeUri, source.fullName]));
+      return;
+    }
     if (includedSource == null || !includedSource.exists()) {
       errors.add(AnalysisError(
           initialSource,
@@ -99,10 +116,26 @@ List<AnalysisError> analyzeAnalysisOptions(
           [includeUri, source.fullName, contextRoot]));
       return;
     }
+    var spanInChain = includeChain[includedSource];
+    if (spanInChain != null) {
+      errors.add(AnalysisError(
+          initialSource,
+          initialIncludeSpan!.start.offset,
+          initialIncludeSpan!.length,
+          AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING, [
+        includedSource,
+        spanInChain.start.offset,
+        spanInChain.length,
+        'The file includes itself recursively.',
+      ]));
+      return;
+    }
+    includeChain[includedSource] = includeSpan;
+
     try {
       var includedOptions =
           optionsProvider.getOptionsFromString(includedSource.contents.data);
-      validate(includedSource, includedOptions);
+      validate(includedSource, includedOptions, provider);
       firstPluginName ??= _firstPluginName(includedOptions);
       // Validate the 'plugins' option in [options], taking into account any
       // plugins enabled by [includedOptions].
@@ -132,7 +165,7 @@ List<AnalysisError> analyzeAnalysisOptions(
 
   try {
     YamlMap options = optionsProvider.getOptionsFromString(content);
-    validate(source, options);
+    validate(source, options, provider);
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span!;
     errors.add(AnalysisError(source, span.start.offset, span.length,
@@ -184,8 +217,6 @@ List<AnalysisError> _validatePluginsOption(
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
-  static const String enableSuperMixins = 'enableSuperMixins';
-  static const String enablePreviewDart2 = 'enablePreviewDart2';
 
   static const String cannotIgnore = 'cannot-ignore';
   static const String codeStyle = 'code-style';
@@ -379,12 +410,12 @@ class CodeStyleOptionsValidator extends OptionsValidator {
           format.span,
           [AnalyzerOptions.format]);
     } else if (format is YamlScalar) {
-      var formatValue = toBool(format.value);
+      var formatValue = toBool(format.valueOrThrow);
       if (formatValue == null) {
         reporter.reportErrorForSpan(
             AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, format.span, [
           AnalyzerOptions.format,
-          format.value,
+          format.valueOrThrow,
           AnalyzerOptions.trueOrFalseProposal
         ]);
       }
@@ -482,9 +513,10 @@ class ErrorBuilder {
   void reportError(ErrorReporter reporter, String scopeName, YamlNode node) {
     if (proposal.isNotEmpty) {
       reporter.reportErrorForSpan(
-          code, node.span, [scopeName, node.value, proposal]);
+          code, node.span, [scopeName, node.valueOrThrow, proposal]);
     } else {
-      reporter.reportErrorForSpan(code, node.span, [scopeName, node.value]);
+      reporter
+          .reportErrorForSpan(code, node.span, [scopeName, node.valueOrThrow]);
     }
   }
 }
@@ -572,15 +604,7 @@ class LanguageOptionValidator extends OptionsValidator {
           bool validKey = false;
           if (k is YamlScalar) {
             key = k.value?.toString();
-            if (AnalyzerOptions.enablePreviewDart2 == key) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
-                  k.span);
-            } else if (AnalyzerOptions.enableSuperMixins == key) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED,
-                  k.span);
-            } else if (!AnalyzerOptions.languageOptions.contains(key)) {
+            if (!AnalyzerOptions.languageOptions.contains(key)) {
               _builder.reportError(reporter, AnalyzerOptions.language, k);
             } else {
               // If we have a valid key, go on and check the value.
@@ -595,7 +619,7 @@ class LanguageOptionValidator extends OptionsValidator {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
                   v.span,
-                  [key!, v.value, AnalyzerOptions.trueOrFalseProposal]);
+                  [key!, v.valueOrThrow, AnalyzerOptions.trueOrFalseProposal]);
             }
           }
         });
@@ -648,9 +672,11 @@ class OptionalChecksValueValidator extends OptionsValidator {
               value = toLowerCase(v.value);
               if (!AnalyzerOptions.trueOrFalse.contains(value)) {
                 reporter.reportErrorForSpan(
-                    AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
-                    v.span,
-                    [key!, v.value, AnalyzerOptions.trueOrFalseProposal]);
+                    AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, v.span, [
+                  key!,
+                  v.valueOrThrow,
+                  AnalyzerOptions.trueOrFalseProposal
+                ]);
               }
             }
           }
@@ -670,14 +696,23 @@ class OptionsFileValidator {
   /// The source being validated.
   final Source source;
 
-  final List<OptionsValidator> _validators = [
-    AnalyzerOptionsValidator(),
-    CodeStyleOptionsValidator(),
-    LinterOptionsValidator(),
-    LinterRuleOptionsValidator()
-  ];
+  final List<OptionsValidator> _validators;
 
-  OptionsFileValidator(this.source);
+  OptionsFileValidator(
+    this.source, {
+    required VersionConstraint? sdkVersionConstraint,
+    required bool sourceIsOptionsForContextRoot,
+    LintRuleProvider? provider,
+  }) : _validators = [
+          AnalyzerOptionsValidator(),
+          CodeStyleOptionsValidator(),
+          LinterOptionsValidator(),
+          LinterRuleOptionsValidator(
+            provider: provider,
+            sdkVersionConstraint: sdkVersionConstraint,
+            sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+          ),
+        ];
 
   List<AnalysisError> validate(YamlMap options) {
     RecordingErrorListener recorder = RecordingErrorListener();
@@ -798,52 +833,77 @@ class StrongModeOptionValueValidator extends OptionsValidator {
   void validate(ErrorReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var v = analyzer.valueAt(AnalyzerOptions.strongMode);
-      if (v is YamlScalar) {
-        var value = toLowerCase(v.value);
-        if (!AnalyzerOptions.trueOrFalse.contains(value)) {
+      var strongModeNode = analyzer.valueAt(AnalyzerOptions.strongMode);
+      if (strongModeNode is YamlScalar) {
+        return _validateStrongModeAsScalar(reporter, strongModeNode);
+      } else if (strongModeNode is YamlMap) {
+        return _validateStrongModeAsMap(reporter, strongModeNode);
+      } else if (strongModeNode != null) {
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+            strongModeNode.span,
+            [AnalyzerOptions.strongMode]);
+      }
+    }
+  }
+
+  void _validateStrongModeAsMap(
+      ErrorReporter reporter, YamlMap strongModeNode) {
+    strongModeNode.nodes.forEach((k, v) {
+      if (k is YamlScalar) {
+        var key = k.value?.toString();
+        if (!AnalyzerOptions.strongModeOptions.contains(key)) {
+          _builder.reportError(reporter, AnalyzerOptions.strongMode, k);
+        } else if (key == AnalyzerOptions.declarationCasts) {
           reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, v.span, [
-            AnalyzerOptions.strongMode,
-            v.value,
-            AnalyzerOptions.trueOrFalseProposal
-          ]);
-        } else if (value == 'false') {
+              AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
+              k.span,
+              [AnalyzerOptions.declarationCasts]);
+        } else if (key == AnalyzerOptions.implicitCasts) {
           reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode.SPEC_MODE_REMOVED, v.span);
-        } else if (value == 'true') {
+              AnalysisOptionsWarningCode
+                  .ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
+              k.span,
+              [AnalyzerOptions.implicitCasts, 'strict-casts']);
+        } else if (key == AnalyzerOptions.implicitDynamic) {
           reporter.reportErrorForSpan(
-              AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED, v.span);
-        }
-      } else if (v is YamlMap) {
-        v.nodes.forEach((k, v) {
-          String? key, value;
-          bool validKey = false;
-          if (k is YamlScalar) {
-            key = k.value?.toString();
-            if (!AnalyzerOptions.strongModeOptions.contains(key)) {
-              _builder.reportError(reporter, AnalyzerOptions.strongMode, k);
-            } else if (key != AnalyzerOptions.declarationCasts) {
-              // If we have a valid key, go on and check the value.
-              validKey = true;
-            }
-          }
-          if (validKey && v is YamlScalar) {
-            value = toLowerCase(v.value);
+              AnalysisOptionsWarningCode
+                  .ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
+              k.span,
+              [AnalyzerOptions.implicitDynamic, 'strict-raw-types']);
+        } else {
+          // The key is valid.
+          if (v is YamlScalar) {
+            var value = toLowerCase(v.value);
             if (!AnalyzerOptions.trueOrFalse.contains(value)) {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
                   v.span,
-                  [key!, v.value, AnalyzerOptions.trueOrFalseProposal]);
+                  [key!, v.valueOrThrow, AnalyzerOptions.trueOrFalseProposal]);
             }
           }
-        });
-      } else if (v != null) {
-        reporter.reportErrorForSpan(
-            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-            v.span,
-            [AnalyzerOptions.enableExperiment]);
+        }
       }
+    });
+  }
+
+  void _validateStrongModeAsScalar(
+      ErrorReporter reporter, YamlScalar strongModeNode) {
+    var stringValue = toLowerCase(strongModeNode.value);
+    if (!AnalyzerOptions.trueOrFalse.contains(stringValue)) {
+      reporter.reportErrorForSpan(
+          AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, strongModeNode.span, [
+        AnalyzerOptions.strongMode,
+        strongModeNode.valueOrThrow,
+        AnalyzerOptions.trueOrFalseProposal
+      ]);
+    } else if (stringValue == 'false') {
+      reporter.reportErrorForSpan(
+          AnalysisOptionsWarningCode.SPEC_MODE_REMOVED, strongModeNode.span);
+    } else if (stringValue == 'true') {
+      reporter.reportErrorForSpan(
+          AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED,
+          strongModeNode.span);
     }
   }
 }
@@ -877,8 +937,8 @@ class TopLevelOptionValidator extends OptionsValidator {
       node.nodes.forEach((k, v) {
         if (k is YamlScalar) {
           if (!supportedOptions.contains(k.value)) {
-            reporter.reportErrorForSpan(
-                _warningCode, k.span, [pluginName, k.value, _valueProposal]);
+            reporter.reportErrorForSpan(_warningCode, k.span,
+                [pluginName, k.valueOrThrow, _valueProposal]);
           }
         }
         //TODO(pq): consider an error if the node is not a Scalar.
@@ -986,7 +1046,7 @@ class _OptionsProcessor {
       configs.nodes.forEach((key, value) {
         if (key is YamlScalar && value is YamlScalar) {
           var feature = key.value?.toString();
-          _applyLanguageOption(options, feature, value.value);
+          _applyLanguageOption(options, feature, value.valueOrThrow);
         }
       });
     }
@@ -996,7 +1056,8 @@ class _OptionsProcessor {
     if (config is YamlMap) {
       config.nodes.forEach((k, v) {
         if (k is YamlScalar && v is YamlScalar) {
-          _applyOptionalChecksOption(options, k.value?.toString(), v.value);
+          _applyOptionalChecksOption(
+              options, k.value?.toString(), v.valueOrThrow);
         }
       });
     }
@@ -1067,7 +1128,7 @@ class _OptionsProcessor {
     if (config is YamlMap) {
       config.nodes.forEach((k, v) {
         if (k is YamlScalar && v is YamlScalar) {
-          _applyStrongModeOption(options, k.value?.toString(), v.value);
+          _applyStrongModeOption(options, k.value?.toString(), v.valueOrThrow);
         }
       });
     }

@@ -6,8 +6,10 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
 import '../fasta_codes.dart';
 import '../kernel/internal_ast.dart';
+import 'external_ast_helper.dart';
 import 'inference_helper.dart';
 import 'inference_visitor_base.dart';
+import 'type_schema.dart';
 
 /// The result of a statement inference.
 class StatementInferenceResult {
@@ -162,13 +164,19 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         // The hoisting of InstanceGetterInvocation is performed elsewhere.
         return expression;
       } else if (expression is InstanceInvocation) {
-        VariableDeclaration receiver = createVariable(
-            expression.receiver, inferredReceiverType ?? const DynamicType());
-        expression.receiver = createVariableGet(receiver)..parent = expression;
-        return createLet(
-            receiver,
-            InvocationInferenceResult._insertHoistedExpressions(
-                expression, hoistedArguments));
+        if (!isPureExpression(expression.receiver)) {
+          VariableDeclaration receiver = createVariable(
+              expression.receiver, inferredReceiverType ?? const DynamicType());
+          expression.receiver = createVariableGet(receiver)
+            ..parent = expression;
+          return createLet(
+              receiver,
+              InvocationInferenceResult._insertHoistedExpressions(
+                  expression, hoistedArguments));
+        } else {
+          return InvocationInferenceResult._insertHoistedExpressions(
+              expression, hoistedArguments);
+        }
       } else if (expression is LocalFunctionInvocation) {
         return InvocationInferenceResult._insertHoistedExpressions(
             expression, hoistedArguments);
@@ -338,7 +346,8 @@ class ExpressionInferenceResult {
   ExpressionInferenceResult(this.inferredType, this.expression,
       {this.postCoercionType = null})
       // ignore: unnecessary_null_comparison
-      : assert(expression != null);
+      : assert(expression != null),
+        assert(isKnown(inferredType));
 
   /// The guards used for null-aware access if the expression is part of a
   /// null-shorting.

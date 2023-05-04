@@ -18,7 +18,7 @@ main() {
 class FutureValueTypeTest extends AbstractTypeSystemTest {
   /// futureValueType(`dynamic`) = `dynamic`.
   test_dynamic() {
-    _check(dynamicNone, 'dynamic');
+    _check(dynamicType, 'dynamic');
   }
 
   /// futureValueType(Future<`S`>) = `S`, for all `S`.
@@ -31,7 +31,7 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
     check(intQuestion, 'int?');
     check(intStar, 'int*');
 
-    check(dynamicNone, 'dynamic');
+    check(dynamicType, 'dynamic');
     check(voidNone, 'void');
 
     check(neverNone, 'Never');
@@ -53,7 +53,7 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
     check(intQuestion, 'int?');
     check(intStar, 'int*');
 
-    check(dynamicNone, 'dynamic');
+    check(dynamicType, 'dynamic');
     check(voidNone, 'void');
 
     check(neverNone, 'Never');
@@ -87,7 +87,7 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
     _check(futureQuestion(objectQuestion), 'Object?');
     _check(futureQuestion(objectStar), 'Object*');
 
-    _check(futureQuestion(dynamicNone), 'dynamic');
+    _check(futureQuestion(dynamicType), 'dynamic');
     _check(futureQuestion(voidNone), 'void');
   }
 
@@ -107,7 +107,7 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
     _check(futureStar(objectQuestion), 'Object?');
     _check(futureStar(objectStar), 'Object*');
 
-    _check(futureStar(dynamicNone), 'dynamic');
+    _check(futureStar(dynamicType), 'dynamic');
     _check(futureStar(voidNone), 'void');
   }
 

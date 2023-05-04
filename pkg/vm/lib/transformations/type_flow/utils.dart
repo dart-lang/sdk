@@ -426,13 +426,13 @@ bool mayHaveOrSeeSideEffects(Expression node) {
   return false;
 }
 
-// Dedicated fileUri for artifical nodes created during type flow analysis.
+// Dedicated fileUri for artificial nodes created during type flow analysis.
 final Uri artificialNodeUri = Uri(scheme: 'tfa-artificial-node');
 
 // Returns true if [node] was artificially created during type flow analysis.
 bool isArtificialNode(TreeNode node) =>
     node is FileUriNode && identical(node.fileUri, artificialNodeUri);
 
-// Returns [node] or null, if node is artifical.
+// Returns [node] or null, if node is artificial.
 T? filterArtificialNode<T extends TreeNode>(T? node) =>
     (node == null || isArtificialNode(node)) ? null : node;

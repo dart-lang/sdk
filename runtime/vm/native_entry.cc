@@ -242,8 +242,8 @@ static NativeFunction ResolveNativeFunction(Zone* zone,
   NativeFunction native_function = NativeEntry::ResolveNative(
       library, native_name, num_params, is_auto_scope);
   if (native_function == NULL) {
-    FATAL2("Failed to resolve native function '%s' in '%s'\n",
-           native_name.ToCString(), func.ToQualifiedCString());
+    FATAL("Failed to resolve native function '%s' in '%s'\n",
+          native_name.ToCString(), func.ToQualifiedCString());
   }
   return native_function;
 }

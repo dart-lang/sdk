@@ -246,6 +246,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       local[variable.name] = variable;
     }
     return new Scope(
+        kind: ScopeKind.typeParameters,
         local: local,
         parent: parent,
         debugName: "type parameter",
@@ -266,7 +267,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       tearOffs = {};
       _tearOffDependencies = {};
       NameIterator<MemberBuilder> iterator =
-          declaration.fullConstructorNameIterator;
+          declaration.fullConstructorNameIterator();
       while (iterator.moveNext()) {
         String constructorName = iterator.name;
         MemberBuilder builder = iterator.current;

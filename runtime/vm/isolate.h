@@ -90,17 +90,6 @@ class ThreadRegistry;
 class UserTag;
 class WeakTable;
 
-/*
- * Possible values of null safety flag
-  0 - not specified
-  1 - weak mode
-  2 - strong mode)
-*/
-constexpr int kNullSafetyOptionUnspecified = 0;
-constexpr int kNullSafetyOptionWeak = 1;
-constexpr int kNullSafetyOptionStrong = 2;
-extern int FLAG_sound_null_safety;
-
 class IsolateVisitor {
  public:
   IsolateVisitor() {}
@@ -764,14 +753,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void VisitObjectIdRingPointers(ObjectPointerVisitor* visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
-  bool compaction_in_progress() const {
-    return CompactionInProgressBit::decode(isolate_group_flags_);
-  }
-  void set_compaction_in_progress(bool value) {
-    isolate_group_flags_ =
-        CompactionInProgressBit::update(value, isolate_group_flags_);
-  }
-
   // In precompilation we finalize all regular classes before compiling.
   bool all_classes_finalized() const {
     return AllClassesFinalizedBit::decode(isolate_group_flags_);
@@ -818,7 +799,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
 #define ISOLATE_GROUP_FLAG_BITS(V)                                             \
   V(AllClassesFinalized)                                                       \
-  V(CompactionInProgress)                                                      \
   V(EnableAsserts)                                                             \
   V(HasAttemptedReload)                                                        \
   V(NullSafety)                                                                \
@@ -1141,33 +1121,27 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #if !defined(PRODUCT)
   Debugger* debugger() const { return debugger_; }
 
-  // NOTE: this lock should only be acquired within the profiler signal handler.
-  Mutex* current_sample_block_lock() const {
-    return const_cast<Mutex*>(&current_sample_block_lock_);
-  }
-
   // Returns the current SampleBlock used to track CPU profiling samples.
-  //
-  // NOTE: current_sample_block_lock() should be held when accessing this
-  // block.
   SampleBlock* current_sample_block() const { return current_sample_block_; }
-  void set_current_sample_block(SampleBlock* current);
-
-  void FreeSampleBlock(SampleBlock* block);
-  void ProcessFreeSampleBlocks(Thread* thread);
-  bool should_process_blocks() const {
-    return free_block_list_.load(std::memory_order_relaxed) != nullptr;
+  void set_current_sample_block(SampleBlock* block) {
+    current_sample_block_ = block;
   }
-  std::atomic<SampleBlock*> free_block_list_ = nullptr;
+  void ProcessFreeSampleBlocks(Thread* thread);
 
   // Returns the current SampleBlock used to track Dart allocation samples.
-  //
-  // Allocations should only occur on the mutator thread for an isolate, so we
-  // don't need to worry about grabbing a lock while accessing this block.
   SampleBlock* current_allocation_sample_block() const {
     return current_allocation_sample_block_;
   }
-  void set_current_allocation_sample_block(SampleBlock* current);
+  void set_current_allocation_sample_block(SampleBlock* block) {
+    current_allocation_sample_block_ = block;
+  }
+
+  bool TakeHasCompletedBlocks() {
+    return has_completed_blocks_.exchange(0) != 0;
+  }
+  bool TrySetHasCompletedBlocks() {
+    return has_completed_blocks_.exchange(1) == 0;
+  }
 
   void set_single_step(bool value) { single_step_ = value; }
   bool single_step() const { return single_step_; }
@@ -1648,18 +1622,12 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Debugger* debugger_ = nullptr;
 
   // SampleBlock containing CPU profiling samples.
-  //
-  // Can be accessed by multiple threads, so current_sample_block_lock_ should
-  // be acquired before accessing.
-  SampleBlock* current_sample_block_ = nullptr;
-  Mutex current_sample_block_lock_;
+  RelaxedAtomic<SampleBlock*> current_sample_block_ = nullptr;
 
   // SampleBlock containing Dart allocation profiling samples.
-  //
-  // Allocations should only occur on the mutator thread for an isolate, so we
-  // shouldn't need to worry about grabbing a lock for the allocation sample
-  // block.
-  SampleBlock* current_allocation_sample_block_ = nullptr;
+  RelaxedAtomic<SampleBlock*> current_allocation_sample_block_ = nullptr;
+
+  RelaxedAtomic<uword> has_completed_blocks_ = {0};
 
   int64_t last_resume_timestamp_;
 
@@ -1851,24 +1819,51 @@ class EnterIsolateGroupScope {
 
 // Ensure that isolate is not available for the duration of this scope.
 //
-// This can be used in code (e.g. GC, Kernel Loader) that should not operate on
-// an individual isolate.
+// This can be used in code (e.g. GC, Kernel Loader, Compiler) that should not
+// operate on an individual isolate.
 class NoActiveIsolateScope : public StackResource {
  public:
   NoActiveIsolateScope() : NoActiveIsolateScope(Thread::Current()) {}
   explicit NoActiveIsolateScope(Thread* thread)
       : StackResource(thread), thread_(thread) {
+    outer_ = thread_->no_active_isolate_scope_;
     saved_isolate_ = thread_->isolate_;
+
+    thread_->no_active_isolate_scope_ = this;
     thread_->isolate_ = nullptr;
   }
   ~NoActiveIsolateScope() {
     ASSERT(thread_->isolate_ == nullptr);
     thread_->isolate_ = saved_isolate_;
+    thread_->no_active_isolate_scope_ = outer_;
+  }
+
+ private:
+  friend class ActiveIsolateScope;
+
+  Thread* thread_;
+  Isolate* saved_isolate_;
+  NoActiveIsolateScope* outer_;
+};
+
+class ActiveIsolateScope : public StackResource {
+ public:
+  explicit ActiveIsolateScope(Thread* thread)
+      : ActiveIsolateScope(thread,
+                           thread->no_active_isolate_scope_->saved_isolate_) {}
+
+  ActiveIsolateScope(Thread* thread, Isolate* isolate)
+      : StackResource(thread), thread_(thread) {
+    RELEASE_ASSERT(thread->isolate() == nullptr);
+    thread_->isolate_ = isolate;
+  }
+  ~ActiveIsolateScope() {
+    ASSERT(thread_->isolate_ != nullptr);
+    thread_->isolate_ = nullptr;
   }
 
  private:
   Thread* thread_;
-  Isolate* saved_isolate_;
 };
 
 }  // namespace dart

@@ -2,21 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
+import 'package:compiler/src/common.dart';
 import "package:expect/expect.dart";
 import "package:compiler/src/js/js.dart";
 import "package:compiler/src/js/rewrite_async.dart";
 import "package:compiler/src/js_backend/js_backend.dart" show StringBackedName;
 
+class SimpleErrorReporter implements DiagnosticReporter {
+  @override
+  noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+}
+
 void testTransform(String source, String expected, AsyncRewriterBase rewriter) {
-  Fun fun = js(source);
+  final fun = js(source) as Fun;
   Fun rewritten = rewriter.rewrite(fun, null, null);
 
-  JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
-  SimpleJavaScriptPrintingContext context =
-      new SimpleJavaScriptPrintingContext();
-  Printer printer = new Printer(options, context);
+  JavaScriptPrintingOptions options = JavaScriptPrintingOptions();
+  SimpleJavaScriptPrintingContext context = SimpleJavaScriptPrintingContext();
+  Printer printer = Printer(options, context);
   printer.visit(rewritten);
   Expect.stringEquals(expected, context.getText());
 }
@@ -25,32 +30,32 @@ void testAsyncTransform(String source, String expected) {
   testTransform(
       source,
       expected,
-      new AsyncRewriter(
-          null, // The diagnostic helper should not be used in these tests.
+      AsyncRewriter(
+          SimpleErrorReporter(), // The diagnostic helper should not be used in these tests.
           null,
-          asyncStart: new VariableUse("startHelper"),
-          asyncAwait: new VariableUse("awaitHelper"),
-          asyncReturn: new VariableUse("returnHelper"),
-          asyncRethrow: new VariableUse("rethrowHelper"),
-          completerFactory: new VariableUse("NewCompleter"),
-          completerFactoryTypeArguments: [new VariableUse("CompleterType")],
-          wrapBody: new VariableUse("_wrapJsFunctionForAsync"),
+          asyncStart: VariableUse("startHelper"),
+          asyncAwait: VariableUse("awaitHelper"),
+          asyncReturn: VariableUse("returnHelper"),
+          asyncRethrow: VariableUse("rethrowHelper"),
+          completerFactory: VariableUse("NewCompleter"),
+          completerFactoryTypeArguments: [VariableUse("CompleterType")],
+          wrapBody: VariableUse("_wrapJsFunctionForAsync"),
           safeVariableName: (String name) => "__$name",
-          bodyName: new StringBackedName("body")));
+          bodyName: StringBackedName("body")));
 }
 
 void testSyncStarTransform(String source, String expected) {
   testTransform(
       source,
       expected,
-      new SyncStarRewriter(null, null,
-          endOfIteration: new VariableUse("endOfIteration"),
-          iterableFactory: new VariableUse("NewIterable"),
-          iterableFactoryTypeArguments: [new VariableUse("IterableType")],
-          yieldStarExpression: new VariableUse("yieldStar"),
-          uncaughtErrorExpression: new VariableUse("uncaughtError"),
+      SyncStarRewriter(SimpleErrorReporter(), null,
+          endOfIteration: VariableUse("endOfIteration"),
+          iterableFactory: VariableUse("NewIterable"),
+          iterableFactoryTypeArguments: [VariableUse("IterableType")],
+          yieldStarExpression: VariableUse("yieldStar"),
+          uncaughtErrorExpression: VariableUse("uncaughtError"),
           safeVariableName: (String name) => "__$name",
-          bodyName: new StringBackedName("body")));
+          bodyName: StringBackedName("body")));
 }
 
 main() {

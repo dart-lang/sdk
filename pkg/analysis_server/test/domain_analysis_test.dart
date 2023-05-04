@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -1494,6 +1495,7 @@ class A {}
   }
 
   Future<void> test_sentToPlugins() async {
+    if (!AnalysisServer.supportsPlugins) return;
     addTestFile('int V = 42;');
     // subscribe
     await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);

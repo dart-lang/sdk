@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class A {
   noSuchMethod(Invocation i) {}
   String foo({String bar = "baz"});

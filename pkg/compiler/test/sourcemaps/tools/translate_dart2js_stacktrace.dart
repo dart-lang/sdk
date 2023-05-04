@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 import 'package:source_maps/source_maps.dart';
 
-ArgParser parser = new ArgParser()
+ArgParser parser = ArgParser()
   ..addFlag('inline',
       abbr: 'i',
       negatable: true,
@@ -31,17 +29,17 @@ main(List<String> arguments) async {
   if (url.startsWith("http://") || url.startsWith("https://")) {
     data = (await http.get(Uri.parse(url))).body;
   } else {
-    data = new File(url).readAsStringSync();
+    data = File(url).readAsStringSync();
   }
 
-  SingleMapping sourceMap = parse(data);
+  final sourceMap = parse(data) as SingleMapping;
 
   print("Now paste the stacktrace here. Finish with at least 3 empty lines...");
 
   int emptyInARow = 0;
   List<String> lines = [];
   while (true) {
-    String line = stdin.readLineSync();
+    String? line = stdin.readLineSync();
     if (line == null) break;
     if (line == "") {
       ++emptyInARow;
@@ -56,7 +54,7 @@ main(List<String> arguments) async {
   List<String> tailMessages = [];
 
   for (String line in lines) {
-    Iterable<Match> ms = new RegExp(r"(\d+):(\d+)").allMatches(line);
+    Iterable<Match> ms = RegExp(r"(\d+):(\d+)").allMatches(line);
     if (ms.isEmpty) {
       if (options['inline']) {
         print("----- (unparseable) -----");
@@ -66,10 +64,10 @@ main(List<String> arguments) async {
       continue;
     }
     Match m = ms.first;
-    int l = int.parse(m.group(1));
-    int c = int.parse(m.group(2));
-    SourceMapSpan span = sourceMap.spanFor(l, c);
-    if (span?.start == null) {
+    int l = int.parse(m.group(1)!);
+    int c = int.parse(m.group(2)!);
+    SourceMapSpan? span = sourceMap.spanFor(l, c);
+    if (span == null) {
       if (options['inline']) {
         print("----- (unparseable) -----");
       } else {

@@ -25,8 +25,6 @@ class MegamorphicCacheRefElement extends CustomElement implements Renderable {
   factory MegamorphicCacheRefElement(
       M.IsolateRef isolate, M.MegamorphicCacheRef cache,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(cache != null);
     MegamorphicCacheRefElement e = new MegamorphicCacheRefElement.created();
     e._r = new RenderingScheduler<MegamorphicCacheRefElement>(e, queue: queue);
     e._isolate = isolate;
@@ -55,7 +53,7 @@ class MegamorphicCacheRefElement extends CustomElement implements Renderable {
         ..children = <Element>[
           new SpanElement()
             ..classes = ['emphasize']
-            ..text = 'MegarmorphicCache',
+            ..text = 'MegamorphicCache',
           new SpanElement()..text = ' (${_cache.selector})'
         ]
     ];

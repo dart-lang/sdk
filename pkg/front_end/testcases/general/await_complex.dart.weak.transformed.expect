@@ -121,7 +121,7 @@ static method conditionals() → dynamic async /* futureValueType= dynamic */ {
 }
 static method asserts() → dynamic async /* futureValueType= dynamic */ {
   {
-    core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>> :sync-for-iterator = core::_GrowableList::_literal2<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>(#C1, #C2).{core::Iterable::iterator}{core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>};
+    synthesized core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>> :sync-for-iterator = core::_GrowableList::_literal2<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>(#C1, #C2).{core::Iterable::iterator}{core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final <T extends core::Object? = dynamic>(T%) → FutureOr<T%>func = :sync-for-iterator.{core::Iterator::current}{<T extends core::Object? = dynamic>(T%) → FutureOr<T%>};
       {
@@ -144,7 +144,7 @@ static method asserts() → dynamic async /* futureValueType= dynamic */ {
 }
 static method controlFlow() → dynamic async /* futureValueType= dynamic */ {
   {
-    core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>> :sync-for-iterator = core::_GrowableList::_literal2<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>(#C1, #C2).{core::Iterable::iterator}{core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>};
+    synthesized core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>> :sync-for-iterator = core::_GrowableList::_literal2<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>(#C1, #C2).{core::Iterable::iterator}{core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final <T extends core::Object? = dynamic>(T%) → FutureOr<T%>func = :sync-for-iterator.{core::Iterator::current}{<T extends core::Object? = dynamic>(T%) → FutureOr<T%>};
       {

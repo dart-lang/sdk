@@ -10,6 +10,7 @@ import 'dart:isolate';
 
 import 'package:browser_launcher/browser_launcher.dart';
 import 'package:build_integration/file_system/multi_root.dart';
+import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/kernel/asset_file_system.dart';
 import 'package:dev_compiler/src/kernel/expression_compiler_worker.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
@@ -21,10 +22,11 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:test/test.dart';
 
-/// Verbose mode for debugging
-bool get verbose => false;
-
-void runTests(String moduleFormat, bool soundNullSafety) {
+void runTests({
+  required ModuleFormat moduleFormat,
+  required bool soundNullSafety,
+  bool verbose = false,
+}) {
   group('expression compiler worker on startup', () {
     late Directory tempDir;
     late ReceivePort receivePort;
@@ -35,8 +37,8 @@ void runTests(String moduleFormat, bool soundNullSafety) {
     });
 
     tearDown(() async {
-      tempDir.deleteSync(recursive: true);
       receivePort.close();
+      tempDir.deleteSync(recursive: true);
     });
 
     test('reports failure to consumer', () async {
@@ -60,7 +62,7 @@ void runTests(String moduleFormat, bool soundNullSafety) {
             '--dart-sdk-summary',
             badPath,
             '--module-format',
-            moduleFormat,
+            moduleFormat.name,
             soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
             if (verbose) '--verbose',
           ],
@@ -74,17 +76,17 @@ void runTests(String moduleFormat, bool soundNullSafety) {
 
   group('reading assets using standard file system - ', () {
     runExpressionCompilationTests(
-        StandardFileSystemTestDriver(soundNullSafety, moduleFormat));
+        StandardFileSystemTestDriver(soundNullSafety, moduleFormat, verbose));
   });
 
   group('reading assets using multiroot file system - ', () {
     runExpressionCompilationTests(
-        MultiRootFileSystemTestDriver(soundNullSafety, moduleFormat));
+        MultiRootFileSystemTestDriver(soundNullSafety, moduleFormat, verbose));
   });
 
   group('reading assets using asset file system -', () {
     runExpressionCompilationTests(
-        AssetFileSystemTestDriver(soundNullSafety, moduleFormat));
+        AssetFileSystemTestDriver(soundNullSafety, moduleFormat, verbose));
   });
 }
 
@@ -152,8 +154,8 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {'formal': 'formal'},
-        'libraryUri': driver.config.testModule.libraryUri,
-        'moduleName': driver.config.testModule.moduleName,
+        'libraryUri': driver.config.getModule('testModule').libraryUris.first,
+        'moduleName': driver.config.getModule('testModule').moduleName,
       });
 
       expect(
@@ -186,8 +188,8 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {'formal': 'formal'},
-        'libraryUri': driver.config.testModule.libraryUri,
-        'moduleName': driver.config.testModule.moduleName,
+        'libraryUri': driver.config.getModule('testModule').libraryUris.first,
+        'moduleName': driver.config.getModule('testModule').moduleName,
       });
 
       expect(
@@ -219,8 +221,8 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {'count': 'count'},
-        'libraryUri': driver.config.mainModule.libraryUri,
-        'moduleName': driver.config.mainModule.moduleName,
+        'libraryUri': driver.config.getModule('mainModule').libraryUris.first,
+        'moduleName': driver.config.getModule('mainModule').moduleName,
       });
 
       expect(
@@ -252,8 +254,8 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {'ret': 'ret'},
-        'libraryUri': driver.config.mainModule.libraryUri,
-        'moduleName': driver.config.mainModule.moduleName,
+        'libraryUri': driver.config.getModule('mainModule').libraryUris.first,
+        'moduleName': driver.config.getModule('mainModule').moduleName,
       });
 
       expect(
@@ -285,8 +287,8 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {},
-        'libraryUri': driver.config.mainModule.libraryUri,
-        'moduleName': driver.config.mainModule.moduleName,
+        'libraryUri': driver.config.getModule('mainModule').libraryUris.first,
+        'moduleName': driver.config.getModule('mainModule').moduleName,
       });
 
       expect(
@@ -300,9 +302,76 @@ void runExpressionCompilationTests(TestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure':
-                  contains('new test_library.B.new().c().getNumber()'),
+              'compiledProcedure': matches(
+                  r'new test_library[\$]?\.B\.new\(\)\.c\(\)\.getNumber\(\)'),
             })
+          ]));
+    });
+
+    test('can compile expressions in non-strongly-connected components',
+        () async {
+      driver.requestController.add({
+        'command': 'UpdateDeps',
+        'inputs': driver.inputs,
+      });
+
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': 'formal',
+        'line': 9,
+        'column': 1,
+        'jsModules': {},
+        'jsScope': {'formal': 'formal'},
+        'libraryUri': driver.config.getModule('testModule3').libraryUris.last,
+        'moduleName': driver.config.getModule('testModule3').moduleName,
+      });
+
+      expect(
+          driver.responseController.stream,
+          emitsInOrder([
+            equals({
+              'succeeded': true,
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('return formal;'),
+            }),
+          ]));
+    });
+
+    test('can compile expressions in strongly connected components', () async {
+      driver.requestController.add({
+        'command': 'UpdateDeps',
+        'inputs': driver.inputs,
+      });
+
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': 'formal',
+        'line': 5,
+        'column': 1,
+        'jsModules': {},
+        'jsScope': {'formal': 'formal'},
+        'libraryUri': driver.config.getModule('testModule4').libraryUris.last,
+        'moduleName': driver.config.getModule('testModule4').moduleName,
+      });
+
+      expect(
+          driver.responseController.stream,
+          emitsInOrder([
+            equals({
+              'succeeded': true,
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('return formal;'),
+            }),
           ]));
     });
 
@@ -319,8 +388,8 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {},
-        'libraryUri': driver.config.mainModule.libraryUri,
-        'moduleName': driver.config.mainModule.moduleName,
+        'libraryUri': driver.config.getModule('mainModule').libraryUris.first,
+        'moduleName': driver.config.getModule('mainModule').moduleName,
       });
 
       driver.requestController.add({
@@ -330,8 +399,8 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {'formal': 'formal'},
-        'libraryUri': driver.config.testModule.libraryUri,
-        'moduleName': driver.config.testModule.moduleName,
+        'libraryUri': driver.config.getModule('testModule').libraryUris.first,
+        'moduleName': driver.config.getModule('testModule').moduleName,
       });
 
       driver.requestController.add({
@@ -341,19 +410,30 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {'formal': 'formal'},
-        'libraryUri': driver.config.testModule2.libraryUri,
-        'moduleName': driver.config.testModule2.moduleName,
+        'libraryUri': driver.config.getModule('testModule2').libraryUris.first,
+        'moduleName': driver.config.getModule('testModule2').moduleName,
       });
 
       driver.requestController.add({
         'command': 'CompileExpression',
         'expression': 'formal',
-        'line': 3,
+        'line': 5,
         'column': 1,
         'jsModules': {},
         'jsScope': {'formal': 'formal'},
-        'libraryUri': driver.config.testModule3.libraryUri,
-        'moduleName': driver.config.testModule3.moduleName,
+        'libraryUri': driver.config.getModule('testModule3').libraryUris.last,
+        'moduleName': driver.config.getModule('testModule3').moduleName,
+      });
+
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': 'formal',
+        'line': 9,
+        'column': 1,
+        'jsModules': {},
+        'jsScope': {'formal': 'formal'},
+        'libraryUri': driver.config.getModule('testModule3').libraryUris.last,
+        'moduleName': driver.config.getModule('testModule3').moduleName,
       });
 
       driver.requestController.add({
@@ -363,8 +443,8 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {},
-        'libraryUri': driver.config.mainModule.libraryUri,
-        'moduleName': driver.config.mainModule.moduleName,
+        'libraryUri': driver.config.getModule('mainModule').libraryUris.first,
+        'moduleName': driver.config.getModule('mainModule').moduleName,
       });
 
       expect(
@@ -378,37 +458,44 @@ void runExpressionCompilationTests(TestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
+              'compiledProcedure': matches(
+                  r'new test_library[\$]?\.B\.new\(\)\.c\(\)\.getNumber\(\)'),
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('return formal;'),
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('return formal;'),
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('return formal;'),
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('return formal;'),
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
               'compiledProcedure':
-                  contains('new test_library.B.new().c().getNumber()'),
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'infos': isEmpty,
-              'compiledProcedure': contains('return formal;'),
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'infos': isEmpty,
-              'compiledProcedure': contains('return formal;'),
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'infos': isEmpty,
-              'compiledProcedure': contains('return formal;'),
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'infos': isEmpty,
-              'compiledProcedure':
-                  contains('test_library.B.new().printNumber()'),
+                  matches(r'test_library[\$]?\.B\.new\(\)\.printNumber\(\)'),
             })
           ]));
     });
@@ -426,8 +513,8 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {},
-        'libraryUri': driver.config.mainModule.libraryUri,
-        'moduleName': driver.config.mainModule.moduleName,
+        'libraryUri': driver.config.getModule('mainModule').libraryUris.first,
+        'moduleName': driver.config.getModule('mainModule').moduleName,
       });
 
       driver.requestController.add({
@@ -437,8 +524,8 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {'formal': 'formal'},
-        'libraryUri': driver.config.testModule.libraryUri,
-        'moduleName': driver.config.testModule.moduleName,
+        'libraryUri': driver.config.getModule('testModule').libraryUris.first,
+        'moduleName': driver.config.getModule('testModule').moduleName,
       });
 
       driver.requestController.add({
@@ -448,8 +535,8 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {},
-        'libraryUri': driver.config.mainModule.libraryUri,
-        'moduleName': driver.config.mainModule.moduleName,
+        'libraryUri': driver.config.getModule('mainModule').libraryUris.first,
+        'moduleName': driver.config.getModule('mainModule').moduleName,
       });
 
       driver.requestController.add({
@@ -464,19 +551,19 @@ void runExpressionCompilationTests(TestDriver driver) {
         'column': 1,
         'jsModules': {},
         'jsScope': {},
-        'libraryUri': driver.config.mainModule.libraryUri,
-        'moduleName': driver.config.mainModule.moduleName,
+        'libraryUri': driver.config.getModule('mainModule').libraryUris.first,
+        'moduleName': driver.config.getModule('mainModule').moduleName,
       });
 
       driver.requestController.add({
         'command': 'CompileExpression',
         'expression': 'formal',
-        'line': 3,
+        'line': 5,
         'column': 1,
         'jsModules': {},
         'jsScope': {'formal': 'formal'},
-        'libraryUri': driver.config.testModule3.libraryUri,
-        'moduleName': driver.config.testModule3.moduleName,
+        'libraryUri': driver.config.getModule('testModule3').libraryUris.last,
+        'moduleName': driver.config.getModule('testModule3').moduleName,
       });
 
       expect(
@@ -490,8 +577,8 @@ void runExpressionCompilationTests(TestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure':
-                  contains('new test_library.B.new().c().getNumber()'),
+              'compiledProcedure': matches(
+                  r'new test_library[\$]?\.B\.new\(\)\.c\(\)\.getNumber\(\)'),
             }),
             equals({
               'succeeded': true,
@@ -506,7 +593,7 @@ void runExpressionCompilationTests(TestDriver driver) {
               'warnings': isEmpty,
               'infos': isEmpty,
               'compiledProcedure':
-                  contains('test_library.B.new().printNumber()'),
+                  matches(r'test_library[\$]?\.B\.new\(\)\.printNumber\(\)'),
             }),
             equals({
               'succeeded': true,
@@ -516,8 +603,8 @@ void runExpressionCompilationTests(TestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure':
-                  contains('new test_library.B.new().c().getNumber()'),
+              'compiledProcedure': matches(
+                  r'new test_library[\$]?\.B\.new\(\)\.c\(\)\.getNumber\(\)'),
             }),
             equals({
               'succeeded': true,
@@ -534,20 +621,23 @@ void runExpressionCompilationTests(TestDriver driver) {
 class ModuleConfiguration {
   final Uri root;
   final String outputDir;
-  final String libraryUri;
+  final List<String> libraryUris;
+  final List<ModuleConfiguration> dependencies;
   final String moduleName;
   final String jsFileName;
   final String fullDillFileName;
   final String summaryDillFileName;
 
-  ModuleConfiguration(
-      {required this.root,
-      required this.outputDir,
-      required this.moduleName,
-      required this.libraryUri,
-      required this.jsFileName,
-      required this.fullDillFileName,
-      required this.summaryDillFileName});
+  ModuleConfiguration({
+    required this.root,
+    required this.outputDir,
+    required this.moduleName,
+    required this.libraryUris,
+    required this.dependencies,
+    required this.jsFileName,
+    required this.fullDillFileName,
+    required this.summaryDillFileName,
+  });
 
   Uri get jsUri => root.resolve('$outputDir/$jsFileName');
   Uri get multiRootFullDillUri =>
@@ -564,52 +654,82 @@ class ModuleConfiguration {
 }
 
 class TestProjectConfiguration {
+  static final String outputDir = 'out';
+
   final Directory rootDirectory;
-  final String outputDir = 'out';
   final bool soundNullSafety;
-  final String moduleFormat;
+  final ModuleFormat moduleFormat;
+  late final Map<String, ModuleConfiguration> modules;
 
   TestProjectConfiguration(
       this.rootDirectory, this.soundNullSafety, this.moduleFormat);
 
-  ModuleConfiguration get mainModule => ModuleConfiguration(
-      root: root,
-      outputDir: outputDir,
-      moduleName: 'packages/_testPackage/main',
-      libraryUri: 'org-dartlang-app:/lib/main.dart',
-      jsFileName: 'main.js',
-      fullDillFileName: 'main.full.dill',
-      summaryDillFileName: 'main.dill');
+  void initialize() {
+    final testModule4 = ModuleConfiguration(
+        root: root,
+        outputDir: outputDir,
+        moduleName: 'packages/_testPackage/test_library4',
+        libraryUris: [
+          'package:_testPackage/test_library7.dart',
+          'package:_testPackage/test_library6.dart',
+        ],
+        dependencies: [],
+        jsFileName: 'test_library4.js',
+        fullDillFileName: 'test_library4.full.dill',
+        summaryDillFileName: 'test_library4.dill');
 
-  ModuleConfiguration get testModule => ModuleConfiguration(
-      root: root,
-      outputDir: outputDir,
-      moduleName: 'packages/_testPackage/test_library',
-      libraryUri: 'package:_testPackage/test_library.dart',
-      jsFileName: 'test_library.js',
-      fullDillFileName: 'test_library.full.dill',
-      summaryDillFileName: 'test_library.dill');
+    final testModule3 = ModuleConfiguration(
+        root: root,
+        outputDir: outputDir,
+        moduleName: 'packages/_testPackage/test_library3',
+        libraryUris: [
+          'package:_testPackage/test_library5.dart',
+          'package:_testPackage/test_library4.dart',
+          'package:_testPackage/test_library3.dart',
+        ],
+        dependencies: [],
+        jsFileName: 'test_library3.js',
+        fullDillFileName: 'test_library3.full.dill',
+        summaryDillFileName: 'test_library3.dill');
 
-  // TODO(annagrin): E.g. this module should have a file included that's not
-  // directly reachable from the libraryUri (i.e. where "too much" has been
-  // bundled).
-  ModuleConfiguration get testModule2 => ModuleConfiguration(
-      root: root,
-      outputDir: outputDir,
-      moduleName: 'packages/_testPackage/test_library2',
-      libraryUri: 'package:_testPackage/test_library2.dart',
-      jsFileName: 'test_library2.js',
-      fullDillFileName: 'test_library2.full.dill',
-      summaryDillFileName: 'test_library2.dill');
+    final testModule2 = ModuleConfiguration(
+        root: root,
+        outputDir: outputDir,
+        moduleName: 'packages/_testPackage/test_library2',
+        libraryUris: ['package:_testPackage/test_library2.dart'],
+        dependencies: [],
+        jsFileName: 'test_library2.js',
+        fullDillFileName: 'test_library2.full.dill',
+        summaryDillFileName: 'test_library2.dill');
 
-  ModuleConfiguration get testModule3 => ModuleConfiguration(
-      root: root,
-      outputDir: outputDir,
-      moduleName: 'packages/_testPackage/test_library3',
-      libraryUri: 'package:_testPackage/test_library3.dart',
-      jsFileName: 'test_library3.js',
-      fullDillFileName: 'test_library3.full.dill',
-      summaryDillFileName: 'test_library3.dill');
+    final testModule = ModuleConfiguration(
+        root: root,
+        outputDir: outputDir,
+        moduleName: 'packages/_testPackage/test_library',
+        libraryUris: ['package:_testPackage/test_library.dart'],
+        dependencies: [testModule2],
+        jsFileName: 'test_library.js',
+        fullDillFileName: 'test_library.full.dill',
+        summaryDillFileName: 'test_library.dill');
+
+    final mainModule = ModuleConfiguration(
+        root: root,
+        outputDir: outputDir,
+        moduleName: 'packages/_testPackage/main',
+        libraryUris: ['org-dartlang-app:/lib/main.dart'],
+        dependencies: [testModule3, testModule2, testModule],
+        jsFileName: 'main.js',
+        fullDillFileName: 'main.full.dill',
+        summaryDillFileName: 'main.dill');
+
+    modules = {
+      'testModule4': testModule4,
+      'testModule3': testModule3,
+      'testModule2': testModule2,
+      'testModule': testModule,
+      'mainModule': mainModule,
+    };
+  }
 
   String get rootPath => rootDirectory.path;
   Uri get root => rootDirectory.uri;
@@ -617,79 +737,46 @@ class TestProjectConfiguration {
   Uri get packagesPath => root.resolve('package_config.json');
 
   Uri get sdkRoot => computePlatformBinariesLocation();
+  // Use the outline copied to the released SDK.
+  // Unsound .dill files are not longer in the released SDK so this file must be
+  // read from the build output directory.
   Uri get sdkSummaryPath => soundNullSafety
-      ? sdkRoot.resolve('ddc_outline_sound.dill')
-      : sdkRoot.resolve('ddc_sdk.dill');
+      ? sdkRoot.resolve('ddc_outline.dill')
+      : computePlatformBinariesLocation(forceBuildDir: true)
+          .resolve('ddc_outline_unsound.dill');
   Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
 
   List get inputUris => [
-        {
-          'path': '${mainModule.multiRootFullDillUri}',
-          'summaryPath': '${mainModule.multiRootSummaryUri}',
-          'moduleName': mainModule.moduleName
-        },
-        {
-          'path': '${testModule.multiRootFullDillUri}',
-          'summaryPath': '${testModule.multiRootSummaryUri}',
-          'moduleName': testModule.moduleName
-        },
-        {
-          'path': '${testModule2.multiRootFullDillUri}',
-          'summaryPath': '${testModule2.multiRootSummaryUri}',
-          'moduleName': testModule2.moduleName
-        },
-        {
-          'path': '${testModule3.multiRootFullDillUri}',
-          'summaryPath': '${testModule3.multiRootSummaryUri}',
-          'moduleName': testModule3.moduleName
-        },
+        for (var module in modules.values) ...[
+          {
+            'path': '${module.multiRootFullDillUri}',
+            'summaryPath': '${module.multiRootSummaryUri}',
+            'moduleName': module.moduleName
+          },
+        ]
       ];
 
   List get inputRelativeUris => [
-        {
-          'path': '${mainModule.multiRootFullDillUri}',
-          'summaryPath': '${mainModule.multiRootSummaryUri}',
-          'moduleName': mainModule.moduleName
-        },
-        {
-          'path': '${testModule.multiRootFullDillUri}',
-          'summaryPath': '${testModule.multiRootSummaryUri}',
-          'moduleName': testModule.moduleName
-        },
-        {
-          'path': '${testModule2.multiRootFullDillUri}',
-          'summaryPath': '${testModule2.multiRootSummaryUri}',
-          'moduleName': testModule2.moduleName
-        },
-        {
-          'path': '${testModule3.multiRootFullDillUri}',
-          'summaryPath': '${testModule3.multiRootSummaryUri}',
-          'moduleName': testModule3.moduleName
-        },
+        for (var module in modules.values) ...[
+          {
+            'path': '${module.multiRootFullDillUri}',
+            'summaryPath': '${module.multiRootSummaryUri}',
+            'moduleName': module.moduleName
+          },
+        ]
       ];
 
   List get inputPaths => [
-        {
-          'path': mainModule.fullDillPath,
-          'summaryPath': mainModule.summaryDillPath,
-          'moduleName': mainModule.moduleName
-        },
-        {
-          'path': testModule.fullDillPath,
-          'summaryPath': testModule.summaryDillPath,
-          'moduleName': testModule.moduleName
-        },
-        {
-          'path': testModule2.fullDillPath,
-          'summaryPath': testModule2.summaryDillPath,
-          'moduleName': testModule2.moduleName
-        },
-        {
-          'path': testModule3.fullDillPath,
-          'summaryPath': testModule3.summaryDillPath,
-          'moduleName': testModule3.moduleName
-        },
+        for (var module in modules.values) ...[
+          {
+            'path': module.fullDillPath,
+            'summaryPath': module.summaryDillPath,
+            'moduleName': module.moduleName
+          },
+        ]
       ];
+
+  ModuleConfiguration getModule(String name) => modules[name]!;
 
   void createTestProject() {
     var pubspec = root.resolve('pubspec.yaml');
@@ -748,6 +835,8 @@ extension NumberParsing on String {
 void linkToImports() {
   testLibraryFunction(42);
   testLibraryFunction3(42);
+  testLibraryFunctionD(D());
+  testLibraryFunctionE();
 }
 ''');
 
@@ -788,13 +877,71 @@ class C {
 }
 ''');
 
+    // Non-strongly connected component of libraries
     var testLibrary3 = root.resolve('lib/test_library3.dart');
     File.fromUri(testLibrary3)
       ..createSync()
       ..writeAsStringSync('''
 
+import 'package:_testPackage/test_library4.dart';
+
 int testLibraryFunction3(int formal) {
-  return formal; // line 3
+  return formal; // line 5
+}
+
+D testLibraryFunctionD(D formal) {
+  return formal; // line 9
+}
+
+class D {}
+
+void testLibraryFunctionE() {
+  E();
+}
+''');
+
+    var testLibrary4 = root.resolve('lib/test_library4.dart');
+    File.fromUri(testLibrary4)
+      ..createSync()
+      ..writeAsStringSync('''
+class E {}
+''');
+
+    // Unconnected library
+    var testLibrary5 = root.resolve('lib/test_library5.dart');
+    File.fromUri(testLibrary5)
+      ..createSync()
+      ..writeAsStringSync('''
+class F {}
+''');
+
+    // Strongly connected component of libraries
+    var testLibrary6 = root.resolve('lib/test_library6.dart');
+    File.fromUri(testLibrary6)
+      ..createSync()
+      ..writeAsStringSync('''
+
+import 'package:_testPackage/test_library7.dart';
+
+D testLibraryFunctionD(D formal) {
+  return formal; // line 5
+}
+
+class D {}
+
+void testLibraryFunctionE() {
+  E();
+}
+''');
+
+    var testLibrary7 = root.resolve('lib/test_library7.dart');
+    File.fromUri(testLibrary7)
+      ..createSync()
+      ..writeAsStringSync('''
+import 'package:_testPackage/test_library6.dart';
+
+class E {
+  void foo(D bar) {}
 }
 ''');
   }
@@ -802,7 +949,8 @@ int testLibraryFunction3(int formal) {
 
 abstract class TestDriver {
   final bool soundNullSafety;
-  final String moduleFormat;
+  final ModuleFormat moduleFormat;
+  final bool verbose;
 
   late FileSystem fileSystem;
   late FileSystem assetFileSystem;
@@ -816,7 +964,7 @@ abstract class TestDriver {
   ExpressionCompilerWorker? worker;
   Future<void>? workerDone;
 
-  TestDriver(this.soundNullSafety, this.moduleFormat);
+  TestDriver(this.soundNullSafety, this.moduleFormat, this.verbose);
 
   /// Initialize file systems, inputs, and start servers if needed.
   Future<void> start();
@@ -825,13 +973,14 @@ abstract class TestDriver {
 
   Future<void> setUpAll() async {
     tempDir = Directory.systemTemp.createTempSync('foo bar');
-    config = TestProjectConfiguration(tempDir, soundNullSafety, moduleFormat);
+    config = TestProjectConfiguration(tempDir, soundNullSafety, moduleFormat)
+      ..initialize();
 
     await start();
 
     // Build the project.
     config.createTestProject();
-    var kernelGenerator = DDCKernelGenerator(config);
+    var kernelGenerator = DDCKernelGenerator(config, verbose);
     await kernelGenerator.generate();
   }
 
@@ -855,6 +1004,7 @@ abstract class TestDriver {
       requestStream: requestController.stream,
       sendResponse: responseController.add,
       soundNullSafety: soundNullSafety,
+      moduleFormat: moduleFormat,
       verbose: verbose,
     );
     workerDone = worker?.run();
@@ -869,8 +1019,11 @@ abstract class TestDriver {
 }
 
 class StandardFileSystemTestDriver extends TestDriver {
-  StandardFileSystemTestDriver(bool soundNullSafety, String moduleFormat)
-      : super(soundNullSafety, moduleFormat);
+  StandardFileSystemTestDriver(
+    bool soundNullSafety,
+    ModuleFormat moduleFormat,
+    bool verbose,
+  ) : super(soundNullSafety, moduleFormat, verbose);
 
   @override
   Future<void> start() async {
@@ -882,8 +1035,11 @@ class StandardFileSystemTestDriver extends TestDriver {
 }
 
 class MultiRootFileSystemTestDriver extends TestDriver {
-  MultiRootFileSystemTestDriver(bool soundNullSafety, String moduleFormat)
-      : super(soundNullSafety, moduleFormat);
+  MultiRootFileSystemTestDriver(
+    bool soundNullSafety,
+    ModuleFormat moduleFormat,
+    bool verbose,
+  ) : super(soundNullSafety, moduleFormat, verbose);
 
   @override
   Future<void> start() async {
@@ -898,8 +1054,11 @@ class AssetFileSystemTestDriver extends TestDriver {
   late TestAssetServer server;
   late int port;
 
-  AssetFileSystemTestDriver(bool soundNullSafety, String moduleFormat)
-      : super(soundNullSafety, moduleFormat);
+  AssetFileSystemTestDriver(
+    bool soundNullSafety,
+    ModuleFormat moduleFormat,
+    bool verbose,
+  ) : super(soundNullSafety, moduleFormat, verbose);
 
   @override
   Future<void> start() async {
@@ -967,118 +1126,67 @@ class TestAssetServer {
 /// in order to simulate webdev environment
 class DDCKernelGenerator {
   final TestProjectConfiguration config;
+  final bool verbose;
+  static final dart = Platform.resolvedExecutable;
+  static final dartdevc =
+      p.join(p.dirname(dart), 'snapshots', 'dartdevc.dart.snapshot');
+  static final kernelWorker =
+      p.join(p.dirname(dart), 'snapshots', 'kernel_worker.dart.snapshot');
 
-  DDCKernelGenerator(this.config);
+  DDCKernelGenerator(this.config, this.verbose);
 
   Future<int> generate() async {
-    var dart = Platform.resolvedExecutable;
-    var dartdevc =
-        p.join(p.dirname(dart), 'snapshots', 'dartdevc.dart.snapshot');
-
     Directory.fromUri(config.outputPath).createSync();
 
-    // generate test_library3.full.dill
-    var args = [
-      dartdevc,
-      config.testModule3.libraryUri,
-      '-o',
-      config.testModule3.jsUri.toFilePath(),
-      '--source-map',
-      '--experimental-emit-debug-metadata',
-      '--emit-debug-symbols',
-      '--experimental-output-compiled-kernel',
-      '--dart-sdk-summary',
-      config.sdkSummaryPath.path,
-      '--multi-root',
-      '${config.root}',
-      '--multi-root-scheme',
-      'org-dartlang-app',
-      '--packages',
-      config.packagesPath.path,
-      if (config.soundNullSafety) '--sound-null-safety',
-      if (!config.soundNullSafety) '--no-sound-null-safety',
-      '--modules',
-      config.moduleFormat,
-    ];
-
-    var exitCode = await runProcess(dart, args, config.rootPath);
-    if (exitCode != 0) {
-      return exitCode;
+    // generate summaries
+    var exitCode = 0;
+    for (var module in config.modules.values) {
+      exitCode = await _generateSummary(module);
+      expect(exitCode, 0,
+          reason: 'Failed to generate summary dill for ${module.moduleName}');
     }
 
-    // generate test_library2.full.dill
-    args = [
-      dartdevc,
-      config.testModule2.libraryUri,
-      '-o',
-      config.testModule2.jsUri.toFilePath(),
-      '--source-map',
-      '--experimental-emit-debug-metadata',
-      '--emit-debug-symbols',
-      '--experimental-output-compiled-kernel',
-      '--dart-sdk-summary',
-      config.sdkSummaryPath.path,
-      '--multi-root',
-      '${config.root}',
-      '--multi-root-scheme',
-      'org-dartlang-app',
-      '--packages',
-      config.packagesPath.path,
+    // generate full dill
+    for (var module in config.modules.values) {
+      exitCode = await _generateFullDill(module);
+      expect(exitCode, 0,
+          reason: 'Failed to generate full dill for ${module.moduleName}');
+    }
+    return exitCode;
+  }
+
+  Future<int> _generateSummary(ModuleConfiguration module) async {
+    final args = [
+      kernelWorker,
+      for (var lib in module.libraryUris) '--source=$lib',
+      for (var dependency in module.dependencies)
+        '--input-summary=${dependency.multiRootSummaryUri}',
+      '--output=${module.relativeSummaryUri.toFilePath()}',
+      '--dart-sdk-summary=${config.sdkSummaryPath.path}',
+      '--multi-root=${config.root}',
+      '--multi-root-scheme=org-dartlang-app',
+      '--exclude-non-sources',
+      '--summary-only',
+      '--reuse-compiler-result',
+      '--use-incremental-compiler',
+      '--packages-file=${config.packagesPath.path}',
       if (config.soundNullSafety) '--sound-null-safety',
       if (!config.soundNullSafety) '--no-sound-null-safety',
-      '--modules',
-      config.moduleFormat,
     ];
 
-    exitCode = await runProcess(dart, args, config.rootPath);
-    if (exitCode != 0) {
-      return exitCode;
-    }
+    return runProcess(dart, args, config.rootPath, verbose);
+  }
 
-    // generate test_library.full.dill
-    args = [
+  Future<int> _generateFullDill(ModuleConfiguration module) async {
+    final args = [
       dartdevc,
-      config.testModule.libraryUri,
-      '--summary',
-      '${config.testModule2.multiRootSummaryUri}='
-          '${config.testModule2.moduleName}',
+      ...module.libraryUris,
+      for (var dependency in module.dependencies) ...[
+        '--summary',
+        '${dependency.multiRootSummaryUri}=${dependency.moduleName}'
+      ],
       '-o',
-      config.testModule.jsUri.toFilePath(),
-      '--source-map',
-      '--experimental-emit-debug-metadata',
-      '--emit-debug-symbols',
-      '--experimental-output-compiled-kernel',
-      '--dart-sdk-summary',
-      config.sdkSummaryPath.path,
-      '--multi-root',
-      '${config.root}',
-      '--multi-root-scheme',
-      'org-dartlang-app',
-      '--packages',
-      config.packagesPath.path,
-      if (config.soundNullSafety) '--sound-null-safety',
-      if (!config.soundNullSafety) '--no-sound-null-safety',
-      '--modules',
-      config.moduleFormat,
-    ];
-
-    exitCode = await runProcess(dart, args, config.rootPath);
-    if (exitCode != 0) {
-      return exitCode;
-    }
-
-    // generate main.full.dill
-    args = [
-      dartdevc,
-      config.mainModule.libraryUri,
-      '--summary',
-      '${config.testModule3.multiRootSummaryUri}='
-          '${config.testModule3.moduleName}',
-      '--summary',
-      '${config.testModule.multiRootSummaryUri}='
-          '${config.testModule.moduleName}',
-      '-o',
-      config.mainModule.jsUri.toFilePath(),
+      module.jsUri.toFilePath(),
       '--source-map',
       '--experimental-emit-debug-metadata',
       '--emit-debug-symbols',
@@ -1094,15 +1202,16 @@ class DDCKernelGenerator {
       if (config.soundNullSafety) '--sound-null-safety',
       if (!config.soundNullSafety) '--no-sound-null-safety',
       '--modules',
-      config.moduleFormat,
+      config.moduleFormat.name,
+      '--no-summarize',
     ];
 
-    return await runProcess(dart, args, config.rootPath);
+    return await runProcess(dart, args, config.rootPath, verbose);
   }
 }
 
-Future<int> runProcess(
-    String command, List<String> args, String workingDirectory) async {
+Future<int> runProcess(String command, List<String> args,
+    String workingDirectory, bool verbose) async {
   if (verbose) {
     print('Running command in $workingDirectory:'
         '\n\t $command ${args.join(' ')}, ');

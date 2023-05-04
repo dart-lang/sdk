@@ -46,7 +46,7 @@ class HashMap<K, V> {
 
 const int _MODIFICATION_COUNT_MASK = 0x3fffffff;
 
-class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
+base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   static const int _INITIAL_CAPACITY = 8;
 
   int _elementCount = 0;
@@ -253,7 +253,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   Set<K> _newKeySet() => new _HashSet<K>();
 }
 
-class _CustomHashMap<K, V> extends _HashMap<K, V> {
+base class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
   final _Predicate _validKey;
@@ -354,7 +354,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   Set<K> _newKeySet() => new _CustomHashSet<K>(_equals, _hashCode, _validKey);
 }
 
-class _IdentityHashMap<K, V> extends _HashMap<K, V> {
+base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   bool containsKey(Object? key) {
     final hashCode = identityHashCode(key);
     final buckets = _buckets;
@@ -584,7 +584,7 @@ class HashSet<E> {
   factory HashSet.identity() => new _IdentityHashSet<E>();
 }
 
-class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
+base class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   static const int _INITIAL_CAPACITY = 8;
 
   var _buckets = List<_HashSetEntry<E>?>.filled(_INITIAL_CAPACITY, null);
@@ -782,7 +782,7 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   HashSet<R> _newSimilarSet<R>() => new _HashSet<R>();
 }
 
-class _IdentityHashSet<E> extends _HashSet<E> {
+base class _IdentityHashSet<E> extends _HashSet<E> {
   int _hashCode(Object? e) => identityHashCode(e);
   bool _equals(Object? e1, Object? e2) => identical(e1, e2);
 
@@ -790,7 +790,7 @@ class _IdentityHashSet<E> extends _HashSet<E> {
   HashSet<R> _newSimilarSet<R>() => new _IdentityHashSet<R>();
 }
 
-class _CustomHashSet<E> extends _HashSet<E> {
+base class _CustomHashSet<E> extends _HashSet<E> {
   final _Equality<E> _equality;
   final _Hasher<E> _hasher;
   final _Predicate _validKey;

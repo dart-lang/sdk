@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+inline class A /* declaredRepresentationType = core::int */ {
+  constructor name1 = self::A|name1;
+  tearoff name1 = self::A|get#name1;
+}
+static method A|name1(core::int value) → self::A
+  ;
+static method A|get#name1(core::int value) → self::A
+  return self::A|name1(value);
+static method method() → void
+  ;

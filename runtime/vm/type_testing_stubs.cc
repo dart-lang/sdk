@@ -79,6 +79,24 @@ void TypeTestingStubNamer::StringifyTypeTo(BaseTextBuffer* buffer,
     }
   } else if (type.IsTypeParameter()) {
     buffer->AddString(TypeParameter::Cast(type).CanonicalNameCString());
+  } else if (type.IsRecordType()) {
+    const RecordType& rec = RecordType::Cast(type);
+    buffer->AddString("Record");
+    const intptr_t num_fields = rec.NumFields();
+    const auto& field_names =
+        Array::Handle(rec.GetFieldNames(Thread::Current()));
+    const intptr_t num_positional_fields = num_fields - field_names.Length();
+    const auto& field_types = Array::Handle(rec.field_types());
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      buffer->AddString("__");
+      type_ ^= field_types.At(i);
+      StringifyTypeTo(buffer, type_);
+      if (i >= num_positional_fields) {
+        buffer->AddString("_");
+        string_ ^= field_names.At(i - num_positional_fields);
+        buffer->AddString(string_.ToCString());
+      }
+    }
   } else {
     buffer->AddString(type.ToCString());
   }
@@ -129,13 +147,13 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     }
   }
 
-  if (type.IsFunctionType() || type.IsRecordType()) {
+  if (type.IsFunctionType()) {
     const bool nullable = Instance::NullIsAssignableTo(type);
     return nullable ? StubCode::DefaultNullableTypeTest().ptr()
                     : StubCode::DefaultTypeTest().ptr();
   }
 
-  if (type.IsType()) {
+  if (type.IsType() || type.IsRecordType()) {
     const bool should_specialize = !FLAG_precompiled_mode && lazy_specialize;
     const bool nullable = Instance::NullIsAssignableTo(type);
     if (should_specialize) {
@@ -177,10 +195,10 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
   }
 
   if (type.IsCanonical()) {
-    if (type.IsType()) {
+    if (type.IsType() || type.IsRecordType()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      const Code& code = Code::Handle(
-          TypeTestingStubGenerator::BuildCodeForType(Type::Cast(type)));
+      const Code& code =
+          Code::Handle(TypeTestingStubGenerator::BuildCodeForType(type));
       if (!code.IsNull()) {
         return code.ptr();
       }
@@ -235,19 +253,17 @@ static CodePtr RetryCompilationWithFarBranches(
   }
 }
 
-CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
+CodePtr TypeTestingStubGenerator::BuildCodeForType(const AbstractType& type) {
   auto thread = Thread::Current();
   auto zone = thread->zone();
   HierarchyInfo* hi = thread->hierarchy_info();
   ASSERT(hi != NULL);
 
   if (!hi->CanUseSubtypeRangeCheckFor(type) &&
-      !hi->CanUseGenericSubtypeRangeCheckFor(type)) {
+      !hi->CanUseGenericSubtypeRangeCheckFor(type) &&
+      !hi->CanUseRecordSubtypeRangeCheckFor(type)) {
     return Code::null();
   }
-
-  const Class& type_class = Class::Handle(type.type_class());
-  ASSERT(!type_class.IsNull());
 
   auto& slow_tts_stub = Code::ZoneHandle(zone);
   if (FLAG_precompiled_mode) {
@@ -260,7 +276,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
           thread, [&](compiler::Assembler& assembler) {
             compiler::UnresolvedPcRelativeCalls unresolved_calls;
             BuildOptimizedTypeTestStub(&assembler, &unresolved_calls,
-                                       slow_tts_stub, hi, type, type_class);
+                                       slow_tts_stub, hi, type);
 
             const auto& static_calls_table = Array::Handle(
                 zone, compiler::StubCodeCompiler::BuildStaticCallsTable(
@@ -320,9 +336,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStub(
     compiler::UnresolvedPcRelativeCalls* unresolved_calls,
     const Code& slow_type_test_stub,
     HierarchyInfo* hi,
-    const Type& type,
-    const Class& type_class) {
-  BuildOptimizedTypeTestStubFastCases(assembler, hi, type, type_class);
+    const AbstractType& type) {
+  BuildOptimizedTypeTestStubFastCases(assembler, hi, type);
   __ Jump(compiler::Address(
       THR, compiler::target::Thread::slow_type_test_entry_point_offset()));
 }
@@ -330,8 +345,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStub(
 void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     compiler::Assembler* assembler,
     HierarchyInfo* hi,
-    const Type& type,
-    const Class& type_class) {
+    const AbstractType& type) {
   // These are handled via the TopTypeTypeTestStub!
   ASSERT(!type.IsTopTypeForSubtyping());
 
@@ -360,6 +374,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
 
   // Check the cid ranges which are a subtype of [type].
   if (hi->CanUseSubtypeRangeCheckFor(type)) {
+    const Class& type_class = Class::Handle(type.type_class());
+    ASSERT(!type_class.IsNull());
     const CidRangeVector& ranges = hi->SubtypeRangesForClass(
         type_class,
         /*include_abstract=*/false,
@@ -381,9 +397,16 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     __ Bind(&is_subtype);
     __ Ret();
     __ Bind(&is_not_subtype);
+  } else if (hi->CanUseGenericSubtypeRangeCheckFor(type)) {
+    const Class& type_class = Class::Handle(type.type_class());
+    ASSERT(!type_class.IsNull());
+    BuildOptimizedSubclassRangeCheckWithTypeArguments(
+        assembler, hi, Type::Cast(type), type_class);
+  } else if (hi->CanUseRecordSubtypeRangeCheckFor(type)) {
+    BuildOptimizedRecordSubtypeRangeCheck(assembler, hi,
+                                          RecordType::Cast(type));
   } else {
-    BuildOptimizedSubclassRangeCheckWithTypeArguments(assembler, hi, type,
-                                                      type_class);
+    UNREACHABLE();
   }
 
   if (Instance::NullIsAssignableTo(type)) {
@@ -663,6 +686,68 @@ void TypeTestingStubGenerator::
 
   // If anything fails.
   __ Bind(&check_failed);
+}
+
+void TypeTestingStubGenerator::BuildOptimizedRecordSubtypeRangeCheck(
+    compiler::Assembler* assembler,
+    HierarchyInfo* hi,
+    const RecordType& type) {
+  compiler::Label is_subtype, is_not_subtype;
+  Zone* zone = Thread::Current()->zone();
+
+  __ BranchIfSmi(TypeTestABI::kInstanceReg, &is_not_subtype);
+  __ LoadClassId(TTSInternalRegs::kScratchReg, TypeTestABI::kInstanceReg);
+
+  if (Instance::NullIsAssignableTo(type)) {
+    __ CompareImmediate(TTSInternalRegs::kScratchReg, kNullCid);
+    __ BranchIf(EQUAL, &is_subtype);
+  }
+  __ CompareImmediate(TTSInternalRegs::kScratchReg, kRecordCid);
+  __ BranchIf(NOT_EQUAL, &is_not_subtype);
+
+  __ LoadCompressedSmi(
+      TTSInternalRegs::kScratchReg,
+      compiler::FieldAddress(TypeTestABI::kInstanceReg,
+                             compiler::target::Record::shape_offset()));
+  __ CompareImmediate(TTSInternalRegs::kScratchReg,
+                      Smi::RawValue(type.shape().AsInt()));
+  __ BranchIf(NOT_EQUAL, &is_not_subtype);
+
+  auto& field_type = AbstractType::Handle(zone);
+  auto& field_type_class = Class::Handle(zone);
+  const auto& smi_type = Type::Handle(zone, Type::SmiType());
+  for (intptr_t i = 0, n = type.NumFields(); i < n; ++i) {
+    compiler::Label next;
+
+    field_type = type.FieldTypeAt(i);
+    ASSERT(hi->CanUseSubtypeRangeCheckFor(field_type));
+
+    __ LoadCompressedFieldFromOffset(TTSInternalRegs::kScratchReg,
+                                     TypeTestABI::kInstanceReg,
+                                     compiler::target::Record::field_offset(i));
+
+    field_type_class = field_type.type_class();
+    ASSERT(!field_type_class.IsNull());
+
+    const CidRangeVector& ranges = hi->SubtypeRangesForClass(
+        field_type_class,
+        /*include_abstract=*/false,
+        /*exclude_null=*/!Instance::NullIsAssignableTo(field_type));
+
+    const bool smi_is_ok = smi_type.IsSubtypeOf(field_type, Heap::kNew);
+    __ BranchIfSmi(TTSInternalRegs::kScratchReg,
+                   smi_is_ok ? &next : &is_not_subtype);
+    __ LoadClassId(TTSInternalRegs::kScratchReg, TTSInternalRegs::kScratchReg);
+
+    BuildOptimizedSubtypeRangeCheck(assembler, ranges,
+                                    TTSInternalRegs::kScratchReg, &next,
+                                    &is_not_subtype);
+    __ Bind(&next);
+  }
+
+  __ Bind(&is_subtype);
+  __ Ret();
+  __ Bind(&is_not_subtype);
 }
 
 // Splits [ranges] into multiple ranges in [output], where the concrete,
@@ -1240,9 +1325,9 @@ void RegisterTypeArgumentsUse(const Function& function,
       // This is an approximation: If we only know the type, but not the cid, we
       // might have a this-dispatch where we know it's either this class or any
       // subclass.
-      // We try to strengthen this assumption furher down by checking the offset
-      // of the type argument vector, but generally speaking this could be a
-      // false-postive, which is still ok!
+      // We try to strengthen this assumption further down by checking the
+      // offset of the type argument vector, but generally speaking this could
+      // be a false-positive, which is still ok!
       const AbstractType& type = *instance->Type()->ToAbstractType();
       if (type.IsType()) {
         const Class& type_class = Class::Handle(type.type_class());
@@ -1424,7 +1509,7 @@ void TypeUsageInfo::UseTypeArgumentsInInstanceCreation(
     // of type arguments the class expects.
     ASSERT(ta.IsNull() || klass.NumTypeArguments() <= ta.Length());
 
-    // If this is a non-instantiated [TypeArguments] object, then it referes to
+    // If this is a non-instantiated [TypeArguments] object, then it refers to
     // type parameters.  We need to ensure the type parameters in [ta] only
     // refer to type parameters in the class.
     if (!ta.IsNull() && !ta.IsInstantiated() &&
@@ -1476,8 +1561,8 @@ void TypeUsageInfo::PropagateTypeArguments(ClassTable* class_table,
 
   TypeArgumentInstantiator instantiator(zone_);
 
-  const intptr_t kPropgationRounds = 2;
-  for (intptr_t round = 0; round < kPropgationRounds; ++round) {
+  const intptr_t kPropagationRounds = 2;
+  for (intptr_t round = 0; round < kPropagationRounds; ++round) {
     for (intptr_t cid = 0; cid < cid_count; ++cid) {
       if (!class_table->IsValidIndex(cid) ||
           !class_table->HasValidClassAt(cid)) {

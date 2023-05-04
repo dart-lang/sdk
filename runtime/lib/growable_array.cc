@@ -8,6 +8,7 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_graph_copy.h"
 
 namespace dart {
 

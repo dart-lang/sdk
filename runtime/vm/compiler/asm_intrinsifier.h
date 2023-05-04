@@ -11,6 +11,7 @@
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/allocation.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/recognized_methods_list.h"
 
 namespace dart {
@@ -40,6 +41,15 @@ class AsmIntrinsifier : public AllStatic {
   static void IntrinsifyRegExpExecuteMatch(Assembler* assembler,
                                            Label* normal_ir_body,
                                            bool sticky);
+
+  static void StringEquality(Assembler* assembler,
+                             Register obj1,
+                             Register obj2,
+                             Register temp1,
+                             Register temp2,
+                             Register result,
+                             Label* normal_ir_body,
+                             intptr_t string_cid);
 };
 
 }  // namespace compiler

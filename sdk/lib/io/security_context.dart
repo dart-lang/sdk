@@ -17,7 +17,7 @@ part of dart.io;
 /// iOS note: Some methods to add, remove, and inspect certificates are not yet
 /// implemented. However, the platform's built-in trusted certificates can
 /// be used, by way of [SecurityContext.defaultContext].
-abstract class SecurityContext {
+abstract interface class SecurityContext {
   /// Creates a new [SecurityContext].
   ///
   /// By default, the created [SecurityContext] contains no keys or certificates.
@@ -42,7 +42,7 @@ abstract class SecurityContext {
   /// certificate authorities as its trusted roots. On Linux and Windows, this
   /// list is taken from Mozilla, who maintains it as part of Firefox. On,
   /// MacOS, iOS, and Android, this list comes from the trusted certificates
-  /// stores built in to the platforms.
+  /// stores built into the platforms.
   external static SecurityContext get defaultContext;
 
   /// Sets the private key for a server certificate or client certificate.

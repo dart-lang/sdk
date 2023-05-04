@@ -1524,53 +1524,23 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // ECX: String length, untagged integer.
   // EDI: Loop counter, untagged integer.
   // EAX: Hash code, untagged integer.
-  Label loop, done, set_hash_code;
+  Label loop, done;
   __ Bind(&loop);
   __ cmpl(EDI, ECX);
   __ j(EQUAL, &done, Assembler::kNearJump);
   // Add to hash code: (hash_ is uint32)
-  // hash_ += ch;
-  // hash_ += hash_ << 10;
-  // hash_ ^= hash_ >> 6;
   // Get one characters (ch).
   __ movzxb(EDX, FieldAddress(EBX, EDI, TIMES_1,
                               target::OneByteString::data_offset()));
   // EDX: ch and temporary.
-  __ addl(EAX, EDX);
-  __ movl(EDX, EAX);
-  __ shll(EDX, Immediate(10));
-  __ addl(EAX, EDX);
-  __ movl(EDX, EAX);
-  __ shrl(EDX, Immediate(6));
-  __ xorl(EAX, EDX);
+  __ CombineHashes(EAX, EDX);
 
   __ incl(EDI);
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&done);
-  // Finalize:
-  // hash_ += hash_ << 3;
-  // hash_ ^= hash_ >> 11;
-  // hash_ += hash_ << 15;
-  __ movl(EDX, EAX);
-  __ shll(EDX, Immediate(3));
-  __ addl(EAX, EDX);
-  __ movl(EDX, EAX);
-  __ shrl(EDX, Immediate(11));
-  __ xorl(EAX, EDX);
-  __ movl(EDX, EAX);
-  __ shll(EDX, Immediate(15));
-  __ addl(EAX, EDX);
-  // hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
-  __ andl(
-      EAX,
-      Immediate(((static_cast<intptr_t>(1) << target::String::kHashBits) - 1)));
-
-  // return hash_ == 0 ? 1 : hash_;
-  __ cmpl(EAX, Immediate(0));
-  __ j(NOT_EQUAL, &set_hash_code, Assembler::kNearJump);
-  __ incl(EAX);
-  __ Bind(&set_hash_code);
+  // Finalize and fit to size kHashBits. Ensures hash is non-zero.
+  __ FinalizeHashForSize(target::String::kHashBits, EAX, EDX);
   __ SmiTag(EAX);
   __ StoreIntoSmiField(FieldAddress(EBX, target::String::hash_offset()), EAX);
   __ ret();
@@ -1770,73 +1740,22 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-// TODO(srdjan): Add combinations (one-byte/two-byte/external strings).
-static void StringEquality(Assembler* assembler,
-                           Label* normal_ir_body,
-                           intptr_t string_cid) {
-  Label is_true, is_false, loop;
+void AsmIntrinsifier::OneByteString_equality(Assembler* assembler,
+                                             Label* normal_ir_body) {
   __ movl(EAX, Address(ESP, +2 * target::kWordSize));  // This.
   __ movl(EBX, Address(ESP, +1 * target::kWordSize));  // Other.
 
-  // Are identical?
-  __ cmpl(EAX, EBX);
-  __ j(EQUAL, &is_true, Assembler::kNearJump);
-
-  // Is other same kind of string?
-  __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(ZERO, &is_false);  // Smi
-  __ CompareClassId(EBX, string_cid, EDI);
-  __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
-
-  // Have same length?
-  __ movl(EDI, FieldAddress(EAX, target::String::length_offset()));
-  __ cmpl(EDI, FieldAddress(EBX, target::String::length_offset()));
-  __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
-
-  if (string_cid == kOneByteStringCid) {
-    __ SmiUntag(EDI);
-  }
-
-  // Round up number of bytes to compare to word boundary since we
-  // are doing comparison in word chunks.
-  __ addl(EDI, Immediate(target::kWordSize - 1));
-  __ sarl(EDI, Immediate(target::kWordSizeLog2));
-  __ Bind(&loop);
-  __ decl(EDI);
-  __ j(LESS, &is_true, Assembler::kNearJump);
-  ASSERT(target::OneByteString::data_offset() ==
-         target::String::length_offset() + target::kWordSize);
-  ASSERT(target::TwoByteString::data_offset() ==
-         target::String::length_offset() + target::kWordSize);
-  COMPILE_ASSERT(target::kWordSize == 4);
-  __ movl(ECX, FieldAddress(EAX, EDI, TIMES_4,
-                            target::String::length_offset() +
-                                target::kWordSize));  // word with length itself
-  __ cmpl(ECX, FieldAddress(EBX, EDI, TIMES_4,
-                            target::String::length_offset() +
-                                target::kWordSize));  // word with length itself
-  __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
-  __ jmp(&loop, Assembler::kNearJump);
-
-  __ Bind(&is_true);
-  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
-  __ ret();
-
-  __ Bind(&is_false);
-  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
-  __ ret();
-
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::OneByteString_equality(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  StringEquality(assembler, normal_ir_body, kOneByteStringCid);
+  StringEquality(assembler, EAX, EBX, EDI, ECX, EAX, normal_ir_body,
+                 kOneByteStringCid);
 }
 
 void AsmIntrinsifier::TwoByteString_equality(Assembler* assembler,
                                              Label* normal_ir_body) {
-  StringEquality(assembler, normal_ir_body, kTwoByteStringCid);
+  __ movl(EAX, Address(ESP, +2 * target::kWordSize));  // This.
+  __ movl(EBX, Address(ESP, +1 * target::kWordSize));  // Other.
+
+  StringEquality(assembler, EAX, EBX, EDI, ECX, EAX, normal_ir_body,
+                 kTwoByteStringCid);
 }
 
 void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,

@@ -8,7 +8,7 @@ import 'test_helper.dart';
 import 'dart:async';
 
 doThrow() {
-  throw "TheException"; // Line 13.
+  throw "TheException";
 }
 
 doCaught() {
@@ -52,8 +52,8 @@ var tests = <IsolateTest>[
         bool shouldBeCaught) async {
       print("Evaluating $expression with pause on $pauseMode exception");
 
-      expect((await isolate.setExceptionPauseMode(pauseMode)) is DartError,
-          isFalse);
+      expect(
+          (await isolate.setIsolatePauseMode(pauseMode)) is DartError, isFalse);
 
       var t;
       if (shouldPause) {

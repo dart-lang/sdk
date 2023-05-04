@@ -1,0 +1,2 @@
+main() {}
+staticTypeOf<T>(T x) => T;

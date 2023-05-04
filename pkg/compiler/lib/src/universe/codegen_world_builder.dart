@@ -20,7 +20,6 @@ import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart';
 import 'call_structure.dart';
-import 'codegen_world_builder_interfaces.dart' as interfaces;
 import 'member_usage.dart';
 import 'selector.dart' show Selector;
 import 'use.dart'
@@ -30,8 +29,7 @@ import 'world_builder.dart';
 /// World builder specific to codegen.
 ///
 /// This adds additional access to liveness of selectors and elements.
-abstract class CodegenWorldBuilder
-    implements interfaces.CodegenWorldBuilderImplForEnqueuer {
+abstract class CodegenWorldBuilder {
   /// Register [constant] as needed for emission.
   void addCompileTimeConstantForEmission(ConstantValue constant);
 
@@ -173,7 +171,6 @@ class CodegenWorldBuilderImpl extends WorldBuilder
       .where((cls) => _processedClasses[cls]!.isInstantiated);
 
   // TODO(johnniwinther): Improve semantic precision.
-  @override
   Iterable<ClassEntity> get directlyInstantiatedClasses {
     return _directlyInstantiatedClasses;
   }
@@ -182,7 +179,6 @@ class CodegenWorldBuilderImpl extends WorldBuilder
   // TODO(johnniwinther): Fully enforce the separation between exact, through
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
-  @override
   void registerTypeInstantiation(
       InterfaceType type, ClassUsedCallback classUsed) {
     ClassEntity cls = type.element;
@@ -254,7 +250,6 @@ class CodegenWorldBuilderImpl extends WorldBuilder
         _invokedSetters[member.name], member, _closedWorld);
   }
 
-  @override
   void registerDynamicUse(
       DynamicUse dynamicUse, MemberUsedCallback memberUsed) {
     Selector selector = dynamicUse.selector;
@@ -324,17 +319,14 @@ class CodegenWorldBuilderImpl extends WorldBuilder
     return constraints.addReceiverConstraint(constraint);
   }
 
-  @override
   void registerIsCheck(covariant DartType type) {
     _isChecks.add(type);
   }
 
-  @override
   void registerNamedTypeVariableNewRti(TypeVariableType type) {
     _namedTypeVariablesNewRti.add(type);
   }
 
-  @override
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     MemberEntity element = staticUse.element as MemberEntity;
     EnumSet<MemberUse> useSet = EnumSet();
@@ -408,6 +400,7 @@ class CodegenWorldBuilderImpl extends WorldBuilder
         break;
       case StaticUseKind.CLOSURE:
       case StaticUseKind.CLOSURE_CALL:
+      case StaticUseKind.WEAK_STATIC_TEAR_OFF:
         failedAt(CURRENT_ELEMENT_SPANNABLE,
             "Static use ${staticUse.kind} is not supported during codegen.");
     }
@@ -416,7 +409,6 @@ class CodegenWorldBuilderImpl extends WorldBuilder
     }
   }
 
-  @override
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
       {bool checkEnqueuerConsistency = false}) {
     _elementEnvironment.forEachClassMember(cls,
@@ -568,23 +560,19 @@ class CodegenWorldBuilderImpl extends WorldBuilder
 
   /// Register the constant [use] with this world builder. Returns `true` if
   /// the constant use was new to the world.
-  @override
   bool registerConstantUse(ConstantUse use) {
     addCompileTimeConstantForEmission(use.value);
     return _constantValues.add(use.value);
   }
 
-  @override
   void registerConstTypeLiteral(DartType type) {
     _constTypeLiterals.add(type);
   }
 
-  @override
   void registerTypeArgument(DartType type) {
     _liveTypeArguments.add(type);
   }
 
-  @override
   void registerConstructorReference(InterfaceType type) {
     _constructorReferences.add(type.element);
   }

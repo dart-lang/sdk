@@ -66,11 +66,6 @@ DEFINE_NATIVE_ENTRY(RawReceivePort_get_id, 0, 1) {
   return Integer::New(port.Id());
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePort_get_sendport, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
-  return port.send_port();
-}
-
 DEFINE_NATIVE_ENTRY(RawReceivePort_closeInternal, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   Dart_Port id = port.Id();
@@ -214,32 +209,11 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     thread->CheckForSafepoint();
 
     ObjectPtr raw = working_set->RemoveLast();
-
+    if (CanShareObjectAcrossIsolates(raw)) {
+      continue;
+    }
     const intptr_t cid = raw->GetClassId();
-    // Keep the list in sync with the one in runtime/vm/object_graph_copy.cc
     switch (cid) {
-      // Can be shared.
-      case kOneByteStringCid:
-      case kTwoByteStringCid:
-      case kExternalOneByteStringCid:
-      case kExternalTwoByteStringCid:
-      case kMintCid:
-      case kImmutableArrayCid:
-      case kNeverCid:
-      case kSentinelCid:
-      case kInt32x4Cid:
-      case kSendPortCid:
-      case kCapabilityCid:
-      case kRegExpCid:
-      case kStackTraceCid:
-        continue;
-      // Cannot be shared due to possibly being mutable boxes for unboxed
-      // fields in JIT, but can be transferred via Isolate.exit()
-      case kDoubleCid:
-      case kFloat32x4Cid:
-      case kFloat64x2Cid:
-        continue;
-
       case kArrayCid: {
         array ^= Array::RawCast(raw);
         visitor.VisitObject(array.GetTypeArguments());
@@ -276,18 +250,13 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
         MESSAGE_SNAPSHOT_ILLEGAL(SuspendState);
 
       default:
-        if (cid >= kNumPredefinedCids) {
-          klass = class_table->At(cid);
-          if (klass.num_native_fields() != 0) {
-            illegal_object = raw;
-            exception_message = "is a NativeWrapper";
-            break;
-          }
-          if (klass.implements_finalizable()) {
-            illegal_object = raw;
-            exception_message = "is a Finalizable";
-            break;
-          }
+        klass = class_table->At(cid);
+        if (klass.is_isolate_unsendable()) {
+          illegal_object = raw;
+          exception_message =
+              "is unsendable object (see restrictions listed at"
+              "`SendPort.send()` documentation for more information)";
+          break;
         }
     }
     raw->untag()->VisitPointers(&visitor);
@@ -299,7 +268,13 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
 
     const Array& args = Array::Handle(zone, Array::New(3));
     args.SetAt(0, illegal_object);
-    args.SetAt(2, String::Handle(zone, String::New(exception_message)));
+    args.SetAt(2, String::Handle(
+                      zone, String::NewFormatted(
+                                "%s%s",
+                                FindRetainingPath(
+                                    zone, isolate, obj, illegal_object,
+                                    TraversalRules::kInternalToIsolateGroup),
+                                exception_message)));
     const Object& exception = Object::Handle(
         zone, Exceptions::Create(Exceptions::kArgumentValue, args));
     return UnhandledException::New(Instance::Cast(exception),
@@ -351,12 +326,14 @@ DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
     handle->set_ptr(msg_array);
     isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
   }
-  Isolate::KillIfExists(isolate, Isolate::LibMsgId::kKillMsg);
-  // Drain interrupts before running so any IMMEDIATE operations on the current
-  // isolate happen synchronously.
-  const Error& error = Error::Handle(thread->HandleInterrupts());
-  RELEASE_ASSERT(error.IsUnwindError());
+
+  Thread::Current()->StartUnwindError();
+  const String& msg =
+      String::Handle(String::New("isolate terminated by Isolate.exit"));
+  const UnwindError& error = UnwindError::Handle(UnwindError::New(msg));
+  error.set_is_user_initiated(true);
   Exceptions::PropagateError(error);
+  UNREACHABLE();
   // We will never execute dart code again in this isolate.
   return Object::null();
 }
@@ -602,7 +579,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
 }
 
 static ObjectPtr DeserializeMessage(Thread* thread, Message* message) {
-  if (message == NULL) {
+  if (message == nullptr) {
     return Object::null();
   }
   if (message->IsRaw()) {
@@ -959,9 +936,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
       /*same_group=*/true, message, ILLEGAL_PORT, Message::kNormalPriority));
 
   const char* utf8_package_config =
-      packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
+      packageConfig.IsNull() ? nullptr : String2UTF8(packageConfig);
   const char* utf8_debug_name =
-      debugName.IsNull() ? NULL : String2UTF8(debugName);
+      debugName.IsNull() ? nullptr : String2UTF8(debugName);
   if (closure_tuple_handle != nullptr && utf8_debug_name == nullptr) {
     const auto& closure_function = Function::Handle(zone, closure.function());
     utf8_debug_name =
@@ -986,7 +963,7 @@ static const char* CanonicalizeUri(Thread* thread,
                                    const Library& library,
                                    const String& uri,
                                    char** error) {
-  const char* result = NULL;
+  const char* result = nullptr;
   Zone* zone = thread->zone();
   auto isolate_group = thread->isolate_group();
   if (isolate_group->HasTagHandler()) {
@@ -1047,17 +1024,17 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   // Canonicalize the uri with respect to the current isolate.
   const Library& root_lib =
       Library::Handle(isolate->group()->object_store()->root_library());
-  char* error = NULL;
+  char* error = nullptr;
   const char* canonical_uri = CanonicalizeUri(thread, root_lib, uri, &error);
-  if (canonical_uri == NULL) {
+  if (canonical_uri == nullptr) {
     const String& msg = String::Handle(String::New(error));
     ThrowIsolateSpawnException(msg);
   }
 
   const char* utf8_package_config =
-      packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
+      packageConfig.IsNull() ? nullptr : String2UTF8(packageConfig);
   const char* utf8_debug_name =
-      debugName.IsNull() ? NULL : String2UTF8(debugName);
+      debugName.IsNull() ? nullptr : String2UTF8(debugName);
 
   std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
       port.Id(), canonical_uri, utf8_package_config, &arguments_buffer,
@@ -1155,7 +1132,7 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, msg, arguments->NativeArgAt(1));
 
-  // Make sure to route this request to the isolate library OOB mesage handler.
+  // Make sure to route this request to the isolate library OOB message handler.
   msg.SetAt(0, Smi::Handle(Smi::New(Message::kIsolateLibOOBMsg)));
 
   // Ensure message writer (and it's resources, e.g. forwarding tables) are
@@ -1265,7 +1242,7 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
   {
     NoSafepointScope no_safepoint;
     peer = thread->heap()->GetPeer(t.ptr());
-    // Assume that object's Peer is only used to track transferrability state.
+    // Assume that object's Peer is only used to track transferability state.
     ASSERT(peer != nullptr);
   }
 

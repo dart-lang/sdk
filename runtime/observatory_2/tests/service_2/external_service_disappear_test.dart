@@ -34,7 +34,7 @@ var tests = <IsolateTest>[
     const kServiceDisappeared = 112;
     const kServiceDisappeared_Msg = 'Service has disappeared';
 
-    const serviceName = 'disapearService';
+    const serviceName = 'disappearService';
     const serviceAlias = 'serviceAlias';
     const paramKey = 'pkey';
     const paramValue = 'pvalue';

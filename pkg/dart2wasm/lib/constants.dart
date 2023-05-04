@@ -96,7 +96,7 @@ class Constants {
   }
 
   /// Makes a type list [ListConstant].
-  ListConstant makeTypeList(List<DartType> types) => ListConstant(
+  ListConstant makeTypeList(Iterable<DartType> types) => ListConstant(
       InterfaceType(translator.typeClass, Nullability.nonNullable),
       types.map((t) => TypeLiteralConstant(t)).toList());
 
@@ -136,25 +136,6 @@ class Constants {
       Constant constant, w.ValueType expectedType) {
     if (expectedType == translator.voidMarker) return;
     ConstantInstantiator(this, function, b, expectedType).instantiate(constant);
-  }
-
-  /// Emit code to push a constant onto the stack that forms part of a type.
-  ///
-  /// If the constant is part of a generic function type, [env] contains the
-  /// environment that maps the function's type parameters to their runtime
-  /// representation.
-  ///
-  /// It is assumed that constants that form part of a type are never lazy.
-  /// Hitting the forced laziness criterion (a list longer than the maximum
-  /// number of elements allowed by the `array.new_fixed` Wasm instruction)
-  /// would need to involve a function type with this many parameters, but such
-  /// a function would hit the (lower) limit on the maximum number of parameters
-  /// to a Wasm function anyway.
-  void instantiateTypeConstant(w.DefinedFunction? function, w.Instructions b,
-      Constant constant, FunctionTypeEnvironment? env) {
-    ConstantInfo info = ConstantCreator(this, env).ensureConstant(constant)!;
-    assert(!info.isLazy);
-    b.global_get(info.global);
   }
 }
 
@@ -223,50 +204,59 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
     return const w.RefType.none(nullable: true);
   }
 
-  w.ValueType _maybeBox(w.ValueType wasmType, void Function() pushValue) {
-    if (expectedType is w.RefType) {
-      ClassInfo info = translator.classInfo[translator.boxedClasses[wasmType]]!;
-      b.i32_const(info.classId);
-      pushValue();
-      b.struct_new(info.struct);
-      return info.nonNullableType;
-    } else {
-      pushValue();
-      return wasmType;
-    }
-  }
-
   @override
   w.ValueType visitBoolConstant(BoolConstant constant) {
-    return _maybeBox(w.NumType.i32, () {
-      b.i32_const(constant.value ? 1 : 0);
-    });
+    if (expectedType is w.RefType) return defaultConstant(constant);
+    b.i32_const(constant.value ? 1 : 0);
+    return w.NumType.i32;
   }
 
   @override
   w.ValueType visitIntConstant(IntConstant constant) {
-    return _maybeBox(w.NumType.i64, () {
-      b.i64_const(constant.value);
-    });
+    if (expectedType is w.RefType) return defaultConstant(constant);
+    b.i64_const(constant.value);
+    return w.NumType.i64;
   }
 
   @override
   w.ValueType visitDoubleConstant(DoubleConstant constant) {
-    return _maybeBox(w.NumType.f64, () {
-      b.f64_const(constant.value);
-    });
+    if (expectedType is w.RefType) return defaultConstant(constant);
+    b.f64_const(constant.value);
+    return w.NumType.f64;
+  }
+
+  @override
+  w.ValueType visitInstanceConstant(InstanceConstant constant) {
+    if (constant.classNode == translator.wasmI32Class) {
+      int value = (constant.fieldValues.values.single as IntConstant).value;
+      b.i32_const(value);
+      return w.NumType.i32;
+    }
+    if (constant.classNode == translator.wasmI64Class) {
+      int value = (constant.fieldValues.values.single as IntConstant).value;
+      b.i64_const(value);
+      return w.NumType.i64;
+    }
+    if (constant.classNode == translator.wasmF32Class) {
+      double value =
+          (constant.fieldValues.values.single as DoubleConstant).value;
+      b.f32_const(value);
+      return w.NumType.f32;
+    }
+    if (constant.classNode == translator.wasmF64Class) {
+      double value =
+          (constant.fieldValues.values.single as DoubleConstant).value;
+      b.f64_const(value);
+      return w.NumType.f64;
+    }
+    return super.visitInstanceConstant(constant);
   }
 }
 
 class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   final Constants constants;
 
-  /// Environment that maps function type parameters to their runtime
-  /// representation when inside a generic function type.
-  FunctionTypeEnvironment _env;
-
-  ConstantCreator(this.constants, [FunctionTypeEnvironment? env])
-      : _env = env ?? FunctionTypeEnvironment();
+  ConstantCreator(this.constants);
 
   Translator get translator => constants.translator;
   Types get types => translator.types;
@@ -319,6 +309,36 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   @override
   ConstantInfo? defaultConstant(Constant constant) => null;
+
+  @override
+  ConstantInfo? visitBoolConstant(BoolConstant constant) {
+    ClassInfo info = translator.classInfo[translator.boxedBoolClass]!;
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.i32_const(constant.value ? 1 : 0);
+      b.struct_new(info.struct);
+    });
+  }
+
+  @override
+  ConstantInfo? visitIntConstant(IntConstant constant) {
+    ClassInfo info = translator.classInfo[translator.boxedIntClass]!;
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.i64_const(constant.value);
+      b.struct_new(info.struct);
+    });
+  }
+
+  @override
+  ConstantInfo? visitDoubleConstant(DoubleConstant constant) {
+    ClassInfo info = translator.classInfo[translator.boxedDoubleClass]!;
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.f64_const(constant.value);
+      b.struct_new(info.struct);
+    });
+  }
 
   @override
   ConstantInfo? visitStringConstant(StringConstant constant) {
@@ -545,19 +565,19 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   @override
   ConstantInfo? visitStaticTearOffConstant(StaticTearOffConstant constant) {
     Procedure member = constant.targetReference.asProcedure;
-    Constant functionTypeConstant = TypeLiteralConstant(
-        member.function.computeFunctionType(Nullability.nonNullable));
+    Constant functionTypeConstant =
+        TypeLiteralConstant(translator.getTearOffType(member));
     ensureConstant(functionTypeConstant);
     ClosureImplementation closure = translator.getTearOffClosure(member);
     w.StructType struct = closure.representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
     return createConstant(constant, type, (function, b) {
-      ClassInfo info = translator.classInfo[translator.functionClass]!;
+      ClassInfo info = translator.closureInfo;
       translator.functions.allocateClass(info.classId);
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      b.global_get(translator.globals.dummyGlobal); // Dummy context
+      b.global_get(translator.globals.dummyStructGlobal); // Dummy context
       b.global_get(closure.vtable);
       constants.instantiateConstant(
           function, b, functionTypeConstant, this.types.nonNullableTypeType);
@@ -574,7 +594,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         .toList();
     Procedure tearOffProcedure = tearOffConstant.targetReference.asProcedure;
     FunctionType tearOffFunctionType =
-        tearOffProcedure.function.computeFunctionType(Nullability.nonNullable);
+        translator.getTearOffType(tearOffProcedure);
     FunctionType instantiatedFunctionType = Substitution.fromPairs(
                 tearOffFunctionType.typeParameters, constant.types)
             .substituteType(tearOffFunctionType.withoutTypeParameters)
@@ -589,10 +609,44 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         tearOffConstant.function.namedParameters.map((p) => p.name!).toList();
     ClosureRepresentation representation = translator.closureLayouter
         .getClosureRepresentation(0, positionalCount, names)!;
+    ClosureRepresentation instantiationRepresentation = translator
+        .closureLayouter
+        .getClosureRepresentation(types.length, positionalCount, names)!;
     w.StructType struct = representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
+
+    final tearOffConstantInfo = ensureConstant(tearOffConstant)!;
+
+    w.DefinedFunction makeDynamicCallEntry() {
+      final w.DefinedFunction function = m.addFunction(
+          translator.dynamicCallVtableEntryFunctionType, "dynamic call entry");
+
+      final w.Instructions b = function.body;
+
+      final closureLocal = function.locals[0];
+      final typeArgsListLocal = function.locals[1]; // empty
+      final posArgsListLocal = function.locals[2];
+      final namedArgsListLocal = function.locals[3];
+
+      b.local_get(closureLocal);
+      final ListConstant typeArgs = constants.makeTypeList(constant.types);
+      constants.instantiateConstant(
+          function, b, typeArgs, typeArgsListLocal.type);
+      b.local_get(posArgsListLocal);
+      b.local_get(namedArgsListLocal);
+      b.call(tearOffClosure.dynamicCallEntry);
+      b.end();
+
+      return function;
+    }
+
+    // Dynamic call entry needs to be created first (before `createConstant`)
+    // as it needs to create a constant for the type list, and we cannot create
+    // a constant while creating another one.
+    final w.DefinedFunction dynamicCallEntry = makeDynamicCallEntry();
+
     return createConstant(constant, type, (function, b) {
-      ClassInfo info = translator.classInfo[translator.functionClass]!;
+      ClassInfo info = translator.closureInfo;
       translator.functions.allocateClass(info.classId);
 
       w.DefinedFunction makeTrampoline(
@@ -621,8 +675,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
             .fieldIndexForSignature(posArgCount, argNames);
 
         w.FunctionType signature =
-            (representation.vtableStruct.fields[fieldIndex].type as w.RefType)
-                .heapType as w.FunctionType;
+            representation.getVtableFieldType(fieldIndex);
         w.DefinedFunction tearOffFunction = tearOffClosure.functions[
             tearOffFieldIndex - tearOffClosure.representation.vtableBaseIndex];
         w.DefinedFunction function =
@@ -633,6 +686,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       }
 
       void makeVtable() {
+        b.ref_func(dynamicCallEntry);
         if (representation.isGeneric) {
           b.ref_func(representation.instantiationFunction);
         }
@@ -649,7 +703,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      b.global_get(translator.globals.dummyGlobal); // Dummy context
+
+      // Context is not used by the vtable functions, but it's needed for
+      // closure equality checks to work (`_Closure._equals`).
+      b.global_get(tearOffConstantInfo.global);
+      for (final ty in types) {
+        b.global_get(ty.global);
+      }
+      b.struct_new(instantiationRepresentation.instantiationContextStruct!);
+
       makeVtable();
       constants.instantiateConstant(
           function, b, functionTypeConstant, this.types.nonNullableTypeType);
@@ -692,9 +754,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   ConstantInfo? _makeFunctionType(
       TypeLiteralConstant constant, FunctionType type, ClassInfo info) {
-    _env.enterFunctionType(type);
-    ListConstant typeParameterBoundsConstant = constants
-        .makeTypeList(type.typeParameters.map((p) => p.bound).toList());
+    int typeParameterOffset = types.computeFunctionTypeParameterOffset(type);
+    ListConstant typeParameterBoundsConstant =
+        constants.makeTypeList(type.typeParameters.map((p) => p.bound));
+    ListConstant typeParameterDefaultsConstant =
+        constants.makeTypeList(type.typeParameters.map((p) => p.defaultType));
     TypeLiteralConstant returnTypeConstant =
         TypeLiteralConstant(type.returnType);
     ListConstant positionalParametersConstant =
@@ -704,17 +768,20 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     ListConstant namedParametersConstant =
         constants.makeNamedParametersList(type);
     ensureConstant(typeParameterBoundsConstant);
+    ensureConstant(typeParameterDefaultsConstant);
     ensureConstant(returnTypeConstant);
     ensureConstant(positionalParametersConstant);
     ensureConstant(requiredParameterCountConstant);
     ensureConstant(namedParametersConstant);
-    _env.leaveFunctionType();
     return createConstant(constant, info.nonNullableType, (function, b) {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       b.i32_const(types.encodedNullability(type));
+      b.i64_const(typeParameterOffset);
       constants.instantiateConstant(
           function, b, typeParameterBoundsConstant, types.typeListExpectedType);
+      constants.instantiateConstant(function, b, typeParameterDefaultsConstant,
+          types.typeListExpectedType);
       constants.instantiateConstant(
           function, b, returnTypeConstant, types.nonNullableTypeType);
       constants.instantiateConstant(function, b, positionalParametersConstant,
@@ -739,15 +806,22 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return _makeFutureOrType(constant, type, info);
     } else if (type is FunctionType) {
       return _makeFunctionType(constant, type, info);
+    } else if (type is InlineType) {
+      return ensureConstant(
+          TypeLiteralConstant(type.instantiatedRepresentationType));
     } else if (type is TypeParameterType) {
       if (types.isFunctionTypeParameter(type)) {
+        // The indexing scheme used by function type parameters ensures that
+        // function type parameter types that are identical as constants (have
+        // the same nullability and refer to the same type parameter) have the
+        // same representation and thus can be canonicalized like other
+        // constants.
         return createConstant(constant, info.nonNullableType, (function, b) {
+          int index = types.getFunctionTypeParameterIndex(type.parameter);
           b.i32_const(info.classId);
           b.i32_const(initialIdentityHash);
           b.i32_const(types.encodedNullability(type));
-          FunctionTypeParameterType param = _env.lookup(type.parameter);
-          b.i64_const(param.depth);
-          b.i64_const(param.index);
+          b.i64_const(index);
           b.struct_new(info.struct);
         });
       }
@@ -758,6 +832,28 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         b.i32_const(initialIdentityHash);
         b.i32_const(types.encodedNullability(type));
         b.i64_const(environmentIndex);
+        b.struct_new(info.struct);
+      });
+    } else if (type is RecordType) {
+      final names = ListConstant(
+          InterfaceType(
+              translator.coreTypes.stringClass, Nullability.nonNullable),
+          type.named.map((t) => StringConstant(t.name)).toList());
+      ensureConstant(names);
+      final fieldTypes = constants.makeTypeList(
+          type.positional.followedBy(type.named.map((n) => n.type)));
+      ensureConstant(fieldTypes);
+      return createConstant(constant, info.nonNullableType, (function, b) {
+        b.i32_const(info.classId);
+        b.i32_const(initialIdentityHash);
+        b.i32_const(types.encodedNullability(type));
+        final namesExpectedType =
+            info.struct.fields[FieldIndex.recordTypeNames].type.unpacked;
+        constants.instantiateConstant(function, b, names, namesExpectedType);
+        final typeListExpectedType =
+            info.struct.fields[FieldIndex.recordTypeFieldTypes].type.unpacked;
+        constants.instantiateConstant(
+            function, b, fieldTypes, typeListExpectedType);
         b.struct_new(info.struct);
       });
     } else {
@@ -788,6 +884,31 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i32_const(initialIdentityHash);
       constants.instantiateConstant(function, b, nameConstant, stringType);
       b.struct_new(info.struct);
+    });
+  }
+
+  @override
+  ConstantInfo? visitRecordConstant(RecordConstant constant) {
+    final ClassInfo recordClassInfo =
+        translator.getRecordClassInfo(constant.recordType);
+    translator.functions.allocateClass(recordClassInfo.classId);
+
+    final List<Constant> arguments = constant.positional.toList();
+    arguments.addAll(constant.named.values);
+
+    for (Constant argument in arguments) {
+      ensureConstant(argument);
+    }
+
+    return createConstant(constant, recordClassInfo.nonNullableType,
+        lazy: false, (function, b) {
+      b.i32_const(recordClassInfo.classId);
+      b.i32_const(initialIdentityHash);
+      for (Constant argument in arguments) {
+        constants.instantiateConstant(
+            function, b, argument, translator.topInfo.nullableType);
+      }
+      b.struct_new(recordClassInfo.struct);
     });
   }
 }

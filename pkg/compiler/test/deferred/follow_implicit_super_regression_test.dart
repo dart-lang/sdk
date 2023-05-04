@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart' as dart2js;
 import 'package:expect/expect.dart';
@@ -15,7 +13,7 @@ void main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     dart2js.Compiler compiler = result.compiler;
-    var closedWorld = compiler.backendClosedWorldForTesting;
+    var closedWorld = compiler.backendClosedWorldForTesting!;
     var elementEnvironment = closedWorld.elementEnvironment;
 
     lookupLibrary(name) {
@@ -25,10 +23,10 @@ void main() {
     var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
 
     dynamic lib = lookupLibrary("memory:lib.dart");
-    var a = elementEnvironment.lookupLibraryMember(lib, "a");
-    var b = elementEnvironment.lookupLibraryMember(lib, "b");
-    var c = elementEnvironment.lookupLibraryMember(lib, "c");
-    var d = elementEnvironment.lookupLibraryMember(lib, "d");
+    var a = elementEnvironment.lookupLibraryMember(lib, "a")!;
+    var b = elementEnvironment.lookupLibraryMember(lib, "b")!;
+    var c = elementEnvironment.lookupLibraryMember(lib, "c")!;
+    var d = elementEnvironment.lookupLibraryMember(lib, "d")!;
     Expect.equals(outputUnitForMember(a), outputUnitForMember(b));
     Expect.equals(outputUnitForMember(a), outputUnitForMember(c));
     Expect.equals(outputUnitForMember(a), outputUnitForMember(d));
@@ -48,10 +46,10 @@ import "lib.dart" deferred as lib;
 
 void main() {
   lib.loadLibrary().then((_) {
-    new lib.A2();
-    new lib.B2();
-    new lib.C3();
-    new lib.D3(10);
+    lib.A2();
+    lib.B2();
+    lib.C3();
+    lib.D3(10);
   });
 }
 """,

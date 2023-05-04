@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library sourcemap.trace_graph;
 
 import 'dart:collection';
@@ -16,14 +14,14 @@ import 'sourcemap_html_helper.dart';
 
 class TraceGraph {
   List<TraceStep> steps = <TraceStep>[];
-  TraceStep entry;
-  Queue stack = new Queue();
+  TraceStep? entry;
+  Queue<Object> stack = Queue();
   Map<int, TraceStep> offsetMap = {};
 
   void addStep(TraceStep step) {
     steps.add(step);
-    int offset = step.offset.value;
-    TraceStep existingStep = offsetMap[offset];
+    int offset = step.offset.value!;
+    TraceStep? existingStep = offsetMap[offset];
     if (existingStep != null) {
       // TODO(johnniwinther): Fix problems with reuse of JS nodes from
       // templates.
@@ -54,12 +52,12 @@ class TraceStep {
   final node;
   final Offset offset;
   final List text;
-  final SourceLocation sourceLocation;
+  final SourceLocation? sourceLocation;
 
-  TraceStep next;
-  Map<dynamic, TraceStep> branchMap;
+  TraceStep? next;
+  Map<dynamic, TraceStep>? branchMap;
 
-  List stack;
+  List<Object>? stack;
 
   TraceStep(this.kind, this.id, this.node, this.offset, this.text,
       [this.sourceLocation]);

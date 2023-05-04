@@ -7,6 +7,23 @@ part of dart.io;
 // Read the file in blocks of size 64k.
 const int _blockSize = 64 * 1024;
 
+// The maximum number of bytes to read in a single call to `read`.
+//
+// On Windows and macOS, it is an error to call
+// `read/_read(fildes, buf, nbyte)` with `nbyte >= INT_MAX`.
+//
+// The POSIX specification states that the behavior of `read` is
+// implementation-defined if `nbyte > SSIZE_MAX`. On Linux, the `read` will
+// transfer at most 0x7ffff000 bytes and return the number of bytes actually.
+// transfered.
+//
+// A smaller value has the advantage of:
+// 1. making vm-service clients (e.g. debugger) more responsive
+// 2. reducing memory overhead (since `readInto` copies memory)
+//
+// A bigger value reduces the number of system calls.
+const int _maxReadSize = 16 * 1024 * 1024; // 16MB.
+
 class _FileStream extends Stream<List<int>> {
   // Stream controller.
   late StreamController<Uint8List> _controller;
@@ -500,7 +517,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<Uint8List> readAsBytes() {
-    Future<Uint8List> readDataChunked(RandomAccessFile file) {
+    Future<Uint8List> readUnsized(RandomAccessFile file) {
       var builder = new BytesBuilder(copy: false);
       var completer = new Completer<Uint8List>();
       void read() {
@@ -518,13 +535,37 @@ class _File extends FileSystemEntity implements File {
       return completer.future;
     }
 
+    Future<Uint8List> readSized(RandomAccessFile file, int length) {
+      var data = Uint8List(length);
+      var offset = 0;
+      var completer = new Completer<Uint8List>();
+      void read() {
+        file.readInto(data, offset, min(offset + _maxReadSize, length)).then(
+            (readSize) {
+          if (readSize > 0) {
+            offset += readSize;
+            read();
+          } else {
+            assert(readSize == 0);
+            if (offset < length) {
+              data = Uint8List.sublistView(data, 0, offset);
+            }
+            completer.complete(data);
+          }
+        }, onError: completer.completeError);
+      }
+
+      read();
+      return completer.future;
+    }
+
     return open().then((file) {
       return file.length().then((length) {
         if (length == 0) {
           // May be character device, try to read it in chunks.
-          return readDataChunked(file);
+          return readUnsized(file);
         }
-        return file.read(length);
+        return readSized(file, length);
       }).whenComplete(file.close);
     });
   }
@@ -539,11 +580,27 @@ class _File extends FileSystemEntity implements File {
         var builder = new BytesBuilder(copy: false);
         do {
           data = opened.readSync(_blockSize);
-          if (data.length > 0) builder.add(data);
+          if (data.length > 0) {
+            builder.add(data);
+          }
         } while (data.length > 0);
         data = builder.takeBytes();
       } else {
-        data = opened.readSync(length);
+        data = Uint8List(length);
+        var offset = 0;
+
+        while (offset < length) {
+          final readSize = opened.readIntoSync(
+              data, offset, min(offset + _maxReadSize, length));
+          if (readSize == 0) {
+            break;
+          }
+          offset += readSize;
+        }
+
+        if (offset < length) {
+          data = Uint8List.view(data.buffer, 0, offset);
+        }
       }
       return data;
     } finally {
@@ -560,19 +617,8 @@ class _File extends FileSystemEntity implements File {
     }
   }
 
-  Future<String> readAsString({Encoding encoding = utf8}) {
-    // TODO(dart:io): If the change in async semantics to run synchronously
-    // until await lands, this is as efficient as
-    // return _tryDecode(await readAsBytes(), encoding);
-    var stack = StackTrace.current;
-    return readAsBytes().then((bytes) {
-      try {
-        return _tryDecode(bytes, encoding);
-      } catch (e) {
-        return new Future.error(e, stack);
-      }
-    });
-  }
+  Future<String> readAsString({Encoding encoding = utf8}) async =>
+      _tryDecode(await readAsBytes(), encoding);
 
   String readAsStringSync({Encoding encoding = utf8}) =>
       _tryDecode(readAsBytesSync(), encoding);

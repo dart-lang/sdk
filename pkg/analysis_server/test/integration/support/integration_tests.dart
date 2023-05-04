@@ -52,8 +52,8 @@ void outOfTestExpect(Object? actual, Matcher matcher,
   fail(_defaultFailFormatter(actual, matcher, reason, matchState, verbose));
 }
 
-String _defaultFailFormatter(
-    actual, Matcher matcher, String? reason, Map matchState, bool verbose) {
+String _defaultFailFormatter(actual, Matcher matcher, String? reason,
+    Map<Object?, Object?> matchState, bool verbose) {
   var description = StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
   description.add('  Actual: ').addDescriptionOf(actual).add('\n');
@@ -76,11 +76,11 @@ typedef MismatchDescriber = Description Function(
     Description mismatchDescription);
 
 /// Type of callbacks used to process notifications.
-typedef NotificationProcessor = void Function(String event, Map params);
+typedef NotificationProcessor = void Function(
+    String event, Map<Object?, Object?> params);
 
 /// Base class for analysis server integration tests.
-abstract class AbstractAnalysisServerIntegrationTest
-    extends IntegrationTestMixin {
+abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest {
   /// Amount of time to give the server to respond to a shutdown request before
   /// forcibly terminating it.
   static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 60);
@@ -109,10 +109,6 @@ abstract class AbstractAnalysisServerIntegrationTest
   bool _subscribedToServerStatus = false;
 
   String dartSdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
-
-  AbstractAnalysisServerIntegrationTest() {
-    initializeInttestMixin();
-  }
 
   /// Return a future which will complete when a 'server.status' notification is
   /// received from the server with 'analyzing' set to false.
@@ -160,14 +156,14 @@ abstract class AbstractAnalysisServerIntegrationTest
   String readFile(String pathname) => File(pathname).readAsStringSync();
 
   @override
-  Future sendServerSetSubscriptions(List<ServerService> subscriptions) {
+  Future<void> sendServerSetSubscriptions(List<ServerService> subscriptions) {
     _subscribedToServerStatus = subscriptions.contains(ServerService.STATUS);
     return super.sendServerSetSubscriptions(subscriptions);
   }
 
   /// The server is automatically started before every test, and a temporary
   /// [sourceDirectory] is created.
-  Future setUp() async {
+  Future<void> setUp() async {
     sourceDirectory = Directory(Directory.systemTemp
         .createTempSync('analysisServer')
         .resolveSymbolicLinksSync());
@@ -197,7 +193,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /// If [skipShutdown] is not set, shut down the server.
-  Future shutdownIfNeeded() {
+  Future<void> shutdownIfNeeded() {
     if (skipShutdown) {
       return Future.value();
     }
@@ -223,8 +219,8 @@ abstract class AbstractAnalysisServerIntegrationTest
   /// analyze [sourceDirectory].  If [subscribeStatus] is true (the default),
   /// then also enable [SERVER_NOTIFICATION_STATUS] notifications so that
   /// [analysisFinished] can be used.
-  Future standardAnalysisSetup({bool subscribeStatus = true}) {
-    var futures = <Future>[];
+  Future<void> standardAnalysisSetup({bool subscribeStatus = true}) {
+    var futures = <Future<void>>[];
     if (subscribeStatus) {
       futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
     }
@@ -233,19 +229,19 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /// Start [server].
-  Future startServer({
+  Future<void> startServer({
     int? diagnosticPort,
-    int? servicesPort,
+    int? servicePort,
   }) {
     return server.start(
       dartSdkPath: dartSdkPath,
       diagnosticPort: diagnosticPort,
-      servicesPort: servicesPort,
+      servicePort: servicePort,
     );
   }
 
   /// After every test, the server is stopped and [sourceDirectory] is deleted.
-  Future tearDown() {
+  Future<void> tearDown() {
     return shutdownIfNeeded().then((_) {
       sourceDirectory.deleteSync(recursive: true);
     });
@@ -326,14 +322,14 @@ class LazyMatcher implements Matcher {
   }
 
   @override
-  Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(Object? item, Description mismatchDescription,
+      Map<Object?, Object?> matchState, bool verbose) {
     return _matcher.describeMismatch(
         item, mismatchDescription, matchState, verbose);
   }
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(dynamic item, Map<Object?, Object?> matchState) {
     return _matcher.matches(item, matchState);
   }
 }
@@ -353,7 +349,7 @@ class MatchesEnum extends Matcher {
       description.add(this.description);
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<Object?, Object?> matchState) {
     return allowedValues.contains(item);
   }
 }
@@ -501,7 +497,7 @@ class Server {
 
   /// Return a future that will complete when all commands that have been sent
   /// to the server so far have been flushed to the OS buffer.
-  Future flushCommands() {
+  Future<void> flushCommands() {
     return _process.stdin.flush();
   }
 
@@ -536,7 +532,7 @@ class Server {
       }
 
       _recordStdio('<== $trimmedLine');
-      Map message;
+      Map<Object?, Object?> message;
       try {
         message = json.decoder.convert(trimmedLine) as Map<Object?, Object?>;
       } catch (exception) {
@@ -609,13 +605,13 @@ class Server {
   /// Start the server. If [profileServer] is `true`, the server will be started
   /// with "--observe" and "--pause-isolates-on-exit", allowing the observatory
   /// to be used.
-  Future start({
+  Future<void> start({
     required String dartSdkPath,
     int? diagnosticPort,
     String? instrumentationLogFile,
     String? packagesFile,
     bool profileServer = false,
-    int? servicesPort,
+    int? servicePort,
     bool useAnalysisHighlight2 = false,
   }) async {
     _time.start();
@@ -643,14 +639,14 @@ class Server {
     // Add VM arguments.
     //
     if (profileServer) {
-      if (servicesPort == null) {
+      if (servicePort == null) {
         arguments.add('--observe');
       } else {
-        arguments.add('--observe=$servicesPort');
+        arguments.add('--observe=$servicePort');
       }
       arguments.add('--pause-isolates-on-exit');
-    } else if (servicesPort != null) {
-      arguments.add('--enable-vm-service=$servicesPort');
+    } else if (servicePort != null) {
+      arguments.add('--enable-vm-service=$servicePort');
     }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
@@ -725,7 +721,7 @@ class Server {
 
 /// An error result from a server request.
 class ServerErrorMessage {
-  final Map message;
+  final Map<Object?, Object?> message;
 
   ServerErrorMessage(this.message);
 
@@ -751,8 +747,8 @@ class _ListOf extends Matcher {
       description.add('List of ').addDescriptionOf(elementMatcher);
 
   @override
-  Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(item, Description mismatchDescription,
+      Map<Object?, Object?> matchState, bool verbose) {
     if (item is! List) {
       return super
           .describeMismatch(item, mismatchDescription, matchState, verbose);
@@ -763,7 +759,7 @@ class _ListOf extends Matcher {
   }
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<Object?, Object?> matchState) {
     if (item is! List) {
       return false;
     }
@@ -839,7 +835,7 @@ class _OneOf extends Matcher {
   }
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<Object?, Object?> matchState) {
     for (var choiceMatcher in choiceMatchers) {
       var subState = {};
       if (choiceMatcher.matches(item, subState)) {
@@ -884,8 +880,8 @@ abstract class _RecursiveMatcher extends Matcher {
   }
 
   @override
-  Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(item, Description mismatchDescription,
+      Map<Object?, Object?> matchState, bool verbose) {
     var mismatches = matchState['mismatches'] as List<MismatchDescriber>?;
     if (mismatches != null) {
       for (var i = 0; i < mismatches.length; i++) {
@@ -909,7 +905,7 @@ abstract class _RecursiveMatcher extends Matcher {
   }
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(item, Map<Object?, Object?> matchState) {
     var mismatches = <MismatchDescriber>[];
     populateMismatches(item, mismatches);
     if (mismatches.isEmpty) {

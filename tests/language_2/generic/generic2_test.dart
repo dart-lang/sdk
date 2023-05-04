@@ -27,6 +27,6 @@ main() {
   Expect.isTrue(new C().foo(1));
   Expect.isFalse(new C().foo(new Object()));
   Expect.isFalse(new C().foo('hest'));
-  Expect.isTrue(new A<List<int>>().foo(new List<int>()));
-  Expect.isFalse(new A<List<int>>().foo(new List<String>()));
+  Expect.isTrue(new A<List<int>>().foo(<int>[]));
+  Expect.isFalse(new A<List<int>>().foo(<String>[]));
 }

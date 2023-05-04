@@ -1,0 +1,49 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  #L1:
+  {
+    final synthesized dynamic #0#0 = x;
+    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    {
+      hoisted core::int y;
+      if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = y = #0#0{core::int} in true)) {
+        {
+          return y;
+        }
+      }
+    }
+    {
+      hoisted core::double z;
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::double && (let final dynamic #t2 = z = #0#6{core::double} in true))) {
+        {
+          return z;
+        }
+      }
+    }
+    {
+      {
+        {
+          return null;
+        }
+      }
+    }
+  }
+}
+static method main() → dynamic {
+  self::expectEquals(self::test(0), 0);
+  self::expectEquals(self::test(<core::double>[3.14]), 3.14);
+  self::expectEquals(self::test("foo"), null);
+  self::expectEquals(self::test(null), null);
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected ${x} to be equal to ${y}.";
+  }
+}
+
+constants  {
+  #C1 = 1
+}

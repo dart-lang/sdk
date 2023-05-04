@@ -33,7 +33,7 @@ void f() {
   HashMap.from({1: 1, 2: 2, 3: 3});
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 12),
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 12),
     ]);
     expect(result.errors[0].message, contains("'HashMap.from'"));
   }
@@ -45,7 +45,7 @@ void f() {
   c.HashMap.from({1: 1, 2: 2, 3: 3});
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 14),
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 14),
     ]);
     expect(result.errors[0].message, contains("'c.HashMap.from'"));
   }
@@ -57,7 +57,7 @@ void f() {
   HashMap();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7),
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7),
     ]);
     expect(result.errors[0].message, contains("'HashMap'"));
   }
@@ -69,7 +69,7 @@ void f() {
   c.HashMap();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 9),
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 9),
     ]);
     expect(result.errors[0].message, contains("'c.HashMap'"));
   }
@@ -92,7 +92,7 @@ class C<T> {
 @C()
 void f() {}
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 29, 4),
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 29, 4),
     ]);
   }
 
@@ -159,7 +159,7 @@ void f() {
   HashMap();
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7),
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7),
     ]);
   }
 
@@ -180,7 +180,7 @@ void f() {
 import 'dart:collection';
 var m = HashMap();
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 30, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 34, 7),
     ]);
   }
 

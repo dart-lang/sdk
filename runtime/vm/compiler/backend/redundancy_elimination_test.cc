@@ -109,8 +109,8 @@ static void TryCatchOptimizerTest(
   // We should only synchronize state for variables from the synchronized list.
   for (auto defn : *catch_entry->initial_definitions()) {
     if (ParameterInstr* param = defn->AsParameter()) {
-      EXPECT(0 <= param->index() && param->index() < env.length());
-      EXPECT(env[param->index()] != nullptr);
+      EXPECT(0 <= param->env_index() && param->env_index() < env.length());
+      EXPECT(env[param->env_index()] != nullptr);
     }
   }
 }
@@ -249,9 +249,9 @@ static void TestAliasingViaRedefinition(
   //   v0 <- AllocateObject(class K)
   //   v1 <- LoadField(v0, K.field)
   //   v2 <- make_redefinition(v0)
-  //   PushArgument(v1)
+  //   MoveArgument(v1)
   // #if make_it_escape
-  //   PushArgument(v2)
+  //   MoveArgument(v2)
   // #endif
   //   v3 <- StaticCall(blackhole, v1, v2)
   //   v4 <- LoadField(v2, K.field)
@@ -418,13 +418,13 @@ static void TestAliasingViaStore(
   // #endif
   //   v1 <- LoadField(v0, K.field)
   //   v2 <- REDEFINITION(v5)
-  //   PushArgument(v1)
+  //   MoveArgument(v1)
   // #if make_it_escape
   //   v6 <- LoadField(v2, K.field)
-  //   PushArgument(v6)
+  //   MoveArgument(v6)
   // #elif make_host_escape
   //   StoreField(v2 . K.field = v0)
-  //   PushArgument(v5)
+  //   MoveArgument(v5)
   // #endif
   //   v3 <- StaticCall(blackhole, v1, v6)
   //   v4 <- LoadField(v0, K.field)
@@ -665,188 +665,88 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
   }
 }
 
-// This test verifies behavior of load forwarding when an alias for an
-// allocation A is created after forwarded due to an eliminated load. That is,
-// allocation A is stored and later retrieved via load B, B is used in store C
-// (with a different constant index/index_scale than in B but that overlaps),
-// and then A is retrieved again (with the same index as in B) in load D.
-//
-// When B gets eliminated and replaced with in C and D with A, the store in C
-// should stop the load D from being eliminated. This is a scenario that came
-// up when forwarding typed data view factory arguments.
-//
-// Here, the entire scenario happens within a single basic block.
-ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
-  const char* kScript = R"(
+// This test verifies that we correctly alias load/stores into typed array
+// which use different element sizes. This is a regression test for
+// a fix in 836c04f.
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_TypedArrayViewAliasing) {
+  const char* script_chars = R"(
     import 'dart:typed_data';
 
-    testViewAliasing1() {
-      final f64 = new Float64List(1);
-      final f32 = new Float32List.view(f64.buffer);
-      f64[0] = 1.0; // Should not be forwarded.
-      f32[1] = 2.0; // upper 32bits for 2.0f and 2.0 are the same
-      return f64[0];
+    class View {
+      final Float64List data;
+      View(this.data);
     }
   )";
+  const Library& lib =
+      Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
 
-  const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  const auto& function =
-      Function::Handle(GetFunction(root_library, "testViewAliasing1"));
+  const Class& view_cls = Class::ZoneHandle(
+      lib.LookupLocalClass(String::Handle(Symbols::New(thread, "View"))));
+  const Error& err = Error::Handle(view_cls.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
 
-  Invoke(root_library, "testViewAliasing1");
+  const Field& original_field = Field::Handle(
+      view_cls.LookupField(String::Handle(Symbols::New(thread, "data"))));
+  EXPECT(!original_field.IsNull());
+  const Field& field = Field::Handle(original_field.CloneFromOriginal());
 
-  TestPipeline pipeline(function, CompilerPass::kJIT);
-  FlowGraph* flow_graph = pipeline.RunPasses({});
+  using compiler::BlockBuilder;
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H;
 
-  auto entry = flow_graph->graph_entry()->normal_entry();
-  EXPECT(entry != nullptr);
+  auto b1 = H.flow_graph()->graph_entry()->normal_entry();
 
-  AllocateTypedDataInstr* alloc_typed_data = nullptr;
-  StoreIndexedInstr* first_store = nullptr;
-  StoreIndexedInstr* second_store = nullptr;
-  LoadIndexedInstr* final_load = nullptr;
-  BoxInstr* boxed_result = nullptr;
+  Definition* load;
+  ReturnInstr* ret;
 
-  ILMatcher cursor(flow_graph, entry);
-  RELEASE_ASSERT(cursor.TryMatch(
-      {
-          {kMatchAndMoveAllocateTypedData, &alloc_typed_data},
-          {kMatchAndMoveStoreIndexed, &first_store},
-          {kMatchAndMoveStoreIndexed, &second_store},
-          {kMatchAndMoveLoadIndexed, &final_load},
-          {kMatchAndMoveBox, &boxed_result},
-          kMatchReturn,
-      },
-      /*insert_before=*/kMoveGlob));
+  {
+    BlockBuilder builder(H.flow_graph(), b1);
+    // array <- AllocateTypedData(1)
+    const auto array = builder.AddDefinition(new AllocateTypedDataInstr(
+        InstructionSource(), kTypedDataFloat64ArrayCid,
+        new Value(H.IntConstant(1)), DeoptId::kNone));
+    // view <- AllocateObject(View)
+    const auto view = builder.AddDefinition(
+        new AllocateObjectInstr(InstructionSource(), view_cls, DeoptId::kNone));
+    // StoreField(view.data = array)
+    builder.AddInstruction(new StoreFieldInstr(
+        field, new Value(view), new Value(array),
+        StoreBarrierType::kNoStoreBarrier, InstructionSource(),
+        &H.flow_graph()->parsed_function()));
+    // StoreIndexed(array <float64>, 0, 1.0)
+    builder.AddInstruction(new StoreIndexedInstr(
+        new Value(array), new Value(H.IntConstant(0)),
+        new Value(H.DoubleConstant(1.0)), StoreBarrierType::kNoStoreBarrier,
+        /*index_unboxed=*/false,
+        /*index_scale=*/Instance::ElementSizeFor(kTypedDataFloat64ArrayCid),
+        kTypedDataFloat64ArrayCid, AlignmentType::kAlignedAccess,
+        DeoptId::kNone, InstructionSource()));
+    // array_alias <- LoadField(view.data)
+    const auto array_alias = builder.AddDefinition(new LoadFieldInstr(
+        new Value(view), Slot::Get(field, &H.flow_graph()->parsed_function()),
+        InstructionSource()));
+    // StoreIndexed(array_alias <float32>, 1, 2.0)
+    builder.AddInstruction(new StoreIndexedInstr(
+        new Value(array_alias), new Value(H.IntConstant(1)),
+        new Value(H.DoubleConstant(2.0)), StoreBarrierType::kNoStoreBarrier,
+        /*index_unboxed=*/false,
+        /*index_scale=*/Instance::ElementSizeFor(kTypedDataFloat32ArrayCid),
+        kTypedDataFloat32ArrayCid, AlignmentType::kAlignedAccess,
+        DeoptId::kNone, InstructionSource()));
+    // load <- LoadIndexed(array <float64>, 0)
+    load = builder.AddDefinition(new LoadIndexedInstr(
+        new Value(array), new Value(H.IntConstant(0)), /*index_unboxed=*/false,
+        /*index_scale=*/Instance::ElementSizeFor(kTypedDataFloat64ArrayCid),
+        kTypedDataFloat64ArrayCid, AlignmentType::kAlignedAccess,
+        DeoptId::kNone, InstructionSource()));
+    // Return(load)
+    ret = builder.AddReturn(new Value(load));
+  }
+  H.FinishGraph();
+  DominatorBasedCSE::Optimize(H.flow_graph());
 
-  EXPECT(first_store->array()->definition() == alloc_typed_data);
-  EXPECT(second_store->array()->definition() == alloc_typed_data);
-  EXPECT(boxed_result->value()->definition() == final_load);
-}
-
-// This test verifies behavior of load forwarding when an alias for an
-// allocation A is created after forwarded due to an eliminated load. That is,
-// allocation A is stored and later retrieved via load B, B is used in store C
-// (with a different constant index/index_scale than in B but that overlaps),
-// and then A is retrieved again (with the same index as in B) in load D.
-//
-// When B gets eliminated and replaced with in C and D with A, the store in C
-// should stop the load D from being eliminated. This is a scenario that came
-// up when forwarding typed data view factory arguments.
-//
-// Here, the scenario is split across basic blocks. This is a cut-down version
-// of language_2/vm/load_to_load_forwarding_vm_test.dart with just enough extra
-// to keep testViewAliasing1 from being optimized into a single basic block.
-// Thus, this test may be brittler than the other, if future work causes it to
-// end up compiled into a single basic block (or a simpler set of basic blocks).
-ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
-  const char* kScript = R"(
-    import 'dart:typed_data';
-
-    class Expect {
-      static void equals(var a, var b) {}
-      static void listEquals(var a, var b) {}
-    }
-
-    testViewAliasing1() {
-      final f64 = new Float64List(1);
-      final f32 = new Float32List.view(f64.buffer);
-      f64[0] = 1.0; // Should not be forwarded.
-      f32[1] = 2.0; // upper 32bits for 2.0f and 2.0 are the same
-      return f64[0];
-    }
-
-    testViewAliasing2() {
-      final f64 = new Float64List(2);
-      final f64v = new Float64List.view(f64.buffer,
-                                        Float64List.bytesPerElement);
-      f64[1] = 1.0; // Should not be forwarded.
-      f64v[0] = 2.0;
-      return f64[1];
-    }
-
-    testViewAliasing3() {
-      final u8 = new Uint8List(Float64List.bytesPerElement * 2);
-      final f64 = new Float64List.view(u8.buffer, Float64List.bytesPerElement);
-      f64[0] = 1.0; // Should not be forwarded.
-      u8[15] = 0x40;
-      u8[14] = 0x00;
-      return f64[0];
-    }
-
-    main() {
-      for (var i = 0; i < 20; i++) {
-        Expect.equals(2.0, testViewAliasing1());
-        Expect.equals(2.0, testViewAliasing2());
-        Expect.equals(2.0, testViewAliasing3());
-      }
-    }
-  )";
-
-  const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  const auto& function =
-      Function::Handle(GetFunction(root_library, "testViewAliasing1"));
-
-  Invoke(root_library, "main");
-
-  TestPipeline pipeline(function, CompilerPass::kJIT);
-  // Recent changes actually compile the function into a single basic
-  // block, so we need to test right after the load optimizer has been run.
-  // Have checked that this test still fails appropriately using the load
-  // optimizer prior to the fix (commit 2a237327).
-  FlowGraph* flow_graph = pipeline.RunPasses({
-      CompilerPass::kComputeSSA,
-      CompilerPass::kApplyICData,
-      CompilerPass::kTryOptimizePatterns,
-      CompilerPass::kSetOuterInliningId,
-      CompilerPass::kTypePropagation,
-      CompilerPass::kApplyClassIds,
-      CompilerPass::kInlining,
-      CompilerPass::kTypePropagation,
-      CompilerPass::kApplyClassIds,
-      CompilerPass::kTypePropagation,
-      CompilerPass::kApplyICData,
-      CompilerPass::kCanonicalize,
-      CompilerPass::kBranchSimplify,
-      CompilerPass::kIfConvert,
-      CompilerPass::kCanonicalize,
-      CompilerPass::kConstantPropagation,
-      CompilerPass::kOptimisticallySpecializeSmiPhis,
-      CompilerPass::kTypePropagation,
-      CompilerPass::kWidenSmiToInt32,
-      CompilerPass::kSelectRepresentations,
-      CompilerPass::kCSE,
-  });
-
-  auto entry = flow_graph->graph_entry()->normal_entry();
-  EXPECT(entry != nullptr);
-
-  AllocateTypedDataInstr* alloc_typed_data = nullptr;
-  StoreIndexedInstr* first_store = nullptr;
-  StoreIndexedInstr* second_store = nullptr;
-  LoadIndexedInstr* final_load = nullptr;
-  BoxInstr* boxed_result = nullptr;
-
-  ILMatcher cursor(flow_graph, entry);
-  RELEASE_ASSERT(cursor.TryMatch(
-      {
-          {kMatchAndMoveAllocateTypedData, &alloc_typed_data},
-          kMatchAndMoveBranchTrue,
-          kMatchAndMoveBranchTrue,
-          kMatchAndMoveBranchFalse,
-          kMatchAndMoveBranchFalse,
-          {kMatchAndMoveStoreIndexed, &first_store},
-          kMatchAndMoveBranchFalse,
-          {kMatchAndMoveStoreIndexed, &second_store},
-          {kMatchAndMoveLoadIndexed, &final_load},
-          {kMatchAndMoveBox, &boxed_result},
-          kMatchReturn,
-      },
-      /*insert_before=*/kMoveGlob));
-
-  EXPECT(first_store->array()->definition() == alloc_typed_data);
-  EXPECT(second_store->array()->definition() == alloc_typed_data);
-  EXPECT(boxed_result->value()->definition() == final_load);
+  // Check that we do not forward the load in question.
+  EXPECT_PROPERTY(ret, it.value()->definition() == load);
 }
 
 static void CountLoadsStores(FlowGraph* flow_graph,
@@ -1277,48 +1177,46 @@ main() {
 
   4:     CheckStackOverflow:8(stack=0, loop=0)
   5:     ParallelMove rax <- S+2
-  6:     CheckClass:14(v2 Cids[1: _Double@0150898 etc.  cid 52])
-  8:     v526 <- Unbox:14(v2 T{_Double}) T{_Double}
+  6:     CheckClass:14(v2 Cids[1: _Double@0150898 etc.  cid 62] nullcheck)
+  8:     v312 <- Unbox:14(v2 T{_Double}) T{_Double}
  10:     ParallelMove xmm1 <- C
- 10:     v352 <- BinaryDoubleOp:22(+, v590, v526) T{_Double}
- 11:     ParallelMove DS-6 <- xmm1
+ 10:     v221 <- BinaryDoubleOp:22(+, v341, v312) T{_Double}
+ 11:     ParallelMove DS-7 <- xmm1
  12:     ParallelMove xmm2 <- C
- 12:     v363 <- BinaryDoubleOp:34(+, v591, v526) T{_Double}
- 13:     ParallelMove DS-5 <- xmm2
- 14:     ParallelMove xmm0 <- xmm1
- 14:     v21 <- BinaryDoubleOp:28(+, v352, v363) T{_Double}
- 15:     ParallelMove rbx <- C, r10 <- C, DS-4 <- xmm0
- 16:     v24 <- CreateArray:30(v0, v23) T{_List}
- 17:     ParallelMove rcx <- rax
- 18:     ParallelMove S-3 <- rcx
- 18:     StoreIndexed(v24, v6, v26, NoStoreBarrier)
- 20:     StoreIndexed(v24, v7, v7, NoStoreBarrier)
- 22:     StoreIndexed(v24, v3, v29, NoStoreBarrier)
- 24:     StoreIndexed(v24, v30, v8, NoStoreBarrier)
- 26:     StoreIndexed(v24, v33, v34, NoStoreBarrier)
- 28:     StoreIndexed(v24, v35, v9, NoStoreBarrier)
- 30:     StoreIndexed(v24, v38, v29, NoStoreBarrier)
- 32:     StoreIndexed(v24, v39, v10, NoStoreBarrier)
- 34:     StoreIndexed(v24, v42, v43, NoStoreBarrier)
- 35:     ParallelMove xmm0 <- DS-6
- 36:     v586 <- Box(v352) T{_Double}
- 37:     ParallelMove rdx <- rcx, rax <- rax
- 38:     StoreIndexed(v24, v44, v586)
- 40:     StoreIndexed(v24, v47, v29, NoStoreBarrier)
- 41:     ParallelMove xmm0 <- DS-5
- 42:     v588 <- Box(v363) T{_Double}
- 43:     ParallelMove rdx <- rcx, rax <- rax
- 44:     StoreIndexed(v24, v48, v588)
- 46:     StoreIndexed(v24, v51, v52, NoStoreBarrier)
- 47:     ParallelMove xmm0 <- DS-4
- 48:     v580 <- Box(v21) T{_Double}
+ 12:     v227 <- BinaryDoubleOp:34(+, v342, v312) T{_Double}
+ 13:     ParallelMove DS-6 <- xmm2
+ 14:     v333 <- Box(v221) T{_Double}
+ 15:     ParallelMove S-4 <- rax
+ 16:     v334 <- Box(v227) T{_Double}
+ 17:     ParallelMove S-3 <- rcx
+ 18:     ParallelMove xmm0 <- xmm1
+ 18:     v15 <- BinaryDoubleOp:28(+, v221, v227) T{_Double}
+ 19:     ParallelMove rbx <- C, r10 <- C, DS-5 <- xmm0
+ 20:     v17 <- CreateArray:30(v0, v16) T{_List}
+ 21:     ParallelMove rcx <- rax
+ 22:     StoreIndexed(v17, v5, v18, NoStoreBarrier)
+ 24:     StoreIndexed(v17, v6, v6, NoStoreBarrier)
+ 26:     StoreIndexed(v17, v3, v20, NoStoreBarrier)
+ 28:     StoreIndexed(v17, v21, v7, NoStoreBarrier)
+ 30:     StoreIndexed(v17, v23, v24, NoStoreBarrier)
+ 32:     StoreIndexed(v17, v25, v8, NoStoreBarrier)
+ 34:     StoreIndexed(v17, v27, v20, NoStoreBarrier)
+ 36:     StoreIndexed(v17, v28, v9, NoStoreBarrier)
+ 38:     StoreIndexed(v17, v30, v31, NoStoreBarrier)
+ 39:     ParallelMove rax <- S-4
+ 40:     StoreIndexed(v17, v32, v333, NoStoreBarrier)
+ 42:     StoreIndexed(v17, v34, v20, NoStoreBarrier)
+ 43:     ParallelMove rax <- S-3
+ 44:     StoreIndexed(v17, v35, v334, NoStoreBarrier)
+ 46:     StoreIndexed(v17, v37, v38, NoStoreBarrier)
+ 47:     ParallelMove xmm0 <- DS-5
+ 48:     v335 <- Box(v15) T{_Double}
  49:     ParallelMove rdx <- rcx, rax <- rax
- 50:     StoreIndexed(v24, v53, v580)
- 51:     ParallelMove rax <- rcx
-         PushArgument(v24)
- 52:     v54 <- StaticCall:44(_StringBase._interpolate, v24) T{String}
- 53:     ParallelMove rax <- rax
- 54:     Return:48(v54)
+ 50:     StoreIndexed(v17, v39, v335)
+ 52:     MoveArgument(v17)
+ 54:     v40 <- StaticCall:44( _interpolate@0150898<0> v17,
+            recognized_kind = StringBaseInterpolate) T{String?}
+ 56:     Return:48(v40)
 */
 
   CreateArrayInstr* create_array = nullptr;
@@ -1330,7 +1228,7 @@ main() {
       kMatchAndMoveFunctionEntry,
       kMatchAndMoveCheckStackOverflow,
   }));
-  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
+  if (!FLAG_sound_null_safety) {
     RELEASE_ASSERT(cursor.TryMatch({
         kMatchAndMoveCheckClass,
     }));
@@ -1339,6 +1237,8 @@ main() {
       kMatchAndMoveUnbox,
       kMatchAndMoveBinaryDoubleOp,
       kMatchAndMoveBinaryDoubleOp,
+      kMatchAndMoveBox,
+      kMatchAndMoveBox,
       kMatchAndMoveBinaryDoubleOp,
       {kMatchAndMoveCreateArray, &create_array},
       kMatchAndMoveStoreIndexed,
@@ -1350,15 +1250,13 @@ main() {
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
-      kMatchAndMoveBox,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveBox,
       kMatchAndMoveStoreIndexed,
-      kMatchAndMoveStoreIndexed,
-      kMatchAndMoveBox,
-      kMatchAndMoveStoreIndexed,
-      kMatchAndMovePushArgument,
+      kMatchAndMoveMoveArgument,
       {kMatchAndMoveStaticCall, &string_interpolate},
       kMatchReturn,
   }));
@@ -1379,8 +1277,8 @@ String foo(int x, String y) {
   // except array allocation for string interpolation at the end.
   (int, bool) r1 = (x, true);
   final r2 = getRecord(x, y);
-  int sum = r1.$0 + r2.field1;
-  return "r1: (${r1.$0}, ${r1.$1}), "
+  int sum = r1.$1 + r2.field1;
+  return "r1: (${r1.$1}, ${r1.$2}), "
     "r2: (field1: ${r2.field1}, field2: ${r2.field2}), sum: $sum";
 }
 
@@ -1431,7 +1329,7 @@ main() {
  28:     StoreIndexed(v11, v28, v29, NoStoreBarrier)
  29:     ParallelMove rcx <- S-3
  30:     StoreIndexed(v11, v30, v9, NoStoreBarrier)
- 32:     PushArgument(v11)
+ 32:     MoveArgument(v11)
  34:     v31 <- StaticCall:20( _interpolate@0150898<0> v11, recognized_kind = StringBaseInterpolate) T{String}
  35:     ParallelMove rax <- rax
  36:     Return:24(v31)
@@ -1455,7 +1353,7 @@ main() {
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
-      kMatchAndMovePushArgument,
+      kMatchAndMoveMoveArgument,
       kMatchAndMoveStaticCall,
       kMatchReturn,
   }));
@@ -1701,5 +1599,114 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
 }
 
 #endif  // !defined(TARGET_ARCH_IA32)
+
+// Regression test for https://github.com/dart-lang/sdk/issues/51220.
+// Verifies that deoptimization at the hoisted BinarySmiOp
+// doesn't result in the infinite re-optimization loop.
+ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress51220) {
+  auto kScript =
+      Utils::CStringUniquePtr(OS::SCreate(nullptr,
+                                          R"(
+        int n = int.parse('3');
+        main() {
+          int x = 0;
+          for (int i = 0; i < n; ++i) {
+            if (i > ((1 << %d)*1024)) {
+              ++x;
+            }
+          }
+          return x;
+        }
+      )",
+                                          static_cast<int>(kSmiBits + 1 - 10)),
+                              std::free);
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+
+  // Run unoptimized code.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // Only 2 rounds of deoptimization are allowed:
+  // * the first round should disable LICM;
+  // * the second round should disable BinarySmiOp.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+  //  EXPECT(function.ProhibitsInstructionHoisting());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+  //  EXPECT(function.ProhibitsInstructionHoisting());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // Should not deoptimize.
+  Invoke(root_library, "main");
+  EXPECT(function.HasOptimizedCode());
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/50245.
+// Verifies that deoptimization at the hoisted GuardFieldClass
+// doesn't result in the infinite re-optimization loop.
+ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress50245) {
+  if (!FLAG_sound_null_safety) {
+    return;
+  }
+
+  const char* kScript = R"(
+    class A {
+      List<int> foo;
+      A(this.foo);
+    }
+
+    A obj = A([1, 2, 3]);
+    int n = int.parse('3');
+
+    main() {
+      // Make sure A.foo= is compiled.
+      obj.foo = [];
+      int sum = 0;
+      for (int i = 0; i < n; ++i) {
+        if (int.parse('1') != 1) {
+          // Field guard from this unreachable code is moved up
+          // and causes repeated deoptimization.
+          obj.foo = const [];
+        }
+        sum += i;
+      }
+      return sum;
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+
+  // Run unoptimized code.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // LICM should be disabled after the first round of deoptimization.
+  Invoke(root_library, "main");
+  EXPECT(!function.HasOptimizedCode());
+  //  EXPECT(function.ProhibitsInstructionHoisting());
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  EXPECT(function.HasOptimizedCode());
+
+  // Should not deoptimize.
+  Invoke(root_library, "main");
+  EXPECT(function.HasOptimizedCode());
+}
 
 }  // namespace dart

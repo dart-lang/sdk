@@ -2,29 +2,49 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=sealed-class
+// SharedOptions=--enable-experiment=sealed-class,class-modifiers
 
 // Error when attempting to mix in a sealed class outside of library.
 
-import 'sealed_class_as_mixin_in_lib_error_test.dart';
+import 'sealed_class_as_mixin_lib.dart';
 
 abstract class OutsideA with SealedClass {}
-//             ^
-// [analyzer] unspecified
-// [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
+//                           ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+// [cfe] The class 'SealedClass' can't be used as a mixin because it isn't a mixin class nor a mixin.
 
 class OutsideB with SealedClass {
-//    ^
-// [analyzer] unspecified
-// [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
-  @override
+//                  ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+// [cfe] The class 'SealedClass' can't be used as a mixin because it isn't a mixin class nor a mixin.
   int foo = 2;
-
-  @override
   int bar(int value) => value;
 }
 
 abstract class OutsideC = Object with SealedClass;
-//             ^
-// [analyzer] unspecified
-// [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
+//                                    ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+// [cfe] The class 'SealedClass' can't be used as a mixin because it isn't a mixin class nor a mixin.
+
+abstract class OutsideD with SealedClass, Class {}
+//                           ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+// [cfe] The class 'SealedClass' can't be used as a mixin because it isn't a mixin class nor a mixin.
+//                                        ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
+// [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.
+
+abstract class OutsideE with Mixin, SealedClass {}
+//                                  ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+// [cfe] The class 'SealedClass' can't be used as a mixin because it isn't a mixin class nor a mixin.

@@ -8,7 +8,7 @@ import 'dart:_interceptors' show Interceptor, findInterceptorForType;
 
 // Test calling convention on subclasses of native classes.
 
-class M {
+mixin M {
   miz() => 'M';
 }
 

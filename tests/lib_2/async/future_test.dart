@@ -43,7 +43,7 @@ void testSync() {
   Future val = new Future.value(42);
   Future err1 = new Future.error("Error")..catchError((_) {});
   try {
-    throw new List(0);
+    throw new List.filled(0, null);
   } catch (e, st) {
     Future err2 = new Future.error(e, st)..catchError((_) {});
   }
@@ -787,8 +787,8 @@ void testWaitCleanUp() {
   void doTest(int mask, int permute) {
     asyncStart();
     String stringId = "waitCleanup-$mask-$permute";
-    List<Future> futures = new List(3);
-    List cleanup = new List(3);
+    List<Future> futures = new List.filled(3, null);
+    List cleanup = new List.filled(3, null);
     int permuteTmp = permute;
     for (int i = 0; i < 3; i++) {
       bool throws = (mask & (1 << i)) != 0;
@@ -832,8 +832,8 @@ void testWaitCleanUpEager() {
     asyncStart();
     bool done = false;
     String stringId = "waitCleanup-$mask-$permute";
-    List<Future> futures = new List<Future>(3);
-    List cleanup = new List(3);
+    List<Future> futures = new List<Future>.filled(3, null);
+    List cleanup = new List.filled(3, null);
     int permuteTmp = permute;
     for (int i = 0; i < 3; i++) {
       bool throws = (mask & (1 << i)) != 0;

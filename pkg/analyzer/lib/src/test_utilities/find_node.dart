@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
@@ -11,11 +13,6 @@ class FindNode {
   final CompilationUnit unit;
 
   FindNode(this.content, this.unit);
-
-  LibraryDirective get libraryDirective {
-    return unit.directives.singleWhere((d) => d is LibraryDirective)
-        as LibraryDirective;
-  }
 
   List<MethodInvocation> get methodInvocations {
     var result = <MethodInvocation>[];
@@ -27,54 +24,36 @@ class FindNode {
     return result;
   }
 
-  /// Returns the [GuardedPattern], there must be only one.
-  GuardedPattern get singleGuardedPattern {
-    var nodes = <GuardedPattern>[];
-    unit.accept(
-      FunctionAstVisitor(
-        guardedPattern: (node) {
-          nodes.add(node);
-        },
-      ),
-    );
-    return nodes.single;
-  }
+  Block get singleBlock => _single();
 
-  /// Returns the [IfStatement], there must be only one.
-  IfStatement get singleIfStatement {
-    var nodes = <IfStatement>[];
-    unit.accept(
-      FunctionAstVisitor(
-        ifStatement: (node) {
-          nodes.add(node);
-        },
-      ),
-    );
-    return nodes.single;
-  }
+  FieldDeclaration get singleFieldDeclaration => _single();
 
-  /// Returns the [PatternVariableDeclaration], there must be only one.
-  PatternVariableDeclaration get singlePatternVariableDeclaration {
-    var nodes = <PatternVariableDeclaration>[];
-    unit.accept(
-      FunctionAstVisitor(
-        patternVariableDeclaration: nodes.add,
-      ),
-    );
-    return nodes.single;
-  }
+  ForElement get singleForElement => _single();
 
-  /// Returns the [PatternVariableDeclarationStatement], there must be only one.
+  ForStatement get singleForStatement => _single();
+
+  FunctionBody get singleFunctionBody => _single();
+
+  GuardedPattern get singleGuardedPattern => _single();
+
+  IfElement get singleIfElement => _single();
+
+  IfStatement get singleIfStatement => _single();
+
+  LibraryDirective get singleLibraryDirective => _single();
+
+  MethodDeclaration get singleMethodDeclaration => _single();
+
+  PatternAssignment get singlePatternAssignment => _single();
+
+  PatternVariableDeclaration get singlePatternVariableDeclaration => _single();
+
   PatternVariableDeclarationStatement
-      get singlePatternVariableDeclarationStatement {
-    var nodes = <PatternVariableDeclarationStatement>[];
-    unit.accept(
-      FunctionAstVisitor(
-        patternVariableDeclarationStatement: nodes.add,
-      ),
-    );
-    return nodes.single;
-  }
+      get singlePatternVariableDeclarationStatement => _single();
+
+  SwitchExpression get singleSwitchExpression => _single();
+
+  SwitchPatternCase get singleSwitchPatternCase => _single();
 
   AdjacentStrings adjacentStrings(String search) {
     return _node(search, (n) => n is AdjacentStrings);
@@ -96,8 +75,16 @@ class FindNode {
     return _node(search, (n) => n is AsExpression);
   }
 
+  AsExpression asExpression(String search) {
+    return _node(search, (n) => n is AsExpression);
+  }
+
   AssertStatement assertStatement(String search) {
     return _node(search, (n) => n is AssertStatement);
+  }
+
+  AssignedVariablePattern assignedVariablePattern(String search) {
+    return _node(search, (n) => n is AssignedVariablePattern);
   }
 
   AssignmentExpression assignment(String search) {
@@ -116,8 +103,9 @@ class FindNode {
     return _node(search, (n) => n is BinaryExpression);
   }
 
-  BinaryPattern binaryPattern(String search) {
-    return _node(search, (n) => n is BinaryPattern);
+  BindPatternVariableElement bindPatternVariableElement(String search) {
+    final node = declaredVariablePattern(search);
+    return node.declaredElement!;
   }
 
   Block block(String search) {
@@ -214,6 +202,10 @@ class FindNode {
 
   DeclaredIdentifier declaredIdentifier(String search) {
     return _node(search, (n) => n is DeclaredIdentifier);
+  }
+
+  DeclaredVariablePattern declaredVariablePattern(String search) {
+    return _node(search, (n) => n is DeclaredVariablePattern);
   }
 
   DefaultFormalParameter defaultParameter(String search) {
@@ -436,6 +428,14 @@ class FindNode {
     return _node(search, (n) => n is ListPattern);
   }
 
+  LogicalAndPattern logicalAndPattern(String search) {
+    return _node(search, (n) => n is LogicalAndPattern);
+  }
+
+  LogicalOrPattern logicalOrPattern(String search) {
+    return _node(search, (n) => n is LogicalOrPattern);
+  }
+
   MapLiteralEntry mapLiteralEntry(String search) {
     return _node(search, (n) => n is MapLiteralEntry);
   }
@@ -480,6 +480,14 @@ class FindNode {
     return _node(search, (n) => n is NativeFunctionBody);
   }
 
+  NullAssertPattern nullAssertPattern(String search) {
+    return _node(search, (n) => n is NullAssertPattern);
+  }
+
+  NullCheckPattern nullCheckPattern(String search) {
+    return _node(search, (n) => n is NullCheckPattern);
+  }
+
   NullLiteral nullLiteral(String search) {
     return _node(search, (n) => n is NullLiteral);
   }
@@ -521,6 +529,14 @@ class FindNode {
     return _node(search, (n) => n is PatternAssignment);
   }
 
+  PatternField patternField(String search) {
+    return _node(search, (n) => n is PatternField);
+  }
+
+  PatternFieldName patternFieldName(String search) {
+    return _node(search, (n) => n is PatternFieldName);
+  }
+
   PatternVariableDeclaration patternVariableDeclaration(String search) {
     return _node(search, (n) => n is PatternVariableDeclaration);
   }
@@ -532,10 +548,6 @@ class FindNode {
 
   PostfixExpression postfix(String search) {
     return _node(search, (n) => n is PostfixExpression);
-  }
-
-  PostfixPattern postfixPattern(String search) {
-    return _node(search, (n) => n is PostfixPattern);
   }
 
   PrefixExpression prefix(String search) {
@@ -556,14 +568,6 @@ class FindNode {
 
   RecordPattern recordPattern(String search) {
     return _node(search, (n) => n is RecordPattern);
-  }
-
-  RecordPatternField recordPatternField(String search) {
-    return _node(search, (n) => n is RecordPatternField);
-  }
-
-  RecordPatternFieldName recordPatternFieldName(String search) {
-    return _node(search, (n) => n is RecordPatternFieldName);
   }
 
   RecordTypeAnnotation recordTypeAnnotation(String search) {
@@ -732,16 +736,16 @@ class FindNode {
     return _node(search, (n) => n is VariableDeclarationStatement);
   }
 
-  VariablePattern variablePattern(String search) {
-    return _node(search, (n) => n is VariablePattern);
-  }
-
   WhenClause whenClause(String search) {
     return _node(search, (n) => n is WhenClause);
   }
 
   WhileStatement whileStatement(String search) {
     return _node(search, (n) => n is WhileStatement);
+  }
+
+  WildcardPattern wildcardPattern(String search) {
+    return _node(search, (n) => n is WildcardPattern);
   }
 
   WithClause withClause(String search) {
@@ -773,5 +777,26 @@ class FindNode {
           'The node for |$search| had no matching ancestor in:\n$content\n$unit');
     }
     return result as T;
+  }
+
+  /// If [unit] has exactly one node of type [T], returns it.
+  /// Otherwise, throws.
+  T _single<T extends AstNode>() {
+    final visitor = _TypedNodeVisitor<T>();
+    unit.accept(visitor);
+    return visitor.nodes.single;
+  }
+}
+
+class _TypedNodeVisitor<T extends AstNode>
+    extends GeneralizingAstVisitor<void> {
+  final List<T> nodes = [];
+
+  @override
+  void visitNode(AstNode node) {
+    if (node is T) {
+      nodes.add(node);
+    }
+    super.visitNode(node);
   }
 }

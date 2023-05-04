@@ -11,9 +11,9 @@ extension TestGeneratorStringExtension on String {
 
   String makeDartDocComment() => "/// " + split("\n").join("\n/// ");
 
-  String limitTo(int lenght) {
-    if (this.length > lenght) {
-      return substring(0, lenght);
+  String limitTo(int length) {
+    if (this.length > length) {
+      return substring(0, length);
     }
     return this;
   }

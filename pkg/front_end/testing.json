@@ -44,6 +44,7 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
+        "/testcases/dart2wasm/",
         "/testcases/expression/"
       ]
     },
@@ -62,23 +63,7 @@
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
         "/testcases/expression/",
-        "/testcases/extensions/",
-        "/testcases/general/",
-        "/testcases/implicit_getter_calls",
-        "/testcases/inference",
-        "/testcases/inference_new",
-        "/testcases/instantiate_to_bound/",
-        "/testcases/new_const_insertion",
-        "/testcases/nnbd_mixed/",
-        "/testcases/no_such_method_forwarders",
-        "/testcases/nonfunction_type_aliases_no_nnbd/",
-        "/testcases/rasta/",
-        "/testcases/regress/",
-        "/testcases/runtime_checks",
-        "/testcases/runtime_checks_new",
-        "/testcases/set_literals",
-        "/testcases/variance",
-        "/testcases/unified_collections"
+        "/testcases/nnbd_mixed/"
       ]
     },
     {
@@ -95,6 +80,7 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
+        "/testcases/dart2wasm/",
         "/testcases/expression/"
       ]
     },
@@ -112,6 +98,7 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
+        "/testcases/dart2wasm/",
         "/testcases/expression/"
       ]
     },

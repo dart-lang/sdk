@@ -8,12 +8,18 @@ import 'ffi_test_helpers.dart';
 
 main() {
   // Ensure we have FfiTrampolineData in heap.
-  final foo = DynamicLibrary.process()
+  final malloc = DynamicLibrary.process()
       .lookup<NativeFunction<Pointer<Void> Function(IntPtr)>>("malloc")
       .asFunction<Pointer<Void> Function(int)>();
-  print(foo);
+  print(malloc);
 
   triggerGc();
 
-  print(foo(100).address);
+  final pointer = malloc(100);
+
+  print(pointer.address);
+
+  final free = DynamicLibrary.process()
+      .lookupFunction<Void Function(Pointer), void Function(Pointer)>('free');
+  free(pointer);
 }

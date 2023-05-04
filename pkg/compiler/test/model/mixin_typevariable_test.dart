@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library mixin_typevariable_test;
 
 import 'package:async_helper/async_helper.dart';
@@ -30,30 +28,30 @@ testMixinSupertypes() async {
       class C2<C2_T> = S<C2_T> with M1<C2_T>, M2<C2_T>, M3<C2_T>;
 
       main() {
-        new C1();
-        new C2();
+        C1();
+        C2();
       }
       """, expectNoWarningsOrErrors: true);
-  ClassEntity Object = env.getElement('Object');
+  ClassEntity Object = env.getElement('Object') as ClassEntity;
   ClassEntity S = env.getClass('S');
   ClassEntity M1 = env.getClass('M1');
   ClassEntity M2 = env.getClass('M2');
   ClassEntity C1 = env.getClass('C1');
   ClassEntity C2 = env.getClass('C2');
 
-  ClassEntity C1_S_M1_M2_M3 = env.elementEnvironment.getSuperClass(C1);
-  ClassEntity C1_S_M1_M2 = env.elementEnvironment.getSuperClass(C1_S_M1_M2_M3);
-  ClassEntity C1_S_M1 = env.elementEnvironment.getSuperClass(C1_S_M1_M2);
+  ClassEntity C1_S_M1_M2_M3 = env.elementEnvironment.getSuperClass(C1)!;
+  ClassEntity C1_S_M1_M2 = env.elementEnvironment.getSuperClass(C1_S_M1_M2_M3)!;
+  ClassEntity C1_S_M1 = env.elementEnvironment.getSuperClass(C1_S_M1_M2)!;
 
-  ClassEntity C2_S_M1_M2 = env.elementEnvironment.getSuperClass(C2);
-  ClassEntity C2_S_M1 = env.elementEnvironment.getSuperClass(C2_S_M1_M2);
+  ClassEntity C2_S_M1_M2 = env.elementEnvironment.getSuperClass(C2)!;
+  ClassEntity C2_S_M1 = env.elementEnvironment.getSuperClass(C2_S_M1_M2)!;
 
   void testSupertypes(ClassEntity element) {
     List<DartType> typeVariables = const <DartType>[];
     if (element != Object) {
       typeVariables = env.elementEnvironment.getThisType(element).typeArguments;
       Expect.isTrue(typeVariables.length == 1);
-      TypeVariableType typeVariable = typeVariables.first;
+      final typeVariable = typeVariables.first as TypeVariableType;
       Expect.equals(element, typeVariable.element.typeDeclaration);
     }
     env.elementEnvironment.forEachSupertype(element, (InterfaceType supertype) {
@@ -100,21 +98,21 @@ testNonTrivialSubstitutions() async {
       class F2<F2_T> = A<_> with B<_, B<F2_T, _>>;
 
       main() {
-        new C1();
-        new C2();
-        new D1();
-        new D2();
-        new E1();
-        new E2();
-        new F1();
-        new F2();
+        C1();
+        C2();
+        D1();
+        D2();
+        E1();
+        E2();
+        F1();
+        F2();
       }
       """, expectNoWarningsOrErrors: true);
   var types = env.types;
   DartType _dynamic = env['dynamic'];
   DartType _ = env['_'];
 
-  ClassEntity Object = env.getElement('Object');
+  ClassEntity Object = env.getElement('Object') as ClassEntity;
   ClassEntity A = env.getClass('A');
   ClassEntity B = env.getClass('B');
   ClassEntity C1 = env.getClass('C1');
@@ -139,14 +137,14 @@ testNonTrivialSubstitutions() async {
         Expect.isTrue(typeVariables.length == 1);
       }
       if (typeVariables.isNotEmpty) {
-        TypeVariableType typeVariable = typeVariables.first;
+        final typeVariable = typeVariables.first as TypeVariableType;
         Expect.equals(element, typeVariable.element.typeDeclaration);
       }
     }
     env.elementEnvironment.forEachSupertype(element, (InterfaceType supertype) {
       if (typeArguments.containsKey(supertype.element)) {
         Expect.listEquals(
-            env.printTypes(typeArguments[supertype.element]),
+            env.printTypes(typeArguments[supertype.element]!),
             env.printTypes(supertype.typeArguments),
             "Type argument mismatch on supertype $supertype of $element.");
       } else if (!supertype.typeArguments.isEmpty) {
@@ -171,7 +169,7 @@ testNonTrivialSubstitutions() async {
     A: [_dynamic],
     B: [_dynamic, _dynamic]
   });
-  testSupertypes(env.elementEnvironment.getSuperClass(C1), {
+  testSupertypes(env.elementEnvironment.getSuperClass(C1)!, {
     A: [_dynamic],
     B: [_dynamic, _dynamic]
   });
@@ -189,10 +187,10 @@ testNonTrivialSubstitutions() async {
     ]
   });
   DartType D1_superclass_T = env.elementEnvironment
-      .getThisType(env.elementEnvironment.getSuperClass(D1))
+      .getThisType(env.elementEnvironment.getSuperClass(D1)!)
       .typeArguments
       .first;
-  testSupertypes(env.elementEnvironment.getSuperClass(D1), {
+  testSupertypes(env.elementEnvironment.getSuperClass(D1)!, {
     A: [D1_superclass_T],
     B: [
       D1_superclass_T,
@@ -215,7 +213,7 @@ testNonTrivialSubstitutions() async {
       instantiate(types, A, [_])
     ]
   });
-  testSupertypes(env.elementEnvironment.getSuperClass(E1), {
+  testSupertypes(env.elementEnvironment.getSuperClass(E1)!, {
     A: [_],
     B: [
       _,
@@ -239,10 +237,10 @@ testNonTrivialSubstitutions() async {
     ]
   });
   DartType F1_superclass_T = env.elementEnvironment
-      .getThisType(env.elementEnvironment.getSuperClass(F1))
+      .getThisType(env.elementEnvironment.getSuperClass(F1)!)
       .typeArguments
       .first;
-  testSupertypes(env.elementEnvironment.getSuperClass(F1), {
+  testSupertypes(env.elementEnvironment.getSuperClass(F1)!, {
     A: [_],
     B: [
       _,

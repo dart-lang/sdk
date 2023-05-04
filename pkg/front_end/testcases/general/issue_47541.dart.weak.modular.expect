@@ -1,4 +1,56 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue_47541.dart:24:6: Error: Expected a type, but got '42'.
+//   on(42);
+//      ^^
+//
+// pkg/front_end/testcases/general/issue_47541.dart:24:6: Error: This couldn't be parsed.
+//   on(42);
+//      ^
+//
+// pkg/front_end/testcases/general/issue_47541.dart:24:6: Error: Expected ')' before this.
+//   on(42);
+//      ^^
+//
+// pkg/front_end/testcases/general/issue_47541.dart:24:8: Error: A record type with exactly one positional field requires a trailing comma.
+// Try adding a trailing comma.
+//   on(42);
+//        ^
+//
+// pkg/front_end/testcases/general/issue_47541.dart:24:8: Error: A catch clause must have a body, even if it is empty.
+// Try adding an empty body.
+//   on(42);
+//        ^
+//
+// pkg/front_end/testcases/general/issue_47541.dart:50:6: Error: Expected a type, but got '='.
+//   on = 42;
+//      ^
+//
+// pkg/front_end/testcases/general/issue_47541.dart:50:6: Error: This couldn't be parsed.
+//   on = 42;
+//      ^
+//
+// pkg/front_end/testcases/general/issue_47541.dart:50:6: Error: A catch clause must have a body, even if it is empty.
+// Try adding an empty body.
+//   on = 42;
+//      ^
+//
+// pkg/front_end/testcases/general/issue_47541.dart:50:6: Error: Expected an identifier, but got '='.
+// Try inserting an identifier before '='.
+//   on = 42;
+//      ^
+//
+// pkg/front_end/testcases/general/issue_47541.dart:61:5: Error: Expected a type, but got '.'.
+//   on.toString();
+//     ^
+//
+// pkg/front_end/testcases/general/issue_47541.dart:61:6: Error: A catch clause must have a body, even if it is empty.
+// Try adding an empty body.
+//   on.toString();
+//      ^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -7,7 +59,7 @@ class Foo extends core::Object {
     : super core::Object::•()
     ;
 }
-static method main() → void {
+static method notMain() → void {
   self::a();
   self::b();
   self::c(42);
@@ -26,7 +78,9 @@ static method a() → void {
   on() catch(no-exception-var) {
     ;
   }
-  self::on(42);
+  on(invalid-type) catch(no-exception-var) {
+  }
+  ;
 }
 static method b() → void {
   try {
@@ -53,7 +107,11 @@ static method c(core::int on) → void {
   on self::Foo catch(no-exception-var) {
     ;
   }
+  on invalid-type catch(no-exception-var) {
+  }
+  invalid-expression "pkg/front_end/testcases/general/issue_47541.dart:50:6: Error: This couldn't be parsed.
   on = 42;
+     ^";
 }
 static method d(core::int on) → void {
   try {
@@ -65,6 +123,12 @@ static method d(core::int on) → void {
   on self::Foo catch(no-exception-var) {
     ;
   }
-  on.{core::int::toString}(){() → core::String};
+  on invalid-type catch(no-exception-var) {
+  }
+  #C1;
 }
 static method on(dynamic e) → void {}
+
+constants  {
+  #C1 = ()
+}

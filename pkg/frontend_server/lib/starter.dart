@@ -83,7 +83,7 @@ Future<int> starter(
 
   final binaryProtocolAddressStr = options['binary-protocol-address'];
   if (binaryProtocolAddressStr is String) {
-    runBinaryProtocol(binaryProtocolAddressStr);
+    await runBinaryProtocol(binaryProtocolAddressStr);
     return 0;
   }
 
@@ -106,5 +106,8 @@ Future<int> starter(
   var subscription = listenAndCompile(
       compiler, input ?? stdin, options, completer,
       generator: generator);
-  return completer.future..then((value) => subscription.cancel());
+  return completer.future.then((value) {
+    subscription.cancel();
+    return value;
+  });
 }

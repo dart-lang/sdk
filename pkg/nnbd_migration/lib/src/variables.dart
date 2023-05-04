@@ -99,14 +99,14 @@ class Variables {
       Source? source, TypeAnnotation typeAnnotation) {
     var annotationsInSource = _decoratedTypeAnnotations[source];
     if (annotationsInSource == null) {
-      throw StateError('No declarated type annotations in ${source!.fullName}; '
+      throw StateError('No declared type annotations in ${source!.fullName}; '
           'expected one for ${typeAnnotation.toSource()} '
           '(offset ${typeAnnotation.offset})');
     }
     DecoratedType? decoratedTypeAnnotation = annotationsInSource[
         uniqueIdentifierForSpan(typeAnnotation.offset, typeAnnotation.end)];
     if (decoratedTypeAnnotation == null) {
-      throw StateError('Missing declarated type annotation'
+      throw StateError('Missing declared type annotation'
           ' in ${source!.fullName}; for ${typeAnnotation.toSource()}');
     }
     return decoratedTypeAnnotation;
@@ -187,7 +187,7 @@ class Variables {
   /// [recordNullCheckHint].
   HintComment? getNullCheckHint(Source? source, Expression expression) {
     return (_nullCheckHints[source] ??
-        {})[(uniqueIdentifierForSpan(expression.offset, expression.end))];
+        {})[uniqueIdentifierForSpan(expression.offset, expression.end)];
   }
 
   /// If the given [node] is preceded by a `/*required*/` hint, returns the
@@ -297,7 +297,7 @@ class Variables {
   /// types should be nullable and which types should not.
   DartType toFinalType(DecoratedType decoratedType) {
     var type = decoratedType.type!;
-    if (type.isVoid || type.isDynamic) return type;
+    if (type is VoidType || type.isDynamic) return type;
     if (type is NeverType) {
       if (decoratedType.node.isNullable) {
         return (_typeProvider.nullType as TypeImpl)
@@ -449,7 +449,7 @@ class Variables {
     //   span = end*(end + 1) / 2
     //   end^2 + end - 2*span = 0
     //   end = -1 +/- sqrt(1 + 8*span)
-    // We can reslove the `+/-` to `+` (since the result we seek can't be
+    // We can resolve the `+/-` to `+` (since the result we seek can't be
     // negative), so that yields:
     //   end = sqrt(1 + 8*span) - 1
     int end = (math.sqrt(1 + 8.0 * span) - 1).floor();

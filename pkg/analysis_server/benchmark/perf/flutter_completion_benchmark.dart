@@ -13,12 +13,12 @@ import 'memory_tests.dart';
 class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
   static final das = FlutterCompletionBenchmark(
     'das',
-    () => AnalysisServerBenchmarkTest(),
+    AnalysisServerBenchmarkTest.new,
   );
 
   static final lsp = FlutterCompletionBenchmark(
     'lsp',
-    () => LspAnalysisServerBenchmarkTest(),
+    LspAnalysisServerBenchmarkTest.new,
   );
 
   final AbstractBenchmarkTest Function() testConstructor;
@@ -240,20 +240,20 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
     // Perform warm-up.
     // The cold start does not matter.
     // The sustained performance is much more important.
-    const kWarmUpCount = 5;
-    for (var i = 0; i < kWarmUpCount; i++) {
+    const warmUpCount = 5;
+    for (var i = 0; i < warmUpCount; i++) {
       await perform(isWarmUp: true);
     }
 
-    const kRepeatCount = 5;
+    const repeatCount = 5;
     final timer = Stopwatch()..start();
-    for (var i = 0; i < kRepeatCount; i++) {
+    for (var i = 0; i < repeatCount; i++) {
       await perform(isWarmUp: false);
     }
 
     await test.closeFile(filePath);
 
-    return timer.elapsedMicroseconds ~/ kRepeatCount;
+    return timer.elapsedMicroseconds ~/ repeatCount;
   }
 }
 

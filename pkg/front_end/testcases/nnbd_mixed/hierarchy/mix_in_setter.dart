@@ -16,7 +16,7 @@ class Super {
   void set extendedAbstractMixedInAbstractSetter(int i);
 }
 
-class Mixin {
+mixin class Mixin {
   void set mixedInConcreteSetter(int i) {}
 
   void set mixedInAbstractSetter(int i);

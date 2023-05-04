@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
 // Test constant folding on numbers.
 
 import 'package:async_helper/async_helper.dart';
@@ -15,7 +14,7 @@ class A {
 }
 foo(x) {
   if (new DateTime.now().millisecondsSinceEpoch == 42) return null;
-  var a = new A();
+  var a = A();
   if (new DateTime.now().millisecondsSinceEpoch == 42) return a;
   a._link = a;
   return a;
@@ -30,7 +29,7 @@ main() {
   asyncTest(() async {
     // The `==` is strengthened to a HIdentity instruction. The HIdentity
     // follows `x.link`, so x cannot be `null`.
-    var compare = new RegExp(r'x === x\.get\$link\(\)');
+    var compare = RegExp(r'x === x\.get\$link\(\)');
     await compileAndMatch(CODE, 'main', compare);
   });
 }

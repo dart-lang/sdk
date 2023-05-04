@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class I extends core::Object {
+  synthetic constructor •() → self::I
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object implements self::I {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+extension /* unnamed */ _extension#0 on self::A {
+  get member = self::_extension#0|get#member;
+}
+extension /* unnamed */ _extension#1 on self::I {
+  get member = self::_extension#1|get#member;
+}
+static method _extension#0|get#member(lowered final self::A #this) → core::int
+  return 87;
+static method _extension#1|get#member(lowered final self::I #this) → core::int
+  return 42;
+static method method(self::A a) → dynamic
+  return block {
+    core::int #t1;
+    final synthesized self::A #0#0 = a;
+    #L1:
+    {
+      {
+        hoisted core::int member;
+        if(let final dynamic #t2 = member = self::_extension#1|get#member(#0#0) in true) {
+          #t1 = member;
+          break #L1;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t1;
+static method main() → dynamic {
+  self::expect(42, self::method(new self::A::•()));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

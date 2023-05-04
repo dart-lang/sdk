@@ -165,7 +165,7 @@ class Server {
   /// are received after this function call, so it is safe to use this getter
   /// multiple times in one test; each time it is used it will wait afresh for
   /// analysis to finish.
-  Future get analysisFinished {
+  Future<void> get analysisFinished {
     var completer = _analysisFinishedCompleter ??= Completer<void>();
     return completer.future;
   }
@@ -201,7 +201,7 @@ class Server {
   /// [filePaths] to the list of errors in the file at that path.
   Future<ErrorMap> computeErrorMap(List<String> filePaths) async {
     var errorMap = ErrorMap();
-    var futures = <Future>[];
+    var futures = <Future<void>>[];
     for (var filePath in filePaths) {
       var requestData = sendAnalysisGetErrors(filePath);
       futures.add(requestData.respondedTo.then((Response response) {
@@ -523,7 +523,7 @@ class Server {
       int? diagnosticPort,
       bool profileServer = false,
       String? sdkPath,
-      int? servicesPort,
+      int? servicePort,
       bool useAnalysisHighlight2 = false}) async {
     if (_process != null) {
       throw Exception('Process already started');
@@ -537,14 +537,14 @@ class Server {
     // Add VM arguments.
     //
     if (profileServer) {
-      if (servicesPort == null) {
+      if (servicePort == null) {
         arguments.add('--observe');
       } else {
-        arguments.add('--observe=$servicesPort');
+        arguments.add('--observe=$servicePort');
       }
       arguments.add('--pause-isolates-on-exit');
-    } else if (servicesPort != null) {
-      arguments.add('--enable-vm-service=$servicesPort');
+    } else if (servicePort != null) {
+      arguments.add('--enable-vm-service=$servicePort');
     }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');

@@ -26,7 +26,6 @@ Future<String> fooAsync(int x) async {
 
 Future<void> testFunction() async {
   await Future.delayed(Duration(milliseconds: 500));
-  // ignore: unawaited_futures
   fooAsync(42).then((_) {});
   debugger();
 }

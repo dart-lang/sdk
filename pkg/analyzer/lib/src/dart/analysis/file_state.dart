@@ -4,8 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
-    show StringTokenImpl;
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -22,13 +21,13 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -37,6 +36,8 @@ import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -509,6 +510,7 @@ class FileState {
     _fileContent = rawFileState;
 
     // Prepare the unlinked bundle key.
+    var previousUnlinkedKey = _unlinkedKey;
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
@@ -523,7 +525,7 @@ class FileState {
     }
 
     // Prepare the unlinked unit.
-    _driverUnlinkedUnit = _getUnlinkedUnit();
+    _driverUnlinkedUnit = _getUnlinkedUnit(previousUnlinkedKey);
     _unlinked2 = _driverUnlinkedUnit!.unit;
     _lineInfo = LineInfo(_unlinked2!.lineStarts);
 
@@ -568,14 +570,14 @@ class FileState {
       return DirectiveUri();
     }
 
-    final relativeUri = Uri.tryParse(relativeUriStr);
+    final relativeUri = uriCache.tryParse(relativeUriStr);
     if (relativeUri == null) {
       return DirectiveUriWithString(
         relativeUriStr: relativeUriStr,
       );
     }
 
-    final absoluteUri = resolveRelativeUri(uri, relativeUri);
+    final absoluteUri = uriCache.resolveRelative(uri, relativeUri);
     return _fsState.getFileForUri(absoluteUri).map(
       (file) {
         if (file != null) {
@@ -607,18 +609,18 @@ class FileState {
   ) {
     final primaryUri = _buildDirectiveUri(directive.uri);
 
-    final configurationUris = <DirectiveUri>[];
     DirectiveUri? selectedConfigurationUri;
-    for (final configuration in directive.configurations) {
+    final configurationUris = directive.configurations.map((configuration) {
       final configurationUri = _buildDirectiveUri(configuration.uri);
-      configurationUris.add(configurationUri);
       // Maybe select this URI.
       final name = configuration.name;
       final value = configuration.valueOrTrue;
       if (_fsState._declaredVariables.get(name) == value) {
         selectedConfigurationUri ??= configurationUri;
       }
-    }
+      // Include it anyway.
+      return configurationUri;
+    }).toFixedList();
 
     return NamespaceDirectiveUris(
       primary: primaryUri,
@@ -627,14 +629,15 @@ class FileState {
     );
   }
 
-  /// Return the [FileState] for the given [relativeUri], or `null` if the
+  /// Return the [FileState] for the given [relativeUriStr], or `null` if the
   /// URI cannot be parsed, cannot correspond any file, etc.
   Either2<FileState?, ExternalLibrary> _fileForRelativeUri(
-    String relativeUri,
+    String relativeUriStr,
   ) {
     Uri absoluteUri;
     try {
-      absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
+      var relativeUri = uriCache.parse(relativeUriStr);
+      absoluteUri = uriCache.resolveRelative(uri, relativeUri);
     } on FormatException {
       return Either2.t1(null);
     }
@@ -642,14 +645,30 @@ class FileState {
     return _fsState.getFileForUri(absoluteUri);
   }
 
-  /// Return the unlinked unit, from bytes or new.
-  AnalysisDriverUnlinkedUnit _getUnlinkedUnit() {
+  /// Return the unlinked unit, freshly deserialized from bytes,
+  /// previously deserialized from bytes, or new.
+  AnalysisDriverUnlinkedUnit _getUnlinkedUnit(String? previousUnlinkedKey) {
+    if (previousUnlinkedKey != null) {
+      if (previousUnlinkedKey != _unlinkedKey) {
+        _fsState.unlinkedUnitStore.release(previousUnlinkedKey);
+      } else {
+        return _driverUnlinkedUnit!;
+      }
+    }
+
     final testData = _fsState.testData?.forFile(resource, uri);
+    var fromStore = _fsState.unlinkedUnitStore.get(_unlinkedKey!);
+    if (fromStore != null) {
+      testData?.unlinkedKeyGet.add(unlinkedKey);
+      return fromStore;
+    }
 
     var bytes = _fsState._byteStore.get(_unlinkedKey!);
     if (bytes != null && bytes.isNotEmpty) {
       testData?.unlinkedKeyGet.add(unlinkedKey);
-      return AnalysisDriverUnlinkedUnit.fromBytes(bytes);
+      var result = AnalysisDriverUnlinkedUnit.fromBytes(bytes);
+      _fsState.unlinkedUnitStore.put(_unlinkedKey!, result);
+      return result;
     }
 
     var unit = parse();
@@ -671,6 +690,7 @@ class FileState {
       var bytes = driverUnlinkedUnit.toBytes();
       _fsState._byteStore.putGet(_unlinkedKey!, bytes);
       testData?.unlinkedKeyPut.add(unlinkedKey);
+      _fsState.unlinkedUnitStore.put(_unlinkedKey!, driverUnlinkedUnit);
       return driverUnlinkedUnit;
     });
   }
@@ -712,9 +732,8 @@ class FileState {
       override: scanner.overrideVersion,
     );
 
-    // StringToken uses a static instance of StringCanonicalizer, so we need
-    // to clear it explicitly once we are done using it for this file.
-    StringTokenImpl.canonicalizer.clear();
+    // Ensure the string canonicalization cache size is reasonable.
+    pruneStringCanonicalizationCache();
 
     return unit;
   }
@@ -734,8 +753,8 @@ class FileState {
       }
       final Uri absoluteUri;
       try {
-        final relativeUri = Uri.parse(relativeUriStr);
-        absoluteUri = resolveRelativeUri(uri, relativeUri);
+        final relativeUri = uriCache.parse(relativeUriStr);
+        absoluteUri = uriCache.resolveRelative(uri, relativeUri);
       } on FormatException {
         return;
       }
@@ -912,7 +931,7 @@ class FileState {
               .whereType<ConstructorDeclaration>()
               .map((e) => e.name?.lexeme ?? '')
               .where((e) => !e.startsWith('_'))
-              .toList();
+              .toFixedList();
           if (constructors.isNotEmpty) {
             macroClasses.add(
               MacroClass(
@@ -927,8 +946,8 @@ class FileState {
     if (!isDartCore && !hasDartCoreImport) {
       imports.add(
         UnlinkedLibraryImportDirective(
-          combinators: [],
-          configurations: [],
+          combinators: const [],
+          configurations: const [],
           importKeywordOffset: -1,
           isSyntheticDartCore: true,
           prefix: null,
@@ -961,15 +980,15 @@ class FileState {
 
     return UnlinkedUnit(
       apiSignature: Uint8List.fromList(computeUnlinkedApiSignature(unit)),
-      augmentations: augmentations,
-      exports: exports,
-      imports: imports,
+      augmentations: augmentations.toFixedList(),
+      exports: exports.toFixedList(),
+      imports: imports.toFixedList(),
       informativeBytes: writeUnitInformative(unit),
       libraryAugmentationDirective: libraryAugmentationDirective,
       libraryDirective: libraryDirective,
       lineStarts: Uint32List.fromList(unit.lineInfo.lineStarts),
-      macroClasses: macroClasses,
-      parts: parts,
+      macroClasses: macroClasses.toFixedList(),
+      parts: parts.toFixedList(),
       partOfNameDirective: partOfNameDirective,
       partOfUriDirective: partOfUriDirective,
       topLevelDeclarations: topLevelDeclarations,
@@ -1003,7 +1022,7 @@ class FileState {
           keywordOffset: combinator.keyword.offset,
           endOffset: combinator.end,
           isShow: true,
-          names: combinator.shownNames.map((e) => e.name).toList(),
+          names: combinator.shownNames.map((e) => e.name).toFixedList(),
         );
       } else {
         combinator as HideCombinator;
@@ -1011,10 +1030,10 @@ class FileState {
           keywordOffset: combinator.keyword.offset,
           endOffset: combinator.end,
           isShow: false,
-          names: combinator.hiddenNames.map((e) => e.name).toList(),
+          names: combinator.hiddenNames.map((e) => e.name).toFixedList(),
         );
       }
-    }).toList();
+    }).toFixedList();
   }
 
   static List<UnlinkedNamespaceDirectiveConfiguration> _serializeConfigurations(
@@ -1028,7 +1047,7 @@ class FileState {
         value: value,
         uri: configuration.uri.stringValue,
       );
-    }).toList();
+    }).toFixedList();
   }
 
   static UnlinkedLibraryExportDirective _serializeExport(ExportDirective node) {
@@ -1121,6 +1140,7 @@ class FileSystemState {
   int fileStamp = 0;
 
   final FileContentStrategy fileContentStrategy;
+  final UnlinkedUnitStore unlinkedUnitStore;
 
   /// A function that fetches the given list of files. This function can be used
   /// to batch file reads in systems where file fetches are expensive.
@@ -1146,6 +1166,7 @@ class FileSystemState {
     this._saltForElements,
     this.featureSetProvider, {
     required this.fileContentStrategy,
+    required this.unlinkedUnitStore,
     required this.prefetchFiles,
     required this.isGenerated,
     required this.testData,
@@ -1175,6 +1196,9 @@ class FileSystemState {
 
     // The removed file does not reference other files anymore.
     file._kind?.dispose();
+
+    // Release this unlinked data.
+    unlinkedUnitStore.release(file.unlinkedKey);
 
     // Recursively remove files that reference the removed file.
     for (var reference in file.referencingFiles.toList()) {
@@ -1421,6 +1445,8 @@ class FileSystemState {
     _pathToFile.clear();
     _subtypedNameToFiles.clear();
     _libraryNameToFiles.clear();
+    // TODO(jensj): If we use finalizers we shouldn't clear.
+    unlinkedUnitStore.clear();
   }
 
   FileState _newFile(File resource, String path, Uri uri) {
@@ -1727,7 +1753,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
           uri: uri,
         );
       }
-    }).toList();
+    }).toFixedList();
   }
 
   @override
@@ -1919,7 +1945,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
           uri: uri,
         );
       }
-    }).toList();
+    }).toFixedList();
   }
 
   List<LibraryExportState> get libraryExports {
@@ -1959,7 +1985,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
           uris: uris,
         );
       }
-    }).toList();
+    }).toFixedList();
   }
 
   List<LibraryImportState> get libraryImports {
@@ -1999,7 +2025,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
           uris: uris,
         );
       }
-    }).toList();
+    }).toFixedList();
   }
 
   /// Collect files that are transitively referenced by this library.

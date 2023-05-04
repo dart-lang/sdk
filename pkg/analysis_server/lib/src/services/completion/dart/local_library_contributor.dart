@@ -8,15 +8,17 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 /// A visitor for building suggestions based upon the elements defined by
 /// a source file contained in the same library but not the same as
 /// the source in which the completions are being requested.
-class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
+class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   final DartCompletionRequest request;
 
   final SuggestionBuilder builder;
@@ -46,6 +48,17 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   @override
   void visitClassElement(ClassElement element) {
+    AstNode node = request.target.containingNode;
+    if (node is ExtendsClause &&
+        !element.isExtendableIn(request.libraryElement)) {
+      return;
+    } else if (node is ImplementsClause &&
+        !element.isImplementableIn(request.libraryElement)) {
+      return;
+    } else if (node is WithClause &&
+        !element.isMixableIn(request.libraryElement)) {
+      return;
+    }
     _visitInterfaceElement(element);
   }
 
@@ -67,7 +80,9 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   @override
   void visitExtensionElement(ExtensionElement element) {
     if (opType.includeReturnValueSuggestions) {
-      builder.suggestExtension(element, kind: kind, prefix: prefix);
+      if (element.name != null) {
+        builder.suggestExtension(element, kind: kind, prefix: prefix);
+      }
     }
   }
 
@@ -81,7 +96,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
       return;
     }
     var returnType = element.returnType;
-    if (returnType.isVoid) {
+    if (returnType is VoidType) {
       if (opType.includeVoidReturnSuggestions) {
         builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
       }
@@ -101,6 +116,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   @override
   visitMixinElement(MixinElement element) {
+    AstNode node = request.target.containingNode;
+    if (node is ImplementsClause &&
+        !element.isImplementableIn(request.libraryElement)) {
+      return;
+    }
     _visitInterfaceElement(element);
   }
 
@@ -146,7 +166,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
       if (constructor.isPrivate) {
         continue;
       }
-      if (element.isAbstract && !constructor.isFactory) {
+      if (!element.isConstructable && !constructor.isFactory) {
         continue;
       }
       if (onlyConst && !constructor.isConst) {
@@ -190,7 +210,9 @@ class LocalLibraryContributor extends DartCompletionContributor {
   LocalLibraryContributor(super.request, super.builder);
 
   @override
-  Future<void> computeSuggestions() async {
+  Future<void> computeSuggestions({
+    required OperationPerformanceImpl performance,
+  }) async {
     if (!request.includeIdentifiers) {
       return;
     }

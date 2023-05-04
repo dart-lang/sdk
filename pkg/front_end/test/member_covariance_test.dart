@@ -104,8 +104,9 @@ void main() {
   Procedure oneParameterProcedure = new Procedure(
       new Name('foo'),
       ProcedureKind.Method,
-      new FunctionNode(null,
-          positionalParameters: [new VariableDeclaration(null)]),
+      new FunctionNode(null, positionalParameters: [
+        new VariableDeclaration(null, isSynthesized: true)
+      ]),
       fileUri: dummyUri);
   Covariance oneParameterProcedureCovariance =
       new Covariance.fromMember(oneParameterProcedure, forSetter: false);
@@ -122,11 +123,11 @@ void main() {
       new Name('foo'),
       ProcedureKind.Method,
       new FunctionNode(null, positionalParameters: [
-        new VariableDeclaration(null),
-        new VariableDeclaration(null),
-        new VariableDeclaration(null),
-        new VariableDeclaration(null),
-        new VariableDeclaration(null)
+        new VariableDeclaration(null, isSynthesized: true),
+        new VariableDeclaration(null, isSynthesized: true),
+        new VariableDeclaration(null, isSynthesized: true),
+        new VariableDeclaration(null, isSynthesized: true),
+        new VariableDeclaration(null, isSynthesized: true)
       ]),
       fileUri: dummyUri);
   Covariance positionalParametersProcedureCovariance =

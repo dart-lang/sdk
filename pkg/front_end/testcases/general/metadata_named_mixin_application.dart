@@ -9,6 +9,6 @@ class C = D with E;
 
 class D {}
 
-class E {}
+mixin E {}
 
 main() {}

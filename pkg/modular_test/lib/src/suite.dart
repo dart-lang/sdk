@@ -148,7 +148,7 @@ Set<Module> computeTransitiveDependencies(Module module) {
 /// of flags (the same configuration), and thus pipelines could reuse the
 /// results of shared modules from the first test when running the second test.
 class ConfigurationRegistry {
-  Map<String, int> _configurationId = {};
+  final Map<String, int> _configurationId = {};
 
   /// Compute an id to identify the configuration of a modular test.
   ///
@@ -164,5 +164,6 @@ class ConfigurationRegistry {
 class InvalidModularTestError extends Error {
   final String message;
   InvalidModularTestError(this.message);
+  @override
   String toString() => "Invalid modular test: $message";
 }

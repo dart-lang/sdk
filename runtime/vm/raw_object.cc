@@ -49,28 +49,28 @@ void UntaggedObject::Validate(IsolateGroup* isolate_group) const {
   uword tags = tags_;
   if (IsNewObject()) {
     if (!NewBit::decode(tags)) {
-      FATAL1("New object missing kNewBit: %" Px "\n", tags);
+      FATAL("New object missing kNewBit: %" Px "\n", tags);
     }
     if (OldBit::decode(tags)) {
-      FATAL1("New object has kOldBit: %" Px "\n", tags);
+      FATAL("New object has kOldBit: %" Px "\n", tags);
     }
     if (OldAndNotMarkedBit::decode(tags)) {
-      FATAL1("New object has kOldAndNotMarkedBit: %" Px "\n", tags);
+      FATAL("New object has kOldAndNotMarkedBit: %" Px "\n", tags);
     }
     if (OldAndNotRememberedBit::decode(tags)) {
-      FATAL1("New object has kOldAndNotRememberedBit: %" Px "\n", tags);
+      FATAL("New object has kOldAndNotRememberedBit: %" Px "\n", tags);
     }
   } else {
     if (NewBit::decode(tags)) {
-      FATAL1("Old object has kNewBit: %" Px "\n", tags);
+      FATAL("Old object has kNewBit: %" Px "\n", tags);
     }
     if (!OldBit::decode(tags)) {
-      FATAL1("Old object missing kOldBit: %" Px "\n", tags);
+      FATAL("Old object missing kOldBit: %" Px "\n", tags);
     }
   }
   const intptr_t class_id = ClassIdTag::decode(tags);
   if (!isolate_group->class_table()->IsValidIndex(class_id)) {
-    FATAL1("Invalid class id encountered %" Pd "\n", class_id);
+    FATAL("Invalid class id encountered %" Pd "\n", class_id);
   }
   if (class_id == kNullCid &&
       isolate_group->class_table()->HasValidClassAt(class_id)) {
@@ -80,7 +80,7 @@ void UntaggedObject::Validate(IsolateGroup* isolate_group) const {
   intptr_t size_from_tags = SizeTag::decode(tags);
   intptr_t size_from_class = HeapSizeFromClass(tags);
   if ((size_from_tags != 0) && (size_from_tags != size_from_class)) {
-    FATAL3(
+    FATAL(
         "Inconsistent size encountered "
         "cid: %" Pd ", size_from_tags: %" Pd ", size_from_class: %" Pd "\n",
         class_id, size_from_tags, size_from_class);
@@ -151,6 +151,12 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
       instance_size = Array::InstanceSize(array_length);
       break;
     }
+    case kWeakArrayCid: {
+      const WeakArrayPtr raw_array = static_cast<const WeakArrayPtr>(this);
+      intptr_t array_length = Smi::Value(raw_array->untag()->length());
+      instance_size = WeakArray::InstanceSize(array_length);
+      break;
+    }
     case kObjectPoolCid: {
       const ObjectPoolPtr raw_object_pool =
           static_cast<const ObjectPoolPtr>(this);
@@ -160,7 +166,8 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     }
     case kRecordCid: {
       const RecordPtr raw_record = static_cast<const RecordPtr>(this);
-      intptr_t num_fields = Smi::Value(raw_record->untag()->num_fields());
+      intptr_t num_fields =
+          RecordShape(raw_record->untag()->shape()).num_fields();
       instance_size = Record::InstanceSize(num_fields);
       break;
     }
@@ -250,8 +257,8 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
       auto class_table = isolate_group->heap_walk_class_table();
       if (!class_table->IsValidIndex(class_id) ||
           !class_table->HasValidClassAt(class_id)) {
-        FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?",
-               class_id, this, static_cast<uint32_t>(tags));
+        FATAL("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?",
+              class_id, this, static_cast<uint32_t>(tags));
       }
       ASSERT(class_table->SizeAt(class_id) > 0);
 #endif  // DEBUG
@@ -274,8 +281,8 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     } while ((instance_size > tags_size) && (--retries_remaining > 0));
   }
   if ((instance_size != tags_size) && (tags_size != 0)) {
-    FATAL3("Size mismatch: %" Pd " from class vs %" Pd " from tags %" Px "\n",
-           instance_size, tags_size, tags);
+    FATAL("Size mismatch: %" Pd " from class vs %" Pd " from tags %" Px "\n",
+          instance_size, tags_size, tags);
   }
 #endif  // DEBUG
   return instance_size;
@@ -352,8 +359,8 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       size = HeapSize();
       break;
     default:
-      FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?", class_id,
-             this, static_cast<uint32_t>(tags_));
+      FATAL("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?", class_id,
+            this, static_cast<uint32_t>(tags_));
       break;
   }
 
@@ -447,7 +454,7 @@ bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
 // last cells that need visiting.
 //
 // Though as opposed to Similar to [REGULAR_VISITOR] this visitor will call the
-// specializd VisitTypedDataViewPointers
+// specialized VisitTypedDataViewPointers
 #define TYPED_DATA_VIEW_VISITOR(Type)                                          \
   intptr_t Untagged##Type::Visit##Type##Pointers(                              \
       Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
@@ -528,6 +535,7 @@ COMPRESSED_VISITOR(Library)
 COMPRESSED_VISITOR(Namespace)
 COMPRESSED_VISITOR(KernelProgramInfo)
 COMPRESSED_VISITOR(WeakSerializationReference)
+VARIABLE_COMPRESSED_VISITOR(WeakArray, Smi::Value(raw_obj->untag()->length()))
 COMPRESSED_VISITOR(Type)
 COMPRESSED_VISITOR(FunctionType)
 COMPRESSED_VISITOR(RecordType)
@@ -576,7 +584,8 @@ VARIABLE_COMPRESSED_VISITOR(
     TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
         Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
-VARIABLE_COMPRESSED_VISITOR(Record, Smi::Value(raw_obj->untag()->num_fields()))
+VARIABLE_COMPRESSED_VISITOR(Record,
+                            RecordShape(raw_obj->untag()->shape()).num_fields())
 NULL_VISITOR(Sentinel)
 REGULAR_VISITOR(InstructionsTable)
 NULL_VISITOR(Mint)

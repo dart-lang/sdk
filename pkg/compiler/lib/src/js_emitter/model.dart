@@ -92,10 +92,16 @@ abstract class Fragment {
 class MainFragment extends Fragment {
   final js.Statement invokeMain;
 
+  // TODO(50081): We should collect a list of stub objects in the model to
+  // support different stubs in different units, and merging units and their
+  // stubs.
+  final js.Expression? recordTypeStubs;
+
   MainFragment(
       OutputUnit outputUnit,
       String outputFileName,
       this.invokeMain,
+      this.recordTypeStubs,
       List<Library> libraries,
       List<StaticField> staticNonFinalFields,
       List<StaticField> staticLazilyInitializedFields,
@@ -210,6 +216,9 @@ class ClassTypeData {
           check.cls == commonElements.objectClass || check.cls == element);
 }
 
+// TODO(sra): There are a lot of fields here that apply in limited cases
+// (e.g. isClosureBaseClass is true for one class). Can we refactor the special
+// case information, for example, into a subclass, or an extension object?
 class Class {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
@@ -252,8 +261,11 @@ class Class {
   final bool isMixinApplicationWithMembers;
 
   // If the class implements a function type, and the type is encoded in the
-  // metatada table, then this field contains the index into that field.
+  // metadata table, then this field contains the index into that field.
   final js.Expression? functionTypeIndex;
+
+  final int? recordShapeTag;
+  final js.Expression? recordShapeRecipe;
 
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
@@ -286,7 +298,9 @@ class Class {
       required this.isNative,
       required this.isClosureBaseClass,
       this.sharedClosureApplyMetadata,
-      required this.isMixinApplicationWithMembers});
+      required this.isMixinApplicationWithMembers,
+      this.recordShapeRecipe,
+      this.recordShapeTag});
 
   bool get isSimpleMixinApplication => false;
 
@@ -462,7 +476,7 @@ class InstanceMethod extends DartMethod {
   /// `true` if the tear-off needs to access methods directly rather than rely
   /// on JavaScript prototype lookup. This happens when a tear-off getter is
   /// called via `super.method` and there is a shadowing definition of `method`
-  /// in some sublcass.
+  /// in some subclass.
   // TODO(sra): Consider instead having an alias per stub, creating tear-off
   // trampolines that target the stubs.
   final bool tearOffNeedsDirectAccess;

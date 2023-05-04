@@ -7,12 +7,11 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:expect/expect.dart';
 import 'package:observatory_2/service_io.dart';
-import 'package:observatory_2/sample_profile.dart';
 import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-Future<ServiceExtensionResponse> Handler(String method, Map paremeters) {
+Future<ServiceExtensionResponse> Handler(String method, Map parameters) {
   print('Invoked extension: $method');
   switch (method) {
     case 'ext..delay':
@@ -21,7 +20,7 @@ Future<ServiceExtensionResponse> Handler(String method, Map paremeters) {
         c.complete(new ServiceExtensionResponse.result(jsonEncode({
           'type': '_delayedType',
           'method': method,
-          'parameters': paremeters,
+          'parameters': parameters,
         })));
       });
       return c.future;
@@ -36,7 +35,7 @@ Future<ServiceExtensionResponse> Handler(String method, Map paremeters) {
           new ServiceExtensionResponse.result(jsonEncode({
         'type': '_extensionType',
         'method': method,
-        'parameters': paremeters,
+        'parameters': parameters,
       })));
   }
 }

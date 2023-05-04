@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -18,9 +16,9 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script
+    Directory dataDir = Directory.fromUri(Platform.script
         .resolve('../../../../pkg/front_end/test/id_testing/data'));
-    await checkTests(dataDir, new IdTestingDataComputer(),
+    await checkTests(dataDir, IdTestingDataComputer(),
         args: args, testedConfigs: [sharedConfig]);
   });
 }
@@ -33,29 +31,28 @@ class IdTestingDataComputer extends DataComputer<String> {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Member node = elementMap.getMemberNode(member);
-    new IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
-        .run(node);
+    IdTestingDataExtractor(compiler.reporter, actualMap, elementMap).run(node);
   }
 
   @override
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
-      {bool verbose}) {
+      {required bool verbose}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Class node = elementMap.getClassNode(cls);
-    new IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
+    IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
         .computeForClass(node);
   }
 
   @override
   void computeLibraryData(Compiler compiler, LibraryEntity library,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose}) {
+      {required bool verbose}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Library node = elementMap.getLibraryNode(library);
-    new IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
+    IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
         .computeForLibrary(node);
   }
 
@@ -65,7 +62,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   @override
   String computeErrorData(
       Compiler compiler, Id id, List<CollectedMessage> errors) {
-    return errors.map((c) => c.message.message).join(',');
+    return errors.map((c) => c.message!.message).join(',');
   }
 
   @override
@@ -85,7 +82,7 @@ class IdTestingDataExtractor extends IrDataExtractor<String> {
 
   @override
   String computeLibraryValue(Id id, ir.Library library) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('file=${library.importUri.pathSegments.last}');
     if (library.name != null) {
       sb.write(',name=${library.name}');
@@ -99,7 +96,7 @@ class IdTestingDataExtractor extends IrDataExtractor<String> {
 
   String computeMemberName(ir.Member member) {
     if (member.enclosingClass != null) {
-      return '${computeClassName(member.enclosingClass)}.'
+      return '${computeClassName(member.enclosingClass!)}.'
           '${getMemberName(member)}';
     }
     return getMemberName(member);
@@ -111,7 +108,7 @@ class IdTestingDataExtractor extends IrDataExtractor<String> {
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionDeclaration) {
       return '${computeMemberName(getEnclosingMember(node))}.'
           '${node.variable.name}';

@@ -3,15 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // @dart = 2.15
+
+// ignore_for_file: implementation_imports
+
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
-import 'package:front_end/src/base/nnbd_mode.dart' as fe;
 import 'package:front_end/src/api_prototype/compiler_options.dart' as fe;
 import 'package:front_end/src/api_prototype/file_system.dart' as fe;
 import 'package:front_end/src/api_prototype/kernel_generator.dart' as fe;
+import 'package:front_end/src/base/nnbd_mode.dart' as fe;
 import 'package:front_end/src/fasta/kernel/utils.dart' as fe;
 import 'package:kernel/ast.dart' as fe;
 import 'package:kernel/target/targets.dart' as fe;
@@ -76,7 +79,7 @@ class _Client {
       ..fileSystem = _FileSystem(_channel, _dills)
       ..nnbdMode = fe.NnbdMode.Strong
       ..sdkSummary = Uri.parse(sdkSummaryUriStr)
-      ..target = vm.VmTarget(fe.TargetFlags(enableNullSafety: true));
+      ..target = vm.VmTarget(fe.TargetFlags());
 
     final additionalDills = arguments['additionalDills'].asListOf<String>();
     if (additionalDills != null) {

@@ -23,10 +23,35 @@ f() {
   foo(1, 2);
 }
 ''');
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('foo('),
-      ['int'],
-    );
+
+    final node = findNode.methodInvocation('foo(');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T>(T, T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {T: int}
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        parameter: ParameterMember
+          base: root::@parameter::y
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int, int)
+  staticType: void
+  typeArgumentTypes
+    int
+''');
   }
 
   test_genericFunction_upwards_missingRequiredArgument() async {
@@ -39,10 +64,38 @@ f() {
 ''', [
       error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 54, 3),
     ]);
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('foo('),
-      ['int'],
-    );
+
+    final node = findNode.methodInvocation('foo(');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T>({required T x, required T y})
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: x
+            staticElement: ParameterMember
+              base: root::@parameter::x
+              substitution: {T: int}
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 1
+          staticType: int
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {T: int}
+    rightParenthesis: )
+  staticInvokeType: void Function({required int x, required int y})
+  staticType: void
+  typeArgumentTypes
+    int
+''');
   }
 
   test_genericFunction_upwards_notEnoughPositionalArguments() async {
@@ -56,10 +109,29 @@ f() {
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
           39, 1),
     ]);
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('foo('),
-      ['int'],
-    );
+
+    final node = findNode.methodInvocation('foo(');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T>(T, T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int, int)
+  staticType: void
+  typeArgumentTypes
+    int
+''');
   }
 
   test_genericFunction_upwards_tooManyPositionalArguments() async {
@@ -72,10 +144,39 @@ f() {
 ''', [
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 44, 1),
     ]);
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('foo('),
-      ['int'],
-    );
+
+    final node = findNode.methodInvocation('foo(');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T>(T, T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {T: int}
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        parameter: ParameterMember
+          base: root::@parameter::y
+          substitution: {T: int}
+        staticType: int
+      IntegerLiteral
+        literal: 3
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int, int)
+  staticType: void
+  typeArgumentTypes
+    int
+''');
   }
 
   test_genericFunction_upwards_undefinedNamedParameter() async {
@@ -88,9 +189,45 @@ f() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 44, 1),
     ]);
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('foo('),
-      ['int'],
-    );
+
+    final node = findNode.methodInvocation('foo(');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T>(T, T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {T: int}
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        parameter: ParameterMember
+          base: root::@parameter::y
+          substitution: {T: int}
+        staticType: int
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: z
+            staticElement: <null>
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 3
+          staticType: int
+        parameter: <null>
+    rightParenthesis: )
+  staticInvokeType: void Function(int, int)
+  staticType: void
+  typeArgumentTypes
+    int
+''');
   }
 }

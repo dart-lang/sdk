@@ -4,6 +4,8 @@
 
 part of "core_patch.dart";
 
+const int _maxWasmArrayLength = 2147483647; // max i32
+
 @pragma("wasm:entry-point")
 abstract class _ListBase<E> extends ListBase<E> {
   @pragma("wasm:entry-point")
@@ -13,8 +15,8 @@ abstract class _ListBase<E> extends ListBase<E> {
 
   _ListBase(int length, int capacity)
       : _length = length,
-        _data = WasmObjectArray<Object?>(RangeError.checkValueInInterval(
-            capacity, 0, 2147483647)); // max i32
+        _data = WasmObjectArray<Object?>(
+            RangeError.checkValueInInterval(capacity, 0, _maxWasmArrayLength));
 
   _ListBase._withData(this._length, this._data);
 
@@ -60,14 +62,10 @@ abstract class _ModifiableList<E> extends _ListBase<E> {
 
   // List interface.
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
-    }
-    if (end < start || end > this.length) {
-      throw new RangeError.range(end, start, this.length);
-    }
+    RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
     if (length == 0) return;
+    RangeError.checkNotNegative(skipCount, "skipCount");
     if (identical(this, iterable)) {
       Lists.copy(this, skipCount, this, start, length);
     } else if (iterable is List<E>) {

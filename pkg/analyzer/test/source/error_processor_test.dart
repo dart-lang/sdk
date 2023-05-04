@@ -23,7 +23,7 @@ main() {
   ]);
 
   AnalysisError missing_return =
-      AnalysisError(TestSource(), 0, 1, HintCode.MISSING_RETURN, [
+      AnalysisError(TestSource(), 0, 1, WarningCode.MISSING_RETURN, [
     ['x']
   ]);
 
@@ -84,8 +84,8 @@ analyzer:
     group('processing', () {
       test('yaml map', () {
         var options = AnalysisOptionsProvider().getOptionsFromString(config);
-        var errorConfig =
-            ErrorConfig((options['analyzer'] as YamlMap)['errors']);
+        var errorConfig = ErrorConfig(
+            (options['analyzer'] as YamlMap)['errors'] as YamlNode?);
         expect(errorConfig.processors, hasLength(2));
 
         // ignore
@@ -133,7 +133,8 @@ analyzer:
     test('configure lints', () {
       var options = AnalysisOptionsProvider().getOptionsFromString(
           'analyzer:\n  errors:\n    annotate_overrides: warning\n');
-      var errorConfig = ErrorConfig((options['analyzer'] as YamlMap)['errors']);
+      var errorConfig =
+          ErrorConfig((options['analyzer'] as YamlMap)['errors'] as YamlNode?);
       expect(errorConfig.processors, hasLength(1));
 
       ErrorProcessor processor = errorConfig.processors.first;

@@ -13,6 +13,7 @@ import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector;
+import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/ffi/native.dart' show transformLibraries;
 
 import '../common_test_utils.dart';
@@ -26,10 +27,10 @@ class TestDiagnosticReporter extends DiagnosticReporter<Object, Object> {
 }
 
 runTestCaseJit(Uri source) async {
-  final target = TestingVmTarget(TargetFlags());
+  final target = VmTarget(TargetFlags());
 
   Component component = await compileTestCaseToKernelProgram(source,
-      target: target, experimentalFlags: ['generic-metadata']);
+      target: target, experimentalFlags: ['class-modifiers']);
 
   final coreTypes = CoreTypes(component);
 
@@ -49,10 +50,10 @@ runTestCaseJit(Uri source) async {
 }
 
 runTestCaseAot(Uri source) async {
-  final target = TestingVmTarget(TargetFlags(supportMirrors: false));
+  final target = VmTarget(TargetFlags(supportMirrors: false));
 
   Component component = await compileTestCaseToKernelProgram(source,
-      target: target, experimentalFlags: ['generic-metadata']);
+      target: target, experimentalFlags: ['class-modifiers']);
 
   const bool useGlobalTypeFlowAnalysis = true;
   const bool enableAsserts = false;
@@ -83,7 +84,7 @@ void main(List<String> args) {
   }
 
   group('ffi-transformations', () {
-    final testCasesDir = Directory(pkgVmDir + '/testcases/transformations/ffi');
+    final testCasesDir = Directory(pkgVmDir + 'testcases/transformations/ffi');
 
     for (var entry in testCasesDir
         .listSync(recursive: true, followLinks: false)

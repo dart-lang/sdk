@@ -12,6 +12,7 @@ abstract class _C1&Object&B extends core::Object implements mix::B /*isAnonymous
   get /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ a() → core::List<(core::int) → core::int>
     return core::_GrowableList::•<(core::int) → core::int>(0);
   set /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ a(core::List<(core::int) → core::int> _) → void {}
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   method /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ m((core::int) → core::int x) → (core::int) → core::int
     return x;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -22,7 +23,6 @@ abstract class _C1&Object&B extends core::Object implements mix::B /*isAnonymous
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C1 extends self::_C1&Object&B {
@@ -39,10 +39,7 @@ import "mixed_mixin.dart" as self;
 
 import "org-dartlang-testcase:///mixed_mixin.dart";
 
-class B extends core::Object {
-  synthetic constructor •() → mix::B
-    : super core::Object::•()
-    ;
+abstract class B extends core::Object /*isMixinDeclaration*/  {
   get a() → core::List<(core::int) → core::int>
     return core::_GrowableList::•<(core::int) → core::int>(0);
   set a(core::List<(core::int) → core::int> _) → void {}
@@ -65,6 +62,7 @@ class DiBq1 extends self::C1 implements mix::Bq {
     ;
   abstract member-signature get a() → core::List<(core::int?) → core::int?>; -> self::_C1&Object&B::a
   abstract member-signature set a(core::List<(core::int?) → core::int?> _) → void; -> self::_C1&Object&B::a
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature method m((core::int?) → core::int? x) → (core::int?) → core::int?; -> self::_C1&Object&B::m
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
@@ -73,6 +71,5 @@ class DiBq1 extends self::C1 implements mix::Bq {
   abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfFalse
   abstract member-signature get hashCode() → core::int; -> core::Object::hashCode
   abstract member-signature method toString() → core::String; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
 }

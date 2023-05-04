@@ -126,7 +126,7 @@ void testNonNull(Map<Comparable?, Object?> map) {
 }
 
 // Slow implementation of Map based on MapBase.
-abstract class MapBaseOperations<K, V> {
+mixin class MapBaseOperations<K, V> {
   final List _keys = <K>[];
   final List _values = <V>[];
   int _modCount = 0;

@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'dart:developer';
+
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 import 'service_test_common.dart';
@@ -107,12 +107,12 @@ Future<void> throwException() async {
 }
 
 code() async {
-  await for (var x in testBreak()) {}
-  await for (var x in testReturn()) {}
-  await for (var x in testMultipleFunctions()) {}
-  await for (var x in testContinueSwitch()) {}
-  await for (var x in testNestFinally()) {}
-  await for (var x in testAsyncClosureInFinally()) {}
+  await for (var _ in testBreak()) {}
+  await for (var _ in testReturn()) {}
+  await for (var _ in testMultipleFunctions()) {}
+  await for (var _ in testContinueSwitch()) {}
+  await for (var _ in testNestFinally()) {}
+  await for (var _ in testAsyncClosureInFinally()) {}
 }
 
 var tests = <IsolateTest>[

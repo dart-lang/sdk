@@ -19,5 +19,5 @@ main() {
 
   makeLive('${local1.runtimeType}');
   local2(0, '');
-  new Class();
+  Class();
 }

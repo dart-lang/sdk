@@ -1,8 +1,6 @@
-/**
- * High-fidelity audio programming in the browser.
- *
- * {@category Web}
- */
+/// High-fidelity audio programming in the browser.
+///
+/// {@category Web}
 library dart.dom.web_audio;
 
 import 'dart:async';
@@ -1303,7 +1301,7 @@ class ScriptProcessorNode extends AudioNode {
    * Get a Stream that fires events when AudioProcessingEvents occur.
    * This particular stream is special in that it only allows one listener to a
    * given stream. Converting the returned [Stream.asBroadcastStream] will
-   * likely ruin the soft-real-time properties which which these events are
+   * likely ruin the soft-real-time properties which these events are
    * fired and can be processed.
    */
   Stream<AudioProcessingEvent> get onAudioProcess =>

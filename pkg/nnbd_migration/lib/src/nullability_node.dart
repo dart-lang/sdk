@@ -10,7 +10,6 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nullability_state.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
-import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 
@@ -390,13 +389,11 @@ class NullabilityGraph {
     var isUninit = origin.kind == EdgeOriginKind.fieldNotInitialized ||
         origin.kind == EdgeOriginKind.implicitNullInitializer ||
         origin.kind == EdgeOriginKind.uninitializedRead;
-    var isSetupAssignment =
-        origin is ExpressionChecksOrigin && origin.isSetupAssignment;
     var edge = NullabilityEdge._(
         destinationNode, upstreamNodes, kind, origin.description,
         codeReference: origin.codeReference,
         isUninit: isUninit,
-        isSetupAssignment: isSetupAssignment);
+        isSetupAssignment: origin.isSetupAssignment);
     instrumentation?.graphEdge(edge, origin);
     for (var upstreamNode in upstreamNodes) {
       _connectDownstream(upstreamNode!, edge);

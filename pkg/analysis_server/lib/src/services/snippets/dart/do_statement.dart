@@ -11,7 +11,10 @@ class DoStatement extends DartSnippetProducer {
   static const prefix = 'do';
   static const label = 'do while';
 
-  DoStatement(super.request);
+  DoStatement(super.request, {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   @override
   Future<Snippet> compute() async {

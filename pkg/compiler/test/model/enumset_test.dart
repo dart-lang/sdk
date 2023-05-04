@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library enumset.test;
 
 import 'package:compiler/src/util/enumset.dart';
@@ -43,7 +41,7 @@ void checkEnumSet(EnumSet<Enum> enumSet, int expectedValue,
 }
 
 void testAddRemoveContains() {
-  EnumSet<Enum> enumSet = new EnumSet<Enum>();
+  EnumSet<Enum> enumSet = EnumSet<Enum>();
 
   void check(
       int expectedValue, List<Enum> expectedValues, String expectedToString) {
@@ -86,10 +84,10 @@ void testAddRemoveContains() {
 }
 
 void testConstructorsIntersects() {
-  EnumSet<Enum> emptyA = new EnumSet<Enum>();
-  EnumSet<Enum> emptyB = new EnumSet<Enum>.fromValue(0);
+  EnumSet<Enum> emptyA = EnumSet<Enum>();
+  EnumSet<Enum> emptyB = EnumSet<Enum>.fromValue(0);
   EnumSet<Enum> emptyC = const EnumSet<Enum>.fixed(0);
-  EnumSet<Enum> emptyD = new EnumSet<Enum>.fixed(0);
+  EnumSet<Enum> emptyD = EnumSet<Enum>.fixed(0);
 
   void checkIntersects(EnumSet<Enum> a, EnumSet<Enum> b, bool expectedValue) {
     Expect.equals(
@@ -110,12 +108,12 @@ void testConstructorsIntersects() {
   check(emptyA, emptyC);
   check(emptyA, emptyD);
 
-  EnumSet<Enum> singleA = new EnumSet<Enum>()..add(Enum.C);
-  EnumSet<Enum> singleB = new EnumSet<Enum>.fromValue(4);
+  EnumSet<Enum> singleA = EnumSet<Enum>()..add(Enum.C);
+  EnumSet<Enum> singleB = EnumSet<Enum>.fromValue(4);
   EnumSet<Enum> singleC = const EnumSet<Enum>.fixed(4);
-  EnumSet<Enum> singleD = new EnumSet<Enum>.fixed(4);
-  EnumSet<Enum> singleE = new EnumSet<Enum>.fromValues([Enum.C]);
-  EnumSet<Enum> singleF = new EnumSet<Enum>.fromValues([Enum.C], fixed: true);
+  EnumSet<Enum> singleD = EnumSet<Enum>.fixed(4);
+  EnumSet<Enum> singleE = EnumSet<Enum>.fromValues([Enum.C]);
+  EnumSet<Enum> singleF = EnumSet<Enum>.fromValues([Enum.C], fixed: true);
 
   check(singleA, singleA);
   check(singleA, singleB);
@@ -124,16 +122,16 @@ void testConstructorsIntersects() {
   check(singleA, singleE);
   check(singleA, singleF);
 
-  EnumSet<Enum> multiA = new EnumSet<Enum>()
+  EnumSet<Enum> multiA = EnumSet<Enum>()
     ..add(Enum.A)
     ..add(Enum.D)
     ..add(Enum.F);
-  EnumSet<Enum> multiB = new EnumSet<Enum>.fromValue(41);
+  EnumSet<Enum> multiB = EnumSet<Enum>.fromValue(41);
   EnumSet<Enum> multiC = const EnumSet<Enum>.fixed(41);
-  EnumSet<Enum> multiD = new EnumSet<Enum>.fixed(41);
-  EnumSet<Enum> multiE = new EnumSet<Enum>.fromValues([Enum.F, Enum.A, Enum.D]);
+  EnumSet<Enum> multiD = EnumSet<Enum>.fixed(41);
+  EnumSet<Enum> multiE = EnumSet<Enum>.fromValues([Enum.F, Enum.A, Enum.D]);
   EnumSet<Enum> multiF =
-      new EnumSet<Enum>.fromValues([Enum.F, Enum.A, Enum.D], fixed: true);
+      EnumSet<Enum>.fromValues([Enum.F, Enum.A, Enum.D], fixed: true);
 
   check(multiA, multiA);
   check(multiA, multiB);
@@ -142,7 +140,7 @@ void testConstructorsIntersects() {
   check(multiA, multiE);
   check(multiA, multiF);
 
-  EnumSet<Enum> multi2 = new EnumSet<Enum>.fromValues([Enum.F, Enum.A, Enum.C]);
+  EnumSet<Enum> multi2 = EnumSet<Enum>.fromValues([Enum.F, Enum.A, Enum.C]);
 
   checkIntersects(emptyA, singleA, false);
   checkIntersects(emptyA, multiA, false);

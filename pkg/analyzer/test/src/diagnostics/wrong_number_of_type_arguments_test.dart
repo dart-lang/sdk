@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class WrongNumberOfTypeArgumentsTest extends PatternsResolutionTest {
+class WrongNumberOfTypeArgumentsTest extends PubPackageResolutionTest {
   test_class_tooFew() async {
     await assertErrorsInCode(r'''
 class A<E, F> {}
@@ -36,7 +36,7 @@ A<A, A>? a;
   test_classAlias() async {
     await assertErrorsInCode(r'''
 class A {}
-class M {}
+mixin M {}
 class B<F extends num> = A<F> with M;
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 4),

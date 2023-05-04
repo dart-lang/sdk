@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test of the graph segmentation algorithm used by deferred loading
 // to determine which elements can be deferred and which libraries
 // much be included in the initial download (loaded eagerly).
@@ -31,10 +29,10 @@ void main() {
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
 
-    var closedWorld = compiler.backendClosedWorldForTesting;
+    var closedWorld = compiler.backendClosedWorldForTesting!;
     var env = closedWorld.elementEnvironment;
     lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
-    var main = env.mainFunction;
+    var main = env.mainFunction!;
     Expect.isNotNull(main, "Could not find 'main'");
 
     var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
@@ -42,18 +40,17 @@ void main() {
 
     var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
     var backendStrategy = compiler.backendStrategy;
-    // ignore: deprecated_member_use_from_same_package
     var classes = backendStrategy.emitterTask.neededClasses;
     var inputElement = classes.where((e) => e.name == 'InputElement').single;
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
-    var foo1 = env.lookupLibraryMember(lib1, "foo1");
+    var foo1 = env.lookupLibraryMember(lib1, "foo1")!;
     dynamic lib2 = lookupLibrary("memory:lib2.dart");
-    var foo2 = env.lookupLibraryMember(lib2, "foo2");
+    var foo2 = env.lookupLibraryMember(lib2, "foo2")!;
     dynamic lib3 = lookupLibrary("memory:lib3.dart");
-    var foo3 = env.lookupLibraryMember(lib3, "foo3");
+    var foo3 = env.lookupLibraryMember(lib3, "foo3")!;
     dynamic lib4 = lookupLibrary("memory:lib4.dart");
-    var bar1 = env.lookupLibraryMember(lib4, "bar1");
-    var bar2 = env.lookupLibraryMember(lib4, "bar2");
+    var bar1 = env.lookupLibraryMember(lib4, "bar1")!;
+    var bar2 = env.lookupLibraryMember(lib4, "bar2")!;
 
     OutputUnit ou_lib1 = outputUnitForMember(foo1);
     OutputUnit ou_lib2 = outputUnitForMember(foo2);
@@ -73,10 +70,10 @@ void main() {
 
     var hunksToLoad =
         backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
-    var hunksLib1 = collectOutputUnits(hunksToLoad["lib1"]);
-    var hunksLib2 = collectOutputUnits(hunksToLoad["lib2"]);
-    var hunksLib4_1 = collectOutputUnits(hunksToLoad["lib4_1"]);
-    var hunksLib4_2 = collectOutputUnits(hunksToLoad["lib4_2"]);
+    var hunksLib1 = collectOutputUnits(hunksToLoad["lib1"]!);
+    var hunksLib2 = collectOutputUnits(hunksToLoad["lib2"]!);
+    var hunksLib4_1 = collectOutputUnits(hunksToLoad["lib4_1"]!);
+    var hunksLib4_2 = collectOutputUnits(hunksToLoad["lib4_2"]!);
     Expect.listEquals([ou_lib1_lib2, ou_lib1], hunksLib1);
     Expect.listEquals([ou_lib1_lib2, ou_lib2], hunksLib2);
     Expect.listEquals([ou_lib4_1], hunksLib4_1);
@@ -105,7 +102,7 @@ import 'lib2.dart' deferred as lib2;
 void main() {
   lib1.loadLibrary().then((_) {
         lib1.foo1();
-        new lib1.C();
+        lib1.C();
     lib2.loadLibrary().then((_) {
         lib2.foo2();
     });
@@ -123,7 +120,7 @@ import "lib4.dart" deferred as lib4_1;
 class C {}
 
 foo1() {
-  new InputElement();
+  InputElement();
   lib4_1.loadLibrary().then((_) {
     lib4_1.bar1();
   });

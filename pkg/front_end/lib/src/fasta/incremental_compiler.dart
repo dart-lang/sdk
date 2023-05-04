@@ -124,7 +124,7 @@ import 'incremental_serializer.dart' show IncrementalSerializer;
 
 import 'kernel/macro/macro.dart' show enableMacros, NeededPrecompilations;
 
-import 'scope.dart' show Scope;
+import 'scope.dart' show Scope, ScopeKind;
 
 import 'source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -369,7 +369,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       while (true) {
         _benchmarker?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
         currentKernelTarget = _setupNewKernelTarget(c, uriTranslator, hierarchy,
-            reusedLibraries, experimentalInvalidation, entryPoints.first);
+            reusedLibraries, experimentalInvalidation, entryPoints);
         Map<LibraryBuilder, List<LibraryBuilder>>? rebuildBodiesMap =
             _experimentalInvalidationCreateRebuildBodiesBuilders(
                 currentKernelTarget, experimentalInvalidation, uriTranslator);
@@ -989,7 +989,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ClassHierarchy? hierarchy,
       List<LibraryBuilder> reusedLibraries,
       ExperimentalInvalidation? experimentalInvalidation,
-      Uri firstEntryPoint) {
+      List<Uri> entryPoints) {
     IncrementalKernelTarget kernelTarget = createIncrementalKernelTarget(
         new HybridFileSystem(
             new MemoryFileSystem(
@@ -1044,8 +1044,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     // The entry point(s) has to be set first for loader.firstUri to be setup
     // correctly.
-    kernelTarget.loader.firstUri =
-        kernelTarget.getEntryPointUri(firstEntryPoint, issueProblem: false);
+    kernelTarget.loader.roots.clear();
+    for (Uri entryPoint in entryPoints) {
+      kernelTarget.loader.roots.add(kernelTarget.getEntryPointUri(entryPoint));
+    }
     return kernelTarget;
   }
 
@@ -1126,7 +1128,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// uriToSource (used in places for dependency tracking), the incremental
   /// serializer (they are no longer kept up-to-date) and the DillTarget
   /// (to avoid leaks).
-  /// We also have to remove any component problems beloning to any such
+  /// We also have to remove any component problems belonging to any such
   /// no-longer-used library (to avoid re-issuing errors about no longer
   /// relevant stuff).
   void _cleanupRemovedBuilders(IncrementalKernelTarget? lastGoodKernelTarget,
@@ -1992,7 +1994,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         packageLanguageVersion:
             new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
         loader: lastGoodKernelTarget.loader,
-        scope: debugLibrary.scope.createNestedScope("expression"),
+        scope: debugLibrary.scope.createNestedScope(
+            debugName: "expression", kind: ScopeKind.library),
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
         isAugmentation: false,

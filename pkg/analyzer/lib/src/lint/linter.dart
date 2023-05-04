@@ -39,12 +39,14 @@ import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
+export 'package:analyzer/src/lint/state.dart' show dart3, State;
 
 typedef Printer = void Function(String msg);
 
@@ -613,9 +615,6 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// Lint group (for example, 'style').
   final Group group;
 
-  /// Lint maturity (stable|experimental).
-  final Maturity maturity;
-
   /// Lint name.
   @override
   final String name;
@@ -634,21 +633,32 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// constitute AnalysisErrorInfos.
   final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
 
+  final State state;
+
   LintRule({
     required this.name,
     required this.group,
     required this.description,
     required this.details,
-    this.maturity = Maturity.stable,
+    @Deprecated("Use 'state' instead.") Maturity? maturity,
+    State? state,
     this.documentation,
     this.hasDocumentation = false,
-  });
+  }) : state = state ?? _toState(maturity);
 
   /// A list of incompatible rule ids.
   List<String> get incompatibleRules => const [];
 
   @override
   LintCode get lintCode => _LintCode(name, description);
+
+  /// Lint maturity (stable|deprecated|experimental).
+  @Deprecated("Use 'state' instead.")
+  Maturity get maturity {
+    if (state.isDeprecated) return Maturity.deprecated;
+    if (state.isExperimental) return Maturity.experimental;
+    return Maturity.stable;
+  }
 
   @override
   int compareTo(LintRule other) {
@@ -717,6 +727,12 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
     // Then do the reporting
     reporter.reportError(error);
+  }
+
+  static State _toState(Maturity? maturity) {
+    if (maturity == Maturity.deprecated) return State.deprecated();
+    if (maturity == Maturity.experimental) return State.experimental();
+    return State.stable();
   }
 }
 
@@ -889,9 +905,8 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
-        case CompileTimeErrorCode
-            .CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
-        case CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS:
+        case CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
+        case CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
         case CompileTimeErrorCode.CONST_WITH_NON_CONST:
         case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
         case CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:

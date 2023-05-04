@@ -8,25 +8,40 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 
 class ClassElementFlags {
   static const int _isAbstract = 1 << 0;
-  static const int _isMacro = 1 << 1;
-  static const int _isMixinApplication = 1 << 2;
-  static const int _isSimplyBounded = 1 << 3;
+  static const int _isBase = 1 << 1;
+  static const int _isFinal = 1 << 2;
+  static const int _isInterface = 1 << 3;
+  static const int _isMacro = 1 << 4;
+  static const int _isMixinApplication = 1 << 5;
+  static const int _isMixinClass = 1 << 6;
+  static const int _isSealed = 1 << 7;
+  static const int _isSimplyBounded = 1 << 8;
 
   static void read(SummaryDataReader reader, ClassElementImpl element) {
-    var byte = reader.readByte();
+    var byte = reader.readUInt30();
     element.isAbstract = (byte & _isAbstract) != 0;
+    element.isBase = (byte & _isBase) != 0;
+    element.isFinal = (byte & _isFinal) != 0;
+    element.isInterface = (byte & _isInterface) != 0;
     element.isMacro = (byte & _isMacro) != 0;
     element.isMixinApplication = (byte & _isMixinApplication) != 0;
+    element.isMixinClass = (byte & _isMixinClass) != 0;
+    element.isSealed = (byte & _isSealed) != 0;
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
 
   static void write(BufferedSink sink, ClassElementImpl element) {
     var result = 0;
     result |= element.isAbstract ? _isAbstract : 0;
+    result |= element.isBase ? _isBase : 0;
+    result |= element.isFinal ? _isFinal : 0;
+    result |= element.isInterface ? _isInterface : 0;
     result |= element.isMacro ? _isMacro : 0;
     result |= element.isMixinApplication ? _isMixinApplication : 0;
+    result |= element.isMixinClass ? _isMixinClass : 0;
+    result |= element.isSealed ? _isSealed : 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
-    sink.writeByte(result);
+    sink.writeUInt30(result);
   }
 }
 
@@ -84,9 +99,10 @@ class FieldElementFlags {
   static const int _isFinal = 1 << 8;
   static const int _isLate = 1 << 9;
   static const int _isPromotable = 1 << 10;
-  static const int _isStatic = 1 << 11;
-  static const int _isSynthetic = 1 << 12;
-  static const int _isTempAugmentation = 1 << 13;
+  static const int _shouldUseTypeForInitializerInference = 1 << 11;
+  static const int _isStatic = 1 << 12;
+  static const int _isSynthetic = 1 << 13;
+  static const int _isTempAugmentation = 1 << 14;
 
   static void read(SummaryDataReader reader, FieldElementImpl element) {
     var byte = reader.readUInt30();
@@ -101,6 +117,8 @@ class FieldElementFlags {
     element.isFinal = (byte & _isFinal) != 0;
     element.isLate = (byte & _isLate) != 0;
     element.isPromotable = (byte & _isPromotable) != 0;
+    element.shouldUseTypeForInitializerInference =
+        (byte & _shouldUseTypeForInitializerInference) != 0;
     element.isStatic = (byte & _isStatic) != 0;
     element.isSynthetic = (byte & _isSynthetic) != 0;
     element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
@@ -119,6 +137,9 @@ class FieldElementFlags {
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;
     result |= element.isPromotable ? _isPromotable : 0;
+    result |= element.shouldUseTypeForInitializerInference
+        ? _shouldUseTypeForInitializerInference
+        : 0;
     result |= element.isStatic ? _isStatic : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
     result |= element.isTempAugmentation ? _isTempAugmentation : 0;
@@ -223,15 +244,18 @@ class MethodElementFlags {
 }
 
 class MixinElementFlags {
-  static const int _isSimplyBounded = 1 << 0;
+  static const int _isBase = 1 << 0;
+  static const int _isSimplyBounded = 1 << 1;
 
   static void read(SummaryDataReader reader, MixinElementImpl element) {
     var byte = reader.readByte();
+    element.isBase = (byte & _isBase) != 0;
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
 
   static void write(BufferedSink sink, MixinElementImpl element) {
     var result = 0;
+    result |= element.isBase ? _isBase : 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);
   }
@@ -312,7 +336,8 @@ class TopLevelVariableElementFlags {
   static const int _isExternal = 1 << 2;
   static const int _isFinal = 1 << 3;
   static const int _isLate = 1 << 4;
-  static const int _isTempAugmentation = 1 << 5;
+  static const int _shouldUseTypeForInitializerInference = 1 << 5;
+  static const int _isTempAugmentation = 1 << 6;
 
   static void read(
     SummaryDataReader reader,
@@ -324,6 +349,8 @@ class TopLevelVariableElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isFinal = (byte & _isFinal) != 0;
     element.isLate = (byte & _isLate) != 0;
+    element.shouldUseTypeForInitializerInference =
+        (byte & _shouldUseTypeForInitializerInference) != 0;
     element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
   }
 
@@ -334,6 +361,9 @@ class TopLevelVariableElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;
+    result |= element.shouldUseTypeForInitializerInference
+        ? _shouldUseTypeForInitializerInference
+        : 0;
     result |= element.isTempAugmentation ? _isTempAugmentation : 0;
     sink.writeByte(result);
   }

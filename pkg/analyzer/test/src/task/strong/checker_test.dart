@@ -40,116 +40,6 @@ void foo(Object o) {
     ]);
   }
 
-  test_compoundAssignment_returnsDynamic() async {
-    await assertNoErrorsInCode(r'''
-class Foo {
-  operator +(other) => null;
-}
-
-main() {
-  var foo = new Foo();
-  foo = foo + 1;
-  foo += 1;
-}
-''');
-  }
-
-  test_compoundAssignments() async {
-    await assertErrorsInCode('''
-class A {
-  A operator *(B b) => null;
-  A operator /(B b) => null;
-  A operator ~/(B b) => null;
-  A operator %(B b) => null;
-  A operator +(B b) => null;
-  A operator -(B b) => null;
-  A operator <<(B b) => null;
-  A operator >>(B b) => null;
-  A operator &(B b) => null;
-  A operator ^(B b) => null;
-  A operator |(B b) => null;
-  D operator [](B index) => null;
-  void operator []=(B index, D value) => null;
-}
-
-class B {
-  A operator -(B b) => null;
-}
-
-class D {
-  D operator +(D d) => null;
-}
-
-class SubA extends A {}
-class SubSubA extends SubA {}
-
-foo() => new A();
-
-test() {
-  int x = 0;
-  x += 5;
-  x += 3.14;
-
-  double y = 0.0;
-  y += 5;
-  y += 3.14;
-
-  num z = 0;
-  z += 5;
-  z += 3.14;
-
-  x = x + z;
-  x += z;
-  y = y + z;
-  y += z;
-
-  dynamic w = 42;
-  x += w;
-  y += w;
-  z += w;
-
-  A a = new A();
-  B b = new B();
-  var c = foo();
-  a = a * b;
-  a *= b;
-  a *= c;
-  a /= b;
-  a ~/= b;
-  a %= b;
-  a += b;
-  a += a;
-  a -= b;
-  b -= b;
-  a <<= b;
-  a >>= b;
-  a &= b;
-  a ^= b;
-  a |= b;
-  c += b;
-
-  SubA sa;
-  sa += b;
-  SubSubA ssa = sa += b;
-
-  var d = new D();
-  a[b] += d;
-  a[c] += d;
-  a[z] += d;
-  a[b] += c;
-  a[b] += z;
-  c[b] += d;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 613, 4),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 927, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 947, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1045, 3),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1110, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1142, 1),
-    ]);
-  }
-
   @FailingTest(issue: 'dartbug.com/33440')
   test_constantGenericTypeArg_explicit() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26141
@@ -201,50 +91,6 @@ main() {
   const SetEquality<String>();
 }
 ''');
-  }
-
-  test_constructors() async {
-    await assertErrorsInCode('''
-const num z = 25;
-Object obj = "world";
-
-class A {
-  int x;
-  String y;
-
-  A(this.x) : this.y = 42;
-
-  A.c1(p): this.x = z, this.y = p;
-
-  A.c2(this.x, this.y);
-
-  A.c3(num this.x, String this.y);
-}
-
-class B extends A {
-  B() : super("hello");
-
-  B.c2(int x, String y) : super.c2(y, x);
-
-  B.c3(num x, Object y) : super.c3(x, y);
-}
-
-void main() {
-   A a = new A.c2(z, z);
-   var b = new B.c2("hello", obj);
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 96, 2),
-      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 169,
-          10),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 234, 7),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 280, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 283, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 352, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 368, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 379, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 392, 7),
-    ]);
   }
 
   test_conversionAndDynamicInvoke() async {
@@ -1759,42 +1605,6 @@ class H implements F {
     ]);
   }
 
-  test_ifForDoWhileStatementsUseBooleanConversion() async {
-    await assertErrorsInCode('''
-main() {
-  dynamic dyn = 42;
-  Object obj = 42;
-  int i = 42;
-  bool b = false;
-
-  if (b) {}
-  if (dyn) {}
-  if (obj) {}
-  if (i) {}
-
-  while (b) {}
-  while (dyn) {}
-  while (obj) {}
-  while (i) {}
-
-  do {} while (b);
-  do {} while (dyn);
-  do {} while (obj);
-  do {} while (i);
-
-  for (;b;) {}
-  for (;dyn;) {}
-  for (;obj;) {}
-  for (;i;) {}
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 127, 1),
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 192, 1),
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 275, 1),
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 337, 1),
-    ]);
-  }
-
   test_implicitDynamic_method() async {
     _disableTestPackageImplicitDynamic();
     await assertErrorsInCode(r'''
@@ -2019,7 +1829,7 @@ class D implements B, C {
   int x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 95, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 95, 1,
           contextMessages: [message('/home/test/lib/test.dart', 46, 1)]),
     ]);
   }
@@ -2042,9 +1852,9 @@ class C2 extends Object with M2 {
   String x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 112, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 112, 1,
           contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 197, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 197, 1,
           contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
     ]);
   }
@@ -2087,11 +1897,11 @@ class F extends D with M<int> {
   num x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 124, 1,
           contextMessages: [message('/home/test/lib/test.dart', 28, 1)]),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 184, 1),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 184, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 216, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 216, 1,
           contextMessages: [message('/home/test/lib/test.dart', 28, 1)]),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 228, 1),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 228, 1),
@@ -2104,7 +1914,7 @@ class A {}
 class B {}
 
 class Base {
-    A f;
+  A f;
 }
 
 class T1 extends Base {
@@ -2139,45 +1949,45 @@ class T8 implements Base {
   B f;
 }
 ''', [
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 80, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 80, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 124, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 177, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 177, 1),
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 177, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 259, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 259, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 78, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 122, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 122, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 175, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 175, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 175, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 257, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 257, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          271,
+          269,
           2),
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 300, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 300, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 298, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 298, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          320,
+          318,
           2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 347, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 347, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 345, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 345, 1),
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          372,
+          370,
           2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 403, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 403, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 495, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 495, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 401, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 401, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 493, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 493, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
     ]);
   }
 
@@ -2819,56 +2629,9 @@ class Child extends helper.Base {
   String _m1() => null;
 }
 ''', [
-      error(HintCode.UNUSED_FIELD, 83, 3),
-      error(HintCode.UNUSED_FIELD, 94, 3),
+      error(WarningCode.UNUSED_FIELD, 83, 3),
+      error(WarningCode.UNUSED_FIELD, 94, 3),
       error(HintCode.UNUSED_ELEMENT, 109, 3),
-    ]);
-  }
-
-  test_proxy() {
-    return assertErrorsInCode(r'''
-@proxy class C {}
-@proxy class D {
-  var f;
-  m() => null;
-  operator -() => null;
-  operator +(int other) => null;
-  operator [](int index) => null;
-  call() => null;
-}
-
-@proxy class F implements Function { noSuchMethod(i) => 42; }
-
-m() {
-  D d = new D();
-  d.m();
-  d.m;
-  d.f;
-  -d;
-  d + 7;
-  d[7];
-  d();
-
-  C c = new C();
-  c.m();
-  c.m;
-  -c;
-  c + 7;
-  c[7];
-  c();
-
-  F f = new F();
-  f();
-}
-''', [
-      error(HintCode.DEPRECATED_IMPLEMENTS_FUNCTION, 197, 8),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 332, 1),
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 341, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 346, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 354, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 362, 3),
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 369, 1),
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 394, 1),
     ]);
   }
 
@@ -2993,13 +2756,13 @@ class H implements F {
   void set i(dynamic x) {}
 }
  ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 220, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 220, 1,
           contextMessages: [message('/home/test/lib/test.dart', 85, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 255, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 255, 1,
           contextMessages: [message('/home/test/lib/test.dart', 116, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 362, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 362, 1,
           contextMessages: [message('/home/test/lib/test.dart', 85, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 397, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 397, 1,
           contextMessages: [message('/home/test/lib/test.dart', 116, 1)]),
     ]);
   }
@@ -3051,7 +2814,7 @@ class Child extends Base {
   set f5(B value) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 263, 2,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 263, 2,
           contextMessages: [message('/home/test/lib/test.dart', 111, 2)]),
     ]);
   }
@@ -3088,9 +2851,9 @@ void f() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 212, 36),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 264, 19),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 18),
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 330, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 330, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 341, 18),
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 362, 6),
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 362, 6),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 380, 20),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 427, 16),
     ]);
@@ -3255,8 +3018,8 @@ void main() {
   print((dyn) ? false : true);
 }
 ''', [
-      error(HintCode.UNUSED_FIELD, 247, 11),
-      error(HintCode.UNUSED_FIELD, 273, 9),
+      error(WarningCode.UNUSED_FIELD, 247, 11),
+      error(WarningCode.UNUSED_FIELD, 273, 9),
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 1311, 1),
     ]);
   }

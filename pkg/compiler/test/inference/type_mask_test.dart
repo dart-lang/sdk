@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
@@ -20,7 +17,7 @@ class B extends A {}
 class C implements A {}
 class D implements A {}
 main() {
-  print([new A(), new B(), new C(), new D()]);
+  print([new A(), B(), C(), D()]);
 }
 """;
 
@@ -32,28 +29,25 @@ main() {
         await runCompiler(memorySourceFiles: {'main.dart': CODE});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
-    AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
+    final commonMasks = closedWorld.abstractValueDomain as CommonMasks;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+    final mainLibrary = elementEnvironment.mainLibrary!;
 
-    dynamic classA =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'A');
-    dynamic classB =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'B');
-    dynamic classC =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'C');
-    dynamic classD =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'D');
+    dynamic classA = elementEnvironment.lookupClass(mainLibrary, 'A');
+    dynamic classB = elementEnvironment.lookupClass(mainLibrary, 'B');
+    dynamic classC = elementEnvironment.lookupClass(mainLibrary, 'C');
+    dynamic classD = elementEnvironment.lookupClass(mainLibrary, 'D');
 
-    var exactA = new TypeMask.nonNullExact(classA, closedWorld);
-    var exactB = new TypeMask.nonNullExact(classB, closedWorld);
-    var exactC = new TypeMask.nonNullExact(classC, closedWorld);
-    var exactD = new TypeMask.nonNullExact(classD, closedWorld);
+    var exactA = TypeMask.nonNullExact(classA, closedWorld);
+    var exactB = TypeMask.nonNullExact(classB, closedWorld);
+    var exactC = TypeMask.nonNullExact(classC, closedWorld);
+    var exactD = TypeMask.nonNullExact(classD, closedWorld);
 
-    var subclassA = new TypeMask.nonNullSubclass(classA, closedWorld);
-    var subtypeA = new TypeMask.nonNullSubtype(classA, closedWorld);
+    var subclassA = TypeMask.nonNullSubclass(classA, closedWorld);
+    var subtypeA = TypeMask.nonNullSubtype(classA, closedWorld);
 
-    var subclassObject = new TypeMask.nonNullSubclass(
+    var subclassObject = TypeMask.nonNullSubclass(
         closedWorld.commonElements.objectClass, closedWorld);
 
     var unionABC = UnionTypeMask.unionOf([exactA, exactB, exactC], commonMasks);

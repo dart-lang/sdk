@@ -44,6 +44,7 @@ namespace kernel {
 class Reader;
 struct ProcedureAttributesMetadata;
 class TableSelectorMetadata;
+class UnboxingInfoMetadata;
 
 class StringIndex {
  public:
@@ -235,6 +236,9 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
                                                   Zone* zone);
+
+UnboxingInfoMetadata* UnboxingInfoMetadataOf(const Function& function,
+                                             Zone* zone);
 
 TableSelectorMetadata* TableSelectorMetadataForProgram(
     const KernelProgramInfo& info,

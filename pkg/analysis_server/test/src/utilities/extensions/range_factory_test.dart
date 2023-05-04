@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:test/test.dart';
@@ -39,6 +40,22 @@ abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
     for (var entry in expectedRanges.entries) {
       expect(range.nodeWithComments(testUnit.lineInfo, list[entry.key]),
           entry.value);
+    }
+  }
+
+  void _assertNodeWithComments(
+      bool Function(AstNode) filter, List<SourceRange> expectedRanges) {
+    var collector = _NodesCollector(filter);
+    for (var declaration in testUnit.declarations) {
+      declaration.visitChildren(collector);
+    }
+
+    var nodes = collector._nodes;
+    expect(nodes, hasLength(expectedRanges.length));
+    var length = nodes.length;
+    for (var i = 0; i < length; i++) {
+      expect(range.nodeWithComments(testUnit.lineInfo, nodes[i]),
+          expectedRanges[i]);
     }
   }
 
@@ -545,6 +562,93 @@ class A {
     });
   }
 
+  Future<void> test_formalParameterList_last() async {
+    await resolveTestCode('''
+void f({int? a, /* b */ required int b}) {}
+''');
+    _assertNodeWithComments((node) => node.parent is FormalParameterList, [
+      _range(startsBefore: 'int?', endsAfter: 'int? a'),
+      _range(startsBefore: '/* b */', endsAfter: 'int b'),
+    ]);
+  }
+
+  Future<void> test_formalParameterList_multipleAfter() async {
+    await resolveTestCode('''
+void f({int? a /* a */, required int b /* b1 */ /* b2 */}) {}
+''');
+    _assertNodeWithComments((node) => node.parent is FormalParameterList, [
+      _range(startsBefore: 'int? a', endsAfter: '/* a */'),
+      _range(startsBefore: 'required int b', endsAfter: '/* b2 */'),
+    ]);
+  }
+
+  Future<void> test_formalParameterList_multipleBefore() async {
+    await resolveTestCode('''
+void f({/* a */ int? a, /* b1 */ /* b2 */ required int b}) {}
+''');
+    _assertNodeWithComments((node) => node.parent is FormalParameterList, [
+      _range(startsBefore: '/* a */', endsAfter: 'int? a'),
+      _range(startsBefore: '/* b1 */', endsAfter: 'int b'),
+    ]);
+  }
+
+  Future<void> test_formalParameterList_multipleBefore_multipleAfter() async {
+    await resolveTestCode('''
+void f({int? a, /* b1 */ /* b2 */ required int b /* b3 */ /* b4 */}) {}
+''');
+    _assertNodeWithComments((node) => node.parent is FormalParameterList, [
+      _range(startsBefore: 'int?', endsAfter: 'int? a'),
+      _range(startsBefore: '/* b1 */', endsAfter: '/* b4 */'),
+    ]);
+  }
+
+  Future<void> test_formalParameterList_multipleLines() async {
+    await resolveTestCode('''
+void f({
+ int? a, /* a */
+ // line1
+ /* b1 */
+ /* b2 */ /* b3 */ int? b /* b4 */ /* b5 */
+ // line2
+ /* b6 */, /* b7 */
+ /* b8 */}) {}
+''');
+    _assertNodeWithComments((node) => node.parent is FormalParameterList, [
+      _range(startsBefore: 'int?', endsAfter: '/* a */'),
+      _range(startsBefore: '// line1', endsAfter: '/* b7 */'),
+    ]);
+  }
+
+  Future<void> test_formalParameterList_multipleLines_comma() async {
+    await resolveTestCode('''
+void f({
+ int? a, /* a */
+ // line1
+ /* b2 */ int? b /* b3 */
+ // line2
+ /* b4 */,}) {}
+''');
+    _assertNodeWithComments((node) => node.parent is FormalParameterList, [
+      _range(startsBefore: 'int?', endsAfter: '/* a */'),
+      _range(startsBefore: '// line1', endsAfter: '/* b3 */'),
+    ]);
+  }
+
+  Future<void> test_formalParameterList_multipleLines_commaComment() async {
+    await resolveTestCode('''
+void f({
+ int? a, /* a */
+ // line1
+ /* b2 */ int? b /* b3 */
+ // line2
+ /* b4 */, /* b5 */}) {}
+''');
+    _assertNodeWithComments((node) => node.parent is FormalParameterList, [
+      _range(startsBefore: 'int?', endsAfter: '/* a */'),
+      _range(startsBefore: '// line1', endsAfter: '/* b5 */'),
+    ]);
+  }
+
   Future<void> test_topLevel_fileHeader_dartDoc() async {
     await resolveTestCode('''
 // Copyright (c) ...
@@ -579,7 +683,7 @@ int bar = 1; // 4
 
   Future<void> test_topLevel_languageVersion_dartDoc() async {
     await resolveTestCode('''
-// @dart = 2.8
+// @dart = 2.19
 
 /// 1
 int foo = 1; // 2
@@ -595,7 +699,7 @@ int bar = 1; // 4
 
   Future<void> test_topLevel_languageVersion_noDartDoc() async {
     await resolveTestCode('''
-// @dart = 2.8
+// @dart = 2.19
 
 int foo = 1; // 2
 
@@ -880,5 +984,20 @@ int bar = 2; // 2
       0: _range(startsBefore: 'int foo', endsAfter: '// 1'),
       1: _range(startsBefore: 'int bar', endsAfter: '// 2'),
     });
+  }
+}
+
+class _NodesCollector extends UnifyingAstVisitor<void> {
+  final bool Function(AstNode) filter;
+  final List<AstNode> _nodes = [];
+
+  _NodesCollector(this.filter);
+
+  @override
+  void visitNode(AstNode node) {
+    if (filter(node)) {
+      _nodes.add(node);
+    }
+    super.visitNode(node);
   }
 }

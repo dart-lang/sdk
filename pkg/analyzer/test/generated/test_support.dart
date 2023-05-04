@@ -122,10 +122,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
   final bool checkRanges;
 
   /// A list containing the errors that were collected.
-  final List<AnalysisError> _errors = <AnalysisError>[];
+  final List<AnalysisError> _errors = [];
 
   /// A table mapping sources to the line information for the source.
-  final Map<Source, LineInfo> _lineInfoMap = <Source, LineInfo>{};
+  final Map<Source, LineInfo> _lineInfoMap = {};
 
   /// Initialize a newly created error listener to collect errors.
   GatheringErrorListener({this.checkRanges = true});
@@ -219,8 +219,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
         buffer.write(actual.length);
         buffer.write(', ');
         buffer.write(json.encode(actual.message));
-        buffer.write(', ');
-        buffer.write(json.encode(actual.correctionMessage));
+        if (actual.correctionMessage != null) {
+          buffer.write(', ');
+          buffer.write(json.encode(actual.correctionMessage));
+        }
         buffer.writeln(']');
       }
     }

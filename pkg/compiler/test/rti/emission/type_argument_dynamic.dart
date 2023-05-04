@@ -21,7 +21,7 @@ class D {}
 /*class: E:checks=[],instance*/
 class E {
   @pragma('dart2js:noInline')
-  m<T>() => new C<T>();
+  m<T>() => C<T>();
 }
 
 /*class: F:checks=[],instance*/
@@ -34,8 +34,7 @@ class F {
 test(o) => o is C<A>;
 
 main() {
-  dynamic o =
-      new DateTime.now().millisecondsSinceEpoch == 0 ? new F() : new E();
+  dynamic o = DateTime.now().millisecondsSinceEpoch == 0 ? F() : E();
   makeLive(test(o.m<B>()));
   makeLive(test(o.m<D>()));
 }

@@ -8,8 +8,6 @@
  c_steps=[lib=(f1)]
 */
 
-// @dart = 2.7
-
 // Test that loading of a library (with top-level functions only) can
 // be deferred.
 

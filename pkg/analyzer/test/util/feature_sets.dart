@@ -47,23 +47,20 @@ class FeatureSets {
   static final FeatureSet latestWithExperiments = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [
-      EnableString.enhanced_enums,
-      EnableString.extension_types,
-      EnableString.macros,
-      EnableString.named_arguments_anywhere,
-      EnableString.patterns,
-      EnableString.records,
-      EnableString.sealed_class,
-      EnableString.super_parameters,
-      EnableString.unnamed_libraries,
-      EnableString.views,
+      Feature.class_modifiers.enableString,
+      Feature.extension_types.enableString,
+      Feature.inline_class.enableString,
+      Feature.macros.enableString,
+      Feature.patterns.enableString,
+      Feature.records.enableString,
+      Feature.sealed_class.enableString,
     ],
   );
 
   static final FeatureSet latestWithVariance = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [
-      EnableString.variance,
+      Feature.variance.enableString,
     ],
   );
 

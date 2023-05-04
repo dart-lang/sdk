@@ -8,17 +8,15 @@
  c_steps=[lib=(f1)]
 */
 
-// @dart = 2.7
-
 import "lib.dart" deferred as lib;
 
 /*member: main:member_unit=main{}*/
 void main() {
   lib.loadLibrary().then(/*closure_unit=main{}*/ (_) {
-    new lib.A2();
-    new lib.B2();
-    new lib.C3();
-    new lib.D3(10);
-    new lib.G();
+    lib.A2();
+    lib.B2();
+    lib.C3();
+    lib.D3(10);
+    lib.G();
   });
 }

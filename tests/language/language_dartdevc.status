@@ -2,9 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Sections in this file should contain "$compiler == dartdevc", dartdevk or ddc.
+# Sections in this file should contain "$compiler == ddc".
 
-[ $compiler == dartdevc || $compiler == dartdevk || $compiler == ddc ]
+[ $compiler == ddc ]
+async_star/async_star_await_for_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/51086
 async_star/throw_in_catch_test: Skip # Times out. Issue 29920
 external_abstract_fields/external_fields_test: SkipByDesign # Non-JS-interop external members are not supported
 number/int64_literal_runtime*_test: Skip # This is testing Dart 2.0 int64 semantics.

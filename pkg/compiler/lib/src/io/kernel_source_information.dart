@@ -161,7 +161,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   ///
   /// This is used function declarations and return expressions which both point
   /// to the end of the member as the closing position.
-  SourceInformation _buildFunctionEnd(MemberEntity member,
+  SourceInformation? _buildFunctionEnd(MemberEntity member,
       [ir.TreeNode? base]) {
     MemberDefinition definition = _elementMap.getMemberDefinition(member);
     String? name = computeKernelElementNameForSourceMaps(_elementMap, member);
@@ -179,6 +179,8 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
       case MemberKind.closureCall:
         final node = definition.node as ir.LocalFunction;
         return _buildFunction(name, base ?? node, node.function);
+      case MemberKind.recordGetter:
+        return null;
       // TODO(sra): generatorBody
       default:
     }
@@ -219,7 +221,8 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   }
 
   /// Creates source information for the body of the current member.
-  SourceInformation _buildMemberBody() {
+  // TODO(51310): Remove nullable return type.
+  SourceInformation? _buildMemberBody() {
     MemberDefinition definition = _elementMap.getMemberDefinition(_member);
     switch (definition.kind) {
       case MemberKind.regular:
@@ -250,6 +253,15 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
           return _buildBody(node, node.function!.body);
         }
         break;
+      case MemberKind.recordGetter:
+        // This is a completely synthetic element. Perhaps we can use
+        // definition.location, but that is often 'nowhere'.
+
+        // TODO(51310): Perhaps we should not end up in
+        // [KernelSourceInformationBuilder] for synthetic elements that are not
+        // defined by Kernel ASTs.
+        return null;
+
       default:
     }
     return _buildTreeNode(definition.node as ir.TreeNode);
@@ -372,7 +384,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformation? buildForeignCode(ir.Node node) => null;
 
   @override
-  SourceInformation buildVariableDeclaration() {
+  SourceInformation? buildVariableDeclaration() {
     return _buildMemberBody();
   }
 
@@ -388,7 +400,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
 
   @override
   SourceInformation buildAsyncBody() {
-    return _buildMemberBody();
+    return _buildMemberBody()!;
   }
 
   @override
@@ -448,7 +460,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
 
   @override
   SourceInformation buildReturn(ir.TreeNode node) {
-    return _buildFunctionEnd(_member, node);
+    return _buildFunctionEnd(_member, node)!;
   }
 
   @override
@@ -465,7 +477,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformation? buildGeneric(ir.Node node) => null;
 
   @override
-  SourceInformation buildDeclaration(MemberEntity member) {
+  SourceInformation? buildDeclaration(MemberEntity member) {
     return _buildFunctionEnd(member);
   }
 
@@ -485,15 +497,22 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   }
 }
 
-class KernelSourceLocation extends AbstractSourceLocation {
+class KernelSourceLocation extends SourceLocation {
   @override
   final int offset;
   @override
   final String? sourceName;
-  @override
-  final Uri sourceUri;
 
-  KernelSourceLocation(super.location, this.offset, this.sourceName)
-      : sourceUri = location.file,
-        super.fromLocation();
+  final ir.Location location;
+
+  KernelSourceLocation(this.location, this.offset, this.sourceName);
+
+  @override
+  int get column => location.column;
+
+  @override
+  int get line => location.line;
+
+  @override
+  Uri? get sourceUri => location.file;
 }

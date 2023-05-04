@@ -15,6 +15,7 @@ import 'package:test/test.dart';
 
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector;
+import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 
@@ -28,7 +29,7 @@ runTestCase(Uri source) async {
 }
 
 Future<void> shakeAndRun(Uri source) async {
-  final target = TestingVmTarget(TargetFlags());
+  final target = VmTarget(TargetFlags());
   Component component =
       await compileTestCaseToKernelProgram(source, target: target);
 
@@ -41,7 +42,7 @@ Future<void> shakeAndRun(Uri source) async {
       .toList();
 
   globalTypeFlow.transformComponent(
-      TestingVmTarget(TargetFlags()), CoreTypes(component), component,
+      VmTarget(TargetFlags()), CoreTypes(component), component,
       treeShakeProtobufs: true, treeShakeSignatures: false);
 
   for (Class messageClass in messageClasses) {
@@ -71,7 +72,7 @@ Future<void> shakeAndRun(Uri source) async {
 }
 
 Future<void> compileAOT(Uri source) async {
-  final target = TestingVmTarget(TargetFlags(supportMirrors: false));
+  final target = VmTarget(TargetFlags(supportMirrors: false));
   Component component =
       await compileTestCaseToKernelProgram(source, target: target);
 

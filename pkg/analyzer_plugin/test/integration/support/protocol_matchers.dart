@@ -6,8 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-// ignore_for_file: constant_identifier_names
-
 /// Matchers for data types defined in the analysis server API.
 import 'package:test/test.dart';
 
@@ -422,6 +420,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   METHOD_DECLARATION
 ///   METHOD_DECLARATION_STATIC
 ///   METHOD_STATIC
+///   MIXIN
 ///   PARAMETER
 ///   SETTER_DECLARATION
 ///   TOP_LEVEL_VARIABLE
@@ -505,6 +504,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'METHOD_DECLARATION',
   'METHOD_DECLARATION_STATIC',
   'METHOD_STATIC',
+  'MIXIN',
   'PARAMETER',
   'SETTER_DECLARATION',
   'TOP_LEVEL_VARIABLE',

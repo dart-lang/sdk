@@ -38,6 +38,7 @@ class JoinEntryInstr;
 class LocalVariable;
 class LocationSummary;
 class MoveOperands;
+class MoveSchedule;
 class NonStreamingWriteStream;
 class OsrEntryInstr;
 class ParsedFunction;
@@ -45,6 +46,7 @@ class ParallelMoveInstr;
 class PhiInstr;
 class Range;
 class ReadStream;
+class RecordShape;
 class TargetEntryInstr;
 class TokenPosition;
 
@@ -99,11 +101,13 @@ class NativeCallingConvention;
   V(const LocalVariable&)                                                      \
   V(LocationSummary*)                                                          \
   V(MoveOperands*)                                                             \
+  V(const MoveSchedule*)                                                       \
   V(const compiler::ffi::NativeCallingConvention&)                             \
   V(const Object&)                                                             \
   V(ParallelMoveInstr*)                                                        \
   V(PhiInstr*)                                                                 \
   V(Range*)                                                                    \
+  V(RecordShape)                                                               \
   V(Representation)                                                            \
   V(const Slot&)                                                               \
   V(const Slot*)                                                               \
@@ -295,6 +299,7 @@ class FlowGraphSerializer : public ValueObject {
 
   BaseWriteStream* stream() const { return stream_; }
   Zone* zone() const { return zone_; }
+  Thread* thread() const { return thread_; }
   IsolateGroup* isolate_group() const { return isolate_group_; }
   Heap* heap() const { return heap_; }
   bool can_write_refs() const { return can_write_refs_; }
@@ -329,6 +334,7 @@ class FlowGraphSerializer : public ValueObject {
 
   NonStreamingWriteStream* stream_;
   Zone* zone_;
+  Thread* thread_;
   IsolateGroup* isolate_group_;
   Heap* heap_;
   intptr_t object_counter_ = 0;

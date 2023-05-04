@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+  method foo<covariant-by-class Y extends self::A::X%>() → void {}
+}
+class B<Z extends core::Object? = dynamic> extends self::A<self::B::Z%> {
+  synthetic constructor •() → self::B<self::B::Z%>
+    : super self::A::•()
+    ;
+}
+static method main() → void {
+  new self::B::•<core::Object>().{self::A::foo}<core::int>(){() → void};
+}

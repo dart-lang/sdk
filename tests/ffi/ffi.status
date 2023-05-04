@@ -32,6 +32,8 @@ vmspecific_function_gc_test: SkipByDesign # Already has VMOptions=--optimization
 vmspecific_function_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
 
 [ $compiler == app_jitk ]
+native_assets/asset_*: SkipByDesign # Only intended to run from source. https://dartbug.com/51266
+native_assets/infer_native_assets_yaml_*: SkipByDesign # Only intended to run from source. https://dartbug.com/51265
 vmspecific_leaf_call_test: Skip # https://dartbug.com/46125: Snapshot fails to generate.
 
 [ $mode == debug ]
@@ -48,17 +50,24 @@ vmspecific_native_finalizer_isolate_groups_test: Skip # SpawnUri not available o
 [ $system == windows ]
 regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.
 
+[ $qemu ]
+native_assets/asset_*: SkipByDesign # Only intended to run on host oses with AOT binaries available, not available on QEMU.
+
+[ $simulator ]
+*: Skip # FFI not yet supported on the arm simulator.
+
 [ $compiler != dart2analyzer && $compiler != fasta && $runtime != dart_precompiled && $runtime != vm ]
 *: SkipByDesign # FFI is a VM-only feature. (This test suite is part of the default set.)
 
 [ $compiler == dartkp && $system == windows ]
+vmspecific_ffi_native_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_function_gc_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_handle_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
-
-[ $system != android && $system != linux && $system != macos && $system != windows ]
-*: Skip # FFI not yet supported on other OSes.
-
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
-*: Skip # FFI not yet supported on the arm simulator.
+vmspecific_object_gc_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_regress_37100_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_regress_37511_callbacks_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_regress_37511_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_regress_37780_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 
 [ $builder_tag == asan || $builder_tag == msan || $builder_tag == tsan ]
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
@@ -71,6 +80,12 @@ vmspecific_function_callbacks_exit_test: SkipByDesign
 
 [ $compiler == dart2analyzer || $compiler == fasta ]
 vmspecific_enable_ffi_test: SkipByDesign # This is a check for VM only.
+
+[ $compiler == dartk || $system == android ]
+native_assets/asset_*: SkipByDesign # Only intended to run on host oses with AOT binaries available.
+
+[ $compiler == dartkp || $system == android ]
+native_assets/infer_native_assets_yaml_*: SkipByDesign # Only intended to run from source.
 
 [ $compiler == dartkp || $arch == arm64 && $system == fuchsia ]
 abi_specific_int_incomplete_jit_test: SkipByDesign # Only intended to run in JIT mode.

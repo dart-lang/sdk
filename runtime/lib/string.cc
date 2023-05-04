@@ -44,7 +44,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 0, 3) {
     length = a.Length();
   } else {
     Exceptions::ThrowArgumentError(list);
-    return NULL;  // Unreachable.
+    return nullptr;  // Unreachable.
   }
 
   intptr_t start = start_obj.Value();
@@ -243,6 +243,12 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 0, 4) {
     Exceptions::ThrowArgumentError(matches_growable);
   }
   return result.ptr();
+}
+
+DEFINE_NATIVE_ENTRY(StringBase_intern, 0, 1) {
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
+  return Symbols::New(thread, receiver);
 }
 
 DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 0, 3) {

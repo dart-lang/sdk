@@ -136,6 +136,10 @@ declare_args() {
 
   # Compile for execution in user-mode QEMU.
   is_qemu = false
+
+  # protobuf-gn fails to build if this argument isn't defined. This should never
+  # be set to true, becuase we never build within the Fuchsia tree.
+  is_fuchsia_tree = false
 }
 
 # =============================================================================
@@ -338,7 +342,8 @@ set_defaults("static_library") {
 }
 
 # Shared library defaults (also for components in component mode).
-_shared_library_configs = _native_compiler_configs
+_shared_library_configs =
+    _native_compiler_configs + [ "//build/config:shared_library_config" ]
 if (is_win) {
   _shared_library_configs += _windows_linker_configs
 } else if (is_mac) {

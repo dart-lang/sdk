@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: constant_identifier_names
+
 /// A 'Universe' object used by 'dart:_rti'.
 const RTI_UNIVERSE = 'typeUniverse';
 
@@ -65,6 +67,12 @@ enum JsGetName {
 
   /// Property name for Rti._is field.
   RTI_FIELD_IS,
+
+  /// Property name for shape tag property in record class prototype.
+  RECORD_SHAPE_TAG_PROPERTY,
+
+  /// Property name for shape recipe property in record class prototype.
+  RECORD_SHAPE_TYPE_PROPERTY,
 }
 
 enum JsBuiltin {

@@ -62,7 +62,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   }
 
   /// Asserts that [refactoring] initial/final conditions status is OK.
-  Future assertRefactoringConditionsOK() async {
+  Future<void> assertRefactoringConditionsOK() async {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatusOK(status);
     status = await refactoring.checkFinalConditions();
@@ -70,7 +70,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   }
 
   /// Asserts that [refactoring] final conditions status is OK.
-  Future assertRefactoringFinalConditionsOK() async {
+  Future<void> assertRefactoringFinalConditionsOK() async {
     var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
@@ -110,7 +110,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
 
   /// Checks that all conditions of [refactoring] are OK and the result of
   /// applying the [Change] to [testUnit] is [expectedCode].
-  Future assertSuccessfulRefactoring(String expectedCode) async {
+  Future<void> assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     var change = await refactoring.createChange();
     refactoringChange = change;
@@ -128,6 +128,9 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     }
     // validate resulting code
     var actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
+    if (actualCode != expectedCode) {
+      print(actualCode);
+    }
     expect(actualCode, expectedCode);
   }
 

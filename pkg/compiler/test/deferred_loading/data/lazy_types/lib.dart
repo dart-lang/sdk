@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*class: Foo:
  class_unit=4{libB},
  type_unit=2{libA, libB, libC}
 */
 class Foo {
   /*member: Foo.x:member_unit=4{libB}*/
-  int x;
+  int? x;
   /*member: Foo.:member_unit=4{libB}*/
   Foo() {
     x = DateTime.now().millisecond;
   }
   /*member: Foo.method:member_unit=4{libB}*/
   @pragma('dart2js:noInline')
-  int method() => x;
+  int method() => x!;
 }
 
 /*member: isFoo:member_unit=2{libA, libB, libC}*/
@@ -51,7 +49,7 @@ class Aoo<T> {}
  class_unit=6{libC},
  type_unit=6{libC}
 */
-class Boo<T> implements Aoo<T> {}
+mixin Boo<T> implements Aoo<T> {}
 
 /*class: Coo:
  class_unit=6{libC},
@@ -89,7 +87,7 @@ class B2 extends B {}
  class_unit=6{libC},
  type_unit=6{libC}
 */
-class C1 {}
+mixin C1 {}
 
 /*class: C2:
  class_unit=6{libC},
@@ -109,7 +107,7 @@ class C3 extends C2 with C1 {}
  class_unit=6{libC},
  type_unit=6{libC}
 */
-class D1 {}
+mixin D1 {}
 
 /*class: D2:
  class_unit=6{libC},

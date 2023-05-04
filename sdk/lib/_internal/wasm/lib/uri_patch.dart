@@ -4,17 +4,17 @@
 
 part of "core_patch.dart";
 
-@pragma("wasm:import", "dart2wasm.isWindows")
-external bool _isWindowsRaw();
-
-@pragma("wasm:import", "dart2wasm.getCurrentUri")
-external String? _currentUriRaw();
-
 @patch
 class Uri {
   @patch
   static Uri get base {
-    String? currentUri = _currentUriRaw();
+    String? currentUri = JS<String?>("""() => {
+      // On browsers return `globalThis.location.href`
+      if (globalThis.location != null) {
+        return stringToDartString(globalThis.location.href);
+      }
+      return null;
+    }""");
     if (currentUri != null) {
       return Uri.parse(currentUri);
     }
@@ -27,7 +27,11 @@ class _Uri {
   @patch
   static bool get _isWindows => _isWindowsCached;
 
-  static final bool _isWindowsCached = _isWindowsRaw();
+  static final bool _isWindowsCached = JS<bool>("""() => {
+        return typeof process != undefined &&
+               Object.prototype.toString.call(process) == "[object process]" &&
+               process.platform == "win32"
+      }""");
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
   // component.  This corresponds to [_unreservedTable], i.e. characters that

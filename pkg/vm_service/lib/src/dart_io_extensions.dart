@@ -11,7 +11,7 @@ import 'vm_service.dart' hide Error;
 
 extension DartIOExtension on VmService {
   static bool _factoriesRegistered = false;
-  static Map<String, Version> _isolateVersion = {};
+  static final Map<String, Version> _isolateVersion = {};
 
   Future<Version> _version(String isolateId) async {
     Version? version = _isolateVersion[isolateId];
@@ -77,9 +77,10 @@ extension DartIOExtension on VmService {
   /// Warning: The returned [Future] will not complete if the target isolate is paused
   /// and will only complete when the isolate is resumed.
   @Deprecated('Use httpEnableTimelineLogging instead.')
-  Future<Success> setHttpEnableTimelineLogging(String isolateId, bool enable) =>
+  Future<Success> setHttpEnableTimelineLogging(
+          String isolateId, bool enabled) =>
       _callHelper('ext.dart.io.setHttpEnableTimelineLogging', isolateId, args: {
-        'enable': enable,
+        'enabled': enabled,
       });
 
   /// The `httpEnableTimelineLogging` RPC is used to set and inspect the value of
@@ -119,7 +120,8 @@ extension DartIOExtension on VmService {
 
   /// The `getHttpProfileRequest` RPC is used to retrieve an instance of
   /// [HttpProfileRequest], which includes request and response body data.
-  Future<HttpProfileRequest> getHttpProfileRequest(String isolateId, int id) =>
+  Future<HttpProfileRequest> getHttpProfileRequest(
+          String isolateId, String id) =>
       _callHelper('ext.dart.io.getHttpProfileRequest', isolateId, args: {
         'id': id,
       });
@@ -205,7 +207,7 @@ class SocketStatistic {
       json == null ? null : SocketStatistic._fromJson(json);
 
   /// The unique ID associated with this socket.
-  final int id;
+  final String id;
 
   /// The time, in microseconds, that this socket was created.
   final int startTime;
@@ -364,7 +366,7 @@ class HttpProfileRequestRef {
   /// The ID associated with this request.
   ///
   /// This ID corresponds to the ID of the timeline event for this request.
-  final int id;
+  final String id;
 
   /// The HTTP request method associated with this request.
   final String method;
@@ -411,7 +413,7 @@ class HttpProfileRequest extends HttpProfileRequestRef {
         super._fromJson(json);
 
   HttpProfileRequest({
-    required int id,
+    required String id,
     required String isolateId,
     required String method,
     required Uri uri,
@@ -796,9 +798,11 @@ class SpawnedProcess extends Response implements SpawnedProcessRef {
   String get type => 'SpawnedProcess';
 
   /// The unique ID associated with this process.
+  @override
   final int id;
 
   /// The name of the executable.
+  @override
   final String name;
 
   /// The process ID associated with the process.
@@ -865,7 +869,7 @@ class OpenFileRef {
   final String name;
 }
 
-/// A [File] contains information about reads and writes to a currently opened file.
+/// Contains information about reads and writes to a currently opened file.
 class OpenFile extends Response implements OpenFileRef {
   static OpenFile? parse(Map<String, dynamic>? json) =>
       json == null ? null : OpenFile._fromJson(json);
@@ -900,9 +904,11 @@ class OpenFile extends Response implements OpenFileRef {
   String get type => 'OpenFile';
 
   /// The unique ID associated with this file.
+  @override
   final int id;
 
   /// The path of the file.
+  @override
   final String name;
 
   /// The total number of bytes read from this file.
@@ -937,6 +943,7 @@ class OpenFileList extends Response {
         _files = List<OpenFileRef>.from(
             createServiceObject(json['files'], const ['OpenFileRef']) as List);
 
+  @override
   String get type => 'OpenFileList';
 
   /// A list of all files opened through dart:io on a given isolate.

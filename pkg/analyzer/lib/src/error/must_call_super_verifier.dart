@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 
 class MustCallSuperVerifier {
   final ErrorReporter _errorReporter;
@@ -144,7 +144,7 @@ class MustCallSuperVerifier {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.
       _errorReporter.reportErrorForToken(
-          HintCode.MUST_CALL_SUPER, node.name, [overriddenEnclosingName!]);
+          WarningCode.MUST_CALL_SUPER, node.name, [overriddenEnclosingName!]);
     }
     return;
   }

@@ -74,6 +74,21 @@ class RemoveLeadingUnderscoreForLocalVariablesTest
   @override
   String get lintCode => LintNames.no_leading_underscores_for_local_identifiers;
 
+  Future<void> test_listPatternAssignment() async {
+    await resolveTestCode(r'''
+f() {
+  var [_a] = [1];
+  print(_a);
+}
+''');
+    await assertHasFix(r'''
+f() {
+  var [a] = [1];
+  print(a);
+}
+''');
+  }
+
   Future<void> test_localVariable() async {
     await resolveTestCode('''
 void f() {
@@ -152,6 +167,29 @@ void f() {
 ''');
   }
 
+  Future<void> test_objectPatternAssignment() async {
+    await resolveTestCode(r'''
+class A {
+  int a;
+  A(this.a);
+}
+f() {
+  final A(a: int _b) = A(1);
+  print(_b);
+}
+''');
+    await assertHasFix(r'''
+class A {
+  int a;
+  A(this.a);
+}
+f() {
+  final A(a: int b) = A(1);
+  print(b);
+}
+''');
+  }
+
   Future<void> test_parameter_closure() async {
     await resolveTestCode('''
 void f() {
@@ -217,6 +255,21 @@ void f([int? _foo]) {
     await assertHasFix('''
 void f([int? foo]) {
   print(foo);
+}
+''');
+  }
+
+  Future<void> test_recordPatternAssignment() async {
+    await resolveTestCode(r'''
+f() {
+  var (_a, b) = (1, 2);
+  print('$_a$b');
+}
+''');
+    await assertHasFix(r'''
+f() {
+  var (a, b) = (1, 2);
+  print('$a$b');
 }
 ''');
   }

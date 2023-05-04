@@ -72,7 +72,7 @@ void testOperations() {
     }
 
     void testOp(operation(Iterable<int> reversedList), name) {
-      var reversedList = new List<int>(list.length);
+      var reversedList = new List<int>.filled(list.length, null);
       for (int i = 0; i < list.length; i++) {
         reversedList[i] = list[list.length - 1 - i];
       }

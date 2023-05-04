@@ -105,7 +105,7 @@ part of dart.core;
 /// * [RegExp] to work with regular expressions.
 /// * [Strings and regular expressions](https://dart.dev/guides/libraries/library-tour#strings-and-regular-expressions)
 @pragma('vm:entry-point')
-abstract class String implements Comparable<String>, Pattern {
+abstract final class String implements Comparable<String>, Pattern {
   /// Allocates a new string containing the specified [charCodes].
   ///
   /// The [charCodes] can be both UTF-16 code units and runes.
@@ -799,7 +799,7 @@ int _combineSurrogatePair(int start, int end) {
 }
 
 /// [Iterator] for reading runes (integer Unicode code points) of a Dart string.
-class RuneIterator implements BidirectionalIterator<int> {
+class RuneIterator implements Iterator<int> {
   /// String being iterated.
   final String string;
 
@@ -906,6 +906,10 @@ class RuneIterator implements BidirectionalIterator<int> {
     return string.substring(_position, _nextPosition);
   }
 
+  /// Move to the next code point.
+  ///
+  /// Returns `true` and updates [current] if there is a next code point.
+  /// Returns `false` otherwise, and then there is no current code point.
   bool moveNext() {
     _position = _nextPosition;
     if (_position == string.length) {
@@ -927,6 +931,10 @@ class RuneIterator implements BidirectionalIterator<int> {
     return true;
   }
 
+  /// Move back to the previous code point.
+  ///
+  /// Returns `true` and updates [current] if there is a previous code point.
+  /// Returns `false` otherwise, and then there is no current code point.
   bool movePrevious() {
     _nextPosition = _position;
     if (_position == 0) {

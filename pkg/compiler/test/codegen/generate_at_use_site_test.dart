@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
@@ -54,9 +52,9 @@ foo(a) {
 main() {
   runTests() async {
     // Make sure we don't introduce a new variable.
-    await compileAndDoNotMatch(FIB, 'fib', new RegExp("var $anyIdentifier ="));
+    await compileAndDoNotMatch(FIB, 'fib', RegExp("var $anyIdentifier ="));
 
-    await compileAndDoNotMatch(BAR, 'bar', new RegExp("isLeaf"));
+    await compileAndDoNotMatch(BAR, 'bar', RegExp("isLeaf"));
 
     await compile(TEST, entry: 'foo', check: (String generated) {
       Expect.isFalse(generated.contains('else'));

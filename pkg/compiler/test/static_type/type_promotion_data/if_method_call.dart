@@ -31,5 +31,5 @@ ifMethodCall(a) {
 
 main() {
   ifMethodCall(null);
-  new Class().test(null);
+  Class().test(null);
 }

@@ -34,7 +34,9 @@ abstract class String implements Comparable<String> {
   List<int> get codeUnits;
 }
 
-class bool extends Object {}
+class bool extends Object {
+  static bool parse(String source, {bool caseSensitive = false}) => false;
+}
 
 abstract class num implements Comparable<num> {
   bool operator <(num other);
@@ -65,8 +67,8 @@ class DateTime extends Object {}
 class Null extends Object {}
 
 class Deprecated extends Object {
-  final String expires;
-  const Deprecated(this.expires);
+  final String message;
+  const Deprecated(this.message);
 }
 
 const Object deprecated = const Deprecated("next release");

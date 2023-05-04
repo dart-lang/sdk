@@ -111,6 +111,20 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitAssignedVariablePattern(
+    covariant AssignedVariablePatternImpl node,
+  ) {
+    _writeln('AssignedVariablePattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        writeElement('element', node.element);
+        _writePatternMatchedValueType(node);
+      }
+    });
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _writeln('AssignmentExpression');
     _withIndent(() {
@@ -153,14 +167,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeElement('staticElement', node.staticElement);
       _writeType('staticInvokeType', node.staticInvokeType);
       _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitBinaryPattern(BinaryPattern node) {
-    _writeln('BinaryPattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
     });
   }
 
@@ -221,6 +227,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('CastPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -237,9 +244,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ClassDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -248,9 +253,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ClassTypeAlias');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -306,6 +309,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ConstantPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -314,9 +318,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ConstructorDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -369,8 +371,30 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('DeclaredIdentifier');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeDeclaredElement(node.declaredElement);
+    });
+  }
+
+  @override
+  void visitDeclaredVariablePattern(
+    covariant DeclaredVariablePatternImpl node,
+  ) {
+    _writeln('DeclaredVariablePattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        final element = node.declaredElement;
+        if (element != null) {
+          _sink.write(_indent);
+          _sink.write('declaredElement: ');
+          _writeIf(element.hasImplicitType, 'hasImplicitType ');
+          _writeIf(element.isFinal, 'isFinal ');
+          _sink.writeln('${element.name}@${element.nameOffset}');
+          _withIndent(() {
+            _writeType('type', element.type);
+          });
+        }
+        _writePatternMatchedValueType(node);
       }
     });
   }
@@ -380,10 +404,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('DefaultFormalParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-        _writeType('declaredElementType', node.declaredElement!.type);
-      }
+      _assertFormalParameterDeclaredElement(node);
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -440,7 +462,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       if (_withResolution) {
         _writeElement('constructorElement', node.constructorElement);
-        _writeElement('declaredElement', node.declaredElement);
+        _writeDeclaredElement(node.declaredElement);
       }
     });
   }
@@ -450,9 +472,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('EnumDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -494,9 +514,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ExtensionDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -516,9 +534,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('FieldDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -527,10 +543,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('FieldFormalParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-        _writeType('declaredElementType', node.declaredElement!.type);
-      }
+      _assertFormalParameterDeclaredElement(node);
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -545,6 +559,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     _writeln('ForEachPartsWithIdentifier');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    _writeln('ForEachPartsWithPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitForElement(ForElement node) {
+    _writeln('ForElement');
     _withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -575,6 +605,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitForPartsWithPattern(ForPartsWithPattern node) {
+    _writeln('ForPartsWithPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitForStatement(ForStatement node) {
     _writeln('ForStatement');
     _withIndent(() {
@@ -587,10 +625,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('FunctionDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-        _writeType('declaredElementType', node.declaredElement!.type);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -607,9 +642,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('FunctionExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
@@ -643,9 +676,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('FunctionTypeAlias');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -654,10 +685,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('FunctionTypedFormalParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-        _writeType('declaredElementType', node.declaredElement!.type);
-      }
+      _assertFormalParameterDeclaredElement(node);
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -681,9 +710,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('GenericTypeAlias');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -856,7 +883,26 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ListPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
       _writeType('requiredType', node.requiredType);
+    });
+  }
+
+  @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    _writeln('LogicalAndPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
+    });
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    _writeln('LogicalOrPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -873,6 +919,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('MapPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
+      _writeType('requiredType', node.requiredType);
     });
   }
 
@@ -889,10 +937,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('MethodDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-        _writeType('declaredElementType', node.declaredElement!.type);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -913,9 +958,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('MixinDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -948,6 +991,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    _writeln('NullAssertPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
+    });
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    _writeln('NullCheckPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
+    });
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     _writeln('NullLiteral');
     _withIndent(() {
@@ -962,6 +1023,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ObjectPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -988,6 +1050,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ParenthesizedPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -1010,10 +1073,40 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+  void visitPatternAssignment(covariant PatternAssignmentImpl node) {
+    _writeln('PatternAssignment');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeType('patternTypeSchema', node.patternTypeSchema);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitPatternField(PatternField node) {
+    _writeln('PatternField');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+    });
+  }
+
+  @override
+  void visitPatternFieldName(PatternFieldName node) {
+    _writeln('PatternFieldName');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
+  ) {
     _writeln('PatternVariableDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeType('patternTypeSchema', node.patternTypeSchema);
     });
   }
 
@@ -1040,14 +1133,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       }
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitPostfixPattern(PostfixPattern node) {
-    _writeln('PostfixPattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
     });
   }
 
@@ -1103,23 +1188,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('RecordPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
-  void visitRecordPatternField(RecordPatternField node) {
-    _writeln('RecordPatternField');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeElement('fieldElement', node.fieldElement);
-    });
-  }
-
-  @override
-  void visitRecordPatternFieldName(RecordPatternFieldName node) {
-    _writeln('RecordPatternFieldName');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -1176,6 +1245,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -1219,10 +1289,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('SimpleFormalParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeDeclaredElement(node, node.declaredElement);
-        _writeType('declaredElementType', node.declaredElement!.type);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -1294,10 +1361,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('SuperFormalParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeDeclaredElement(node, node.declaredElement);
-        _writeType('declaredElementType', node.declaredElement!.type);
-      }
+      _assertFormalParameterDeclaredElement(node);
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -1322,6 +1387,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('SwitchExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1383,9 +1450,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('TopLevelVariableDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -1420,9 +1485,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('TypeParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -1439,9 +1502,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('VariableDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-      }
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -1462,27 +1523,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitVariablePattern(covariant VariablePatternImpl node) {
-    _writeln('VariablePattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
-      if (_withResolution) {
-        final element = node.declaredElement;
-        if (element != null) {
-          _sink.write(_indent);
-          _sink.write('declaredElement: ');
-          _writeIf(element.hasImplicitType, 'hasImplicitType ');
-          _writeIf(element.isFinal, 'isFinal ');
-          _sink.writeln('${element.name}@${element.nameOffset}');
-          _withIndent(() {
-            _writeType('type', element.type);
-          });
-        }
-      }
-    });
-  }
-
-  @override
   void visitWhenClause(WhenClause node) {
     _writeln('WhenClause');
     _withIndent(() {
@@ -1495,6 +1535,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('WhileStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitWildcardPattern(
+    covariant WildcardPatternImpl node,
+  ) {
+    _writeln('WildcardPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -1552,6 +1603,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
+  void _assertFormalParameterDeclaredElement(FormalParameter node) {
+    if (_withResolution) {
+      final declaredElement = node.declaredElement;
+      final expected = _expectedFormalParameterElements(node);
+      _assertHasIdenticalElement(expected, declaredElement);
+    }
+  }
+
   /// Check that children entities of the [node] link to each other.
   void _checkChildrenEntitiesLinking(AstNode node) {
     Token? lastEnd;
@@ -1597,13 +1656,13 @@ Expected parent: (${parent.runtimeType}) $parent
           ? _elementToReferenceString(enclosingElement)
           : 'root';
       return '$enclosingStr::@parameter::${element.name}';
-    } else if (element is VariablePatternJoinElementImpl) {
+    } else if (element is JoinPatternVariableElementImpl) {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',
         element.name,
         '[',
-        element.components.map(_elementToReferenceString).join(', '),
+        element.variables.map(_elementToReferenceString).join(', '),
         ']',
       ].join('');
     } else {
@@ -1670,15 +1729,34 @@ Expected parent: (${parent.runtimeType}) $parent
     });
   }
 
-  void _writeDeclaredElement(AstNode node, Element? declaredElement) {
+  void _writeDeclaredElement(Element? element) {
     if (_withResolution) {
-      if (node is FormalParameter) {
-        final expected = _expectedFormalParameterElements(node);
-        _assertHasIdenticalElement(expected, declaredElement);
+      if (element is LocalVariableElement) {
+        _sink.write(_indent);
+        _sink.write('declaredElement:');
+        _writeIf(element.hasImplicitType, ' hasImplicitType');
+        _writeIf(element.isConst, ' isConst');
+        _writeIf(element.isFinal, ' isFinal');
+        _writeIf(element.isLate, ' isLate');
+        // TODO(scheglov) This crashes.
+        // _writeIf(element.hasInitializer, ' hasInitializer');
+        _writeln(' ${element.name}@${element.nameOffset}');
+        _withIndent(() {
+          _writeType('type', element.type);
+        });
+      } else {
+        _writeElement('declaredElement', element);
+        if (element is ExecutableElement) {
+          _withIndent(() {
+            _writeType('type', element.type);
+          });
+        } else if (element is ParameterElement) {
+          _withIndent(() {
+            _writeType('type', element.type);
+          });
+        }
       }
     }
-
-    _writeElement('declaredElement', declaredElement);
   }
 
   void _writeDirectiveUri(DirectiveUri? uri) {
@@ -1910,6 +1988,17 @@ Expected parent: (${parent.runtimeType}) $parent
     _writeDirectiveUri(element.uri);
   }
 
+  void _writePatternMatchedValueType(DartPattern node) {
+    if (_withResolution) {
+      final matchedValueType = node.matchedValueType;
+      if (matchedValueType != null) {
+        _writeType('matchedValueType', matchedValueType);
+      } else {
+        fail('No matchedValueType: $node');
+      }
+    }
+  }
+
   void _writeRaw(String name, Object? value) {
     _writelnWithIndent('$name: $value');
   }
@@ -1935,9 +2024,11 @@ Expected parent: (${parent.runtimeType}) $parent
       _withIndent(() {
         for (var token in tokens) {
           _writelnWithIndent(token.lexeme);
-          _withIndent(() {
-            _writeOffset('offset', token.offset);
-          });
+          if (_withOffsets) {
+            _withIndent(() {
+              _writeOffset('offset', token.offset);
+            });
+          }
         }
       });
     }

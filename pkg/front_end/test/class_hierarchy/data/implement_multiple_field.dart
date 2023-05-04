@@ -233,8 +233,14 @@ abstract class AbstractClass implements Interface1, Interface2 {
  abstractMembers=[
   AbstractClass.declareAbstractImplementMultipleField,
   AbstractClass.declareAbstractImplementMultipleField=,
-  AbstractClass.implementMultipleField,
-  AbstractClass.implementMultipleField=],
+  Interface1.declareAbstractImplementMultipleField,
+  Interface1.declareAbstractImplementMultipleField=,
+  Interface1.implementMultipleField,
+  Interface1.implementMultipleField=,
+  Interface2.declareAbstractImplementMultipleField,
+  Interface2.declareAbstractImplementMultipleField=,
+  Interface2.implementMultipleField,
+  Interface2.implementMultipleField=],
  interfaces=[
   Interface1,
   Interface2],

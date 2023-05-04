@@ -39,6 +39,11 @@ class DefaultTypesBuilder {
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
+      } else if (node is ExtensionDeclaration) {
+        var element = node.declaredElement!;
+        _breakSelfCycles(node.typeParameters);
+        _breakRawTypeCycles(element, node.typeParameters);
+        _computeBounds(element, node.typeParameters);
       } else if (node is FunctionTypeAlias) {
         var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
@@ -54,6 +59,16 @@ class DefaultTypesBuilder {
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
+      } else if (node is MethodDeclaration) {
+        var element = node.declaredElement!;
+        _breakSelfCycles(node.typeParameters);
+        _breakRawTypeCycles(element, node.typeParameters);
+        _computeBounds(element, node.typeParameters);
+      } else if (node is FunctionDeclaration) {
+        var element = node.declaredElement!;
+        _breakSelfCycles(node.functionExpression.typeParameters);
+        _breakRawTypeCycles(element, node.functionExpression.typeParameters);
+        _computeBounds(element, node.functionExpression.typeParameters);
       }
     }
     for (var node in nodes) {
@@ -63,11 +78,17 @@ class DefaultTypesBuilder {
         _build(node.typeParameters);
       } else if (node is EnumDeclaration) {
         _build(node.typeParameters);
+      } else if (node is ExtensionDeclaration) {
+        _build(node.typeParameters);
       } else if (node is FunctionTypeAlias) {
         _build(node.typeParameters);
       } else if (node is GenericTypeAlias) {
         _build(node.typeParameters);
       } else if (node is MixinDeclaration) {
+        _build(node.typeParameters);
+      } else if (node is FunctionDeclaration) {
+        _build(node.functionExpression.typeParameters);
+      } else if (node is MethodDeclaration) {
         _build(node.typeParameters);
       }
     }

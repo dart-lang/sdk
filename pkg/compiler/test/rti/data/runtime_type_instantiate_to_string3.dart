@@ -14,6 +14,6 @@ class Class {
 }
 
 main() {
-  int Function(int, String s) x = new Class().id;
+  int Function(int, String s) x = Class().id;
   makeLive("${x.runtimeType}");
 }

@@ -14,6 +14,6 @@ Future<FastaContext> createContext(
   return FastaContext.create(suite, environment);
 }
 
-Future<void> main(List<String> arguments) async {
+Future<void> main([List<String> arguments = const []]) async {
   await internalMain(createContext, arguments: arguments);
 }

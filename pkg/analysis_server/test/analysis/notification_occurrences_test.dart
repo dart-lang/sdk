@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -42,6 +43,25 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
       length = findIdentifierLength(search);
     }
     findRegion(offset, length, true);
+  }
+
+  Future<void> assertOccurrences(
+    String content, {
+    required ElementKind? kind,
+  }) async {
+    final code = TestCode.parse(content);
+    addTestFile(code.code);
+
+    await prepareOccurrences();
+    // Find the result from the first range
+    final range = code.ranges.first;
+    final sourceRange = range.sourceRange;
+    findRegion(sourceRange.offset, sourceRange.length, true);
+
+    expect(testOccurrences.element.kind, kind);
+    expect(testOccurrences.element.name, range.text);
+    expect(testOccurrences.offsets,
+        containsAll(code.ranges.map((r) => r.sourceRange.offset)));
   }
 
   /// Finds an [Occurrences] with the given [offset] and [length].
@@ -95,145 +115,125 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_afterAnalysis() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.LOCAL_VARIABLE,
+      '''
 void f() {
-  var vvv = 42;
-  print(vvv);
+  var /*[0*/vvv/*0]*/ = 42;
+  print(/*[1*/vvv/*1]*/);
 }
-''');
-    await waitForTasksFinished();
-    await prepareOccurrences();
-    assertHasRegion('vvv =');
-    expect(testOccurrences.element.kind, ElementKind.LOCAL_VARIABLE);
-    expect(testOccurrences.element.name, 'vvv');
-    assertHasOffset('vvv = 42');
-    assertHasOffset('vvv);');
+      ''',
+    );
   }
 
   Future<void> test_enum() async {
-    addTestFile('''
-enum E {
+    await assertOccurrences(
+      kind: ElementKind.ENUM,
+      '''
+enum /*[0*/E/*0]*/ {
   v;
 }
 
-void f(E e) {
-  E.v;
+void f(/*[1*/E/*1]*/ e) {
+  /*[2*/E/*2]*/.v;
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('E e');
-    expect(testOccurrences.element.kind, ElementKind.ENUM);
-    expect(testOccurrences.element.name, 'E');
-    assertHasOffset('E e');
-    assertHasOffset('E.v');
+      ''',
+    );
   }
 
   Future<void> test_enum_constant() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.ENUM_CONSTANT,
+      '''
 enum E {
-  v; // 0
+  /*[0*/v/*0]*/;
 }
 
 void f() {
-  E.v; // 1
+  E./*[1*/v/*1]*/;
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('v; // 0');
-    expect(testOccurrences.element.kind, ElementKind.ENUM_CONSTANT);
-    expect(testOccurrences.element.name, 'v');
-    assertHasOffset('v; // 1');
+      ''',
+    );
   }
 
   Future<void> test_enum_field() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.FIELD,
+      '''
 enum E {
   v;
-  final int foo = 0;
+  final int /*[0*/foo/*0]*/ = 0;
 }
 
 void f(E e) {
-  e.foo;
+  e./*[1*/foo/*1]*/;
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('foo = 0');
-    expect(testOccurrences.element.kind, ElementKind.FIELD);
-    expect(testOccurrences.element.name, 'foo');
-    assertHasOffset('foo;');
+      ''',
+    );
   }
 
   Future<void> test_enum_getter() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.FIELD,
+      '''
 enum E {
   v;
-  int get foo => 0;
+  int get /*[0*/foo/*0]*/ => 0;
 }
 
 void f(E e) {
-  e.foo;
+  e./*[1*/foo/*1]*/;
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('foo => 0');
-    expect(testOccurrences.element.kind, ElementKind.FIELD);
-    expect(testOccurrences.element.name, 'foo');
-    assertHasOffset('foo;');
+      ''',
+    );
   }
 
   Future<void> test_enum_method() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.METHOD,
+      '''
 enum E {
   v;
-  void foo() {}
+  void /*[0*/foo/*0]*/() {}
 }
 
 void f(E e) {
-  e.foo();
+  e./*[1*/foo/*1]*/();
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('foo() {}');
-    expect(testOccurrences.element.kind, ElementKind.METHOD);
-    expect(testOccurrences.element.name, 'foo');
-    assertHasOffset('foo();');
+      ''',
+    );
   }
 
   Future<void> test_enum_setter() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.FIELD,
+      '''
 enum E {
   v;
-  set foo(int _) {}
+  set /*[0*/foo/*0]*/(int _) {}
 }
 
 void f(E e) {
-  e.foo = 0;
+  e./*[1*/foo/*1]*/ = 0;
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('foo(int _) {}');
-    expect(testOccurrences.element.kind, ElementKind.FIELD);
-    expect(testOccurrences.element.name, 'foo');
-    assertHasOffset('foo = 0;');
+      ''',
+    );
   }
 
   Future<void> test_field() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.FIELD,
+      '''
 class A {
-  int fff;
-  A(this.fff); // constructor
+  int /*[0*/fff/*0]*/;
+  A(this./*[1*/fff/*1]*/);
   void f() {
-    fff = 42;
-    print(fff); // print
+    /*[2*/fff/*2]*/ = 42;
+    print(/*[3*/fff/*3]*/);
   }
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('fff;');
-    expect(testOccurrences.element.kind, ElementKind.FIELD);
-    assertHasOffset('fff); // constructor');
-    assertHasOffset('fff = 42;');
-    assertHasOffset('fff); // print');
+      ''',
+    );
   }
 
   Future<void> test_field_unresolved() async {
@@ -247,88 +247,300 @@ class A {
   }
 
   Future<void> test_localVariable() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.LOCAL_VARIABLE,
+      '''
 void f() {
-  var vvv = 42;
-  vvv += 5;
-  print(vvv);
+  var /*[0*/vvv/*0]*/ = 42;
+  /*[1*/vvv/*1]*/ += 5;
+  print(/*[2*/vvv/*2]*/);
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('vvv =');
-    expect(testOccurrences.element.kind, ElementKind.LOCAL_VARIABLE);
-    expect(testOccurrences.element.name, 'vvv');
-    assertHasOffset('vvv = 42');
-    assertHasOffset('vvv += 5');
-    assertHasOffset('vvv);');
+      ''',
+    );
   }
 
   Future<void> test_memberField() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.FIELD,
+      '''
 class A<T> {
-  T fff;
+  T /*[0*/fff/*0]*/;
 }
 void f() {
   var a = new A<int>();
   var b = new A<String>();
-  a.fff = 1;
-  b.fff = 2;
+  a./*[1*/fff/*1]*/ = 1;
+  b./*[2*/fff/*2]*/ = 2;
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('fff;');
-    expect(testOccurrences.element.kind, ElementKind.FIELD);
-    assertHasOffset('fff = 1;');
-    assertHasOffset('fff = 2;');
+      ''',
+    );
   }
 
   Future<void> test_memberMethod() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.METHOD,
+      '''
 class A<T> {
-  T mmm() {}
+  T /*[0*/mmm/*0]*/() {}
 }
 void f() {
   var a = new A<int>();
   var b = new A<String>();
-  a.mmm(); // a
-  b.mmm(); // b
+  a./*[1*/mmm/*1]*/();
+  b./*[2*/mmm/*2]*/();
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('mmm() {}');
-    expect(testOccurrences.element.kind, ElementKind.METHOD);
-    assertHasOffset('mmm(); // a');
-    assertHasOffset('mmm(); // b');
+      ''',
+    );
   }
 
-  Future<void> test_parameter_named() async {
-    addTestFile('''
-void f(int aaa, int bbb, {int? ccc, int? ddd}) {
-  ccc;
+  Future<void> test_mixin() async {
+    await assertOccurrences(
+      kind: ElementKind.MIXIN,
+      '''
+mixin /*[0*/A/*0]*/ {
+  void aaa() {}
+}
+class B with /*[1*/A/*1]*/ {}
+      ''',
+    );
+  }
+
+  Future<void> test_parameter_named1() async {
+    await assertOccurrences(
+      kind: ElementKind.PARAMETER,
+      '''
+void f(int aaa, int bbb, {int? /*[0*/ccc/*0]*/, int? ddd}) {
+  /*[1*/ccc/*1]*/;
   ddd;
 }
 
 void g() {
-  f(0, ccc: 2, 1, ddd: 3);
+  f(0, /*[2*/ccc/*2]*/: 2, 1, ddd: 3);
 }
-''');
-    await prepareOccurrences();
+      ''',
+    );
+  }
 
-    assertHasRegion('ccc: 2');
-    expect(testOccurrences.element.kind, ElementKind.PARAMETER);
-    assertHasOffset('ccc,');
-    assertHasOffset('ccc;');
-    assertHasOffset('ccc: 2');
+  Future<void> test_parameter_named2() async {
+    await assertOccurrences(
+      kind: ElementKind.PARAMETER,
+      '''
+void f(int aaa, int bbb, {int? ccc, int? /*[0*/ddd/*0]*/}) {
+  ccc;
+  /*[1*/ddd/*1]*/;
+}
 
-    assertHasRegion('ddd: 3');
-    expect(testOccurrences.element.kind, ElementKind.PARAMETER);
-    assertHasOffset('ddd})');
-    assertHasOffset('ddd;');
-    assertHasOffset('ddd: 3');
+void g() {
+  f(0, ccc: 2, 1, /*[2*/ddd/*2]*/: 3);
+}
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_assignment() async {
+    await assertOccurrences(
+      kind: ElementKind.PARAMETER,
+      '''
+void f(String /*[0*/a/*0]*/, String b) {
+  (b, /*[1*/a/*1]*/) = (/*[2*/a/*2]*/, b);
+}
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_assignment_list() async {
+    await assertOccurrences(
+      kind: ElementKind.PARAMETER,
+      '''
+void f(List<int> x, num /*[0*/a/*0]*/) {
+  [/*[1*/a/*1]*/] = x;
+}
+    );
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_cast_typeName() async {
+    await assertOccurrences(
+      kind: ElementKind.CLASS,
+      '''
+String f((num, /*[0*/String/*0]*/) record) {
+  var (i as int, s as /*[1*/String/*1]*/) = record;
+}
+    );
+     ''',
+    );
+  }
+
+  Future<void> test_pattern_cast_variable() async {
+    await assertOccurrences(
+      kind: ElementKind.LOCAL_VARIABLE,
+      '''
+void f((num, String) record) {
+  var (i as int, /*[0*/s/*0]*/ as String) = record;
+  print(/*[1*/s/*1]*/);
+}
+    );
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_map() async {
+    await assertOccurrences(
+      kind: ElementKind.LOCAL_VARIABLE,
+      '''
+void f(x) {
+  switch (x) {
+    case {0: String /*[0*/a/*0]*/}:
+      print(/*[1*/a/*1]*/);
+      break;
+  }
+}
+    );
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_map_typeArguments() async {
+    await assertOccurrences(
+      kind: ElementKind.CLASS,
+      '''
+/*[0*/String/*0]*/ f(x) {
+  switch (x) {
+    case <int, /*[1*/String/*1]*/>{0: var a}:
+      return a;
+      break;
+  }
+}
+    );
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_nullAssert() async {
+    await assertOccurrences(
+      kind: ElementKind.LOCAL_VARIABLE,
+      '''
+void f((int?, int?) position) {
+  var (x!, /*[0*/y/*0]*/!) = position;
+  print(/*[1*/y/*1]*/);
+}
+    );
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_nullCheck() async {
+    await assertOccurrences(
+      kind: ElementKind.LOCAL_VARIABLE,
+      '''
+void f(String? maybeString) {
+  switch (maybeString) {
+    case var /*[0*/s/*0]*/?:
+      print(/*[1*/s/*1]*/);
+  }
+}
+    );
+    ''',
+    );
+  }
+
+  Future<void> test_pattern_object_fieldName() async {
+    await assertOccurrences(
+      kind: ElementKind.FIELD,
+      '''
+double calculateArea(Shape shape) =>
+  switch (shape) {
+    Square(/*[0*/length/*0]*/: var l) => l * l,
+  };
+
+class Shape { }
+class Square extends Shape {
+  double get /*[1*/length/*1]*/ => 0;
+}
+    );
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_object_typeName() async {
+    await assertOccurrences(
+      kind: ElementKind.CLASS,
+      '''
+double calculateArea(Shape shape) =>
+  switch (shape) {
+    /*[0*/Square/*0]*/(length: var l) => l * l,
+  };
+
+class Shape { }
+class /*[1*/Square/*1]*/ extends Shape {
+  double get length => 0;
+}
+    );
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_object_variable() async {
+    await assertOccurrences(
+      kind: ElementKind.LOCAL_VARIABLE,
+      '''
+double calculateArea(Shape shape) =>
+  switch (shape) {
+    Square(length: var /*[0*/l/*0]*/) => /*[1*/l/*1]*/ * /*[2*/l/*2]*/,
+  };
+
+class Shape { }
+class Square extends Shape {
+  double get length => 0;
+}
+    );
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_record_variable() async {
+    await assertOccurrences(
+      kind: ElementKind.PARAMETER,
+      '''
+void f(({int foo}) x, num /*[0*/a/*0]*/) {
+  (foo: /*[1*/a,/*1]*/) = x;
+}
+    );
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_relational_variable() async {
+    await assertOccurrences(
+      kind: ElementKind.LOCAL_VARIABLE,
+      '''
+String f(int char) {
+  const /*[0*/zero/*0]*/ = 0;
+  return switch (char) {
+    == /*[1*/zero/*1]*/ => 'zero'
+  };
+}
+    );
+      ''',
+    );
+  }
+
+  Future<void> test_recordType_typeName() async {
+    await assertOccurrences(
+      kind: ElementKind.CLASS,
+      r'''
+/*[0*/double/*0]*/ f((/*[1*/double/*1]*/, /*[2*/double/*2]*/) param) {
+}
+    );
+      ''',
+    );
   }
 
   Future<void> test_superFormalParameter_requiredPositional() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.PARAMETER,
+      '''
 class A {
   A(int x);
 }
@@ -336,49 +548,47 @@ class A {
 class B extends A {
   int y;
 
-  B(super.x) : y = x * 2;
+  B(super./*[0*/x/*0]*/) : y = /*[1*/x/*1]*/ * 2;
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('x) :');
-    expect(testOccurrences.element.kind, ElementKind.PARAMETER);
-    expect(testOccurrences.element.name, 'x');
-    assertHasOffset('x) :');
-    assertHasOffset('x * 2');
+      ''',
+    );
   }
 
   Future<void> test_topLevelVariable() async {
-    addTestFile('''
-var VVV = 1;
+    await assertOccurrences(
+      kind: ElementKind.TOP_LEVEL_VARIABLE,
+      '''
+var /*[0*/VVV/*0]*/ = 1;
 void f() {
-  VVV = 2;
-  print(VVV);
+  /*[1*/VVV/*1]*/ = 2;
+  print(/*[2*/VVV/*2]*/);
 }
-''');
-    await prepareOccurrences();
-    assertHasRegion('VVV = 1;');
-    expect(testOccurrences.element.kind, ElementKind.TOP_LEVEL_VARIABLE);
-    assertHasOffset('VVV = 2;');
-    assertHasOffset('VVV);');
+      ''',
+    );
   }
 
   Future<void> test_type_class() async {
-    addTestFile('''
+    await assertOccurrences(
+      kind: ElementKind.CLASS,
+      '''
 void f() {
-  int a = 1;
-  int b = 2;
-  int c = 3;
+  /*[0*/int/*0]*/ a = 1;
+  /*[1*/int/*1]*/ b = 2;
+  /*[2*/int/*2]*/ c = 3;
 }
-int VVV = 4;
-''');
-    await prepareOccurrences();
-    assertHasRegion('int a');
-    expect(testOccurrences.element.kind, ElementKind.CLASS);
-    expect(testOccurrences.element.name, 'int');
-    assertHasOffset('int a');
-    assertHasOffset('int b');
-    assertHasOffset('int c');
-    assertHasOffset('int VVV');
+/*[3*/int/*3]*/ VVV = 4;
+      ''',
+    );
+  }
+
+  Future<void> test_type_class_definition() async {
+    await assertOccurrences(
+      kind: ElementKind.CLASS,
+      '''
+class /*[0*/A/*0]*/ {}
+/*[1*/A/*1]*/ a;
+      ''',
+    );
   }
 
   Future<void> test_type_dynamic() async {

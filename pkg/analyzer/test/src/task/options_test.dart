@@ -271,7 +271,11 @@ class ErrorProcessorMatcher extends Matcher {
 
 @reflectiveTest
 class OptionsFileValidatorTest {
-  final OptionsFileValidator validator = OptionsFileValidator(TestSource());
+  final OptionsFileValidator validator = OptionsFileValidator(
+    TestSource(),
+    sdkVersionConstraint: null,
+    sourceIsOptionsForContextRoot: true,
+  );
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
   test_analyzer_cannotIgnore_badValue() {
@@ -413,7 +417,7 @@ analyzer:
     validate('''
 analyzer:
   language:
-    - enableSuperMixins: true
+    - notAnOption: true
 ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
   }
 
@@ -455,6 +459,30 @@ analyzer:
 ''', [AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED]);
   }
 
+  test_analyzer_strong_mode_deprecated_key() {
+    validate('''
+analyzer:
+  strong-mode:
+    declaration-casts: false
+''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED]);
+  }
+
+  test_analyzer_strong_mode_deprecated_key_implicit_casts() {
+    validate('''
+analyzer:
+  strong-mode:
+    implicit-casts: false
+''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT]);
+  }
+
+  test_analyzer_strong_mode_deprecated_key_implicit_dynamic() {
+    validate('''
+analyzer:
+  strong-mode:
+    implicit-dynamic: false
+''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT]);
+  }
+
   test_analyzer_strong_mode_error_code_supported() {
     validate('''
 analyzer:
@@ -484,14 +512,6 @@ analyzer:
   strong-mode:
     unsupported: true
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
-  }
-
-  test_analyzer_strong_mode_unsupported_value() {
-    validate('''
-analyzer:
-  strong-mode:
-    implicit-dynamic: foo
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_supported_exclude() {
@@ -631,6 +651,7 @@ class OptionsProviderTest with ResourceProviderMixin {
       code,
       sourceFactory,
       '/',
+      null /*sdkVersionConstraint*/,
     );
 
     assertErrorsInList(errors, expectedErrors);
@@ -693,10 +714,6 @@ analyzer:
   }
 
   test_mergeIncludedOptions() {
-    // TODO(https://github.com/dart-lang/sdk/issues/50978): add tests for
-    // INCLUDED_FILE_WARNING.
-    // TODO(https://github.com/dart-lang/sdk/issues/50979): add tests for cyclic
-    // includes.
     // TODO(srawlins): add tests for multiple includes.
     // TODO(https://github.com/dart-lang/sdk/issues/50980): add tests with
     // duplicate plugin names.
@@ -893,6 +910,7 @@ analyzer:
       code,
       sourceFactory,
       '/',
+      null /*sdkVersionConstraint*/,
     );
     expect(
       errors.map((AnalysisError e) => e.errorCode),

@@ -8,7 +8,7 @@ part of dart.async;
 ///
 /// Used when an error and stack trace need to be handled as a single
 /// value, for example when returned by [Zone.errorCallback].
-class AsyncError implements Error {
+final class AsyncError implements Error {
   final Object error;
   final StackTrace stackTrace;
 

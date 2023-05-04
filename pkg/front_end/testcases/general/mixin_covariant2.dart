@@ -9,7 +9,7 @@ class Superclass {
   String method4(num argument1, covariant num argument2) => "Superclass";
 }
 
-class Mixin {
+mixin Mixin {
   String method1(num argument1, num argument2) => "Mixin";
   String method2(covariant int argument1, num argument2) => "Mixin";
   String method3(num argument1, num argument2) => "Mixin";

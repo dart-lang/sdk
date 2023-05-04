@@ -14,13 +14,15 @@ library static_interop /*isNonNullableByDefault*/;
 import self as sta;
 import "package:js/js.dart" as js;
 import "dart:core" as core;
+import "dart:js_util" as js_;
 
 import "package:js/js.dart";
 
 @#C4
 @#C5
 class StaticJSClass extends core::Object {
-  external static factory •() → sta::StaticJSClass;
+  static factory •() → sta::StaticJSClass
+    return js_::_callConstructorUnchecked0<sta::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(js_::globalThis, "JSClass"));
   static method _#new#tearOff() → sta::StaticJSClass
     return sta::StaticJSClass::•();
   static factory factory() → sta::StaticJSClass {

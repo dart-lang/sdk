@@ -8,6 +8,8 @@ class LintNames {
       'always_declare_return_types';
   static const String always_put_control_body_on_new_line =
       'always_put_control_body_on_new_line';
+  static const String always_put_required_named_parameters_first =
+      'always_put_required_named_parameters_first';
   static const String always_require_non_null_named_parameters =
       'always_require_non_null_named_parameters';
   static const String always_specify_types = 'always_specify_types';
@@ -55,6 +57,10 @@ class LintNames {
       'curly_braces_in_flow_control_structures';
   static const String dangling_library_doc_comments =
       'dangling_library_doc_comments';
+  static const String deprecated_member_use_from_same_package =
+      'deprecated_member_use_from_same_package';
+  static const String deprecated_member_use_from_same_package_with_message =
+      'deprecated_member_use_from_same_package_with_message';
   static const String diagnostic_describe_all_properties =
       'diagnostic_describe_all_properties';
   static const String directives_ordering = 'directives_ordering';
@@ -66,6 +72,7 @@ class LintNames {
   static const String exhaustive_cases = 'exhaustive_cases';
   static const String hash_and_equals = 'hash_and_equals';
   static const String implicit_call_tearoffs = 'implicit_call_tearoffs';
+  static const String invalid_case_patterns = 'invalid_case_patterns';
   static const String leading_newlines_in_multiline_strings =
       'leading_newlines_in_multiline_strings';
   static const String library_annotations = 'library_annotations';
@@ -76,6 +83,7 @@ class LintNames {
       'no_leading_underscores_for_local_identifiers';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
+  static const String noop_primitive_operations = 'noop_primitive_operations';
   static const String null_check_on_nullable_type_parameter =
       'null_check_on_nullable_type_parameter';
   static const String null_closures = 'null_closures';
@@ -135,9 +143,12 @@ class LintNames {
       'sort_unnamed_constructors_first';
   static const String type_annotate_public_apis = 'type_annotate_public_apis';
   static const String type_init_formals = 'type_init_formals';
+  static const String type_literal_in_constant_pattern =
+      'type_literal_in_constant_pattern';
   static const String unawaited_futures = 'unawaited_futures';
   static const String unnecessary_brace_in_string_interps =
       'unnecessary_brace_in_string_interps';
+  static const String unnecessary_breaks = 'unnecessary_breaks';
   static const String unnecessary_const = 'unnecessary_const';
   static const String unnecessary_constructor_name =
       'unnecessary_constructor_name';
@@ -162,6 +173,7 @@ class LintNames {
   static const String unnecessary_string_interpolations =
       'unnecessary_string_interpolations';
   static const String unnecessary_this = 'unnecessary_this';
+  static const String use_decorated_box = 'use_decorated_box';
   static const String use_enums = 'use_enums';
   static const String use_full_hex_values_for_flutter_colors =
       'use_full_hex_values_for_flutter_colors';

@@ -74,7 +74,7 @@ $spaces_4});
   }) async {
     writeTestPackageConfig(flutter: true);
 
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'package:flutter/widgets.dart';
 
 class TestWidget extends StatefulWidget {
@@ -98,6 +98,6 @@ $line
       },
     );
 
-    assertResponseText(response, expected);
+    assertResponse(expected);
   }
 }

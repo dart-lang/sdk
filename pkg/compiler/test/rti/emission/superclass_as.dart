@@ -12,7 +12,7 @@ class A<T> {}
 /*class: B:checks=[],indirectInstance*/
 class B<T, S> {
   @pragma('dart2js:noInline')
-  method() => new A<S>();
+  method() => A<S>();
 }
 
 /*class: C:checks=[],instance*/

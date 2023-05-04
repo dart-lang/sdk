@@ -22,7 +22,7 @@ throwDeferredIsLoadedError(
   throw DeferredNotLoadedError(enclosingLibrary, importPrefix);
 }
 
-// TODO(nshahan) Cleanup embeded strings and extract file location at runtime
+// TODO(nshahan) Cleanup embedded strings and extract file location at runtime
 // from the stacktrace.
 assertFailed(String? message,
     [String? fileUri, int? line, int? column, String? conditionSource]) {
@@ -83,14 +83,36 @@ throwLateInitializationError(String name) {
 }
 
 throwCyclicInitializationError([String? field]) {
-  throw CyclicInitializationError(field);
+  throw _CyclicInitializationError(field);
+}
+
+/// Error thrown when a lazily initialized variable cannot be initialized.
+///
+/// Cyclic dependencies are no longer detected at runtime in null safe code.
+/// Such code will fail in other ways instead,
+/// possibly with a [StackOverflowError].
+///
+/// Will be removed when support for non-null-safe code is discontinued.
+@Deprecated("Remove when no longer supporting non-null-safe code.")
+class _CyclicInitializationError extends Error {
+  final String? variableName;
+  _CyclicInitializationError([this.variableName]);
+  String toString() {
+    var variableName = this.variableName;
+    return variableName == null
+        ? "Reading static variable during its initialization"
+        : "Reading static variable '$variableName' during its initialization";
+  }
 }
 
 throwNullValueError() {
   // TODO(vsm): Per spec, we should throw an NSM here.  Technically, we ought
   // to thread through method info, but that uglifies the code and can't
   // actually be queried ... it only affects how the error is printed.
-  throw NoSuchMethodError(null, Symbol('<Unexpected Null Value>'), null, null);
+  throw NoSuchMethodError.withInvocation(
+    null,
+    Invocation.method(Symbol('<Unexpected Null Value>'), null, null),
+  );
 }
 
 castError(obj, expectedType) {
@@ -229,7 +251,7 @@ final Object DartError = JS(
         return #(this[#]);
       }
     }''',
-    NullThrownError(),
+    TypeErrorImpl('Throw of null.'),
     _thrownValue,
     _jsError,
     _jsError,

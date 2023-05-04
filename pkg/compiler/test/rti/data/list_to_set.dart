@@ -4,14 +4,14 @@
 
 // @dart = 2.7
 
-/*spec.class: global#List:deps=[Class,JSArray.markFixedList],explicit=[List,List<Object>,List<String>?,List<markFixedList.T>],needsArgs,test*/
+/*spec.class: global#List:deps=[Class,JSArray.markFixedList],explicit=[List,List<Object>,List<Object?>,List<String>?,List<markFixedList.T>],needsArgs,test*/
 /*prod.class: global#List:deps=[Class],needsArgs,test*/
 
 /*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/
 /*prod.class: global#JSArray:deps=[List],implicit=[JSArray.E],needsArgs,test*/
 
 main() {
-  var c = new Class<int>();
+  var c = Class<int>();
   var list = c.m();
   var set = list.toSet();
   set is Set<String>;

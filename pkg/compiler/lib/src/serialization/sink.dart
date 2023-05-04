@@ -4,6 +4,36 @@
 
 part of 'serialization.dart';
 
+/// Interface handling [DataSinkWriter] low-level data serialization.
+///
+/// Each implementation of [DataSink] should have a corresponding
+/// [DataSource] that deserializes data serialized by that implementation.
+abstract class DataSink {
+  int get length;
+
+  /// Serialization of a non-negative integer value.
+  void writeInt(int value);
+
+  /// Serialization of an enum value.
+  void writeEnum(dynamic value);
+
+  /// Serialization of a String value.
+  void writeString(String value);
+
+  /// Serialization of a section begin tag. May be omitted by some writers.
+  void beginTag(String tag);
+
+  /// Serialization of a section end tag. May be omitted by some writers.
+  void endTag(String tag);
+
+  /// Writes a deferred entity which can be skipped when reading and read later
+  /// via an offset read.
+  void writeDeferred(void writer());
+
+  /// Closes any underlying data sinks.
+  void close();
+}
+
 /// Serialization writer
 ///
 /// To be used with [DataSourceReader] to read and write serialized data.
@@ -56,9 +86,9 @@ class DataSinkWriter {
       return UnorderedIndexedSink<T>(this,
           startOffset: indices.previousSourceReader?.endOffset);
     }
-    Map<T, int> cacheCopy = Map.from(sourceInfo.cache);
     return UnorderedIndexedSink<T>(this,
-        cache: cacheCopy, startOffset: indices.previousSourceReader?.endOffset);
+        cache: Map.from(sourceInfo.cache),
+        startOffset: indices.previousSourceReader?.endOffset);
   }
 
   IndexedSink<T> _createSink<T>() {
@@ -66,8 +96,8 @@ class DataSinkWriter {
     if (indices == null || !indices.caches.containsKey(T)) {
       return OrderedIndexedSink<T>(_sinkWriter);
     } else {
-      Map<T, int> cacheCopy = Map.from(indices.caches[T]!.cache);
-      return OrderedIndexedSink<T>(_sinkWriter, cache: cacheCopy);
+      return OrderedIndexedSink<T>(_sinkWriter,
+          cache: Map.from(indices.caches[T]!.cache));
     }
   }
 
@@ -176,7 +206,6 @@ class DataSinkWriter {
 
   /// Writes the boolean [value] to this data sink.
   void writeBool(bool value) {
-    assert((value as dynamic) != null); // TODO(48820): Remove when sound.
     _writeDataKind(DataKind.bool);
     _writeBool(value);
   }
@@ -187,7 +216,6 @@ class DataSinkWriter {
 
   /// Writes the non-negative 30 bit integer [value] to this data sink.
   void writeInt(int value) {
-    assert((value as dynamic) != null); // TODO(48820): Remove when sound.
     assert(value >= 0 && value >> 30 == 0);
     _writeDataKind(DataKind.uint30);
     _sinkWriter.writeInt(value);
@@ -206,7 +234,6 @@ class DataSinkWriter {
 
   /// Writes the string [value] to this data sink.
   void writeString(String value) {
-    assert((value as dynamic) != null); // TODO(48820): Remove when sound.
     _writeDataKind(DataKind.string);
     _writeString(value);
   }
@@ -295,7 +322,6 @@ class DataSinkWriter {
 
   /// Writes the URI [value] to this data sink.
   void writeUri(Uri value) {
-    assert((value as dynamic) != null); // TODO(48820): Remove when sound.
     _writeDataKind(DataKind.uri);
     _writeUri(value);
   }
@@ -325,6 +351,18 @@ class DataSinkWriter {
   }
 
   void _writeClassNode(ir.Class value) {
+    _writeLibraryNode(value.enclosingLibrary);
+    _writeString(value.name);
+  }
+
+  /// Writes a reference to the kernel inline class node [value] to this data
+  /// sink.
+  void writeInlineClassNode(ir.InlineClass value) {
+    _writeDataKind(DataKind.inlineClassNode);
+    _writeInlineClassNode(value);
+  }
+
+  void _writeInlineClassNode(ir.InlineClass value) {
     _writeLibraryNode(value.enclosingLibrary);
     _writeString(value.name);
   }
@@ -647,7 +685,7 @@ class DataSinkWriter {
   }
 
   /// Writes the kernel type node [value] to this data sink.
-  void writeDartTypeNode(ir.DartType /*!*/ value) {
+  void writeDartTypeNode(ir.DartType value) {
     _writeDataKind(DataKind.dartTypeNode);
     _writeDartTypeNode(value, [], allowNull: false);
   }
@@ -865,7 +903,7 @@ class DataSinkWriter {
     }
   }
 
-  /// Writes the [map] from references to type variable entites to [V] values
+  /// Writes the [map] from references to type variable entities to [V] values
   /// to this data sink, calling [f] to write each value to the data sink. If
   /// [allowNull] is `true`, [map] is allowed to be `null`.
   ///
@@ -987,6 +1025,11 @@ class DataSinkWriter {
         writeDartType(constant.type);
         writeMemberMap(constant.fields,
             (MemberEntity member, ConstantValue value) => writeConstant(value));
+        break;
+      case ConstantValueKind.RECORD:
+        final constant = value as RecordConstantValue;
+        constant.shape.writeToDataSink(this);
+        writeConstants(constant.values);
         break;
       case ConstantValueKind.TYPE:
         final constant = value as TypeConstantValue;
@@ -1200,14 +1243,12 @@ class DataSinkWriter {
   /// Register an [EntityWriter] with this data sink for non-default encoding
   /// of entity references.
   void registerEntityWriter(EntityWriter writer) {
-    assert((writer as dynamic) != null); // TODO(48820): Remove when sound.
     _entityWriter = writer;
   }
 
   /// Register a [CodegenWriter] with this data sink to support serialization
   /// of codegen only data.
   void registerCodegenWriter(CodegenWriter writer) {
-    assert((writer as dynamic) != null); // TODO(48820): Remove when sound.
     _codegenWriter = writer;
   }
 

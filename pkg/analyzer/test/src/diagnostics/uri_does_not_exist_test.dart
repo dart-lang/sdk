@@ -15,6 +15,28 @@ main() {
 
 @reflectiveTest
 class UriDoesNotExistTest extends PubPackageResolutionTest {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51407')
+  test_doubleSlash() async {
+    newFolder('$testPackageLibPath/c');
+    newFile('$testPackageLibPath/c/d.dart', '''''
+class D {}
+''');
+    newFile('$testPackageLibPath/b.dart', '''
+import 'c/d.dart';
+void g(D d) {}
+''');
+    await assertErrorsInCode(r'''
+import 'b.dart';
+import 'c//d.dart';
+
+void f() {
+  g(D());
+}
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 24, 11),
+    ]);
+  }
+
   test_libraryExport() async {
     await assertErrorsInCode('''
 export 'unknown.dart';
@@ -53,7 +75,7 @@ import 'unknown.dart';
     await assertErrorsInCode('''
 import 'target.dart';
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 13),
+      error(WarningCode.UNUSED_IMPORT, 7, 13),
     ]);
 
     // Remove the overlay in the same way as AnalysisServer.
@@ -111,7 +133,7 @@ import 'target.dart';
     //  file is not being reanalyzed.
     await resolveTestFile();
     assertErrorsInResult([
-      error(HintCode.UNUSED_IMPORT, 0, 0),
+      error(WarningCode.UNUSED_IMPORT, 0, 0),
     ]);
   }
 

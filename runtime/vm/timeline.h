@@ -8,6 +8,7 @@
 #include "include/dart_tools_api.h"
 
 #include "platform/atomic.h"
+#include "platform/hashmap.h"
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/globals.h"
@@ -128,11 +129,11 @@ class TimelineStream {
 #endif
 };
 
-class RecorderLock : public AllStatic {
+class RecorderSynchronizationLock : public AllStatic {
  public:
   static void Init() {
+    recorder_state_.store(kActive, std::memory_order_release);
     outstanding_event_writes_.store(0);
-    shutdown_lock_.store(false, std::memory_order_release);
   }
 
   static void EnterLock() {
@@ -145,34 +146,42 @@ class RecorderLock : public AllStatic {
     ASSERT(count >= 0);
   }
 
-  static bool IsShuttingDown() {
-    return shutdown_lock_.load(std::memory_order_relaxed);
+  static bool IsActive() {
+    return (recorder_state_.load(std::memory_order_acquire) == kActive);
   }
 
   static void WaitForShutdown() {
-    shutdown_lock_.exchange(true);
+    recorder_state_.store(kShuttingDown, std::memory_order_release);
     // Spin waiting for outstanding events to be completed.
     while (outstanding_event_writes_.load(std::memory_order_relaxed) > 0) {
     }
   }
 
  private:
-  static std::atomic<bool> shutdown_lock_;
+  typedef enum { kUnInitialized = 0, kActive, kShuttingDown } RecorderState;
+  static std::atomic<RecorderState> recorder_state_;
   static std::atomic<intptr_t> outstanding_event_writes_;
 
-  DISALLOW_COPY_AND_ASSIGN(RecorderLock);
+  DISALLOW_COPY_AND_ASSIGN(RecorderSynchronizationLock);
 };
 
-class RecorderLockScope {
+// Any modifications to the timeline must be guarded by a
+// |RecorderSynchronizationLockScope| to prevent the timeline from being
+// cleaned up in the middle of the modifications.
+class RecorderSynchronizationLockScope {
  public:
-  RecorderLockScope() { RecorderLock::EnterLock(); }
+  RecorderSynchronizationLockScope() {
+    RecorderSynchronizationLock::EnterLock();
+  }
 
-  ~RecorderLockScope() { RecorderLock::ExitLock(); }
+  ~RecorderSynchronizationLockScope() {
+    RecorderSynchronizationLock::ExitLock();
+  }
 
-  bool IsShuttingDown() { return RecorderLock::IsShuttingDown(); }
+  bool IsActive() { return RecorderSynchronizationLock::IsActive(); }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(RecorderLockScope);
+  DISALLOW_COPY_AND_ASSIGN(RecorderSynchronizationLockScope);
 };
 
 class Timeline : public AllStatic {
@@ -236,8 +245,6 @@ class Timeline : public AllStatic {
   static TimelineStream stream_##name##_;
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DECLARE)
 #undef TIMELINE_STREAM_DECLARE
-
-  static RecorderLock recorder_lock_;
 
   template <class>
   friend class TimelineRecorderOverride;
@@ -334,31 +341,21 @@ class TimelineEvent {
 
   void DurationBegin(
       const char* label,
-      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
-      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
-  void DurationEnd(
-      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
-      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
+      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
+  void DurationEnd(int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void Instant(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
-  void Duration(const char* label,
-                int64_t start_micros,
-                int64_t end_micros,
-                int64_t thread_start_micros = -1,
-                int64_t thread_end_micros = -1);
+  void Duration(const char* label, int64_t start_micros, int64_t end_micros);
 
-  void Begin(
-      const char* label,
-      int64_t id,
-      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
-      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
+  void Begin(const char* label,
+             int64_t id,
+             int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void End(const char* label,
            int64_t id,
-           int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
-           int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
+           int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void Counter(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
@@ -406,10 +403,6 @@ class TimelineEvent {
   bool IsFinishedDuration() const {
     return (event_type() == kDuration) && (timestamp1_ > timestamp0_);
   }
-
-  bool HasThreadCPUTime() const;
-  int64_t ThreadCPUTimeDuration() const;
-  int64_t ThreadCPUTimeOrigin() const;
 
   int64_t TimeOrigin() const { return timestamp0_; }
   int64_t Id() const {
@@ -529,16 +522,6 @@ class TimelineEvent {
     timestamp1_ = value;
   }
 
-  void set_thread_timestamp0(int64_t value) {
-    ASSERT(thread_timestamp0_ == -1);
-    thread_timestamp0_ = value;
-  }
-
-  void set_thread_timestamp1(int64_t value) {
-    ASSERT(thread_timestamp1_ == -1);
-    thread_timestamp1_ = value;
-  }
-
   bool pre_serialized_args() const {
     return PreSerializedArgsBit::decode(state_);
   }
@@ -563,8 +546,6 @@ class TimelineEvent {
 
   int64_t timestamp0_;
   int64_t timestamp1_;
-  int64_t thread_timestamp0_;
-  int64_t thread_timestamp1_;
   TimelineEventArguments arguments_;
   uword state_;
   const char* label_;
@@ -584,6 +565,32 @@ class TimelineEvent {
   friend class TimelineStream;
   friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
+};
+
+class TimelineTrackMetadata {
+ public:
+  TimelineTrackMetadata(intptr_t pid,
+                        intptr_t tid,
+                        Utils::CStringUniquePtr&& track_name);
+  intptr_t pid() const { return pid_; }
+  intptr_t tid() const { return tid_; }
+  const char* track_name() const { return track_name_.get(); }
+  inline void set_track_name(Utils::CStringUniquePtr&& track_name);
+#if !defined(PRODUCT)
+  /*
+   * Prints a Chrome-format event representing the metadata stored by this
+   * object into |jsarr_events|.
+   */
+  void PrintJSON(const JSONArray& jsarr_events) const;
+#endif  // !defined(PRODUCT)
+
+ private:
+  // The ID of the process that this track is associated with.
+  intptr_t pid_;
+  // The trace ID of the thread that this track is associated with.
+  intptr_t tid_;
+  // The name of this track.
+  Utils::CStringUniquePtr track_name_;
 };
 
 #ifdef SUPPORT_TIMELINE
@@ -808,9 +815,7 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
 class TimelineEventRecorder : public MallocAllocated {
  public:
   TimelineEventRecorder();
-  virtual ~TimelineEventRecorder() {}
-
-  TimelineEventBlock* GetNewBlock();
+  virtual ~TimelineEventRecorder();
 
   // Interface method(s) which must be implemented.
 #ifndef PRODUCT
@@ -818,10 +823,14 @@ class TimelineEventRecorder : public MallocAllocated {
   virtual void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) = 0;
 #endif
   virtual const char* name() const = 0;
-
-  void FinishBlock(TimelineEventBlock* block);
-
   virtual intptr_t Size() = 0;
+  TimelineEventBlock* GetNewBlock();
+  void FinishBlock(TimelineEventBlock* block);
+  // This function must be called at least once for each thread that corresponds
+  // to a track in the trace.
+  void AddTrackMetadataBasedOnThread(const intptr_t process_id,
+                                     const intptr_t trace_id,
+                                     const char* thread_name);
 
  protected:
 #ifndef PRODUCT
@@ -837,7 +846,7 @@ class TimelineEventRecorder : public MallocAllocated {
 
   // Utility method(s).
 #ifndef PRODUCT
-  void PrintJSONMeta(JSONArray* array) const;
+  void PrintJSONMeta(const JSONArray& jsarr_events);
 #endif
   TimelineEvent* ThreadBlockStartEvent();
   void ThreadBlockCompleteEvent(TimelineEvent* event);
@@ -857,6 +866,9 @@ class TimelineEventRecorder : public MallocAllocated {
   friend class Timeline;
 
  private:
+  static const intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
+  SimpleHashMap track_uuid_to_track_metadata_;
+  Mutex track_uuid_to_track_metadata_lock_;
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
 };
 
@@ -929,8 +941,8 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   virtual ~TimelineEventCallbackRecorder();
 
 #ifndef PRODUCT
-  void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
-  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
 #endif
 
   // Called when |event| is completed. It is unsafe to keep a reference to
@@ -1013,8 +1025,8 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
   virtual ~TimelineEventPlatformRecorder();
 
 #ifndef PRODUCT
-  void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
-  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
 #endif
 
   // Called when |event| is completed. It is unsafe to keep a reference to
@@ -1085,29 +1097,44 @@ class TimelineEventMacosRecorder : public TimelineEventPlatformRecorder {
 };
 #endif  // defined(DART_HOST_OS_MACOS)
 
-class TimelineEventFileRecorder : public TimelineEventPlatformRecorder {
+class TimelineEventFileRecorderBase : public TimelineEventPlatformRecorder {
  public:
-  explicit TimelineEventFileRecorder(const char* path);
-  virtual ~TimelineEventFileRecorder();
+  explicit TimelineEventFileRecorderBase(const char* path);
+  virtual ~TimelineEventFileRecorderBase();
 
-  const char* name() const { return FILE_RECORDER_NAME; }
-  intptr_t Size() { return 0; }
-
+  intptr_t Size() final { return 0; }
+  void OnEvent(TimelineEvent* event) final { UNREACHABLE(); }
   void Drain();
 
+ protected:
+  void Write(const char* buffer, intptr_t len) const;
+  void Write(const char* buffer) const { Write(buffer, strlen(buffer)); }
+  void CompleteEvent(TimelineEvent* event) final;
+  void ShutDown();
+
  private:
-  void CompleteEvent(TimelineEvent* event);
-  void OnEvent(TimelineEvent* event) { UNREACHABLE(); }
-  void Write(const char* buffer) { Write(buffer, strlen(buffer)); }
-  void Write(const char* buffer, intptr_t len);
+  virtual void DrainImpl(const TimelineEvent& event) = 0;
 
   Monitor monitor_;
   TimelineEvent* head_;
   TimelineEvent* tail_;
   void* file_;
-  bool first_;
   bool shutting_down_;
+  bool drained_;
   ThreadJoinId thread_id_;
+};
+
+class TimelineEventFileRecorder : public TimelineEventFileRecorderBase {
+ public:
+  explicit TimelineEventFileRecorder(const char* path);
+  virtual ~TimelineEventFileRecorder();
+
+  const char* name() const final { return FILE_RECORDER_NAME; }
+
+ private:
+  void DrainImpl(const TimelineEvent& event) final;
+
+  bool first_;
 };
 
 class DartTimelineEventHelpers : public AllStatic {

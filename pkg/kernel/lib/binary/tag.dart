@@ -10,7 +10,7 @@ class Tag {
 
   static const int Class = 2;
   static const int Extension = 115;
-  static const int View = 85;
+  static const int InlineClass = 85;
 
   static const int FunctionNode = 3;
 
@@ -81,7 +81,7 @@ class Tag {
   static const int BlockExpression = 82;
   static const int TypedefTearOff = 83;
   static const int RedirectingFactoryTearOff = 84;
-  // 85 is occupied by [View].
+  // 85 is occupied by [InlineClass].
 
   static const int RecordIndexGet = 101;
   static const int RecordNameGet = 102;
@@ -135,7 +135,7 @@ class Tag {
   // 82 is occupied by [BlockExpression] (expression).
   // 83 is occupied by [TypedefTearOff] (expression).
   // 84 is occupied by [RedirectingFactoryTearOff] (expression).
-  // 85 is occupied by [View].
+  // 85 is occupied by [InlineClass].
 
   // Types
   static const int TypedefType = 87;
@@ -153,7 +153,7 @@ class Tag {
   static const int RecordType = 100;
   // 101 is occupied by [RecordIndexGet] (expression).
   // 102 is occupied by [RecordNameGet] (expression).
-  static const int ViewType = 103;
+  static const int InlineType = 103;
 
   // 104 is occupied by [RecordLiteral] (expression).
   // 105 is occupied by [ConstRecordLiteral] (expression).
@@ -180,13 +180,40 @@ class Tag {
   // 126 is occupied by [FunctionTearOff] (expression).
   // 127 is occupied by [LocalFunctionInvocation] (expression).
 
-  static const int SpecializedTagHighBit = 0x80; // 10000000
-  static const int SpecializedTagMask = 0xF8; // 11111000
-  static const int SpecializedPayloadMask = 0x7; // 00000111
+  // Patterns and patterns-related nodes
+  static const int AndPattern = 128;
+  static const int AssignedVariablePattern = 129;
+  static const int CastPattern = 130;
+  static const int ConstantPattern = 131;
+  static const int InvalidPattern = 132;
+  static const int ListPattern = 133;
+  static const int MapPattern = 134;
+  static const int NamedPattern = 135;
+  static const int NullAssertPattern = 136;
+  static const int NullCheckPattern = 137;
+  static const int ObjectPattern = 138;
+  static const int OrPattern = 139;
+  static const int RecordPattern = 140;
+  static const int RelationalPattern = 141;
+  static const int RestPattern = 142;
+  static const int VariablePattern = 143;
+  static const int WildcardPattern = 144;
+  static const int MapPatternEntry = 145;
+  static const int MapPatternRestEntry = 146;
+  static const int PatternSwitchStatement = 147;
+  static const int SwitchExpression = 148;
+  static const int IfCaseStatement = 149;
+  static const int PatternAssignment = 150;
+  static const int PatternVariableDeclaration = 151;
 
-  static const int SpecializedVariableGet = 128;
-  static const int SpecializedVariableSet = 136;
-  static const int SpecializedIntLiteral = 144;
+  static const int SpecializedTagHighBits = 0xE0; // 0b11100000
+  static const int SpecializedTagMask = 0xF8; //    0b11111000
+  static const int SpecializedPayloadMask = 0x7; // 0b00000111
+
+  static const int SpecializedVariableGet = 224; // 0b11100000
+  static const int SpecializedVariableSet = 232; // 0b11101000
+  static const int SpecializedIntLiteral = 240; //  0b11110000
+  // TODO: There's space for another special here (248, 0b11111000)
 
   static const int SpecializedIntLiteralBias = 3;
 
@@ -195,7 +222,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 89;
+  static const int BinaryFormatVersion = 101;
 }
 
 abstract class ConstantTag {

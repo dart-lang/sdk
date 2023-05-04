@@ -369,7 +369,9 @@ class Server {
       }
       return;
     }
-    if (!_serveObservatory) {
+    // Don't redirect HTTP VM service requests, just requests for Observatory
+    // assets.
+    if (!_serveObservatory && path == '/index.html') {
       final ddsUri = _service.ddsUri;
       if (ddsUri == null) {
         request.response.headers.contentType = ContentType.text;
@@ -397,7 +399,7 @@ class Server {
         ddsUri.replace(scheme: 'ws', path: '${path}ws').toString(),
       );
       path.writeAll([
-        'devtools/#/',
+        'devtools/',
         '?uri=$queryComponent',
       ]);
       final redirectUri = Uri.parse(

@@ -14,9 +14,6 @@ import 'package:build_integration/file_system/multi_root.dart'
 
 import 'package:crypto/crypto.dart';
 
-import 'package:front_end/src/api_prototype/language_version.dart'
-    show uriUsesLegacyLanguageVersion;
-
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -40,7 +37,8 @@ import 'package:front_end/src/api_unstable/vm.dart'
         resolveInputUri;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/ast.dart' show Component, Library, Reference;
+import 'package:kernel/ast.dart'
+    show Component, Library, Reference, NonNullableByDefaultCompiledMode;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
@@ -48,6 +46,8 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:package_config/package_config.dart' show loadPackageConfigUri;
 
 import 'http_filesystem.dart' show HttpAwareFileSystem;
+import 'target_os.dart';
+import 'native_assets/synthesizer.dart';
 import 'target/install.dart' show installAdditionalTargets;
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
@@ -62,6 +62,7 @@ import 'transformations/obfuscation_prohibitions_annotator.dart'
 import 'transformations/call_site_annotator.dart' as call_site_annotator;
 import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
+import 'transformations/vm_constant_evaluator.dart' as vm_constant_evaluator;
 import 'transformations/deferred_loading.dart' as deferred_loading;
 import 'transformations/to_string_transformer.dart' as to_string_transformer;
 
@@ -101,6 +102,9 @@ void declareCompilerOptions(ArgParser args) {
   args.addMultiOption('source',
       help: 'List additional source files to include into compilation.',
       defaultsTo: const <String>[]);
+  args.addOption('native-assets',
+      help:
+          'Provide the native-assets mapping for @Native external functions.');
   args.addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
@@ -109,6 +113,9 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: true);
+  args.addOption('target-os',
+      help: 'Compile for a specific target operating system when in AOT mode.',
+      allowed: TargetOS.names);
   args.addFlag('rta',
       help: 'Use rapid type analysis for faster compilation in AOT mode.',
       defaultsTo: true);
@@ -123,7 +130,7 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false);
   args.addFlag('sound-null-safety',
-      help: 'Respect the nullability of types at runtime.', defaultsTo: null);
+      help: 'Respect the nullability of types at runtime.', defaultsTo: true);
   args.addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -177,6 +184,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     return successExitCode;
   }
 
+  final String? nativeAssetsPath = options['native-assets'];
   if ((options.rest.length != 1) || (platformKernel == null)) {
     print(usage);
     return badUsageExitCode;
@@ -190,13 +198,14 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String? depfile = options['depfile'];
   final String? fromDillFile = options['from-dill'];
   final List<String>? fileSystemRoots = options['filesystem-root'];
+  final String? targetOS = options['target-os'];
   final bool aot = options['aot'];
   final bool tfa = options['tfa'];
   final bool rta = options['rta'];
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
   final bool enableAsserts = options['enable-asserts'];
-  final bool? nullSafety = options['sound-null-safety'];
+  final bool nullSafety = options['sound-null-safety'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String? manifestFilename = options['manifest'];
@@ -248,17 +257,20 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     additionalDills.add(platformKernelUri);
   }
 
+  final verbosity = Verbosity.parseArgument(options['verbosity']);
+  final errorPrinter = new ErrorPrinter(verbosity);
+  final errorDetector =
+      new ErrorDetector(previousErrorHandler: errorPrinter.call);
+
+  final Uri? nativeAssetsUri =
+      nativeAssetsPath == null ? null : resolveInputUri(nativeAssetsPath);
+
   Uri mainUri = resolveInputUri(input);
   if (packagesUri != null) {
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
   }
 
   final List<Uri> additionalSources = sources.map(resolveInputUri).toList();
-
-  final verbosity = Verbosity.parseArgument(options['verbosity']);
-  final errorPrinter = new ErrorPrinter(verbosity);
-  final errorDetector =
-      new ErrorDetector(previousErrorHandler: errorPrinter.call);
 
   final CompilerOptions compilerOptions = new CompilerOptions()
     ..sdkSummary = platformKernelUri
@@ -268,7 +280,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
-    ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
+    ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
@@ -276,11 +288,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..invocationModes =
         InvocationMode.parseArguments(options['invocation-modes'])
     ..verbosity = verbosity;
-
-  if (nullSafety == null &&
-      compilerOptions.globalFeatures.nonNullable.isEnabled) {
-    await autoDetectNullSafetyMode(mainUri, compilerOptions);
-  }
 
   compilerOptions.target = createFrontEndTarget(targetName,
       trackWidgetCreation: options['track-widget-creation'],
@@ -293,6 +300,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final results = await compileToKernel(mainUri, compilerOptions,
       additionalSources: additionalSources,
+      nativeAssets: nativeAssetsUri,
       includePlatform: additionalDills.isNotEmpty,
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       aot: aot,
@@ -303,19 +311,41 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       useProtobufTreeShakerV2: useProtobufTreeShakerV2,
       minimalKernel: minimalKernel,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
+      targetOS: targetOS,
       fromDillFile: fromDillFile);
 
   errorPrinter.printCompilationMessages();
 
   final Component? component = results.component;
-  if (errorDetector.hasCompilationErrors || (component == null)) {
+  final Library? nativeAssetsLibrary = results.nativeAssetsLibrary;
+  if (errorDetector.hasCompilationErrors ||
+      (component == null && nativeAssetsLibrary == null)) {
     return compileTimeErrorExitCode;
   }
 
   final IOSink sink = new File(outputFileName).openWrite();
-  final BinaryPrinter printer = new BinaryPrinter(sink,
-      libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
-  printer.writeComponentFile(component);
+  if (component != null) {
+    final BinaryPrinter printer = new BinaryPrinter(sink,
+        libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
+    if (aot && nativeAssetsLibrary != null) {
+      // If Dart component in AOT, write the vm:native-assets library _inside_
+      // the Dart component.
+      // TODO(https://dartbug.com/50152): Support AOT dill concatenation.
+      component.libraries.add(nativeAssetsLibrary);
+      nativeAssetsLibrary.parent = component;
+    }
+    printer.writeComponentFile(component);
+  }
+  if ((nativeAssetsLibrary != null && (!aot || component == null))) {
+    // If no Dart component, write as separate dill.
+    // If Dart component in JIT, write as concatenated dill, to not mess with
+    // the incremental compiler.
+    final BinaryPrinter printer = new BinaryPrinter(sink);
+    printer.writeComponentFile(Component(
+      libraries: [nativeAssetsLibrary],
+      mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
+    ));
+  }
   await sink.close();
 
   if (depfile != null) {
@@ -344,6 +374,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 class KernelCompilationResults {
   final Component? component;
 
+  final Library? nativeAssetsLibrary;
+
   /// Set of libraries loaded from .dill, with or without the SDK depending on
   /// the compilation settings.
   final Set<Library> loadedLibraries;
@@ -352,7 +384,17 @@ class KernelCompilationResults {
   final Iterable<Uri>? compiledSources;
 
   KernelCompilationResults(this.component, this.loadedLibraries,
-      this.classHierarchy, this.coreTypes, this.compiledSources);
+      this.classHierarchy, this.coreTypes, this.compiledSources)
+      : nativeAssetsLibrary = null;
+
+  KernelCompilationResults.named({
+    this.component,
+    this.loadedLibraries = const {},
+    this.classHierarchy,
+    this.coreTypes,
+    this.compiledSources,
+    this.nativeAssetsLibrary,
+  });
 }
 
 /// Generates a kernel representation of the program whose main library is in
@@ -360,24 +402,43 @@ class KernelCompilationResults {
 ///
 /// VM-specific replacement of [kernelForProgram].
 ///
+/// Either [source], or [nativeAssets], or both must be non-null.
 Future<KernelCompilationResults> compileToKernel(
-    Uri source, CompilerOptions options,
-    {List<Uri> additionalSources = const <Uri>[],
-    bool includePlatform = false,
-    List<String> deleteToStringPackageUris = const <String>[],
-    bool aot = false,
-    bool useGlobalTypeFlowAnalysis = false,
-    bool useRapidTypeAnalysis = true,
-    required Map<String, String> environmentDefines,
-    bool enableAsserts = true,
-    bool useProtobufTreeShakerV2 = false,
-    bool minimalKernel = false,
-    bool treeShakeWriteOnlyFields = false,
-    String? fromDillFile = null}) async {
+  Uri? source,
+  CompilerOptions options, {
+  List<Uri> additionalSources = const <Uri>[],
+  Uri? nativeAssets,
+  bool includePlatform = false,
+  List<String> deleteToStringPackageUris = const <String>[],
+  bool aot = false,
+  bool useGlobalTypeFlowAnalysis = false,
+  bool useRapidTypeAnalysis = true,
+  required Map<String, String> environmentDefines,
+  bool enableAsserts = true,
+  bool useProtobufTreeShakerV2 = false,
+  bool minimalKernel = false,
+  bool treeShakeWriteOnlyFields = false,
+  String? targetOS = null,
+  String? fromDillFile = null,
+}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
   options.onDiagnostic = errorDetector.call;
+
+  final nativeAssetsLibrary =
+      await NativeAssetsSynthesizer.synthesizeLibraryFromYamlFile(
+    nativeAssets,
+    errorDetector,
+    nonNullableByDefaultCompiledMode: options.nnbdMode == NnbdMode.Strong
+        ? NonNullableByDefaultCompiledMode.Strong
+        : NonNullableByDefaultCompiledMode.Weak,
+  );
+  if (source == null) {
+    return KernelCompilationResults.named(
+      nativeAssetsLibrary: nativeAssetsLibrary,
+    );
+  }
 
   final target = options.target!;
   options.environmentDefines =
@@ -407,6 +468,9 @@ Future<KernelCompilationResults> compileToKernel(
   if ((aot || minimalKernel) && component != null) {
     await runGlobalTransformations(target, component, useGlobalTypeFlowAnalysis,
         enableAsserts, useProtobufTreeShakerV2, errorDetector,
+        environmentDefines: options.environmentDefines,
+        nnbdMode: options.nnbdMode,
+        targetOS: targetOS,
         minimalKernel: minimalKernel,
         treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
         useRapidTypeAnalysis: useRapidTypeAnalysis);
@@ -425,12 +489,14 @@ Future<KernelCompilationResults> compileToKernel(
   // Restore error handler (in case 'options' are reused).
   options.onDiagnostic = errorDetector.previousErrorHandler;
 
-  return new KernelCompilationResults(
-      component,
-      loadedLibraries,
-      compilerResult?.classHierarchy,
-      compilerResult?.coreTypes,
-      compiledSources);
+  return KernelCompilationResults.named(
+    component: component,
+    nativeAssetsLibrary: nativeAssetsLibrary,
+    loadedLibraries: loadedLibraries,
+    classHierarchy: compilerResult?.classHierarchy,
+    coreTypes: compilerResult?.coreTypes,
+    compiledSources: compiledSources,
+  );
 }
 
 Set<Library> createLoadedLibrariesSet(
@@ -467,7 +533,10 @@ Future runGlobalTransformations(
     ErrorDetector errorDetector,
     {bool minimalKernel = false,
     bool treeShakeWriteOnlyFields = false,
-    bool useRapidTypeAnalysis = true}) async {
+    bool useRapidTypeAnalysis = true,
+    NnbdMode nnbdMode = NnbdMode.Weak,
+    Map<String, String>? environmentDefines,
+    String? targetOS}) async {
   assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
 
@@ -481,9 +550,14 @@ Future runGlobalTransformations(
   // when building a platform dill file for VM/JIT case.
   mixin_deduplication.transformComponent(component);
 
-  // Unreachable code elimination transformation should be performed
-  // before type flow analysis so TFA won't take unreachable code into account.
-  unreachable_code_elimination.transformComponent(component, enableAsserts);
+  // Perform unreachable code elimination, which should be performed before
+  // type flow analysis so TFA won't take unreachable code into account.
+  final os = targetOS != null ? TargetOS.fromString(targetOS)! : null;
+  final evaluator = vm_constant_evaluator.VMConstantEvaluator.create(
+      target, component, os, nnbdMode,
+      environmentDefines: environmentDefines, coreTypes: coreTypes);
+  unreachable_code_elimination.transformComponent(
+      component, enableAsserts, evaluator);
 
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(target, coreTypes, component,
@@ -603,31 +677,24 @@ bool parseCommandLineDefines(
   return true;
 }
 
-/// Detect null safety mode from an entry point and set [options.nnbdMode].
-Future<void> autoDetectNullSafetyMode(
-    Uri script, CompilerOptions options) async {
-  var isLegacy = await uriUsesLegacyLanguageVersion(script, options);
-  options.nnbdMode = isLegacy ? NnbdMode.Weak : NnbdMode.Strong;
-}
-
 /// Create front-end target with given name.
 Target? createFrontEndTarget(String targetName,
     {bool trackWidgetCreation = false,
-    bool nullSafety = false,
+    bool nullSafety = true,
     bool supportMirrors = true}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
-      enableNullSafety: nullSafety,
+      soundNullSafety: nullSafety,
       supportMirrors: supportMirrors);
   return getTarget(targetName, targetFlags);
 }
 
 /// Create a front-end file system.
 ///
-/// If requested, create a virtual mutli-root file system and/or an http aware
+/// If requested, create a virtual multi-root file system and/or an http aware
 /// file system.
 FileSystem createFrontEndFileSystem(
     String? multiRootFileSystemScheme, List<String>? multiRootFileSystemRoots,

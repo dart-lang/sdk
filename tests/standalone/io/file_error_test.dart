@@ -32,7 +32,7 @@ bool checkNonExistentFileSystemException(e, str) {
   Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf(str) != -1);
-  // File not not found has error code 2 on all supported platforms.
+  // File not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
   return true;
 }
@@ -61,6 +61,7 @@ void testOpenBlankFilename() {
   openFuture.then((raf) => Expect.fail("Unreachable code")).catchError((error) {
     checkCannotOpenFileException(error);
     asyncEnd();
+    return file;
   });
 }
 
@@ -78,6 +79,7 @@ void testOpenNonExistent() {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -95,6 +97,7 @@ void testDeleteNonExistent() {
     checkDeleteNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -112,6 +115,7 @@ void testLengthNonExistent() {
     checkLengthNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -135,7 +139,7 @@ void testCreateInNonExistentDirectory() {
   Directory temp = tempDir();
   var file = new File("${temp.path}/nonExistentDirectory/newFile");
 
-  // Create in non-existent directory should throw exception.
+  // Create in nonexistent directory should throw exception.
   Expect.throws(() => file.createSync(),
       (e) => checkCreateInNonExistentFileSystemException(e));
 
@@ -144,6 +148,7 @@ void testCreateInNonExistentDirectory() {
     checkCreateInNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -151,7 +156,7 @@ bool checkResolveSymbolicLinksOnNonExistentFileSystemException(e) {
   Expect.isTrue(e is FileSystemException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Cannot resolve symbolic links") != -1);
-  // File not not found has error code 2 on all supported platforms.
+  // File not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
 
   return true;
@@ -162,7 +167,7 @@ void testResolveSymbolicLinksOnNonExistentDirectory() {
   Directory temp = tempDir();
   var file = new File("${temp.path}/nonExistentDirectory");
 
-  // Full path non-existent directory should throw exception.
+  // Full path nonexistent directory should throw exception.
   Expect.throws(() => file.resolveSymbolicLinksSync(),
       (e) => checkResolveSymbolicLinksOnNonExistentFileSystemException(e));
 
@@ -173,6 +178,7 @@ void testResolveSymbolicLinksOnNonExistentDirectory() {
     checkResolveSymbolicLinksOnNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -192,6 +198,7 @@ void testReadAsBytesNonExistent() {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -211,6 +218,7 @@ void testReadAsTextNonExistent() {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -230,6 +238,7 @@ testReadAsLinesNonExistent() {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -266,6 +275,7 @@ testWriteByteToReadOnlyFile() {
     writeByteFuture.catchError((error) {
       checkWriteReadOnlyFileSystemException(error);
       openedFile.close().then((_) => done());
+      return openedFile;
     });
   });
 }
@@ -283,6 +293,7 @@ testWriteFromToReadOnlyFile() {
     writeFromFuture.catchError((error) {
       checkWriteReadOnlyFileSystemException(error);
       openedFile.close().then((_) => done());
+      return openedFile;
     });
   });
 }
@@ -304,6 +315,7 @@ testTruncateReadOnlyFile() {
         .catchError((error) {
       checkWriteReadOnlyFileSystemException(error);
       openedFile.close().then((_) => done());
+      return openedFile;
     });
   });
 }
@@ -349,6 +361,7 @@ testOperateOnClosedFile() {
       if (--errorCount == 0) {
         done();
       }
+      return openedFile;
     }
 
     var readByteFuture = openedFile.readByte();
@@ -412,6 +425,7 @@ testRepeatedlyCloseFile() {
       closeFuture.then((ignore) => null).catchError((error) {
         Expect.isTrue(error is FileSystemException);
         done();
+        return openedFile;
       });
     });
   });
@@ -436,6 +450,31 @@ testReadSyncClosedFile() {
   });
 }
 
+void testCreateExistingFile() {
+  createTestFile((file, done) {
+    Expect.throws<PathExistsException>(() => file.createSync(exclusive: true));
+    done();
+  });
+}
+
+void testDeleteDirectoryWithoutPermissions() {
+  if (Platform.isMacOS) {
+    createTestFile((file, done) async {
+      Process.runSync('chflags', ['uchg', file.path]);
+      Expect.throws<PathAccessException>(file.deleteSync);
+      Process.runSync('chflags', ['nouchg', file.path]);
+      done();
+    });
+  }
+  if (Platform.isWindows) {
+    final oldCurrent = Directory.current;
+    Directory.current = tempDir();
+    // Cannot delete the current working directory in Windows.
+    Expect.throws<PathAccessException>(Directory.current.deleteSync);
+    Directory.current = oldCurrent;
+  }
+}
+
 main() {
   testOpenBlankFilename();
   testOpenNonExistent();
@@ -453,4 +492,6 @@ main() {
   testRepeatedlyCloseFile();
   testRepeatedlyCloseFileSync();
   testReadSyncClosedFile();
+  testCreateExistingFile();
+  testDeleteDirectoryWithoutPermissions();
 }

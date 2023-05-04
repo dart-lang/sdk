@@ -9,7 +9,7 @@
 value(o) => o;
 
 main() {
-  var c = new Class();
+  var c = Class();
   value(c).method1a(value(null));
   value(c).method1b(value(null));
   value(c).method2a(value(null));
