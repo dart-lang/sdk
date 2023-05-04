@@ -54,7 +54,7 @@ mixin DeclarationBuilderMixin implements DeclarationBuilder {
     return buildAliasedTypeWithBuiltArguments(
         library,
         nullabilityBuilder.build(library),
-        _buildAliasedTypeArguments(library, arguments, hierarchy),
+        buildAliasedTypeArguments(library, arguments, hierarchy),
         typeUse,
         fileUri,
         charOffset,
@@ -64,7 +64,8 @@ mixin DeclarationBuilderMixin implements DeclarationBuilder {
   @override
   int get typeVariablesCount => typeParameters?.length ?? 0;
 
-  List<DartType> _buildAliasedTypeArguments(LibraryBuilder library,
+  @override
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
     if (arguments == null && typeParameters == null) {
       return <DartType>[];

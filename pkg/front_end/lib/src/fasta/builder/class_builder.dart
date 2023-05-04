@@ -137,9 +137,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   InterfaceType rawType(Nullability nullability);
 
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
-
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder>? arguments);
 
