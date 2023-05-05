@@ -2413,6 +2413,7 @@ abstract class DartTypes {
       return true;
     }
     if (type is FunctionType) return true;
+    if (type is RecordType) return true;
     if (type is NeverType) return true;
     if (type is TypeVariableType) {
       return isNonNullableIfSound(getTypeVariableBound(type.element));
