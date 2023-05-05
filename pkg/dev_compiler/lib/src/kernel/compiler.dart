@@ -6671,7 +6671,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitIsExpression(Expression operand, DartType type) {
     // Generate `is` as `dart.is` or `typeof` depending on the RHS type.
     var lhs = _visitExpression(operand);
-    var typeofName = _typeRep.typeFor(type).primitiveTypeOf;
+    // It is invalid to use a simplified check for a native type in place of
+    // a type test for a `TypeParameterType`. This is because at runtime type
+    // parameters can be instantiated as the bottom type `Never` and
+    // `val is Never` should always evaluate to false.
+    var typeofName = type is TypeParameterType
+        ? null
+        : _typeRep.typeFor(type).primitiveTypeOf;
     // Inline non-nullable primitive types other than int (which requires a
     // Math.floor check).
     if (typeofName != null &&
