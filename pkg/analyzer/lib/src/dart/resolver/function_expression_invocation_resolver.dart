@@ -161,7 +161,7 @@ class FunctionExpressionInvocationResolver {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
         function,
-        [function.extensionName.name],
+        [function.name.lexeme],
       );
       return _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
           contextType: contextType);

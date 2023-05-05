@@ -451,7 +451,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    _visitNode(node.extensionName);
+    _visitNode(node.importPrefix);
+    _visitToken(node.name);
     _visitNode(node.typeArguments);
     _visitNode(node.argumentList);
   }

@@ -642,10 +642,7 @@ void f(A<int> a) {
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
@@ -663,6 +660,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A<int>
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -693,10 +691,7 @@ MethodInvocation
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
@@ -714,6 +709,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A<int*>*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A<num*>*
     staticType: null
     typeArgumentTypes
@@ -783,10 +779,7 @@ void f(A<int> a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
@@ -804,6 +797,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A<int>
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A<num>
       staticType: null
       typeArgumentTypes
@@ -835,10 +829,7 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
@@ -856,6 +847,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A<int*>*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A<num*>*
       staticType: null
       typeArgumentTypes
@@ -946,10 +938,7 @@ void f(A<int> a) {
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -959,6 +948,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A<int>
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -989,10 +979,7 @@ MethodInvocation
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1002,6 +989,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A<int*>*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A<int*>*
     staticType: null
     typeArgumentTypes
@@ -1075,10 +1063,7 @@ void f(A<int> a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1088,6 +1073,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A<int>
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A<int>
       staticType: null
       typeArgumentTypes
@@ -1119,10 +1105,7 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1132,6 +1115,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A<int*>*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A<int*>*
       staticType: null
       typeArgumentTypes

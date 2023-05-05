@@ -3729,10 +3729,7 @@ f(int a, int b, int c) {
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -3742,6 +3739,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int
     staticType: null
   operator: .
@@ -3770,10 +3768,7 @@ MethodInvocation
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -3783,6 +3778,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: int*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int*
     staticType: null
   operator: .
@@ -4254,10 +4250,7 @@ f(A a, int b, int c) {
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -4267,6 +4260,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -4295,10 +4289,7 @@ MethodInvocation
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -4308,6 +4299,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
   operator: .

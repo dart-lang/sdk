@@ -463,10 +463,7 @@ bar(A a) {
 FunctionReference
   function: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -476,6 +473,7 @@ FunctionReference
             staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -590,10 +588,7 @@ bar(A a) {
 FunctionReference
   function: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -603,6 +598,7 @@ FunctionReference
             staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -687,10 +683,7 @@ bar(A a) {
 FunctionReference
   function: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -700,6 +693,7 @@ FunctionReference
             staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -739,10 +733,7 @@ bar(A a) {
 FunctionReference
   function: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -752,6 +743,7 @@ FunctionReference
             staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
     operator: .

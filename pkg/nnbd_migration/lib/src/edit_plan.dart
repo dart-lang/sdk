@@ -1119,6 +1119,8 @@ class _ParensNeededFromContextVisitor extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitExtensionOverride(ExtensionOverride node) {
+    // TODO(scheglov) Remove when removing `extensionName`.
+    // ignore: deprecated_member_use
     assert(identical(_target, node.extensionName));
     return _editPlan._parensNeeded(
         threshold: Precedence.postfix, associative: true);

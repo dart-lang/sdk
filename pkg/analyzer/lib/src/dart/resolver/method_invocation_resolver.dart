@@ -410,7 +410,7 @@ class MethodInvocationResolver with ScopeHelpers {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
         nameNode,
-        [name, override.staticElement!.name!],
+        [name, override.element.name!],
       );
       return;
     }
@@ -424,9 +424,9 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (node.isCascaded) {
       // Report this error and recover by treating it like a non-cascade.
-      _resolver.errorReporter.reportErrorForNode(
+      _resolver.errorReporter.reportErrorForToken(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
-        override.extensionName,
+        override.name,
       );
     }
 

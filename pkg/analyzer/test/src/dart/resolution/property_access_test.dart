@@ -1082,10 +1082,7 @@ void f(A a) {
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1095,6 +1092,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -1108,10 +1106,7 @@ PropertyAccess
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1121,6 +1116,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
   operator: .
@@ -1153,10 +1149,7 @@ void f(A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1166,6 +1159,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1191,10 +1185,7 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1204,6 +1195,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A*
       staticType: null
     operator: .
@@ -1250,10 +1242,7 @@ void f(A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1263,6 +1252,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1288,10 +1278,7 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1301,6 +1288,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A*
       staticType: null
     operator: .

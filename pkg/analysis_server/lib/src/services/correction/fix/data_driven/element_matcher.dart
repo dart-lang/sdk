@@ -254,7 +254,7 @@ class _MatcherBuilder {
   /// Build a matcher for the extension.
   void _buildFromExtensionOverride(ExtensionOverride node) {
     _addMatcher(
-      components: [node.extensionName.name],
+      components: [node.name.lexeme],
       kinds: [ElementKind.extensionKind],
     );
   }

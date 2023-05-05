@@ -32,10 +32,7 @@ void f() {
     final node = findNode.extensionOverride('E<int>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
-  extensionName: SimpleIdentifier
-    token: E
-    staticElement: self::@extension::E
-    staticType: null
+  name: E
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -52,6 +49,7 @@ ExtensionOverride
         parameter: <null>
         staticType: int
     rightParenthesis: )
+  element: self::@extension::E
   extendedType: int
   staticType: null
 ''');
@@ -74,10 +72,7 @@ void f() {
     final node = findNode.extensionOverride('E<bool>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
-  extensionName: SimpleIdentifier
-    token: E
-    staticElement: self::@extension::E
-    staticType: null
+  name: E
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -94,6 +89,7 @@ ExtensionOverride
         parameter: <null>
         staticType: int
     rightParenthesis: )
+  element: self::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes
@@ -119,10 +115,7 @@ void f() {
     final node = findNode.extensionOverride('E<bool, int>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
-  extensionName: SimpleIdentifier
-    token: E
-    staticElement: self::@extension::E
-    staticType: null
+  name: E
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -143,6 +136,7 @@ ExtensionOverride
         parameter: <null>
         staticType: int
     rightParenthesis: )
+  element: self::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes

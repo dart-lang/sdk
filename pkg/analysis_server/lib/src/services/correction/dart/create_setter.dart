@@ -44,7 +44,7 @@ class CreateSetter extends CorrectionProducer {
     var staticModifier = false;
     Element? targetElement;
     if (target is ExtensionOverride) {
-      targetElement = target.staticElement;
+      targetElement = target.element;
     } else if (target is Identifier &&
         target.staticElement is ExtensionElement) {
       targetElement = target.staticElement;

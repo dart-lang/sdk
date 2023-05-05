@@ -555,7 +555,8 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitExtensionOverride(ExtensionOverride node) {
     ExtensionOverride other = _other as ExtensionOverride;
-    return isEqualNodes(node.extensionName, other.extensionName) &&
+    return isEqualNodes(node.importPrefix, other.importPrefix) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualNodes(node.argumentList, other.argumentList);
   }
@@ -2446,24 +2447,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       node.extendedType = _newNode as TypeAnnotationImpl;
       return true;
     } else if (_replaceInList(node.members)) {
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitExtensionOverride(ExtensionOverride node) {
-    if (identical(node.extensionName, _oldNode)) {
-      (node as ExtensionOverrideImpl).extensionName =
-          _newNode as IdentifierImpl;
-      return true;
-    } else if (identical(node.typeArguments, _oldNode)) {
-      (node as ExtensionOverrideImpl).typeArguments =
-          _newNode as TypeArgumentListImpl;
-      return true;
-    } else if (identical(node.argumentList, _oldNode)) {
-      (node as ExtensionOverrideImpl).argumentList =
-          _newNode as ArgumentListImpl;
       return true;
     }
     return visitNode(node);

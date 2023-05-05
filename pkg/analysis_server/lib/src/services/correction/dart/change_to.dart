@@ -144,7 +144,7 @@ class ChangeTo extends CorrectionProducer {
         _updateFinderWithClassMembers(finder, interfaceElement);
       }
     } else if (target is ExtensionOverride) {
-      _updateFinderWithExtensionMembers(finder, target.staticElement);
+      _updateFinderWithExtensionMembers(finder, target.element);
     } else if (targetIdentifierElement is ExtensionElement) {
       _updateFinderWithExtensionMembers(finder, targetIdentifierElement);
     } else {
