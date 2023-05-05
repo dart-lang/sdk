@@ -626,10 +626,7 @@ f(A a) {
     final node = findNode.extensionOverride('E<int>(a)');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
-  extensionName: SimpleIdentifier
-    token: E
-    staticElement: self::@extension::E
-    staticType: null
+  name: E
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -647,6 +644,7 @@ ExtensionOverride
         staticElement: self::@function::f::@parameter::a
         staticType: A
     rightParenthesis: )
+  element: self::@extension::E
   extendedType: A
   staticType: null
   typeArgumentTypes
@@ -1299,18 +1297,11 @@ f(prefix.A a) {
     final node = findNode.extensionOverride('E<int>(a)');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
-  extensionName: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: prefix
-      staticElement: self::@prefix::prefix
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: prefix
     period: .
-    identifier: SimpleIdentifier
-      token: E
-      staticElement: package:test/a.dart::@extension::E
-      staticType: null
-    staticElement: package:test/a.dart::@extension::E
-    staticType: null
+    element: self::@prefix::prefix
+  name: E
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -1328,6 +1319,7 @@ ExtensionOverride
         staticElement: self::@function::f::@parameter::a
         staticType: A
     rightParenthesis: )
+  element: package:test/a.dart::@extension::E
   extendedType: A
   staticType: null
   typeArgumentTypes

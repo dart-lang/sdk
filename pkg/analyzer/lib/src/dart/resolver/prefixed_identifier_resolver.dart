@@ -163,7 +163,6 @@ class PrefixedIdentifierResolver {
     }
 
     if (parent is CommentReference ||
-        parent is ExtensionOverride && parent.extensionName == node ||
         parent is MethodInvocation && parent.target == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccess && parent.target == node) {

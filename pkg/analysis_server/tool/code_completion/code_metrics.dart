@@ -550,7 +550,8 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionOverride(ExtensionOverride node) {
     _visitChildren(node, {
-      'extensionName': node.extensionName,
+      'importPrefix': node.importPrefix,
+      'name': node.name,
       'typeArguments': node.typeArguments,
       'argumentList': node.argumentList,
     });

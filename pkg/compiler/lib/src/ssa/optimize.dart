@@ -1575,6 +1575,14 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     return node;
   }
 
+  @override
+  HInstruction visitCharCodeAt(HCharCodeAt node) {
+    final folded =
+        foldBinary(constant_system.codeUnitAt, node.receiver, node.index);
+    if (folded != null) return folded;
+    return node;
+  }
+
   /// Returns the guarded receiver.
   HInstruction maybeGuardWithNullCheck(
       HInstruction receiver, HInvokeDynamic node, FieldEntity? field) {

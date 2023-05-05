@@ -2517,7 +2517,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitExtensionOverride(covariant ExtensionOverrideImpl node,
       {DartType? contextType}) {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
-    node.extensionName.accept(this);
     node.typeArguments?.accept(this);
 
     var receiverContextType =

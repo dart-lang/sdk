@@ -1,5 +1,11 @@
 ## 5.12.0-dev
 * Deprecated `DartType.isDynamic`, use `is DynamicType` instead.
+* Updated `NamedType` to use `importPrefix` and `name2` token.
+  The deprecated `name` node is still visited in this version, but will stop
+  in the next major version.
+* Updated `ExtensionOverride` to use `importPrefix` and `name` token.
+  The deprecated `extensionName` node is still visited in this version, but
+  will stop in the next major version.
 
 ## 5.11.1
 * Restore previously published `finalKeyword`, `interfaceKeyword` and

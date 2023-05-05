@@ -632,10 +632,7 @@ void f(int a) {
     assertResolvedNodeText(findNode.binary('!= 0'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -645,6 +642,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int
     staticType: null
   operator: !=
@@ -724,10 +722,7 @@ void f(int a) {
     assertResolvedNodeText(findNode.binary('== 0'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -737,6 +732,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int
     staticType: null
   operator: ==
@@ -1373,10 +1369,7 @@ f(int a, int b) {
     assertResolvedNodeText(findNode.binary('E(a) + b'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1386,6 +1379,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int
     staticType: null
   operator: +
@@ -1598,10 +1592,7 @@ f(A a, int b) {
     assertResolvedNodeText(findNode.binary('E(a) + b'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1611,6 +1602,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
   operator: +

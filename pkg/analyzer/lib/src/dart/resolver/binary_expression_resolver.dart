@@ -301,8 +301,7 @@ class BinaryExpressionResolver {
     Expression leftOperand = node.leftOperand;
 
     if (leftOperand is ExtensionOverride) {
-      var extension =
-          leftOperand.extensionName.staticElement as ExtensionElement;
+      var extension = leftOperand.element;
       var member = extension.getMethod(methodName);
       if (member == null) {
         // Extension overrides can only be used with named extensions so it is

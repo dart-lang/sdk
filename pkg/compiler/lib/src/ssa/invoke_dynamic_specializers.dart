@@ -322,6 +322,44 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
   }
 }
 
+class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
+  const CodeUnitAtSpecializer();
+
+  @override
+  constant_system.BinaryOperation operation() {
+    return constant_system.codeUnitAt;
+  }
+
+  @override
+  HInstruction? tryConvertToBuiltin(
+      HInvokeDynamic instruction,
+      HGraph graph,
+      GlobalTypeInferenceResults results,
+      JCommonElements commonElements,
+      JClosedWorld closedWorld,
+      OptimizationTestLog? log) {
+    final abstractValueDomain = closedWorld.abstractValueDomain;
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    if (receiver.isStringOrNull(abstractValueDomain).isPotentiallyFalse) {
+      return null;
+    }
+    HInstruction index = instruction.inputs.last;
+    if (index.isInteger(abstractValueDomain).isPotentiallyFalse) {
+      return null;
+    }
+
+    HInstruction checkedIndex = index;
+    if (requiresBoundsCheck(instruction, closedWorld)) {
+      checkedIndex =
+          insertBoundsCheck(instruction, receiver, index, closedWorld, log);
+    }
+    final converted =
+        HCharCodeAt(receiver, checkedIndex, abstractValueDomain.uint31Type);
+    log?.registerCodeUnitAt(instruction);
+    return converted;
+  }
+}
+
 class RemoveLastSpecializer extends InvokeDynamicSpecializer {
   const RemoveLastSpecializer();
 
@@ -1433,43 +1471,6 @@ class LessEqualSpecializer extends RelationalSpecializer {
   void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
       HInstruction converted) {
     log.registerLessEqual(original, converted);
-  }
-}
-
-class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
-  const CodeUnitAtSpecializer();
-
-  @override
-  constant_system.BinaryOperation operation() {
-    return constant_system.codeUnitAt;
-  }
-
-  @override
-  HInstruction? tryConvertToBuiltin(
-      HInvokeDynamic instruction,
-      HGraph graph,
-      GlobalTypeInferenceResults results,
-      JCommonElements commonElements,
-      JClosedWorld closedWorld,
-      OptimizationTestLog? log) {
-    // TODO(sra): Implement a builtin HCodeUnitAt instruction and the same index
-    // bounds checking optimizations as for HIndex.
-    HInstruction receiver = instruction.getDartReceiver(closedWorld);
-    if (receiver
-        .isStringOrNull(closedWorld.abstractValueDomain)
-        .isDefinitelyTrue) {
-      // Even if there is no builtin equivalent instruction, we know
-      // String.codeUnitAt does not have any side effect (other than throwing),
-      // and that it can be GVN'ed.
-      clearAllSideEffects(instruction);
-      if (instruction.inputs.last
-          .isPositiveInteger(closedWorld.abstractValueDomain)
-          .isDefinitelyTrue) {
-        redirectSelector(instruction, '_codeUnitAt', commonElements);
-      }
-      log?.registerCodeUnitAt(instruction);
-    }
-    return null;
   }
 }
 

@@ -211,8 +211,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionOverride(ExtensionOverride node) {
     if (checkExtensionMethods) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_EXTENSION_METHODS, node.extensionName);
+      _errorReporter.reportErrorForToken(
+        WarningCode.SDK_VERSION_EXTENSION_METHODS,
+        node.name,
+      );
     }
     super.visitExtensionOverride(node);
   }

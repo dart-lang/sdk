@@ -461,11 +461,15 @@ class AstBinaryReader {
   }
 
   ExtensionOverride _readExtensionOverride() {
-    var extensionName = readNode() as IdentifierImpl;
+    var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
+    var extensionName = _readStringReference();
+    var element = _reader.readElement() as ExtensionElement;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var argumentList = readNode() as ArgumentListImpl;
     var node = ExtensionOverrideImpl(
-      extensionName: extensionName,
+      importPrefix: importPrefix,
+      name: StringToken(TokenType.STRING, extensionName, -1),
+      element: element,
       argumentList: argumentList,
       typeArguments: typeArguments,
     );

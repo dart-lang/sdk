@@ -4500,6 +4500,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       _handleLateWriteOnceCheck(invocation);
     } else if (name == '_lateInitializeOnceCheck') {
       _handleLateInitializeOnceCheck(invocation);
+    } else if (name == 'HCharCodeAt') {
+      _handleCharCodeAt(invocation);
     } else {
       reporter.internalError(
           _elementMap.getSpannable(targetElement, invocation),
@@ -5168,6 +5170,17 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
     List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
     push(HStringConcat(inputs[0], inputs[1], _abstractValueDomain.stringType));
+  }
+
+  void _handleCharCodeAt(ir.StaticInvocation invocation) {
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 2, maxPositional: 2)) {
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
+    push(HCharCodeAt(inputs[0], inputs[1], _abstractValueDomain.uint31Type));
   }
 
   void _handleForeignTypeRef(ir.StaticInvocation invocation) {

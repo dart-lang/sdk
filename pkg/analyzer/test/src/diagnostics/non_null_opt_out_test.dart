@@ -457,10 +457,7 @@ main(A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: package:test/a.dart::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -470,6 +467,7 @@ AssignmentExpression
             staticElement: self::@function::main::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: package:test/a.dart::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1004,10 +1002,7 @@ main() {
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: package:test/a.dart::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1016,6 +1011,7 @@ MethodInvocation
           parameter: <null>
           staticType: int*
       rightParenthesis: )
+    element: package:test/a.dart::@extension::E
     extendedType: int
     staticType: null
   operator: .

@@ -387,4 +387,23 @@ dependencies:
 
     expect(didRun, isFalse);
   }
+
+  void test_screenshots_description() {
+    getCompletions('''
+screenshots:
+  - d^
+''');
+    assertSuggestion('description: ');
+  }
+
+  void test_screenshots_path() {
+    getCompletions('''
+screenshots:
+  - description: 'One'
+    path: /path/to/ss.png
+  - description: 'Two' 
+    ^
+''');
+    assertSuggestion('path: ');
+  }
 }

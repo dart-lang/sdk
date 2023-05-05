@@ -714,10 +714,7 @@ void f(C c) {
 PrefixExpression
   operator: ++
   operand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: Ext
-      staticElement: self::@extension::Ext
-      staticType: null
+    name: Ext
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -727,6 +724,7 @@ PrefixExpression
           staticElement: self::@function::f::@parameter::c
           staticType: C
       rightParenthesis: )
+    element: self::@extension::Ext
     extendedType: C
     staticType: null
   readElement: <null>
@@ -741,10 +739,7 @@ PrefixExpression
 PrefixExpression
   operator: ++
   operand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: Ext
-      staticElement: self::@extension::Ext
-      staticType: null
+    name: Ext
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -754,6 +749,7 @@ PrefixExpression
           staticElement: self::@function::f::@parameter::c
           staticType: C*
       rightParenthesis: )
+    element: self::@extension::Ext
     extendedType: C*
     staticType: null
   readElement: <null>
