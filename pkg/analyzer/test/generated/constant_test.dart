@@ -388,6 +388,26 @@ const [for (var i = 0; i < 4; i++) i]
     await _assertValueInt(-42, "-42");
   }
 
+  test_negated_object_hasExtension() async {
+    await assertErrorsInCode('''
+extension on Object {
+  int operator -() => 0;
+}
+
+const Object v1 = 1;
+const v2 = -v1;
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 82,
+          3),
+    ]);
+
+    final v2 = findElement.topVar('v2');
+    final evaluationResult = v2.evaluationResult;
+    assertDartObjectText(evaluationResult.value, r'''
+<null>
+''');
+  }
+
   /// Even though it is an error to specify a default value for a required
   /// parameter, we still can evaluate it.
   test_normalParameter_requiredNamed_hasDefault() async {
@@ -575,6 +595,26 @@ E<String>
 
   test_plus_int_int() async {
     await _assertValueInt(5, "2 + 3");
+  }
+
+  test_plus_object_hasExtension() async {
+    await assertErrorsInCode('''
+extension on Object {
+  int operator +(Object other) => 0;
+}
+
+const Object v1 = 0;
+const v2 = v1 + v1;
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 94,
+          7),
+    ]);
+
+    final v2 = findElement.topVar('v2');
+    final evaluationResult = v2.evaluationResult;
+    assertDartObjectText(evaluationResult.value, r'''
+<null>
+''');
   }
 
   test_plus_string_string() async {
