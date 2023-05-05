@@ -50,7 +50,7 @@ vars = {
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
-  "co19_rev": "794313da70f2b8c1150ffcbf2fbf8746649ab09f",
+  "co19_rev": "742378dde137d8d35e726640acf93164e0be59f8",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "ae846ed2a987a2d2dbe4b9e9c68448a21f91ef5b",
 
@@ -193,7 +193,7 @@ vars = {
   # Pinned browser versions used by the testing infrastructure. These are not
   # meant to be downloaded by users for local testing.
   "download_chrome": False,
-  "chrome_tag": "101.0.4951.41",
+  "chrome_tag": "113.0.5672.63+2",
   "download_firefox": False,
   "firefox_tag": "98.0.2",
 
