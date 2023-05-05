@@ -251,6 +251,13 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
+  String visitCharCodeAt(HCharCodeAt node) {
+    String receiver = temporaryId(node.receiver);
+    String index = temporaryId(node.index);
+    return "CharCodeAt: $receiver.charCodeAt($index)";
+  }
+
+  @override
   String visitConstant(HConstant constant) => "Constant: ${constant.constant}";
 
   @override

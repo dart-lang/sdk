@@ -47,6 +47,7 @@ abstract class HVisitor<R> {
   R visitBitXor(HBitXor node);
   R visitBoundsCheck(HBoundsCheck node);
   R visitBreak(HBreak node);
+  R visitCharCodeAt(HCharCodeAt node);
   R visitConstant(HConstant node);
   R visitContinue(HContinue node);
   R visitCreate(HCreate node);
@@ -467,6 +468,8 @@ class HBaseVisitor<R> extends HGraphVisitor implements HVisitor<R> {
   R visitBreak(HBreak node) => visitJump(node);
   @override
   R visitContinue(HContinue node) => visitJump(node);
+  @override
+  R visitCharCodeAt(HCharCodeAt node) => visitInstruction(node);
   R visitCheck(HCheck node) => visitInstruction(node);
   @override
   R visitConstant(HConstant node) => visitInstruction(node);
@@ -1127,6 +1130,8 @@ abstract class HInstruction implements SpannableWithEntity {
   static const int LATE_READ_CHECK_TYPECODE = 61;
   static const int LATE_WRITE_ONCE_CHECK_TYPECODE = 62;
   static const int LATE_INITIALIZE_ONCE_CHECK_TYPECODE = 63;
+
+  static const int CHAR_CODE_AT_TYPECODE = 64;
 
   HInstruction(this.inputs, this.instructionType);
   @override
@@ -3475,7 +3480,8 @@ class HIndex extends HInstruction {
   HInstruction get index => inputs[1];
 
   // Implicit dependency on HBoundsCheck or constraints on index.
-  // TODO(27272): Make HIndex dependent on bounds checking.
+  // TODO(27272): Make HIndex dependent on positions of eliminated bounds
+  // checks.
   @override
   bool get isMovable => false;
 
@@ -3515,7 +3521,7 @@ class HIndexAssign extends HInstruction {
   HInstruction get value => inputs[2];
 
   // Implicit dependency on HBoundsCheck or constraints on index.
-  // TODO(27272): Make HIndex dependent on bounds checking.
+  // TODO(27272): Make HIndex dependent on eliminated bounds checks.
   @override
   bool get isMovable => false;
 
@@ -3528,13 +3534,47 @@ class HIndexAssign extends HInstruction {
       receiver.isNull(domain).isPotentiallyTrue;
 }
 
+class HCharCodeAt extends HInstruction {
+  HCharCodeAt(HInstruction receiver, HInstruction index, AbstractValue type)
+      : super([receiver, index], type);
+
+  @override
+  String toString() => 'HCharCodeAt';
+  @override
+  R accept<R>(HVisitor<R> visitor) => visitor.visitCharCodeAt(this);
+
+  HInstruction get receiver => inputs[0];
+  HInstruction get index => inputs[1];
+
+  // Implicit dependency on HBoundsCheck or constraints on index.
+  // TODO(27272): Make HCharCodeAt dependent on positions of eliminated bounds
+  // checks.
+  @override
+  bool get isMovable => false;
+
+  @override
+  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
+  bool onlyThrowsNSM() => true;
+  @override
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
+
+  @override
+  int typeCode() => HInstruction.CHAR_CODE_AT_TYPECODE;
+  @override
+  bool typeEquals(other) => other is HCharCodeAt;
+  @override
+  bool dataEquals(HCharCodeAt other) => true;
+}
+
 /// HLateValue is a late-stage instruction that can be used to force a value
 /// into a temporary.
 ///
 /// HLateValue is useful for naming values that would otherwise be generated at
 /// use site, for example, if 'this' is used many times, replacing uses of
 /// 'this' with HLateValue(HThis) will have the effect of copying 'this' to a
-/// temporary will reduce the size of minified code.
+/// temporary which will reduce the size of minified code.
 class HLateValue extends HLateInstruction {
   HLateValue(HInstruction target) : super([target], target.instructionType);
 
