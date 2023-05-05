@@ -453,18 +453,21 @@ class AnalyticsManager {
   /// analysis options file.
   Future<void> _sendLintUsageCounts() async {
     if (_lintUsageCounts.isNotEmpty) {
+      var lintUsageCounts = json.encode(_lintUsageCounts);
+      _lintUsageCounts.clear();
       await analytics
           .sendEvent(eventName: DashEvent.lintUsageCounts, eventData: {
-        'usageCounts': json.encode(_lintUsageCounts),
+        'usageCounts': lintUsageCounts,
       });
-      _lintUsageCounts.clear();
     }
   }
 
   /// Send information about the notifications handled by the server.
   Future<void> _sendNotificationHandlingTimes() async {
     if (_completedNotifications.isNotEmpty) {
-      for (var data in _completedNotifications.values) {
+      var completedNotifications = _completedNotifications.values.toList();
+      _completedNotifications.clear();
+      for (var data in completedNotifications) {
         await analytics
             .sendEvent(eventName: DashEvent.clientNotification, eventData: {
           'latency': data.latencyTimes.toAnalyticsString(),
@@ -472,7 +475,6 @@ class AnalyticsManager {
           'duration': data.handlingTimes.toAnalyticsString(),
         });
       }
-      _completedNotifications.clear();
     }
   }
 
@@ -490,7 +492,9 @@ class AnalyticsManager {
   Future<void> _sendPluginResponseTimes() async {
     var responseTimes = PluginManager.pluginResponseTimes;
     if (responseTimes.isNotEmpty) {
-      for (var pluginEntry in responseTimes.entries) {
+      var entries = responseTimes.entries.toList();
+      responseTimes.clear();
+      for (var pluginEntry in entries) {
         for (var responseEntry in pluginEntry.value.entries) {
           await analytics
               .sendEvent(eventName: DashEvent.pluginRequest, eventData: {
@@ -500,14 +504,15 @@ class AnalyticsManager {
           });
         }
       }
-      PluginManager.pluginResponseTimes.clear();
     }
   }
 
   /// Send information about the response times of server.
   Future<void> _sendServerResponseTimes() async {
     if (_completedRequests.isNotEmpty) {
-      for (var data in _completedRequests.values) {
+      var completedRequests = _completedRequests.values.toList();
+      _completedRequests.clear();
+      for (var data in completedRequests) {
         await analytics
             .sendEvent(eventName: DashEvent.clientRequest, eventData: {
           'latency': data.latencyTimes.toAnalyticsString(),
@@ -519,7 +524,6 @@ class AnalyticsManager {
             field.key: json.encode(field.value),
         });
       }
-      _completedRequests.clear();
     }
   }
 
@@ -541,11 +545,12 @@ class AnalyticsManager {
   /// diagnostic is changed in an analysis options file.
   Future<void> _sendSeverityAdjustments() async {
     if (_severityAdjustments.isNotEmpty) {
+      var severityAdjustments = json.encode(_severityAdjustments);
+      _severityAdjustments.clear();
       await analytics
           .sendEvent(eventName: DashEvent.severityAdjustments, eventData: {
-        'adjustmentCounts': json.encode(_severityAdjustments),
+        'adjustmentCounts': severityAdjustments,
       });
-      _severityAdjustments.clear();
     }
   }
 }
