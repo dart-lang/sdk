@@ -53,6 +53,7 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
     getCompletions('^');
     assertSuggestion('flutter: ');
     assertSuggestion('name: ');
+    assertSuggestion('topics: ');
   }
 
   void test_emptyPreviousSibling() {

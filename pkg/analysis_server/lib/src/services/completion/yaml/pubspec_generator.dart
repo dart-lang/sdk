@@ -128,6 +128,7 @@ class PubspecGenerator extends YamlCompletionGenerator {
       }),
       'uses-material-design': BooleanProducer(),
     }),
+    'topics': EmptyProducer(),
   });
 
   /// Initialize a newly created suggestion generator for pubspec files.
