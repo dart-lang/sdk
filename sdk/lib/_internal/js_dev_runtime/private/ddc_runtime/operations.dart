@@ -1035,7 +1035,7 @@ Future<void> loadLibrary(@notNull String libraryUri,
     var completer = Completer();
 
     // Don't mark a load ID as loaded across hot restart boundaries.
-    void internalComplete(void Function() beforeComplete) {
+    void internalComplete(void Function()? beforeComplete) {
       if (hotRestartIteration == currentHotRestartIteration &&
           beforeComplete != null) {
         beforeComplete();
