@@ -38,18 +38,17 @@ f<T>(List<T?> l){
     ]);
   }
 
-  @FailingTest(
-      reason: 'Exception raised in resolver',
-      issue: 'https://github.com/dart-lang/linter/issues/4258')
   test_nullAssertPattern_logicalOr() async {
     await assertDiagnostics(r'''
 f<T>(T? x){
   switch(x) {
-    case var y! || y == 2 : print(y);
+    case var y! || var y! : print(y);
   }
 }
 ''', [
-      lint(39, 1),
+      lint(40, 1),
+      error(WarningCode.DEAD_CODE, 42, 9),
+      lint(50, 1),
     ]);
   }
 
