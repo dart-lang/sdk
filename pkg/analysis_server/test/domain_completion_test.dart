@@ -2015,6 +2015,8 @@ suggestions
     kind: identifier
   |repository: |
     kind: identifier
+  screenshots:
+    kind: identifier
   |topics: |
     kind: identifier
   |version: |

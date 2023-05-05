@@ -128,6 +128,10 @@ class PubspecGenerator extends YamlCompletionGenerator {
       }),
       'uses-material-design': BooleanProducer(),
     }),
+    'screenshots': ListProducer(MapProducer({
+      'description': EmptyProducer(),
+      'path': FilePathProducer(),
+    })),
     'topics': EmptyProducer(),
   });
 
