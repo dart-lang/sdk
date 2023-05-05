@@ -590,6 +590,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitBinaryExpression(BinaryExpression node) {
+    if (node.staticElement?.enclosingElement is ExtensionElement) {
+      _error(node, null);
+      return null;
+    }
+
     TokenType operatorType = node.operator.type;
     var leftResult = node.leftOperand.accept(this);
     // evaluate lazy operators
@@ -1019,6 +1024,10 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     var operand = node.operand.accept(this);
     if (operand != null && operand.isNull) {
       _error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+      return null;
+    }
+    if (node.staticElement?.enclosingElement is ExtensionElement) {
+      _error(node, null);
       return null;
     }
     if (node.operator.type == TokenType.BANG) {
