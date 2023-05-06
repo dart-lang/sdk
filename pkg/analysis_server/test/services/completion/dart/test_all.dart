@@ -8,7 +8,6 @@ import 'arglist_contributor_test.dart' as arglist_test;
 import 'closure_contributor_test.dart' as closure_contributor;
 import 'completion_manager_test.dart' as completion_manager;
 import 'declaration/test_all.dart' as declaration;
-import 'extension_member_contributor_test.dart' as extension_member_contributor;
 import 'imported_reference_contributor_test.dart' as imported_ref_test;
 import 'label_contributor_test.dart' as label_contributor_test;
 import 'library_member_contributor_test.dart' as library_member_test;
@@ -30,7 +29,6 @@ void main() {
     closure_contributor.main();
     completion_manager.main();
     declaration.main();
-    extension_member_contributor.main();
     imported_ref_test.main();
     label_contributor_test.main();
     library_member_test.main();

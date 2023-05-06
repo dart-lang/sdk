@@ -445,7 +445,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForConflictingClassMembers();
       _constructorFieldsVerifier.enterClass(node, element);
       _checkForFinalNotInitializedInClass(members);
-      _checkForBadFunctionUse(node);
+      _checkForBadFunctionUse(
+        superclass: node.extendsClause?.superclass,
+        withClause: node.withClause,
+        implementsClause: node.implementsClause,
+      );
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
@@ -479,6 +483,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMixinClassErrorCodes(
           node, List.empty(), node.superclass, node.withClause);
+      _checkForBadFunctionUse(
+        superclass: node.superclass,
+        withClause: node.withClause,
+        implementsClause: node.implementsClause,
+      );
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
     } finally {
       _enclosingClass = outerClassElement;
@@ -1699,23 +1708,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Verifies that the class is not named `Function` and that it doesn't
-  /// extends/implements/mixes in `Function`.
-  void _checkForBadFunctionUse(ClassDeclaration node) {
+  /// Verifies that the nodes don't reference `Function` from `dart:core`.
+  void _checkForBadFunctionUse({
+    required NamedType? superclass,
+    required ImplementsClause? implementsClause,
+    required WithClause? withClause,
+  }) {
     // With the `class_modifiers` feature `Function` is final.
     if (_featureSet!.isEnabled(Feature.class_modifiers)) {
       return;
     }
 
-    var extendsClause = node.extendsClause;
-    var implementsClause = node.implementsClause;
-    var withClause = node.withClause;
-
-    if (extendsClause != null) {
-      var superElement = extendsClause.superclass.element;
-      if (superElement != null && superElement.name == "Function") {
+    if (superclass != null) {
+      var type = superclass.type;
+      if (type != null && type.isDartCoreFunction) {
         errorReporter.reportErrorForNode(
-            WarningCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
+          WarningCode.DEPRECATED_EXTENDS_FUNCTION,
+          superclass,
+        );
       }
     }
 
@@ -1733,11 +1743,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (withClause != null) {
-      for (NamedType type in withClause.mixinTypes) {
-        var mixinElement = type.element;
-        if (mixinElement != null && mixinElement.name == "Function") {
+      for (NamedType mixin in withClause.mixinTypes) {
+        final type = mixin.type;
+        if (type != null && type.isDartCoreFunction) {
           errorReporter.reportErrorForNode(
-              WarningCode.DEPRECATED_MIXIN_FUNCTION, type);
+            WarningCode.DEPRECATED_MIXIN_FUNCTION,
+            mixin,
+          );
         }
       }
     }

@@ -657,8 +657,8 @@ const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
 //   Abc:
 //   .cfi_startproc
 //   .cfi_def_cfa x29, 16
-//   .cfi_offset x29, -16
 //   .cfi_offset x30, -8
+//   .cfi_offset x29, -16
 //   ;; ...
 //   Xyz:
 //   ;; ...
@@ -674,9 +674,9 @@ const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
 // __eh_frame. This means that emitting CFI directives for each function would
 // balloon the size of __eh_frame.
 //
-// Hence to work around the problem of incorrect __unwind_info without ballooning
-// snapshot size when __eh_frame is generated we choose to emit CFI directives
-// per function specifically on ARM64 Mac OS X and iOS.
+// Hence to work around the problem of incorrect __unwind_info without
+// ballooning snapshot size when __eh_frame is generated we choose to emit CFI
+// directives per function specifically on ARM64 Mac OS X and iOS.
 //
 // See also |useCompactUnwind| method in LLVM (https://github.com/llvm/llvm-project/blob/b27430f9f46b88bcd54d992debc8d72e131e1bd0/llvm/lib/MC/MCObjectFileInfo.cpp#L28-L50)
 #define EMIT_UNWIND_DIRECTIVES_PER_FUNCTION 1
@@ -1537,29 +1537,43 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // tells unwinder that caller's value of register R is stored at address
   // CFA+offs.
 
+  // In the code below we emit .cfi_offset directive in the specific order:
+  // PC first then FP. This should not actually matter, but we discovered
+  // that LLVM code responsible for emitting compact unwind information
+  // expects this specific ordering of CFI directives. If we don't
+  // follow the order then LLVM fails to emit compact unwind info and emits
+  // __eh_frame instead which is very large.
+  // See also https://github.com/llvm/llvm-project/issues/62574 and
+  // https://github.com/flutter/flutter/issues/126004.
+
 #if defined(TARGET_ARCH_IA32)
   UNREACHABLE();
 #elif defined(TARGET_ARCH_X64)
   assembly_stream_->WriteString(".cfi_def_cfa rbp, 16\n");
-  assembly_stream_->WriteString(".cfi_offset rbp, -16\n");
   assembly_stream_->WriteString(".cfi_offset rip, -8\n");
+  assembly_stream_->WriteString(".cfi_offset rbp, -16\n");
 #elif defined(TARGET_ARCH_ARM64)
   COMPILE_ASSERT(R29 == FP);
   COMPILE_ASSERT(R30 == LINK_REGISTER);
   assembly_stream_->WriteString(".cfi_def_cfa x29, 16\n");
-  assembly_stream_->WriteString(".cfi_offset x29, -16\n");
   assembly_stream_->WriteString(".cfi_offset x30, -8\n");
+  assembly_stream_->WriteString(".cfi_offset x29, -16\n");
 #elif defined(TARGET_ARCH_ARM)
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R7);
   assembly_stream_->WriteString(".cfi_def_cfa r7, 8\n");
-  assembly_stream_->WriteString(".cfi_offset r7, -8\n");
 #else
   COMPILE_ASSERT(FP == R11);
   assembly_stream_->WriteString(".cfi_def_cfa r11, 8\n");
-  assembly_stream_->WriteString(".cfi_offset r11, -8\n");
 #endif
   assembly_stream_->WriteString(".cfi_offset lr, -4\n");
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+  COMPILE_ASSERT(FP == R7);
+  assembly_stream_->WriteString(".cfi_offset r7, -8\n");
+#else
+  COMPILE_ASSERT(FP == R11);
+  assembly_stream_->WriteString(".cfi_offset r11, -8\n");
+#endif
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
 #if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R11);
@@ -1569,12 +1583,12 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
 #endif
 #elif defined(TARGET_ARCH_RISCV32)
   assembly_stream_->WriteString(".cfi_def_cfa fp, 0\n");
-  assembly_stream_->WriteString(".cfi_offset fp, -8\n");
   assembly_stream_->WriteString(".cfi_offset ra, -4\n");
+  assembly_stream_->WriteString(".cfi_offset fp, -8\n");
 #elif defined(TARGET_ARCH_RISCV64)
   assembly_stream_->WriteString(".cfi_def_cfa fp, 0\n");
-  assembly_stream_->WriteString(".cfi_offset fp, -16\n");
   assembly_stream_->WriteString(".cfi_offset ra, -8\n");
+  assembly_stream_->WriteString(".cfi_offset fp, -16\n");
 #else
 #error Unexpected architecture.
 #endif
