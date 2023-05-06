@@ -2888,23 +2888,38 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.
   /// FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY].
   void _checkForFinalSupertypeOutsideOfLibrary(
-      NamedType? superclass,
-      WithClause? withClause,
-      ImplementsClause? implementsClause,
-      OnClause? onClause) {
+    NamedType? superclass,
+    WithClause? withClause,
+    ImplementsClause? implementsClause,
+    OnClause? onClause,
+  ) {
+    List<Element> elementsToCheck(InterfaceType type) {
+      final element = type.element;
+      if (element.library.featureSet.isEnabled(Feature.class_modifiers)) {
+        return [element];
+      } else {
+        return [
+          element,
+          ...element.allSupertypes.map((e) => e.element),
+        ];
+      }
+    }
+
     if (superclass != null) {
       final type = superclass.type;
       if (type is InterfaceType) {
-        final element = type.element;
-        if (element is ClassElementImpl &&
-            element.isFinal &&
-            !element.isSealed &&
-            element.library != _currentLibrary &&
-            !_mayIgnoreClassModifiers(element.library)) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-              superclass,
-              [element.name]);
+        final elements = elementsToCheck(type);
+        for (final element in elements) {
+          if (element is ClassElementImpl &&
+              element.isFinal &&
+              !element.isSealed &&
+              element.library != _currentLibrary &&
+              !_mayIgnoreClassModifiers(element.library)) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+                superclass,
+                [element.name]);
+          }
         }
       }
     }
@@ -2912,16 +2927,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType namedType in implementsClause.interfaces) {
         final type = namedType.type;
         if (type is InterfaceType) {
-          final element = type.element;
-          if (element is ClassElement &&
-              element.isFinal &&
-              !element.isSealed &&
-              element.library != _currentLibrary &&
-              !_mayIgnoreClassModifiers(element.library)) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                namedType,
-                [element.name]);
+          final elements = elementsToCheck(type);
+          for (final element in elements) {
+            if (element is ClassElement &&
+                element.isFinal &&
+                !element.isSealed &&
+                element.library != _currentLibrary &&
+                !_mayIgnoreClassModifiers(element.library)) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode
+                      .FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                  namedType,
+                  [element.name]);
+            }
           }
         }
       }
