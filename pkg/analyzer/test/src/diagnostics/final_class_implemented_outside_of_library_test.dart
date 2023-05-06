@@ -37,6 +37,27 @@ final class Bar implements Foo {}
     ]);
   }
 
+  test_class_outside_viaLanguage219() async {
+    int;
+    newFile('$testPackageLibPath/a.dart', r'''
+final class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 2.19
+import 'a.dart';
+class B implements A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'b.dart';
+final class C implements B {}
+''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 42,
+          1),
+    ]);
+  }
+
   test_class_outside_viaTypedef_inside() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 final class Foo {}

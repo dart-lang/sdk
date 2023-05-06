@@ -36,6 +36,26 @@ final class Bar extends Foo {}
     ]);
   }
 
+  test_outside_viaLanguage219() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 2.19
+import 'a.dart';
+class B extends A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'b.dart';
+final class C extends B {}
+''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 39, 1),
+    ]);
+  }
+
   test_outside_viaTypedef_inside() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 final class Foo {}
