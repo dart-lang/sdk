@@ -3,6 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // CHANGES:
+// v0.34
+// - Convert left-recursion in `cascade` to iteration.
+// - Convert right-recursion in `unaryExpression` to iteration.
+// - Add await and negation as prefixes to prefixed super unaryExpressions
+//   to match the implementation.
+// - Remove the dependency on order for disambiguating
+//   `<typeArguments> <arguments>` and `<arguments>` in selectors.
+// - Fix inconsistent order-dependent disambiguation between external
+//   methods and external constructors.
+// - Minor formatting changes.
 //
 // v0.33 This commit does not change the derived language at all. It just
 // changes several rules to use the regexp-like grammar operators to simplify
@@ -71,7 +81,7 @@
 // `builtinIdentifier` and `reservedWord`; update `typeAlias` to enable
 // non-function type aliases; add missing `metadata` to formal parameter
 // declarations; correct `symbolLiteral` to allow `VOID`;
-
+//
 // v0.12 (82403371ac00ddf004be60fa7b705474d2864509) Cf. language issue #1341:
 // correct `metadata`. Change `qualifiedName` such that it only includes the
 // cases with a '.'; the remaining case is added where `qualifiedName` is used.
@@ -118,11 +128,11 @@
 
 grammar Dart;
 
-@parser::header{
+@parser::header {
 import java.util.Stack;
 }
 
-@lexer::header{
+@lexer::header {
 import java.util.Stack;
 }
 
@@ -170,7 +180,7 @@ import java.util.Stack;
   }
 }
 
-@lexer::members{
+@lexer::members {
   public static final int BRACE_NORMAL = 1;
   public static final int BRACE_SINGLE = 2;
   public static final int BRACE_DOUBLE = 3;
@@ -201,15 +211,19 @@ import java.util.Stack;
   void enterBrace() {
     braceLevels.push(BRACE_NORMAL);
   }
+
   void enterBraceSingleQuote() {
     braceLevels.push(BRACE_SINGLE);
   }
+
   void enterBraceDoubleQuote() {
     braceLevels.push(BRACE_DOUBLE);
   }
+
   void enterBraceThreeSingleQuotes() {
     braceLevels.push(BRACE_THREE_SINGLE);
   }
+
   void enterBraceThreeDoubleQuotes() {
     braceLevels.push(BRACE_THREE_DOUBLE);
   }
@@ -217,11 +231,11 @@ import java.util.Stack;
   // Use this to indicate that we are now exiting a specific '{...}',
   // no matter which kind. Call it before accepting the '}'.
   void exitBrace() {
-      // We might raise a parse error here if the stack is empty, but the
-      // parsing rules should ensure that we get a parse error anyway, and
-      // it is not a big problem for the spec parser even if it misinterprets
-      // the brace structure of some programs with syntax errors.
-      if (!braceLevels.empty()) braceLevels.pop();
+    // We might raise a parse error here if the stack is empty, but the
+    // parsing rules should ensure that we get a parse error anyway, and
+    // it is not a big problem for the spec parser even if it misinterprets
+    // the brace structure of some programs with syntax errors.
+    if (!braceLevels.empty()) braceLevels.pop();
   }
 }
 
@@ -454,10 +468,10 @@ methodSignature
 declaration
     :    EXTERNAL factoryConstructorSignature
     |    EXTERNAL constantConstructorSignature
-    |    EXTERNAL constructorSignature
+    |    (EXTERNAL STATIC?)? functionSignature
     |    (EXTERNAL STATIC?)? getterSignature
     |    (EXTERNAL STATIC?)? setterSignature
-    |    (EXTERNAL STATIC?)? functionSignature
+    |    EXTERNAL constructorSignature
     |    EXTERNAL (STATIC? finalVarOrType | COVARIANT varOrType) identifierList
     |    ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
     |    EXTERNAL? operatorSignature
@@ -793,8 +807,7 @@ argument
     ;
 
 cascade
-    :     cascade '..' cascadeSection
-    |     conditionalExpression ('?..' | '..') cascadeSection
+    :     conditionalExpression ('?..' | '..') cascadeSection ('..' cascadeSection)*
     ;
 
 cascadeSection
@@ -931,10 +944,12 @@ multiplicativeOperator
     ;
 
 unaryExpression
-    :    prefixOperator unaryExpression
-    |    awaitExpression
-    |    postfixExpression
-    |    (minusOperator | tildeOperator) SUPER
+    :    prefixOperator* unaryExpressionTail
+    ;
+
+unaryExpressionTail
+    :    postfixExpression
+    |    prefixOperator SUPER
     |    incrementOperator assignableExpression
     ;
 
@@ -942,6 +957,7 @@ prefixOperator
     :    minusOperator
     |    negationOperator
     |    tildeOperator
+    |    AWAIT
     ;
 
 minusOperator
@@ -956,10 +972,6 @@ tildeOperator
     :    '~'
     ;
 
-awaitExpression
-    :    AWAIT unaryExpression
-    ;
-
 postfixExpression
     :    assignableExpression postfixOperator
     |    primary selector*
@@ -972,7 +984,7 @@ postfixOperator
 selector
     :    '!'
     |    assignableSelector
-    |    argumentPart
+    |    arguments
     |    typeArguments
     ;
 
@@ -1010,7 +1022,7 @@ identifier
     :    IDENTIFIER
     |    builtInIdentifier
     |    otherIdentifier
-    |    { asyncEtcPredicate(getCurrentToken().getType()) }? (AWAIT|YIELD)
+    |    { asyncEtcPredicate(getCurrentToken().getType()) }? (AWAIT | YIELD)
     ;
 
 qualifiedName
@@ -1022,7 +1034,7 @@ typeIdentifier
     :    IDENTIFIER
     |    DYNAMIC // Built-in identifier that can be used as a type.
     |    otherIdentifier // Occur in grammar rules, are not built-in.
-    |    { asyncEtcPredicate(getCurrentToken().getType()) }? (AWAIT|YIELD)
+    |    { asyncEtcPredicate(getCurrentToken().getType()) }? (AWAIT | YIELD)
     ;
 
 typeTest
