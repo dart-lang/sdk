@@ -524,7 +524,7 @@ static method callReturningNever(() → Never f) → dynamic {
 }
 static method switchOnEnum(uns::E e) → dynamic {
   #L1:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, uns::E */ {
     #L2:
     case #C3:
       {
@@ -542,7 +542,7 @@ static method switchOnEnum(uns::E e) → dynamic {
 }
 static method switchOnEnumWithBreak(uns::E e) → dynamic {
   #L5:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, uns::E */ {
     #L6:
     case #C3:
       {
@@ -560,7 +560,7 @@ static method switchOnEnumWithBreak(uns::E e) → dynamic {
 }
 static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
   #L9:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, uns::E */ {
     #L10:
     case #C3:
       {
@@ -578,7 +578,7 @@ static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
 }
 static method switchOnEnumWithFallThrough2(uns::E e) → dynamic {
   #L13:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, uns::E */ {
     #L14:
     case #C3:
     case #C6:

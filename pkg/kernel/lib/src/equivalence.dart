@@ -4110,6 +4110,9 @@ class EquivalenceStrategy {
     if (!checkSwitchStatement_isExplicitlyExhaustive(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkSwitchStatement_expressionTypeInternal(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkSwitchStatement_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -4308,7 +4311,8 @@ class EquivalenceStrategy {
     if (!checkPatternSwitchStatement_cases(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkPatternSwitchStatement_expressionType(visitor, node, other)) {
+    if (!checkPatternSwitchStatement_expressionTypeInternal(
+        visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkPatternSwitchStatement_lastCaseTerminates(visitor, node, other)) {
@@ -8270,6 +8274,12 @@ class EquivalenceStrategy {
         other.isExplicitlyExhaustive, 'isExplicitlyExhaustive');
   }
 
+  bool checkSwitchStatement_expressionTypeInternal(
+      EquivalenceVisitor visitor, SwitchStatement node, SwitchStatement other) {
+    return visitor.checkNodes(node.expressionTypeInternal,
+        other.expressionTypeInternal, 'expressionTypeInternal');
+  }
+
   bool checkSwitchStatement_fileOffset(
       EquivalenceVisitor visitor, SwitchStatement node, SwitchStatement other) {
     return checkStatement_fileOffset(visitor, node, other);
@@ -8437,10 +8447,12 @@ class EquivalenceStrategy {
         node.cases, other.cases, visitor.checkNodes, 'cases');
   }
 
-  bool checkPatternSwitchStatement_expressionType(EquivalenceVisitor visitor,
-      PatternSwitchStatement node, PatternSwitchStatement other) {
-    return visitor.checkNodes(
-        node.expressionType, other.expressionType, 'expressionType');
+  bool checkPatternSwitchStatement_expressionTypeInternal(
+      EquivalenceVisitor visitor,
+      PatternSwitchStatement node,
+      PatternSwitchStatement other) {
+    return visitor.checkNodes(node.expressionTypeInternal,
+        other.expressionTypeInternal, 'expressionTypeInternal');
   }
 
   bool checkPatternSwitchStatement_lastCaseTerminates(

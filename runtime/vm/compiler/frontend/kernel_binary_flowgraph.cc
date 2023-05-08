@@ -4868,12 +4868,14 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
   // We need the number of cases. So start by getting that, then go back.
   const intptr_t offset = ReaderOffset();
   SkipExpression();                        // temporarily skip condition
+  SkipOptionalDartType();                  // temporarily skip expression type
   intptr_t case_count = ReadListLength();  // read number of cases.
   SetOffset(offset);
 
   SwitchBlock block(flow_graph_builder_, case_count);
 
   Fragment instructions = BuildExpression();  // read condition.
+  SkipOptionalDartType();                     // skip expression type
   instructions +=
       StoreLocal(TokenPosition::kNoSource, scopes()->switch_variable);
   instructions += Drop();

@@ -21,7 +21,7 @@ class Enum extends core::_Enum /*isEnum*/  {
     return "Enum.${this.{core::_Enum::_name}{core::String}}";
 }
 static method method1(self::Enum? e) → core::int {
-  switch(e) {
+  switch(e) /* self::Enum? */ {
     #L1:
     case #C3:
     case #C6:
@@ -34,7 +34,7 @@ int method1(Enum? e) {
     ^" in null;
 }
 static method method2(self::Enum? e) → core::int {
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum? */ {
     #L2:
     case #C3:
     case #C6:
@@ -52,7 +52,7 @@ static method method2(self::Enum? e) → core::int {
   }
 }
 static method method3(self::Enum? e) → core::int {
-  switch(e) {
+  switch(e) /* self::Enum? */ {
     #L5:
     case #C3:
     case #C6:
@@ -67,7 +67,7 @@ static method method3(self::Enum? e) → core::int {
   }
 }
 static method method4(self::Enum? e) → core::int {
-  switch(e) {
+  switch(e) /* self::Enum? */ {
     #L7:
     case #C3:
     case #C6:

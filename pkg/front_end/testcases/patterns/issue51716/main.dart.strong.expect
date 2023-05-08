@@ -29,35 +29,35 @@ class Main2 extends core::_Enum /*isEnum*/  {
 }
 static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L1:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L2:
     case #C3:
     case #C6:
       {}
   }
   #L3:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L4:
     case #C8:
     case #C9:
       {}
   }
   #L5:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L6:
     case #C11:
     case #C12:
       {}
   }
   #L7:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L8:
     case #C13:
     case #C14:
       {}
   }
   #L9:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L10:
     case #C15:
     case #C16:
@@ -66,35 +66,35 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
 }
 static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L11:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L12:
     case #C3:
     case #C6:
       {}
   }
   #L13:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L14:
     case #C8:
     case #C9:
       {}
   }
   #L15:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L16:
     case #C11:
     case #C12:
       {}
   }
   #L17:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L18:
     case #C13:
     case #C14:
       {}
   }
   #L19:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L20:
     case #C15:
     case #C16:
@@ -103,35 +103,35 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
 }
 static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L21:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L22:
     case #C3:
     case #C6:
       {}
   }
   #L23:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L24:
     case #C8:
     case #C9:
       {}
   }
   #L25:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L26:
     case #C11:
     case #C12:
       {}
   }
   #L27:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L28:
     case #C13:
     case #C14:
       {}
   }
   #L29:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L30:
     case #C15:
     case #C16:
@@ -170,35 +170,35 @@ class Lib1b extends core::_Enum /*isEnum*/  {
 }
 static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L31:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L32:
     case #C3:
     case #C6:
       {}
   }
   #L33:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L34:
     case #C8:
     case #C9:
       {}
   }
   #L35:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L36:
     case #C11:
     case #C12:
       {}
   }
   #L37:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L38:
     case #C13:
     case #C14:
       {}
   }
   #L39:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L40:
     case #C15:
     case #C16:
@@ -207,35 +207,35 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
 }
 static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L41:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L42:
     case #C3:
     case #C6:
       {}
   }
   #L43:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L44:
     case #C8:
     case #C9:
       {}
   }
   #L45:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L46:
     case #C11:
     case #C12:
       {}
   }
   #L47:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L48:
     case #C13:
     case #C14:
       {}
   }
   #L49:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L50:
     case #C15:
     case #C16:
@@ -244,35 +244,35 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
 }
 static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L51:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L52:
     case #C3:
     case #C6:
       {}
   }
   #L53:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L54:
     case #C8:
     case #C9:
       {}
   }
   #L55:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L56:
     case #C11:
     case #C12:
       {}
   }
   #L57:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L58:
     case #C13:
     case #C14:
       {}
   }
   #L59:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L60:
     case #C15:
     case #C16:

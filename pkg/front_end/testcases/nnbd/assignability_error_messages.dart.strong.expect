@@ -249,7 +249,7 @@ Try changing the type of the variable.
               ^" in l2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>) {
   }
   #L1:
-  switch(x) {
+  switch(x) /* self::B? */ {
     #L2:
     case #C1:
       {

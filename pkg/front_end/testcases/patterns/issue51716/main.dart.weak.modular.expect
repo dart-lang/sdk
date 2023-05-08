@@ -30,7 +30,7 @@ class Main2 extends core::_Enum /*isEnum*/  {
 }
 static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L1:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L2:
     case #C3:
     case #C6:
@@ -42,7 +42,7 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L4:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L5:
     case #C8:
     case #C9:
@@ -54,7 +54,7 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L7:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L8:
     case #C11:
     case #C12:
@@ -66,7 +66,7 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L10:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L11:
     case #C13:
     case #C14:
@@ -78,7 +78,7 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L13:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L14:
     case #C15:
     case #C16:
@@ -92,7 +92,7 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
 }
 static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L16:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L17:
     case #C3:
     case #C6:
@@ -104,7 +104,7 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L19:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L20:
     case #C8:
     case #C9:
@@ -116,7 +116,7 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L22:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L23:
     case #C11:
     case #C12:
@@ -128,7 +128,7 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L25:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L26:
     case #C13:
     case #C14:
@@ -140,7 +140,7 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L28:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L29:
     case #C15:
     case #C16:
@@ -154,7 +154,7 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
 }
 static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L31:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L32:
     case #C3:
     case #C6:
@@ -166,7 +166,7 @@ static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L34:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L35:
     case #C8:
     case #C9:
@@ -178,7 +178,7 @@ static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L37:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L38:
     case #C11:
     case #C12:
@@ -190,7 +190,7 @@ static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L40:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L41:
     case #C13:
     case #C14:
@@ -202,7 +202,7 @@ static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L43:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L44:
     case #C15:
     case #C16:
@@ -247,7 +247,7 @@ class Lib1b extends core::_Enum /*isEnum*/  {
 }
 static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L46:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L47:
     case #C3:
     case #C6:
@@ -259,7 +259,7 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L49:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L50:
     case #C8:
     case #C9:
@@ -271,7 +271,7 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L52:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L53:
     case #C11:
     case #C12:
@@ -283,7 +283,7 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L55:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L56:
     case #C13:
     case #C14:
@@ -295,7 +295,7 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L58:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L59:
     case #C15:
     case #C16:
@@ -309,7 +309,7 @@ static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
 }
 static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L61:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L62:
     case #C3:
     case #C6:
@@ -321,7 +321,7 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L64:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L65:
     case #C8:
     case #C9:
@@ -333,7 +333,7 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L67:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L68:
     case #C11:
     case #C12:
@@ -345,7 +345,7 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L70:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L71:
     case #C13:
     case #C14:
@@ -357,7 +357,7 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L73:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L74:
     case #C15:
     case #C16:
@@ -371,7 +371,7 @@ static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
 }
 static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
   #L76:
-  switch(main1) /*isExplicitlyExhaustive*/ {
+  switch(main1) /* isExplicitlyExhaustive, self::Main1 */ {
     #L77:
     case #C3:
     case #C6:
@@ -383,7 +383,7 @@ static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L79:
-  switch(main2) /*isExplicitlyExhaustive*/ {
+  switch(main2) /* isExplicitlyExhaustive, self::Main2 */ {
     #L80:
     case #C8:
     case #C9:
@@ -395,7 +395,7 @@ static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L82:
-  switch(lib1a) /*isExplicitlyExhaustive*/ {
+  switch(lib1a) /* isExplicitlyExhaustive, mai::Lib1a */ {
     #L83:
     case #C11:
     case #C12:
@@ -407,7 +407,7 @@ static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L85:
-  switch(lib1b) /*isExplicitlyExhaustive*/ {
+  switch(lib1b) /* isExplicitlyExhaustive, mai::Lib1b */ {
     #L86:
     case #C13:
     case #C14:
@@ -419,7 +419,7 @@ static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   #L88:
-  switch(lib2) /*isExplicitlyExhaustive*/ {
+  switch(lib2) /* isExplicitlyExhaustive, mai2::Lib2 */ {
     #L89:
     case #C15:
     case #C16:

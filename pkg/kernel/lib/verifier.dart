@@ -1569,6 +1569,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     _checkRedirectingFactoryTearOff(node);
     super.visitRedirectingFactoryTearOffConstant(node);
   }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    if (node.expressionTypeInternal == null) {
+      problem(node, 'SwitchStatement.expressionType has not been set.');
+    }
+    super.visitSwitchStatement(node);
+  }
 }
 
 void verifyGetStaticType(TypeEnvironment env, Component component) {

@@ -23,7 +23,7 @@ class E extends core::_Enum /*isEnum*/  {
 }
 static method method(iss::E e) → dynamic {
   #L1:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, iss::E */ {
     #L2:
     case #C10:
       {

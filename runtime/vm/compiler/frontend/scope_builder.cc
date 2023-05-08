@@ -1161,6 +1161,7 @@ void ScopeBuilder::VisitStatement() {
       helper_.ReadPosition();                     // read position.
       helper_.ReadBool();                         // read exhaustive flag.
       VisitExpression();                          // read condition.
+      helper_.SkipOptionalDartType();             // read expression type.
       int case_count = helper_.ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
         int expression_count =

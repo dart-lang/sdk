@@ -3399,7 +3399,7 @@ class BinaryBuilder {
     }
     switchCaseStack.length -= count;
     return new PatternSwitchStatement(expression, cases)
-      ..expressionType = expressionType
+      ..expressionTypeInternal = expressionType
       ..fileOffset = fileOffset;
   }
 
@@ -3589,6 +3589,7 @@ class BinaryBuilder {
     int offset = readOffset();
     bool isExplicitlyExhaustive = readByte() == 1;
     Expression expression = readExpression();
+    DartType? expressionType = readDartTypeOption();
     int count = readUInt30();
     List<SwitchCase> cases;
     if (!useGrowableLists && count == 0) {
@@ -3609,6 +3610,7 @@ class BinaryBuilder {
     switchCaseStack.length -= count;
     return new SwitchStatement(expression, cases,
         isExplicitlyExhaustive: isExplicitlyExhaustive)
+      ..expressionTypeInternal = expressionType
       ..fileOffset = offset;
   }
 

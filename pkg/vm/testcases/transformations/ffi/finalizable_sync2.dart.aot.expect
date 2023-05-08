@@ -80,7 +80,7 @@ static method main() → void {
     }
   }
   #L1:
-  switch([@vm.direct-call.metadata=dart.core::DateTime.millisecondsSinceEpoch] new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int}) {
+  switch([@vm.direct-call.metadata=dart.core::DateTime.millisecondsSinceEpoch] new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int}) /* core::int */ {
     #L2:
     case #C1:
     case #C2:
@@ -106,7 +106,7 @@ static method main() → void {
       {
         final self::MyFinalizable finalizable70 = new self::MyFinalizable::•();
         #L5:
-        switch([@vm.direct-call.metadata=dart.core::DateTime.millisecondsSinceEpoch] new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int}) {
+        switch([@vm.direct-call.metadata=dart.core::DateTime.millisecondsSinceEpoch] new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int}) /* core::int */ {
           #L6:
           case #C5:
             {

@@ -1770,7 +1770,8 @@ class PatternSwitchStatement extends Statement implements SwitchStatement {
   /// The type of the [expression].
   ///
   /// This is set during inference.
-  DartType? expressionType;
+  @override
+  DartType? expressionTypeInternal;
 
   /// `true` if the last case terminates.
   ///
@@ -1781,6 +1782,18 @@ class PatternSwitchStatement extends Statement implements SwitchStatement {
   PatternSwitchStatement(this.expression, this.cases) {
     expression.parent = this;
     setParents(cases, this);
+  }
+
+  @override
+  DartType get expressionType {
+    assert(expressionTypeInternal != null,
+        "Expression type hasn't been computed for $this.");
+    return expressionTypeInternal!;
+  }
+
+  @override
+  void set expressionType(DartType value) {
+    expressionTypeInternal = value;
   }
 
   @override

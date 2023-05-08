@@ -14,7 +14,7 @@ import self as self;
 import "dart:core" as core;
 
 static method method(dynamic e) → dynamic {
-  switch(e) {
+  switch(e) /* dynamic */ {
     #L1:
     case #C1:
       {

@@ -107,7 +107,7 @@ class Enum<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
 }
 static method method1(self::Enum<dynamic> e) → dynamic {
   #L1:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum<dynamic> */ {
     #L2:
     case #C3:
     case #C6:
@@ -122,7 +122,7 @@ static method method1(self::Enum<dynamic> e) → dynamic {
 }
 static method method2(self::Enum<core::num> e) → dynamic {
   #L4:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum<core::num> */ {
     #L5:
     case #C3:
     case #C6:
@@ -137,7 +137,7 @@ static method method2(self::Enum<core::num> e) → dynamic {
 }
 static method method3(self::Enum<core::int> e) → dynamic {
   #L7:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum<core::int> */ {
     #L8:
     case #C3:
     case #C6:
@@ -152,7 +152,7 @@ static method method3(self::Enum<core::int> e) → dynamic {
 }
 static method method4<T extends core::Object? = dynamic>(self::Enum<self::method4::T%> e) → dynamic {
   #L10:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum<self::method4::T%> */ {
     #L11:
     case #C3:
     case #C6:
@@ -167,7 +167,7 @@ static method method4<T extends core::Object? = dynamic>(self::Enum<self::method
 }
 static method method5<T extends core::num>(self::Enum<self::method5::T> e) → dynamic {
   #L13:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum<self::method5::T> */ {
     #L14:
     case #C3:
     case #C6:

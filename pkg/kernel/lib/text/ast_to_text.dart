@@ -2448,9 +2448,12 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('(');
     writeExpression(node.expression);
     writeSymbol(')');
+    writeWord(" /*");
     if (node.isExplicitlyExhaustive) {
-      writeWord(" /*isExplicitlyExhaustive*/");
+      writeWord("isExplicitlyExhaustive,");
     }
+    writeNode(node.expressionTypeInternal);
+    writeWord("*/");
     endLine(' {');
     ++indentation;
     node.cases.forEach(writeNode);
