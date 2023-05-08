@@ -90,6 +90,8 @@ import 'prefer_const_literals_to_create_immutables_test.dart'
 import 'prefer_constructors_over_static_methods_test.dart'
     as prefer_constructors_over_static_methods;
 import 'prefer_contains_test.dart' as prefer_contains;
+import 'prefer_expression_function_bodies_test.dart'
+    as prefer_expression_function_bodies;
 import 'prefer_final_fields_test.dart' as prefer_final_fields;
 import 'prefer_final_in_for_each_test.dart' as prefer_final_in_for_each;
 import 'prefer_final_locals_test.dart' as prefer_final_locals;
@@ -207,6 +209,7 @@ void main() {
   prefer_const_literals_to_create_immutables.main();
   prefer_constructors_over_static_methods.main();
   prefer_contains.main();
+  prefer_expression_function_bodies.main();
   prefer_final_fields.main();
   prefer_final_in_for_each.main();
   prefer_final_locals.main();

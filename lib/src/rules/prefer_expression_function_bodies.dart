@@ -82,13 +82,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     var statements = node.block.statements;
-    if (statements.length != 1) {
-      return;
-    }
+    if (statements.length != 1) return;
+
     var uniqueStatement = node.block.statements.single;
-    if (uniqueStatement is! ReturnStatement) {
-      return;
-    }
+    if (uniqueStatement is! ReturnStatement) return;
+    if (uniqueStatement.expression == null) return;
+
     rule.reportLint(node);
   }
 }
