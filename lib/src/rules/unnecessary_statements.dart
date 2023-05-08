@@ -138,6 +138,11 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   }
 
   @override
+  void visitPatternAssignment(PatternAssignment node) {
+    // Has a clear effect
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     // Has a clear effect
   }
