@@ -5385,7 +5385,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               final parameterName = _parameterName(parameter);
               final errorTarget = parameterName ?? parameter;
 
-              List<Object>? arguments;
+              List<Object> arguments = const [];
               ErrorCode errorCode;
               if (parameterElement.hasRequired) {
                 errorCode = CompileTimeErrorCode

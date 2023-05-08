@@ -26,13 +26,13 @@ class DiagnosticFactory {
     required AssignedVariablePatternImpl original,
     required AssignedVariablePatternImpl duplicate,
   }) {
-    return AnalysisError(
-      source,
-      duplicate.offset,
-      duplicate.length,
-      CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
-      [variable.name],
-      [
+    return AnalysisError.tmp(
+      source: source,
+      offset: duplicate.offset,
+      length: duplicate.length,
+      errorCode: CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+      arguments: [variable.name],
+      contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
           length: original.length,
@@ -50,19 +50,20 @@ class DiagnosticFactory {
       Element originalElement, List<Object> arguments) {
     final duplicate = duplicateElement.nonSynthetic;
     final original = originalElement.nonSynthetic;
-    return AnalysisError(
-      duplicate.source!,
-      duplicate.nameOffset,
-      duplicate.nameLength,
-      code,
-      arguments,
-      [
+    return AnalysisError.tmp(
+      source: duplicate.source!,
+      offset: duplicate.nameOffset,
+      length: duplicate.nameLength,
+      errorCode: code,
+      arguments: arguments,
+      contextMessages: [
         DiagnosticMessageImpl(
-            filePath: original.source!.fullName,
-            message: "The first definition of this name.",
-            offset: original.nameOffset,
-            length: original.nameLength,
-            url: null)
+          filePath: original.source!.fullName,
+          message: "The first definition of this name.",
+          offset: original.nameOffset,
+          length: original.nameLength,
+          url: null,
+        ),
       ],
     );
   }
@@ -75,19 +76,20 @@ class DiagnosticFactory {
       SyntacticEntity duplicateNode,
       SyntacticEntity originalNode,
       List<Object> arguments) {
-    return AnalysisError(
-      source,
-      duplicateNode.offset,
-      duplicateNode.length,
-      code,
-      arguments,
-      [
+    return AnalysisError.tmp(
+      source: source,
+      offset: duplicateNode.offset,
+      length: duplicateNode.length,
+      errorCode: code,
+      arguments: arguments,
+      contextMessages: [
         DiagnosticMessageImpl(
-            filePath: source.fullName,
-            message: "The first definition of this name.",
-            offset: originalNode.offset,
-            length: originalNode.length,
-            url: null)
+          filePath: source.fullName,
+          message: "The first definition of this name.",
+          offset: originalNode.offset,
+          length: originalNode.length,
+          url: null,
+        ),
       ],
     );
   }
@@ -98,19 +100,20 @@ class DiagnosticFactory {
       NamedExpression duplicateField, NamedExpression originalField) {
     var duplicateNode = duplicateField.name.label;
     var duplicateName = duplicateNode.name;
-    return AnalysisError(
-      source,
-      duplicateNode.offset,
-      duplicateNode.length,
-      CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
-      [duplicateName],
-      [
+    return AnalysisError.tmp(
+      source: source,
+      offset: duplicateNode.offset,
+      length: duplicateNode.length,
+      errorCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      arguments: [duplicateName],
+      contextMessages: [
         DiagnosticMessageImpl(
-            filePath: source.fullName,
-            length: duplicateName.length,
-            message: 'The first ',
-            offset: originalField.name.label.offset,
-            url: source.uri.toString()),
+          filePath: source.fullName,
+          length: duplicateName.length,
+          message: 'The first ',
+          offset: originalField.name.label.offset,
+          url: source.uri.toString(),
+        ),
       ],
     );
   }
@@ -126,19 +129,20 @@ class DiagnosticFactory {
       RecordTypeAnnotationField originalField) {
     var duplicateNode = duplicateField.name!;
     var duplicateName = duplicateNode.lexeme;
-    return AnalysisError(
-      source,
-      duplicateNode.offset,
-      duplicateNode.length,
-      CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
-      [duplicateName],
-      [
+    return AnalysisError.tmp(
+      source: source,
+      offset: duplicateNode.offset,
+      length: duplicateNode.length,
+      errorCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      arguments: [duplicateName],
+      contextMessages: [
         DiagnosticMessageImpl(
-            filePath: source.fullName,
-            length: duplicateName.length,
-            message: 'The first ',
-            offset: originalField.name!.offset,
-            url: source.uri.toString()),
+          filePath: source.fullName,
+          length: duplicateName.length,
+          message: 'The first ',
+          offset: originalField.name!.offset,
+          url: source.uri.toString(),
+        ),
       ],
     );
   }
@@ -155,13 +159,13 @@ class DiagnosticFactory {
     var originalTarget = originalNode.name ?? originalNode.colon;
     var duplicateNode = duplicateField.name!;
     var duplicateTarget = duplicateNode.name ?? duplicateNode.colon;
-    return AnalysisError(
-      source,
-      duplicateTarget.offset,
-      duplicateTarget.length,
-      CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
-      [name],
-      [
+    return AnalysisError.tmp(
+      source: source,
+      offset: duplicateTarget.offset,
+      length: duplicateTarget.length,
+      errorCode: CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
+      arguments: [name],
+      contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
           length: originalTarget.length,
@@ -180,13 +184,12 @@ class DiagnosticFactory {
     required RestPatternElement originalElement,
     required RestPatternElement duplicateElement,
   }) {
-    return AnalysisError(
-      source,
-      duplicateElement.offset,
-      duplicateElement.length,
-      CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN,
-      [],
-      [
+    return AnalysisError.tmp(
+      source: source,
+      offset: duplicateElement.offset,
+      length: duplicateElement.length,
+      errorCode: CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN,
+      contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
           length: originalElement.length,
@@ -202,49 +205,63 @@ class DiagnosticFactory {
   /// set) is a duplicate of the [originalElement].
   AnalysisError equalElementsInConstSet(
       Source source, Expression duplicateElement, Expression originalElement) {
-    return AnalysisError(
-        source,
-        duplicateElement.offset,
-        duplicateElement.length,
-        CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, [], [
-      DiagnosticMessageImpl(
+    return AnalysisError.tmp(
+      source: source,
+      offset: duplicateElement.offset,
+      length: duplicateElement.length,
+      errorCode: CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+      contextMessages: [
+        DiagnosticMessageImpl(
           filePath: source.fullName,
           message: "The first element with this value.",
           offset: originalElement.offset,
           length: originalElement.length,
-          url: null)
-    ]);
+          url: null,
+        ),
+      ],
+    );
   }
 
   /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
   /// is a duplicate of the [originalKey].
   AnalysisError equalKeysInConstMap(
       Source source, Expression duplicateKey, Expression originalKey) {
-    return AnalysisError(source, duplicateKey.offset, duplicateKey.length,
-        CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, [], [
-      DiagnosticMessageImpl(
+    return AnalysisError.tmp(
+      source: source,
+      offset: duplicateKey.offset,
+      length: duplicateKey.length,
+      errorCode: CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+      contextMessages: [
+        DiagnosticMessageImpl(
           filePath: source.fullName,
           message: "The first key with this value.",
           offset: originalKey.offset,
           length: originalKey.length,
-          url: null)
-    ]);
+          url: null,
+        ),
+      ],
+    );
   }
 
   /// Return a diagnostic indicating that the [duplicateKey] (in a map pattern)
   /// is a duplicate of the [originalKey].
   AnalysisError equalKeysInMapPattern(
       Source source, Expression duplicateKey, Expression originalKey) {
-    return AnalysisError(source, duplicateKey.offset, duplicateKey.length,
-        CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, [], [
-      DiagnosticMessageImpl(
-        filePath: source.fullName,
-        message: "The first key with this value.",
-        offset: originalKey.offset,
-        length: originalKey.length,
-        url: null,
-      )
-    ]);
+    return AnalysisError.tmp(
+      source: source,
+      offset: duplicateKey.offset,
+      length: duplicateKey.length,
+      errorCode: CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+      contextMessages: [
+        DiagnosticMessageImpl(
+          filePath: source.fullName,
+          message: "The first key with this value.",
+          offset: originalKey.offset,
+          length: originalKey.length,
+          url: null,
+        ),
+      ],
+    );
   }
 
   /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
@@ -252,19 +269,23 @@ class DiagnosticFactory {
   AnalysisError invalidNullAwareAfterShortCircuit(Source source, int offset,
       int length, List<Object> arguments, Token previousToken) {
     var lexeme = previousToken.lexeme;
-    return AnalysisError(
-        source,
-        offset,
-        length,
-        StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
-        arguments, [
-      DiagnosticMessageImpl(
+    return AnalysisError.tmp(
+      source: source,
+      offset: offset,
+      length: length,
+      errorCode:
+          StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+      arguments: arguments,
+      contextMessages: [
+        DiagnosticMessageImpl(
           filePath: source.fullName,
           message: "The operator '$lexeme' is causing the short circuiting.",
           offset: previousToken.offset,
           length: previousToken.length,
-          url: null)
-    ]);
+          url: null,
+        ),
+      ],
+    );
   }
 
   /// Return a diagnostic indicating that [member] is not a correct override of
@@ -279,34 +300,42 @@ class DiagnosticFactory {
     // Elements enclosing members that can participate in overrides are always
     // named, so we can safely assume `_thisMember.enclosingElement3.name` and
     // `superMember.enclosingElement3.name` are non-`null`.
-    return AnalysisError(
-        source, errorNode.offset, errorNode.length, errorCode, [
-      memberName,
-      member.enclosingElement.name!,
-      member.type,
-      superMember.enclosingElement.name!,
-      superMember.type,
-    ], [
-      // Only include the context location for INVALID_OVERRIDE because for
-      // some other types this location is not ideal (for example
-      // INVALID_IMPLEMENTATION_OVERRIDE may provide the subclass as superMember
-      // if the subclass has an abstract member and the superclass has the
-      // concrete).
-      if (errorCode == CompileTimeErrorCode.INVALID_OVERRIDE)
-        DiagnosticMessageImpl(
+    return AnalysisError.tmp(
+      source: source,
+      offset: errorNode.offset,
+      length: errorNode.length,
+      errorCode: errorCode,
+      arguments: [
+        memberName,
+        member.enclosingElement.name!,
+        member.type,
+        superMember.enclosingElement.name!,
+        superMember.type,
+      ],
+      contextMessages: [
+        // Only include the context location for INVALID_OVERRIDE because for
+        // some other types this location is not ideal (for example
+        // INVALID_IMPLEMENTATION_OVERRIDE may provide the subclass as superMember
+        // if the subclass has an abstract member and the superclass has the
+        // concrete).
+        if (errorCode == CompileTimeErrorCode.INVALID_OVERRIDE)
+          DiagnosticMessageImpl(
             filePath: superMember.source.fullName,
             message: "The member being overridden.",
             offset: superMember.nonSynthetic.nameOffset,
             length: superMember.nonSynthetic.nameLength,
-            url: null),
-      if (errorCode == CompileTimeErrorCode.INVALID_OVERRIDE_SETTER)
-        DiagnosticMessageImpl(
+            url: null,
+          ),
+        if (errorCode == CompileTimeErrorCode.INVALID_OVERRIDE_SETTER)
+          DiagnosticMessageImpl(
             filePath: superMember.source.fullName,
             message: "The setter being overridden.",
             offset: superMember.nonSynthetic.nameOffset,
             length: superMember.nonSynthetic.nameLength,
-            url: null)
-    ]);
+            url: null,
+          )
+      ],
+    );
   }
 
   /// Return a diagnostic indicating that the given [identifier] was referenced
@@ -329,13 +358,13 @@ class DiagnosticFactory {
             url: null)
       ];
     }
-    return AnalysisError(
-      source,
-      nameToken.offset,
-      nameToken.length,
-      CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
-      [name],
-      contextMessages ?? const [],
+    return AnalysisError.tmp(
+      source: source,
+      offset: nameToken.offset,
+      length: nameToken.length,
+      errorCode: CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+      arguments: [name],
+      contextMessages: contextMessages ?? const [],
     );
   }
 }

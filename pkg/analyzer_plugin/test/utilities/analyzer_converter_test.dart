@@ -58,13 +58,13 @@ class AnalyzerConverterTest extends _AnalyzerConverterTest {
           message: contextMessage,
           url: null));
     }
-    return analyzer.AnalysisError(
-        source,
-        offset,
-        5,
-        analyzer.CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
-        null,
-        contextMessages);
+    return analyzer.AnalysisError.tmp(
+      source: source,
+      offset: offset,
+      length: 5,
+      errorCode: analyzer.CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+      contextMessages: contextMessages,
+    );
   }
 
   void test_convertAnalysisError_contextMessages() {

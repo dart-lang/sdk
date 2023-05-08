@@ -1692,8 +1692,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
       errors: [
-        AnalysisError(file.source, 0, 0,
-            CompileTimeErrorCode.MISSING_DART_LIBRARY, [missingUri])
+        AnalysisError.tmp(
+          source: file.source,
+          offset: 0,
+          length: 0,
+          errorCode: CompileTimeErrorCode.MISSING_DART_LIBRARY,
+          arguments: [missingUri],
+        ),
       ],
     );
     return AnalysisResult.errors(
@@ -2274,12 +2279,12 @@ class ErrorEncoding {
     }
 
     return AnalysisError.forValues(
-      source,
-      error.offset,
-      error.length,
-      errorCode,
-      error.message,
-      error.correction.isEmpty ? null : error.correction,
+      source: source,
+      offset: error.offset,
+      length: error.length,
+      errorCode: errorCode,
+      message: error.message,
+      correctionMessage: error.correction.isEmpty ? null : error.correction,
       contextMessages: contextMessages,
     );
   }

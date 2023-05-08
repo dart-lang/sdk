@@ -332,8 +332,15 @@ class FastaErrorReporter {
     if (index > 0 && index < fastaAnalyzerErrorCodes.length) {
       var errorCode = fastaAnalyzerErrorCodes[index];
       if (errorCode != null) {
-        errorReporter!.reportError(AnalysisError(errorReporter!.source, offset,
-            length, errorCode, message.arguments.values.toList()));
+        errorReporter!.reportError(
+          AnalysisError.tmp(
+            source: errorReporter!.source,
+            offset: offset,
+            length: length,
+            errorCode: errorCode,
+            arguments: message.arguments.values.toList(),
+          ),
+        );
         return;
       }
     }
@@ -344,14 +351,22 @@ class FastaErrorReporter {
       ScannerErrorCode errorCode, int offset, List<Object>? arguments) {
     // TODO(danrubel): update client to pass length in addition to offset.
     int length = 1;
-    errorReporter?.reportErrorForOffset(errorCode, offset, length, arguments);
+    errorReporter?.reportErrorForOffset(
+        errorCode, offset, length, arguments ?? const []);
   }
 
   void _reportByCode(
       ErrorCode errorCode, Message message, int offset, int length) {
     if (errorReporter != null) {
-      errorReporter!.reportError(AnalysisError(errorReporter!.source, offset,
-          length, errorCode, message.arguments.values.toList()));
+      errorReporter!.reportError(
+        AnalysisError.tmp(
+          source: errorReporter!.source,
+          offset: offset,
+          length: length,
+          errorCode: errorCode,
+          arguments: message.arguments.values.toList(),
+        ),
+      );
     }
   }
 }

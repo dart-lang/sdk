@@ -616,6 +616,15 @@ class LibraryReader {
         _reader.offset = membersOffset;
         _readClassElementMembers(unitElement, element, reference);
       };
+      if (_classMembersLengthsIndex >= _classMembersLengths.length) {
+        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/51855
+        throw StateError(
+          '[libraryReference: $_reference]'
+          '[classReference: $reference]'
+          '[_classMembersLengthsIndex: $_classMembersLengthsIndex]'
+          '[_classMembersLengths: $_classMembersLengths]',
+        );
+      }
       _reader.offset += _classMembersLengths[_classMembersLengthsIndex++];
     }
 

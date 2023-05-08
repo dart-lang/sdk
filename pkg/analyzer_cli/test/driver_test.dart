@@ -401,17 +401,27 @@ class OptionsTest extends BaseTest {
     expect(processors, hasLength(3));
 
     // unused_local_variable: ignore
-    var unused_local_variable =
-        AnalysisError(TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
-      ['x']
-    ]);
+    var unused_local_variable = AnalysisError.tmp(
+      source: TestSource(),
+      offset: 0,
+      length: 1,
+      errorCode: HintCode.UNUSED_LOCAL_VARIABLE,
+      arguments: [
+        ['x'],
+      ],
+    );
     expect(processorFor(unused_local_variable).severity, isNull);
 
     // missing_return: error
-    var missing_return =
-        AnalysisError(TestSource(), 0, 1, WarningCode.MISSING_RETURN, [
-      ['x']
-    ]);
+    var missing_return = AnalysisError.tmp(
+      source: TestSource(),
+      offset: 0,
+      length: 1,
+      errorCode: WarningCode.MISSING_RETURN,
+      arguments: [
+        ['x'],
+      ],
+    );
     expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
     expect(bulletToDash(outSink),
         contains('error - The body might complete normally'));

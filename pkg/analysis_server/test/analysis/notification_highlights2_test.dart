@@ -1086,14 +1086,17 @@ enum E<T> {
     addTestFile('''
 extension E on int {
   void foo() {}
+  static void bar() {}
 }
 void f() {
   E(0).foo();
+  E.bar();
 }
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.EXTENSION, 'E on int');
     assertHasRegion(HighlightRegionType.EXTENSION, 'E(0)');
+    assertHasRegion(HighlightRegionType.EXTENSION, 'E.bar()');
   }
 
   Future<void> test_forEachPartsWithPattern_final() async {

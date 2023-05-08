@@ -882,8 +882,15 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void _reportErrorForElement(
       ErrorCode errorCode, Element? element, List<Object> arguments) {
     if (element != null) {
-      _errorListener.onError(AnalysisError(element.source!, element.nameOffset,
-          element.nameLength, errorCode, arguments));
+      _errorListener.onError(
+        AnalysisError.tmp(
+          source: element.source!,
+          offset: element.nameOffset,
+          length: element.nameLength,
+          errorCode: errorCode,
+          arguments: arguments,
+        ),
+      );
     }
   }
 

@@ -123,8 +123,15 @@ class Scanner {
 
   void reportError(
       ScannerErrorCode errorCode, int offset, List<Object?>? arguments) {
-    _errorListener
-        .onError(AnalysisError(source, offset, 1, errorCode, arguments));
+    _errorListener.onError(
+      AnalysisError.tmp(
+        source: source,
+        offset: offset,
+        length: 1,
+        errorCode: errorCode,
+        arguments: arguments ?? const [],
+      ),
+    );
   }
 
   void setSourceStart(int line, int column) {
@@ -196,12 +203,12 @@ class Scanner {
     var latestVersion = ExperimentStatus.currentVersion;
     if (overrideVersion > latestVersion) {
       _errorListener.onError(
-        AnalysisError(
-          source,
-          versionToken.offset,
-          versionToken.length,
-          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
-          [latestVersion.major, latestVersion.minor],
+        AnalysisError.tmp(
+          source: source,
+          offset: versionToken.offset,
+          length: versionToken.length,
+          errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
+          arguments: [latestVersion.major, latestVersion.minor],
         ),
       );
       _overrideVersion = null;
