@@ -100,6 +100,8 @@ class CompletionResponsePrinter {
         return 'function';
       } else if (elementKind == ElementKind.GETTER) {
         return 'getter';
+      } else if (elementKind == ElementKind.LABEL) {
+        return 'label';
       } else if (elementKind == ElementKind.LIBRARY) {
         return 'library';
       } else if (elementKind == ElementKind.LOCAL_VARIABLE) {
