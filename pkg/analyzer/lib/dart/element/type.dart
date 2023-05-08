@@ -409,6 +409,13 @@ abstract class InterfaceType implements ParameterizedType {
   });
 }
 
+/// The type arising from code with errors, such as invalid type annotations,
+/// wrong number of type arguments, invocation of undefined methods, etc.
+///
+/// Can usually be treated as [DynamicType], but should occasionally be handled
+/// differently, e.g. it does not cause follow-on implicit cast errors.
+abstract class InvalidType implements DartType {}
+
 /// The type `Never` represents the uninhabited bottom type.
 abstract class NeverType implements DartType {}
 

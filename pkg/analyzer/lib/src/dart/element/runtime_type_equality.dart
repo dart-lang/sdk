@@ -107,6 +107,11 @@ class RuntimeTypeEqualityVisitor
   }
 
   @override
+  bool visitInvalidType(InvalidType T1, DartType T2) {
+    return identical(T1, T2);
+  }
+
+  @override
   bool visitNeverType(NeverType T1, DartType T2) {
     // Note, that all types are normalized before this visitor.
     // So, `Never?` never happens, it is already `Null`.

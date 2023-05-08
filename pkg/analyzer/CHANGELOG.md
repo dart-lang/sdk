@@ -9,6 +9,11 @@
 * Deprecated the default `AnalysisError` constructor, use `tmp` constructor,
   with names formal parameters. Theoretically no clients should use either,
   but practically there are two uses currently.
+* Added `InvalidType`, used when a named type cannot be resolved, or a
+  property cannot be resolved, etc. Previously `DynamicType` was used.
+  In the future `DynamicType` will be used only when specified explicitly,
+  or a property is resolved against a dynamic target. The clients should
+  prepare by checking also for `InvalidType` in addition to `DynamicType`.
 
 ## 5.11.1
 * Restore previously published `finalKeyword`, `interfaceKeyword` and

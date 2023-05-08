@@ -386,6 +386,11 @@ class ReplacementVisitor
   }
 
   @override
+  DartType? visitInvalidType(InvalidType type) {
+    return null;
+  }
+
+  @override
   DartType? visitNamedTypeBuilder(NamedTypeBuilder type) {
     var newNullability = visitNullability(type);
 

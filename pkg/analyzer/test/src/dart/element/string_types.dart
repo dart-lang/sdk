@@ -583,6 +583,9 @@ class _TypeParameterCollector extends TypeVisitor<void> {
   }
 
   @override
+  void visitInvalidType(InvalidType type) {}
+
+  @override
   void visitNeverType(NeverType type) {}
 
   @override
