@@ -5712,6 +5712,84 @@ Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Token
+            token)> templateIllegalPatternAssignmentVariableName = const Template<
+        Message Function(Token token)>(
+    problemMessageTemplate:
+        r"""A variable assigned by a pattern assignment can't be named '#lexeme'.""",
+    correctionMessageTemplate: r"""Choose a different name.""",
+    withArguments: _withArgumentsIllegalPatternAssignmentVariableName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)>
+    codeIllegalPatternAssignmentVariableName =
+    const Code<Message Function(Token token)>(
+        "IllegalPatternAssignmentVariableName",
+        index: 160);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIllegalPatternAssignmentVariableName(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeIllegalPatternAssignmentVariableName,
+      problemMessage:
+          """A variable assigned by a pattern assignment can't be named '${lexeme}'.""",
+      correctionMessage: """Choose a different name.""",
+      arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)>
+    templateIllegalPatternIdentifierName =
+    const Template<Message Function(Token token)>(
+        problemMessageTemplate:
+            r"""A pattern can't refer to an identifier named '#lexeme'.""",
+        correctionMessageTemplate: r"""Match the identifier using '==""",
+        withArguments: _withArgumentsIllegalPatternIdentifierName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeIllegalPatternIdentifierName =
+    const Code<Message Function(Token token)>("IllegalPatternIdentifierName",
+        index: 161);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIllegalPatternIdentifierName(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeIllegalPatternIdentifierName,
+      problemMessage:
+          """A pattern can't refer to an identifier named '${lexeme}'.""",
+      correctionMessage: """Match the identifier using '==""",
+      arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Token
+            token)> templateIllegalPatternVariableName = const Template<
+        Message Function(Token token)>(
+    problemMessageTemplate:
+        r"""The variable declared by a variable pattern can't be named '#lexeme'.""",
+    correctionMessageTemplate: r"""Choose a different name.""",
+    withArguments: _withArgumentsIllegalPatternVariableName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeIllegalPatternVariableName =
+    const Code<Message Function(Token token)>("IllegalPatternVariableName",
+        index: 159);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIllegalPatternVariableName(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeIllegalPatternVariableName,
+      problemMessage:
+          """The variable declared by a variable pattern can't be named '${lexeme}'.""",
+      correctionMessage: """Choose a different name.""",
+      arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeIllegalSyncGeneratorReturnType =
     messageIllegalSyncGeneratorReturnType;
 
