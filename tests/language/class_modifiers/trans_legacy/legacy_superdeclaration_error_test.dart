@@ -12,33 +12,33 @@ import "legacy_lib.dart";
 abstract base class ImplementsLegacyImplementsFinal
     implements LegacyImplementsFinal {
 //             ^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 }
 
 abstract base class ImplementsLegacyExtendsFinal implements LegacyExtendsFinal {
 //                                                          ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 }
 
 abstract class ImplementsLegacyMixesInFinal implements LegacyMixesInFinal {
 //                                                     ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 }
 
 abstract base class ImplementsLegacyImplementsBase
     implements LegacyImplementsBase {
-//             ^^^^^^^^^^^^^^^^^^^^^
+//             ^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 }
 
 abstract base class ImplementsLegacyMixinOnFinal implements LegacyMixinOnFinal {
 //                                                          ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 }
 
 // Not allowed to omit base on classes with base/final superclasses.
