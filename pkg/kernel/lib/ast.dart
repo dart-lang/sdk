@@ -10502,10 +10502,28 @@ class SwitchStatement extends Statement {
   /// Initialized during type inference.
   bool isExplicitlyExhaustive;
 
+  /// The static type of the [expression]
+  ///
+  /// This is set during inference.
+  DartType? expressionTypeInternal;
+
   SwitchStatement(this.expression, this.cases,
       {this.isExplicitlyExhaustive = false}) {
     expression.parent = this;
     setParents(cases, this);
+  }
+
+  /// The static type of the [expression]
+  ///
+  /// This is set during inference.
+  DartType get expressionType {
+    assert(expressionTypeInternal != null,
+        "Expression type hasn't been computed for $this.");
+    return expressionTypeInternal!;
+  }
+
+  void set expressionType(DartType value) {
+    expressionTypeInternal = value;
   }
 
   /// Whether the switch has a `default` case.
@@ -10529,6 +10547,7 @@ class SwitchStatement extends Statement {
   void visitChildren(Visitor v) {
     expression.accept(v);
     visitList(cases, v);
+    expressionTypeInternal?.accept(v);
   }
 
   @override
@@ -10539,6 +10558,9 @@ class SwitchStatement extends Statement {
       expression.parent = this;
     }
     v.transformList(cases, this);
+    if (expressionTypeInternal != null) {
+      expressionTypeInternal = v.visitDartType(expressionTypeInternal!);
+    }
   }
 
   @override
@@ -10549,6 +10571,10 @@ class SwitchStatement extends Statement {
       expression.parent = this;
     }
     v.transformSwitchCaseList(cases, this);
+    if (expressionTypeInternal != null) {
+      expressionTypeInternal =
+          v.visitDartType(expressionTypeInternal!, cannotRemoveSentinel);
+    }
   }
 
   @override

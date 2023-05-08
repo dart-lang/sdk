@@ -352,11 +352,16 @@ SwitchCase createSwitchCase(
 /// Create a switch statement on the [expression] with the given [cases]. If
 /// the switch is known to be exhaustive and without a default case,
 /// [isExplicitlyExhaustive] should be set to `true`.
+///
+/// The [expressionType] is the static type of the switch expression.
 SwitchStatement createSwitchStatement(
     Expression expression, List<SwitchCase> cases,
-    {required bool isExplicitlyExhaustive, required int fileOffset}) {
+    {required bool isExplicitlyExhaustive,
+    required int fileOffset,
+    required DartType expressionType}) {
   return new SwitchStatement(expression, cases,
       isExplicitlyExhaustive: isExplicitlyExhaustive)
+    ..expressionType = expressionType
     ..fileOffset = fileOffset;
 }
 

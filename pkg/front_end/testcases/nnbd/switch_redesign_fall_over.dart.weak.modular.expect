@@ -15,7 +15,7 @@ abstract class A extends core::Object {
     : super core::Object::•()
     ;
   method foo(core::int x, core::bool b) → dynamic {
-    switch(x) {
+    switch(x) /* core::int */ {
       #L1:
       case #C1:
         {
@@ -32,7 +32,7 @@ abstract class A extends core::Object {
 }
 static method bar() → dynamic {}
 static method foo(core::int x, core::bool b) → dynamic {
-  switch(x) {
+  switch(x) /* core::int */ {
     #L3:
     case #C1:
       {

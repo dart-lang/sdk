@@ -7651,6 +7651,15 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   @override
+  visitSwitchStatement(ir.SwitchStatement node) {
+    registerRegularNode();
+    registerReductiveNode();
+    // Don't visit 'SwitchStatement.expressionType'.
+    node.expression.accept(this);
+    visitList(node.cases);
+  }
+
+  @override
   visitBlock(ir.Block node) {
     registerRegularNode();
     node.visitChildren(this);

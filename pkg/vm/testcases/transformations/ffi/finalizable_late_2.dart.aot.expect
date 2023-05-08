@@ -58,7 +58,7 @@ static method main() → void {
     _in::reachabilityFence(:foo7:finalizableValue);
   }
   #L1:
-  switch([@vm.direct-call.metadata=dart.core::DateTime.millisecond] new core::DateTime::now().{core::DateTime::millisecond}{core::int}) {
+  switch([@vm.direct-call.metadata=dart.core::DateTime.millisecond] new core::DateTime::now().{core::DateTime::millisecond}{core::int}) /* core::int */ {
     #L2:
     case #C1:
       {

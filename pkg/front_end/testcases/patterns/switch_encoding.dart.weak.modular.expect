@@ -146,7 +146,7 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
         }
       }
     }
-    switch(#t13) {
+    switch(#t13) /* dynamic */ {
       #L5:
       case #C1:
         {
@@ -237,7 +237,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                   }
                 }
               }
-              switch(#t23) {
+              switch(#t23) /* dynamic */ {
                 #L11:
                 case #C1:
                   {
@@ -282,7 +282,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
         }
       }
     }
-    switch(#t20) {
+    switch(#t20) /* dynamic */ {
       #L13:
       case #C1:
         {
@@ -346,7 +346,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                   }
                 }
               }
-              switch(#t30) {
+              switch(#t30) /* dynamic */ {
                 #L17:
                 case #C1:
                   {
@@ -372,7 +372,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
 }
 static method switchStatementEnum(self::E o) → dynamic {
   #L19:
-  switch(o) /*isExplicitlyExhaustive*/ {
+  switch(o) /* isExplicitlyExhaustive, self::E */ {
     #L20:
     case #C3:
       {
@@ -426,7 +426,7 @@ static method switchStatementEnumWithGuard(self::E o) → dynamic {
 }
 static method switchStatementEnumWithLabel(self::E o) → dynamic {
   #L25:
-  switch(o) /*isExplicitlyExhaustive*/ {
+  switch(o) /* isExplicitlyExhaustive, self::E */ {
     #L26:
     case #C3:
       {
@@ -452,7 +452,7 @@ static method switchStatementEnumWithLabel(self::E o) → dynamic {
 }
 static method switchStatementEnumWithContinue(self::E o) → dynamic {
   #L30:
-  switch(o) /*isExplicitlyExhaustive*/ {
+  switch(o) /* isExplicitlyExhaustive, self::E */ {
     #L31:
     case #C3:
       {
@@ -478,7 +478,7 @@ static method switchStatementEnumWithContinue(self::E o) → dynamic {
 }
 static method switchStatementPrimitiveEquals(dynamic o) → dynamic {
   #L35:
-  switch(o) {
+  switch(o) /* dynamic */ {
     #L36:
     case #C11:
       {
@@ -547,7 +547,7 @@ static method switchExpressionEnum(self::E o) → dynamic {
   return block {
     core::int #t40;
     #L40:
-    switch(o) /*isExplicitlyExhaustive*/ {
+    switch(o) /* isExplicitlyExhaustive, self::E */ {
       #L41:
       case #C3:
         {

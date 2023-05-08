@@ -26,7 +26,7 @@ static method main() → dynamic {
 static method test(dynamic value, core::bool expected) → void {
   core::bool matched;
   #L1:
-  switch(value) {
+  switch(value) /* dynamic */ {
     #L2:
     case #C2:
       {

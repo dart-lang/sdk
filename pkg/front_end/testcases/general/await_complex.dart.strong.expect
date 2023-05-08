@@ -191,7 +191,7 @@ static method controlFlow() → dynamic async /* futureValueType= dynamic */ {
       self::expect(0, await func<core::int>(0){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ );
     }
     #L1:
-    switch(await func<core::int>(2){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ ) {
+    switch(await func<core::int>(2){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ ) /* core::int */ {
       #L2:
       case #C3:
         {

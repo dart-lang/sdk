@@ -20,7 +20,7 @@ import "dart:core" as core;
 static method main(core::List<core::String*>* args) → void {
   core::int* x = args.{core::List::length}{core::int*};
   #L1:
-  switch(x) {
+  switch(x) /* core::int* */ {
     #L2:
     case #C1:
       {

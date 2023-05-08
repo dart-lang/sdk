@@ -75,7 +75,7 @@ final s3 = new List<int>.filled(2, null);
                                    ^" in null);
 static final field dynamic s4 = (() → Null {
   core::int e = 0;
-  switch(e) {
+  switch(e) /* core::int */ {
     #L1:
     case #C1:
       {

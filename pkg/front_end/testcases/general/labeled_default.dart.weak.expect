@@ -1,9 +1,10 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
 static method main() → dynamic {
   #L1:
-  switch(1) {
+  switch(1) /* core::int */ {
     #L2:
     default:
       {}

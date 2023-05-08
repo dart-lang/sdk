@@ -1085,7 +1085,7 @@ class ConstantsTransformer extends RemovingTransformer {
     // statements.
     node.expression = transform(node.expression)..parent = node;
 
-    DartType scrutineeType = node.expressionType!;
+    DartType scrutineeType = node.expressionType;
 
     // If `true`, the switch expressions consists solely of guard-less constant
     // patterns whose value has a primitive equals method. For this case we
@@ -1199,6 +1199,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
       replacement = createSwitchStatement(node.expression, switchCases,
           isExplicitlyExhaustive: !hasDefault && isAlwaysExhaustiveType,
+          expressionType: scrutineeType,
           fileOffset: node.fileOffset);
     } else {
       // matchResultVariable: int RVAR = -1;
@@ -1494,7 +1495,9 @@ class ConstantsTransformer extends RemovingTransformer {
           innerLabeledStatement,
           createSwitchStatement(
               createVariableGet(matchResultVariable), replacementCases,
-              isExplicitlyExhaustive: false, fileOffset: node.fileOffset)
+              isExplicitlyExhaustive: false,
+              expressionType: scrutineeType,
+              fileOffset: node.fileOffset)
         ];
       } else {
         replacementStatements = [
@@ -1936,7 +1939,9 @@ class ConstantsTransformer extends RemovingTransformer {
 
       labeledStatement.body = createSwitchStatement(
           node.expression, switchCases,
-          isExplicitlyExhaustive: true, fileOffset: node.fileOffset)
+          isExplicitlyExhaustive: true,
+          expressionType: scrutineeType,
+          fileOffset: node.fileOffset)
         ..parent = labeledStatement;
       replacement = createBlockExpression(
           createBlock([

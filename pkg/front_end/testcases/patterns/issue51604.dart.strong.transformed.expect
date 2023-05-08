@@ -163,7 +163,7 @@ static method test2(dynamic x) → dynamic {
         }
       }
     }
-    switch(#t13) {
+    switch(#t13) /* dynamic */ {
       #L4:
       case #C1:
         {
@@ -218,7 +218,7 @@ static method test3(dynamic x) → dynamic {
         }
       }
     }
-    switch(#t16) {
+    switch(#t16) /* dynamic */ {
       #L7:
       case #C1:
         {
@@ -272,7 +272,7 @@ static method test4(dynamic x) → dynamic {
         }
       }
     }
-    switch(#t27) {
+    switch(#t27) /* dynamic */ {
       #L10:
       case #C1:
         {
@@ -317,7 +317,7 @@ static method test5(dynamic x) → dynamic {
         }
       }
     }
-    switch(#t38) {
+    switch(#t38) /* dynamic */ {
       #L13:
       case #C1:
         {
@@ -365,7 +365,7 @@ static method test6(dynamic x, core::bool b) → dynamic {
         }
       }
     }
-    switch(#t41) {
+    switch(#t41) /* dynamic */ {
       #L16:
       case #C1:
         {
@@ -413,7 +413,7 @@ static method test7(dynamic x) → dynamic {
         }
       }
     }
-    switch(#t44) {
+    switch(#t44) /* dynamic */ {
       #L19:
       case #C1:
         {

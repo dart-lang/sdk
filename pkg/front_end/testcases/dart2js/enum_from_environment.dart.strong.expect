@@ -27,7 +27,7 @@ class B extends core::Object /*hasConstConstructor*/  {
 }
 static method method(self::A a) → core::String {
   #L1:
-  switch(a) /*isExplicitlyExhaustive*/ {
+  switch(a) /* isExplicitlyExhaustive, self::A */ {
     #L2:
     case #C5:
       {

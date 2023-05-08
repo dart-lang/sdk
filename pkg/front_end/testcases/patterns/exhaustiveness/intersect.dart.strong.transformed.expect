@@ -47,7 +47,7 @@ import "dart:core" as core;
 
 static method exhaustiveBoundedTypeVariableByValue<T extends core::bool>(self::exhaustiveBoundedTypeVariableByValue::T x1, self::exhaustiveBoundedTypeVariableByValue::T x2) → dynamic {
   #L1:
-  switch(x1) /*isExplicitlyExhaustive*/ {
+  switch(x1) /* isExplicitlyExhaustive, self::exhaustiveBoundedTypeVariableByValue::T */ {
     #L2:
     case #C1:
     case #C2:
@@ -58,7 +58,7 @@ static method exhaustiveBoundedTypeVariableByValue<T extends core::bool>(self::e
   return block {
     core::int #t1;
     #L3:
-    switch(x2) /*isExplicitlyExhaustive*/ {
+    switch(x2) /* isExplicitlyExhaustive, self::exhaustiveBoundedTypeVariableByValue::T */ {
       #L4:
       case #C1:
         {
@@ -102,7 +102,7 @@ static method exhaustiveBoundedTypeVariableByType<T extends core::bool>(self::ex
 }
 static method nonExhaustiveBoundedTypeVariable<T extends core::bool>(self::nonExhaustiveBoundedTypeVariable::T x1, self::nonExhaustiveBoundedTypeVariable::T x2) → dynamic {
   #L8:
-  switch(x1) /*isExplicitlyExhaustive*/ {
+  switch(x1) /* isExplicitlyExhaustive, self::nonExhaustiveBoundedTypeVariable::T */ {
     #L9:
     case #C1:
       {
@@ -112,7 +112,7 @@ static method nonExhaustiveBoundedTypeVariable<T extends core::bool>(self::nonEx
   return block {
     core::int #t3;
     #L10:
-    switch(x2) /*isExplicitlyExhaustive*/ {
+    switch(x2) /* isExplicitlyExhaustive, self::nonExhaustiveBoundedTypeVariable::T */ {
       #L11:
       case #C1:
         {
@@ -177,7 +177,7 @@ static method nonExhaustiveBoundedTypeVariableByOtherType<T extends core::bool, 
 static method exhaustivePromotedTypeVariableByValue<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByValue::T% x1, self::exhaustivePromotedTypeVariableByValue::T% x2) → dynamic {
   if(x1 is{ForNonNullableByDefault} core::bool) {
     #L16:
-    switch(x1{self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */}) /*isExplicitlyExhaustive*/ {
+    switch(x1{self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */ */ {
       #L17:
       case #C1:
       case #C2:
@@ -190,7 +190,7 @@ static method exhaustivePromotedTypeVariableByValue<T extends core::Object? = dy
     core::int a = block {
       core::int #t6;
       #L18:
-      switch(x2{self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */}) /*isExplicitlyExhaustive*/ {
+      switch(x2{self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */ */ {
         #L19:
         case #C1:
           {
@@ -240,7 +240,7 @@ static method exhaustivePromotedTypeVariableByType<T extends core::Object? = dyn
 static method nonExhaustivePromotedTypeVariable<T extends core::Object? = dynamic>(self::nonExhaustivePromotedTypeVariable::T% x1, self::nonExhaustivePromotedTypeVariable::T% x2) → dynamic {
   if(x1 is{ForNonNullableByDefault} core::bool) {
     #L23:
-    switch(x1{self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */}) /*isExplicitlyExhaustive*/ {
+    switch(x1{self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */ */ {
       #L24:
       case #C1:
         {
@@ -252,7 +252,7 @@ static method nonExhaustivePromotedTypeVariable<T extends core::Object? = dynami
     core::int a = block {
       core::int #t8;
       #L25:
-      switch(x2{self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */}) /*isExplicitlyExhaustive*/ {
+      switch(x2{self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */ */ {
         #L26:
         case #C1:
           {

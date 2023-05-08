@@ -522,7 +522,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     }
     return new SwitchStatement(
         clone(node.expression), node.cases.map(clone).toList(),
-        isExplicitlyExhaustive: node.isExplicitlyExhaustive);
+        isExplicitlyExhaustive: node.isExplicitlyExhaustive)
+      ..expressionTypeInternal = visitOptionalType(node.expressionTypeInternal);
   }
 
   @override
@@ -1020,7 +1021,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   TreeNode visitPatternSwitchStatement(PatternSwitchStatement node) {
     return new PatternSwitchStatement(
         clone(node.expression), node.cases.map(clone).toList())
-      ..expressionType = visitOptionalType(node.expressionType);
+      ..expressionTypeInternal = visitOptionalType(node.expressionTypeInternal);
   }
 
   @override

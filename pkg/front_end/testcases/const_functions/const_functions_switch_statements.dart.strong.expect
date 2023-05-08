@@ -16,7 +16,7 @@ static const field core::int var8 = #C6;
 static const field core::int var9 = #C3;
 static method basicSwitch(core::int x) → core::int {
   #L1:
-  switch(x) {
+  switch(x) /* core::int */ {
     #L2:
     case #C7:
       {
@@ -33,7 +33,7 @@ static method basicSwitch(core::int x) → core::int {
 }
 static method multipleCaseSwitch(core::int x) → core::int {
   #L4:
-  switch(x) {
+  switch(x) /* core::int */ {
     #L5:
     case #C7:
     case #C8:
@@ -50,7 +50,7 @@ static method multipleCaseSwitch(core::int x) → core::int {
 }
 static method continueLabelSwitch(core::int x) → core::int {
   #L7:
-  switch(x) {
+  switch(x) /* core::int */ {
     #L8:
     case #C7:
       {

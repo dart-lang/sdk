@@ -57,7 +57,7 @@ class D extends self::B /*hasConstConstructor*/  {
 }
 static method bar(self::B b) → dynamic {
   #L1:
-  switch(b) {
+  switch(b) /* self::B */ {
     #L2:
     case #C2:
       {

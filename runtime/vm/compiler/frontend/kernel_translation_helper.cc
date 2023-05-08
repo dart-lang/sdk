@@ -2824,6 +2824,7 @@ void KernelReaderHelper::SkipStatement() {
       ReadPosition();                     // read position.
       ReadBool();                         // read exhaustive flag.
       SkipExpression();                   // read condition.
+      SkipOptionalDartType();             // read expression type
       int case_count = ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
         int expression_count = ReadListLength();  // read number of expressions.

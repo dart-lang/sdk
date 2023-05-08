@@ -121,7 +121,7 @@ static method test5(core::int value) → core::String {
 }
 static method test6(core::int value) → core::String {
   #L6:
-  switch(value) {
+  switch(value) /* core::int */ {
     #L7:
     case #C1:
       {

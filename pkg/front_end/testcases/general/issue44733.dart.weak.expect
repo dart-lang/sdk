@@ -76,7 +76,7 @@ B get x => super.x;
            ^^^^^"{<invalid>}.x;
 static method f() → void {
   #L1:
-  switch(self::x.{self::A::y}{invalid-type}{<invalid>}.z) {
+  switch(self::x.{self::A::y}{invalid-type}{<invalid>}.z) /* invalid-type */ {
   }
 }
 static method main() → dynamic {}

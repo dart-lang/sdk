@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 101;
+  UInt32 formatVersion = 102;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1403,6 +1403,9 @@ type SwitchStatement extends Statement {
   FileOffset fileOffset;
   Byte isExplicitlyExhaustive; // 1 if exhaustive, 0 if not.
   Expression expression;
+  // This is set during inference and will
+  // never be null in programs without compile-time errors.
+  Option<DartType> expressionType;
   List<SwitchCase> cases;
 }
 

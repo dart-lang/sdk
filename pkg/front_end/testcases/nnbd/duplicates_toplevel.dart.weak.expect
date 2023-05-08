@@ -290,7 +290,7 @@ static method test() → dynamic {
   @invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:92:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
   @topLevelMethod
    ^" dynamic foo;
-  switch(null) {
+  switch(null) /* Null */ {
     #L1:
     case invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:95:10: Error: Can't use 'topLevelMethod' because it is declared more than once.
     case topLevelMethod:
