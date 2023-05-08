@@ -177,7 +177,6 @@ vars = {
   "usage_rev": "929a4e31f0bd4f861dd0e34d4c6f7184c751b569",
   "vector_math_rev": "e3de8da3e7db3b9b4f56a16061e9e480539fb08c",
   "watcher_rev": "6c0c838bb8bcfb8c1f8faaf643d6586ea04c0e47",
-  "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "b28bae62886edc090d3317edd197c4c3b121cd3a",
   "webdev_rev": "12f22857d509832e0e80616d937088992f565e6b",
   "webdriver_rev": "d0f78d004a5ea7bfc8c492639248b0a1b04c1d62",
@@ -459,9 +458,6 @@ deps = {
       "@" + Var("vector_math_rev"),
   Var("dart_root") + "/third_party/pkg/watcher":
       Var("dart_git") + "watcher.git" + "@" + Var("watcher_rev"),
-  Var("dart_root") + "/third_party/pkg/web_components":
-      Var("dart_git") + "web-components.git" +
-      "@" + Var("web_components_rev"),
   Var("dart_root") + "/third_party/pkg/webdev":
       Var("dart_git") + "webdev.git" + "@" + Var("webdev_rev"),
   Var("dart_root") + "/third_party/pkg/webdriver":
