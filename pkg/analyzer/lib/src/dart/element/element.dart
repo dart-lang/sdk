@@ -4334,6 +4334,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitLibraryElement(this);
 
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeLibraryElement(this);
+  }
+
   /// Create the [FunctionElement] to be returned by [loadLibraryFunction].
   /// The [typeProvider] must be already set.
   void createLoadLibraryFunction() {
