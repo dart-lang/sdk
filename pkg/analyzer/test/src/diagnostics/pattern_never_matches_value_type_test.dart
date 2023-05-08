@@ -99,6 +99,14 @@ final class B {}
     ]);
   }
 
+  test_interfaceType2_matchedDouble_requiredInt() async {
+    await assertNoErrorsInCode('''
+void f(double x) {
+  if (x case int _) {}
+}
+''');
+  }
+
   test_interfaceType2_matchedFinal_hasSubtypes_noneImplementsRequired() async {
     await assertErrorsInCode('''
 void f(A x) {
@@ -220,6 +228,14 @@ class R {}
 ''', [
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
     ]);
+  }
+
+  test_interfaceType2_matchedInt_requiredDouble() async {
+    await assertNoErrorsInCode('''
+void f(int x) {
+  if (x case double _) {}
+}
+''');
   }
 
   test_interfaceType2_matchedObject_requiredClass() async {

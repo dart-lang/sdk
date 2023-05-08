@@ -176,6 +176,12 @@ class TypeSystemImpl implements TypeSystem {
       final leftElement = left.element;
       final rightElement = right.element;
 
+      // Can happen in JavaScript.
+      if (left.isDartCoreInt && right.isDartCoreDouble ||
+          left.isDartCoreDouble && right.isDartCoreInt) {
+        return true;
+      }
+
       bool canBeSubtypeOfInterfaces(InterfaceType left, InterfaceType right) {
         assert(left.element == right.element);
         final leftArguments = left.typeArguments;
