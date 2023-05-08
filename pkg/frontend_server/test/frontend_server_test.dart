@@ -18,10 +18,12 @@ import 'package:frontend_server/starter.dart';
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
-import 'package:kernel/verifier.dart' show verifyComponent;
+import 'package:kernel/target/targets.dart';
+import 'package:kernel/verifier.dart' show VerificationStage, verifyComponent;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:vm/incremental_compiler.dart';
+import 'package:vm/kernel_front_end.dart';
 
 class _MockedBinaryPrinter implements BinaryPrinter {
   @override
@@ -1164,6 +1166,8 @@ class BarState extends State<FizzWidget> {
       expect(dillFile.existsSync(), equals(false));
 
       // First compile app entry point A.
+      final String targetName = 'vm';
+      final Target target = createFrontEndTarget(targetName)!;
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
         '--incremental',
@@ -1212,7 +1216,8 @@ class BarState extends State<FizzWidget> {
             // Verifiable (together with the platform file).
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
-            verifyComponent(component);
+            verifyComponent(target,
+                VerificationStage.afterModularTransformations, component);
         }
       });
       expect(await result, 0);
@@ -1285,6 +1290,8 @@ class BarState extends State<FizzWidget> {
       expect(dillFile.existsSync(), equals(false));
 
       // First compile app entry point A.
+      final String targetName = 'vm';
+      final Target target = createFrontEndTarget(targetName)!;
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
         '--incremental',
@@ -1332,7 +1339,8 @@ class BarState extends State<FizzWidget> {
             // Verifiable (together with the platform file).
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
-            verifyComponent(component);
+            verifyComponent(target,
+                VerificationStage.afterModularTransformations, component);
         }
       });
       expect(await result, 0);
@@ -2850,6 +2858,8 @@ e() {
       var dillFile = File('${tempDir.path}/full.dill');
       var incrementalDillFile = File('${tempDir.path}/incremental.dill');
       expect(dillFile.existsSync(), equals(false));
+      final String targetName = 'vm';
+      final Target target = createFrontEndTarget(targetName)!;
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
         '--incremental',
@@ -2915,7 +2925,7 @@ e() {
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
             expect(component.mainMethod, isNotNull);
-            verifyComponent(component);
+            verifyComponent(target, VerificationStage.afterModularTransformations, component);
 
             count += 1;
 
@@ -2940,7 +2950,7 @@ e() {
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
             expect(component.mainMethod, isNotNull);
-            verifyComponent(component);
+            verifyComponent(target, VerificationStage.afterModularTransformations, component);
 
             count += 1;
 

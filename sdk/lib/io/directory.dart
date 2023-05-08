@@ -274,7 +274,7 @@ abstract interface class Directory implements FileSystemEntity {
   ///
   /// If [followLinks] is `true`, then working links are reported as
   /// directories or files, depending on what they point to,
-  /// and links to directories are recursed into f [recursive] is `true`.
+  /// and links to directories are recursed into if [recursive] is `true`.
   ///
   /// Broken links are reported as [Link] objects.
   ///
@@ -298,7 +298,7 @@ abstract interface class Directory implements FileSystemEntity {
   ///
   /// If [followLinks] is `true`, then working links are reported as
   /// directories or files, depending on what they point to,
-  /// and links to directories are recursed into if `recursive` is `true`.
+  /// and links to directories are recursed into if [recursive] is `true`.
   ///
   /// Broken links are reported as [Link] objects.
   ///

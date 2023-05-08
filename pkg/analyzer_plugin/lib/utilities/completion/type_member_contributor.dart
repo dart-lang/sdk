@@ -75,7 +75,7 @@ class TypeMemberContributor implements CompletionContributor {
 
     // Determine the target expression's type
     var type = expression.staticType;
-    if (type == null || type.isDynamic) {
+    if (type == null || type is DynamicType) {
       // If the expression does not provide a good type
       // then attempt to get a better type from the element
       if (expression is Identifier) {
@@ -87,7 +87,7 @@ class TypeMemberContributor implements CompletionContributor {
         } else if (elem is LocalVariableElement) {
           type = elem.type;
         }
-        if ((type == null || type.isDynamic) &&
+        if ((type == null || type is DynamicType) &&
             expression is SimpleIdentifier) {
           // If the element does not provide a good type
           // then attempt to get a better type from a local declaration
@@ -111,7 +111,7 @@ class TypeMemberContributor implements CompletionContributor {
         containingMethodName = id.lexeme;
       }
     }
-    if (type == null || type.isDynamic) {
+    if (type == null || type is DynamicType) {
       // Suggest members from object if target is "dynamic"
       type = request.result.typeProvider.objectType;
     }

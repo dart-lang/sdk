@@ -792,7 +792,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       } else {
         returnType = 'void';
       }
-    } else if (returnTypeObj.isDynamic) {
+    } else if (returnTypeObj is DynamicType) {
       variableType = '';
       if (_hasAwait) {
         returnType = _getTypeCode(typeProvider.futureDynamicType);

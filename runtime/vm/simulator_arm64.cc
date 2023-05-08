@@ -348,12 +348,12 @@ void SimulatorDebugger::PrintBacktrace() {
                             ValidationPolicy::kDontValidateFrames, T,
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != NULL);
+  ASSERT(frame != nullptr);
   Function& function = Function::Handle(Z);
   Function& inlined_function = Function::Handle(Z);
   Code& code = Code::Handle(Z);
   Code& unoptimized_code = Code::Handle(Z);
-  while (frame != NULL) {
+  while (frame != nullptr) {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
       function = code.function();
@@ -404,7 +404,7 @@ void SimulatorDebugger::PrintBacktrace() {
 
 bool SimulatorDebugger::SetBreakpoint(Instr* breakpc) {
   // Check if a breakpoint can be set. If not return without any side-effects.
-  if (sim_->break_pc_ != NULL) {
+  if (sim_->break_pc_ != nullptr) {
     return false;
   }
 
@@ -417,23 +417,23 @@ bool SimulatorDebugger::SetBreakpoint(Instr* breakpc) {
 }
 
 bool SimulatorDebugger::DeleteBreakpoint(Instr* breakpc) {
-  if (sim_->break_pc_ != NULL) {
+  if (sim_->break_pc_ != nullptr) {
     sim_->break_pc_->SetInstructionBits(sim_->break_instr_);
   }
 
-  sim_->break_pc_ = NULL;
+  sim_->break_pc_ = nullptr;
   sim_->break_instr_ = 0;
   return true;
 }
 
 void SimulatorDebugger::UndoBreakpoints() {
-  if (sim_->break_pc_ != NULL) {
+  if (sim_->break_pc_ != nullptr) {
     sim_->break_pc_->SetInstructionBits(sim_->break_instr_);
   }
 }
 
 void SimulatorDebugger::RedoBreakpoints() {
-  if (sim_->break_pc_ != NULL) {
+  if (sim_->break_pc_ != nullptr) {
     sim_->break_pc_->SetInstructionBits(Instr::kSimulatorBreakpointInstruction);
   }
 }
@@ -475,7 +475,7 @@ void SimulatorDebugger::Debug() {
       }
     }
     char* line = ReadLine("sim> ");
-    if (line == NULL) {
+    if (line == nullptr) {
       FATAL("ReadLine failed");
     } else {
       // Use sscanf to parse the individual parts of the command line. At the
@@ -671,7 +671,7 @@ void SimulatorDebugger::Debug() {
           OS::PrintErr("break <addr>\n");
         }
       } else if (strcmp(cmd, "del") == 0) {
-        if (!DeleteBreakpoint(NULL)) {
+        if (!DeleteBreakpoint(nullptr)) {
           OS::PrintErr("deleting breakpoint failed\n");
         }
       } else if (strcmp(cmd, "flags") == 0) {
@@ -720,18 +720,18 @@ void SimulatorDebugger::Debug() {
 }
 
 char* SimulatorDebugger::ReadLine(const char* prompt) {
-  char* result = NULL;
+  char* result = nullptr;
   char line_buf[256];
   intptr_t offset = 0;
   bool keep_going = true;
   OS::PrintErr("%s", prompt);
   while (keep_going) {
-    if (fgets(line_buf, sizeof(line_buf), stdin) == NULL) {
+    if (fgets(line_buf, sizeof(line_buf), stdin) == nullptr) {
       // fgets got an error. Just give up.
-      if (result != NULL) {
+      if (result != nullptr) {
         delete[] result;
       }
-      return NULL;
+      return nullptr;
     }
     intptr_t len = strlen(line_buf);
     if (len > 1 && line_buf[len - 2] == '\\' && line_buf[len - 1] == '\n') {
@@ -745,21 +745,21 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
       // will exit the loop after copying this buffer into the result.
       keep_going = false;
     }
-    if (result == NULL) {
+    if (result == nullptr) {
       // Allocate the initial result and make room for the terminating '\0'
       result = new char[len + 1];
-      if (result == NULL) {
+      if (result == nullptr) {
         // OOM, so cannot readline anymore.
-        return NULL;
+        return nullptr;
       }
     } else {
       // Allocate a new result with enough room for the new addition.
       intptr_t new_len = offset + len + 1;
       char* new_result = new char[new_len];
-      if (new_result == NULL) {
-        // OOM, free the buffer allocated so far and return NULL.
+      if (new_result == nullptr) {
+        // OOM, free the buffer allocated so far and return nullptr.
         delete[] result;
-        return NULL;
+        return nullptr;
       } else {
         // Copy the existing input into the new array and set the new
         // array as the result.
@@ -772,7 +772,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
     memmove(result + offset, line_buf, len);
     offset += len;
   }
-  ASSERT(result != NULL);
+  ASSERT(result != nullptr);
   result[offset] = '\0';
   return result;
 }
@@ -798,9 +798,9 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
 
   pc_modified_ = false;
   icount_ = 0;
-  break_pc_ = NULL;
+  break_pc_ = nullptr;
   break_instr_ = 0;
-  last_setjmp_buffer_ = NULL;
+  last_setjmp_buffer_ = nullptr;
 
   // Setup architecture state.
   // All registers are initialized to zero to start with.
@@ -829,8 +829,8 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
 Simulator::~Simulator() {
   delete[] stack_;
   Isolate* isolate = Isolate::Current();
-  if (isolate != NULL) {
-    isolate->set_simulator(NULL);
+  if (isolate != nullptr) {
+    isolate->set_simulator(nullptr);
   }
 }
 
@@ -905,7 +905,7 @@ class Redirection {
         call_kind_(call_kind),
         argument_count_(argument_count),
         hlt_instruction_(Instr::kSimulatorRedirectInstruction),
-        next_(NULL) {}
+        next_(nullptr) {}
 
   uword external_function_;
   Simulator::CallKind call_kind_;
@@ -935,7 +935,7 @@ uword Simulator::FunctionForRedirect(uword redirect) {
 Simulator* Simulator::Current() {
   Isolate* isolate = Isolate::Current();
   Simulator* simulator = isolate->simulator();
-  if (simulator == NULL) {
+  if (simulator == nullptr) {
     NoSafepointScope no_safepoint;
     simulator = new Simulator();
     isolate->set_simulator(simulator);
@@ -951,7 +951,7 @@ void Simulator::set_register(Instr* instr,
   // Register is in range.
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
 #if !defined(DART_TARGET_OS_FUCHSIA)
-  ASSERT(instr == NULL || reg != R18);  // R18 is globally reserved on iOS.
+  ASSERT(instr == nullptr || reg != R18);  // R18 is globally reserved on iOS.
 #endif
 
   if ((reg != R31) || (r31t != R31IsZR)) {
@@ -963,7 +963,7 @@ void Simulator::set_register(Instr* instr,
     // useful to find the program locations where CSP is set to a bad value,
     // than to find only the resulting loads/stores that would cause a fault on
     // hardware.
-    if ((instr != NULL) && (reg == R31) && !Utils::IsAligned(value, 16)) {
+    if ((instr != nullptr) && (reg == R31) && !Utils::IsAligned(value, 16)) {
       UnalignedAccess("CSP set", value, instr);
     }
 
@@ -973,10 +973,10 @@ void Simulator::set_register(Instr* instr,
       // signal handler. Simulate this to ensure we're keeping CSP far enough
       // ahead of SP to prevent Dart frames from being trashed.
       uword csp = registers_[R31];
-      WriteX(csp - 1 * kWordSize, icount_, NULL);
-      WriteX(csp - 2 * kWordSize, icount_, NULL);
-      WriteX(csp - 3 * kWordSize, icount_, NULL);
-      WriteX(csp - 4 * kWordSize, icount_, NULL);
+      WriteX(csp - 1 * kWordSize, icount_, nullptr);
+      WriteX(csp - 2 * kWordSize, icount_, nullptr);
+      WriteX(csp - 3 * kWordSize, icount_, nullptr);
+      WriteX(csp - 4 * kWordSize, icount_, nullptr);
     }
 #endif
   }
@@ -3797,10 +3797,10 @@ int64_t Simulator::Call(int64_t entry,
     set_vregisterd(V3, 0, parameter3);
     set_vregisterd(V3, 1, 0);
   } else {
-    set_register(NULL, R0, parameter0);
-    set_register(NULL, R1, parameter1);
-    set_register(NULL, R2, parameter2);
-    set_register(NULL, R3, parameter3);
+    set_register(nullptr, R0, parameter0);
+    set_register(nullptr, R1, parameter1);
+    set_register(nullptr, R2, parameter2);
+    set_register(nullptr, R3, parameter3);
   }
 
   // Make sure the activation frames are properly aligned.
@@ -3809,14 +3809,14 @@ int64_t Simulator::Call(int64_t entry,
     stack_pointer =
         Utils::RoundDown(stack_pointer, OS::ActivationFrameAlignment());
   }
-  set_register(NULL, R31, stack_pointer, R31IsSP);
+  set_register(nullptr, R31, stack_pointer, R31IsSP);
 
   // Prepare to execute the code at entry.
   set_pc(entry);
   // Put down marker for end of simulation. The simulator will stop simulation
   // when the PC reaches this value. By saving the "end simulation" value into
   // the LR the simulation stops when returning to this call point.
-  set_register(NULL, LR, kEndSimulatingPC);
+  set_register(nullptr, LR, kEndSimulatingPC);
 
   // Remember the values of callee-saved registers, and set them up with a
   // known value so that we are able to check that they are preserved
@@ -3827,7 +3827,7 @@ int64_t Simulator::Call(int64_t entry,
   for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
     const Register r = static_cast<Register>(i);
     preserved_vals[i - kAbiFirstPreservedCpuReg] = get_register(r);
-    set_register(NULL, r, callee_saved_value);
+    set_register(nullptr, r, callee_saved_value);
   }
 
   // Only the bottom half of the V registers must be preserved.
@@ -3847,7 +3847,7 @@ int64_t Simulator::Call(int64_t entry,
   for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
     const Register r = static_cast<Register>(i);
     ASSERT(callee_saved_value == get_register(r));
-    set_register(NULL, r, preserved_vals[i - kAbiFirstPreservedCpuReg]);
+    set_register(nullptr, r, preserved_vals[i - kAbiFirstPreservedCpuReg]);
   }
 
   for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
@@ -3858,7 +3858,7 @@ int64_t Simulator::Call(int64_t entry,
   }
 
   // Restore the SP register and return R0.
-  set_register(NULL, R31, sp_before_call, R31IsSP);
+  set_register(nullptr, R31, sp_before_call, R31IsSP);
   int64_t return_value;
   if (fp_return) {
     return_value = get_vregisterd(V0, 0);
@@ -3872,10 +3872,10 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Walk over all setjmp buffers (simulated --> C++ transitions)
   // and try to find the setjmp associated with the simulated stack pointer.
   SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
-  while (buf->link() != NULL && buf->link()->sp() <= sp) {
+  while (buf->link() != nullptr && buf->link()->sp() <= sp) {
     buf = buf->link();
   }
-  ASSERT(buf != NULL);
+  ASSERT(buf != nullptr);
 
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
@@ -3886,10 +3886,13 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 
   // Unwind the C++ stack and continue simulation in the target frame.
   set_pc(static_cast<int64_t>(pc));
-  set_register(NULL, SP, static_cast<int64_t>(sp));
-  set_register(NULL, FP, static_cast<int64_t>(fp));
-  set_register(NULL, THR, reinterpret_cast<int64_t>(thread));
-  set_register(NULL, R31, thread->saved_stack_limit() - 4096);
+  set_register(nullptr, SP, static_cast<int64_t>(sp));
+  set_register(nullptr, FP, static_cast<int64_t>(fp));
+  set_register(nullptr, THR, reinterpret_cast<int64_t>(thread));
+  set_register(nullptr, R31, thread->saved_stack_limit() - 4096);
+#if defined(DART_TARGET_OS_FUCHSIA)
+  set_register(nullptr, R18, thread->saved_shadow_call_stack());
+#endif
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
@@ -3902,14 +3905,14 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
                    : *reinterpret_cast<int64_t*>(
                          code + Code::object_pool_offset() - kHeapObjectTag);
   pp -= kHeapObjectTag;  // In the PP register, the pool pointer is untagged.
-  set_register(NULL, CODE_REG, code);
-  set_register(NULL, PP, pp);
+  set_register(nullptr, CODE_REG, code);
+  set_register(nullptr, PP, pp);
   set_register(
-      NULL, HEAP_BITS,
+      nullptr, HEAP_BITS,
       (thread->write_barrier_mask() << 32) | (thread->heap_base() >> 32));
-  set_register(NULL, NULL_REG, static_cast<int64_t>(Object::null()));
+  set_register(nullptr, NULL_REG, static_cast<int64_t>(Object::null()));
   if (FLAG_precompiled_mode) {
-    set_register(NULL, DISPATCH_TABLE_REG,
+    set_register(nullptr, DISPATCH_TABLE_REG,
                  reinterpret_cast<int64_t>(thread->dispatch_table_array()));
   }
 

@@ -22,9 +22,9 @@
 namespace dart {
 namespace bin {
 
-const char* Platform::executable_name_ = NULL;
+const char* Platform::executable_name_ = nullptr;
 int Platform::script_index_ = 1;
-char** Platform::argv_ = NULL;
+char** Platform::argv_ = nullptr;
 
 bool Platform::Initialize() {
   return true;
@@ -38,20 +38,20 @@ const char* Platform::OperatingSystemVersion() {
   struct utsname info;
   int ret = uname(&info);
   if (ret != 0) {
-    return NULL;
+    return nullptr;
   }
   const char* kFormat = "%s %s %s";
   int len =
-      snprintf(NULL, 0, kFormat, info.sysname, info.release, info.version);
+      snprintf(nullptr, 0, kFormat, info.sysname, info.release, info.version);
   if (len <= 0) {
-    return NULL;
+    return nullptr;
   }
   char* result = DartUtils::ScopedCString(len + 1);
-  ASSERT(result != NULL);
+  ASSERT(result != nullptr);
   len = snprintf(result, len + 1, kFormat, info.sysname, info.release,
                  info.version);
   if (len <= 0) {
-    return NULL;
+    return nullptr;
   }
   return result;
 }
@@ -66,7 +66,7 @@ const char* Platform::LibraryExtension() {
 
 const char* Platform::LocaleName() {
   char* lang = getenv("LANG");
-  if (lang == NULL) {
+  if (lang == nullptr) {
     return "en_US";
   }
   return lang;
@@ -81,7 +81,7 @@ char** Platform::Environment(intptr_t* count) {
   // provide access to modifying environment variables.
   intptr_t i = 0;
   char** tmp = environ;
-  while (*(tmp++) != NULL) {
+  while (*(tmp++) != nullptr) {
     i++;
   }
   *count = i;
@@ -94,52 +94,52 @@ char** Platform::Environment(intptr_t* count) {
 }
 
 const char* Platform::GetExecutableName() {
-  if (executable_name_ != NULL) {
+  if (executable_name_ != nullptr) {
     return executable_name_;
   }
   char* name = DartUtils::ScopedCString(ZX_MAX_NAME_LEN);
   zx_status_t status = zx_object_get_property(zx_process_self(), ZX_PROP_NAME,
                                               name, ZX_MAX_NAME_LEN);
   if (status != ZX_OK) {
-    return NULL;
+    return nullptr;
   }
   return name;
 }
 
 const char* Platform::ResolveExecutablePath() {
   const char* executable_name = Platform::GetExecutableName();
-  if (executable_name == NULL) {
-    return NULL;
+  if (executable_name == nullptr) {
+    return nullptr;
   }
-  if ((executable_name[0] == '/') && File::Exists(NULL, executable_name)) {
-    return File::GetCanonicalPath(NULL, executable_name);
+  if ((executable_name[0] == '/') && File::Exists(nullptr, executable_name)) {
+    return File::GetCanonicalPath(nullptr, executable_name);
   }
-  if (strchr(executable_name, '/') != NULL) {
-    const char* result = File::GetCanonicalPath(NULL, executable_name);
-    if (File::Exists(NULL, result)) {
+  if (strchr(executable_name, '/') != nullptr) {
+    const char* result = File::GetCanonicalPath(nullptr, executable_name);
+    if (File::Exists(nullptr, result)) {
       return result;
     }
   } else {
     const char* path = getenv("PATH");
-    if (path == NULL) {
+    if (path == nullptr) {
       // If PATH isn't set, make some guesses about where we should look.
       path = "/system/bin:/system/apps:/boot/bin";
     }
     char* pathcopy = DartUtils::ScopedCopyCString(path);
     char* result = DartUtils::ScopedCString(PATH_MAX + 1);
-    char* save = NULL;
-    while ((pathcopy = strtok_r(pathcopy, ":", &save)) != NULL) {
+    char* save = nullptr;
+    while ((pathcopy = strtok_r(pathcopy, ":", &save)) != nullptr) {
       snprintf(result, PATH_MAX, "%s/%s", pathcopy, executable_name);
       result[PATH_MAX] = '\0';
-      if (File::Exists(NULL, result)) {
-        return File::GetCanonicalPath(NULL, result);
+      if (File::Exists(nullptr, result)) {
+        return File::GetCanonicalPath(nullptr, result);
       }
-      pathcopy = NULL;
+      pathcopy = nullptr;
     }
   }
   // Couldn't find it. This causes null to be returned for
   // Platform.resolvedExecutable.
-  return NULL;
+  return nullptr;
 }
 
 intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {

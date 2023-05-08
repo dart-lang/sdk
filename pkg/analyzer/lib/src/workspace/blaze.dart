@@ -205,6 +205,14 @@ class BlazeWorkspace extends Workspace
   /// to avoid this in cases when `BUILD` files are always available.
   final bool _lookForBuildFileSubstitutes;
 
+  /// If `true`, the language version for packages will be provided.
+  ///
+  /// If `false`, [BlazeWorkspacePackage.languageVersion] will return `null`,
+  /// so that [Packages] will be used to get the language versions.
+  ///
+  /// See https://buganizer.corp.google.com/issues/279909837
+  final bool _provideLanguageVersion;
+
   /// The language version for this workspace, `null` if cannot be read.
   final Version? _languageVersion;
 
@@ -220,8 +228,12 @@ class BlazeWorkspace extends Workspace
     this.binPaths,
     this.genfiles, {
     required bool lookForBuildFileSubstitutes,
+    required bool provideLanguageVersion,
   })  : _lookForBuildFileSubstitutes = lookForBuildFileSubstitutes,
-        _languageVersion = _readLanguageVersion(provider, root);
+        _provideLanguageVersion = provideLanguageVersion,
+        _languageVersion = provideLanguageVersion
+            ? _readLanguageVersion(provider, root)
+            : null;
 
   /// Stream of files that we tried to find along with their potential or actual
   /// paths.
@@ -430,6 +442,7 @@ class BlazeWorkspace extends Workspace
     ResourceProvider provider,
     String filePath, {
     bool lookForBuildFileSubstitutes = true,
+    bool provideLanguageVersion = true,
   }) {
     var context = provider.pathContext;
     var startFolder = provider.getFolder(filePath);
@@ -444,7 +457,8 @@ class BlazeWorkspace extends Workspace
         binPaths = binPaths..add(context.join(root, 'blaze-bin'));
         return BlazeWorkspace._(
             provider, root, binPaths, context.join(root, 'blaze-genfiles'),
-            lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
+            lookForBuildFileSubstitutes: lookForBuildFileSubstitutes,
+            provideLanguageVersion: provideLanguageVersion);
       }
 
       // Found the WORKSPACE file, must be a non-git workspace.
@@ -454,7 +468,8 @@ class BlazeWorkspace extends Workspace
         binPaths = binPaths..add(context.join(root, 'blaze-bin'));
         return BlazeWorkspace._(
             provider, root, binPaths, context.join(root, 'blaze-genfiles'),
-            lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
+            lookForBuildFileSubstitutes: lookForBuildFileSubstitutes,
+            provideLanguageVersion: provideLanguageVersion);
       }
     }
 
@@ -477,7 +492,7 @@ class BlazeWorkspace extends Workspace
     binPaths.add(blazeBin.path);
 
     return BlazeWorkspace._(provider, root.path, binPaths, blazeGenfiles.path,
-        lookForBuildFileSubstitutes: true);
+        lookForBuildFileSubstitutes: true, provideLanguageVersion: true);
   }
 
   /// Find the "bin" folder path, by searching for it.
@@ -568,6 +583,9 @@ class BlazeWorkspacePackage extends WorkspacePackage {
 
   @override
   Version? get languageVersion {
+    if (!workspace._provideLanguageVersion) {
+      return null;
+    }
     _readBuildFile();
     return _languageVersion ?? workspace._languageVersion;
   }

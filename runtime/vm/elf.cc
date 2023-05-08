@@ -431,7 +431,7 @@ class StringTable : public Section {
     return text_.buffer() + index;
   }
 
-  static const intptr_t kNotIndexed = CStringIntMapKeyValueTrait::kNoValue;
+  static constexpr intptr_t kNotIndexed = CStringIntMapKeyValueTrait::kNoValue;
 
   // Returns the index of |str| if it is present in the string table
   // and |kNotIndexed| otherwise.
@@ -1000,7 +1000,7 @@ class BssSection : public ConcatenableBitsContainer {
 class PseudoSection : public Section {
  public:
   // All PseudoSections are aligned to target word size.
-  static const intptr_t kAlignment = compiler::target::kWordSize;
+  static constexpr intptr_t kAlignment = compiler::target::kWordSize;
 
   PseudoSection(bool allocate, bool executable, bool writable)
       : Section(elf::SectionHeaderType::SHT_NULL,
@@ -1237,7 +1237,7 @@ class DwarfElfStream : public DwarfWriteStream {
   DwarfElfStream(Zone* zone, NonStreamingWriteStream* stream)
       : zone_(ASSERT_NOTNULL(zone)),
         stream_(ASSERT_NOTNULL(stream)),
-        relocations_(new (zone) ZoneGrowableArray<Elf::Relocation>()) {}
+        relocations_(new(zone) ZoneGrowableArray<Elf::Relocation>()) {}
 
   const uint8_t* buffer() const { return stream_->buffer(); }
   intptr_t bytes_written() const { return stream_->bytes_written(); }
@@ -1413,8 +1413,8 @@ void Elf::FinalizeEhFrame() {
   // DW_CFA_val_offset.
   const intptr_t kDataAlignment = -compiler::target::kWordSize;
 
-  static const uint8_t DW_EH_PE_pcrel = 0x10;
-  static const uint8_t DW_EH_PE_sdata4 = 0x0b;
+  static constexpr uint8_t DW_EH_PE_pcrel = 0x10;
+  static constexpr uint8_t DW_EH_PE_sdata4 = 0x0b;
 
   ZoneWriteStream stream(zone(), kInitialDwarfBufferSize);
   DwarfElfStream dwarf_stream(zone_, &stream);

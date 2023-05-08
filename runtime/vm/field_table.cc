@@ -118,7 +118,7 @@ void FieldTable::Grow(intptr_t new_capacity) {
   // Ensure that new_table_ is populated before it is published
   // via store to table_.
   reinterpret_cast<AcqRelAtomic<ObjectPtr*>*>(&table_)->store(new_table);
-  if (isolate_ != nullptr) {
+  if (isolate_ != nullptr && isolate_->mutator_thread() != nullptr) {
     isolate_->mutator_thread()->field_table_values_ = table_;
   }
 }
@@ -145,7 +145,7 @@ void FieldTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     return;
   }
 
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   visitor->set_gc_root_type("static fields table");
   visitor->VisitPointers(&table_[0], &table_[top_ - 1]);
   visitor->clear_gc_root_type();

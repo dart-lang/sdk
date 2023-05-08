@@ -67,7 +67,7 @@ class LibraryMacroApplier {
             await _buildApplications(
               targetElement,
               targetNode.metadata,
-              macro.DeclarationKind.clazz,
+              macro.DeclarationKind.classType,
               () => declarationBuilder.fromNode.classDeclaration(targetNode),
               performance: performance,
             );
@@ -228,6 +228,7 @@ class LibraryMacroApplier {
 
     final code = macroExecutor.buildAugmentationLibrary(
       results,
+      _resolveDeclaration,
       _resolveIdentifier,
       _inferOmittedType,
     );
@@ -240,13 +241,11 @@ class LibraryMacroApplier {
     required Future<R?> Function({
       required ClassElementImpl macroClass,
       required String? constructorName,
-    })
-        whenClass,
+    }) whenClass,
     required Future<R?> Function({
       required ClassElementImpl macroClass,
       required InstanceCreationExpression instanceCreation,
-    })
-        whenGetter,
+    }) whenGetter,
   }) async {
     final String? prefix;
     final String name;
@@ -325,6 +324,15 @@ class LibraryMacroApplier {
     macro.OmittedTypeAnnotation omittedType,
   ) {
     throw UnimplementedError();
+  }
+
+  macro.TypeDeclaration _resolveDeclaration(macro.Identifier identifier) {
+    final element = (identifier as IdentifierImpl).element;
+    if (element is ClassElementImpl) {
+      return declarationBuilder.fromElement.classElement(element);
+    } else {
+      throw ArgumentError('element: $element');
+    }
   }
 
   macro.ResolvedIdentifier _resolveIdentifier(macro.Identifier identifier) {
@@ -618,6 +626,13 @@ class _TypeIntrospector implements macro.TypeIntrospector {
     // TODO: implement methodsOf
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<macro.EnumValueDeclaration>> valuesOf(
+      covariant macro.IntrospectableEnum type) {
+    // TODO: implement valuesOf
+    throw UnimplementedError();
+  }
 }
 
 class _TypeResolver implements macro.TypeResolver {
@@ -658,5 +673,7 @@ class _TypeResolver implements macro.TypeResolver {
 
 extension on macro.MacroExecutionResult {
   bool get isNotEmpty =>
-      libraryAugmentations.isNotEmpty || classAugmentations.isNotEmpty;
+      enumValueAugmentations.isNotEmpty ||
+      libraryAugmentations.isNotEmpty ||
+      typeAugmentations.isNotEmpty;
 }

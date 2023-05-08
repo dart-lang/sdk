@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+inline class I<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> /* declaredRepresentationType = X% */ {
+  constructor • = self::I|;
+}
+static method I|<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|::X% value) → self::I<self::I|::X%, self::I|::Y%> {
+  final self::I<self::I|::X%, self::I|::Y%> #this = value;
+  return #this;
+}
+static method f(self::I<core::int, core::String> i) → void {}
+static method main() → void {
+  self::f(self::I|<core::int, core::String>(2));
+}

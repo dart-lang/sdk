@@ -508,9 +508,15 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
     final user = currentUser;
     if (user is MemberTypeInformation) {
-      if (info.concreteTargets.contains(user.member)) {
-        addNewEscapeInformation(info);
+      bool checkMember(MemberEntity member) {
+        if (member == user.member) {
+          addNewEscapeInformation(info);
+          return false;
+        }
+        return true;
       }
+
+      info.forEachConcreteTarget(inferrer.memberHierarchyBuilder, checkMember);
     }
   }
 
@@ -588,5 +594,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       return;
     }
     addNewEscapeInformation(info);
+  }
+
+  bool dynamicCallTargetsNonFunction(DynamicCallSiteTypeInformation info) {
+    return info.targets.any((target) => inferrer.memberHierarchyBuilder
+        .anyTargetMember(target, (element) => !element.isFunction));
   }
 }

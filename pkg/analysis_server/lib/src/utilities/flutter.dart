@@ -235,6 +235,9 @@ class Flutter {
   /// constructor.
   InstanceCreationExpression? identifyNewExpression(AstNode? node) {
     InstanceCreationExpression? newExpr;
+    if (node is ImportPrefixReference) {
+      node = node.parent;
+    }
     if (node is SimpleIdentifier) {
       node = node.parent;
     }

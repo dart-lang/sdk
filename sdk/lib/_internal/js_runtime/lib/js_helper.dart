@@ -1187,10 +1187,15 @@ String checkString(value) {
 ///
 /// The code in [unwrapException] deals with getting the original Dart
 /// object out of the wrapper again.
-@pragma('dart2js:noInline')
+@pragma('dart2js:never-inline')
 wrapException(ex) {
+  final wrapper = JS('', 'new Error()');
+  return initializeExceptionWrapper(wrapper, ex);
+}
+
+@pragma('dart2js:never-inline')
+initializeExceptionWrapper(wrapper, ex) {
   if (ex == null) ex = new TypeError();
-  var wrapper = JS('', 'new Error()');
   // [unwrapException] looks for the property 'dartException'.
   JS('void', '#.dartException = #', wrapper, ex);
 
@@ -1222,8 +1227,14 @@ toStringWrapper() {
 /// a JS expression context, where the throw statement is not allowed.  Helpers
 /// are never inlined, so we don't risk inlining the throw statement into an
 /// expression context.
-throwExpression(ex) {
-  JS('void', 'throw #', wrapException(ex));
+@pragma('dart2js:never-inline')
+Never throwExpression(ex) {
+  // TODO(sra): Manually inline `wrapException` to remove one stack frame.
+  JS<Never>('', 'throw #', wrapException(ex));
+}
+
+Never throwExpressionWithWrapper(ex, wrapper) {
+  JS<Never>('', 'throw #', initializeExceptionWrapper(wrapper, ex));
 }
 
 throwUnsupportedError(message) {

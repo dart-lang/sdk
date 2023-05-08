@@ -45,7 +45,7 @@ class PageSpaceGarbageCollectionHistory {
     int64_t start;
     int64_t end;
   };
-  static const intptr_t kHistoryLength = 4;
+  static constexpr intptr_t kHistoryLength = 4;
   RingBuffer<Entry, kHistoryLength> history_;
 
   DISALLOW_ALLOCATION();
@@ -139,12 +139,13 @@ class PageSpace {
   ~PageSpace();
 
   uword TryAllocate(intptr_t size,
-                    Page::PageType type = Page::kData,
+                    bool is_executable = false,
                     GrowthPolicy growth_policy = kControlGrowth) {
-    bool is_protected = (type == Page::kExecutable) && FLAG_write_protect_code;
+    bool is_protected = (is_executable) && FLAG_write_protect_code;
     bool is_locked = false;
-    return TryAllocateInternal(size, &freelists_[type], type, growth_policy,
-                               is_protected, is_locked);
+    return TryAllocateInternal(
+        size, &freelists_[is_executable ? kExecutableFreelist : kDataFreelist],
+        is_executable, growth_policy, is_protected, is_locked);
   }
 
   void TryReleaseReservation();
@@ -199,7 +200,7 @@ class PageSpace {
 
   bool Contains(uword addr) const;
   bool ContainsUnsafe(uword addr) const;
-  bool Contains(uword addr, Page::PageType type) const;
+  bool CodeContains(uword addr) const;
   bool DataContains(uword addr) const;
   bool IsValidAddress(uword addr) const { return Contains(addr); }
 
@@ -210,8 +211,6 @@ class PageSpace {
 
   void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
   void ResetProgressBars() const;
-
-  ObjectPtr FindObject(FindObjectVisitor* visitor, Page::PageType type) const;
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.
   void CollectGarbage(Thread* thread, bool compact, bool finalize);
@@ -274,7 +273,7 @@ class PageSpace {
 
   // Bulk data allocation.
   FreeList* DataFreeList(intptr_t i = 0) {
-    return &freelists_[Page::kData + i];
+    return &freelists_[kDataFreelist + i];
   }
   void AcquireLock(FreeList* freelist);
   void ReleaseLock(FreeList* freelist);
@@ -282,9 +281,10 @@ class PageSpace {
   uword TryAllocateDataLocked(FreeList* freelist,
                               intptr_t size,
                               GrowthPolicy growth_policy) {
+    bool is_executable = false;
     bool is_protected = false;
     bool is_locked = true;
-    return TryAllocateInternal(size, freelist, Page::kData, growth_policy,
+    return TryAllocateInternal(size, freelist, is_executable, growth_policy,
                                is_protected, is_locked);
   }
 
@@ -304,7 +304,7 @@ class PageSpace {
 
   // Attempt to allocate from bump block rather than normal freelist.
   uword TryAllocateDataBumpLocked(intptr_t size) {
-    return TryAllocateDataBumpLocked(&freelists_[Page::kData], size);
+    return TryAllocateDataBumpLocked(&freelists_[kDataFreelist], size);
   }
   uword TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size);
   DART_FORCE_INLINE
@@ -346,17 +346,17 @@ class PageSpace {
 
   uword TryAllocateInternal(intptr_t size,
                             FreeList* freelist,
-                            Page::PageType type,
+                            bool is_executable,
                             GrowthPolicy growth_policy,
                             bool is_protected,
                             bool is_locked);
   uword TryAllocateInFreshPage(intptr_t size,
                                FreeList* freelist,
-                               Page::PageType type,
+                               bool is_executable,
                                GrowthPolicy growth_policy,
                                bool is_locked);
   uword TryAllocateInFreshLargePage(intptr_t size,
-                                    Page::PageType type,
+                                    bool is_executable,
                                     GrowthPolicy growth_policy);
 
   // Makes bump block walkable; do not call concurrently with mutator.
@@ -369,13 +369,13 @@ class PageSpace {
   void RemoveLargePageLocked(Page* page, Page* previous_page);
   void RemoveExecPageLocked(Page* page, Page* previous_page);
 
-  Page* AllocatePage(Page::PageType type, bool link = true);
-  Page* AllocateLargePage(intptr_t size, Page::PageType type);
+  Page* AllocatePage(bool is_executable, bool link = true);
+  Page* AllocateLargePage(intptr_t size, bool is_executable);
 
   void TruncateLargePage(Page* page, intptr_t new_object_size_in_bytes);
   void FreePage(Page* page, Page* previous_page);
   void FreeLargePage(Page* page, Page* previous_page);
-  void FreePages(Page* pages, bool can_use_cache);
+  void FreePages(Page* pages);
 
   void CollectGarbageHelper(Thread* thread, bool compact, bool finalize);
   void SweepLarge();
@@ -398,12 +398,16 @@ class PageSpace {
 
   Heap* const heap_;
 
-  // One list for executable pages at freelists_[Page::kExecutable].
+  // One list for executable pages at freelists_[kExecutableFreelist].
   // FLAG_scavenger_tasks count of lists for data pages starting at
-  // freelists_[Page::kData]. The sweeper inserts into the data page
+  // freelists_[kDataFreelist]. The sweeper inserts into the data page
   // freelists round-robin. The scavenger workers each use one of the data
   // page freelists without locking.
   const intptr_t num_freelists_;
+  enum {
+    kExecutableFreelist = 0,
+    kDataFreelist = 1,
+  };
   FreeList* freelists_;
   static constexpr intptr_t kOOMReservationSize = 32 * KB;
   FreeListElement* oom_reservation_ = nullptr;

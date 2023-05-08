@@ -28,13 +28,13 @@ extern "C" void __msan_check_mem_is_initialized(const volatile void*, size_t);
 #else  // defined(USING_MEMORY_SANITIZER)
 #define MSAN_POISON(ptr, len)                                                  \
   do {                                                                         \
-  } while (false && (ptr) == 0 && (len) == 0)
+  } while (false && (ptr) == nullptr && (len) == 0)
 #define MSAN_UNPOISON(ptr, len)                                                \
   do {                                                                         \
-  } while (false && (ptr) == 0 && (len) == 0)
+  } while (false && (ptr) == nullptr && (len) == 0)
 #define MSAN_CHECK_INITIALIZED(ptr, len)                                       \
   do {                                                                         \
-  } while (false && (ptr) == 0 && (len) == 0)
+  } while (false && (ptr) == nullptr && (len) == 0)
 #endif  // defined(USING_MEMORY_SANITIZER)
 
 #endif  // RUNTIME_PLATFORM_MEMORY_SANITIZER_H_

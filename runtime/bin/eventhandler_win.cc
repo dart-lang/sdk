@@ -30,9 +30,9 @@ namespace bin {
 
 // kBufferSize must be >= kMaxUDPPackageLength so that a complete UDP packet
 // can fit in the buffer.
-static const int kBufferSize = 64 * 1024;
-static const int kStdOverlappedBufferSize = 16 * 1024;
-static const int kMaxUDPPackageLength = 64 * 1024;
+static constexpr int kBufferSize = 64 * 1024;
+static constexpr int kStdOverlappedBufferSize = 16 * 1024;
+static constexpr int kMaxUDPPackageLength = 64 * 1024;
 
 OverlappedBuffer* OverlappedBuffer::AllocateBuffer(int buffer_size,
                                                    Operation operation) {
@@ -109,14 +109,14 @@ Handle::Handle(intptr_t handle)
       DescriptorInfoBase(handle),
       handle_(reinterpret_cast<HANDLE>(handle)),
       completion_port_(INVALID_HANDLE_VALUE),
-      event_handler_(NULL),
-      data_ready_(NULL),
-      pending_read_(NULL),
-      pending_write_(NULL),
+      event_handler_(nullptr),
+      data_ready_(nullptr),
+      pending_read_(nullptr),
+      pending_write_(nullptr),
       last_error_(NOERROR),
       flags_(0),
       read_thread_id_(Thread::kInvalidThreadId),
-      read_thread_handle_(NULL),
+      read_thread_handle_(nullptr),
       read_thread_starting_(false),
       read_thread_finished_(false),
       monitor_() {}
@@ -131,7 +131,7 @@ bool Handle::CreateCompletionPort(HANDLE completion_port) {
   Retain();
   completion_port_ = CreateIoCompletionPort(
       handle(), completion_port, reinterpret_cast<ULONG_PTR>(this), 0);
-  return (completion_port_ != NULL);
+  return (completion_port_ != nullptr);
 }
 
 void Handle::Close() {
@@ -139,7 +139,7 @@ void Handle::Close() {
   if (!SupportsOverlappedIO()) {
     // If the handle uses synchronous I/O (e.g. stdin), cancel any pending
     // operation before closing the handle, so the read thread is not blocked.
-    BOOL result = CancelIoEx(handle_, NULL);
+    BOOL result = CancelIoEx(handle_, nullptr);
 // The Dart code 'stdin.listen(() {}).cancel()' causes this assert to be
 // triggered on Windows 7, but not on Windows 10.
 #if defined(DEBUG)
@@ -183,7 +183,7 @@ void Handle::WaitForReadThreadStarted() {
 }
 
 void Handle::WaitForReadThreadFinished() {
-  HANDLE to_join = NULL;
+  HANDLE to_join = nullptr;
   {
     MonitorLocker ml(&monitor_);
     if (read_thread_id_ != Thread::kInvalidThreadId) {
@@ -193,10 +193,10 @@ void Handle::WaitForReadThreadFinished() {
       read_thread_finished_ = false;
       read_thread_id_ = Thread::kInvalidThreadId;
       to_join = read_thread_handle_;
-      read_thread_handle_ = NULL;
+      read_thread_handle_ = nullptr;
     }
   }
-  if (to_join != NULL) {
+  if (to_join != nullptr) {
     // Join the read thread.
     DWORD res = WaitForSingleObject(to_join, INFINITE);
     CloseHandle(to_join);
@@ -210,13 +210,13 @@ void Handle::ReadComplete(OverlappedBuffer* buffer) {
     MonitorLocker ml(&monitor_);
     // Currently only one outstanding read at the time.
     ASSERT(pending_read_ == buffer);
-    ASSERT(data_ready_ == NULL);
+    ASSERT(data_ready_ == nullptr);
     if (!IsClosing()) {
       data_ready_ = pending_read_;
     } else {
       OverlappedBuffer::DisposeBuffer(buffer);
     }
-    pending_read_ = NULL;
+    pending_read_ = nullptr;
   }
   WaitForReadThreadFinished();
 }
@@ -230,7 +230,7 @@ void Handle::WriteComplete(OverlappedBuffer* buffer) {
   // Currently only one outstanding write at the time.
   ASSERT(pending_write_ == buffer);
   OverlappedBuffer::DisposeBuffer(buffer);
-  pending_write_ = NULL;
+  pending_write_ = nullptr;
 }
 
 static void ReadFileThread(uword args) {
@@ -267,7 +267,7 @@ void Handle::ReadSyncCompleteAsync() {
   }
   char* buffer_start = pending_read_->GetBufferStart();
   DWORD bytes_read = 0;
-  BOOL ok = ReadFile(handle_, buffer_start, buffer_size, &bytes_read, NULL);
+  BOOL ok = ReadFile(handle_, buffer_start, buffer_size, &bytes_read, nullptr);
   if (!ok) {
     bytes_read = 0;
   }
@@ -290,7 +290,7 @@ bool Handle::IssueRead() {
 
     BOOL ok =
         ReadFile(handle_, buffer->GetBufferStart(), buffer->GetBufferSize(),
-                 NULL, buffer->GetCleanOverlapped());
+                 nullptr, buffer->GetCleanOverlapped());
     if (ok || (GetLastError() == ERROR_IO_PENDING)) {
       // Completing asynchronously.
       pending_read_ = buffer;
@@ -326,7 +326,7 @@ bool Handle::IssueWrite() {
   OverlappedBuffer* buffer = pending_write_;
   BOOL ok =
       WriteFile(handle_, buffer->GetBufferStart(), buffer->GetBufferSize(),
-                NULL, buffer->GetCleanOverlapped());
+                nullptr, buffer->GetCleanOverlapped());
   if (ok || (GetLastError() == ERROR_IO_PENDING)) {
     // Completing asynchronously.
     pending_write_ = buffer;
@@ -402,7 +402,7 @@ bool DirectoryWatchHandle::IsClosed() {
 bool DirectoryWatchHandle::IssueRead() {
   // It may have been started before, as we start the directory-handler when
   // we create it.
-  if (HasPendingRead() || (data_ready_ != NULL)) {
+  if (HasPendingRead() || (data_ready_ != nullptr)) {
     return true;
   }
   OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(kBufferSize);
@@ -411,9 +411,9 @@ bool DirectoryWatchHandle::IssueRead() {
   // also ready right away.
   pending_read_ = buffer;
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
-  BOOL ok = ReadDirectoryChangesW(handle_, buffer->GetBufferStart(),
-                                  buffer->GetBufferSize(), recursive_, events_,
-                                  NULL, buffer->GetCleanOverlapped(), NULL);
+  BOOL ok = ReadDirectoryChangesW(
+      handle_, buffer->GetBufferStart(), buffer->GetBufferSize(), recursive_,
+      events_, nullptr, buffer->GetCleanOverlapped(), nullptr);
   if (ok || (GetLastError() == ERROR_IO_PENDING)) {
     // Completing asynchronously.
     return true;
@@ -451,7 +451,7 @@ bool ListenSocket::LoadAcceptEx() {
   DWORD bytes;
   int status = WSAIoctl(socket(), SIO_GET_EXTENSION_FUNCTION_POINTER,
                         &guid_accept_ex, sizeof(guid_accept_ex), &AcceptEx_,
-                        sizeof(AcceptEx_), &bytes, NULL, NULL);
+                        sizeof(AcceptEx_), &bytes, nullptr, nullptr);
   return (status != SOCKET_ERROR);
 }
 
@@ -463,8 +463,8 @@ bool ListenSocket::IssueAccept() {
   // AcceptEx documentation says: "This value must be at least 16
   // bytes more than the maximum address length for the transport
   // protocol in use."
-  static const int kAcceptExAddressAdditionalBytes = 16;
-  static const int kAcceptExAddressStorageSize =
+  const int kAcceptExAddressAdditionalBytes = 16;
+  const int kAcceptExAddressStorageSize =
       sizeof(SOCKADDR_STORAGE) + kAcceptExAddressAdditionalBytes;
   OverlappedBuffer* buffer =
       OverlappedBuffer::AllocateAcceptBuffer(2 * kAcceptExAddressStorageSize);
@@ -502,11 +502,11 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
       ClientSocket* client_socket = new ClientSocket(buffer->client());
       client_socket->mark_connected();
       client_socket->CreateCompletionPort(completion_port);
-      if (accepted_head_ == NULL) {
+      if (accepted_head_ == nullptr) {
         accepted_head_ = client_socket;
         accepted_tail_ = client_socket;
       } else {
-        ASSERT(accepted_tail_ != NULL);
+        ASSERT(accepted_tail_ != nullptr);
         accepted_tail_->set_next(client_socket);
         accepted_tail_ = client_socket;
       }
@@ -526,7 +526,7 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
 static void DeleteIfClosed(Handle* handle) {
   if (handle->IsClosed()) {
     handle->set_completion_port(INVALID_HANDLE_VALUE);
-    handle->set_event_handler(NULL);
+    handle->set_event_handler(nullptr);
     handle->NotifyAllDartPorts(1 << kDestroyedEvent);
     handle->RemoveAllPorts();
     // Once the Handle is closed, no further events on the IO completion port
@@ -541,7 +541,7 @@ void ListenSocket::DoClose() {
   while (CanAccept()) {
     // Get rid of connections already accepted.
     ClientSocket* client = Accept();
-    if (client != NULL) {
+    if (client != nullptr) {
       client->Close();
       // Release the reference from the list.
       // When an accept completes, we make a new ClientSocket (1 reference),
@@ -558,26 +558,26 @@ void ListenSocket::DoClose() {
   // To finish resetting the state of the ListenSocket back to what it was
   // before EnsureInitialized was called, we have to reset the AcceptEx_
   // function pointer.
-  AcceptEx_ = NULL;
+  AcceptEx_ = nullptr;
 }
 
 bool ListenSocket::CanAccept() {
   MonitorLocker ml(&monitor_);
-  return accepted_head_ != NULL;
+  return accepted_head_ != nullptr;
 }
 
 ClientSocket* ListenSocket::Accept() {
   MonitorLocker ml(&monitor_);
 
-  ClientSocket* result = NULL;
+  ClientSocket* result = nullptr;
 
-  if (accepted_head_ != NULL) {
+  if (accepted_head_ != nullptr) {
     result = accepted_head_;
     accepted_head_ = accepted_head_->next();
-    if (accepted_head_ == NULL) {
-      accepted_tail_ = NULL;
+    if (accepted_head_ == nullptr) {
+      accepted_tail_ = nullptr;
     }
-    result->set_next(NULL);
+    result->set_next(nullptr);
     accepted_count_--;
   }
 
@@ -596,9 +596,9 @@ ClientSocket* ListenSocket::Accept() {
 void ListenSocket::EnsureInitialized(
     EventHandlerImplementation* event_handler) {
   MonitorLocker ml(&monitor_);
-  if (AcceptEx_ == NULL) {
+  if (AcceptEx_ == nullptr) {
     ASSERT(completion_port_ == INVALID_HANDLE_VALUE);
-    ASSERT(event_handler_ == NULL);
+    ASSERT(event_handler_ == nullptr);
     event_handler_ = event_handler;
     CreateCompletionPort(event_handler_->completion_port());
     LoadAcceptEx();
@@ -611,26 +611,26 @@ bool ListenSocket::IsClosed() {
 
 intptr_t Handle::Available() {
   MonitorLocker ml(&monitor_);
-  if (data_ready_ == NULL) {
+  if (data_ready_ == nullptr) {
     return 0;
   }
   return data_ready_->GetRemainingLength();
 }
 
 bool Handle::DataReady() {
-  return data_ready_ != NULL;
+  return data_ready_ != nullptr;
 }
 
 intptr_t Handle::Read(void* buffer, intptr_t num_bytes) {
   MonitorLocker ml(&monitor_);
-  if (data_ready_ == NULL) {
+  if (data_ready_ == nullptr) {
     return 0;
   }
   num_bytes =
       data_ready_->Read(buffer, Utils::Minimum<intptr_t>(num_bytes, INT_MAX));
   if (data_ready_->IsEmpty()) {
     OverlappedBuffer::DisposeBuffer(data_ready_);
-    data_ready_ = NULL;
+    data_ready_ = nullptr;
     if (!IsClosing() && !IsClosedRead()) {
       IssueRead();
     }
@@ -643,7 +643,7 @@ intptr_t Handle::RecvFrom(void* buffer,
                           struct sockaddr* sa,
                           socklen_t sa_len) {
   MonitorLocker ml(&monitor_);
-  if (data_ready_ == NULL) {
+  if (data_ready_ == nullptr) {
     return 0;
   }
   num_bytes =
@@ -659,7 +659,7 @@ intptr_t Handle::RecvFrom(void* buffer,
   // Always dispose of the buffer, as UDP messages must be read in their
   // entirety to match how recvfrom works in a socket.
   OverlappedBuffer::DisposeBuffer(data_ready_);
-  data_ready_ = NULL;
+  data_ready_ = nullptr;
   if (!IsClosing() && !IsClosedRead()) {
     IssueRecvFrom();
   }
@@ -717,11 +717,11 @@ intptr_t Handle::SendTo(const void* buffer,
 }
 
 Mutex* StdHandle::stdin_mutex_ = new Mutex();
-StdHandle* StdHandle::stdin_ = NULL;
+StdHandle* StdHandle::stdin_ = nullptr;
 
 StdHandle* StdHandle::Stdin(HANDLE handle) {
   MutexLocker ml(stdin_mutex_);
-  if (stdin_ == NULL) {
+  if (stdin_ == nullptr) {
     stdin_ = new StdHandle(handle);
   }
   return stdin_;
@@ -757,7 +757,7 @@ void StdHandle::WriteSyncCompleteAsync() {
 
   DWORD bytes_written = -1;
   BOOL ok = WriteFile(handle_, pending_write_->GetBufferStart(),
-                      pending_write_->GetBufferSize(), &bytes_written, NULL);
+                      pending_write_->GetBufferSize(), &bytes_written, nullptr);
   if (!ok) {
     bytes_written = 0;
   }
@@ -834,7 +834,7 @@ void StdHandle::DoClose() {
   }
   MutexLocker ml(stdin_mutex_);
   stdin_->Release();
-  StdHandle::stdin_ = NULL;
+  StdHandle::stdin_ = nullptr;
 }
 
 #if defined(DEBUG)
@@ -848,7 +848,7 @@ bool ClientSocket::LoadDisconnectEx() {
   int status =
       WSAIoctl(socket(), SIO_GET_EXTENSION_FUNCTION_POINTER,
                &guid_disconnect_ex, sizeof(guid_disconnect_ex), &DisconnectEx_,
-               sizeof(DisconnectEx_), &bytes, NULL, NULL);
+               sizeof(DisconnectEx_), &bytes, nullptr, nullptr);
   return (status != SOCKET_ERROR);
 }
 
@@ -884,14 +884,14 @@ bool ClientSocket::IssueRead() {
 
   DWORD flags;
   flags = 0;
-  int rc = WSARecv(socket(), buffer->GetWASBUF(), 1, NULL, &flags,
-                   buffer->GetCleanOverlapped(), NULL);
+  int rc = WSARecv(socket(), buffer->GetWASBUF(), 1, nullptr, &flags,
+                   buffer->GetCleanOverlapped(), nullptr);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
     pending_read_ = buffer;
     return true;
   }
   OverlappedBuffer::DisposeBuffer(buffer);
-  pending_read_ = NULL;
+  pending_read_ = nullptr;
   HandleIssueError();
   return false;
 }
@@ -902,13 +902,13 @@ bool ClientSocket::IssueWrite() {
   ASSERT(HasPendingWrite());
   ASSERT(pending_write_->operation() == OverlappedBuffer::kWrite);
 
-  int rc = WSASend(socket(), pending_write_->GetWASBUF(), 1, NULL, 0,
-                   pending_write_->GetCleanOverlapped(), NULL);
+  int rc = WSASend(socket(), pending_write_->GetWASBUF(), 1, nullptr, 0,
+                   pending_write_->GetCleanOverlapped(), nullptr);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
     return true;
   }
   OverlappedBuffer::DisposeBuffer(pending_write_);
-  pending_write_ = NULL;
+  pending_write_ = nullptr;
   HandleIssueError();
   return false;
 }
@@ -939,7 +939,7 @@ void ClientSocket::IssueDisconnect() {
 void ClientSocket::DisconnectComplete(OverlappedBuffer* buffer) {
   OverlappedBuffer::DisposeBuffer(buffer);
   closesocket(socket());
-  if (data_ready_ != NULL) {
+  if (data_ready_ != nullptr) {
     OverlappedBuffer::DisposeBuffer(data_ready_);
   }
   mark_closed();
@@ -951,7 +951,7 @@ void ClientSocket::DisconnectComplete(OverlappedBuffer* buffer) {
 void ClientSocket::ConnectComplete(OverlappedBuffer* buffer) {
   OverlappedBuffer::DisposeBuffer(buffer);
   // Update socket to support full socket API, after ConnectEx completed.
-  setsockopt(socket(), SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
+  setsockopt(socket(), SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, nullptr, 0);
   // If the port is set, we already listen for this socket in Dart.
   // Handle the cases here.
   if (!IsClosedRead() && ((Mask() & (1 << kInEvent)) != 0)) {
@@ -967,7 +967,7 @@ void ClientSocket::EnsureInitialized(
     EventHandlerImplementation* event_handler) {
   MonitorLocker ml(&monitor_);
   if (completion_port_ == INVALID_HANDLE_VALUE) {
-    ASSERT(event_handler_ == NULL);
+    ASSERT(event_handler_ == nullptr);
     event_handler_ = event_handler;
     CreateCompletionPort(event_handler_->completion_port());
   }
@@ -983,13 +983,13 @@ bool DatagramSocket::IssueSendTo(struct sockaddr* sa, socklen_t sa_len) {
   ASSERT(HasPendingWrite());
   ASSERT(pending_write_->operation() == OverlappedBuffer::kSendTo);
 
-  int rc = WSASendTo(socket(), pending_write_->GetWASBUF(), 1, NULL, 0, sa,
-                     sa_len, pending_write_->GetCleanOverlapped(), NULL);
+  int rc = WSASendTo(socket(), pending_write_->GetWASBUF(), 1, nullptr, 0, sa,
+                     sa_len, pending_write_->GetCleanOverlapped(), nullptr);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
     return true;
   }
   OverlappedBuffer::DisposeBuffer(pending_write_);
-  pending_write_ = NULL;
+  pending_write_ = nullptr;
   HandleIssueError();
   return false;
 }
@@ -1004,15 +1004,15 @@ bool DatagramSocket::IssueRecvFrom() {
 
   DWORD flags;
   flags = 0;
-  int rc = WSARecvFrom(socket(), buffer->GetWASBUF(), 1, NULL, &flags,
+  int rc = WSARecvFrom(socket(), buffer->GetWASBUF(), 1, nullptr, &flags,
                        buffer->from(), buffer->from_len_addr(),
-                       buffer->GetCleanOverlapped(), NULL);
+                       buffer->GetCleanOverlapped(), nullptr);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
     pending_read_ = buffer;
     return true;
   }
   OverlappedBuffer::DisposeBuffer(buffer);
-  pending_read_ = NULL;
+  pending_read_ = nullptr;
   HandleIssueError();
   return false;
 }
@@ -1021,7 +1021,7 @@ void DatagramSocket::EnsureInitialized(
     EventHandlerImplementation* event_handler) {
   MonitorLocker ml(&monitor_);
   if (completion_port_ == INVALID_HANDLE_VALUE) {
-    ASSERT(event_handler_ == NULL);
+    ASSERT(event_handler_ == nullptr);
     event_handler_ = event_handler;
     CreateCompletionPort(event_handler_->completion_port());
   }
@@ -1040,7 +1040,6 @@ void DatagramSocket::DoClose() {
 }
 
 void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
-  ASSERT(this != NULL);
   if (msg->id == kTimerId) {
     // Change of timeout request. Just set the new timeout and port as the
     // completion thread will use the new timeout value for its next wait.
@@ -1054,7 +1053,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       return;
     }
     Handle* handle = reinterpret_cast<Handle*>(socket->fd());
-    ASSERT(handle != NULL);
+    ASSERT(handle != nullptr);
 
     if (handle->is_listen_socket()) {
       ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(handle);
@@ -1366,7 +1365,7 @@ void EventHandlerImplementation::HandleCompletionOrInterrupt(
       HandleIOCompletion(-1, key, overlapped);
     }
   } else if (key == NULL) {
-    // A key of NULL signals an interrupt message.
+    // A key of nullptr signals an interrupt message.
     InterruptMessage* msg = reinterpret_cast<InterruptMessage*>(overlapped);
     HandleInterrupt(msg);
     delete msg;
@@ -1377,10 +1376,10 @@ void EventHandlerImplementation::HandleCompletionOrInterrupt(
 
 EventHandlerImplementation::EventHandlerImplementation() {
   handler_thread_id_ = Thread::kInvalidThreadId;
-  handler_thread_handle_ = NULL;
+  handler_thread_handle_ = nullptr;
   completion_port_ =
-      CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, 1);
-  if (completion_port_ == NULL) {
+      CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, NULL, 1);
+  if (completion_port_ == nullptr) {
     FATAL("Completion port creation failed");
   }
   shutdown_ = false;
@@ -1420,7 +1419,7 @@ void EventHandlerImplementation::SendData(intptr_t id,
 void EventHandlerImplementation::EventHandlerEntry(uword args) {
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;
-  ASSERT(handler_impl != NULL);
+  ASSERT(handler_impl != nullptr);
 
   {
     MonitorLocker ml(&handler_impl->startup_monitor_);
@@ -1445,13 +1444,13 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     ok = GetQueuedCompletionStatus(handler_impl->completion_port(), &bytes,
                                    &key, &overlapped, timeout);
 
-    if (!ok && (overlapped == NULL)) {
+    if (!ok && (overlapped == nullptr)) {
       if (GetLastError() == ERROR_ABANDONED_WAIT_0) {
         // The completion port should never be closed.
         Syslog::Print("Completion port closed\n");
         UNREACHABLE();
       } else {
-        // Timeout is signalled by false result and NULL in overlapped.
+        // Timeout is signalled by false result and nullptr in overlapped.
         handler_impl->HandleTimeout();
       }
     } else {
@@ -1466,7 +1465,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   while (true) {
     ok = GetQueuedCompletionStatus(handler_impl->completion_port(), &bytes,
                                    &key, &overlapped, 0);
-    if (!ok && (overlapped == NULL)) {
+    if (!ok && (overlapped == nullptr)) {
       // There was an error or nothing is ready. Assume the port is drained.
       break;
     }
@@ -1481,7 +1480,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   //     ClientSocket::IssueDisconnect()
   // Furthermore, if the Dart program references stdin, but does not
   // explicitly close it, then the StdHandle for it will be leaked to here.
-  const intptr_t stdin_leaked = (StdHandle::StdinPtr() == NULL) ? 0 : 1;
+  const intptr_t stdin_leaked = (StdHandle::StdinPtr() == nullptr) ? 0 : 1;
   DEBUG_ASSERT(ReferenceCounted<Handle>::instances() ==
                ClientSocket::disconnecting() + stdin_leaked);
   DEBUG_ASSERT(ReferenceCounted<Socket>::instances() == 0);

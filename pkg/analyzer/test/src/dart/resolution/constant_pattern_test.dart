@@ -62,10 +62,8 @@ ConstantPattern
   expression: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: A
-          staticElement: self::@class::A
-          staticType: null
+        name: A
+        element: self::@class::A
         type: A
       staticElement: self::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -146,7 +144,7 @@ ConstantPattern
   expression: SetOrMapLiteral
     leftBracket: {
     elements
-      SetOrMapLiteral
+      MapLiteralEntry
         key: IntegerLiteral
           literal: 0
           staticType: int
@@ -290,10 +288,8 @@ void f(Object? x) {
 ConstantPattern
   expression: TypeLiteral
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     staticType: Type
   matchedValueType: Object?
@@ -319,10 +315,8 @@ ListPattern
     ConstantPattern
       expression: TypeLiteral
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         staticType: Type
       matchedValueType: Object?
@@ -345,10 +339,8 @@ void f(Object? x) {
 ConstantPattern
   expression: TypeLiteral
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@typeAlias::A
-        staticType: null
+      name: A
+      element: self::@typeAlias::A
       type: int
         alias: self::@typeAlias::A
     staticType: Type
@@ -369,18 +361,12 @@ void f(Object? x) {
 ConstantPattern
   expression: TypeLiteral
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: math
-          staticElement: self::@prefix::math
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: math
         period: .
-        identifier: SimpleIdentifier
-          token: Random
-          staticElement: dart:math::@class::Random
-          staticType: null
-        staticElement: dart:math::@class::Random
-        staticType: null
+        element: self::@prefix::math
+      name: Random
+      element: dart:math::@class::Random
       type: Random
     staticType: Type
   matchedValueType: Object?
@@ -405,18 +391,12 @@ void f(Object? x) {
 ConstantPattern
   expression: TypeLiteral
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@typeAlias::A
-          staticType: null
-        staticElement: package:test/a.dart::@typeAlias::A
-        staticType: null
+        element: self::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@typeAlias::A
       type: int
         alias: package:test/a.dart::@typeAlias::A
     staticType: Type

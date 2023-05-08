@@ -21,6 +21,21 @@ void f() {
 }
 T a<T>() => throw '';
 ''');
-    assertInvokeType(findNode.methodInvocation('a('), 'dynamic Function()');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: a
+    staticElement: self::@function::a
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic Function()
+  staticType: dynamic
+  typeArgumentTypes
+    dynamic
+''');
   }
 }

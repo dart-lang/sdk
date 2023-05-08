@@ -768,6 +768,12 @@ MultipleOnClauses:
   analyzerCode: ParserErrorCode.MULTIPLE_ON_CLAUSES
   script: "mixin A on B on C, D {}"
 
+MixinWithClause:
+  index: 154
+  problemMessage: "A mixin can't have a with clause."
+  analyzerCode: ParserErrorCode.MIXIN_WITH_CLAUSE
+  script: "mixin M {} mixin N with M {}"
+
 ExtendsFutureOr:
   problemMessage: "The type 'FutureOr' can't be used in an 'extends' clause."
 
@@ -956,8 +962,8 @@ AbstractLateField:
     - "abstract class C {abstract late var f;}"
 
 AbstractSealedClass:
-  problemMessage: "A class can't be declared both 'sealed' and 'abstract'."
-  correctionMessage: "Try removing the 'abstract' or 'sealed' keyword."
+  problemMessage: "A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract."
+  correctionMessage: "Try removing the 'abstract' keyword."
   analyzerCode: ParserErrorCode.ABSTRACT_SEALED_CLASS
   index: 132
   hasPublishedDocs: true
@@ -4912,6 +4918,11 @@ FfiAbiSpecificIntegerMappingInvalid:
   problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size."
   external: test/ffi_test.dart
 
+FfiCreateOfStructOrUnion:
+  # Used by dart:ffi
+  problemMessage: "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'."
+  external: test/ffi_test.dart
+
 FfiTypeMismatch:
   # Used by dart:ffi
   problemMessage: "Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'."
@@ -5436,6 +5447,10 @@ JsInteropDartClassExtendsJSClass:
   problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."
   correctionMessage: "Try adding the JS interop annotation or removing it from the parent class."
 
+JsInteropDartJsInteropAnnotationForStaticInteropOnly:
+  problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through inline classes or '@staticInterop'."
+  correctionMessage: "Try making this class an inline class or marking it as '@staticInterop'."
+
 JsInteropEnclosingClassJSAnnotation:
   problemMessage: "Member has a JS interop annotation but the enclosing class does not."
   correctionMessage: "Try adding the annotation to the enclosing class."
@@ -5481,6 +5496,13 @@ JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
+JsInteropInlineClassUsedWithWrongJsAnnotation:
+  problemMessage: "Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'."
+  correctionMessage: "Try using the '@JS' annotation from 'dart:js_interop' annotation on this inline class instead."
+
+JsInteropInvalidStaticClassMemberName:
+  problemMessage: "JS interop static class members cannot have '.' in their JS name."
+
 JsInteropJSClassExtendsDartClass:
   problemMessage: "JS interop class '#name' cannot extend Dart class '#name2'."
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
@@ -5504,9 +5526,6 @@ JsInteropNonExternalMember:
 JsInteropOperatorsNotSupported:
   problemMessage: "JS interop classes do not support operator methods."
   correctionMessage: "Try replacing this with a normal method."
-
-JsInteropInvalidStaticClassMemberName:
-  problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
 JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
@@ -5563,6 +5582,10 @@ JsInteropStaticInteropTrustTypesUsageNotAllowed:
 JsInteropStrictModeViolation:
   problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."
   correctionMessage: "Use a JS type instead."
+
+JsInteropStrictModeForbiddenLibrary:
+  problemMessage: "Library '#name' is forbidden when strict mode is enabled."
+  correctionMessage: "Remove the import of a forbidden library."
 
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
@@ -6233,6 +6256,42 @@ CantUseClassAsMixin:
       class B with A {}
     lib.dart:
       class A {}
+
+BaseEnum:
+  index: 155
+  problemMessage: "Enums can't be declared to be 'base'."
+  correctionMessage: "Try removing the keyword 'base'."
+  analyzerCode: ParserErrorCode.BASE_ENUM
+  experiments: class-modifiers
+  script:
+    - "base enum E { v }"
+
+FinalEnum:
+  index: 156
+  problemMessage: "Enums can't be declared to be 'final'."
+  correctionMessage: "Try removing the keyword 'final'."
+  analyzerCode: ParserErrorCode.FINAL_ENUM
+  experiments: class-modifiers
+  script:
+    - "final enum E { v }"
+
+InterfaceEnum:
+  index: 157
+  problemMessage: "Enums can't be declared to be 'interface'."
+  correctionMessage: "Try removing the keyword 'interface'."
+  analyzerCode: ParserErrorCode.INTERFACE_ENUM
+  experiments: class-modifiers
+  script:
+    - "interface enum E { v }"
+
+SealedEnum:
+  index: 158
+  problemMessage: "Enums can't be declared to be 'sealed'."
+  correctionMessage: "Try removing the keyword 'sealed'."
+  analyzerCode: ParserErrorCode.SEALED_ENUM
+  experiments: class-modifiers,sealed-class
+  script:
+    - "sealed enum E { v }"
 
 FinalMixin:
   index: 146

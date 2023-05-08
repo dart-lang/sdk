@@ -34,7 +34,7 @@ extension <T> on T {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 23, 1),
+      error(WarningCode.UNUSED_ELEMENT, 23, 1),
       error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 33, 5),
     ]);
   }

@@ -15,11 +15,18 @@ import "package:expect/expect.dart";
 typedef void F<T>(T t);
 
 class A {
+//    ^
+// [cfe] The non-abstract class 'A' is missing implementations for these members:
   void foo(Object n);
+//^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 }
 
 class C implements A {
-  F<Object> get /*@compile-error=unspecified*/ foo => bar(new D<int>());
+  F<Object> get foo => bar(new D<int>());
+  //            ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_FIELD_AND_METHOD
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 class D<T> {

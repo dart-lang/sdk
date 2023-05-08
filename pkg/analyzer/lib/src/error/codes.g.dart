@@ -11,6 +11,10 @@
 // code, as they match names declared in the source configuration files.
 // ignore_for_file: constant_identifier_names
 
+// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
+// codes here.
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/dart/error/hint_codes.g.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
@@ -7028,8 +7032,25 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage: "Try removing the cast pattern.",
   );
 
-  ///  This is the new replacement for [HintCode.UNNECESSARY_FINAL].
-  static const HintCode UNNECESSARY_FINAL = HintCode.UNNECESSARY_FINAL;
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_FINAL = WarningCode(
+    'UNNECESSARY_FINAL',
+    "The keyword 'final' isn't necessary because the parameter is implicitly "
+        "'final'.",
+    correctionMessage: "Try removing the 'final'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the diagnostic being ignored
+  static const WarningCode UNNECESSARY_IGNORE = WarningCode(
+    'UNNECESSARY_IGNORE',
+    "The diagnostic '{0}' isn't produced at this location so it doesn't need "
+        "to be ignored.",
+    correctionMessage:
+        "Try removing the name from the list, or removing the whole comment if "
+        "this is the only name in the list.",
+  );
 
   ///  No parameters.
   static const WarningCode UNNECESSARY_NAN_COMPARISON_FALSE = WarningCode(

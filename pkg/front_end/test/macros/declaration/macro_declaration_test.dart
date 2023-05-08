@@ -287,6 +287,7 @@ class TestMacroExecutor extends MultiMacroExecutor {
   @override
   String buildAugmentationLibrary(
       Iterable<MacroExecutionResult> macroResults,
+      TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,
       TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
       {Map<OmittedTypeAnnotation, String>? omittedTypes}) {
@@ -361,7 +362,10 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
 
 class _MacroExecutionResult implements MacroExecutionResult {
   @override
-  Map<String, Iterable<DeclarationCode>> classAugmentations = const {};
+  Map<Identifier, Iterable<DeclarationCode>> enumValueAugmentations = const {};
+
+  @override
+  Map<Identifier, Iterable<DeclarationCode>> typeAugmentations = const {};
 
   @override
   Iterable<DeclarationCode> libraryAugmentations = const [];

@@ -27,6 +27,21 @@ class B implements a.A {}
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
     ]);
+
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
+        element: self::@prefix::a
+      name: A
+      element: package:test/lib1.dart::@class::A
+      type: A
+''');
   }
 
   test_class_implements_interfaceTypeTypedef() async {
@@ -42,6 +57,22 @@ class C implements a.B {}
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
     ]);
+
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
+        element: self::@prefix::a
+      name: B
+      element: package:test/lib1.dart::@typeAlias::B
+      type: A
+        alias: package:test/lib1.dart::@typeAlias::B
+''');
   }
 
   test_classTypeAlias() async {
@@ -58,6 +89,21 @@ class C = B with M implements a.A;
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 100, 3),
     ]);
+
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
+        element: self::@prefix::a
+      name: A
+      element: package:test/lib1.dart::@class::A
+      type: A
+''');
   }
 
   test_mixin() async {
@@ -67,14 +113,20 @@ mixin M implements math.Random {}
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 56, 11),
     ]);
-    var mathImport = findElement.import('dart:math');
-    var randomElement = mathImport.importedLibrary!.getClass('Random')!;
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, ['Random']);
-
-    var typeRef = findNode.namedType('Random {}');
-    assertNamedType(typeRef, randomElement, 'Random',
-        expectedPrefix: mathImport.prefix?.element);
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      importPrefix: ImportPrefixReference
+        name: math
+        period: .
+        element: self::@prefix::math
+      name: Random
+      element: dart:math::@class::Random
+      type: Random
+''');
   }
 }

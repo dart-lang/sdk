@@ -31,7 +31,7 @@ abstract class RpcErrorCodes {
   static const kStreamNotSubscribed = 104;
 
   // static const kIsolateMustBeRunnable = 105;
-  // static const kIsolateMustBePaused = 106;
+  static const kIsolateMustBePaused = 106;
   // static const kCannotResume = 107;
   // static const kIsolateIsReloading = 108;
   // static const kIsolateReloadBarred = 109;

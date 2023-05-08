@@ -38,7 +38,7 @@ Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
 
 void Assembler::call(Label* label) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  static const int kSize = 5;
+  const int kSize = 5;
   EmitUint8(0xE8);
   EmitLabel(label, kSize);
 }
@@ -129,8 +129,10 @@ void Assembler::setcc(Condition condition, ByteRegister dst) {
 void Assembler::EnterFullSafepoint() {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, to simplify GenerateJitCallbackTrampolines.
+  // For TSAN, we always go to the runtime so TSAN is aware of the release
+  // semantics of entering the safepoint.
   Label done, slow_path;
-  if (FLAG_use_slow_path) {
+  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
     jmp(&slow_path);
   }
 
@@ -144,7 +146,7 @@ void Assembler::EnterFullSafepoint() {
   popq(RAX);
   cmpq(TMP, Immediate(target::Thread::full_safepoint_state_unacquired()));
 
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
     j(EQUAL, &done);
   }
 
@@ -184,8 +186,10 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
+  // For TSAN, we always go to the runtime so TSAN is aware of the acquire
+  // semantics of leaving the safepoint.
   Label done, slow_path;
-  if (FLAG_use_slow_path) {
+  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
     jmp(&slow_path);
   }
 
@@ -201,7 +205,7 @@ void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   popq(RAX);
   cmpq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
 
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
     j(EQUAL, &done);
   }
 
@@ -1029,8 +1033,8 @@ void Assembler::nop(int size) {
 void Assembler::j(Condition condition, Label* label, JumpDistance distance) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (label->IsBound()) {
-    static const int kShortSize = 2;
-    static const int kLongSize = 6;
+    const int kShortSize = 2;
+    const int kLongSize = 6;
     intptr_t offset = label->Position() - buffer_.Size();
     ASSERT(offset <= 0);
     if (Utils::IsInt(8, offset - kShortSize)) {
@@ -1062,8 +1066,8 @@ void Assembler::J(Condition condition, const Code& target, Register pp) {
 void Assembler::jmp(Label* label, JumpDistance distance) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (label->IsBound()) {
-    static const int kShortSize = 2;
-    static const int kLongSize = 5;
+    const int kShortSize = 2;
+    const int kLongSize = 5;
     intptr_t offset = label->Position() - buffer_.Size();
     ASSERT(offset <= 0);
     if (Utils::IsInt(8, offset - kShortSize)) {

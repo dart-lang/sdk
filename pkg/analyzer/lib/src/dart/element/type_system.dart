@@ -205,10 +205,10 @@ class TypeSystemImpl implements TypeSystem {
       }
 
       if (leftElement is ClassElementImpl) {
-        // If the left is final, we know all subtypes, and can check them.
-        final finalSubtypes = leftElement.subtypesOfFinal;
-        if (finalSubtypes != null) {
-          for (final candidate in [left, ...finalSubtypes]) {
+        // If we know all subtypes, only they can implement the right.
+        final allSubtypes = leftElement.allSubtypes;
+        if (allSubtypes != null) {
+          for (final candidate in [left, ...allSubtypes]) {
             final asRight = candidate.asInstanceOf(rightElement);
             if (asRight != null) {
               if (_canBeEqualArguments(asRight, right)) {
@@ -221,11 +221,10 @@ class TypeSystemImpl implements TypeSystem {
       }
 
       if (rightElement is ClassElementImpl) {
-        // If the right is final, then it or one of its subtypes must
-        // implement the left.
-        final finalSubtypes = rightElement.subtypesOfFinal;
-        if (finalSubtypes != null) {
-          for (final candidate in [right, ...finalSubtypes]) {
+        // If we know all subtypes, only they can implement the left.
+        final allSubtypes = rightElement.allSubtypes;
+        if (allSubtypes != null) {
+          for (final candidate in [right, ...allSubtypes]) {
             final asLeft = candidate.asInstanceOf(leftElement);
             if (asLeft != null) {
               if (canBeSubtypeOfInterfaces(left, asLeft)) {
@@ -915,7 +914,7 @@ class TypeSystemImpl implements TypeSystem {
 
     // Now handle NNBD default behavior, where we disable non-dynamic downcasts.
     if (isNonNullableByDefault) {
-      return fromType.isDynamic;
+      return fromType is DynamicType;
     }
 
     // Don't allow implicit downcasts between function types
@@ -1244,7 +1243,10 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isNonNullable(DartType type) {
-    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
+    if (type is DynamicType ||
+        type is UnknownInferredType ||
+        type is VoidType ||
+        type.isDartCoreNull) {
       return false;
     } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
       return isNonNullable(type.promotedBound!);
@@ -1285,7 +1287,10 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isNullable(DartType type) {
-    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
+    if (type is DynamicType ||
+        type is UnknownInferredType ||
+        type is VoidType ||
+        type.isDartCoreNull) {
       return true;
     } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
       return isNullable(type.promotedBound!);
@@ -1327,7 +1332,10 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isStrictlyNonNullable(DartType type) {
-    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
+    if (type is DynamicType ||
+        type is UnknownInferredType ||
+        type is VoidType ||
+        type.isDartCoreNull) {
       return false;
     } else if (type.nullabilitySuffix != NullabilitySuffix.none) {
       return false;
@@ -1683,7 +1691,7 @@ class TypeSystemImpl implements TypeSystem {
         return null;
       }
 
-      if (!bound1.isDynamic) {
+      if (bound1 is! DynamicType) {
         freshTypeParameters[i].bound = bound1;
       }
     }

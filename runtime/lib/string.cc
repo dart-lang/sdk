@@ -121,8 +121,8 @@ static uint16_t CharacterLimit(const String& string,
   return result;
 }
 
-static const intptr_t kLengthSize = 11;
-static const intptr_t kLengthMask = (1 << kLengthSize) - 1;
+static constexpr intptr_t kLengthSize = 11;
+static constexpr intptr_t kLengthMask = (1 << kLengthSize) - 1;
 
 static bool CheckSlicesOneByte(const String& base,
                                const Array& matches,

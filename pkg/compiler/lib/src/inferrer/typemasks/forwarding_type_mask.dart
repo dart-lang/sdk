@@ -136,6 +136,13 @@ abstract class ForwardingTypeMask extends TypeMask {
   }
 
   @override
+  Iterable<DynamicCallTarget> findRootsOfTargets(Selector selector,
+      MemberHierarchyBuilder memberHierarchyBuilder, JClosedWorld closedWorld) {
+    return forwardTo.findRootsOfTargets(
+        selector, memberHierarchyBuilder, closedWorld);
+  }
+
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ForwardingTypeMask) return false;
@@ -151,7 +158,7 @@ abstract class AllocationTypeMask extends ForwardingTypeMask {
 
   // The [ir.Node] where this type mask was created. This value is not used
   // after type inference and therefore does not need to be serialized by
-  // subclasses. It will always be null outside of the global inference phase.
+  // subclasses.  It will always be null outside of the global inference phase.
   ir.Node? get allocationNode;
 
   // The [Entity] where this type mask was created.

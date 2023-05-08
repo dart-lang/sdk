@@ -160,14 +160,11 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   /// [DocumentationPreference.full].
   DocumentationPreference get preferredDocumentation {
     final value = _settings['documentation'];
-    switch (value) {
-      case 'none':
-        return DocumentationPreference.none;
-      case 'summary':
-        return DocumentationPreference.summary;
-      default:
-        return DocumentationPreference.full;
-    }
+    return switch (value) {
+      'none' => DocumentationPreference.none,
+      'summary' => DocumentationPreference.summary,
+      _ => DocumentationPreference.full
+    };
   }
 
   /// A preview flag for enabling commit characters for completions.

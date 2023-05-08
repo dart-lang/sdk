@@ -41,6 +41,7 @@ approximation
 arbitrarily
 area
 arglebargle
+arr
 asdf
 asserter
 assure
@@ -238,6 +239,7 @@ dskip
 dumping
 dumps
 dupe
+dur
 durations
 dw
 e's
@@ -288,6 +290,7 @@ filters
 fisk
 five
 fl
+flame
 floor
 fluctuate
 foo'bar'baz
@@ -373,6 +376,7 @@ inlinable
 inlineable
 insights
 instrument
+instrumenter
 insufficient
 intdiv
 interactions
@@ -512,7 +516,9 @@ periodically
 perm
 perms
 person
+ph
 phrase
+pid
 pink
 placement
 planned
@@ -549,6 +555,7 @@ quit
 quot
 quux
 quuz
+ram
 reality
 recompilation
 recompiles

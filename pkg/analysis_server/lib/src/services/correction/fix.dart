@@ -223,6 +223,11 @@ class DartFixKind {
     70,
     "Add required argument '{0}'",
   );
+  static const ADD_MISSING_SWITCH_CASES = FixKind(
+    'dart.fix.add.missingSwitchCases',
+    DartFixKindPriority.DEFAULT,
+    'Add missing switch cases',
+  );
   static const ADD_NE_NULL = FixKind(
     'dart.fix.add.neNull',
     DartFixKindPriority.DEFAULT,
@@ -1739,6 +1744,16 @@ class DartFixKind {
     'dart.fix.replace.withVar.multi',
     DartFixKindPriority.IN_FILE,
     "Replace type annotations with 'var' everywhere in file",
+  );
+  static const REPLACE_WITH_WILDCARD = FixKind(
+    'dart.fix.replace.withWildcard',
+    DartFixKindPriority.DEFAULT,
+    "Replace with '_'",
+  );
+  static const REPLACE_WITH_WILDCARD_MULTI = FixKind(
+    'dart.fix.replace.withWildcard.multi',
+    DartFixKindPriority.DEFAULT,
+    "Replace with '_' everywhere in file",
   );
   static const SORT_CHILD_PROPERTY_LAST = FixKind(
     'dart.fix.sort.childPropertyLast',

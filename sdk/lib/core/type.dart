@@ -18,7 +18,7 @@ part of dart.core;
 /// A type object is intended as an entry point for using `dart:mirrors`.
 /// The only operations supported are comparing to other type objects
 /// for equality, and converting it to a string for debugging.
-abstract class Type {
+abstract interface class Type {
   /// A hash code for the type which is compatible with [operator==].
   int get hashCode;
 

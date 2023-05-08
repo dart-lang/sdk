@@ -65,7 +65,7 @@ class ServiceIsolate : public AllStatic {
 
   static void SetServerAddress(const char* address);
 
-  // Returns the server's web address or NULL if none is running.
+  // Returns the server's web address or nullptr if none is running.
   static const char* server_address() { return server_address_; }
 
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);

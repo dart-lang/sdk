@@ -1700,8 +1700,8 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register temp_reg = TMP;
   const XmmRegister vector_reg = FpuTMP;
 
-  static const intptr_t kSizeMask = 0x03;
-  static const intptr_t kFlagsMask = 0x3C;
+  const intptr_t kSizeMask = 0x03;
+  const intptr_t kFlagsMask = 0x3C;
 
   compiler::Label scan_ascii, ascii_loop, ascii_loop_in, nonascii_loop;
   compiler::Label rest, rest_loop, rest_loop_in, done;
@@ -2572,9 +2572,11 @@ void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // At this point temp is known to be type arguments offset in words.
   __ movq(temp, compiler::FieldAddress(value_reg, temp,
                                        TIMES_COMPRESSED_WORD_SIZE, 0));
-  __ CompareObject(temp, TypeArguments::ZoneHandle(
-                             compiler->zone(),
-                             AbstractType::Handle(field().type()).arguments()));
+  __ CompareObject(
+      temp,
+      TypeArguments::ZoneHandle(
+          compiler->zone(), Type::Cast(AbstractType::Handle(field().type()))
+                                .GetInstanceTypeArguments(compiler->thread())));
   if (deopt != nullptr) {
     __ j(NOT_EQUAL, deopt);
   } else {

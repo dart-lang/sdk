@@ -46,7 +46,7 @@ extension AstNodeExtension on AstNode {
     }
 
     if (this is CompilationUnit) {
-      if (offset < 0 || end >= this.end) {
+      if (offset < 0 || end > this.end) {
         return null;
       }
     } else if (!containsOffset(this)) {

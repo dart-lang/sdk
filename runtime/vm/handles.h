@@ -54,8 +54,8 @@ template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 class Handles {
  public:
   Handles()
-      : zone_blocks_(NULL),
-        first_scoped_block_(NULL),
+      : zone_blocks_(nullptr),
+        first_scoped_block_(nullptr),
         scoped_blocks_(&first_scoped_block_) {}
   ~Handles() { DeleteAll(); }
 
@@ -209,7 +209,7 @@ class Handles {
 
   // Allocates space for a zone handle.
   uword AllocateHandleInZone() {
-    if (zone_blocks_ == NULL || zone_blocks_->IsFull()) {
+    if (zone_blocks_ == nullptr || zone_blocks_->IsFull()) {
       SetupNextZoneBlock();
     }
     return zone_blocks_->AllocateHandle();
@@ -232,18 +232,18 @@ class Handles {
 };
 
 #if defined(DEBUG)
-static const int kVMHandleSizeInWords = 3;
-static const int kOffsetOfIsZoneHandle = 2;
+static constexpr int kVMHandleSizeInWords = 3;
+static constexpr int kOffsetOfIsZoneHandle = 2;
 #else
-static const int kVMHandleSizeInWords = 2;
+static constexpr int kVMHandleSizeInWords = 2;
 #endif
-static const int kVMHandlesPerChunk = 63;
-static const int kOffsetOfRawPtr = kWordSize;
+static constexpr int kVMHandlesPerChunk = 63;
+static constexpr int kOffsetOfRawPtr = kWordSize;
 class VMHandles : public Handles<kVMHandleSizeInWords,
                                  kVMHandlesPerChunk,
                                  kOffsetOfRawPtr> {
  public:
-  static const int kOffsetOfRawPtrInHandle = kOffsetOfRawPtr;
+  static constexpr int kOffsetOfRawPtrInHandle = kOffsetOfRawPtr;
 
   VMHandles()
       : Handles<kVMHandleSizeInWords, kVMHandlesPerChunk, kOffsetOfRawPtr>() {

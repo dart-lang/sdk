@@ -118,6 +118,7 @@ class ElementTextConfiguration {
   bool withConstructors = true;
   bool withDisplayName = false;
   bool withExportScope = false;
+  bool withFunctionTypeParameters = false;
   bool withImports = true;
   bool withMetadata = true;
   bool withNonSynthetic = false;
@@ -769,6 +770,10 @@ class _ElementWriter {
         buffer.write('optionalNamed ');
       }
 
+      if (e is ConstVariableElement) {
+        buffer.write('default ');
+      }
+
       _writeIf(e.isConst, 'const ');
       _writeIf(e.isCovariant, 'covariant ');
       _writeIf(e.isFinal, 'final ');
@@ -985,6 +990,14 @@ class _ElementWriter {
 
   void _writeType(String name, DartType type) {
     _createAstPrinter().writeType(type, name: name);
+
+    if (configuration.withFunctionTypeParameters) {
+      if (type is FunctionType) {
+        _withIndent(() {
+          _writeParameterElements(type.parameters);
+        });
+      }
+    }
   }
 
   void _writeTypeAliasElement(TypeAliasElement e) {

@@ -36,10 +36,8 @@ FunctionReference
     expression: ConstructorReference
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: null
         period: .
         name: SimpleIdentifier
@@ -54,10 +52,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: A<int> Function()
@@ -82,10 +78,8 @@ FunctionReference
     expression: ConstructorReference
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: null
         period: .
         name: SimpleIdentifier
@@ -100,10 +94,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: A<int> Function()
@@ -130,10 +122,8 @@ FunctionReference
   function: ConstructorReference
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: A
-          staticElement: self::@class::A
-          staticType: null
+        name: A
+        element: self::@class::A
         type: null
       period: .
       name: SimpleIdentifier
@@ -146,10 +136,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -171,18 +159,12 @@ FunctionReference
   function: ConstructorReference
     constructorName: ConstructorName
       type: NamedType
-        name: PrefixedIdentifier
-          prefix: SimpleIdentifier
-            token: a
-            staticElement: self::@prefix::a
-            staticType: null
+        importPrefix: ImportPrefixReference
+          name: a
           period: .
-          identifier: SimpleIdentifier
-            token: Future
-            staticElement: dart:async::@class::Future
-            staticType: null
-          staticElement: dart:async::@class::Future
-          staticType: null
+          element: self::@prefix::a
+        name: Future
+        element: dart:async::@class::Future
         type: null
       period: .
       name: SimpleIdentifier
@@ -195,10 +177,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -227,10 +207,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -259,10 +237,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -305,10 +281,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -342,10 +316,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -390,10 +362,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -423,10 +393,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -448,7 +416,6 @@ void foo() {
           CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 38, 3),
     ]);
 
-    assertImportPrefix(findNode.simple('a.E'), findElement.prefix('a'));
     var reference = findNode.functionReference('E<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -468,10 +435,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -523,10 +488,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -557,10 +520,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -599,10 +560,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -656,10 +615,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -699,10 +656,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -757,10 +712,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -811,10 +764,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -845,10 +796,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -865,7 +814,7 @@ extension on double {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 24, 3),
+      error(WarningCode.UNUSED_ELEMENT, 24, 3),
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3,
           messageContains: ["for the type 'double'"]),
     ]);
@@ -880,10 +829,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -917,10 +864,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -959,10 +904,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic, dynamic)
@@ -1002,10 +945,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(String)
@@ -1039,10 +980,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: void Function(String)
@@ -1084,10 +1023,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1133,10 +1070,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1156,8 +1091,33 @@ foo() {
 }
 ''');
 
-    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
-        findElement.method('call'), 'int Function(int)');
+    final node = findNode.implicitCallReference('C()<int>');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: self::@class::C
+        type: C
+      staticElement: self::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticElement: self::@class::C::@method::call
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_implicitCallTearoff_class_staticGetter() async {
@@ -1192,10 +1152,8 @@ ImplicitCallReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticElement: self::@class::C::@method::call
@@ -1217,10 +1175,31 @@ void foo() {
 
 ''');
 
-    assertImplicitCallReference(
-        findNode.implicitCallReference('v<int, String>;'),
-        findElement.method('call'),
-        'void Function(int, String)');
+    final node = findNode.implicitCallReference('v<int, String>;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: v
+    staticElement: self::@getter::v
+    staticType: Object?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  staticElement: self::@extension::E::@method::call
+  staticType: void Function(int, String)
+  typeArgumentTypes
+    int
+    String
+''');
   }
 
   test_implicitCallTearoff_prefix_class_staticGetter() async {
@@ -1266,10 +1245,8 @@ ImplicitCallReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticElement: package:test/a.dart::@class::C::@method::call
@@ -1294,12 +1271,34 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    assertImplicitCallReference(
-        findNode.implicitCallReference('c<int>;'),
-        findElement.importFind('package:test/a.dart').method('call'),
-        'int Function(int)');
+    final node = findNode.implicitCallReference('c<int>');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: c
+      staticElement: package:test/a.dart::@getter::c
+      staticType: C
+    staticElement: package:test/a.dart::@getter::c
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticElement: package:test/a.dart::@class::C::@method::call
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_implicitCallTearoff_tooFewTypeArguments() async {
@@ -1316,8 +1315,34 @@ foo() {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 57, 5),
     ]);
 
-    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
-        findElement.method('call'), 'void Function(dynamic, dynamic)');
+    final node = findNode.implicitCallReference('C()<int>;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: self::@class::C
+        type: C
+      staticElement: self::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(dynamic, dynamic)
+  typeArgumentTypes
+    dynamic
+    dynamic
+''');
   }
 
   test_implicitCallTearoff_tooManyTypeArguments() async {
@@ -1334,8 +1359,31 @@ foo() {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 50, 5),
     ]);
 
-    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
-        findElement.method('call'), 'int Function(int)');
+    final node = findNode.implicitCallReference('C()<int>;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: self::@class::C
+        type: C
+      staticElement: self::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticElement: self::@class::C::@method::call
+  staticType: int Function(int)
+''');
   }
 
   test_instanceGetter_explicitReceiver() async {
@@ -1367,10 +1415,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1401,10 +1447,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1436,10 +1480,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1480,10 +1522,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: dynamic
@@ -1525,10 +1565,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: dynamic
@@ -1557,10 +1595,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1602,10 +1638,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1654,10 +1688,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1700,10 +1732,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1749,10 +1779,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: double
-          staticElement: dart:core::@class::double
-          staticType: null
+        name: double
+        element: dart:core::@class::double
         type: double
     rightBracket: >
   staticType: dynamic
@@ -1802,10 +1830,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1854,20 +1880,16 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: Exactly
-          staticElement: self::@typeAlias::Exactly
-          staticType: null
+        name: Exactly
         typeArguments: TypeArgumentList
           leftBracket: <
           arguments
             NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
+        element: self::@typeAlias::Exactly
         type: int Function(int)
           alias: self::@typeAlias::Exactly
             typeArguments
@@ -1919,10 +1941,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1960,10 +1980,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2001,10 +2019,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2038,10 +2054,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2081,10 +2095,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2121,10 +2133,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2145,7 +2155,6 @@ void bar() {
 }
 ''');
 
-    assertIdentifierTopGetRef(findNode.simple('a.'), 'a');
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -2165,10 +2174,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2192,8 +2199,6 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -2220,10 +2225,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2247,9 +2250,8 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 47, 3),
     ]);
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
+    final node = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
@@ -2274,10 +2276,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2311,10 +2311,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2351,10 +2349,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2388,10 +2384,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2441,20 +2435,16 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: Exactly
-          staticElement: self::@typeAlias::Exactly
-          staticType: null
+        name: Exactly
         typeArguments: TypeArgumentList
           leftBracket: <
           arguments
             NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
+        element: self::@typeAlias::Exactly
         type: int Function(int)
           alias: self::@typeAlias::Exactly
             typeArguments
@@ -2493,10 +2483,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2530,10 +2518,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2564,13 +2550,43 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
+''');
+  }
+
+  test_loadLibrary() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertErrorsInCode('''
+import 'a.dart' deferred as prefix;
+
+void f() {
+  prefix.loadLibrary;
+}
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 8),
+    ]);
+
+    final node = findNode.expressionStatement('prefix.loadLibrary');
+    assertResolvedNodeText(node, r'''
+ExpressionStatement
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: loadLibrary
+      staticElement: loadLibrary@-1
+      staticType: Future<dynamic> Function()
+    staticElement: loadLibrary@-1
+    staticType: Future<dynamic> Function()
+  semicolon: ;
 ''');
   }
 
@@ -2594,10 +2610,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2624,10 +2638,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2668,10 +2680,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2715,10 +2725,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2746,10 +2754,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2774,10 +2780,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2807,10 +2811,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2839,10 +2841,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2874,10 +2874,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function()
@@ -2943,10 +2941,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3033,10 +3029,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3074,10 +3068,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3126,10 +3118,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3152,8 +3142,6 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3180,10 +3168,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3207,8 +3193,6 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3235,10 +3219,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3278,10 +3260,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3315,10 +3295,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic, dynamic)
@@ -3353,16 +3331,12 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic)
@@ -3391,10 +3365,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3415,7 +3387,6 @@ void bar() {
 }
 ''');
 
-    assertImportPrefix(findNode.simple('a.f'), findElement.prefix('a'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3435,10 +3406,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3462,7 +3431,6 @@ void bar() {
 }
 ''');
 
-    assertImportPrefix(findNode.simple('a.f'), findElement.prefix('a'));
     var reference = findNode.functionReference('foo<int>');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3482,10 +3450,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3521,10 +3487,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3550,10 +3514,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3586,10 +3548,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3610,9 +3570,8 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
+    final node = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3630,10 +3589,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3656,9 +3613,8 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 45, 1),
     ]);
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
+    final node = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
@@ -3683,10 +3639,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3720,10 +3674,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3757,10 +3709,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3786,10 +3736,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3827,10 +3775,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3867,10 +3813,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3901,10 +3845,8 @@ FunctionReference
           staticType: void Function<T>(T)
         asOperator: as
         type: NamedType
-          name: SimpleIdentifier
-            token: dynamic
-            staticElement: dynamic@-1
-            staticType: null
+          name: dynamic
+          element: dynamic@-1
           type: dynamic
         staticType: dynamic
       rightParenthesis: )
@@ -3912,10 +3854,8 @@ FunctionReference
     asOperator: as
     type: GenericFunctionType
       returnType: NamedType
-        name: SimpleIdentifier
-          token: void
-          staticElement: <null>
-          staticType: null
+        name: void
+        element: <null>
         type: void
       functionKeyword: Function
       typeParameters: TypeParameterList
@@ -3929,10 +3869,8 @@ FunctionReference
         leftParenthesis: (
         parameter: SimpleFormalParameter
           type: NamedType
-            name: SimpleIdentifier
-              token: T
-              staticElement: T@89
-              staticType: null
+            name: T
+            element: T@89
             type: T
           declaredElement: @-1
             type: T
@@ -4113,10 +4051,8 @@ C<int> Function(int) foo() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: C
-        staticElement: self::@class::C
-        staticType: null
+      name: C
+      element: self::@class::C
       type: null
     period: .
     name: SimpleIdentifier
@@ -4151,10 +4087,8 @@ FunctionReference
       leftParenthesis: (
       parameter: SimpleFormalParameter
         type: NamedType
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@37
-            staticType: null
+          name: T
+          element: T@37
           type: T
         name: a
         declaredElement: @36::@parameter::a
@@ -4236,8 +4170,18 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(findNode.implicitCallReference('c;'),
-        findElement.method('call'), 'void Function(int)');
+    final node = findNode.implicitCallReference('c;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c
+    staticElement: self::@function::foo::@parameter::c
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_indexExpression() async {
@@ -4484,10 +4428,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)

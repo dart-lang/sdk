@@ -28,7 +28,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 /// Adds edits to the given [change] that ensure that all the [libraries] are
@@ -1019,19 +1018,43 @@ class CorrectionUtils {
     return TokenUtils.getTokens(trimmedText, unit.featureSet).isEmpty;
   }
 
-  InsertionLocation newCaseClauseAtEndLocation(SwitchStatement statement) {
-    var blockStartLine = getLineThis(statement.leftBracket.offset);
-    var blockEndLine = getLineThis(statement.end);
+  InsertionLocation newCaseClauseAtEndLocation({
+    required Token switchKeyword,
+    required Token leftBracket,
+    required Token rightBracket,
+  }) {
+    var blockStartLine = getLineThis(leftBracket.offset);
+    var blockEndLine = getLineThis(rightBracket.offset);
     var offset = blockEndLine;
     var prefix = '';
     var suffix = '';
     if (blockStartLine == blockEndLine) {
       // The switch body is on a single line.
       prefix = endOfLine;
-      offset = statement.leftBracket.end;
-      suffix = getLinePrefix(statement.offset);
+      offset = leftBracket.end;
+      suffix = getLinePrefix(switchKeyword.offset);
     }
     return InsertionLocation(prefix, offset, suffix);
+  }
+
+  ExpressionCasePattern? patternOfBoolCondition(Expression node) {
+    if (node is BinaryExpression) {
+      if (node.isNotEqNull) {
+        final expressionCode = getNodeText(node.leftOperand);
+        return ExpressionCasePattern(
+          expressionCode: expressionCode,
+          patternCode: '_?',
+        );
+      }
+    } else if (node is IsExpression) {
+      final expressionCode = getNodeText(node.expression);
+      final typeCode = getNodeText(node.type);
+      return ExpressionCasePattern(
+        expressionCode: expressionCode,
+        patternCode: '$typeCode()',
+      );
+    }
+    return null;
   }
 
   InsertionLocation? prepareEnumNewConstructorLocation(
@@ -1496,6 +1519,16 @@ class CorrectionUtils_InsertDesc {
   int offset = 0;
   String prefix = '';
   String suffix = '';
+}
+
+class ExpressionCasePattern {
+  final String expressionCode;
+  final String patternCode;
+
+  ExpressionCasePattern({
+    required this.expressionCode,
+    required this.patternCode,
+  });
 }
 
 class InsertionLocation {

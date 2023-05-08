@@ -4153,15 +4153,27 @@ class FunctionNode extends TreeNode {
   /// [FunctionType.withoutTypeParameters].
   FunctionType computeThisFunctionType(Nullability nullability) {
     TreeNode? parent = this.parent;
-    List<NamedType> named =
-        namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
-    named.sort();
-    // We need create a copy of the list of type parameters, otherwise
-    // transformations like erasure don't work.
-    List<TypeParameter> typeParametersCopy = new List<TypeParameter>.of(
-        parent is Constructor
-            ? parent.enclosingClass.typeParameters
-            : typeParameters);
+    List<NamedType> named;
+    if (namedParameters.isEmpty) {
+      named = const <NamedType>[];
+    } else {
+      named =
+          namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
+      named.sort();
+    }
+
+    List<TypeParameter> typeParametersCopy;
+    List<TypeParameter> typeParametersToCopy = parent is Constructor
+        ? parent.enclosingClass.typeParameters
+        : typeParameters;
+    if (typeParametersToCopy.isEmpty) {
+      typeParametersCopy = const <TypeParameter>[];
+    } else {
+      // We need create a copy of the list of type parameters, otherwise
+      // transformations like erasure don't work.
+      typeParametersCopy =
+          new List<TypeParameter>.of(typeParametersToCopy, growable: false);
+    }
     return new FunctionType(
         positionalParameters.map(_getTypeOfVariable).toList(growable: false),
         returnType,

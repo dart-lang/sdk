@@ -8,6 +8,30 @@ import 'dart:math';
 
 import 'package:pool/pool.dart';
 
+// "perfetto_build_flags.h" is included by some Perfetto headers that we
+// include, but it is generated at build-time. We prevent clang-tidy from
+// reporting a "file not found" error by ensuring that this file exists in
+// Iout/DebugX64/gen and passing
+// -Iout/DebugX64/gen/third_party/perfetto/build_config to clang-tidy below.
+Future<void> generatePerfettoBuildFlags() async {
+  final processResult = await Process.run(
+    './tools/build.py',
+    ['-mdebug', '-ax64', '--no-goma', 'third_party/perfetto/gn:gen_buildflags'],
+  );
+
+  final int exitCode = processResult.exitCode;
+  final String stdout = processResult.stdout.trim();
+  final String stderr = processResult.stderr.trim();
+
+  if (exitCode != 0) {
+    print('exit-code: $exitCode');
+    print('stdout:');
+    print('${stdout}');
+    print('stderr:');
+    print('${stderr}');
+  }
+}
+
 const String clangTidy = './buildtools/linux-x64/clang/bin/clang-tidy';
 
 List<String> compilerFlagsForFile(String filepath) {
@@ -16,7 +40,9 @@ List<String> compilerFlagsForFile(String filepath) {
     '-Ithird_party',
     '-Iruntime/include',
     '-Ithird_party/boringssl/src/include',
+    '-Ithird_party/perfetto/include',
     '-Ithird_party/zlib',
+    '-Iout/DebugX64/gen/third_party/perfetto/build_config',
     '-DTARGET_ARCH_X64',
     '-DDEBUG',
     '-DDART_TARGET_OS_LINUX',
@@ -123,6 +149,8 @@ final Set<String> excludedFiles = Set<String>.from([
 ]);
 
 main(List<String> files) async {
+  await generatePerfettoBuildFlags();
+
   bool isFirstFailure = true;
 
   files = files.where((filepath) => !excludedFiles.contains(filepath)).toList();

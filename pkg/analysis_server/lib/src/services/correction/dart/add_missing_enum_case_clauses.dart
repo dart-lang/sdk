@@ -33,7 +33,13 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
 
     String? enumName;
     var prefix = '';
-    var enumConstantNames = <String>[];
+
+    // The missing enum case clauses can be caused by a missing enum case or, if
+    // the expression is nullable, a missing `case null` entry. We first collect
+    // all cases and then remove the ones that are already present.
+    var unhandledEnumCases = <String>[];
+    var unhandledNullValue = false;
+
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
       var enumElement = expressionType.element;
@@ -41,10 +47,14 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
         enumName = enumElement.name;
         for (var field in enumElement.fields) {
           if (field.isEnumConstant) {
-            enumConstantNames.add(field.name);
+            unhandledEnumCases.add(field.name);
           }
         }
         prefix = _importPrefix(enumElement);
+
+        if (typeSystem.isNullable(expressionType)) {
+          unhandledNullValue = true;
+        }
       }
     }
     if (enumName == null) {
@@ -56,18 +66,24 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
         if (expression is Identifier) {
           var element = expression.staticElement;
           if (element is PropertyAccessorElement) {
-            enumConstantNames.remove(element.name);
+            unhandledEnumCases.remove(element.name);
           }
+        } else if (expression is NullLiteral) {
+          unhandledNullValue = false;
         }
       }
     }
-    if (enumConstantNames.isEmpty) {
+    if (!unhandledNullValue && unhandledEnumCases.isEmpty) {
       return;
     }
 
     var statementIndent = utils.getLinePrefix(statement.offset);
     var singleIndent = utils.getIndent(1);
-    var location = utils.newCaseClauseAtEndLocation(statement);
+    var location = utils.newCaseClauseAtEndLocation(
+      switchKeyword: statement.switchKeyword,
+      leftBracket: statement.leftBracket,
+      rightBracket: statement.rightBracket,
+    );
 
     var prefixString = prefix.isNotEmpty ? '$prefix.' : '';
     final enumName_final = '$prefixString$enumName';
@@ -79,17 +95,11 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
       // TODO(brianwilkerson) Consider inserting the names in order into the
       //  switch statement.
       builder.addInsertion(insertionOffset, (builder) {
-        if (isLeftBracketSynthetic) {
-          builder.write(' {');
-        }
-        builder.write(location.prefix);
-        for (var constantName in enumConstantNames) {
+        void addMissingCase(String expression) {
           builder.write(statementIndent);
           builder.write(singleIndent);
           builder.write('case ');
-          builder.write(enumName_final);
-          builder.write('.');
-          builder.write(constantName);
+          builder.write(expression);
           builder.writeln(':');
           builder.write(statementIndent);
           builder.write(singleIndent);
@@ -100,6 +110,19 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
           builder.write(singleIndent);
           builder.writeln('break;');
         }
+
+        if (isLeftBracketSynthetic) {
+          builder.write(' {');
+        }
+        builder.write(location.prefix);
+
+        for (var constantName in unhandledEnumCases) {
+          addMissingCase('$enumName_final.$constantName');
+        }
+        if (unhandledNullValue) {
+          addMissingCase('null');
+        }
+
         builder.write(location.suffix);
         if (statement.rightBracket.isSynthetic) {
           builder.write('}');

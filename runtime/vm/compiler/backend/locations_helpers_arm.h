@@ -59,7 +59,7 @@ class FixedQRegisterView {
 
 template <>
 struct LocationTrait<QRegisterView> {
-  static const bool kIsTemp = false;
+  static constexpr bool kIsTemp = false;
 
   static QRegisterView Unwrap(const Location& loc) {
     return QRegisterView(loc.fpu_reg());
@@ -80,7 +80,7 @@ struct LocationTrait<QRegisterView> {
 
 template <QRegister reg>
 struct LocationTrait<FixedQRegisterView<reg> > {
-  static const bool kIsTemp = false;
+  static constexpr bool kIsTemp = false;
 
   static FixedQRegisterView<reg> Unwrap(const Location& loc) {
     ASSERT(LocationTrait<QRegister>::Unwrap(loc) == reg);

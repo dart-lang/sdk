@@ -825,7 +825,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!_options.implicitDynamic && node.returnType == null) {
         DartType parameterType = node.declaredElement!.type;
         if (parameterType is FunctionType &&
-            parameterType.returnType.isDynamic) {
+            parameterType.returnType is DynamicType) {
           errorReporter.reportErrorForToken(
               LanguageCode.IMPLICIT_DYNAMIC_RETURN,
               node.name,
@@ -1253,6 +1253,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitSwitchExpression(SwitchExpression node) {
+    checkForUseOfVoidResult(node.expression);
+    super.visitSwitchExpression(node);
+  }
+
+  @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
     _withHiddenElements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
@@ -1262,7 +1268,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    _checkForSwitchExpressionNotAssignable(node);
+    checkForUseOfVoidResult(node.expression);
     _checkForCaseBlocksNotTerminated(node);
     _checkForMissingEnumConstantInSwitch(node);
     super.visitSwitchStatement(node);
@@ -1531,7 +1537,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       DartType redirectedType = constructorNamedType.typeOrThrow;
       if (redirectedType is! DynamicType) {
         // Prepare the constructor name
-        String constructorStrName = constructorNamedType.name.name;
+        String constructorStrName = constructorNamedType.qualifiedName;
         if (redirectedConstructor.name != null) {
           constructorStrName += ".${redirectedConstructor.name!.name}";
         }
@@ -1706,7 +1712,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var withClause = node.withClause;
 
     if (extendsClause != null) {
-      var superElement = extendsClause.superclass.name.staticElement;
+      var superElement = extendsClause.superclass.element;
       if (superElement != null && superElement.name == "Function") {
         errorReporter.reportErrorForNode(
             WarningCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
@@ -1728,7 +1734,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     if (withClause != null) {
       for (NamedType type in withClause.mixinTypes) {
-        var mixinElement = type.name.staticElement;
+        var mixinElement = type.element;
         if (mixinElement != null && mixinElement.name == "Function") {
           errorReporter.reportErrorForNode(
               WarningCode.DEPRECATED_MIXIN_FUNCTION, type);
@@ -2376,19 +2382,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         return;
       }
     }
-    Identifier className = namedType.name;
     // report as named or default constructor absence
     var name = constructorName.name;
     if (name != null) {
       errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
-          name,
-          [className.toSource(), name.name]);
+        CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+        name,
+        [namedType.qualifiedName, name.name],
+      );
     } else {
       errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
-          constructorName,
-          [className.toSource()]);
+        CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+        constructorName,
+        [namedType.qualifiedName],
+      );
     }
   }
 
@@ -2471,7 +2478,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // Use an explicit string instead of [loopType] to remove the "<E>".
     String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
 
-    if (iterableType.isDynamic && typeSystem.strictCasts) {
+    if (iterableType is DynamicType && typeSystem.strictCasts) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
@@ -2996,7 +3003,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_options.implicitDynamic) {
       return;
     }
-    if (variable.hasImplicitType && variable.type.isDynamic) {
+    if (variable.hasImplicitType && variable.type is DynamicType) {
       ErrorCode errorCode;
       if (variable is FieldElement) {
         errorCode = LanguageCode.IMPLICIT_DYNAMIC_FIELD;
@@ -3019,7 +3026,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element is PropertyAccessorElement && element.isSetter) {
       return;
     }
-    if (element.hasImplicitReturnType && element.returnType.isDynamic) {
+    if (element.hasImplicitReturnType && element.returnType is DynamicType) {
       errorReporter.reportErrorForToken(LanguageCode.IMPLICIT_DYNAMIC_RETURN,
           functionName, [element.displayName]);
     }
@@ -3034,7 +3041,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     DartType type = node.typeOrThrow;
     if (type is ParameterizedType &&
         type.typeArguments.isNotEmpty &&
-        type.typeArguments.any((t) => t.isDynamic)) {
+        type.typeArguments.any((t) => t is DynamicType)) {
       errorReporter
           .reportErrorForNode(LanguageCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
     }
@@ -3651,9 +3658,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!isSatisfied) {
         // This error can only occur if [mixinName] resolved to an actual mixin,
         // so we can safely rely on `mixinName.type` being non-`null`.
-        errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForToken(
           CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-          mixinName.name,
+          mixinName.name2,
           [
             mixinName.type!,
             superType,
@@ -3697,7 +3704,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           name = name.substring(0, name.length - 1);
         }
 
-        errorReporter.reportErrorForNode(errorCode, mixinName.name, [name]);
+        errorReporter.reportErrorForNode(errorCode, mixinName, [name]);
         return true;
       }
 
@@ -3715,7 +3722,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
-            mixinName.name,
+            mixinName,
             [name, mixinMember.type, superMember.type],
           );
           return true;
@@ -3753,12 +3760,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             name = name.substring(0, name.length - 1);
           }
           errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
-              namedType,
-              [name, namedType.name.name, conflictingName]);
+            CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+            namedType,
+            [name, namedType.name2.lexeme, conflictingName],
+          );
           return true;
         }
-        names[name] = namedType.name.name;
+        names[name] = namedType.name2.lexeme;
         var inheritedMember = _inheritanceManager.getMember2(
           declaredSupertype.element,
           Name(library.source.uri, name),
@@ -3775,7 +3783,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
               namedType, [
             name,
-            namedType.name.name,
+            namedType.name2.lexeme,
             inheritedMember.enclosingElement.name!
           ]);
           return true;
@@ -3844,20 +3852,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         return;
       }
     }
-    // prepare class name
-    Identifier className = namedType.name;
     // report as named or default constructor absence
     var name = constructorName.name;
     if (name != null) {
       errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
-          name,
-          [className.toSource(), name.name]);
+        CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
+        name,
+        [namedType.qualifiedName, name.name],
+      );
     } else {
       errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
-          constructorName,
-          [className.toSource()]);
+        CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+        constructorName,
+        [namedType.qualifiedName],
+      );
     }
   }
 
@@ -4350,8 +4358,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _hiddenElements != null &&
         _hiddenElements!.contains(element) &&
         node.parent is! CommentReference) {
-      errorReporter.reportError(DiagnosticFactory()
-          .referencedBeforeDeclaration(errorReporter.source, node));
+      errorReporter.reportError(
+        DiagnosticFactory().referencedBeforeDeclaration(
+          errorReporter.source,
+          nameToken: node.token,
+          element: element,
+        ),
+      );
     }
   }
 
@@ -4514,19 +4527,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Check that the type of the expression in the given 'switch' [statement] is
-  /// assignable to the type of the 'case' members.
-  ///
-  /// See [CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
-  void _checkForSwitchExpressionNotAssignable(SwitchStatement statement) {
-    // For NNBD we verify runtime types of values, and subtyping.
-    if (_isNonNullableByDefault) {
-      return;
-    }
-
-    checkForUseOfVoidResult(statement.expression);
-  }
-
   void _checkForThrowOfInvalidType(ThrowExpression node) {
     if (!_isNonNullableByDefault) return;
 
@@ -4564,9 +4564,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForTypeAnnotationDeferredClass(TypeAnnotation? type) {
     if (type is NamedType && type.isDeferred) {
       errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS,
-          type,
-          [type.name.toSource()]);
+        CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS,
+        type,
+        [type.qualifiedName],
+      );
     }
   }
 
@@ -4588,7 +4589,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         for (var step = 0; current != null; step++) {
           var bound = current.bound;
           if (bound is NamedType) {
-            current = elementToNode[bound.name.staticElement];
+            current = elementToNode[bound.element];
           } else {
             current = null;
           }
@@ -5683,7 +5684,7 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var element = node.name.staticElement;
+    var element = node.element;
     if (element is TypeParameterizedElement && !element.isSimplyBounded) {
       // TODO(srawlins): Don't report this if TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
       //  has been reported.

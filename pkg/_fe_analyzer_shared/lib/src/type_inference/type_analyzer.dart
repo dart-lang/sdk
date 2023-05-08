@@ -1280,6 +1280,7 @@ mixin TypeAnalyzer<
     for (RecordPatternField<Node, Pattern> field in fields) {
       Type propertyType = overridePropertyGetType ??
           resolveObjectPatternPropertyGet(
+            objectPattern: node,
             receiverType: requiredType,
             field: field,
           );
@@ -2267,6 +2268,7 @@ mixin TypeAnalyzer<
   /// the name of the [field].  If the property cannot be resolved, the client
   /// should report an error, and return `dynamic` for recovery.
   Type resolveObjectPatternPropertyGet({
+    required Pattern objectPattern,
     required Type receiverType,
     required RecordPatternField<Node, Pattern> field,
   });

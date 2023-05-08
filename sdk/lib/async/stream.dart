@@ -2251,7 +2251,8 @@ abstract class StreamConsumer<S> {
 /// catch any errors.
 ///
 /// When [close] is called, it will return the [done] [Future].
-abstract class StreamSink<S> implements EventSink<S>, StreamConsumer<S> {
+abstract interface class StreamSink<S>
+    implements EventSink<S>, StreamConsumer<S> {
   /// Tells the stream sink that no further streams will be added.
   ///
   /// This allows the stream sink to complete any remaining work and release

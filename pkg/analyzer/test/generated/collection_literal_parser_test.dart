@@ -76,7 +76,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(iterable.name, 'list');
 
     var body = second.body as IfElement;
-    var condition = body.condition as SimpleIdentifier;
+    var condition = body.expression as SimpleIdentifier;
     expect(condition.name, 'c');
     var thenElement = body.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
@@ -113,7 +113,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(first.value, 1);
 
     var second = list.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
@@ -127,7 +127,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(first.value, 1);
 
     var second = list.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
@@ -143,7 +143,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(first.value, 1);
 
     var second = list.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
@@ -164,7 +164,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(first.value, 1);
 
     var second = list.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');
@@ -180,7 +180,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(first.value, 1);
 
     var second = list.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
 
     var thenElement = second.thenElement as ForElement;
@@ -199,7 +199,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(first.value, 1);
 
     var second = list.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');
@@ -272,7 +272,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(iterable.name, 'list');
 
     var body = second.body as IfElement;
-    var condition = body.condition as SimpleIdentifier;
+    var condition = body.expression as SimpleIdentifier;
     expect(condition.name, 'c');
     var thenElement = body.thenElement as MapLiteralEntry;
     var thenValue = thenElement.value as IntegerLiteral;
@@ -312,7 +312,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(firstValue.value, 1);
 
     var second = map.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as MapLiteralEntry;
     var thenElementValue = thenElement.value as IntegerLiteral;
@@ -329,7 +329,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(firstValue.value, 1);
 
     var second = map.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as MapLiteralEntry;
     var thenElementValue = thenElement.value as IntegerLiteral;
@@ -349,7 +349,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(firstValue.value, 1);
 
     var second = map.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as MapLiteralEntry;
     var thenElementValue = thenElement.value as IntegerLiteral;
@@ -373,7 +373,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(firstValue.value, 7);
 
     var second = map.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');
@@ -395,7 +395,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(firstValue.value, 1);
 
     var second = map.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
 
     var thenElement = second.thenElement as ForElement;
@@ -417,7 +417,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(firstValue.value, 1);
 
     var second = map.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');
@@ -508,7 +508,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(first.value, 1);
 
     var second = setLiteral.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
@@ -523,7 +523,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(first.value, 1);
 
     var second = setLiteral.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
@@ -540,7 +540,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(first.value, 1);
 
     var second = setLiteral.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');
@@ -560,7 +560,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(first.value, 1);
 
     var second = setLiteral.elements[1] as IfElement;
-    var condition = second.condition as BooleanLiteral;
+    var condition = second.expression as BooleanLiteral;
     expect(condition.value, isTrue);
     var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');

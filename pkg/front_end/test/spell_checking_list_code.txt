@@ -19,6 +19,8 @@ accounting
 accounts
 accumulated
 accumulating
+accumulation
+accumulator
 acon
 acov
 across
@@ -209,6 +211,7 @@ checkpoint
 chloestefantsova
 chunks
 ci
+circuit
 circuited
 ck
 cl
@@ -479,6 +482,7 @@ enters
 entrypoint
 entrypointish
 enumerates
+enuum
 env
 eof
 eq
@@ -603,6 +607,7 @@ fvar
 g
 gardening
 garner
+gathers
 gb
 gen
 generation
@@ -758,6 +763,7 @@ interpretation
 interrupted
 intersections
 intersects
+interspersed
 interval
 intervals
 intl
@@ -912,6 +918,7 @@ mime
 mimic
 min
 mini
+mistakes
 misuse
 mixers
 mk
@@ -932,6 +939,7 @@ mus
 mvar
 n
 na
+nagle's
 nameless
 namer
 natively
@@ -1048,6 +1056,7 @@ pattern's
 patterned
 patterns
 paulberry
+pause
 pay
 payload
 payloads
@@ -1477,6 +1486,7 @@ subproperties
 subscription
 subsection
 subsections
+subsequently
 subspace
 subspaces
 subst
@@ -1504,6 +1514,7 @@ supers
 suppose
 surprising
 surrounded
+surrounds
 suspended
 svar
 svg
@@ -1528,6 +1539,7 @@ talks
 tarjan
 tarjan's
 tb
+tcp
 team
 tearoff
 tearoffable
@@ -1608,6 +1620,7 @@ ui
 uint
 umbrella
 un
+unaccounted
 unaffected
 unaligned
 unaltered
@@ -1748,6 +1761,7 @@ weren't
 werror
 whatnot
 whichever
+who
 widget
 widgets
 wiki

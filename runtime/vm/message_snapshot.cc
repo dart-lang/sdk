@@ -796,95 +796,6 @@ class TypeMessageDeserializationCluster : public MessageDeserializationCluster {
   }
 };
 
-class TypeRefMessageSerializationCluster : public MessageSerializationCluster {
- public:
-  explicit TypeRefMessageSerializationCluster(bool is_canonical)
-      : MessageSerializationCluster("TypeRef",
-                                    MessagePhase::kTypes,
-                                    kTypeRefCid,
-                                    is_canonical) {}
-  ~TypeRefMessageSerializationCluster() {}
-
-  void Trace(MessageSerializer* s, Object* object) {
-    TypeRef* type = static_cast<TypeRef*>(object);
-    objects_.Add(type);
-
-    s->Push(type->type());
-  }
-
-  void WriteNodes(MessageSerializer* s) {
-    const intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      TypeRef* type = objects_[i];
-      s->AssignRef(type);
-    }
-  }
-
-  void WriteEdges(MessageSerializer* s) {
-    const intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      TypeRef* type = objects_[i];
-      s->WriteRef(type->type());
-    }
-  }
-
- private:
-  GrowableArray<TypeRef*> objects_;
-};
-
-class TypeRefMessageDeserializationCluster
-    : public MessageDeserializationCluster {
- public:
-  explicit TypeRefMessageDeserializationCluster(bool is_canonical)
-      : MessageDeserializationCluster("TypeRef", is_canonical) {}
-  ~TypeRefMessageDeserializationCluster() {}
-
-  void ReadNodes(MessageDeserializer* d) {
-    const intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(TypeRef::New());
-    }
-  }
-
-  void ReadEdges(MessageDeserializer* d) {
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      TypeRefPtr type = static_cast<TypeRefPtr>(d->Ref(id));
-      type->untag()->set_type(static_cast<AbstractTypePtr>(d->ReadRef()));
-    }
-  }
-
-  ObjectPtr PostLoad(MessageDeserializer* d) {
-    ClassFinalizer::FinalizationKind finalization =
-        is_canonical() ? ClassFinalizer::kCanonicalize
-                       : ClassFinalizer::kFinalize;
-    Code& code = Code::Handle(d->zone());
-    TypeRef& type = TypeRef::Handle(d->zone());
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      type ^= d->Ref(id);
-      type ^= ClassFinalizer::FinalizeType(type, finalization);
-      d->UpdateRef(id, type);
-
-      code = TypeTestingStubGenerator::DefaultCodeForType(type);
-      type.InitializeTypeTestingStubNonAtomic(code);
-    }
-    return nullptr;
-  }
-
-  void ReadNodesApi(ApiMessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(nullptr);
-    }
-  }
-
-  void ReadEdgesApi(ApiMessageDeserializer* d) {
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      d->ReadRef();  // Type.
-    }
-  }
-};
-
 class SmiMessageSerializationCluster : public MessageSerializationCluster {
  public:
   explicit SmiMessageSerializationCluster(Zone* zone)
@@ -1204,7 +1115,7 @@ class GrowableObjectArrayMessageDeserializationCluster
         array->value.as_array.values = d->zone()->Alloc<Dart_CObject*>(length);
       } else {
         ASSERT(length == 0);
-        array->value.as_array.values = NULL;
+        array->value.as_array.values = nullptr;
       }
       d->AssignRef(array);
     }
@@ -1352,7 +1263,7 @@ class TypedDataMessageDeserializationCluster
       data->value.as_typed_data.type = type;
       data->value.as_typed_data.length = length;
       if (length == 0) {
-        data->value.as_typed_data.values = NULL;
+        data->value.as_typed_data.values = nullptr;
       } else {
         data->value.as_typed_data.values = d->CurrentBufferAddress();
         d->Advance(length * element_size);
@@ -2503,7 +2414,7 @@ class ArrayMessageDeserializationCluster
       intptr_t length = d->ReadUnsigned();
       array->value.as_array.length = length;
       if (length == 0) {
-        array->value.as_array.values = NULL;
+        array->value.as_array.values = nullptr;
       } else {
         array->value.as_array.values = d->zone()->Alloc<Dart_CObject*>(length);
       }
@@ -2753,8 +2664,8 @@ class TwoByteStringMessageDeserializationCluster
   }
 };
 
-static const intptr_t kFirstReference = 1;
-static const intptr_t kUnallocatedReference = -1;
+static constexpr intptr_t kFirstReference = 1;
+static constexpr intptr_t kUnallocatedReference = -1;
 
 BaseSerializer::BaseSerializer(Thread* thread, Zone* zone)
     : StackResource(thread),
@@ -2904,7 +2815,7 @@ bool ApiMessageSerializer::Trace(Dart_CObject* object) {
       cid = kDoubleCid;
       break;
     case Dart_CObject_kString: {
-      RELEASE_ASSERT(object->value.as_string != NULL);
+      RELEASE_ASSERT(object->value.as_string != nullptr);
       const uint8_t* utf8_str =
           reinterpret_cast<const uint8_t*>(object->value.as_string);
       intptr_t utf8_len = strlen(object->value.as_string);
@@ -3159,8 +3070,6 @@ MessageSerializationCluster* BaseSerializer::NewClusterForClass(
       return new (Z) TypeArgumentsMessageSerializationCluster(is_canonical);
     case kTypeCid:
       return new (Z) TypeMessageSerializationCluster(is_canonical);
-    case kTypeRefCid:
-      return new (Z) TypeRefMessageSerializationCluster(is_canonical);
     case kSmiCid:
       return new (Z) SmiMessageSerializationCluster(Z);
     case kMintCid:
@@ -3238,8 +3147,6 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
       return new (Z) TypeArgumentsMessageDeserializationCluster(is_canonical);
     case kTypeCid:
       return new (Z) TypeMessageDeserializationCluster(is_canonical);
-    case kTypeRefCid:
-      return new (Z) TypeRefMessageDeserializationCluster(is_canonical);
     case kSmiCid:
       ASSERT(is_canonical);
       return new (Z) SmiMessageDeserializationCluster();

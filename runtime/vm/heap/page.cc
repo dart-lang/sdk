@@ -53,19 +53,23 @@ intptr_t Page::CachedSize() {
   return page_cache_size * kPageSize;
 }
 
-Page* Page::Allocate(intptr_t size, PageType type, bool can_use_cache) {
-  const bool executable = type == kExecutable;
+static bool CanUseCache(uword flags) {
+  return (flags & (Page::kExecutable | Page::kImage | Page::kLarge |
+                   Page::kVMIsolate)) == 0;
+}
+
+Page* Page::Allocate(intptr_t size, uword flags) {
+  const bool executable = (flags & Page::kExecutable) != 0;
   const bool compressed = !executable;
   const char* name = executable ? "dart-code" : "dart-heap";
 
   VirtualMemory* memory = nullptr;
-  if (can_use_cache) {
+  if (CanUseCache(flags)) {
     // We don't automatically use the cache based on size and type because a
     // large page that happens to be the same size as a regular page can't
     // use the cache. Large pages are expected to be zeroed on allocation but
     // cached pages are dirty.
     ASSERT(size == kPageSize);
-    ASSERT(!executable);
     MutexLocker ml(page_cache_mutex);
     ASSERT(page_cache_size >= 0);
     ASSERT(page_cache_size <= kPageCacheCapacity);
@@ -81,7 +85,7 @@ Page* Page::Allocate(intptr_t size, PageType type, bool can_use_cache) {
     return nullptr;  // Out of memory.
   }
 
-  if (type == kNew) {
+  if ((flags & kNew) != 0) {
 #if defined(DEBUG)
     memset(memory->address(), Heap::kZapByte, size);
 #endif
@@ -94,7 +98,7 @@ Page* Page::Allocate(intptr_t size, PageType type, bool can_use_cache) {
 
   Page* result = reinterpret_cast<Page*>(memory->address());
   ASSERT(result != nullptr);
-  result->type_ = type;
+  result->flags_ = flags;
   result->memory_ = memory;
   result->next_ = nullptr;
   result->forwarding_page_ = nullptr;
@@ -106,7 +110,7 @@ Page* Page::Allocate(intptr_t size, PageType type, bool can_use_cache) {
   result->survivor_end_ = 0;
   result->resolved_top_ = 0;
 
-  if (type == kNew) {
+  if ((flags & kNew) != 0) {
     uword top = result->object_start();
     uword end =
         memory->end() - kNewObjectAlignmentOffset - kAllocationRedZoneSize;
@@ -121,8 +125,8 @@ Page* Page::Allocate(intptr_t size, PageType type, bool can_use_cache) {
   return result;
 }
 
-void Page::Deallocate(bool can_use_cache) {
-  if (is_image_page()) {
+void Page::Deallocate() {
+  if (is_image()) {
     delete memory_;
     // For a heap page from a snapshot, the Page object lives in the malloc
     // heap rather than the page itself.
@@ -132,19 +136,21 @@ void Page::Deallocate(bool can_use_cache) {
 
   free(card_table_);
 
+  // Load before unregistering with LSAN, or LSAN will temporarily think it has
+  // been leaked.
+  VirtualMemory* memory = memory_;
+
   LSAN_UNREGISTER_ROOT_REGION(this, sizeof(*this));
 
-  VirtualMemory* memory = memory_;
-  if (can_use_cache) {
+  if (CanUseCache(flags_)) {
     ASSERT(memory->size() == kPageSize);
-    ASSERT(type_ != kExecutable);
     MutexLocker ml(page_cache_mutex);
     ASSERT(page_cache_size >= 0);
     ASSERT(page_cache_size <= kPageCacheCapacity);
     if (page_cache_size < kPageCacheCapacity) {
       intptr_t size = memory->size();
 #if defined(DEBUG)
-      if (type_ == kNew) {
+      if ((flags_ & kNew) != 0) {
         memset(memory->address(), Heap::kZapByte, size);
       } else {
         // We don't zap old-gen because we rely on implicit zero-initialization
@@ -160,7 +166,7 @@ void Page::Deallocate(bool can_use_cache) {
 }
 
 void Page::VisitObjects(ObjectVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->OwnsGCSafepoint());
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
@@ -173,7 +179,7 @@ void Page::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 void Page::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
+  ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask) ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask));
   NoSafepointScope no_safepoint;
@@ -187,7 +193,7 @@ void Page::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 void Page::VisitRememberedCards(ObjectPointerVisitor* visitor) {
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
+  ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kScavengerTask));
   NoSafepointScope no_safepoint;
 
@@ -249,30 +255,12 @@ void Page::ResetProgressBar() {
   progress_bar_ = 0;
 }
 
-ObjectPtr Page::FindObject(FindObjectVisitor* visitor) const {
-  uword obj_addr = object_start();
-  uword end_addr = object_end();
-  if (visitor->VisitRange(obj_addr, end_addr)) {
-    while (obj_addr < end_addr) {
-      ObjectPtr raw_obj = UntaggedObject::FromAddr(obj_addr);
-      uword next_obj_addr = obj_addr + raw_obj->untag()->HeapSize();
-      if (visitor->VisitRange(obj_addr, next_obj_addr) &&
-          raw_obj->untag()->FindObject(visitor)) {
-        return raw_obj;  // Found object, return it.
-      }
-      obj_addr = next_obj_addr;
-    }
-    ASSERT(obj_addr == end_addr);
-  }
-  return Object::null();
-}
-
 void Page::WriteProtect(bool read_only) {
-  ASSERT(!is_image_page());
+  ASSERT(!is_image());
 
   VirtualMemory::Protection prot;
   if (read_only) {
-    if ((type_ == kExecutable) && (memory_->AliasOffset() == 0)) {
+    if (is_executable() && (memory_->AliasOffset() == 0)) {
       prot = VirtualMemory::kReadExecute;
     } else {
       prot = VirtualMemory::kReadOnly;

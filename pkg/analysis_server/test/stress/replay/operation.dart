@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Operations to be performed during the simulation.
+library;
+
 import '../utilities/server.dart';
 
 /// An operation that will send an 'analysis.updateContent' request.

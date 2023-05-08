@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/executor/message_grouper.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 
 void main() async {
@@ -18,7 +19,8 @@ void main() async {
     await withSerializationMode(serializationMode, () async {
       await _isolateSpawnBenchmarks();
       await _isolateSpawnUriBenchmarks();
-      await _separateProcessBenchmarks();
+      await _separateProcessStdioBenchmarks();
+      await _separateProcessSocketBenchmarks();
     });
   }
 }
@@ -127,7 +129,7 @@ Future<void> _isolateSpawnUriBenchmarks() async {
   isolate.kill();
 }
 
-Future<void> _separateProcessBenchmarks() async {
+Future<void> _separateProcessStdioBenchmarks() async {
   Completer? responseCompleter;
 
   var tmpDir = Directory.systemTemp.createTempSync('serialize_bench');
@@ -143,7 +145,11 @@ Future<void> _separateProcessBenchmarks() async {
       process.stderr.listen((event) {
         print('stderr: ${utf8.decode(event)}');
       }),
-      process.stdout.listen((data) {
+      (serializationMode == SerializationMode.jsonServer ||
+                  serializationMode == SerializationMode.jsonClient
+              ? process.stdout
+              : MessageGrouper(process.stdout).messageStream)
+          .listen((data) {
         responseCompleter!.complete(data);
       }),
     ];
@@ -153,7 +159,10 @@ Future<void> _separateProcessBenchmarks() async {
       responseCompleter = Completer();
       var result = serialize();
       if (result is List<int>) {
-        process.stdin.add(result);
+        final bytesBuilder = BytesBuilder(copy: false);
+        _writeLength(result, bytesBuilder);
+        bytesBuilder.add(result);
+        process.stdin.add(bytesBuilder.takeBytes());
       } else {
         process.stdin.writeln(jsonEncode(result));
       }
@@ -165,13 +174,16 @@ Future<void> _separateProcessBenchmarks() async {
       responseCompleter = Completer();
       var result = serialize();
       if (result is List<int>) {
-        process.stdin.add(result);
+        final bytesBuilder = BytesBuilder(copy: false);
+        _writeLength(result, bytesBuilder);
+        bytesBuilder.add(result);
+        process.stdin.add(bytesBuilder.takeBytes());
       } else {
         process.stdin.writeln(jsonEncode(result));
       }
       deserialize(await responseCompleter.future);
     }
-    print('Separate process + $serializationMode: ${watch.elapsed}');
+    print('Separate process + Stdio + $serializationMode: ${watch.elapsed}');
 
     listeners.forEach((l) => l.cancel());
     process.kill();
@@ -182,17 +194,120 @@ Future<void> _separateProcessBenchmarks() async {
   }
 }
 
+Future<void> _separateProcessSocketBenchmarks() async {
+  Completer? responseCompleter;
+
+  var tmpDir = Directory.systemTemp.createTempSync('serialize_bench');
+  try {
+    var file = File(tmpDir.uri.resolve('main.dart').toFilePath());
+    file.writeAsStringSync(childProgram(serializationMode));
+
+    ServerSocket serverSocket;
+    // Try an ipv6 address loopback first, and fall back on ipv4.
+    try {
+      serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv6, 0);
+    } on SocketException catch (_) {
+      serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    }
+
+    Completer<Socket> clientCompleter = Completer();
+    serverSocket.listen((client) {
+      clientCompleter.complete(client);
+    });
+
+    var process = await Process.start(Platform.resolvedExecutable, [
+      '--packages=' + (await Isolate.packageConfig)!.toFilePath(),
+      file.path,
+      serverSocket.address.address,
+      serverSocket.port.toString(),
+    ]);
+    var client = await clientCompleter.future;
+    // Nagle's algorithm slows us down >100x, disable it.
+    client.setOption(SocketOption.tcpNoDelay, true);
+
+    var listeners = <StreamSubscription>[
+      (serializationMode == SerializationMode.jsonServer ||
+                  serializationMode == SerializationMode.jsonClient
+              ? client
+              : MessageGrouper(client).messageStream)
+          .listen((event) {
+        responseCompleter!.complete(event);
+      }),
+      process.stderr.listen((event) {
+        print('stderr: ${utf8.decode(event)}');
+      }),
+      process.stdout.listen((event) {
+        print('stdout: ${utf8.decode(event)}');
+      }),
+    ];
+
+    // warmup
+    for (var i = 0; i < 100; i++) {
+      responseCompleter = Completer();
+      var result = serialize();
+      if (result is List<int>) {
+        final bytesBuilder = BytesBuilder(copy: false);
+        _writeLength(result, bytesBuilder);
+        bytesBuilder.add(result);
+        client.add(bytesBuilder.takeBytes());
+      } else {
+        client.write(jsonEncode(result));
+      }
+      deserialize(await responseCompleter.future);
+    }
+    // measure
+    var watch = Stopwatch()..start();
+    for (var i = 0; i < 100; i++) {
+      responseCompleter = Completer();
+      var result = serialize();
+      if (result is List<int>) {
+        final bytesBuilder = BytesBuilder(copy: false);
+        _writeLength(result, bytesBuilder);
+        bytesBuilder.add(result);
+        client.add(bytesBuilder.takeBytes());
+      } else {
+        client.write(jsonEncode(result));
+      }
+      deserialize(await responseCompleter.future);
+    }
+    print('Separate process + Socket + $serializationMode: ${watch.elapsed}');
+
+    listeners.forEach((l) => l.cancel());
+    process.kill();
+    await serverSocket.close();
+    client.destroy();
+  } catch (e, s) {
+    print('Error running benchmark \n$e\n\n$s');
+  } finally {
+    tmpDir.deleteSync(recursive: true);
+  }
+}
+
+void _writeLength(List<int> result, BytesBuilder bytesBuilder) {
+  int length = (result as Uint8List).lengthInBytes;
+  if (length > 0xffffffff) {
+    throw new StateError('Message was larger than the allowed size!');
+  }
+  bytesBuilder.add([
+    length >> 24 & 0xff,
+    length >> 16 & 0xff,
+    length >> 8 & 0xff,
+    length & 0xff
+  ]);
+}
+
 String childProgram(SerializationMode mode) => '''
       import 'dart:convert';
       import 'dart:io';
       import 'dart:isolate';
       import 'dart:typed_data';
 
+      import 'package:_fe_analyzer_shared/src/macros/executor/message_grouper.dart';
       import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 
-      void main(_, [SendPort? sendPort]) {
+      void main(List<String> args, [SendPort? sendPort]) async {
         var mode = $mode;
-        withSerializationMode(mode, () {
+        await withSerializationMode(mode, () async {
           if (sendPort != null) {
               var isolateReceivePort = ReceivePort();
               isolateReceivePort.listen((data) {
@@ -204,11 +319,31 @@ String childProgram(SerializationMode mode) => '''
                 sendPort.send(result);
               });
               sendPort.send(isolateReceivePort.sendPort);
+          } else if (args.isNotEmpty) {
+            var address = args[0];
+            var port = int.parse(args[1]);
+            var socket = await Socket.connect(address, port);
+            if (mode == SerializationMode.jsonClient || mode == SerializationMode.jsonServer) {
+              socket.listen((data) {
+                var json = utf8.decode(data).trimRight();
+                deserialize(jsonDecode(json));
+                socket.write(jsonEncode(serialize()));
+              });
+            } else {
+              MessageGrouper(socket).messageStream.listen((data) {
+                deserialize(data);
+                var result = serialize() as Uint8List;
+                final bytesBuilder = BytesBuilder(copy: false);
+                _writeLength(result, bytesBuilder);
+                bytesBuilder.add(result);
+                socket.add(bytesBuilder.takeBytes());
+              });
+            }
           } else {
             // We allow one empty line to work around some weird data.
             var allowEmpty = true;
-            stdin.listen((data) {
-              if (mode == SerializationMode.jsonClient || mode == SerializationMode.jsonServer) {
+            if (mode == SerializationMode.jsonClient || mode == SerializationMode.jsonServer) {
+              stdin.listen((data) {
                 var json = utf8.decode(data).trimRight();
                 // On exit we tend to get extra empty lines sometimes?
                 if (json.isEmpty && allowEmpty) {
@@ -217,11 +352,17 @@ String childProgram(SerializationMode mode) => '''
                 }
                 deserialize(jsonDecode(json));
                 stdout.write(jsonEncode(serialize()));
-              } else {
+              });
+            } else {
+              MessageGrouper(stdin).messageStream.listen((data) {
                 deserialize(data);
-                stdout.add(serialize() as List<int>);
-              }
-            });
+                var result = serialize() as Uint8List;
+                final bytesBuilder = BytesBuilder(copy: false);
+                _writeLength(result, bytesBuilder);
+                bytesBuilder.add(result);
+                stdout.add(bytesBuilder.takeBytes());
+              });
+            }
           }
         });
       }
@@ -263,6 +404,19 @@ String childProgram(SerializationMode mode) => '''
             ..moveNext()
             ..checkNull();
         }
+      }
+
+      void _writeLength(Uint8List result, BytesBuilder bytesBuilder) {
+        int length = result.lengthInBytes;
+        if (length > 0xffffffff) {
+          throw new StateError('Message was larger than the allowed size!');
+        }
+        bytesBuilder.add([
+          length >> 24 & 0xff,
+          length >> 16 & 0xff,
+          length >> 8 & 0xff,
+          length & 0xff
+        ]);
       }''';
 
 Object? serialize() {

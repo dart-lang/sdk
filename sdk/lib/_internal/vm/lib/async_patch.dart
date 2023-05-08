@@ -572,6 +572,8 @@ class _SyncStarIterator<T> implements Iterator<T> {
       // Case: yield* some_iterator.
       final iterable = _yieldStarIterable;
       if (iterable != null) {
+        _yieldStarIterable = null;
+        _current = null;
         if (iterable is _SyncStarIterable) {
           // We got a recursive yield* of sync* function. Instead of creating
           // a new iterator we replace our current _state (remembering the
@@ -583,11 +585,14 @@ class _SyncStarIterator<T> implements Iterator<T> {
           nestedState._functionData = this;
           _state = nestedState;
         } else {
-          _yieldStarIterator = iterable.iterator;
+          try {
+            _yieldStarIterator = iterable.iterator;
+          } catch (exception, stackTrace) {
+            pendingException = exception;
+            pendingStackTrace = stackTrace;
+          }
         }
-        _yieldStarIterable = null;
-        _current = null;
-        // Fetch the next item.
+        // Fetch the next item or continue with exception.
         continue;
       }
 

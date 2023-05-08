@@ -20,7 +20,7 @@ VM_UNIT_TEST_CASE(BasicFlags) {
 }
 
 DEFINE_FLAG(bool, parse_flag_bool_test, true, "Flags::Parse (bool) testing");
-DEFINE_FLAG(charp, string_opt_test, NULL, "Testing: string option.");
+DEFINE_FLAG(charp, string_opt_test, nullptr, "Testing: string option.");
 DEFINE_FLAG(charp, entrypoint_test, "main", "Testing: entrypoint");
 DEFINE_FLAG(int, counter, 100, "Testing: int flag");
 
@@ -35,16 +35,16 @@ VM_UNIT_TEST_CASE(ParseFlags) {
   Flags::Parse("parse_flag_bool_test=true");
   EXPECT_EQ(true, FLAG_parse_flag_bool_test);
 
-  EXPECT_EQ(true, FLAG_string_opt_test == NULL);
+  EXPECT_EQ(true, FLAG_string_opt_test == nullptr);
   Flags::Parse("string_opt_test=doobidoo");
-  EXPECT_EQ(true, FLAG_string_opt_test != NULL);
+  EXPECT_EQ(true, FLAG_string_opt_test != nullptr);
   EXPECT_EQ(0, strcmp(FLAG_string_opt_test, "doobidoo"));
   FLAG_string_opt_test = reinterpret_cast<charp>(0xDEADBEEF);
   Flags::Parse("string_opt_test=foofoo");
-  EXPECT_EQ(true, FLAG_string_opt_test != NULL);
+  EXPECT_EQ(true, FLAG_string_opt_test != nullptr);
   EXPECT_EQ(0, strcmp(FLAG_string_opt_test, "foofoo"));
 
-  EXPECT_EQ(true, FLAG_entrypoint_test != NULL);
+  EXPECT_EQ(true, FLAG_entrypoint_test != nullptr);
   EXPECT_EQ(0, strcmp(FLAG_entrypoint_test, "main"));
 
   EXPECT_EQ(100, FLAG_counter);

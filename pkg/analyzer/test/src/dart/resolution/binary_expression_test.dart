@@ -161,6 +161,35 @@ BinaryExpression
 ''');
   }
 
+  test_gtGtGt() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A operator >>>(int amount) => this;
+}
+
+void f(A a) {
+  a >>> 3;
+}
+''');
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  operator: >>>
+  rightOperand: IntegerLiteral
+    literal: 3
+    parameter: self::@class::A::@method::>>>::@parameter::amount
+    staticType: int
+  staticElement: self::@class::A::@method::>>>
+  staticInvokeType: A Function(int)
+  staticType: A
+''');
+  }
+
   test_ifNull_left_nullableContext() async {
     await assertNoErrorsInCode(r'''
 T f<T>(T t) => t;
@@ -412,6 +441,152 @@ BinaryExpression
     staticType: int
   staticElement: dart:core::@class::num::@method::+
   staticInvokeType: num Function(num)
+  staticType: int
+''');
+  }
+
+  test_star_syntheticOperand_both() async {
+    await assertErrorsInCode(r'''
+void f() {
+  final v = * ;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 23, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 25, 1),
+    ]);
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    staticElement: <null>
+    staticType: dynamic
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    parameter: <null>
+    staticElement: <null>
+    staticType: dynamic
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
+  }
+
+  test_star_syntheticOperand_left() async {
+    await assertErrorsInCode(r'''
+void f() {
+  final v = * 2;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 23, 1),
+    ]);
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    staticElement: <null>
+    staticType: dynamic
+  operator: *
+  rightOperand: IntegerLiteral
+    literal: 2
+    parameter: <null>
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
+  }
+
+  test_star_syntheticOperand_right() async {
+    await assertErrorsInCode(r'''
+void f() {
+  final v = 2 * ;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 27, 1),
+    ]);
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: IntegerLiteral
+    literal: 2
+    staticType: int
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    parameter: dart:core::@class::num::@method::*::@parameter::other
+    staticElement: <null>
+    staticType: dynamic
+  staticElement: dart:core::@class::num::@method::*
+  staticInvokeType: num Function(num)
+  staticType: num
+''');
+  }
+
+  test_superQualifier_plus() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int operator +(int other) => 0;
+}
+
+class B extends A {
+  int operator +(int other) => 0;
+
+  void f() {
+    super + 0;
+  }
+}
+''');
+
+    final node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@method::+::@parameter::other
+    staticType: int
+  staticElement: self::@class::A::@method::+
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_thisExpression_plus() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int operator +(int other) => 0;
+
+  void f() {
+    this + 0;
+  }
+}
+''');
+
+    final node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@method::+::@parameter::other
+    staticType: int
+  staticElement: self::@class::A::@method::+
+  staticInvokeType: int Function(int)
   staticType: int
 ''');
   }

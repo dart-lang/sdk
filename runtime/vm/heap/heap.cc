@@ -99,10 +99,10 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
 
   // It is possible a GC doesn't clear enough space.
   // In that case, we must fall through and allocate into old space.
-  return AllocateOld(thread, size, Page::kData);
+  return AllocateOld(thread, size, /*exec*/ false);
 }
 
-uword Heap::AllocateOld(Thread* thread, intptr_t size, Page::PageType type) {
+uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
@@ -113,31 +113,31 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, Page::PageType type) {
 
   if (!thread->force_growth()) {
     CollectForDebugging(thread);
-    uword addr = old_space_.TryAllocate(size, type);
+    uword addr = old_space_.TryAllocate(size, is_exec);
     if (addr != 0) {
       return addr;
     }
     // Wait for any GC tasks that are in progress.
     WaitForSweeperTasks(thread);
-    addr = old_space_.TryAllocate(size, type);
+    addr = old_space_.TryAllocate(size, is_exec);
     if (addr != 0) {
       return addr;
     }
     // All GC tasks finished without allocating successfully. Collect both
     // generations.
     CollectMostGarbage(GCReason::kOldSpace, /*compact=*/false);
-    addr = old_space_.TryAllocate(size, type);
+    addr = old_space_.TryAllocate(size, is_exec);
     if (addr != 0) {
       return addr;
     }
     // Wait for all of the concurrent tasks to finish before giving up.
     WaitForSweeperTasks(thread);
-    addr = old_space_.TryAllocate(size, type);
+    addr = old_space_.TryAllocate(size, is_exec);
     if (addr != 0) {
       return addr;
     }
     // Force growth before attempting another synchronous GC.
-    addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
+    addr = old_space_.TryAllocate(size, is_exec, PageSpace::kForceGrowth);
     if (addr != 0) {
       return addr;
     }
@@ -145,7 +145,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, Page::PageType type) {
     CollectAllGarbage(GCReason::kOldSpace, /*compact=*/true);
     WaitForSweeperTasks(thread);
   }
-  uword addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
+  uword addr = old_space_.TryAllocate(size, is_exec, PageSpace::kForceGrowth);
   if (addr != 0) {
     return addr;
   }
@@ -239,7 +239,7 @@ bool Heap::OldContains(uword addr) const {
 }
 
 bool Heap::CodeContains(uword addr) const {
-  return old_space_.Contains(addr, Page::kExecutable);
+  return old_space_.CodeContains(addr);
 }
 
 bool Heap::DataContains(uword addr) const {
@@ -360,37 +360,6 @@ void HeapIterationScope::IterateStackPointers(
 void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   new_space_.VisitObjectPointers(visitor);
   old_space_.VisitObjectPointers(visitor);
-}
-
-InstructionsPtr Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
-  // Only executable pages can have RawInstructions objects.
-  ObjectPtr raw_obj = old_space_.FindObject(visitor, Page::kExecutable);
-  ASSERT((raw_obj == Object::null()) ||
-         (raw_obj->GetClassId() == kInstructionsCid));
-  return static_cast<InstructionsPtr>(raw_obj);
-}
-
-ObjectPtr Heap::FindOldObject(FindObjectVisitor* visitor) const {
-  return old_space_.FindObject(visitor, Page::kData);
-}
-
-ObjectPtr Heap::FindNewObject(FindObjectVisitor* visitor) {
-  return new_space_.FindObject(visitor);
-}
-
-ObjectPtr Heap::FindObject(FindObjectVisitor* visitor) {
-  // The visitor must not allocate from the heap.
-  NoSafepointScope no_safepoint_scope;
-  ObjectPtr raw_obj = FindNewObject(visitor);
-  if (raw_obj != Object::null()) {
-    return raw_obj;
-  }
-  raw_obj = FindOldObject(visitor);
-  if (raw_obj != Object::null()) {
-    return raw_obj;
-  }
-  raw_obj = FindObjectInCodeSpace(visitor);
-  return raw_obj;
 }
 
 void Heap::NotifyIdle(int64_t deadline) {
@@ -608,7 +577,7 @@ void Heap::CollectAllGarbage(GCReason reason, bool compact) {
 }
 
 void Heap::CheckCatchUp(Thread* thread) {
-  ASSERT(thread->CanCollectGarbage());
+  ASSERT(!thread->force_growth());
   if (old_space()->ReachedHardThreshold()) {
     CollectGarbage(thread, GCType::kMarkSweep, GCReason::kCatchUp);
   } else {
@@ -693,7 +662,7 @@ void Heap::WaitForMarkerTasks(Thread* thread) {
 }
 
 void Heap::WaitForSweeperTasks(Thread* thread) {
-  ASSERT(!thread->IsAtSafepoint());
+  ASSERT(!thread->OwnsGCSafepoint());
   MonitorLocker ml(old_space_.tasks_lock());
   while (old_space_.tasks() > 0) {
     ml.WaitWithSafepointCheck(thread);
@@ -701,7 +670,7 @@ void Heap::WaitForSweeperTasks(Thread* thread) {
 }
 
 void Heap::WaitForSweeperTasksAtSafepoint(Thread* thread) {
-  ASSERT(thread->IsAtSafepoint());
+  ASSERT(thread->OwnsGCSafepoint());
   MonitorLocker ml(old_space_.tasks_lock());
   while (old_space_.tasks() > 0) {
     ml.Wait();
@@ -747,7 +716,7 @@ void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
 
 void Heap::CollectForDebugging(Thread* thread) {
   if (gc_on_nth_allocation_ == kNoForcedGarbageCollection) return;
-  if (thread->IsAtSafepoint()) {
+  if (thread->OwnsGCSafepoint()) {
     // CollectAllGarbage is not supported when we are at a safepoint.
     // Allocating when at a safepoint is not a common case.
     return;
@@ -790,21 +759,22 @@ ObjectSet* Heap::CreateAllocatedObjectSet(Zone* zone,
   return allocated_set;
 }
 
-bool Heap::Verify(MarkExpectation mark_expectation) {
+bool Heap::Verify(const char* msg, MarkExpectation mark_expectation) {
   if (FLAG_disable_heap_verification) {
     return true;
   }
   HeapIterationScope heap_iteration_scope(Thread::Current());
-  return VerifyGC(mark_expectation);
+  return VerifyGC(msg, mark_expectation);
 }
 
-bool Heap::VerifyGC(MarkExpectation mark_expectation) {
+bool Heap::VerifyGC(const char* msg, MarkExpectation mark_expectation) {
+  ASSERT(msg != nullptr);
   auto thread = Thread::Current();
   StackZone stack_zone(thread);
 
   ObjectSet* allocated_set =
       CreateAllocatedObjectSet(stack_zone.GetZone(), mark_expectation);
-  VerifyPointersVisitor visitor(isolate_group(), allocated_set);
+  VerifyPointersVisitor visitor(isolate_group(), allocated_set, msg);
   VisitObjectPointers(&visitor);
 
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
@@ -1163,7 +1133,7 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
 
 Heap::Space Heap::SpaceForExternal(intptr_t size) const {
   // If 'size' would be a significant fraction of new space, then use old.
-  static const int kExtNewRatio = 16;
+  const int kExtNewRatio = 16;
   if (size > (CapacityInWords(Heap::kNew) * kWordSize) / kExtNewRatio) {
     return Heap::kOld;
   } else {

@@ -86,7 +86,7 @@ enum E {
 ''', [
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 13,
           1),
-      error(HintCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
+      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
     ]);
   }
 

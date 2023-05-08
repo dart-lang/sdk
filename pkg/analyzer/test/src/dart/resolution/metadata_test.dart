@@ -45,6 +45,69 @@ int 42
 ''');
   }
 
+  test_location_augmentationImportDirective() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+
+    await assertNoErrorsInCode(r'''
+@foo
+import augment 'a.dart';
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_class_classDeclaration() async {
+    await assertNoErrorsInCode(r'''
+const foo = 42;
+
+@foo
+class A {}
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_class_constructor_formalParameter() async {
+    await assertNoErrorsInCode(r'''
+const foo = 42;
+
+class A {
+  A.named(@foo int a);
+}
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_class_constructorDeclaration() async {
+    await assertNoErrorsInCode(r'''
+const foo = 42;
+
+class A {
+  @foo
+  A.named();
+}
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_class_fieldDeclaration() async {
+    await assertNoErrorsInCode(r'''
+const foo = 42;
+
+class A {
+  @foo
+  final bar = 0;
+}
+''');
+
+    _assertAtFoo42();
+  }
+
   test_location_enumConstant() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -70,18 +133,6 @@ E
   index: int 0
   variable: self::@enum::E::@field::v
 ''');
-  }
-
-  test_location_exportLibraryDirective() async {
-    newFile('$testPackageLibPath/a.dart', '');
-
-    await assertNoErrorsInCode(r'''
-@foo
-export 'a.dart';
-const foo = 42;
-''');
-
-    _assertAtFoo42();
   }
 
   test_location_fieldFormal() async {
@@ -110,10 +161,8 @@ Annotation
       InstanceCreationExpression
         constructorName: ConstructorName
           type: NamedType
-            name: SimpleIdentifier
-              token: A
-              staticElement: self::@class::A
-              staticType: null
+            name: A
+            element: self::@class::A
             type: A
           staticElement: self::@class::A::@constructor::new
         argumentList: ArgumentList
@@ -136,30 +185,14 @@ A
 ''');
   }
 
-  test_location_importAugmentationDirective() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+  test_location_forEachPartsWithDeclaration() async {
+    await resolveTestCode(r'''
+void f() {
+  for (var @foo x = 0;;) {}
+}
 ''');
-
-    await assertNoErrorsInCode(r'''
-@foo
-import augment 'a.dart';
-const foo = 42;
-''');
-
-    _assertAtFoo42();
-  }
-
-  test_location_importLibraryDirective() async {
-    newFile('$testPackageLibPath/a.dart', '');
-
-    await assertNoErrorsInCode(r'''
-@foo
-import 'a.dart'; // ignore:unused_import
-const foo = 42;
-''');
-
-    _assertAtFoo42();
+    // This is invalid code.
+    // No checks, as long as it does not crash.
   }
 
   test_location_libraryAugmentationDirective() async {
@@ -183,6 +216,30 @@ library augment 'test.dart';
     await assertNoErrorsInCode(r'''
 @foo
 library my;
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_libraryExportDirective() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+@foo
+export 'a.dart';
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_libraryImportDirective() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+@foo
+import 'a.dart'; // ignore:unused_import
 const foo = 42;
 ''');
 
@@ -228,6 +285,29 @@ Annotation
 A
   a: int 3
 ''');
+  }
+
+  test_location_localVariableDeclaration() async {
+    await resolveTestCode(r'''
+void f() {
+  var @foo x;
+}
+''');
+    // This is invalid code.
+    // No checks, as long as it does not crash.
+  }
+
+  test_location_methodDeclaration() async {
+    await assertNoErrorsInCode(r'''
+const foo = 42;
+
+class A {
+  @foo
+  void bar() {}
+}
+''');
+
+    _assertAtFoo42();
   }
 
   test_location_partDirective() async {
@@ -337,6 +417,28 @@ Annotation
 A
   f: int 0
 ''');
+  }
+
+  test_location_topLevelFunctionDeclaration() async {
+    await assertNoErrorsInCode(r'''
+const foo = 42;
+
+@foo
+void bar() {}
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_topLevelVariableDeclaration() async {
+    await assertNoErrorsInCode(r'''
+const foo = 42;
+
+@foo
+final bar = 0;
+''');
+
+    _assertAtFoo42();
   }
 
   test_optIn_fromOptOut_class() async {
@@ -798,6 +900,50 @@ A
 ''');
   }
 
+  test_value_class_namedConstructor() async {
+    await assertNoErrorsInCode(r'''
+ class A {
+  final int f;
+  const A.named(this.f);
+}
+
+@A.named(42)
+void f() {}
+''');
+
+    final node = findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: self::@class::A::@constructor::named
+      staticType: null
+    staticElement: self::@class::A::@constructor::named
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        parameter: self::@class::A::@constructor::named::@parameter::f
+        staticType: int
+    rightParenthesis: )
+  element: self::@class::A::@constructor::named
+''');
+
+    _assertAnnotationValueText(node, r'''
+A
+  f: int 42
+''');
+  }
+
   test_value_class_staticConstField() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -834,7 +980,7 @@ int 42
 
   test_value_class_unnamedConstructor() async {
     await assertNoErrorsInCode(r'''
- class A {
+class A {
   final int f;
   const A(this.f);
 }
@@ -843,8 +989,8 @@ int 42
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    final node = findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -861,9 +1007,59 @@ Annotation
     rightParenthesis: )
   element: self::@class::A::@constructor::new
 ''');
-    _assertAnnotationValueText(annotation, r'''
+
+    _assertAnnotationValueText(node, r'''
 A
   f: int 42
+''');
+  }
+
+  test_value_class_unnamedConstructor_withNestedConstructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  const C();
+}
+
+class D {
+  final C c;
+  const D(this.c);
+}
+
+@D(const C())
+void f() {}
+''');
+
+    final node = findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: D
+    staticElement: self::@class::D
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      InstanceCreationExpression
+        keyword: const
+        constructorName: ConstructorName
+          type: NamedType
+            name: C
+            element: self::@class::C
+            type: C
+          staticElement: self::@class::C::@constructor::new
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        parameter: self::@class::D::@constructor::new::@parameter::c
+        staticType: C
+    rightParenthesis: )
+  element: self::@class::D::@constructor::new
+''');
+
+    _assertAnnotationValueText(node, r'''
+D
+  c: C
 ''');
   }
 
@@ -1187,10 +1383,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -1243,10 +1437,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -1604,10 +1796,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -1653,7 +1843,7 @@ import 'a.dart';
 void f(C c) {}
 ''');
 
-    var classC = findNode.namedType('C c').name.staticElement!;
+    var classC = findNode.namedType('C c').element!;
     var annotation = classC.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 B
@@ -1683,7 +1873,7 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').name.staticElement!;
+    var classB = findNode.namedType('B b').element!;
     var annotation = classB.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 A
@@ -1712,11 +1902,192 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').name.staticElement!;
+    var classB = findNode.namedType('B b').element!;
     var annotation = classB.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 A
   f: int 42
+''');
+  }
+
+  test_value_prefix_class_namedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+ class A {
+  final int f;
+  const A.named(this.f);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+@prefix.A.named(42)
+void f() {}
+''');
+
+    final node = findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    staticElement: package:test/a.dart::@class::A::@constructor::named
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        parameter: package:test/a.dart::@class::A::@constructor::named::@parameter::f
+        staticType: int
+    rightParenthesis: )
+  element: package:test/a.dart::@class::A::@constructor::named
+''');
+
+    _assertAnnotationValueText(node, '''
+A
+  f: int 42
+''');
+  }
+
+  test_value_prefix_class_staticConstField() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const int foo = 42;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+@prefix.A.foo
+void f() {}
+''');
+
+    final node = findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  period: .
+  constructorName: SimpleIdentifier
+    token: foo
+    staticElement: package:test/a.dart::@class::A::@getter::foo
+    staticType: null
+  element: package:test/a.dart::@class::A::@getter::foo
+''');
+
+    _assertAnnotationValueText(node, '''
+int 42
+  variable: package:test/a.dart::@class::A::@field::foo
+''');
+  }
+
+  test_value_prefix_class_unnamedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+ class A {
+  final int f;
+  const A(this.f);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+@prefix.A(42)
+void f() {}
+''');
+
+    final node = findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        parameter: package:test/a.dart::@class::A::@constructor::new::@parameter::f
+        staticType: int
+    rightParenthesis: )
+  element: package:test/a.dart::@class::A::@constructor::new
+''');
+
+    _assertAnnotationValueText(node, '''
+A
+  f: int 42
+''');
+  }
+
+  test_value_prefix_topLevelVariable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const foo = 42;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+@prefix.foo
+void f() {}
+''');
+
+    final node = findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/a.dart::@getter::foo
+      staticType: null
+    staticElement: package:test/a.dart::@getter::foo
+    staticType: null
+  element: package:test/a.dart::@getter::foo
+''');
+
+    _assertAnnotationValueText(node, '''
+int 42
+  variable: package:test/a.dart::@variable::foo
 ''');
   }
 
@@ -1911,10 +2282,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -1980,10 +2349,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -2004,6 +2371,17 @@ Annotation
 A<int>
   f: int 42
 ''');
+  }
+
+  test_value_topLevelVariableDeclaration() async {
+    await assertNoErrorsInCode(r'''
+const foo = 42;
+
+@foo
+void f() {}
+''');
+
+    _assertAtFoo42();
   }
 
   test_value_typeAlias_class_staticConstField() async {
@@ -2068,10 +2446,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2134,10 +2510,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -2286,10 +2660,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2344,10 +2716,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList

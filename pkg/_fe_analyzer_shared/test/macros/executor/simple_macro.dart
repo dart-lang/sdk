@@ -20,6 +20,12 @@ class SimpleMacro
         ConstructorTypesMacro,
         ConstructorDeclarationsMacro,
         ConstructorDefinitionMacro,
+        EnumTypesMacro,
+        EnumDeclarationsMacro,
+        EnumDefinitionMacro,
+        EnumValueTypesMacro,
+        EnumValueDeclarationsMacro,
+        EnumValueDefinitionMacro,
         FieldTypesMacro,
         FieldDeclarationsMacro,
         FieldDefinitionMacro,
@@ -29,6 +35,9 @@ class SimpleMacro
         MethodTypesMacro,
         MethodDeclarationsMacro,
         MethodDefinitionMacro,
+        MixinTypesMacro,
+        MixinDeclarationsMacro,
+        MixinDefinitionMacro,
         VariableTypesMacro,
         VariableDeclarationsMacro,
         VariableDefinitionMacro {
@@ -59,9 +68,9 @@ class SimpleMacro
 
   @override
   FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
-      ClassMemberDeclarationBuilder builder) async {
+      MemberDeclarationBuilder builder) async {
     var fields = await builder.fieldsOf(clazz);
-    builder.declareInClass(DeclarationCode.fromParts([
+    builder.declareInType(DeclarationCode.fromParts([
       'static const List<String> fieldNames = [',
       for (var field in fields) "'${field.identifier.name}',",
       '];',
@@ -70,13 +79,38 @@ class SimpleMacro
 
   @override
   FutureOr<void> buildDeclarationsForConstructor(
-      ConstructorDeclaration constructor,
-      ClassMemberDeclarationBuilder builder) {
-    var className = constructor.definingClass.name;
+      ConstructorDeclaration constructor, MemberDeclarationBuilder builder) {
+    var className = constructor.definingType.name;
     var constructorName = constructor.identifier.name;
-    builder.declareInClass(DeclarationCode.fromString(
+    builder.declareInType(DeclarationCode.fromString(
         'factory $className.${constructorName}Delegate() => '
         '$className.$constructorName();'));
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForEnum(IntrospectableEnumDeclaration enuum,
+      EnumDeclarationBuilder builder) async {
+    var values = await builder.valuesOf(enuum);
+    builder.declareInType(DeclarationCode.fromParts([
+      'static const List<String> valuesByName = {',
+      for (var value in values) ...[
+        "'${value.identifier.name}': ",
+        value.identifier
+      ],
+      '};',
+    ]));
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForEnumValue(
+      EnumValueDeclaration value, EnumDeclarationBuilder builder) async {
+    final parent = await builder.declarationOf(value.definingEnum);
+    builder.declareInType(DeclarationCode.fromParts([
+      parent.identifier,
+      ' ${value.identifier.name}ToString() => ',
+      value.identifier,
+      '.toString();',
+    ]));
   }
 
   @override
@@ -107,7 +141,7 @@ class SimpleMacro
 
   @override
   FutureOr<void> buildDeclarationsForMethod(
-      MethodDeclaration method, ClassMemberDeclarationBuilder builder) {
+      MethodDeclaration method, MemberDeclarationBuilder builder) {
     if (method.positionalParameters.isNotEmpty ||
         method.namedParameters.isNotEmpty) {
       throw new UnsupportedError('Can only run on method with no parameters!');
@@ -116,6 +150,17 @@ class SimpleMacro
     builder.declareInLibrary(DeclarationCode.fromParts([
       method.returnType.code,
       ' delegateMember${methodName.capitalize()}() => $methodName();',
+    ]));
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForMixin(IntrospectableMixinDeclaration mixin,
+      MemberDeclarationBuilder builder) async {
+    var methods = await builder.methodsOf(mixin);
+    builder.declareInType(DeclarationCode.fromParts([
+      'static const List<String> methodNames = [',
+      for (var method in methods) "'${method.identifier.name}',",
+      '];',
     ]));
   }
 
@@ -131,9 +176,9 @@ class SimpleMacro
 
   @override
   FutureOr<void> buildDeclarationsForField(
-      FieldDeclaration field, ClassMemberDeclarationBuilder builder) {
+      FieldDeclaration field, MemberDeclarationBuilder builder) {
     var fieldName = field.identifier.name;
-    builder.declareInClass(DeclarationCode.fromParts([
+    builder.declareInType(DeclarationCode.fromParts([
       field.type.code,
       ' get delegate${fieldName.capitalize()} => $fieldName;',
     ]));
@@ -141,7 +186,7 @@ class SimpleMacro
 
   @override
   Future<void> buildDefinitionForClass(IntrospectableClassDeclaration clazz,
-      ClassDefinitionBuilder builder) async {
+      TypeDefinitionBuilder builder) async {
     // Apply ourself to all our members
     var fields = (await builder.fieldsOf(clazz));
     for (var field in fields) {
@@ -163,8 +208,8 @@ class SimpleMacro
   @override
   Future<void> buildDefinitionForConstructor(ConstructorDeclaration constructor,
       ConstructorDefinitionBuilder builder) async {
-    var clazz = await builder.declarationOf(constructor.definingClass)
-        as IntrospectableClassDeclaration;
+    var clazz = await builder.declarationOf(constructor.definingType)
+        as IntrospectableType;
     var fields = (await builder.fieldsOf(clazz));
 
     builder.augment(
@@ -177,6 +222,64 @@ class SimpleMacro
             Code.fromParts([field.identifier, ' = ${myInt!}']),
       ],
     );
+  }
+
+  @override
+  Future<void> buildDefinitionForEnum(IntrospectableEnumDeclaration enuum,
+      EnumDefinitionBuilder builder) async {
+    // Apply ourself to all our members
+    var values = (await builder.valuesOf(enuum));
+    for (var value in values) {
+      await buildDefinitionForEnumValue(
+          value, await builder.buildEnumValue(value.identifier));
+    }
+    var fields = (await builder.fieldsOf(enuum));
+    for (var field in fields) {
+      await buildDefinitionForField(
+          field, await builder.buildField(field.identifier));
+    }
+    var methods = (await builder.methodsOf(enuum));
+    for (var method in methods) {
+      await buildDefinitionForMethod(
+          method, await builder.buildMethod(method.identifier));
+    }
+    var constructors = (await builder.constructorsOf(enuum));
+    for (var constructor in constructors) {
+      await buildDefinitionForConstructor(
+          constructor, await builder.buildConstructor(constructor.identifier));
+    }
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForEnumValue(
+      EnumValueDeclaration value, EnumValueDefinitionBuilder builder) async {
+    final parent = await builder.declarationOf(value.definingEnum)
+        as IntrospectableEnumDeclaration;
+    final constructor = (await builder.constructorsOf(parent)).first;
+    final parts = [
+      value.identifier,
+      '(',
+    ];
+    final stringType = await builder.resolve(NamedTypeAnnotationCode(
+        name:
+            // ignore: deprecated_member_use_from_same_package
+            await builder.resolveIdentifier(Uri.parse('dart:core'), 'String')));
+    for (var positional in constructor.positionalParameters) {
+      final resolvedType = await builder.resolve(positional.type.code);
+      if (!(await resolvedType.isExactly(stringType))) {
+        throw StateError('Expected only string parameters');
+      }
+      parts..add("'${positional.identifier.name}', ");
+    }
+    for (var named in constructor.namedParameters) {
+      final resolvedType = await builder.resolve(named.type.code);
+      if (!(await resolvedType.isExactly(stringType))) {
+        throw StateError('Expected only string parameters');
+      }
+      parts..add("${named.identifier.name}: '${named.identifier.name}', ");
+    }
+    parts.add('),');
+    builder.augment(DeclarationCode.fromParts(parts));
   }
 
   @override
@@ -196,19 +299,36 @@ class SimpleMacro
     await buildDefinitionForFunction(method, builder);
 
     // Test the type declaration resolver
-    var parentClass = await builder.declarationOf(method.definingClass)
-        as IntrospectableClassDeclaration;
+    var parentClass =
+        await builder.declarationOf(method.definingType) as IntrospectableType;
     // Should be able to find ourself in the methods of the parent class.
     (await builder.methodsOf(parentClass))
         .singleWhere((m) => m.identifier == method.identifier);
 
+    TypeDeclaration? superClass;
+    final interfaces = <TypeDeclaration>[];
+    final mixins = <TypeDeclaration>[];
+    final superclassConstraints = <TypeDeclaration>[];
     // Test the class introspector
-    var superClass =
-        (await builder.declarationOf(parentClass.superclass!.identifier));
-    var interfaces = await Future.wait(parentClass.interfaces
-        .map((interface) => builder.declarationOf(interface.identifier)));
-    var mixins = await Future.wait(parentClass.mixins
-        .map((mixins) => builder.declarationOf(mixins.identifier)));
+    if (parentClass is IntrospectableClassDeclaration) {
+      superClass =
+          (await builder.declarationOf(parentClass.superclass!.identifier));
+      interfaces.addAll(await Future.wait(parentClass.interfaces
+          .map((interface) => builder.declarationOf(interface.identifier))));
+      mixins.addAll(await Future.wait(parentClass.mixins
+          .map((mixins) => builder.declarationOf(mixins.identifier))));
+    } else if (parentClass is IntrospectableMixinDeclaration) {
+      superclassConstraints.addAll(await Future.wait(parentClass
+          .superclassConstraints
+          .map((interface) => builder.declarationOf(interface.identifier))));
+      interfaces.addAll(await Future.wait(parentClass.interfaces
+          .map((interface) => builder.declarationOf(interface.identifier))));
+    } else if (parentClass is IntrospectableEnumDeclaration) {
+      interfaces.addAll(await Future.wait(parentClass.interfaces
+          .map((interface) => builder.declarationOf(interface.identifier))));
+      mixins.addAll(await Future.wait(parentClass.mixins
+          .map((mixins) => builder.declarationOf(mixins.identifier))));
+    }
     var fields = (await builder.fieldsOf(parentClass));
     var methods = (await builder.methodsOf(parentClass));
     var constructors = (await builder.constructorsOf(parentClass));
@@ -225,14 +345,16 @@ class SimpleMacro
     }
 
     // TODO: Use `builder.instantiateCode` instead once implemented.
-    var classType = await builder.resolve(constructors.first.returnType.code);
-    if (await staticReturnType.isExactly(classType)) {
-      throw StateError(
-          'The return type should not be exactly equal to the class type');
-    }
-    if (await staticReturnType.isSubtypeOf(classType)) {
-      throw StateError(
-          'The return type should not be a subtype of the class type!');
+    if (constructors.isNotEmpty) {
+      var classType = await builder.resolve(constructors.first.returnType.code);
+      if (await staticReturnType.isExactly(classType)) {
+        throw StateError(
+            'The return type should not be exactly equal to the class type');
+      }
+      if (await staticReturnType.isSubtypeOf(classType)) {
+        throw StateError(
+            'The return type should not be a subtype of the class type!');
+      }
     }
 
     builder.augment(FunctionBodyCode.fromParts([
@@ -245,7 +367,7 @@ class SimpleMacro
       print('myMap: $myMap');
       print('myString: $myString');
       print('parentClass: ${parentClass.identifier.name}');
-      print('superClass: ${superClass.identifier.name}');''',
+      print('superClass: ${superClass?.identifier.name}');''',
       for (var interface in interfaces)
         "\n      print('interface: ${interface.identifier.name}');",
       for (var mixin in mixins)
@@ -263,10 +385,26 @@ class SimpleMacro
   }
 
   @override
+  Future<void> buildDefinitionForMixin(IntrospectableMixinDeclaration mixin,
+      TypeDefinitionBuilder builder) async {
+    // Apply ourself to all our members
+    var fields = (await builder.fieldsOf(mixin));
+    for (var field in fields) {
+      await buildDefinitionForField(
+          field, await builder.buildField(field.identifier));
+    }
+    var methods = (await builder.methodsOf(mixin));
+    for (var method in methods) {
+      await buildDefinitionForMethod(
+          method, await builder.buildMethod(method.identifier));
+    }
+  }
+
+  @override
   Future<void> buildDefinitionForVariable(
       VariableDeclaration variable, VariableDefinitionBuilder builder) async {
     var definingClass =
-        variable is FieldDeclaration ? variable.definingClass.name : '';
+        variable is FieldDeclaration ? variable.definingType.name : '';
     builder.augment(
       getter: DeclarationCode.fromParts([
         variable.type.code,
@@ -340,6 +478,20 @@ class SimpleMacro
   }
 
   @override
+  FutureOr<void> buildTypesForEnum(EnumDeclaration enuum, TypeBuilder builder) {
+    final name = 'GeneratedBy${enuum.identifier.name.capitalize()}';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
+  }
+
+  @override
+  FutureOr<void> buildTypesForEnumValue(
+      EnumValueDeclaration value, TypeBuilder builder) {
+    final name = 'GeneratedBy${value.definingEnum.name}_'
+        '${value.identifier.name.capitalize()}';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
+  }
+
+  @override
   FutureOr<void> buildTypesForField(
       FieldDeclaration field, TypeBuilder builder) {
     var name = 'GeneratedBy${field.identifier.name.capitalize()}';
@@ -366,6 +518,16 @@ class SimpleMacro
   }
 
   @override
+  FutureOr<void> buildTypesForMixin(
+      MixinDeclaration mixin, TypeBuilder builder) {
+    final onNames = mixin.superclassConstraints
+        .map((type) => type.identifier.name.capitalize())
+        .join('');
+    final name = 'GeneratedBy${mixin.identifier.name.capitalize()}On$onNames';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
+  }
+
+  @override
   FutureOr<void> buildTypesForVariable(
       VariableDeclaration variable, TypeBuilder builder) {
     var name = 'GeneratedBy${variable.identifier.name.capitalize()}';
@@ -386,7 +548,7 @@ Future<FunctionBodyCode> _buildFunctionAugmentation(
   return FunctionBodyCode.fromParts([
     '{\n',
     if (function is MethodDeclaration)
-      "print('definingClass: ${function.definingClass.name}');\n",
+      "print('definingClass: ${function.definingType.name}');\n",
     if (function is ConstructorDeclaration)
       "print('isFactory: ${function.isFactory}');\n",
     '''

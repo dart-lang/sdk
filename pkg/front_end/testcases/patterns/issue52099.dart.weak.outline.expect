@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef SourceLocation = core::int;
+abstract class FieldRef extends core::Object {
+  synthetic constructor •() → self::FieldRef
+    ;
+  abstract get location() → core::int;
+}
+abstract class FuncRef extends core::Object {
+  synthetic constructor •() → self::FuncRef
+    ;
+  abstract get location() → core::int;
+}
+abstract class ClassRef extends core::Object {
+  synthetic constructor •() → self::ClassRef
+    ;
+  abstract get location() → core::int;
+}
+static method foo(core::Object object) → dynamic
+  ;

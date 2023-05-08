@@ -91,6 +91,19 @@ String stringPrintingProgram(String text) {
 ''';
 }
 
+/// A simple Dart script that just loops forever sleeping for 1 second each
+/// iteration.
+///
+/// A breakpoint marker is included before the loop.
+const infiniteRunningProgram = '''
+  void main(List<String> args) async {
+    print('Looping'); $breakpointMarker
+    while (true) {
+      await Future.delayed(const Duration(seconds: 1));
+    }
+  }
+''';
+
 /// A simple async Dart script that when stopped at the line of '// BREAKPOINT'
 /// will contain multiple stack frames across some async boundaries.
 const simpleAsyncProgram = '''
@@ -125,6 +138,21 @@ const simpleBreakpointProgram = '''
   void main(List<String> args) async {
     print('Hello!'); $breakpointMarker
   }
+''';
+
+/// A Dart script that uses [Isolate.run] to run a short-lived isolate and has
+/// a `debugger()` call after the isolate completes to ensure the app does not
+/// immediately exit.
+const isolateSpawningProgram = '''
+  import 'dart:developer';
+  import 'dart:isolate';
+
+  Future<void> main() async {
+    await Isolate.run(_compute);
+    debugger();
+  }
+
+  Future<void> _compute() async {}
 ''';
 
 /// A simple Dart script that should run with no errors and contains a comment

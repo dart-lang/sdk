@@ -374,7 +374,6 @@
   FIELD(FunctionType, packed_type_parameter_counts_offset)                     \
   FIELD(FunctionType, parameter_types_offset)                                  \
   FIELD(FunctionType, type_parameters_offset)                                  \
-  FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
   FIELD(TypeArguments, hash_offset)                                            \
   FIELD(TypeArguments, instantiations_offset)                                  \
@@ -385,8 +384,6 @@
   FIELD(TypeParameters, flags_offset)                                          \
   FIELD(TypeParameters, bounds_offset)                                         \
   FIELD(TypeParameters, defaults_offset)                                       \
-  FIELD(TypeParameter, bound_offset)                                           \
-  FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, typed_data_offset)                                      \
   FIELD(TypedDataView, offset_in_bytes_offset)                                 \
@@ -478,7 +475,6 @@
   SIZEOF(Type, InstanceSize, UntaggedType)                                     \
   SIZEOF(TypeParameter, InstanceSize, UntaggedTypeParameter)                   \
   SIZEOF(TypeParameters, InstanceSize, UntaggedTypeParameters)                 \
-  SIZEOF(TypeRef, InstanceSize, UntaggedTypeRef)                               \
   SIZEOF(TypedData, HeaderSize, UntaggedTypedData)                             \
   SIZEOF(TypedDataBase, InstanceSize, UntaggedTypedDataBase)                   \
   SIZEOF(TypedDataView, InstanceSize, UntaggedTypedDataView)                   \

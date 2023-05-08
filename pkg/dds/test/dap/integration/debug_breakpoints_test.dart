@@ -261,6 +261,24 @@ void main(List<String> args) async {
       ], eagerError: true);
     });
 
+    test('ignores resume request for an exited isolate', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(isolateSpawningProgram);
+
+      // Run the script and wait for the isolate to exit.
+      final threadExitFuture =
+          client.threadEvents.where((event) => event.reason == 'exited').first;
+      await Future.wait([
+        threadExitFuture,
+        client.initialize(),
+        client.launch(testFile.path),
+      ], eagerError: true);
+      final exitedThreadId = (await threadExitFuture).threadId;
+
+      // Try to resume the already-exited thread. It should not fail.
+      await client.continue_(exitedThreadId);
+    });
+
     test(
         'stops at a line breakpoint and can step over (next) an async boundary',
         () async {
@@ -532,6 +550,41 @@ void main(List<String> args) async {
         client.expectStop('step', file: testFile, line: stepLine),
         client.stepIn(stop.threadId!),
       ], eagerError: true);
+    });
+
+    test('does not fail if two debug clients resume the same thread', () async {
+      final testFile = dap.createTestFile(infiniteRunningProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Start a program and hit a breakpoint.
+      final client1 = dap.client;
+      final stop1 = await client1.hitBreakpoint(testFile, breakpointLine);
+      final vmServiceUri = (await client1.vmServiceUri)!;
+      final thread1 = stop1.threadId!;
+
+      // Attach a second debug adapter to it.
+      final dap2 = await DapTestSession.setUp();
+      final client2 = dap2.client;
+      await Future.wait([
+        // We'll still get event for existing pause.
+        client2.expectStop('breakpoint'),
+        client2.start(
+          launch: () => client2.attach(
+            vmServiceUri: vmServiceUri.toString(),
+            autoResume: false,
+            cwd: dap.testAppDir.path,
+          ),
+        ),
+      ]);
+      final thread2 = (await client2.getValidThreads()).threads.single.id;
+
+      // Send resumes to both and ensure they complete without errors.
+      await Future.wait([
+        client1.continue_(thread1),
+        client2.continue_(thread2),
+      ], eagerError: true);
+
+      await dap2.tearDown();
     });
   }, timeout: Timeout.none);
 

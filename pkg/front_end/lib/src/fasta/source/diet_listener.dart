@@ -42,7 +42,9 @@ import '../fasta_codes.dart'
         templateInternalProblemNotFound;
 import '../identifiers.dart' show QualifiedName;
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
-import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
+import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
+import '../kernel/body_builder.dart'
+    show BodyBuilder, BodyBuilderContext, FormalParameters;
 import '../problems.dart'
     show DebugAbort, internalProblem, unexpected, unhandled;
 import '../scope.dart';
@@ -90,6 +92,8 @@ class DietListener extends StackListenerImpl {
   @override
   Uri uri;
 
+  final Benchmarker? _benchmarker;
+
   DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes,
       this.typeInferenceEngine)
       : libraryBuilder = library,
@@ -98,7 +102,8 @@ class DietListener extends StackListenerImpl {
         enableNative =
             library.loader.target.backendTarget.enableNative(library.importUri),
         stringExpectedAfterNative =
-            library.loader.target.backendTarget.nativeExtensionExpectsString;
+            library.loader.target.backendTarget.nativeExtensionExpectsString,
+        _benchmarker = library.loader.target.benchmarker;
 
   DeclarationBuilder? get currentDeclaration => _currentDeclaration;
 
@@ -217,6 +222,11 @@ class DietListener extends StackListenerImpl {
   @override
   void handleEnumNoWithClause() {
     debugEvent("EnumNoWithClause");
+  }
+
+  @override
+  void handleMixinWithClause(Token withKeyword) {
+    debugEvent("MixinWithClause");
   }
 
   @override
@@ -763,6 +773,8 @@ class DietListener extends StackListenerImpl {
       List<TypeParameter>? thisTypeParameters,
       Scope? formalParameterScope,
       InferenceDataForTesting? inferenceDataForTesting}) {
+    _benchmarker
+        ?.beginSubdivide(BenchmarkSubdivides.diet_listener_createListener);
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.
     // TODO(johnniwinther): Provide a dummy this on static extension methods
@@ -774,7 +786,7 @@ class DietListener extends StackListenerImpl {
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.required
         : ConstantContext.none;
-    return createListenerInternal(
+    BodyBuilder result = createListenerInternal(
         builder,
         memberScope,
         formalParameterScope,
@@ -783,6 +795,8 @@ class DietListener extends StackListenerImpl {
         thisTypeParameters,
         typeInferrer,
         constantContext);
+    _benchmarker?.endSubdivide();
+    return result;
   }
 
   BodyBuilder createListenerInternal(
@@ -796,13 +810,14 @@ class DietListener extends StackListenerImpl {
       ConstantContext constantContext) {
     return new BodyBuilder(
         libraryBuilder: libraryBuilder,
+        context: new BodyBuilderContext(
+            libraryBuilder, currentDeclaration, builder,
+            isDeclarationInstanceMember: isDeclarationInstanceMember),
         member: builder,
         enclosingScope: memberScope,
         formalParameterScope: formalParameterScope,
         hierarchy: hierarchy,
         coreTypes: coreTypes,
-        declarationBuilder: currentDeclaration,
-        isDeclarationInstanceMember: isDeclarationInstanceMember,
         thisVariable: thisVariable,
         thisTypeParameters: thisTypeParameters,
         uri: uri,
@@ -829,6 +844,8 @@ class DietListener extends StackListenerImpl {
 
   void buildRedirectingFactoryMethod(Token token,
       SourceFunctionBuilderImpl builder, MemberKind kind, Token? metadata) {
+    _benchmarker?.beginSubdivide(
+        BenchmarkSubdivides.diet_listener_buildRedirectingFactoryMethod);
     final BodyBuilder listener = createFunctionListener(builder);
     try {
       Parser parser = new Parser(listener,
@@ -849,9 +866,11 @@ class DietListener extends StackListenerImpl {
     } catch (e, s) {
       throw new Crash(uri, token.charOffset, e, s);
     }
+    _benchmarker?.endSubdivide();
   }
 
   void buildFields(int count, Token token, bool isTopLevel) {
+    _benchmarker?.beginSubdivide(BenchmarkSubdivides.diet_listener_buildFields);
     List<String?>? names = const FixedNullableList<String>().pop(stack, count);
     Token? metadata = pop() as Token?;
     checkEmpty(token.charOffset);
@@ -870,6 +889,7 @@ class DietListener extends StackListenerImpl {
         metadata,
         isTopLevel);
     checkEmpty(token.charOffset);
+    _benchmarker?.endSubdivide();
   }
 
   @override
@@ -1087,6 +1107,8 @@ class DietListener extends StackListenerImpl {
 
   void buildFunctionBody(BodyBuilder bodyBuilder, Token startToken,
       Token? metadata, MemberKind kind) {
+    _benchmarker
+        ?.beginSubdivide(BenchmarkSubdivides.diet_listener_buildFunctionBody);
     Token token = startToken;
     try {
       Parser parser = new Parser(bodyBuilder,
@@ -1111,10 +1133,15 @@ class DietListener extends StackListenerImpl {
       }
       bool isExpression = false;
       bool allowAbstract = asyncModifier == AsyncMarker.Sync;
+
+      _benchmarker?.beginSubdivide(BenchmarkSubdivides
+          .diet_listener_buildFunctionBody_parseFunctionBody);
       parser.parseFunctionBody(token, isExpression, allowAbstract);
       Statement? body = bodyBuilder.pop() as Statement?;
+      _benchmarker?.endSubdivide();
       bodyBuilder.checkEmpty(token.charOffset);
       bodyBuilder.finishFunction(formals, asyncModifier, body);
+      _benchmarker?.endSubdivide();
     } on DebugAbort {
       rethrow;
     } catch (e, s) {

@@ -25,6 +25,7 @@ abstract class InferenceHelper {
       Expression expression, Message message, int fileOffset, int length,
       {List<LocatedMessage>? context});
 
-  String constructorNameForDiagnostics(String name,
-      {String? className, bool isSuper = false});
+  String superConstructorNameForDiagnostics(String name);
+
+  String constructorNameForDiagnostics(String name, {String? className});
 }

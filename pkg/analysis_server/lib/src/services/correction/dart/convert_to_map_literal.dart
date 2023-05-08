@@ -58,8 +58,8 @@ class ConvertToMapLiteral extends CorrectionProducer {
           creation.thisOrAncestorOfType<VariableDeclarationList>();
       if (variableDeclarationList?.type == null) {
         staticTypeArguments = type.typeArguments;
-        if (staticTypeArguments.first.isDynamic &&
-            staticTypeArguments.last.isDynamic) {
+        if (staticTypeArguments.first is DynamicType &&
+            staticTypeArguments.last is DynamicType) {
           staticTypeArguments = null;
         }
       }

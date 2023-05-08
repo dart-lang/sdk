@@ -141,6 +141,16 @@ class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     "Convert to a 'for' element",
   );
+  static const CONVERT_TO_IF_CASE_STATEMENT = AssistKind(
+    'dart.assist.convert.ifCaseStatement',
+    DartAssistKindPriority.DEFAULT,
+    "Convert to 'if-case' statement",
+  );
+  static const CONVERT_TO_IF_CASE_STATEMENT_CHAIN = AssistKind(
+    'dart.assist.convert.ifCaseStatementChain',
+    DartAssistKindPriority.DEFAULT,
+    "Convert to 'if-case' statement chain",
+  );
   static const CONVERT_TO_IF_ELEMENT = AssistKind(
     'dart.assist.convert.toIfElement',
     DartAssistKindPriority.DEFAULT,
@@ -205,6 +215,16 @@ class DartAssistKind {
     'dart.assist.convert.switchExpression',
     DartAssistKindPriority.DEFAULT,
     'Convert to switch expression',
+  );
+  static const DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT = AssistKind(
+    'dart.assist.destructureLocalVariableAssignment',
+    DartAssistKindPriority.DEFAULT,
+    'Destructure variable assignment',
+  );
+  static const CONVERT_TO_SWITCH_STATEMENT = AssistKind(
+    'dart.assist.convert.switchStatement',
+    DartAssistKindPriority.DEFAULT,
+    'Convert to switch statement',
   );
   static const ENCAPSULATE_FIELD = AssistKind(
     'dart.assist.encapsulateField',
@@ -311,11 +331,6 @@ class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     "Inline invocation of '{0}'",
   );
-  static const INTRODUCE_LOCAL_CAST_TYPE = AssistKind(
-    'dart.assist.introduceLocalCast',
-    DartAssistKindPriority.DEFAULT,
-    'Introduce new local with tested type',
-  );
   static const INVERT_IF_STATEMENT = AssistKind(
     'dart.assist.invertIf',
     DartAssistKindPriority.DEFAULT,
@@ -421,6 +436,11 @@ class DartAssistKind {
     'dart.assist.surround.while',
     DartAssistKindPriority.SURROUND_WITH_WHILE,
     "Surround with 'while'",
+  );
+  static const UNWRAP_IF_BODY = AssistKind(
+    'dart.assist.unwrap.if',
+    DartAssistKindPriority.DEFAULT,
+    "Unwrap 'if' body",
   );
   static const USE_CURLY_BRACES = AssistKind(
     'dart.assist.surround.curlyBraces',

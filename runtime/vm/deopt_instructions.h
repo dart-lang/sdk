@@ -49,7 +49,7 @@ class DeoptContext : public MallocAllocated {
   intptr_t DestStackAdjustment() const;
 
   intptr_t* GetSourceFrameAddressAt(intptr_t index) const {
-    ASSERT(source_frame_ != NULL);
+    ASSERT(source_frame_ != nullptr);
     ASSERT((0 <= index) && (index < source_frame_size_));
     // Convert FP relative index to SP relative one.
     index = source_frame_size_ - 1 - index;
@@ -78,13 +78,13 @@ class DeoptContext : public MallocAllocated {
   intptr_t RegisterValue(Register reg) const {
     ASSERT(reg >= 0);
     ASSERT(reg < kNumberOfCpuRegisters);
-    ASSERT(cpu_registers_ != NULL);
+    ASSERT(cpu_registers_ != nullptr);
     return cpu_registers_[reg];
   }
 
   double FpuRegisterValue(FpuRegister reg) const {
     ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
-    ASSERT(fpu_registers_ != NULL);
+    ASSERT(fpu_registers_ != nullptr);
     ASSERT(reg >= 0);
     ASSERT(reg < kNumberOfFpuRegisters);
     return *reinterpret_cast<double*>(&fpu_registers_[reg]);
@@ -92,7 +92,7 @@ class DeoptContext : public MallocAllocated {
 
   simd128_value_t FpuRegisterValueAsSimd128(FpuRegister reg) const {
     ASSERT(FlowGraphCompiler::SupportsUnboxedSimd128());
-    ASSERT(fpu_registers_ != NULL);
+    ASSERT(fpu_registers_ != nullptr);
     ASSERT(reg >= 0);
     ASSERT(reg < kNumberOfFpuRegisters);
     const float* address = reinterpret_cast<float*>(&fpu_registers_[reg]);
@@ -114,7 +114,7 @@ class DeoptContext : public MallocAllocated {
   }
 
   void set_dest_frame(const StackFrame* frame) {
-    ASSERT(frame != NULL && dest_frame_ == NULL);
+    ASSERT(frame != nullptr && dest_frame_ == nullptr);
     dest_frame_ = FrameBase(frame);
   }
 
@@ -208,7 +208,7 @@ class DeoptContext : public MallocAllocated {
 
  private:
   intptr_t* GetDestFrameAddressAt(intptr_t index) const {
-    ASSERT(dest_frame_ != NULL);
+    ASSERT(dest_frame_ != nullptr);
     ASSERT((0 <= index) && (index < dest_frame_size_));
     return &dest_frame_[index];
   }
@@ -295,7 +295,7 @@ class DeoptInstr : public ZoneAllocated {
 
   virtual const char* ToCString() const {
     const char* args = ArgumentsToCString();
-    if (args != NULL) {
+    if (args != nullptr) {
       return Thread::Current()->zone()->PrintToString(
           "%s(%s)", KindToCString(kind()), args);
     } else {
@@ -335,7 +335,7 @@ class DeoptInstr : public ZoneAllocated {
 
   virtual intptr_t source_index() const = 0;
 
-  virtual const char* ArgumentsToCString() const { return NULL; }
+  virtual const char* ArgumentsToCString() const { return nullptr; }
 
  private:
   static const char* KindToCString(Kind kind);
@@ -571,7 +571,7 @@ class DeoptTable : public AllStatic {
   class FlagsField : public BitField<intptr_t, uint32_t, 8, 8> {};
 
  private:
-  static const intptr_t kEntrySize = 3;
+  static constexpr intptr_t kEntrySize = 3;
 };
 
 // Holds deopt information at one deoptimization point. The information consists

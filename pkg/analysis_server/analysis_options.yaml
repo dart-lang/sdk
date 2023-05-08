@@ -26,17 +26,17 @@ analyzer:
     non_constant_identifier_names: ignore
     overridden_fields: ignore
     prefer_void_to_null: ignore
+    todo: ignore
 
 linter:
   rules:
     - collection_methods_unrelated_type
-    # Enable when we require Dart 2.19.0.
-    #- dangling_library_doc_comments
+    - dangling_library_doc_comments
     - depend_on_referenced_packages
-    - enable_null_safety
     - implicit_call_tearoffs
     - library_annotations
     - unawaited_futures
+    - unnecessary_breaks
     - unnecessary_library_directive
     - unnecessary_parenthesis
     - unreachable_from_main

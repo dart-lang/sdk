@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/computer/computer_color.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -148,7 +147,7 @@ class ColorComputerTest extends AbstractContextTest {
           '$dartCode',
     );
 
-    expectedColorValues.entries.forEachIndexed((i, expectedColor) {
+    for (final (i, expectedColor) in expectedColorValues.entries.indexed) {
       final color = colors[i];
       final expectedColorCode = expectedColor.key;
       final expectedColorValue = expectedColor.value;
@@ -175,7 +174,7 @@ class ColorComputerTest extends AbstractContextTest {
       expectComponent(color.color.red, expectedRed, 'Red');
       expectComponent(color.color.green, expectedGreen, 'Green');
       expectComponent(color.color.blue, expectedBlue, 'Blue');
-    });
+    }
   }
 
   void expectNoErrors(ResolvedUnitResult result) {

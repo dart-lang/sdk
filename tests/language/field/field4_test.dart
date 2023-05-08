@@ -9,7 +9,10 @@ class A {
     return 1;
   }
 
-  var a;/*@compile-error=unspecified*/
+  var a;
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'a' is already declared in this scope.
 }
 
 class Field4Test {

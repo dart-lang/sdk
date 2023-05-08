@@ -32,9 +32,9 @@ class ApiZone {
   // Create an empty zone.
   ApiZone() : zone_() {
     Thread* thread = Thread::Current();
-    Zone* zone = thread != NULL ? thread->zone() : NULL;
+    Zone* zone = thread != nullptr ? thread->zone() : nullptr;
     zone_.Link(zone);
-    if (thread != NULL) {
+    if (thread != nullptr) {
       thread->set_zone(&zone_);
     }
     if (FLAG_trace_zones) {
@@ -48,12 +48,12 @@ class ApiZone {
   ~ApiZone() {
     Thread* thread = Thread::Current();
 #if defined(DEBUG)
-    if (thread == NULL) {
+    if (thread == nullptr) {
       ASSERT(zone_.handles()->CountScopedHandles() == 0);
       ASSERT(zone_.handles()->CountZoneHandles() == 0);
     }
 #endif
-    if ((thread != NULL) && (thread->zone() == &zone_)) {
+    if ((thread != nullptr) && (thread->zone() == &zone_)) {
       thread->set_zone(zone_.previous_);
     }
     if (FLAG_trace_zones) {
@@ -96,8 +96,8 @@ class ApiZone {
   Zone* GetZone() { return &zone_; }
 
   void Reinit(Thread* thread) {
-    if (thread == NULL) {
-      zone_.Link(NULL);
+    if (thread == nullptr) {
+      zone_.Link(nullptr);
     } else {
       zone_.Link(thread->zone());
       thread->set_zone(&zone_);
@@ -105,7 +105,7 @@ class ApiZone {
   }
 
   void Reset(Thread* thread) {
-    if ((thread != NULL) && (thread->zone() == &zone_)) {
+    if ((thread != nullptr) && (thread->zone() == &zone_)) {
       thread->set_zone(zone_.previous_);
     }
     zone_.Reset();
@@ -291,7 +291,7 @@ class FinalizablePersistentHandle {
   friend class FinalizablePersistentHandles;
 
   FinalizablePersistentHandle()
-      : ptr_(nullptr), peer_(NULL), external_data_(0), callback_(NULL) {}
+      : ptr_(nullptr), peer_(nullptr), external_data_(0), callback_(nullptr) {}
   ~FinalizablePersistentHandle() {}
 
   static void Finalize(IsolateGroup* isolate_group,
@@ -372,9 +372,9 @@ class FinalizablePersistentHandle {
 };
 
 // Local handles repository structure.
-static const int kLocalHandleSizeInWords = sizeof(LocalHandle) / kWordSize;
-static const int kLocalHandlesPerChunk = 64;
-static const int kOffsetOfRawPtrInLocalHandle = 0;
+static constexpr int kLocalHandleSizeInWords = sizeof(LocalHandle) / kWordSize;
+static constexpr int kLocalHandlesPerChunk = 64;
+static constexpr int kOffsetOfRawPtrInLocalHandle = 0;
 class LocalHandles : Handles<kLocalHandleSizeInWords,
                              kLocalHandlesPerChunk,
                              kOffsetOfRawPtrInLocalHandle> {
@@ -431,10 +431,10 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
 };
 
 // Persistent handles repository structure.
-static const int kPersistentHandleSizeInWords =
+static constexpr int kPersistentHandleSizeInWords =
     sizeof(PersistentHandle) / kWordSize;
-static const int kPersistentHandlesPerChunk = 64;
-static const int kOffsetOfRawPtrInPersistentHandle = 0;
+static constexpr int kPersistentHandlesPerChunk = 64;
+static constexpr int kOffsetOfRawPtrInPersistentHandle = 0;
 class PersistentHandles : Handles<kPersistentHandleSizeInWords,
                                   kPersistentHandlesPerChunk,
                                   kOffsetOfRawPtrInPersistentHandle> {
@@ -443,14 +443,14 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
       : Handles<kPersistentHandleSizeInWords,
                 kPersistentHandlesPerChunk,
                 kOffsetOfRawPtrInPersistentHandle>(),
-        free_list_(NULL) {
+        free_list_(nullptr) {
     if (FLAG_trace_handles) {
       OS::PrintErr("*** Starting a new Persistent handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
   }
   ~PersistentHandles() {
-    free_list_ = NULL;
+    free_list_ = nullptr;
     if (FLAG_trace_handles) {
       OS::PrintErr("***   Handle Counts for 0x(%" Px "):Scoped = %d\n",
                    reinterpret_cast<intptr_t>(this), CountHandles());
@@ -481,7 +481,7 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
   // by calling FreeHandle.
   PersistentHandle* AllocateHandle() {
     PersistentHandle* handle;
-    if (free_list_ != NULL) {
+    if (free_list_ != nullptr) {
       handle = free_list_;
       free_list_ = handle->Next();
     } else {
@@ -503,7 +503,7 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
 
   bool IsFreeHandle(Dart_PersistentHandle object) const {
     PersistentHandle* handle = free_list_;
-    while (handle != NULL) {
+    while (handle != nullptr) {
       if (handle == reinterpret_cast<PersistentHandle*>(object)) {
         return true;
       }
@@ -521,10 +521,10 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
 };
 
 // Finalizable persistent handles repository structure.
-static const int kFinalizablePersistentHandleSizeInWords =
+static constexpr int kFinalizablePersistentHandleSizeInWords =
     sizeof(FinalizablePersistentHandle) / kWordSize;
-static const int kFinalizablePersistentHandlesPerChunk = 64;
-static const int kOffsetOfRawPtrInFinalizablePersistentHandle = 0;
+static constexpr int kFinalizablePersistentHandlesPerChunk = 64;
+static constexpr int kOffsetOfRawPtrInFinalizablePersistentHandle = 0;
 class FinalizablePersistentHandles
     : Handles<kFinalizablePersistentHandleSizeInWords,
               kFinalizablePersistentHandlesPerChunk,
@@ -534,8 +534,8 @@ class FinalizablePersistentHandles
       : Handles<kFinalizablePersistentHandleSizeInWords,
                 kFinalizablePersistentHandlesPerChunk,
                 kOffsetOfRawPtrInFinalizablePersistentHandle>(),
-        free_list_(NULL) {}
-  ~FinalizablePersistentHandles() { free_list_ = NULL; }
+        free_list_(nullptr) {}
+  ~FinalizablePersistentHandles() { free_list_ = nullptr; }
 
   // Accessors.
   FinalizablePersistentHandle* free_list() const { return free_list_; }
@@ -562,7 +562,7 @@ class FinalizablePersistentHandles
   // by calling FreeHandle.
   FinalizablePersistentHandle* AllocateHandle() {
     FinalizablePersistentHandle* handle;
-    if (free_list_ != NULL) {
+    if (free_list_ != nullptr) {
       handle = free_list_;
       free_list_ = handle->Next();
       handle->set_ptr(Object::null());
@@ -596,7 +596,7 @@ class FinalizablePersistentHandles
 
   bool IsFreeHandle(Dart_WeakPersistentHandle object) const {
     FinalizablePersistentHandle* handle = free_list_;
-    while (handle != NULL) {
+    while (handle != nullptr) {
       if (handle == reinterpret_cast<FinalizablePersistentHandle*>(object)) {
         return true;
       }
@@ -619,7 +619,7 @@ class ApiLocalScope {
  public:
   ApiLocalScope(ApiLocalScope* previous, uword stack_marker)
       : previous_(previous), stack_marker_(stack_marker) {}
-  ~ApiLocalScope() { previous_ = NULL; }
+  ~ApiLocalScope() { previous_ = nullptr; }
 
   // Reinit the ApiLocalScope to new values.
   void Reinit(Thread* thread, ApiLocalScope* previous, uword stack_marker) {
@@ -632,7 +632,7 @@ class ApiLocalScope {
   void Reset(Thread* thread) {
     local_handles_.Reset();
     zone_.Reset(thread);
-    previous_ = NULL;
+    previous_ = nullptr;
     stack_marker_ = 0;
   }
 
@@ -656,7 +656,7 @@ class ApiNativeScope {
  public:
   ApiNativeScope() {
     // Currently no support for nesting native scopes.
-    ASSERT(Current() == NULL);
+    ASSERT(Current() == nullptr);
     OSThread::SetThreadLocal(Api::api_native_key_,
                              reinterpret_cast<uword>(this));
   }

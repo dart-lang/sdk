@@ -26,7 +26,7 @@ void FUNCTION_NAME(Platform_OperatingSystem)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Platform_OperatingSystemVersion)(Dart_NativeArguments args) {
   const char* version = Platform::OperatingSystemVersion();
-  if (version == NULL) {
+  if (version == nullptr) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   } else {
     Dart_Handle str = DartUtils::NewString(version);
@@ -54,7 +54,7 @@ void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
-  if (Platform::GetExecutableName() != NULL) {
+  if (Platform::GetExecutableName() != nullptr) {
     Dart_SetReturnValue(
         args, Dart_NewStringFromCString(Platform::GetExecutableName()));
   } else {
@@ -63,7 +63,7 @@ void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(Platform_ResolvedExecutableName)(Dart_NativeArguments args) {
-  if (Platform::GetResolvedExecutableName() != NULL) {
+  if (Platform::GetResolvedExecutableName() != nullptr) {
     Dart_SetReturnValue(
         args, Dart_NewStringFromCString(Platform::GetResolvedExecutableName()));
   } else {
@@ -89,7 +89,7 @@ void FUNCTION_NAME(Platform_ExecutableArguments)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   intptr_t count = 0;
   char** env = Platform::Environment(&count);
-  if (env == NULL) {
+  if (env == nullptr) {
     OSError error(-1, "Failed to retrieve environment variables.",
                   OSError::kUnknown);
     Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
@@ -118,7 +118,7 @@ void FUNCTION_NAME(Platform_GetVersion)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Platform_LocaleName)(Dart_NativeArguments args) {
   const char* locale = Platform::LocaleName();
-  if (locale == NULL) {
+  if (locale == nullptr) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   } else {
     Dart_SetReturnValue(args, Dart_NewStringFromCString(locale));

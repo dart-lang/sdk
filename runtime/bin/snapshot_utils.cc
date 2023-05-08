@@ -26,8 +26,8 @@
 namespace dart {
 namespace bin {
 
-static const int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
-static const int64_t kAppSnapshotPageSize = 16 * KB;
+static constexpr int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
+static constexpr int64_t kAppSnapshotPageSize = 16 * KB;
 
 static const char kMachOAppSnapshotNoteName[] DART_UNUSED = "__dart_app_snap";
 
@@ -53,19 +53,19 @@ class MappedAppSnapshot : public AppSnapshot {
                   const uint8_t** vm_instructions_buffer,
                   const uint8_t** isolate_data_buffer,
                   const uint8_t** isolate_instructions_buffer) {
-    if (vm_data_mapping_ != NULL) {
+    if (vm_data_mapping_ != nullptr) {
       *vm_data_buffer =
           reinterpret_cast<const uint8_t*>(vm_data_mapping_->address());
     }
-    if (vm_instructions_mapping_ != NULL) {
+    if (vm_instructions_mapping_ != nullptr) {
       *vm_instructions_buffer =
           reinterpret_cast<const uint8_t*>(vm_instructions_mapping_->address());
     }
-    if (isolate_data_mapping_ != NULL) {
+    if (isolate_data_mapping_ != nullptr) {
       *isolate_data_buffer =
           reinterpret_cast<const uint8_t*>(isolate_data_mapping_->address());
     }
-    if (isolate_instructions_mapping_ != NULL) {
+    if (isolate_instructions_mapping_ != nullptr) {
       *isolate_instructions_buffer = reinterpret_cast<const uint8_t*>(
           isolate_instructions_mapping_->address());
     }
@@ -157,7 +157,7 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
 }
 
 static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
-  File* file = File::Open(NULL, script_name, File::kRead);
+  File* file = File::Open(nullptr, script_name, File::kRead);
   if (file == nullptr) {
     return nullptr;
   }
@@ -250,7 +250,7 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromMachO(
     return nullptr;
   }
 
-  File* file = File::Open(NULL, container_path, File::kRead);
+  File* file = File::Open(nullptr, container_path, File::kRead);
   if (file == nullptr) {
     return nullptr;
   }
@@ -313,7 +313,7 @@ static_assert(sizeof(kSnapshotSectionName) - 1 <= pe::kCoffSectionNameSize,
 
 AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromPE(
     const char* container_path) {
-  File* const file = File::Open(NULL, container_path, File::kRead);
+  File* const file = File::Open(nullptr, container_path, File::kRead);
   if (file == nullptr) {
     return nullptr;
   }
@@ -399,7 +399,7 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElf(
   }
 #endif
 
-  File* file = File::Open(NULL, container_path, File::kRead);
+  File* file = File::Open(nullptr, container_path, File::kRead);
   if (file == nullptr) {
     return nullptr;
   }
@@ -495,7 +495,7 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
 
 #if defined(DART_TARGET_OS_MACOS)
 bool Snapshot::IsMachOFormattedBinary(const char* filename) {
-  File* file = File::Open(NULL, filename, File::kRead);
+  File* file = File::Open(nullptr, filename, File::kRead);
   if (file == nullptr) {
     return false;
   }
@@ -529,7 +529,7 @@ bool Snapshot::IsMachOFormattedBinary(const char* filename) {
 
 #if defined(DART_TARGET_OS_WINDOWS)
 bool Snapshot::IsPEFormattedBinary(const char* filename) {
-  File* file = File::Open(NULL, filename, File::kRead);
+  File* file = File::Open(nullptr, filename, File::kRead);
   if (file == nullptr) {
     return false;
   }
@@ -634,8 +634,8 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
 static void WriteSnapshotFile(const char* filename,
                               const uint8_t* buffer,
                               const intptr_t size) {
-  File* file = File::Open(NULL, filename, File::kWriteTruncate);
-  if (file == NULL) {
+  File* file = File::Open(nullptr, filename, File::kWriteTruncate);
+  if (file == nullptr) {
     ErrorExit(kErrorExitCode, "Unable to open file %s for writing snapshot\n",
               filename);
   }
@@ -661,8 +661,8 @@ void Snapshot::WriteAppSnapshot(const char* filename,
                                 intptr_t isolate_data_size,
                                 uint8_t* isolate_instructions_buffer,
                                 intptr_t isolate_instructions_size) {
-  File* file = File::Open(NULL, filename, File::kWriteTruncate);
-  if (file == NULL) {
+  File* file = File::Open(nullptr, filename, File::kWriteTruncate);
+  if (file == nullptr) {
     ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n", filename);
   }
 
@@ -722,10 +722,10 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
   ASSERT(Dart_CurrentIsolate() == nullptr);
 
-  uint8_t* kernel_buffer = NULL;
+  uint8_t* kernel_buffer = nullptr;
   intptr_t kernel_buffer_size = 0;
   dfe.ReadScript(script_name, &kernel_buffer, &kernel_buffer_size);
-  if (kernel_buffer != NULL) {
+  if (kernel_buffer != nullptr) {
     WriteSnapshotFile(snapshot_filename, kernel_buffer, kernel_buffer_size);
     free(kernel_buffer);
   } else {
@@ -746,21 +746,21 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
 void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
 #if defined(TARGET_ARCH_IA32)
   // Snapshots with code are not supported on IA32.
-  uint8_t* isolate_buffer = NULL;
+  uint8_t* isolate_buffer = nullptr;
   intptr_t isolate_size = 0;
 
-  Dart_Handle result = Dart_CreateSnapshot(NULL, NULL, &isolate_buffer,
+  Dart_Handle result = Dart_CreateSnapshot(nullptr, nullptr, &isolate_buffer,
                                            &isolate_size, /*is_core=*/false);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
 
-  WriteAppSnapshot(snapshot_filename, NULL, 0, NULL, 0, isolate_buffer,
-                   isolate_size, NULL, 0);
+  WriteAppSnapshot(snapshot_filename, nullptr, 0, nullptr, 0, isolate_buffer,
+                   isolate_size, nullptr, 0);
 #else
-  uint8_t* isolate_data_buffer = NULL;
+  uint8_t* isolate_data_buffer = nullptr;
   intptr_t isolate_data_size = 0;
-  uint8_t* isolate_instructions_buffer = NULL;
+  uint8_t* isolate_instructions_buffer = nullptr;
   intptr_t isolate_instructions_size = 0;
   Dart_Handle result = Dart_CreateAppJITSnapshotAsBlobs(
       &isolate_data_buffer, &isolate_data_size, &isolate_instructions_buffer,
@@ -768,9 +768,9 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
-  WriteAppSnapshot(snapshot_filename, NULL, 0, NULL, 0, isolate_data_buffer,
-                   isolate_data_size, isolate_instructions_buffer,
-                   isolate_instructions_size);
+  WriteAppSnapshot(snapshot_filename, nullptr, 0, nullptr, 0,
+                   isolate_data_buffer, isolate_data_size,
+                   isolate_instructions_buffer, isolate_instructions_size);
 #endif
 }
 
@@ -784,9 +784,9 @@ static void StreamingWriteCallback(void* callback_data,
 }
 
 void Snapshot::GenerateAppAOTAsAssembly(const char* snapshot_filename) {
-  File* file = File::Open(NULL, snapshot_filename, File::kWriteTruncate);
+  File* file = File::Open(nullptr, snapshot_filename, File::kWriteTruncate);
   RefCntReleaseScope<File> rs(file);
-  if (file == NULL) {
+  if (file == nullptr) {
     ErrorExit(kErrorExitCode, "Unable to open file %s for writing snapshot\n",
               snapshot_filename);
   }
@@ -802,7 +802,7 @@ bool Snapshot::IsAOTSnapshot(const char* snapshot_filename) {
   // Header is simply "ELF" prefixed with the DEL character.
   const char elf_header[] = {0x7F, 0x45, 0x4C, 0x46, 0x0};
   const int64_t elf_header_len = strlen(elf_header);
-  File* file = File::Open(NULL, snapshot_filename, File::kRead);
+  File* file = File::Open(nullptr, snapshot_filename, File::kRead);
   if (file == nullptr) {
     return false;
   }

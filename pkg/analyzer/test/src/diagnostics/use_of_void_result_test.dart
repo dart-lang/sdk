@@ -16,8 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class UseOfVoidResultTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+class UseOfVoidResultTest extends PubPackageResolutionTest {
   test_andVoidLhsError() async {
     await assertErrorsInCode('''
 void main() {
@@ -94,11 +93,13 @@ void main() {
   }
 
   test_await() async {
-    await assertNoErrorsInCode('''
-main(void x) async {
+    await assertErrorsInCode('''
+void f(void x) async {
   await x;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 31, 1),
+    ]);
   }
 
   test_extensionApplication() async {
@@ -212,14 +213,24 @@ void main() {
     ]);
   }
 
+  test_switchStatement_expression() async {
+    await assertErrorsInCode('''
+void f(void x) {
+  switch(x) {}
+}
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
+    ]);
+  }
+
   test_throwVoidValueError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   throw x;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 32, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 25, 1),
+      error(CompileTimeErrorCode.THROW_OF_INVALID_TYPE, 25, 1),
     ]);
   }
 
@@ -229,22 +240,21 @@ void test(void f()) {
   -f();
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          24, 1),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 25, 3),
     ]);
   }
 
   test_unaryNegativeVoidValueError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   -x;
 }
 ''', [
-      // TODO(mfairhurst) suppress UNDEFINED_OPERATOR
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 1),
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          19, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 20, 1),
     ]);
   }
 
@@ -306,11 +316,11 @@ void main() {
 
   test_useOfVoidCastsOk() async {
     await assertNoErrorsInCode('''
-void use(dynamic x) { }
-void main() {
-  void x;
+void f(void x) {
   use(x as int);
 }
+
+void use(Object? x) {}
 ''');
   }
 
@@ -373,26 +383,28 @@ void main() {
 
   test_useOfVoidInForeachIterableError() async {
     await assertErrorsInCode(r'''
-void main() {
-  void x;
+void f(void x) {
   var y;
   for (y in x) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 45, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+          38, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 38, 1),
     ]);
   }
 
   test_useOfVoidInForeachIterableError_declaredVariable() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   for (var v in x) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 40, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+          33, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 33, 1),
     ]);
   }
 
@@ -410,9 +422,8 @@ void main() {
 
   test_useOfVoidInForPartsOk() async {
     await assertNoErrorsInCode('''
-void main() {
-  void x;
-  for (x; false; x) {}
+void f(void x) {
+  for (x; true; x) {}
 }
 ''');
   }
@@ -526,17 +537,6 @@ void main() {
     ]);
   }
 
-  test_useOfVoidInSwitchExpressionError() async {
-    await assertErrorsInCode('''
-void main() {
-  void x;
-  switch(x) {}
-}
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 33, 1),
-    ]);
-  }
-
   test_useOfVoidInWhileConditionError() async {
     await assertErrorsInCode('''
 void main() {
@@ -579,7 +579,7 @@ extension on void {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 22, 8),
+      error(WarningCode.UNUSED_ELEMENT, 22, 8),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 96, 4),
     ]);
   }
@@ -698,21 +698,27 @@ class A {
 
   test_yieldStarVoid_asyncStar() async {
     await assertErrorsInCode('''
-main(void x) async* {
+Object? f(void x) async* {
   yield* x;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 31, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
+          36, 1),
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 36, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 36, 1),
     ]);
   }
 
   test_yieldStarVoid_syncStar() async {
     await assertErrorsInCode('''
-main(void x) sync* {
+Object? f(void x) sync* {
   yield* x;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 30, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
+          35, 1),
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 35, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 35, 1),
     ]);
   }
 

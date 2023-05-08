@@ -30,7 +30,6 @@
 #include "vm/stack_frame.h"
 #include "vm/tagged_pointer.h"
 #include "vm/thread_barrier.h"
-#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/visitor.h"
 
@@ -149,9 +148,9 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   constexpr static const char* const kName = "Scavenger";
 #endif
 
-  virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
-                                          CompressedObjectPtr* first,
-                                          CompressedObjectPtr* last) {
+  void VisitTypedDataViewPointers(TypedDataViewPtr view,
+                                  CompressedObjectPtr* first,
+                                  CompressedObjectPtr* last) override {
     // TypedDataViews require extra processing to update their
     // PointerBase::data_ pointer. If the underlying typed data is external, no
     // update is needed. If the underlying typed data is internal, the pointer
@@ -218,7 +217,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     view->untag()->RecomputeDataFieldForInternalTypedData();
   }
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
     for (ObjectPtr* current = first; current <= last; current++) {
@@ -226,15 +225,17 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
     for (CompressedObjectPtr* current = first; current <= last; current++) {
       ScavengeCompressedPointer(heap_base, current);
     }
   }
+#endif
 
   void VisitingOldObject(ObjectPtr obj) {
     ASSERT((obj == nullptr) || obj->IsOldObject());
@@ -584,7 +585,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
  public:
   explicit ScavengerWeakVisitor(Thread* thread) : HandleVisitor(thread) {}
 
-  void VisitHandle(uword addr) {
+  void VisitHandle(uword addr) override {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     ObjectPtr* p = handle->ptr_addr();
@@ -694,7 +695,7 @@ SemiSpace::~SemiSpace() {
   Page* page = head_;
   while (page != nullptr) {
     Page* next = page->next();
-    page->Deallocate(/*can_use_cache*/ true);
+    page->Deallocate();
     page = next;
   }
 }
@@ -703,7 +704,7 @@ Page* SemiSpace::TryAllocatePageLocked(bool link) {
   if (capacity_in_words_ >= max_capacity_in_words_) {
     return nullptr;  // Full.
   }
-  Page* page = Page::Allocate(kPageSize, Page::kNew, /*can_use_cache*/ true);
+  Page* page = Page::Allocate(kPageSize, Page::kNew);
   if (page == nullptr) {
     return nullptr;  // Out of memory;
   }
@@ -749,7 +750,7 @@ void SemiSpace::AddList(Page* head, Page* tail) {
 // before / scavenge time). This is a conservative value observed running
 // Flutter on a Nexus 4. After the first scavenge, we instead use a value based
 // on the device's actual speed.
-static const intptr_t kConservativeInitialScavengeSpeed = 40;
+static constexpr intptr_t kConservativeInitialScavengeSpeed = 40;
 
 Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
     : heap_(heap),
@@ -816,120 +817,133 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
 
 class CollectStoreBufferVisitor : public ObjectPointerVisitor {
  public:
-  explicit CollectStoreBufferVisitor(ObjectSet* in_store_buffer)
+  CollectStoreBufferVisitor(ObjectSet* in_store_buffer, const char* msg)
       : ObjectPointerVisitor(IsolateGroup::Current()),
-        in_store_buffer_(in_store_buffer) {}
+        in_store_buffer_(in_store_buffer),
+        msg_(msg) {}
 
-  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = *ptr;
-      RELEASE_ASSERT(raw_obj->untag()->IsRemembered());
-      RELEASE_ASSERT(raw_obj->IsOldObject());
+      RELEASE_ASSERT_WITH_MSG(raw_obj->untag()->IsRemembered(), msg_);
+      RELEASE_ASSERT_WITH_MSG(raw_obj->IsOldObject(), msg_);
 
-      RELEASE_ASSERT(!raw_obj->untag()->IsCardRemembered());
+      RELEASE_ASSERT_WITH_MSG(!raw_obj->untag()->IsCardRemembered(), msg_);
       if (raw_obj.GetClassId() == kArrayCid) {
         const uword length =
             Smi::Value(static_cast<UntaggedArray*>(raw_obj.untag())->length());
-        RELEASE_ASSERT(!Array::UseCardMarkingForAllocation(length));
+        RELEASE_ASSERT_WITH_MSG(!Array::UseCardMarkingForAllocation(length),
+                                msg_);
       }
       in_store_buffer_->Add(raw_obj);
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
-                               CompressedObjectPtr* to) {
+                               CompressedObjectPtr* to) override {
     UNREACHABLE();  // Store buffer blocks are not compressed.
   }
+#endif
 
  private:
   ObjectSet* const in_store_buffer_;
+  const char* msg_;
 };
 
 class CheckStoreBufferVisitor : public ObjectVisitor,
                                 public ObjectPointerVisitor {
  public:
-  CheckStoreBufferVisitor(ObjectSet* in_store_buffer, const SemiSpace* to)
+  CheckStoreBufferVisitor(ObjectSet* in_store_buffer,
+                          const SemiSpace* to,
+                          const char* msg)
       : ObjectVisitor(),
         ObjectPointerVisitor(IsolateGroup::Current()),
         in_store_buffer_(in_store_buffer),
-        to_(to) {}
+        to_(to),
+        msg_(msg) {}
 
-  void VisitObject(ObjectPtr raw_obj) {
+  void VisitObject(ObjectPtr raw_obj) override {
     if (raw_obj->IsPseudoObject()) return;
-    RELEASE_ASSERT(raw_obj->IsOldObject());
+    RELEASE_ASSERT_WITH_MSG(raw_obj->IsOldObject(), msg_);
 
-    RELEASE_ASSERT(raw_obj->untag()->IsRemembered() ==
-                   in_store_buffer_->Contains(raw_obj));
+    RELEASE_ASSERT_WITH_MSG(
+        raw_obj->untag()->IsRemembered() == in_store_buffer_->Contains(raw_obj),
+        msg_);
 
     visiting_ = raw_obj;
     is_remembered_ = raw_obj->untag()->IsRemembered();
     is_card_remembered_ = raw_obj->untag()->IsCardRemembered();
     if (is_card_remembered_) {
-      RELEASE_ASSERT(!is_remembered_);
+      RELEASE_ASSERT_WITH_MSG(!is_remembered_, msg_);
     }
     raw_obj->untag()->VisitPointers(this);
   }
 
-  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = *ptr;
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         if (is_card_remembered_) {
           if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
             FATAL(
-                "Old object %#" Px " references new object %#" Px
+                "%s: Old object %#" Px " references new object %#" Px
                 ", but the "
                 "slot's card is not remembered. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
-                ptr);
+                msg_, static_cast<uword>(visiting_),
+                static_cast<uword>(raw_obj), ptr);
           }
         } else if (!is_remembered_) {
-          FATAL("Old object %#" Px " references new object %#" Px
+          FATAL("%s: Old object %#" Px " references new object %#" Px
                 ", but it is "
                 "not in any store buffer. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
-                ptr);
+                msg_, static_cast<uword>(visiting_),
+                static_cast<uword>(raw_obj), ptr);
         }
-        RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
+        RELEASE_ASSERT_WITH_MSG(to_->Contains(UntaggedObject::ToAddr(raw_obj)),
+                                msg_);
       }
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
-                               CompressedObjectPtr* to) {
+                               CompressedObjectPtr* to) override {
     for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = ptr->Decompress(heap_base);
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         if (is_card_remembered_) {
           if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
             FATAL(
-                "Old object %#" Px " references new object %#" Px
+                "%s: Old object %#" Px " references new object %#" Px
                 ", but the "
                 "slot's card is not remembered. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
-                ptr);
+                msg_, static_cast<uword>(visiting_),
+                static_cast<uword>(raw_obj), ptr);
           }
         } else if (!is_remembered_) {
-          FATAL("Old object %#" Px " references new object %#" Px
+          FATAL("%s: Old object %#" Px " references new object %#" Px
                 ", but it is "
                 "not in any store buffer. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
-                ptr);
+                msg_, static_cast<uword>(visiting_),
+                static_cast<uword>(raw_obj), ptr);
         }
-        RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
+        RELEASE_ASSERT_WITH_MSG(to_->Contains(UntaggedObject::ToAddr(raw_obj)),
+                                msg_);
       }
     }
   }
+#endif
 
  private:
   const ObjectSet* const in_store_buffer_;
@@ -937,9 +951,11 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
   ObjectPtr visiting_;
   bool is_remembered_;
   bool is_card_remembered_;
+  const char* msg_;
 };
 
-void Scavenger::VerifyStoreBuffers() {
+void Scavenger::VerifyStoreBuffers(const char* msg) {
+  ASSERT(msg != nullptr);
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
@@ -948,12 +964,12 @@ void Scavenger::VerifyStoreBuffers() {
   heap_->AddRegionsToObjectSet(in_store_buffer);
 
   {
-    CollectStoreBufferVisitor visitor(in_store_buffer);
+    CollectStoreBufferVisitor visitor(in_store_buffer, msg);
     heap_->isolate_group()->store_buffer()->VisitObjectPointers(&visitor);
   }
 
   {
-    CheckStoreBufferVisitor visitor(in_store_buffer, to_);
+    CheckStoreBufferVisitor visitor(in_store_buffer, to_, msg);
     heap_->old_space()->VisitObjects(&visitor);
   }
 }
@@ -964,10 +980,8 @@ SemiSpace* Scavenger::Prologue(GCReason reason) {
   heap_->isolate_group()->ReleaseStoreBuffers();
 
   if (FLAG_verify_store_buffer) {
-    OS::PrintErr("Verifying remembered set before Scavenge...");
     heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
-    VerifyStoreBuffers();
-    OS::PrintErr(" done.\n");
+    VerifyStoreBuffers("Verifying remembered set before Scavenge");
   }
 
   // Need to stash the old remembered set before any worker begins adding to the
@@ -1061,10 +1075,8 @@ void Scavenger::Epilogue(SemiSpace* from) {
     // are very rare.
     heap_->isolate_group()->ReleaseStoreBuffers();
 
-    OS::PrintErr("Verifying remembered set after Scavenge...");
     heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
-    VerifyStoreBuffers();
-    OS::PrintErr(" done.\n");
+    VerifyStoreBuffers("Verifying remembered set after Scavenge");
   }
 
   delete from;
@@ -1426,11 +1438,11 @@ void Scavenger::MournWeakTables() {
           auto replacement =
               raw_obj->IsNewObject() ? replacement_new : replacement_old;
           replacement->SetValueExclusive(raw_obj, table->ValueAtExclusive(i));
-        }
-      } else {
-        // The object has been collected.
-        if (cleanup != nullptr) {
-          cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
+        } else {
+          // The object has been collected.
+          if (cleanup != nullptr) {
+            cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
+          }
         }
       }
     }
@@ -1570,7 +1582,7 @@ bool ScavengerVisitorBase<parallel>::ForwardOrSetNullIfCollected(
 }
 
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
+  ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask));
   for (Page* page = to_->head(); page != nullptr; page = page->next()) {
@@ -1579,7 +1591,7 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
+  ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask));
   for (Page* page = to_->head(); page != nullptr; page = page->next()) {
     page->VisitObjects(visitor);
@@ -1590,25 +1602,6 @@ void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
   for (Page* page = to_->head(); page != nullptr; page = page->next()) {
     set->AddRegion(page->start(), page->end());
   }
-}
-
-ObjectPtr Scavenger::FindObject(FindObjectVisitor* visitor) {
-  ASSERT(!scavenging_);
-  for (Page* page = to_->head(); page != nullptr; page = page->next()) {
-    uword cur = page->object_start();
-    if (!visitor->VisitRange(cur, page->object_end())) continue;
-    while (cur < page->object_end()) {
-      ObjectPtr raw_obj = UntaggedObject::FromAddr(cur);
-      uword next = cur + raw_obj->untag()->HeapSize();
-      if (visitor->VisitRange(cur, next) &&
-          raw_obj->untag()->FindObject(visitor)) {
-        return raw_obj;  // Found object, return it.
-      }
-      cur = next;
-    }
-    ASSERT(cur == page->object_end());
-  }
-  return Object::null();
 }
 
 void Scavenger::TryAllocateNewTLAB(Thread* thread,
@@ -1708,7 +1701,7 @@ uword ScavengerVisitorBase<parallel>::TryAllocateCopySlow(intptr_t size) {
 void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   int64_t start = OS::GetCurrentMonotonicMicros();
 
-  ASSERT(thread->IsAtSafepoint());
+  ASSERT(thread->OwnsGCSafepoint());
 
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
@@ -1720,10 +1713,9 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   }
 
   if (FLAG_verify_before_gc) {
-    OS::PrintErr("Verifying before Scavenge...");
     heap_->WaitForSweeperTasksAtSafepoint(thread);
-    heap_->VerifyGC(thread->is_marking() ? kAllowMarked : kForbidMarked);
-    OS::PrintErr(" done.\n");
+    heap_->VerifyGC("Verifying before Scavenge",
+                    thread->is_marking() ? kAllowMarked : kForbidMarked);
   }
 
   // Prepare for a scavenge.
@@ -1786,10 +1778,9 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   Epilogue(from);
 
   if (FLAG_verify_after_gc) {
-    OS::PrintErr("Verifying after Scavenge...");
     heap_->WaitForSweeperTasksAtSafepoint(thread);
-    heap_->VerifyGC(thread->is_marking() ? kAllowMarked : kForbidMarked);
-    OS::PrintErr(" done.\n");
+    heap_->VerifyGC("Verifying after Scavenge...",
+                    thread->is_marking() ? kAllowMarked : kForbidMarked);
   }
 
   // Done scavenging. Reset the marker.
@@ -1868,7 +1859,7 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ReverseScavenge");
 
   class ReverseFromForwardingVisitor : public ObjectVisitor {
-    void VisitObject(ObjectPtr from_obj) {
+    void VisitObject(ObjectPtr from_obj) override {
       uword from_header = ReadHeaderRelaxed(from_obj);
       if (IsForwarding(from_header)) {
         ObjectPtr to_obj = ForwardedObj(from_header);

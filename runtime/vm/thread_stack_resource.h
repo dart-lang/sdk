@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_THREAD_STACK_RESOURCE_H_
 #define RUNTIME_VM_THREAD_STACK_RESOURCE_H_
 
+#include <utility>
+
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
@@ -27,6 +29,18 @@ class ThreadStackResource : public StackResource {
   }
   Isolate* isolate() const;
   IsolateGroup* isolate_group() const;
+};
+
+template <typename T, typename... Args>
+class AsThreadStackResource : public ThreadStackResource {
+ public:
+  AsThreadStackResource(Thread* thread, Args&&... args)
+      : ThreadStackResource(thread),
+        member_(thread, std::forward<Args>(args)...) {}
+  ~AsThreadStackResource() {}
+
+ private:
+  T member_;
 };
 
 }  // namespace dart

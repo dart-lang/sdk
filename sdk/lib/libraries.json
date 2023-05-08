@@ -219,6 +219,10 @@
         "uri": "js_interop/js_interop.dart",
         "patches": "_internal/wasm/lib/js_interop_patch.dart"
       },
+      "js_interop_unsafe": {
+        "uri": "js_interop_unsafe/js_interop_unsafe.dart",
+        "patches": "_internal/wasm/lib/js_interop_unsafe_patch.dart"
+      },
       "js_util": {
         "uri": "js_util/js_util.dart",
         "patches": "_internal/wasm/lib/js_util_patch.dart"
@@ -327,6 +331,10 @@
         "uri": "js_interop/js_interop.dart",
         "patches": "_internal/js_shared/lib/js_interop_patch.dart"
       },
+      "js_interop_unsafe": {
+        "uri": "js_interop_unsafe/js_interop_unsafe.dart",
+        "patches": "_internal/js_shared/lib/js_interop_unsafe_patch.dart"
+      },
       "_js_annotations": {
         "uri": "js/_js_annotations.dart"
       },
@@ -385,8 +393,8 @@
       "_js_shared_embedded_names": {
         "uri": "_internal/js_shared/lib/synced/embedded_names.dart"
       },
-      "_async_await_error_codes": {
-        "uri": "_internal/js_runtime/lib/synced/async_await_error_codes.dart"
+      "_async_status_codes": {
+        "uri": "_internal/js_runtime/lib/synced/async_status_codes.dart"
       },
       "_load_library_priority": {
         "uri": "_internal/js_runtime/lib/synced/load_library_priority.dart"
@@ -507,6 +515,10 @@
       "js_interop": {
         "uri": "js_interop/js_interop.dart",
         "patches": "_internal/js_shared/lib/js_interop_patch.dart"
+      },
+      "js_interop_unsafe": {
+        "uri": "js_interop_unsafe/js_interop_unsafe.dart",
+        "patches": "_internal/js_shared/lib/js_interop_unsafe_patch.dart"
       },
       "js_util": {
         "uri": "js_util/js_util.dart",

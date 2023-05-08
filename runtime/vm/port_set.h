@@ -99,7 +99,7 @@ class PortSet {
   };
 
   PortSet() {
-    static const intptr_t kInitialCapacity = 8;
+    const intptr_t kInitialCapacity = 8;
     ASSERT(Utils::IsPowerOfTwo(kInitialCapacity));
     map_ = new T[kInitialCapacity];
     capacity_ = kInitialCapacity;

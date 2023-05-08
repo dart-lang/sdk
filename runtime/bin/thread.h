@@ -78,7 +78,7 @@ class Monitor {
  public:
   enum WaitResult { kNotified, kTimedOut };
 
-  static const int64_t kNoTimeout = 0;
+  static constexpr int64_t kNoTimeout = 0;
 
   Monitor();
   ~Monitor();

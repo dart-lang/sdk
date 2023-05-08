@@ -3287,7 +3287,7 @@ String res() => 'test';
   }
 
   void _addLibraryReturningAsync() {
-    addSource('$testPackageLibPath/asyncLib.dart', r'''
+    newFile('$testPackageLibPath/asyncLib.dart', r'''
 import 'dart:async';
 
 Completer<int> newCompleter() => null;

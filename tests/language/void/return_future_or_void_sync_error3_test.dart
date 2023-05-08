@@ -12,5 +12,8 @@ void main() {
 
 // Testing that a block bodied function may not return void
 FutureOr<void> test() {
-  return /*@compile-error=unspecified*/ voidValue;
+  return voidValue;
+  //     ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+  // [cfe] A value of type 'void' can't be returned from a function with return type 'FutureOr<void>'.
 }

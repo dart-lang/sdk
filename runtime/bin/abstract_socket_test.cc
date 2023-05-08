@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
   }
 
   int client_socket;
-  if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
+  if ((client_socket = accept(server_socket, nullptr, nullptr)) == -1) {
     perror("accept error");
     exit(-1);
   }

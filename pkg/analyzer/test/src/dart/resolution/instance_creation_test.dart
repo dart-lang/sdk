@@ -32,7 +32,6 @@ class A {
 void f() {
   A.new(0);
 }
-
 ''', [
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 40, 3),
     ]);
@@ -43,10 +42,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -68,6 +65,60 @@ InstanceCreationExpression
 }
 
 mixin InstanceCreationTestCases on PubPackageResolutionTest {
+  test_arguments_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int a, {required bool b, required double c});
+}
+
+void f() {
+  A(0, b: true, c: 1.2);
+}
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@class::A
+      type: A
+    staticElement: self::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@class::A::@constructor::new::@parameter::a
+        staticType: int
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: b
+            staticElement: self::@class::A::@constructor::new::@parameter::b
+            staticType: null
+          colon: :
+        expression: BooleanLiteral
+          literal: true
+          staticType: bool
+        parameter: self::@class::A::@constructor::new::@parameter::b
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: c
+            staticElement: self::@class::A::@constructor::new::@parameter::c
+            staticType: null
+          colon: :
+        expression: DoubleLiteral
+          literal: 1.2
+          staticType: double
+        parameter: self::@class::A::@constructor::new::@parameter::c
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
   test_class_generic_named_inferTypeArguments() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
@@ -77,7 +128,6 @@ class A<T> {
 void f() {
   A.named(0);
 }
-
 ''');
 
     var node = findNode.instanceCreation('A.named(0)');
@@ -85,10 +135,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -123,7 +171,6 @@ class A<T> {
 void f() {
   A<int>.named();
 }
-
 ''');
 
     var node = findNode.instanceCreation('A<int>');
@@ -131,20 +178,16 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -161,7 +204,6 @@ InstanceCreationExpression
     rightParenthesis: )
   staticType: A<int>
 ''');
-    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_class_generic_unnamed_inferTypeArguments() async {
@@ -173,7 +215,6 @@ class A<T> {
 void f() {
   A(0);
 }
-
 ''');
 
     var node = findNode.instanceCreation('A(0)');
@@ -181,10 +222,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A<int>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -210,7 +249,6 @@ class A<T> {}
 void f() {
   A<int>();
 }
-
 ''');
 
     var node = findNode.instanceCreation('A<int>');
@@ -218,20 +256,16 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: A<int>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -241,10 +275,46 @@ InstanceCreationExpression
     rightParenthesis: )
   staticType: A<int>
 ''');
-    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
-  test_class_notGeneric() async {
+  test_class_notGeneric_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.named(int a);
+}
+
+void f() {
+  A.named(0);
+}
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@class::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: self::@class::A::@constructor::named
+      staticType: null
+    staticElement: self::@class::A::@constructor::named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@class::A::@constructor::named::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
+  test_class_notGeneric_unnamed() async {
     await assertNoErrorsInCode(r'''
 class A {
   A(int a);
@@ -256,15 +326,13 @@ void f() {
 
 ''');
 
-    var node = findNode.instanceCreation('A(0)');
+    final node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     staticElement: self::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -273,6 +341,45 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: self::@class::A::@constructor::new::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
+  test_class_notGeneric_unresolved() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+void f() {
+  new A.unresolved(0);
+}
+
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 31, 10),
+    ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@class::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: unresolved
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -298,10 +405,8 @@ void f<S>(S s) {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A<S>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -333,20 +438,16 @@ final foo = Map<int>();
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: Map
-        staticElement: dart:core::@class::Map
-        staticType: null
+      name: Map
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: dart:core::@class::Map
       type: Map<dynamic, dynamic>
     staticElement: ConstructorMember
       base: dart:core::@class::Map::@constructor::new
@@ -379,10 +480,8 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: Foo
-        staticElement: self::@class::Foo
-        staticType: null
+      name: Foo
+      element: self::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -398,10 +497,8 @@ InstanceCreationExpression
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -432,10 +529,8 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: Foo
-        staticElement: self::@class::Foo
-        staticType: null
+      name: Foo
+      element: self::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -451,10 +546,8 @@ InstanceCreationExpression
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -488,18 +581,12 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: Foo
-          staticElement: package:test/a.dart::@class::Foo
-          staticType: null
-        staticElement: package:test/a.dart::@class::Foo
-        staticType: null
+        element: self::@prefix::p
+      name: Foo
+      element: package:test/a.dart::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -515,10 +602,8 @@ InstanceCreationExpression
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -547,10 +632,8 @@ main() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: Foo
-        staticElement: self::@class::Foo
-        staticType: null
+      name: Foo
+      element: self::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -566,10 +649,8 @@ InstanceCreationExpression
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -601,28 +682,20 @@ main() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: Foo
-          staticElement: package:test/a.dart::@class::Foo
-          staticType: null
-        staticElement: package:test/a.dart::@class::Foo
-        staticType: null
+        element: self::@prefix::p
+      name: Foo
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: package:test/a.dart::@class::Foo
       type: Foo<int>
     period: .
     name: SimpleIdentifier
@@ -638,6 +711,330 @@ InstanceCreationExpression
     leftParenthesis: (
     rightParenthesis: )
   staticType: Foo<int>
+''');
+  }
+
+  test_importPrefix() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as prefix;
+
+void f() {
+  new prefix(0);
+}
+
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 48, 6),
+    ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: prefix
+      element: self::@prefix::prefix
+      type: dynamic
+    staticElement: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: dynamic
+''');
+  }
+
+  test_importPrefix_class_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A.named(int a);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.A.named(0);
+}
+
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: self::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: package:test/a.dart::@class::A::@constructor::named
+      staticType: null
+    staticElement: package:test/a.dart::@class::A::@constructor::named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
+  test_importPrefix_class_typeArguments_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T> {
+  A.named(int a);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.A<int>.named(0);
+}
+
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: self::@prefix::prefix
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::A
+      type: A<int>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: ConstructorMember
+        base: package:test/a.dart::@class::A::@constructor::named
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::named
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
+''');
+  }
+
+  test_importPrefix_class_typeArguments_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T> {
+  A(int a);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.A<int>(0);
+}
+
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: self::@prefix::prefix
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::A
+      type: A<int>
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::new
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::new::@parameter::a
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
+''');
+  }
+
+  test_importPrefix_class_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A(int a);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.A(0);
+}
+
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: self::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
+      type: A
+    staticElement: package:test/a.dart::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: package:test/a.dart::@class::A::@constructor::new::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
+  test_importPrefix_class_unresolved() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+void f() {
+  new prefix.A.foo(0);
+}
+
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 54, 3),
+    ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: self::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
+  test_importPrefix_unresolved_identifier() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as prefix;
+
+void f() {
+  new prefix.Foo.bar(0);
+}
+
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 55, 3),
+    ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: self::@prefix::prefix
+      name: Foo
+      element: <null>
+      type: dynamic
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: dynamic
 ''');
   }
 
@@ -667,10 +1064,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: X
-        staticElement: self::@class::X
-        staticType: null
+      name: X
+      element: self::@class::X
       type: X
     staticElement: self::@class::X::@constructor::new
   argumentList: ArgumentList
@@ -765,10 +1160,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -812,10 +1205,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<int, String>
     period: .
     name: SimpleIdentifier
@@ -861,10 +1252,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<int>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -901,10 +1290,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<int, String>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -945,10 +1332,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<String>
     period: .
     name: SimpleIdentifier
@@ -994,10 +1379,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<String>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -1033,10 +1416,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     staticElement: self::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -1068,10 +1449,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1108,10 +1487,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1128,6 +1505,115 @@ InstanceCreationExpression
         staticType: int
     rightParenthesis: )
   staticType: A
+''');
+  }
+
+  test_unresolved() async {
+    await assertErrorsInCode(r'''
+void f() {
+  new Unresolved(0);
+}
+
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
+    ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: Unresolved
+      element: <null>
+      type: dynamic
+    staticElement: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: dynamic
+''');
+  }
+
+  test_unresolved_identifier() async {
+    await assertErrorsInCode(r'''
+void f() {
+  new Unresolved.named(0);
+}
+
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 16),
+    ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: Unresolved
+        period: .
+        element: <null>
+      name: named
+      element: <null>
+      type: dynamic
+    staticElement: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: dynamic
+''');
+  }
+
+  test_unresolved_identifier_identifier() async {
+    await assertErrorsInCode(r'''
+void f() {
+  new unresolved.Foo.bar(0);
+}
+
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 14),
+    ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: unresolved
+        period: .
+        element: <null>
+      name: Foo
+      element: <null>
+      type: dynamic
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: dynamic
 ''');
   }
 }

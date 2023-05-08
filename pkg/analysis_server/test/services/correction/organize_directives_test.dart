@@ -929,7 +929,7 @@ class NonLibraryAnnotation {
   const NonLibraryAnnotation();
 }
     ''';
-    addSource(annotationsFile, annotationsContent);
+    newFile(annotationsFile, annotationsContent);
   }
 
   void _assertOrganize(String expectedCode, {bool removeUnused = false}) {

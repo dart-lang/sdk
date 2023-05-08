@@ -17,14 +17,14 @@
 namespace dart {
 namespace bin {
 
-static const int kProcessIdNativeField = 0;
+static constexpr int kProcessIdNativeField = 0;
 
 // Extract an array of C strings from a list of Dart strings.
 static char** ExtractCStringList(Dart_Handle strings,
                                  Dart_Handle status_handle,
                                  const char* error_msg,
                                  intptr_t* length) {
-  static const intptr_t kMaxArgumentListLength = 1024 * 1024;
+  static constexpr intptr_t kMaxArgumentListLength = 1024 * 1024;
   ASSERT(Dart_IsList(strings));
   intptr_t len = 0;
   Dart_Handle result = Dart_ListLength(strings, &len);
@@ -37,7 +37,7 @@ static char** ExtractCStringList(Dart_Handle strings,
     result = DartUtils::SetStringField(status_handle, "_errorMessage",
                                        "Max argument list length exceeded");
     ThrowIfError(result);
-    return NULL;
+    return nullptr;
   }
   *length = len;
   char** string_args;
@@ -52,7 +52,7 @@ static char** ExtractCStringList(Dart_Handle strings,
       result =
           DartUtils::SetStringField(status_handle, "_errorMessage", error_msg);
       ThrowIfError(result);
-      return NULL;
+      return nullptr;
     }
     string_args[i] = const_cast<char*>(DartUtils::GetStringValue(arg));
   }
@@ -117,13 +117,13 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   char** string_args =
       ExtractCStringList(arguments, status_handle,
                          "Arguments must be builtin strings", &args_length);
-  if (string_args == NULL) {
+  if (string_args == nullptr) {
     Dart_SetBooleanReturnValue(args, false);
     return;
   }
   Dart_Handle working_directory_handle = Dart_GetNativeArgument(args, 4);
   // Defaults to the current working directory.
-  const char* working_directory = NULL;
+  const char* working_directory = nullptr;
   if (Dart_IsString(working_directory_handle)) {
     working_directory = DartUtils::GetStringValue(working_directory_handle);
   } else if (!Dart_IsNull(working_directory_handle)) {
@@ -138,12 +138,12 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   }
   Dart_Handle environment = Dart_GetNativeArgument(args, 5);
   intptr_t environment_length = 0;
-  char** string_environment = NULL;
+  char** string_environment = nullptr;
   if (!Dart_IsNull(environment)) {
     string_environment = ExtractCStringList(
         environment, status_handle,
         "Environment values must be builtin strings", &environment_length);
-    if (string_environment == NULL) {
+    if (string_environment == nullptr) {
       Dart_SetBooleanReturnValue(args, false);
       return;
     }
@@ -155,7 +155,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_Handle stderr_handle = Dart_GetNativeArgument(args, 9);
   Dart_Handle exit_handle = Dart_GetNativeArgument(args, 10);
   intptr_t pid = -1;
-  char* os_error_message = NULL;  // Scope allocated by Process::Start.
+  char* os_error_message = nullptr;  // Scope allocated by Process::Start.
 
   int error_code = Process::Start(
       namespc, path, string_args, args_length, working_directory,
@@ -181,7 +181,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
         DartUtils::SetIntegerField(status_handle, "_errorCode", error_code);
     ThrowIfError(result);
 
-    const char* error_message = (os_error_message != NULL)
+    const char* error_message = (os_error_message != nullptr)
                                     ? os_error_message
                                     : "Failed to get error message";
     Dart_Handle val = DartUtils::NewString(error_message);
@@ -334,7 +334,7 @@ void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
   intptr_t len;
   char* str = StringUtils::ConsoleStringToUtf8(reinterpret_cast<char*>(buffer),
                                                bytes_length, &len);
-  if (str == NULL) {
+  if (str == nullptr) {
     Dart_ThrowException(DartUtils::NewDartUnsupportedError(
         "SystemEncodingToString not supported on this operating system"));
   }
@@ -353,11 +353,11 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   intptr_t system_len;
   const char* system_string =
       StringUtils::Utf8ToConsoleString(utf8, utf8_len, &system_len);
-  if (system_string == NULL) {
+  if (system_string == nullptr) {
     Dart_ThrowException(DartUtils::NewDartUnsupportedError(
         "StringToSystemEncoding not supported on this operating system"));
   }
-  uint8_t* buffer = NULL;
+  uint8_t* buffer = nullptr;
   Dart_Handle external_array = IOBuffer::Allocate(system_len, &buffer);
   if (Dart_IsNull(external_array)) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
@@ -388,8 +388,8 @@ void FUNCTION_NAME(ProcessInfo_MaxRSS)(Dart_NativeArguments args) {
 }
 
 void Process::GetRSSInformation(int64_t* max_rss, int64_t* current_rss) {
-  ASSERT(max_rss != NULL);
-  ASSERT(current_rss != NULL);
+  ASSERT(max_rss != nullptr);
+  ASSERT(current_rss != nullptr);
   // Max RSS should be queried after current RSS to produce
   // consistent values as current RSS can grow beyond max RSS which
   // was queried before.

@@ -54,6 +54,7 @@ void BaseTextBuffer::AddChar(char ch) {
 }
 
 void BaseTextBuffer::AddRaw(const uint8_t* buffer, intptr_t buffer_length) {
+  ASSERT(buffer != nullptr);
   if (!EnsureCapacity(buffer_length)) {
     buffer_length = capacity_ - length_ - 1;  // Copy what fits.
   }
@@ -214,7 +215,7 @@ void BaseTextBuffer::EscapeAndAddCodeUnit(uint32_t codeunit) {
       buffer_[length_++] = 't';
       break;
     default:
-      static constexpr int kMask = ~(1 << 6);
+      constexpr int kMask = ~(1 << 6);
       if (codeunit < 0x20) {
         ASSERT(remaining > 6);
         buffer_[length_++] = '\\';

@@ -594,7 +594,7 @@ class CodeChecker extends RecursiveAstVisitor {
       }
     }
     if (yieldStar) {
-      if (type.isDynamic) {
+      if (type is DynamicType) {
         // Ensure it's at least a Stream / Iterable.
         return expectedElement.instantiate(
           typeArguments: [_typeProvider.dynamicType],
@@ -606,7 +606,7 @@ class CodeChecker extends RecursiveAstVisitor {
         return type;
       }
     }
-    if (type.isDynamic) {
+    if (type is DynamicType) {
       return type;
     } else if (type is InterfaceType && type.element == expectedElement) {
       return type.typeArguments[0];

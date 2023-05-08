@@ -22,8 +22,6 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
 
-import 'package:vm/target/vm.dart' show VmTarget;
-
 /// Environment define to update expectation files on failures.
 const kUpdateExpectations = 'updateExpectations';
 
@@ -31,14 +29,13 @@ const kUpdateExpectations = 'updateExpectations';
 const kDumpActualResult = 'dump.actual.result';
 
 Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
-    {Target? target,
+    {required Target target,
     List<String>? experimentalFlags,
     Map<String, String>? environmentDefines,
     Uri? packagesFileUri,
     List<Uri>? linkedDependencies}) async {
   Directory? tempDirectory;
   try {
-    target ??= new VmTarget(new TargetFlags());
     final platformFileName = (target is WasmTarget)
         ? 'dart2wasm_platform.dill'
         : 'vm_platform_strong.dill';
@@ -120,7 +117,7 @@ String kernelComponentToString(Component component) {
       .replaceAll(mainLibrary.importUri.toString(), mainLibrary.name!);
 }
 
-class DevNullSink<T> extends Sink<T> {
+class DevNullSink<T> implements Sink<T> {
   @override
   void add(T data) {}
 

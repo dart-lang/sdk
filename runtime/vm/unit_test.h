@@ -100,7 +100,7 @@
 // C++ callee-saved registers are not preserved. Arguments may be passed in.
 #define ASSEMBLER_TEST_RUN_WITH_EXPECTATION(name, test, expectation)           \
   static void AssemblerTestRun##name(AssemblerTest* test);                     \
-  ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(name, expectation) {                 \
+  ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(Assembler_##name, expectation) {     \
     volatile intptr_t far_branch_level = 0;                                    \
     while (true) {                                                             \
       LongJumpScope jump(thread);                                              \
@@ -113,7 +113,7 @@
         AssemblerTestRun##name(&test);                                         \
         return;                                                                \
       } else {                                                                 \
-        const Error& error = Error::Handle(thread->sticky_error());            \
+        const Error& error = Error::Handle(thread->StealStickyError());        \
         if (error.ptr() == Object::branch_offset_error().ptr()) {              \
           RELEASE_ASSERT(far_branch_level < 2);                                \
           far_branch_level++;                                                  \
@@ -241,7 +241,7 @@ class CodeGenerator;
 class VirtualMemory;
 
 namespace bin {
-// Snapshot pieces if we link in a snapshot, otherwise initialized to NULL.
+// Snapshot pieces if we link in a snapshot, otherwise initialized to nullptr.
 extern const uint8_t* vm_snapshot_data;
 extern const uint8_t* vm_snapshot_instructions;
 extern const uint8_t* core_isolate_snapshot_data;
@@ -264,14 +264,14 @@ class TesterState : public AllStatic {
 class KernelBufferList {
  public:
   explicit KernelBufferList(const uint8_t* kernel_buffer)
-      : kernel_buffer_(kernel_buffer), next_(NULL) {}
+      : kernel_buffer_(kernel_buffer), next_(nullptr) {}
 
   KernelBufferList(const uint8_t* kernel_buffer, KernelBufferList* next)
       : kernel_buffer_(kernel_buffer), next_(next) {}
 
   ~KernelBufferList() {
     free(const_cast<uint8_t*>(kernel_buffer_));
-    if (next_ != NULL) {
+    if (next_ != nullptr) {
       delete next_;
     }
   }
@@ -325,23 +325,25 @@ class TestCase : TestCaseBase {
   TestCase(RunEntry* run, const char* name, const char* expectation)
       : TestCaseBase(name, expectation), run_(run) {}
 
-  static char* CompileTestScriptWithDFE(const char* url,
-                                        const char* source,
-                                        const uint8_t** kernel_buffer,
-                                        intptr_t* kernel_buffer_size,
-                                        bool incrementally = true,
-                                        bool allow_compile_errors = false,
-                                        const char* multiroot_filepaths = NULL,
-                                        const char* multiroot_scheme = NULL);
-  static char* CompileTestScriptWithDFE(const char* url,
-                                        int sourcefiles_count,
-                                        Dart_SourceFile sourcefiles[],
-                                        const uint8_t** kernel_buffer,
-                                        intptr_t* kernel_buffer_size,
-                                        bool incrementally = true,
-                                        bool allow_compile_errors = false,
-                                        const char* multiroot_filepaths = NULL,
-                                        const char* multiroot_scheme = NULL);
+  static char* CompileTestScriptWithDFE(
+      const char* url,
+      const char* source,
+      const uint8_t** kernel_buffer,
+      intptr_t* kernel_buffer_size,
+      bool incrementally = true,
+      bool allow_compile_errors = false,
+      const char* multiroot_filepaths = nullptr,
+      const char* multiroot_scheme = nullptr);
+  static char* CompileTestScriptWithDFE(
+      const char* url,
+      int sourcefiles_count,
+      Dart_SourceFile sourcefiles[],
+      const uint8_t** kernel_buffer,
+      intptr_t* kernel_buffer_size,
+      bool incrementally = true,
+      bool allow_compile_errors = false,
+      const char* multiroot_filepaths = nullptr,
+      const char* multiroot_scheme = nullptr);
   static Dart_Handle LoadTestScript(
       const char* script,
       Dart_NativeEntryResolver resolver,
@@ -350,22 +352,23 @@ class TestCase : TestCaseBase {
       bool allow_compile_errors = false);
   static Dart_Handle LoadTestScriptWithErrors(
       const char* script,
-      Dart_NativeEntryResolver resolver = NULL,
+      Dart_NativeEntryResolver resolver = nullptr,
       const char* lib_uri = RESOLVED_USER_TEST_URI,
       bool finalize = true);
-  static Dart_Handle LoadTestLibrary(const char* lib_uri,
-                                     const char* script,
-                                     Dart_NativeEntryResolver resolver = NULL);
+  static Dart_Handle LoadTestLibrary(
+      const char* lib_uri,
+      const char* script,
+      Dart_NativeEntryResolver resolver = nullptr);
   static Dart_Handle LoadTestScriptWithDFE(
       int sourcefiles_count,
       Dart_SourceFile sourcefiles[],
-      Dart_NativeEntryResolver resolver = NULL,
+      Dart_NativeEntryResolver resolver = nullptr,
       bool finalize = true,
       bool incrementally = true,
       bool allow_compile_errors = false,
-      const char* entry_script_uri = NULL,
-      const char* multiroot_filepaths = NULL,
-      const char* multiroot_scheme = NULL);
+      const char* entry_script_uri = nullptr,
+      const char* multiroot_filepaths = nullptr,
+      const char* multiroot_scheme = nullptr);
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
 
@@ -376,9 +379,10 @@ class TestCase : TestCaseBase {
 
   static Dart_Handle lib();
   static const char* url();
-  static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer,
-                                                    const char* name = NULL) {
-    return CreateIsolate(buffer, 0, NULL, name);
+  static Dart_Isolate CreateTestIsolateFromSnapshot(
+      uint8_t* buffer,
+      const char* name = nullptr) {
+    return CreateIsolate(buffer, 0, nullptr, name);
   }
   static Dart_Isolate CreateTestIsolate(const char* name = nullptr,
                                         void* isolate_group_data = nullptr,
@@ -468,7 +472,7 @@ class TestIsolateScope {
     Dart_ExitScope();  // Exit the Dart API scope created for unit tests.
     ASSERT(isolate_ == Isolate::Current());
     Dart_ShutdownIsolate();
-    isolate_ = NULL;
+    isolate_ = nullptr;
   }
   Isolate* isolate() const { return isolate_; }
 
@@ -484,22 +488,22 @@ void SetupCoreLibrariesForUnitTest();
 
 template <typename T>
 struct is_void {
-  static const bool value = false;
+  static constexpr bool value = false;
 };
 
 template <>
 struct is_void<void> {
-  static const bool value = true;
+  static constexpr bool value = true;
 };
 
 template <typename T>
 struct is_double {
-  static const bool value = false;
+  static constexpr bool value = false;
 };
 
 template <>
 struct is_double<double> {
-  static const bool value = true;
+  static constexpr bool value = true;
 };
 
 class AssemblerTest {
@@ -509,8 +513,8 @@ class AssemblerTest {
         assembler_(assembler),
         code_(Code::ZoneHandle(zone)),
         disassembly_(zone->Alloc<char>(DISASSEMBLY_SIZE)) {
-    ASSERT(name != NULL);
-    ASSERT(assembler != NULL);
+    ASSERT(name != nullptr);
+    ASSERT(assembler != nullptr);
   }
   ~AssemblerTest() {}
 
@@ -540,7 +544,7 @@ class AssemblerTest {
     const bool fp_return = is_double<ResultType>::value;
     const bool fp_args = false;
     Thread* thread = Thread::Current();
-    ASSERT(thread != NULL);
+    ASSERT(thread != nullptr);
     return bit_cast<ResultType, int64_t>(Simulator::Current()->Call(
         bit_cast<intptr_t, uword>(entry()), reinterpret_cast<intptr_t>(&code_),
         reinterpret_cast<intptr_t>(thread), 0, 0, fp_return, fp_args));
@@ -552,7 +556,7 @@ class AssemblerTest {
     // TODO(fschneider): Support double arguments for simulator calls.
     COMPILE_ASSERT(!fp_args);
     Thread* thread = Thread::Current();
-    ASSERT(thread != NULL);
+    ASSERT(thread != nullptr);
     return bit_cast<ResultType, int64_t>(Simulator::Current()->Call(
         bit_cast<intptr_t, uword>(entry()), reinterpret_cast<intptr_t>(&code_),
         reinterpret_cast<intptr_t>(thread), reinterpret_cast<intptr_t>(arg1), 0,
@@ -591,7 +595,7 @@ class AssemblerTest {
   template <typename ResultType>
   ResultType InvokeWithCodeAndThread() {
     Thread* thread = Thread::Current();
-    ASSERT(thread != NULL);
+    ASSERT(thread != nullptr);
     typedef ResultType (*FunctionType)(const Code&, Thread*);
     return reinterpret_cast<FunctionType>(entry())(code_, thread);
   }
@@ -599,7 +603,7 @@ class AssemblerTest {
   template <typename ResultType, typename Arg1Type>
   ResultType InvokeWithCodeAndThread(Arg1Type arg1) {
     Thread* thread = Thread::Current();
-    ASSERT(thread != NULL);
+    ASSERT(thread != nullptr);
     typedef ResultType (*FunctionType)(const Code&, Thread*, Arg1Type);
     return reinterpret_cast<FunctionType>(entry())(code_, thread, arg1);
   }
@@ -630,7 +634,7 @@ class AssemblerTest {
   const char* name_;
   compiler::Assembler* assembler_;
   Code& code_;
-  static const intptr_t DISASSEMBLY_SIZE = 10240;
+  static constexpr intptr_t DISASSEMBLY_SIZE = 10240;
   char* disassembly_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblerTest);

@@ -28,6 +28,15 @@ extension DeserializerExtensions on Deserializer {
       case RemoteInstanceKind.classDeclaration:
         moveNext();
         return _expectClassDeclaration(id) as T;
+      case RemoteInstanceKind.enumDeclaration:
+        moveNext();
+        return _expectEnumDeclaration(id) as T;
+      case RemoteInstanceKind.enumValueDeclaration:
+        moveNext();
+        return _expectEnumValueDeclaration(id) as T;
+      case RemoteInstanceKind.mixinDeclaration:
+        moveNext();
+        return _expectMixinDeclaration(id) as T;
       case RemoteInstanceKind.constructorDeclaration:
         moveNext();
         return _expectConstructorDeclaration(id) as T;
@@ -49,6 +58,12 @@ extension DeserializerExtensions on Deserializer {
       case RemoteInstanceKind.introspectableClassDeclaration:
         moveNext();
         return _expectIntrospectableClassDeclaration(id) as T;
+      case RemoteInstanceKind.introspectableEnumDeclaration:
+        moveNext();
+        return _expectIntrospectableEnumDeclaration(id) as T;
+      case RemoteInstanceKind.introspectableMixinDeclaration:
+        moveNext();
+        return _expectIntrospectableMixinDeclaration(id) as T;
       case RemoteInstanceKind.methodDeclaration:
         moveNext();
         return _expectMethodDeclaration(id) as T;
@@ -188,7 +203,7 @@ extension DeserializerExtensions on Deserializer {
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
-        definingClass: RemoteInstance.deserialize(this),
+        definingType: RemoteInstance.deserialize(this),
         isStatic: (this..moveNext()).expectBool(),
       );
 
@@ -205,7 +220,7 @@ extension DeserializerExtensions on Deserializer {
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
-        definingClass: RemoteInstance.deserialize(this),
+        definingType: RemoteInstance.deserialize(this),
         // There is an extra boolean here representing the `isStatic` field
         // which we just skip past.
         isFactory: (this
@@ -232,7 +247,7 @@ extension DeserializerExtensions on Deserializer {
         isFinal: (this..moveNext()).expectBool(),
         isLate: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
-        definingClass: RemoteInstance.deserialize(this),
+        definingType: RemoteInstance.deserialize(this),
         isStatic: (this..moveNext()).expectBool(),
       );
 
@@ -270,6 +285,50 @@ extension DeserializerExtensions on Deserializer {
         mixins: (this..moveNext())._expectRemoteInstanceList(),
         superclass:
             (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
+      );
+
+  EnumDeclaration _expectEnumDeclaration(int id) => new EnumDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        mixins: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  IntrospectableEnumDeclaration _expectIntrospectableEnumDeclaration(int id) =>
+      new IntrospectableEnumDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        mixins: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  MixinDeclaration _expectMixinDeclaration(int id) => new MixinDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        hasBase: (this..moveNext()).expectBool(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        superclassConstraints: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  IntrospectableMixinDeclaration _expectIntrospectableMixinDeclaration(
+          int id) =>
+      new IntrospectableMixinDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        hasBase: (this..moveNext()).expectBool(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        superclassConstraints: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  EnumValueDeclaration _expectEnumValueDeclaration(int id) =>
+      new EnumValueDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        definingEnum: RemoteInstance.deserialize(this),
       );
 
   TypeAliasDeclaration _expectTypeAliasDeclaration(int id) =>

@@ -168,17 +168,17 @@ const Register kWriteBarrierSlotReg = R25;
 
 // Common ABI for shared slow path stubs.
 struct SharedSlowPathStubABI {
-  static const Register kResultReg = R0;
+  static constexpr Register kResultReg = R0;
 };
 
 // ABI for instantiation stubs.
 struct InstantiationABI {
-  static const Register kUninstantiatedTypeArgumentsReg = R3;
-  static const Register kInstantiatorTypeArgumentsReg = R2;
-  static const Register kFunctionTypeArgumentsReg = R1;
-  static const Register kResultTypeArgumentsReg = R0;
-  static const Register kResultTypeReg = R0;
-  static const Register kScratchReg = R8;
+  static constexpr Register kUninstantiatedTypeArgumentsReg = R3;
+  static constexpr Register kInstantiatorTypeArgumentsReg = R2;
+  static constexpr Register kFunctionTypeArgumentsReg = R1;
+  static constexpr Register kResultTypeArgumentsReg = R0;
+  static constexpr Register kResultTypeReg = R0;
+  static constexpr Register kScratchReg = R8;
 };
 
 // Registers in addition to those listed in InstantiationABI used inside the
@@ -186,28 +186,28 @@ struct InstantiationABI {
 struct InstantiateTAVInternalRegs {
   // The set of registers that must be pushed/popped when probing a hash-based
   // cache due to overlap with the registers in InstantiationABI.
-  static const intptr_t kSavedRegisters = 0;
+  static constexpr intptr_t kSavedRegisters = 0;
 
   // Additional registers used to probe hash-based caches.
-  static const Register kEntryStartReg = R9;
-  static const Register kProbeMaskReg = R7;
-  static const Register kProbeDistanceReg = R6;
-  static const Register kCurrentEntryIndexReg = R10;
+  static constexpr Register kEntryStartReg = R9;
+  static constexpr Register kProbeMaskReg = R7;
+  static constexpr Register kProbeDistanceReg = R6;
+  static constexpr Register kCurrentEntryIndexReg = R10;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the
 // implementation of type testing stubs that are _not_ preserved.
 struct TTSInternalRegs {
-  static const Register kInstanceTypeArgumentsReg = R7;
-  static const Register kScratchReg = R9;
-  static const Register kSubTypeArgumentReg = R5;
-  static const Register kSuperTypeArgumentReg = R6;
+  static constexpr Register kInstanceTypeArgumentsReg = R7;
+  static constexpr Register kScratchReg = R9;
+  static constexpr Register kSubTypeArgumentReg = R5;
+  static constexpr Register kSuperTypeArgumentReg = R6;
 
   // Must be pushed/popped whenever generic type arguments are being checked as
   // they overlap with registers in TypeTestABI.
-  static const intptr_t kSavedTypeArgumentRegisters = 0;
+  static constexpr intptr_t kSavedTypeArgumentRegisters = 0;
 
-  static const intptr_t kInternalRegisters =
+  static constexpr intptr_t kInternalRegisters =
       ((1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg) |
        (1 << kSubTypeArgumentReg) | (1 << kSuperTypeArgumentReg)) &
       ~kSavedTypeArgumentRegisters;
@@ -216,12 +216,12 @@ struct TTSInternalRegs {
 // Registers in addition to those listed in TypeTestABI used inside the
 // implementation of subtype test cache stubs that are _not_ preserved.
 struct STCInternalRegs {
-  static const Register kInstanceCidOrSignatureReg = R6;
-  static const Register kInstanceInstantiatorTypeArgumentsReg = R5;
-  static const Register kInstanceParentFunctionTypeArgumentsReg = R9;
-  static const Register kInstanceDelayedFunctionTypeArgumentsReg = R10;
+  static constexpr Register kInstanceCidOrSignatureReg = R6;
+  static constexpr Register kInstanceInstantiatorTypeArgumentsReg = R5;
+  static constexpr Register kInstanceParentFunctionTypeArgumentsReg = R9;
+  static constexpr Register kInstanceDelayedFunctionTypeArgumentsReg = R10;
 
-  static const intptr_t kInternalRegisters =
+  static constexpr intptr_t kInternalRegisters =
       (1 << kInstanceCidOrSignatureReg) |
       (1 << kInstanceInstantiatorTypeArgumentsReg) |
       (1 << kInstanceParentFunctionTypeArgumentsReg) |
@@ -230,45 +230,45 @@ struct STCInternalRegs {
 
 // Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
 struct TypeTestABI {
-  static const Register kInstanceReg = R0;
-  static const Register kDstTypeReg = R8;
-  static const Register kInstantiatorTypeArgumentsReg = R2;
-  static const Register kFunctionTypeArgumentsReg = R1;
-  static const Register kSubtypeTestCacheReg = R3;
-  static const Register kScratchReg = R4;
+  static constexpr Register kInstanceReg = R0;
+  static constexpr Register kDstTypeReg = R8;
+  static constexpr Register kInstantiatorTypeArgumentsReg = R2;
+  static constexpr Register kFunctionTypeArgumentsReg = R1;
+  static constexpr Register kSubtypeTestCacheReg = R3;
+  static constexpr Register kScratchReg = R4;
 
   // For calls to InstanceOfStub.
-  static const Register kInstanceOfResultReg = kInstanceReg;
+  static constexpr Register kInstanceOfResultReg = kInstanceReg;
   // For calls to SubtypeNTestCacheStub. Must not overlap with any other
   // registers above, for it is also used internally as kNullReg in those stubs.
-  static const Register kSubtypeTestCacheResultReg = R7;
+  static constexpr Register kSubtypeTestCacheResultReg = R7;
 
   // Registers that need saving across SubtypeTestCacheStub calls.
-  static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
+  static constexpr intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
       1 << kSubtypeTestCacheReg;
 
-  static const intptr_t kPreservedAbiRegisters =
+  static constexpr intptr_t kPreservedAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg);
 
-  static const intptr_t kNonPreservedAbiRegisters =
+  static constexpr intptr_t kNonPreservedAbiRegisters =
       TTSInternalRegs::kInternalRegisters |
       STCInternalRegs::kInternalRegisters | (1 << kSubtypeTestCacheReg) |
       (1 << kScratchReg) | (1 << kSubtypeTestCacheResultReg) | (1 << CODE_REG);
 
-  static const intptr_t kAbiRegisters =
+  static constexpr intptr_t kAbiRegisters =
       kPreservedAbiRegisters | kNonPreservedAbiRegisters;
 };
 
 // Calling convention when calling AssertSubtypeStub.
 struct AssertSubtypeABI {
-  static const Register kSubTypeReg = R0;
-  static const Register kSuperTypeReg = R8;
-  static const Register kInstantiatorTypeArgumentsReg = R2;
-  static const Register kFunctionTypeArgumentsReg = R1;
-  static const Register kDstNameReg = R3;
+  static constexpr Register kSubTypeReg = R0;
+  static constexpr Register kSuperTypeReg = R8;
+  static constexpr Register kInstantiatorTypeArgumentsReg = R2;
+  static constexpr Register kFunctionTypeArgumentsReg = R1;
+  static constexpr Register kDstNameReg = R3;
 
-  static const intptr_t kAbiRegisters =
+  static constexpr intptr_t kAbiRegisters =
       (1 << kSubTypeReg) | (1 << kSuperTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
       (1 << kDstNameReg);
@@ -279,183 +279,183 @@ struct AssertSubtypeABI {
 
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
-  static const Register kFieldReg = R2;
-  static const Register kResultReg = R0;
+  static constexpr Register kFieldReg = R2;
+  static constexpr Register kResultReg = R0;
 };
 
 // Registers used inside the implementation of InitLateStaticFieldStub.
 struct InitLateStaticFieldInternalRegs {
-  static const Register kAddressReg = R3;
-  static const Register kScratchReg = R4;
+  static constexpr Register kAddressReg = R3;
+  static constexpr Register kScratchReg = R4;
 };
 
 // ABI for InitInstanceFieldStub.
 struct InitInstanceFieldABI {
-  static const Register kInstanceReg = R1;
-  static const Register kFieldReg = R2;
-  static const Register kResultReg = R0;
+  static constexpr Register kInstanceReg = R1;
+  static constexpr Register kFieldReg = R2;
+  static constexpr Register kResultReg = R0;
 };
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
-  static const Register kAddressReg = R3;
-  static const Register kScratchReg = R4;
+  static constexpr Register kAddressReg = R3;
+  static constexpr Register kScratchReg = R4;
 };
 
 // ABI for LateInitializationError stubs.
 struct LateInitializationErrorABI {
-  static const Register kFieldReg = R9;
+  static constexpr Register kFieldReg = R9;
 };
 
 // ABI for ThrowStub.
 struct ThrowABI {
-  static const Register kExceptionReg = R0;
+  static constexpr Register kExceptionReg = R0;
 };
 
 // ABI for ReThrowStub.
 struct ReThrowABI {
-  static const Register kExceptionReg = R0;
-  static const Register kStackTraceReg = R1;
+  static constexpr Register kExceptionReg = R0;
+  static constexpr Register kStackTraceReg = R1;
 };
 
 // ABI for AssertBooleanStub.
 struct AssertBooleanABI {
-  static const Register kObjectReg = R0;
+  static constexpr Register kObjectReg = R0;
 };
 
 // ABI for RangeErrorStub.
 struct RangeErrorABI {
-  static const Register kLengthReg = R0;
-  static const Register kIndexReg = R1;
+  static constexpr Register kLengthReg = R0;
+  static constexpr Register kIndexReg = R1;
 };
 
 // ABI for AllocateObjectStub.
 struct AllocateObjectABI {
-  static const Register kResultReg = R0;
-  static const Register kTypeArgumentsReg = R1;
-  static const Register kTagsReg = R2;
+  static constexpr Register kResultReg = R0;
+  static constexpr Register kTypeArgumentsReg = R1;
+  static constexpr Register kTagsReg = R2;
 };
 
 // ABI for AllocateClosureStub.
 struct AllocateClosureABI {
-  static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kFunctionReg = R1;
-  static const Register kContextReg = R2;
-  static const Register kScratchReg = R4;
+  static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
+  static constexpr Register kFunctionReg = R1;
+  static constexpr Register kContextReg = R2;
+  static constexpr Register kScratchReg = R4;
 };
 
 // ABI for AllocateMintShared*Stub.
 struct AllocateMintABI {
-  static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kTempReg = R1;
+  static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
+  static constexpr Register kTempReg = R1;
 };
 
 // ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
 struct AllocateBoxABI {
-  static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kTempReg = R1;
+  static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
+  static constexpr Register kTempReg = R1;
 };
 
 // ABI for AllocateArrayStub.
 struct AllocateArrayABI {
-  static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kLengthReg = R2;
-  static const Register kTypeArgumentsReg = R1;
+  static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
+  static constexpr Register kLengthReg = R2;
+  static constexpr Register kTypeArgumentsReg = R1;
 };
 
 // ABI for AllocateRecordStub.
 struct AllocateRecordABI {
-  static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kShapeReg = R1;
-  static const Register kTemp1Reg = R2;
-  static const Register kTemp2Reg = R3;
+  static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
+  static constexpr Register kShapeReg = R1;
+  static constexpr Register kTemp1Reg = R2;
+  static constexpr Register kTemp2Reg = R3;
 };
 
 // ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
 // AllocateRecord3, AllocateRecord3Named).
 struct AllocateSmallRecordABI {
-  static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kShapeReg = R1;
-  static const Register kValue0Reg = R2;
-  static const Register kValue1Reg = R3;
-  static const Register kValue2Reg = R4;
-  static const Register kTempReg = R5;
+  static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
+  static constexpr Register kShapeReg = R1;
+  static constexpr Register kValue0Reg = R2;
+  static constexpr Register kValue1Reg = R3;
+  static constexpr Register kValue2Reg = R4;
+  static constexpr Register kTempReg = R5;
 };
 
 // ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
-  static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kLengthReg = R4;
+  static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
+  static constexpr Register kLengthReg = R4;
 };
 
 // ABI for BoxDoubleStub.
 struct BoxDoubleStubABI {
-  static const FpuRegister kValueReg = V0;
-  static const Register kTempReg = R1;
-  static const Register kResultReg = R0;
+  static constexpr FpuRegister kValueReg = V0;
+  static constexpr Register kTempReg = R1;
+  static constexpr Register kResultReg = R0;
 };
 
 // ABI for DoubleToIntegerStub.
 struct DoubleToIntegerStubABI {
-  static const FpuRegister kInputReg = V0;
-  static const Register kRecognizedKindReg = R0;
-  static const Register kResultReg = R0;
+  static constexpr FpuRegister kInputReg = V0;
+  static constexpr Register kRecognizedKindReg = R0;
+  static constexpr Register kResultReg = R0;
 };
 
 // ABI for SuspendStub (AwaitStub, AwaitWithTypeCheckStub, YieldAsyncStarStub,
 // SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
-  static const Register kArgumentReg = R0;
-  static const Register kTypeArgsReg = R1;  // Can be the same as kTempReg
-  static const Register kTempReg = R1;
-  static const Register kFrameSizeReg = R2;
-  static const Register kSuspendStateReg = R3;
-  static const Register kFunctionDataReg = R4;
-  static const Register kSrcFrameReg = R5;
-  static const Register kDstFrameReg = R6;
+  static constexpr Register kArgumentReg = R0;
+  static constexpr Register kTypeArgsReg = R1;  // Can be the same as kTempReg
+  static constexpr Register kTempReg = R1;
+  static constexpr Register kFrameSizeReg = R2;
+  static constexpr Register kSuspendStateReg = R3;
+  static constexpr Register kFunctionDataReg = R4;
+  static constexpr Register kSrcFrameReg = R5;
+  static constexpr Register kDstFrameReg = R6;
 };
 
 // ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub,
 // InitSyncStarStub).
 struct InitSuspendableFunctionStubABI {
-  static const Register kTypeArgsReg = R0;
+  static constexpr Register kTypeArgsReg = R0;
 };
 
 // ABI for ResumeStub
 struct ResumeStubABI {
-  static const Register kSuspendStateReg = R2;
-  static const Register kTempReg = R0;
+  static constexpr Register kSuspendStateReg = R2;
+  static constexpr Register kTempReg = R0;
   // Registers for the frame copying (the 1st part).
-  static const Register kFrameSizeReg = R1;
-  static const Register kSrcFrameReg = R3;
-  static const Register kDstFrameReg = R4;
+  static constexpr Register kFrameSizeReg = R1;
+  static constexpr Register kSrcFrameReg = R3;
+  static constexpr Register kDstFrameReg = R4;
   // Registers for control transfer.
   // (the 2nd part, can reuse registers from the 1st part)
-  static const Register kResumePcReg = R1;
+  static constexpr Register kResumePcReg = R1;
   // Can also reuse kSuspendStateReg but should not conflict with CODE_REG/PP.
-  static const Register kExceptionReg = R3;
-  static const Register kStackTraceReg = R4;
+  static constexpr Register kExceptionReg = R3;
+  static constexpr Register kStackTraceReg = R4;
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
 // ReturnAsyncStarStub).
 struct ReturnStubABI {
-  static const Register kSuspendStateReg = R2;
+  static constexpr Register kSuspendStateReg = R2;
 };
 
 // ABI for AsyncExceptionHandlerStub.
 struct AsyncExceptionHandlerStubABI {
-  static const Register kSuspendStateReg = R2;
+  static constexpr Register kSuspendStateReg = R2;
 };
 
 // ABI for CloneSuspendStateStub.
 struct CloneSuspendStateStubABI {
-  static const Register kSourceReg = R0;
-  static const Register kDestinationReg = R1;
-  static const Register kTempReg = R2;
-  static const Register kFrameSizeReg = R3;
-  static const Register kSrcFrameReg = R4;
-  static const Register kDstFrameReg = R5;
+  static constexpr Register kSourceReg = R0;
+  static constexpr Register kDestinationReg = R1;
+  static constexpr Register kTempReg = R2;
+  static constexpr Register kFrameSizeReg = R3;
+  static constexpr Register kSrcFrameReg = R4;
+  static constexpr Register kDstFrameReg = R5;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
@@ -463,7 +463,7 @@ struct CloneSuspendStateStubABI {
 // register). This ABI is added to distinguish memory corruption errors from
 // null errors.
 struct DispatchTableNullErrorABI {
-  static const Register kClassIdReg = R0;
+  static constexpr Register kClassIdReg = R0;
 };
 
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
@@ -546,21 +546,21 @@ constexpr int kStoreBufferWrapperSize = 32;
 
 class CallingConventions {
  public:
-  static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
+  static constexpr intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
   static const Register ArgumentRegisters[];
-  static const intptr_t kNumArgRegs = 8;
+  static constexpr intptr_t kNumArgRegs = 8;
   // The native ABI uses R8 to pass the pointer to the memory preallocated for
   // struct return values. Arm64 is the only ABI in which this pointer is _not_
   // in ArgumentRegisters[0] or on the stack.
-  static const Register kPointerToReturnStructRegisterCall = R8;
-  static const Register kPointerToReturnStructRegisterReturn = R8;
+  static constexpr Register kPointerToReturnStructRegisterCall = R8;
+  static constexpr Register kPointerToReturnStructRegisterReturn = R8;
 
   static const FpuRegister FpuArgumentRegisters[];
-  static const intptr_t kFpuArgumentRegisters =
+  static constexpr intptr_t kFpuArgumentRegisters =
       R(V0) | R(V1) | R(V2) | R(V3) | R(V4) | R(V5) | R(V6) | R(V7);
-  static const intptr_t kNumFpuArgRegs = 8;
+  static constexpr intptr_t kNumFpuArgRegs = 8;
 
-  static const bool kArgumentIntRegXorFpuReg = false;
+  static constexpr bool kArgumentIntRegXorFpuReg = false;
 
   static constexpr intptr_t kCalleeSaveCpuRegisters = kAbiPreservedCpuRegs;
 
@@ -1311,25 +1311,26 @@ class Instr {
 
   enum class WideSize { k32Bits, k64Bits };
 
-  static const int32_t kNopInstruction = HINT;  // hint #0 === nop.
+  static constexpr int32_t kNopInstruction = HINT;  // hint #0 === nop.
 
   // Reserved brk and hlt instruction codes.
-  static const int32_t kBreakPointCode = 0xdeb0;      // For breakpoint.
-  static const int32_t kSimulatorBreakCode = 0xdeb2;  // For breakpoint in sim.
-  static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
+  static constexpr int32_t kBreakPointCode = 0xdeb0;  // For breakpoint.
+  static constexpr int32_t kSimulatorBreakCode =
+      0xdeb2;  // For breakpoint in sim.
+  static constexpr int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
 
   // Breakpoint instruction filling assembler code buffers in debug mode.
-  static const int32_t kBreakPointInstruction =  // brk(0xdeb0).
+  static constexpr int32_t kBreakPointInstruction =  // brk(0xdeb0).
       BRK | (kBreakPointCode << kImm16Shift);
 
   // Breakpoint instruction used by the simulator.
   // Should be distinct from kBreakPointInstruction and from a typical user
   // breakpoint inserted in generated code for debugging, e.g. brk(0).
-  static const int32_t kSimulatorBreakpointInstruction =
+  static constexpr int32_t kSimulatorBreakpointInstruction =
       HLT | (kSimulatorBreakCode << kImm16Shift);
 
   // Runtime call redirection instruction used by the simulator.
-  static const int32_t kSimulatorRedirectInstruction =
+  static constexpr int32_t kSimulatorRedirectInstruction =
       HLT | (kSimulatorRedirectCode << kImm16Shift);
 
   // Read one particular bit out of the instruction bits.

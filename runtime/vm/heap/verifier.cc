@@ -52,13 +52,14 @@ void VerifyPointersVisitor::VisitPointers(ObjectPtr* from, ObjectPtr* to) {
             allocated_set_->Contains(Page::ToWritable(obj))) {
           continue;
         }
-        FATAL("Invalid pointer: *0x%" Px " = 0x%" Px "\n",
+        FATAL("%s: Invalid pointer: *0x%" Px " = 0x%" Px "\n", msg_,
               reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
       }
     }
   }
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void VerifyPointersVisitor::VisitCompressedPointers(uword heap_base,
                                                     CompressedObjectPtr* from,
                                                     CompressedObjectPtr* to) {
@@ -70,12 +71,13 @@ void VerifyPointersVisitor::VisitCompressedPointers(uword heap_base,
             allocated_set_->Contains(Page::ToWritable(obj))) {
           continue;
         }
-        FATAL("Invalid pointer: *0x%" Px " = 0x%" Px "\n",
+        FATAL("%s: Invalid pointer: *0x%" Px " = 0x%" Px "\n", msg_,
               reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
       }
     }
   }
 }
+#endif
 
 void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
   FinalizablePersistentHandle* handle =
@@ -84,7 +86,8 @@ void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
   visitor_->VisitPointer(&raw_obj);
 }
 
-void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
+void VerifyPointersVisitor::VerifyPointers(const char* msg,
+                                           MarkExpectation mark_expectation) {
   Thread* thread = Thread::Current();
   auto isolate_group = thread->isolate_group();
   HeapIterationScope iteration(thread);
@@ -92,7 +95,7 @@ void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
   ObjectSet* allocated_set = isolate_group->heap()->CreateAllocatedObjectSet(
       stack_zone.GetZone(), mark_expectation);
 
-  VerifyPointersVisitor visitor(isolate_group, allocated_set);
+  VerifyPointersVisitor visitor(isolate_group, allocated_set, msg);
   // Visit all strongly reachable objects.
   iteration.IterateObjectPointers(&visitor, ValidationPolicy::kValidateFrames);
   VerifyWeakPointersVisitor weak_visitor(&visitor);

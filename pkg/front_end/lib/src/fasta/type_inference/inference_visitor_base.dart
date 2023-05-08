@@ -1373,7 +1373,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     ObjectAccessTarget target =
         objectAccessDescriptor.findNonExtensionTarget(this);
-    if (instrumented &&
+    if (instrumentation != null &&
+        instrumented &&
         receiverBound != const DynamicType() &&
         (target.isInstanceMember || target.isObjectMember)) {
       instrumentation?.record(uriForInstrumentation, fileOffset, 'target',
@@ -2132,8 +2133,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             inferredTypes;
       }
     }
-    List<DartType> positionalArgumentTypes = [];
-    List<NamedType> namedArgumentTypes = [];
     if (!identical(calleeType, unknownFunction)) {
       LocatedMessage? argMessage = helper.checkArgumentsForType(
           calleeType, arguments, offset,
@@ -2163,13 +2162,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           bool coerceExpression;
           if (i < numPositionalArgs) {
             expression = arguments.positional[positionalShift + i];
-            positionalArgumentTypes.add(actualType);
             coerceExpression = !arguments.positionalAreSuperParameters;
           } else {
             namedExpression = arguments.named[i - numPositionalArgs];
             expression = namedExpression.value;
-            namedArgumentTypes
-                .add(new NamedType(namedExpression.name, actualType));
             coerceExpression = !(arguments.namedSuperParameterNames
                     ?.contains(namedExpression.name) ??
                 false);

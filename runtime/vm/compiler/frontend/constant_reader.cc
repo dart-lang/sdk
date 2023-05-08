@@ -315,9 +315,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       AbstractType& type = type_translator.BuildType();
       type_arguments.SetTypeAt(0, type);
       // Instantiate class.
-      type = Type::New(list_class, type_arguments);
-      type = ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
-      type_arguments = type.arguments();
+      type_arguments =
+          list_class.GetInstanceTypeArguments(H.thread(), type_arguments);
       // Fill array with constant elements.
       const intptr_t length = reader.ReadUInt();
       const Array& array =
@@ -354,9 +353,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       type_arguments.SetTypeAt(1, type);
 
       // Instantiate class.
-      type = Type::New(map_class, type_arguments);
-      type = ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
-      type_arguments = type.arguments();
+      type_arguments =
+          map_class.GetInstanceTypeArguments(H.thread(), type_arguments);
 
       // Fill map with constant elements.
       const auto& map = Map::Handle(Z, ConstMap::NewUninitialized(Heap::kOld));
@@ -445,9 +443,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       type_arguments.SetTypeAt(0, type);
 
       // Instantiate class.
-      type = Type::New(set_class, type_arguments);
-      type = ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
-      type_arguments = type.arguments();
+      type_arguments =
+          set_class.GetInstanceTypeArguments(H.thread(), type_arguments);
 
       // Fill set with constant elements.
       const auto& set = Set::Handle(Z, ConstSet::NewUninitialized(Heap::kOld));
@@ -503,10 +500,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
           type_arguments.SetTypeAt(j, type_translator.BuildType());
         }
         // Instantiate class.
-        auto& type = AbstractType::Handle(Z, Type::New(klass, type_arguments));
-        type =
-            ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
-        type_arguments = type.arguments();
+        type_arguments =
+            klass.GetInstanceTypeArguments(H.thread(), type_arguments);
         instance.SetTypeArguments(type_arguments);
       } else {
         ASSERT(number_of_type_arguments == 0);
@@ -546,7 +541,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
         type_arguments.SetTypeAt(j, type_translator.BuildType());
       }
-      type_arguments = type_arguments.Canonicalize(Thread::Current(), nullptr);
+      type_arguments = type_arguments.Canonicalize(Thread::Current());
       // Make a copy of the old closure, and set delayed type arguments.
       Closure& closure = Closure::Handle(Z, Closure::RawCast(constant.ptr()));
       Function& function = Function::Handle(Z, closure.function());

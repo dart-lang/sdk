@@ -94,7 +94,6 @@ class Flags {
   static const String suppressWarnings = '--suppress-warnings';
   static const String terse = '--terse';
   static const String testMode = '--test-mode';
-  static const String experimentalInferrer = '--experimental-inferrer';
   static const String trustPrimitives = '--trust-primitives';
   static const String trustTypeAnnotations = '--trust-type-annotations';
   static const String trustJSInteropTypeAnnotations =
@@ -189,6 +188,9 @@ class Flags {
   static const String resolveOnly = '--resolve-only';
 
   static const String cfeConstants = '--cfe-constants';
+
+  static const String disableDiagnosticByteCache =
+      '--disable-diagnostic-byte-cache';
 
   // `--no-shipping` and `--canary` control sets of flags. For simplicity, these
   // flags live in options.dart.

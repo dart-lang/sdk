@@ -94,6 +94,8 @@ class AstBinaryReader {
         return _readIfElement();
       case Tag.ImplicitCallReference:
         return _readImplicitCallReference();
+      case Tag.ImportPrefixReference:
+        return _readImportPrefixReference();
       case Tag.IndexExpression:
         return _readIndexExpression();
       case Tag.IntegerLiteralNegative1:
@@ -654,11 +656,11 @@ class AstBinaryReader {
   }
 
   IfElement _readIfElement() {
-    var condition = readNode() as ExpressionImpl;
+    var expression = readNode() as ExpressionImpl;
     var thenElement = readNode() as CollectionElementImpl;
     var elseElement = _readOptionalNode() as CollectionElementImpl?;
     return IfElementImpl(
-      condition: condition,
+      expression: expression,
       caseClause: null,
       elseElement: elseElement,
       elseKeyword: elseElement != null ? Tokens.else_() : null,
@@ -682,6 +684,17 @@ class AstBinaryReader {
       typeArgumentTypes: typeArgumentTypes,
     );
     _readExpressionResolution(node);
+    return node;
+  }
+
+  ImportPrefixReferenceImpl _readImportPrefixReference() {
+    var name = _readStringReference();
+
+    var node = ImportPrefixReferenceImpl(
+      name: StringToken(TokenType.STRING, name, -1),
+      period: Tokens.period(),
+    );
+    node.element = _reader.readElement();
     return node;
   }
 
@@ -889,14 +902,17 @@ class AstBinaryReader {
 
   NamedType _readNamedType() {
     var flags = _readByte();
-    var name = readNode() as IdentifierImpl;
+    var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
+    var name = _readStringReference();
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
 
     var node = NamedTypeImpl(
-      name: name,
+      importPrefix: importPrefix,
+      name2: StringToken(TokenType.STRING, name, -1),
       typeArguments: typeArguments,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
     );
+    node.element = _reader.readElement();
     node.type = _reader.readType();
     return node;
   }

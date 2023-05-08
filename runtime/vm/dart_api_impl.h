@@ -11,7 +11,6 @@
 #include "vm/heap/safepoint.h"
 #include "vm/native_arguments.h"
 #include "vm/object.h"
-#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 
 namespace dart {
@@ -28,10 +27,10 @@ const char* CanonicalFunction(const char* func);
 
 #define CURRENT_FUNC CanonicalFunction(__FUNCTION__)
 
-// Checks that the current isolate group is not NULL.
+// Checks that the current isolate group is not nullptr.
 #define CHECK_ISOLATE_GROUP(isolate_group)                                     \
   do {                                                                         \
-    if ((isolate_group) == NULL) {                                             \
+    if ((isolate_group) == nullptr) {                                          \
       FATAL(                                                                   \
           "%s expects there to be a current isolate group. Did you "           \
           "forget to call Dart_CreateIsolateGroup or Dart_EnterIsolate?",      \
@@ -39,10 +38,10 @@ const char* CanonicalFunction(const char* func);
     }                                                                          \
   } while (0)
 
-// Checks that the current isolate is not NULL.
+// Checks that the current isolate is not nullptr.
 #define CHECK_ISOLATE(isolate)                                                 \
   do {                                                                         \
-    if ((isolate) == NULL) {                                                   \
+    if ((isolate) == nullptr) {                                                \
       FATAL(                                                                   \
           "%s expects there to be a current isolate. Did you "                 \
           "forget to call Dart_CreateIsolateGroup or Dart_EnterIsolate?",      \
@@ -50,10 +49,10 @@ const char* CanonicalFunction(const char* func);
     }                                                                          \
   } while (0)
 
-// Checks that the current isolate is NULL.
+// Checks that the current isolate is nullptr.
 #define CHECK_NO_ISOLATE(isolate)                                              \
   do {                                                                         \
-    if ((isolate) != NULL) {                                                   \
+    if ((isolate) != nullptr) {                                                \
       FATAL(                                                                   \
           "%s expects there to be no current isolate. Did you "                \
           "forget to call Dart_ExitIsolate?",                                  \
@@ -61,13 +60,13 @@ const char* CanonicalFunction(const char* func);
     }                                                                          \
   } while (0)
 
-// Checks that the current isolate is not NULL and that it has an API scope.
+// Checks that the current isolate is not nullptr and that it has an API scope.
 #define CHECK_API_SCOPE(thread)                                                \
   do {                                                                         \
     Thread* tmpT = (thread);                                                   \
-    Isolate* tmpI = tmpT == NULL ? NULL : tmpT->isolate();                     \
+    Isolate* tmpI = tmpT == nullptr ? nullptr : tmpT->isolate();               \
     CHECK_ISOLATE(tmpI);                                                       \
-    if (tmpT->api_top_scope() == NULL) {                                       \
+    if (tmpT->api_top_scope() == nullptr) {                                    \
       FATAL(                                                                   \
           "%s expects to find a current scope. Did you forget to call "        \
           "Dart_EnterScope?",                                                  \
@@ -100,7 +99,7 @@ const char* CanonicalFunction(const char* func);
                        CURRENT_FUNC, #parameter)
 
 #define CHECK_NULL(parameter)                                                  \
-  if (parameter == NULL) {                                                     \
+  if (parameter == nullptr) {                                                  \
     RETURN_NULL_ERROR(parameter);                                              \
   }
 
@@ -244,7 +243,7 @@ class Api : AllStatic {
   }
 
   static bool IsProtectedHandle(Dart_Handle object) {
-    if (object == NULL) return false;
+    if (object == nullptr) return false;
     return (object == true_handle_) || (object == false_handle_) ||
            (object == null_handle_) || (object == empty_string_handle_) ||
            (object == no_callbacks_error_handle_) ||

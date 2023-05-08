@@ -160,6 +160,8 @@ mixin KernelNodes {
       "dart:collection", "_HashAbstractImmutableBase", "get:_indexNullable");
 
   // dart:core various procedures
+  late final Procedure objectHashCode =
+      index.getProcedure("dart:core", "Object", "get:hashCode");
   late final Procedure objectNoSuchMethod =
       index.getProcedure("dart:core", "Object", "noSuchMethod");
   late final Procedure objectGetTypeArguments =

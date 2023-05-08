@@ -15,7 +15,6 @@
 #include "vm/object.h"
 #include "vm/service.h"
 #include "vm/service_event.h"
-#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 
 namespace dart {
@@ -29,20 +28,20 @@ JSONStream::JSONStream(intptr_t buf_size)
       default_id_zone_(),
       id_zone_(&default_id_zone_),
       reply_port_(ILLEGAL_PORT),
-      seq_(NULL),
-      parameter_keys_(NULL),
-      parameter_values_(NULL),
+      seq_(nullptr),
+      parameter_keys_(nullptr),
+      parameter_values_(nullptr),
       method_(""),
-      param_keys_(NULL),
-      param_values_(NULL),
+      param_keys_(nullptr),
+      param_values_(nullptr),
       num_params_(0),
       offset_(0),
       count_(-1),
       include_private_members_(true),
       ignore_object_depth_(0) {
-  ObjectIdRing* ring = NULL;
+  ObjectIdRing* ring = nullptr;
   Isolate* isolate = Isolate::Current();
-  if (isolate != NULL) {
+  if (isolate != nullptr) {
     ring = isolate->EnsureObjectIdRing();
   }
   default_id_zone_.Init(ring, ObjectIdRing::kAllocateId);
@@ -83,7 +82,7 @@ void JSONStream::Setup(Zone* zone,
 
   if (FLAG_trace_service) {
     Isolate* isolate = Isolate::Current();
-    ASSERT(isolate != NULL);
+    ASSERT(isolate != nullptr);
     int64_t main_port = static_cast<int64_t>(isolate->main_port());
     const char* isolate_name = isolate->name();
     setup_time_micros_ = OS::GetCurrentTimeMicros();
@@ -169,10 +168,10 @@ void JSONStream::PrintError(intptr_t code, const char* details_format, ...) {
   {
     JSONObject data(&jsobj, "data");
     PrintRequest(&data, this);
-    if (details_format != NULL) {
+    if (details_format != nullptr) {
       va_list measure_args;
       va_start(measure_args, details_format);
-      intptr_t len = Utils::VSNPrint(NULL, 0, details_format, measure_args);
+      intptr_t len = Utils::VSNPrint(nullptr, 0, details_format, measure_args);
       va_end(measure_args);
 
       char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
@@ -195,7 +194,7 @@ static void Finalizer(void* isolate_callback_data, void* buffer) {
 }
 
 void JSONStream::PostReply() {
-  ASSERT(seq_ != NULL);
+  ASSERT(seq_ != nullptr);
   Dart_Port port = reply_port();
   set_reply_port(ILLEGAL_PORT);  // Prevent double replies.
   if (seq_->IsString()) {
@@ -253,7 +252,7 @@ void JSONStream::PostReply() {
 
   if (FLAG_trace_service) {
     Isolate* isolate = Isolate::Current();
-    ASSERT(isolate != NULL);
+    ASSERT(isolate != nullptr);
     int64_t main_port = static_cast<int64_t>(isolate->main_port());
     const char* isolate_name = isolate->name();
     int64_t total_time = OS::GetCurrentTimeMicros() - setup_time_micros_;
@@ -277,19 +276,19 @@ const char* JSONStream::LookupParam(const char* key) const {
       return param_values_[i];
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 bool JSONStream::HasParam(const char* key) const {
   ASSERT(key);
-  return LookupParam(key) != NULL;
+  return LookupParam(key) != nullptr;
 }
 
 bool JSONStream::ParamIs(const char* key, const char* value) const {
   ASSERT(key);
   ASSERT(value);
   const char* key_value = LookupParam(key);
-  return (key_value != NULL) && (strcmp(key_value, value) == 0);
+  return (key_value != nullptr) && (strcmp(key_value, value) == 0);
 }
 
 void JSONStream::ComputeOffsetAndCount(intptr_t length,
@@ -370,7 +369,7 @@ void JSONStream::PrintValueVM(bool ref) {
 }
 
 void JSONStream::PrintServiceId(const Object& o) {
-  ASSERT(id_zone_ != NULL);
+  ASSERT(id_zone_ != nullptr);
   PrintProperty("id", id_zone_->GetServiceId(o));
 }
 
@@ -440,11 +439,11 @@ void JSONStream::set_reply_port(Dart_Port port) {
 }
 
 intptr_t JSONStream::NumObjectParameters() const {
-  if (parameter_keys_ == NULL) {
+  if (parameter_keys_ == nullptr) {
     return 0;
   }
-  ASSERT(parameter_keys_ != NULL);
-  ASSERT(parameter_values_ != NULL);
+  ASSERT(parameter_keys_ != nullptr);
+  ASSERT(parameter_values_ != nullptr);
   return parameter_keys_->Length();
 }
 
@@ -593,6 +592,40 @@ void JSONArray::AddValueF(const char* format, ...) const {
   va_start(args, format);
   stream_->VPrintfValue(format, args);
   va_end(args);
+}
+
+void JSONBase64String::AppendBytes(const uint8_t* bytes, intptr_t length) {
+  ASSERT(bytes != nullptr);
+
+  if (num_queued_bytes_ > 0) {
+    while (length > 0) {
+      queued_bytes_[num_queued_bytes_++] = bytes[0];
+      bytes++;
+      length--;
+      if (num_queued_bytes_ == 3) {
+        break;
+      }
+    }
+    if (num_queued_bytes_ < 3) {
+      return;
+    }
+    stream_->AppendBytesInBase64(queued_bytes_, 3);
+    num_queued_bytes_ = 0;
+  }
+
+  intptr_t length_mod_3 = length % 3;
+  intptr_t largest_multiple_of_3_less_than_or_equal_to_length =
+      length - length_mod_3;
+  if (largest_multiple_of_3_less_than_or_equal_to_length > 0) {
+    stream_->AppendBytesInBase64(
+        bytes, largest_multiple_of_3_less_than_or_equal_to_length);
+  }
+
+  for (intptr_t i = 0; i < length_mod_3; ++i) {
+    queued_bytes_[i] =
+        bytes[largest_multiple_of_3_less_than_or_equal_to_length + i];
+  }
+  num_queued_bytes_ = length_mod_3;
 }
 
 #endif  // !PRODUCT

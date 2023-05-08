@@ -114,7 +114,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     if (scopeLookupResult != null) {
       reportDeprecatedExportUseGetter(
         scopeLookupResult: scopeLookupResult,
-        node: node,
+        nameToken: node.token,
       );
     }
   }

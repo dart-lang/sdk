@@ -27,7 +27,7 @@ ISOLATE_UNIT_TEST_CASE(CompileFunction) {
   Dart_Handle library;
   {
     TransitionVMToNative transition(thread);
-    library = TestCase::LoadTestScript(kScriptChars, NULL);
+    library = TestCase::LoadTestScript(kScriptChars, nullptr);
   }
   const Library& lib =
       Library::Handle(Library::RawCast(Api::UnwrapHandle(library)));
@@ -67,7 +67,7 @@ ISOLATE_UNIT_TEST_CASE(OptimizeCompileFunctionOnHelperThread) {
   Dart_Handle library;
   {
     TransitionVMToNative transition(thread);
-    library = TestCase::LoadTestScript(kScriptChars, NULL);
+    library = TestCase::LoadTestScript(kScriptChars, nullptr);
   }
   const Library& lib =
       Library::Handle(Library::RawCast(Api::UnwrapHandle(library)));
@@ -109,7 +109,7 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   Dart_Handle library;
   {
     TransitionVMToNative transition(thread);
-    library = TestCase::LoadTestScript(kScriptChars, NULL);
+    library = TestCase::LoadTestScript(kScriptChars, nullptr);
   }
   const Library& lib =
       Library::Handle(Library::RawCast(Api::UnwrapHandle(library)));
@@ -140,8 +140,8 @@ ISOLATE_UNIT_TEST_CASE(RegenerateAllocStubs) {
   Class& cls = Class::Handle();
   TransitionVMToNative transition(thread);
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 
   {
@@ -156,21 +156,21 @@ ISOLATE_UNIT_TEST_CASE(RegenerateAllocStubs) {
     TransitionNativeToVM transition(thread);
     cls.DisableAllocationStub();
   }
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 
   {
     TransitionNativeToVM transition(thread);
     cls.DisableAllocationStub();
   }
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 
   {
     TransitionNativeToVM transition(thread);
     cls.DisableAllocationStub();
   }
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 }
 
@@ -184,9 +184,9 @@ TEST_CASE(EvalExpression) {
       "}                             \n"
       "makeObj() => new A();         \n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle obj_handle =
-      Dart_Invoke(lib, Dart_NewStringFromCString("makeObj"), 0, NULL);
+      Dart_Invoke(lib, Dart_NewStringFromCString("makeObj"), 0, nullptr);
   EXPECT_VALID(obj_handle);
   TransitionNativeToVM transition(thread);
   const Object& obj = Object::Handle(Api::UnwrapHandle(obj_handle));
@@ -232,7 +232,7 @@ TEST_CASE(EvalExpression) {
 ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
   {  // Initialize an incremental compiler in DFE mode.
     TransitionVMToNative transition(thread);
-    TestCase::LoadTestScript("", NULL);
+    TestCase::LoadTestScript("", nullptr);
   }
   Library& lib = Library::Handle(Library::CoreLibrary());
   const String& expression = String::Handle(
@@ -252,7 +252,7 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
 ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   {  // Initialize an incremental compiler in DFE mode.
     TransitionVMToNative transition(thread);
-    TestCase::LoadTestScript("", NULL);
+    TestCase::LoadTestScript("", nullptr);
   }
   Library& lib = Library::Handle(Library::CoreLibrary());
   const String& expression = String::Handle(String::New("3 + 4"));
@@ -303,9 +303,9 @@ TEST_CASE(ManyClasses) {
   }
   buffer.Printf("}\n");
 
-  Dart_Handle lib = TestCase::LoadTestScript(buffer.buffer(), NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer.buffer(), nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 
   EXPECT(IsolateGroup::Current()->class_table()->NumCids() >= kNumClasses);

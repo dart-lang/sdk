@@ -1,0 +1,176 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// NOTE: This is a manually minified version of Perfetto's
+// track_event.proto.
+
+// IMPORTANT: The coresponding .pbzero.h file must be regenerated after
+// any change is made to this file. This can be done by running
+// `dart runtime/vm/protos/tools/compile_perfetto_protos.dart` from the
+// SDK root directory.
+
+syntax = "proto2";
+
+import "protos/perfetto/trace/track_event/debug_annotation.proto";
+
+package perfetto.protos;
+
+// NOTE: Full TrackEvent support in the client lib and chrome is WIP, thus these
+// protos are still subject to change. Don't depend on them staying as they are.
+
+// Trace events emitted by client instrumentation library (TRACE_EVENT macros),
+// which describe activity on a track, such as a thread or asynchronous event
+// track. The track is specified using separate TrackDescriptor messages and
+// referred to via the track's UUID.
+//
+// A simple TrackEvent packet specifies a timestamp, category, name and type:
+// ```protobuf
+//   trace_packet {
+//     timestamp: 1000
+//     track_event {
+//       categories: ["my_cat"]
+//       name: "my_event"
+//       type: TYPE_INSTANT
+//      }
+//    }
+// ```
+//
+// To associate an event with a custom track (e.g. a thread), the track is
+// defined in a separate packet and referred to from the TrackEvent by its UUID:
+// ```protobuf
+//   trace_packet {
+//     track_descriptor {
+//       track_uuid: 1234
+//       name: "my_track"
+//
+//       // Optionally, associate the track with a thread.
+//       thread_descriptor {
+//         pid: 10
+//         tid: 10
+//         ..
+//       }
+//     }
+//   }
+// ```
+//
+// A pair of TYPE_SLICE_BEGIN and _END events form a slice on the track:
+//
+// ```protobuf
+//   trace_packet {
+//     timestamp: 1200
+//     track_event {
+//       track_uuid: 1234
+//       categories: ["my_cat"]
+//       name: "my_slice"
+//       type: TYPE_SLICE_BEGIN
+//     }
+//   }
+//   trace_packet {
+//     timestamp: 1400
+//     track_event {
+//       track_uuid: 1234
+//       type: TYPE_SLICE_END
+//     }
+//   }
+// ```
+// TrackEvents also support optimizations to reduce data repetition and encoded
+// data size, e.g. through data interning (names, categories, ...) and delta
+// encoding of timestamps/counters. For details, see the InternedData message.
+// Further, default values for attributes of events on the same sequence (e.g.
+// their default track association) can be emitted as part of a
+// TrackEventDefaults message.
+//
+// Next reserved id: 13 (up to 15). Next id: 50.
+message TrackEvent {
+  repeated string categories = 22;
+
+  // Optional name of the event for its display in trace viewer. May be left
+  // unspecified for events with typed arguments.
+  //
+  // Note that metrics should not rely on event names, as they are prone to
+  // changing. Instead, they should use typed arguments to identify the events
+  // they are interested in.
+  oneof name_field {
+    // non-interned variant.
+    string name = 23;
+  }
+
+  // TODO(eseckler): Support using binary symbols for category/event names.
+
+  // Type of the TrackEvent (required if |phase| in LegacyEvent is not set).
+  enum Type {
+    // Slice events are events that have a begin and end timestamp, i.e. a
+    // duration. They can be nested similar to a callstack: If, on the same
+    // track, event B begins after event A, but before A ends, B is a child
+    // event of A and will be drawn as a nested event underneath A in the UI.
+    // Note that child events should always end before their parents (e.g. B
+    // before A).
+    //
+    // Each slice event is formed by a pair of BEGIN + END events. The END event
+    // does not need to repeat any TrackEvent fields it has in common with its
+    // corresponding BEGIN event. Arguments and debug annotations of the BEGIN +
+    // END pair will be merged during trace import.
+    //
+    // Note that we deliberately chose not to support COMPLETE events (which
+    // would specify a duration directly) since clients would need to delay
+    // writing them until the slice is completed, which can result in reordered
+    // events in the trace and loss of unfinished events at the end of a trace.
+    TYPE_SLICE_BEGIN = 1;
+    TYPE_SLICE_END = 2;
+
+    // Instant events are nestable events without duration. They can be children
+    // of slice events on the same track.
+    TYPE_INSTANT = 3;
+  }
+  optional Type type = 9;
+
+  // Identifies the track of the event. The default value may be overridden
+  // using TrackEventDefaults, e.g., to specify the track of the TraceWriter's
+  // sequence (in most cases sequence = one thread). If no value is specified
+  // here or in TrackEventDefaults, the TrackEvent will be associated with an
+  // implicit trace-global track (uuid 0). See TrackDescriptor::uuid.
+  optional uint64 track_uuid = 11;
+
+  // IDs of flows originating, passing through, or ending at this event.
+  // Flow IDs are global within a trace.
+  //
+  // A flow connects a sequence of TrackEvents within or across tracks, e.g.
+  // an input event may be handled on one thread but cause another event on
+  // a different thread - a flow between the two events can associate them.
+  //
+  // The direction of the flows between events is inferred from the events'
+  // timestamps. The earliest event with the same flow ID becomes the source
+  // of the flow. Any events thereafter are intermediate steps of the flow,
+  // until the flow terminates at the last event with the flow ID.
+  //
+  // Flows can also be explicitly terminated (see |terminating_flow_ids|), so
+  // that the same ID can later be reused for another flow.
+  repeated fixed64 flow_ids = 47;
+
+  // List of flow ids which should terminate on this event, otherwise same as
+  // |flow_ids|.
+  // Any one flow ID should be either listed as part of |flow_ids| OR
+  // |terminating_flow_ids|, not both.
+  repeated fixed64 terminating_flow_ids = 48;
+
+  // ---------------------------------------------------------------------------
+  // TrackEvent arguments:
+  // ---------------------------------------------------------------------------
+
+  // Unstable key/value annotations shown in the trace viewer but not intended
+  // for metrics use.
+  repeated DebugAnnotation debug_annotations = 4;
+}

@@ -100,10 +100,11 @@ abstract class Declaration {
   Identifier get identifier;
 }
 
-/// Interface for all Declarations which have a surrounding class.
-abstract class ClassMemberDeclaration implements Declaration {
-  /// The class that defines this method.
-  Identifier get definingClass;
+/// Interface for all Declarations which are a member of a surrounding type
+/// declaration.
+abstract class MemberDeclaration implements Declaration {
+  /// The type that defines this member.
+  Identifier get definingType;
 
   /// Whether or not this is a static member.
   bool get isStatic;
@@ -116,7 +117,8 @@ abstract class TypeDeclaration implements Declaration {}
 
 /// A [TypeDeclaration] which may have type parameters.
 ///
-/// See subtypes [ClassDeclaration] and [TypeAliasDeclaration].
+/// See subtypes [ClassDeclaration], [EnumDeclaration], [MixinDeclaration], and
+/// [TypeAliasDeclaration].
 abstract class ParameterizedTypeDeclaration implements TypeDeclaration {
   /// The type parameters defined for this type declaration.
   Iterable<TypeParameterDeclaration> get typeParameters;
@@ -127,6 +129,9 @@ abstract class ParameterizedTypeDeclaration implements TypeDeclaration {
 /// All type declarations which can have members will have a variant which
 /// implements this type.
 abstract class IntrospectableType implements TypeDeclaration {}
+
+/// A marker interface for the enum declarations which are introspectable.
+abstract class IntrospectableEnum implements IntrospectableType {}
 
 /// Class introspection information.
 ///
@@ -168,6 +173,50 @@ abstract class ClassDeclaration implements ParameterizedTypeDeclaration {
 abstract class IntrospectableClassDeclaration
     implements ClassDeclaration, IntrospectableType {}
 
+/// Enum introspection information.
+///
+/// Information about values, fields, methods, and constructors must be
+/// retrieved from the `builder` objects.
+abstract class EnumDeclaration implements ParameterizedTypeDeclaration {
+  /// All the `implements` type annotations.
+  Iterable<NamedTypeAnnotation> get interfaces;
+
+  /// All the `with` type annotations.
+  Iterable<NamedTypeAnnotation> get mixins;
+}
+
+/// Enum entry introspection information.
+///
+/// TODO(https://github.com/dart-lang/language/issues/1930): Design
+/// introspection API for the values of these (or decide not to).
+abstract class EnumValueDeclaration implements Declaration {
+  /// The enum that surrounds this entry.
+  Identifier get definingEnum;
+}
+
+/// An introspectable enum declaration.
+abstract class IntrospectableEnumDeclaration
+    implements EnumDeclaration, IntrospectableEnum {}
+
+/// Mixin introspection information.
+///
+/// Information about fields and methods must be retrieved from the `builder`
+/// objects.
+abstract class MixinDeclaration implements ParameterizedTypeDeclaration {
+  /// Whether this mixin has a `base` modifier.
+  bool get hasBase;
+
+  /// All the `implements` type annotations.
+  Iterable<NamedTypeAnnotation> get interfaces;
+
+  /// All the `on` clause type annotations.
+  Iterable<NamedTypeAnnotation> get superclassConstraints;
+}
+
+/// An introspectable mixin declaration.
+abstract class IntrospectableMixinDeclaration
+    implements MixinDeclaration, IntrospectableType {}
+
 /// Type alias introspection information.
 abstract class TypeAliasDeclaration implements ParameterizedTypeDeclaration {
   /// The type annotation this is an alias for.
@@ -206,7 +255,7 @@ abstract class FunctionDeclaration implements Declaration {
 
 /// Method introspection information.
 abstract class MethodDeclaration
-    implements FunctionDeclaration, ClassMemberDeclaration {}
+    implements FunctionDeclaration, MemberDeclaration {}
 
 /// Constructor introspection information.
 abstract class ConstructorDeclaration implements MethodDeclaration {
@@ -231,7 +280,7 @@ abstract class VariableDeclaration implements Declaration {
 
 /// Field introspection information.
 abstract class FieldDeclaration
-    implements VariableDeclaration, ClassMemberDeclaration {}
+    implements VariableDeclaration, MemberDeclaration {}
 
 /// General parameter introspection information, see the subtypes
 /// [FunctionTypeParameter] and [ParameterDeclaration].

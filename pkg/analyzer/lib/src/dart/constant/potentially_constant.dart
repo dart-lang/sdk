@@ -37,6 +37,17 @@ bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
   return _ConstantTypeChecker(potentially: true).check(node);
 }
 
+bool _isConstantNamedType(NamedType node) {
+  final element = node.element;
+  if (element is InterfaceElement || element is TypeAliasElement) {
+    if (node.isDeferred) {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
 bool _isConstantTypeName(Identifier name) {
   var element = name.staticElement;
   if (element is InterfaceElement || element is TypeAliasElement) {
@@ -183,7 +194,7 @@ class _Collector {
     }
 
     if (node is IfElement) {
-      collect(node.condition);
+      collect(node.expression);
       collect(node.thenElement);
       if (node.elseElement != null) {
         collect(node.elseElement!);
@@ -392,12 +403,12 @@ class _ConstantTypeChecker {
   bool check(TypeAnnotation? node) {
     if (potentially &&
         node is NamedType &&
-        node.name.staticElement is TypeParameterElement) {
+        node.element is TypeParameterElement) {
       return true;
     }
 
     if (node is NamedType) {
-      if (_isConstantTypeName(node.name)) {
+      if (_isConstantNamedType(node)) {
         var arguments = node.typeArguments?.arguments;
         if (arguments != null) {
           for (var argument in arguments) {

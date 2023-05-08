@@ -347,6 +347,9 @@ class CoreTypes {
   late final Procedure lateInitializeOnceCheck = index.getTopLevelProcedure(
       'dart:_late_helper', '_lateInitializeOnceCheck');
 
+  late final Field enumNameField =
+      index.getField('dart:core', '_Enum', '_name');
+
   InterfaceType get objectLegacyRawType {
     return _objectLegacyRawType ??= _legacyRawTypes[objectClass] ??=
         new InterfaceType(objectClass, Nullability.legacy, const <DartType>[]);

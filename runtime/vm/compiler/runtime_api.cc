@@ -404,6 +404,9 @@ const word UntaggedAbstractType::kNullabilityMask =
 const word UntaggedType::kTypeClassIdShift =
     dart::UntaggedType::kTypeClassIdShift;
 
+const word UntaggedTypeParameter::kIsFunctionTypeParameterBit =
+    dart::UntaggedTypeParameter::kIsFunctionTypeParameterBit;
+
 const word UntaggedObject::kBarrierOverlapShift =
     dart::UntaggedObject::kBarrierOverlapShift;
 

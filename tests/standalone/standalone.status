@@ -19,6 +19,13 @@ io/process_detached_test: Slow, Pass
 
 [ $builder_tag == dwarf ]
 io/socket_connect_stacktrace_test: SkipByDesign # Assumes stacktrace can be inspected directly, without decoding
+stack_trace/full1_test: SkipByDesign # Relies on symbolic stack traces.
+stack_trace/full2_test: SkipByDesign # Relies on symbolic stack traces.
+stack_trace/full3_test: SkipByDesign # Relies on symbolic stack traces.
+stack_trace/rethrow_error_test/none: SkipByDesign # Relies on symbolic stack traces.
+stack_trace/rethrow_error_test/withtraceparameter: SkipByDesign # Relies on symbolic stack traces.
+stack_trace/rethrow_nonerror_test: SkipByDesign # Relies on symbolic stack traces.
+stack_trace/stack_trace_test: SkipByDesign # Relies on symbolic stack traces.
 
 [ $builder_tag != dwarf ]
 io/socket_connect_dwarf_stacktrace_test: SkipByDesign # Is set up to decode dwarf stack traces

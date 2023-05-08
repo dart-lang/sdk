@@ -13,6 +13,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
@@ -176,7 +177,9 @@ class BinaryExpressionResolver {
     var leftType = left.typeOrThrow;
 
     var rightContextType = contextType;
-    if (rightContextType == null || rightContextType.isDynamic) {
+    if (rightContextType == null ||
+        rightContextType is DynamicType ||
+        rightContextType is UnknownInferredType) {
       rightContextType = leftType;
     }
 

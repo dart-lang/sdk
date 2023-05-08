@@ -1341,13 +1341,42 @@ void f() {
     expect(fromPlugin, isNull);
   }
 
+  /// Check that narrowing a type from String? to String in a subclass includes
+  /// the correct narrowed type in the `detail` field.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/4499
+  Future<void> test_getter_barrowedBySubclass() async {
+    final content = '''
+void f(MyItem item) {
+  item.na^
+}
+
+abstract class NullableName {
+  String? get name;
+}
+
+abstract class NotNullableName implements NullableName {
+  @override
+  String get name;
+}
+
+abstract class MyItem implements NotNullableName, NullableName {}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final name = res.singleWhere((c) => c.label == 'name');
+    expect(name.detail, equals('String'));
+  }
+
   Future<void> test_gettersAndSetters() async {
     final content = '''
     class MyClass {
       String get justGetter => '';
-      String set justSetter(String value) {}
+      set justSetter(String value) {}
       String get getterAndSetter => '';
-      String set getterAndSetter(String value) {}
+      set getterAndSetter(String value) {}
     }
 
     void f() {
@@ -2208,6 +2237,41 @@ void f() { }
     expect(res.any((c) => c.label == 'UniqueNamedClassForLspOne'), isTrue);
     expect(res.any((c) => c.label == 'UniqueNamedClassForLspTwo'), isTrue);
     expect(res.any((c) => c.label == 'UniqueNamedClassForLspThree'), isTrue);
+  }
+
+  Future<void> test_setters() async {
+    final content = '''
+    class MyClass {
+      set stringSetter(String a) {}
+      set noArgSetter() {}
+      set multiArgSetter(a, b) {}
+      set functionSetter(String Function(int a, int b) foo) {}
+    }
+
+    void f() {
+      MyClass a;
+      a.^
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final setters = res
+        .where((c) => c.label.endsWith('Setter'))
+        .map((c) => '${c.label} (${c.detail})')
+        .toList();
+    expect(
+      setters,
+      [
+        'stringSetter (String)',
+        'noArgSetter ()',
+        'multiArgSetter ()',
+        // Because of how we extract the type name, we don't currently support
+        // this.
+        'functionSetter ()',
+      ],
+    );
   }
 
   Future<void> test_unimportedSymbols() async {

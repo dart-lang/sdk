@@ -61,7 +61,6 @@ class IsolateGroupReloadContext;
 class IsolateObjectStore;
 class IsolateProfilerData;
 class ProgramReloadContext;
-class ReloadHandler;
 class Log;
 class Message;
 class MessageHandler;
@@ -339,12 +338,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   void RunWithLockedGroup(std::function<void()> fun);
 
-  Monitor* threads_lock() const;
   ThreadRegistry* thread_registry() const { return thread_registry_.get(); }
   SafepointHandler* safepoint_handler() { return safepoint_handler_.get(); }
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ReloadHandler* reload_handler() { return reload_handler_.get(); }
-#endif
 
   void CreateHeap(bool is_vm_isolate, bool is_service_or_kernel_isolate);
   void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
@@ -572,21 +567,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     Thread* thread = Thread::Current();
     return thread == nullptr ? nullptr : thread->isolate_group();
   }
-
-  Thread* ScheduleThreadLocked(MonitorLocker* ml,
-                               Thread* existing_mutator_thread,
-                               bool is_vm_isolate,
-                               bool is_mutator,
-                               bool bypass_safepoint = false);
-  void UnscheduleThreadLocked(MonitorLocker* ml,
-                              Thread* thread,
-                              bool is_mutator,
-                              bool bypass_safepoint = false);
-
-  Thread* ScheduleThread(bool bypass_safepoint = false);
-  void UnscheduleThread(Thread* thread,
-                        bool is_mutator,
-                        bool bypass_safepoint = false);
 
   void IncreaseMutatorCount(Isolate* mutator, bool is_nested_reenter);
   void DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit);
@@ -879,9 +859,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<ThreadRegistry> thread_registry_;
   std::unique_ptr<SafepointHandler> safepoint_handler_;
 
-  NOT_IN_PRODUCT(
-      NOT_IN_PRECOMPILED(std::unique_ptr<ReloadHandler> reload_handler_));
-
   static RwLock* isolate_groups_rwlock_;
   static IntrusiveDList<IsolateGroup>* isolate_groups_;
   static Random* isolate_group_random_;
@@ -1070,6 +1047,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   uint64_t terminate_capability() const { return terminate_capability_; }
 
   void SendInternalLibMessage(LibMsgId msg_id, uint64_t capability);
+  static bool SendInternalLibMessage(Dart_Port main_port,
+                                     LibMsgId msg_id,
+                                     uint64_t capability);
 
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
@@ -1388,10 +1368,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     UpdateIsolateFlagsBit<IsServiceRegisteredBit>(value);
   }
 
-  const DispatchTable* dispatch_table() const {
-    return group()->dispatch_table();
-  }
-
   // Isolate-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
   void FlagsCopyTo(Dart_IsolateFlags* api_flags) const;
@@ -1536,14 +1512,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_registered_service_extension_handlers(
       const GrowableObjectArray& value);
 #endif  // !defined(PRODUCT)
-
-  Thread* ScheduleThread(bool is_mutator,
-                         bool is_nested_reenter,
-                         bool bypass_safepoint);
-  void UnscheduleThread(Thread* thread,
-                        bool is_mutator,
-                        bool is_nested_exit,
-                        bool bypass_safepoint);
 
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).

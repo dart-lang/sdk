@@ -27,7 +27,7 @@ bool ThreadState::ZoneIsOwnedByThread(Zone* zone) const {
 
 bool ThreadState::IsValidZoneHandle(Dart_Handle object) const {
   Zone* zone = this->zone();
-  while (zone != NULL) {
+  while (zone != nullptr) {
     if (zone->handles()->IsValidZoneHandle(reinterpret_cast<uword>(object))) {
       return true;
     }
@@ -39,7 +39,7 @@ bool ThreadState::IsValidZoneHandle(Dart_Handle object) const {
 intptr_t ThreadState::CountZoneHandles() const {
   intptr_t count = 0;
   Zone* zone = this->zone();
-  while (zone != NULL) {
+  while (zone != nullptr) {
     count += zone->handles()->CountZoneHandles();
     zone = zone->previous();
   }
@@ -49,7 +49,7 @@ intptr_t ThreadState::CountZoneHandles() const {
 
 bool ThreadState::IsValidScopedHandle(Dart_Handle object) const {
   Zone* zone = this->zone();
-  while (zone != NULL) {
+  while (zone != nullptr) {
     if (zone->handles()->IsValidScopedHandle(reinterpret_cast<uword>(object))) {
       return true;
     }
@@ -61,7 +61,7 @@ bool ThreadState::IsValidScopedHandle(Dart_Handle object) const {
 intptr_t ThreadState::CountScopedHandles() const {
   intptr_t count = 0;
   Zone* zone = this->zone();
-  while (zone != NULL) {
+  while (zone != nullptr) {
     count += zone->handles()->CountScopedHandles();
     zone = zone->previous();
   }

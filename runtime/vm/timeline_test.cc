@@ -50,12 +50,12 @@ class TimelineTestHelper : public AllStatic {
   static void FakeThreadEvent(TimelineEventBlock* block,
                               intptr_t ftid,
                               const char* label = "fake",
-                              TimelineStream* stream = NULL) {
+                              TimelineStream* stream = nullptr) {
     TimelineEvent* event = block->StartEvent();
-    ASSERT(event != NULL);
+    ASSERT(event != nullptr);
     event->DurationBegin(label);
     event->thread_ = OSThread::ThreadIdFromIntPtr(ftid);
-    if (stream != NULL) {
+    if (stream != nullptr) {
       event->StreamInit(stream);
     }
   }
@@ -68,11 +68,11 @@ class TimelineTestHelper : public AllStatic {
                            const char* label,
                            int64_t start,
                            int64_t end) {
-    ASSERT(recorder != NULL);
+    ASSERT(recorder != nullptr);
     ASSERT(start < end);
-    ASSERT(label != NULL);
+    ASSERT(label != nullptr);
     TimelineEvent* event = recorder->StartEvent();
-    ASSERT(event != NULL);
+    ASSERT(event != nullptr);
     event->Duration(label, start, end);
     event->Complete();
   }
@@ -80,23 +80,23 @@ class TimelineTestHelper : public AllStatic {
   static void FakeBegin(TimelineEventRecorder* recorder,
                         const char* label,
                         int64_t start) {
-    ASSERT(recorder != NULL);
-    ASSERT(label != NULL);
+    ASSERT(recorder != nullptr);
+    ASSERT(label != nullptr);
     ASSERT(start >= 0);
     TimelineEvent* event = recorder->StartEvent();
-    ASSERT(event != NULL);
-    event->Begin(label, start);
+    ASSERT(event != nullptr);
+    event->Begin(label, /*id=*/-1, /*flow_id=*/TimelineEvent::kNoFlowId, start);
     event->Complete();
   }
 
   static void FakeEnd(TimelineEventRecorder* recorder,
                       const char* label,
                       int64_t end) {
-    ASSERT(recorder != NULL);
-    ASSERT(label != NULL);
+    ASSERT(recorder != nullptr);
+    ASSERT(label != nullptr);
     ASSERT(end >= 0);
     TimelineEvent* event = recorder->StartEvent();
-    ASSERT(event != NULL);
+    ASSERT(event != nullptr);
     event->End(label, end);
     event->Complete();
   }
@@ -297,7 +297,7 @@ TEST_CASE(TimelineEventCallbackRecorderBasic) {
   // Create a test stream.
   TimelineStream stream("testStream", "testStream", false, true);
 
-  TimelineEvent* event = NULL;
+  TimelineEvent* event = nullptr;
 
   event = stream.StartEvent();
   EXPECT_EQ(0, override.recorder()->CountFor(TimelineEvent::kDuration));
@@ -347,9 +347,9 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
   TimelineRecorderOverride<TimelineEventRingRecorder> override(recorder);
 
   TimelineEventBlock* block_0 = Timeline::recorder()->GetNewBlock();
-  EXPECT(block_0 != NULL);
+  EXPECT(block_0 != nullptr);
   TimelineEventBlock* block_1 = Timeline::recorder()->GetNewBlock();
-  EXPECT(block_1 != NULL);
+  EXPECT(block_1 != nullptr);
   // Test that we wrapped.
   EXPECT(block_0 == Timeline::recorder()->GetNewBlock());
 
@@ -488,7 +488,7 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
 
   Dart_SetTimelineRecorderCallback(TestTimelineRecorderCallback);
 
-  EXPECT(Dart_SetVMFlags(argc, argv) == NULL);
+  EXPECT(Dart_SetVMFlags(argc, argv) == nullptr);
   Dart_InitializeParams params;
   memset(&params, 0, sizeof(Dart_InitializeParams));
   params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
@@ -498,7 +498,7 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
   params.cleanup_group = TesterState::group_cleanup_callback;
   params.start_kernel_isolate = true;
 
-  EXPECT(Dart_Initialize(&params) == NULL);
+  EXPECT(Dart_Initialize(&params) == nullptr);
   {
     TestIsolateScope scope;
     const char* kScriptChars =
@@ -507,7 +507,7 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
         "  Timeline.startSync('TestEvent', arguments: {'key':'value'});\n"
         "  Timeline.finishSync();\n"
         "}\n";
-    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
     EXPECT_VALID(lib);
 
     expected_isolate = Dart_GetMainPortId();
@@ -517,15 +517,15 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
     saw_begin = false;
     saw_end = false;
 
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
 
     EXPECT(saw_begin);
     EXPECT(saw_end);
   }
-  EXPECT(Dart_Cleanup() == NULL);
+  EXPECT(Dart_Cleanup() == nullptr);
 
-  Dart_SetTimelineRecorderCallback(NULL);
+  Dart_SetTimelineRecorderCallback(nullptr);
 
   delete[] argv;
 }

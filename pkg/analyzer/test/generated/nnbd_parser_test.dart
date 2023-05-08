@@ -97,7 +97,7 @@ main() {
 
     expect(expression.typeArguments!.arguments.length, 1);
     var typeArgument = expression.typeArguments!.arguments.single as NamedType;
-    expect(typeArgument.name.name, "int");
+    expect(typeArgument.name2.lexeme, "int");
 
     expect(expression.argumentList.arguments.length, 1);
     var argument = expression.argumentList.arguments.single as IntegerLiteral;
@@ -398,7 +398,7 @@ class Foo {
     expect(parameter.name!.lexeme, 'o');
     var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
-    expect(type.name.name, 'Object');
+    expect(type.name2.lexeme, 'Object');
 
     expect(constructor.initializers.length, 2);
 
@@ -412,7 +412,7 @@ class Foo {
       expect(identifier.name, 'o');
       var expressionType = expression.type as NamedType;
       expect(expressionType.question!.lexeme, '?');
-      expect(expressionType.name.name, 'String');
+      expect(expressionType.name2.lexeme, 'String');
     }
 
     // y = 0
@@ -444,7 +444,7 @@ class Foo {
     expect(parameter.name!.lexeme, 'o');
     var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
-    expect(type.name.name, 'Object');
+    expect(type.name2.lexeme, 'Object');
 
     expect(constructor.initializers.length, 2);
 
@@ -459,7 +459,7 @@ class Foo {
       expect(identifier.name, 'o');
       var expressionType = condition.type as NamedType;
       expect(expressionType.question!.lexeme, '?');
-      expect(expressionType.name.name, 'String');
+      expect(expressionType.name2.lexeme, 'String');
       var thenExpression = expression.thenExpression as PrefixedIdentifier;
       expect(thenExpression.identifier.name, 'length');
       expect(thenExpression.prefix.name, 'o');
@@ -497,7 +497,7 @@ class Foo {
     expect(parameter.name!.lexeme, 'o');
     var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
-    expect(type.name.name, 'Object');
+    expect(type.name2.lexeme, 'Object');
 
     expect(constructor.initializers.length, 2);
 
@@ -512,7 +512,7 @@ class Foo {
       expect(identifier.name, 'o');
       var expressionType = condition.type as NamedType;
       expect(expressionType.question, isNull);
-      expect(expressionType.name.name, 'String');
+      expect(expressionType.name2.lexeme, 'String');
       var thenExpression = expression.thenExpression as PrefixedIdentifier;
       expect(thenExpression.identifier.name, 'length');
       expect(thenExpression.prefix.name, 'o');

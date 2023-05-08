@@ -166,10 +166,10 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (status != ZX_OK) {
     LOG_ERR("zx_vmo_create(0x%lx) failed: %s\n", size,
             zx_status_get_string(status));
-    return NULL;
+    return nullptr;
   }
 
-  if (name != NULL) {
+  if (name != nullptr) {
     zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
   }
 
@@ -181,7 +181,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
       LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
               zx_status_get_string(status));
       zx_handle_close(vmo);
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -195,7 +195,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     LOG_ERR("zx_vmar_map(%u, 0x%lx, 0x%lx) failed: %s\n", region_options, base,
             size, zx_status_get_string(status));
     zx_handle_close(vmo);
-    return NULL;
+    return nullptr;
   }
   void* region_ptr = reinterpret_cast<void*>(base);
   MemoryRegion region(region_ptr, size);
@@ -214,7 +214,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
               size, zx_status_get_string(status));
       const uword region_base = reinterpret_cast<uword>(region_ptr);
       Unmap(vmar, region_base, region_base + size);
-      return NULL;
+      return nullptr;
     }
     void* alias_ptr = reinterpret_cast<void*>(base);
     ASSERT(region_ptr != alias_ptr);
@@ -263,7 +263,7 @@ bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread == nullptr || thread->IsMutatorThread() ||
+  ASSERT(thread == nullptr || thread->IsDartMutatorThread() ||
          thread->isolate() == nullptr ||
          thread->isolate()->mutator_thread()->IsAtSafepoint());
 #endif

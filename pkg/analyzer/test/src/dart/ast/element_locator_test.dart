@@ -366,12 +366,13 @@ void f(Object? x) {
 
   test_locate_PrefixedIdentifier() async {
     await resolveTestCode(r'''
-import 'dart:core' as core;
-core.int value;
+void f(int a) {
+  a.isEven;
+}
 ''');
-    var node = findNode.prefixed('core.int');
+    var node = findNode.prefixed('a.isEven');
     var element = ElementLocator.locate(node);
-    expect(element, isClassElement);
+    expect(element, isPropertyAccessorElement);
   }
 
   test_locate_PrefixExpression() async {

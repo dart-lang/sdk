@@ -8,6 +8,7 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../reference_from_index.dart';
+import '../verifier.dart';
 import 'changed_structure_notifier.dart';
 
 final List<String> targetNames = targets.keys.toList();
@@ -539,6 +540,9 @@ abstract class Target {
 
   ConstantsBackend get constantsBackend;
 
+  /// Object that defines how AST nodes are verified for this [Target].
+  Verification get verification => const Verification();
+
   /// Returns an [DartLibrarySupport] the defines which, if any, of the
   /// `dart:` libraries supported in the platform, that should not be
   /// considered supported when queried in conditional imports and
@@ -1031,6 +1035,9 @@ class TargetWrapper extends Target {
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) {
     return _target.updateEnvironmentDefines(map);
   }
+
+  @override
+  Verification get verification => _target.verification;
 }
 
 class TestTargetWrapper extends TargetWrapper with TestTargetMixin {

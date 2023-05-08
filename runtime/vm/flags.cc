@@ -75,7 +75,7 @@ FLAG_LIST(PRODUCT_FLAG_MACRO,
 bool Flags::initialized_ = false;
 
 // List of registered flags.
-Flag** Flags::flags_ = NULL;
+Flag** Flags::flags_ = nullptr;
 intptr_t Flags::capacity_ = 0;
 intptr_t Flags::num_flags_ = 0;
 
@@ -124,7 +124,7 @@ class Flag {
         break;
       }
       case kString: {
-        if (*this->charp_ptr_ != NULL) {
+        if (*this->charp_ptr_ != nullptr) {
           OS::Print("%s: '%s' (%s)\n", name_, *this->charp_ptr_, comment_);
         } else {
           OS::Print("%s: (null) (%s)\n", name_, comment_);
@@ -143,7 +143,7 @@ class Flag {
   }
 
   bool IsUnrecognized() const {
-    return (type_ == kBoolean) && (bool_ptr_ == NULL);
+    return (type_ == kBoolean) && (bool_ptr_ == nullptr);
   }
 
   const char* name_;
@@ -173,13 +173,13 @@ Flag* Flags::Lookup(const char* name) {
       return flag;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 bool Flags::IsSet(const char* name) {
   Flag* flag = Lookup(name);
-  return (flag != NULL) && (flag->type_ == Flag::kBoolean) &&
-         (flag->bool_ptr_ != NULL) && (*flag->bool_ptr_ == true);
+  return (flag != nullptr) && (flag->type_ == Flag::kBoolean) &&
+         (flag->bool_ptr_ != nullptr) && (*flag->bool_ptr_ == true);
 }
 
 void Flags::Cleanup() {
@@ -190,7 +190,7 @@ void Flags::Cleanup() {
 void Flags::AddFlag(Flag* flag) {
   ASSERT(!initialized_);
   if (num_flags_ == capacity_) {
-    if (flags_ == NULL) {
+    if (flags_ == nullptr) {
       capacity_ = 256;
       flags_ = new Flag*[capacity_];
     } else {
@@ -212,7 +212,7 @@ bool Flags::Register_bool(bool* addr,
                           bool default_value,
                           const char* comment) {
   Flag* flag = Lookup(name);
-  if (flag != NULL) {
+  if (flag != nullptr) {
     ASSERT(flag->IsUnrecognized());
     return default_value;
   }
@@ -225,7 +225,7 @@ int Flags::Register_int(int* addr,
                         const char* name,
                         int default_value,
                         const char* comment) {
-  ASSERT(Lookup(name) == NULL);
+  ASSERT(Lookup(name) == nullptr);
 
   Flag* flag = new Flag(name, comment, addr, Flag::kInteger);
   AddFlag(flag);
@@ -237,7 +237,7 @@ uint64_t Flags::Register_uint64_t(uint64_t* addr,
                                   const char* name,
                                   uint64_t default_value,
                                   const char* comment) {
-  ASSERT(Lookup(name) == NULL);
+  ASSERT(Lookup(name) == nullptr);
 
   Flag* flag = new Flag(name, comment, addr, Flag::kUint64);
   AddFlag(flag);
@@ -249,7 +249,7 @@ const char* Flags::Register_charp(charp* addr,
                                   const char* name,
                                   const char* default_value,
                                   const char* comment) {
-  ASSERT(Lookup(name) == NULL);
+  ASSERT(Lookup(name) == nullptr);
   Flag* flag = new Flag(name, comment, addr, Flag::kString);
   AddFlag(flag);
   return default_value;
@@ -258,7 +258,7 @@ const char* Flags::Register_charp(charp* addr,
 bool Flags::RegisterFlagHandler(FlagHandler handler,
                                 const char* name,
                                 const char* comment) {
-  ASSERT(Lookup(name) == NULL);
+  ASSERT(Lookup(name) == nullptr);
   Flag* flag = new Flag(name, comment, handler);
   AddFlag(flag);
   return false;
@@ -267,7 +267,7 @@ bool Flags::RegisterFlagHandler(FlagHandler handler,
 bool Flags::RegisterOptionHandler(OptionHandler handler,
                                   const char* name,
                                   const char* comment) {
-  ASSERT(Lookup(name) == NULL);
+  ASSERT(Lookup(name) == nullptr);
   Flag* flag = new Flag(name, comment, handler);
   AddFlag(flag);
   return false;
@@ -302,7 +302,7 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
       break;
     }
     case Flag::kInteger: {
-      char* endptr = NULL;
+      char* endptr = nullptr;
       const intptr_t len = strlen(argument);
       int base = 10;
       if ((len > 2) && (argument[0] == '0') && (argument[1] == 'x')) {
@@ -317,7 +317,7 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
       break;
     }
     case Flag::kUint64: {
-      char* endptr = NULL;
+      char* endptr = nullptr;
       const intptr_t len = strlen(argument);
       int base = 10;
       if ((len > 2) && (argument[0] == '0') && (argument[1] == 'x')) {
@@ -363,7 +363,7 @@ void Flags::Parse(const char* option) {
     equals++;
   }
 
-  const char* argument = NULL;
+  const char* argument = nullptr;
 
   // Determine if this is an option argument.
   if (*equals != '=') {
@@ -395,12 +395,12 @@ void Flags::Parse(const char* option) {
   Normalize(name);
 
   Flag* flag = Flags::Lookup(name);
-  if (flag == NULL) {
+  if (flag == nullptr) {
     // Collect unrecognized flags.
     char* new_flag = new char[name_len + 1];
     strncpy(new_flag, option, name_len);
     new_flag[name_len] = '\0';
-    Flags::Register_bool(NULL, new_flag, true, NULL);
+    Flags::Register_bool(nullptr, new_flag, true, nullptr);
   } else {
     // Only set values for recognized flags, skip collected
     // unrecognized flags.
@@ -471,12 +471,12 @@ char* Flags::ProcessCommandLineFlags(int number_of_vm_flags,
   }
 
   initialized_ = true;
-  return NULL;
+  return nullptr;
 }
 
 bool Flags::SetFlag(const char* name, const char* value, const char** error) {
   Flag* flag = Lookup(name);
-  if (flag == NULL) {
+  if (flag == nullptr) {
     *error = "Cannot set flag: flag not found";
     return false;
   }
@@ -522,10 +522,10 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
     }
     case Flag::kString: {
       jsflag.AddProperty("_flagType", "String");
-      if (flag->charp_ptr_ != NULL) {
+      if (flag->charp_ptr_ != nullptr) {
         jsflag.AddPropertyF("valueAsString", "%s", *flag->charp_ptr_);
       } else {
-        // valueAsString missing means NULL.
+        // valueAsString missing means nullptr.
       }
       break;
     }
@@ -540,7 +540,7 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
       if (flag->string_value_ != nullptr) {
         jsflag.AddProperty("valueAsString", flag->string_value_.get());
       } else {
-        // valueAsString missing means NULL.
+        // valueAsString missing means nullptr.
       }
       break;
     }

@@ -11,6 +11,7 @@
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/flags.h"
 #include "vm/lockers.h"
+#include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/unit_test.h"
@@ -189,7 +190,7 @@ static void FinalizeAndCanonicalize(AbstractType* type) {
 }
 
 static void CanonicalizeTAV(TypeArguments* tav) {
-  *tav = tav->Canonicalize(Thread::Current(), nullptr);
+  *tav = tav->Canonicalize(Thread::Current());
 }
 
 struct TTSTestCase {
@@ -525,9 +526,8 @@ class TTSTestState : public ValueObject {
     }
     {
       TraceStubInvocationScope scope;
-      last_result_ = DartEntry::InvokeCode(
-          tts_invoker_, tts_invoker_.EntryPoint(), arguments_descriptor_,
-          last_arguments_, thread_);
+      last_result_ = DartEntry::InvokeCode(tts_invoker_, arguments_descriptor_,
+                                           last_arguments_, thread_);
     }
     new_tts_stub_ = last_tested_type_.type_test_stub();
     last_stc_ = current_stc();

@@ -549,18 +549,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record a relation between a super [namedType] and its [Element].
   void recordSuperType(NamedType namedType, IndexRelationKind kind) {
-    Identifier name = namedType.name;
-    Element? element = name.staticElement;
-    bool isQualified;
-    SimpleIdentifier relNode;
-    if (name is PrefixedIdentifier) {
-      isQualified = true;
-      relNode = name.identifier;
-    } else {
-      isQualified = false;
-      relNode = name as SimpleIdentifier;
-    }
-    recordRelation(element, kind, relNode, isQualified);
+    final isQualified = namedType.importPrefix != null;
+    final element = namedType.element;
+    recordRelation(element, kind, namedType.name2, isQualified);
   }
 
   void recordUriReference(Element? element, StringLiteral uri) {
@@ -589,6 +580,21 @@ class _IndexContributor extends GeneralizingAstVisitor {
           node.name.offset, 0, true);
     }
     recordIsAncestorOf(declaredElement);
+
+    // If the class has only a synthetic default constructor, then it
+    // implicitly invokes the default super constructor. Associate the
+    // invocation with the name of the class.
+    final defaultConstructor = declaredElement.constructors.singleOrNull;
+    if (defaultConstructor is ConstructorElementImpl &&
+        defaultConstructor.isSynthetic) {
+      defaultConstructor.isDefaultConstructor;
+      final superConstructor = defaultConstructor.superConstructor;
+      if (superConstructor != null) {
+        recordRelation(
+            superConstructor, IndexRelationKind.IS_INVOKED_BY, node.name, true);
+      }
+    }
+
     super.visitClassDeclaration(node);
   }
 
@@ -627,6 +633,24 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     return super.visitCommentReference(node);
+  }
+
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    // If the constructor does not have an explicit `super` constructor
+    // invocation, it implicitly invokes the unnamed constructor.
+    if (node.initializers.none((e) => e is SuperConstructorInvocation)) {
+      final element = node.declaredElement as ConstructorElementImpl;
+      final superConstructor = element.superConstructor;
+      if (superConstructor != null) {
+        final offset = node.returnType.offset;
+        final end = (node.name ?? node.returnType).end;
+        recordRelationOffset(superConstructor, IndexRelationKind.IS_INVOKED_BY,
+            offset, end - offset, true);
+      }
+    }
+
+    super.visitConstructorDeclaration(node);
   }
 
   @override
@@ -976,7 +1000,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     void addSupertype(NamedType? type) {
-      var element = type?.name.staticElement;
+      var element = type?.element;
       if (element is InterfaceElement) {
         String id = getInterfaceElementId(element);
         supertypes.add(id);

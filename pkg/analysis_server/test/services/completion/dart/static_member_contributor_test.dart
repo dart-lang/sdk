@@ -5,6 +5,7 @@
 /// This file contains tests written in a deprecated way. Please do not add any
 /// tests to this file. Instead, add tests to the files in `declaration`,
 /// `location`, or `relevance`.
+library;
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
@@ -32,7 +33,7 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_class_static_notPrivate() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   static int _f;
   static String get _g => '';
@@ -142,7 +143,7 @@ void f() {E.^}
   }
 
   Future<void> test_extension_static_notPrivate() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension E {
   static int _f;
   static String get _g => '';
@@ -164,7 +165,7 @@ void f() {
   }
 
   Future<void> test_implicitCreation() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   A.foo();
   A.bar();
@@ -185,7 +186,7 @@ void f() {
 
   Future<void>
       test_implicitCreation_functionContextType_matchingReturnType() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   A.foo();
   A.bar();
@@ -206,7 +207,7 @@ void f() {
 
   Future<void>
       test_implicitCreation_functionContextType_notMatchingReturnType() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   A.foo();
   A.bar();
@@ -370,7 +371,7 @@ void f() {async.Future.^.w()}''');
 
   Future<void> test_PrefixedIdentifier_class_const() async {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
         lib B;
         class I {
           static const scI = 'boo';
@@ -414,7 +415,7 @@ void f() {async.Future.^.w()}''');
   }
 
   Future<void> test_simpleIdentifier_typeAlias_interfaceType_class() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   static int _privateField = 0;
   static int get _privateGetter => 0;
@@ -456,7 +457,7 @@ void f() {
   }
 
   Future<void> test_simpleIdentifier_typeAlias_interfaceType_enum() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 enum E {
   aaa,
   _bbb,

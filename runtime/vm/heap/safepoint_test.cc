@@ -10,7 +10,10 @@
 
 #include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
+#include "vm/isolate_reload.h"
 #include "vm/lockers.h"
+#include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/random.h"
 #include "vm/thread_pool.h"
 #include "vm/unit_test.h"
@@ -295,15 +298,21 @@ class CheckinTask : public StateMachineTask {
     Data(IsolateGroup* isolate_group,
          SafepointLevel level,
          std::atomic<intptr_t>* gc_only_checkins,
-         std::atomic<intptr_t>* deopt_checkin)
+         std::atomic<intptr_t>* deopt_checkin,
+         std::atomic<intptr_t>* reload_checkin,
+         std::atomic<intptr_t>* timeout_checkin)
         : StateMachineTask::Data(isolate_group),
           level(level),
           gc_only_checkins(gc_only_checkins),
-          deopt_checkin(deopt_checkin) {}
+          deopt_checkin(deopt_checkin),
+          reload_checkin(reload_checkin),
+          timeout_checkin(timeout_checkin) {}
 
     SafepointLevel level;
     std::atomic<intptr_t>* gc_only_checkins;
     std::atomic<intptr_t>* deopt_checkin;
+    std::atomic<intptr_t>* reload_checkin;
+    std::atomic<intptr_t>* timeout_checkin;
   };
 
   explicit CheckinTask(std::shared_ptr<Data> data) : StateMachineTask(data) {}
@@ -328,13 +337,22 @@ class CheckinTask : public StateMachineTask {
           break;
         }
         case SafepointLevel::kGCAndDeopt: {
-          // This thread should join any safepoint operations.
+          // This thread should join only GC and Deopt safepoint operations.
           if (SafepointIfRequested(thread_, data()->deopt_checkin)) {
             last_sync = OS::GetCurrentTimeMillis();
           }
           break;
         }
+        case SafepointLevel::kGCAndDeoptAndReload: {
+          // This thread should join any safepoint operations.
+          ReloadParticipationScope allow_reload(thread_);
+          if (SafepointIfRequested(thread_, data()->reload_checkin)) {
+            last_sync = OS::GetCurrentTimeMillis();
+          }
+          break;
+        }
         case SafepointLevel::kNumLevels:
+        case SafepointLevel::kNoSafepoint:
           UNREACHABLE();
       }
 
@@ -348,9 +366,10 @@ class CheckinTask : public StateMachineTask {
       // thread continue.
       const auto now = OS::GetCurrentTimeMillis();
       if ((now - last_sync) > 1000) {
-        thread_->EnterSafepoint();
-        thread_->ExitSafepoint();
-        last_sync = now;
+        ReloadParticipationScope allow_reload(thread_);
+        if (SafepointIfRequested(thread_, data()->timeout_checkin)) {
+          last_sync = now;
+        }
       }
     }
   }
@@ -369,23 +388,62 @@ class CheckinTask : public StateMachineTask {
 // Test that mutators will not check-in to "deopt safepoint operations" at
 // at places where the mutator cannot depot (which is indicated by the
 // Thread::runtime_call_kind_ value).
+#if !defined(PRODUCT)
 ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
   auto isolate_group = thread->isolate_group();
 
-  const intptr_t kTaskCount = 5;
+  const intptr_t kTaskCount = 6;
   std::atomic<intptr_t> gc_only_checkins[kTaskCount];
-  std::atomic<intptr_t> deopt_checkin[kTaskCount];
+  std::atomic<intptr_t> deopt_checkins[kTaskCount];
+  std::atomic<intptr_t> reload_checkins[kTaskCount];
+  std::atomic<intptr_t> timeout_checkins[kTaskCount];
   for (intptr_t i = 0; i < kTaskCount; ++i) {
     gc_only_checkins[i] = 0;
-    deopt_checkin[i] = 0;
+    deopt_checkins[i] = 0;
+    reload_checkins[i] = 0;
+    timeout_checkins[i] = 0;
   }
+
+  auto task_to_level = [](intptr_t task_id) -> SafepointLevel {
+    switch (task_id) {
+      case 0:
+      case 1:
+        return SafepointLevel::kGC;
+      case 2:
+      case 3:
+        return SafepointLevel::kGCAndDeopt;
+      case 4:
+      case 5:
+        return SafepointLevel::kGCAndDeoptAndReload;
+      default:
+        UNREACHABLE();
+        return SafepointLevel::kGC;
+    }
+  };
+  auto wait_for_sync = [&](intptr_t syncs) {
+    while (true) {
+      bool ready = true;
+      for (intptr_t i = 0; i < kTaskCount; ++i) {
+        const intptr_t all = gc_only_checkins[i] + deopt_checkins[i] +
+                             reload_checkins[i] + timeout_checkins[i];
+        if (all != syncs) {
+          ready = false;
+          break;
+        }
+      }
+      if (ready) {
+        return;
+      }
+      OS::SleepMicros(1000);
+    }
+  };
 
   std::vector<std::shared_ptr<CheckinTask::Data>> threads;
   for (intptr_t i = 0; i < kTaskCount; ++i) {
-    const auto level =
-        (i % 2) == 0 ? SafepointLevel::kGC : SafepointLevel::kGCAndDeopt;
+    const auto level = task_to_level(i);
     std::unique_ptr<CheckinTask::Data> data(new CheckinTask::Data(
-        isolate_group, level, &gc_only_checkins[i], &deopt_checkin[i]));
+        isolate_group, level, &gc_only_checkins[i], &deopt_checkins[i],
+        &reload_checkins[i], &timeout_checkins[i]));
     threads.push_back(std::move(data));
   }
 
@@ -404,12 +462,16 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
     }
     {
       { GcSafepointOperationScope safepoint_operation(thread); }
-      OS::SleepMicros(1000);  // Wait for threads to exit safepoint
+      wait_for_sync(1);  // Wait for threads to exit safepoint
       { DeoptSafepointOperationScope safepoint_operation(thread); }
-      OS::SleepMicros(1000);  // Wait for threads to exit safepoint
+      wait_for_sync(2);  // Wait for threads to exit safepoint
+      { ReloadOperationScope reload(thread); }
+      wait_for_sync(3);  // Wait for threads to exit safepoint
       { GcSafepointOperationScope safepoint_operation(thread); }
-      OS::SleepMicros(1000);  // Wait for threads to exit safepoint
+      wait_for_sync(4);  // Wait for threads to exit safepoint
       { DeoptSafepointOperationScope safepoint_operation(thread); }
+      wait_for_sync(5);  // Wait for threads to exit safepoint
+      { ReloadOperationScope reload(thread); }
     }
     for (intptr_t i = 0; i < kTaskCount; i++) {
       threads[i]->MarkAndNotify(CheckinTask::kPleaseExit);
@@ -418,23 +480,33 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
       threads[i]->WaitUntil(CheckinTask::kExited);
     }
     for (intptr_t i = 0; i < kTaskCount; ++i) {
-      const auto level =
-          (i % 2) == 0 ? SafepointLevel::kGC : SafepointLevel::kGCAndDeopt;
-      switch (level) {
+      switch (task_to_level(i)) {
         case SafepointLevel::kGC:
-          EXPECT_EQ(0, deopt_checkin[i]);
           EXPECT_EQ(2, gc_only_checkins[i]);
+          EXPECT_EQ(0, deopt_checkins[i]);
+          EXPECT_EQ(0, reload_checkins[i]);
+          EXPECT_EQ(4, timeout_checkins[i]);
           break;
         case SafepointLevel::kGCAndDeopt:
-          EXPECT_EQ(4, deopt_checkin[i]);
           EXPECT_EQ(0, gc_only_checkins[i]);
+          EXPECT_EQ(4, deopt_checkins[i]);
+          EXPECT_EQ(0, reload_checkins[i]);
+          EXPECT_EQ(2, timeout_checkins[i]);
+          break;
+        case SafepointLevel::kGCAndDeoptAndReload:
+          EXPECT_EQ(0, gc_only_checkins[i]);
+          EXPECT_EQ(0, deopt_checkins[i]);
+          EXPECT_EQ(6, reload_checkins[i]);
+          EXPECT_EQ(0, timeout_checkins[i]);
           break;
         case SafepointLevel::kNumLevels:
+        case SafepointLevel::kNoSafepoint:
           UNREACHABLE();
       }
     }
   }
 }
+#endif  // !defined(PRODUCT)
 
 class StressTask : public StateMachineTask {
  public:
@@ -527,15 +599,36 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_StressTest) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SafepointOperation_DeoptAndNonDeoptNesting) {
+  auto safepoint_handler = thread->isolate_group()->safepoint_handler();
   {
     DeoptSafepointOperationScope safepoint_scope(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGCAndDeopt);
     DeoptSafepointOperationScope safepoint_scope2(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGCAndDeopt);
     GcSafepointOperationScope safepoint_scope3(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
     GcSafepointOperationScope safepoint_scope4(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
   }
   {
     DeoptSafepointOperationScope safepoint_scope(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGCAndDeopt);
     GcSafepointOperationScope safepoint_scope2(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
+  }
+  {
+    GcSafepointOperationScope safepoint_scope1(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
+    GcSafepointOperationScope safepoint_scope2(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
   }
 }
 
@@ -545,5 +638,203 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(
   GcSafepointOperationScope safepoint_scope(thread);
   DeoptSafepointOperationScope safepoint_scope2(thread);
 }
+
+class IsolateExitScope {
+ public:
+  IsolateExitScope() : saved_isolate_(Dart_CurrentIsolate()) {
+    Dart_ExitIsolate();
+  }
+  ~IsolateExitScope() { Dart_EnterIsolate(saved_isolate_); }
+
+ private:
+  Dart_Isolate saved_isolate_;
+};
+
+ISOLATE_UNIT_TEST_CASE(ReloadScopes_Test) {
+  // Unscheduling an isolate will enter a safepoint that is reloadable.
+  {
+    TransitionVMToNative transition(thread);
+    IsolateExitScope isolate_leave_scope;
+    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+  }
+
+  // Unscheduling an isolate with active [NoReloadScope] will enter a safepoint
+  // that is not reloadable.
+  {
+    // [NoReloadScope] only works if reload is supported.
+#if !defined(PRODUCT)
+    NoReloadScope no_reload_scope(thread);
+    TransitionVMToNative transition(thread);
+    IsolateExitScope isolate_leave_scope;
+    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+#endif  // !defined(PRODUCT)
+  }
+
+  // Transitioning to native doesn't mean we enter a safepoint that is
+  // reloadable.
+  // => We may want to allow this in the future (so e.g. isolates that perform
+  // blocking FFI call can be reloaded while being blocked).
+  {
+    TransitionVMToNative transition(thread);
+    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+  }
+
+  // Transitioning to native with explicit [ReloadParticipationScope] will
+  // enter a safepoint that is reloadable.
+  {
+    ReloadParticipationScope enable_reload(thread);
+    TransitionVMToNative transition(thread);
+    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+  }
+}
+
+#if !defined(PRODUCT)
+class ReloadTask : public StateMachineTask {
+ public:
+  using Data = StateMachineTask::Data;
+
+  explicit ReloadTask(std::shared_ptr<Data> data) : StateMachineTask(data) {}
+
+ protected:
+  virtual void RunInternal() {
+    ReloadOperationScope reload_operation_scope(thread_);
+  }
+};
+
+ISOLATE_UNIT_TEST_CASE(Reload_AtReloadSafepoint) {
+  auto isolate = thread->isolate();
+  auto messages = isolate->message_handler();
+
+  ThreadPool pool;
+
+  {
+    ReloadParticipationScope allow_reload(thread);
+
+    // We are not at a safepoint.
+    ASSERT(!thread->IsAtSafepoint());
+
+    // Enter a reload safepoint.
+    thread->EnterSafepoint();
+    {
+      // The [ReloadTask] will trigger a reload safepoint operation, sees that
+      // we are at reload safepoint & finishes without sending OOB message.
+      std::shared_ptr<ReloadTask::Data> task(
+          new ReloadTask::Data(isolate->group()));
+      pool.Run<ReloadTask>(task);
+      task->WaitUntil(ReloadTask::kEntered);
+      task->MarkAndNotify(ReloadTask::kPleaseExit);
+      task->WaitUntil(ReloadTask::kExited);
+    }
+    thread->ExitSafepoint();
+
+    EXPECT(!messages->HasOOBMessages());
+  }
+}
+
+static void EnsureValidOOBMessage(Thread* thread,
+                                  Isolate* isolate,
+                                  std::unique_ptr<Message> message) {
+  EXPECT(message->IsOOB());
+  EXPECT(message->dest_port() == isolate->main_port());
+
+  const auto& msg = Object::Handle(ReadMessage(thread, message.get()));
+  EXPECT(msg.IsArray());
+
+  const auto& array = Array::Cast(msg);
+  EXPECT(array.Length() == 3);
+  EXPECT(Smi::Value(Smi::RawCast(array.At(0))) == Message::kIsolateLibOOBMsg);
+  EXPECT(Smi::Value(Smi::RawCast(array.At(1))) == Isolate::kCheckForReload);
+  // 3rd value is ignored.
+}
+
+ISOLATE_UNIT_TEST_CASE(Reload_NotAtSafepoint) {
+  auto isolate = thread->isolate();
+  auto messages = isolate->message_handler();
+
+  ThreadPool pool;
+
+  std::shared_ptr<ReloadTask::Data> task(
+      new ReloadTask::Data(isolate->group()));
+  pool.Run<ReloadTask>(task);
+  task->WaitUntil(ReloadTask::kEntered);
+
+  // We are not at a safepoint. The [ReloadTask] will trigger a reload
+  // safepoint operation, sees that we are not at reload safepoint and instead
+  // sends us an OOB.
+  ASSERT(!thread->IsAtSafepoint());
+  while (!messages->HasOOBMessages()) {
+    OS::Sleep(1000);
+  }
+
+  // Examine the OOB message for it's content.
+  std::unique_ptr<Message> message = messages->StealOOBMessage();
+  EnsureValidOOBMessage(thread, isolate, std::move(message));
+
+  // Finally participate in the reload safepoint and finish.
+  {
+    ReloadParticipationScope allow_reload(thread);
+    thread->BlockForSafepoint();
+  }
+
+  task->MarkAndNotify(ReloadTask::kPleaseExit);
+  task->WaitUntil(ReloadTask::kExited);
+}
+
+ISOLATE_UNIT_TEST_CASE(Reload_AtNonReloadSafepoint) {
+  auto isolate = thread->isolate();
+  auto messages = isolate->message_handler();
+
+  ThreadPool pool;
+
+  // The [ReloadTask] will trigger a reload safepoint operation, sees that
+  // we are at not at reload safepoint & sends us an OOB and waits for us to
+  // check-in.
+  std::shared_ptr<ReloadTask::Data> task(
+      new ReloadTask::Data(isolate->group()));
+  pool.Run<ReloadTask>(task);
+  task->WaitUntil(ReloadTask::kEntered);
+
+  {
+    NoReloadScope no_reload(thread);
+
+    // We are not at a safepoint.
+    ASSERT(!thread->IsAtSafepoint());
+
+    // Enter a non-reload safepoint.
+    thread->EnterSafepoint();
+    {
+      // We are at a safepoint but not a reload safepoint. So we'll get an OOM.
+      ASSERT(thread->IsAtSafepoint());
+      while (!messages->HasOOBMessages()) {
+        OS::Sleep(1000);
+      }
+      // Ensure we got a valid OOM
+      std::unique_ptr<Message> message = messages->StealOOBMessage();
+      EnsureValidOOBMessage(thread, isolate, std::move(message));
+    }
+    thread->ExitSafepoint();
+
+    EXPECT(!messages->HasOOBMessages());
+  }
+
+  // We left the [NoReloadScope] which in it's destructor should detect
+  // that a reload safepoint operation is requested and re-send OOM message to
+  // current isolate.
+  EXPECT(messages->HasOOBMessages());
+  std::unique_ptr<Message> message = messages->StealOOBMessage();
+  EnsureValidOOBMessage(thread, isolate, std::move(message));
+
+  // Finally participate in the reload safepoint and finish.
+  {
+    ReloadParticipationScope allow_reload(thread);
+    thread->BlockForSafepoint();
+  }
+
+  task->MarkAndNotify(ReloadTask::kPleaseExit);
+  task->WaitUntil(ReloadTask::kExited);
+}
+#endif  // !defined(PRODUCT)
 
 }  // namespace dart

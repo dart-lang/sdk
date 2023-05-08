@@ -13,13 +13,13 @@ IsolateGroupData::IsolateGroupData(const char* url,
                                    const char* packages_file,
                                    AppSnapshot* app_snapshot,
                                    bool isolate_run_app_snapshot)
-    : script_url((url != NULL) ? Utils::StrDup(url) : NULL),
+    : script_url((url != nullptr) ? Utils::StrDup(url) : nullptr),
       app_snapshot_(app_snapshot),
-      resolved_packages_config_(NULL),
-      kernel_buffer_(NULL),
+      resolved_packages_config_(nullptr),
+      kernel_buffer_(nullptr),
       kernel_buffer_size_(0),
       isolate_run_app_snapshot_(isolate_run_app_snapshot) {
-  if (packages_file != NULL) {
+  if (packages_file != nullptr) {
     packages_file_ = Utils::StrDup(packages_file);
   }
 }

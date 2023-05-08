@@ -62,7 +62,8 @@ class SerializationTask extends CompilerTask {
   @override
   String get name => 'Serialization';
 
-  void serializeComponent(ir.Component component) {
+  void serializeComponent(ir.Component component,
+      {bool includeSourceBytes = true}) {
     measureSubtask('serialize dill', () {
       // TODO(sigmund): remove entirely: we will do this immediately as soon as
       // we get the component in the kernel/loader.dart task once we refactor
@@ -71,7 +72,8 @@ class SerializationTask extends CompilerTask {
       api.BinaryOutputSink dillOutput =
           _outputProvider.createBinarySink(_options.outputUri!);
       BinaryOutputSinkAdapter irSink = BinaryOutputSinkAdapter(dillOutput);
-      ir.BinaryPrinter printer = ir.BinaryPrinter(irSink);
+      ir.BinaryPrinter printer =
+          ir.BinaryPrinter(irSink, includeSourceBytes: includeSourceBytes);
       printer.writeComponentFile(component);
       irSink.close();
     });
@@ -219,7 +221,7 @@ class SerializationTask extends CompilerTask {
     if (_options.outputUri != null) {
       JClosedWorld closedWorld = results.closedWorld;
       ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
-      serializeComponent(component);
+      serializeComponent(component, includeSourceBytes: false);
     }
 
     measureSubtask('serialize data', () {

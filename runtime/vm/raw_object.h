@@ -174,9 +174,9 @@ class UntaggedObject {
     kHashTagSize = 32,
   };
 
-  static const intptr_t kGenerationalBarrierMask = 1 << kNewBit;
-  static const intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
-  static const intptr_t kBarrierOverlapShift = 2;
+  static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewBit;
+  static constexpr intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
+  static constexpr intptr_t kBarrierOverlapShift = 2;
   COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
   COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
 
@@ -400,7 +400,6 @@ class UntaggedObject {
   }
 
   void Validate(IsolateGroup* isolate_group) const;
-  bool FindObject(FindObjectVisitor* visitor);
 
   // This function may access the class-ID in the header, but it cannot access
   // the actual class object, because the sliding compactor uses this function
@@ -993,7 +992,7 @@ class UntaggedClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ScriptPtr, script)
   COMPRESSED_POINTER_FIELD(LibraryPtr, library)
   COMPRESSED_POINTER_FIELD(TypeParametersPtr, type_parameters)
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, super_type)
+  COMPRESSED_POINTER_FIELD(TypePtr, super_type)
   // Canonicalized const instances of this class.
   COMPRESSED_POINTER_FIELD(ArrayPtr, constants)
   // Declaration type for this class.
@@ -1008,6 +1007,11 @@ class UntaggedClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, direct_subclasses)
 #endif  // !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
 
+  // Cached declaration instance type arguments for this class.
+  // Not preserved in AOT snapshots.
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr,
+                           declaration_instance_type_arguments)
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Stub code for allocation of instances.
   COMPRESSED_POINTER_FIELD(CodePtr, allocation_stub)
@@ -1016,11 +1020,7 @@ class UntaggedClass : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-#if defined(PRODUCT)
-  VISIT_TO(invocation_dispatcher_cache)
-#else
-  VISIT_TO(direct_subclasses)
-#endif  // defined(PRODUCT)
+  VISIT_TO(declaration_instance_type_arguments)
 #else
   VISIT_TO(dependent_code)
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -1048,7 +1048,7 @@ class UntaggedClass : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
@@ -1122,7 +1122,7 @@ class UntaggedPatchClass : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 
   NOT_IN_PRECOMPILED(intptr_t library_kernel_offset_);
@@ -1312,7 +1312,7 @@ class UntaggedFunction : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   // ICData of unoptimized code.
   COMPRESSED_POINTER_FIELD(ArrayPtr, ic_data_array);
@@ -1463,7 +1463,7 @@ class UntaggedField : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
   VISIT_TO(dependent_code);
@@ -1536,7 +1536,7 @@ class alignas(8) UntaggedScript : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1627,7 +1627,7 @@ class UntaggedLibrary : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   // Cache of resolved names in library scope.
   COMPRESSED_POINTER_FIELD(ArrayPtr, resolved_names);
@@ -1679,7 +1679,7 @@ class UntaggedNamespace : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 };
 
@@ -1997,9 +1997,10 @@ class UntaggedPcDescriptors : public UntaggedObject {
     }
 
    private:
-    static const intptr_t kKindShiftSize = 3;
-    static const intptr_t kTryIndexSize = 10;
-    static const intptr_t kYieldIndexSize = 32 - kKindShiftSize - kTryIndexSize;
+    static constexpr intptr_t kKindShiftSize = 3;
+    static constexpr intptr_t kTryIndexSize = 10;
+    static constexpr intptr_t kYieldIndexSize =
+        32 - kKindShiftSize - kTryIndexSize;
 
     class KindShiftBits
         : public BitField<uint32_t, intptr_t, 0, kKindShiftSize> {};
@@ -2470,7 +2471,7 @@ class UntaggedICData : public UntaggedCallSiteData {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   NOT_IN_PRECOMPILED(int32_t deopt_id_);
   // Number of arguments tested in IC, deopt reasons.
@@ -2592,7 +2593,7 @@ class UntaggedLibraryPrefix : public UntaggedInstance {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   uint16_t num_imports_;  // Number of library entries in libraries_.
   bool is_deferred_load_;
@@ -2650,7 +2651,6 @@ class UntaggedAbstractType : public UntaggedInstance {
  public:
   enum TypeState {
     kAllocated,                // Initial state.
-    kBeingFinalized,           // In the process of being finalized.
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
@@ -2762,24 +2762,20 @@ class UntaggedRecordType : public UntaggedAbstractType {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class UntaggedTypeRef : public UntaggedAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
-
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, type)  // The referenced type.
-  VISIT_TO(type)
-  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
-};
-
 class UntaggedTypeParameter : public UntaggedAbstractType {
+ public:
+  static constexpr intptr_t kIsFunctionTypeParameterBit =
+      TypeStateBits::kNextBit;
+  using IsFunctionTypeParameter =
+      BitField<uint32_t, bool, kIsFunctionTypeParameterBit, 1>;
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
-  // ObjectType if no explicit bound specified.
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, bound)
-  VISIT_TO(bound)
-  ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
+  // FunctionType or Smi (class id).
+  COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
+  VISIT_TO(owner)
   uint16_t base_;   // Number of enclosing function type parameters.
   uint16_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
 

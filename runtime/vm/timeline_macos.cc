@@ -19,7 +19,7 @@ TimelineEventMacosRecorder::TimelineEventMacosRecorder()
 TimelineEventMacosRecorder::~TimelineEventMacosRecorder() {}
 
 void TimelineEventMacosRecorder::OnEvent(TimelineEvent* event) {
-  if (event == NULL) {
+  if (event == nullptr) {
     return;
   }
 

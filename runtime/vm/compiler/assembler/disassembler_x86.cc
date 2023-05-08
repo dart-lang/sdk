@@ -230,7 +230,7 @@ static const InstructionDesc cmov_instructions[16] = {
 //-------------------------------------------------
 // DisassemblerX64 implementation.
 
-static const int kMaxXmmRegisters = 16;
+static constexpr int kMaxXmmRegisters = 16;
 static const char* xmm_regs[kMaxXmmRegisters] = {
     "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
     "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};

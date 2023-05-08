@@ -11,6 +11,9 @@
 #include <fcntl.h>
 
 #include <cstdlib>
+#include <functional>
+#include <memory>
+#include <tuple>
 #include <utility>
 
 #include "platform/atomic.h"
@@ -24,6 +27,19 @@
 #include "vm/service_event.h"
 #include "vm/thread.h"
 
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#include "perfetto/ext/tracing/core/trace_packet.h"
+#include "vm/perfetto_utils.h"
+#include "vm/protos/perfetto/common/builtin_clock.pbzero.h"
+#include "vm/protos/perfetto/trace/clock_snapshot.pbzero.h"
+#include "vm/protos/perfetto/trace/trace_packet.pbzero.h"
+#include "vm/protos/perfetto/trace/track_event/debug_annotation.pbzero.h"
+#include "vm/protos/perfetto/trace/track_event/process_descriptor.pbzero.h"
+#include "vm/protos/perfetto/trace/track_event/thread_descriptor.pbzero.h"
+#include "vm/protos/perfetto/trace/track_event/track_descriptor.pbzero.h"
+#include "vm/protos/perfetto/trace/track_event/track_event.pbzero.h"
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
 namespace dart {
 
 #if defined(PRODUCT)
@@ -31,8 +47,13 @@ namespace dart {
 #define SUPPORTED_TIMELINE_RECORDERS "systrace, file, callback"
 #else
 #define DEFAULT_TIMELINE_RECORDER "ring"
+#if defined(SUPPORT_PERFETTO)
+#define SUPPORTED_TIMELINE_RECORDERS                                           \
+  "ring, endless, startup, systrace, file, callback, perfettofile"
+#else
 #define SUPPORTED_TIMELINE_RECORDERS                                           \
   "ring, endless, startup, systrace, file, callback"
+#endif
 #endif
 
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
@@ -43,15 +64,15 @@ DEFINE_FLAG(
     false,
     "Record the timeline to the platform's tracing service if there is one");
 DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline backend");
-DEFINE_FLAG(
-    charp,
-    timeline_dir,
-    NULL,
-    "Enable all timeline trace streams and output VM global trace "
-    "into specified directory. This flag is ignored by the file recorder.");
+DEFINE_FLAG(charp,
+            timeline_dir,
+            nullptr,
+            "Enable all timeline trace streams and output VM global trace "
+            "into specified directory. This flag is ignored by the file and "
+            "perfetto recorders.");
 DEFINE_FLAG(charp,
             timeline_streams,
-            NULL,
+            nullptr,
             "Comma separated list of timeline streams to record. "
             "Valid values: all, API, Compiler, CompilerVerbose, Dart, "
             "Debugger, Embedder, GC, Isolate, and VM.");
@@ -153,6 +174,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   if (Utils::StrStartsWith(flag, "file") &&
       (flag[4] == '\0' || flag[4] == ':' || flag[4] == '=')) {
     const char* filename = flag[4] == '\0' ? "dart-timeline.json" : &flag[5];
+    free(const_cast<char*>(FLAG_timeline_dir));
     FLAG_timeline_dir = nullptr;
     return new TimelineEventFileRecorder(filename);
   }
@@ -162,6 +184,24 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   }
 
 #if !defined(PRODUCT)
+#if defined(SUPPORT_PERFETTO)
+  // The Perfetto file recorder is disabled in PRODUCT mode to avoid the large
+  // binary size increase that it brings.
+  {
+    const intptr_t kPrefixLength = 12;
+    if (Utils::StrStartsWith(flag, "perfettofile") &&
+        (flag[kPrefixLength] == '\0' || flag[kPrefixLength] == ':' ||
+         flag[kPrefixLength] == '=')) {
+      const char* filename = flag[kPrefixLength] == '\0'
+                                 ? "dart.perfetto-trace"
+                                 : &flag[kPrefixLength + 1];
+      free(const_cast<char*>(FLAG_timeline_dir));
+      FLAG_timeline_dir = nullptr;
+      return new TimelineEventPerfettoFileRecorder(filename);
+    }
+  }
+#endif  // defined(SUPPORT_PERFETTO)
+
   // Recorders below do nothing useful in PRODUCT mode. You can't extract
   // information available in them without vm-service.
   if (strcmp("endless", flag) == 0) {
@@ -175,7 +215,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   if (strcmp("ring", flag) == 0) {
     return new TimelineEventRingRecorder();
   }
-#endif
+#endif  // !defined(PRODUCT)
 
   if (strlen(flag) > 0 && strcmp(flag, DEFAULT_TIMELINE_RECORDER) != 0) {
     OS::PrintErr(
@@ -190,7 +230,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
 // Returns a caller freed array of stream names in FLAG_timeline_streams.
 static MallocGrowableArray<char*>* GetEnabledByDefaultTimelineStreams() {
   MallocGrowableArray<char*>* result = new MallocGrowableArray<char*>();
-  if (FLAG_timeline_streams == NULL) {
+  if (FLAG_timeline_streams == nullptr) {
     // Nothing set.
     return result;
   }
@@ -198,9 +238,9 @@ static MallocGrowableArray<char*>* GetEnabledByDefaultTimelineStreams() {
   // strtok modifies arg 1 so we make a copy of it.
   char* streams = Utils::StrDup(FLAG_timeline_streams);
   char* token = strtok_r(streams, ",", &save_ptr);
-  while (token != NULL) {
+  while (token != nullptr) {
     result->Add(Utils::StrDup(token));
-    token = strtok_r(NULL, ",", &save_ptr);
+    token = strtok_r(nullptr, ",", &save_ptr);
   }
   free(streams);
   return result;
@@ -209,7 +249,7 @@ static MallocGrowableArray<char*>* GetEnabledByDefaultTimelineStreams() {
 // Frees the result of |GetEnabledByDefaultTimelineStreams|.
 static void FreeEnabledByDefaultTimelineStreams(
     MallocGrowableArray<char*>* streams) {
-  if (streams == NULL) {
+  if (streams == nullptr) {
     return;
   }
   for (intptr_t i = 0; i < streams->length(); i++) {
@@ -220,14 +260,14 @@ static void FreeEnabledByDefaultTimelineStreams(
 
 // Returns true if |streams| contains |stream| or "all". Not case sensitive.
 static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
-  if ((FLAG_timeline_dir != NULL) || FLAG_complete_timeline ||
+  if ((FLAG_timeline_dir != nullptr) || FLAG_complete_timeline ||
       FLAG_startup_timeline) {
     return true;
   }
   for (intptr_t i = 0; i < streams->length(); i++) {
     const char* checked_stream = (*streams)[i];
-    if ((strstr(checked_stream, "all") != NULL) ||
-        (strstr(checked_stream, stream) != NULL)) {
+    if ((strstr(checked_stream, "all") != nullptr) ||
+        (strstr(checked_stream, stream) != nullptr)) {
       return true;
     }
   }
@@ -235,7 +275,7 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
 }
 
 void Timeline::Init() {
-  ASSERT(recorder_ == NULL);
+  ASSERT(recorder_ == nullptr);
   recorder_ = CreateTimelineRecorder();
 
   RecorderSynchronizationLock::Init();
@@ -252,7 +292,7 @@ void Timeline::Init() {
   if (FLAG_trace_timeline) {
     OS::PrintErr("Using the %s timeline recorder.\n", recorder_->name());
   }
-  ASSERT(recorder_ != NULL);
+  ASSERT(recorder_ != nullptr);
   enabled_streams_ = GetEnabledByDefaultTimelineStreams();
 // Global overrides.
 #define TIMELINE_STREAM_FLAG_DEFAULT(name, ...)                                \
@@ -262,10 +302,10 @@ void Timeline::Init() {
 }
 
 void Timeline::Cleanup() {
-  ASSERT(recorder_ != NULL);
+  ASSERT(recorder_ != nullptr);
 
 #ifndef PRODUCT
-  if (FLAG_timeline_dir != NULL) {
+  if (FLAG_timeline_dir != nullptr) {
     recorder_->WriteTo(FLAG_timeline_dir);
   }
 #endif
@@ -282,17 +322,17 @@ void Timeline::Cleanup() {
   // without explicitly grabbing a recorder lock.
   Timeline::ClearUnsafe();
   delete recorder_;
-  recorder_ = NULL;
-  if (enabled_streams_ != NULL) {
+  recorder_ = nullptr;
+  if (enabled_streams_ != nullptr) {
     FreeEnabledByDefaultTimelineStreams(enabled_streams_);
-    enabled_streams_ = NULL;
+    enabled_streams_ = nullptr;
   }
 }
 
 void Timeline::ReclaimCachedBlocksFromThreads() {
   RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL || !ls.IsActive()) {
+  if (recorder == nullptr || !ls.IsActive()) {
     return;
   }
   ReclaimCachedBlocksFromThreadsUnsafe();
@@ -331,7 +371,7 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
   obj.AddProperty("type", "TimelineFlags");
   RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL || !ls.IsActive()) {
+  if (recorder == nullptr || !ls.IsActive()) {
     obj.AddProperty("recorderName", "null");
   } else {
     obj.AddProperty("recorderName", recorder->name());
@@ -378,7 +418,7 @@ void TimelineEventArguments::SetNumArguments(intptr_t length) {
     Free();
     return;
   }
-  if (buffer_ == NULL) {
+  if (buffer_ == nullptr) {
     // calloc already nullifies
     buffer_ = reinterpret_cast<TimelineEventArgument*>(
         calloc(sizeof(TimelineEventArgument), length));
@@ -419,7 +459,7 @@ void TimelineEventArguments::FormatArgument(intptr_t i,
   ASSERT(i < length_);
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, fmt, measure_args);
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
@@ -436,24 +476,24 @@ void TimelineEventArguments::StealArguments(TimelineEventArguments* arguments) {
   length_ = arguments->length_;
   buffer_ = arguments->buffer_;
   arguments->length_ = 0;
-  arguments->buffer_ = NULL;
+  arguments->buffer_ = nullptr;
 }
 
 void TimelineEventArguments::Free() {
-  if (buffer_ == NULL) {
+  if (buffer_ == nullptr) {
     return;
   }
   for (intptr_t i = 0; i < length_; i++) {
     free(buffer_[i].value);
   }
   free(buffer_);
-  buffer_ = NULL;
+  buffer_ = nullptr;
   length_ = 0;
 }
 
-TimelineEventRecorder* Timeline::recorder_ = NULL;
-Dart_TimelineRecorderCallback Timeline::callback_ = NULL;
-MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
+TimelineEventRecorder* Timeline::recorder_ = nullptr;
+Dart_TimelineRecorderCallback Timeline::callback_ = nullptr;
+MallocGrowableArray<char*>* Timeline::enabled_streams_ = nullptr;
 bool Timeline::recorder_discards_clock_values_ = false;
 
 #define TIMELINE_STREAM_DEFINE(name, fuchsia_name, static_labels)              \
@@ -465,9 +505,10 @@ TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
       timestamp1_(0),
+      flow_id_(TimelineEvent::kNoFlowId),
       state_(0),
-      label_(NULL),
-      stream_(NULL),
+      label_(nullptr),
+      stream_(nullptr),
       thread_(OSThread::kInvalidThreadId),
       isolate_id_(ILLEGAL_ISOLATE_ID),
       isolate_group_id_(ILLEGAL_ISOLATE_GROUP_ID) {}
@@ -477,15 +518,15 @@ TimelineEvent::~TimelineEvent() {
 }
 
 void TimelineEvent::Reset() {
-  if (owns_label() && label_ != NULL) {
+  if (owns_label() && label_ != nullptr) {
     free(const_cast<char*>(label_));
   }
   state_ = 0;
   thread_ = OSThread::kInvalidThreadId;
   isolate_id_ = ILLEGAL_PORT;
   isolate_group_id_ = 0;
-  stream_ = NULL;
-  label_ = NULL;
+  stream_ = nullptr;
+  label_ = nullptr;
   arguments_.Free();
   set_event_type(kNone);
   set_pre_serialized_args(false);
@@ -542,17 +583,23 @@ void TimelineEvent::Duration(const char* label,
   set_timestamp1(end_micros);
 }
 
-void TimelineEvent::Begin(const char* label, int64_t id, int64_t micros) {
+void TimelineEvent::Begin(const char* label,
+                          int64_t id,
+                          int64_t flow_id,
+                          int64_t micros) {
   Init(kBegin, label);
   set_timestamp0(micros);
-  // Overload timestamp1_ with the async_id.
+  // Overload timestamp1_ with the task id. This is required for the MacOS
+  // recorder to work.
   set_timestamp1(id);
+  set_flow_id(flow_id);
 }
 
 void TimelineEvent::End(const char* label, int64_t id, int64_t micros) {
   Init(kEnd, label);
   set_timestamp0(micros);
-  // Overload timestamp1_ with the async_id.
+  // Overload timestamp1_ with the task id. This is required for the MacOS
+  // recorder to work.
   set_timestamp1(id);
 }
 
@@ -619,12 +666,13 @@ void TimelineEvent::Complete() {
 }
 
 void TimelineEvent::Init(EventType event_type, const char* label) {
-  ASSERT(label != NULL);
+  ASSERT(label != nullptr);
   state_ = 0;
   timestamp0_ = 0;
   timestamp1_ = 0;
+  flow_id_ = TimelineEvent::kNoFlowId;
   OSThread* os_thread = OSThread::Current();
-  ASSERT(os_thread != NULL);
+  ASSERT(os_thread != nullptr);
   thread_ = os_thread->trace_id();
   auto thread = Thread::Current();
   auto isolate = thread != nullptr ? thread->isolate() : nullptr;
@@ -670,7 +718,7 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
   int64_t pid = OS::ProcessId();
   int64_t tid = OSThread::ThreadIdToIntPtr(thread_);
   writer->PrintProperty("name", label_);
-  writer->PrintProperty("cat", stream_ != NULL ? stream_->name() : NULL);
+  writer->PrintProperty("cat", stream_ != nullptr ? stream_->name() : nullptr);
   writer->PrintProperty64("tid", tid);
   writer->PrintProperty64("pid", pid);
   writer->PrintProperty64("ts", TimeOrigin());
@@ -764,6 +812,138 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
   writer->CloseObject();
 }
 
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+inline void AddSyncEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  track_event->set_track_uuid(OSThread::ThreadIdToIntPtr(event.thread()));
+}
+
+inline void AddAsyncEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  track_event->set_track_uuid(event.Id());
+}
+
+inline void AddBeginAndInstantEventCommonFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  track_event->set_name(event.label());
+}
+
+inline void AddBeginEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  AddBeginAndInstantEventCommonFields(track_event, event);
+  track_event->set_type(
+      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_BEGIN);
+  if (event.HasFlowId()) {
+    // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that we
+    // aren't able to populate right now because we aren't keeping track of
+    // terminating flow IDs in |TimelineEvent|. I'm not even sure if using that
+    // field will provide any benefit though.
+    track_event->add_flow_ids(event.flow_id());
+  }
+}
+
+inline void AddInstantEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  AddBeginAndInstantEventCommonFields(track_event, event);
+  track_event->set_type(
+      perfetto::protos::pbzero::TrackEvent::Type::TYPE_INSTANT);
+}
+
+inline void AddEndEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event) {
+  track_event->set_type(
+      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_END);
+}
+
+void TimelineEvent::PopulateTracePacket(
+    perfetto::protos::pbzero::TracePacket* packet) const {
+  ASSERT(packet != nullptr);
+
+  perfetto_utils::SetTrustedPacketSequenceId(packet);
+  // TODO(derekx): We should be able to set the unit_multiplier_ns field in a
+  // ClockSnapshot to avoid manually converting from microseconds to
+  // nanoseconds, but I haven't been able to get it to work.
+  packet->set_timestamp(TimeOrigin() * 1000);
+  packet->set_timestamp_clock_id(
+      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
+  perfetto::protos::pbzero::TrackEvent* track_event = packet->set_track_event();
+  track_event->add_categories(stream()->name());
+
+  const TimelineEvent& event = *this;
+  switch (event_type()) {
+    case TimelineEvent::kBegin: {
+      AddSyncEventFields(track_event, event);
+      AddBeginEventFields(track_event, event);
+      break;
+    }
+    case TimelineEvent::kEnd: {
+      AddSyncEventFields(track_event, event);
+      AddEndEventFields(track_event);
+      break;
+    }
+    case TimelineEvent::kInstant: {
+      AddSyncEventFields(track_event, event);
+      AddInstantEventFields(track_event, event);
+      break;
+    }
+    case TimelineEvent::kAsyncBegin: {
+      AddAsyncEventFields(track_event, event);
+      AddBeginEventFields(track_event, event);
+      break;
+    }
+    case TimelineEvent::kAsyncEnd: {
+      AddAsyncEventFields(track_event, event);
+      AddEndEventFields(track_event);
+      break;
+    }
+    case TimelineEvent::kAsyncInstant: {
+      AddAsyncEventFields(track_event, event);
+      AddInstantEventFields(track_event, event);
+      break;
+    }
+    default:
+      break;
+  }
+  if (GetNumArguments() > 0) {
+    if (pre_serialized_args()) {
+      ASSERT(GetNumArguments() == 1);
+      perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+          *track_event->add_debug_annotations();
+      debug_annotation.set_name(arguments()[0].name);
+      debug_annotation.set_legacy_json_value(arguments()[0].value);
+    } else {
+      for (intptr_t i = 0; i < GetNumArguments(); ++i) {
+        perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+            *track_event->add_debug_annotations();
+        debug_annotation.set_name(arguments()[i].name);
+        debug_annotation.set_string_value(arguments()[i].value);
+      }
+    }
+  }
+  if (HasIsolateId()) {
+    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+        *track_event->add_debug_annotations();
+    debug_annotation.set_name("isolateId");
+    char* formatted_isolate_id = GetFormattedIsolateId();
+    debug_annotation.set_string_value(formatted_isolate_id);
+    free(formatted_isolate_id);
+  }
+  if (HasIsolateGroupId()) {
+    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+        *track_event->add_debug_annotations();
+    debug_annotation.set_name("isolateGroupId");
+    char* formatted_isolate_group = GetFormattedIsolateGroupId();
+    debug_annotation.set_string_value(formatted_isolate_group);
+    free(formatted_isolate_group);
+  }
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
 int64_t TimelineEvent::LowTime() const {
   return timestamp0_;
 }
@@ -784,6 +964,10 @@ int64_t TimelineEvent::TimeDuration() const {
   return timestamp1_ - timestamp0_;
 }
 
+bool TimelineEvent::HasFlowId() const {
+  return flow_id_ != TimelineEvent::kNoFlowId;
+}
+
 bool TimelineEvent::HasIsolateId() const {
   return isolate_id_ != ILLEGAL_ISOLATE_ID;
 }
@@ -792,7 +976,7 @@ bool TimelineEvent::HasIsolateGroupId() const {
   return isolate_group_id_ != ILLEGAL_ISOLATE_GROUP_ID;
 }
 
-const char* TimelineEvent::GetFormattedIsolateId() const {
+char* TimelineEvent::GetFormattedIsolateId() const {
   ASSERT(HasIsolateId());
   intptr_t formatted_isolate_id_len =
       Utils::SNPrint(nullptr, 0, ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id_);
@@ -803,7 +987,7 @@ const char* TimelineEvent::GetFormattedIsolateId() const {
   return formatted_isolate_id;
 }
 
-const char* TimelineEvent::GetFormattedIsolateGroupId() const {
+char* TimelineEvent::GetFormattedIsolateGroupId() const {
   ASSERT(HasIsolateGroupId());
   intptr_t formatted_isolate_group_id_len = Utils::SNPrint(
       nullptr, 0, ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id_);
@@ -838,7 +1022,40 @@ void TimelineTrackMetadata::PrintJSON(const JSONArray& jsarr_events) const {
     jsobj_args.AddProperty("mode", "basic");
   }
 }
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineTrackMetadata::PopulateTracePacket(
+    perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const {
+  perfetto_utils::SetTrustedPacketSequenceId(track_descriptor_packet);
+
+  perfetto::protos::pbzero::TrackDescriptor& track_descriptor =
+      *track_descriptor_packet->set_track_descriptor();
+  track_descriptor.set_parent_uuid(pid());
+  track_descriptor.set_uuid(tid());
+
+  perfetto::protos::pbzero::ThreadDescriptor& thread_descriptor =
+      *track_descriptor.set_thread();
+  thread_descriptor.set_pid(pid());
+  thread_descriptor.set_tid(tid());
+  thread_descriptor.set_thread_name(track_name());
+}
+#endif  // defined(SUPPORT_PERFETTO)
 #endif  // !defined(PRODUCT)
+
+AsyncTimelineTrackMetadata::AsyncTimelineTrackMetadata(intptr_t pid,
+                                                       intptr_t async_id)
+    : pid_(pid), async_id_(async_id) {}
+
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+void AsyncTimelineTrackMetadata::PopulateTracePacket(
+    perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const {
+  perfetto_utils::SetTrustedPacketSequenceId(track_descriptor_packet);
+  perfetto::protos::pbzero::TrackDescriptor& track_descriptor =
+      *track_descriptor_packet->set_track_descriptor();
+  track_descriptor.set_parent_uuid(pid());
+  track_descriptor.set_uuid(async_id());
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 TimelineStream::TimelineStream(const char* name,
                                const char* fuchsia_name,
@@ -886,7 +1103,7 @@ TimelineEvent* TimelineStream::StartEvent() {
 
 TimelineEventScope::TimelineEventScope(TimelineStream* stream,
                                        const char* label)
-    : StackResource(static_cast<Thread*>(NULL)),
+    : StackResource(static_cast<Thread*>(nullptr)),
       stream_(stream),
       label_(label),
       enabled_(false) {
@@ -904,15 +1121,15 @@ TimelineEventScope::~TimelineEventScope() {}
 
 void TimelineEventScope::Init() {
   ASSERT(enabled_ == false);
-  ASSERT(label_ != NULL);
-  ASSERT(stream_ != NULL);
+  ASSERT(label_ != nullptr);
+  ASSERT(stream_ != nullptr);
   if (!stream_->enabled()) {
     // Stream is not enabled, do nothing.
     return;
   }
   enabled_ = true;
   Thread* thread = static_cast<Thread*>(this->thread());
-  if (thread != NULL) {
+  if (thread != nullptr) {
     id_ = thread->GetNextTaskId();
   } else {
     static RelaxedAtomic<int64_t> next_bootstrap_task_id = {0};
@@ -961,7 +1178,7 @@ void TimelineEventScope::FormatArgument(intptr_t i,
 }
 
 void TimelineEventScope::StealArguments(TimelineEvent* event) {
-  if (event == NULL) {
+  if (event == nullptr) {
     return;
   }
   event->StealArguments(&arguments_);
@@ -989,14 +1206,14 @@ void TimelineBeginEndScope::EmitBegin() {
     return;
   }
   TimelineEvent* event = stream()->StartEvent();
-  if (event == NULL) {
+  if (event == nullptr) {
     // Stream is now disabled.
     set_enabled(false);
     return;
   }
-  ASSERT(event != NULL);
+  ASSERT(event != nullptr);
   // Emit a begin event.
-  event->Begin(label(), id());
+  event->Begin(label(), id(), /*flow_id=*/TimelineEvent::kNoFlowId);
   event->Complete();
 }
 
@@ -1005,12 +1222,12 @@ void TimelineBeginEndScope::EmitEnd() {
     return;
   }
   TimelineEvent* event = stream()->StartEvent();
-  if (event == NULL) {
+  if (event == nullptr) {
     // Stream is now disabled.
     set_enabled(false);
     return;
   }
-  ASSERT(event != NULL);
+  ASSERT(event != nullptr);
   // Emit an end event.
   event->End(label(), id());
   StealArguments(event);
@@ -1037,16 +1254,31 @@ IsolateTimelineEventFilter::IsolateTimelineEventFilter(
 TimelineEventRecorder::TimelineEventRecorder()
     : time_low_micros_(0),
       time_high_micros_(0),
+      track_uuid_to_track_metadata_lock_(),
       track_uuid_to_track_metadata_(
           &SimpleHashMap::SamePointerValue,
           TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity),
-      track_uuid_to_track_metadata_lock_() {}
+      async_track_uuid_to_track_metadata_lock_(),
+      async_track_uuid_to_track_metadata_(
+          &SimpleHashMap::SamePointerValue,
+          TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity) {}
 
 TimelineEventRecorder::~TimelineEventRecorder() {
+  // We do not need to lock the following section, because at this point
+  // |RecorderSynchronizationLock| must have been put in a state that prevents
+  // the metadata maps from being modified.
   for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
        entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
     TimelineTrackMetadata* value =
         static_cast<TimelineTrackMetadata*>(entry->value);
+    delete value;
+  }
+  for (SimpleHashMap::Entry* entry =
+           async_track_uuid_to_track_metadata_.Start();
+       entry != nullptr;
+       entry = async_track_uuid_to_track_metadata_.Next(entry)) {
+    AsyncTimelineTrackMetadata* value =
+        static_cast<AsyncTimelineTrackMetadata*>(entry->value);
     delete value;
   }
 }
@@ -1061,27 +1293,69 @@ void TimelineEventRecorder::PrintJSONMeta(const JSONArray& jsarr_events) {
     value->PrintJSON(jsarr_events);
   }
 }
-#endif
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventRecorder::PrintPerfettoMeta(
+    JSONBase64String* jsonBase64String) {
+  ASSERT(jsonBase64String != nullptr);
+
+  perfetto_utils::PopulateClockSnapshotPacket(packet_.get());
+  perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+  packet_.Reset();
+  perfetto_utils::PopulateProcessDescriptorPacket(packet_.get());
+  perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+  packet_.Reset();
+
+  {
+    MutexLocker ml(&async_track_uuid_to_track_metadata_lock_);
+    for (SimpleHashMap::Entry* entry =
+             async_track_uuid_to_track_metadata_.Start();
+         entry != nullptr;
+         entry = async_track_uuid_to_track_metadata_.Next(entry)) {
+      AsyncTimelineTrackMetadata* value =
+          static_cast<AsyncTimelineTrackMetadata*>(entry->value);
+      value->PopulateTracePacket(packet_.get());
+      perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
+                                                     &packet_);
+      packet_.Reset();
+    }
+  }
+
+  {
+    MutexLocker ml(&track_uuid_to_track_metadata_lock_);
+    for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
+         entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
+      TimelineTrackMetadata* value =
+          static_cast<TimelineTrackMetadata*>(entry->value);
+      value->PopulateTracePacket(packet_.get());
+      perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
+                                                     &packet_);
+      packet_.Reset();
+    }
+  }
+}
+#endif  // defined(SUPPORT_PERFETTO)
+#endif  // !defined(PRODUCT)
 
 TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   // Grab the current thread.
   OSThread* thread = OSThread::Current();
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   Mutex* thread_block_lock = thread->timeline_block_lock();
-  ASSERT(thread_block_lock != NULL);
+  ASSERT(thread_block_lock != nullptr);
   // We are accessing the thread's timeline block- so take the lock here.
   // This lock will be held until the call to |CompleteEvent| is made.
   thread_block_lock->Lock();
 #if defined(DEBUG)
   Thread* T = Thread::Current();
-  if (T != NULL) {
+  if (T != nullptr) {
     T->IncrementNoSafepointScopeDepth();
   }
 #endif  // defined(DEBUG)
 
   TimelineEventBlock* thread_block = thread->timeline_block();
 
-  if ((thread_block != NULL) && thread_block->IsFull()) {
+  if ((thread_block != nullptr) && thread_block->IsFull()) {
     MutexLocker ml(&lock_);
     // Thread has a block and it is full:
     // 1) Mark it as finished.
@@ -1089,13 +1363,13 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
     // 2) Allocate a new block.
     thread_block = GetNewBlockLocked();
     thread->set_timeline_block(thread_block);
-  } else if (thread_block == NULL) {
+  } else if (thread_block == nullptr) {
     MutexLocker ml(&lock_);
     // Thread has no block. Attempt to allocate one.
     thread_block = GetNewBlockLocked();
     thread->set_timeline_block(thread_block);
   }
-  if (thread_block != NULL) {
+  if (thread_block != nullptr) {
     // NOTE: We are exiting this function with the thread's block lock held.
     ASSERT(!thread_block->IsFull());
     TimelineEvent* event = thread_block->StartEvent();
@@ -1103,12 +1377,12 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   }
 // Drop lock here as no event is being handed out.
 #if defined(DEBUG)
-  if (T != NULL) {
+  if (T != nullptr) {
     T->DecrementNoSafepointScopeDepth();
   }
 #endif  // defined(DEBUG)
   thread_block_lock->Unlock();
-  return NULL;
+  return nullptr;
 }
 
 void TimelineEventRecorder::ResetTimeTracking() {
@@ -1140,18 +1414,27 @@ int64_t TimelineEventRecorder::TimeExtentMicros() const {
 }
 
 void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
-  if (event == NULL) {
+  if (event == nullptr) {
     return;
   }
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  // Async track metadata is only written in Perfetto traces, and Perfetto
+  // traces cannot be written when SUPPORT_PERFETTO is not defined, or when
+  // PRODUCT is defined.
+  if (event->event_type() == TimelineEvent::kAsyncBegin ||
+      event->event_type() == TimelineEvent::kAsyncInstant) {
+    AddAsyncTrackMetadataBasedOnEvent(*event);
+  }
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
   // Grab the current thread.
   OSThread* thread = OSThread::Current();
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   // Unlock the thread's block lock.
   Mutex* thread_block_lock = thread->timeline_block_lock();
-  ASSERT(thread_block_lock != NULL);
+  ASSERT(thread_block_lock != nullptr);
 #if defined(DEBUG)
   Thread* T = Thread::Current();
-  if (T != NULL) {
+  if (T != nullptr) {
     T->DecrementNoSafepointScopeDepth();
   }
 #endif  // defined(DEBUG)
@@ -1163,7 +1446,8 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   Dart_FileOpenCallback file_open = Dart::file_open_callback();
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
   Dart_FileCloseCallback file_close = Dart::file_close_callback();
-  if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
+  if ((file_open == nullptr) || (file_write == nullptr) ||
+      (file_close == nullptr)) {
     OS::PrintErr("warning: Could not access file callbacks.");
     return;
   }
@@ -1172,9 +1456,9 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 
   intptr_t pid = OS::ProcessId();
   char* filename =
-      OS::SCreate(NULL, "%s/dart-timeline-%" Pd ".json", directory, pid);
+      OS::SCreate(nullptr, "%s/dart-timeline-%" Pd ".json", directory, pid);
   void* file = (*file_open)(filename, true);
-  if (file == NULL) {
+  if (file == nullptr) {
     OS::PrintErr("warning: Failed to write timeline file: %s\n", filename);
     free(filename);
     return;
@@ -1185,7 +1469,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   TimelineEventFilter filter;
   PrintTraceEvent(&js, &filter);
   // Steal output from JSONStream.
-  char* output = NULL;
+  char* output = nullptr;
   intptr_t output_length = 0;
   js.Steal(&output, &output_length);
   (*file_write)(output, output_length, file);
@@ -1198,7 +1482,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 #endif
 
 void TimelineEventRecorder::FinishBlock(TimelineEventBlock* block) {
-  if (block == NULL) {
+  if (block == nullptr) {
     return;
   }
   MutexLocker ml(&lock_);
@@ -1214,11 +1498,13 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
     const intptr_t process_id,
     const intptr_t trace_id,
     const char* thread_name) {
-  if (FLAG_timeline_recorder != nullptr &&
+  if (FLAG_timeline_recorder == nullptr ||
       // There is no way to retrieve track metadata when a callback or systrace
       // recorder is in use, so we don't need to update the map in these cases.
-      strcmp("callback", FLAG_timeline_recorder) != 0 &&
-      strcmp("systrace", FLAG_timeline_recorder) != 0) {
+      strcmp("callback", FLAG_timeline_recorder) == 0 ||
+      strcmp("systrace", FLAG_timeline_recorder) == 0) {
+    return;
+  }
     MutexLocker ml(&track_uuid_to_track_metadata_lock_);
 
     void* key = reinterpret_cast<void*>(trace_id);
@@ -1236,14 +1522,35 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
       ASSERT(process_id == value->pid());
       value->set_track_name(Utils::CreateCStringUniquePtr(
           Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
-    }
   }
 }
 
+#if !defined(PRODUCT)
+void TimelineEventRecorder::AddAsyncTrackMetadataBasedOnEvent(
+    const TimelineEvent& event) {
+  if (FLAG_timeline_recorder == nullptr ||
+      // There is no way to retrieve track metadata when a callback or systrace
+      // recorder is in use, so we don't need to update the map in these cases.
+      strcmp("callback", FLAG_timeline_recorder) == 0 ||
+      strcmp("systrace", FLAG_timeline_recorder) == 0) {
+    return;
+  }
+  MutexLocker ml(&async_track_uuid_to_track_metadata_lock_);
+
+  void* key = reinterpret_cast<void*>(event.Id());
+  const intptr_t hash = Utils::WordHash(event.Id());
+  SimpleHashMap::Entry* entry =
+      async_track_uuid_to_track_metadata_.Lookup(key, hash, true);
+  if (entry->value == nullptr) {
+    entry->value = new AsyncTimelineTrackMetadata(OS::ProcessId(), event.Id());
+  }
+}
+#endif  // !defined(PRODUCT)
+
 TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
     intptr_t capacity)
-    : memory_(NULL),
-      blocks_(NULL),
+    : memory_(nullptr),
+      blocks_(nullptr),
       capacity_(capacity),
       num_blocks_(0),
       block_cursor_(0) {
@@ -1258,7 +1565,7 @@ TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
   const bool compressed = false;
   memory_ =
       VirtualMemory::Allocate(size, executable, compressed, "dart-timeline");
-  if (memory_ == NULL) {
+  if (memory_ == nullptr) {
     OUT_OF_MEMORY();
   }
   blocks_ = reinterpret_cast<TimelineEventBlock*>(memory_->address());
@@ -1278,34 +1585,56 @@ intptr_t TimelineEventFixedBufferRecorder::Size() {
 }
 
 #ifndef PRODUCT
-void TimelineEventFixedBufferRecorder::PrintJSONEvents(
-    JSONArray* events,
-    TimelineEventFilter* filter) {
+void TimelineEventFixedBufferRecorder::PrintEventsCommon(
+    const TimelineEventFilter& filter,
+    std::function<void(const TimelineEvent&)> print_impl) {
+  Timeline::ReclaimCachedBlocksFromThreads();
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndex();
   if (block_offset == -1) {
-    // All blocks are empty.
+    // All blocks are in use or empty.
     return;
   }
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block =
         &blocks_[(block_idx + block_offset) % num_blocks_];
-    if (!filter->IncludeBlock(block)) {
+    if (!filter.IncludeBlock(block)) {
       continue;
     }
     for (intptr_t event_idx = 0; event_idx < block->length(); event_idx++) {
       TimelineEvent* event = block->At(event_idx);
-      if (filter->IncludeEvent(event) &&
-          event->Within(filter->time_origin_micros(),
-                        filter->time_extent_micros())) {
+      if (filter.IncludeEvent(event) &&
+          event->Within(filter.time_origin_micros(),
+                        filter.time_extent_micros())) {
         ReportTime(event->LowTime());
         ReportTime(event->HighTime());
-        events->AddValue(event);
+        print_impl(*event);
       }
     }
   }
 }
+
+void TimelineEventFixedBufferRecorder::PrintJSONEvents(
+    const JSONArray& events,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [&events](const TimelineEvent& event) {
+    events.AddValue(&event);
+  });
+}
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventFixedBufferRecorder::PrintPerfettoEvents(
+    JSONBase64String* jsonBase64String,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [this,
+                             &jsonBase64String](const TimelineEvent& event) {
+    event.PopulateTracePacket(packet().get());
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet());
+    packet().Reset();
+  });
+}
+#endif  // defined(SUPPORT_PERFETTO)
 
 void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
                                                  TimelineEventFilter* filter) {
@@ -1314,20 +1643,43 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
   {
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(events);
-    PrintJSONEvents(&events, filter);
+    PrintJSONEvents(events, *filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
   topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
+
+#define PRINT_PERFETTO_TIMELINE_BODY                                           \
+  JSONObject jsobj_topLevel(js);                                               \
+  jsobj_topLevel.AddProperty("type", "PerfettoTimeline");                      \
+                                                                               \
+  js->AppendSerializedObject("\"trace\":");                                    \
+  {                                                                            \
+    JSONBase64String jsonBase64String(js);                                     \
+    PrintPerfettoMeta(&jsonBase64String);                                      \
+    PrintPerfettoEvents(&jsonBase64String, filter);                            \
+  }                                                                            \
+                                                                               \
+  jsobj_topLevel.AddPropertyTimeMicros("timeOriginMicros",                     \
+                                       TimeOriginMicros());                    \
+  jsobj_topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventFixedBufferRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  PRINT_PERFETTO_TIMELINE_BODY
+}
+#endif  // defined(SUPPORT_PERFETTO)
 
 void TimelineEventFixedBufferRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
   PrintJSONMeta(events);
-  PrintJSONEvents(&events, filter);
+  PrintJSONEvents(events, *filter);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEventBlock* TimelineEventFixedBufferRecorder::GetHeadBlockLocked() {
   return &blocks_[0];
@@ -1346,8 +1698,11 @@ intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndex() const {
   intptr_t earliest_index = -1;
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block = &blocks_[block_idx];
-    if (block->IsEmpty()) {
-      // Skip empty blocks.
+    if (block->in_use() || block->IsEmpty()) {
+      // Skip in use and empty blocks. |block->in_use()| must be checked first
+      // because we are only holding |lock_|. Holding |lock_| makes it safe to
+      // call |in_use()| on any block, but only makes it safe to call
+      // |IsEmpty()| on blocks that are not in use.
       continue;
     }
     if (block->LowerTimeBound() < earliest_time) {
@@ -1363,7 +1718,7 @@ TimelineEvent* TimelineEventFixedBufferRecorder::StartEvent() {
 }
 
 void TimelineEventFixedBufferRecorder::CompleteEvent(TimelineEvent* event) {
-  if (event == NULL) {
+  if (event == nullptr) {
     return;
   }
   ThreadBlockCompleteEvent(event);
@@ -1383,7 +1738,7 @@ TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
 
 TimelineEventBlock* TimelineEventStartupRecorder::GetNewBlockLocked() {
   if (block_cursor_ == num_blocks_) {
-    return NULL;
+    return nullptr;
   }
   TimelineEventBlock* block = &blocks_[block_cursor_++];
   block->Reset();
@@ -1401,12 +1756,20 @@ void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
   UNREACHABLE();
 }
 
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventCallbackRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  UNREACHABLE();
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventCallbackRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEvent* TimelineEventCallbackRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
@@ -1420,7 +1783,7 @@ void TimelineEventCallbackRecorder::CompleteEvent(TimelineEvent* event) {
 
 void TimelineEventEmbedderCallbackRecorder::OnEvent(TimelineEvent* event) {
   Dart_TimelineRecorderCallback callback = Timeline::callback();
-  if (callback == NULL) {
+  if (callback == nullptr) {
     return;
   }
 
@@ -1493,12 +1856,20 @@ void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
   UNREACHABLE();
 }
 
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventPlatformRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  UNREACHABLE();
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventPlatformRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEvent* TimelineEventPlatformRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
@@ -1656,12 +2027,84 @@ void TimelineEventFileRecorder::DrainImpl(const TimelineEvent& event) {
     writer.buffer()->AddChar(',');
   }
   event.PrintJSON(&writer);
-  char* output = NULL;
+  char* output = nullptr;
   intptr_t output_length = 0;
   writer.Steal(&output, &output_length);
   Write(output, output_length);
   free(output);
 }
+
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
+    const char* path)
+    : TimelineEventFileRecorderBase(path) {
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
+      this->packet();
+
+  perfetto_utils::PopulateClockSnapshotPacket(packet.get());
+  WritePacket(&packet);
+  packet.Reset();
+
+  perfetto_utils::PopulateProcessDescriptorPacket(packet.get());
+  WritePacket(&packet);
+  packet.Reset();
+
+  OSThread::Start("TimelineEventPerfettoFileRecorder",
+                  TimelineEventFileRecorderBaseStart,
+                  reinterpret_cast<uword>(this));
+}
+
+TimelineEventPerfettoFileRecorder::~TimelineEventPerfettoFileRecorder() {
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
+      this->packet();
+  ShutDown();
+  // We do not need to lock the following section, because at this point
+  // |RecorderSynchronizationLock| must have been put in a state that prevents
+  // the metadata maps from being modified.
+  for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata().Start();
+       entry != nullptr; entry = track_uuid_to_track_metadata().Next(entry)) {
+    TimelineTrackMetadata* value =
+        static_cast<TimelineTrackMetadata*>(entry->value);
+    value->PopulateTracePacket(packet.get());
+    WritePacket(&packet);
+    packet.Reset();
+  }
+  for (SimpleHashMap::Entry* entry =
+           async_track_uuid_to_track_metadata().Start();
+       entry != nullptr;
+       entry = async_track_uuid_to_track_metadata().Next(entry)) {
+    AsyncTimelineTrackMetadata* value =
+        static_cast<AsyncTimelineTrackMetadata*>(entry->value);
+    value->PopulateTracePacket(packet.get());
+    WritePacket(&packet);
+    packet.Reset();
+  }
+}
+
+void TimelineEventPerfettoFileRecorder::WritePacket(
+    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet)
+    const {
+  const std::tuple<std::unique_ptr<const uint8_t[]>, intptr_t>& response =
+      perfetto_utils::GetProtoPreamble(packet);
+  Write(reinterpret_cast<const char*>(std::get<0>(response).get()),
+        std::get<1>(response));
+  for (const protozero::ScatteredHeapBuffer::Slice& slice :
+       packet->GetSlices()) {
+    Write(reinterpret_cast<char*>(slice.start()),
+          slice.size() - slice.unused_bytes());
+  }
+}
+
+void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
+  event.PopulateTracePacket(packet().get());
+  WritePacket(&packet());
+  packet().Reset();
+  if (event.event_type() == TimelineEvent::kAsyncBegin ||
+      event.event_type() == TimelineEvent::kAsyncInstant) {
+    AddAsyncTrackMetadataBasedOnEvent(event);
+  }
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(nullptr), tail_(nullptr), block_index_(0) {}
@@ -1669,6 +2112,52 @@ TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
 TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {}
 
 #ifndef PRODUCT
+void TimelineEventEndlessRecorder::PrintEventsCommon(
+    const TimelineEventFilter& filter,
+    std::function<void(const TimelineEvent&)> print_impl) {
+  Timeline::ReclaimCachedBlocksFromThreads();
+  MutexLocker ml(&lock_);
+  ResetTimeTracking();
+  for (TimelineEventBlock* current = head_; current != nullptr;
+       current = current->next()) {
+    if (!filter.IncludeBlock(current)) {
+      continue;
+    }
+    intptr_t length = current->length();
+    for (intptr_t i = 0; i < length; i++) {
+      TimelineEvent* event = current->At(i);
+      if (filter.IncludeEvent(event) &&
+          event->Within(filter.time_origin_micros(),
+                        filter.time_extent_micros())) {
+        ReportTime(event->LowTime());
+        ReportTime(event->HighTime());
+        print_impl(*event);
+      }
+    }
+  }
+}
+
+void TimelineEventEndlessRecorder::PrintJSONEvents(
+    const JSONArray& events,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [&events](const TimelineEvent& event) {
+    events.AddValue(&event);
+  });
+}
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventEndlessRecorder::PrintPerfettoEvents(
+    JSONBase64String* jsonBase64String,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [this,
+                             &jsonBase64String](const TimelineEvent& event) {
+    event.PopulateTracePacket(packet().get());
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet());
+    packet().Reset();
+  });
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
                                              TimelineEventFilter* filter) {
   JSONObject topLevel(js);
@@ -1676,20 +2165,28 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
   {
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(events);
-    PrintJSONEvents(&events, filter);
+    PrintJSONEvents(events, *filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
   topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventEndlessRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  PRINT_PERFETTO_TIMELINE_BODY
+}
+#endif  // defined(SUPPORT_PERFETTO)
 
 void TimelineEventEndlessRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
   PrintJSONMeta(events);
-  PrintJSONEvents(&events, filter);
+  PrintJSONEvents(events, *filter);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEventBlock* TimelineEventEndlessRecorder::GetHeadBlockLocked() {
   return head_;
@@ -1700,7 +2197,7 @@ TimelineEvent* TimelineEventEndlessRecorder::StartEvent() {
 }
 
 void TimelineEventEndlessRecorder::CompleteEvent(TimelineEvent* event) {
-  if (event == NULL) {
+  if (event == nullptr) {
     return;
   }
   ThreadBlockCompleteEvent(event);
@@ -1721,47 +2218,21 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
   return block;
 }
 
-#ifndef PRODUCT
-void TimelineEventEndlessRecorder::PrintJSONEvents(
-    JSONArray* events,
-    TimelineEventFilter* filter) {
-  MutexLocker ml(&lock_);
-  ResetTimeTracking();
-  for (TimelineEventBlock* current = head_; current != nullptr;
-       current = current->next()) {
-    if (!filter->IncludeBlock(current)) {
-      continue;
-    }
-    intptr_t length = current->length();
-    for (intptr_t i = 0; i < length; i++) {
-      TimelineEvent* event = current->At(i);
-      if (filter->IncludeEvent(event) &&
-          event->Within(filter->time_origin_micros(),
-                        filter->time_extent_micros())) {
-        ReportTime(event->LowTime());
-        ReportTime(event->HighTime());
-        events->AddValue(event);
-      }
-    }
-  }
-}
-#endif
-
 void TimelineEventEndlessRecorder::Clear() {
   MutexLocker ml(&lock_);
   TimelineEventBlock* current = head_;
-  while (current != NULL) {
+  while (current != nullptr) {
     TimelineEventBlock* next = current->next();
     delete current;
     current = next;
   }
-  head_ = NULL;
-  tail_ = NULL;
+  head_ = nullptr;
+  tail_ = nullptr;
   block_index_ = 0;
 }
 
 TimelineEventBlock::TimelineEventBlock(intptr_t block_index)
-    : next_(NULL),
+    : next_(nullptr),
       length_(0),
       block_index_(block_index),
       thread_id_(OSThread::kInvalidThreadId),
@@ -1788,7 +2259,7 @@ TimelineEvent* TimelineEventBlock::StartEvent() {
   ASSERT(!IsFull());
   if (FLAG_trace_timeline) {
     OSThread* os_thread = OSThread::Current();
-    ASSERT(os_thread != NULL);
+    ASSERT(os_thread != nullptr);
     intptr_t tid = OSThread::ThreadIdToIntPtr(os_thread->id());
     OS::PrintErr("StartEvent in block %p for thread %" Pd "\n", this, tid);
   }
@@ -1838,7 +2309,7 @@ void TimelineEventBlock::Reset() {
 
 void TimelineEventBlock::Open() {
   OSThread* os_thread = OSThread::Current();
-  ASSERT(os_thread != NULL);
+  ASSERT(os_thread != nullptr);
   thread_id_ = os_thread->trace_id();
   in_use_ = true;
 }
@@ -1859,6 +2330,7 @@ void TimelineEventBlock::Finish() {
 
 void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
                                                int64_t id,
+                                               int64_t flow_id,
                                                intptr_t type,
                                                char* name,
                                                char* args) {
@@ -1874,7 +2346,7 @@ void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
       event->AsyncEnd(name, id, start);
       break;
     case TimelineEvent::kBegin:
-      event->Begin(name, id, start);
+      event->Begin(name, id, flow_id, start);
       break;
     case TimelineEvent::kEnd:
       event->End(name, id, start);

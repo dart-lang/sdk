@@ -4,8 +4,10 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
+import 'package:native_assets_cli/native_assets_cli.dart' show CCompilerConfig;
 import 'package:smith/configuration.dart';
 import 'package:smith/smith.dart';
 
@@ -276,6 +278,71 @@ class TestConfiguration {
       // Ignore errors here. If win_sdk is not found, stack trace dumping
       // for timeouts won't work.
     }
+  }();
+
+  late final Map<String, String> nativeCompilerEnvironmentVariables = () {
+    String unparseKey(String key) => key.replaceAll('.', '__').toUpperCase();
+    final arKey = unparseKey(CCompilerConfig.arConfigKeyFull);
+    final ccKey = unparseKey(CCompilerConfig.ccConfigKeyFull);
+    final ldKey = unparseKey(CCompilerConfig.ldConfigKeyFull);
+    final envScriptKey = unparseKey(CCompilerConfig.envScriptConfigKeyFull);
+    final envScriptArgsKey =
+        unparseKey(CCompilerConfig.envScriptArgsConfigKeyFull);
+
+    if (Platform.isWindows) {
+      // Use MSVC from Depot Tools instead. When using clang from DEPS, we still
+      // need to pass the right INCLUDE / LIB environment variables. So we might
+      // as well use the MSVC instead.
+      final windowsSdkPath_ = windowsSdkPath;
+      if (windowsSdkPath_ == null) {
+        return <String, String>{};
+      }
+      final windowsSdk = Uri.directory(windowsSdkPath_);
+      final vsPath = windowsSdk.resolve('../../');
+      final msvcPaths = vsPath.resolve('VC/Tools/MSVC/');
+      final msvcPath = Directory.fromUri(msvcPaths)
+          .listSync()
+          .firstWhere((element) => element.path != '.' && element.path != '..')
+          .uri;
+      const targetFolderName = {
+        Abi.windowsX64: 'x64',
+        Abi.windowsIA32: 'ia32',
+      };
+      const envScriptArgument = {
+        Abi.windowsX64: '/x64',
+        Abi.windowsIA32: '/x86',
+      };
+      final binDir =
+          msvcPath.resolve('bin/Hostx64/${targetFolderName[Abi.current()]!}/');
+      final toolchainEnvScript = windowsSdk.resolve('bin/SetEnv.cmd');
+      return {
+        arKey: binDir.resolve('lib.exe').toFilePath(),
+        ccKey: binDir.resolve('cl.exe').toFilePath(),
+        ldKey: binDir.resolve('link.exe').toFilePath(),
+        envScriptKey: toolchainEnvScript.toFilePath(),
+        envScriptArgsKey: envScriptArgument[Abi.current()]!,
+      };
+    }
+
+    if (Platform.isMacOS) {
+      // Use XCode instead, it has the right sysroot by default.
+      return <String, String>{};
+    }
+
+    assert(Platform.isLinux);
+    // Keep consistent with DEPS.
+    const clangHostFolderName = {
+      Abi.linuxArm64: 'linux-arm64',
+      Abi.linuxX64: 'linux-x64',
+    };
+    final hostFolderName = clangHostFolderName[Abi.current()]!;
+    final clangBin =
+        Directory.current.uri.resolve('buildtools/$hostFolderName/clang/bin/');
+    return {
+      arKey: clangBin.resolve('llvm-ar').toFilePath(),
+      ccKey: clangBin.resolve('clang').toFilePath(),
+      ldKey: clangBin.resolve('ld.lld').toFilePath(),
+    };
   }();
 
   /// Gets the local file path to the browser executable for this configuration.

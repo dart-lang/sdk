@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
-import 'package:collection/collection.dart';
 
 final _identifierPattern = RegExp(r'([_a-zA-Z][_a-zA-Z0-9]*)');
 

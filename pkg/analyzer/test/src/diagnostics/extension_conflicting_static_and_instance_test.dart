@@ -88,14 +88,12 @@ extension E on String {
 
   test_field_getter_unnamed() async {
     await assertErrorsInCode('''
-extension on String {
+extension E on String {
   static int foo = 0;
   int get foo => 0;
 }
 ''', [
-      error(WarningCode.UNUSED_FIELD, 35, 3),
-      error(_errorCode, 35, 3),
-      error(HintCode.UNUSED_ELEMENT, 54, 3),
+      error(_errorCode, 37, 3),
     ]);
   }
 
@@ -134,14 +132,12 @@ extension E on String {
 
   test_getter_getter_unnamed() async {
     await assertErrorsInCode('''
-extension on String {
+extension E on String {
   static int get foo => 0;
   int get foo => 0;
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 39, 3),
-      error(_errorCode, 39, 3),
-      error(HintCode.UNUSED_ELEMENT, 59, 3),
+      error(_errorCode, 41, 3),
     ]);
   }
 

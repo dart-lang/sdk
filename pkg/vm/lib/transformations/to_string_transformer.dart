@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/transformations/flags.dart';
 
 /// Transformer/visitor for toString
 transformComponent(Component component, List<String> packageUris) {
@@ -84,6 +85,7 @@ class ToStringVisitor extends RecursiveVisitor {
         return findSuperMethod(cls.superclass!);
       }
 
+      node.transformerFlags |= TransformerFlag.superCalls;
       node.function.body!.replaceWith(
         ReturnStatement(
           SuperMethodInvocation(

@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:kernel/kernel.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
 
 final String usage = '''
@@ -18,18 +19,22 @@ void main(List<String> args) {
     print(usage);
     exit(1);
   }
+  var target = new NoneTarget(new TargetFlags());
   var component = loadComponentFromBinary(args[0]);
   var watch = new Stopwatch()..start();
-  verifyComponent(component);
+  verifyComponent(
+      target, VerificationStage.afterModularTransformations, component);
   print('Cold: ${watch.elapsedMilliseconds} ms');
   const int warmUpTrials = 20;
   for (int i = 0; i < warmUpTrials; ++i) {
-    verifyComponent(component);
+    verifyComponent(
+        target, VerificationStage.afterModularTransformations, component);
   }
   watch.reset();
   const int numberOfTrials = 100;
   for (int i = 0; i < numberOfTrials; ++i) {
-    verifyComponent(component);
+    verifyComponent(
+        target, VerificationStage.afterModularTransformations, component);
   }
   double millisecondsPerRun = watch.elapsedMilliseconds / numberOfTrials;
   print('Hot:  $millisecondsPerRun ms');

@@ -19,6 +19,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/rename_label.dar
 import 'package:analysis_server/src/services/refactoring/legacy/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_parameter.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/rename_type_parameter.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -441,6 +442,10 @@ abstract class RenameRefactoring implements Refactoring {
     if (element is LocalElement) {
       return RenameLocalRefactoringImpl(workspace, sessionHelper, element);
     }
+    if (element is TypeParameterElement) {
+      return RenameTypeParameterRefactoringImpl(
+          workspace, sessionHelper, element);
+    }
     if (enclosingElement is InterfaceElement) {
       return RenameClassMemberRefactoringImpl(
           workspace, sessionHelper, enclosingElement, element);
@@ -464,6 +469,8 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node;
     } else if (node is ConstructorSelector) {
       nameNode = node;
+    } else if (node is DeclaredIdentifier) {
+      nameNode = node.name;
     } else if (node is DeclaredVariablePattern) {
       nameNode = node.name;
     } else if (node is EnumConstantDeclaration) {
@@ -486,6 +493,8 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node.name;
     } else if (node is SimpleIdentifier) {
       nameNode = node.token;
+    } else if (node is TypeParameter) {
+      nameNode = node.name;
     } else if (node is VariableDeclaration) {
       nameNode = node.name;
     }
@@ -514,11 +523,10 @@ abstract class RenameRefactoring implements Refactoring {
 
     // Rename the class when on `new` in an instance creation.
     if (node is InstanceCreationExpression) {
-      var creation = node;
-      var typeIdentifier = creation.constructorName.type.name;
-      element = typeIdentifier.staticElement;
-      offset = typeIdentifier.offset;
-      length = typeIdentifier.length;
+      final namedType = node.constructorName.type;
+      element = namedType.element;
+      offset = namedType.name2.offset;
+      length = namedType.name2.length;
     }
 
     if (element == null) {

@@ -1161,8 +1161,11 @@ void Precompiler::AddType(const AbstractType& abstype) {
     if (typeparams_to_retain_.HasKey(&param)) return;
     typeparams_to_retain_.Insert(&TypeParameter::ZoneHandle(Z, param.ptr()));
 
-    auto& bound = AbstractType::Handle(Z, param.bound());
-    AddType(bound);
+    if (param.IsClassTypeParameter()) {
+      AddTypesOf(Class::Handle(Z, param.parameterized_class()));
+    } else {
+      AddType(FunctionType::Handle(Z, param.parameterized_function_type()));
+    }
     return;
   }
 
@@ -1191,12 +1194,8 @@ void Precompiler::AddType(const AbstractType& abstype) {
     const Type& type = Type::Cast(abstype);
     const Class& cls = Class::Handle(Z, type.type_class());
     AddTypesOf(cls);
-    const TypeArguments& vector = TypeArguments::Handle(Z, abstype.arguments());
+    const TypeArguments& vector = TypeArguments::Handle(Z, type.arguments());
     AddTypeArguments(vector);
-  } else if (abstype.IsTypeRef()) {
-    AbstractType& type = AbstractType::Handle(Z);
-    type = TypeRef::Cast(abstype).type();
-    AddType(type);
   } else if (abstype.IsRecordType()) {
     const auto& rec = RecordType::Cast(abstype);
     AbstractType& type = AbstractType::Handle(Z);
@@ -1297,7 +1296,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
           precompiler_(precompiler),
           subinstance_(Object::Handle()) {}
 
-    void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+    void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
       for (ObjectPtr* current = first; current <= last; current++) {
         subinstance_ = *current;
         if (subinstance_.IsInstance()) {
@@ -1307,9 +1306,10 @@ void Precompiler::AddConstObject(const class Instance& instance) {
       subinstance_ = Object::null();
     }
 
+#if defined(DART_COMPRESSED_POINTERS)
     void VisitCompressedPointers(uword heap_base,
                                  CompressedObjectPtr* first,
-                                 CompressedObjectPtr* last) {
+                                 CompressedObjectPtr* last) override {
       for (CompressedObjectPtr* current = first; current <= last; current++) {
         subinstance_ = current->Decompress(heap_base);
         if (subinstance_.IsInstance()) {
@@ -1318,6 +1318,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
       }
       subinstance_ = Object::null();
     }
+#endif
 
    private:
     Precompiler* precompiler_;
@@ -2399,11 +2400,10 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
                               GrowableHandlePtrArray<const AbstractType>* types)
           : type_(AbstractType::Handle(zone)), types_(types) {}
 
-      void VisitObject(ObjectPtr obj) {
+      void VisitObject(ObjectPtr obj) override {
         if (obj->GetClassId() == kTypeCid ||
             obj->GetClassId() == kFunctionTypeCid ||
-            obj->GetClassId() == kRecordTypeCid ||
-            obj->GetClassId() == kTypeRefCid) {
+            obj->GetClassId() == kRecordTypeCid) {
           type_ ^= obj;
           types_->Add(type_);
         }
@@ -3313,7 +3313,7 @@ void Precompiler::Obfuscate() {
                               GrowableHandlePtrArray<const Script>* scripts)
         : script_(Script::Handle(zone)), scripts_(scripts) {}
 
-    void VisitObject(ObjectPtr obj) {
+    void VisitObject(ObjectPtr obj) override {
       if (obj->GetClassId() == kScriptCid) {
         script_ ^= obj;
         scripts_->Add(Script::Cast(script_));
@@ -3427,7 +3427,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
 
   if (optimized()) {
     // Installs code while at safepoint.
-    ASSERT(thread()->IsMutatorThread());
+    ASSERT(thread()->IsDartMutatorThread());
     function.InstallOptimizedCode(code);
   } else {  // not optimized.
     function.set_unoptimized_code(code);
@@ -3572,7 +3572,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       {
         COMPILER_TIMINGS_TIMER_SCOPE(thread(), FinalizeCode);
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
-        ASSERT(thread()->IsMutatorThread());
+        ASSERT(thread()->IsDartMutatorThread());
         FinalizeCompilation(&assembler, &graph_compiler, flow_graph,
                             function_stats);
       }

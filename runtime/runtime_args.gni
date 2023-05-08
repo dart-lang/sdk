@@ -42,10 +42,6 @@ declare_args() {
   # verified at the operating system level.
   dart_use_fallback_root_certificates = false
 
-  # Whether to link the standalone VM against tcmalloc. The standalone build of
-  # the VM enables this only for Linux builds.
-  dart_use_tcmalloc = false
-
   # Whether to link Crashpad library for crash handling. Only supported on
   # Windows for now.
   dart_use_crashpad = false
@@ -80,6 +76,12 @@ declare_args() {
 
   # Whether the sampling heap profiler should be included in product mode.
   dart_include_sampling_heap_profiler = false
+
+  # Whether features that depend on Perfetto should be built. We temporarily
+  # need to define this to allow excluding code that depends on Perfetto from
+  # being built on platforms which have a problem linking in the Perfetto
+  # library.
+  dart_support_perfetto = true
 }
 
 declare_args() {

@@ -7,6 +7,7 @@ library dart2js.compiler_base;
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
 
+import 'package:compiler/src/universe/use.dart' show StaticUse;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 
@@ -16,7 +17,8 @@ import 'common/codegen.dart';
 import 'common/elements.dart' show ElementEnvironment;
 import 'common/metrics.dart' show Metric;
 import 'common/names.dart' show Selectors;
-import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
+import 'common/tasks.dart'
+    show CompilerTask, GenericTask, GenericTaskWithMetrics, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/output_unit.dart' show OutputUnitData;
@@ -35,12 +37,6 @@ import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
-import 'inferrer_experimental/trivial.dart' as experimentalInferrer
-    show TrivialAbstractValueStrategy;
-import 'inferrer_experimental/types.dart' as experimentalInferrer
-    show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
-import 'inferrer_experimental/typemasks/masks.dart' as experimentalInferrer
-    show TypeMaskStrategy;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
 import 'io/source_information.dart';
 import 'ir/annotations.dart';
@@ -64,6 +60,7 @@ import 'resolution/enqueuer.dart';
 import 'serialization/serialization.dart';
 import 'serialization/task.dart';
 import 'serialization/strategies.dart';
+import 'source_file_provider.dart';
 import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
@@ -109,14 +106,13 @@ class Compiler {
   Map<Entity, WorldImpact> get impactCache => _impactCache;
 
   late final Environment environment;
+  final DataReadMetrics dataReadMetrics = DataReadMetrics();
 
   late final List<CompilerTask> tasks;
   late final GenericTask loadKernelTask;
   fe.InitializedCompilerState? initializedCompilerState;
   bool forceSerializationForTesting = false;
   late final GlobalTypeInferenceTask globalInference;
-  late final experimentalInferrer.GlobalTypeInferenceTask
-      experimentalGlobalInference;
   late final CodegenWorldBuilder _codegenWorldBuilder;
 
   late AbstractValueStrategy abstractValueStrategy;
@@ -155,13 +151,9 @@ class Compiler {
     options.validate();
     environment = Environment(options.environment);
 
-    abstractValueStrategy = options.experimentalInferrer
-        ? (options.useTrivialAbstractValueDomain
-            ? const experimentalInferrer.TrivialAbstractValueStrategy()
-            : const experimentalInferrer.TypeMaskStrategy())
-        : (options.useTrivialAbstractValueDomain
-            ? const TrivialAbstractValueStrategy()
-            : const TypeMaskStrategy());
+    abstractValueStrategy = options.useTrivialAbstractValueDomain
+        ? const TrivialAbstractValueStrategy()
+        : const TypeMaskStrategy();
     if (options.experimentalWrapped || options.testMode) {
       abstractValueStrategy =
           WrappedAbstractValueStrategy(abstractValueStrategy);
@@ -174,7 +166,7 @@ class Compiler {
     }
 
     CompilerTask kernelFrontEndTask;
-    selfTask = GenericTask('self', measurer);
+    selfTask = GenericTaskWithMetrics('self', measurer, dataReadMetrics);
     _outputProvider = _CompilerOutput(this, outputProvider);
     _reporter = DiagnosticReporter(this);
     kernelFrontEndTask = GenericTask('Front end', measurer);
@@ -194,8 +186,6 @@ class Compiler {
       loadKernelTask = GenericTask('kernel loader', measurer),
       kernelFrontEndTask,
       globalInference = GlobalTypeInferenceTask(this),
-      experimentalGlobalInference =
-          experimentalInferrer.GlobalTypeInferenceTask(this),
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
       dumpInfoTask = DumpInfoTask(this),
       selfTask,
@@ -242,6 +232,7 @@ class Compiler {
         } finally {
           measurer.stopWallClock();
         }
+        dataReadMetrics.addDataRead(provider);
         if (options.verbose) {
           var timings = StringBuffer();
           computeTimings(setupDuration, timings);
@@ -327,6 +318,7 @@ class Compiler {
   // suitably maintained static reference to the current compiler.
   void clearState() {
     Selector.canonicalizedValues.clear();
+    StaticUse.clearCache();
 
     // The selector objects held in static fields must remain canonical.
     for (Selector selector in Selectors.ALL) {
@@ -509,18 +501,6 @@ class Compiler {
   bool get shouldStopAfterModularAnalysis =>
       compilationFailed || options.writeModularAnalysisUri != null;
 
-  experimentalInferrer.GlobalTypeInferenceResults
-      performExperimentalGlobalTypeInference(JClosedWorld closedWorld) {
-    final mainFunction = closedWorld.elementEnvironment.mainFunction!;
-    reporter.log('Performing experimental global type inference');
-    GlobalLocalsMap globalLocalsMap =
-        GlobalLocalsMap(closedWorld.closureDataLookup.getEnclosingMember);
-    InferredDataBuilder inferredDataBuilder =
-        InferredDataBuilderImpl(closedWorld.annotationsData);
-    return experimentalGlobalInference.runGlobalTypeInference(
-        mainFunction, closedWorld, globalLocalsMap, inferredDataBuilder);
-  }
-
   GlobalTypeInferenceResults performGlobalTypeInference(
       JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction!;
@@ -630,7 +610,8 @@ class Compiler {
       closedWorldAndIndices = DataAndIndices<JClosedWorld>(closedWorld, null);
       if (options.writeClosedWorldUri != null) {
         serializationTask.serializeComponent(
-            closedWorld!.elementMap.programEnv.mainComponent);
+            closedWorld!.elementMap.programEnv.mainComponent,
+            includeSourceBytes: false);
         serializationTask.serializeClosedWorld(closedWorld);
       }
     } else {
@@ -664,13 +645,8 @@ class Compiler {
     JClosedWorld closedWorld = closedWorldAndIndices.data!;
     DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults;
     if (options.readDataUri == null) {
-      if (options.experimentalInferrer) {
-        globalTypeInferenceResults = DataAndIndices(
-            performExperimentalGlobalTypeInference(closedWorld), null);
-      } else {
-        globalTypeInferenceResults =
-            DataAndIndices(performGlobalTypeInference(closedWorld), null);
-      }
+      globalTypeInferenceResults =
+          DataAndIndices(performGlobalTypeInference(closedWorld), null);
       if (options.writeDataUri != null) {
         serializationTask.serializeGlobalTypeInference(
             globalTypeInferenceResults.data!, closedWorldAndIndices.indices!);
@@ -872,7 +848,7 @@ class Compiler {
       List<DiagnosticMessage> infos, api.Diagnostic kind) {
     _reportDiagnosticMessage(message, kind);
     for (DiagnosticMessage info in infos) {
-      _reportDiagnosticMessage(info, api.Diagnostic.INFO);
+      _reportDiagnosticMessage(info, api.Diagnostic.CONTEXT);
     }
   }
 

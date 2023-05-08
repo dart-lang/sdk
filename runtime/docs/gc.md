@@ -110,9 +110,9 @@ enum HeaderBits {
   ...
 };
 
-static const intptr_t kGenerationalBarrierMask = 1 << kNewBit;
-static const intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
-static const intptr_t kBarrierOverlapShift = 2;
+static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewBit;
+static constexpr intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
+static constexpr intptr_t kBarrierOverlapShift = 2;
 COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
 COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
 

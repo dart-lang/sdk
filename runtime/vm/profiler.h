@@ -94,7 +94,7 @@ class Profiler : public AllStatic {
   }
   inline static intptr_t Size();
 
-  static void ProcessCompletedBlocks(Thread* thread);
+  static void ProcessCompletedBlocks(Isolate* isolate);
   static void IsolateShutdown(Thread* thread);
 
  private:
@@ -174,7 +174,7 @@ class SampleFilter : public ValueObject {
 
   bool take_samples() const { return take_samples_; }
 
-  static const intptr_t kNoTaskFilter = -1;
+  static constexpr intptr_t kNoTaskFilter = -1;
 
  private:
   Dart_Port port_;
@@ -253,7 +253,7 @@ class Sample {
       uword pc = At(i);
       char* native_symbol_name =
           NativeSymbolResolver::LookupSymbolName(pc, &start);
-      if (native_symbol_name == NULL) {
+      if (native_symbol_name == nullptr) {
         OS::PrintErr("  [0x%" Pp "] Unknown symbol\n", pc);
       } else {
         OS::PrintErr("  [0x%" Pp "] %s\n", pc, native_symbol_name);
@@ -522,8 +522,8 @@ class CodeDescriptor : public ZoneAllocated {
   }
 
   static int Compare(CodeDescriptor* const* a, CodeDescriptor* const* b) {
-    ASSERT(a != NULL);
-    ASSERT(b != NULL);
+    ASSERT(a != nullptr);
+    ASSERT(b != nullptr);
 
     uword a_start = (*a)->Start();
     uword b_start = (*b)->Start();
@@ -591,7 +591,7 @@ class SampleBuffer : public ProcessedSampleBufferBuilder {
   }
 
   void VisitSamples(SampleVisitor* visitor) {
-    ASSERT(visitor != NULL);
+    ASSERT(visitor != nullptr);
     const intptr_t length = capacity();
     for (intptr_t i = 0; i < length; i++) {
       Sample* sample = At(i);
@@ -650,7 +650,7 @@ class SampleBuffer : public ProcessedSampleBufferBuilder {
 class SampleBlock : public SampleBuffer {
  public:
   // The default number of samples per block. Overridden by some tests.
-  static const intptr_t kSamplesPerBlock = 100;
+  static constexpr intptr_t kSamplesPerBlock = 100;
 
   SampleBlock() = default;
   virtual ~SampleBlock() = default;
@@ -743,7 +743,7 @@ class SampleBlock : public SampleBuffer {
 
 class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
  public:
-  static const intptr_t kDefaultBlockCount = 600;
+  static constexpr intptr_t kDefaultBlockCount = 600;
 
   // Creates a SampleBlockBuffer with a predetermined number of blocks.
   //
@@ -756,7 +756,7 @@ class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
   virtual ~SampleBlockBuffer();
 
   void VisitSamples(SampleVisitor* visitor) {
-    ASSERT(visitor != NULL);
+    ASSERT(visitor != nullptr);
     for (intptr_t i = 0; i < capacity_; ++i) {
       blocks_[i].VisitSamples(visitor);
     }
@@ -942,7 +942,7 @@ class SampleBlockProcessor : public AllStatic {
   static void Cleanup();
 
  private:
-  static const intptr_t kMaxThreads = 4096;
+  static constexpr intptr_t kMaxThreads = 4096;
   static bool initialized_;
   static bool shutdown_;
   static bool thread_running_;

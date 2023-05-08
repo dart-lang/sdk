@@ -69,7 +69,7 @@ class InterceptorStubGenerator {
           cls == _commonElements.jsMutableArrayClass ||
           cls == _commonElements.jsFixedArrayClass ||
           cls == _commonElements.jsExtendableArrayClass) {
-        condition = js('receiver.constructor == Array');
+        condition = js('Array.isArray(receiver)');
       } else if (cls == _commonElements.jsStringClass) {
         condition = js('(typeof receiver) == "string"');
       } else if (cls == _commonElements.jsNullClass) {
@@ -303,8 +303,7 @@ class InterceptorStubGenerator {
       // For an index operation, this code generates:
       //
       //    if (typeof a0 === "number") {
-      //      if (receiver.constructor == Array ||
-      //          typeof receiver == "string") {
+      //      if (Array.isArray(receiver) || typeof receiver == "string") {
       //        if (a0 >>> 0 === a0 && a0 < receiver.length) {
       //          return receiver[a0];
       //        }
@@ -314,7 +313,7 @@ class InterceptorStubGenerator {
       // For an index set operation, this code generates:
       //
       //    if (typeof a0 === "number") {
-      //      if (receiver.constructor == Array && !receiver.immutable$list) {
+      //      if (Array.isArray(receiver) && !receiver.immutable$list) {
       //        if (a0 >>> 0 === a0 && a0 < receiver.length) {
       //          return receiver[a0] = a1;
       //        }
@@ -343,7 +342,7 @@ class InterceptorStubGenerator {
       if (!containsArray && !containsString) {
         return null;
       }
-      jsAst.Expression arrayCheck = js('receiver.constructor == Array');
+      jsAst.Expression arrayCheck = js('Array.isArray(receiver)');
 
       // Lazy generation of the indexable check. If indexable behavior isn't
       // used, the isJsIndexable function isn't part of the closed world.

@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/dart_template_buffer.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -94,7 +95,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
           configuration: ConstantEvaluationConfiguration(),
         ),
-        _exhaustivenessCache = AnalyzerExhaustivenessCache(_typeSystem) {
+        _exhaustivenessCache =
+            AnalyzerExhaustivenessCache(_typeSystem, _currentLibrary) {
     exhaustivenessDataForTesting = retainDataForTesting
         ? ExhaustivenessDataForTesting(_exhaustivenessCache)
         : null;
@@ -492,10 +494,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void _checkForConstWithTypeParameters(
       TypeAnnotation type, ErrorCode errorCode) {
     if (type is NamedType) {
-      Identifier name = type.name;
       // Should not be a type parameter.
-      if (name.staticElement is TypeParameterElement) {
-        _errorReporter.reportErrorForNode(errorCode, name);
+      if (type.element is TypeParameterElement) {
+        _errorReporter.reportErrorForNode(errorCode, type);
       }
       // Check type arguments.
       var typeArguments = type.typeArguments;
@@ -829,16 +830,23 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
         }
         _errorReporter.reportErrorForToken(
-          HintCode.UNREACHABLE_SWITCH_CASE,
+          WarningCode.UNREACHABLE_SWITCH_CASE,
           errorToken,
         );
       } else if (error is NonExhaustiveError && reportNonExhaustive) {
+        // TODO(paulberry): instead of using SimpleDartBuffer, use an
+        // analyzer-specific class that implements DartBuffer and captures the
+        // information needed for quick assists.
+        var errorBuffer = SimpleDartBuffer();
+        error.witness.toDart(errorBuffer, forCorrection: false);
+        var correctionBuffer = SimpleDartBuffer();
+        error.witness.toDart(correctionBuffer, forCorrection: true);
         _errorReporter.reportErrorForToken(
           isSwitchExpression
               ? CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION
               : CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
           switchKeyword,
-          [scrutineeType, error.witness.asWitness, error.witness.asCorrection],
+          [scrutineeType, errorBuffer.toString(), correctionBuffer.toString()],
         );
       }
     }
@@ -1007,7 +1015,7 @@ class _ConstLiteralVerifier {
       verifier._errorReporter.reportErrorForNode(errorCode, element);
       return false;
     } else if (element is IfElement) {
-      var conditionValue = verifier._validate(element.condition, errorCode);
+      var conditionValue = verifier._validate(element.expression, errorCode);
       var conditionBool = conditionValue?.toBoolValue();
 
       // The errors have already been reported.

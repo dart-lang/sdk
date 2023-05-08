@@ -17,7 +17,7 @@
 namespace dart {
 
 void IsolateObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   visitor->set_gc_root_type("isolate_object store");
   visitor->VisitPointers(from(), to());
   visitor->clear_gc_root_type();
@@ -73,7 +73,7 @@ ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
-  ASSERT(isolate != NULL && isolate->isolate_object_store() == this);
+  ASSERT(isolate != nullptr && isolate->isolate_object_store() == this);
   ASSERT(preallocated_stack_trace() == StackTrace::null());
   resume_capabilities_ = GrowableObjectArray::New();
   exit_listeners_ = GrowableObjectArray::New();
@@ -120,7 +120,7 @@ ObjectStore::ObjectStore()
 ObjectStore::~ObjectStore() {}
 
 void ObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   visitor->set_gc_root_type("object store");
   visitor->VisitPointers(from(), to());
   visitor->clear_gc_root_type();
@@ -445,14 +445,14 @@ void ObjectStore::LazyInitCoreMembers() {
     list_class_.store(cls.ptr());
 
     auto& type = Type::Handle(zone);
-    type ^= cls.RareType();
+    type = cls.RareType();
     non_nullable_list_rare_type_.store(type.ptr());
 
     cls = core_lib.LookupClass(Symbols::Map());
     ASSERT(!cls.IsNull());
     map_class_.store(cls.ptr());
 
-    type ^= cls.RareType();
+    type = cls.RareType();
     non_nullable_map_rare_type_.store(type.ptr());
 
     cls = core_lib.LookupClass(Symbols::Set());
@@ -510,7 +510,7 @@ void ObjectStore::LazyInitAsyncMembers() {
     type_args.SetTypeAt(0, type);
     type = Type::New(cls, type_args, Nullability::kNonNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize(thread, nullptr);
+    type ^= type.Canonicalize(thread);
     non_nullable_future_never_type_.store(type.ptr());
 
     type = null_type();
@@ -519,10 +519,10 @@ void ObjectStore::LazyInitAsyncMembers() {
     type_args.SetTypeAt(0, type);
     type = Type::New(cls, type_args, Nullability::kNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize(thread, nullptr);
+    type ^= type.Canonicalize(thread);
     nullable_future_null_type_.store(type.ptr());
 
-    type ^= cls.RareType();
+    type = cls.RareType();
     non_nullable_future_rare_type_.store(type.ptr());
   }
 }

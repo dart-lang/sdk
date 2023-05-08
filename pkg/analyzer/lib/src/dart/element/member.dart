@@ -217,7 +217,12 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   }
 
   @override
-  DartType get returnType => type.returnType;
+  DartType get returnType {
+    var result = declaration.returnType;
+    result = _substitution.substituteType(result);
+    result = _toLegacyType(result);
+    return result;
+  }
 
   @override
   FunctionType get type {

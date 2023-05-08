@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/builder_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 /// Runs [macro] in the types phase and returns a  [MacroExecutionResult].
@@ -33,6 +34,16 @@ Future<MacroExecutionResult> executeTypesMacro(Macro macro,
   } else if (macro is ClassTypesMacro && declaration is ClassDeclaration) {
     await macro.buildTypesForClass(declaration, builder);
     return builder.result;
+  } else if (macro is EnumTypesMacro && declaration is EnumDeclaration) {
+    await macro.buildTypesForEnum(declaration, builder);
+    return builder.result;
+  } else if (macro is MixinTypesMacro && declaration is MixinDeclaration) {
+    await macro.buildTypesForMixin(declaration, builder);
+    return builder.result;
+  } else if (macro is EnumValueTypesMacro &&
+      declaration is EnumValueDeclaration) {
+    await macro.buildTypesForEnumValue(declaration, builder);
+    return builder.result;
   }
   throw new UnsupportedError('Unsupported macro type or invalid declaration:\n'
       'macro: $macro\ndeclaration: $declaration');
@@ -47,28 +58,55 @@ Future<MacroExecutionResult> executeDeclarationsMacro(
     TypeDeclarationResolver typeDeclarationResolver,
     TypeResolver typeResolver) async {
   if (declaration is ClassDeclaration && macro is ClassDeclarationsMacro) {
-    if (declaration is! IntrospectableClassDeclaration) {
+    if (declaration is! IntrospectableClassDeclarationImpl) {
       throw new ArgumentError(
           'Class declarations annotated with a macro should be introspectable '
           'in the declarations phase.');
     }
-    ClassMemberDeclarationBuilderImpl builder =
-        new ClassMemberDeclarationBuilderImpl(
-            declaration.identifier,
-            identifierResolver,
-            typeIntrospector,
-            typeDeclarationResolver,
-            typeResolver);
+    MemberDeclarationBuilderImpl builder = new MemberDeclarationBuilderImpl(
+        declaration.identifier,
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver);
     await macro.buildDeclarationsForClass(declaration, builder);
     return builder.result;
-  } else if (declaration is ClassMemberDeclaration) {
-    ClassMemberDeclarationBuilderImpl builder =
-        new ClassMemberDeclarationBuilderImpl(
-            declaration.definingClass,
-            identifierResolver,
-            typeIntrospector,
-            typeDeclarationResolver,
-            typeResolver);
+  } else if (declaration is EnumDeclaration && macro is EnumDeclarationsMacro) {
+    if (declaration is! IntrospectableEnumDeclarationImpl) {
+      throw new ArgumentError(
+          'Enum declarations annotated with a macro should be introspectable '
+          'in the declarations phase.');
+    }
+    EnumDeclarationBuilderImpl builder = new EnumDeclarationBuilderImpl(
+        declaration.identifier,
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver);
+    await macro.buildDeclarationsForEnum(declaration, builder);
+    return builder.result;
+  } else if (declaration is MixinDeclaration &&
+      macro is MixinDeclarationsMacro) {
+    if (declaration is! IntrospectableMixinDeclarationImpl) {
+      throw new ArgumentError(
+          'Mixin declarations annotated with a macro should be introspectable '
+          'in the declarations phase.');
+    }
+    MemberDeclarationBuilderImpl builder = new MemberDeclarationBuilderImpl(
+        declaration.identifier,
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver);
+    await macro.buildDeclarationsForMixin(declaration, builder);
+    return builder.result;
+  } else if (declaration is MemberDeclaration) {
+    MemberDeclarationBuilderImpl builder = new MemberDeclarationBuilderImpl(
+        declaration.definingType as IdentifierImpl,
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver);
     if (declaration is FunctionDeclaration) {
       if (macro is ConstructorDeclarationsMacro &&
           declaration is ConstructorDeclaration) {
@@ -98,6 +136,16 @@ Future<MacroExecutionResult> executeDeclarationsMacro(
         return builder.result;
       }
     }
+  } else if (declaration is EnumValueDeclaration &&
+      macro is EnumValueDeclarationsMacro) {
+    EnumDeclarationBuilderImpl builder = new EnumDeclarationBuilderImpl(
+        declaration.definingEnum as IdentifierImpl,
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver);
+    await macro.buildDeclarationsForEnumValue(declaration, builder);
+    return builder.result;
   } else {
     DeclarationBuilderImpl builder = new DeclarationBuilderImpl(
         identifierResolver,
@@ -132,7 +180,7 @@ Future<MacroExecutionResult> executeDefinitionMacro(
         declaration is ConstructorDeclaration) {
       ConstructorDefinitionBuilderImpl builder =
           new ConstructorDefinitionBuilderImpl(
-              declaration,
+              declaration as ConstructorDeclarationImpl,
               identifierResolver,
               typeIntrospector,
               typeDeclarationResolver,
@@ -142,14 +190,15 @@ Future<MacroExecutionResult> executeDefinitionMacro(
       return builder.result;
     } else {
       FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
-          declaration,
+          declaration as FunctionDeclarationImpl,
           identifierResolver,
           typeIntrospector,
           typeDeclarationResolver,
           typeResolver,
           typeInferrer);
       if (macro is MethodDefinitionMacro && declaration is MethodDeclaration) {
-        await macro.buildDefinitionForMethod(declaration, builder);
+        await macro.buildDefinitionForMethod(
+            declaration as MethodDeclarationImpl, builder);
         return builder.result;
       } else if (macro is FunctionDefinitionMacro) {
         await macro.buildDefinitionForFunction(declaration, builder);
@@ -177,14 +226,55 @@ Future<MacroExecutionResult> executeDefinitionMacro(
           'Class declarations annotated with a macro should be introspectable '
           'in the definitions phase.');
     }
-    ClassDefinitionBuilderImpl builder = new ClassDefinitionBuilderImpl(
+    TypeDefinitionBuilderImpl builder = new TypeDefinitionBuilderImpl(
         declaration,
         identifierResolver,
         typeIntrospector,
-        typeResolver,
         typeDeclarationResolver,
+        typeResolver,
         typeInferrer);
     await macro.buildDefinitionForClass(declaration, builder);
+    return builder.result;
+  } else if (macro is EnumDefinitionMacro && declaration is EnumDeclaration) {
+    if (declaration is! IntrospectableEnumDeclaration) {
+      throw new ArgumentError(
+          'Enum declarations annotated with a macro should be introspectable '
+          'in the definitions phase.');
+    }
+    EnumDefinitionBuilderImpl builder = new EnumDefinitionBuilderImpl(
+        declaration,
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver,
+        typeInferrer);
+    await macro.buildDefinitionForEnum(declaration, builder);
+    return builder.result;
+  } else if (macro is EnumValueDefinitionMacro &&
+      declaration is EnumValueDeclaration) {
+    EnumValueDefinitionBuilderImpl builder = new EnumValueDefinitionBuilderImpl(
+        declaration as EnumValueDeclarationImpl,
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver,
+        typeInferrer);
+    await macro.buildDefinitionForEnumValue(declaration, builder);
+    return builder.result;
+  } else if (macro is MixinDefinitionMacro && declaration is MixinDeclaration) {
+    if (declaration is! IntrospectableMixinDeclaration) {
+      throw new ArgumentError(
+          'Mixin declarations annotated with a macro should be introspectable '
+          'in the definitions phase.');
+    }
+    TypeDefinitionBuilderImpl builder = new TypeDefinitionBuilderImpl(
+        declaration,
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver,
+        typeInferrer);
+    await macro.buildDefinitionForMixin(declaration, builder);
     return builder.result;
   }
   throw new UnsupportedError('Unsupported macro type or invalid declaration:\n'

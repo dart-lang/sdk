@@ -39,9 +39,9 @@ const uint8_t* bin::core_isolate_snapshot_instructions =
 
 // Only run tests that match the filter string. The default does not match any
 // tests.
-static const char* const kNone = "No Test or Benchmarks";
-static const char* const kList = "List all Tests and Benchmarks";
-static const char* const kAllBenchmarks = "All Benchmarks";
+static constexpr const char* kNone = "No Test or Benchmarks";
+static constexpr const char* kList = "List all Tests and Benchmarks";
+static constexpr const char* kAllBenchmarks = "All Benchmarks";
 static const char* run_filter = kNone;
 static const char* kernel_snapshot = nullptr;
 

@@ -101,7 +101,7 @@ class TypedLiteralResolver {
     if (typeArguments != null) {
       if (typeArguments.length == 1) {
         DartType elementType = typeArguments[0].typeOrThrow;
-        if (!elementType.isDynamic) {
+        if (elementType is! DynamicType) {
           listType = _typeProvider.listType(elementType);
         }
       }
@@ -220,7 +220,7 @@ class TypedLiteralResolver {
         return iterableType.typeArguments[0];
       }
 
-      if (expressionType.isDynamic) {
+      if (expressionType is DynamicType) {
         return _typeProvider.dynamicType;
       }
 
@@ -411,7 +411,7 @@ class TypedLiteralResolver {
         );
       }
 
-      if (expressionType.isDynamic) {
+      if (expressionType is DynamicType) {
         return _InferredCollectionElementTypeInformation(
           elementType: expressionType,
           keyType: expressionType,
@@ -679,7 +679,7 @@ class TypedLiteralResolver {
     }
     DartType literalType =
         _inferSetOrMapLiteralType(inferrer, literalResolution, node);
-    if (literalType.isDynamic) {
+    if (literalType is DynamicType) {
       // The literal is ambiguous, and further analysis won't resolve the
       // ambiguity.  Leave it as neither a set nor a map.
     } else if (literalType is InterfaceType &&
@@ -821,12 +821,9 @@ class _InferredCollectionElementTypeInformation {
   bool get canBeSet => elementType != null;
 
   bool get isDynamic =>
-      elementType != null &&
-      elementType!.isDynamic &&
-      keyType != null &&
-      keyType!.isDynamic &&
-      valueType != null &&
-      valueType!.isDynamic;
+      elementType is DynamicType &&
+      keyType is DynamicType &&
+      valueType is DynamicType;
 
   bool get mustBeMap => canBeMap && elementType == null;
 

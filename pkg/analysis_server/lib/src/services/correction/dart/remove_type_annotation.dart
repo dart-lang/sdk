@@ -7,12 +7,19 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveTypeAnnotation extends CorrectionProducer {
+  final _Kind _kind;
+
+  RemoveTypeAnnotation.fixVarAndType() : _kind = _Kind.fixVarAndType;
+
+  RemoveTypeAnnotation.other() : _kind = _Kind.other;
+
   @override
   AssistKind get assistKind => DartAssistKind.REMOVE_TYPE_ANNOTATION;
 
@@ -30,6 +37,10 @@ class RemoveTypeAnnotation extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    if (_kind == _Kind.fixVarAndType) {
+      return _varAndType(builder);
+    }
+
     for (var node in this.node.withParents) {
       if (node is DeclaredIdentifier) {
         return _removeFromDeclaredIdentifier(builder, node);
@@ -156,4 +167,40 @@ class RemoveTypeAnnotation extends CorrectionProducer {
       }
     });
   }
+
+  Future<void> _varAndType(ChangeBuilder builder) async {
+    final node = this.node;
+
+    Future<void> removeTypeAfterVar({
+      required Token? varKeyword,
+      required TypeAnnotation? type,
+    }) async {
+      if (varKeyword != null && type != null) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addDeletion(
+            range.endEnd(varKeyword, type),
+          );
+        });
+      }
+    }
+
+    if (node is DeclaredVariablePattern) {
+      await removeTypeAfterVar(
+        varKeyword: node.varKeyword,
+        type: node.type,
+      );
+    }
+
+    if (node is VariableDeclarationList) {
+      await removeTypeAfterVar(
+        varKeyword: node.varKeyword,
+        type: node.type,
+      );
+    }
+  }
+}
+
+enum _Kind {
+  fixVarAndType,
+  other,
 }

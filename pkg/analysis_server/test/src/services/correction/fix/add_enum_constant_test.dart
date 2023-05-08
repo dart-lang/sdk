@@ -37,7 +37,7 @@ E e() {
   }
 
   Future<void> test_differentLibrary() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 enum E {ONE}
 ''');
 

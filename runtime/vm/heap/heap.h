@@ -69,7 +69,7 @@ class Heap {
   };
 
   // Pattern for unused new space and swept old space.
-  static const uint8_t kZapByte = 0xf3;
+  static constexpr uint8_t kZapByte = 0xf3;
 
   ~Heap();
 
@@ -82,13 +82,13 @@ class Heap {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
         if (!IsAllocatableInNewSpace(size)) {
-          return AllocateOld(thread, size, Page::kData);
+          return AllocateOld(thread, size, /*executable*/ false);
         }
         return AllocateNew(thread, size);
       case kOld:
-        return AllocateOld(thread, size, Page::kData);
+        return AllocateOld(thread, size, /*executable*/ false);
       case kCode:
-        return AllocateOld(thread, size, Page::kExecutable);
+        return AllocateOld(thread, size, /*executable*/ true);
       default:
         UNREACHABLE();
     }
@@ -110,19 +110,6 @@ class Heap {
   bool OldContains(uword addr) const;
   bool CodeContains(uword addr) const;
   bool DataContains(uword addr) const;
-
-  // Find an object by visiting all pointers in the specified heap space,
-  // the 'visitor' is used to determine if an object is found or not.
-  // The 'visitor' function should be set up to return true if the
-  // object is found, traversal through the heap space stops at that
-  // point.
-  // The 'visitor' function should return false if the object is not found,
-  // traversal through the heap space continues.
-  // Returns null object if nothing is found.
-  InstructionsPtr FindObjectInCodeSpace(FindObjectVisitor* visitor) const;
-  ObjectPtr FindOldObject(FindObjectVisitor* visitor) const;
-  ObjectPtr FindNewObject(FindObjectVisitor* visitor);
-  ObjectPtr FindObject(FindObjectVisitor* visitor);
 
   void NotifyIdle(int64_t deadline);
   void NotifyDestroyed();
@@ -169,7 +156,8 @@ class Heap {
                    intptr_t max_old_gen_words);
 
   // Verify that all pointers in the heap point to the heap.
-  bool Verify(MarkExpectation mark_expectation = kForbidMarked);
+  bool Verify(const char* msg,
+              MarkExpectation mark_expectation = kForbidMarked);
 
   // Print heap sizes.
   void PrintSizes() const;
@@ -224,21 +212,21 @@ class Heap {
   // Associate an id with an object (used when serializing an object).
   // A non-existant id is equal to 0.
   void SetObjectId(ObjectPtr raw_obj, intptr_t object_id) {
-    ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(Thread::Current()->IsDartMutatorThread());
     SetWeakEntry(raw_obj, kObjectIds, object_id);
   }
   intptr_t GetObjectId(ObjectPtr raw_obj) const {
-    ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(Thread::Current()->IsDartMutatorThread());
     return GetWeakEntry(raw_obj, kObjectIds);
   }
   void ResetObjectIdTable();
 
   void SetLoadingUnit(ObjectPtr raw_obj, intptr_t unit_id) {
-    ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(Thread::Current()->IsDartMutatorThread());
     SetWeakEntry(raw_obj, kLoadingUnits, unit_id);
   }
   intptr_t GetLoadingUnit(ObjectPtr raw_obj) const {
-    ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(Thread::Current()->IsDartMutatorThread());
     return GetWeakEntry(raw_obj, kLoadingUnits);
   }
 
@@ -317,8 +305,8 @@ class Heap {
     old_space_.SetupImagePage(pointer, size, is_executable);
   }
 
-  static const intptr_t kNewAllocatableSize = 256 * KB;
-  static const intptr_t kAllocatablePageSize = 64 * KB;
+  static constexpr intptr_t kNewAllocatableSize = 256 * KB;
+  static constexpr intptr_t kAllocatablePageSize = 64 * KB;
 
   Space SpaceForExternal(intptr_t size) const;
 
@@ -359,7 +347,7 @@ class Heap {
        intptr_t max_old_gen_words);
 
   uword AllocateNew(Thread* thread, intptr_t size);
-  uword AllocateOld(Thread* thread, intptr_t size, Page::PageType type);
+  uword AllocateOld(Thread* thread, intptr_t size, bool executable);
 
   // Visit all pointers. Caller must ensure concurrent sweeper is not running,
   // and the visitor must not allocate.
@@ -373,7 +361,8 @@ class Heap {
 
   // Like Verify, but does not wait for concurrent sweeper, so caller must
   // ensure thread-safety.
-  bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked);
+  bool VerifyGC(const char* msg,
+                MarkExpectation mark_expectation = kForbidMarked);
 
   // Helper functions for garbage collection.
   void CollectNewSpaceGarbage(Thread* thread, GCType type, GCReason reason);
@@ -411,7 +400,7 @@ class Heap {
   bool last_gc_was_old_space_;
   bool assume_scavenge_will_fail_;
 
-  static const intptr_t kNoForcedGarbageCollection = -1;
+  static constexpr intptr_t kNoForcedGarbageCollection = -1;
 
   // Whether the next heap allocation (new or old) should trigger
   // CollectAllGarbage. Used within unit tests for testing GC on certain

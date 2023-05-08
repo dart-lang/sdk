@@ -17,7 +17,7 @@
 namespace dart {
 
 CpuInfoMethod CpuInfo::method_ = kCpuInfoDefault;
-const char* CpuInfo::fields_[kCpuInfoMax] = {0};
+const char* CpuInfo::fields_[kCpuInfoMax] = {};
 
 void CpuInfo::Init() {
   method_ = kCpuInfoCpuId;
@@ -29,7 +29,7 @@ void CpuInfo::Init() {
   fields_[kCpuInfoModel] = "Hardware";
   fields_[kCpuInfoHardware] = "Hardware";
   fields_[kCpuInfoFeatures] = "Features";
-  fields_[kCpuInfoArchitecture] = NULL;
+  fields_[kCpuInfoArchitecture] = nullptr;
 }
 
 void CpuInfo::Cleanup() {

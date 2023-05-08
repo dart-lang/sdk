@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A collection of utility methods used by completion contributors.
+library;
+
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, Location;
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -208,7 +211,7 @@ String getRequestLineIndent(DartCompletionRequest request) {
 }
 
 String getTypeString(DartType type, {required bool withNullability}) {
-  if (type.isDynamic) {
+  if (type is DynamicType) {
     return '';
   } else {
     return '${type.getDisplayString(withNullability: withNullability)} ';
@@ -242,9 +245,9 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
   }
 
   // If the type is unresolved, use the declared type.
-  if (type.isDynamic) {
+  if (type is DynamicType) {
     if (declaredType is NamedType) {
-      return declaredType.name.name;
+      return declaredType.qualifiedName;
     }
     return DYNAMIC;
   }

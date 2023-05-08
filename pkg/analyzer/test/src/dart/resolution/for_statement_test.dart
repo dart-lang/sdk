@@ -44,10 +44,8 @@ ForStatement
   forLoopParts: ForEachPartsWithDeclaration
     loopVariable: DeclaredIdentifier
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: v
       declaredElement: v@56
@@ -113,6 +111,40 @@ ForStatement
 ''');
   }
 
+  test_iterable_super() async {
+    await assertErrorsInCode(r'''
+abstract class A implements Iterable<int> {
+  void f() {
+    for (var v in super) {}
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 70, 1),
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 75, 5),
+    ]);
+
+    final node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithDeclaration
+    loopVariable: DeclaredIdentifier
+      keyword: var
+      name: v
+      declaredElement: hasImplicitType v@70
+        type: int
+    inKeyword: in
+    iterable: SuperExpression
+      superKeyword: super
+      staticType: A
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_loopVariable_dynamic() async {
     await resolveTestCode(r'''
 void f(List<int> values) {
@@ -128,10 +160,8 @@ ForStatement
   forLoopParts: ForEachPartsWithDeclaration
     loopVariable: DeclaredIdentifier
       type: NamedType
-        name: SimpleIdentifier
-          token: dynamic
-          staticElement: dynamic@-1
-          staticType: null
+        name: dynamic
+        element: dynamic@-1
         type: dynamic
       name: v
       declaredElement: v@42
@@ -412,6 +442,37 @@ ForStatement
     rightBracket: }
 ''');
   }
+
+  test_iterable_super() async {
+    await assertErrorsInCode(r'''
+abstract class A implements Iterable<int> {
+  void f(var v) {
+    for (v in super) {}
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 76, 5),
+    ]);
+    final node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithIdentifier
+    identifier: SimpleIdentifier
+      token: v
+      staticElement: self::@class::A::@method::f::@parameter::v
+      staticType: dynamic
+    inKeyword: in
+    iterable: SuperExpression
+      superKeyword: super
+      staticType: A
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
 }
 
 @reflectiveTest
@@ -548,6 +609,44 @@ ForStatement
 ''');
   }
 
+  test_iterable_super() async {
+    await assertErrorsInCode(r'''
+abstract class A implements Iterable<int> {
+  void f() {
+    for (var (a) in super) {}
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 77, 5),
+    ]);
+    final node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@71
+          type: int
+        matchedValueType: int
+      rightParenthesis: )
+      matchedValueType: int
+    inKeyword: in
+    iterable: SuperExpression
+      superKeyword: super
+      staticType: A
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_iterableContextType_patternVariable_typed() async {
     await assertErrorsInCode(r'''
 void f() {
@@ -569,10 +668,8 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@27
@@ -708,10 +805,8 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@38
@@ -898,10 +993,8 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@39
@@ -1054,10 +1147,8 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@52
@@ -1164,6 +1255,36 @@ ForStatement
           staticElement: a@17
           staticType: int
         semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_update_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    for (;; super) {}
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5),
+    ]);
+
+    final node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithExpression
+    leftSeparator: ;
+    rightSeparator: ;
+    updaters
+      SuperExpression
+        superKeyword: super
+        staticType: A
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
     rightBracket: }
 ''');
   }

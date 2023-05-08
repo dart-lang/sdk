@@ -37,7 +37,7 @@ f() {
     g() {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 23, 1),
+      error(WarningCode.UNUSED_ELEMENT, 23, 1),
     ]);
     var node = findNode.functionDeclaration('g() {}');
     var element = node.declaredElement!;

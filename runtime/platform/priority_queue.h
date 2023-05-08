@@ -24,7 +24,7 @@ namespace dart {
 template <typename P, typename V>
 class PriorityQueue {
  public:
-  static const intptr_t kMinimumSize = 16;
+  static constexpr intptr_t kMinimumSize = 16;
 
   struct Entry {
     P priority;

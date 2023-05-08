@@ -30,7 +30,7 @@ class CupertinoAlertDialog {
     addPackageDataFile('''
 version: 1
 transforms:
-  - title:  'Replace with CupertinoAlertDialog'
+  - title: 'Replace with CupertinoAlertDialog'
     date: 2020-09-24
     bulkApply: false
     element:
@@ -59,10 +59,8 @@ void f() {
 ''');
   }
 
-  @failingTest
   Future<void>
       test_cupertino_CupertinoDialog_toCupertinoAlertDialog_removed() async {
-    // This test fails because we don't rename the parameter to the constructor.
     setPackageContent('''
 class CupertinoAlertDialog {
   CupertinoAlertDialog({String content}) {}
@@ -71,7 +69,7 @@ class CupertinoAlertDialog {
     addPackageDataFile('''
 version: 1
 transforms:
-  - title:  'Replace with CupertinoAlertDialog'
+  - title: 'Replace with CupertinoAlertDialog'
     date: 2020-09-24
     bulkApply: false
     element:

@@ -448,10 +448,10 @@ class ReturnTypeVerifier {
   }
 
   static bool _isVoidDynamic(DartType type) {
-    return type is VoidType || type.isDynamic;
+    return type is VoidType || type is DynamicType;
   }
 
   static bool _isVoidDynamicOrNull(DartType type) {
-    return type is VoidType || type.isDynamic || type.isDartCoreNull;
+    return type is VoidType || type is DynamicType || type.isDartCoreNull;
   }
 }

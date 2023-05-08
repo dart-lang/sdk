@@ -34,6 +34,8 @@
 /// representation of the statements in a method body, but if one of those
 /// statements declares a local variable then the local variable will be
 /// represented by an element.
+library;
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -164,7 +166,6 @@ abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
 /// A pattern variable that is explicitly declared.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class BindPatternVariableElement implements PatternVariableElement {}
 
 /// A class augmentation, defined by a class augmentation declaration.
@@ -205,11 +206,9 @@ abstract class ClassElement
   /// A class is a base class if it has an explicit `base` modifier, or the
   /// class has a `base` induced modifier and [isSealed] is `true` as well.
   /// The base modifier allows the class to be extended but not implemented.
-  @experimental
   bool get isBase;
 
   /// Return `true` if this class can be instantiated.
-  @experimental
   bool get isConstructable;
 
   /// Return `true` if this class represents the class 'Enum' defined in the
@@ -223,7 +222,6 @@ abstract class ClassElement
   /// Return `true` if this element has the property where, in a switch, if you
   /// cover all of the subtypes of this element, then the compiler knows that
   /// you have covered all possible instances of the type.
-  @experimental
   bool get isExhaustive;
 
   /// Return `true` if this class is a final class.
@@ -232,7 +230,6 @@ abstract class ClassElement
   /// class has a `final` induced modifier and [isSealed] is `true` as well.
   /// The final modifier prohibits this class from being extended, implemented,
   /// or mixed in.
-  @experimental
   bool get isFinal;
 
   /// Return `true` if this class is an interface class.
@@ -241,7 +238,6 @@ abstract class ClassElement
   /// or the class has an `interface` induced modifier and [isSealed] is `true`
   /// as well. The interface modifier allows the class to be implemented, but
   /// not extended or mixed in.
-  @experimental
   bool get isInterface;
 
   /// Return `true` if this class is a mixin application.  A class is a mixin
@@ -250,12 +246,10 @@ abstract class ClassElement
 
   /// Return `true` if this class is a mixin class. A class is a mixin class if
   /// it has an explicit `mixin` modifier.
-  @experimental
   bool get isMixinClass;
 
   /// Return `true` if this class is a sealed class. A class is a sealed class
   /// if it has an explicit `sealed` modifier.
-  @experimental
   bool get isSealed;
 
   /// Return `true` if this class can validly be used as a mixin when defining
@@ -286,17 +280,14 @@ abstract class ClassElement
 
   /// Return `true` if this element, assuming that it is within scope, is
   /// extendable to classes in the given [library].
-  @experimental
   bool isExtendableIn(LibraryElement library);
 
   /// Return `true` if this element, assuming that it is within scope, is
   /// implementable to classes, mixins, and enums in the given [library].
-  @experimental
   bool isImplementableIn(LibraryElement library);
 
   /// Return `true` if this element, assuming that it is within scope, is
   /// able to be mixed-in by classes and enums in the given [library].
-  @experimental
   bool isMixableIn(LibraryElement library);
 }
 
@@ -1719,7 +1710,6 @@ abstract class InterfaceOrAugmentationElement
 /// for a logical-or patterns, or shared `case` bodies in `switch` statements.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class JoinPatternVariableElement implements PatternVariableElement {
   /// Returns `true` if [variables] are consistent, present in all branches,
   /// and have the same type and finality.
@@ -2023,7 +2013,6 @@ abstract class MixinElement
   /// A mixin is a base mixin if it has an explicit `base` modifier, or the
   /// mixin has a `base` induced modifier and [isSealed] is `true` as well.
   /// The base modifier allows a mixin to be mixed in but not implemented.
-  @experimental
   bool get isBase;
 
   /// Returns the superclass constraints defined for this mixin. If the
@@ -2039,7 +2028,6 @@ abstract class MixinElement
 
   /// Return `true` if this element, assuming that it is within scope, is
   /// implementable to classes, mixins, and enums in the given [library].
-  @experimental
   bool isImplementableIn(LibraryElement library);
 }
 
@@ -2190,7 +2178,6 @@ abstract class PartElement implements _ExistingElement {
 /// A pattern variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class PatternVariableElement implements LocalVariableElement {
   /// Returns the variable in which this variable joins with other pattern
   /// variables with the same name, in a logical-or pattern, or shared case

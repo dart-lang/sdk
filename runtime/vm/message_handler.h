@@ -76,6 +76,10 @@ class MessageHandler {
   // handler.
   bool HasOOBMessages();
 
+#if defined(TESTING)
+  std::unique_ptr<Message> StealOOBMessage();
+#endif
+
   // Returns true if there are pending normal messages for this message
   // handler.
   bool HasMessages();
@@ -131,15 +135,15 @@ class MessageHandler {
     ~AcquiredQueues();
 
     MessageQueue* queue() {
-      if (handler_ == NULL) {
-        return NULL;
+      if (handler_ == nullptr) {
+        return nullptr;
       }
       return handler_->queue_;
     }
 
     MessageQueue* oob_queue() {
-      if (handler_ == NULL) {
-        return NULL;
+      if (handler_ == nullptr) {
+        return nullptr;
       }
       return handler_->oob_queue_;
     }
@@ -168,7 +172,7 @@ class MessageHandler {
   virtual bool IsCurrentIsolate() const { return false; }
 
   // Return Isolate to which this message handler corresponds to.
-  virtual Isolate* isolate() const { return NULL; }
+  virtual Isolate* isolate() const { return nullptr; }
 
   // Posts a message on this handler's message queue.
   // If before_events is true, then the message is enqueued before any pending

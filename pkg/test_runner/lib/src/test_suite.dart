@@ -323,10 +323,8 @@ class VMTestSuite extends TestSuite {
 
     // Update the new workflow based expectations to include [testExpectation].
     var testFile = TestFile.vmUnitTest(
-        hasSyntaxError: false,
         hasCompileError: testExpectation == Expectation.compileTimeError,
         hasRuntimeError: testExpectation == Expectation.runtimeError,
-        hasStaticWarning: false,
         hasCrash: testExpectation == Expectation.crash);
     var filename = configuration.architecture == Architecture.x64 ||
             configuration.architecture == Architecture.x64c
@@ -464,10 +462,8 @@ class FfiTestSuite extends TestSuite {
 
     // Update the new workflow based expectations to include [testExpectation].
     final testFile = TestFile.vmUnitTest(
-        hasSyntaxError: false,
         hasCompileError: testExpectation == Expectation.compileTimeError,
         hasRuntimeError: testExpectation == Expectation.runtimeError,
-        hasStaticWarning: false,
         hasCrash: testExpectation == Expectation.crash);
 
     final args = [
@@ -617,6 +613,14 @@ class StandardTestSuite extends TestSuite {
       '$directory/${name}_spec_parser.status',
       '$directory/${name}_vm.status',
     ];
+
+    // For third_party/pkg, we need a status file outside the third_party dirs.
+    final segments = directory.segments();
+    if (segments.length >= 2 &&
+        segments[0] == 'third_party' &&
+        segments[1] == 'pkg') {
+      statusPaths = ['third_party/pkg/$name.status'];
+    }
 
     return StandardTestSuite(configuration, name, directory, statusPaths,
         recursive: true);

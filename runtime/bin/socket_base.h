@@ -91,8 +91,8 @@ class SocketAddress {
   // Unix domain address is only on Linux, Mac OS and Android now.
   // unix(7) require sun_path to be 108 bytes on Linux and Android, 104 bytes on
   // Mac OS.
-  static const intptr_t kMaxUnixPathLength =
-      sizeof(((struct sockaddr_un*)0)->sun_path);
+  static constexpr intptr_t kMaxUnixPathLength =
+      sizeof(((struct sockaddr_un*)nullptr)->sun_path);
   char as_string_[kMaxUnixPathLength];
 #else
   char as_string_[INET6_ADDRSTRLEN];
@@ -273,6 +273,8 @@ class SocketBase : public AllStatic {
                             OSError** os_error);
 
   static bool ParseAddress(int type, const char* address, RawAddr* addr);
+
+  static bool IsValidAddress(const char* address);
 
   // Convert address from byte representation to human readable string.
   static bool RawAddrToString(RawAddr* addr, char* str);

@@ -19,6 +19,102 @@ main() {
 @reflectiveTest
 class PostfixExpressionResolutionTest extends PubPackageResolutionTest
     with PostfixExpressionResolutionTestCases {
+  test_formalParameter_inc_inc() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  x ++ ++;
+}
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 23, 2),
+    ]);
+
+    final node = findNode.postfix('++;');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PostfixExpression
+    operand: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: null
+    operator: ++
+    readElement: self::@function::f::@parameter::x
+    readType: int
+    writeElement: self::@function::f::@parameter::x
+    writeType: int
+    staticElement: dart:core::@class::num::@method::+
+    staticType: int
+  operator: ++
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
+  test_formalParameter_incUnresolved() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+void f(A a) {
+  a++;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 29, 2),
+    ]);
+
+    final node = findNode.postfix('++;');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: null
+  operator: ++
+  readElement: self::@function::f::@parameter::a
+  readType: A
+  writeElement: self::@function::f::@parameter::a
+  writeType: A
+  staticElement: <null>
+  staticType: A
+''');
+  }
+
+  test_inc_formalParameter_inc() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  ++x++;
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 21, 2),
+    ]);
+
+    final node = findNode.prefix('++x');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PostfixExpression
+    operand: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: null
+    operator: ++
+    readElement: self::@function::f::@parameter::x
+    readType: int
+    writeElement: self::@function::f::@parameter::x
+    writeType: int
+    staticElement: dart:core::@class::num::@method::+
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
   test_inc_propertyAccess_nullShorting() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -83,6 +179,33 @@ PostfixExpression
 ''');
 
     assertType(findNode.simple('x; // ref'), 'Object');
+  }
+
+  test_inc_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    super++;
+  }
+}
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 32, 2),
+    ]);
+
+    final node = findNode.singlePostfixExpression;
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: ++
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_inc_switchExpression() async {
@@ -387,6 +510,32 @@ PostfixExpression
   operator: !
   staticElement: <null>
   staticType: T & num
+''');
+  }
+
+  test_unresolvedIdentifier_inc() async {
+    await assertErrorsInCode(r'''
+void f() {
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
+    ]);
+
+    final node = findNode.postfix('++;');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
 ''');
   }
 }
@@ -846,8 +995,6 @@ void f() {
 }
 ''');
 
-    var importFind = findElement.importFind('package:test/a.dart');
-
     var node = findNode.postfix('x++');
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
@@ -898,9 +1045,6 @@ PostfixExpression
   staticType: int*
 ''');
     }
-
-    var prefixed = node.operand as PrefixedIdentifier;
-    assertImportPrefix(prefixed.prefix, importFind.prefix);
   }
 
   test_inc_propertyAccess_instance() async {
@@ -922,10 +1066,8 @@ PostfixExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -953,10 +1095,8 @@ PostfixExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A*
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList

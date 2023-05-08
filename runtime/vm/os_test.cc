@@ -22,7 +22,7 @@ VM_UNIT_TEST_CASE(SNPrint) {
   length = Utils::SNPrint(buffer, 256, "%s%c%d", "foo", 'Z', 42);
   EXPECT_EQ(6, length);
   EXPECT_STREQ("fooZ42", buffer);
-  length = Utils::SNPrint(NULL, 0, "foo");
+  length = Utils::SNPrint(nullptr, 0, "foo");
   EXPECT_EQ(3, length);
 }
 

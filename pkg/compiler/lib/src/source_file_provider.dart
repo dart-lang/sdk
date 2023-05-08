@@ -12,6 +12,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_api.dart' as api;
 import 'colors.dart' as colors;
+import 'common/metrics.dart';
 import 'io/source_file.dart';
 
 abstract class SourceFileByteReader {
@@ -21,12 +22,15 @@ abstract class SourceFileByteReader {
 abstract class SourceFileProvider implements api.CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = Uri.base;
-  int dartCharactersRead = 0;
+  int bytesRead = 0;
+  int sourceBytesFromDill = 0;
   SourceFileByteReader byteReader;
-  final Set<Uri> _readableUris = {};
+  final Set<Uri> _registeredUris = {};
   final Map<Uri, Uri> _mappedUris = {};
+  final bool disableByteCache;
+  final Map<Uri, List<int>> _byteCache = {};
 
-  SourceFileProvider(this.byteReader);
+  SourceFileProvider(this.byteReader, {this.disableByteCache = true});
 
   Future<api.Input<List<int>>> readBytesFromUri(
       Uri resourceUri, api.InputKind inputKind) {
@@ -56,12 +60,17 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
+
     registerUri(resourceUri);
+    if (!disableByteCache) {
+      _byteCache[resourceUri] = source;
+    }
+    sourceBytesFromDill += source.length;
   }
 
   /// Registers the URI and returns true if the URI is new.
   bool registerUri(Uri uri) {
-    return _readableUris.add(uri);
+    return _registeredUris.add(uri);
   }
 
   api.Input<List<int>> _readFromFileSync(Uri uri, api.InputKind inputKind) {
@@ -77,13 +86,12 @@ abstract class SourceFileProvider implements api.CompilerInput {
       throw "Error reading '${relativizeUri(resourceUri)}' $detail";
     }
     if (registerUri(resourceUri)) {
-      dartCharactersRead += source.length;
+      bytesRead += source.length;
     }
     if (resourceUri != uri) {
       registerUri(uri);
     }
-    return _sourceToFile(
-        Uri.parse(relativizeUri(resourceUri)), source, inputKind);
+    return _sourceToFile(Uri.parse(relativizeUri(uri)), source, inputKind);
   }
 
   /// Read [resourceUri] directly as a UTF-8 file. If reading fails, `null` is
@@ -111,9 +119,15 @@ abstract class SourceFileProvider implements api.CompilerInput {
 
   /// Get the bytes for a previously accessed UTF-8 [Uri].
   api.Input<List<int>>? getUtf8SourceFile(Uri resourceUri) {
-    // Only access files we've previously processed and therefore know exist.
-    // This is less expensive than performing an IO exists operation.
-    return _readableUris.contains(resourceUri)
+    if (!resourceUri.isAbsolute) {
+      resourceUri = cwd.resolveUri(resourceUri);
+    }
+
+    if (_byteCache.containsKey(resourceUri)) {
+      return _sourceToFile(
+          resourceUri, _byteCache[resourceUri]!, api.InputKind.UTF8);
+    }
+    return resourceUri.isScheme('file')
         ? _readFromFileSync(resourceUri, api.InputKind.UTF8)
         : null;
   }
@@ -123,7 +137,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
   // Note: this includes also indirect sources that were used to create
   // `.dill` inputs to the compiler. This is OK, since this API is only
   // used to calculate DEPS for gn build systems.
-  Iterable<Uri> getSourceUris() => [..._readableUris, ..._mappedUris.keys];
+  Iterable<Uri> getSourceUris() => [..._registeredUris, ..._mappedUris.keys];
 }
 
 class MemoryCopySourceFileByteReader implements SourceFileByteReader {
@@ -150,8 +164,8 @@ Uint8List readAll(String filename, {bool zeroTerminated = true}) {
 
 class CompilerSourceFileProvider extends SourceFileProvider {
   CompilerSourceFileProvider(
-      {SourceFileByteReader byteReader =
-          const MemoryCopySourceFileByteReader()})
+      {SourceFileByteReader byteReader = const MemoryCopySourceFileByteReader(),
+      super.disableByteCache})
       : super(byteReader);
 
   @override
@@ -202,6 +216,7 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
         return 'Hint: $message';
       case api.Diagnostic.CRASH:
         return 'Internal Error: $message';
+      case api.Diagnostic.CONTEXT:
       case api.Diagnostic.INFO:
       case api.Diagnostic.VERBOSE_INFO:
         return 'Info: $message';
@@ -242,6 +257,8 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     } else if (kind == api.Diagnostic.CRASH) {
       color = colors.red;
     } else if (kind == api.Diagnostic.INFO) {
+      color = colors.green;
+    } else if (kind == api.Diagnostic.CONTEXT) {
       if (lastKind == api.Diagnostic.WARNING && !showWarnings) return;
       if (lastKind == api.Diagnostic.HINT && !showHints) return;
       color = colors.green;
@@ -539,7 +556,8 @@ class _BinaryOutputSinkWrapper extends api.BinaryOutputSink {
 class BazelInputProvider extends SourceFileProvider {
   final List<Uri> dirs;
 
-  BazelInputProvider(List<String> searchPaths, super.byteReader)
+  BazelInputProvider(List<String> searchPaths, super.byteReader,
+      {super.disableByteCache})
       : dirs = searchPaths.map(_resolve).toList();
 
   static Uri _resolve(String path) => Uri.base.resolve(path);
@@ -586,7 +604,8 @@ class MultiRootInputProvider extends SourceFileProvider {
   final List<Uri> roots;
   final String markerScheme;
 
-  MultiRootInputProvider(this.markerScheme, this.roots, super.byteReader);
+  MultiRootInputProvider(this.markerScheme, this.roots, super.byteReader,
+      {super.disableByteCache});
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
@@ -607,5 +626,20 @@ class MultiRootInputProvider extends SourceFileProvider {
         await readBytesFromUri(resolvedUri, inputKind);
     _mappedUris[uri] = resolvedUri;
     return result;
+  }
+}
+
+class DataReadMetrics extends MetricsBase {
+  @override
+  String get namespace => 'input';
+  CountMetric inputBytes = CountMetric('inputBytes');
+
+  void addDataRead(api.CompilerInput input) {
+    if (input is SourceFileProvider) {
+      inputBytes.add(input.bytesRead);
+      if (primary.isEmpty) {
+        primary = [inputBytes];
+      }
+    }
   }
 }

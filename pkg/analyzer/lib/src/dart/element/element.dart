@@ -62,7 +62,8 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     with TypeParameterizedElementMixin, HasCompletionData, MacroTargetElement
     implements InterfaceElement {
   /// The superclass of the class, or `null` for [Object].
-  InterfaceType? _supertype;
+  @override
+  InterfaceType? supertype;
 
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
@@ -191,21 +192,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   @override
-  InterfaceType? get supertype {
-    if (_supertype != null) return _supertype!;
-
-    if (hasModifier(Modifier.DART_CORE_OBJECT)) {
-      return null;
-    }
-
-    return _supertype;
-  }
-
-  set supertype(InterfaceType? supertype) {
-    _supertype = supertype;
-  }
-
-  @override
   InterfaceType get thisType {
     if (_thisType == null) {
       List<DartType> typeArguments;
@@ -233,46 +219,23 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   @override
   ConstructorElement? get unnamedConstructor {
-    for (ConstructorElement element in constructors) {
-      if (element.name.isEmpty) {
-        return element;
-      }
-    }
-    return null;
+    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
   }
 
   @override
   FieldElement? getField(String name) {
-    for (FieldElement fieldElement in fields) {
-      if (name == fieldElement.name) {
-        return fieldElement;
-      }
-    }
-    return null;
+    return fields.firstWhereOrNull((fieldElement) => name == fieldElement.name);
   }
 
   @override
   PropertyAccessorElement? getGetter(String getterName) {
-    int length = accessors.length;
-    for (int i = 0; i < length; i++) {
-      PropertyAccessorElement accessor = accessors[i];
-      if (accessor.isGetter && accessor.name == getterName) {
-        return accessor;
-      }
-    }
-    return null;
+    return accessors.firstWhereOrNull(
+        (accessor) => accessor.isGetter && accessor.name == getterName);
   }
 
   @override
   MethodElement? getMethod(String methodName) {
-    int length = methods.length;
-    for (int i = 0; i < length; i++) {
-      MethodElement method = methods[i];
-      if (method.name == methodName) {
-        return method;
-      }
-    }
-    return null;
+    return methods.firstWhereOrNull((method) => method.name == methodName);
   }
 
   @override
@@ -281,12 +244,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       // A constructor declared as `C.new` is unnamed, and is modeled as such.
       name = '';
     }
-    for (ConstructorElement element in constructors) {
-      if (element.name == name) {
-        return element;
-      }
-    }
-    return null;
+    return constructors.firstWhereOrNull((element) => element.name == name);
   }
 
   @override
@@ -308,26 +266,27 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   @override
   MethodElement? lookUpConcreteMethod(
-          String methodName, LibraryElement library) =>
-      _first(_implementationsOfMethod(methodName).where(
-          (MethodElement method) =>
-              !method.isAbstract && method.isAccessibleIn(library)));
+      String methodName, LibraryElement library) {
+    return _implementationsOfMethod(methodName).firstWhereOrNull(
+        (method) => !method.isAbstract && method.isAccessibleIn(library));
+  }
 
   @override
   PropertyAccessorElement? lookUpGetter(
-          String getterName, LibraryElement library) =>
-      _first(_implementationsOfGetter(getterName).where(
-          (PropertyAccessorElement getter) => getter.isAccessibleIn(library)));
+      String getterName, LibraryElement library) {
+    return _implementationsOfGetter(getterName)
+        .firstWhereOrNull((getter) => getter.isAccessibleIn(library));
+  }
 
   @override
   PropertyAccessorElement? lookUpInheritedConcreteGetter(
-          String getterName, LibraryElement library) =>
-      _first(_implementationsOfGetter(getterName).where(
-          (PropertyAccessorElement getter) =>
-              !getter.isAbstract &&
-              !getter.isStatic &&
-              getter.isAccessibleIn(library) &&
-              getter.enclosingElement != this));
+      String getterName, LibraryElement library) {
+    return _implementationsOfGetter(getterName).firstWhereOrNull((getter) =>
+        !getter.isAbstract &&
+        !getter.isStatic &&
+        getter.isAccessibleIn(library) &&
+        getter.enclosingElement != this);
+  }
 
   ExecutableElement? lookUpInheritedConcreteMember(
       String name, LibraryElement library) {
@@ -341,43 +300,45 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   @override
   MethodElement? lookUpInheritedConcreteMethod(
-          String methodName, LibraryElement library) =>
-      _first(_implementationsOfMethod(methodName).where(
-          (MethodElement method) =>
-              !method.isAbstract &&
-              !method.isStatic &&
-              method.isAccessibleIn(library) &&
-              method.enclosingElement != this));
+      String methodName, LibraryElement library) {
+    return _implementationsOfMethod(methodName).firstWhereOrNull((method) =>
+        !method.isAbstract &&
+        !method.isStatic &&
+        method.isAccessibleIn(library) &&
+        method.enclosingElement != this);
+  }
 
   @override
   PropertyAccessorElement? lookUpInheritedConcreteSetter(
-          String setterName, LibraryElement library) =>
-      _first(_implementationsOfSetter(setterName).where(
-          (PropertyAccessorElement setter) =>
-              !setter.isAbstract &&
-              !setter.isStatic &&
-              setter.isAccessibleIn(library) &&
-              setter.enclosingElement != this));
+      String setterName, LibraryElement library) {
+    return _implementationsOfSetter(setterName).firstWhereOrNull((setter) =>
+        !setter.isAbstract &&
+        !setter.isStatic &&
+        setter.isAccessibleIn(library) &&
+        setter.enclosingElement != this);
+  }
 
   @override
   MethodElement? lookUpInheritedMethod(
-          String methodName, LibraryElement library) =>
-      _first(_implementationsOfMethod(methodName).where(
-          (MethodElement method) =>
-              !method.isStatic &&
-              method.isAccessibleIn(library) &&
-              method.enclosingElement != this));
+      String methodName, LibraryElement library) {
+    return _implementationsOfMethod(methodName).firstWhereOrNull((method) =>
+        !method.isStatic &&
+        method.isAccessibleIn(library) &&
+        method.enclosingElement != this);
+  }
 
   @override
-  MethodElement? lookUpMethod(String methodName, LibraryElement library) =>
-      _first(_implementationsOfMethod(methodName)
-          .where((MethodElement method) => method.isAccessibleIn(library)));
+  MethodElement? lookUpMethod(String methodName, LibraryElement library) {
+    return _implementationsOfMethod(methodName).firstWhereOrNull(
+        (MethodElement method) => method.isAccessibleIn(library));
+  }
 
   @override
   PropertyAccessorElement? lookUpSetter(
-          String setterName, LibraryElement library) =>
-      _first(_implementationsOfSetter(setterName).where(
-          (PropertyAccessorElement setter) => setter.isAccessibleIn(library)));
+      String setterName, LibraryElement library) {
+    return _implementationsOfSetter(setterName).firstWhereOrNull(
+        (PropertyAccessorElement setter) => setter.isAccessibleIn(library));
+  }
 
   /// Return the static getter with the [name], accessible to the [library].
   ///
@@ -386,9 +347,8 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// or a superclass.
   PropertyAccessorElement? lookupStaticGetter(
       String name, LibraryElement library) {
-    return _first(_implementationsOfGetter(name).where((element) {
-      return element.isStatic && element.isAccessibleIn(library);
-    }));
+    return _implementationsOfGetter(name).firstWhereOrNull(
+        (element) => element.isStatic && element.isAccessibleIn(library));
   }
 
   /// Return the static method with the [name], accessible to the [library].
@@ -397,9 +357,8 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
   MethodElement? lookupStaticMethod(String name, LibraryElement library) {
-    return _first(_implementationsOfMethod(name).where((element) {
-      return element.isStatic && element.isAccessibleIn(library);
-    }));
+    return _implementationsOfMethod(name).firstWhereOrNull(
+        (element) => element.isStatic && element.isAccessibleIn(library));
   }
 
   /// Return the static setter with the [name], accessible to the [library].
@@ -409,9 +368,8 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// or a superclass.
   PropertyAccessorElement? lookupStaticSetter(
       String name, LibraryElement library) {
-    return _first(_implementationsOfSetter(name).where((element) {
-      return element.isStatic && element.isAccessibleIn(library);
-    }));
+    return _implementationsOfSetter(name).firstWhereOrNull(
+        (element) => element.isStatic && element.isAccessibleIn(library));
   }
 
   /// Return an iterable containing all of the implementations of a getter with
@@ -511,21 +469,8 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     if (!setterName.endsWith('=')) {
       setterName += '=';
     }
-    for (PropertyAccessorElement accessor in accessors) {
-      if (accessor.isSetter && accessor.name == setterName) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  /// Return the first element from the given [iterable], or `null` if the
-  /// iterable is empty.
-  static E? _first<E>(Iterable<E> iterable) {
-    if (iterable.isEmpty) {
-      return null;
-    }
-    return iterable.first;
+    return accessors.firstWhereOrNull(
+        (accessor) => accessor.isSetter && accessor.name == setterName);
   }
 }
 
@@ -591,6 +536,46 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   set accessors(List<PropertyAccessorElementImpl> accessors) {
     assert(!isMixinApplication);
     super.accessors = accessors;
+  }
+
+  /// If we can find all possible subtypes of this class, return them.
+  ///
+  /// If the class is final, all its subtypes are declared in this library.
+  ///
+  /// If the class is sealed, and all its subtypes are either final or sealed,
+  /// then these subtypes are all subtypes that are possible.
+  List<InterfaceType>? get allSubtypes {
+    if (isFinal) {
+      final result = <InterfaceType>[];
+      for (final element in library.topLevelElements) {
+        if (element is InterfaceElement && element != this) {
+          final elementThis = element.thisType;
+          if (elementThis.asInstanceOf(this) != null) {
+            result.add(elementThis);
+          }
+        }
+      }
+      return result;
+    }
+
+    if (isSealed) {
+      final result = <InterfaceType>[];
+      for (final element in library.topLevelElements) {
+        if (element is ClassElement && element != this) {
+          final elementThis = element.thisType;
+          if (elementThis.asInstanceOf(this) != null) {
+            if (element.isFinal || element.isSealed) {
+              result.add(elementThis);
+            } else {
+              return null;
+            }
+          }
+        }
+      }
+      return result;
+    }
+
+    return null;
   }
 
   @override
@@ -825,24 +810,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   set methods(List<MethodElementImpl> methods) {
     assert(!isMixinApplication);
     super.methods = methods;
-  }
-
-  /// If the class is final, returns all its subtypes.
-  /// All these subtypes can be only in the same library.
-  List<InterfaceType>? get subtypesOfFinal {
-    if (isFinal) {
-      final result = <InterfaceType>[];
-      for (final element in library.topLevelElements) {
-        if (element is InterfaceElement && element != this) {
-          final elementThis = element.thisType;
-          if (elementThis.asInstanceOf(this) != null) {
-            result.add(elementThis);
-          }
-        }
-      }
-      return result;
-    }
-    return null;
   }
 
   @override
@@ -4464,6 +4431,15 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return shouldIgnoreUndefined(
       prefix: null,
       name: (node as SimpleIdentifier).name,
+    );
+  }
+
+  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
+  /// given (possibly prefixed) named type [node].
+  bool shouldIgnoreUndefinedNamedType(NamedType node) {
+    return shouldIgnoreUndefined(
+      prefix: node.importPrefix?.name.lexeme,
+      name: node.name2.lexeme,
     );
   }
 

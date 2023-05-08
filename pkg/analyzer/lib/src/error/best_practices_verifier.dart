@@ -35,6 +35,7 @@ import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 
@@ -146,7 +147,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAsExpression(AsExpression node) {
     if (isUnnecessaryCast(node, _typeSystem)) {
-      _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
+      _errorReporter.reportErrorForNode(WarningCode.UNNECESSARY_CAST, node);
     }
     var type = node.type.type;
     if (_isNonNullableByDefault &&
@@ -624,15 +625,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var question = node.question;
     if (question != null) {
-      var name = node.name.name;
       var type = node.typeOrThrow;
       // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
       // not report synthetic `dynamic` in place of an unresolved type.
       if ((type is InterfaceType && type.element == _nullType.element ||
-              (type.isDynamic && name == 'dynamic')) &&
+              (type is DynamicType && node.name2.lexeme == 'dynamic')) &&
           type.alias == null) {
         _errorReporter.reportErrorForToken(
-            WarningCode.UNNECESSARY_QUESTION_MARK, question, [name]);
+          WarningCode.UNNECESSARY_QUESTION_MARK,
+          question,
+          [node.qualifiedName],
+        );
       }
     }
     super.visitNamedType(node);
@@ -750,8 +753,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     // `is dynamic` or `is! dynamic`
-    if (rightType.isDynamic) {
-      var rightTypeStr = rightNode is NamedType ? rightNode.name.name : null;
+    if (rightType is DynamicType) {
+      var rightTypeStr = rightNode.ifTypeOrNull<NamedType>()?.qualifiedName;
       if (rightTypeStr == Keyword.DYNAMIC.lexeme) {
         report();
         return true;
@@ -794,7 +797,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void _checkFinalParameter(FormalParameter node, Token? keyword) {
     if (node.isFinal) {
       _errorReporter.reportErrorForToken(
-        HintCode.UNNECESSARY_FINAL,
+        WarningCode.UNNECESSARY_FINAL,
         keyword!,
       );
     }
@@ -1136,7 +1139,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // TODO(jwren) We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic
       // here.
-      String fullConstructorName = constructorName.type.name.name;
+      String fullConstructorName = constructorName.type.qualifiedName;
       if (constructorName.name != null) {
         fullConstructorName = '$fullConstructorName.${constructorName.name}';
       }
@@ -1286,7 +1289,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     // NULL_AWARE_IN_CONDITION
-    if (parent is IfStatement && parent.condition == childOfParent ||
+    if (parent is IfStatement && parent.expression == childOfParent ||
         parent is ForPartsWithDeclarations &&
             parent.condition == childOfParent ||
         parent is DoStatement && parent.condition == childOfParent ||
@@ -1588,22 +1591,22 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return _workspacePackage!.contains(library.source);
   }
 
-  /// Checks for the passed as expression for the [HintCode.UNNECESSARY_CAST]
+  /// Checks for the passed as expression for the [WarningCode.UNNECESSARY_CAST]
   /// hint code.
   ///
   /// Returns `true` if and only if an unnecessary cast hint should be generated
-  /// on [node].  See [HintCode.UNNECESSARY_CAST].
+  /// on [node].  See [WarningCode.UNNECESSARY_CAST].
   static bool isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
     var leftType = node.expression.typeOrThrow;
     var rightType = node.type.typeOrThrow;
 
     // `dynamicValue as SomeType` is a valid use case.
-    if (leftType.isDynamic) {
+    if (leftType is DynamicType) {
       return false;
     }
 
     // `x as Unresolved` is already reported as an error.
-    if (rightType.isDynamic) {
+    if (rightType is DynamicType) {
       return false;
     }
 

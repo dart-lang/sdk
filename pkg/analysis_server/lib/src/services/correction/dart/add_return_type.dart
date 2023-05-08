@@ -67,9 +67,9 @@ class AddReturnType extends CorrectionProducer {
 
     final insertBeforeEntity_final = insertBeforeEntity;
     await builder.addDartFileEdit(file, (builder) {
-      if (returnType.isDynamic || builder.canWriteType(returnType)) {
+      if (returnType is DynamicType || builder.canWriteType(returnType)) {
         builder.addInsertion(insertBeforeEntity_final.offset, (builder) {
-          if (returnType.isDynamic) {
+          if (returnType is DynamicType) {
             builder.write('dynamic');
           } else {
             builder.writeType(returnType);

@@ -6,7 +6,13 @@
 
 class A {
   factory A() {
-    foo(); /*@compile-error=unspecified*/
+    //    ^
+    // [analyzer] COMPILE_TIME_ERROR.BODY_MIGHT_COMPLETE_NORMALLY
+    // [cfe] A non-null value must be returned since the return type 'A' doesn't allow null.
+    foo();
+//  ^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+// [cfe] Method not found: 'foo'.
   }
 }
 

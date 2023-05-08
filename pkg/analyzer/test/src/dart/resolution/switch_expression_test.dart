@@ -15,6 +15,62 @@ main() {
 
 @reflectiveTest
 class SwitchExpressionResolutionTest extends PubPackageResolutionTest {
+  test_case_expression_void() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  (switch(x) {
+    0 => 0,
+    _ => g(),
+  });
+}
+
+void g() {}
+''');
+
+    final node = findNode.singleSwitchExpression;
+    assertResolvedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 0
+            staticType: int
+          matchedValueType: Object?
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+          matchedValueType: Object?
+      arrow: =>
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: void Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: void Function()
+        staticType: void
+  rightBracket: }
+  staticType: void
+''');
+  }
+
   test_cases_empty() async {
     await assertErrorsInCode(r'''
 final a = switch (0) {};
@@ -85,6 +141,43 @@ SwitchExpression
 ''');
   }
 
+  test_expression_void() async {
+    await assertErrorsInCode('''
+void f(void x) {
+  (switch(x) {
+    _ => 0,
+  });
+}
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
+    ]);
+
+    final node = findNode.singleSwitchExpression;
+    assertResolvedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: void
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+          matchedValueType: void
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+  rightBracket: }
+  staticType: int
+''');
+  }
+
   test_location_topLevel() async {
     await assertNoErrorsInCode(r'''
 num a = 0;
@@ -111,10 +204,8 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: ObjectPattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           leftParenthesis: (
           fields
@@ -208,10 +299,8 @@ SwitchExpressionCase
       expression: InstanceCreationExpression
         constructorName: ConstructorName
           type: NamedType
-            name: SimpleIdentifier
-              token: A
-              staticElement: self::@class::A
-              staticType: null
+            name: A
+            element: self::@class::A
             type: A
           staticElement: self::@class::A::@constructor::new
         argumentList: ArgumentList
@@ -432,10 +521,8 @@ SwitchExpression
             leftBracket: <
             arguments
               NamedType
-                name: SimpleIdentifier
-                  token: int
-                  staticElement: dart:core::@class::int
-                  staticType: null
+                name: int
+                element: dart:core::@class::int
                 type: int
             rightBracket: >
           leftBracket: [
@@ -512,10 +599,8 @@ SwitchExpression
           elements
             DeclaredVariablePattern
               type: NamedType
-                name: SimpleIdentifier
-                  token: int
-                  staticElement: dart:core::@class::int
-                  staticType: null
+                name: int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredElement: a@58
@@ -594,10 +679,8 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@44

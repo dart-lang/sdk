@@ -23,7 +23,7 @@ class Thread;
 // TODO(riscv): Dynamic rounding mode and other FSCR state.
 class Simulator {
  public:
-  static const uword kSimulatorStackUnderflowSize = 64;
+  static constexpr uword kSimulatorStackUnderflowSize = 64;
 
   Simulator();
   ~Simulator();

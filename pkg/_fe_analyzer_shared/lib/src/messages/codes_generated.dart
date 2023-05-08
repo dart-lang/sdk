@@ -151,8 +151,8 @@ const MessageCode messageAbstractSealedClass = const MessageCode(
     "AbstractSealedClass",
     index: 132,
     problemMessage:
-        r"""A class can't be declared both 'sealed' and 'abstract'.""",
-    correctionMessage: r"""Try removing the 'abstract' or 'sealed' keyword.""");
+        r"""A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract.""",
+    correctionMessage: r"""Try removing the 'abstract' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractStaticField = messageAbstractStaticField;
@@ -394,6 +394,15 @@ Message _withArgumentsBaseClassImplementedOutsideOfLibraryCause(
           """The type '${name}' is a subtype of '${name2}', and '${name2}' is defined here.""",
       arguments: {'name': name, 'name2': name2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeBaseEnum = messageBaseEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageBaseEnum = const MessageCode("BaseEnum",
+    index: 155,
+    problemMessage: r"""Enums can't be declared to be 'base'.""",
+    correctionMessage: r"""Try removing the keyword 'base'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -4635,6 +4644,15 @@ Message _withArgumentsFfiCompoundImplementsFinalizable(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiCreateOfStructOrUnion = messageFfiCreateOfStructOrUnion;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
+    "FfiCreateOfStructOrUnion",
+    problemMessage:
+        r"""Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,
@@ -5297,6 +5315,15 @@ Message _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary(
           """The class '${name}' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFinalEnum = messageFinalEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFinalEnum = const MessageCode("FinalEnum",
+    index: 156,
+    problemMessage: r"""Enums can't be declared to be 'final'.""",
+    correctionMessage: r"""Try removing the keyword 'final'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6458,6 +6485,15 @@ Message _withArgumentsInterfaceClassExtendedOutsideOfLibrary(String name) {
           """The class '${name}' can't be extended outside of its library because it's an interface class.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInterfaceEnum = messageInterfaceEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInterfaceEnum = const MessageCode("InterfaceEnum",
+    index: 157,
+    problemMessage: r"""Enums can't be declared to be 'interface'.""",
+    correctionMessage: r"""Try removing the keyword 'interface'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInterfaceMixin = messageInterfaceMixin;
@@ -7649,6 +7685,18 @@ Message _withArgumentsJsInteropDartClassExtendsJSClass(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropDartJsInteropAnnotationForStaticInteropOnly =
+    messageJsInteropDartJsInteropAnnotationForStaticInteropOnly;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropDartJsInteropAnnotationForStaticInteropOnly =
+    const MessageCode("JsInteropDartJsInteropAnnotationForStaticInteropOnly",
+        problemMessage:
+            r"""The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through inline classes or '@staticInterop'.""",
+        correctionMessage:
+            r"""Try making this class an inline class or marking it as '@staticInterop'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropEnclosingClassJSAnnotation =
     messageJsInteropEnclosingClassJSAnnotation;
 
@@ -7841,6 +7889,18 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
     problemMessage: r"""Only JS interop members may be 'external'.""",
     correctionMessage:
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropInlineClassUsedWithWrongJsAnnotation =
+    messageJsInteropInlineClassUsedWithWrongJsAnnotation;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropInlineClassUsedWithWrongJsAnnotation =
+    const MessageCode("JsInteropInlineClassUsedWithWrongJsAnnotation",
+        problemMessage:
+            r"""Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.""",
+        correctionMessage:
+            r"""Try using the '@JS' annotation from 'dart:js_interop' annotation on this inline class instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropInvalidStaticClassMemberName =
@@ -8283,6 +8343,34 @@ Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype(
           """JS interop class '${name}' has an `@staticInterop` annotation, but has supertype '${name2}', which does not.""",
       correctionMessage: """Try marking the supertype as a static interop class using `@staticInterop`.""",
       arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropStrictModeForbiddenLibrary =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""Library '#name' is forbidden when strict mode is enabled.""",
+        correctionMessageTemplate:
+            r"""Remove the import of a forbidden library.""",
+        withArguments: _withArgumentsJsInteropStrictModeForbiddenLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropStrictModeForbiddenLibrary =
+    const Code<Message Function(String name)>(
+  "JsInteropStrictModeForbiddenLibrary",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStrictModeForbiddenLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropStrictModeForbiddenLibrary,
+      problemMessage:
+          """Library '${name}' is forbidden when strict mode is enabled.""",
+      correctionMessage: """Remove the import of a forbidden library.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9151,6 +9239,13 @@ Message _withArgumentsMixinInheritsFromNotObject(String name) {
           """The class '${name}' can't be used as a mixin because it extends a class other than 'Object'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinWithClause = messageMixinWithClause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinWithClause = const MessageCode("MixinWithClause",
+    index: 154, problemMessage: r"""A mixin can't have a with clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -11486,6 +11581,15 @@ Message _withArgumentsSealedClassSubtypeOutsideOfLibrary(String name) {
           """The class '${name}' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSealedEnum = messageSealedEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSealedEnum = const MessageCode("SealedEnum",
+    index: 158,
+    problemMessage: r"""Enums can't be declared to be 'sealed'.""",
+    correctionMessage: r"""Try removing the keyword 'sealed'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSealedMixin = messageSealedMixin;

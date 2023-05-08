@@ -14,7 +14,7 @@
 
 namespace dart {
 
-char* ProcCpuInfo::data_ = NULL;
+char* ProcCpuInfo::data_ = nullptr;
 intptr_t ProcCpuInfo::datalen_ = 0;
 
 void ProcCpuInfo::Init() {
@@ -23,7 +23,7 @@ void ProcCpuInfo::Init() {
   // when using fseek(0, SEEK_END) + ftell(). Nor can they be mmap()-ed.
   static const char PATHNAME[] = "/proc/cpuinfo";
   FILE* fp = fopen(PATHNAME, "r");
-  if (fp != NULL) {
+  if (fp != nullptr) {
     for (;;) {
       char buffer[256];
       size_t n = fread(buffer, 1, sizeof(buffer), fp);
@@ -38,7 +38,7 @@ void ProcCpuInfo::Init() {
   // Read the contents of the cpuinfo file.
   data_ = reinterpret_cast<char*>(malloc(datalen_ + 1));
   fp = fopen(PATHNAME, "r");
-  if (fp != NULL) {
+  if (fp != nullptr) {
     for (intptr_t offset = 0; offset < datalen_;) {
       size_t n = fread(data_ + offset, 1, datalen_ - offset, fp);
       if (n == 0) {
@@ -56,7 +56,7 @@ void ProcCpuInfo::Init() {
 void ProcCpuInfo::Cleanup() {
   ASSERT(data_);
   free(data_);
-  data_ = NULL;
+  data_ = nullptr;
 }
 
 char* ProcCpuInfo::FieldStart(const char* field) {
@@ -65,8 +65,8 @@ char* ProcCpuInfo::FieldStart(const char* field) {
   char* p = data_;
   for (;;) {
     p = strstr(p, field);
-    if (p == NULL) {
-      return NULL;
+    if (p == nullptr) {
+      return nullptr;
     }
     if (p == data_ || p[-1] == '\n') {
       break;
@@ -76,8 +76,8 @@ char* ProcCpuInfo::FieldStart(const char* field) {
 
   // Skip to the first colon followed by a space.
   p = strchr(p + fieldlen, ':');
-  if (p == NULL || (isspace(p[1]) == 0)) {
-    return NULL;
+  if (p == nullptr || (isspace(p[1]) == 0)) {
+    return nullptr;
   }
   p += 2;
 
@@ -85,23 +85,23 @@ char* ProcCpuInfo::FieldStart(const char* field) {
 }
 
 bool ProcCpuInfo::FieldContains(const char* field, const char* search_string) {
-  ASSERT(data_ != NULL);
-  ASSERT(search_string != NULL);
+  ASSERT(data_ != nullptr);
+  ASSERT(search_string != nullptr);
 
   char* p = FieldStart(field);
-  if (p == NULL) {
+  if (p == nullptr) {
     return false;
   }
 
   // Find the end of the line.
   char* q = strchr(p, '\n');
-  if (q == NULL) {
+  if (q == nullptr) {
     q = data_ + datalen_;
   }
 
   char saved_end = *q;
   *q = '\0';
-  bool ret = (strcasestr(p, search_string) != NULL);
+  bool ret = (strcasestr(p, search_string) != nullptr);
   *q = saved_end;
 
   return ret;
@@ -110,19 +110,19 @@ bool ProcCpuInfo::FieldContains(const char* field, const char* search_string) {
 // Extract the content of a the first occurrence of a given field in
 // the content of the cpuinfo file and return it as a heap-allocated
 // string that must be freed by the caller using free.
-// Return NULL if not found.
+// Return nullptr if not found.
 const char* ProcCpuInfo::ExtractField(const char* field) {
-  ASSERT(field != NULL);
-  ASSERT(data_ != NULL);
+  ASSERT(field != nullptr);
+  ASSERT(data_ != nullptr);
 
   char* p = FieldStart(field);
-  if (p == NULL) {
-    return NULL;
+  if (p == nullptr) {
+    return nullptr;
   }
 
   // Find the end of the line.
   char* q = strchr(p, '\n');
-  if (q == NULL) {
+  if (q == nullptr) {
     q = data_ + datalen_;
   }
 
@@ -139,9 +139,9 @@ const char* ProcCpuInfo::ExtractField(const char* field) {
 }
 
 bool ProcCpuInfo::HasField(const char* field) {
-  ASSERT(field != NULL);
-  ASSERT(data_ != NULL);
-  return (FieldStart(field) != NULL);
+  ASSERT(field != nullptr);
+  ASSERT(data_ != nullptr);
+  return (FieldStart(field) != nullptr);
 }
 
 }  // namespace dart

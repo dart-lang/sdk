@@ -54,18 +54,18 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
   };
 
   static const intptr_t kApproximateSize;
-  static const int kSSLFilterNativeFieldIndex = 0;
+  static constexpr int kSSLFilterNativeFieldIndex = 0;
 
   SSLFilter()
-      : callback_error(NULL),
-        ssl_(NULL),
-        socket_side_(NULL),
-        string_start_(NULL),
-        string_length_(NULL),
-        handshake_complete_(NULL),
-        bad_certificate_callback_(NULL),
+      : callback_error(nullptr),
+        ssl_(nullptr),
+        socket_side_(nullptr),
+        string_start_(nullptr),
+        string_length_(nullptr),
+        handshake_complete_(nullptr),
+        bad_certificate_callback_(nullptr),
         in_handshake_(false),
-        hostname_(NULL) {}
+        hostname_(nullptr) {}
 
   ~SSLFilter();
 

@@ -284,8 +284,7 @@ abstract class AbstractSourceConstructorBuilder
           initializers.add(helper.buildInvalidInitializer(
               helper.buildUnresolvedError(
                   helper.constructorNameForDiagnostics(
-                      initializer.target.name.text,
-                      isSuper: false),
+                      initializer.target.name.text),
                   initializer.fileOffset,
                   arguments: initializer.arguments,
                   isSuper: false,

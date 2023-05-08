@@ -19,11 +19,12 @@
 /// class as `class Pair<K, V> {}`, the declarations of `K` and `V` represent
 /// type parameters. But if we declare a variable as `Pair<String, int> pair;`
 /// the references to `String` and `int` are type arguments.
+library;
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart' show RecordTypeImpl;
-import 'package:meta/meta.dart';
 
 /// The type associated with elements in the element model.
 ///
@@ -123,6 +124,7 @@ abstract class DartType {
   bool get isDartCoreType;
 
   /// Return `true` if this type represents the type 'dynamic'.
+  @Deprecated('Use `is DynamicType` instead')
   bool get isDynamic;
 
   /// Return `true` if this type represents the type 'void'.
@@ -435,7 +437,6 @@ abstract class ParameterizedType implements DartType {
 /// The type of a record literal or a record type annotation.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RecordType implements DartType {
   /// Creates a record type from of [positional] and [named] fields.
   factory RecordType({
@@ -461,7 +462,6 @@ abstract class RecordType implements DartType {
 /// A field in a [RecordType].
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RecordTypeField {
   /// The type of the field.
   DartType get type;
@@ -470,7 +470,6 @@ abstract class RecordTypeField {
 /// A named field in a [RecordType].
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RecordTypeNamedField implements RecordTypeField {
   /// The name of the field.
   String get name;
@@ -479,7 +478,6 @@ abstract class RecordTypeNamedField implements RecordTypeField {
 /// A positional field in a [RecordType].
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RecordTypePositionalField implements RecordTypeField {}
 
 /// The type introduced by a type parameter.

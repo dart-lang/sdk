@@ -36,8 +36,8 @@ VirtualMemory* VirtualMemory::ForImagePage(void* pointer, uword size) {
   // Memory for precompilated instructions was allocated by the embedder, so
   // create a VirtualMemory without allocating.
   MemoryRegion region(pointer, size);
-  MemoryRegion reserved(0, 0);  // NULL reservation indicates VM should not
-                                // attempt to free this memory.
+  MemoryRegion reserved(nullptr, 0);  // null reservation indicates VM should
+                                      // not attempt to free this memory.
   VirtualMemory* memory = new VirtualMemory(region, region, reserved);
   ASSERT(!memory->vm_owns_region());
   return memory;

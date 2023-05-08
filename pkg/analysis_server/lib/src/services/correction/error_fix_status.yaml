@@ -44,12 +44,10 @@
 #   issue created for it.
 #
 # Stats:
-# - 443 "needsEvaluation"
-#   - ? for CompileTimeErrorCodes
-#   - ? for ParserErrorCodes
-# - 161 "needsFix"
-# - 348 "hasFix"
-# - 265 "noFix"
+# -   0 "needsEvaluation"
+# - 381 "needsFix"
+# - 352 "hasFix"
+# - 490 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -1169,13 +1167,9 @@ CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: noFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION:
-  status: needsFix
-  notes: |-
-    Add the missing cases.
+  status: hasFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT:
-  status: needsFix
-  notes: |-
-    Add the missing cases.
+  status: hasFix
 CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM:
   status: hasFix
   since: 2.17
@@ -1777,12 +1771,6 @@ HintCode.UNIGNORABLE_IGNORE:
     Remove the ignore comment (or one code in the comment).
 HintCode.UNNECESSARY_CAST:
   status: hasFix
-HintCode.UNNECESSARY_FINAL:
-  status: hasFix
-HintCode.UNNECESSARY_IGNORE:
-  status: needsFix
-  notes: |-
-    Remove the ignore comment (or one code in the comment).
 HintCode.UNNECESSARY_IMPORT:
   status: hasFix
 HintCode.UNREACHABLE_SWITCH_CASE:
@@ -2125,6 +2113,12 @@ LintCode.literal_only_boolean_expressions:
   status: noFix
 LintCode.matching_super_parameters:
   status: needsFix
+  notes: |-
+    A little tricky, but two (non-conflicting) ideas:
+    1. Rename the super-parameter if it doesn't conflict with any other
+       parameter name.
+    2. Transpose two super parameters if doing so would match up their
+       super-constructor parameters.
 LintCode.missing_whitespace_between_adjacent_strings:
   status: needsFix
   notes: |-
@@ -2147,6 +2141,7 @@ LintCode.no_leading_underscores_for_local_identifiers:
   status: hasFix
 LintCode.no_literal_bool_comparisons:
   status: needsFix
+  notes: The fix is to remove `== true` etc.
 LintCode.no_logic_in_create_state:
   status: noFix
 LintCode.no_runtimeType_toString:
@@ -2473,125 +2468,213 @@ ParserErrorCode.ABSTRACT_CLASS_MEMBER:
   status: hasFix
 ParserErrorCode.ABSTRACT_ENUM:
   status: needsFix
-  notes: Remove abstract keyword
+  notes: |-
+    Remove abstract keyword
 ParserErrorCode.ABSTRACT_EXTERNAL_FIELD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove either the `abstract` or the `external` keyword.
 ParserErrorCode.ABSTRACT_LATE_FIELD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove either the `abstract` or the `late` keyword.
 ParserErrorCode.ABSTRACT_SEALED_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove either the `abstract` or the `sealed` keyword.
 ParserErrorCode.ABSTRACT_STATIC_FIELD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `abstract` keyword.
 ParserErrorCode.ABSTRACT_STATIC_METHOD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `abstract` keyword.
 ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `abstract` keyword.
 ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `abstract` keyword.
 ParserErrorCode.ABSTRACT_TYPEDEF:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `abstract` keyword.
 ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the annotation.
 ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the extra spaces
 ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the type arguments.
 ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add the parens.
 ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER:
+  status: noFix
+ParserErrorCode.BASE_ENUM:
   status: needsEvaluation
 ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace with the real operand.
 ParserErrorCode.BREAK_OUTSIDE_OF_LOOP:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.CATCH_SYNTAX:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add `(exception)`. (The longer form is suggested as a learning aid.)
 ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.CLASS_IN_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the inner class to the top-level.
 ParserErrorCode.COLON_IN_PLACE_OF_IN:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the `:` with `in`.
 ParserErrorCode.CONFLICTING_MODIFIERS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove either the left or right modifier.
 ParserErrorCode.CONST_AND_FINAL:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove either `const` or `final`.
 ParserErrorCode.CONST_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `const` keyword.
 ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.CONST_ENUM:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `const` keyword.
 ParserErrorCode.CONST_FACTORY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `const` keyword.
 ParserErrorCode.CONST_METHOD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `const` keyword.
 ParserErrorCode.CONST_TYPEDEF:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `const` keyword.
 ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the return type
 ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the type arguments to after the class name.
   since: ~2.15
 ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Suggest each of the labels that are valid.
 ParserErrorCode.COVARIANT_AND_STATIC:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove either `covariant` or `static`.
 ParserErrorCode.COVARIANT_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove `covariant`.
 ParserErrorCode.COVARIANT_MEMBER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove `covariant`.
 ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove `covariant`.
 ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the default value.
 ParserErrorCode.DEFERRED_AFTER_PREFIX:
   status: needsFix
+  notes: |-
+    Move the `deferred` keyword before the prefix.
 ParserErrorCode.DIRECTIVE_AFTER_DECLARATION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the directive to the directive section.
 ParserErrorCode.DUPLICATE_DEFERRED:
   status: needsFix
+  notes: |-
+    Remove the second `deferred`.
 ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.DUPLICATE_PREFIX:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the duplicate.
 ParserErrorCode.DUPLICATED_MODIFIER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the duplicate.
 ParserErrorCode.EMPTY_ENUM_BODY:
   status: noFix
   notes: |-
     We can't guess at the names or number of the enum constants that should be
     added.
 ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the comma.
 ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    It's likely that the user just hasn't provided a named field yet, and
+    offering to remove the braces would be counter-productive.
 ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the comma
 ParserErrorCode.ENUM_IN_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the nested enum to the top level.
 ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.EXPECTED_BODY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.EXPECTED_CASE_OR_DEFAULT:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.EXPECTED_CLASS_MEMBER:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.EXPECTED_ELSE_OR_COMMA:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.EXPECTED_EXECUTABLE:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.EXPECTED_INSTEAD:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add the braces or brackets for the literal.
 ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS:
   status: noFix
 ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS:
@@ -2601,363 +2684,593 @@ ParserErrorCode.EXPECTED_NAMED_TYPE_ON:
 ParserErrorCode.EXPECTED_NAMED_TYPE_WITH:
   status: noFix
 ParserErrorCode.EXPECTED_STRING_LITERAL:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.EXPECTED_TOKEN:
   status: hasFix
 ParserErrorCode.EXPECTED_TYPE_NAME:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.EXPERIMENT_NOT_ENABLED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Update the sdk constraints.
 ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add the experiment to the analysis options file.
 ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the directive to a valid place.
 ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Provide an empty body for the member.
 ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the constructor.
 ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the field, or add `static`.
 ParserErrorCode.EXTERNAL_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword or remove the initializers.
 ParserErrorCode.EXTERNAL_ENUM:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_FACTORY_REDIRECTION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword, or remove the body of the factory.
 ParserErrorCode.EXTERNAL_FIELD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_GETTER_WITH_BODY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword, or remove the body.
 ParserErrorCode.EXTERNAL_LATE_FIELD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_METHOD_WITH_BODY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword, or remove the body.
 ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword, or remove the body.
 ParserErrorCode.EXTERNAL_SETTER_WITH_BODY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword, or remove the body.
 ParserErrorCode.EXTERNAL_TYPEDEF:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword.
 ParserErrorCode.EXTRANEOUS_MODIFIER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the extraneous keyword.
 ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `factory` keyword.
 ParserErrorCode.FACTORY_WITH_INITIALIZERS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `factory` keyword or remove the initializers.
 ParserErrorCode.FACTORY_WITHOUT_BODY:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove `this.`.
 ParserErrorCode.FINAL_AND_COVARIANT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove either `final` or `covariant`.
 ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove either `final` or `covariant`, or remove the initializer.
 ParserErrorCode.FINAL_AND_VAR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove either `final` or `var`.
 ParserErrorCode.FINAL_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `final` keyword.
 ParserErrorCode.FINAL_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `final` keyword.
 ParserErrorCode.FINAL_ENUM:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `final` keyword.
 ParserErrorCode.FINAL_METHOD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `final` keyword.
 ParserErrorCode.FINAL_MIXIN:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `final` keyword.
 ParserErrorCode.FINAL_MIXIN_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `final` keyword.
 ParserErrorCode.FINAL_TYPEDEF:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `final` keyword.
 ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.GETTER_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `get` keyword.
 ParserErrorCode.GETTER_IN_FUNCTION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the getter outside the function, or convert the getter to a function.
 ParserErrorCode.GETTER_WITH_PARAMETERS:
   status: hasFix
 ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the extends clause first.
 ParserErrorCode.IMPLEMENTS_BEFORE_ON:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the implements after the on.
 ParserErrorCode.IMPLEMENTS_BEFORE_WITH:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the implements after the with.
 ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the directive to a valid location.
 ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH:
+  status: needsFix
+  notes: |-
+    Remove the initializer.
+ParserErrorCode.INTERFACE_ENUM:
   status: needsEvaluation
 ParserErrorCode.INTERFACE_MIXIN:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `interface` keyword.
 ParserErrorCode.INTERFACE_MIXIN_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `interface` keyword.
 ParserErrorCode.INVALID_AWAIT_IN_FOR:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We could potentially remove the await, but we can't convert the loop and it
+    seems wrong to hide the second option.
 ParserErrorCode.INVALID_CODE_POINT:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_COMMENT_REFERENCE:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add parents around the expression following `const`.
 ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY:
   status: hasFix
 ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove all but the first `const`.
 ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC:
   status: hasFix
 ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION:
   status: hasFix
 ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Use `AddConst.new`.
 ParserErrorCode.INVALID_CONSTRUCTOR_NAME:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_HEX_ESCAPE:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_INITIALIZER:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN:
   status: hasFix
 ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_OPERATOR:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_OPERATOR_FOR_SUPER:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace `?.` with `.`.
 ParserErrorCode.INVALID_STAR_AFTER_ASYNC:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Convert to a block body (already an assist, maybe no work needed).
 ParserErrorCode.INVALID_SUPER_IN_INITIALIZER:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_SYNC:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Convert to a block body (already an assist, maybe no work needed).
 ParserErrorCode.INVALID_THIS_IN_INITIALIZER:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `covariant`.
 ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION:
   status: hasFix
 ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the directive.
 ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove `new List.`.
 ParserErrorCode.LITERAL_WITH_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `List.`.
 ParserErrorCode.LITERAL_WITH_NEW:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `new`.
 ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MEMBER_WITH_CLASS_NAME:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add the `=`.
 ParserErrorCode.MISSING_CATCH_OR_FINALLY:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_CLOSING_PARENTHESIS:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The targeted location isn't likely to be the right place for the paren.
 ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE:
   status: hasFix
 ParserErrorCode.MISSING_ENUM_BODY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add an empty body
 ParserErrorCode.MISSING_EXPRESSION_IN_INITIALIZER:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_EXPRESSION_IN_THROW:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_FUNCTION_BODY:
   status: hasFix
 ParserErrorCode.MISSING_FUNCTION_KEYWORD:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_FUNCTION_PARAMETERS:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_GET:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add the `get`.
 ParserErrorCode.MISSING_IDENTIFIER:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_INITIALIZER:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_KEYWORD_OPERATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add `operator`.
 ParserErrorCode.MISSING_METHOD_PARAMETERS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add an empty parameter list.
 ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT:
   status: noFix
 ParserErrorCode.MISSING_STAR_AFTER_SYNC:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `sync` keyword. Add a `*`.
 ParserErrorCode.MISSING_STATEMENT:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add the missing terminator.
 ParserErrorCode.MISSING_TYPEDEF_PARAMETERS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add an empty parameter list.
 ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MIXED_PARAMETER_GROUPS:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR:
+  status: needsFix
+  notes: |-
+    Remove the constructor.
+ParserErrorCode.MIXIN_WITH_CLAUSE:
   status: needsEvaluation
 ParserErrorCode.MODIFIER_OUT_OF_ORDER:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    There isn't enough information to reorder them correctly. Consider making
+    this diagnostic less general so that we'll have information for a fix.
 ParserErrorCode.MULTIPLE_CLAUSES:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    There isn't enough information to know how to fix it. Consider making this
+    diagnostic less general so that we'll have information for a fix.
 ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Merge the two clauses.
 ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Merge the groups.
 ParserErrorCode.MULTIPLE_ON_CLAUSES:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Merge the clauses.
 ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Merge the groups.
 ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.MULTIPLE_WITH_CLAUSES:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Merge the two clauses.
 ParserErrorCode.NAMED_FUNCTION_EXPRESSION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the name.
 ParserErrorCode.NAMED_FUNCTION_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the name with `Function`.
 ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move it inside a group, creating the group if it doesn't alreay exist.
 ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the native clause.
 ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `native` keyword.
 ParserErrorCode.NON_CONSTRUCTOR_FACTORY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the keyword `factory`.
 ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the directive. Move the directive to the library.
 ParserErrorCode.NON_STRING_LITERAL_AS_URI:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.NON_USER_DEFINABLE_OPERATOR:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the normal parameters before the optional.
 ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the `?..` to the first operator in the chain.
 ParserErrorCode.OUT_OF_ORDER_CLAUSES:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    There isn't enough information for a fix. Consider splitting this diagnostic
+    so that each variant has enough information.
 ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    This probably isn't produced anymore.
 ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add the square brackets.
 ParserErrorCode.PREFIX_AFTER_COMBINATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the prefix before the combinators.
 ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
   status: hasFix
 ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
   status: hasFix
 ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the body. Remove the redirection.
 ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
+  status: needsFix
+  notes: |-
+    Remove the redirection.
+ParserErrorCode.SEALED_ENUM:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `sealed` keyword.
 ParserErrorCode.SEALED_MIXIN_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `sealed` keyword.
 ParserErrorCode.SETTER_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `set`.
 ParserErrorCode.SETTER_IN_FUNCTION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the setter outside the function. Convert the setter to a function.
 ParserErrorCode.STACK_OVERFLOW:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.STATIC_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `static` keyword.
 ParserErrorCode.STATIC_GETTER_WITHOUT_BODY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.STATIC_OPERATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `static` keyword.
 ParserErrorCode.STATIC_SETTER_WITHOUT_BODY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `static` keyword.
 ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the default case to the end.
 ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Merge the bodies.
 ParserErrorCode.TOP_LEVEL_OPERATOR:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the type arguments
 ParserErrorCode.TYPE_BEFORE_FACTORY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the `factory` before the type.
 ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the type parameters.
 ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the type parameters.
 ParserErrorCode.TYPEDEF_IN_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the typdef to the top level.
 ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the terminator.
 ParserErrorCode.UNEXPECTED_TOKEN:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.UNEXPECTED_TOKENS:
-  status: needsEvaluation
+  status: noFix
 ParserErrorCode.VAR_AND_TYPE:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.VAR_AS_TYPE_NAME:
   status: hasFix
 ParserErrorCode.VAR_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove `var`.
 ParserErrorCode.VAR_ENUM:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove `var`.
 ParserErrorCode.VAR_RETURN_TYPE:
   status: hasFix
 ParserErrorCode.VAR_TYPEDEF:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove `var`.
 ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
   status: hasFix
 ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the type arguments.
 ParserErrorCode.WITH_BEFORE_EXTENDS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Move the extends clause.
 ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the `:` with an '='.
 ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the terminator with the correct terminator.
 PubspecWarningCode.ASSET_DOES_NOT_EXIST:
   status: noFix
   since: ~2.15
@@ -3357,6 +3670,12 @@ WarningCode.UNNECESSARY_CAST_PATTERN:
   notes: |-
     The fix is to remove the cast pattern, assuming that doing so won't produce
     invalid code.
+WarningCode.UNNECESSARY_FINAL:
+  status: hasFix
+WarningCode.UNNECESSARY_IGNORE:
+  status: needsFix
+  notes: |-
+    Remove the ignore comment (or one code in the comment).
 WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE:
   status: hasFix
   notes: |-

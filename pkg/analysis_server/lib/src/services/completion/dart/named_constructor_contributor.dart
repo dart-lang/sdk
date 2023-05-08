@@ -24,7 +24,7 @@ class NamedConstructorContributor extends DartCompletionContributor {
     var node = request.target.containingNode;
     if (node is ConstructorName) {
       if (node.parent is ConstructorReference) {
-        var element = node.type.name.staticElement;
+        var element = node.type.element;
         if (element is InterfaceElement) {
           _buildSuggestions(element);
         }

@@ -5,6 +5,7 @@
 /// This file contains tests written in a deprecated way. Please do not add any
 /// tests to this file. Instead, add tests to the files in `declaration`,
 /// `location`, or `relevance`.
+library;
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
@@ -296,7 +297,7 @@ void f() {
   Future<void> test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
@@ -324,7 +325,7 @@ void f() {
   Future<void> test_ConstructorName_importedClass_unresolved() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
@@ -353,7 +354,7 @@ void f() {
   Future<void> test_ConstructorName_importedFactory() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
@@ -454,7 +455,7 @@ void f() {
 
   Future<void>
       test_importPrefix_className_typeArguments_period_nothing_functionTypeContext_matchingReturnType() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A<T> {
   A.named();
   A.new();

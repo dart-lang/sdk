@@ -1,0 +1,65 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  class FooX extends dart.core::Object implements lib::BarX /*hasConstConstructor*/  {
+    final field lib::HelperClassX bar;
+    const constructor •({required lib::HelperClassX bar = #C1}) → lib::FooX
+      : lib::FooX::bar = bar, super dart.core::Object::•()
+      ;
+  }
+  abstract class BarX extends dart.core::Object {
+    static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
+    static factory •({required lib::HelperClassX bar = #C1}) → lib::BarX
+      return new lib::FooX::•(bar: bar);
+  }
+  class HelperClassX extends dart.core::Object {
+    synthetic constructor •() → lib::HelperClassX
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  import "org-dartlang-test:///main.dart";
+  import "org-dartlang-test:///lib.dart";
+
+  static method baz() → void {
+    main::Bar bar = new main::Foo::•(bar: new main::HelperClass::•());
+    dart.core::print(bar);
+    lib::BarX barX = new lib::FooX::•(bar: new lib::HelperClassX::•());
+    dart.core::print(barX);
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "dart:ffi";
+  import "org-dartlang-test:///lib.dart";
+  import "org-dartlang-test:///lib2.dart";
+
+  class Foo extends dart.core::Object implements main::Bar /*hasConstConstructor*/  {
+    final field main::HelperClass bar;
+    const constructor •({required main::HelperClass bar = #C1}) → main::Foo
+      : main::Foo::bar = bar, super dart.core::Object::•() {
+      ;
+      dart._internal::reachabilityFence(bar);
+    }
+  }
+  abstract class Bar extends dart.core::Object {
+    static final field dynamic _redirecting# = <dynamic>[#C3]/*isLegacy*/;
+    static factory •({required main::HelperClass bar = #C1}) → main::Bar
+      return block {
+        final synthesized main::Foo :expressionValueWrappedFinalizable = new main::Foo::•(bar: bar);
+        dart._internal::reachabilityFence(bar);
+      } =>:expressionValueWrappedFinalizable;
+  }
+  class HelperClass extends dart.core::Object implements dart.ffi::Finalizable {
+    synthetic constructor •() → main::HelperClass
+      : super dart.core::Object::•()
+      ;
+  }
+}
+constants  {
+  #C1 = null
+  #C2 = constructor-tearoff lib::BarX::•
+  #C3 = constructor-tearoff main::Bar::•
+}

@@ -112,7 +112,8 @@ class Dart2jsTarget extends Target {
         'dart:_late_helper',
         'dart:js',
         'dart:js_interop',
-        'dart:js_util'
+        'dart:js_util',
+        'dart:typed_data',
       ];
 
   @override
@@ -257,7 +258,7 @@ const implicitlyUsedLibraries = <String>[
 // compile-platform should just specify which libraries to compile instead.
 const requiredLibraries = <String, List<String>>{
   'dart2js': [
-    'dart:_async_await_error_codes',
+    'dart:_async_status_codes',
     'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_http',
@@ -289,6 +290,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:js',
     'dart:js_interop',
     'dart:js_util',
+    'dart:js_interop_unsafe',
     'dart:math',
     'dart:svg',
     'dart:typed_data',
@@ -296,7 +298,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:web_gl',
   ],
   'dart2js_server': [
-    'dart:_async_await_error_codes',
+    'dart:_async_status_codes',
     'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_http',
@@ -323,6 +325,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:isolate',
     'dart:js',
     'dart:js_interop',
+    'dart:js_interop_unsafe',
     'dart:js_util',
     'dart:math',
     'dart:typed_data',

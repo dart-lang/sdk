@@ -79,7 +79,7 @@ class OverlappedBuffer {
     return from_;
   }
   socklen_t* from_len_addr() const { return from_len_addr_; }
-  socklen_t from_len() const { return from_ == NULL ? 0 : *from_len_addr_; }
+  socklen_t from_len() const { return from_ == nullptr ? 0 : *from_len_addr_; }
 
   // Returns the address of the OVERLAPPED structure with all fields
   // initialized to zero.
@@ -113,8 +113,8 @@ class OverlappedBuffer {
       *from_len_addr_ = sizeof(struct sockaddr_storage);
       from_ = reinterpret_cast<struct sockaddr*>(from_len_addr_ + 1);
     } else {
-      from_len_addr_ = NULL;
-      from_ = NULL;
+      from_len_addr_ = nullptr;
+      from_ = nullptr;
     }
     index_ = 0;
     data_length_ = 0;
@@ -327,7 +327,7 @@ class StdHandle : public FileHandle {
   explicit StdHandle(HANDLE handle)
       : FileHandle(handle),
         thread_id_(Thread::kInvalidThreadId),
-        thread_handle_(NULL),
+        thread_handle_(nullptr),
         thread_wrote_(0),
         write_thread_exists_(false),
         write_thread_running_(false) {
@@ -386,17 +386,17 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
  public:
   explicit ListenSocket(intptr_t s)
       : DescriptorInfoMultipleMixin(s, true),
-        AcceptEx_(NULL),
+        AcceptEx_(nullptr),
         pending_accept_count_(0),
-        accepted_head_(NULL),
-        accepted_tail_(NULL),
+        accepted_head_(nullptr),
+        accepted_tail_(nullptr),
         accepted_count_(0) {
     type_ = kListenSocket;
   }
   virtual ~ListenSocket() {
     ASSERT(!HasPendingAccept());
-    ASSERT(accepted_head_ == NULL);
-    ASSERT(accepted_tail_ == NULL);
+    ASSERT(accepted_head_ == nullptr);
+    ASSERT(accepted_tail_ == nullptr);
   }
 
   // Socket interface exposing normal socket operations.
@@ -442,8 +442,8 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  public:
   explicit ClientSocket(intptr_t s)
       : DescriptorInfoSingleMixin(s, true),
-        DisconnectEx_(NULL),
-        next_(NULL),
+        DisconnectEx_(nullptr),
+        next_(nullptr),
         connected_(false),
         closed_(false) {
     LoadDisconnectEx();
@@ -454,7 +454,7 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
     // Don't delete this object until all pending requests have been handled.
     ASSERT(!HasPendingRead());
     ASSERT(!HasPendingWrite());
-    ASSERT(next_ == NULL);
+    ASSERT(next_ == nullptr);
     ASSERT(closed_ == true);
   }
 

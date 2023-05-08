@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -31,16 +30,10 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late FindNode findNode;
   late FindElement findElement;
 
-  @override
-  void addSource(String path, String content) {
-    content = normalizeSource(content);
-    super.addSource(path, content);
-  }
-
   void addTestSource(String code) {
     code = normalizeSource(code);
     testCode = code;
-    addSource(testFile, code);
+    newFile(testFile, code);
   }
 
   int findEnd(String search) {
@@ -74,7 +67,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
         return error.errorCode != WarningCode.DEAD_CODE &&
             error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
             error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
-            error.errorCode != HintCode.UNUSED_ELEMENT &&
+            error.errorCode != WarningCode.UNUSED_ELEMENT &&
             error.errorCode != WarningCode.UNUSED_FIELD &&
             error.errorCode != WarningCode.UNUSED_IMPORT &&
             error.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE;

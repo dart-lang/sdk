@@ -27,7 +27,6 @@ import 'package:analyzer/src/dart/analysis/search.dart' as server
     show DeclarationKind;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:analyzer_plugin/utilities/pair.dart';
 import 'package:collection/collection.dart';
 
 const languageSourceName = 'dart';
@@ -49,6 +48,10 @@ final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
     lsp.DiagnosticTag.Deprecated
   ],
 };
+
+/// A regex to extract the type name from the parameter string of a setter
+/// completion item.
+final _completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
 
 /// Pattern for docComplete text on completion items that can be upgraded to
 /// the "detail" field so that it can be shown more prominently by clients.
@@ -396,15 +399,17 @@ String? getCompletionDetail(
     // appear in the completion list, so displaying them as setters is misleading.
     // To avoid this, always show only the return type, whether it's a getter
     // or a setter.
-    return prefix +
-        (element?.kind == server.ElementKind.GETTER
-            ? (returnType ?? '')
-            // Don't assume setters always have parameters
-            // See https://github.com/dart-lang/sdk/issues/27747
-            : parameters != null && parameters.isNotEmpty
-                // Extract the type part from '(MyType value)`
-                ? parameters.substring(1, parameters.lastIndexOf(' '))
-                : '');
+    if (element?.kind == server.ElementKind.GETTER) {
+      return prefix + (returnType ?? '');
+    } else if (parameters == null) {
+      return prefix;
+    } else {
+      // TODO(dantup): Consider having the type of a setter available on
+      //  CompletionSuggestion (or changing it to a protocol-agnostic class that
+      //  includes it).
+      return prefix +
+          (_completionSetterTypePattern.firstMatch(parameters)?.group(1) ?? '');
+    }
   } else if (hasParameters && hasReturnType) {
     return '$prefix$parameters → $returnType';
   } else if (hasReturnType) {
@@ -632,20 +637,16 @@ lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
 
 lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
     plugin.AnalysisErrorSeverity severity) {
-  switch (severity) {
-    case plugin.AnalysisErrorSeverity.ERROR:
-      return lsp.DiagnosticSeverity.Error;
-    case plugin.AnalysisErrorSeverity.WARNING:
-      return lsp.DiagnosticSeverity.Warning;
-    case plugin.AnalysisErrorSeverity.INFO:
-      return lsp.DiagnosticSeverity.Information;
+  return switch (severity) {
+    plugin.AnalysisErrorSeverity.ERROR => lsp.DiagnosticSeverity.Error,
+    plugin.AnalysisErrorSeverity.WARNING => lsp.DiagnosticSeverity.Warning,
+    plugin.AnalysisErrorSeverity.INFO => lsp.DiagnosticSeverity.Information,
     // Note: LSP also supports "Hint", but they won't render in things like the
     // VS Code errors list as they're apparently intended to communicate
     // non-visible diagnostics back (for example, if you wanted to grey out
     // unreachable code without producing an item in the error list).
-    default:
-      throw 'Unknown AnalysisErrorSeverity: $severity';
-  }
+    _ => throw 'Unknown AnalysisErrorSeverity: $severity'
+  };
 }
 
 /// Converts a numeric relevance to a sortable string.
@@ -959,8 +960,8 @@ lsp.CompletionItem toCompletionItem(
     selectionOffset: suggestion.selectionOffset,
     selectionLength: suggestion.selectionLength,
   );
-  final insertText = insertTextInfo.first;
-  final insertTextFormat = insertTextInfo.last;
+  final insertText = insertTextInfo.text;
+  final insertTextFormat = insertTextInfo.format;
   final isMultilineCompletion = insertText.contains('\n');
 
   final rawDoc = includeDocumentation == DocumentationPreference.full
@@ -1419,7 +1420,7 @@ lsp.MarkupContent _asMarkup(
   return lsp.MarkupContent(kind: format, value: content);
 }
 
-Pair<String, lsp.InsertTextFormat> _buildInsertText({
+({String text, lsp.InsertTextFormat format}) _buildInsertText({
   required bool supportsSnippets,
   required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
@@ -1475,7 +1476,7 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
     }
   }
 
-  return Pair(insertText, insertTextFormat);
+  return (text: insertText, format: insertTextFormat);
 }
 
 String _errorCode(server.ErrorCode code) => code.name.toLowerCase();

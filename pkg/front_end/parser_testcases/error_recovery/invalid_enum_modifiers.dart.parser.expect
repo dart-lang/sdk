@@ -1,0 +1,11 @@
+base enum Base { v }
+final enum Final { v }
+interface enum Interface { v }
+sealed enum Sealed { v }
+
+
+base[KeywordToken] enum[KeywordToken] Base[StringToken] {[BeginToken] v[StringToken] }[SimpleToken]
+final[KeywordToken] enum[KeywordToken] Final[StringToken] {[BeginToken] v[StringToken] }[SimpleToken]
+interface[KeywordToken] enum[KeywordToken] Interface[StringToken] {[BeginToken] v[StringToken] }[SimpleToken]
+sealed[KeywordToken] enum[KeywordToken] Sealed[StringToken] {[BeginToken] v[StringToken] }[SimpleToken]
+[SimpleToken]

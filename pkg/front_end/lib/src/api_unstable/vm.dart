@@ -6,6 +6,11 @@ export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler, getMessageUri;
 
 export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+export 'package:kernel/src/redirecting_factory_body.dart'
+    show
+        expressionValueWrappedFinalizableName,
+        getRedirectingFactoryBody,
+        isRedirectingFactoryField;
 
 export '../api_prototype/compiler_options.dart'
     show
@@ -59,6 +64,7 @@ export '../fasta/fasta_codes.dart'
         LocatedMessage,
         messageFfiAbiSpecificIntegerInvalid,
         messageFfiAbiSpecificIntegerMappingInvalid,
+        messageFfiCreateOfStructOrUnion,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         messageFfiLeafCallMustNotReturnHandle,
@@ -99,9 +105,6 @@ export '../fasta/fasta_codes.dart'
         templateFfiTypeMismatch;
 
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
-
-export '../fasta/kernel/redirecting_factory_body.dart'
-    show getRedirectingFactoryBody, isRedirectingFactoryField;
 
 export '../fasta/kernel/utils.dart'
     show

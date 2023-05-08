@@ -16,19 +16,26 @@ class FakeTypeIntrospector extends Fake implements TypeIntrospector {}
 
 class TestTypeIntrospector implements TypeIntrospector {
   final Map<IntrospectableType, List<ConstructorDeclaration>> constructors;
+  final Map<IntrospectableEnum, List<EnumValueDeclaration>> enumValues;
   final Map<IntrospectableType, List<FieldDeclaration>> fields;
   final Map<IntrospectableType, List<MethodDeclaration>> methods;
 
   TestTypeIntrospector({
     required this.constructors,
+    required this.enumValues,
     required this.fields,
     required this.methods,
   });
 
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(
-          covariant IntrospectableType clazz) async =>
-      constructors[clazz]!;
+          covariant IntrospectableType type) async =>
+      constructors[type]!;
+
+  @override
+  Future<List<EnumValueDeclaration>> valuesOf(
+          covariant IntrospectableEnum enuum) async =>
+      enumValues[enuum]!;
 
   @override
   Future<List<FieldDeclaration>> fieldsOf(
@@ -41,7 +48,15 @@ class TestTypeIntrospector implements TypeIntrospector {
       methods[clazz]!;
 }
 
-class FakeIdentifierResolver extends Fake implements IdentifierResolver {}
+class FakeIdentifierResolver implements IdentifierResolver {
+  @override
+  Future<Identifier> resolveIdentifier(Uri library, String name) async {
+    if (library == Uri.parse('dart:core') && name == 'String') {
+      return Fixtures.stringType.identifier;
+    }
+    throw UnimplementedError('Cannot resolve the identifier $library:$name');
+  }
+}
 
 class FakeTypeDeclarationResolver extends Fake
     implements TypeDeclarationResolver {}
@@ -397,7 +412,7 @@ class Fixtures {
       ],
       returnType: myClassType,
       typeParameters: [],
-      definingClass: myClassType.identifier,
+      definingType: myClassType.identifier,
       isFactory: false);
   static final myField = FieldDeclarationImpl(
       id: RemoteInstance.uniqueId,
@@ -406,7 +421,7 @@ class Fixtures {
       isFinal: false,
       isLate: false,
       type: stringType,
-      definingClass: myClassType.identifier,
+      definingType: myClassType.identifier,
       isStatic: false);
   static final myInterface = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
@@ -434,22 +449,8 @@ class Fixtures {
       positionalParameters: [],
       returnType: recordType,
       typeParameters: [],
-      definingClass: myClassType.identifier,
+      definingType: myClassType.identifier,
       isStatic: false);
-  static final myMixin = ClassDeclarationImpl(
-      id: RemoteInstance.uniqueId,
-      identifier: myMixinType.identifier,
-      typeParameters: [],
-      interfaces: [],
-      hasAbstract: false,
-      hasBase: false,
-      hasExternal: false,
-      hasFinal: false,
-      hasInterface: false,
-      hasMixin: true,
-      hasSealed: false,
-      mixins: [],
-      superclass: null);
   static final mySuperclass = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: mySuperclassType.identifier,
@@ -468,6 +469,72 @@ class Fixtures {
   static final myClassStaticType = TestNamedStaticType(
       myClassType.identifier, 'package:my_package/my_package.dart', []);
 
+  static final myEnumType = NamedTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      isNullable: false,
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
+      typeArguments: []);
+  static final myEnum = IntrospectableEnumDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: myEnumType.identifier,
+      typeParameters: [],
+      interfaces: [],
+      mixins: []);
+  static final myEnumValues = [
+    EnumValueDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'a'),
+      definingEnum: myEnum.identifier,
+    ),
+  ];
+  static final myEnumConstructor = ConstructorDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: IdentifierImpl(
+          id: RemoteInstance.uniqueId, name: 'myEnumConstructor'),
+      isAbstract: false,
+      isExternal: false,
+      isGetter: false,
+      isOperator: false,
+      isSetter: false,
+      namedParameters: [],
+      positionalParameters: [
+        ParameterDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
+            isNamed: false,
+            isRequired: true,
+            type: stringType)
+      ],
+      returnType: myEnumType,
+      typeParameters: [],
+      definingType: myEnum.identifier,
+      isFactory: false);
+
+  static final myMixin = IntrospectableMixinDeclarationImpl(
+    id: RemoteInstance.uniqueId,
+    identifier: myMixinType.identifier,
+    typeParameters: [],
+    hasBase: false,
+    interfaces: [],
+    superclassConstraints: [myClassType],
+  );
+  static final myMixinMethod = MethodDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myMixinMethod'),
+      isAbstract: false,
+      isExternal: false,
+      isGetter: false,
+      isOperator: false,
+      isSetter: false,
+      namedParameters: [],
+      positionalParameters: [],
+      returnType: recordType,
+      typeParameters: [],
+      definingType: myMixinType.identifier,
+      isStatic: false);
+
   static final testTypeResolver = TestTypeResolver({
     stringType.identifier:
         TestNamedStaticType(stringType.identifier, 'dart:core', []),
@@ -476,16 +543,26 @@ class Fixtures {
   static final testTypeIntrospector = TestTypeIntrospector(
     constructors: {
       myClass: [myConstructor],
+      myEnum: [myEnumConstructor],
+      myMixin: [],
+    },
+    enumValues: {
+      myEnum: myEnumValues,
     },
     fields: {
       myClass: [myField],
+      myMixin: [],
+      myEnum: [],
     },
     methods: {
       myClass: [myMethod],
+      myMixin: [myMixinMethod],
+      myEnum: [],
     },
   );
   static final testTypeDeclarationResolver = TestTypeDeclarationResolver({
     myClass.identifier: myClass,
+    myEnum.identifier: myEnum,
     mySuperclass.identifier: mySuperclass,
     myInterface.identifier: myInterface,
     myMixin.identifier: myMixin

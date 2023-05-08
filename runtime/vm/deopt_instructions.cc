@@ -37,10 +37,10 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       object_pool_(code.GetObjectPool()),
       deopt_info_(TypedData::null()),
       dest_frame_is_allocated_(false),
-      dest_frame_(NULL),
+      dest_frame_(nullptr),
       dest_frame_size_(0),
       source_frame_is_allocated_(false),
-      source_frame_(NULL),
+      source_frame_(nullptr),
       source_frame_size_(0),
       cpu_registers_(cpu_registers),
       fpu_registers_(fpu_registers),
@@ -49,9 +49,9 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       deopt_flags_(0),
       thread_(Thread::Current()),
       deopt_start_micros_(0),
-      deferred_slots_(NULL),
+      deferred_slots_(nullptr),
       deferred_objects_count_(0),
-      deferred_objects_(NULL),
+      deferred_objects_(nullptr),
       is_lazy_deopt_(is_lazy_deopt),
       deoptimizing_code_(deoptimizing_code) {
   const TypedData& deopt_info = TypedData::Handle(
@@ -92,7 +92,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
     // Work from a copy of the source frame.
     intptr_t* original_frame = source_frame_;
     source_frame_ = new intptr_t[source_frame_size_];
-    ASSERT(source_frame_ != NULL);
+    ASSERT(source_frame_ != nullptr);
     for (intptr_t i = 0; i < source_frame_size_; i++) {
       source_frame_[i] = original_frame[i];
     }
@@ -104,7 +104,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
 
   if (dest_options == kDestIsAllocated) {
     dest_frame_ = new intptr_t[dest_frame_size_];
-    ASSERT(source_frame_ != NULL);
+    ASSERT(source_frame_ != nullptr);
     for (intptr_t i = 0; i < dest_frame_size_; i++) {
       dest_frame_[i] = 0;
     }
@@ -132,28 +132,28 @@ DeoptContext::~DeoptContext() {
   if (source_frame_is_allocated_) {
     delete[] source_frame_;
   }
-  source_frame_ = NULL;
+  source_frame_ = nullptr;
   delete[] fpu_registers_;
   delete[] cpu_registers_;
-  fpu_registers_ = NULL;
-  cpu_registers_ = NULL;
+  fpu_registers_ = nullptr;
+  cpu_registers_ = nullptr;
   if (dest_frame_is_allocated_) {
     delete[] dest_frame_;
   }
-  dest_frame_ = NULL;
+  dest_frame_ = nullptr;
 
   // Delete all deferred objects.
   for (intptr_t i = 0; i < deferred_objects_count_; i++) {
     delete deferred_objects_[i];
   }
   delete[] deferred_objects_;
-  deferred_objects_ = NULL;
+  deferred_objects_ = nullptr;
   deferred_objects_count_ = 0;
 
 #if defined(SUPPORT_TIMELINE)
   if (deopt_start_micros_ != 0) {
     TimelineStream* compiler_stream = Timeline::GetCompilerStream();
-    ASSERT(compiler_stream != NULL);
+    ASSERT(compiler_stream != nullptr);
     if (compiler_stream->enabled()) {
       // Allocate all Dart objects needed before calling StartEvent,
       // which blocks safe points until Complete is called.
@@ -164,7 +164,7 @@ DeoptContext::~DeoptContext() {
       const char* reason = DeoptReasonToCString(deopt_reason());
       const int counter = function.deoptimization_counter();
       TimelineEvent* timeline_event = compiler_stream->StartEvent();
-      if (timeline_event != NULL) {
+      if (timeline_event != nullptr) {
         timeline_event->Duration("Deoptimize", deopt_start_micros_,
                                  OS::GetCurrentMonotonicMicros());
         timeline_event->SetNumArguments(3);
@@ -343,9 +343,9 @@ const CatchEntryMoves* DeoptContext::ToCatchEntryMoves(intptr_t num_vars) {
 static void FillDeferredSlots(DeoptContext* deopt_context,
                               DeferredSlot** slot_list) {
   DeferredSlot* slot = *slot_list;
-  *slot_list = NULL;
+  *slot_list = nullptr;
 
-  while (slot != NULL) {
+  while (slot != nullptr) {
     DeferredSlot* current = slot;
     slot = slot->next();
 
@@ -377,7 +377,7 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
     DartFrameIterator iterator(Thread::Current(),
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* top_frame = iterator.NextFrame();
-    ASSERT(top_frame != NULL);
+    ASSERT(top_frame != nullptr);
     const Code& code = Code::Handle(top_frame->LookupDartCode());
     const Function& top_function = Function::Handle(code.function());
     const Script& script = Script::Handle(top_function.script());
@@ -398,7 +398,7 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
 }
 
 ArrayPtr DeoptContext::DestFrameAsArray() {
-  ASSERT(dest_frame_ != NULL && dest_frame_is_allocated_);
+  ASSERT(dest_frame_ != nullptr && dest_frame_is_allocated_);
   const Array& dest_array = Array::Handle(zone(), Array::New(dest_frame_size_));
   PassiveObject& obj = PassiveObject::Handle(zone());
   for (intptr_t i = 0; i < dest_frame_size_; i++) {
@@ -444,7 +444,7 @@ class DeoptRetAddressInstr : public DeoptInstr {
   intptr_t deopt_id() const { return deopt_id_; }
 
  private:
-  static const intptr_t kFieldWidth = kBitsPerWord / 2;
+  static constexpr intptr_t kFieldWidth = kBitsPerWord / 2;
   class ObjectTableIndex : public BitField<intptr_t, intptr_t, 0, kFieldWidth> {
   };
   class DeoptId
@@ -580,7 +580,7 @@ class DeoptMintPairInstr : public DeoptIntegerInstrBase {
   }
 
  private:
-  static const intptr_t kFieldWidth = kBitsPerWord / 2;
+  static constexpr intptr_t kFieldWidth = kBitsPerWord / 2;
   class LoRegister : public BitField<intptr_t, intptr_t, 0, kFieldWidth> {};
   class HiRegister
       : public BitField<intptr_t, intptr_t, kFieldWidth, kFieldWidth> {};
@@ -883,7 +883,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   Zone* zone = thread->zone();
   Function& function = Function::Handle(zone);
   function ^= object_table.ObjectAt(ret_address_instr->object_table_index());
-  ASSERT(code != NULL);
+  ASSERT(code != nullptr);
   const Error& error =
       Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, function));
   if (!error.IsNull()) {
@@ -938,7 +938,7 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
       return new DeoptMaterializeObjectInstr(source_index);
   }
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 const char* DeoptInstr::KindToCString(Kind kind) {
@@ -980,14 +980,14 @@ const char* DeoptInstr::KindToCString(Kind kind) {
       return "mat";
   }
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
  public:
   // Construct the root node representing the implicit "shared" terminator
   // at the end of each deopt info.
-  TrieNode() : instruction_(NULL), info_number_(-1), children_(16) {}
+  TrieNode() : instruction_(nullptr), info_number_(-1), children_(16) {}
 
   // Construct a node representing a written instruction.
   TrieNode(DeoptInstr* instruction, intptr_t info_number)
@@ -996,7 +996,7 @@ class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
   intptr_t info_number() const { return info_number_; }
 
   void AddChild(TrieNode* child) {
-    if (child != NULL) children_.Add(child);
+    if (child != nullptr) children_.Add(child);
   }
 
   TrieNode* FindChild(const DeoptInstr& instruction) {
@@ -1004,7 +1004,7 @@ class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
       TrieNode* child = children_[i];
       if (child->instruction_->Equals(instruction)) return child;
     }
-    return NULL;
+    return nullptr;
   }
 
  private:
@@ -1087,7 +1087,7 @@ void DeoptInfoBuilder::AddPp(const Function& function, intptr_t dest_index) {
 void DeoptInfoBuilder::AddCopy(Value* value,
                                const Location& source_loc,
                                const intptr_t dest_index) {
-  DeoptInstr* deopt_instr = NULL;
+  DeoptInstr* deopt_instr = nullptr;
   if (source_loc.IsConstant()) {
     intptr_t object_table_index = FindOrAddObjectInTable(source_loc.constant());
     deopt_instr = new (zone()) DeoptConstantInstr(object_table_index);
@@ -1149,7 +1149,7 @@ void DeoptInfoBuilder::AddCopy(Value* value,
     }
   }
   ASSERT(dest_index == FrameSize());
-  ASSERT(deopt_instr != NULL);
+  ASSERT(deopt_instr != nullptr);
   instructions_.Add(deopt_instr);
 }
 
@@ -1196,7 +1196,7 @@ void DeoptInfoBuilder::AddMaterialization(MaterializeObjectInstr* mat) {
   for (intptr_t i = 0; i < mat->InputCount(); i++) {
     MaterializeObjectInstr* nested_mat =
         mat->InputAt(i)->definition()->AsMaterializeObject();
-    if (nested_mat != NULL) {
+    if (nested_mat != nullptr) {
       AddMaterialization(nested_mat);
     }
   }
@@ -1242,7 +1242,7 @@ TypedDataPtr DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
   if (FLAG_compress_deopt_info) {
     for (intptr_t i = length - 1; i >= 0; --i) {
       TrieNode* node = suffix->FindChild(*instructions_[i]);
-      if (node == NULL) break;
+      if (node == nullptr) break;
       suffix = node;
       ++suffix_length;
     }
@@ -1404,7 +1404,7 @@ const char* DeoptInfo::ToCString(const Array& deopt_table,
   // Compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
-    len += Utils::SNPrint(NULL, 0, FORMAT, deopt_instrs[i]->ToCString());
+    len += Utils::SNPrint(nullptr, 0, FORMAT, deopt_instrs[i]->ToCString());
   }
 
   // Allocate the buffer.

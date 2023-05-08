@@ -83,7 +83,7 @@ class ObjectCounter : public ObjectPointerVisitor {
   explicit ObjectCounter(IsolateGroup* isolate_group, const Object* obj)
       : ObjectPointerVisitor(isolate_group), obj_(obj), count_(0) {}
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (ObjectPtr* current = first; current <= last; ++current) {
       if (*current == obj_->ptr()) {
         ++count_;
@@ -91,15 +91,17 @@ class ObjectCounter : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     for (CompressedObjectPtr* current = first; current <= last; ++current) {
       if (current->Decompress(heap_base) == obj_->ptr()) {
         ++count_;
       }
     }
   }
+#endif
 
   intptr_t count() const { return count_; }
 
@@ -110,13 +112,18 @@ class ObjectCounter : public ObjectPointerVisitor {
 
 class TaskWithZoneAllocation : public ThreadPool::Task {
  public:
-  TaskWithZoneAllocation(Isolate* isolate,
+  TaskWithZoneAllocation(IsolateGroup* isolate_group,
                          Monitor* monitor,
                          bool* done,
                          intptr_t id)
-      : isolate_(isolate), monitor_(monitor), done_(done), id_(id) {}
+      : isolate_group_(isolate_group),
+        monitor_(monitor),
+        done_(done),
+        id_(id) {}
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kUnknownTask,
+                                      kBypassSafepoint);
     {
       Thread* thread = Thread::Current();
       // Create a zone (which is also a stack resource) and exercise it a bit.
@@ -138,7 +145,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       EXPECT(smi.Value() == unique_smi);
       {
         HeapIterationScope iteration(thread);
-        ObjectCounter counter(isolate_->group(), &smi);
+        ObjectCounter counter(isolate_group_, &smi);
         // Ensure that our particular zone is visited.
         iteration.IterateStackPointers(&counter,
                                        ValidationPolicy::kValidateFrames);
@@ -155,7 +162,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       EXPECT(unique_str.Equals(unique_chars));
       {
         HeapIterationScope iteration(thread);
-        ObjectCounter str_counter(isolate_->group(), &unique_str);
+        ObjectCounter str_counter(isolate_group_, &unique_str);
         // Ensure that our particular zone is visited.
         iteration.IterateStackPointers(&str_counter,
                                        ValidationPolicy::kValidateFrames);
@@ -163,7 +170,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         EXPECT_EQ(1, str_counter.count());
       }
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     {
       MonitorLocker ml(monitor_);
       *done_ = true;
@@ -172,7 +179,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
   }
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   Monitor* monitor_;
   bool* done_;
   intptr_t id_;
@@ -182,10 +189,11 @@ ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
   const int kTaskCount = 100;
   Monitor sync[kTaskCount];
   bool done[kTaskCount];
-  Isolate* isolate = thread->isolate();
+  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   for (int i = 0; i < kTaskCount; i++) {
     done[i] = false;
-    Dart::thread_pool()->Run<TaskWithZoneAllocation>(isolate, &sync[i],
+    Dart::thread_pool()->Run<TaskWithZoneAllocation>(isolate_group, &sync[i],
                                                      &done[i], i);
   }
   bool in_isolate = true;
@@ -218,14 +226,14 @@ ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
 class SimpleTaskWithZoneAllocation : public ThreadPool::Task {
  public:
   SimpleTaskWithZoneAllocation(intptr_t id,
-                               Isolate* isolate,
+                               IsolateGroup* isolate_group,
                                Thread** thread_ptr,
                                Monitor* sync,
                                Monitor* monitor,
                                intptr_t* done_count,
                                bool* wait)
       : id_(id),
-        isolate_(isolate),
+        isolate_group_(isolate_group),
         thread_ptr_(thread_ptr),
         sync_(sync),
         monitor_(monitor),
@@ -233,13 +241,15 @@ class SimpleTaskWithZoneAllocation : public ThreadPool::Task {
         wait_(wait) {}
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kUnknownTask,
+                                      kBypassSafepoint);
     {
       Thread* thread = Thread::Current();
       *thread_ptr_ = thread;
       CreateStackZones(id_);
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     // Notify the main thread that this thread has exited.
     {
       MonitorLocker ml(monitor_);
@@ -286,7 +296,7 @@ class SimpleTaskWithZoneAllocation : public ThreadPool::Task {
   }
 
   intptr_t id_;
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   Thread** thread_ptr_;
   Monitor* sync_;
   Monitor* monitor_;
@@ -299,7 +309,7 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
   Monitor monitor;
   Monitor sync;
   Thread* threads[kTaskCount];
-  Isolate* isolate = Thread::Current()->isolate();
+  auto isolate_group = thread->isolate_group();
   intptr_t done_count = 0;
   bool wait = true;
 
@@ -309,7 +319,8 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
 
   for (intptr_t i = 0; i < kTaskCount; i++) {
     Dart::thread_pool()->Run<SimpleTaskWithZoneAllocation>(
-        (i + 1), isolate, &threads[i], &sync, &monitor, &done_count, &wait);
+        (i + 1), isolate_group, &threads[i], &sync, &monitor, &done_count,
+        &wait);
   }
   // Wait until all spawned tasks finish their memory operations.
   {
@@ -367,14 +378,14 @@ TEST_CASE(ThreadRegistry) {
 // A helper thread that repeatedly reads ICData
 class ICDataTestTask : public ThreadPool::Task {
  public:
-  static const intptr_t kTaskCount;
+  static constexpr intptr_t kTaskCount = 1;
 
-  ICDataTestTask(Isolate* isolate,
+  ICDataTestTask(IsolateGroup* isolate_group,
                  const Array& ic_datas,
                  Monitor* monitor,
                  intptr_t* exited,
                  std::atomic<bool>* done)
-      : isolate_(isolate),
+      : isolate_group_(isolate_group),
         ic_datas_(ic_datas),
         len_(ic_datas.Length()),
         monitor_(monitor),
@@ -382,7 +393,9 @@ class ICDataTestTask : public ThreadPool::Task {
         done_(done) {}
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kUnknownTask,
+                                      kBypassSafepoint);
 
     Thread* thread = Thread::Current();
 
@@ -412,7 +425,7 @@ class ICDataTestTask : public ThreadPool::Task {
       }
     }
 
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     {
       MonitorLocker ml(monitor_);
       ++*exited_;
@@ -421,7 +434,7 @@ class ICDataTestTask : public ThreadPool::Task {
   }
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   const Array& ic_datas_;
   const intptr_t len_;
   Monitor* monitor_;
@@ -445,13 +458,11 @@ static Function* CreateFunction(const char* name) {
   return &function;
 }
 
-const intptr_t ICDataTestTask::kTaskCount = 1;
-
 // Test that checks that other threads only see a fully initialized ICData
 // whenever ICData is updated.
 ISOLATE_UNIT_TEST_CASE(ICDataTest) {
-  Isolate* isolate = thread->isolate();
-  USE(isolate);
+  auto isolate_group = thread->isolate_group();
+  USE(isolate_group);
   Monitor monitor;
   intptr_t exited = 0;
   std::atomic<bool> done = {false};
@@ -472,7 +483,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
   }
 
   for (int i = 0; i < ICDataTestTask::kTaskCount; i++) {
-    Dart::thread_pool()->Run<ICDataTestTask>(isolate, ic_datas, &monitor,
+    Dart::thread_pool()->Run<ICDataTestTask>(isolate_group, ic_datas, &monitor,
                                              &exited, &done);
   }
 
@@ -509,7 +520,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
 // not happen in the first rendezvous, since tasks are still starting up).
 class SafepointTestTask : public ThreadPool::Task {
  public:
-  static const intptr_t kTaskCount;
+  static constexpr intptr_t kTaskCount = 5;
 
   SafepointTestTask(Isolate* isolate,
                     Monitor* monitor,
@@ -524,7 +535,9 @@ class SafepointTestTask : public ThreadPool::Task {
         local_done_(false) {}
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(isolate_->group(), Thread::kUnknownTask,
+                                      kBypassSafepoint);
     {
       MonitorLocker ml(monitor_);
       ++*expected_count_;
@@ -541,7 +554,7 @@ class SafepointTestTask : public ThreadPool::Task {
       } else {
         // But occasionally, organize a rendezvous.
         HeapIterationScope iteration(thread);  // Establishes a safepoint.
-        ASSERT(thread->IsAtSafepoint());
+        ASSERT(thread->OwnsSafepoint());
         ObjectCounter counter(isolate_->group(), &smi);
         iteration.IterateStackPointers(&counter,
                                        ValidationPolicy::kValidateFrames);
@@ -573,7 +586,7 @@ class SafepointTestTask : public ThreadPool::Task {
         }
       }
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     {
       MonitorLocker ml(monitor_);
       ++*exited_;
@@ -589,8 +602,6 @@ class SafepointTestTask : public ThreadPool::Task {
   intptr_t* exited_;          // # tasks that are no longer running.
   bool local_done_;           // this task has successfully safepointed >= once.
 };
-
-const intptr_t SafepointTestTask::kTaskCount = 5;
 
 // Test rendezvous of:
 // - helpers in VM code,
@@ -628,9 +639,9 @@ TEST_CASE(SafepointTestDart) {
                  "  }\n"
                  "}\n",
                  kLoopCount);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   // Ensure we looped long enough to allow all helpers to succeed and exit.
   {
@@ -693,7 +704,7 @@ ISOLATE_UNIT_TEST_CASE(ThreadIterator_Count) {
     OSThreadIterator ti;
     while (ti.HasNext()) {
       OSThread* thread = ti.Next();
-      EXPECT(thread != NULL);
+      EXPECT(thread != nullptr);
       thread_count_0++;
     }
   }
@@ -702,7 +713,7 @@ ISOLATE_UNIT_TEST_CASE(ThreadIterator_Count) {
     OSThreadIterator ti;
     while (ti.HasNext()) {
       OSThread* thread = ti.Next();
-      EXPECT(thread != NULL);
+      EXPECT(thread != nullptr);
       thread_count_1++;
     }
   }
@@ -727,7 +738,7 @@ void ThreadIteratorTestMain(uword parameter) {
   ThreadIteratorTestParams* params =
       reinterpret_cast<ThreadIteratorTestParams*>(parameter);
   OSThread* thread = OSThread::Current();
-  EXPECT(thread != NULL);
+  EXPECT(thread != nullptr);
 
   MonitorLocker ml(params->monitor);
   params->spawned_thread_id = thread->id();
@@ -839,20 +850,24 @@ ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest2) {
 
 class AllocAndGCTask : public ThreadPool::Task {
  public:
-  AllocAndGCTask(Isolate* isolate, Monitor* done_monitor, bool* done)
-      : isolate_(isolate), done_monitor_(done_monitor), done_(done) {}
+  AllocAndGCTask(IsolateGroup* isolate_group, Monitor* done_monitor, bool* done)
+      : isolate_group_(isolate_group),
+        done_monitor_(done_monitor),
+        done_(done) {}
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kUnknownTask,
+                                      kBypassSafepoint);
     {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);
       Zone* zone = stack_zone.GetZone();
       String& old_str = String::Handle(zone, String::New("old", Heap::kOld));
-      isolate_->group()->heap()->CollectAllGarbage();
+      isolate_group_->heap()->CollectAllGarbage();
       EXPECT(old_str.Equals("old"));
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     // Tell main thread that we are ready.
     {
       MonitorLocker ml(done_monitor_);
@@ -863,7 +878,7 @@ class AllocAndGCTask : public ThreadPool::Task {
   }
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   Monitor* done_monitor_;
   bool* done_;
 };
@@ -871,8 +886,8 @@ class AllocAndGCTask : public ThreadPool::Task {
 ISOLATE_UNIT_TEST_CASE(HelperAllocAndGC) {
   Monitor done_monitor;
   bool done = false;
-  Isolate* isolate = thread->isolate();
-  Dart::thread_pool()->Run<AllocAndGCTask>(isolate, &done_monitor, &done);
+  auto isolate_group = thread->isolate_group();
+  Dart::thread_pool()->Run<AllocAndGCTask>(isolate_group, &done_monitor, &done);
   {
     while (true) {
       TransitionVMToBlocked transition(thread);
@@ -886,11 +901,17 @@ ISOLATE_UNIT_TEST_CASE(HelperAllocAndGC) {
 
 class AllocateGlobsOfMemoryTask : public ThreadPool::Task {
  public:
-  AllocateGlobsOfMemoryTask(Isolate* isolate, Monitor* done_monitor, bool* done)
-      : isolate_(isolate), done_monitor_(done_monitor), done_(done) {}
+  AllocateGlobsOfMemoryTask(IsolateGroup* isolate_group,
+                            Monitor* done_monitor,
+                            bool* done)
+      : isolate_group_(isolate_group),
+        done_monitor_(done_monitor),
+        done_(done) {}
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kUnknownTask,
+                                      kBypassSafepoint);
     {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);
@@ -900,7 +921,7 @@ class AllocateGlobsOfMemoryTask : public ThreadPool::Task {
         String::Handle(zone, String::New("abc"));
       }
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     // Tell main thread that we are ready.
     {
       MonitorLocker ml(done_monitor_);
@@ -911,7 +932,7 @@ class AllocateGlobsOfMemoryTask : public ThreadPool::Task {
   }
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   Monitor* done_monitor_;
   bool* done_;
 };
@@ -920,11 +941,11 @@ ISOLATE_UNIT_TEST_CASE(ExerciseTLABs) {
   const int NUMBER_TEST_THREADS = 10;
   Monitor done_monitor[NUMBER_TEST_THREADS];
   bool done[NUMBER_TEST_THREADS];
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   for (int i = 0; i < NUMBER_TEST_THREADS; i++) {
     done[i] = false;
     Dart::thread_pool()->Run<AllocateGlobsOfMemoryTask>(
-        isolate, &done_monitor[i], &done[i]);
+        isolate_group, &done_monitor[i], &done[i]);
   }
 
   for (int i = 0; i < NUMBER_TEST_THREADS; i++) {
@@ -1017,6 +1038,8 @@ static void RunLockerWithLongJumpTest() {
       Thread::Current()->long_jump_base()->Jump(
           1, Object::background_compilation_error());
     } else {
+      ASSERT(Thread::Current()->StealStickyError() ==
+             Object::background_compilation_error().ptr());
       thrown_count++;
     }
   }

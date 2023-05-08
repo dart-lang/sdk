@@ -9,10 +9,12 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         Message,
         LocatedMessage,
         messageJsInteropAnonymousFactoryPositionalParameters,
+        messageJsInteropDartJsInteropAnnotationForStaticInteropOnly,
         messageJsInteropEnclosingClassJSAnnotation,
         messageJsInteropEnclosingClassJSAnnotationContext,
         messageJsInteropExternalExtensionMemberOnTypeInvalid,
         messageJsInteropExternalMemberNotJSAnnotated,
+        messageJsInteropInlineClassUsedWithWrongJsAnnotation,
         messageJsInteropInvalidStaticClassMemberName,
         messageJsInteropNamedParameters,
         messageJsInteropNonExternalConstructor,
@@ -30,7 +32,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNativeClassInAnnotation,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
-        templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop;
+        templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
+        templateJsInteropStrictModeForbiddenLibrary;
 import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 // Used for importing CFE utility functions for constructor tear-offs.
@@ -52,6 +55,7 @@ class JsInteropChecks extends RecursiveVisitor {
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
   final ExportChecker exportChecker;
   final Procedure _functionToJSTarget;
+  final InlineExtensionIndex _inlineExtensionIndex = InlineExtensionIndex();
   // Errors on constants need source information, so we use the surrounding
   // `ConstantExpression` as the source.
   ConstantExpression? _lastConstantExpression;
@@ -63,7 +67,6 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _classHasStaticInteropAnnotation = false;
   bool _inTearoff = false;
   bool _libraryHasJSAnnotation = false;
-  late InlineExtensionIndex _inlineExtensionIndex;
   // TODO(joshualitt): These checks add value for our users, but unfortunately
   // some backends support multiple native APIs. We should really make a neutral
   // 'ExternalUsageVerifier` class, but until then we just disable this check on
@@ -165,6 +168,18 @@ class JsInteropChecks extends RecursiveVisitor {
   }
 
   @override
+  void visitInlineClass(InlineClass node) {
+    if (hasPackageJSAnnotation(node)) {
+      _diagnosticsReporter.report(
+          messageJsInteropInlineClassUsedWithWrongJsAnnotation,
+          node.fileOffset,
+          node.name.length,
+          node.fileUri);
+    }
+    super.visitInlineClass(node);
+  }
+
+  @override
   void visitClass(Class node) {
     _classHasJSAnnotation = hasJSInteropAnnotation(node);
     _classHasAnonymousAnnotation = hasAnonymousAnnotation(node);
@@ -257,6 +272,15 @@ class JsInteropChecks extends RecursiveVisitor {
               node.fileUri);
         }
       }
+      // For non-inline classes, `dart:_js_annotations`'s `@JS` can only be used
+      // with `@staticInterop`.
+      if (hasJSAnnotationsJSAnnotation(node)) {
+        _diagnosticsReporter.report(
+            messageJsInteropDartJsInteropAnnotationForStaticInteropOnly,
+            node.fileOffset,
+            node.name.length,
+            node.fileUri);
+      }
     }
     // Since this is a breaking check, it is language-versioned.
     if (node.enclosingLibrary.languageVersion >= Version(2, 13) &&
@@ -300,13 +324,14 @@ class JsInteropChecks extends RecursiveVisitor {
     _staticTypeContext.enterLibrary(node);
     _libraryHasJSAnnotation = hasJSInteropAnnotation(node);
     _libraryIsGlobalNamespace = false;
-    _inlineExtensionIndex = InlineExtensionIndex(node);
     // Allow only Flutter and package:test to opt out from strict mode on
     // Dart2Wasm.
+    final isSDKLibrary = node.importUri.isScheme('dart');
     final importUriString = node.importUri.toString();
     _nonStrictModeIsAllowed = !enableStrictMode ||
-        node.importUri.isScheme('dart') ||
+        isSDKLibrary ||
         importUriString.startsWith('package:ui') ||
+        importUriString.startsWith('package:js') ||
         importUriString.startsWith('package:flutter') ||
         importUriString.startsWith('package:flute') ||
         importUriString.startsWith('package:engine') ||
@@ -315,6 +340,27 @@ class JsInteropChecks extends RecursiveVisitor {
         (node.fileUri.toString().contains(RegExp(r'(?<!generated_)tests/')) &&
             !node.fileUri.toString().contains(RegExp(
                 r'(?<!generated_)tests/lib/js/static_interop_test/strict_mode_test.dart')));
+
+    // Disallow importing some libraries in non-SDK code when in strict mode.
+    if (!_nonStrictModeIsAllowed && !isSDKLibrary) {
+      for (final dependency in node.dependencies) {
+        final dependencyUriString =
+            dependency.targetLibrary.importUri.toString();
+        if (dependencyUriString == 'package:js/js.dart' ||
+            dependencyUriString == 'package:js/js_util.dart' ||
+            dependencyUriString == 'dart:html' ||
+            dependencyUriString == 'dart:js_util' ||
+            dependencyUriString == 'dart:js') {
+          _diagnosticsReporter.report(
+              templateJsInteropStrictModeForbiddenLibrary
+                  .withArguments(dependencyUriString),
+              dependency.fileOffset,
+              dependencyUriString.length,
+              node.fileUri);
+        }
+      }
+    }
+
     if (_libraryHasJSAnnotation) {
       var libraryAnnotation = getJSName(node);
       var globalRegexp = RegExp(r'^(self|window)(\.(self|window))*$');
@@ -439,8 +485,7 @@ class JsInteropChecks extends RecursiveVisitor {
     }
 
     if (node.isExternal && node.isExtensionMember) {
-      final annotatable =
-          _inlineExtensionIndex.getExtensionAnnotatable(node.reference);
+      final annotatable = _inlineExtensionIndex.getExtensionAnnotatable(node);
       if (annotatable != null &&
           hasStaticInteropAnnotation(annotatable) &&
           !_isAllowedCustomStaticInteropImplementation(node)) {
@@ -448,7 +493,7 @@ class JsInteropChecks extends RecursiveVisitor {
         // parameters to the procedure's type parameters (in the front) as well.
         // Ignore these for the analysis.
         final extensionTypeParams =
-            _inlineExtensionIndex.getExtension(node.reference)!.typeParameters;
+            _inlineExtensionIndex.getExtension(node)!.typeParameters;
         final procedureTypeParams = List.from(node.function.typeParameters);
         procedureTypeParams.removeRange(0, extensionTypeParams.length);
         if (procedureTypeParams.isNotEmpty ||
@@ -616,7 +661,7 @@ class JsInteropChecks extends RecursiveVisitor {
       if (_isAllowedExternalUsage(member)) return;
       if (member.isExtensionMember) {
         final annotatable =
-            _inlineExtensionIndex.getExtensionAnnotatable(member.reference);
+            _inlineExtensionIndex.getExtensionAnnotatable(member);
         if (annotatable == null || !hasNativeAnnotation(annotatable)) {
           _diagnosticsReporter.report(
               messageJsInteropExternalExtensionMemberOnTypeInvalid,
@@ -679,11 +724,11 @@ class JsInteropChecks extends RecursiveVisitor {
       if (_classHasJSAnnotation) return true;
       if (member.isExtensionMember) {
         final annotatable =
-            _inlineExtensionIndex.getExtensionAnnotatable(member.reference);
+            _inlineExtensionIndex.getExtensionAnnotatable(member);
         return annotatable != null && hasJSInteropAnnotation(annotatable);
       }
       if (member.isInlineClassMember) {
-        final cls = _inlineExtensionIndex.getInlineClass(member.reference);
+        final cls = _inlineExtensionIndex.getInlineClass(member);
         return cls != null && hasJSInteropAnnotation(cls);
       }
       if (member.enclosingClass == null) {

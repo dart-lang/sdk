@@ -37,10 +37,8 @@ FunctionExpressionInvocation
         staticType: dynamic Function()*
       asOperator: as
       type: NamedType
-        name: SimpleIdentifier
-          token: dynamic
-          staticElement: dynamic@-1
-          staticType: null
+        name: dynamic
+        element: dynamic@-1
         type: dynamic
       staticType: dynamic
     rightParenthesis: )
@@ -78,10 +76,8 @@ FunctionExpressionInvocation
         staticType: dynamic Function()*
       asOperator: as
       type: NamedType
-        name: SimpleIdentifier
-          token: dynamic
-          staticElement: dynamic@-1
-          staticType: null
+        name: dynamic
+        element: dynamic@-1
         type: dynamic
       staticType: dynamic
     rightParenthesis: )
@@ -90,16 +86,12 @@ FunctionExpressionInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: bool
-          staticElement: dart:core::@class::bool
-          staticType: null
+        name: bool
+        element: dart:core::@class::bool
         type: bool*
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int*
     rightBracket: >
   argumentList: ArgumentList
@@ -256,10 +248,8 @@ FunctionExpressionInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -349,6 +339,195 @@ FunctionExpressionInvocation
 ''');
   }
 
+  test_formalParameter_generic() async {
+    await assertNoErrorsInCode(r'''
+void f(T Function<T>(T a) g) {
+  g(0);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: g
+    staticElement: self::@function::f::@parameter::g
+    staticType: T Function<T>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: ParameterMember
+          base: root::@parameter::a
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_formalParameter_generic_withTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+typedef F<S> = S Function<T>(T x);
+
+void f(F<int> a) {
+  a<String>('hello');
+}
+''');
+
+    final node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: int Function<T>(T)
+      alias: self::@typeAlias::F
+        typeArguments
+          int
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: 'hello'
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: int Function(String)
+  staticType: int
+  typeArgumentTypes
+    String
+''');
+  }
+
+  test_formalParameter_tooManyArguments() async {
+    await assertErrorsInCode(r'''
+void f(int Function() g, int a) {
+  g(a);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 38, 1),
+    ]);
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: g
+    staticElement: self::@function::f::@parameter::g
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: a
+        parameter: <null>
+        staticElement: self::@function::f::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_getter_functionTyped() async {
+    await assertNoErrorsInCode(r'''
+typedef F = String Function(int a, {int b});
+
+class A {
+  F get foo => throw 0;
+
+  void f() {
+    foo(1, b: 2);
+  }
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: String Function(int, {int b})
+      alias: self::@typeAlias::F
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        parameter: root::@parameter::a
+        staticType: int
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: b
+            staticElement: root::@parameter::b
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 2
+          staticType: int
+        parameter: root::@parameter::b
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: String Function(int, {int b})
+    alias: self::@typeAlias::F
+  staticType: String
+''');
+  }
+
+  test_invalidConst_topLevelVariable() async {
+    await assertErrorsInCode(r'''
+const id = identical;
+const a = 0;
+const b = 0;
+const c = id(a, b);
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 58,
+          8),
+    ]);
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: id
+    staticElement: self::@getter::id
+    staticType: bool Function(Object?, Object?)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: a
+        parameter: dart:core::@function::identical::@parameter::a
+        staticElement: self::@getter::a
+        staticType: int
+      SimpleIdentifier
+        token: b
+        parameter: dart:core::@function::identical::@parameter::b
+        staticElement: self::@getter::b
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: bool Function(Object?, Object?)
+  staticType: bool
+''');
+  }
+
   test_never() async {
     await assertErrorsInCode(r'''
 void f(Never x) {
@@ -370,10 +549,8 @@ FunctionExpressionInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -421,10 +598,8 @@ FunctionExpressionInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList

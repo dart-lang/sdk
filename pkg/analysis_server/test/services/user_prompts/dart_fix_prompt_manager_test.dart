@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
@@ -110,7 +111,7 @@ class DartFixPromptTest with ResourceProviderMixin {
   }
 
   Future<void> test_check_notIfNoOpenUriSupport() async {
-    server.supportsOpenUriNotification = false;
+    server.openUriNotificationSender = null;
     promptManager.triggerCheck();
     await pumpEventQueue(times: 5000);
     expect(promptManager.checksPerformed, 0);
@@ -169,7 +170,7 @@ class DartFixPromptTest with ResourceProviderMixin {
   }
 
   Future<void> test_prompt_notIfNoOpenUriSupport() async {
-    server.supportsOpenUriNotification = false;
+    server.openUriNotificationSender = null;
     promptManager.triggerCheck();
     await pumpEventQueue(times: 5000);
     expect(promptManager.promptsShown, 0);
@@ -201,9 +202,13 @@ class TestDartFixPromptManager extends DartFixPromptManager {
   }
 
   @override
-  Future<void> showPrompt() {
+  Future<void> showPrompt({
+    required OpenUriNotificationSender openUriNotificationSender,
+  }) {
     promptsShown++;
-    return super.showPrompt();
+    return super.showPrompt(
+      openUriNotificationSender: openUriNotificationSender,
+    );
   }
 }
 
@@ -215,7 +220,7 @@ class TestServer implements LspAnalysisServer {
   bool supportsShowMessageRequest = true;
 
   @override
-  bool supportsOpenUriNotification = true;
+  OpenUriNotificationSender? openUriNotificationSender = (_) {};
 
   TestServer(this.instrumentationService);
 

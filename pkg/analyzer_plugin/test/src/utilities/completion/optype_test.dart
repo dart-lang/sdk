@@ -1299,9 +1299,7 @@ int x = E(^);
     addTestSource('class A {a(b.^ f) { }}');
     await assertOpType(
         completionLocation: 'PropertyAccess_propertyName',
-        constructors: true,
         prefixed: true,
-        returnValue: true,
         typeNames: true);
   }
 
@@ -1310,9 +1308,7 @@ int x = E(^);
     addTestSource('class A {a(b.z^ f) { }}');
     await assertOpType(
         completionLocation: 'PropertyAccess_propertyName',
-        constructors: true,
         prefixed: true,
-        returnValue: true,
         typeNames: true);
   }
 
@@ -1321,9 +1317,7 @@ int x = E(^);
     addTestSource('class A {a(b.^) { }}');
     await assertOpType(
         completionLocation: 'PropertyAccess_propertyName',
-        constructors: true,
         prefixed: true,
-        returnValue: true,
         typeNames: true);
   }
 
@@ -2221,6 +2215,20 @@ void f(int a, {int b}) {}
         returnValue: true,
         typeNames: true,
         voidReturn: true);
+  }
+
+  Future<void> test_recordLiteral_field_namedExpression() async {
+    addTestSource('''
+void f() {
+  foo((y: ^,));
+}
+''');
+    await assertOpType(
+      completionLocation: 'ArgumentList_recordLiteral_named',
+      constructors: true,
+      returnValue: true,
+      typeNames: true,
+    );
   }
 
   Future<void> test_recordLiteral_fieldName() async {

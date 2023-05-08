@@ -372,6 +372,48 @@ void f() {
 ''');
   }
 
+  Future<void> test_createChange_localVariable_forEach_element() async {
+    await indexTestUnit('''
+void f(List<int> values) {
+  [for (final value in values) value * 2];
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('value in');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(List<int> values) {
+  [for (final newName in values) newName * 2];
+}
+''');
+  }
+
+  Future<void> test_createChange_localVariable_forEach_statement() async {
+    await indexTestUnit('''
+void f(List<int> values) {
+  for (final value in values) {
+    value;
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('value in');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(List<int> values) {
+  for (final newName in values) {
+    newName;
+  }
+}
+''');
+  }
+
   Future<void>
       test_createChange_localVariable_sameNameDifferenceScopes() async {
     await indexTestUnit('''
@@ -778,6 +820,54 @@ void f(Object? x) {
     newName;
     newName = 1;
     newName += 2;
+  }
+}
+''');
+  }
+
+  Future<void>
+      test_createChange_patternVariable_ifCase_patternField_explicitName() async {
+    await indexTestUnit('''
+void f(Object? x) {
+  if (x case int(sign: var sign)) {
+    sign;
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('sign;');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(Object? x) {
+  if (x case int(sign: var newName)) {
+    newName;
+  }
+}
+''');
+  }
+
+  Future<void>
+      test_createChange_patternVariable_ifCase_patternField_implicitName() async {
+    await indexTestUnit('''
+void f(Object? x) {
+  if (x case int(: var isEven)) {
+    isEven;
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('isEven;');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(Object? x) {
+  if (x case int(isEven: var newName)) {
+    newName;
   }
 }
 ''');

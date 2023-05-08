@@ -206,6 +206,48 @@ SimpleIdentifier
 ''');
   }
 
+  test_importPrefix_deferred_topLevelVariable_simple() async {
+    newFile('$testPackageLibPath/a.dart', '''
+var v = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' deferred as prefix;
+
+void f() {
+  prefix.v = 0;
+}
+''');
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: v
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: package:test/a.dart::@setter::v::@parameter::_v
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: package:test/a.dart::@setter::v
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
   test_indexExpression_cascade_compound() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -630,6 +672,38 @@ AssignmentExpression
   readType: null
   writeElement: self::@class::A::@method::[]=
   writeType: num
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_left_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    super = 0;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 27, 5),
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 27, 5),
+    ]);
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
   staticElement: <null>
   staticType: int
 ''');
@@ -1635,10 +1709,8 @@ AssignmentExpression
       keyword: new
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: B
-            staticElement: self::@class::B
-            staticType: null
+          name: B
+          element: self::@class::B
           type: B
         staticElement: self::@class::B::@constructor::new
       argumentList: ArgumentList
@@ -3071,6 +3143,37 @@ AssignmentExpression
 ''');
   }
 
+  test_right_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f(Object a) {
+    a = super;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5),
+    ]);
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@class::A::@method::f::@parameter::a
+    staticType: null
+  operator: =
+  rightHandSide: SuperExpression
+    superKeyword: super
+    staticType: A
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@method::f::@parameter::a
+  writeType: Object
+  staticElement: <null>
+  staticType: A
+''');
+  }
+
   test_simpleIdentifier_fieldInstance_simple() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -3494,10 +3597,8 @@ AssignmentExpression
   rightHandSide: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
+        element: self::@class::C
         type: C
       staticElement: self::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -4098,10 +4199,8 @@ AssignmentExpression
   rightHandSide: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
+        element: self::@class::C
         type: C
       staticElement: self::@class::C::@constructor::new
     argumentList: ArgumentList

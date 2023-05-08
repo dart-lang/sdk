@@ -179,54 +179,75 @@ enum StaticUseKind {
 class StaticUse {
   static const String tag = 'static-use';
 
+  static const _typeFlag = 1;
+  static const _callStructureFlag = 2;
+  static const _deferredImportFlag = 4;
+  static const _constantFlag = 8;
+  static const _typeArgumentsFlag = 16;
+
   final Entity element;
   final StaticUseKind kind;
   @override
   final int hashCode;
-  final InterfaceType? type;
-  final CallStructure? callStructure;
-  final ImportEntity? deferredImport;
-  final ConstantValue? constant;
-  final List<DartType>? typeArguments;
 
-  StaticUse.internal(Entity element, this.kind,
-      {this.type,
-      this.callStructure,
-      this.deferredImport,
-      this.typeArguments,
-      this.constant})
-      : this.element = element,
-        this.hashCode = Hashing.listHash([
-          element,
-          kind,
-          type,
-          Hashing.listHash(typeArguments),
-          callStructure,
-          deferredImport,
-          constant
-        ]);
+  static final Map<StaticUse, StaticUse> _cache = {};
 
-  bool _checkGenericInvariants() {
-    assert(
-        (callStructure?.typeArgumentCount ?? 0) == (typeArguments?.length ?? 0),
-        failedAt(
-            element,
-            "Type argument count mismatch. Call structure has "
-            "${callStructure?.typeArgumentCount ?? 0} but "
-            "${typeArguments?.length ?? 0} were passed in $this."));
-    return true;
+  static void clearCache() => _cache.clear();
+
+  static StaticUse internal(Entity element, StaticUseKind kind,
+      {InterfaceType? type,
+      CallStructure? callStructure,
+      ImportEntity? deferredImport,
+      ConstantValue? constant,
+      List<DartType>? typeArguments}) {
+    StaticUse use;
+    if (type == null &&
+        callStructure == null &&
+        deferredImport == null &&
+        constant == null &&
+        typeArguments == null) {
+      use = StaticUse._(element, kind);
+    } else {
+      use = _ExtendedStaticUse._(element, kind,
+          type: type,
+          callStructure: callStructure,
+          deferredImport: deferredImport,
+          typeArguments: typeArguments,
+          constant: constant);
+    }
+    return _cache[use] ??= use;
   }
+
+  /// Use the [StaticUse.internal] factory to ensure canonicalization.
+  StaticUse._(this.element, this.kind, {int? hashCode})
+      : this.hashCode = hashCode ?? Hashing.objectHash(element, kind.hashCode);
 
   factory StaticUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberEntity element = source.readMember();
     StaticUseKind kind = source.readEnum(StaticUseKind.values);
-    InterfaceType? type = source.readDartTypeOrNull() as InterfaceType?;
-    CallStructure? callStructure =
-        source.readValueOrNull(() => CallStructure.readFromDataSource(source));
-    ImportEntity? deferredImport = source.readImportOrNull();
-    ConstantValue? constant = source.readConstantOrNull();
-    List<DartType>? typeArguments = source.readDartTypesOrNull();
+    final bitMask = source.readInt();
+    InterfaceType? type;
+    CallStructure? callStructure;
+    ImportEntity? deferredImport;
+    ConstantValue? constant;
+    List<DartType>? typeArguments;
+
+    if (bitMask & _typeFlag != 0) {
+      type = source.readDartType() as InterfaceType;
+    }
+    if (bitMask & _callStructureFlag != 0) {
+      callStructure = CallStructure.readFromDataSource(source);
+    }
+    if (bitMask & _deferredImportFlag != 0) {
+      deferredImport = source.readImport();
+    }
+    if (bitMask & _constantFlag != 0) {
+      constant = source.readConstant();
+    }
+    if (bitMask & _typeArgumentsFlag != 0) {
+      typeArguments = source.readDartTypes();
+    }
     source.end(tag);
     return StaticUse.internal(element, kind,
         type: type,
@@ -240,14 +261,62 @@ class StaticUse {
     sink.begin(tag);
     sink.writeMember(element as MemberEntity);
     sink.writeEnum(kind);
-    sink.writeDartTypeOrNull(type);
-    sink.writeValueOrNull(
-        callStructure, (CallStructure c) => c.writeToDataSink(sink));
-    sink.writeImportOrNull(deferredImport);
-    sink.writeConstantOrNull(constant);
-    sink.writeDartTypesOrNull(typeArguments);
+    int bitMask = 0;
+    if (type != null) {
+      bitMask |= _typeFlag;
+    }
+    if (callStructure != null) {
+      bitMask |= _callStructureFlag;
+    }
+    if (deferredImport != null) {
+      bitMask |= _deferredImportFlag;
+    }
+    if (constant != null) {
+      bitMask |= _constantFlag;
+    }
+    if (typeArguments != null) {
+      bitMask |= _typeArgumentsFlag;
+    }
+    sink.writeInt(bitMask);
+    if (type != null) {
+      sink.writeDartType(type!);
+    }
+    if (callStructure != null) {
+      callStructure!.writeToDataSink(sink);
+    }
+    if (deferredImport != null) {
+      sink.writeImport(deferredImport!);
+    }
+    if (constant != null) {
+      sink.writeConstant(constant!);
+    }
+    if (typeArguments != null) {
+      sink.writeDartTypes(typeArguments!);
+    }
     sink.end(tag);
   }
+
+  bool _checkGenericInvariants() => true;
+
+  CallStructure? get callStructure => null;
+
+  ConstantValue? get constant => null;
+
+  ImportEntity? get deferredImport => null;
+
+  InterfaceType? get type => null;
+
+  List<DartType>? get typeArguments => null;
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is _ExtendedStaticUse) return false;
+    return other is StaticUse && element == other.element && kind == other.kind;
+  }
+
+  @override
+  String toString() => 'StaticUse($element,$kind)';
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -638,11 +707,60 @@ class StaticUse {
     return StaticUse.internal(element, StaticUseKind.INLINING,
         typeArguments: typeArguments);
   }
+}
+
+/// A [StaticUse] which has additional data beyond its [element] and [kind].
+///
+/// This is only used when one or more of these exta fields are specified in
+/// order to keep the representation of [StaticUse] compact when possible.
+class _ExtendedStaticUse extends StaticUse {
+  @override
+  final InterfaceType? type;
+  @override
+  final CallStructure? callStructure;
+  @override
+  final ImportEntity? deferredImport;
+  @override
+  final ConstantValue? constant;
+  @override
+  final List<DartType>? typeArguments;
+
+  /// Use the [StaticUse.internal] factory to ensure canonicalization.
+  _ExtendedStaticUse._(super.element, super.kind,
+      {this.type,
+      this.callStructure,
+      this.deferredImport,
+      this.constant,
+      this.typeArguments})
+      : super._(
+            hashCode: Hashing.listHash([
+          element,
+          kind,
+          type,
+          Hashing.listHash(typeArguments),
+          callStructure,
+          deferredImport,
+          constant
+        ]));
+
+  @override
+  bool _checkGenericInvariants() {
+    assert(
+        (callStructure?.typeArgumentCount ?? 0) == (typeArguments?.length ?? 0),
+        failedAt(
+            element,
+            "Type argument count mismatch. Call structure has "
+            "${callStructure?.typeArgumentCount ?? 0} but "
+            "${typeArguments?.length ?? 0} were passed in $this."));
+    return true;
+  }
 
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    return other is StaticUse &&
+    // Subtypes of StaticUse are normalized so we can just compare against this
+    // specific subtype.
+    return other is _ExtendedStaticUse &&
         element == other.element &&
         kind == other.kind &&
         type == other.type &&

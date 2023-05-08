@@ -86,6 +86,9 @@ js/trust_types_test: SkipByDesign # Issue 42085. CSP policy disallows injected J
 [ $simulator ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
+[ $compiler != dart2js && $compiler != dart2wasm && $compiler != ddc ]
+js_interop_unsafe/*: SkipByDesign # Only supported on web backends.
+
 [ $compiler != dart2js && $compiler != ddc ]
 web/*: SkipByDesign
 

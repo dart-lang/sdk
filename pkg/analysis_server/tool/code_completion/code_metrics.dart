@@ -755,7 +755,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     _visitChildren(node, {
-      'condition': node.condition,
+      'condition': node.expression,
       'thenElement': node.thenElement,
       'elseElement': node.elseElement,
     });
@@ -765,7 +765,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitIfStatement(IfStatement node) {
     _visitChildren(node, {
-      'condition': node.condition,
+      'condition': node.expression,
       'thenStatement': node.thenStatement,
       'elseStatement': node.elseStatement,
     });
@@ -956,7 +956,8 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     _visitChildren(node, {
-      'name': node.name,
+      'importPrefix': node.importPrefix,
+      'name': node.name2,
       'typeArguments': node.typeArguments,
       'question': node.question,
     });

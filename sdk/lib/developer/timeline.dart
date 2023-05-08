@@ -28,6 +28,10 @@ const int _flowBegin = 9;
 const int _flowStep = 10;
 const int _flowEnd = 11;
 
+// This value must be kept in sync with the value of TimelineEvent::kNoFlowId in
+// runtime/vm/timeline.h.
+const int _noFlowId = -1;
+
 /// A class to represent Flow events.
 ///
 /// [Flow] objects are used to thread flow events between timeline slices,
@@ -154,7 +158,8 @@ abstract final class Timeline {
     // Instant events don't have an id because they don't need to be paired with
     // other events.
     int taskId = 0;
-    _reportTaskEvent(taskId, _instant, name, _argumentsAsJson(arguments));
+    _reportTaskEvent(taskId, /*flowId=*/ _noFlowId, _instant, name,
+        _argumentsAsJson(arguments));
   }
 
   /// A utility method to time a synchronous [function]. Internally calls
@@ -262,8 +267,8 @@ final class TimelineTask {
       instantArguments ??= {};
       instantArguments[_kFilterKey] = _filterKey;
     }
-    _reportTaskEvent(
-        _taskId, _asyncInstant, name, _argumentsAsJson(instantArguments));
+    _reportTaskEvent(_taskId, /*flowId=*/ _noFlowId, _asyncInstant, name,
+        _argumentsAsJson(instantArguments));
   }
 
   /// Finish the last synchronous operation that was started.
@@ -320,12 +325,14 @@ final class _AsyncBlock {
 
   // Emit the start event.
   void _start(Map arguments) {
-    _reportTaskEvent(_taskId, _asyncBegin, name, _argumentsAsJson(arguments));
+    _reportTaskEvent(_taskId, /*flowId=*/ _noFlowId, _asyncBegin, name,
+        _argumentsAsJson(arguments));
   }
 
   // Emit the finish event.
   void _finish(Map? arguments) {
-    _reportTaskEvent(_taskId, _asyncEnd, name, _argumentsAsJson(arguments));
+    _reportTaskEvent(_taskId, /*flowId=*/ _noFlowId, _asyncEnd, name,
+        _argumentsAsJson(arguments));
   }
 }
 
@@ -351,18 +358,19 @@ final class _SyncBlock {
 
   /// Start this block of time.
   void _startSync() {
-    _reportTaskEvent(taskId, _begin, name, _jsonArguments);
+    _reportTaskEvent(
+        taskId, flow?.id ?? _noFlowId, _begin, name, _jsonArguments);
   }
 
   /// Finish this block of time. At this point, this block can no longer be
   /// used.
   void finish() {
     // Report event to runtime.
-    _reportTaskEvent(taskId, _end, name, _jsonArguments);
+    _reportTaskEvent(taskId, flow?.id ?? _noFlowId, _end, name, _jsonArguments);
     final Flow? tempFlow = flow;
     if (tempFlow != null) {
-      _reportTaskEvent(tempFlow.id, tempFlow._type, "${tempFlow.id}",
-          _argumentsAsJson(null));
+      _reportTaskEvent(tempFlow.id, /*flowId=*/ _noFlowId, tempFlow._type,
+          "${tempFlow.id}", _argumentsAsJson(null));
     }
   }
 }
@@ -388,4 +396,4 @@ external int _getTraceClock();
 
 /// Reports an event for a task.
 external void _reportTaskEvent(
-    int taskId, int type, String name, String argumentsAsJson);
+    int taskId, int flowId, int type, String name, String argumentsAsJson);

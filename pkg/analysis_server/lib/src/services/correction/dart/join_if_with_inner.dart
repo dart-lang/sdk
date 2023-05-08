@@ -38,8 +38,8 @@ class JoinIfWithInner extends CorrectionProducer {
     // prepare environment
     var prefix = utils.getNodePrefix(targetIfStatement);
     // merge conditions
-    var targetCondition = targetIfStatement.condition;
-    var innerCondition = innerIfStatement.condition;
+    var targetCondition = targetIfStatement.expression;
+    var innerCondition = innerIfStatement.expression;
     var targetConditionSource = utils.getNodeText(targetCondition);
     var innerConditionSource = utils.getNodeText(innerCondition);
     if (shouldWrapParenthesisBeforeAnd(targetCondition)) {

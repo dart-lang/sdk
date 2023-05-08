@@ -438,26 +438,29 @@ class Reference {
   NamedNode? _node;
 
   NamedNode? get node {
-    if (_node == null) {
-      // Either this is an unbound reference or it belongs to a lazy-loaded
-      // (and not yet loaded) class. If it belongs to a lazy-loaded class,
-      // load the class.
+    return _node ?? _tryLoadNode();
+  }
 
-      CanonicalName? canonicalNameParent = canonicalName?.parent;
-      while (canonicalNameParent != null) {
-        if (canonicalNameParent.name.startsWith("@")) {
-          break;
-        }
-        canonicalNameParent = canonicalNameParent.parent;
+  /// If the node belongs to a lazy-loaded class load the class.
+  ///
+  /// Should only be called if [_node] is null, meaning that either this
+  /// is an unbound reference or it belongs to a lazy-loaded
+  /// (and not yet loaded) class. If it belongs to a lazy-loaded class this call
+  /// will load the class and set [_node].
+  NamedNode? _tryLoadNode() {
+    CanonicalName? canonicalNameParent = canonicalName?.parent;
+    while (canonicalNameParent != null) {
+      if (canonicalNameParent.name.startsWith("@")) {
+        break;
       }
-      if (canonicalNameParent != null) {
-        NamedNode? parentNamedNode =
-            canonicalNameParent.parent?.reference._node;
-        if (parentNamedNode is Class) {
-          Class parentClass = parentNamedNode;
-          if (parentClass.lazyBuilder != null) {
-            parentClass.ensureLoaded();
-          }
+      canonicalNameParent = canonicalNameParent.parent;
+    }
+    if (canonicalNameParent != null) {
+      NamedNode? parentNamedNode = canonicalNameParent.parent?.reference._node;
+      if (parentNamedNode is Class) {
+        Class parentClass = parentNamedNode;
+        if (parentClass.lazyBuilder != null) {
+          parentClass.ensureLoaded();
         }
       }
     }
@@ -499,6 +502,7 @@ class Reference {
   }
 
   Library get asLibrary {
+    NamedNode? node = this.node;
     if (node == null) {
       throw '$this is not bound to an AST node. A library was expected';
     }
@@ -506,6 +510,7 @@ class Reference {
   }
 
   Class get asClass {
+    NamedNode? node = this.node;
     if (node == null) {
       throw '$this is not bound to an AST node. A class was expected';
     }
@@ -513,6 +518,7 @@ class Reference {
   }
 
   Member get asMember {
+    NamedNode? node = this.node;
     if (node == null) {
       throw '$this is not bound to an AST node. A member was expected';
     }
@@ -520,6 +526,7 @@ class Reference {
   }
 
   Field get asField {
+    NamedNode? node = this.node;
     if (node == null) {
       throw '$this is not bound to an AST node. A field was expected';
     }
@@ -527,6 +534,7 @@ class Reference {
   }
 
   Constructor get asConstructor {
+    NamedNode? node = this.node;
     if (node == null) {
       throw '$this is not bound to an AST node. A constructor was expected';
     }
@@ -534,6 +542,7 @@ class Reference {
   }
 
   Procedure get asProcedure {
+    NamedNode? node = this.node;
     if (node == null) {
       throw '$this is not bound to an AST node. A procedure was expected';
     }
@@ -541,6 +550,7 @@ class Reference {
   }
 
   Typedef get asTypedef {
+    NamedNode? node = this.node;
     if (node == null) {
       throw '$this is not bound to an AST node. A typedef was expected';
     }
@@ -548,6 +558,7 @@ class Reference {
   }
 
   Extension get asExtension {
+    NamedNode? node = this.node;
     if (node == null) {
       throw '$this is not bound to an AST node. An extension was expected';
     }
@@ -555,6 +566,7 @@ class Reference {
   }
 
   InlineClass get asInlineClass {
+    NamedNode? node = this.node;
     if (node == null) {
       throw '$this is not bound to an AST node. An inline class was expected';
     }

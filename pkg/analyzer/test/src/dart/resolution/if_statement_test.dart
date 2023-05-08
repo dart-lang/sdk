@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,7 +28,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic
@@ -60,7 +61,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -70,10 +71,8 @@ IfStatement
       pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@37
@@ -85,10 +84,8 @@ IfStatement
           elements
             DeclaredVariablePattern
               type: NamedType
-                name: SimpleIdentifier
-                  token: int
-                  staticElement: dart:core::@class::int
-                  staticType: null
+                name: int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredElement: a@47
@@ -143,7 +140,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -155,10 +152,8 @@ IfStatement
           leftBracket: <
           arguments
             NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
         leftBracket: [
@@ -227,7 +222,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -237,10 +232,8 @@ IfStatement
       pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@37
@@ -253,10 +246,8 @@ IfStatement
             DeclaredVariablePattern
               keyword: final
               type: NamedType
-                name: SimpleIdentifier
-                  token: int
-                  staticElement: dart:core::@class::int
-                  staticType: null
+                name: int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredElement: isFinal a@53
@@ -312,7 +303,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -322,10 +313,8 @@ IfStatement
       pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@37
@@ -337,10 +326,8 @@ IfStatement
           elements
             DeclaredVariablePattern
               type: NamedType
-                name: SimpleIdentifier
-                  token: double
-                  staticElement: dart:core::@class::double
-                  staticType: null
+                name: double
+                element: dart:core::@class::double
                 type: double
               name: a
               declaredElement: a@50
@@ -396,7 +383,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -407,10 +394,8 @@ IfStatement
         leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -475,7 +460,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -486,10 +471,8 @@ IfStatement
         leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -498,10 +481,8 @@ IfStatement
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@46
@@ -558,7 +539,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -569,10 +550,8 @@ IfStatement
         leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -581,10 +560,8 @@ IfStatement
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@46
@@ -594,10 +571,8 @@ IfStatement
         operator: ||
         rightOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@55
@@ -649,7 +624,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -660,10 +635,8 @@ IfStatement
         leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -679,10 +652,8 @@ IfStatement
         operator: ||
         rightOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@51
@@ -735,7 +706,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -752,10 +723,8 @@ IfStatement
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@42
@@ -814,7 +783,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -831,10 +800,8 @@ IfStatement
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@42
@@ -844,10 +811,8 @@ IfStatement
         operator: ||
         rightOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@51
@@ -911,7 +876,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -923,10 +888,8 @@ IfStatement
         elements
           DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@51
@@ -1005,7 +968,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -1015,10 +978,8 @@ IfStatement
       pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: bool
-              staticElement: dart:core::@class::bool
-              staticType: null
+            name: bool
+            element: dart:core::@class::bool
             type: bool
           name: a
           declaredElement: a@51
@@ -1081,7 +1042,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -1090,10 +1051,8 @@ IfStatement
     guardedPattern: GuardedPattern
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@37
@@ -1139,6 +1098,33 @@ IfStatement
 ''');
   }
 
+  test_expression_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    if (super) {}
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 31, 5),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 5),
+    ]);
+
+    final node = findNode.singleIfStatement;
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  expression: SuperExpression
+    superKeyword: super
+    staticType: A
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_rewrite_caseClause_pattern() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
@@ -1155,7 +1141,7 @@ class A {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic
@@ -1167,10 +1153,8 @@ IfStatement
         expression: InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType
-              name: SimpleIdentifier
-                token: A
-                staticElement: self::@class::A
-                staticType: null
+              name: A
+              element: self::@class::A
               type: A
             staticElement: self::@class::A::@constructor::new
           argumentList: ArgumentList
@@ -1197,7 +1181,7 @@ void f(bool Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: FunctionExpressionInvocation
+  expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       staticElement: self::@function::f::@parameter::a
@@ -1227,7 +1211,7 @@ void f(int Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: FunctionExpressionInvocation
+  expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       staticElement: self::@function::f::@parameter::a
@@ -1265,7 +1249,7 @@ void f(x, bool Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic
@@ -1309,7 +1293,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic

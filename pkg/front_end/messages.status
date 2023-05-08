@@ -377,6 +377,7 @@ FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
 FfiAbiSpecificIntegerInvalid/analyzerCode: Fail
 FfiAbiSpecificIntegerMappingInvalid/analyzerCode: Fail
+FfiCreateOfStructOrUnion/analyzerCode: Fail
 FfiCompoundImplementsFinalizable/analyzerCode: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
 FfiEmptyStruct/analyzerCode: Fail
@@ -569,6 +570,8 @@ JsInteropAnonymousFactoryPositionalParameters/analyzerCode: Fail # Web compiler 
 JsInteropAnonymousFactoryPositionalParameters/example: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/example: Fail # Web compiler specific
+JsInteropDartJsInteropAnnotationForStaticInteropOnly/analyzerCode: Fail # Web compiler specific
+JsInteropDartJsInteropAnnotationForStaticInteropOnly/example: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
 JsInteropExportClassNotMarkedExportable/analyzerCode: Fail # Web compiler specific
@@ -589,6 +592,8 @@ JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler 
 JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
+JsInteropInlineClassUsedWithWrongJsAnnotation/analyzerCode: Fail # Web compiler specific
+JsInteropInlineClassUsedWithWrongJsAnnotation/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
@@ -635,6 +640,8 @@ JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specif
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropStrictModeViolation/analyzerCode: Fail # Web compiler specific
 JsInteropStrictModeViolation/example: Fail # Web compiler specific
+JsInteropStrictModeForbiddenLibrary/analyzerCode: Fail # Web compiler specific
+JsInteropStrictModeForbiddenLibrary/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -292,6 +293,35 @@ IndexExpression
 ''');
   }
 
+  test_read_index_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    this[super];
+  }
+
+  int operator[](Object index) => 0;
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
+    ]);
+
+    final node = findNode.singleIndexExpression;
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  leftBracket: [
+  index: SuperExpression
+    superKeyword: super
+    staticType: A
+  rightBracket: ]
+  staticElement: self::@class::A::@method::[]
+  staticType: int
+''');
+  }
+
   test_read_nullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -356,10 +386,8 @@ IndexExpression
         expression: InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType
-              name: SimpleIdentifier
-                token: A
-                staticElement: self::@class::A
-                staticType: null
+              name: A
+              element: self::@class::A
               type: A
             staticElement: self::@class::A::@constructor::new
           argumentList: ArgumentList
@@ -750,10 +778,8 @@ AssignmentExpression
           expression: InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
-                name: SimpleIdentifier
-                  token: A
-                  staticElement: self::@class::A
-                  staticType: null
+                name: A
+                element: self::@class::A
                 type: A
               staticElement: self::@class::A::@constructor::new
             argumentList: ArgumentList

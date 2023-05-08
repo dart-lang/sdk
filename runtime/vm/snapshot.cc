@@ -28,16 +28,16 @@ const char* Snapshot::KindToCString(Kind kind) {
 }
 
 const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
-  ASSERT(raw_memory != NULL);
+  ASSERT(raw_memory != nullptr);
   const Snapshot* snapshot = reinterpret_cast<const Snapshot*>(raw_memory);
   if (!snapshot->check_magic()) {
-    return NULL;
+    return nullptr;
   }
   // If the raw length is negative or greater than what the local machine can
   // handle, then signal an error.
   int64_t length = snapshot->large_length();
   if ((length < 0) || (length > kIntptrMax)) {
-    return NULL;
+    return nullptr;
   }
   return snapshot;
 }

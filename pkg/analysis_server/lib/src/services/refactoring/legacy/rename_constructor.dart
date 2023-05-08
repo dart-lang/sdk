@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -50,6 +51,24 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     var references = getSourceReferences(matches);
     // update references
     for (var reference in references) {
+      // Handle implicit references.
+      var coveringNode = await _nodeCoveringReference(reference);
+      var coveringParent = coveringNode?.parent;
+      if (coveringNode is ClassDeclaration) {
+        _addDefaultConstructorToClass(
+          reference: reference,
+          classDeclaration: coveringNode,
+        );
+        continue;
+      } else if (coveringParent is ConstructorDeclaration &&
+          coveringParent.returnType.offset == reference.range.offset) {
+        _addSuperInvocationToConstructor(
+          reference: reference,
+          constructor: coveringParent,
+        );
+        continue;
+      }
+
       String replacement;
       if (newName.isNotEmpty) {
         replacement = '.$newName';
@@ -72,6 +91,38 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
           _declarationNameRange(),
           newName.isNotEmpty ? '.$newName' : '',
         ),
+      );
+    }
+  }
+
+  void _addDefaultConstructorToClass({
+    required SourceReference reference,
+    required ClassDeclaration classDeclaration,
+  }) {
+    final className = classDeclaration.name.lexeme;
+    _replaceInReferenceFile(
+      reference: reference,
+      range: range.endLength(classDeclaration.leftBracket, 0),
+      replacement: '\n  $className() : super.$newName();',
+    );
+  }
+
+  void _addSuperInvocationToConstructor({
+    required SourceReference reference,
+    required ConstructorDeclaration constructor,
+  }) {
+    final initializers = constructor.initializers;
+    if (initializers.lastOrNull case final last?) {
+      _replaceInReferenceFile(
+        reference: reference,
+        range: range.endLength(last, 0),
+        replacement: ', super.$newName()',
+      );
+    } else {
+      _replaceInReferenceFile(
+        reference: reference,
+        range: range.endLength(constructor.parameters, 0),
+        replacement: ' : super.$newName()',
       );
     }
   }
@@ -99,6 +150,26 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     } else {
       return SourceRange(nameEnd, 0);
     }
+  }
+
+  Future<AstNode?> _nodeCoveringReference(SourceReference reference) async {
+    var element = reference.element;
+    var unitResult = await sessionHelper.getResolvedUnitByElement(element);
+    return unitResult?.unit
+        .select(offset: reference.range.offset, length: 0)
+        ?.coveringNode;
+  }
+
+  void _replaceInReferenceFile({
+    required SourceReference reference,
+    required SourceRange range,
+    required String replacement,
+  }) {
+    doSourceChange_addElementEdit(
+      change,
+      reference.element,
+      newSourceEdit_range(range, replacement),
+    );
   }
 
   Future<void> _replaceSynthetic() async {

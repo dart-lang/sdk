@@ -17,7 +17,7 @@ abstract class EnumOperations<Type extends Object, EnumClass extends Object,
   /// Returns the value defined by the [enumElement]. The encoding is specific
   /// the implementation of this interface but must ensure constant value
   /// identity.
-  EnumElementValue getEnumElementValue(EnumElement enumElement);
+  EnumElementValue? getEnumElementValue(EnumElement enumElement);
 
   /// Returns the declared name of the [enumElement].
   String getEnumElementName(EnumElement enumElement);
@@ -57,13 +57,16 @@ class EnumInfo<Type extends Object, EnumClass extends Object,
     Map<EnumElementValue, EnumElementStaticType<Type, EnumElement>> elements =
         {};
     for (EnumElement element in _enumOperations.getEnumElements(_enumClass)) {
-      EnumElementValue value = _enumOperations.getEnumElementValue(element);
-      elements[value] = new EnumElementStaticType<Type, EnumElement>(
-          _typeOperations,
-          _fieldLookup,
-          _enumOperations.getEnumElementType(element),
-          new IdentityRestriction<EnumElement>(element),
-          _enumOperations.getEnumElementName(element));
+      EnumElementValue? value = _enumOperations.getEnumElementValue(element);
+      if (value != null) {
+        elements[value] = new EnumElementStaticType<Type, EnumElement>(
+            _typeOperations,
+            _fieldLookup,
+            _enumOperations.getEnumElementType(element),
+            new IdentityRestriction<EnumElement>(element),
+            _enumOperations.getEnumElementName(element),
+            element);
+      }
     }
     return elements;
   }
@@ -134,6 +137,13 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
 /// unique subtypes of the enum type, modelled using [EnumStaticType].
 class EnumElementStaticType<Type extends Object, EnumElement extends Object>
     extends ValueStaticType<Type, EnumElement> {
+  final EnumElement _value;
+
   EnumElementStaticType(super.typeOperations, super.fieldLookup, super.type,
-      super.restriction, super.name);
+      super.restriction, super.name, this._value);
+
+  @override
+  void valueToDart(DartTemplateBuffer buffer) {
+    buffer.writeEnumValue(_value, name);
+  }
 }

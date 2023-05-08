@@ -1,0 +1,35 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+abstract sealed class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends self::B {
+  final field core::int _i;
+  constructor •(core::int _i) → self::C
+    : self::C::_i = _i, super self::B::•()
+    ;
+}
+static method f(self::B b) → dynamic {
+  #L1:
+  {
+    final synthesized self::B #0#0 = b;
+    {
+      hoisted core::int _i;
+      if(#0#0 is{ForNonNullableByDefault} self::C && (let final dynamic #t1 = _i = #0#0{self::C}.{self::C::_i}{core::int} in true)) {
+        {
+          core::print("C(${_i})");
+        }
+      }
+      break #L1;
+    }
+    throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+  }
+}
+static method main() → dynamic {
+  self::f(new self::C::•(0));
+}

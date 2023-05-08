@@ -115,7 +115,7 @@ template <>
 struct LocationTrait<Register> {
   typedef Register RegisterType;
 
-  static const bool kIsTemp = false;  // This is not a temporary.
+  static constexpr bool kIsTemp = false;  // This is not a temporary.
 
   static Register Unwrap(const Location& loc) { return loc.reg(); }
 
@@ -139,7 +139,7 @@ template <>
 struct LocationTrait<FpuRegister> {
   typedef FpuRegister RegisterType;
 
-  static const bool kIsTemp = false;  // This is not a temporary.
+  static constexpr bool kIsTemp = false;  // This is not a temporary.
 
   static FpuRegister Unwrap(const Location& loc) { return loc.fpu_reg(); }
 
@@ -163,7 +163,7 @@ template <typename R, R reg>
 struct LocationTrait<Fixed<R, reg> > {
   typedef R RegisterType;
 
-  static const bool kIsTemp = false;  // This is not a temporary.
+  static constexpr bool kIsTemp = false;  // This is not a temporary.
 
   static Fixed<R, reg> Unwrap(const Location& loc) {
     ASSERT(LocationTrait<R>::Unwrap(loc) == reg);
@@ -187,7 +187,7 @@ struct LocationTrait<Fixed<R, reg> > {
 
 template <typename RegisterType>
 struct LocationTrait<Temp<RegisterType> > {
-  static const bool kIsTemp = true;  // This is a temporary.
+  static constexpr bool kIsTemp = true;  // This is a temporary.
 
   static Temp<RegisterType> Unwrap(const Location& loc) {
     return Temp<RegisterType>(LocationTrait<RegisterType>::Unwrap(loc));
@@ -210,7 +210,7 @@ struct LocationTrait<Temp<RegisterType> > {
 
 template <>
 struct LocationTrait<SameAsFirstInput> {
-  static const bool kIsTemp = false;  // This is not a temporary.
+  static constexpr bool kIsTemp = false;  // This is not a temporary.
 
   static SameAsFirstInput Unwrap(const Location& loc) {
     return SameAsFirstInput();
@@ -221,7 +221,7 @@ struct LocationTrait<SameAsFirstInput> {
 
 template <>
 struct LocationTrait<NoLocation> {
-  static const bool kIsTemp = false;  // This is not a temporary.
+  static constexpr bool kIsTemp = false;  // This is not a temporary.
 
   static NoLocation Unwrap(const Location& loc) { return NoLocation(); }
 

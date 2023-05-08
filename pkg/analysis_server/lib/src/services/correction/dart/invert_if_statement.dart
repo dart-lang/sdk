@@ -15,26 +15,32 @@ class InvertIfStatement extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var ifStatement = node;
+    final ifStatement = node;
     if (ifStatement is! IfStatement) {
       return;
     }
-    var condition = ifStatement.condition;
-    // should have both "then" and "else"
-    var thenStatement = ifStatement.thenStatement;
-    var elseStatement = ifStatement.elseStatement;
-    if (elseStatement == null) {
+
+    if (ifStatement.caseClause != null) {
       return;
     }
-    // prepare source
-    var invertedCondition = utils.invertCondition(condition);
-    var thenSource = utils.getNodeText(thenStatement);
-    var elseSource = utils.getNodeText(elseStatement);
+
+    // The only sane case is when both are blocks.
+    final thenStatement = ifStatement.thenStatement;
+    final elseStatement = ifStatement.elseStatement;
+    if (thenStatement is! Block || elseStatement is! Block) {
+      return;
+    }
+
+    final condition = ifStatement.expression;
+    final invertedCondition = utils.invertCondition(condition);
+
+    final thenCode = utils.getNodeText(thenStatement);
+    final elseCode = utils.getNodeText(elseStatement);
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(condition), invertedCondition);
-      builder.addSimpleReplacement(range.node(thenStatement), elseSource);
-      builder.addSimpleReplacement(range.node(elseStatement), thenSource);
+      builder.addSimpleReplacement(range.node(thenStatement), elseCode);
+      builder.addSimpleReplacement(range.node(elseStatement), thenCode);
     });
   }
 }

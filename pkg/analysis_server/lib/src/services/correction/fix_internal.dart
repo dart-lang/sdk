@@ -25,6 +25,7 @@ import 'package:analysis_server/src/services/correction/dart/add_missing_enum_li
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter_named.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_required_argument.dart';
+import 'package:analysis_server/src/services/correction/dart/add_missing_switch_cases.dart';
 import 'package:analysis_server/src/services/correction/dart/add_ne_null.dart';
 import 'package:analysis_server/src/services/correction/dart/add_null_check.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
@@ -205,6 +206,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_null_a
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_wildcard.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
@@ -410,7 +412,7 @@ class FixProcessor extends BaseProcessor {
       AddOverride.new,
     ],
     LintNames.avoid_annotating_with_dynamic: [
-      RemoveTypeAnnotation.new,
+      RemoveTypeAnnotation.other,
     ],
     LintNames.avoid_empty_else: [
       RemoveEmptyElse.new,
@@ -444,7 +446,7 @@ class FixProcessor extends BaseProcessor {
       RenameMethodParameter.new,
     ],
     LintNames.avoid_return_types_on_setters: [
-      RemoveTypeAnnotation.new,
+      RemoveTypeAnnotation.other,
     ],
     LintNames.avoid_returning_null_for_future: [
       // TODO(brianwilkerson) Consider applying in bulk.
@@ -464,7 +466,7 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_types_on_closure_parameters: [
       ReplaceWithIdentifier.new,
-      RemoveTypeAnnotation.new,
+      RemoveTypeAnnotation.other,
     ],
     LintNames.avoid_unused_constructor_parameters: [
       RemoveUnusedParameter.new,
@@ -679,7 +681,7 @@ class FixProcessor extends BaseProcessor {
       AddTypeAnnotation.bulkFixable,
     ],
     LintNames.type_init_formals: [
-      RemoveTypeAnnotation.new,
+      RemoveTypeAnnotation.other,
     ],
     LintNames.type_literal_in_constant_pattern: [
       ConvertToWildcardPattern.new,
@@ -1175,6 +1177,12 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION: [
       AddConst.new,
     ],
+    CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION: [
+      AddMissingSwitchCases.new,
+    ],
+    CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT: [
+      AddMissingSwitchCases.new,
+    ],
     CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM: [
       MakeFinal.new,
     ],
@@ -1215,7 +1223,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode
         .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED: [
-      RemoveTypeAnnotation.new,
+      RemoveTypeAnnotation.other,
     ],
     CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: [
       ChangeTo.superFormalParameter,
@@ -1381,26 +1389,14 @@ class FixProcessor extends BaseProcessor {
     HintCode.DIVISION_OPTIMIZATION: [
       UseEffectiveIntegerDivision.new,
     ],
-    HintCode.UNNECESSARY_CAST: [
-      RemoveUnnecessaryCast.new,
-    ],
-    HintCode.UNNECESSARY_FINAL: [
-      RemoveUnnecessaryFinal.new,
-    ],
     HintCode.UNNECESSARY_IMPORT: [
       RemoveUnusedImport.new,
     ],
-    HintCode.UNREACHABLE_SWITCH_CASE: [
-      RemoveDeadCode.new,
-    ],
-    HintCode.UNUSED_ELEMENT: [
-      RemoveUnusedElement.new,
-    ],
-    HintCode.UNUSED_ELEMENT_PARAMETER: [
-      RemoveUnusedParameter.new,
-    ],
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
       RemoveAbstract.bulkFixable,
+    ],
+    ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION: [
+      ReplaceWithWildcard.new,
     ],
     ParserErrorCode.EXPECTED_TOKEN: [
       InsertSemicolon.new,
@@ -1435,6 +1431,10 @@ class FixProcessor extends BaseProcessor {
     ],
     ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA: [
       AddTrailingComma.new,
+    ],
+    ParserErrorCode.VAR_AND_TYPE: [
+      RemoveTypeAnnotation.fixVarAndType,
+      RemoveVar.new,
     ],
     ParserErrorCode.VAR_AS_TYPE_NAME: [
       ReplaceVarWithDynamic.new,
@@ -1616,6 +1616,12 @@ class FixProcessor extends BaseProcessor {
     WarningCode.UNDEFINED_SHOWN_NAME: [
       RemoveNameFromCombinator.new,
     ],
+    WarningCode.UNNECESSARY_CAST: [
+      RemoveUnnecessaryCast.new,
+    ],
+    WarningCode.UNNECESSARY_FINAL: [
+      RemoveUnnecessaryFinal.new,
+    ],
     WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE: [
       RemoveComparison.new,
       ReplaceWithIsNan.new,
@@ -1645,11 +1651,20 @@ class FixProcessor extends BaseProcessor {
     WarningCode.UNNECESSARY_WILDCARD_PATTERN: [
       RemoveUnnecessaryWildcardPattern.new,
     ],
+    WarningCode.UNREACHABLE_SWITCH_CASE: [
+      RemoveDeadCode.new,
+    ],
     WarningCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.new,
     ],
     WarningCode.UNUSED_CATCH_STACK: [
       RemoveUnusedCatchStack.new,
+    ],
+    WarningCode.UNUSED_ELEMENT: [
+      RemoveUnusedElement.new,
+    ],
+    WarningCode.UNUSED_ELEMENT_PARAMETER: [
+      RemoveUnusedParameter.new,
     ],
     WarningCode.UNUSED_FIELD: [
       RemoveUnusedField.new,

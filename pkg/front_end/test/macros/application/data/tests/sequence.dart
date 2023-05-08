@@ -130,7 +130,7 @@ class Class5a {}
 /*class: Class6d:
 declarations:
 
-augment class Class6d {
+augment abstract class Class6d {
   method2() {}
 }
 */
@@ -150,7 +150,7 @@ class Class6c {}
 /*class: Class6b:
 declarations:
 
-augment class Class6b {
+augment abstract class Class6b {
   method1() {}
 }
 */
@@ -180,7 +180,7 @@ class Class7d extends Class7b with Class7c {}
 /*class: Class7c:
 declarations:
 
-augment class Class7c {
+augment mixin Class7c {
   method() {}
 }
 */
@@ -200,7 +200,7 @@ class Class7b with Class7a {}
 /*class: Class7a:
 declarations:
 
-augment class Class7a {
+augment mixin Class7a {
   method() {}
 }
 */

@@ -1117,11 +1117,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitIfElement(IfElement node) {
     _flowAnalysis!.ifStatement_conditionBegin();
-    _checkExpressionNotNull(node.condition);
-    _flowAnalysis!.ifStatement_thenBegin(node.condition, node);
+    _checkExpressionNotNull(node.expression);
+    _flowAnalysis!.ifStatement_thenBegin(node.expression, node);
     NullabilityNode? trueGuard;
     NullabilityNode? falseGuard;
-    if (identical(_conditionInfo?.condition, node.condition)) {
+    if (identical(_conditionInfo?.condition, node.expression)) {
       trueGuard = _conditionInfo!.trueGuard;
       falseGuard = _conditionInfo!.falseGuard;
       _variables.recordConditionalDiscard(source, node,
@@ -1159,10 +1159,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitIfStatement(IfStatement node) {
     _flowAnalysis!.ifStatement_conditionBegin();
-    _checkExpressionNotNull(node.condition);
+    _checkExpressionNotNull(node.expression);
     NullabilityNode? trueGuard;
     NullabilityNode? falseGuard;
-    if (identical(_conditionInfo?.condition, node.condition)) {
+    if (identical(_conditionInfo?.condition, node.expression)) {
       trueGuard = _conditionInfo!.trueGuard;
       falseGuard = _conditionInfo!.falseGuard;
       _variables.recordConditionalDiscard(source, node,
@@ -1172,7 +1172,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _guards.add(trueGuard);
     }
     try {
-      _flowAnalysis!.ifStatement_thenBegin(node.condition, node);
+      _flowAnalysis!.ifStatement_thenBegin(node.expression, node);
       // We branched, so create a new scope for post-dominators.
       _postDominatedLocals.doScoped(
           action: () => _dispatch(node.thenStatement));
@@ -1494,7 +1494,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     try {
       _typeNameNesting++;
       var typeArguments = node.typeArguments?.arguments;
-      var element = node.name.staticElement;
+      var element = node.element;
       if (element is TypeAliasElement) {
         var aliasedElement =
             element.aliasedElement as GenericFunctionTypeElement;
@@ -2275,7 +2275,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         ? NullabilityNode.forLUB(left.node, right.node)
         : _nullabilityNodeForGLB(astNode, left.node, right.node);
 
-    if (type!.isDynamic || type is VoidType) {
+    if (type is DynamicType || type is VoidType) {
       return DecoratedType(type, node);
     } else if (leftType!.isBottom) {
       return right.withNode(node);
@@ -3439,7 +3439,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   EdgeOrigin _makeEdgeOrigin(DecoratedType sourceType, Expression expression,
       {bool isSetupAssignment = false}) {
-    if (sourceType.type!.isDynamic) {
+    if (sourceType.type is DynamicType) {
       return DynamicAssignmentOrigin(source, expression,
           isSetupAssignment: isSetupAssignment);
     } else {
@@ -3913,7 +3913,7 @@ mixin _AssignmentChecker {
             hard: false);
         return;
       }
-    } else if (destinationType.isDynamic ||
+    } else if (destinationType is DynamicType ||
         destinationType is VoidType ||
         destinationType.isDartCoreObject) {
       // No further edges need to be created, since all types are trivially
@@ -3965,7 +3965,7 @@ mixin _AssignmentChecker {
             hard: false,
             checkable: false);
       }
-    } else if (destinationType.isDynamic || sourceType.isDynamic) {
+    } else if (destinationType is DynamicType || sourceType is DynamicType) {
       // ok; nothing further to do.
     } else if (destinationType is InterfaceType && sourceType is FunctionType) {
       // Either this is an upcast to Function or Object, or it is erroneous
@@ -3986,7 +3986,7 @@ mixin _AssignmentChecker {
     _connect(source.node, destination.node, origin, FixReasonTarget.root,
         hard: hard);
 
-    if (sourceType.isDynamic ||
+    if (sourceType is DynamicType ||
         sourceType.isDartCoreObject ||
         sourceType is VoidType) {
       if (destinationType is InterfaceType) {

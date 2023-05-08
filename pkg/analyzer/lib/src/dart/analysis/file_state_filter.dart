@@ -59,6 +59,7 @@ class _PackageNameFilter implements FileStateFilter {
 class _PubFilter implements FileStateFilter {
   final PubWorkspacePackage targetPackage;
   final String? targetPackageName;
+  final bool targetPackageIsAnalysisServer;
   final bool targetInLib;
   final Set<String> dependencies;
 
@@ -77,9 +78,12 @@ class _PubFilter implements FileStateFilter {
       }
     }
 
+    var packageName = pubspec?.name?.value.text;
+
     return _PubFilter._(
       targetPackage: package,
-      targetPackageName: pubspec?.name?.value.text,
+      targetPackageName: packageName,
+      targetPackageIsAnalysisServer: packageName == 'analysis_server',
       targetInLib: inLib,
       dependencies: dependencies,
     );
@@ -88,6 +92,7 @@ class _PubFilter implements FileStateFilter {
   _PubFilter._({
     required this.targetPackage,
     required this.targetPackageName,
+    required this.targetPackageIsAnalysisServer,
     required this.targetInLib,
     required this.dependencies,
   });
@@ -119,6 +124,10 @@ class _PubFilter implements FileStateFilter {
 
     // If not the same package, must be public.
     if (uri.isSrc) {
+      // Special case `analysis_server` access to `analyzer`.
+      if (targetPackageIsAnalysisServer && packageName == 'analyzer') {
+        return true;
+      }
       return false;
     }
 

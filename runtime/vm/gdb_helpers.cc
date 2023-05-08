@@ -58,21 +58,23 @@ class PrintObjectPointersVisitor : public ObjectPointerVisitor {
   PrintObjectPointersVisitor()
       : ObjectPointerVisitor(IsolateGroup::Current()) {}
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (ObjectPtr* p = first; p <= last; p++) {
       Object& obj = Object::Handle(*p);
       OS::PrintErr("%p: %s\n", p, obj.ToCString());
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     for (CompressedObjectPtr* p = first; p <= last; p++) {
       Object& obj = Object::Handle(p->Decompress(heap_base));
       OS::PrintErr("%p: %s\n", p, obj.ToCString());
     }
   }
+#endif
 };
 
 DART_EXPORT

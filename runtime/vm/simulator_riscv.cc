@@ -140,7 +140,7 @@ class Redirection {
         call_kind_(call_kind),
         argument_count_(argument_count),
         ecall_instruction_(Instr::kSimulatorRedirectInstruction),
-        next_(NULL) {}
+        next_(nullptr) {}
 
   uword external_function_;
   Simulator::CallKind call_kind_;
@@ -170,7 +170,7 @@ uword Simulator::FunctionForRedirect(uword redirect) {
 Simulator* Simulator::Current() {
   Isolate* isolate = Isolate::Current();
   Simulator* simulator = isolate->simulator();
-  if (simulator == NULL) {
+  if (simulator == nullptr) {
     NoSafepointScope no_safepoint;
     simulator = new Simulator();
     isolate->set_simulator(simulator);
@@ -187,7 +187,7 @@ Simulator::Simulator()
       reserved_value_(0),
       fcsr_(0),
       random_(),
-      last_setjmp_buffer_(NULL) {
+      last_setjmp_buffer_(nullptr) {
   // Setup simulator support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -229,8 +229,8 @@ Simulator::Simulator()
 Simulator::~Simulator() {
   delete[] stack_;
   Isolate* isolate = Isolate::Current();
-  if (isolate != NULL) {
-    isolate->set_simulator(NULL);
+  if (isolate != nullptr) {
+    isolate->set_simulator(nullptr);
   }
 }
 
@@ -432,10 +432,10 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Walk over all setjmp buffers (simulated --> C++ transitions)
   // and try to find the setjmp associated with the simulated stack pointer.
   SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
-  while (buf->link() != NULL && buf->link()->sp() <= sp) {
+  while (buf->link() != nullptr && buf->link()->sp() <= sp) {
     buf = buf->link();
   }
-  ASSERT(buf != NULL);
+  ASSERT(buf != nullptr);
 
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
@@ -449,6 +449,9 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   set_xreg(SP, static_cast<uintx_t>(sp));
   set_xreg(FP, static_cast<uintx_t>(fp));
   set_xreg(THR, reinterpret_cast<uintx_t>(thread));
+#if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
+  set_xreg(GP, thread->saved_shadow_call_stack());
+#endif
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.

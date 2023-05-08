@@ -23,7 +23,7 @@ String* Symbols::symbol_handles_[Symbols::kMaxPredefinedId];
 
 static const char* const names[] = {
     // clang-format off
-  NULL,
+  nullptr,
 #define DEFINE_SYMBOL_LITERAL(symbol, literal) literal,
   PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 #undef DEFINE_SYMBOL_LITERAL
@@ -74,7 +74,7 @@ const String& Symbols::Token(Token::Kind token) {
   ASSERT((0 <= tok_index) && (tok_index < Token::kNumTokens));
   // First keyword symbol is in symbol_handles_[kTokenTableStart + 1].
   const intptr_t token_id = Symbols::kTokenTableStart + 1 + tok_index;
-  ASSERT(symbol_handles_[token_id] != NULL);
+  ASSERT(symbol_handles_[token_id] != nullptr);
   return *symbol_handles_[token_id];
 }
 
@@ -189,7 +189,7 @@ void Symbols::GetStats(IsolateGroup* isolate_group,
 }
 
 StringPtr Symbols::New(Thread* thread, const char* cstr, intptr_t len) {
-  ASSERT((cstr != NULL) && (len >= 0));
+  ASSERT((cstr != nullptr) && (len >= 0));
   const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(cstr);
   return Symbols::FromUTF8(thread, utf8_array, len);
 }
@@ -197,8 +197,8 @@ StringPtr Symbols::New(Thread* thread, const char* cstr, intptr_t len) {
 StringPtr Symbols::FromUTF8(Thread* thread,
                             const uint8_t* utf8_array,
                             intptr_t array_len) {
-  if (array_len == 0 || utf8_array == NULL) {
-    return FromLatin1(thread, static_cast<uint8_t*>(NULL), 0);
+  if (array_len == 0 || utf8_array == nullptr) {
+    return FromLatin1(thread, static_cast<uint8_t*>(nullptr), 0);
   }
   Utf8::Type type;
   intptr_t len = Utf8::CodeUnitCount(utf8_array, array_len, &type);
@@ -352,7 +352,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   if (symbol.IsNull()) {
     IsolateGroup* group = thread->isolate_group();
     ObjectStore* object_store = group->object_store();
-    RELEASE_ASSERT(!thread->IsAtSafepoint());
+    RELEASE_ASSERT(thread->CanAcquireSafepointLocks());
 
     // Most common case: The symbol is already in the table.
     {
@@ -399,8 +399,7 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
     ObjectStore* object_store = group->object_store();
     // See `Symbols::NewSymbol` for more information why we separate the two
     // cases.
-    if (thread->IsAtSafepoint()) {
-      RELEASE_ASSERT(group->safepoint_handler()->IsOwnedByTheThread(thread));
+    if (thread->OwnsSafepoint()) {
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.GetOrNull(str);
@@ -469,7 +468,7 @@ StringPtr Symbols::NewFormattedV(Thread* thread,
                                  va_list args) {
   va_list args_copy;
   va_copy(args_copy, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, args_copy);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, args_copy);
   va_end(args_copy);
 
   Zone* zone = Thread::Current()->zone();

@@ -28,7 +28,7 @@ class StatementParserTest extends FastaParserTestCase {
     List<TypeAnnotation> typeArgs = funct1.typeArguments!.arguments;
     expect(typeArgs, hasLength(1));
     var typeName = typeArgs[0] as NamedType;
-    expect(typeName.name.name, 'int');
+    expect(typeName.name2.lexeme, 'int');
     expect(funct1.argumentList.arguments, hasLength(0));
 
     var funct2 = funct1.function as FunctionExpressionInvocation;
@@ -875,7 +875,7 @@ main() {
     assertNoErrors();
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
-    expect(statement.condition, isNotNull);
+    expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.thenStatement, isNotNull);
     expect(statement.elseKeyword, isNotNull);
@@ -887,7 +887,7 @@ main() {
     assertNoErrors();
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
-    expect(statement.condition, isNotNull);
+    expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.thenStatement, isNotNull);
     expect(statement.elseKeyword, isNotNull);
@@ -899,7 +899,7 @@ main() {
     assertNoErrors();
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
-    expect(statement.condition, isNotNull);
+    expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.thenStatement, isNotNull);
     expect(statement.elseKeyword, isNotNull);
@@ -911,7 +911,7 @@ main() {
     assertNoErrors();
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
-    expect(statement.condition, isNotNull);
+    expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.thenStatement, isNotNull);
     expect(statement.elseKeyword, isNull);
@@ -923,7 +923,7 @@ main() {
     assertNoErrors();
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
-    expect(statement.condition, isNotNull);
+    expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.thenStatement, isNotNull);
     expect(statement.elseKeyword, isNull);
@@ -1166,10 +1166,10 @@ main() {
     expect(variables, hasLength(1));
     expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
-    expect(typeName.name.name, 'C');
+    expect(typeName.name2.lexeme, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
     var typeArgument = typeName.typeArguments!.arguments[0] as NamedType;
-    expect(typeArgument.name.name, 'T');
+    expect(typeArgument.name2.lexeme, 'T');
   }
 
   void test_parseNonLabeledStatement_variableDeclaration_typeParam2() {
@@ -1181,10 +1181,10 @@ main() {
     expect(variables, hasLength(1));
     expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
-    expect(typeName.name.name, 'C');
+    expect(typeName.name2.lexeme, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
     var typeArgument = typeName.typeArguments!.arguments[0] as NamedType;
-    expect(typeArgument.name.name, 'T');
+    expect(typeArgument.name2.lexeme, 'T');
   }
 
   void test_parseNonLabeledStatement_variableDeclaration_typeParam3() {
@@ -1196,7 +1196,7 @@ main() {
     expect(variables, hasLength(1));
     expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
-    expect(typeName.name.name, 'C');
+    expect(typeName.name2.lexeme, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
     expect(typeName.typeArguments!.arguments[0], isGenericFunctionType);
   }

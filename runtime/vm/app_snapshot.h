@@ -197,7 +197,7 @@ static constexpr intptr_t kFirstReference = 1;
 
 // Reference value for traced objects that have not been allocated their final
 // reference ID.
-static const intptr_t kUnallocatedReference = -1;
+static constexpr intptr_t kUnallocatedReference = -1;
 
 static constexpr bool IsAllocatedReference(intptr_t ref) {
   return ref > kUnreachableReference;
@@ -820,7 +820,7 @@ class Deserializer : public ThreadStackResource {
 
 class FullSnapshotWriter {
  public:
-  static const intptr_t kInitialSize = 64 * KB;
+  static constexpr intptr_t kInitialSize = 64 * KB;
   FullSnapshotWriter(Snapshot::Kind kind,
                      NonStreamingWriteStream* vm_snapshot_data,
                      NonStreamingWriteStream* isolate_snapshot_data,

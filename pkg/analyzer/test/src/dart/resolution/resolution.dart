@@ -239,63 +239,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(result.errors, isNotEmpty);
   }
 
-  void assertIdentifierTopGetRef(SimpleIdentifier ref, String name) {
-    var getter = findElement.topGet(name);
-    assertElement(ref, getter);
-
-    var type = typeString(getter.returnType);
-    assertType(ref, type);
-  }
-
-  void assertIdentifierTopSetRef(SimpleIdentifier ref, String name) {
-    var setter = findElement.topSet(name);
-    assertElement(ref, setter);
-
-    var type = typeString(setter.parameters[0].type);
-    assertType(ref, type);
-  }
-
-  void assertImplicitCallReference(ImplicitCallReference node,
-      Element? expectedElement, String expectedType) {
-    assertElement(node, expectedElement);
-    assertType(node, expectedType);
-  }
-
-  /// In valid code [element] must be a [PrefixElement], but for invalid code
-  /// like `int.double v;` we want to resolve `int` somehow. Still not type.
-  void assertImportPrefix(Expression? identifier, Element? element) {
-    identifier as SimpleIdentifier;
-    assertElement(identifier, element);
-    assertTypeNull(identifier);
-  }
-
   /// Resolve the [code], and ensure that it can be resolved without a crash,
   /// and is invalid, i.e. produces a diagnostic.
   Future<void> assertInvalidTestCode(String code) async {
     await resolveTestCode(code);
     assertHasTestErrors();
-  }
-
-  void assertInvokeType(Expression node, String expected) {
-    DartType? actual;
-    if (node is BinaryExpression) {
-      actual = node.staticInvokeType;
-    } else if (node is InvocationExpression) {
-      actual = node.staticInvokeType;
-    } else {
-      fail('Unsupported node: (${node.runtimeType}) $node');
-    }
-    expect(typeString(actual!), expected);
-  }
-
-  void assertInvokeTypeDynamic(InvocationExpression node) {
-    var actual = node.staticInvokeType;
-    expect(actual, isDynamicType);
-  }
-
-  void assertInvokeTypeNull(BinaryExpression node) {
-    var actual = node.staticInvokeType;
-    expect(actual, isNull);
   }
 
   void assertMember(
@@ -315,29 +263,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertSubstitution(actual.substitution, expectedSubstitution);
   }
 
-  void assertNamedType(
-      NamedType node, Element? expectedElement, String? expectedType,
-      {Element? expectedPrefix}) {
-    assertType(node, expectedType);
-
-    if (expectedPrefix == null) {
-      var name = node.name as SimpleIdentifier;
-      assertElement(name, expectedElement);
-      // TODO(scheglov) Should this be null?
-//      assertType(name, expectedType);
-    } else {
-      var name = node.name as PrefixedIdentifier;
-      assertImportPrefix(name.prefix, expectedPrefix);
-      assertElement(name.identifier, expectedElement);
-
-      // TODO(scheglov) This should be null, but it is not.
-      // ResolverVisitor sets the tpe for `Bar` in `new foo.Bar()`. This is
-      // probably wrong. It is fine for the TypeName `foo.Bar` to have a type,
-      // and for `foo.Bar()` to have a type. But not a name of a type? No.
-//      expect(name.identifier.staticType, isNull);
-    }
-  }
-
   Future<void> assertNoErrorsInCode(String code) async {
     addTestFile(code);
     await resolveTestFile();
@@ -347,11 +272,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertNoErrorsInResult() {
     assertErrorsInResult(const []);
-  }
-
-  void assertParameterElementType(FormalParameter node, String expected) {
-    var parameterElement = node.declaredElement!;
-    assertType(parameterElement.type, expected);
   }
 
   void assertParsedNodeText(
@@ -370,33 +290,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertPrefixedIdentifier(
-    PrefixedIdentifier node, {
-    required Object? element,
-    required String type,
-  }) {
-    assertElement(node.staticElement, element);
-    assertType(node, type);
-  }
-
-  void assertPropertyAccess(
-    PropertyAccess access,
-    Element expectedElement,
-    String expectedType,
-  ) {
-    assertElement(access.propertyName, expectedElement);
-    assertType(access, expectedType);
-  }
-
-  void assertPropertyAccess2(
-    PropertyAccess node, {
-    required Object? element,
-    required String type,
-  }) {
-    assertElement(node.propertyName.staticElement, element);
-    assertType(node.staticType, type);
-  }
-
   void assertResolvedNodeText(
     AstNode node,
     String expected, {
@@ -411,13 +304,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
-  }
-
-  void assertSimpleFormalParameter(
-    SimpleFormalParameter node, {
-    required ParameterElement element,
-  }) {
-    assertElement(node.declaredElement, element);
   }
 
   void assertSimpleIdentifier(
@@ -451,11 +337,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       }),
     );
     expect(actualMapString, expected);
-  }
-
-  void assertTopGetRef(String search, String name) {
-    var ref = findNode.simple(search);
-    assertIdentifierTopGetRef(ref, name);
   }
 
   void assertType(Object? typeOrNode, String? expected) {
@@ -495,29 +376,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertTypeNull(Expression node) {
     expect(node.staticType, isNull);
-  }
-
-  /// TODO(scheglov) Remove [disableElementCheck]
-  void assertUnresolvedPropertyAccess(
-    PropertyAccess node, {
-    bool disableElementCheck = false,
-  }) {
-    if (!disableElementCheck) {
-      assertElementNull(node);
-    }
-    assertTypeNull(node);
-    assertUnresolvedSimpleIdentifier(node.propertyName);
-  }
-
-  /// TODO(scheglov) Remove [disableElementCheck]
-  void assertUnresolvedSimpleIdentifier(
-    SimpleIdentifier node, {
-    bool disableElementCheck = false,
-  }) {
-    if (!disableElementCheck) {
-      assertElementNull(node);
-    }
-    assertTypeNull(node);
   }
 
   /// TODO(scheglov) Remove `?` from [declaration].
@@ -602,7 +460,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is PropertyAccess) {
       return node.propertyName.staticElement;
     } else if (node is NamedType) {
-      return node.name.staticElement;
+      return node.element;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }

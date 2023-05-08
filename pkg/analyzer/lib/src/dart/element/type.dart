@@ -48,6 +48,7 @@ class DynamicTypeImpl extends TypeImpl implements DynamicType {
   @override
   int get hashCode => 1;
 
+  @Deprecated('Use `is DynamicType` instead')
   @override
   bool get isDynamic => true;
 
@@ -362,7 +363,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         return null;
       }
 
-      if (!bound2.isDynamic) {
+      if (bound2 is! DynamicType) {
         pFresh.bound = bound2;
       }
     }
@@ -657,8 +658,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return null;
     }
 
-    return Substitution.fromInterfaceType(this).substituteType(supertype)
-        as InterfaceType;
+    return (Substitution.fromInterfaceType(this).substituteType(supertype)
+            as InterfaceTypeImpl)
+        .withNullability(nullabilitySuffix);
   }
 
   @override
@@ -891,18 +893,24 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     );
   }
 
-  List<InterfaceType> _instantiateSuperTypes(List<InterfaceType> defined) {
-    if (defined.isEmpty) return defined;
+  List<InterfaceType> _instantiateSuperTypes(List<InterfaceType> definedTypes) {
+    if (definedTypes.isEmpty) return definedTypes;
 
-    var typeParameters = element.typeParameters;
-    if (typeParameters.isEmpty) return defined;
-
-    var substitution = Substitution.fromInterfaceType(this);
-    var result = <InterfaceType>[];
-    for (int i = 0; i < defined.length; i++) {
-      result.add(substitution.substituteType(defined[i]) as InterfaceType);
+    MapSubstitution? substitution;
+    if (element.typeParameters.isNotEmpty) {
+      substitution = Substitution.fromInterfaceType(this);
     }
-    return result;
+
+    final List<InterfaceTypeImpl> results = [];
+    for (final definedType in definedTypes) {
+      var result = substitution != null
+          ? substitution.substituteType(definedType)
+          : definedType;
+      result as InterfaceTypeImpl;
+      result = result.withNullability(nullabilitySuffix);
+      results.add(result);
+    }
+    return results;
   }
 }
 
@@ -1240,6 +1248,7 @@ abstract class TypeImpl implements DartType {
   @override
   bool get isDartCoreType => false;
 
+  @Deprecated('Use `is DynamicType` instead')
   @override
   bool get isDynamic => false;
 

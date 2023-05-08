@@ -10,6 +10,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/norm.dart';
+import 'package:kernel/src/redirecting_factory_body.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
@@ -19,7 +20,6 @@ import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/redirecting_factory_body.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'factor_type.dart';
@@ -329,6 +329,10 @@ abstract class TypeInferenceEngine {
 /// kernel objects.
 class TypeInferenceEngineImpl extends TypeInferenceEngine {
   final Benchmarker? benchmarker;
+  final FunctionType unknownFunctionNonNullable =
+      new FunctionType(const [], const DynamicType(), Nullability.nonNullable);
+  final FunctionType unknownFunctionLegacy =
+      new FunctionType(const [], const DynamicType(), Nullability.legacy);
 
   TypeInferenceEngineImpl(Instrumentation? instrumentation, this.benchmarker)
       : super(instrumentation);
@@ -345,11 +349,28 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
     if (benchmarker == null) {
-      return new TypeInferrerImpl(this, uri, false, thisType, library,
-          assignedVariables, dataForTesting);
+      return new TypeInferrerImpl(
+          this,
+          uri,
+          false,
+          thisType,
+          library,
+          assignedVariables,
+          dataForTesting,
+          unknownFunctionNonNullable,
+          unknownFunctionLegacy);
     }
-    return new TypeInferrerImplBenchmarked(this, uri, false, thisType, library,
-        assignedVariables, dataForTesting, benchmarker!);
+    return new TypeInferrerImplBenchmarked(
+        this,
+        uri,
+        false,
+        thisType,
+        library,
+        assignedVariables,
+        dataForTesting,
+        benchmarker!,
+        unknownFunctionNonNullable,
+        unknownFunctionLegacy);
   }
 
   @override
@@ -364,11 +385,28 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
     if (benchmarker == null) {
-      return new TypeInferrerImpl(this, uri, true, thisType, library,
-          assignedVariables, dataForTesting);
+      return new TypeInferrerImpl(
+          this,
+          uri,
+          true,
+          thisType,
+          library,
+          assignedVariables,
+          dataForTesting,
+          unknownFunctionNonNullable,
+          unknownFunctionLegacy);
     }
-    return new TypeInferrerImplBenchmarked(this, uri, true, thisType, library,
-        assignedVariables, dataForTesting, benchmarker!);
+    return new TypeInferrerImplBenchmarked(
+        this,
+        uri,
+        true,
+        thisType,
+        library,
+        assignedVariables,
+        dataForTesting,
+        benchmarker!,
+        unknownFunctionNonNullable,
+        unknownFunctionLegacy);
   }
 }
 

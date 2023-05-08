@@ -15,7 +15,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
-#if defined(DART_HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
 #include <sys/prctl.h>
 #endif
 
@@ -402,30 +402,6 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
       PROT_READ | PROT_WRITE |
       ((is_executable && !FLAG_write_protect_code) ? PROT_EXEC : 0);
 
-#if defined(DUAL_MAPPING_SUPPORTED)
-  // Try to use memfd for single-mapped regions too, so they will have an
-  // associated name for memory attribution. Skip if FLAG_dual_map_code is
-  // false, which happens if we detected memfd wasn't working in Init above.
-  if (FLAG_dual_map_code) {
-    int fd = memfd_create(name, MFD_CLOEXEC);
-    if (fd == -1) {
-      return nullptr;
-    }
-    if (ftruncate(fd, size) == -1) {
-      close(fd);
-      return nullptr;
-    }
-    void* region_ptr =
-        MapAligned(nullptr, fd, prot, size, alignment, allocated_size);
-    close(fd);
-    if (region_ptr == nullptr) {
-      return nullptr;
-    }
-    MemoryRegion region(region_ptr, size);
-    return new VirtualMemory(region, region);
-  }
-#endif
-
   int map_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 #if (defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS))
   if (is_executable && IsAtLeastOS10_14()) {
@@ -448,7 +424,15 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     return nullptr;
   }
 
-#if defined(DART_HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
+  // PR_SET_VMA was only added to mainline Linux in 5.17, and some versions of
+  // the Android NDK have incorrect headers, so we manually define it if absent.
+#if !defined(PR_SET_VMA)
+#define PR_SET_VMA 0x53564d41
+#endif
+#if !defined(PR_SET_VMA_ANON_NAME)
+#define PR_SET_VMA_ANON_NAME 0
+#endif
   prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, address, size, name);
 #endif
 
@@ -532,7 +516,7 @@ bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread == nullptr || thread->IsMutatorThread() ||
+  ASSERT(thread == nullptr || thread->IsDartMutatorThread() ||
          thread->isolate() == nullptr ||
          thread->isolate()->mutator_thread()->IsAtSafepoint());
 #endif

@@ -379,7 +379,6 @@ class ObjectPointerVisitor;
   V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
   V(_Type, "_Type")                                                            \
   V(_TypeParameter, "_TypeParameter")                                          \
-  V(_TypeRef, "_TypeRef")                                                      \
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \
@@ -556,11 +555,11 @@ class Symbols : public AllStatic {
   };
 
   // Number of one character symbols being predefined in the predefined_ array.
-  static const int kNumberOfOneCharCodeSymbols =
+  static constexpr int kNumberOfOneCharCodeSymbols =
       (kMaxPredefinedId - kNullCharId);
 
   // Offset of Null character which is the predefined character symbol.
-  static const int kNullCharCodeSymbolOffset = 0;
+  static constexpr int kNullCharCodeSymbolOffset = 0;
 
   static const String& Symbol(intptr_t index) {
     ASSERT((index > kIllegal) && (index < kMaxPredefinedId));

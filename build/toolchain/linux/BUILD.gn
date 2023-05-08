@@ -8,8 +8,12 @@ import("//build/toolchain/gcc_toolchain.gni")
 import("//build/toolchain/goma.gni")
 
 declare_args() {
-  toolchain_prefix = ""
-  # TODO(zra): Add an argument for overriding the host toolchain.
+  ia32_toolchain_prefix = ""
+  x64_toolchain_prefix = ""
+  arm_toolchain_prefix = ""
+  arm64_toolchain_prefix = ""
+  riscv32_toolchain_prefix = ""
+  riscv64_toolchain_prefix = ""
 }
 
 if (use_goma) {
@@ -34,8 +38,8 @@ if (dart_sysroot == "alpine") {
 
 gcc_toolchain("arm") {
   prefix = "arm-linux-gnueabihf-"
-  if (toolchain_prefix != "") {
-    prefix = toolchain_prefix
+  if (arm_toolchain_prefix != "") {
+    prefix = arm_toolchain_prefix
   }
 
   cc = "${compiler_prefix}${prefix}gcc"
@@ -70,8 +74,8 @@ gcc_toolchain("clang_arm") {
 
 gcc_toolchain("arm64") {
   prefix = "aarch64-linux-gnu-"
-  if (toolchain_prefix != "") {
-    prefix = toolchain_prefix
+  if (arm64_toolchain_prefix != "") {
+    prefix = arm64_toolchain_prefix
   }
 
   cc = "${compiler_prefix}${prefix}gcc"
@@ -122,6 +126,9 @@ gcc_toolchain("clang_x86") {
 
 gcc_toolchain("x86") {
   prefix = ""
+  if (ia32_toolchain_prefix != "") {
+    prefix = ia32_toolchain_prefix
+  }
   cc = "${compiler_prefix}${prefix}gcc"
   cxx = "${compiler_prefix}${prefix}g++"
 
@@ -154,6 +161,9 @@ gcc_toolchain("clang_x64") {
 
 gcc_toolchain("x64") {
   prefix = ""
+  if (x64_toolchain_prefix != "") {
+    prefix = x64_toolchain_prefix
+  }
   cc = "${compiler_prefix}${prefix}gcc"
   cxx = "${compiler_prefix}${prefix}g++"
 
@@ -170,8 +180,8 @@ gcc_toolchain("x64") {
 
 gcc_toolchain("riscv32") {
   prefix = "riscv32-linux-gnu-"
-  if (toolchain_prefix != "") {
-    prefix = toolchain_prefix
+  if (riscv32_toolchain_prefix != "") {
+    prefix = riscv32_toolchain_prefix
   }
 
   cc = "${compiler_prefix}${prefix}gcc"
@@ -206,8 +216,8 @@ gcc_toolchain("clang_riscv32") {
 
 gcc_toolchain("riscv64") {
   prefix = "riscv64-linux-gnu-"
-  if (toolchain_prefix != "") {
-    prefix = toolchain_prefix
+  if (riscv64_toolchain_prefix != "") {
+    prefix = riscv64_toolchain_prefix
   }
 
   cc = "${compiler_prefix}${prefix}gcc"

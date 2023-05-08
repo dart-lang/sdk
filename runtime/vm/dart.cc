@@ -46,6 +46,7 @@
 #include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
 #include "vm/timeline.h"
+#include "vm/unwinding_records.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
@@ -54,19 +55,19 @@ namespace dart {
 DECLARE_FLAG(bool, print_class_table);
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 
-Isolate* Dart::vm_isolate_ = NULL;
+Isolate* Dart::vm_isolate_ = nullptr;
 int64_t Dart::start_time_micros_ = 0;
-ThreadPool* Dart::thread_pool_ = NULL;
-DebugInfo* Dart::pprof_symbol_generator_ = NULL;
-ReadOnlyHandles* Dart::predefined_handles_ = NULL;
+ThreadPool* Dart::thread_pool_ = nullptr;
+DebugInfo* Dart::pprof_symbol_generator_ = nullptr;
+ReadOnlyHandles* Dart::predefined_handles_ = nullptr;
 Snapshot::Kind Dart::vm_snapshot_kind_ = Snapshot::kInvalid;
-Dart_ThreadStartCallback Dart::thread_start_callback_ = NULL;
-Dart_ThreadExitCallback Dart::thread_exit_callback_ = NULL;
-Dart_FileOpenCallback Dart::file_open_callback_ = NULL;
-Dart_FileReadCallback Dart::file_read_callback_ = NULL;
-Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
-Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
-Dart_EntropySource Dart::entropy_source_callback_ = NULL;
+Dart_ThreadStartCallback Dart::thread_start_callback_ = nullptr;
+Dart_ThreadExitCallback Dart::thread_exit_callback_ = nullptr;
+Dart_FileOpenCallback Dart::file_open_callback_ = nullptr;
+Dart_FileReadCallback Dart::file_read_callback_ = nullptr;
+Dart_FileWriteCallback Dart::file_write_callback_ = nullptr;
+Dart_FileCloseCallback Dart::file_close_callback_ = nullptr;
+Dart_EntropySource Dart::entropy_source_callback_ = nullptr;
 Dart_DwarfStackTraceFootnoteCallback Dart::dwarf_stacktrace_footnote_callback_ =
     nullptr;
 
@@ -268,7 +269,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   if (!Flags::Initialized()) {
     return Utils::StrDup("VM initialization failed-VM Flags not initialized.");
   }
-  if (vm_isolate_ != NULL) {
+  if (vm_isolate_ != nullptr) {
     return Utils::StrDup("VM initialization is in an inconsistent state.");
   }
 
@@ -333,6 +334,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Api::Init();
   NativeSymbolResolver::Init();
   NOT_IN_PRODUCT(Profiler::Init());
+  UnwindingRecords::Init();
   Page::Init();
   StoreBuffer::Init();
   MarkingStack::Init();
@@ -342,13 +344,13 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Simulator::Init();
 #endif
   // Create the read-only handles area.
-  ASSERT(predefined_handles_ == NULL);
+  ASSERT(predefined_handles_ == nullptr);
   predefined_handles_ = new ReadOnlyHandles();
   // Create the VM isolate and finish the VM initialization.
-  ASSERT(thread_pool_ == NULL);
+  ASSERT(thread_pool_ == nullptr);
   thread_pool_ = new ThreadPool();
   {
-    ASSERT(vm_isolate_ == NULL);
+    ASSERT(vm_isolate_ == nullptr);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
 
@@ -378,7 +380,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     ASSERT(vm_isolate_ == Thread::Current()->isolate());
 
     Thread* T = Thread::Current();
-    ASSERT(T != NULL);
+    ASSERT(T != nullptr);
     StackZone zone(T);
     HandleScope handle_scope(T);
     Object::InitNullAndBool(vm_isolate_->group());
@@ -472,7 +474,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
       Object::FinalizeVMIsolate(vm_isolate_->group());
     }
 #if defined(DEBUG)
-    vm_isolate_group()->heap()->Verify(kRequireMarked);
+    vm_isolate_group()->heap()->Verify("Dart::DartInit", kRequireMarked);
 #endif
   }
   // Allocate the "persistent" scoped handles for the predefined API
@@ -509,7 +511,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   }
 #endif  // DART_PRECOMPILED_RUNTIME
 
-  return NULL;
+  return nullptr;
 }
 
 char* Dart::Init(const Dart_InitializeParams* params) {
@@ -520,12 +522,12 @@ char* Dart::Init(const Dart_InitializeParams* params) {
         "multiple threads initializing the VM.");
   }
   char* retval = DartInit(params);
-  if (retval != NULL) {
+  if (retval != nullptr) {
     DartInitializationState::ResetInitializing();
     return retval;
   }
   DartInitializationState::SetInitialized();
-  return NULL;
+  return nullptr;
 }
 
 static void DumpAliveIsolates(intptr_t num_attempts,
@@ -616,11 +618,11 @@ void Dart::WaitForIsolateShutdown() {
 }
 
 char* Dart::Cleanup() {
-  ASSERT(Isolate::Current() == NULL);
+  ASSERT(Isolate::Current() == nullptr);
   if (!DartInitializationState::SetCleaningup()) {
     return Utils::StrDup("VM already terminated.");
   }
-  ASSERT(vm_isolate_ != NULL);
+  ASSERT(vm_isolate_ != nullptr);
 
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Starting shutdown\n",
@@ -711,7 +713,7 @@ char* Dart::Cleanup() {
   DartInitializationState::SetUnInitialized();
   thread_pool_->Shutdown();
   delete thread_pool_;
-  thread_pool_ = NULL;
+  thread_pool_ = nullptr;
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done deleting thread pool\n",
                  UptimeMillis());
@@ -719,7 +721,7 @@ char* Dart::Cleanup() {
 
   Api::Cleanup();
   delete predefined_handles_;
-  predefined_handles_ = NULL;
+  predefined_handles_ = nullptr;
 
   // Set the VM isolate as current isolate.
   if (FLAG_trace_shutdown) {
@@ -750,7 +752,7 @@ char* Dart::Cleanup() {
   OSThread::DisableOSThreadCreation();
 
   ShutdownIsolate();
-  vm_isolate_ = NULL;
+  vm_isolate_ = nullptr;
   ASSERT(Isolate::IsolateListLength() == 0);
   Service::Cleanup();
   PortMap::Cleanup();
@@ -765,6 +767,7 @@ char* Dart::Cleanup() {
   StoreBuffer::Cleanup();
   Object::Cleanup();
   Page::Cleanup();
+  UnwindingRecords::Cleanup();
   StubCode::Cleanup();
 #if defined(SUPPORT_TIMELINE)
   if (FLAG_trace_shutdown) {
@@ -779,7 +782,7 @@ char* Dart::Cleanup() {
   // If it is the last thread then the destructor would call
   // OSThread::Cleanup.
   OSThread* os_thread = OSThread::Current();
-  OSThread::SetCurrent(NULL);
+  OSThread::SetCurrent(nullptr);
   delete os_thread;
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleted os_thread\n",
@@ -797,11 +800,11 @@ char* Dart::Cleanup() {
   }
   Flags::Cleanup();
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  IsolateGroupReloadContext::SetFileModifiedCallback(NULL);
-  Service::SetEmbedderStreamCallbacks(NULL, NULL);
+  IsolateGroupReloadContext::SetFileModifiedCallback(nullptr);
+  Service::SetEmbedderStreamCallbacks(nullptr, nullptr);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   VirtualMemory::Cleanup();
-  return NULL;
+  return nullptr;
 }
 
 bool Dart::IsInitialized() {
@@ -842,7 +845,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
   if (!error.IsNull()) {
     return error.ptr();
   }
-  if ((snapshot_data != NULL) && kernel_buffer == NULL) {
+  if ((snapshot_data != nullptr) && kernel_buffer == nullptr) {
     // Read the snapshot and setup the initial state.
 #if defined(SUPPORT_TIMELINE)
     TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
@@ -850,7 +853,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
 #endif  // defined(SUPPORT_TIMELINE)
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
-    if (snapshot == NULL) {
+    if (snapshot == nullptr) {
       const String& message = String::Handle(String::New("Invalid snapshot"));
       return ApiError::New(message);
     }
@@ -870,6 +873,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return error.ptr();
     }
 
+    T->SetupDartMutatorStateDependingOnSnapshot(I);
     {
       SafepointReadRwLocker reader(T, IG->program_lock());
       I->set_field_table(T, IG->initial_field_table()->Clone(I));
@@ -889,7 +893,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
-    if ((vm_snapshot_kind_ != Snapshot::kNone) && kernel_buffer == NULL) {
+    if ((vm_snapshot_kind_ != Snapshot::kNone) && kernel_buffer == nullptr) {
       const String& message =
           String::Handle(String::New("Missing isolate snapshot"));
       return ApiError::New(message);
@@ -955,7 +959,7 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   tbes.SetNumArguments(1);
   tbes.CopyArgument(0, "isolateName", I->name());
 #endif
-  ASSERT(I != NULL);
+  ASSERT(I != nullptr);
   StackZone zone(T);
   HandleScope handle_scope(T);
   bool was_child_cloned_into_existing_isolate = false;
@@ -984,7 +988,7 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
 
   Object::VerifyBuiltinVtables();
   if (T->isolate()->origin_id() == 0) {
-    DEBUG_ONLY(IG->heap()->Verify(kForbidMarked));
+    DEBUG_ONLY(IG->heap()->Verify("InitializeIsolate", kForbidMarked));
   }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1193,21 +1197,21 @@ void Dart::RunShutdownCallback() {
   void* isolate_group_data = isolate->group()->embedder_data();
   void* isolate_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = isolate->on_shutdown_callback();
-  if (callback != NULL) {
+  if (callback != nullptr) {
     TransitionVMToNative transition(thread);
     (callback)(isolate_group_data, isolate_data);
   }
 }
 
 void Dart::ShutdownIsolate(Isolate* isolate) {
-  ASSERT(Isolate::Current() == NULL);
+  ASSERT(Isolate::Current() == nullptr);
   // We need to enter the isolate in order to shut it down.
   bool result = Thread::EnterIsolate(isolate);
   ASSERT(result);
   ShutdownIsolate();
   // Since the isolate is shutdown and deleted, there is no need to
   // exit the isolate here.
-  ASSERT(Isolate::Current() == NULL);
+  ASSERT(Isolate::Current() == nullptr);
 }
 
 void Dart::ShutdownIsolate() {
@@ -1215,7 +1219,7 @@ void Dart::ShutdownIsolate() {
 }
 
 bool Dart::VmIsolateNameEquals(const char* name) {
-  ASSERT(name != NULL);
+  ASSERT(name != nullptr);
   return (strcmp(name, kVmIsolateName) == 0);
 }
 
@@ -1225,23 +1229,23 @@ int64_t Dart::UptimeMicros() {
 
 uword Dart::AllocateReadOnlyHandle() {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
-  ASSERT(predefined_handles_ != NULL);
+  ASSERT(predefined_handles_ != nullptr);
   return predefined_handles_->handles_.AllocateScopedHandle();
 }
 
 LocalHandle* Dart::AllocateReadOnlyApiHandle() {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
-  ASSERT(predefined_handles_ != NULL);
+  ASSERT(predefined_handles_ != nullptr);
   return predefined_handles_->api_handles_.AllocateHandle();
 }
 
 bool Dart::IsReadOnlyHandle(uword address) {
-  ASSERT(predefined_handles_ != NULL);
+  ASSERT(predefined_handles_ != nullptr);
   return predefined_handles_->handles_.IsValidScopedHandle(address);
 }
 
 bool Dart::IsReadOnlyApiHandle(Dart_Handle handle) {
-  ASSERT(predefined_handles_ != NULL);
+  ASSERT(predefined_handles_ != nullptr);
   return predefined_handles_->api_handles_.IsValidHandle(handle);
 }
 

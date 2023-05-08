@@ -128,7 +128,7 @@ class RecordLiteralResolver {
     field = _resolver.popRewrite()!;
 
     // Implicit cast from `dynamic`.
-    if (contextType != null && field.typeOrThrow.isDynamic) {
+    if (contextType != null && field.typeOrThrow is DynamicType) {
       field.staticType = contextType;
       if (field is NamedExpressionImpl) {
         field.expression.staticType = contextType;

@@ -19,7 +19,6 @@
 #include "vm/tagged_pointer.h"
 #include "vm/thread_barrier.h"
 #include "vm/thread_pool.h"
-#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/visitor.h"
 
@@ -179,20 +178,22 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     return *ptr;
   }
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (ObjectPtr* current = first; current <= last; current++) {
       MarkObject(LoadPointerIgnoreRace(current));
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     for (CompressedObjectPtr* current = first; current <= last; current++) {
       MarkObject(
           LoadCompressedPointerIgnoreRace(current).Decompress(heap_base));
     }
   }
+#endif
 
   intptr_t ProcessWeakProperty(WeakPropertyPtr raw_weak) {
     // The fate of the weak property is determined by its key.
@@ -473,7 +474,7 @@ class MarkingWeakVisitor : public HandleVisitor {
  public:
   explicit MarkingWeakVisitor(Thread* thread) : HandleVisitor(thread) {}
 
-  void VisitHandle(uword addr) {
+  void VisitHandle(uword addr) override {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     ObjectPtr raw_obj = handle->ptr();
@@ -506,7 +507,7 @@ enum RootSlices {
 };
 
 void GCMarker::ResetSlices() {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->OwnsGCSafepoint());
 
   root_slices_started_ = 0;
   root_slices_finished_ = 0;
@@ -659,7 +660,7 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
   explicit ObjectIdRingClearPointerVisitor(IsolateGroup* isolate_group)
       : ObjectPointerVisitor(isolate_group) {}
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (ObjectPtr* current = first; current <= last; current++) {
       ObjectPtr raw_obj = *current;
       ASSERT(raw_obj->IsHeapObject());
@@ -670,11 +671,13 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     UNREACHABLE();  // ObjectIdRing is not compressed.
   }
+#endif
 };
 
 void GCMarker::ProcessObjectIdTable(Thread* thread) {
@@ -1022,35 +1025,37 @@ class VerifyAfterMarkingVisitor : public ObjectVisitor,
   VerifyAfterMarkingVisitor()
       : ObjectVisitor(), ObjectPointerVisitor(IsolateGroup::Current()) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsNewObject() || obj->untag()->IsMarked()) {
       obj->untag()->VisitPointers(this);
     }
   }
 
-  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr obj = *ptr;
       if (obj->IsHeapObject() && obj->IsOldObject() &&
           !obj->untag()->IsMarked()) {
-        FATAL("Not marked: *0x%" Px " = 0x%" Px "\n",
+        FATAL("Verifying after marking: Not marked: *0x%" Px " = 0x%" Px "\n",
               reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
       }
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
-                               CompressedObjectPtr* to) {
+                               CompressedObjectPtr* to) override {
     for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr obj = ptr->Decompress(heap_base);
       if (obj->IsHeapObject() && obj->IsOldObject() &&
           !obj->untag()->IsMarked()) {
-        FATAL("Not marked: *0x%" Px " = 0x%" Px "\n",
+        FATAL("Verifying after marking: Not marked: *0x%" Px " = 0x%" Px "\n",
               reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
       }
     }
   }
+#endif
 };
 
 void GCMarker::MarkObjects(PageSpace* page_space) {
@@ -1143,10 +1148,8 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
   // Separate from verify_after_gc because that verification interferes with
   // concurrent marking.
   if (FLAG_verify_after_marking) {
-    OS::PrintErr("Verifying after marking...");
     VerifyAfterMarkingVisitor visitor;
     heap_->VisitObjects(&visitor);
-    OS::PrintErr(" done.\n");
   }
 
   Epilogue();

@@ -5,22 +5,33 @@
 library fasta.tool.entry_points;
 
 import 'dart:convert' show JsonEncoder, LineSplitter, jsonDecode, utf8;
-
 import 'dart:io' show File, Platform, exitCode, stderr, stdin, stdout;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
-
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions;
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
-
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show LocatedMessage, codeInternalProblemVerificationError;
-
+import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
+import 'package:front_end/src/fasta/incremental_compiler.dart'
+    show IncrementalCompiler;
 import 'package:front_end/src/fasta/kernel/benchmarker.dart'
     show BenchmarkPhases, Benchmarker;
-
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show BuildResult, KernelTarget;
+import 'package:front_end/src/fasta/kernel/utils.dart'
+    show printComponentText, writeComponentToFile;
+import 'package:front_end/src/fasta/ticker.dart' show Ticker;
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
+import 'package:front_end/src/kernel_generator_impl.dart'
+    show generateKernelInternal;
 import 'package:kernel/kernel.dart'
     show
         CanonicalName,
@@ -29,43 +40,12 @@ import 'package:kernel/kernel.dart'
         RecursiveVisitor,
         Source,
         loadComponentFromBytes;
-
-import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
-
 import 'package:kernel/src/types.dart' show Types;
-
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
-
-import 'package:front_end/src/base/processed_options.dart'
-    show ProcessedOptions;
-
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
-
-import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
-
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
-
-import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show BuildResult, KernelTarget;
-
-import 'package:front_end/src/fasta/kernel/utils.dart'
-    show printComponentText, writeComponentToFile;
-
-import 'package:front_end/src/fasta/ticker.dart' show Ticker;
-
-import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
-
-import 'package:front_end/src/kernel_generator_impl.dart'
-    show generateKernelInternal;
+import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
+import 'package:kernel/verifier.dart';
 
 import 'additional_targets.dart' show installAdditionalTargets;
-
 import 'bench_maker.dart' show BenchMaker;
-
 import 'command_line.dart' show runProtectedFromAbort, withGlobalOptions;
 
 const bool benchmark =
@@ -538,6 +518,8 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary!);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
+  verifyComponent(c.options.target,
+      VerificationStage.afterModularTransformations, result.component!);
   await writeComponentToFile(result.component!, fullOutput);
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");

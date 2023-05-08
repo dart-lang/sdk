@@ -42,6 +42,14 @@ library myLib;
     node as CompilationUnit;
   }
 
+  Future<void> test_atEOF() async {
+    var node = await coveringNode('''
+library myLib;
+
+^''');
+    node as CompilationUnit;
+  }
+
   Future<void> test_before_firstNonEOF() async {
     var node = await coveringNode('''
 ^

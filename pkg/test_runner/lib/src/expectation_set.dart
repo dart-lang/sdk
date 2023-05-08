@@ -60,9 +60,9 @@ class ExpectationSet {
         var regExp = _globCache.putIfAbsent(part, () {
           return RegExp("^${part.replaceAll("*", ".*")}" r"$");
         });
-        tree = tree.regExpChildren.putIfAbsent(regExp, () => _PathNode());
+        tree = tree.regExpChildren.putIfAbsent(regExp, _PathNode.new);
       } else {
-        tree = tree.stringChildren.putIfAbsent(part, () => _PathNode());
+        tree = tree.stringChildren.putIfAbsent(part, _PathNode.new);
       }
     }
 

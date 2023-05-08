@@ -214,8 +214,11 @@ class MacroDataComputer extends DataComputer<String> {
               typesSources.write(
                   '\n${codeToString(result.libraryAugmentations.single)}');
             }
-            mergedClassTypes
-                .addAll(result.classAugmentations[entry.key.name] ?? const []);
+            for (var identifier in result.typeAugmentations.keys) {
+              if (identifier.name == entry.key.name) {
+                mergedClassTypes.addAll(result.typeAugmentations[identifier]!);
+              }
+            }
           }
         }
       }
@@ -258,8 +261,12 @@ class MacroDataComputer extends DataComputer<String> {
             definitionsSources
                 .write('\n${codeToString(result.libraryAugmentations.single)}');
           }
-          mergedClassDefinitions
-              .addAll(result.classAugmentations[entry.key.name] ?? const []);
+          for (var identifier in result.typeAugmentations.keys) {
+            if (identifier.name == entry.key.name) {
+              mergedClassDefinitions
+                  .addAll(result.typeAugmentations[identifier]!);
+            }
+          }
         }
       }
     }

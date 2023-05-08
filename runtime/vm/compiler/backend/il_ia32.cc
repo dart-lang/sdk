@@ -1427,12 +1427,11 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register temp_reg = bytes_reg;
   const XmmRegister vector_reg = FpuTMP;
 
-  static const intptr_t kBytesEndTempOffset = 1 * compiler::target::kWordSize;
-  static const intptr_t kBytesEndMinus16TempOffset =
-      0 * compiler::target::kWordSize;
+  const intptr_t kBytesEndTempOffset = 1 * compiler::target::kWordSize;
+  const intptr_t kBytesEndMinus16TempOffset = 0 * compiler::target::kWordSize;
 
-  static const intptr_t kSizeMask = 0x03;
-  static const intptr_t kFlagsMask = 0x3C;
+  const intptr_t kSizeMask = 0x03;
+  const intptr_t kFlagsMask = 0x3C;
 
   compiler::Label scan_ascii, ascii_loop, ascii_loop_in, nonascii_loop;
   compiler::Label rest, rest_loop, rest_loop_in, done;

@@ -30,6 +30,8 @@ import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_field_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_if_case_statement.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_if_case_statement_chain.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_multiline_string.dart';
@@ -40,6 +42,8 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_relative
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_super_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_switch_expression.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_switch_statement.dart';
+import 'package:analysis_server/src/services/correction/dart/destructure_local_variable_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/encapsulate_field.dart';
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_convert_to_children.dart';
@@ -56,7 +60,6 @@ import 'package:analysis_server/src/services/correction/dart/flutter_wrap_generi
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap_stream_builder.dart';
 import 'package:analysis_server/src/services/correction/dart/import_add_show.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
-import 'package:analysis_server/src/services/correction/dart/introduce_local_cast_type.dart';
 import 'package:analysis_server/src/services/correction/dart/invert_if_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/join_if_with_inner.dart';
 import 'package:analysis_server/src/services/correction/dart/join_if_with_outer.dart';
@@ -98,6 +101,7 @@ class AssistProcessor extends BaseProcessor {
     ConvertConditionalExpressionToIfElement.new,
     ConvertDocumentationIntoBlock.new,
     ConvertDocumentationIntoLine.new,
+    ConvertIfStatementToSwitchStatement.new,
     ConvertIntoAsyncBody.new,
     ConvertIntoBlockBody.new,
     ConvertIntoFinalField.new,
@@ -107,10 +111,13 @@ class AssistProcessor extends BaseProcessor {
     ConvertIntoIsNotEmpty.new,
     ConvertMapFromIterableToForLiteral.new,
     ConvertPartOfToUri.new,
+    ConvertSwitchExpressionToSwitchStatement.new,
     ConvertToDoubleQuotes.new,
     ConvertToExpressionFunctionBody.new,
     ConvertToFieldParameter.new,
     ConvertToGenericFunctionSyntax.new,
+    ConvertToIfCaseStatement.new,
+    ConvertToIfCaseStatementChain.new,
     ConvertToIntLiteral.new,
     ConvertToMapLiteral.new,
     ConvertToMultilineString.new,
@@ -122,6 +129,7 @@ class AssistProcessor extends BaseProcessor {
     ConvertToSingleQuotes.new,
     ConvertToSuperParameters.new,
     ConvertToSwitchExpression.new,
+    DestructureLocalVariableAssignment.new,
     EncapsulateField.new,
     ExchangeOperands.new,
     FlutterConvertToChildren.new,
@@ -137,12 +145,11 @@ class AssistProcessor extends BaseProcessor {
     FlutterWrapStreamBuilder.new,
     ImportAddShow.new,
     InlineInvocation.new,
-    IntroduceLocalCastType.new,
     InvertIfStatement.new,
     JoinIfWithInner.new,
     JoinIfWithOuter.new,
     JoinVariableDeclaration.new,
-    RemoveTypeAnnotation.new,
+    RemoveTypeAnnotation.other,
     ReplaceConditionalWithIfElse.new,
     ReplaceIfElseWithConditional.new,
     ReplaceWithVar.new,

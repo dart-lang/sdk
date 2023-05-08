@@ -178,6 +178,12 @@ class DartUnitHighlightsComputer {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;
+      if (parent is ConstructorDeclaration) {
+        semanticModifiers = {
+          CustomSemanticTokenModifiers.constructor,
+          SemanticTokenModifiers.declaration
+        };
+      }
     }
 
     if (_isAnnotationIdentifier(node)) {
@@ -217,7 +223,7 @@ class DartUnitHighlightsComputer {
     var element = node.writeOrReadElement;
     if (element is LocalVariableElement) {
       var elementType = element.type;
-      if (elementType.isDynamic) {
+      if (elementType is DynamicType) {
         var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
             : HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE;
@@ -226,7 +232,7 @@ class DartUnitHighlightsComputer {
     }
     if (element is ParameterElement) {
       var elementType = element.type;
-      if (elementType.isDynamic) {
+      if (elementType is DynamicType) {
         var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
             : HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE;
@@ -595,7 +601,7 @@ class DartUnitHighlightsComputer {
 
   static bool _isDynamicExpression(Expression e) {
     var type = e.staticType;
-    return type != null && type.isDynamic;
+    return type != null && type is DynamicType;
   }
 }
 
@@ -704,7 +710,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(node.finalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
-    computer._addRegion_token(node.name, HighlightRegionType.CLASS);
+    computer._addRegion_token(node.name, HighlightRegionType.CLASS,
+        semanticTokenModifiers: {SemanticTokenModifiers.declaration});
     super.visitClassDeclaration(node);
   }
 
@@ -740,6 +747,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       semanticTokenType: SemanticTokenTypes.method,
       semanticTokenModifiers: {
         CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
       },
     );
     super.visitConstructorDeclaration(node);
@@ -1154,11 +1162,11 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var type = node.type;
     if (type != null) {
-      var isDynamic = type.isDynamic && node.name.name == 'dynamic';
+      var isDynamic = type is DynamicType && node.name2.lexeme == 'dynamic';
       var isNever = type is NeverType;
       if (isDynamic || isNever) {
-        computer._addRegion_node(
-          node.name,
+        computer._addRegion_token(
+          node.name2,
           isDynamic
               ? HighlightRegionType.TYPE_NAME_DYNAMIC
               : HighlightRegionType.CLASS,
@@ -1520,7 +1528,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
           computer._addRegion(node.offset + offset, length,
               HighlightRegionType.VALID_STRING_ESCAPE);
         });
-        break;
       case Quote.RawSingle:
       case Quote.RawDouble:
       case Quote.RawMultiLineSingle:

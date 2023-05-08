@@ -22,7 +22,7 @@ const char* RepresentationToCString(Representation rep);
 // Graph printing.
 class FlowGraphPrinter : public ValueObject {
  public:
-  static const intptr_t kPrintAll = -1;
+  static constexpr intptr_t kPrintAll = -1;
 
   explicit FlowGraphPrinter(const FlowGraph& flow_graph,
                             bool print_locations = false)

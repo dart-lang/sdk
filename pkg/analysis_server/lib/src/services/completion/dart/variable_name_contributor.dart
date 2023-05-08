@@ -40,20 +40,16 @@ class VariableNameContributor extends DartCompletionContributor {
           strName = _getStringName(expression);
         }
       } else if (node is RecordTypeAnnotationField) {
-        final identifier = _typeAnnotationIdentifier(node.type);
-        if (identifier != null) {
-          strName = _getStringName(identifier);
-        }
+        strName = _namedType(node.type)?.name2.lexeme;
       } else if (node is SimpleFormalParameter) {
-        var identifier = _formalParameterTypeIdentifier2(node);
-        if (identifier != null) {
-          strName = _getStringName(identifier);
+        final namedType = _formalParameterNamedType(node);
+        if (namedType != null) {
+          strName = namedType.name2.lexeme;
         } else {
           strName = node.name?.lexeme;
         }
       } else if (node is VariableDeclarationList) {
-        var identifier = _typeAnnotationIdentifier(node.type);
-        strName = _getStringName(identifier);
+        strName = _namedType(node.type)?.name2.lexeme;
       } else if (node is TopLevelVariableDeclaration) {
         // The parser parses 'Foo ' and 'Foo ;' differently, resulting in the
         // following.
@@ -63,8 +59,7 @@ class VariableNameContributor extends DartCompletionContributor {
         var varDeclarationList = node.variables;
         var typeAnnotation = varDeclarationList.type;
         if (typeAnnotation != null) {
-          var identifier = _typeAnnotationIdentifier(typeAnnotation);
-          strName = _getStringName(identifier);
+          strName = _namedType(typeAnnotation)?.name2.lexeme;
         } else {
           var varDeclarations = varDeclarationList.variables;
           if (varDeclarations.length == 1) {
@@ -112,19 +107,16 @@ class VariableNameContributor extends DartCompletionContributor {
     return id.name;
   }
 
-  static Identifier? _formalParameterTypeIdentifier2(FormalParameter node) {
+  static NamedType? _formalParameterNamedType(FormalParameter node) {
     if (node is SimpleFormalParameter) {
-      var type = node.type;
-      if (type != null) {
-        return _typeAnnotationIdentifier(type);
-      }
+      return _namedType(node.type);
     }
     return null;
   }
 
-  static Identifier? _typeAnnotationIdentifier(TypeAnnotation? type) {
+  static NamedType? _namedType(TypeAnnotation? type) {
     if (type is NamedType) {
-      return type.name;
+      return type;
     }
     return null;
   }

@@ -6,12 +6,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'arglist_contributor_test.dart' as arglist_test;
 import 'closure_contributor_test.dart' as closure_contributor;
-import 'combinator_contributor_test.dart' as combinator_test;
 import 'completion_manager_test.dart' as completion_manager;
 import 'declaration/test_all.dart' as declaration;
 import 'extension_member_contributor_test.dart' as extension_member_contributor;
 import 'imported_reference_contributor_test.dart' as imported_ref_test;
-import 'keyword_contributor_test.dart' as keyword_test;
 import 'label_contributor_test.dart' as label_contributor_test;
 import 'library_member_contributor_test.dart' as library_member_test;
 import 'library_prefix_contributor_test.dart' as library_prefix_test;
@@ -30,12 +28,10 @@ void main() {
   defineReflectiveSuite(() {
     arglist_test.main();
     closure_contributor.main();
-    combinator_test.main();
     completion_manager.main();
     declaration.main();
     extension_member_contributor.main();
     imported_ref_test.main();
-    keyword_test.main();
     label_contributor_test.main();
     library_member_test.main();
     library_prefix_test.main();

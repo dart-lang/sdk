@@ -83,7 +83,7 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
         thread_(thread),
         visiting_object_(nullptr) {}
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (ObjectPtr* p = first; p <= last; p++) {
       ObjectPtr old_target = *p;
       ObjectPtr new_target;
@@ -107,9 +107,10 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     for (CompressedObjectPtr* p = first; p <= last; p++) {
       ObjectPtr old_target = p->Decompress(heap_base);
       ObjectPtr new_target;
@@ -134,6 +135,7 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
       }
     }
   }
+#endif
 
   void VisitingObject(ObjectPtr obj) {
     visiting_object_ = obj;
@@ -159,7 +161,7 @@ class ForwardHeapPointersVisitor : public ObjectVisitor {
   explicit ForwardHeapPointersVisitor(ForwardPointersVisitor* pointer_visitor)
       : pointer_visitor_(pointer_visitor) {}
 
-  virtual void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     pointer_visitor_->VisitingObject(obj);
     obj->untag()->VisitPointers(pointer_visitor_);
   }
@@ -175,7 +177,7 @@ class ForwardHeapPointersHandleVisitor : public HandleVisitor {
   explicit ForwardHeapPointersHandleVisitor(Thread* thread)
       : HandleVisitor(thread) {}
 
-  virtual void VisitHandle(uword addr) {
+  void VisitHandle(uword addr) override {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     if (IsForwardingObject(handle->ptr())) {

@@ -1077,13 +1077,13 @@ class C {
     MethodDeclaration method = declaration.members[0] as MethodDeclaration;
     BlockFunctionBody body = method.body as BlockFunctionBody;
     IfStatement ifStatement = body.block.statements[1] as IfStatement;
-    IsExpression expression = ifStatement.condition as IsExpression;
+    IsExpression expression = ifStatement.expression as IsExpression;
     expect(expression.expression, isNotNull);
     expect(expression.isOperator, isNotNull);
     expect(expression.notOperator, isNotNull);
     TypeAnnotation type = expression.type;
     expect(type, isNotNull);
-    expect(type is NamedType && type.name.isSynthetic, isTrue);
+    expect(type is NamedType && type.name2.isSynthetic, isTrue);
     var thenStatement = ifStatement.thenStatement as ExpressionStatement;
     expect(thenStatement.semicolon!.isSynthetic, isTrue);
     var simpleId = thenStatement.expression as SimpleIdentifier;

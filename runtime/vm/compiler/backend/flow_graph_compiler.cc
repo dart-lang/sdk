@@ -2112,7 +2112,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   EmitTestAndCallLoadReceiver(args_info.count_without_type_args,
                               arguments_descriptor);
 
-  static const int kNoCase = -1;
+  const int kNoCase = -1;
   int smi_case = kNoCase;
   int which_case_to_skip = kNoCase;
 
@@ -2492,6 +2492,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   ASSERT(type.IsInstantiated());
   ASSERT(!type.IsFunctionType());
   ASSERT(!type.IsRecordType());
+  ASSERT(type.IsType());
   const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
   ASSERT(type_class.NumTypeArguments() > 0);
   const Type& smi_type = Type::Handle(zone(), Type::SmiType());
@@ -2499,13 +2500,10 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   __ BranchIfSmi(TypeTestABI::kInstanceReg,
                  smi_is_ok ? is_instance_lbl : is_not_instance_lbl);
 
-  const intptr_t num_type_args = type_class.NumTypeArguments();
-  const intptr_t num_type_params = type_class.NumTypeParameters();
-  const intptr_t from_index = num_type_args - num_type_params;
   const TypeArguments& type_arguments =
-      TypeArguments::ZoneHandle(zone(), type.arguments());
+      TypeArguments::ZoneHandle(zone(), Type::Cast(type).arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
-                           type_arguments.IsRaw(from_index, num_type_params);
+                           type_arguments.IsRaw(0, type_arguments.Length());
   // We don't use TypeTestABI::kScratchReg as it is not defined on IA32.
   // Instead, we use the subtype test cache register, as it is clobbered by the
   // subtype test cache stub call anyway.

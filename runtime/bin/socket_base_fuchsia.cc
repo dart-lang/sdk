@@ -77,8 +77,8 @@ bool SocketBase::FormatNumericAddress(const RawAddr& addr,
                                       int len) {
   socklen_t salen = SocketAddress::GetAddrLength(addr);
   LOG_INFO("SocketBase::FormatNumericAddress: calling getnameinfo\n");
-  return (NO_RETRY_EXPECTED(getnameinfo(&addr.addr, salen, address, len, NULL,
-                                        0, NI_NUMERICHOST) == 0));
+  return (NO_RETRY_EXPECTED(getnameinfo(&addr.addr, salen, address, len,
+                                        nullptr, 0, NI_NUMERICHOST) == 0));
 }
 
 bool SocketBase::IsBindError(intptr_t error_number) {
@@ -223,7 +223,7 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   RawAddr raw;
   socklen_t size = sizeof(raw);
   if (NO_RETRY_EXPECTED(getpeername(handle->fd(), &raw.addr, &size))) {
-    return NULL;
+    return nullptr;
   }
   *port = SocketAddress::GetAddrPort(raw);
   return new SocketAddress(&raw.addr);
@@ -259,31 +259,31 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_ADDRCONFIG;
   hints.ai_protocol = IPPROTO_TCP;
-  struct addrinfo* info = NULL;
+  struct addrinfo* info = nullptr;
   LOG_INFO("SocketBase::LookupAddress: calling getaddrinfo\n");
-  int status = NO_RETRY_EXPECTED(getaddrinfo(host, 0, &hints, &info));
+  int status = NO_RETRY_EXPECTED(getaddrinfo(host, nullptr, &hints, &info));
   if (status != 0) {
     // We failed, try without AI_ADDRCONFIG. This can happen when looking up
     // e.g. '::1', when there are no global IPv6 addresses.
     hints.ai_flags = 0;
     LOG_INFO("SocketBase::LookupAddress: calling getaddrinfo again\n");
-    status = NO_RETRY_EXPECTED(getaddrinfo(host, 0, &hints, &info));
+    status = NO_RETRY_EXPECTED(getaddrinfo(host, nullptr, &hints, &info));
     if (status != 0) {
-      ASSERT(*os_error == NULL);
+      ASSERT(*os_error == nullptr);
       *os_error =
           new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
-      return NULL;
+      return nullptr;
     }
   }
   intptr_t count = 0;
-  for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
+  for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
     if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
       count++;
     }
   }
   intptr_t i = 0;
   AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
-  for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
+  for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
     if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
       addresses->SetAt(i, new SocketAddress(c->ai_addr));
       i++;
@@ -315,16 +315,17 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
 
 bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
   if (addr->addr.sa_family == AF_INET) {
-    return inet_ntop(AF_INET, &addr->in.sin_addr, str, INET_ADDRSTRLEN) != NULL;
+    return inet_ntop(AF_INET, &addr->in.sin_addr, str, INET_ADDRSTRLEN) !=
+           nullptr;
   } else {
     ASSERT(addr->addr.sa_family == AF_INET6);
     return inet_ntop(AF_INET6, &addr->in6.sin6_addr, str, INET6_ADDRSTRLEN) !=
-           NULL;
+           nullptr;
   }
 }
 
 static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
-  if (ifa->ifa_addr == NULL) {
+  if (ifa->ifa_addr == nullptr) {
     // OpenVPN's virtual device tun0.
     return false;
   }
@@ -341,16 +342,16 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
 
   int status = NO_RETRY_EXPECTED(getifaddrs(&ifaddr));
   if (status != 0) {
-    ASSERT(*os_error == NULL);
+    ASSERT(*os_error == nullptr);
     *os_error =
         new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
-    return NULL;
+    return nullptr;
   }
 
   int lookup_family = SocketAddress::FromType(type);
 
   intptr_t count = 0;
-  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+  for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
     if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
       count++;
     }
@@ -359,7 +360,7 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
   AddressList<InterfaceSocketAddress>* addresses =
       new AddressList<InterfaceSocketAddress>(count);
   int i = 0;
-  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+  for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
     if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
       char* ifa_name = DartUtils::ScopedCopyCString(ifa->ifa_name);
       addresses->SetAt(

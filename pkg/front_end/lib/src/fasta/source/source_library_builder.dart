@@ -1959,7 +1959,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
         checkTypeVariables(typeVariables, classBuilder);
-    void setParent(String name, MemberBuilder? member) {
+    void setParent(MemberBuilder? member) {
       while (member != null) {
         member.parent = classBuilder;
         member = member.next as MemberBuilder?;
@@ -1980,7 +1980,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ]);
         }
       }
-      setParent(name, member as MemberBuilder);
+      setParent(member as MemberBuilder);
     }
 
     members.forEach(setParentAndCheckConflicts);
@@ -2173,7 +2173,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
         checkTypeVariables(typeVariables, extensionBuilder);
-    void setParent(String name, MemberBuilder? member) {
+    void setParent(MemberBuilder? member) {
       while (member != null) {
         member.parent = extensionBuilder;
         member = member.next as MemberBuilder?;
@@ -2194,7 +2194,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ]);
         }
       }
-      setParent(name, member as MemberBuilder);
+      setParent(member as MemberBuilder);
     }
 
     members.forEach(setParentAndCheckConflicts);
@@ -2265,7 +2265,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
         checkTypeVariables(typeVariables, inlineClassBuilder);
-    void setParent(String name, MemberBuilder? member) {
+    void setParent(MemberBuilder? member) {
       while (member != null) {
         member.parent = inlineClassBuilder;
         member = member.next as MemberBuilder?;
@@ -2286,7 +2286,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ]);
         }
       }
-      setParent(name, member as MemberBuilder);
+      setParent(member as MemberBuilder);
     }
 
     members.forEach(setParentAndCheckConflicts);
@@ -3165,7 +3165,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Map<String, TypeVariableBuilder>? typeVariablesByName =
         checkTypeVariables(typeVariables, enumBuilder);
 
-    void setParent(String name, MemberBuilder? member) {
+    void setParent(MemberBuilder? member) {
       while (member != null) {
         member.parent = enumBuilder;
         member = member.next as MemberBuilder?;
@@ -3186,7 +3186,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ]);
         }
       }
-      setParent(name, member as MemberBuilder);
+      setParent(member as MemberBuilder);
     }
 
     members.forEach(setParentAndCheckConflicts);
@@ -4466,10 +4466,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {bool inferred = false}) {
     if (node.arguments.types.isEmpty) return;
     Procedure factory = node.target;
-    assert(factory.isFactory);
-    Class klass = factory.enclosingClass!;
-    DartType constructedType = new InterfaceType(
-        klass, klass.enclosingLibrary.nonNullable, node.arguments.types);
+    assert(factory.isFactory || factory.isInlineClassMember);
+    DartType constructedType = Substitution.fromPairs(
+            node.target.function.typeParameters, node.arguments.types)
+        .substituteType(node.target.function.returnType);
     checkBoundsInType(
         constructedType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: false);

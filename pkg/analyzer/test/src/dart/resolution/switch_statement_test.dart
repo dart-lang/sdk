@@ -174,10 +174,8 @@ SwitchStatement
           expression: InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
-                name: SimpleIdentifier
-                  token: A
-                  staticElement: self::@class::A
-                  staticType: null
+                name: A
+                element: self::@class::A
                 type: A
               staticElement: self::@class::A::@constructor::new
             argumentList: ArgumentList
@@ -274,10 +272,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48
@@ -304,10 +300,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@75
@@ -369,10 +363,8 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           keyword: final
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: isFinal a@54
@@ -400,10 +392,8 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           keyword: final
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: isFinal a@87
@@ -465,10 +455,8 @@ SwitchStatement
         pattern: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@48
@@ -480,10 +468,8 @@ SwitchStatement
             elements
               DeclaredVariablePattern
                 type: NamedType
-                  name: SimpleIdentifier
-                    token: int
-                    staticElement: dart:core::@class::int
-                    staticType: null
+                  name: int
+                  element: dart:core::@class::int
                   type: int
                 name: a
                 declaredElement: a@58
@@ -515,10 +501,8 @@ SwitchStatement
         pattern: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@86
@@ -530,10 +514,8 @@ SwitchStatement
             elements
               DeclaredVariablePattern
                 type: NamedType
-                  name: SimpleIdentifier
-                    token: int
-                    staticElement: dart:core::@class::int
-                    staticType: null
+                  name: int
+                  element: dart:core::@class::int
                   type: int
                 name: a
                 declaredElement: a@96
@@ -605,10 +587,8 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           keyword: final
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: isFinal a@54
@@ -635,10 +615,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@81
@@ -706,10 +684,8 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           keyword: final
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: isFinal a@54
@@ -736,10 +712,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: num
-              staticElement: dart:core::@class::num
-              staticType: null
+            name: num
+            element: dart:core::@class::num
             type: num
           name: a
           declaredElement: a@81
@@ -806,10 +780,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48
@@ -836,10 +808,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: num
-              staticElement: dart:core::@class::num
-              staticType: null
+            name: num
+            element: dart:core::@class::num
             type: num
           name: a
           declaredElement: a@75
@@ -914,10 +884,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@60
@@ -983,10 +951,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48
@@ -1059,10 +1025,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48
@@ -1110,7 +1074,7 @@ void f(Object? x) {
 }
 ''', [
       error(WarningCode.DEAD_CODE, 55, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 55, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 55, 4),
       error(WarningCode.DEAD_CODE, 71, 7),
       error(CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
           86, 1),
@@ -1201,10 +1165,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@61
@@ -1281,10 +1243,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48
@@ -1296,10 +1256,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: double
-              staticElement: dart:core::@class::double
-              staticType: null
+            name: double
+            element: dart:core::@class::double
             type: double
           name: b
           declaredElement: b@67
@@ -1311,10 +1269,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: String
-              staticElement: dart:core::@class::String
-              staticType: null
+            name: String
+            element: dart:core::@class::String
             type: String
           name: c
           declaredElement: c@86
@@ -1376,10 +1332,8 @@ SwitchStatement
             leftBracket: <
             arguments
               NamedType
-                name: SimpleIdentifier
-                  token: int
-                  staticElement: dart:core::@class::int
-                  staticType: null
+                name: int
+                element: dart:core::@class::int
                 type: int
             rightBracket: >
           leftBracket: [
@@ -1450,10 +1404,8 @@ SwitchStatement
           elements
             DeclaredVariablePattern
               type: NamedType
-                name: SimpleIdentifier
-                  token: int
-                  staticElement: dart:core::@class::int
-                  staticType: null
+                name: int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredElement: a@62
@@ -1524,10 +1476,8 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48

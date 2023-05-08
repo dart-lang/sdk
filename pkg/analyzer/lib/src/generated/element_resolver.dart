@@ -161,7 +161,7 @@ class ElementResolver {
     if (type == null) {
       return;
     }
-    if (type.isDynamic) {
+    if (type is DynamicType) {
       // Nothing to do.
     } else if (type is InterfaceType) {
       // look up ConstructorElement
@@ -390,10 +390,10 @@ class ElementResolver {
     // TODO(brianwilkerson) Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
-    var superclassName = declaration?.extendsClause?.superclass.name;
-    if (superclassName != null &&
+    var extendedNamedType = declaration?.extendsClause?.superclass;
+    if (extendedNamedType != null &&
         _resolver.definingLibrary
-            .shouldIgnoreUndefinedIdentifier(superclassName)) {
+            .shouldIgnoreUndefinedNamedType(extendedNamedType)) {
       return;
     }
     var argumentList = node.argumentList;

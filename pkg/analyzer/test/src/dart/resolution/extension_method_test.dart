@@ -460,39 +460,31 @@ extension E<S> on C<S> {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: C
-    staticElement: self::@class::C
-    staticType: null
+  name: C
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: S
-          staticElement: S@26
-          staticType: null
+        name: S
+        element: S@26
         type: S
     rightBracket: >
+  element: self::@class::C
   type: C<S>
 ''');
     } else {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: C
-    staticElement: self::@class::C
-    staticType: null
+  name: C
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: S
-          staticElement: S@26
-          staticType: null
+        name: S
+        element: S@26
         type: S*
     rightBracket: >
+  element: self::@class::C
   type: C<S*>*
 ''');
     }
@@ -506,19 +498,15 @@ extension E on dynamic {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: dynamic
-    staticElement: dynamic@-1
-    staticType: null
+  name: dynamic
+  element: dynamic@-1
   type: dynamic
 ''');
     } else {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: dynamic
-    staticElement: dynamic@-1
-    staticType: null
+  name: dynamic
+  element: dynamic@-1
   type: dynamic
 ''');
     }
@@ -533,19 +521,15 @@ extension E on A {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@enum::A
-    staticType: null
+  name: A
+  element: self::@enum::A
   type: A
 ''');
     } else {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@enum::A
-    staticType: null
+  name: A
+  element: self::@enum::A
   type: A*
 ''');
     }
@@ -560,20 +544,16 @@ extension E on int Function(int) {}
       assertResolvedNodeText(extendedType, r'''
 GenericFunctionType
   returnType: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       declaredElement: @-1
         type: int
@@ -591,20 +571,16 @@ GenericFunctionType
       assertResolvedNodeText(extendedType, r'''
 GenericFunctionType
   returnType: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int*
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int*
       declaredElement: @-1
         type: int*
@@ -630,19 +606,15 @@ extension E on C {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: C
-    staticElement: self::@class::C
-    staticType: null
+  name: C
+  element: self::@class::C
   type: C
 ''');
     } else {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: C
-    staticElement: self::@class::C
-    staticType: null
+  name: C
+  element: self::@class::C
   type: C*
 ''');
     }
@@ -658,19 +630,15 @@ extension E on M {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: M
-    staticElement: self::@mixin::M
-    staticType: null
+  name: M
+  element: self::@mixin::M
   type: M
 ''');
     } else {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: M
-    staticElement: self::@mixin::M
-    staticType: null
+  name: M
+  element: self::@mixin::M
   type: M*
 ''');
     }
@@ -685,39 +653,31 @@ extension<S> on C<S> {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: C
-    staticElement: self::@class::C
-    staticType: null
+  name: C
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: S
-          staticElement: S@24
-          staticType: null
+        name: S
+        element: S@24
         type: S
     rightBracket: >
+  element: self::@class::C
   type: C<S>
 ''');
     } else {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: C
-    staticElement: self::@class::C
-    staticType: null
+  name: C
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: S
-          staticElement: S@24
-          staticType: null
+        name: S
+        element: S@24
         type: S*
     rightBracket: >
+  element: self::@class::C
   type: C<S*>*
 ''');
     }
@@ -731,19 +691,15 @@ extension on dynamic {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: dynamic
-    staticElement: dynamic@-1
-    staticType: null
+  name: dynamic
+  element: dynamic@-1
   type: dynamic
 ''');
     } else {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: dynamic
-    staticElement: dynamic@-1
-    staticType: null
+  name: dynamic
+  element: dynamic@-1
   type: dynamic
 ''');
     }
@@ -758,19 +714,15 @@ extension on A {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@enum::A
-    staticType: null
+  name: A
+  element: self::@enum::A
   type: A
 ''');
     } else {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@enum::A
-    staticType: null
+  name: A
+  element: self::@enum::A
   type: A*
 ''');
     }
@@ -785,20 +737,16 @@ extension on int Function(String) {}
       assertResolvedNodeText(extendedType, r'''
 GenericFunctionType
   returnType: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
       declaredElement: @-1
         type: String
@@ -816,20 +764,16 @@ GenericFunctionType
       assertResolvedNodeText(extendedType, r'''
 GenericFunctionType
   returnType: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int*
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String*
       declaredElement: @-1
         type: String*
@@ -855,19 +799,15 @@ extension on C {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: C
-    staticElement: self::@class::C
-    staticType: null
+  name: C
+  element: self::@class::C
   type: C
 ''');
     } else {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: C
-    staticElement: self::@class::C
-    staticType: null
+  name: C
+  element: self::@class::C
   type: C*
 ''');
     }
@@ -883,19 +823,15 @@ extension on M {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: M
-    staticElement: self::@mixin::M
-    staticType: null
+  name: M
+  element: self::@mixin::M
   type: M
 ''');
     } else {
       assertResolvedNodeText(extendedType, r'''
 NamedType
-  name: SimpleIdentifier
-    token: M
-    staticElement: self::@mixin::M
-    staticType: null
+  name: M
+  element: self::@mixin::M
   type: M*
 ''');
     }
@@ -4324,8 +4260,35 @@ extension E on C {
   int m() => this.a;
 }
 ''');
-    var access = findNode.propertyAccess('this.a');
-    assertPropertyAccess(access, findElement.getter('a', of: 'E'), 'int');
+
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: self::@extension::E::@getter::a
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: self::@extension::E::@getter::a
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_instance_method_fromInstance() async {

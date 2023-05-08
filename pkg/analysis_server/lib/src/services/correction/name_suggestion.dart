@@ -58,7 +58,7 @@ List<String> getVariableNameSuggestionsForExpression(DartType? expectedType,
     }
   }
   // use type
-  if (expectedType != null && !expectedType.isDynamic) {
+  if (expectedType != null && expectedType is! DynamicType) {
     if (expectedType.isDartCoreInt) {
       _addSingleCharacterName(excluded, res, 0x69);
     } else if (expectedType.isDartCoreDouble) {
@@ -182,21 +182,17 @@ String? _getBaseNameFromUnwrappedExpression(Expression expression) {
   } else if (expression is InstanceCreationExpression) {
     var constructorName = expression.constructorName;
     var namedType = constructorName.type;
-    var typeNameIdentifier = namedType.name;
+    var importPrefix = namedType.importPrefix;
     // new ClassName()
-    if (typeNameIdentifier is SimpleIdentifier) {
-      return typeNameIdentifier.name;
+    if (importPrefix == null) {
+      return namedType.name2.lexeme;
     }
-    // new prefix.name();
-    if (typeNameIdentifier is PrefixedIdentifier) {
-      var prefixed = typeNameIdentifier;
-      // new prefix.ClassName()
-      if (prefixed.prefix.staticElement is PrefixElement) {
-        return prefixed.identifier.name;
-      }
-      // new ClassName.constructorName()
-      return prefixed.prefix.name;
+    // new prefix.ClassName()
+    if (importPrefix.element is PrefixElement) {
+      return namedType.name2.lexeme;
     }
+    // new ClassName.constructorName()
+    return importPrefix.name.lexeme;
   } else if (expression is IndexExpression) {
     name = _getBaseNameFromExpression(expression.realTarget);
     if (name != null && name.endsWith('s')) {

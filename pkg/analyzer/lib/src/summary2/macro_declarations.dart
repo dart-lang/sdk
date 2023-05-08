@@ -43,8 +43,8 @@ class DeclarationBuilder {
   /// mixins, etc.
   void transferToElements() {
     // TODO(scheglov) Make sure that these are only declarations?
-    for (final entry in fromNode._referencedIdentifierMap.entries) {
-      final element = entry.key.staticElement;
+    for (final entry in fromNode._namedTypeMap.entries) {
+      final element = entry.key.element;
       if (element != null) {
         final declaration = entry.value;
         fromElement._identifierMap[element] = declaration;
@@ -129,7 +129,7 @@ class DeclarationBuilderFromElement {
       isFinal: element.isFinal,
       isLate: element.isLate,
       type: _dartType(element.type),
-      definingClass: identifier(enclosingClass),
+      definingType: identifier(enclosingClass),
       isStatic: element.isStatic,
     );
   }
@@ -173,8 +173,7 @@ class DeclarationBuilderFromElement {
 }
 
 class DeclarationBuilderFromNode {
-  final Map<ast.SimpleIdentifier, IdentifierImpl> _referencedIdentifierMap =
-      Map.identity();
+  final Map<ast.NamedType, IdentifierImpl> _namedTypeMap = Map.identity();
 
   final Map<Element, IdentifierImpl> _declaredIdentifierMap = Map.identity();
 
@@ -241,18 +240,11 @@ class DeclarationBuilderFromNode {
     );
   }
 
-  macro.IdentifierImpl _referencedIdentifier(ast.Identifier node) {
-    final ast.SimpleIdentifier simpleIdentifier;
-    if (node is ast.SimpleIdentifier) {
-      simpleIdentifier = node;
-    } else {
-      simpleIdentifier = (node as ast.PrefixedIdentifier).identifier;
-    }
-    return _referencedIdentifierMap[simpleIdentifier] ??=
-        _ReferencedIdentifierImpl(
+  macro.IdentifierImpl _namedTypeIdentifier(ast.NamedType node) {
+    return _namedTypeMap[node] ??= _NamedTypeIdentifierImpl(
       id: macro.RemoteInstance.uniqueId,
-      name: simpleIdentifier.name,
-      node: simpleIdentifier,
+      name: node.name2.lexeme,
+      node: node,
     );
   }
 
@@ -280,7 +272,7 @@ class DeclarationBuilderFromNode {
     } else if (node is ast.NamedType) {
       return macro.NamedTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
-        identifier: _referencedIdentifier(node.name),
+        identifier: _namedTypeIdentifier(node),
         isNullable: node.question != null,
         typeArguments: _typeAnnotations(node.typeArguments?.arguments),
       ) as T;
@@ -329,7 +321,7 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
     required super.isFinal,
     required super.isLate,
     required super.type,
-    required super.definingClass,
+    required super.definingType,
     required super.isStatic,
   });
 }
@@ -386,17 +378,17 @@ class _DeclaredIdentifierImpl extends IdentifierImpl {
   });
 }
 
-class _ReferencedIdentifierImpl extends IdentifierImpl {
-  final ast.SimpleIdentifier node;
+class _NamedTypeIdentifierImpl extends IdentifierImpl {
+  final ast.NamedType node;
 
-  _ReferencedIdentifierImpl({
+  _NamedTypeIdentifierImpl({
     required super.id,
     required super.name,
     required this.node,
   });
 
   @override
-  Element? get element => node.staticElement;
+  Element? get element => node.element;
 }
 
 extension<T> on T? {

@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -713,8 +714,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     var typeArguments = classType.typeArguments;
     // The result is already instantiated during resolution;
     // [_dartObjectComputer.typeInstantiate] is unnecessary.
-    var typeElement =
-        node.constructorName.type.name.staticElement as TypeDefiningElement;
+    var typeElement = node.constructorName.type.element as TypeDefiningElement;
 
     TypeAliasElement? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl) {
@@ -937,7 +937,16 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (!_isNonNullableByDefault && hasTypeParameterReference(type)) {
       return super.visitNamedType(node);
     } else {
-      node.name.accept(this);
+      if (node.isDeferred) {
+        _reportFromDeferredLibrary(node, node.name2);
+        return null;
+      }
+      _getConstantValue(
+        errorNode: node,
+        expression: null,
+        identifier: null,
+        element: node.element,
+      );
     }
 
     if (_substitution != null) {
@@ -985,7 +994,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     // importPrefix.CONST
     if (prefixElement is PrefixElement) {
       if (node.isDeferred) {
-        _reportFromDeferredLibrary(node);
+        _reportFromDeferredLibrary(node, node.identifier);
         return null;
       }
     }
@@ -997,7 +1006,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
     }
     // Validate prefixed identifier.
-    return _getConstantValue(node, node.identifier);
+    return _getConstantValue(
+      errorNode: node,
+      expression: node,
+      identifier: node.identifier,
+      element: node.identifier.staticElement,
+    );
   }
 
   @override
@@ -1031,7 +1045,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         return prefixResult.stringLength(typeSystem);
       }
     }
-    return _getConstantValue(node, node.propertyName);
+    return _getConstantValue(
+      errorNode: node,
+      expression: node,
+      identifier: node.propertyName,
+      element: node.propertyName.staticElement,
+    );
   }
 
   @override
@@ -1128,7 +1147,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return _instantiateFunctionTypeForSimpleIdentifier(node, value);
     }
 
-    return _getConstantValue(node, node);
+    return _getConstantValue(
+      errorNode: node,
+      expression: node,
+      identifier: node,
+      element: node.staticElement,
+    );
   }
 
   @override
@@ -1185,7 +1209,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (element is ForElement) {
       _error(element, null);
     } else if (element is IfElement) {
-      var conditionValue = _evaluateCondition(element.condition);
+      var conditionValue = _evaluateCondition(element.expression);
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
@@ -1222,7 +1246,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (element is ForElement) {
       _error(element, null);
     } else if (element is IfElement) {
-      var conditionValue = _evaluateCondition(element.condition);
+      var conditionValue = _evaluateCondition(element.expression);
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
@@ -1259,7 +1283,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (element is ForElement) {
       _error(element, null);
     } else if (element is IfElement) {
-      var conditionValue = _evaluateCondition(element.condition);
+      var conditionValue = _evaluateCondition(element.expression);
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
@@ -1328,21 +1352,24 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   /// Return the constant value of the static constant represented by the given
-  /// [identifier]. The [node] is the node to be used if an error needs to be
+  /// [identifier]. The [expression] is the node to be used if an error needs to be
   /// reported.
-  DartObjectImpl? _getConstantValue(
-      Expression node, SimpleIdentifier identifier) {
-    var element = identifier.staticElement;
+  DartObjectImpl? _getConstantValue({
+    required AstNode errorNode,
+    required Expression? expression,
+    required SimpleIdentifier? identifier,
+    required Element? element,
+  }) {
     element = element?.declaration;
     var variableElement =
         element is PropertyAccessorElement ? element.variable : element;
 
     // TODO(srawlins): Remove this check when [FunctionReference]s are inserted
     // for generic function instantiation for pre-constructor-references code.
-    if (node is SimpleIdentifier &&
-        (node.tearOffTypeArgumentTypes?.any(hasTypeParameterReference) ??
+    if (expression is SimpleIdentifier &&
+        (expression.tearOffTypeArgumentTypes?.any(hasTypeParameterReference) ??
             false)) {
-      _error(node, null);
+      _error(expression, null);
     }
 
     if (variableElement is VariableElementImpl) {
@@ -1359,10 +1386,10 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         }
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, value);
       }
-    } else if (variableElement is ConstructorElement) {
+    } else if (variableElement is ConstructorElement && expression != null) {
       return DartObjectImpl(
         typeSystem,
-        node.typeOrThrow,
+        expression.typeOrThrow,
         FunctionState(variableElement),
       );
     } else if (variableElement is ExecutableElement) {
@@ -1415,7 +1442,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       // Constants may refer to type parameters only if the constructor-tearoffs
       // feature is enabled.
       if (_library.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-        var typeArgument = _lexicalTypeEnvironment?[identifier.staticElement];
+        var typeArgument = _lexicalTypeEnvironment?[variableElement];
         if (typeArgument != null) {
           return DartObjectImpl(
             typeSystem,
@@ -1428,8 +1455,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
     // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
     // error code.
-    final errorNode = evaluationEngine.configuration.errorNode(node);
-    _error(errorNode, null);
+    final errorNode2 = evaluationEngine.configuration.errorNode(errorNode);
+    _error(errorNode2, null);
     return null;
   }
 
@@ -1465,7 +1492,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// type-instantiated with those [node]'s tear-off type argument types,
   /// otherwise returns [value].
   DartObjectImpl? _instantiateFunctionTypeForSimpleIdentifier(
-      SimpleIdentifier node, DartObjectImpl value) {
+      SimpleIdentifier? node, DartObjectImpl value) {
+    if (node == null) {
+      return null;
+    }
+
     // TODO(srawlins): When all code uses [FunctionReference]s generated via
     // generic function instantiation, remove this method and all call sites.
     var functionElement = value.toFunctionValue();
@@ -1499,7 +1530,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         identifier.staticElement?.enclosingElement is! ExtensionElement;
   }
 
-  void _reportFromDeferredLibrary(PrefixedIdentifier node) {
+  void _reportFromDeferredLibrary(AstNode node, SyntacticEntity errorTarget) {
     var errorCode = () {
       AstNode? previous;
       for (AstNode? current = node; current != null;) {
@@ -1512,7 +1543,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         } else if (current is DefaultFormalParameter) {
           return CompileTimeErrorCode
               .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY;
-        } else if (current is IfElement && current.condition == node) {
+        } else if (current is IfElement && current.expression == node) {
           return CompileTimeErrorCode
               .IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY;
         } else if (current is ListLiteral) {
@@ -1544,7 +1575,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
     }();
     if (errorCode != null) {
-      _errorReporter.reportErrorForNode(errorCode, node.identifier);
+      _errorReporter.reportErrorForOffset(
+        errorCode,
+        errorTarget.offset,
+        errorTarget.length,
+      );
     }
   }
 

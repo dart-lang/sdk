@@ -156,8 +156,8 @@ class FreeList {
   void AddUnaccountedSize(intptr_t size) { unaccounted_size_ += size; }
 
  private:
-  static const int kNumLists = 128;
-  static const intptr_t kInitialFreeListSearchBudget = 1000;
+  static constexpr int kNumLists = 128;
+  static constexpr intptr_t kInitialFreeListSearchBudget = 1000;
 
   static intptr_t IndexForSize(intptr_t size) {
     ASSERT(size >= kObjectAlignment);

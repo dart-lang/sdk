@@ -1,0 +1,86 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/class_modifiers/invalid_enum_modifiers.dart:5:1: Error: Enums can't be declared to be 'base'.
+// Try removing the keyword 'base'.
+// base enum Base { v }
+// ^^^^
+//
+// pkg/front_end/testcases/class_modifiers/invalid_enum_modifiers.dart:6:1: Error: Enums can't be declared to be 'final'.
+// Try removing the keyword 'final'.
+// final enum Final { v }
+// ^^^^^
+//
+// pkg/front_end/testcases/class_modifiers/invalid_enum_modifiers.dart:7:1: Error: Enums can't be declared to be 'interface'.
+// Try removing the keyword 'interface'.
+// interface enum Interface { v }
+// ^^^^^^^^^
+//
+// pkg/front_end/testcases/class_modifiers/invalid_enum_modifiers.dart:8:1: Error: Enums can't be declared to be 'sealed'.
+// Try removing the keyword 'sealed'.
+// sealed enum Sealed { v }
+// ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Base extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Base> values = #C4;
+  enum-element static const field self::Base v = #C3;
+  const constructor •(core::int #index, core::String #name) → self::Base
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Base.${this.{core::_Enum::_name}{core::String}}";
+}
+class Final extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Final> values = #C6;
+  enum-element static const field self::Final v = #C5;
+  const constructor •(core::int #index, core::String #name) → self::Final
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Final.${this.{core::_Enum::_name}{core::String}}";
+}
+class Interface extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Interface> values = #C8;
+  enum-element static const field self::Interface v = #C7;
+  const constructor •(core::int #index, core::String #name) → self::Interface
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Interface.${this.{core::_Enum::_name}{core::String}}";
+}
+class Sealed extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Sealed> values = #C10;
+  enum-element static const field self::Sealed v = #C9;
+  const constructor •(core::int #index, core::String #name) → self::Sealed
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Sealed.${this.{core::_Enum::_name}{core::String}}";
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "v"
+  #C3 = self::Base {index:#C1, _name:#C2}
+  #C4 = <self::Base>[#C3]
+  #C5 = self::Final {index:#C1, _name:#C2}
+  #C6 = <self::Final>[#C5]
+  #C7 = self::Interface {index:#C1, _name:#C2}
+  #C8 = <self::Interface>[#C7]
+  #C9 = self::Sealed {index:#C1, _name:#C2}
+  #C10 = <self::Sealed>[#C9]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///invalid_enum_modifiers.dart:
+- Base. (from org-dartlang-testcase:///invalid_enum_modifiers.dart:5:11)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- Final. (from org-dartlang-testcase:///invalid_enum_modifiers.dart:6:12)
+- Interface. (from org-dartlang-testcase:///invalid_enum_modifiers.dart:7:16)
+- Sealed. (from org-dartlang-testcase:///invalid_enum_modifiers.dart:8:13)

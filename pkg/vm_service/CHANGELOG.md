@@ -1,3 +1,7 @@
+## 11.4.0
+- Update to version `4.5` of the spec.
+- Add `getPerfettoVMTimeline` RPC.
+
 ## 11.3.0
 - Update to version `4.4` of the spec.
 - Add `label` property to `InstanceRef`.

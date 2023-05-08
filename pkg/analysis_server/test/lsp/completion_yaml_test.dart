@@ -277,6 +277,18 @@ environment:
     );
   }
 
+  Future<void> test_nested_afterString() async {
+    final content = '''
+name: foo
+  ^''';
+
+    await verifyCompletions(
+      pubspecFileUri,
+      content,
+      expectCompletions: [],
+    );
+  }
+
   Future<void> test_nested_prefix() async {
     final content = '''
 name: foo

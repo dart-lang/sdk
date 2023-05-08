@@ -52,7 +52,7 @@ TEST_CASE(SecureSocketUtils_CertNotYetValid) {
   size_t len = strlen(valid_after_2121);
   BIO* cert_bio = BIO_new(BIO_s_mem());
   BIO_write(cert_bio, valid_after_2121, len);
-  X509* cert_X509 = PEM_read_bio_X509(cert_bio, NULL, NULL, NULL);
+  X509* cert_X509 = PEM_read_bio_X509(cert_bio, nullptr, nullptr, nullptr);
   EXPECT(cert_X509 != nullptr);
   EXPECT(!SecureSocketUtils::IsCurrentTimeInsideCertValidDateRange(cert_X509));
   BIO_free(cert_bio);
@@ -96,7 +96,7 @@ TEST_CASE(SecureSocketUtils_CertValid) {
   size_t len = strlen(valid_in_2021);
   BIO* cert_bio = BIO_new(BIO_s_mem());
   BIO_write(cert_bio, valid_in_2021, len);
-  X509* cert_X509 = PEM_read_bio_X509(cert_bio, NULL, NULL, NULL);
+  X509* cert_X509 = PEM_read_bio_X509(cert_bio, nullptr, nullptr, nullptr);
   EXPECT(cert_X509 != nullptr);
   EXPECT(SecureSocketUtils::IsCurrentTimeInsideCertValidDateRange(cert_X509));
   BIO_free(cert_bio);
@@ -139,7 +139,7 @@ TEST_CASE(SecureSocketUtils_CertAlreadyExpired) {
   size_t len = strlen(valid_before_2021);
   BIO* cert_bio = BIO_new(BIO_s_mem());
   BIO_write(cert_bio, valid_before_2021, len);
-  X509* cert_X509 = PEM_read_bio_X509(cert_bio, NULL, NULL, NULL);
+  X509* cert_X509 = PEM_read_bio_X509(cert_bio, nullptr, nullptr, nullptr);
   EXPECT(cert_X509 != nullptr);
   EXPECT(!SecureSocketUtils::IsCurrentTimeInsideCertValidDateRange(cert_X509));
   BIO_free(cert_bio);

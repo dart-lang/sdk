@@ -3863,12 +3863,14 @@ void Assembler::TransitionNativeToGenerated(Register state,
 void Assembler::EnterFullSafepoint(Register state) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.
+  // For TSAN, we always go to the runtime so TSAN is aware of the release
+  // semantics of entering the safepoint.
 
   Register addr = RA;
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path) {
+  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
     j(&slow_path, Assembler::kNearJump);
   }
 
@@ -3882,7 +3884,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   sc(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
     j(&retry, Assembler::kNearJump);
   }
 
@@ -3898,11 +3900,13 @@ void Assembler::ExitFullSafepoint(Register state,
                                   bool ignore_unwind_in_progress) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
+  // For TSAN, we always go to the runtime so TSAN is aware of the acquire
+  // semantics of leaving the safepoint.
   Register addr = RA;
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path) {
+  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
     j(&slow_path, Assembler::kNearJump);
   }
 
@@ -3916,7 +3920,7 @@ void Assembler::ExitFullSafepoint(Register state,
   sc(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
     j(&retry, Assembler::kNearJump);
   }
 

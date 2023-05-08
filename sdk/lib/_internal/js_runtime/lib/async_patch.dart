@@ -14,9 +14,10 @@ import 'dart:_js_helper'
         wrapException,
         unwrapException;
 
-import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
+import 'dart:_foreign_helper'
+    show JS, JS_GET_FLAG, JS_RAW_EXCEPTION, RAW_DART_FUNCTION_REF;
 
-import 'dart:_async_await_error_codes' as async_error_codes;
+import 'dart:_async_status_codes' as async_status_codes;
 
 @patch
 class _AsyncRun {
@@ -233,7 +234,7 @@ Completer<T> _makeAsyncAwaitCompleter<T>() {
 /// completer for convenience of the transformed code.
 dynamic _asyncStartSync(
     _WrappedAsyncBody bodyFunction, _AsyncAwaitCompleter completer) {
-  bodyFunction(async_error_codes.SUCCESS, null);
+  bodyFunction(async_status_codes.SUCCESS, null);
   completer.isSync = true;
   return completer.future;
 }
@@ -243,8 +244,8 @@ dynamic _asyncStartSync(
 /// Used as part of the runtime support for the async/await transformation.
 ///
 /// Arranges for [bodyFunction] to be called when the future or value [object]
-/// is completed with a code [async_error_codes.SUCCESS] or
-/// [async_error_codes.ERROR] depending on the success of the future.
+/// is completed with a code [async_status_codes.SUCCESS] or
+/// [async_status_codes.ERROR] depending on the success of the future.
 dynamic _asyncAwait(dynamic object, _WrappedAsyncBody bodyFunction) {
   _awaitOnObject(object, bodyFunction);
 }
@@ -279,12 +280,12 @@ dynamic _asyncRethrow(dynamic object, Completer completer) {
 /// when the future completes.
 void _awaitOnObject(object, _WrappedAsyncBody bodyFunction) {
   FutureOr<dynamic> Function(dynamic) thenCallback =
-      (result) => bodyFunction(async_error_codes.SUCCESS, result);
+      (result) => bodyFunction(async_status_codes.SUCCESS, result);
 
   Function errorCallback = (dynamic error, StackTrace stackTrace) {
     ExceptionAndStackTrace wrappedException =
         new ExceptionAndStackTrace(error, stackTrace);
-    bodyFunction(async_error_codes.ERROR, wrappedException);
+    bodyFunction(async_status_codes.ERROR, wrappedException);
   };
 
   if (object is _Future) {
@@ -325,7 +326,7 @@ _WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
           }
         })(#, #)""",
       function,
-      async_error_codes.ERROR);
+      async_status_codes.ERROR);
 
   return Zone.current.registerBinaryCallback((int errorCode, dynamic result) {
     JS('', '#(#, #)', protected, errorCode, result);
@@ -338,11 +339,11 @@ _WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
 /// yield* and before starting the function.
 ///
 /// When the async* function wants to return it calls this function with
-/// [asyncBody] == [async_error_codes.SUCCESS], the asyncStarHelper takes this
+/// [asyncBody] == [async_status_codes.SUCCESS], the asyncStarHelper takes this
 /// as signal to close the stream.
 ///
 /// When the async* function wants to signal that an uncaught error was thrown,
-/// it calls this function with [asyncBody] == [async_error_codes.ERROR],
+/// it calls this function with [asyncBody] == [async_status_codes.ERROR],
 /// the streamHelper takes this as signal to addError [object] to the
 /// [controller] and close it.
 ///
@@ -351,7 +352,7 @@ _WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
 ///
 /// In the case of a yield or yield*, if the stream subscription has been
 /// canceled, schedules [asyncBody] to be called with
-/// [async_error_codes.STREAM_WAS_CANCELED].
+/// [async_status_codes.STREAM_WAS_CANCELED].
 ///
 /// If [object] is a single-yield [IterationMarker], adds the value of the
 /// [IterationMarker] to the stream. If the stream subscription has been
@@ -372,7 +373,7 @@ void _asyncStarHelper(
     dynamic object,
     dynamic /* int | _WrappedAsyncBody */ bodyFunctionOrErrorCode,
     _AsyncStarStreamController controller) {
-  if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
+  if (identical(bodyFunctionOrErrorCode, async_status_codes.SUCCESS)) {
     // This happens on return from the async* function.
     if (controller.isCanceled) {
       controller.cancelationFuture!._completeWithValue(null);
@@ -380,7 +381,7 @@ void _asyncStarHelper(
       controller.close();
     }
     return;
-  } else if (identical(bodyFunctionOrErrorCode, async_error_codes.ERROR)) {
+  } else if (identical(bodyFunctionOrErrorCode, async_status_codes.ERROR)) {
     // The error is a js-error.
     if (controller.isCanceled) {
       controller.cancelationFuture!._completeError(
@@ -396,7 +397,7 @@ void _asyncStarHelper(
   _WrappedAsyncBody bodyFunction = bodyFunctionOrErrorCode;
   if (object is _IterationMarker) {
     if (controller.isCanceled) {
-      bodyFunction(async_error_codes.STREAM_WAS_CANCELED, null);
+      bodyFunction(async_status_codes.STREAM_WAS_CANCELED, null);
       return;
     }
     if (object.state == _IterationMarker.YIELD_SINGLE) {
@@ -410,7 +411,7 @@ void _asyncStarHelper(
           controller.isSuspended = true;
           return;
         }
-        bodyFunction(async_error_codes.SUCCESS, null);
+        bodyFunction(async_status_codes.SUCCESS, null);
       });
       return;
     } else if (object.state == _IterationMarker.YIELD_STAR) {
@@ -424,8 +425,8 @@ void _asyncStarHelper(
         // one. On the other hand we check for isCanceled, as that check happens
         // after insertion of each element.
         int errorCode = controller.isCanceled
-            ? async_error_codes.STREAM_WAS_CANCELED
-            : async_error_codes.SUCCESS;
+            ? async_status_codes.STREAM_WAS_CANCELED
+            : async_status_codes.SUCCESS;
         bodyFunction(errorCode, null);
       });
       return;
@@ -481,7 +482,7 @@ class _AsyncStarStreamController<T> {
   _AsyncStarStreamController(_WrappedAsyncBody body) {
     _resumeBody() {
       scheduleMicrotask(() {
-        body(async_error_codes.SUCCESS, null);
+        body(async_status_codes.SUCCESS, null);
       });
     }
 
@@ -503,7 +504,7 @@ class _AsyncStarStreamController<T> {
           // Resume the suspended async* function to run finalizers.
           isSuspended = false;
           scheduleMicrotask(() {
-            body(async_error_codes.STREAM_WAS_CANCELED, null);
+            body(async_status_codes.STREAM_WAS_CANCELED, null);
           });
         }
         return cancelationFuture;
@@ -562,10 +563,13 @@ class _SyncStarIterator<T> implements Iterator<T> {
   // until the inner state machine ends.
 
   // The state machine for the innermost _SyncStarIterator.
-  dynamic _body;
+  Object? _body;
 
   // The current value, unless iterating a non-sync* nested iterator.
   T? _current = null;
+
+  // Value passed back from state machine for uncaught exceptions.
+  Object? _datum;
 
   // This is the nested iterator when iterating a yield* of a non-sync iterator.
   Iterator<T>? _nestedIterator = null;
@@ -577,100 +581,133 @@ class _SyncStarIterator<T> implements Iterator<T> {
   _SyncStarIterator(this._body);
 
   T get current {
-    var nested = _nestedIterator;
-    if (nested == null) return _current as dynamic; // implicit: as T;
-    return nested.current;
+    return _current as dynamic; // implicit: as T;
   }
 
-  _runBody() {
-    // TODO(sra): Find a way to hard-wire SUCCESS and ERROR codes.
-    return JS(
-        '',
-        '''
-        // Invokes [body] with [errorCode] and [result].
-        //
-        // If (and as long as) the invocation throws, calls [function] again,
-        // with an error-code.
-        (function(body, SUCCESS, ERROR) {
-          var errorValue, errorCode = SUCCESS;
-          while (true) {
-            try {
-              return body(errorCode, errorValue);
-            } catch (error) {
-              errorValue = error;
-              errorCode = ERROR;
-            }
-          }
-        })(#, #, #)''',
-        _body,
-        async_error_codes.SUCCESS,
-        async_error_codes.ERROR);
+  _resumeBody(int errorCode, Object? errorValue) {
+    final body = _body;
+    while (true) {
+      try {
+        return JS('', '#(#, #, #)', body, this, errorCode, errorValue);
+      } catch (error) {
+        errorValue = JS_RAW_EXCEPTION();
+        errorCode = async_status_codes.ERROR;
+      }
+    }
   }
 
   bool moveNext() {
+    if (JS_GET_FLAG('FALSE')) _modelGeneratedCode();
+    Object? errorValue;
+    int errorCode = async_status_codes.SUCCESS;
     while (true) {
-      if (_nestedIterator != null) {
-        if (_nestedIterator!.moveNext()) {
-          return true;
-        } else {
+      final nestedIterator = _nestedIterator;
+      if (nestedIterator != null) {
+        try {
+          if (nestedIterator.moveNext()) {
+            _current = nestedIterator.current;
+            return true;
+          } else {
+            _nestedIterator = null;
+          }
+        } catch (error) {
+          errorValue = JS_RAW_EXCEPTION();
+          errorCode = async_status_codes.ERROR;
           _nestedIterator = null;
         }
       }
-      var value = _runBody();
-      if (value is _IterationMarker) {
-        int state = value.state;
-        if (state == _IterationMarker.ITERATION_ENDED) {
-          var suspendedBodies = _suspendedBodies;
-          if (suspendedBodies == null || suspendedBodies.isEmpty) {
-            _current = null;
-            // Rely on [_body] to repeatedly return `ITERATION_ENDED`.
-            return false;
-          }
-          // Resume the innermost suspended iterator.
-          _body = suspendedBodies.removeLast();
-          continue;
-        } else if (state == _IterationMarker.UNCAUGHT_ERROR) {
-          // Rely on [_body] to repeatedly return `UNCAUGHT_ERROR`.
-          // This is a wrapped exception, so we use JavaScript throw to throw
-          // it.
-          JS('', 'throw #', value.value);
-        } else {
-          assert(state == _IterationMarker.YIELD_STAR);
-          // Casting to avoid the `.iterator` dynamic call would impact the
-          // performance of yield*.
-          // ignore: avoid_dynamic_calls
-          Iterator<T> inner = value.value.iterator;
-          if (inner is _SyncStarIterator) {
-            // The test needs to be 'is _SyncStarIterator<T>' for promotion to
-            // work. However, that test is much more expensive, so we use an
-            // unsafe cast.
-            _SyncStarIterator<T> innerSyncStarIterator = JS('', '#', inner);
-            // Suspend the current state machine and start acting on behalf of
-            // the nested state machine.
-            //
-            // TODO(sra): Recognize "tail yield*" statements and avoid
-            // suspending the current body when all it will do is step without
-            // effect to ITERATION_ENDED.
-            (_suspendedBodies ??= []).add(_body);
-            _body = innerSyncStarIterator._body;
-            continue;
-          } else {
-            _nestedIterator = inner;
-            // TODO(32956): Change to the following when strong-mode is the only
-            // option:
-            //
-            //     _nestedIterator = JS<Iterator<T>>('','#', inner);
-            continue;
-          }
-        }
-      } else {
-        // TODO(32956): Remove this test.
-        _current = JS<T>('', '#', value);
+
+      var value = _resumeBody(errorCode, errorValue);
+
+      if (async_status_codes.SYNC_STAR_YIELD == value) {
+        // The state-machine has assgned the value to _current.
         return true;
       }
+      if (async_status_codes.SYNC_STAR_DONE == value) {
+        _current = null;
+        var suspendedBodies = _suspendedBodies;
+        if (suspendedBodies == null || suspendedBodies.isEmpty) {
+          // Overwrite the body with a stub for an empty iterable. If [moveNext]
+          // is called 'too many' times, it continues to return `false`.
+          _body = RAW_DART_FUNCTION_REF(_terminatedBody);
+          return false;
+        }
+        // Resume the innermost suspended iterator.
+        _body = suspendedBodies.removeLast();
+        errorCode = async_status_codes.SUCCESS;
+        errorValue = null;
+        continue;
+      }
+      if (async_status_codes.SYNC_STAR_YIELD_STAR == value) {
+        // The call to _yieldStar has modified the state.
+        errorCode = async_status_codes.SUCCESS;
+        errorValue = null;
+        continue;
+      }
+      if (async_status_codes.SYNC_STAR_UNCAUGHT_EXCEPTION == value) {
+        errorValue = _datum;
+        _datum = null;
+        var suspendedBodies = _suspendedBodies;
+        if (suspendedBodies == null || suspendedBodies.isEmpty) {
+          _current = null;
+          // Overwrite the body with a stub for an empty iterable. If [moveNext]
+          // is called after the exception propagates out of the `yield*` stack,
+          // it will return `false`.
+          _body = RAW_DART_FUNCTION_REF(_terminatedBody);
+
+          // This is a wrapped exception, so we use JavaScript throw to throw
+          // it.
+          JS('', 'throw #', errorValue);
+          // The above is not seen as terminating, so we need this return:
+          return false; // unreachable
+        }
+        // Resume the innermost suspended iterator.
+        _body = suspendedBodies.removeLast();
+        errorCode = async_status_codes.ERROR;
+        continue;
+      }
+      throw StateError('sync*');
     }
-    return false; // TODO(sra): Fix type inference so that this is not needed.
+    // TODO(http://dartbug.com/52166): Fix type inference so that this return
+    // statement is not needed.
+    return false;
   }
+
+  static _terminatedBody(_1, _2, _3) => async_status_codes.SYNC_STAR_DONE;
+
+  // Called from generated code.
+  @pragma('dart2js:parameter:trust')
+  int _yieldStar(Iterable<T> iterable) {
+    if (iterable is _SyncStarIterable) {
+      // Promotion fails, so we need this zero-cost 'cast'.
+      _SyncStarIterable<T> syncStarIterable = JS('', '#', iterable);
+      _SyncStarIterator inner = syncStarIterable.iterator;
+      // Suspend the current state machine and start acting on behalf of
+      // the nested state machine.
+      //
+      // TODO(sra): Recognize "tail yield*" statements and avoid
+      // suspending the current body when all it will do is step without
+      // effect to ITERATION_ENDED.
+      (_suspendedBodies ??= []).add(_body);
+      _body = inner._body;
+      return async_status_codes.SYNC_STAR_YIELD_STAR;
+    } else {
+      _nestedIterator = iterable.iterator;
+      return async_status_codes.SYNC_STAR_YIELD_STAR;
+    }
+  }
+
+  // This code is assumed present by global type inference and models the types
+  // flowing to various fields and methods from code inserted by the
+  // state-machine rewriter.
+  _modelGeneratedCode() {
+    _yieldStar(_confuse<Iterable<T>>(this));
+    _current = _confuse<T?>(null);
+    _datum = _confuse<Object>(this);
+  }
+
+  @pragma('dart2js:assumeDynamic')
+  static T _confuse<T>(dynamic x) => x;
 }
 
 /// Creates an Iterable for a `sync*` function.
@@ -693,6 +730,7 @@ class _SyncStarIterable<T> extends Iterable<T> {
 
   _SyncStarIterable(this._outerHelper);
 
-  Iterator<T> get iterator =>
+  @pragma('dart2js:prefer-inline')
+  _SyncStarIterator<T> get iterator =>
       new _SyncStarIterator<T>(JS('', '#()', _outerHelper));
 }

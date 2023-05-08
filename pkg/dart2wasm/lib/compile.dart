@@ -29,7 +29,7 @@ import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 
 import 'package:dart2wasm/compiler_options.dart' as compiler;
-import 'package:dart2wasm/js_runtime_generator.dart';
+import 'package:dart2wasm/js/runtime_generator.dart' as js;
 import 'package:dart2wasm/record_class_generator.dart';
 import 'package:dart2wasm/records.dart';
 import 'package:dart2wasm/target.dart';
@@ -90,8 +90,8 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
   Component component = compilerResult.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
   ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
-  JSRuntimeFinalizer jsRuntimeFinalizer =
-      createJSRuntimeFinalizer(component, coreTypes, classHierarchy);
+  js.RuntimeFinalizer jsRuntimeFinalizer =
+      js.createRuntimeFinalizer(component, coreTypes, classHierarchy);
 
   final Map<RecordShape, Class> recordClasses =
       generateRecordClasses(component, coreTypes);
@@ -103,8 +103,8 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
       useRapidTypeAnalysis: false);
 
   assert(() {
-    verifyComponent(component,
-        afterConst: true, constantsAreAlwaysInlined: true);
+    verifyComponent(
+        target, VerificationStage.afterGlobalTransformations, component);
     return true;
   }());
 

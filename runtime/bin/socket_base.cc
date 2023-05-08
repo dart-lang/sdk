@@ -102,7 +102,7 @@ bool SocketAddress::AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
 
 void SocketAddress::GetSockAddr(Dart_Handle obj, RawAddr* addr) {
   Dart_TypedData_Type data_type;
-  uint8_t* data = NULL;
+  uint8_t* data = nullptr;
   intptr_t len;
   Dart_Handle result = Dart_TypedDataAcquireData(
       obj, &data_type, reinterpret_cast<void**>(&data), &len);
@@ -243,11 +243,11 @@ intptr_t SocketAddress::GetAddrScope(const RawAddr& addr) {
 void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
   const char* address =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
-  ASSERT(address != NULL);
+  ASSERT(address != nullptr);
   RawAddr raw;
   memset(&raw, 0, sizeof(raw));
-  int type = strchr(address, ':') == NULL ? SocketAddress::TYPE_IPV4
-                                          : SocketAddress::TYPE_IPV6;
+  int type = strchr(address, ':') == nullptr ? SocketAddress::TYPE_IPV4
+                                             : SocketAddress::TYPE_IPV6;
   if (type == SocketAddress::TYPE_IPV4) {
     raw.addr.sa_family = AF_INET;
   } else {
@@ -267,11 +267,11 @@ void FUNCTION_NAME(InternetAddress_ParseScopedLinkLocalAddress)(
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   // This must be an IPv6 address.
   intptr_t type = 1;
-  ASSERT(address != NULL);
-  OSError* os_error = NULL;
+  ASSERT(address != nullptr);
+  OSError* os_error = nullptr;
   AddressList<SocketAddress>* addresses =
       SocketBase::LookupAddress(address, type, &os_error);
-  if (addresses != NULL) {
+  if (addresses != nullptr) {
     SocketAddress* addr = addresses->GetAt(0);
     Dart_SetReturnValue(
         args, Dart_NewInteger(SocketAddress::GetAddrScope(addr->addr())));
@@ -299,6 +299,20 @@ void FUNCTION_NAME(SocketBase_IsBindError)(Dart_NativeArguments args) {
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
   bool is_bind_error = SocketBase::IsBindError(error_number);
   Dart_SetBooleanReturnValue(args, is_bind_error ? true : false);
+}
+
+bool SocketBase::IsValidAddress(const char* address) {
+  ASSERT(address != nullptr);
+  RawAddr raw;
+  memset(&raw, 0, sizeof(raw));
+  int type = strchr(address, ':') == nullptr ? SocketAddress::TYPE_IPV4
+                                             : SocketAddress::TYPE_IPV6;
+  if (type == SocketAddress::TYPE_IPV4) {
+    raw.addr.sa_family = AF_INET;
+  } else {
+    raw.addr.sa_family = AF_INET6;
+  }
+  return SocketBase::ParseAddress(type, address, &raw);
 }
 
 }  // namespace bin

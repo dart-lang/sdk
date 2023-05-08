@@ -22,8 +22,15 @@ class A extends dynamic {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 7),
     ]);
 
-    var a = findElement.class_('A');
-    assertType(a.supertype, 'Object');
+    final node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    name: dynamic
+    element: dynamic@-1
+    type: dynamic
+''');
   }
 
   test_class_enum() async {
@@ -34,26 +41,34 @@ class A extends E {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 31, 1),
     ]);
 
-    var a = findElement.class_('A');
-    assertType(a.supertype, 'Object');
-
-    var eRef = findNode.namedType('E {}');
-    assertNamedType(eRef, findElement.enum_('E'), 'E');
+    final node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    name: E
+    element: self::@enum::E
+    type: E
+''');
   }
 
   test_class_mixin() async {
     await assertErrorsInCode(r'''
 mixin M {}
-class A extends M {} // ref
+class A extends M {}
 ''', [
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
     ]);
 
-    var a = findElement.class_('A');
-    assertType(a.supertype, 'Object');
-
-    var mRef = findNode.namedType('M {} // ref');
-    assertNamedType(mRef, findElement.mixin('M'), 'M');
+    final node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    name: M
+    element: self::@mixin::M
+    type: M
+''');
   }
 
   test_class_variable() async {
@@ -64,8 +79,15 @@ class A extends v {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
     ]);
 
-    var a = findElement.class_('A');
-    assertType(a.supertype, 'Object');
+    final node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    name: v
+    element: self::@getter::v
+    type: dynamic
+''');
   }
 
   test_class_variable_generic() async {
@@ -76,8 +98,23 @@ class A extends v<int> {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
     ]);
 
-    var a = findElement.class_('A');
-    assertType(a.supertype, 'Object');
+    final node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    name: v
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: self::@getter::v
+    type: dynamic
+''');
   }
 
   test_Never() async {
@@ -86,6 +123,16 @@ class A extends Never {}
 ''', [
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 5),
     ]);
+
+    final node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    name: Never
+    element: Never@-1
+    type: Never
+''');
   }
 
   test_undefined() async {
@@ -94,6 +141,16 @@ class C extends A {}
 ''', [
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 1),
     ]);
+
+    final node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    name: A
+    element: <null>
+    type: dynamic
+''');
   }
 
   test_undefined_ignore_import_prefix() async {
@@ -104,6 +161,20 @@ class C extends p.A {}
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
     ]);
+
+    final node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: self::@prefix::p
+    name: A
+    element: <null>
+    type: dynamic
+''');
   }
 
   test_undefined_ignore_import_show_it() async {
@@ -192,5 +263,19 @@ class C extends p.A {}
 ''', [
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 42, 3),
     ]);
+
+    final node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: self::@prefix::p
+    name: A
+    element: <null>
+    type: dynamic
+''');
   }
 }

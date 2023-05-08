@@ -1411,6 +1411,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleMixinWithClause(Token withKeyword) {
+    listener?.handleMixinWithClause(withKeyword);
+  }
+
+  @override
   void handleCommentReference(
       Token? newKeyword,
       Token? firstToken,
@@ -1863,6 +1868,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginPattern(Token token) {
+    listener?.beginPattern(token);
+  }
+
+  @override
   void beginPatternGuard(Token when) {
     listener?.beginPatternGuard(when);
   }
@@ -1885,6 +1895,11 @@ class ForwardingListener implements Listener {
   @override
   void handleRecordPattern(Token token, int count) {
     listener?.handleRecordPattern(token, count);
+  }
+
+  @override
+  void endPattern(Token token) {
+    listener?.endPattern(token);
   }
 
   @override

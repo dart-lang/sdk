@@ -79,6 +79,7 @@ class DevCompilerTarget extends Target {
         'dart:isolate',
         'dart:js',
         'dart:js_interop',
+        'dart:js_interop_unsafe',
         'dart:js_util',
         'dart:math',
         'dart:typed_data',
@@ -102,6 +103,7 @@ class DevCompilerTarget extends Target {
         'dart:js_interop',
         'dart:math',
         'dart:svg',
+        'dart:typed_data',
         'dart:web_audio',
         'dart:web_gl',
         'dart:_foreign_helper',
@@ -238,7 +240,9 @@ class DevCompilerTarget extends Target {
         MapLiteral([
           for (var n in arguments.named)
             MapLiteralEntry(SymbolLiteral(n.name), n.value)
-        ], keyType: coreTypes.symbolLegacyRawType),
+        ], keyType: coreTypes.symbolLegacyRawType)
+      else
+        NullLiteral(),
     ];
     return createInvocation('method', ctorArgs);
   }

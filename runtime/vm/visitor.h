@@ -35,9 +35,17 @@ class ObjectPointerVisitor {
 
   // Range of pointers to visit 'first' <= pointer <= 'last'.
   virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) = 0;
+#if defined(DART_COMPRESSED_POINTERS)
   virtual void VisitCompressedPointers(uword heap_base,
                                        CompressedObjectPtr* first,
                                        CompressedObjectPtr* last) = 0;
+#else
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    VisitPointers(first, last);
+  }
+#endif
 
   // len argument is the number of pointers to visit starting from 'p'.
   void VisitPointers(ObjectPtr* p, intptr_t len) {
@@ -91,26 +99,6 @@ class ObjectVisitor {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ObjectVisitor);
-};
-
-// An object finder visitor interface.
-class FindObjectVisitor {
- public:
-  FindObjectVisitor() {}
-  virtual ~FindObjectVisitor() {}
-
-  // Allow to specify a address filter.
-  virtual uword filter_addr() const { return 0; }
-  bool VisitRange(uword begin_addr, uword end_addr) const {
-    uword addr = filter_addr();
-    return (addr == 0) || ((begin_addr <= addr) && (addr < end_addr));
-  }
-
-  // Check if object matches find condition.
-  virtual bool FindObject(ObjectPtr obj) const = 0;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(FindObjectVisitor);
 };
 
 }  // namespace dart

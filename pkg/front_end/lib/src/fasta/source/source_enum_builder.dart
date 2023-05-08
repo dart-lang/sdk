@@ -521,7 +521,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       ..synthesizedDefaultConstructorBuilder =
           synthesizedDefaultConstructorBuilder;
 
-    void setParent(String name, MemberBuilder? builder) {
+    void setParent(MemberBuilder? builder) {
       while (builder != null) {
         builder.parent = enumBuilder;
         builder = builder.next as MemberBuilder?;
@@ -550,13 +550,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
               ]);
         }
       }
-      setParent(name, member as MemberBuilder);
+      setParent(member as MemberBuilder);
     }
 
     members.forEach(setParentAndCheckConflicts);
     constructorScope
-        .filteredNameIterator(
-            includeDuplicates: false, includeAugmentations: true)
+        .filteredIterator(includeDuplicates: false, includeAugmentations: true)
         .forEach(setParent);
     selfType.bind(libraryBuilder, enumBuilder);
 
@@ -615,19 +614,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     Class cls = super.build(coreLibrary);
     cls.isEnum = true;
-
-    List<Expression> values = <Expression>[];
-    if (enumConstantInfos != null) {
-      for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
-        if (enumConstantInfo != null) {
-          Builder declaration = firstMemberNamed(enumConstantInfo.name)!;
-          if (declaration.isField) {
-            SourceFieldBuilder fieldBuilder = declaration as SourceFieldBuilder;
-            values.add(new StaticGet(fieldBuilder.field));
-          }
-        }
-      }
-    }
 
     // The super initializer for the synthesized default constructor is
     // inserted here if the enum's supertype is _Enum to preserve the legacy
@@ -771,7 +757,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         Expression initializer = bodyBuilder.buildStaticInvocation(
             constructorBuilder.invokeTarget, arguments,
             constness: Constness.explicitConst,
-            charOffset: fieldBuilder.charOffset);
+            charOffset: fieldBuilder.charOffset,
+            isConstructorInvocation: true);
         ExpressionInferenceResult inferenceResult = bodyBuilder.typeInferrer
             .inferFieldInitializer(
                 bodyBuilder, const UnknownType(), initializer);

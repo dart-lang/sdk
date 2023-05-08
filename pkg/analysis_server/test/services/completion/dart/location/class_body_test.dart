@@ -33,6 +33,216 @@ class ClassBodyTest2 extends AbstractCompletionDriverTest
 }
 
 mixin ClassBodyTestCases on AbstractCompletionDriverTest {
+  Future<void> test_afterField_beforeEnd() async {
+    await computeSuggestions('''
+class A {var foo; ^}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  factory
+    kind: keyword
+  final
+    kind: keyword
+  get
+    kind: keyword
+  late
+    kind: keyword
+  operator
+    kind: keyword
+  set
+    kind: keyword
+  static
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterField_beforeField() async {
+    await computeSuggestions('''
+class A {var bar; ^ var foo;}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  factory
+    kind: keyword
+  final
+    kind: keyword
+  get
+    kind: keyword
+  late
+    kind: keyword
+  operator
+    kind: keyword
+  set
+    kind: keyword
+  static
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterLeftBrace_beforeField() async {
+    await computeSuggestions('''
+class A {^ var foo;}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  factory
+    kind: keyword
+  final
+    kind: keyword
+  get
+    kind: keyword
+  late
+    kind: keyword
+  operator
+    kind: keyword
+  set
+    kind: keyword
+  static
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterLeftBrace_beforeMethodWithoutType() async {
+    await computeSuggestions('''
+class A { ^ foo() {}}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  factory
+    kind: keyword
+  final
+    kind: keyword
+  get
+    kind: keyword
+  late
+    kind: keyword
+  operator
+    kind: keyword
+  set
+    kind: keyword
+  static
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterLeftBrace_beforeMethodWithoutType_partial() async {
+    await computeSuggestions('''
+class A { d^ foo() {}}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  dynamic
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  factory
+    kind: keyword
+  final
+    kind: keyword
+  get
+    kind: keyword
+  late
+    kind: keyword
+  operator
+    kind: keyword
+  set
+    kind: keyword
+  static
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterLeftBrace_beforeRightBrace() async {
+    await computeSuggestions('''
+class A {^}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  factory
+    kind: keyword
+  final
+    kind: keyword
+  get
+    kind: keyword
+  late
+    kind: keyword
+  operator
+    kind: keyword
+  set
+    kind: keyword
+  static
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
   Future<void> test_nothing_x() async {
     await _checkContainers(
       line: '^',

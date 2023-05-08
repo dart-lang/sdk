@@ -118,7 +118,7 @@ class ScavengeStats {
 
 class Scavenger {
  private:
-  static const intptr_t kTLABSize = 512 * KB;
+  static constexpr intptr_t kTLABSize = 512 * KB;
 
  public:
   Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words);
@@ -129,8 +129,6 @@ class Scavenger {
   // During a scavenge this function only returns true for addresses that will
   // be part of the surviving objects.
   bool Contains(uword addr) const { return to_->Contains(addr); }
-
-  ObjectPtr FindObject(FindObjectVisitor* visitor);
 
   uword TryAllocate(Thread* thread, intptr_t size) {
     uword addr = TryAllocateFromTLAB(thread, size);
@@ -278,7 +276,7 @@ class Scavenger {
   void MournWeakHandles();
   void Epilogue(SemiSpace* from);
 
-  void VerifyStoreBuffers();
+  void VerifyStoreBuffers(const char* msg);
 
   void UpdateMaxHeapCapacity();
   void UpdateMaxHeapUsage();
@@ -303,7 +301,7 @@ class Scavenger {
 
   int64_t gc_time_micros_;
   intptr_t collections_;
-  static const int kStatsHistoryCapacity = 4;
+  static constexpr int kStatsHistoryCapacity = 4;
   RingBuffer<ScavengeStats, kStatsHistoryCapacity> stats_history_;
 
   intptr_t scavenge_words_per_micro_;

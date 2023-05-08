@@ -23,21 +23,30 @@ class JSONWriter : ValueObject {
 
   void PrintCommaIfNeeded();
 
+  // Append |buffer| to the stream.
+  void AppendBytes(const uint8_t* buffer, intptr_t buffer_length);
+
+  // Append the Base64 encoding of |bytes| to the stream.
+  //
+  // Beware that padding characters are added when |length| is not a multiple of
+  // three. Padding is only valid at the end of Base64 strings, so you must be
+  // careful when trying to populate a single Base64 string with multiple calls
+  // to this method. |JSONBase64String| should be used for that use-case,
+  // because it handles padding management.
+  void AppendBytesInBase64(const uint8_t* bytes, intptr_t length);
+
   // Append |serialized_object| to the stream.
   void AppendSerializedObject(const char* serialized_object);
-
-  // Append |buffer| to the stream.
-  void AppendSerializedObject(const uint8_t* buffer, intptr_t buffer_length);
 
   // Append |serialized_object| to the stream with |property_name|.
   void AppendSerializedObject(const char* property_name,
                               const char* serialized_object);
 
-  void OpenObject(const char* property_name = NULL);
+  void OpenObject(const char* property_name = nullptr);
   void CloseObject();
   void UncloseObject();
 
-  void OpenArray(const char* property_name = NULL);
+  void OpenArray(const char* property_name = nullptr);
   void CloseArray();
 
   void Clear();

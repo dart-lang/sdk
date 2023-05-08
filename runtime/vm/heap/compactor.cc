@@ -229,7 +229,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
          task_index++) {
       const intptr_t pages_per_task = num_pages / num_tasks;
       for (intptr_t j = 0; j < pages_per_task; j++) {
-        Page* page = heap_->old_space()->AllocatePage(Page::kData,
+        Page* page = heap_->old_space()->AllocatePage(/* exec */ false,
                                                       /* link */ false);
 
         if (page == nullptr) {
@@ -336,7 +336,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
         Page* next = page->next();
         heap_->old_space()->IncreaseCapacityInWordsLocked(
             -(page->memory_->size() >> kWordSizeLog2));
-        page->Deallocate(/*can_use_cache*/ true);
+        page->Deallocate();
         page = next;
       }
     }
@@ -728,7 +728,7 @@ void GCCompactor::VisitTypedDataViewPointers(TypedDataViewPtr view,
   } else {
     // The backing store didn't move, we therefore don't need to update the
     // inner pointer.
-    if (view->untag()->data_ == 0) {
+    if (view->untag()->data_ == nullptr) {
       ASSERT(RawSmiValue(view->untag()->offset_in_bytes()) == 0 &&
              RawSmiValue(view->untag()->length()) == 0 &&
              view->untag()->typed_data() == Object::null());
@@ -744,6 +744,7 @@ void GCCompactor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
   }
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void GCCompactor::VisitCompressedPointers(uword heap_base,
                                           CompressedObjectPtr* first,
                                           CompressedObjectPtr* last) {
@@ -751,6 +752,7 @@ void GCCompactor::VisitCompressedPointers(uword heap_base,
     ForwardCompressedPointer(heap_base, ptr);
   }
 }
+#endif
 
 bool GCCompactor::CanVisitSuspendStatePointers(SuspendStatePtr suspend_state) {
   if ((suspend_state->untag()->pc() != 0) && !can_visit_stack_frames_) {

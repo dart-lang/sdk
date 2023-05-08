@@ -151,9 +151,8 @@ class DefaultTypesBuilder {
             ++step) {
           var bound = current.bound;
           if (bound is NamedType) {
-            var typeNameIdentifier = bound.name;
-            if (typeNameIdentifier is SimpleIdentifier) {
-              current = typeParametersByName[typeNameIdentifier.name];
+            if (bound.importPrefix == null) {
+              current = typeParametersByName[bound.name2.lexeme];
               continue;
             }
           }

@@ -197,13 +197,15 @@ void HeapProfileSampler::HandleNewTLAB(intptr_t old_tlab_remaining_space,
   }
 }
 
-void* HeapProfileSampler::InvokeCallbackForLastSample() {
+void* HeapProfileSampler::InvokeCallbackForLastSample(intptr_t cid) {
   ASSERT(enabled_);
   ASSERT(create_callback_ != nullptr);
   ReadRwLocker locker(thread_, lock_);
+  ClassTable* table = IsolateGroup::Current()->class_table();
   void* result = create_callback_(
       reinterpret_cast<Dart_Isolate>(thread_->isolate()),
-      reinterpret_cast<Dart_IsolateGroup>(thread_->isolate_group()));
+      reinterpret_cast<Dart_IsolateGroup>(thread_->isolate_group()),
+      table->UserVisibleNameFor(cid), last_sample_size_);
   last_sample_size_ = kUninitialized;
   return result;
 }

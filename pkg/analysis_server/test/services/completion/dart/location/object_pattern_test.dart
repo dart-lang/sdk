@@ -32,7 +32,7 @@ mixin ObjectPatternTestCases on AbstractCompletionDriverTest {
       test_declarationContext_pattern_first_withoutGetter_afterColon() async {
     await computeSuggestions('''
 void f1(A1 x0) {
-  var A1(: ^) = x0; 
+  var A1(: ^) = x0;
 }
 class A0 {
   int f01 = 0;
@@ -65,10 +65,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
   }
 
@@ -76,7 +72,7 @@ suggestions
       test_declarationContext_pattern_first_withoutGetter_afterColon_partial() async {
     await computeSuggestions('''
 void f1(A1 x0) {
-  var A1(: g^) = x0; 
+  var A1(: g^) = x0;
 }
 class A0 {
   int f01 = 0;
@@ -122,10 +118,192 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
+''');
+    }
+  }
+
+  Future<void>
+      test_forEachPartsWithPattern_first_afterColon_withoutGetter() async {
+    await computeSuggestions('''
+void f1(List<A1> x0) {
+  for (final A1(: ^) in x0) {}
+}
+class A0 {
+  int f01 = 0;
+  int get g01 => 0;
+  set s01(x) {}
+  int m01() => 0;
+  static int f02 = 0;
+  static int get g02 => 0;
+  static int m02() => 0;
+  static set s02(x) {}
+}
+class A1 extends A0 {
+  int f11 = 0;
+  int get g11 => 0;
+  set s11(x) {}
+  int m11() => 0;
+  static int f12 = 0;
+  static int get g12 => 0;
+  static int m12() => 0;
+  static set s12(x) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: field
+  f11
+    kind: field
+  g01
+    kind: getter
+  g11
+    kind: getter
+''');
+  }
+
+  Future<void>
+      test_forEachPartsWithPattern_first_afterColon_withoutGetter_partial() async {
+    await computeSuggestions('''
+void f1(List<A1> x0) {
+  for (final A1(: g^) in x0) {}
+}
+class A0 {
+  int f01 = 0;
+  int get g01 => 0;
+  set s01(x) {}
+  int m01() => 0;
+  static int f02 = 0;
+  static int get g02 => 0;
+  static int m02() => 0;
+  static set s02(x) {}
+}
+class A1 extends A0 {
+  int f11 = 0;
+  int get g11 => 0;
+  set s11(x) {}
+  int m11() => 0;
+  static int f12 = 0;
+  static int get g12 => 0;
+  static int m12() => 0;
+  static set s12(x) {}
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  g01
+    kind: getter
+  g11
+    kind: getter
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  f01
+    kind: field
+  f11
+    kind: field
+  g01
+    kind: getter
+  g11
+    kind: getter
+''');
+    }
+  }
+
+  Future<void> test_forEachPartsWithPattern_first_beforeColon() async {
+    await computeSuggestions('''
+void f1(List<A1> x0) {
+  for (final A1(^:) in x0) {}
+}
+class A0 {
+  int f01 = 0;
+  int get g01 => 0;
+  set s01(x) {}
+  int m01() => 0;
+  static int f02 = 0;
+  static int get g02 => 0;
+  static int m02() => 0;
+  static set s02(x) {}
+}
+class A1 extends A0 {
+  int f11 = 0;
+  int get g11 => 0;
+  set s11(x) {}
+  int m11() => 0;
+  static int f12 = 0;
+  static int get g12 => 0;
+  static int m12() => 0;
+  static set s12(x) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: field
+  f11
+    kind: field
+  g01
+    kind: getter
+  g11
+    kind: getter
+''');
+  }
+
+  Future<void> test_forEachPartsWithPattern_first_beforeColon_partial() async {
+    await computeSuggestions('''
+void f1(List<A1> x0) {
+  for (final A1(g^:) in x0) {}
+}
+class A0 {
+  int f01 = 0;
+  int get g01 => 0;
+  set s01(x) {}
+  int m01() => 0;
+  static int f02 = 0;
+  static int get g02 => 0;
+  static int m02() => 0;
+  static set s02(x) {}
+}
+class A1 extends A0 {
+  int f11 = 0;
+  int get g11 => 0;
+  set s11(x) {}
+  int m11() => 0;
+  static int f12 = 0;
+  static int get g12 => 0;
+  static int m12() => 0;
+  static set s12(x) {}
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  g01
+    kind: getter
+  g11
+    kind: getter
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  f01
+    kind: field
+  f11
+    kind: field
+  g01
+    kind: getter
+  g11
+    kind: getter
 ''');
     }
   }
@@ -191,10 +369,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
   }
 
@@ -402,10 +576,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
   }
 
@@ -460,10 +630,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
     }
   }
@@ -520,10 +686,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
     }
   }
@@ -569,10 +731,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
   }
 
@@ -612,10 +770,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
   }
 }

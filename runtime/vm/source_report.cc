@@ -30,8 +30,8 @@ SourceReport::SourceReport(intptr_t report_set,
       compile_mode_(compile_mode),
       report_lines_(report_lines),
       library_filters_(GrowableObjectArray::Handle()),
-      thread_(NULL),
-      script_(NULL),
+      thread_(nullptr),
+      script_(nullptr),
       start_pos_(TokenPosition::kMinSource),
       end_pos_(TokenPosition::kMaxSource),
       next_script_index_(0) {}
@@ -44,8 +44,8 @@ SourceReport::SourceReport(intptr_t report_set,
       compile_mode_(compile_mode),
       report_lines_(report_lines),
       library_filters_(library_filters),
-      thread_(NULL),
-      script_(NULL),
+      thread_(nullptr),
+      script_(nullptr),
       start_pos_(TokenPosition::kMinSource),
       end_pos_(TokenPosition::kMaxSource),
       next_script_index_(0) {}
@@ -65,7 +65,7 @@ void SourceReport::ClearScriptTable() {
   script_table_.Clear();
 
   for (intptr_t i = 0; i < script_table_entries_.length(); i++) {
-    script_table_entries_[i] = NULL;
+    script_table_entries_[i] = nullptr;
   }
   script_table_entries_.Clear();
 
@@ -101,7 +101,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     return true;
   }
 
-  if (script_ != NULL && !script_->IsNull()) {
+  if (script_ != nullptr && !script_->IsNull()) {
     if (func.script() != script_->ptr()) {
       // The function is from the wrong script.
       return true;
@@ -186,7 +186,7 @@ bool SourceReport::ShouldSkipField(const Field& field) {
     return true;
   }
 
-  if (script_ != NULL && !script_->IsNull()) {
+  if (script_ != nullptr && !script_->IsNull()) {
     if (field.Script() != script_->ptr()) {
       // The field is from the wrong script.
       return true;
@@ -227,7 +227,7 @@ intptr_t SourceReport::GetScriptIndex(const Script& script) {
   wrapper.key = &url;
   wrapper.script = &Script::Handle(zone(), script.ptr());
   ScriptTableEntry* pair = script_table_.LookupValue(&wrapper);
-  if (pair != NULL) {
+  if (pair != nullptr) {
     return pair->index;
   }
   ScriptTableEntry* tmp = new ScriptTableEntry();
@@ -297,7 +297,7 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
     HANDLESCOPE(thread());
     ASSERT(iter.DeoptId() < ic_data_array->length());
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
-    if (ic_data != NULL) {
+    if (ic_data != nullptr) {
       const TokenPosition& token_pos = iter.TokenPos();
       if (!token_pos.IsWithin(begin_pos, end_pos)) {
         // Does not correspond to a valid source position.
@@ -320,7 +320,7 @@ intptr_t SourceReport::GetTokenPosOrLine(const Script& script,
 }
 
 bool SourceReport::ShouldCoverageSkipCallSite(const ICData* ic_data) {
-  if (ic_data == NULL) return true;
+  if (ic_data == nullptr) return true;
   if (!ic_data->is_static_call()) return false;
   Function& func = Function::Handle(ic_data->GetTargetAt(0));
 
@@ -485,7 +485,7 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
 
 void SourceReport::PrintProfileData(JSONObject* jsobj,
                                     ProfileFunction* profile_function) {
-  ASSERT(profile_function != NULL);
+  ASSERT(profile_function != nullptr);
   ASSERT(profile_function->NumSourcePositions() > 0);
 
   {
@@ -602,7 +602,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
   if (IsReportRequested(kProfile)) {
     ProfileFunction* profile_function = profile_.FindFunction(func);
-    if ((profile_function != NULL) &&
+    if ((profile_function != nullptr) &&
         (profile_function->NumSourcePositions() > 0)) {
       PrintProfileData(&range, profile_function);
     }
@@ -751,7 +751,7 @@ void SourceReport::CollectAllScripts(
       wrapper.key = &url;
       wrapper.script = &Script::Handle(zone(), scriptRef.ptr());
       ScriptTableEntry* pair = local_script_table->LookupValue(&wrapper);
-      if (pair != NULL) {
+      if (pair != nullptr) {
         // Existing one.
         continue;
       }
@@ -771,7 +771,7 @@ void SourceReport::CleanupCollectedScripts(
     GrowableArray<ScriptTableEntry*>* local_script_table_entries) {
   for (intptr_t i = 0; i < local_script_table_entries->length(); i++) {
     delete local_script_table_entries->operator[](i);
-    local_script_table_entries->operator[](i) = NULL;
+    local_script_table_entries->operator[](i) = nullptr;
   }
   local_script_table_entries->Clear();
   local_script_table->Clear();

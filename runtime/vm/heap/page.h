@@ -17,8 +17,8 @@ namespace dart {
 class ForwardingPage;
 class ObjectVisitor;
 class ObjectPointerVisitor;
-class FindObjectVisitor;
 class Thread;
+class UnwindingRecords;
 
 // Pages are allocated with kPageSize alignment so that the Page of any object
 // can be computed by masking the object with kPageMask. This does not apply to
@@ -65,7 +65,23 @@ class Page {
   static intptr_t CachedSize();
   static void Cleanup();
 
-  enum PageType : uword { kExecutable = 0, kData, kNew };
+  enum PageFlags : uword {
+    kExecutable = 1 << 0,
+    kLarge = 1 << 1,
+    kImage = 1 << 2,
+    kVMIsolate = 1 << 3,
+    kNew = 1 << 4,
+    kEvacuationCandidate = 1 << 5,
+  };
+  bool is_executable() const { return (flags_ & kExecutable) != 0; }
+  bool is_large() const { return (flags_ & kLarge) != 0; }
+  bool is_image() const { return (flags_ & kImage) != 0; }
+  bool is_vm_isolate() const { return (flags_ & kVMIsolate) != 0; }
+  bool is_new() const { return (flags_ & kNew) != 0; }
+  bool is_old() const { return !is_new(); }
+  bool is_evacuation_candidate() const {
+    return (flags_ & kEvacuationCandidate) != 0;
+  }
 
   Page* next() const { return next_; }
   void set_next(Page* next) { next_ = next; }
@@ -76,7 +92,7 @@ class Page {
   intptr_t AliasOffset() const { return memory_->AliasOffset(); }
 
   uword object_start() const {
-    return type_ == kNew ? new_object_start() : old_object_start();
+    return is_new() ? new_object_start() : old_object_start();
   }
   uword old_object_start() const {
     return memory_->start() + OldObjectStartOffset();
@@ -91,16 +107,12 @@ class Page {
   intptr_t used() const { return object_end() - object_start(); }
 
   ForwardingPage* forwarding_page() const { return forwarding_page_; }
+  void RegisterUnwindingRecords();
+  void UnregisterUnwindingRecords();
   void AllocateForwardingPage();
-
-  PageType type() const { return type_; }
-
-  bool is_image_page() const { return !memory_->vm_owns_region(); }
 
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
-
-  ObjectPtr FindObject(FindObjectVisitor* visitor) const;
 
   void WriteProtect(bool read_only);
 
@@ -163,8 +175,8 @@ class Page {
   }
 
   // 1 card = 128 slots.
-  static const intptr_t kSlotsPerCardLog2 = 7;
-  static const intptr_t kBytesPerCardLog2 =
+  static constexpr intptr_t kSlotsPerCardLog2 = 7;
+  static constexpr intptr_t kBytesPerCardLog2 =
       kCompressedWordSizeLog2 + kSlotsPerCardLog2;
 
   intptr_t card_table_size() const {
@@ -297,13 +309,13 @@ class Page {
   }
 
   // Returns nullptr on OOM.
-  static Page* Allocate(intptr_t size, PageType type, bool can_use_cache);
+  static Page* Allocate(intptr_t size, uword flags);
 
   // Deallocate the virtual memory backing this page. The page pointer to this
   // page becomes immediately inaccessible.
-  void Deallocate(bool can_use_cache);
+  void Deallocate();
 
-  PageType type_;
+  uword flags_;
   VirtualMemory* memory_;
   Page* next_;
   ForwardingPage* forwarding_page_;
@@ -333,6 +345,7 @@ class Page {
   friend class SemiSpace;
   friend class PageSpace;
   friend class GCCompactor;
+  friend class UnwindingRecords;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Page);

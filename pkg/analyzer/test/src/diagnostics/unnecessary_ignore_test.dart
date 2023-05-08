@@ -21,7 +21,7 @@ class UnnecessaryIgnoreTest extends PubPackageResolutionTest {
 // ignore_for_file: unused_local_variable
 void f() {}
 ''', [
-      error(HintCode.UNNECESSARY_IGNORE, 20, 21),
+      error(WarningCode.UNNECESSARY_IGNORE, 20, 21),
     ]);
   }
 
@@ -31,7 +31,7 @@ void f() {}
 // ignore: unused_local_variable
 void f() {}
 ''', [
-      error(HintCode.UNNECESSARY_IGNORE, 11, 21),
+      error(WarningCode.UNNECESSARY_IGNORE, 11, 21),
     ]);
   }
 }

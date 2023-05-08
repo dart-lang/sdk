@@ -235,6 +235,23 @@ class LspAnalysisServer extends AnalysisServer {
       super.notificationManager as LspNotificationManager;
 
   @override
+  OpenUriNotificationSender? get openUriNotificationSender {
+    if (!initializationOptions.allowOpenUri) {
+      return null;
+    }
+
+    return (Uri uri) {
+      final params = OpenUriParams(uri: uri);
+      final message = NotificationMessage(
+        method: CustomMethods.openUri,
+        params: params,
+        jsonrpc: jsonRpcVersion,
+      );
+      sendNotification(message);
+    };
+  }
+
+  @override
   set pluginManager(PluginManager value) {
     if (AnalysisServer.supportsPlugins) {
       // we exchange the plugin manager in tests
@@ -248,10 +265,6 @@ class LspAnalysisServer extends AnalysisServer {
 
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
       RefactoringWorkspace(driverMap.values, searchEngine);
-
-  /// Whether or not the client supports openUri notifications.
-  @override
-  bool get supportsOpenUriNotification => initializationOptions.allowOpenUri;
 
   /// Whether or not the client has advertised support for
   /// 'window/showMessageRequest'.
@@ -705,18 +718,6 @@ class LspAnalysisServer extends AnalysisServer {
   /// Send the given [notification] to the client.
   void sendNotification(NotificationMessage notification) {
     channel.sendNotification(notification);
-  }
-
-  @override
-  void sendOpenUriNotification(Uri uri) {
-    assert(supportsOpenUriNotification);
-    final params = OpenUriParams(uri: uri);
-    final message = NotificationMessage(
-      method: CustomMethods.openUri,
-      params: params,
-      jsonrpc: jsonRpcVersion,
-    );
-    sendNotification(message);
   }
 
   /// Send the given [request] to the client and wait for a response. Completes

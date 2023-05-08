@@ -156,7 +156,7 @@ class LibraryAnalyzer {
             e.parent is ExtensionDeclaration ||
             e.parent is MixinDeclaration;
       });
-      if (nodeToResolve != null) {
+      if (nodeToResolve != null && nodeToResolve is! Directive) {
         var canResolveNode = resolverVisitor.prepareForResolving(nodeToResolve);
         if (canResolveNode) {
           nodeToResolve.accept(resolverVisitor);

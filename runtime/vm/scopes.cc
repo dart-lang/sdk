@@ -23,8 +23,8 @@ DEFINE_FLAG(bool,
 
 LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
     : parent_(parent),
-      child_(NULL),
-      sibling_(NULL),
+      child_(nullptr),
+      sibling_(nullptr),
       function_level_(function_level),
       loop_level_(loop_level),
       context_level_(LocalScope::kUninitializedContextLevel),
@@ -32,12 +32,12 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       end_token_pos_(TokenPosition::kNoSource),
       variables_(),
       context_variables_(),
-      context_slots_(new (Thread::Current()->zone())
+      context_slots_(new(Thread::Current()->zone())
                          ZoneGrowableArray<const Slot*>()) {
   // Hook this node into the children of the parent, unless the parent has a
   // different function_level, since the local scope of a nested function can
   // be discarded after it has been parsed.
-  if ((parent != NULL) && (parent->function_level() == function_level)) {
+  if ((parent != nullptr) && (parent->function_level() == function_level)) {
     sibling_ = parent->child_;
     parent->child_ = this;
   }
@@ -45,7 +45,7 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
 
 bool LocalScope::IsNestedWithin(LocalScope* scope) const {
   const LocalScope* current_scope = this;
-  while (current_scope != NULL) {
+  while (current_scope != nullptr) {
     if (current_scope == scope) {
       return true;
     }
@@ -55,13 +55,13 @@ bool LocalScope::IsNestedWithin(LocalScope* scope) const {
 }
 
 bool LocalScope::AddVariable(LocalVariable* variable) {
-  ASSERT(variable != NULL);
+  ASSERT(variable != nullptr);
   if (LocalLookupVariable(variable->name(), variable->kernel_offset()) !=
       nullptr) {
     return false;
   }
   variables_.Add(variable);
-  if (variable->owner() == NULL) {
+  if (variable->owner() == nullptr) {
     // Variables must be added to their owner scope first. Subsequent calls
     // to 'add' treat the variable as an alias.
     variable->set_owner(this);
@@ -70,14 +70,14 @@ bool LocalScope::AddVariable(LocalVariable* variable) {
 }
 
 bool LocalScope::InsertParameterAt(intptr_t pos, LocalVariable* parameter) {
-  ASSERT(parameter != NULL);
+  ASSERT(parameter != nullptr);
   if (LocalLookupVariable(parameter->name(), parameter->kernel_offset()) !=
       nullptr) {
     return false;
   }
   variables_.InsertAt(pos, parameter);
   // InsertParameterAt is not used to add aliases of parameters.
-  ASSERT(parameter->owner() == NULL);
+  ASSERT(parameter->owner() == nullptr);
   parameter->set_owner(this);
   return true;
 }
@@ -89,7 +89,7 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
   // The context level in the owner scope of a captured variable indicates at
   // code generation time how far to walk up the context chain in order to
   // access the variable from the current context level.
-  if ((*context_owner) == NULL) {
+  if ((*context_owner) == nullptr) {
     ASSERT(num_context_variables() == 0);
     // This scope becomes the current context owner.
     set_context_level(1);
@@ -241,7 +241,7 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
   // Allocate variables of all children.
   VariableIndex min_index = next_index;
   LocalScope* child = this->child();
-  while (child != NULL) {
+  while (child != nullptr) {
     // Ignored, since no parameters.
     const VariableIndex dummy_parameter_index(0);
 
@@ -333,7 +333,7 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
         desc.name = &var->name();
         if (var->is_captured()) {
           desc.info.set_kind(UntaggedLocalVarDescriptors::kContextVar);
-          ASSERT(var->owner() != NULL);
+          ASSERT(var->owner() != nullptr);
           ASSERT(var->owner()->context_level() >= 0);
           desc.info.scope_id = var->owner()->context_level();
         } else {
@@ -349,7 +349,7 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
     }
   }
   LocalScope* child = this->child();
-  while (child != NULL) {
+  while (child != nullptr) {
     child->CollectLocalVariables(vars, scope_id);
     child = child->sibling();
   }
@@ -366,18 +366,18 @@ LocalVariable* LocalScope::LocalLookupVariable(const String& name,
       return var;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 LocalVariable* LocalScope::LookupVariable(const String& name,
                                           intptr_t kernel_offset,
                                           bool test_only) {
   LocalScope* current_scope = this;
-  while (current_scope != NULL) {
+  while (current_scope != nullptr) {
     LocalVariable* var =
         current_scope->LocalLookupVariable(name, kernel_offset);
     // If testing only, return the variable even if invisible.
-    if ((var != NULL) && (!var->is_invisible_ || test_only)) {
+    if ((var != nullptr) && (!var->is_invisible_ || test_only)) {
       if (!test_only && (var->owner()->function_level() != function_level())) {
         CaptureVariable(var);
       }
@@ -385,7 +385,7 @@ LocalVariable* LocalScope::LookupVariable(const String& name,
     }
     current_scope = current_scope->parent();
   }
-  return NULL;
+  return nullptr;
 }
 
 LocalVariable* LocalScope::LookupVariableByName(const String& name) {
@@ -403,7 +403,7 @@ LocalVariable* LocalScope::LookupVariableByName(const String& name) {
 }
 
 void LocalScope::CaptureVariable(LocalVariable* variable) {
-  ASSERT(variable != NULL);
+  ASSERT(variable != nullptr);
 
   // The variable must exist in an enclosing scope, not necessarily in this one.
   variable->set_is_captured();
@@ -413,7 +413,7 @@ void LocalScope::CaptureVariable(LocalVariable* variable) {
     // Insert an alias of the variable in the top scope of each function
     // level so that the variable is found in the context.
     LocalScope* parent_scope = scope->parent();
-    while ((parent_scope != NULL) &&
+    while ((parent_scope != nullptr) &&
            (parent_scope->function_level() == scope->function_level())) {
       scope = parent_scope;
       parent_scope = scope->parent();
@@ -508,7 +508,7 @@ ContextScopePtr LocalScope::PreserveOuterScope(
 LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   // The function level of the outer scope is one less than the function level
   // of the current function, which is 0.
-  LocalScope* outer_scope = new LocalScope(NULL, -1, 0);
+  LocalScope* outer_scope = new LocalScope(nullptr, -1, 0);
   // Add all variables as aliases to the outer scope.
   for (int i = 0; i < context_scope.num_variables(); i++) {
     LocalVariable* variable;
@@ -543,7 +543,7 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
     // Create a fake owner scope describing the index and context level of the
     // variable. Function level and loop level are unused (set to 0), since
     // context level has already been assigned.
-    LocalScope* owner_scope = new LocalScope(NULL, 0, 0);
+    LocalScope* owner_scope = new LocalScope(nullptr, 0, 0);
     owner_scope->set_context_level(context_scope.ContextLevelAt(i));
     owner_scope->AddVariable(variable);
     outer_scope->AddVariable(variable);  // As alias.
@@ -575,7 +575,7 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
 }
 
 ContextScopePtr LocalScope::CreateImplicitClosureScope(const Function& func) {
-  static const intptr_t kNumCapturedVars = 1;
+  const intptr_t kNumCapturedVars = 1;
 
   // Create a ContextScope with space for kNumCapturedVars descriptors.
   const ContextScope& context_scope =

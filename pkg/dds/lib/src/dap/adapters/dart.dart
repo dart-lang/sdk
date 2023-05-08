@@ -458,13 +458,15 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// the user would not expect the script to continue to pause on breakpoints
   /// the had set while attached.
   Future<void> preventBreakingAndResume() async {
-    // Remove anything that may cause us to pause again.
-    await Future.wait([
-      isolateManager.clearAllBreakpoints(),
-      isolateManager.setExceptionPauseMode('None'),
-    ]);
-    // Once those have completed, it's safe to resume anything paused.
-    await isolateManager.resumeAll();
+    await _withErrorHandling(() async {
+      // Remove anything that may cause us to pause again.
+      await Future.wait([
+        isolateManager.clearAllBreakpoints(),
+        isolateManager.setExceptionPauseMode('None'),
+      ]);
+      // Once those have completed, it's safe to resume anything paused.
+      await isolateManager.resumeAll();
+    });
   }
 
   DartDebugAdapter(
@@ -629,7 +631,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
 
     logger?.call('Connecting to debugger at $uri');
-    sendOutput('console', 'Connecting to VM Service at $uri\n');
+    sendConsoleOutput('Connecting to VM Service at $uri\n');
     final vmService = await _vmServiceConnectUri(uri.toString());
     logger?.call('Connected to debugger at $uri!');
 
@@ -1268,6 +1270,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
 
     sendResponse(ScopesResponseBody(scopes: scopes));
+  }
+
+  /// Sends an OutputEvent with a newline to the console.
+  void sendConsoleOutput(String message) {
+    sendOutput('console', '\n$message');
   }
 
   /// Sends an OutputEvent (without a newline, since calls to this method

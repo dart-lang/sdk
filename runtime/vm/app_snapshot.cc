@@ -51,7 +51,7 @@ DEFINE_FLAG(bool,
 #if defined(DART_PRECOMPILER)
 DEFINE_FLAG(charp,
             write_v8_snapshot_profile_to,
-            NULL,
+            nullptr,
             "Write a snapshot profile in V8 format to a file.");
 DEFINE_FLAG(bool,
             print_array_optimization_candidates,
@@ -495,7 +495,8 @@ class ClassDeserializationCluster : public DeserializationCluster {
 // explicitly as Array objects into the snapshot and instead utilize a different
 // encoding: objects in a cluster representing a canonical set are sorted
 // to appear in the same order they appear in the Array representing the set,
-// and we additionally write out array of values describing gaps between objects.
+// and we additionally write out array of values describing gaps between
+// objects.
 //
 // In some situations not all canonical objects of the some type need to
 // be added to the resulting canonical set because they are cached in some
@@ -561,14 +562,8 @@ class CanonicalSetSerializationCluster : public SerializationCluster {
         element ^= ptr;
         intptr_t entry = -1;
         const bool present = table.FindKeyOrDeletedOrUnused(element, &entry);
-        if (!present) {
-          table.InsertKey(entry, element);
-        } else {
-          // Two recursive types with different topology (and hashes)
-          // may be equal.
-          ASSERT(element.IsRecursive());
-          objects_[num_occupied++] = ptr;
-        }
+        ASSERT(!present);
+        table.InsertKey(entry, element);
       } else {
         objects_[num_occupied++] = ptr;
       }
@@ -900,7 +895,7 @@ class TypeArgumentsDeserializationCluster
       TypeArguments& type_arg = TypeArguments::Handle(d->zone());
       for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
         type_arg ^= refs.At(i);
-        type_arg = type_arg.Canonicalize(d->thread(), nullptr);
+        type_arg = type_arg.Canonicalize(d->thread());
         refs.SetAt(i, type_arg);
       }
     }
@@ -1740,8 +1735,8 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       LibraryPtr lib = static_cast<LibraryPtr>(d.Ref(id));
       Deserializer::InitializeHeader(lib, kLibraryCid, Library::InstanceSize());
       d.ReadFromTo(lib);
-      lib->untag()->native_entry_resolver_ = NULL;
-      lib->untag()->native_entry_symbol_resolver_ = NULL;
+      lib->untag()->native_entry_resolver_ = nullptr;
+      lib->untag()->native_entry_symbol_resolver_ = nullptr;
       lib->untag()->index_ = d.Read<int32_t>();
       lib->untag()->num_imports_ = d.Read<uint16_t>();
       lib->untag()->load_state_ = d.Read<int8_t>();
@@ -4185,7 +4180,7 @@ class TypeDeserializationCluster
       AbstractType& type = AbstractType::Handle(d->zone());
       for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
         type ^= refs.At(i);
-        type = type.Canonicalize(d->thread(), nullptr);
+        type = type.Canonicalize(d->thread());
         refs.SetAt(i, type);
       }
     }
@@ -4301,7 +4296,7 @@ class FunctionTypeDeserializationCluster
       AbstractType& type = AbstractType::Handle(d->zone());
       for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
         type ^= refs.At(i);
-        type = type.Canonicalize(d->thread(), nullptr);
+        type = type.Canonicalize(d->thread());
         refs.SetAt(i, type);
       }
     }
@@ -4412,7 +4407,7 @@ class RecordTypeDeserializationCluster
       AbstractType& type = AbstractType::Handle(d->zone());
       for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
         type ^= refs.At(i);
-        type = type.Canonicalize(d->thread(), nullptr);
+        type = type.Canonicalize(d->thread());
         refs.SetAt(i, type);
       }
     }
@@ -4430,97 +4425,6 @@ class RecordTypeDeserializationCluster
         type ^= refs.At(id);
         stub = TypeTestingStubGenerator::DefaultCodeForType(type);
         type.InitializeTypeTestingStubNonAtomic(stub);
-      }
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class TypeRefSerializationCluster : public SerializationCluster {
- public:
-  TypeRefSerializationCluster()
-      : SerializationCluster("TypeRef",
-                             kTypeRefCid,
-                             compiler::target::TypeRef::InstanceSize()) {}
-  ~TypeRefSerializationCluster() {}
-
-  void Trace(Serializer* s, ObjectPtr object) {
-    TypeRefPtr type = TypeRef::RawCast(object);
-    objects_.Add(type);
-    PushFromTo(type);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    const intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      TypeRefPtr type = objects_[i];
-      s->AssignRef(type);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    const intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      TypeRefPtr type = objects_[i];
-      AutoTraceObject(type);
-      WriteFromTo(type);
-    }
-  }
-
- private:
-  GrowableArray<TypeRefPtr> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class TypeRefDeserializationCluster : public DeserializationCluster {
- public:
-  TypeRefDeserializationCluster() : DeserializationCluster("TypeRef") {}
-  ~TypeRefDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    ReadAllocFixedSize(d, TypeRef::InstanceSize());
-  }
-
-  void ReadFill(Deserializer* d_, bool primary) {
-    Deserializer::Local d(d_);
-
-    const bool mark_canonical = primary && is_canonical();
-    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
-      TypeRefPtr type = static_cast<TypeRefPtr>(d.Ref(id));
-      Deserializer::InitializeHeader(type, kTypeRefCid, TypeRef::InstanceSize(),
-                                     mark_canonical);
-      d.ReadFromTo(type);
-    }
-  }
-
-  void PostLoad(Deserializer* d, const Array& refs, bool primary) {
-    if (!primary && is_canonical()) {
-      AbstractType& type = AbstractType::Handle(d->zone());
-      for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
-        type ^= refs.At(i);
-        type = type.Canonicalize(d->thread(), nullptr);
-        refs.SetAt(i, type);
-      }
-    }
-
-    TypeRef& type_ref = TypeRef::Handle(d->zone());
-    AbstractType& type = AbstractType::Handle(d->zone());
-    Code& stub = Code::Handle(d->zone());
-    const bool includes_code = Snapshot::IncludesCode(d->kind());
-
-    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
-      type_ref ^= refs.At(id);
-
-      // Refresh finalization state and nullability.
-      type = type_ref.type();
-      type_ref.set_type(type);
-
-      if (includes_code) {
-        type_ref.UpdateTypeTestingStubEntryPoint();
-      } else {
-        stub = TypeTestingStubGenerator::DefaultCodeForType(type_ref);
-        type_ref.InitializeTypeTestingStubNonAtomic(stub);
       }
     }
   }
@@ -4571,7 +4475,6 @@ class TypeParameterSerializationCluster
   void WriteTypeParameter(Serializer* s, TypeParameterPtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
-    s->Write<int32_t>(type->untag()->parameterized_class_id_);
     s->Write<uint16_t>(type->untag()->base_);
     s->Write<uint16_t>(type->untag()->index_);
     ASSERT(Utils::IsUint(8, type->untag()->flags()));
@@ -4605,7 +4508,6 @@ class TypeParameterDeserializationCluster
                                      TypeParameter::InstanceSize(),
                                      mark_canonical);
       d.ReadFromTo(type);
-      type->untag()->parameterized_class_id_ = d.Read<int32_t>();
       type->untag()->base_ = d.Read<uint16_t>();
       type->untag()->index_ = d.Read<uint16_t>();
       type->untag()->set_flags(d.Read<uint8_t>());
@@ -4622,7 +4524,7 @@ class TypeParameterDeserializationCluster
       TypeParameter& type_param = TypeParameter::Handle(d->zone());
       for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
         type_param ^= refs.At(i);
-        type_param ^= type_param.Canonicalize(d->thread(), nullptr);
+        type_param ^= type_param.Canonicalize(d->thread());
         refs.SetAt(i, type_param);
       }
     }
@@ -6741,7 +6643,7 @@ class UnitDeserializationRoots : public DeserializationRoots {
 };
 
 #if defined(DEBUG)
-static const int32_t kSectionMarker = 0xABAB;
+static constexpr int32_t kSectionMarker = 0xABAB;
 #endif
 
 Serializer::Serializer(Thread* thread,
@@ -7159,7 +7061,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
                                                      bool is_canonical) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 #else
   Zone* Z = zone_;
   if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
@@ -7262,8 +7164,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
     case kRecordTypeCid:
       return new (Z) RecordTypeSerializationCluster(
           is_canonical, cluster_represents_canonical_set);
-    case kTypeRefCid:
-      return new (Z) TypeRefSerializationCluster();
     case kTypeParameterCid:
       return new (Z) TypeParameterSerializationCluster(
           is_canonical, cluster_represents_canonical_set);
@@ -7318,9 +7218,9 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
       break;
   }
 
-  // The caller will check for NULL and provide an error with more context than
-  // is available here.
-  return NULL;
+  // The caller will check for nullptr and provide an error with more context
+  // than is available here.
+  return nullptr;
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 
@@ -7708,7 +7608,7 @@ uint32_t Serializer::GetDataOffset(ObjectPtr object) const {
 }
 
 intptr_t Serializer::GetDataSize() const {
-  if (image_writer_ == NULL) {
+  if (image_writer_ == nullptr) {
     return 0;
   }
   return image_writer_->data_size();
@@ -7844,13 +7744,13 @@ ObjectPtr Serializer::ParentOf(const Object& object) const {
 
 void Serializer::WriteVersionAndFeatures(bool is_vm_snapshot) {
   const char* expected_version = Version::SnapshotString();
-  ASSERT(expected_version != NULL);
+  ASSERT(expected_version != nullptr);
   const intptr_t version_len = strlen(expected_version);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
   char* expected_features =
       Dart::FeaturesString(IsolateGroup::Current(), is_vm_snapshot, kind_);
-  ASSERT(expected_features != NULL);
+  ASSERT(expected_features != nullptr);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
              features_len + 1);
@@ -8441,9 +8341,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case kRecordTypeCid:
       return new (Z)
           RecordTypeDeserializationCluster(is_canonical, !is_non_root_unit_);
-    case kTypeRefCid:
-      ASSERT(!is_canonical);
-      return new (Z) TypeRefDeserializationCluster();
     case kTypeParameterCid:
       return new (Z)
           TypeParameterDeserializationCluster(is_canonical, !is_non_root_unit_);
@@ -8498,7 +8395,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
       break;
   }
   FATAL("No cluster defined for cid %" Pd, cid);
-  return NULL;
+  return nullptr;
 }
 
 void Deserializer::ReadDispatchTable(
@@ -8607,7 +8504,7 @@ char* SnapshotHeaderReader::VerifyVersion() {
   // Note: New things are allocated only if we're going to return an error.
 
   const char* expected_version = Version::SnapshotString();
-  ASSERT(expected_version != NULL);
+  ASSERT(expected_version != nullptr);
   const intptr_t version_len = strlen(expected_version);
   if (stream_.PendingBytes() < version_len) {
     const intptr_t kMessageBufferSize = 128;
@@ -8620,7 +8517,7 @@ char* SnapshotHeaderReader::VerifyVersion() {
 
   const char* version =
       reinterpret_cast<const char*>(stream_.AddressOfCurrentPosition());
-  ASSERT(version != NULL);
+  ASSERT(version != nullptr);
   if (strncmp(version, expected_version, version_len) != 0) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
@@ -8639,8 +8536,8 @@ char* SnapshotHeaderReader::VerifyVersion() {
 
 char* SnapshotHeaderReader::VerifyFeatures(IsolateGroup* isolate_group) {
   const char* expected_features =
-      Dart::FeaturesString(isolate_group, (isolate_group == NULL), kind_);
-  ASSERT(expected_features != NULL);
+      Dart::FeaturesString(isolate_group, (isolate_group == nullptr), kind_);
+  ASSERT(expected_features != nullptr);
   const intptr_t expected_len = strlen(expected_features);
 
   const char* features = nullptr;
@@ -8902,7 +8799,7 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
     ASSERT(section_marker == kSectionMarker);
 #endif
 
-    refs_ = NULL;
+    refs_ = nullptr;
   }
 
   roots->PostLoad(this, refs);
@@ -8911,7 +8808,7 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
 #if defined(DEBUG)
   isolate_group->ValidateClassTable();
   if (isolate_group != Dart::vm_isolate()->group()) {
-    isolate_group->heap()->Verify();
+    isolate_group->heap()->Verify("Deserializer::Deserialize");
   }
 #endif
 
@@ -8946,10 +8843,10 @@ FullSnapshotWriter::FullSnapshotWriter(
       isolate_snapshot_size_(0),
       vm_image_writer_(vm_image_writer),
       isolate_image_writer_(isolate_image_writer) {
-  ASSERT(isolate_group() != NULL);
-  ASSERT(heap() != NULL);
+  ASSERT(isolate_group() != nullptr);
+  ASSERT(heap() != nullptr);
   ObjectStore* object_store = isolate_group()->object_store();
-  ASSERT(object_store != NULL);
+  ASSERT(object_store != nullptr);
 
 #if defined(DEBUG)
   isolate_group()->ValidateClassTable();
@@ -9008,7 +8905,7 @@ void FullSnapshotWriter::WriteProgramSnapshot(
   serializer.set_loading_units(units);
   serializer.set_current_loading_unit_id(LoadingUnit::kRootId);
   ObjectStore* object_store = isolate_group()->object_store();
-  ASSERT(object_store != NULL);
+  ASSERT(object_store != nullptr);
 
   // These type arguments must always be retained.
   ASSERT(object_store->type_argument_int()->untag()->IsCanonical());
@@ -9299,10 +9196,10 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
   }
 
   if (Snapshot::IncludesCode(kind_)) {
-    ASSERT(data_image_ != NULL);
+    ASSERT(data_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(data_image_,
                                              /* is_executable */ false);
-    ASSERT(instructions_image_ != NULL);
+    ASSERT(instructions_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(instructions_image_,
                                              /* is_executable */ true);
   }
@@ -9340,10 +9237,10 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   }
 
   if (Snapshot::IncludesCode(kind_)) {
-    ASSERT(data_image_ != NULL);
+    ASSERT(data_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(data_image_,
                                              /* is_executable */ false);
-    ASSERT(instructions_image_ != NULL);
+    ASSERT(instructions_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(instructions_image_,
                                              /* is_executable */ true);
   }
@@ -9385,10 +9282,10 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
   }
 
   if (Snapshot::IncludesCode(kind_)) {
-    ASSERT(data_image_ != NULL);
+    ASSERT(data_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(data_image_,
                                              /* is_executable */ false);
-    ASSERT(instructions_image_ != NULL);
+    ASSERT(instructions_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(instructions_image_,
                                              /* is_executable */ true);
   }

@@ -23,10 +23,8 @@ class OptionalConstResolutionTest extends PubPackageResolutionTest {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: package:test/a.dart::@class::B
-        staticType: null
+      name: B
+      element: package:test/a.dart::@class::B
       type: B<num>
     period: .
     name: SimpleIdentifier
@@ -51,10 +49,8 @@ InstanceCreationExpression
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: package:test/a.dart::@class::B
-        staticType: null
+      name: B
+      element: package:test/a.dart::@class::B
       type: B<num>
     staticElement: ConstructorMember
       base: package:test/a.dart::@class::B::@constructor::new
@@ -72,18 +68,12 @@ InstanceCreationExpression
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: package:test/b.dart::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: B
-          staticElement: package:test/a.dart::@class::B
-          staticType: null
-        staticElement: package:test/a.dart::@class::B
-        staticType: null
+        element: package:test/b.dart::@prefix::p
+      name: B
+      element: package:test/a.dart::@class::B
       type: B<num>
     period: .
     name: SimpleIdentifier
@@ -108,18 +98,12 @@ InstanceCreationExpression
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: package:test/b.dart::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: B
-          staticElement: package:test/a.dart::@class::B
-          staticType: null
-        staticElement: package:test/a.dart::@class::B
-        staticType: null
+        element: package:test/b.dart::@prefix::p
+      name: B
+      element: package:test/a.dart::@class::B
       type: B<num>
     staticElement: ConstructorMember
       base: package:test/a.dart::@class::B::@constructor::new
@@ -137,10 +121,8 @@ InstanceCreationExpression
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+      name: A
+      element: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -161,10 +143,8 @@ InstanceCreationExpression
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+      name: A
+      element: package:test/a.dart::@class::A
       type: A
     staticElement: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -180,18 +160,12 @@ InstanceCreationExpression
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: package:test/b.dart::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: package:test/b.dart::@prefix::p
+      name: A
+      element: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -212,18 +186,12 @@ InstanceCreationExpression
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: package:test/b.dart::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: package:test/b.dart::@prefix::p
+      name: A
+      element: package:test/a.dart::@class::A
       type: A
     staticElement: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -251,28 +219,20 @@ const x = p.C<int>();
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: C
-          staticElement: package:test/a.dart::@class::C
-          staticType: null
-        staticElement: package:test/a.dart::@class::C
-        staticType: null
+        element: self::@prefix::p
+      name: C
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: package:test/a.dart::@class::C
       type: C<int>
     staticElement: ConstructorMember
       base: package:test/a.dart::@class::C::@constructor::new

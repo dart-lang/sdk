@@ -12,7 +12,7 @@ class ToStringMacro implements ClassDeclarationsMacro {
 
   @override
   FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
-      ClassMemberDeclarationBuilder builder) async {
+      MemberDeclarationBuilder builder) async {
     Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
     if (!methods.any((m) => m.identifier.name == 'toString')) {
       Iterable<FieldDeclaration> fields = await builder.fieldsOf(clazz);
@@ -33,7 +33,7 @@ class ToStringMacro implements ClassDeclarationsMacro {
       }
       parts.add(''')";
   }''');
-      builder.declareInClass(new DeclarationCode.fromParts(parts));
+      builder.declareInType(new DeclarationCode.fromParts(parts));
     }
   }
 }
@@ -45,10 +45,10 @@ class InjectMacro implements ClassDeclarationsMacro {
 
   @override
   FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
-      ClassMemberDeclarationBuilder builder) async {
+      MemberDeclarationBuilder builder) async {
     Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
     if (!methods.any((m) => m.identifier.name == 'injectedMethod')) {
-      builder.declareInClass(new DeclarationCode.fromString('''
+      builder.declareInType(new DeclarationCode.fromString('''
  void injectedMethod() {}'''));
     }
   }

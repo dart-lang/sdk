@@ -1282,13 +1282,13 @@ DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
 
 typedef void (*Dart_HeapSamplingReportCallback)(void* context,
-                                                intptr_t heap_size,
-                                                const char* cls_name,
                                                 void* data);
 
 typedef void* (*Dart_HeapSamplingCreateCallback)(
     Dart_Isolate isolate,
-    Dart_IsolateGroup isolate_group);
+    Dart_IsolateGroup isolate_group,
+    const char* cls_name,
+    intptr_t allocation_size);
 typedef void (*Dart_HeapSamplingDeleteCallback)(void* data);
 
 /**
@@ -1336,10 +1336,14 @@ DART_EXPORT void Dart_RegisterHeapSamplingCallback(
  *    freed by the VM at any point after the method returns.
  *  - |data| will be set to the data associated with the sample by
  *    |Dart_HeapSamplingCreateCallback|.
+ *
+ * If |force_gc| is true, a full GC will be performed before reporting the
+ * allocations.
  */
 DART_EXPORT void Dart_ReportSurvivingAllocations(
     Dart_HeapSamplingReportCallback callback,
-    void* context);
+    void* context,
+    bool force_gc);
 
 /*
  * Sets the average heap sampling rate based on a number of |bytes| for each

@@ -33,7 +33,7 @@ void f(prefix.HashMap a, prefix.HashMap b) {}
   }
 
   Future<void> test_withExtension() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension E on int {
   static int foo() => 0;
 }

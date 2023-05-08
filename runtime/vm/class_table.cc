@@ -23,7 +23,7 @@ ClassTable::ClassTable(ClassTableAllocator* allocator)
     : allocator_(allocator),
       classes_(allocator),
       top_level_classes_(allocator) {
-  if (Dart::vm_isolate() == NULL) {
+  if (Dart::vm_isolate() == nullptr) {
     classes_.SetNumCidsAndCapacity(kNumPredefinedCids, kInitialCapacity);
   } else {
     // Duplicate the class table from the VM isolate.
@@ -63,7 +63,7 @@ ClassTable::~ClassTable() {
 }
 
 void ClassTable::Register(const Class& cls) {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(Thread::Current()->IsDartMutatorThread());
   ASSERT(cls.id() == kIllegalCid || cls.id() < kNumPredefinedCids);
   bool did_grow = false;
   const classid_t cid =
@@ -90,7 +90,7 @@ void ClassTable::Register(const Class& cls) {
 }
 
 void ClassTable::RegisterTopLevel(const Class& cls) {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(Thread::Current()->IsDartMutatorThread());
   ASSERT(cls.id() == kIllegalCid);
 
   bool did_grow = false;
@@ -120,12 +120,12 @@ void ClassTable::UnregisterTopLevel(intptr_t cid) {
 }
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
-  ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+  ASSERT(Thread::Current()->OwnsSafepoint());
   classes_.Remap(old_to_new_cid);
 }
 
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   visitor->set_gc_root_type("class table");
 
   const auto visit = [&](ClassPtr* table, intptr_t num_cids) {
@@ -172,12 +172,12 @@ void ClassTable::UpdateClassSize(intptr_t cid, ClassPtr raw_cls) {
 void ClassTable::Validate() {
   Class& cls = Class::Handle();
   for (intptr_t cid = kNumPredefinedCids; cid < classes_.num_cids(); cid++) {
-    // Some of the class table entries maybe NULL as we create some
+    // Some of the class table entries maybe nullptr as we create some
     // top level classes but do not add them to the list of anonymous
     // classes in a library if there are no top level fields or functions.
     // Since there are no references to these top level classes they are
     // not written into a full snapshot and will not be recreated when
-    // we read back the full snapshot. These class slots end up with NULL
+    // we read back the full snapshot. These class slots end up with nullptr
     // entries.
     if (HasValidClassAt(cid)) {
       cls = At(cid);
@@ -304,10 +304,10 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
 
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream, bool internal) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate != nullptr);
   auto isolate_group = isolate->group();
   Heap* heap = isolate_group->heap();
-  ASSERT(heap != NULL);
+  ASSERT(heap != nullptr);
   JSONObject obj(stream);
   obj.AddProperty("type", "AllocationProfile");
   if (isolate_group->last_allocationprofile_accumulator_reset_timestamp() !=

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -14,6 +15,32 @@ main() {
 
 @reflectiveTest
 class IsExpressionResolutionTest extends PubPackageResolutionTest {
+  test_expression_super() async {
+    await assertErrorsInCode('''
+class A<T> {
+  void f() {
+    super is T;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5),
+    ]);
+
+    final node = findNode.singleIsExpression;
+    assertResolvedNodeText(node, r'''
+IsExpression
+  expression: SuperExpression
+    superKeyword: super
+    staticType: A<T>
+  isOperator: is
+  type: NamedType
+    name: T
+    element: T@8
+    type: T
+  staticType: bool
+''');
+  }
+
   test_expression_switchExpression() async {
     await assertNoErrorsInCode('''
 void f(Object? x) {
@@ -49,11 +76,56 @@ IsExpression
     staticType: int
   isOperator: is
   type: NamedType
-    name: SimpleIdentifier
-      token: double
-      staticElement: dart:core::@class::double
-      staticType: null
+    name: double
+    element: dart:core::@class::double
     type: double
+  staticType: bool
+''');
+  }
+
+  test_is() async {
+    await assertNoErrorsInCode('''
+void f(Object? a) {
+  a is int;
+}
+''');
+
+    final node = findNode.singleIsExpression;
+    assertResolvedNodeText(node, r'''
+IsExpression
+  expression: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: Object?
+  isOperator: is
+  type: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  staticType: bool
+''');
+  }
+
+  test_isNot() async {
+    await assertNoErrorsInCode('''
+void f(Object? a) {
+  a is! int;
+}
+''');
+
+    final node = findNode.singleIsExpression;
+    assertResolvedNodeText(node, r'''
+IsExpression
+  expression: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: Object?
+  isOperator: is
+  notOperator: !
+  type: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
   staticType: bool
 ''');
   }

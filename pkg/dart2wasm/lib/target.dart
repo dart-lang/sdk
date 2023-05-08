@@ -15,6 +15,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/verifier.dart';
 import 'package:vm/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
 import 'package:vm/transformations/ffi/common.dart' as ffiHelper
@@ -53,6 +54,9 @@ class WasmTarget extends Target {
   ConstantsBackend get constantsBackend => const ConstantsBackend();
 
   @override
+  Verification get verification => const WasmVerification();
+
+  @override
   String get name => 'wasm';
 
   @override
@@ -69,6 +73,7 @@ class WasmTarget extends Target {
         'dart:nativewrappers',
         'dart:io',
         'dart:js_interop',
+        'dart:js_interop_unsafe',
         'dart:js',
         'dart:js_util',
         'dart:_wasm',
@@ -377,4 +382,25 @@ class WasmTarget extends Target {
   Class getRecordImplementationClass(CoreTypes coreTypes,
           int numPositionalFields, List<String> namedFields) =>
       recordClasses[RecordShape(numPositionalFields, namedFields)]!;
+}
+
+class WasmVerification extends Verification {
+  const WasmVerification();
+
+  @override
+  bool allowNoFileOffset(VerificationStage stage, TreeNode node) {
+    if (super.allowNoFileOffset(stage, node)) {
+      return true;
+    }
+    if (stage >= VerificationStage.afterModularTransformations) {
+      // Allow synthesized classes, procedures, fields and casts.
+      // TODO(askesc): Improve the precision of these exceptions.
+      return node is Class ||
+          node is Constructor ||
+          node is Procedure ||
+          node is Field ||
+          node is AsExpression;
+    }
+    return false;
+  }
 }

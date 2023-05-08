@@ -512,9 +512,9 @@ class Obfuscator : public ValueObject {
   // ObjectStore::obfuscation_map() is an Array with two elements:
   // first element is the last used rename and the second element is
   // renaming map.
-  static const intptr_t kSavedStateNameIndex = 0;
-  static const intptr_t kSavedStateRenamesIndex = 1;
-  static const intptr_t kSavedStateSize = 2;
+  static constexpr intptr_t kSavedStateNameIndex = 0;
+  static constexpr intptr_t kSavedStateRenamesIndex = 1;
+  static constexpr intptr_t kSavedStateSize = 2;
 
   static ArrayPtr GetRenamesFromSavedState(const Array& saved_state) {
     Array& renames = Array::Handle();

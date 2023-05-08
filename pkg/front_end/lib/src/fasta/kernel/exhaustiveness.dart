@@ -46,8 +46,9 @@ class ExhaustivenessResult {
 
 class CfeTypeOperations implements TypeOperations<DartType> {
   final TypeEnvironment _typeEnvironment;
+  final Library _enclosingLibrary;
 
-  CfeTypeOperations(this._typeEnvironment);
+  CfeTypeOperations(this._typeEnvironment, this._enclosingLibrary);
 
   ClassHierarchy get _classHierarchy => _typeEnvironment.hierarchy;
 
@@ -122,7 +123,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
       Map<Class, Substitution> substitutions = {};
       for (Member member
           in _classHierarchy.getInterfaceMembers(type.classNode)) {
-        if (member.name.isPrivate) {
+        if (member.name.isPrivate && member.name.library != _enclosingLibrary) {
           continue;
         }
         DartType? fieldType;
@@ -245,8 +246,47 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   }
 }
 
+class EnumValue {
+  final Class enumClass;
+  final String name;
+
+  EnumValue(this.enumClass, this.name);
+
+  @override
+  int get hashCode => Object.hash(enumClass, name);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    return other is EnumValue &&
+        enumClass == other.enumClass &&
+        name == other.name;
+  }
+}
+
+EnumValue? constantToEnumValue(CoreTypes coreTypes, Constant constant) {
+  if (constant is InstanceConstant && constant.classNode.isEnum) {
+    StringConstant name = constant
+        .fieldValues[coreTypes.enumNameField.fieldReference] as StringConstant;
+    return new EnumValue(constant.classNode, name.value);
+  } else if (constant is UnevaluatedConstant) {
+    Expression expression = constant.expression;
+    if (expression is FileUriExpression) {
+      expression = expression.expression;
+    }
+    if (expression is InstanceCreation && expression.classNode.isEnum) {
+      ConstantExpression name =
+          expression.fieldValues[coreTypes.enumNameField.fieldReference]
+              as ConstantExpression;
+      return new EnumValue(
+          expression.classNode, (name.constant as StringConstant).value);
+    }
+  }
+  return null;
+}
+
 class CfeEnumOperations
-    implements EnumOperations<DartType, Class, Field, Constant> {
+    implements EnumOperations<DartType, Class, Field, EnumValue> {
   final ConstantEvaluator _constantEvaluator;
 
   CfeEnumOperations(this._constantEvaluator);
@@ -270,7 +310,7 @@ class CfeEnumOperations
   }
 
   @override
-  Constant getEnumElementValue(Field enumField) {
+  EnumValue getEnumElementValue(Field enumField) {
     // Enum field initializers might not have been replaced by
     // [ConstantExpression]s. Either because we haven't visited them yet during
     // normal constant evaluation or because they are from outlines that are
@@ -279,7 +319,8 @@ class CfeEnumOperations
     // enum element.
     StaticTypeContext context =
         new StaticTypeContext(enumField, _constantEvaluator.typeEnvironment);
-    return _constantEvaluator.evaluate(context, enumField.initializer!);
+    return constantToEnumValue(_constantEvaluator.coreTypes,
+        _constantEvaluator.evaluate(context, enumField.initializer!))!;
   }
 
   @override
@@ -393,13 +434,15 @@ class CfeSealedClassOperations
 }
 
 class CfeExhaustivenessCache
-    extends ExhaustivenessCache<DartType, Class, Class, Field, Constant> {
+    extends ExhaustivenessCache<DartType, Class, Class, Field, EnumValue> {
   final TypeEnvironment typeEnvironment;
 
-  CfeExhaustivenessCache(ConstantEvaluator constantEvaluator)
+  CfeExhaustivenessCache(
+      ConstantEvaluator constantEvaluator, Library enclosingLibrary)
       : typeEnvironment = constantEvaluator.typeEnvironment,
         super(
-            new CfeTypeOperations(constantEvaluator.typeEnvironment),
+            new CfeTypeOperations(
+                constantEvaluator.typeEnvironment, enclosingLibrary),
             new CfeEnumOperations(constantEvaluator),
             new CfeSealedClassOperations(constantEvaluator.typeEnvironment));
 }
@@ -524,13 +567,15 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
 
   Space convertConstantToSpace(Constant? constant, {required Path path}) {
     if (constant != null) {
-      if (constant is NullConstant) {
+      EnumValue? enumValue =
+          constantToEnumValue(cache.typeEnvironment.coreTypes, constant);
+      if (enumValue != null) {
+        return new Space(path,
+            cache.getEnumElementStaticType(enumValue.enumClass, enumValue));
+      } else if (constant is NullConstant) {
         return new Space(path, StaticType.nullType);
       } else if (constant is BoolConstant) {
         return new Space(path, cache.getBoolValueStaticType(constant.value));
-      } else if (constant is InstanceConstant && constant.classNode.isEnum) {
-        return new Space(
-            path, cache.getEnumElementStaticType(constant.classNode, constant));
       } else if (constant is RecordConstant) {
         Map<Key, Space> properties = {};
         for (int index = 0; index < constant.positional.length; index++) {

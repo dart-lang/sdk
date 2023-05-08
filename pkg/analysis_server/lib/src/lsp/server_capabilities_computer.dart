@@ -164,7 +164,9 @@ class ServerCapabilitiesComputer {
   final analysisOptionsFile = TextDocumentFilterWithScheme(
       language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
   final fixDataFile = TextDocumentFilterWithScheme(
-      language: 'yaml', scheme: 'file', pattern: '**/lib/fix_data.yaml');
+      language: 'yaml',
+      scheme: 'file',
+      pattern: '**/lib/{fix_data.yaml,fix_data/**.yaml}');
 
   ServerCapabilitiesComputer(this._server);
   ServerCapabilities computeServerCapabilities(

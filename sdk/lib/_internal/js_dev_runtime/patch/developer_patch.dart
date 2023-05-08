@@ -158,7 +158,7 @@ int _getNextTaskId() {
 
 @patch
 void _reportTaskEvent(
-    int taskId, int type, String name, String argumentsAsJson) {
+    int taskId, int flowId, int type, String name, String argumentsAsJson) {
   // TODO.
 }
 

@@ -8,7 +8,7 @@ part of '../api.dart';
 abstract class Macro {}
 
 /// The interface for [Macro]s that can be applied to any top level function,
-/// instance method, or static method, and wants to contribute new type
+/// instance method, or static method, and want to contribute new type
 /// declarations to the program.
 abstract class FunctionTypesMacro implements Macro {
   FutureOr<void> buildTypesForFunction(
@@ -16,7 +16,7 @@ abstract class FunctionTypesMacro implements Macro {
 }
 
 /// The interface for [Macro]s that can be applied to any top level function,
-/// instance method, or static method, and wants to contribute new non-type
+/// instance method, or static method, and want to contribute new non-type
 /// declarations to the program.
 abstract class FunctionDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForFunction(
@@ -24,7 +24,7 @@ abstract class FunctionDeclarationsMacro implements Macro {
 }
 
 /// The interface for [Macro]s that can be applied to any top level function,
-/// instance method, or static method, and wants to augment the function
+/// instance method, or static method, and want to augment the function
 /// definition.
 abstract class FunctionDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForFunction(
@@ -32,7 +32,7 @@ abstract class FunctionDefinitionMacro implements Macro {
 }
 
 /// The interface for [Macro]s that can be applied to any top level variable or
-/// instance field, and wants to contribute new type declarations to the
+/// instance field, and want to contribute new type declarations to the
 /// program.
 abstract class VariableTypesMacro implements Macro {
   FutureOr<void> buildTypesForVariable(
@@ -40,7 +40,7 @@ abstract class VariableTypesMacro implements Macro {
 }
 
 /// The interface for [Macro]s that can be applied to any top level variable or
-/// instance field and wants to contribute new non-type declarations to the
+/// instance field and want to contribute new non-type declarations to the
 /// program.
 abstract class VariableDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForVariable(
@@ -48,76 +48,117 @@ abstract class VariableDeclarationsMacro implements Macro {
 }
 
 /// The interface for [Macro]s that can be applied to any top level variable
-/// or instance field, and wants to augment the variable definition.
+/// or instance field, and want to augment the variable definition.
 abstract class VariableDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForVariable(
       VariableDeclaration variable, VariableDefinitionBuilder builder);
 }
 
-/// The interface for [Macro]s that can be applied to any class, and wants to
+/// The interface for [Macro]s that can be applied to any class, and want to
 /// contribute new type declarations to the program.
 abstract class ClassTypesMacro implements Macro {
   FutureOr<void> buildTypesForClass(
       ClassDeclaration clazz, TypeBuilder builder);
 }
 
-/// The interface for [Macro]s that can be applied to any class, and wants to
+/// The interface for [Macro]s that can be applied to any class, and want to
 /// contribute new non-type declarations to the program.
 abstract class ClassDeclarationsMacro implements Macro {
-  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
-      ClassMemberDeclarationBuilder builder);
+  FutureOr<void> buildDeclarationsForClass(
+      IntrospectableClassDeclaration clazz, MemberDeclarationBuilder builder);
 }
 
-/// The interface for [Macro]s that can be applied to any class, and wants to
-/// augment the definitions of members on the class.
+/// The interface for [Macro]s that can be applied to any class, and want to
+/// augment the definitions of the members of that class.
 abstract class ClassDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForClass(
-      IntrospectableClassDeclaration clazz, ClassDefinitionBuilder builder);
+      IntrospectableClassDeclaration clazz, TypeDefinitionBuilder builder);
 }
 
-/// The interface for [Macro]s that can be applied to any field, and wants to
+/// The interface for [Macro]s that can be applied to any enum, and want to
+/// contribute new type declarations to the program.
+abstract class EnumTypesMacro implements Macro {
+  FutureOr<void> buildTypesForEnum(EnumDeclaration enuum, TypeBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any enum, and want to
+/// contribute new non-type declarations to the program.
+abstract class EnumDeclarationsMacro implements Macro {
+  FutureOr<void> buildDeclarationsForEnum(
+      IntrospectableEnumDeclaration enuum, EnumDeclarationBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any enum, and want to
+/// augment the definitions of members or values of that enum.
+abstract class EnumDefinitionMacro implements Macro {
+  FutureOr<void> buildDefinitionForEnum(
+      IntrospectableEnumDeclaration enuum, EnumDefinitionBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any enum, and want to
+/// contribute new type declarations to the program.
+abstract class EnumValueTypesMacro implements Macro {
+  FutureOr<void> buildTypesForEnumValue(
+      EnumValueDeclaration entry, TypeBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any enum, and want to
+/// contribute new non-type declarations to the program.
+abstract class EnumValueDeclarationsMacro implements Macro {
+  FutureOr<void> buildDeclarationsForEnumValue(
+      EnumValueDeclaration entry, EnumDeclarationBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any enum, and want to
+/// augment the definitions of members or values of that enum.
+abstract class EnumValueDefinitionMacro implements Macro {
+  FutureOr<void> buildDefinitionForEnumValue(
+      EnumValueDeclaration entry, EnumValueDefinitionBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any field, and want to
 /// contribute new type declarations to the program.
 abstract class FieldTypesMacro implements Macro {
   FutureOr<void> buildTypesForField(
       FieldDeclaration field, TypeBuilder builder);
 }
 
-/// The interface for [Macro]s that can be applied to any field, and wants to
+/// The interface for [Macro]s that can be applied to any field, and want to
 /// contribute new type declarations to the program.
 abstract class FieldDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForField(
-      FieldDeclaration field, ClassMemberDeclarationBuilder builder);
+      FieldDeclaration field, MemberDeclarationBuilder builder);
 }
 
-/// The interface for [Macro]s that can be applied to any field, and wants to
+/// The interface for [Macro]s that can be applied to any field, and want to
 /// augment the field definition.
 abstract class FieldDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForField(
       FieldDeclaration field, VariableDefinitionBuilder builder);
 }
 
-/// The interface for [Macro]s that can be applied to any method, and wants to
+/// The interface for [Macro]s that can be applied to any method, and want to
 /// contribute new type declarations to the program.
 abstract class MethodTypesMacro implements Macro {
   FutureOr<void> buildTypesForMethod(
       MethodDeclaration method, TypeBuilder builder);
 }
 
-/// The interface for [Macro]s that can be applied to any method, and wants to
+/// The interface for [Macro]s that can be applied to any method, and want to
 /// contribute new non-type declarations to the program.
 abstract class MethodDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForMethod(
-      MethodDeclaration method, ClassMemberDeclarationBuilder builder);
+      MethodDeclaration method, MemberDeclarationBuilder builder);
 }
 
-/// The interface for [Macro]s that can be applied to any method, and wants to
+/// The interface for [Macro]s that can be applied to any method, and want to
 /// augment the function definition.
 abstract class MethodDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForMethod(
       MethodDeclaration method, FunctionDefinitionBuilder builder);
 }
 
-/// The interface for [Macro]s that can be applied to any constructor, and wants
+/// The interface for [Macro]s that can be applied to any constructor, and want
 /// to contribute new type declarations to the program.
 abstract class ConstructorTypesMacro implements Macro {
   FutureOr<void> buildTypesForConstructor(
@@ -125,16 +166,36 @@ abstract class ConstructorTypesMacro implements Macro {
 }
 
 /// The interface for [Macro]s that can be applied to any constructors, and
-/// wants to contribute new non-type declarations to the program.
+/// want to contribute new non-type declarations to the program.
 abstract class ConstructorDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForConstructor(
-      ConstructorDeclaration constructor,
-      ClassMemberDeclarationBuilder builder);
+      ConstructorDeclaration constructor, MemberDeclarationBuilder builder);
 }
 
-/// The interface for [Macro]s that can be applied to any constructor, and wants
+/// The interface for [Macro]s that can be applied to any constructor, and want
 /// to augment the function definition.
 abstract class ConstructorDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForConstructor(
       ConstructorDeclaration constructor, ConstructorDefinitionBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any mixin declaration, and
+/// want to contribute new type declarations to the program.
+abstract class MixinTypesMacro implements Macro {
+  FutureOr<void> buildTypesForMixin(
+      MixinDeclaration mixin, TypeBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any mixin declaration, and
+/// want to contribute new non-type declarations to the program.
+abstract class MixinDeclarationsMacro implements Macro {
+  FutureOr<void> buildDeclarationsForMixin(
+      IntrospectableMixinDeclaration mixin, MemberDeclarationBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any mixin declaration, and
+/// want to augment the definitions of the members of that mixin.
+abstract class MixinDefinitionMacro implements Macro {
+  FutureOr<void> buildDefinitionForMixin(
+      IntrospectableMixinDeclaration clazz, TypeDefinitionBuilder builder);
 }

@@ -145,7 +145,6 @@ suggestions
   MyEnum
     kind: enum
 ''');
-              break;
             case _Context.imported:
             case _Context.notImported:
               assertResponse(r'''
@@ -157,7 +156,6 @@ suggestions
   MyEnum.foo01
     kind: enumConstant
 ''');
-              break;
           }
         }
       },
@@ -298,7 +296,6 @@ suggestions
   MyEnum.foo01
     kind: enumConstant
 ''');
-              break;
             case _Context.notImported:
               assertResponse(r'''
 suggestions
@@ -309,7 +306,6 @@ suggestions
   useMyEnum
     kind: functionInvocation
 ''');
-              break;
           }
         }
       },

@@ -41,7 +41,6 @@
 #include "vm/runtime_entry.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
-#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #endif
@@ -210,7 +209,7 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
 
   {
@@ -297,7 +296,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 
 bool Compiler::IsBackgroundCompilation() {
   // For now: compilation in non mutator thread is the background compilation.
-  return !Thread::Current()->IsMutatorThread();
+  return !Thread::Current()->IsDartMutatorThread();
 }
 
 class CompileParsedFunctionHelper : public ValueObject {
@@ -374,14 +373,14 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
   graph_compiler->FinalizeCodeSourceMap(code);
 
   if (function.ForceOptimize()) {
-    ASSERT(optimized() && thread()->IsMutatorThread());
+    ASSERT(optimized() && thread()->IsDartMutatorThread());
     code.set_is_force_optimized(true);
     function.AttachCode(code);
     function.SetWasCompiled(true);
   } else if (optimized()) {
     // We cannot execute generated code while installing code.
-    ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt) ||
-           (Thread::Current()->IsMutatorThread() &&
+    ASSERT(Thread::Current()->OwnsGCSafepoint() ||
+           (Thread::Current()->IsDartMutatorThread() &&
             IsolateGroup::Current()->ContainsOnlyOneIsolate()));
     // We are validating our CHA / field guard / ... assumptions. To prevent
     // another thread from concurrently changing them, we have to guarantee
@@ -1176,8 +1175,8 @@ void BackgroundCompiler::Run() {
 
 bool BackgroundCompiler::EnqueueCompilation(const Function& function) {
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+  ASSERT(thread->IsDartMutatorThread());
+  ASSERT(thread->CanAcquireSafepointLocks());
 
   SafepointMonitorLocker ml(&monitor_);
   if (disabled_depth_ > 0) return false;
@@ -1211,8 +1210,8 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
 
 void BackgroundCompiler::Stop() {
   Thread* thread = Thread::Current();
-  ASSERT(thread->isolate() == nullptr || thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+  ASSERT(thread->isolate() == nullptr || !thread->BypassSafepoints());
+  ASSERT(thread->CanAcquireSafepointLocks());
 
   SafepointMonitorLocker ml(&monitor_);
   StopLocked(thread, &ml);
@@ -1229,8 +1228,8 @@ void BackgroundCompiler::StopLocked(Thread* thread,
 
 void BackgroundCompiler::Enable() {
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+  ASSERT(!thread->BypassSafepoints());
+  ASSERT(thread->CanAcquireSafepointLocks());
 
   SafepointMonitorLocker ml(&monitor_);
   disabled_depth_--;
@@ -1241,8 +1240,8 @@ void BackgroundCompiler::Enable() {
 
 void BackgroundCompiler::Disable() {
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+  ASSERT(!thread->BypassSafepoints());
+  ASSERT(thread->CanAcquireSafepointLocks());
 
   SafepointMonitorLocker ml(&monitor_);
   disabled_depth_++;

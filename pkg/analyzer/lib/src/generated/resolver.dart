@@ -535,8 +535,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (fieldName != null) {
         nameToken = fieldName.name;
         if (nameToken == null) {
-          nameToken = field.pattern.variablePattern?.name;
-          if (nameToken == null) {
+          final variablePattern = field.pattern.variablePattern;
+          if (variablePattern != null) {
+            variablePattern.fieldNameWithImplicitName = fieldName;
+            nameToken = variablePattern.name;
+          } else {
             errorReporter.reportErrorForNode(
               CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME,
               field,
@@ -626,8 +629,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         errorCode = CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY;
       } else {
         var returnTypeBase = typeSystem.futureOrBase(returnType);
-        if (returnTypeBase is VoidType ||
-            returnTypeBase.isDynamic ||
+        if (returnTypeBase is DynamicType ||
+            returnTypeBase is UnknownInferredType ||
+            returnTypeBase is VoidType ||
             returnTypeBase.isDartCoreNull) {
           return;
         } else {
@@ -673,9 +677,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (context.irrefutableContext == null) {
       final matchedType = pattern.matchedValueType!;
       if (!typeSystem.canBeSubtypeOf(matchedType, requiredType)) {
+        AstNodeImpl? errorNode;
+        if (pattern is CastPatternImpl) {
+          errorNode = pattern.type;
+        } else if (pattern is DeclaredVariablePatternImpl) {
+          errorNode = pattern.type;
+        } else if (pattern is ObjectPatternImpl) {
+          errorNode = pattern.type;
+        } else if (pattern is WildcardPatternImpl) {
+          errorNode = pattern.type;
+        }
+        errorNode ??= pattern;
         errorReporter.reportErrorForNode(
           WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE,
-          pattern,
+          errorNode,
           [matchedType, requiredType],
         );
       }
@@ -865,7 +880,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     var typeNode = pattern.type;
     if (typeNode.typeArguments == null) {
-      var typeNameElement = typeNode.name.staticElement;
+      var typeNameElement = typeNode.element;
       if (typeNameElement is InterfaceElement) {
         var typeParameters = typeNameElement.typeParameters;
         if (typeParameters.isNotEmpty) {
@@ -1604,6 +1619,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   DartType resolveObjectPatternPropertyGet({
+    required covariant ObjectPatternImpl objectPattern,
     required DartType receiverType,
     required covariant SharedPatternField field,
   }) {
@@ -1618,7 +1634,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       receiver: null,
       receiverType: receiverType,
       name: nameToken.lexeme,
-      propertyErrorEntity: nameToken,
+      propertyErrorEntity: objectPattern.type,
       nameErrorEntity: nameToken,
     );
 
@@ -2199,7 +2215,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.parameters.accept(this);
       node.initializers.accept(this);
       node.redirectedConstructor?.accept(this);
-      node.body.resolve(this, returnType.isDynamic ? null : returnType);
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
       elementResolver.visitConstructorDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -2365,8 +2381,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           );
         }
       } else {
-        var typeName = constructorName.type.name;
-        if (typeName.staticElement is EnumElementImpl) {
+        if (constructorName.type.element is EnumElementImpl) {
           var nameNode = node.arguments?.constructorSelector?.name;
           if (nameNode != null) {
             errorReporter.reportErrorForNode(
@@ -2943,7 +2958,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
-      node.body.resolve(this, returnType.isDynamic ? null : returnType);
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
       elementResolver.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -3639,8 +3654,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         final targetFutureType = instanceOfFuture.typeArguments.first;
         final expectedReturnType = typeProvider.futureOrType(targetFutureType);
         final returnTypeBase = typeSystem.futureOrBase(expectedReturnType);
-        if (returnTypeBase is VoidType ||
-            returnTypeBase.isDynamic ||
+        if (returnTypeBase is DynamicType ||
+            returnTypeBase is UnknownInferredType ||
+            returnTypeBase is VoidType ||
             returnTypeBase.isDartCoreNull) {
           return;
         }
@@ -3975,8 +3991,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     String? name;
     if (nameNode is InstanceCreationExpression) {
       var constructorName = nameNode.constructorName;
-      name =
-          constructorName.name?.name ?? '${constructorName.type.name.name}.new';
+      name = constructorName.name?.name ??
+          '${constructorName.type.name2.lexeme}.new';
     } else if (nameNode is RedirectingConstructorInvocation) {
       name = nameNode.constructorName?.name;
       if (name == null) {

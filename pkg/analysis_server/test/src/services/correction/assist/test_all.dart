@@ -30,6 +30,9 @@ import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
 import 'convert_to_field_parameter_test.dart' as convert_to_field_parameter;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
+import 'convert_to_if_case_statement_chain_test.dart'
+    as convert_to_if_case_statement_chain;
+import 'convert_to_if_case_statement_test.dart' as convert_to_if_case_statement;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
@@ -43,6 +46,9 @@ import 'convert_to_single_quoted_string_test.dart'
 import 'convert_to_spread_test.dart' as convert_to_spread;
 import 'convert_to_super_parameters_test.dart' as convert_to_super_parameters;
 import 'convert_to_switch_expression_test.dart' as convert_to_switch_expression;
+import 'convert_to_switch_statement_test.dart' as convert_to_switch_statement;
+import 'destructure_local_variable_assignment_test.dart'
+    as destructure_local_variable_assignment;
 import 'encapsulate_field_test.dart' as encapsulate_field;
 import 'exchange_operands_test.dart' as exchange_operands;
 import 'flutter_convert_to_children_test.dart' as flutter_convert_to_children;
@@ -67,7 +73,6 @@ import 'flutter_wrap_sized_box_test.dart' as flutter_wrap_sized_box;
 import 'flutter_wrap_stream_builder_test.dart' as flutter_wrap_stream_builder;
 import 'import_add_show_test.dart' as import_add_show;
 import 'inline_invocation_test.dart' as inline_invocation;
-import 'introduce_local_cast_type_test.dart' as introduce_local_cast_type;
 import 'invert_if_statement_test.dart' as invert_if_statement;
 import 'join_if_with_inner_test.dart' as join_if_with_inner;
 import 'join_if_with_outer_test.dart' as join_if_with_outer;
@@ -116,6 +121,8 @@ void main() {
     convert_to_double_quoted_string.main();
     convert_to_field_parameter.main();
     convert_to_for_element.main();
+    convert_to_if_case_statement_chain.main();
+    convert_to_if_case_statement.main();
     convert_to_if_element.main();
     convert_to_int_literal.main();
     convert_to_map_literal.main();
@@ -128,6 +135,8 @@ void main() {
     convert_to_spread.main();
     convert_to_super_parameters.main();
     convert_to_switch_expression.main();
+    convert_to_switch_statement.main();
+    destructure_local_variable_assignment.main();
     encapsulate_field.main();
     exchange_operands.main();
     flutter_convert_to_children.main();
@@ -149,7 +158,6 @@ void main() {
     flutter_wrap_stream_builder.main();
     import_add_show.main();
     inline_invocation.main();
-    introduce_local_cast_type.main();
     invert_if_statement.main();
     join_if_with_inner.main();
     join_if_with_outer.main();

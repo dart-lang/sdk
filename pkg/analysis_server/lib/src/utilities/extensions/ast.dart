@@ -122,6 +122,12 @@ extension AstNodeExtensions on AstNode {
   }
 }
 
+extension BinaryExpressionExtensions on BinaryExpression {
+  bool get isNotEqNull {
+    return operator.type == TokenType.BANG_EQ && rightOperand is NullLiteral;
+  }
+}
+
 extension CompilationUnitExtension on CompilationUnit {
   /// Return the list of tokens that comprise the file header comment for this
   /// compilation unit.
@@ -173,6 +179,16 @@ extension CompilationUnitExtension on CompilationUnit {
   /// Will return `false` if the AST structure has not been resolved.
   bool get isNonNullableByDefault =>
       declaredElement?.library.isNonNullableByDefault ?? false;
+}
+
+extension DeclaredVariablePatternExtension on DeclaredVariablePattern {
+  Token? get finalKeyword {
+    return keyword.asFinalKeyword;
+  }
+
+  Token? get varKeyword {
+    return keyword.asVarKeyword;
+  }
 }
 
 extension DirectiveExtensions on Directive {
@@ -260,9 +276,42 @@ extension MethodDeclarationExtension on MethodDeclaration {
   }
 }
 
+extension NamedTypeExtension on NamedType {
+  String get qualifiedName {
+    final importPrefix = this.importPrefix;
+    if (importPrefix != null) {
+      return '${importPrefix.name.lexeme}.${name2.lexeme}';
+    } else {
+      return name2.lexeme;
+    }
+  }
+}
+
+extension StatementExtension on Statement {
+  List<Statement> get selfOrBlockStatements {
+    final self = this;
+    return self is Block ? self.statements : [self];
+  }
+}
+
+extension TokenQuestionExtension on Token? {
+  Token? get asFinalKeyword {
+    final self = this;
+    return self != null && self.keyword == Keyword.FINAL ? self : null;
+  }
+
+  Token? get asVarKeyword {
+    final self = this;
+    return self != null && self.keyword == Keyword.VAR ? self : null;
+  }
+}
+
 extension VariableDeclarationListExtension on VariableDeclarationList {
   Token? get finalKeyword {
-    final keyword = this.keyword;
-    return keyword != null && keyword.keyword == Keyword.FINAL ? keyword : null;
+    return keyword.asFinalKeyword;
+  }
+
+  Token? get varKeyword {
+    return keyword.asVarKeyword;
   }
 }

@@ -9,13 +9,13 @@ namespace dart {
 namespace bin {
 
 // Exit code indicating an internal Dart Frontend error.
-static const int kDartFrontendErrorExitCode = 252;
+constexpr int kDartFrontendErrorExitCode = 252;
 // Exit code indicating an API error.
-static const int kApiErrorExitCode = 253;
+constexpr int kApiErrorExitCode = 253;
 // Exit code indicating a compilation error.
-static const int kCompilationErrorExitCode = 254;
+constexpr int kCompilationErrorExitCode = 254;
 // Exit code indicating an unhandled error that is not a compilation error.
-static const int kErrorExitCode = 255;
+constexpr int kErrorExitCode = 255;
 
 void ErrorExit(int exit_code, const char* format, ...);
 
