@@ -1,7 +1,7 @@
 1.35.0
 
 - add new lints: 
-  - `explicit_reopen`
+  - `implicit_reopen`
   - `unnecessary_breaks`
   - `type_literal_in_constant_pattern`
 - updates to existing lints to support patterns and class modifiers
