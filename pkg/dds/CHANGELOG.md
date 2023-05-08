@@ -1,6 +1,7 @@
-# 2.8.0
+# 2.8.1
 - Updated DDS protocol version to 1.5.
 - Added `getPerfettoVMTimelineWithCpuSamples` RPC.
+- Updated `vm_service` version to >=11.0.0 <12.0.0.
 
 # 2.7.10
 - [DAP] Isolates that exit immediately after being paused (perhaps by another debugger or due to the app shutting down) will no longer cause a crash.
