@@ -6740,11 +6740,11 @@ class C<T> {
 }
 ''';
     var expected = '''
-void test(C<int> x, double Function<S>(C<S>) y) {
+void test(C<int> x, double Function<S>(C<S>)? y) {
   x.f<double>(y);
 }
 class C<T> {
-  U f<U>(U Function<V>(C<V>) z) => throw 'foo';
+  U f<U>(U Function<V>(C<V>)? z) => throw 'foo';
 }
 ''';
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
