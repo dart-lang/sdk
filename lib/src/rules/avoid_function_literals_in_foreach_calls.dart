@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -56,10 +55,8 @@ bool _isInsideCascade(AstNode node) =>
     node.thisOrAncestorMatching((n) => n is Statement || n is CascadeExpression)
         is CascadeExpression;
 
-bool _isNonNullableIterable(DartType? type) =>
-    type != null &&
-    type.nullabilitySuffix == NullabilitySuffix.none &&
-    type.implementsInterface('Iterable', 'dart.core');
+bool _isIterable(DartType? type) =>
+    type != null && type.implementsInterface('Iterable', 'dart.core');
 
 class AvoidFunctionLiteralInForeachMethod extends LintRule {
   static const LintCode code = LintCode(
@@ -97,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.methodName.token.value() == 'forEach' &&
         node.argumentList.arguments.isNotEmpty &&
         node.argumentList.arguments.first is FunctionExpression &&
-        _isNonNullableIterable(target.staticType) &&
+        _isIterable(target.staticType) &&
         !node.containsNullAwareInvocationInChain() &&
         !_hasMethodChaining(node) &&
         !_isInsideCascade(node)) {

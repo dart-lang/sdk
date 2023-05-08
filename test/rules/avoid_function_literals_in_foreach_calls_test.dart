@@ -10,6 +10,7 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidFunctionLiteralsInForeachCalls);
+    defineReflectiveTests(AvoidFunctionLiteralsInForeachCallsPreNNBDTest);
   });
 }
 
@@ -159,7 +160,16 @@ class AvoidFunctionLiteralsInForeachCallsPreNNBDTest extends LintRuleTest {
     noSoundNullSafety = true;
   }
 
-  test_functionExpression_nullableTarget() async {
+  test_functionExpression_basic() async {
+    await assertDiagnostics(r'''
+// @dart=2.9
+void f(List<String> people) {
+  people.forEach((person) => print('$person'));
+}
+''', [lint(52, 7)]);
+  }
+
+  test_functionExpression_nullAware() async {
     await assertNoDiagnostics(r'''
 // @dart=2.9
 void f(List<String> people) {
