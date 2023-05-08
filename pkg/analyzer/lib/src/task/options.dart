@@ -59,12 +59,15 @@ List<AnalysisError> analyzeAnalysisOptions(
           (error.offset + error.length - 1).toString(),
           error.message,
         ];
-        errors.add(AnalysisError(
-            initialSource,
-            initialIncludeSpan!.start.offset,
-            initialIncludeSpan!.length,
-            AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
-            args));
+        errors.add(
+          AnalysisError.tmp(
+            source: initialSource,
+            offset: initialIncludeSpan!.start.offset,
+            length: initialIncludeSpan!.length,
+            errorCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+            arguments: args,
+          ),
+        );
       }
     } else {
       // [source] is the options file for [contextRoot]. Report all errors
@@ -99,35 +102,45 @@ List<AnalysisError> analyzeAnalysisOptions(
     String includeUri = includeSpan.text;
     var includedSource = sourceFactory.resolveUri(source, includeUri);
     if (includedSource == initialSource) {
-      errors.add(AnalysisError(
-          initialSource,
-          initialIncludeSpan!.start.offset,
-          initialIncludeSpan!.length,
-          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
-          [includeUri, source.fullName]));
+      errors.add(
+        AnalysisError.tmp(
+          source: initialSource,
+          offset: initialIncludeSpan!.start.offset,
+          length: initialIncludeSpan!.length,
+          errorCode: AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          arguments: [includeUri, source.fullName],
+        ),
+      );
       return;
     }
     if (includedSource == null || !includedSource.exists()) {
-      errors.add(AnalysisError(
-          initialSource,
-          initialIncludeSpan!.start.offset,
-          initialIncludeSpan!.length,
-          AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
-          [includeUri, source.fullName, contextRoot]));
+      errors.add(
+        AnalysisError.tmp(
+          source: initialSource,
+          offset: initialIncludeSpan!.start.offset,
+          length: initialIncludeSpan!.length,
+          errorCode: AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+          arguments: [includeUri, source.fullName, contextRoot],
+        ),
+      );
       return;
     }
     var spanInChain = includeChain[includedSource];
     if (spanInChain != null) {
-      errors.add(AnalysisError(
-          initialSource,
-          initialIncludeSpan!.start.offset,
-          initialIncludeSpan!.length,
-          AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING, [
-        includedSource,
-        spanInChain.start.offset,
-        spanInChain.length,
-        'The file includes itself recursively.',
-      ]));
+      errors.add(
+        AnalysisError.tmp(
+          source: initialSource,
+          offset: initialIncludeSpan!.start.offset,
+          length: initialIncludeSpan!.length,
+          errorCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+          arguments: [
+            includedSource,
+            spanInChain.start.offset,
+            spanInChain.length,
+            'The file includes itself recursively.',
+          ],
+        ),
+      );
       return;
     }
     includeChain[includedSource] = includeSpan;
@@ -154,12 +167,15 @@ List<AnalysisError> analyzeAnalysisOptions(
       ];
       // Report errors for included option files on the `include` directive
       // located in the initial options file.
-      errors.add(AnalysisError(
-          initialSource,
-          initialIncludeSpan!.start.offset,
-          initialIncludeSpan!.length,
-          AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
-          args));
+      errors.add(
+        AnalysisError.tmp(
+          source: initialSource,
+          offset: initialIncludeSpan!.start.offset,
+          length: initialIncludeSpan!.length,
+          errorCode: AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
+          arguments: args,
+        ),
+      );
     }
   }
 
@@ -168,8 +184,15 @@ List<AnalysisError> analyzeAnalysisOptions(
     validate(source, options, provider);
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span!;
-    errors.add(AnalysisError(source, span.start.offset, span.length,
-        AnalysisOptionsErrorCode.PARSE_ERROR, [e.message]));
+    errors.add(
+      AnalysisError.tmp(
+        source: source,
+        offset: span.start.offset,
+        length: span.length,
+        errorCode: AnalysisOptionsErrorCode.PARSE_ERROR,
+        arguments: [e.message],
+      ),
+    );
   }
   return errors;
 }

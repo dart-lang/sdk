@@ -109,15 +109,25 @@ analyzer:
     var processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(2));
 
-    var unused_local =
-        AnalysisError(TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
-      ['x']
-    ]);
-    var invalid_assignment = AnalysisError(
-        TestSource(), 0, 1, CompileTimeErrorCode.INVALID_ASSIGNMENT, [
-      ['x'],
-      ['y']
-    ]);
+    var unused_local = AnalysisError.tmp(
+      source: TestSource(),
+      offset: 0,
+      length: 1,
+      errorCode: HintCode.UNUSED_LOCAL_VARIABLE,
+      arguments: [
+        ['x'],
+      ],
+    );
+    var invalid_assignment = AnalysisError.tmp(
+      source: TestSource(),
+      offset: 0,
+      length: 1,
+      errorCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      arguments: [
+        ['x'],
+        ['y'],
+      ],
+    );
 
     // ignore
     var invalidAssignment =

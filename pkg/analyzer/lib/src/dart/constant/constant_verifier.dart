@@ -606,7 +606,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportError(data);
       } else if (errorCode != null) {
         _errorReporter.reportError(
-            AnalysisError(data.source, data.offset, data.length, errorCode));
+          AnalysisError.tmp(
+            source: data.source,
+            offset: data.offset,
+            length: data.length,
+            errorCode: errorCode,
+          ),
+        );
       }
     }
   }

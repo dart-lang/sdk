@@ -65,7 +65,7 @@ class TransformOverrideSetParser {
   /// [node]. A list of [arguments] should be provided if the diagnostic message
   /// has parameters.
   void _reportError(TransformSetErrorCode code, YamlNode node,
-      [List<String>? arguments]) {
+      [List<String> arguments = const []]) {
     var span = node.span;
     errorReporter.reportErrorForOffset(
         code, span.start.offset, span.length, arguments);

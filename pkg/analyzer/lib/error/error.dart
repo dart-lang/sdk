@@ -96,41 +96,78 @@ class AnalysisError implements Diagnostic {
   /// [length]. The error will have the given [errorCode] and the list of
   /// [arguments] will be used to complete the message and correction. If any
   /// [contextMessages] are provided, they will be recorded with the error.
-  AnalysisError(this.source, int offset, int length, this.errorCode,
-      [List<Object?>? arguments,
-      List<DiagnosticMessage> contextMessages = const []])
-      : _contextMessages = contextMessages {
+  @Deprecated('Use tmp constructor instead')
+  factory AnalysisError(
+    Source source,
+    int offset,
+    int length,
+    ErrorCode errorCode, [
+    List<Object?>? arguments,
+    List<DiagnosticMessage> contextMessages = const [],
+  ]) {
+    return AnalysisError.tmp(
+      source: source,
+      offset: offset,
+      length: length,
+      errorCode: errorCode,
+      arguments: arguments ?? const [],
+      contextMessages: contextMessages,
+    );
+  }
+
+  /// Initialize a newly created analysis error with given values.
+  AnalysisError.forValues({
+    required this.source,
+    required int offset,
+    required int length,
+    required this.errorCode,
+    required String message,
+    String? correctionMessage,
+    List<DiagnosticMessage> contextMessages = const [],
+  })  : _correctionMessage = correctionMessage,
+        _contextMessages = contextMessages {
+    _problemMessage = DiagnosticMessageImpl(
+      filePath: source.fullName,
+      length: length,
+      message: message,
+      offset: offset,
+      url: null,
+    );
+  }
+
+  /// Initialize a newly created analysis error. The error is associated with
+  /// the given [source] and is located at the given [offset] with the given
+  /// [length]. The error will have the given [errorCode] and the list of
+  /// [arguments] will be used to complete the message and correction. If any
+  /// [contextMessages] are provided, they will be recorded with the error.
+  AnalysisError.tmp({
+    required this.source,
+    required int offset,
+    required int length,
+    required this.errorCode,
+    List<Object?> arguments = const [],
+    List<DiagnosticMessage> contextMessages = const [],
+  }) : _contextMessages = contextMessages {
     assert(
-        (arguments ?? const []).length == errorCode.numParameters,
-        'Message $errorCode requires ${errorCode.numParameters} '
-        'argument${errorCode.numParameters == 1 ? '' : 's'}, but '
-        '${(arguments ?? const []).length} '
-        'argument${(arguments ?? const []).length == 1 ? ' was' : 's were'} '
-        'provided');
+      arguments.length == errorCode.numParameters,
+      'Message $errorCode requires ${errorCode.numParameters} '
+      'argument${errorCode.numParameters == 1 ? '' : 's'}, but '
+      '${arguments.length} '
+      'argument${arguments.length == 1 ? ' was' : 's were'} '
+      'provided',
+    );
     String problemMessage = formatList(errorCode.problemMessage, arguments);
     String? correctionTemplate = errorCode.correctionMessage;
     if (correctionTemplate != null) {
       _correctionMessage = formatList(correctionTemplate, arguments);
     }
     _problemMessage = DiagnosticMessageImpl(
-        filePath: source.fullName,
-        length: length,
-        message: problemMessage,
-        offset: offset,
-        url: null);
-  }
-
-  /// Initialize a newly created analysis error with given values.
-  AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
-      String message, this._correctionMessage,
-      {List<DiagnosticMessage> contextMessages = const []})
-      : _contextMessages = contextMessages {
-    _problemMessage = DiagnosticMessageImpl(
-        filePath: source.fullName,
-        length: length,
-        message: message,
-        offset: offset,
-        url: null);
+      filePath: source.fullName,
+      length: length,
+      message: problemMessage,
+      offset: offset,
+      url: null,
+    );
   }
 
   @override

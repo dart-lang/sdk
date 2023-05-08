@@ -6,6 +6,9 @@
 * Updated `ExtensionOverride` to use `importPrefix` and `name` token.
   The deprecated `extensionName` node is still visited in this version, but
   will stop in the next major version.
+* Deprecated the default `AnalysisError` constructor, use `tmp` constructor,
+  with names formal parameters. Theoretically no clients should use either,
+  but practically there are two uses currently.
 
 ## 5.11.1
 * Restore previously published `finalKeyword`, `interfaceKeyword` and

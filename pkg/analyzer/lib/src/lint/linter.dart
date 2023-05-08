@@ -713,13 +713,13 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       ErrorCode? errorCode}) {
     var source = node.source;
     // Cache error and location info for creating AnalysisErrorInfos
-    AnalysisError error = AnalysisError(
-      source,
-      node.span.start.offset,
-      node.span.length,
-      errorCode ?? lintCode,
-      arguments,
-      contextMessages,
+    AnalysisError error = AnalysisError.tmp(
+     source:  source,
+      offset: node.span.start.offset,
+      length: node.span.length,
+      errorCode: errorCode ?? lintCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
     );
     LineInfo lineInfo = LineInfo.fromContent(source.contents.data);
 

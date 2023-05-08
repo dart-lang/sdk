@@ -90,8 +90,12 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
   @override
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
     var offset = parameters.offset;
-    var error = AnalysisError(
-        MockSource(), 0, 0, CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);
+    var error = AnalysisError.tmp(
+      source: MockSource(),
+      offset: 0,
+      length: 0,
+      errorCode: CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+    );
     var result =
         MockResolvedUnitResult(lineInfo: LineInfo([0, 20]), errors: [error]);
     return DartFixesRequestImpl(resourceProvider, offset, [error], result);

@@ -115,7 +115,15 @@ class ErrorReporter {
     messages ??= [];
     messages.addAll(_convertTypeNames(arguments));
     _errorListener.onError(
-        AnalysisError(_source, offset, length, errorCode, arguments, messages));
+      AnalysisError.tmp(
+        source: _source,
+        offset: offset,
+        length: length,
+        errorCode: errorCode,
+        arguments: arguments ?? const [],
+        contextMessages: messages,
+      ),
+    );
   }
 
   /// Report an error with the given [errorCode] and [arguments]. The location
