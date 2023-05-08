@@ -781,6 +781,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS: [
       AddExtensionOverride.new,
     ],
+    CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.CAST_TO_NON_TYPE: [
       ImportLibrary.forType,
     ],

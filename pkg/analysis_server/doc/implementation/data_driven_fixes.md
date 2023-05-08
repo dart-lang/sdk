@@ -42,13 +42,13 @@ it's implemented in because we want these fixes to continue to work even after
 the element has been removed, at which point the reference to the element will
 be unresolved.
 
-We're making an assumption here that the file contains an import for a lilbrary
+We're making an assumption here that the file contains an import for a library
 in the element's defining package. That isn't necessarily true, and we might
 consider looking at all of the packages that are directly or indirectly depended
 on, but (a) that would have performance implications that haven't been assessed,
 and (b) we don't have any reports that this limitation is causing problems.
 
-For each imported package, it askes the `TransformSetManager` for the
+For each imported package, it asks the `TransformSetManager` for the
 `TransformSet` associated with the package. The transform manager is responsible
 for building a transform set from the data file(s) in the package. For the sake
 of performance, the transform sets are cached. The process of building a
@@ -76,7 +76,7 @@ you would instead modify something that already exists.
 ### Design the change
 
 The first step is to design the changes to the data-file format that will allow
-users to specify the change. Follow the design prinicples outlined in the
+users to specify the change. Follow the design principles outlined in the
 Overview in
 [Data-driven Fixes](https://github.com/flutter/flutter/wiki/Data-driven-Fixes).
 

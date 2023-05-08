@@ -67,6 +67,7 @@ class TransformSetParser {
   static const String _nameKey = 'name';
   static const String _newElementKey = 'newElement';
   static const String _newNameKey = 'newName';
+  static const String _nullabilityKey = 'nullability';
   static const String _oldNameKey = 'oldName';
   static const String _oneOfKey = 'oneOf';
   static const String _requiredIfKey = 'requiredIf';
@@ -95,6 +96,7 @@ class TransformSetParser {
 
   static const String _addParameterKind = 'addParameter';
   static const String _addTypeParameterKind = 'addTypeParameter';
+  static const String _changeParameterTypeKind = 'changeParameterType';
   static const String _fragmentKind = 'fragment';
   static const String _importKind = 'import';
   static const String _removeParameterKind = 'removeParameter';
@@ -109,6 +111,9 @@ class TransformSetParser {
     'required_named',
     'required_positional'
   ];
+
+  /// The valid values for the [_nullabilityKey] in a [_changeParameterTypeKind] change.
+  static const List<String> validNullabilityChanges = ['non_null'];
 
   /// A table mapping the kinds of elements that can be replaced by a different
   /// element to a set of the kinds of elements with which they can be replaced.
@@ -458,6 +463,9 @@ class TransformSetParser {
       } else if (kind == _removeParameterKind) {
         _translateRemoveParameterChange(node);
         return null;
+      } else if (kind == _changeParameterTypeKind) {
+        _translateChangeParameterTypeChange(node);
+        return null;
       } else if (kind == _renameKind) {
         return _translateRenameChange(node);
       } else if (kind == _renameParameterKind) {
@@ -476,6 +484,62 @@ class TransformSetParser {
     } else {
       return _reportInvalidValue(node, context, 'Map');
     }
+  }
+
+  void _translateChangeParameterTypeChange(YamlMap node) {
+    _reportUnsupportedKeys(node, const {
+      _argumentValueKey,
+      _indexKey,
+      _kindKey,
+      _nameKey,
+      _nullabilityKey
+    });
+
+    var parameterSpecKey = _singleKey(node, const [_nameKey, _indexKey], node);
+    if (parameterSpecKey == null) {
+      // The error has already been reported.
+      return;
+    }
+
+    int? index;
+    String? name;
+    if (parameterSpecKey == _indexKey) {
+      index = _translateInteger(node.valueAt(_indexKey),
+          ErrorContext(key: _indexKey, parentNode: node));
+      if (index == null) {
+        // The error has already been reported.
+        return;
+      }
+    } else {
+      name = _translateString(node.valueAt(_nameKey),
+          ErrorContext(key: _nameKey, parentNode: node));
+      if (name == null) {
+        // The error has already been reported.
+        return;
+      }
+    }
+
+    var nullabilityNode = node.valueAt(_nullabilityKey);
+    var nullability = _translateString(
+        nullabilityNode, ErrorContext(key: _nullabilityKey, parentNode: node));
+    if (nullability == null) {
+      // The error has already been reported.
+      return;
+    }
+    if (!validNullabilityChanges.contains(nullability)) {
+      var nullabilityChangeList =
+          validNullabilityChanges.map((value) => value).join(', ');
+      _reportError(TransformSetErrorCode.invalidValueOneOf, nullabilityNode!,
+          [_nullabilityKey, nullabilityChangeList]);
+      return;
+    }
+    var argumentValueNode = node.valueAt(_argumentValueKey);
+    var argumentValue = _translateCodeTemplate(argumentValueNode,
+        ErrorContext(key: _argumentValueKey, parentNode: node),
+        canBeConditionallyRequired: false);
+    _parameterModifications ??= [];
+    _parameterModifications!
+        .add(ChangeParameterType(name, index, nullability, argumentValue));
   }
 
   /// Translate the [node] into a value generator. Return the resulting
