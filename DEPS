@@ -147,6 +147,7 @@ vars = {
   "linter_rev": "e36813b302817c7a4aaa39480d1654502c786b14", # disable rev_sdk_deps.dart
   "lints_rev": "17276ec940bd3c075b5b227054cebf726e2e2514",
   "logging_rev": "787030a2b3d0d5d53ce57f1c7dc74f27ecb07b0b",
+  "leak_tracker_rev": "fc14e36d1757d486257623b34114b883fe8e4de3",
   "markdown_rev": "6db8fc1819f741685e0968fb2d9b66852260e98f",
   "matcher_rev": "5890f2b61704481f6f09ea3a443159c0dc307180",
   "mime_rev": "2d8496df6a6e851816610c3f99eae0d9663f54c4",
@@ -392,6 +393,8 @@ deps = {
       Var("dart_git") + "lints.git" + "@" + Var("lints_rev"),
   Var("dart_root") + "/third_party/pkg/logging":
       Var("dart_git") + "logging.git" + "@" + Var("logging_rev"),
+  Var("dart_root") + "/third_party/pkg/leak_tracker":
+      Var("dart_git") + "leak_tracker.git" + "@" + Var("leak_tracker_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
       Var("dart_git") + "markdown.git" + "@" + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/matcher":
