@@ -7226,7 +7226,8 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @override
-  LibraryImportElement? get element => super.element as LibraryImportElement?;
+  LibraryImportElementImpl? get element =>
+      super.element as LibraryImportElementImpl?;
 
   @Deprecated('Use element instead')
   @override
