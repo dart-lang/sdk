@@ -21,6 +21,44 @@ main() {
 class PatternsTest extends ParserDiagnosticsTest {
   late FindNode findNode;
 
+  test_assignedVariable_namedAs() {
+    _parse('''
+void f(x) {
+  dynamic as;
+  (as) = x;
+}
+''', errors: [
+      error(ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME, 29, 2)
+    ]);
+    var node = findNode.singlePatternAssignment.pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: AssignedVariablePattern
+    name: as
+  rightParenthesis: )
+''');
+  }
+
+  test_assignedVariable_namedWhen() {
+    _parse('''
+void f(x) {
+  dynamic when;
+  (when) = x;
+}
+''', errors: [
+      error(ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME, 31, 4)
+    ]);
+    var node = findNode.singlePatternAssignment.pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: AssignedVariablePattern
+    name: when
+  rightParenthesis: )
+''');
+  }
+
   test_case_identifier_dot_incomplete() {
     // Based on the repro from
     // https://github.com/Dart-Code/Dart-Code/issues/4407.
@@ -1263,6 +1301,38 @@ ConstantPattern
     operator: .
     propertyName: SimpleIdentifier
       token: when
+''');
+  }
+
+  test_constant_identifier_namedAs() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case as:
+  }
+}
+''', errors: [error(ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME, 36, 2)]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: SimpleIdentifier
+    token: as
+''');
+  }
+
+  test_constant_identifier_namedWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case when:
+  }
+}
+''', errors: [error(ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME, 36, 4)]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: SimpleIdentifier
+    token: when
 ''');
   }
 
@@ -9817,6 +9887,38 @@ NullCheckPattern
     keyword: final
     name: y
   operator: ?
+''');
+  }
+
+  test_variable_namedAs() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case var as:
+  }
+}
+''', errors: [error(ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME, 40, 2)]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+DeclaredVariablePattern
+  keyword: var
+  name: as
+''');
+  }
+
+  test_variable_namedWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case var when:
+  }
+}
+''', errors: [error(ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME, 40, 4)]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+DeclaredVariablePattern
+  keyword: var
+  name: when
 ''');
   }
 

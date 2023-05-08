@@ -689,6 +689,14 @@ void f() {
 ''');
   }
 
+  Future<void> test_parameter_final_type_noName() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+typedef F = void Function(final int);
+''');
+    await assertNoAssistAt('final');
+  }
+
   @FailingTest(reason: '''
 This functionality is disabled in `AddTypeAnnotation._forSimpleFormalParameter`
 because `writeType` is writing the names of the parameters when it shouldn't.

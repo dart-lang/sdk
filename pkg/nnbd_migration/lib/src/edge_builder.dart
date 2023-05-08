@@ -281,7 +281,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// [targetExpression], if provided, is the expression for the target
   /// (receiver) for a method, getter, or setter invocation.
   DecoratedType getOrComputeElementType(AstNode node, Element element,
-      {DecoratedType? targetType, Expression? targetExpression}) {
+      {DecoratedType? targetType,
+      Expression? targetExpression,
+      bool isNullAware = false}) {
     Map<TypeParameterElement, DecoratedType>? substitution;
     Element? baseElement = element.declaration;
     if (targetType != null) {
@@ -347,8 +349,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             FixReasonTarget.root,
             source: targetType,
             destination: onType,
-            hard: targetExpression == null ||
-                _isReferenceInScope(targetExpression));
+            hard: !isNullAware &&
+                (targetExpression == null ||
+                    _isReferenceInScope(targetExpression)));
         // (3) substitute those decorated types into the declared type of the
         // extension method or extension property, so that the caller will match
         // up parameter types and the return type appropriately.
@@ -1444,7 +1447,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       calleeType = targetType;
     } else if (callee != null) {
       calleeType = getOrComputeElementType(node, callee,
-          targetType: targetType, targetExpression: target);
+          targetType: targetType,
+          targetExpression: target,
+          isNullAware: isNullAware);
       if (callee is PropertyAccessorElement) {
         calleeType = calleeType.returnType;
       }
@@ -1495,9 +1500,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _typeNameNesting++;
       var typeArguments = node.typeArguments?.arguments;
       var element = node.element;
-      if (element is TypeAliasElement) {
-        var aliasedElement =
-            element.aliasedElement as GenericFunctionTypeElement;
+      if (element is TypeAliasElement &&
+          element.aliasedElement is GenericFunctionTypeElement) {
+        var aliasedElement = element.aliasedElement!;
         final typedefType = _variables.decoratedElementType(aliasedElement);
         final typeNameType = _variables.decoratedTypeAnnotation(source, node);
 

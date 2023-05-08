@@ -1183,6 +1183,32 @@ void f() {
     });
   }
 
+  Future<void> test_call_already_migrated_extension_null_aware() async {
+    var content = '''
+import 'already_migrated.dart';
+class C {
+  X m(V v) => v?.toX();
+}
+''';
+    var alreadyMigrated = '''
+// @dart=2.12
+class X {}
+class V {}
+extension Ext on V {
+  X toX() => X();
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+class C {
+  X? m(V? v) => v?.toX();
+}
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '$projectPath/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
   Future<void> test_call_generic_function_returns_generic_class() async {
     var content = '''
 class B<E> implements List<E/*?*/> {
@@ -6740,11 +6766,11 @@ class C<T> {
 }
 ''';
     var expected = '''
-void test(C<int> x, double Function<S>(C<S>) y) {
+void test(C<int> x, double Function<S>(C<S>)? y) {
   x.f<double>(y);
 }
 class C<T> {
-  U f<U>(U Function<V>(C<V>) z) => throw 'foo';
+  U f<U>(U Function<V>(C<V>)? z) => throw 'foo';
 }
 ''';
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);

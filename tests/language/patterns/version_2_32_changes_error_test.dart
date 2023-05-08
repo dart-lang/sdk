@@ -12,51 +12,55 @@ main() {
   {
     switch (expr()) {
       case int when:
-      //       ^^^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      //           ^
+      // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+      // [cfe] Expected an identifier, but got ':'.
     }
     switch (expr()) {
       case int as:
-      //       ^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      //         ^
+      // [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+      // [cfe] Expected a type, but got ':'.
+      // [cfe] This couldn't be parsed.
     }
     switch (expr()) {
       case var when:
       //       ^^^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] SYNTACTIC_ERROR.ILLEGAL_PATTERN_VARIABLE_NAME
+      // [cfe] The variable declared by a variable pattern can't be named 'when'.
     }
     switch (expr()) {
       case var as:
       //       ^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] SYNTACTIC_ERROR.ILLEGAL_PATTERN_VARIABLE_NAME
+      // [cfe] The variable declared by a variable pattern can't be named 'as'.
     }
     switch (expr()) {
       case final int when:
-      //             ^^^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      //                 ^
+      // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+      // [cfe] Expected an identifier, but got ':'.
     }
     switch (expr()) {
       case final int as:
-      //             ^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      //               ^
+      // [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+      // [cfe] Expected a type, but got ':'.
+      // [cfe] This couldn't be parsed.
     }
     switch (expr()) {
       case final when:
       //         ^^^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] SYNTACTIC_ERROR.ILLEGAL_PATTERN_VARIABLE_NAME
+      // [cfe] The variable declared by a variable pattern can't be named 'when'.
     }
     switch (expr()) {
       case final as:
       //         ^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] SYNTACTIC_ERROR.ILLEGAL_PATTERN_VARIABLE_NAME
+      // [cfe] The variable declared by a variable pattern can't be named 'as'.
     }
   }
 
@@ -69,14 +73,40 @@ main() {
     switch (expr()) {
       case when:
       //   ^^^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] SYNTACTIC_ERROR.ILLEGAL_PATTERN_IDENTIFIER_NAME
+      // [cfe] A pattern can't refer to an identifier named 'when'.
     }
     switch (expr()) {
       case as:
       //   ^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] SYNTACTIC_ERROR.ILLEGAL_PATTERN_IDENTIFIER_NAME
+      // [cfe] A pattern can't refer to an identifier named 'as'.
+    }
+  }
+
+  // However, `const (when)` and `const (as)` are still permitted.
+  {
+    const when = 0;
+    const as = 1;
+
+    switch (expr()) {
+      case const (when):
+    }
+    switch (expr()) {
+      case const (as):
+    }
+  }
+
+  // And `== when` and `== as` are still permitted.
+  {
+    const when = 0;
+    const as = 1;
+
+    switch (expr()) {
+      case == when:
+    }
+    switch (expr()) {
+      case == as:
     }
   }
 
@@ -84,15 +114,27 @@ main() {
   // variable pattern to be named `when` or `as`.
   {
     var (int when) = expr<int>();
+    //   ^
+    // [cfe] Can't declare 'int' because it was already used in this scope.
     //       ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+    // [cfe] Expected ')' before this.
+    //                    ^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   }
   {
     var (int as) = expr<int>();
-    //       ^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //   ^
+    // [cfe] Can't declare 'int' because it was already used in this scope.
+    //         ^
+    // [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+    // [cfe] Expected a type, but got ')'.
+    // [cfe] This couldn't be parsed.
+    //                  ^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   }
 
   // In a pattern variable declaration, it's an error for an identifier pattern
@@ -100,14 +142,14 @@ main() {
   {
     var (when) = expr();
     //   ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] SYNTACTIC_ERROR.ILLEGAL_PATTERN_VARIABLE_NAME
+    // [cfe] The variable declared by a variable pattern can't be named 'when'.
   }
   {
     var (as) = expr();
     //   ^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] SYNTACTIC_ERROR.ILLEGAL_PATTERN_VARIABLE_NAME
+    // [cfe] The variable declared by a variable pattern can't be named 'as'.
   }
 
   // In a pattern assignment, it's an error for an identifier pattern to be
@@ -118,12 +160,12 @@ main() {
 
     (when) = expr();
 //   ^^^^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] SYNTACTIC_ERROR.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME
+// [cfe] A variable assigned by a pattern assignment can't be named 'when'.
     (as) = expr();
 //   ^^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] SYNTACTIC_ERROR.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME
+// [cfe] A variable assigned by a pattern assignment can't be named 'as'.
   }
 
   // It is, however, ok for `when` or `as` to appear as part of a qualified name
