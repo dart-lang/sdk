@@ -156,6 +156,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitClassDeclaration(node);
+    inCompound = false;
   }
 
   @override
