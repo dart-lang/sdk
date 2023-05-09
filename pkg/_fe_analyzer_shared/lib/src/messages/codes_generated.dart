@@ -1192,16 +1192,6 @@ Message _withArgumentsCombinedMemberSignatureFailed(String name, String name2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCompilingWithSoundNullSafety =
-    messageCompilingWithSoundNullSafety;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCompilingWithSoundNullSafety = const MessageCode(
-    "CompilingWithSoundNullSafety",
-    severity: Severity.info,
-    problemMessage: r"""Compiling with sound null safety.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCompilingWithoutSoundNullSafety =
     messageCompilingWithoutSoundNullSafety;
 

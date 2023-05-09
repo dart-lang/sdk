@@ -1680,7 +1680,7 @@ static void GetStack(Thread* thread, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   DebuggerStackTrace* async_causal_stack =
       isolate->debugger()->AsyncCausalStackTrace();
-  DebuggerStackTrace* awaiter_stack = isolate->debugger()->AwaiterStackTrace();
+
   // Do we want the complete script object and complete local variable objects?
   // This is true for dump requests.
   JSONObject jsobj(js);
@@ -1712,25 +1712,10 @@ static void GetStack(Thread* thread, JSONStream* js) {
     }
   }
 
-  if (awaiter_stack != nullptr) {
-    JSONArray jsarr(&jsobj, "awaiterFrames");
-    intptr_t num_frames = has_limit
-                              ? Utils::Minimum(awaiter_stack->Length(), limit)
-                              : awaiter_stack->Length();
-    for (intptr_t i = 0; i < num_frames; i++) {
-      ActivationFrame* frame = awaiter_stack->FrameAt(i);
-      JSONObject jsobj(&jsarr);
-      frame->PrintToJSONObject(&jsobj);
-      jsobj.AddProperty("index", i);
-    }
-  }
-
   const bool truncated =
       (has_limit &&
-       (limit < stack->Length() ||
-        (async_causal_stack != nullptr &&
-         limit < async_causal_stack->Length()) ||
-        (awaiter_stack != nullptr && limit < awaiter_stack->Length())));
+       (limit < stack->Length() || (async_causal_stack != nullptr &&
+                                    limit < async_causal_stack->Length())));
   jsobj.AddProperty("truncated", truncated);
 
   {

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.6
+# Dart VM Service Protocol 4.7
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.6_ of the Dart VM Service Protocol. This
+This document describes of _version 4.7_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1166,8 +1166,8 @@ message queue for an isolate. The isolate does not need to be paused.
 
 If _limit_ is provided, up to _limit_ frames from the top of the stack will be
 returned. If the stack depth is smaller than _limit_ the entire stack is
-returned. Note: this limit also applies to the `asyncCausalFrames` and
-`awaiterFrames` stack representations in the _Stack_ response.
+returned. Note: this limit also applies to the `asyncCausalFrames` stack
+representation in the _Stack_ response.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -4108,6 +4108,8 @@ enum FrameKind {
   Regular,
   AsyncCausal,
   AsyncSuspensionMarker,
+  // Deprecated since version 4.7 of the protocol. Will not occur in
+  // responses.
   AsyncActivation
 }
 ```
@@ -4316,12 +4318,22 @@ class Stack extends Response {
   // entrypoint).
   Frame[] frames;
 
-  // A list of frames representing the asynchronous path. Comparable to
-  // `awaiterFrames`, if provided, although some frames may be different.
+  // A list of frames which contains both synchronous part and the
+  // asynchronous continuation e.g. `async` functions awaiting completion
+  // of the currently running `async` function. Asynchronous frames are
+  // separated from each other and synchronous prefix via frames of kind
+  // FrameKind.kAsyncSuspensionMarker.
+  //
+  // This field is absent if currently running code does not have an
+  // asynchronous continuation.
   Frame[] asyncCausalFrames [optional];
 
-  // A list of frames representing the asynchronous path. Comparable to
-  // `asyncCausalFrames`, if provided, although some frames may be different.
+  // Deprecated since version 4.7 of the protocol. Will be always absent
+  // in the response.
+  //
+  // Used to contain information about asynchronous continuation,
+  // similar to the one in asyncCausalFrame but with a slightly
+  // different encoding.
   Frame[] awaiterFrames [optional];
 
   // A list of messages in the isolate's message queue.
@@ -4663,5 +4675,6 @@ version | comments
 4.4 | Added `label` property to `@Instance`. Added `UserTag` to `InstanceKind`.
 4.5 | Added `getPerfettoVMTimeline` RPC.
 4.6 | Added `getPerfettoCpuSamples` RPC. Added a deprecation notice to `InstanceKind.TypeRef`.
+4.7 | Added a deprecation notice to `Stack.awaiterFrames` field. Added a deprecation notice to `FrameKind.AsyncActivation`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

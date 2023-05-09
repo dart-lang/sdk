@@ -549,7 +549,20 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, field_table_values_);
   }
 
-  bool IsDartMutatorThread() const { return is_dart_mutator_; }
+  bool IsDartMutatorThread() const {
+    return scheduled_dart_mutator_isolate_ != nullptr;
+  }
+
+  // Returns the dart mutator [Isolate] this thread belongs to or nullptr.
+  //
+  // `isolate()` in comparison can return
+  //   - `nullptr` for dart mutators (e.g. if the mutator runs under
+  //     [NoActiveIsolateScope])
+  //   - an incorrect isolate (e.g. if [ActiveIsolateScope] is used to seemingly
+  //     enter another isolate)
+  Isolate* scheduled_dart_mutator_isolate() const {
+    return scheduled_dart_mutator_isolate_;
+  }
 
 #if defined(DEBUG)
   bool IsInsideCompiler() const { return inside_compiler_; }
@@ -1382,7 +1395,7 @@ class Thread : public ThreadState {
 #endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
-  bool is_dart_mutator_ = false;
+  Isolate* scheduled_dart_mutator_isolate_ = nullptr;
 
   bool is_unwind_in_progress_ = false;
 

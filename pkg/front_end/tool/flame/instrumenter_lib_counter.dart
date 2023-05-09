@@ -4,13 +4,10 @@
 
 import "dart:typed_data";
 
-Stopwatch stopwatch = new Stopwatch();
-
 Uint32List counts = new Uint32List(0);
 
 void initialize(int count, bool reportCandidates) {
   counts = new Uint32List(count);
-  stopwatch.start();
 }
 
 @pragma("vm:prefer-inline")

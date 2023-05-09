@@ -1,3 +1,8 @@
+## 11.6.0
+- Update to version `4.7` of the spec.
+- Add deprecation notice to `Stack.awaiterFrames`.
+- Add deprecation notice to `FrameKind.kAsyncActivation`.
+
 ## 11.5.0
 - Update to version `4.6` of the spec.
 - Add `getPerfettoCpuSamples` RPC.

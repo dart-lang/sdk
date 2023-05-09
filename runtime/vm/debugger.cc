@@ -240,7 +240,7 @@ ActivationFrame::ActivationFrame(uword pc,
       ctx_(Context::ZoneHandle()),
       code_(Code::ZoneHandle(code.ptr())),
       function_(Function::ZoneHandle(code.function())),
-      live_frame_((kind == kRegular) || (kind == kAsyncActivation)),
+      live_frame_(kind == kRegular),
       token_pos_initialized_(false),
       token_pos_(TokenPosition::kNoSource),
       try_index_(-1),
@@ -280,51 +280,6 @@ ActivationFrame::ActivationFrame(Kind kind)
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {}
-
-ActivationFrame::ActivationFrame(const Closure& async_activation,
-                                 CallerClosureFinder* caller_closure_finder)
-    : pc_(0),
-      fp_(0),
-      sp_(0),
-      ctx_(Context::ZoneHandle()),
-      code_(Code::ZoneHandle()),
-      function_(Function::ZoneHandle()),
-      live_frame_(false),
-      token_pos_initialized_(false),
-      token_pos_(TokenPosition::kNoSource),
-      try_index_(-1),
-      deopt_id_(DeoptId::kNone),
-      line_number_(-1),
-      column_number_(-1),
-      context_level_(-1),
-      deopt_frame_(Array::ZoneHandle()),
-      deopt_frame_offset_(0),
-      kind_(kAsyncActivation),
-      vars_initialized_(false),
-      var_descriptors_(LocalVarDescriptors::ZoneHandle()),
-      desc_indices_(8),
-      pc_desc_(PcDescriptors::ZoneHandle()) {
-  // Extract the function and the code from the asynchronous activation.
-  function_ = async_activation.function();
-  if (caller_closure_finder->IsAsyncCallback(function_)) {
-    const auto& suspend_state = SuspendState::Handle(
-        caller_closure_finder->GetSuspendStateFromAsyncCallback(
-            async_activation));
-    if (suspend_state.pc() != 0) {
-      pc_ = suspend_state.pc();
-      code_ = suspend_state.GetCodeObject();
-      function_ = code_.function();
-      return;
-    }
-  }
-  // Force-optimize functions should not be debuggable.
-  ASSERT(!function_.ForceOptimize());
-  function_.EnsureHasCompiledUnoptimizedCode();
-  code_ = function_.unoptimized_code();
-  ctx_ = async_activation.context();
-  ASSERT(fp_ == 0);
-  ASSERT(!ctx_.IsNull());
-}
 
 bool Debugger::NeedsIsolateEvents() {
   ASSERT(isolate_ == Isolate::Current());
@@ -366,8 +321,7 @@ ErrorPtr Debugger::PauseRequest(ServiceEvent::EventKind kind) {
   if (trace->Length() > 0) {
     event.set_top_frame(trace->FrameAt(0));
   }
-  CacheStackTraces(trace, DebuggerStackTrace::CollectAsyncCausal(),
-                   DebuggerStackTrace::CollectAwaiterReturn());
+  CacheStackTraces(trace, DebuggerStackTrace::CollectAsyncCausal());
   set_resume_action(kContinue);
   Pause(&event);
   HandleSteppingRequest(trace);
@@ -745,8 +699,7 @@ ObjectPtr ActivationFrame::GetAsyncAwaiter(
 }
 
 bool ActivationFrame::HandlesException(const Instance& exc_obj) {
-  if ((kind_ == kAsyncSuspensionMarker) || (kind_ == kAsyncCausal)) {
-    // These frames are historical.
+  if (kind_ == kAsyncSuspensionMarker) {
     return false;
   }
   intptr_t try_index = TryIndex();
@@ -785,7 +738,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   }
   // Async functions might have indirect exception handlers in the form of
   // `Future.catchError`. Check _FutureListeners.
-  if ((fp() != 0) && function().IsAsyncFunction()) {
+  if (kind_ == kRegular && function().IsAsyncFunction()) {
     CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
     auto& suspend_state = Object::Handle(GetSuspendStateVar());
     if (!caller_closure_finder.WasPreviouslySuspended(function(),
@@ -802,17 +755,6 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
     return caller_closure_finder.HasCatchError(futureOrListener);
   }
 
-  return false;
-}
-
-bool ActivationFrame::IsAsyncMachinery() const {
-  ASSERT(!function_.IsNull());
-  auto isolate_group = IsolateGroup::Current();
-  if (function_.Owner() ==
-      isolate_group->object_store()->async_star_stream_controller()) {
-    // We are inside the async* stream controller code.
-    return true;
-  }
   return false;
 }
 
@@ -1331,7 +1273,7 @@ const char* ActivationFrame::ToCString() {
 }
 
 void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
-  if (kind_ == kRegular || kind_ == kAsyncActivation) {
+  if (kind_ == kRegular) {
     PrintToJSONObjectRegular(jsobj);
   } else if (kind_ == kAsyncCausal) {
     PrintToJSONObjectAsyncCausal(jsobj);
@@ -1522,7 +1464,6 @@ Debugger::Debugger(Isolate* isolate)
       pause_event_(nullptr),
       stack_trace_(nullptr),
       async_causal_stack_trace_(nullptr),
-      awaiter_stack_trace_(nullptr),
       stepping_fp_(0),
       last_stepping_fp_(0),
       last_stepping_pos_(TokenPosition::kNoSource),
@@ -1900,149 +1841,6 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncCausal() {
   return stack_trace;
 }
 
-DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // AOT does not support debugging.
-  ASSERT(!FLAG_async_debugger);
-  return nullptr;
-#else
-  if (!FLAG_async_debugger) {
-    return nullptr;
-  }
-
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
-
-  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
-                              Thread::Current(),
-                              StackFrameIterator::kNoCrossThreadIteration);
-
-  Code& code = Code::Handle(zone);
-  Function& function = Function::Handle(zone);
-  Code& inlined_code = Code::Handle(zone);
-  Closure& async_activation = Closure::Handle(zone);
-  Array& deopt_frame = Array::Handle(zone);
-  bool stack_has_async_function = false;
-
-  CallerClosureFinder caller_closure_finder(zone);
-
-  for (StackFrame* frame = iterator.NextFrame(); frame != nullptr;
-       frame = iterator.NextFrame()) {
-    ASSERT(frame->IsValid());
-    if (FLAG_trace_debugger_stacktrace) {
-      OS::PrintErr("CollectAwaiterReturnStackTrace: visiting frame:\n\t%s\n",
-                   frame->ToCString());
-    }
-
-    if (!frame->IsDartFrame()) {
-      continue;
-    }
-
-    code = frame->LookupDartCode();
-
-    // Simple frame. Just add the one.
-    if (!code.is_optimized()) {
-      function = code.function();
-      if (function.IsAsyncFunction() || function.IsAsyncGenerator()) {
-        ActivationFrame* activation = CollectDartFrame(
-            isolate, frame->pc(), frame, code, Object::null_array(), 0,
-            ActivationFrame::kAsyncActivation);
-        ASSERT(activation != nullptr);
-        stack_trace->AddActivation(activation);
-        stack_has_async_function = true;
-        // Grab the awaiter.
-        async_activation ^= activation->GetAsyncAwaiter(&caller_closure_finder);
-        // Bail if we've reach the end of sync execution stack.
-        if (caller_closure_finder.WasPreviouslySuspended(
-                function, Object::Handle(activation->GetSuspendStateVar()))) {
-          break;
-        }
-      } else {
-        stack_trace->AddActivation(CollectDartFrame(
-            isolate, frame->pc(), frame, code, Object::null_array(), 0));
-      }
-
-      continue;
-    }
-
-    if (code.is_force_optimized()) {
-      if (FLAG_trace_debugger_stacktrace) {
-        function = code.function();
-        ASSERT(!function.IsNull());
-        OS::PrintErr(
-            "CollectAwaiterReturnStackTrace: "
-            "skipping force-optimized function: %s\n",
-            function.ToFullyQualifiedCString());
-      }
-      // Skip frame of force-optimized (and non-debuggable) function.
-      continue;
-    }
-
-    deopt_frame = DeoptimizeToArray(thread, frame, code);
-    bool found_async_awaiter = false;
-    for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
-         it.Advance()) {
-      inlined_code = it.code();
-      function = it.function();
-
-      if (FLAG_trace_debugger_stacktrace) {
-        ASSERT(!function.IsNull());
-        OS::PrintErr(
-            "CollectAwaiterReturnStackTrace: "
-            "visiting inlined function: %s\n ",
-            function.ToFullyQualifiedCString());
-      }
-
-      intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
-      if (function.IsAsyncFunction() || function.IsAsyncGenerator()) {
-        ActivationFrame* activation = CollectDartFrame(
-            isolate, it.pc(), frame, inlined_code, deopt_frame,
-            deopt_frame_offset, ActivationFrame::kAsyncActivation);
-        ASSERT(activation != nullptr);
-        stack_trace->AddActivation(activation);
-        stack_has_async_function = true;
-        // Grab the awaiter.
-        async_activation ^= activation->GetAsyncAwaiter(&caller_closure_finder);
-        found_async_awaiter = true;
-      } else {
-        stack_trace->AddActivation(CollectDartFrame(isolate, it.pc(), frame,
-                                                    inlined_code, deopt_frame,
-                                                    deopt_frame_offset));
-      }
-    }
-
-    // Break out of outer loop.
-    if (found_async_awaiter) {
-      break;
-    }
-  }
-
-  // If the stack doesn't have any async functions on it, return nullptr.
-  if (!stack_has_async_function) {
-    return nullptr;
-  }
-
-  // Append the awaiter return call stack.
-  while (!async_activation.IsNull() &&
-         async_activation.context() != Object::null()) {
-    ActivationFrame* activation =
-        new (zone) ActivationFrame(async_activation, &caller_closure_finder);
-    stack_trace->AddActivation(activation);
-    if (FLAG_trace_debugger_stacktrace) {
-      OS::PrintErr(
-          "CollectAwaiterReturnStackTrace: visiting awaiter return "
-          "closures:\n\t%s\n",
-          activation->function().ToFullyQualifiedCString());
-    }
-    async_activation = caller_closure_finder.FindCaller(async_activation);
-  }
-
-  return stack_trace;
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-}
-
 static ActivationFrame* TopDartFrame() {
   StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
@@ -2070,12 +1868,6 @@ DebuggerStackTrace* Debugger::AsyncCausalStackTrace() {
   return (async_causal_stack_trace_ != nullptr)
              ? async_causal_stack_trace_
              : DebuggerStackTrace::CollectAsyncCausal();
-}
-
-DebuggerStackTrace* Debugger::AwaiterStackTrace() {
-  return (awaiter_stack_trace_ != nullptr)
-             ? awaiter_stack_trace_
-             : DebuggerStackTrace::CollectAwaiterReturn();
 }
 
 DebuggerStackTrace* DebuggerStackTrace::From(const class StackTrace& ex_trace) {
@@ -2180,7 +1972,7 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
 
 void Debugger::PauseException(const Instance& exc) {
   if (FLAG_stress_async_stacks) {
-    DebuggerStackTrace::CollectAwaiterReturn();
+    DebuggerStackTrace::CollectAsyncCausal();
   }
   // We ignore this exception event when the VM is executing code invoked
   // by the debugger to evaluate variables values, when we see a nested
@@ -2190,11 +1982,11 @@ void Debugger::PauseException(const Instance& exc) {
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
   }
-  DebuggerStackTrace* awaiter_stack_trace =
-      DebuggerStackTrace::CollectAwaiterReturn();
+  DebuggerStackTrace* async_causal_stack_trace =
+      DebuggerStackTrace::CollectAsyncCausal();
   DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
-  if (awaiter_stack_trace != nullptr) {
-    if (!ShouldPauseOnException(awaiter_stack_trace, exc)) {
+  if (async_causal_stack_trace != nullptr) {
+    if (!ShouldPauseOnException(async_causal_stack_trace, exc)) {
       return;
     }
   } else {
@@ -2207,8 +1999,7 @@ void Debugger::PauseException(const Instance& exc) {
   if (stack_trace->Length() > 0) {
     event.set_top_frame(stack_trace->FrameAt(0));
   }
-  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal(),
-                   DebuggerStackTrace::CollectAwaiterReturn());
+  CacheStackTraces(stack_trace, async_causal_stack_trace);
   Pause(&event);
   HandleSteppingRequest(stack_trace_);  // we may get a rewind request
   ClearCachedStackTraces();
@@ -3406,20 +3197,16 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
 }
 
 void Debugger::CacheStackTraces(DebuggerStackTrace* stack_trace,
-                                DebuggerStackTrace* async_causal_stack_trace,
-                                DebuggerStackTrace* awaiter_stack_trace) {
+                                DebuggerStackTrace* async_causal_stack_trace) {
   ASSERT(stack_trace_ == nullptr);
   stack_trace_ = stack_trace;
   ASSERT(async_causal_stack_trace_ == nullptr);
   async_causal_stack_trace_ = async_causal_stack_trace;
-  ASSERT(awaiter_stack_trace_ == nullptr);
-  awaiter_stack_trace_ = awaiter_stack_trace;
 }
 
 void Debugger::ClearCachedStackTraces() {
   stack_trace_ = nullptr;
   async_causal_stack_trace_ = nullptr;
-  awaiter_stack_trace_ = nullptr;
 }
 
 static intptr_t FindNextRewindFrameIndex(DebuggerStackTrace* stack,
@@ -3842,8 +3629,7 @@ ErrorPtr Debugger::PauseStepping() {
   }
 
   CacheStackTraces(DebuggerStackTrace::Collect(),
-                   DebuggerStackTrace::CollectAsyncCausal(),
-                   DebuggerStackTrace::CollectAwaiterReturn());
+                   DebuggerStackTrace::CollectAsyncCausal());
   if (SteppedForSyntheticAsyncBreakpoint()) {
     CleanupSyntheticAsyncBreakpoint();
   }
@@ -3894,10 +3680,7 @@ ErrorPtr Debugger::PauseBreakpoint() {
   }
 
   if (bpt_hit->is_synthetic_async()) {
-    DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
-    ASSERT(stack_trace->Length() > 0);
-    CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal(),
-                     DebuggerStackTrace::CollectAwaiterReturn());
+    CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal());
 
     // Hit a synthetic async breakpoint.
     if (FLAG_verbose_debug) {
@@ -3934,8 +3717,7 @@ ErrorPtr Debugger::PauseBreakpoint() {
                  top_frame->pc() - top_frame->code().PayloadStart());
   }
 
-  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal(),
-                   DebuggerStackTrace::CollectAwaiterReturn());
+  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal());
   SignalPausedEvent(top_frame, bpt_hit);
   // When we single step from a user breakpoint, our next stepping
   // point will be at the exact same pc.  Skip it.
@@ -3994,8 +3776,7 @@ void Debugger::PauseDeveloper(const String& msg) {
 
   DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
   ASSERT(stack_trace->Length() > 0);
-  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal(),
-                   DebuggerStackTrace::CollectAwaiterReturn());
+  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal());
   // TODO(johnmccutchan): Send |msg| to Observatory.
 
   // We are in the native call to Developer_debugger.  the developer

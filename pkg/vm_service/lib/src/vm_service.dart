@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.6.0';
+const String vmServiceVersion = '4.7.0';
 
 /// @optional
 const String optional = 'optional';
@@ -895,8 +895,7 @@ abstract class VmServiceInterface {
   /// If `limit` is provided, up to `limit` frames from the top of the stack
   /// will be returned. If the stack depth is smaller than `limit` the entire
   /// stack is returned. Note: this limit also applies to the
-  /// `asyncCausalFrames` and `awaiterFrames` stack representations in the
-  /// `Stack` response.
+  /// `asyncCausalFrames` stack representation in the `Stack` response.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
@@ -3014,6 +3013,8 @@ class FrameKind {
   static const String kRegular = 'Regular';
   static const String kAsyncCausal = 'AsyncCausal';
   static const String kAsyncSuspensionMarker = 'AsyncSuspensionMarker';
+
+  /// Deprecated since version 4.7 of the protocol. Will not occur in responses.
   static const String kAsyncActivation = 'AsyncActivation';
 }
 
@@ -8361,13 +8362,22 @@ class Stack extends Response {
   /// entrypoint).
   List<Frame>? frames;
 
-  /// A list of frames representing the asynchronous path. Comparable to
-  /// `awaiterFrames`, if provided, although some frames may be different.
+  /// A list of frames which contains both synchronous part and the asynchronous
+  /// continuation e.g. `async` functions awaiting completion of the currently
+  /// running `async` function. Asynchronous frames are separated from each
+  /// other and synchronous prefix via frames of kind
+  /// FrameKind.kAsyncSuspensionMarker.
+  ///
+  /// This field is absent if currently running code does not have an
+  /// asynchronous continuation.
   @optional
   List<Frame>? asyncCausalFrames;
 
-  /// A list of frames representing the asynchronous path. Comparable to
-  /// `asyncCausalFrames`, if provided, although some frames may be different.
+  /// Deprecated since version 4.7 of the protocol. Will be always absent in the
+  /// response.
+  ///
+  /// Used to contain information about asynchronous continuation, similar to
+  /// the one in asyncCausalFrame but with a slightly different encoding.
   @optional
   List<Frame>? awaiterFrames;
 

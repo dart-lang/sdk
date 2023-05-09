@@ -757,15 +757,23 @@ ISOLATE_UNIT_TEST_CASE(Reload_NotAtSafepoint) {
 
   std::shared_ptr<ReloadTask::Data> task(
       new ReloadTask::Data(isolate->group()));
-  pool.Run<ReloadTask>(task);
-  task->WaitUntil(ReloadTask::kEntered);
 
-  // We are not at a safepoint. The [ReloadTask] will trigger a reload
-  // safepoint operation, sees that we are not at reload safepoint and instead
-  // sends us an OOB.
-  ASSERT(!thread->IsAtSafepoint());
-  while (!messages->HasOOBMessages()) {
-    OS::Sleep(1000);
+  {
+    // Even if we are not running with an active isolate (e.g. due to being in
+    // GC / Compiler) the reload safepoint operation should still send us an OOB
+    // message (it should know this thread belongs to an isolate).
+    NoActiveIsolateScope no_active_isolate(thread);
+
+    pool.Run<ReloadTask>(task);
+    task->WaitUntil(ReloadTask::kEntered);
+
+    // We are not at a safepoint. The [ReloadTask] will trigger a reload
+    // safepoint operation, sees that we are not at reload safepoint and instead
+    // sends us an OOB.
+    ASSERT(!thread->IsAtSafepoint());
+    while (!messages->HasOOBMessages()) {
+      OS::Sleep(1000);
+    }
   }
 
   // Examine the OOB message for it's content.

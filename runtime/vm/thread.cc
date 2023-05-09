@@ -330,7 +330,7 @@ void Thread::AssertEmptyThreadInvariants() {
   ASSERT(vm_tag_ == VMTag::kInvalidTagId);
   ASSERT(task_kind_ == kUnknownTask);
   ASSERT(execution_state_ == Thread::kThreadInNative);
-  ASSERT(!is_dart_mutator_);
+  ASSERT(scheduled_dart_mutator_isolate_ == nullptr);
 
   ASSERT(write_barrier_mask_ == UntaggedObject::kGenerationalBarrierMask);
   ASSERT(store_buffer_block_ == nullptr);
@@ -390,7 +390,7 @@ bool Thread::EnterIsolate(Isolate* isolate) {
   Thread* thread = nullptr;
   if (is_resumable) {
     thread = isolate->mutator_thread();
-    ASSERT(thread->is_dart_mutator_);
+    ASSERT(thread->scheduled_dart_mutator_isolate_ == isolate);
     ASSERT(thread->isolate() == isolate);
     ASSERT(thread->isolate_group() == isolate->group());
     {
@@ -597,7 +597,7 @@ Thread* Thread::AddActiveThread(IsolateGroup* group,
 
   thread->isolate_ = isolate;  // May be nullptr.
   thread->isolate_group_ = group;
-  thread->is_dart_mutator_ = is_dart_mutator;
+  thread->scheduled_dart_mutator_isolate_ = isolate;
 
   // We start at being at-safepoint (in case any safepoint operation is
   // in-progress, we'll check into it once leaving the safepoint)
@@ -648,7 +648,7 @@ void Thread::FreeActiveThread(Thread* thread, bool bypass_safepoint) {
 
   thread->isolate_ = nullptr;
   thread->isolate_group_ = nullptr;
-  thread->is_dart_mutator_ = false;
+  thread->scheduled_dart_mutator_isolate_ = nullptr;
   thread->set_execution_state(Thread::kThreadInNative);
   thread->stack_limit_.store(0);
   thread->safepoint_state_ = 0;

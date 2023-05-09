@@ -54,7 +54,6 @@ import '../fasta/fasta_codes.dart'
         PlainAndColorizedString,
         messageCantInferPackagesFromManyInputs,
         messageCantInferPackagesFromPackageUri,
-        messageCompilingWithSoundNullSafety,
         messageCompilingWithoutSoundNullSafety,
         messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
         messageMissingInput,
@@ -298,9 +297,6 @@ class ProcessedOptions {
               messageCompilingWithoutSoundNullSafety.severity);
           break;
         case NnbdMode.Strong:
-          reportWithoutLocation(messageCompilingWithSoundNullSafety,
-              messageCompilingWithSoundNullSafety.severity);
-          break;
         case NnbdMode.Agnostic:
           break;
       }

@@ -311,7 +311,6 @@ class ActivationFrame : public ZoneAllocated {
     kRegular,
     kAsyncSuspensionMarker,
     kAsyncCausal,
-    kAsyncActivation,
   };
 
   ActivationFrame(uword pc,
@@ -425,8 +424,6 @@ class ActivationFrame : public ZoneAllocated {
   void GetVarDescriptors();
   void GetDescIndices();
 
-  bool IsAsyncMachinery() const;
-
   static const char* KindToCString(Kind kind) {
     switch (kind) {
       case kRegular:
@@ -435,8 +432,6 @@ class ActivationFrame : public ZoneAllocated {
         return "AsyncCausal";
       case kAsyncSuspensionMarker:
         return "AsyncSuspensionMarker";
-      case kAsyncActivation:
-        return "AsyncActivation";
       default:
         UNREACHABLE();
         return "";
@@ -494,8 +489,9 @@ class DebuggerStackTrace : public ZoneAllocated {
 
   ActivationFrame* GetHandlerFrame(const Instance& exc_obj) const;
 
-  static DebuggerStackTrace* CollectAwaiterReturn();
   static DebuggerStackTrace* Collect();
+  static DebuggerStackTrace* CollectAsyncCausal();
+
   // Returns a debugger stack trace corresponding to a dart.core.StackTrace.
   // Frames corresponding to invisible functions are omitted. It is not valid
   // to query local variables in the returned stack.
@@ -513,8 +509,6 @@ class DebuggerStackTrace : public ZoneAllocated {
                         Code* code,
                         Code* inlined_code,
                         Array* deopt_frame);
-
-  static DebuggerStackTrace* CollectAsyncCausal();
 
   ZoneGrowableArray<ActivationFrame*> trace_;
 
@@ -891,8 +885,7 @@ class Debugger {
                              bool skip_next_step = false);
 
   void CacheStackTraces(DebuggerStackTrace* stack_trace,
-                        DebuggerStackTrace* async_causal_stack_trace,
-                        DebuggerStackTrace* awaiter_stack_trace);
+                        DebuggerStackTrace* async_causal_stack_trace);
   void ClearCachedStackTraces();
 
   void RewindToFrame(intptr_t frame_index);
@@ -936,7 +929,6 @@ class Debugger {
   // Current stack trace. Valid only while IsPaused().
   DebuggerStackTrace* stack_trace_;
   DebuggerStackTrace* async_causal_stack_trace_;
-  DebuggerStackTrace* awaiter_stack_trace_;
 
   // When stepping through code, only pause the program if the top
   // frame corresponds to this fp value, or if the top frame is
