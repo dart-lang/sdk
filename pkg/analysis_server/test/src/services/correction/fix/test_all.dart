@@ -64,6 +64,8 @@ import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_quotes_test.dart' as convert_quotes;
+import 'convert_to_boolean_expression_test.dart'
+    as convert_to_boolean_expression;
 import 'convert_to_cascade_test.dart' as convert_to_cascade;
 import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_double_quoted_string_test.dart'
@@ -322,6 +324,7 @@ void main() {
     convert_into_expression_body.main();
     convert_into_is_not.main();
     convert_quotes.main();
+    convert_to_boolean_expression.main();
     convert_to_cascade.main();
     convert_to_contains.main();
     convert_to_double_quoted_string.main();
