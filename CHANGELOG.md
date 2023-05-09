@@ -20,6 +20,14 @@
   `external` `@staticInterop` members and `external` extension members can no
   longer be used as tear-offs. Declare a closure or a non-`external` method that
   calls these members, and use that instead.
+- **Breaking change to `@staticInterop` and `external` extension members**:
+  `external` `@staticInterop` members and `external` extension members will
+  generate slightly different JS code for methods that have optional parameters.
+  Whereas before, the JS code passed in the default value for missing optionals,
+  it will now pass in only the provided members. This aligns with how JS
+  parameters work, where omitted parameters are actually omitted. For example,
+  calling `external void foo([int a, int b])` as `foo(0)` will now result in
+  `foo(0)`, and not `foo(0, null)`.
 
 ### Tools
 

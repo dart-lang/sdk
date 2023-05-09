@@ -930,31 +930,20 @@ class InlineExtensionIndex {
   /// member but rather lower directly to the interop procedure at the
   /// call-site. This is needed in order to support cases where omitted
   /// optional parameters shouldn't be passed.
-  ///
-  /// **Note that we only do this for users using `dart:js_interop`'s `@JS`
-  /// annotation. This means `@staticInterop` will behave slightly differently
-  /// depending on the import. This is to avoid a breaking change in the
-  /// existing semantics of `@staticInterop`.**
   bool canBeInvocationLevelLowered(Procedure node) {
-    if (hasDartJSInteropAnnotation(node) ||
-        hasDartJSInteropAnnotation(node.enclosingLibrary) ||
+    if (hasJSInteropAnnotation(node) ||
+        hasJSInteropAnnotation(node.enclosingLibrary) ||
         (node.enclosingClass != null &&
-            hasDartJSInteropAnnotation(node.enclosingClass!))) {
+            hasJSInteropAnnotation(node.enclosingClass!))) {
       return true;
     }
 
     if (node.isExtensionMember) {
-      final annotatable = getExtensionAnnotatable(node);
-      if (annotatable != null) {
-        return hasDartJSInteropAnnotation(annotatable);
-      }
+      return getExtensionAnnotatable(node) != null;
     }
 
     if (node.isInlineClassMember) {
-      final cls = getInlineClass(node);
-      if (cls != null) {
-        return hasDartJSInteropAnnotation(cls);
-      }
+      return getInlineClass(node) != null;
     }
 
     return false;
