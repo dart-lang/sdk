@@ -1,4 +1,4 @@
-## 5.12.0-dev
+## 5.12.0
 * Deprecated `DartType.isDynamic`, use `is DynamicType` instead.
 * Updated `NamedType` to use `importPrefix` and `name2` token.
   The deprecated `name` node is still visited in this version, but will stop
