@@ -67,6 +67,7 @@ void main() {
     expect(js_util.getProperty(externalStatic, 'a'), 0);
     expect(js_util.getProperty(externalStatic, 'b'), '');
   }
+
   testExternalConstructorCall(ExternalStatic());
   // testExternalConstructorCall(ExternalStatic.factory());
   testExternalConstructorCall(ExternalStatic.multipleArgs(0, ''));
@@ -90,12 +91,8 @@ void main() {
   ExternalStatic.renamedGetSet = 'renamedGetSet';
   expect(ExternalStatic.renamedGetSet, 'renamedGetSet');
 
-  // Methods and tear-offs.
+  // Methods.
   expect(ExternalStatic.method(), 'method');
-  expect((ExternalStatic.method)(), 'method');
   expect(ExternalStatic.differentArgsMethod('method'), 'methodundefined');
-  expect((ExternalStatic.differentArgsMethod)('optional', 'method'),
-      'optionalmethod');
   expect(ExternalStatic.renamedMethod(), 'method');
-  expect((ExternalStatic.renamedMethod)(), 'method');
 }

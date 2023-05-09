@@ -12,6 +12,15 @@
 
 [#51486]: https://github.com/dart-lang/sdk/issues/51486
 
+### Other libraries
+
+#### `package:js`
+
+- **Breaking change to `@staticInterop` and `external` extension members**:
+  `external` `@staticInterop` members and `external` extension members can no
+  longer be used as tear-offs. Declare a closure or a non-`external` method that
+  calls these members, and use that instead.
+
 ### Tools
 
 ## 3.0.0 - 2023-05-10

@@ -5531,10 +5531,6 @@ JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
-JsInteropStaticInteropAnonymousFactoryTearoff:
-  problemMessage: "Factories of `@anonymous` `@staticInterop` classes can not be torn off."
-  correctionMessage: "Declare a closure that forwards to this factory instead."
-
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
   problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
   correctionMessage: "Try using a Dart extension member if you need type parameters instead."
@@ -5563,13 +5559,9 @@ JsInteropStaticInteropSyntheticConstructor:
   problemMessage: "Synthetic constructors on `@staticInterop` classes can not be used."
   correctionMessage: "Declare an external factory constructor for this `@staticInterop` class and use that instead."
 
-JsInteropStaticInteropWithInstanceMembers:
-  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
-  correctionMessage: "Try moving the instance member to a static extension."
-
-JsInteropStaticInteropWithNonStaticSupertype:
-  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
-  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
+JsInteropStaticInteropTearOffsDisallowed:
+  problemMessage: "Tear-offs of external #string '#name' are disallowed."
+  correctionMessage: "Declare a closure that calls this member instead."
 
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:
   problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation."
@@ -5578,6 +5570,14 @@ JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:
 JsInteropStaticInteropTrustTypesUsageNotAllowed:
   problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
   correctionMessage: "Try removing the `@trustTypes` annotation."
+
+JsInteropStaticInteropWithInstanceMembers:
+  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
+  correctionMessage: "Try moving the instance member to a static extension."
+
+JsInteropStaticInteropWithNonStaticSupertype:
+  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
+  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
 
 JsInteropStrictModeViolation:
   problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."

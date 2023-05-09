@@ -124,13 +124,6 @@ void main() {
     expect(foo.getField(), equals(10));
     foo.setField10(6);
     expect(foo.getField(), equals(6));
-
-    // Test using tearoffs
-    var setF = foo.setField10;
-    setF();
-    expect(foo.getField(), equals(10));
-    setF(6);
-    expect(foo.getField(), equals(6));
   });
 
   test('module class', () {

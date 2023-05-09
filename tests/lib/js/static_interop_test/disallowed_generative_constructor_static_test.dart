@@ -1,9 +1,9 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library disallowed_constructor_static_test;
+library disallowed_generative_constructor_static_test;
 
 import 'package:js/js.dart';
 
@@ -22,14 +22,6 @@ class JSClass {
 @staticInterop
 class SyntheticConstructor {}
 
-@JS()
-@staticInterop
-@anonymous
-class Anonymous {
-  external factory Anonymous({String? a});
-  external factory Anonymous.named({String? a});
-}
-
 void main() {
   SyntheticConstructor();
 //^
@@ -44,15 +36,4 @@ void main() {
   const [SyntheticConstructor.new];
 //^
 // [web] Synthetic constructors on `@staticInterop` classes can not be used.
-
-  Anonymous.new;
-//^
-// [web] Factories of `@anonymous` `@staticInterop` classes can not be torn off.
-  Anonymous.named;
-//^
-// [web] Factories of `@anonymous` `@staticInterop` classes can not be torn off.
-
-  const [Anonymous.new, Anonymous.named];
-//^
-// [web] Factories of `@anonymous` `@staticInterop` classes can not be torn off.
 }

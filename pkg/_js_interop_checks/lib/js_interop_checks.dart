@@ -20,7 +20,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropNonExternalConstructor,
         messageJsInteropNonExternalMember,
         messageJsInteropOperatorsNotSupported,
-        messageJsInteropStaticInteropAnonymousFactoryTearoff,
         messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters,
         messageJsInteropStaticInteropGenerativeConstructor,
         messageJsInteropStaticInteropSyntheticConstructor,
@@ -31,6 +30,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropStaticInteropWithNonStaticSupertype,
         templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNativeClassInAnnotation,
+        templateJsInteropStaticInteropTearOffsDisallowed,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
         templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
         templateJsInteropStrictModeForbiddenLibrary;
@@ -522,7 +522,8 @@ class JsInteropChecks extends RecursiveVisitor {
 
   @override
   void visitStaticInvocation(StaticInvocation node) {
-    if (node.target == _functionToJSTarget) {
+    final target = node.target;
+    if (target == _functionToJSTarget) {
       final argument = node.arguments.positional.single;
       final functionType = argument.getStaticType(_staticTypeContext);
       if (functionType is! FunctionType) {
@@ -538,6 +539,10 @@ class JsInteropChecks extends RecursiveVisitor {
           _reportStaticInvocationIfNotJSType(parameter, node);
         }
       }
+    } else {
+      // Only check generated tear-offs in StaticInvocations.
+      final tornOff = _getTornOffFromGeneratedTearOff(target);
+      if (tornOff != null) _checkDisallowedTearoff(tornOff, node);
     }
     super.visitStaticInvocation(node);
   }
@@ -606,7 +611,8 @@ class JsInteropChecks extends RecursiveVisitor {
 
   @override
   void visitStaticTearOff(StaticTearOff node) {
-    _checkDisallowedConstructorTearoff(node.target, node);
+    _checkDisallowedTearoff(
+        _getTornOffFromGeneratedTearOff(node.target) ?? node.target, node);
   }
 
   @override
@@ -619,8 +625,9 @@ class JsInteropChecks extends RecursiveVisitor {
   @override
   void visitStaticTearOffConstantReference(StaticTearOffConstant node) {
     if (_constantCache.contains(node)) return;
-    if (_checkDisallowedConstructorTearoff(
-        node.target, _lastConstantExpression)) {
+    if (_checkDisallowedTearoff(
+        _getTornOffFromGeneratedTearOff(node.target) ?? node.target,
+        _lastConstantExpression)) {
       return;
     }
     // Only add to the cache if we don't find an error. This is to make sure
@@ -739,8 +746,7 @@ class JsInteropChecks extends RecursiveVisitor {
         return annotatable != null && hasJSInteropAnnotation(annotatable);
       }
       if (member.isInlineClassMember) {
-        final cls = _inlineExtensionIndex.getInlineClass(member);
-        return cls != null && hasJSInteropAnnotation(cls);
+        return _inlineExtensionIndex.getInlineClass(member) != null;
       }
       if (member.enclosingClass == null) {
         return hasJSInteropAnnotation(member) || _libraryHasJSAnnotation;
@@ -751,51 +757,104 @@ class JsInteropChecks extends RecursiveVisitor {
     return false;
   }
 
-  /// Checks whether [procedure] is a disallowed constructor or factory
-  /// tear-off.
+  /// If [procedure] is a generated procedure that represents a relevant
+  /// tear-off, return the torn-off member.
   ///
-  /// [context] is used to report an error location if the procedure is a
-  /// tear-off that is disallowed. Note that constructor and factory tear-offs
-  /// are lowered using a static method, so we only check `StaticTearOff`s and
-  /// `StaticTearOffConstant`s. Returns whether the given procedure is
-  /// disallowed.
-  bool _checkDisallowedConstructorTearoff(
-      Procedure procedure, TreeNode? context) {
-    var enclosingClass = procedure.enclosingClass;
-    if (enclosingClass == null) return false;
-    if (!procedure.isStatic || !hasStaticInteropAnnotation(enclosingClass)) {
-      return false;
-    }
+  /// Otherwise, return null.
+  Member? _getTornOffFromGeneratedTearOff(Procedure procedure) {
+    var tornOff = _inlineExtensionIndex.getInlineMemberForTearOff(procedure) ??
+        _inlineExtensionIndex.getExtensionMemberForTearOff(procedure);
+    if (tornOff != null) return tornOff.asMember;
     var name = extractConstructorNameFromTearOff(procedure.name);
-    if (name == null) return false;
-
-    if (name.isEmpty &&
-        enclosingClass.constructors.any((constructor) =>
-            constructor.isSynthetic && constructor.name.text.isEmpty)) {
-      // Use of a synthetic generative constructor on `@staticInterop` class.
-      if (context != null && context.location != null) {
-        _diagnosticsReporter.report(
-            messageJsInteropStaticInteropSyntheticConstructor,
-            context.fileOffset,
-            1,
-            context.location!.file);
-      }
-      return true;
+    if (name == null) return null;
+    final enclosingClass = procedure.enclosingClass;
+    // To avoid processing every class' constructors again, we only check for
+    // constructor tear-offs on relevant classes a.k.a. @staticInterop classes.
+    if (enclosingClass == null || !hasStaticInteropAnnotation(enclosingClass)) {
+      return null;
     }
-    if (hasAnonymousAnnotation(enclosingClass) &&
-        enclosingClass.procedures.any((procedure) =>
-            procedure.isExternal &&
-            procedure.isFactory &&
-            procedure.name.text == name)) {
-      // Tear-offs of an `@anonymous` `@staticInterop` external factory are
-      // disallowed.
-      if (context != null && context.location != null) {
-        _diagnosticsReporter.report(
-            messageJsInteropStaticInteropAnonymousFactoryTearoff,
-            context.fileOffset,
-            1,
-            context.location!.file);
+    for (final constructor in enclosingClass.constructors) {
+      if (constructor.name.text == name) {
+        return constructor;
       }
+    }
+    for (final procedure in enclosingClass.procedures) {
+      if (procedure.isFactory && procedure.name.text == name) {
+        return procedure;
+      }
+    }
+    return null;
+  }
+
+  /// Given a [member] and the [context] in which the use of it occurs,
+  /// determines whether a tear-off of [member] can be used.
+  ///
+  /// Tear-offs of the following are disallowed when using dart:js_interop:
+  ///
+  /// - External inline class constructors and factories (TODO(srujzs): Add
+  /// checks for factories once they're added.)
+  /// - External factories of @staticInterop classes
+  /// - External interop inline methods
+  /// - External interop extension methods on @staticInterop or inline classes
+  /// - Synthetic generative @staticInterop constructors
+  /// - External top-level methods
+  ///
+  /// Returns whether an error was triggered.
+  bool _checkDisallowedTearoff(Member member, TreeNode? context) {
+    if (context == null || context.location == null) return false;
+    if (member.isExternal) {
+      var memberKind = '';
+      var memberName = '';
+      if (member.isInlineClassMember) {
+        // Inline class interop members can not be torn off.
+        if (_inlineExtensionIndex.getInlineClass(member) == null) {
+          return false;
+        }
+        memberKind = 'inline class interop member';
+        memberName =
+            _inlineExtensionIndex.getInlineDescriptor(member)!.name.text;
+        if (memberName.isEmpty) memberName = 'new';
+      } else if (member.isExtensionMember) {
+        // JS interop members can not be torn off.
+        if (_inlineExtensionIndex.getExtensionAnnotatable(member) == null) {
+          return false;
+        }
+        memberKind = 'extension interop member';
+        memberName =
+            _inlineExtensionIndex.getExtensionDescriptor(member)!.name.text;
+      } else if (member.enclosingClass != null) {
+        // @staticInterop members can not be torn off.
+        final enclosingClass = member.enclosingClass!;
+        if (!hasStaticInteropAnnotation(enclosingClass)) return false;
+        memberKind = '@staticInterop member';
+        memberName = member.name.text;
+        if (memberName.isEmpty) memberName = 'new';
+      } else {
+        // Top-levels with dart:js_interop can not be torn off.
+        if (!hasDartJSInteropAnnotation(member) &&
+            !hasDartJSInteropAnnotation(member.enclosingLibrary)) {
+          return false;
+        }
+        memberKind = 'top-level member';
+        memberName = member.name.text;
+      }
+      _diagnosticsReporter.report(
+          templateJsInteropStaticInteropTearOffsDisallowed.withArguments(
+              memberKind, memberName),
+          context.fileOffset,
+          1,
+          context.location!.file);
+      return true;
+    } else if (member is Constructor &&
+        member.isSynthetic &&
+        hasStaticInteropAnnotation(member.enclosingClass)) {
+      // Use of a synthetic generative constructor on @staticInterop class is
+      // disallowed.
+      _diagnosticsReporter.report(
+          messageJsInteropStaticInteropSyntheticConstructor,
+          context.fileOffset,
+          1,
+          context.location!.file);
       return true;
     }
     return false;

@@ -8,7 +8,7 @@ library external_static_member_lowerings_trusttypes_test;
 import 'dart:js_interop';
 
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart' show trustTypes, staticInterop;
+import 'package:js/js.dart' show trustTypes;
 
 @JS()
 external dynamic eval(String code);
@@ -47,5 +47,4 @@ void main() {
   expect(confuse(ExternalStaticTrustType.getSet), 'getSet');
 
   expect(confuse(ExternalStaticTrustType.method()), 'method');
-  expect(confuse((ExternalStaticTrustType.method)()), 'method');
 }

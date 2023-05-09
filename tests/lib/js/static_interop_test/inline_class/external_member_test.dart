@@ -73,12 +73,8 @@ void main() {
   // external.renamedGetSet = 'renamedGetSet';
   // expect(external.renamedGetSet, 'renamedGetSet');
 
-  // Methods and tear-offs.
+  // Methods.
   expect(external.method(), 'method');
-  expect((external.method)(), 'method');
   expect(external.differentArgsMethod('method'), 'methodundefined');
-  expect(
-      (external.differentArgsMethod)('optional', 'method'), 'optionalmethod');
   expect(external.renamedMethod(), 'method');
-  expect((external.renamedMethod)(), 'method');
 }
