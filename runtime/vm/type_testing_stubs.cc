@@ -183,6 +183,8 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
   }
 
   if (type.IsCanonical()) {
+    // When adding any new types that can have specialized TTSes, also update
+    // CollectTypes::VisitObject appropriately.
     if (type.IsType() || type.IsRecordType()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       const Code& code =
@@ -1524,8 +1526,9 @@ void DeoptimizeTypeTestingStubs() {
         : zone_(zone), types_(types), cache_(SubtypeTestCache::Handle(zone)) {}
 
     void VisitObject(ObjectPtr object) {
-      // Only types and function types may have optimized TTSes.
-      if (object->IsType() || object->IsFunctionType()) {
+      // Only types and record types may have optimized TTSes,
+      // see TypeTestingStubGenerator::OptimizedCodeForType.
+      if (object->IsType() || object->IsRecordType()) {
         types_->Add(&AbstractType::CheckedHandle(zone_, object));
       } else if (object->IsSubtypeTestCache()) {
         cache_ ^= object;
