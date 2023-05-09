@@ -76,6 +76,8 @@ class LintNames {
   static const String leading_newlines_in_multiline_strings =
       'leading_newlines_in_multiline_strings';
   static const String library_annotations = 'library_annotations';
+  static const String no_literal_bool_comparisons =
+      'no_literal_bool_comparisons';
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
   static const String no_leading_underscores_for_library_prefixes =
       'no_leading_underscores_for_library_prefixes';

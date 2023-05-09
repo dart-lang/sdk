@@ -55,6 +55,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_into_block_
 import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_boolean_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
@@ -538,6 +539,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.no_leading_underscores_for_library_prefixes: [
       RemoveLeadingUnderscore.new,
+    ],
+    LintNames.no_literal_bool_comparisons: [
+      ConvertToBooleanExpression.new,
     ],
     LintNames.no_leading_underscores_for_local_identifiers: [
       RemoveLeadingUnderscore.new,

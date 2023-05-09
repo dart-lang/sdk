@@ -892,8 +892,6 @@ class DataSourceReader {
         return const ir.VoidType();
       case DartTypeNodeKind.invalidType:
         return const ir.InvalidType();
-      case DartTypeNodeKind.doesNotComplete:
-        return const DoesNotCompleteType();
       case DartTypeNodeKind.neverType:
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         return ir.NeverType.fromNullability(nullability);
