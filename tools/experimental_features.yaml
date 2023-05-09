@@ -133,6 +133,19 @@ features:
   inline-class:
     help: "Inline class"
 
+# Experiment flag only used for testing.
+  test-experiment:
+    help: >-
+      Has no effect. Can be used for testing the --enable-experiment
+      command line functionality.
+
+#
+# Flags below this line are shipped, or scheduled to ship in the next
+# stable release. They should be sorted descending by release.
+#
+# Shipped flags should be marked retired the following stable release.
+#
+
   sealed-class:
     help: "Sealed class"
     enabledIn: '3.0.0'
@@ -151,16 +164,31 @@ features:
         print('feature enabled');
       }
 
-# Experiment flag only used for testing.
-  test-experiment:
-    help: >-
-      Has no effect. Can be used for testing the --enable-experiment
-      command line functionality.
+  records:
+    help: "Records"
+    enabledIn: '3.0.0'
+    validation: |
+      final x = ('feature', a: 'enabled');
+      void main() {
+        print('${x.$1} ${x.a}');
+      }
 
-#
-# Flags below this line are shipped, retired, or rejected, cannot be specified
-# on the command line, and will eventually be removed.
-#
+  patterns:
+    help: "Patterns"
+    enabledIn: '3.0.0'
+    validation: |
+      void main() {
+        final [a, b] = ['feature', 'enabled'];
+        print('$a $b');
+      }
+
+  unnamed-libraries:
+    help: "Unnamed libraries"
+    enabledIn: '2.19.0'
+    expired: true
+    validation: |
+      library;
+      void main() => print('feature enabled');
 
   alternative-invalidation-strategy:
     help: "Alternative invalidation strategy for incremental compilation."
@@ -168,86 +196,23 @@ features:
     enabledIn: '2.18.0'
     expired: true
 
-  nonfunction-type-aliases:
-    help: "Type aliases define a <type>, not just a <functionType>"
-    enabledIn: '2.13.0'
+  inference-update-1:
+    help: "Horizontal type inference for function expressions passed to generic invocations."
+    enabledIn: '2.18.0'
+    expired: true
     validation: |
-      typedef S = String;
-      void main() {
-        S s = 'feature enabled';
-        print(s);
+      void test(List<int> list) {
+        var a = list.fold(0, (x, y) => x + y);
+        f(a);
       }
-    expired: true
-
-  non-nullable:
-    help: "Non Nullable by default"
-    experimentalReleaseVersion: '2.10.0'
-    enabledIn: '2.12.0'
-    validation: |
-      void main() {
-        int? a = null;
-        print('feature enabled');
-      }
-    expired: true
-
-  extension-methods:
-    help: "Extension Methods"
-    enabledIn: '2.6.0'
-    expired: true
-
-  constant-update-2018:
-    help: "Enhanced constant expressions"
-    enabledIn: '2.0.0'
-    expired: true
-
-  control-flow-collections:
-    help: "Control Flow Collections"
-    enabledIn: '2.0.0'
-    expired: true
-
-  generic-metadata:
-    help: >-
-      Allow annotations to accept type arguments;
-      also allow generic function types as type arguments.
-    enabledIn: '2.14.0'
-    expired: true
-
-  set-literals:
-    help: "Set Literals"
-    enabledIn: '2.0.0'
-    expired: true
-
-  spread-collections:
-    help: "Spread Collections"
-    enabledIn: '2.0.0'
-    expired: true
-
-  triple-shift:
-    help: "Triple-shift operator"
-    enabledIn: '2.14.0'
-    validation: |
-      class A {
-        operator>>>(int k) => 42;
-      }
-      void main() {
-        if ((A() >>> 1) == 42) print('feature enabled');
-      }
-    expired: true
-
-  constructor-tearoffs:
-    help: "Allow constructor tear-offs and explicit generic instantiations."
-    enabledIn: '2.15.0'
-    validation: |
-      class A {
-        A() {
+      void f<T>(T t) {
+        if (T == int) {
           print('feature enabled');
         }
       }
       void main() {
-        var c = A.new;
-        c();
+        test([1, 2, 3]);
       }
-    expired: true
 
   enhanced-enums:
     help: "Enhanced Enums"
@@ -294,46 +259,83 @@ features:
       }
     expired: true
 
-  inference-update-1:
-    help: "Horizontal type inference for function expressions passed to generic invocations."
-    enabledIn: '2.18.0'
-    expired: true
+  constructor-tearoffs:
+    help: "Allow constructor tear-offs and explicit generic instantiations."
+    enabledIn: '2.15.0'
     validation: |
-      void test(List<int> list) {
-        var a = list.fold(0, (x, y) => x + y);
-        f(a);
-      }
-      void f<T>(T t) {
-        if (T == int) {
+      class A {
+        A() {
           print('feature enabled');
         }
       }
       void main() {
-        test([1, 2, 3]);
+        var c = A.new;
+        c();
       }
-
-  unnamed-libraries:
-    help: "Unnamed libraries"
-    enabledIn: '2.19.0'
     expired: true
-    validation: |
-      library;
-      void main() => print('feature enabled');
 
-  records:
-    help: "Records"
-    enabledIn: '3.0.0'
-    validation: |
-      final x = ('feature', a: 'enabled');
-      void main() {
-        print('${x.$1} ${x.a}');
-      }
+  generic-metadata:
+    help: >-
+      Allow annotations to accept type arguments;
+      also allow generic function types as type arguments.
+    enabledIn: '2.14.0'
+    expired: true
 
-  patterns:
-    help: "Patterns"
-    enabledIn: '3.0.0'
+  triple-shift:
+    help: "Triple-shift operator"
+    enabledIn: '2.14.0'
+    validation: |
+      class A {
+        operator>>>(int k) => 42;
+      }
+      void main() {
+        if ((A() >>> 1) == 42) print('feature enabled');
+      }
+    expired: true
+
+  nonfunction-type-aliases:
+    help: "Type aliases define a <type>, not just a <functionType>"
+    enabledIn: '2.13.0'
+    validation: |
+      typedef S = String;
+      void main() {
+        S s = 'feature enabled';
+        print(s);
+      }
+    expired: true
+
+  non-nullable:
+    help: "Non Nullable by default"
+    experimentalReleaseVersion: '2.10.0'
+    enabledIn: '2.12.0'
     validation: |
       void main() {
-        final [a, b] = ['feature', 'enabled'];
-        print('$a $b');
+        int? a = null;
+        print('feature enabled');
       }
+    expired: true
+
+  extension-methods:
+    help: "Extension Methods"
+    enabledIn: '2.6.0'
+    expired: true
+
+  constant-update-2018:
+    help: "Enhanced constant expressions"
+    enabledIn: '2.0.0'
+    expired: true
+
+  control-flow-collections:
+    help: "Control Flow Collections"
+    enabledIn: '2.0.0'
+    expired: true
+
+  set-literals:
+    help: "Set Literals"
+    enabledIn: '2.0.0'
+    expired: true
+
+  spread-collections:
+    help: "Spread Collections"
+    enabledIn: '2.0.0'
+    expired: true
