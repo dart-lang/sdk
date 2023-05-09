@@ -8331,6 +8331,10 @@ class Parser {
     assert(optional('(', forToken.next!));
     assert(optional('in', inKeyword) || optional(':', inKeyword));
 
+    if (awaitToken != null && !inAsync) {
+      reportRecoverableError(awaitToken, codes.messageAwaitForNotAsync);
+    }
+
     if (identifier != null) {
       if (!identifier.isIdentifier) {
         // TODO(jensj): This should probably (sometimes) be
@@ -8345,12 +8349,6 @@ class Parser {
           reportRecoverableErrorWithToken(
               identifier.next!, codes.templateUnexpectedToken);
         }
-      }
-    }
-    if (identifier != null || patternKeyword != null) {
-      if (awaitToken != null && !inAsync) {
-        // TODO(danrubel): consider reporting the error on awaitToken
-        reportRecoverableError(inKeyword, codes.messageAwaitForNotAsync);
       }
     }
     listener.beginForInExpression(inKeyword.next!);
