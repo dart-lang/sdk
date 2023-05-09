@@ -178,7 +178,7 @@ void SafepointHandler::LevelHandler::NotifyThreadsToGetToSafepointLevel(
           // via `Thread::EnterIsolateGroupAsHelper()`. In that case we cannot
           // send an OOB message. Instead we'll have to wait until that thread
           // de-schedules itself.
-          auto isolate = current->isolate();
+          auto isolate = current->scheduled_dart_mutator_isolate();
           if (isolate != nullptr) {
             oob_isolates->Add(isolate->main_port());
           }
