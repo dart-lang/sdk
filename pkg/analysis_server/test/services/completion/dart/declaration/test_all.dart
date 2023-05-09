@@ -8,6 +8,8 @@ import 'class_test.dart' as class_;
 import 'constructor_test.dart' as constructor_;
 import 'enum_test.dart' as enum_;
 import 'extension_member_test.dart' as extension_member;
+import 'label_test.dart' as label;
+import 'library_prefix_test.dart' as library_prefix;
 import 'library_test.dart' as library_;
 import 'pattern_variable_test.dart' as pattern_variable;
 import 'record_type_test.dart' as record_type;
@@ -19,6 +21,8 @@ void main() {
     constructor_.main();
     enum_.main();
     extension_member.main();
+    label.main();
+    library_prefix.main();
     library_.main();
     pattern_variable.main();
     record_type.main();

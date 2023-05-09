@@ -4370,6 +4370,20 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return null;
   }
 
+  /// Return `true` if [reference] comes only from deprecated exports.
+  bool isFromDeprecatedExport(ExportedReference reference) {
+    if (reference is ExportedReferenceExported) {
+      for (final location in reference.locations) {
+        final export = location.exportOf(this);
+        if (!export.hasDeprecated) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
   /// Indicates whether it is unnecessary to report an undefined identifier
   /// error for an identifier reference with the given [name] and optional
   /// [prefix].

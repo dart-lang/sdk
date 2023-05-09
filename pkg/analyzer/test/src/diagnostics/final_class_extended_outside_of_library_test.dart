@@ -36,24 +36,28 @@ final class Bar extends Foo {}
     ]);
   }
 
-  test_outside_viaLanguage219() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-final class A {}
+  test_outside_viaLanguage219AndCore() async {
+    // There is no error when extending a pre-feature class that subtypes a
+    // class in the core libraries.
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart=2.19
+import 'dart:core';
+class A implements MapEntry<int, int> {
+  int get key => 0;
+  int get value => 1;
+}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 2.19
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+
+    await assertNoErrorsInCode(r'''
 import 'a.dart';
-class B extends A {}
+final class B extends A {
+  int get key => 0;
+  int get value => 1;
+}
 ''');
-
-    await assertErrorsInCode(r'''
-import 'b.dart';
-final class C extends B {}
-''', [
-      error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 39, 1),
-    ]);
   }
 
   test_outside_viaTypedef_inside() async {

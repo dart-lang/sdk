@@ -113,6 +113,11 @@ class TemplateContext {
         return parent;
       }
     }
+    var parent = node.parent;
+    if (parent is NamedExpression &&
+        parent.parent?.parent is InstanceCreationExpression) {
+      return parent.parent?.parent;
+    }
     return null;
   }
 }

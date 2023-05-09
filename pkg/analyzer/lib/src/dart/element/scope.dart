@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
-import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// The scope for the initializers in a constructor.
@@ -172,7 +171,7 @@ class PrefixScope implements Scope {
               if (_shouldAdd(importedLibrary, element)) {
                 _add(
                   element,
-                  _isFromDeprecatedExport(importedLibrary, exportedReference),
+                  importedLibrary.isFromDeprecatedExport(exportedReference),
                 );
               }
             }
@@ -292,23 +291,6 @@ class PrefixScope implements Scope {
     } else {
       conflictingElements.add(element);
     }
-  }
-
-  /// Return `true` if [exportedReference] comes only from deprecated exports.
-  static bool _isFromDeprecatedExport(
-    LibraryElementImpl importedLibrary,
-    ExportedReference exportedReference,
-  ) {
-    if (exportedReference is ExportedReferenceExported) {
-      for (final location in exportedReference.locations) {
-        final export = location.exportOf(importedLibrary);
-        if (!export.hasDeprecated) {
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
   }
 
   static bool _isSdkElement(Element element) {

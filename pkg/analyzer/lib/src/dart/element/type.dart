@@ -914,6 +914,61 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 }
 
+class InvalidTypeImpl extends TypeImpl implements InvalidType {
+  /// The unique instance of this class.
+  static final InvalidTypeImpl instance = InvalidTypeImpl._();
+
+  /// Prevent the creation of instances of this class.
+  InvalidTypeImpl._();
+
+  @override
+  Null get element => null;
+
+  @Deprecated('Use element instead')
+  @override
+  Null get element2 => element;
+
+  @override
+  int get hashCode => 1;
+
+  @Deprecated('Use `is DynamicType` instead')
+  @override
+  bool get isDynamic => true;
+
+  @Deprecated('Check element, or use getDisplayString()')
+  @override
+  String get name => Keyword.DYNAMIC.lexeme;
+
+  @override
+  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
+
+  @override
+  bool operator ==(Object other) => identical(other, this);
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitInvalidType(this);
+  }
+
+  @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitInvalidType(this, argument);
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeInvalidType();
+  }
+
+  @override
+  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
+    return this;
+  }
+}
+
 /// The type `Never` represents the uninhabited bottom type.
 class NeverTypeImpl extends TypeImpl implements NeverType {
   /// The unique instance of this class, nullable.

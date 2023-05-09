@@ -2274,6 +2274,141 @@ void f() {
 ''');
   }
 
+  Future<void> test_services_ClipboardData_changeParameterNonNull() async {
+    setPackageContent('''
+class ClipboardData {
+  const ClipboardData({required String this.text});
+
+  final String? text;
+}
+''');
+
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Migrate to empty 'text' string"
+    date: 2023-04-19
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'ClipboardData'
+    changes:
+      - kind: 'changeParameterType'
+        name: 'text'
+        nullability: non_null
+        argumentValue:
+          expression: "''"
+''');
+
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var c = ClipboardData(text: null);
+  print(c);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  var c = ClipboardData(text: '');
+  print(c);
+}
+''');
+  }
+
+  Future<void>
+      test_services_ClipboardData_changeParameterNonNullAbsent() async {
+    setPackageContent('''
+class ClipboardData {
+  const ClipboardData({required String this.text, String? this.p});
+
+  final String? text;
+  final String? p;
+}
+''');
+
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Migrate to empty 'text' string"
+    date: 2023-04-19
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'ClipboardData'
+    changes:
+      - kind: 'changeParameterType'
+        name: 'text'
+        nullability: non_null
+        argumentValue:
+          expression: "''"
+''');
+
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var c = ClipboardData(p: 'hello', text: null);
+  print(c);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  var c = ClipboardData(p: 'hello', text: '');
+  print(c);
+}
+''');
+  }
+
+  Future<void> test_services_ClipboardData_changePositionalParameter() async {
+    setPackageContent('''
+class ClipboardData {
+  const ClipboardData(this.text, this.p);
+
+  final String text;
+  final String p;
+}
+''');
+
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Migrate to empty 'text' string"
+    date: 2023-04-19
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'ClipboardData'
+    changes:
+      - kind: 'changeParameterType'
+        index: 1
+        nullability: non_null
+        argumentValue:
+          expression: "''"
+''');
+
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var c = ClipboardData('hello', null);
+  print(c);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  var c = ClipboardData('hello', '');
+  print(c);
+}
+''');
+  }
+
   Future<void>
       test_widgets_BuildContext_ancestorInheritedElementForWidgetOfExactType_deprecated() async {
     setPackageContent('''

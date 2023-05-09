@@ -189,7 +189,7 @@ base mixin BaseMixinImplement implements FinalClass {}
 
 class LegacyImplement implements LegacyImplementFinalCore {
 //                               ^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
   int get key => 0;
   int get value => 1;

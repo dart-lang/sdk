@@ -522,6 +522,9 @@ abstract class _TypeSubstitutor
   }
 
   @override
+  DartType visitInvalidType(InvalidType type) => type;
+
+  @override
   DartType visitNamedTypeBuilder(NamedTypeBuilder type) {
     if (type.arguments.isEmpty) {
       return type;

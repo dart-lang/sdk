@@ -165,6 +165,9 @@ class _MatcherBuilder {
       _addMatcher(components: [node.name.lexeme], kinds: []);
     } else if (node is Literal) {
       var parent = node.parent;
+      if (parent is NamedExpression) {
+        parent = parent.parent;
+      }
       if (parent is ArgumentList) {
         _buildFromArgumentList(parent);
       }

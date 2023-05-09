@@ -16,6 +16,8 @@ abstract class TypeVisitor<R> {
 
   R visitInterfaceType(InterfaceType type);
 
+  R visitInvalidType(InvalidType type);
+
   R visitNeverType(NeverType type);
 
   R visitRecordType(RecordType type);
@@ -36,6 +38,8 @@ abstract class TypeVisitorWithArgument<R, A> {
   R visitFunctionType(FunctionType type, A argument);
 
   R visitInterfaceType(InterfaceType type, A argument);
+
+  R visitInvalidType(InvalidType type, A argument);
 
   R visitNeverType(NeverType type, A argument);
 
@@ -65,7 +69,13 @@ abstract class UnifyingTypeVisitor<R> implements TypeVisitor<R> {
   R visitInterfaceType(InterfaceType type) => visitDartType(type);
 
   @override
+  R visitInvalidType(InvalidType type) => visitDartType(type);
+
+  @override
   R visitNeverType(NeverType type) => visitDartType(type);
+
+  @override
+  R visitRecordType(RecordType type) => visitDartType(type);
 
   @override
   R visitTypeParameterType(TypeParameterType type) => visitDartType(type);
@@ -100,7 +110,17 @@ abstract class UnifyingTypeVisitorWithArgument<R, A>
   }
 
   @override
+  R visitInvalidType(InvalidType type, A argument) {
+    return visitDartType(type, argument);
+  }
+
+  @override
   R visitNeverType(NeverType type, A argument) {
+    return visitDartType(type, argument);
+  }
+
+  @override
+  R visitRecordType(RecordType type, A argument) {
     return visitDartType(type, argument);
   }
 

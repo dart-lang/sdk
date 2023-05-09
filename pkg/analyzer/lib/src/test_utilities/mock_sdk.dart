@@ -539,7 +539,7 @@ final class Null extends Object {
   }
 }
 
-class MapEntry<K, V> {
+final class MapEntry<K, V> {
   final K key;
   final V value;
   const factory MapEntry(K key, V value) = MapEntry<K, V>._;
