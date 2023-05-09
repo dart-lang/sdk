@@ -1057,11 +1057,16 @@ const char* File::GetCanonicalPath(Namespace* namespc,
   ASSERT(result_size <= required_size - 1);
   CloseHandle(file_handle);
 
-  // Remove leading \\?\ if possible, unless input used it.
+  // Remove leading \\?\ since it is only to overcome MAX_PATH limitation.
+  // Leave it if input used it though.
   int offset = 0;
   if ((result_size > 4) && (wcsncmp(path.get(), L"\\\\?\\", 4) == 0) &&
       (strncmp(pathname, "\\\\?\\", 4) != 0)) {
-    offset = 4;
+    if ((result_size > 8) && (wcsncmp(path.get(), L"\\\\?\\UNC\\", 8) == 0)) {
+      // Leave '\\?\UNC\' prefix intact - stripping it makes invalid UNC name.
+    } else {
+      offset = 4;
+    }
   }
   int utf8_size = WideCharToMultiByte(CP_UTF8, 0, path.get() + offset, -1,
                                       nullptr, 0, nullptr, nullptr);
