@@ -232,7 +232,9 @@ _extra_builder(
 _extra_builder(
     "vm-aot-mac-release-x64",
     category = "vm|aot|m",
-    dimensions = mac,
+    # The x64 Mac pool contains a mix of 4- and 8-core machines. This build
+    # times out on a 4-core machine.
+    dimensions = [mac, {"cores": "8"}],
     properties = slow_shards,
 )
 _extra_builder(
