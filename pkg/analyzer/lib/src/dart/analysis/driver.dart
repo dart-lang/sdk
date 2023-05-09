@@ -1346,8 +1346,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           testingData: testingData,
         ).analyze();
 
+        late UnitAnalysisResult fileResult;
         late Uint8List bytes;
-        late CompilationUnit resolvedUnit;
         for (var unitResult in results) {
           var unitBytes =
               _serializeResolvedUnit(unitResult.unit, unitResult.errors);
@@ -1356,16 +1356,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           String unitKey = _getResolvedUnitKey(unitSignature);
           _byteStore.putGet(unitKey, unitBytes);
           if (unitResult.file == file) {
+            fileResult = unitResult;
             bytes = unitBytes;
-            resolvedUnit = unitResult.unit;
           }
         }
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        var result = _getAnalysisResultFromBytes(file, signature, bytes,
-            content: withUnit ? file.content : null,
-            resolvedUnit: withUnit ? resolvedUnit : null);
+        var result = _getAnalysisResultFromBytes(
+          file,
+          signature,
+          bytes,
+          content: withUnit ? file.content : null,
+          resolvedUnit: withUnit ? fileResult.unit : null,
+          errors: fileResult.errors,
+        );
         if (withUnit && _priorityFiles.contains(path)) {
           _priorityResults[path] = result.unitResult!;
         }
@@ -1588,10 +1593,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Load the [AnalysisResult] for the given [file] from the [bytes]. Set
   /// optional [content] and [resolvedUnit].
   AnalysisResult _getAnalysisResultFromBytes(
-      FileState file, String signature, Uint8List bytes,
-      {String? content, CompilationUnit? resolvedUnit}) {
+    FileState file,
+    String signature,
+    Uint8List bytes, {
+    String? content,
+    CompilationUnit? resolvedUnit,
+    List<AnalysisError>? errors,
+  }) {
     var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    List<AnalysisError> errors = _getErrorsFromSerialized(file, unit.errors);
+    errors ??= _getErrorsFromSerialized(file, unit.errors);
     _updateHasErrorOrWarningFlag(file, errors);
     var index = unit.index!;
     if (content != null && resolvedUnit != null) {

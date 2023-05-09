@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/dart_template_buffer.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
@@ -22,6 +23,64 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart';
+
+/// The buffer that accumulates types and elements as is, so that they
+/// can be written latter into Dart code that considers imports. It also
+/// accumulates fragments of text, such as syntax `(`, or names of properties.
+class AnalyzerDartTemplateBuffer
+    implements DartTemplateBuffer<DartObject, FieldElement, DartType> {
+  final List<MissingPatternPart> parts = [];
+  bool isComplete = true;
+
+  @override
+  void write(String text) {
+    parts.add(
+      MissingPatternTextPart(text),
+    );
+  }
+
+  @override
+  void writeBoolValue(bool value) {
+    parts.add(
+      MissingPatternTextPart('$value'),
+    );
+  }
+
+  @override
+  void writeCoreType(String name) {
+    parts.add(
+      MissingPatternTextPart(name),
+    );
+  }
+
+  @override
+  void writeEnumValue(FieldElement value, String name) {
+    final enumElement = value.enclosingElement;
+    if (enumElement is! EnumElement) {
+      isComplete = false;
+      return;
+    }
+
+    parts.add(
+      MissingPatternEnumValuePart(
+        enumElement: enumElement,
+        value: value,
+      ),
+    );
+  }
+
+  @override
+  void writeGeneralConstantValue(DartObject value, String name) {
+    isComplete = false;
+  }
+
+  @override
+  void writeGeneralType(DartType type, String name) {
+    parts.add(
+      MissingPatternTypePart(type),
+    );
+  }
+}
 
 class AnalyzerEnumOperations
     implements EnumOperations<DartType, EnumElement, FieldElement, DartObject> {
@@ -365,6 +424,41 @@ class ExhaustivenessDataForTesting {
   Map<AstNode, ExhaustivenessError> errors = {};
 
   ExhaustivenessDataForTesting(this.objectFieldLookup);
+}
+
+class MissingPatternEnumValuePart extends MissingPatternPart {
+  final EnumElement enumElement;
+  final FieldElement value;
+
+  MissingPatternEnumValuePart({
+    required this.enumElement,
+    required this.value,
+  });
+
+  @override
+  String toString() => value.name;
+}
+
+abstract class MissingPatternPart {}
+
+class MissingPatternTextPart extends MissingPatternPart {
+  final String text;
+
+  MissingPatternTextPart(this.text);
+
+  @override
+  String toString() => text;
+}
+
+class MissingPatternTypePart extends MissingPatternPart {
+  final DartType type;
+
+  MissingPatternTypePart(this.type);
+
+  @override
+  String toString() {
+    return type.getDisplayString(withNullability: true);
+  }
 }
 
 class PatternConverter with SpaceCreator<DartPattern, DartType> {

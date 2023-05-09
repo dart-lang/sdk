@@ -348,6 +348,9 @@ class MockAnalysisError implements engine.AnalysisError {
   String? get correctionMessage => _correctionMessage;
 
   @override
+  Object? get data => throw UnimplementedError();
+
+  @override
   engine.ErrorCode get errorCode => _errorCode!;
 
   @override

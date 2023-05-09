@@ -840,19 +840,24 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           errorToken,
         );
       } else if (error is NonExhaustiveError && reportNonExhaustive) {
-        // TODO(paulberry): instead of using SimpleDartBuffer, use an
-        // analyzer-specific class that implements DartBuffer and captures the
-        // information needed for quick assists.
         var errorBuffer = SimpleDartBuffer();
         error.witness.toDart(errorBuffer, forCorrection: false);
-        var correctionBuffer = SimpleDartBuffer();
-        error.witness.toDart(correctionBuffer, forCorrection: true);
+        var correctionTextBuffer = SimpleDartBuffer();
+        var correctionDataBuffer = AnalyzerDartTemplateBuffer();
+        error.witness.toDart(correctionTextBuffer, forCorrection: true);
+        error.witness.toDart(correctionDataBuffer, forCorrection: true);
         _errorReporter.reportErrorForToken(
           isSwitchExpression
               ? CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION
               : CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
           switchKeyword,
-          [scrutineeType, errorBuffer.toString(), correctionBuffer.toString()],
+          [
+            scrutineeType,
+            errorBuffer.toString(),
+            correctionTextBuffer.toString(),
+          ],
+          [],
+          correctionDataBuffer.isComplete ? correctionDataBuffer.parts : null,
         );
       }
     }

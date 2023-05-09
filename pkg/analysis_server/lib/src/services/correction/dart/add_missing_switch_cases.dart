@@ -5,7 +5,10 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/generated/exhaustiveness.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingSwitchCases extends CorrectionProducer {
@@ -22,8 +25,13 @@ class AddMissingSwitchCases extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
 
-    final patternCode = _patternSuggestion();
-    if (patternCode == null) {
+    final diagnostic = this.diagnostic;
+    if (diagnostic is! AnalysisError) {
+      return;
+    }
+
+    final patternParts = diagnostic.data;
+    if (patternParts is! List<MissingPatternPart>) {
       return;
     }
 
@@ -31,7 +39,7 @@ class AddMissingSwitchCases extends CorrectionProducer {
       await _switchExpression(
         builder: builder,
         node: node,
-        patternCode: patternCode,
+        patternParts: patternParts,
       );
     }
 
@@ -39,38 +47,15 @@ class AddMissingSwitchCases extends CorrectionProducer {
       await _switchStatement(
         builder: builder,
         node: node,
-        patternCode: patternCode,
+        patternParts: patternParts,
       );
     }
-  }
-
-  /// Extracts the pattern code suggestion from the correction message.
-  ///
-  /// TODO(scheglov) In general, this code might be not always valid code.
-  String? _patternSuggestion() {
-    final diagnostic = this.diagnostic;
-    if (diagnostic == null) {
-      return null;
-    }
-
-    final correctionMessage = diagnostic.correctionMessage;
-    if (correctionMessage == null) {
-      return null;
-    }
-
-    final regExp = RegExp("that match '(.+)'");
-    final match = regExp.firstMatch(correctionMessage);
-    if (match == null) {
-      return null;
-    }
-
-    return match.group(1);
   }
 
   Future<void> _switchExpression({
     required ChangeBuilder builder,
     required SwitchExpression node,
-    required String patternCode,
+    required List<MissingPatternPart> patternParts,
   }) async {
     final lineIndent = utils.getLinePrefix(node.offset);
     final singleIndent = utils.getIndent(1);
@@ -88,7 +73,7 @@ class AddMissingSwitchCases extends CorrectionProducer {
         builder.writeln('// TODO: Handle this case.');
         builder.write(lineIndent);
         builder.write(singleIndent);
-        builder.write(patternCode);
+        _writePatternParts(builder, patternParts);
         builder.writeln(' => null,');
         builder.write(location.suffix);
       });
@@ -98,7 +83,7 @@ class AddMissingSwitchCases extends CorrectionProducer {
   Future<void> _switchStatement({
     required ChangeBuilder builder,
     required SwitchStatement node,
-    required String patternCode,
+    required List<MissingPatternPart> patternParts,
   }) async {
     final lineIndent = utils.getLinePrefix(node.offset);
     final singleIndent = utils.getIndent(1);
@@ -114,7 +99,7 @@ class AddMissingSwitchCases extends CorrectionProducer {
         builder.write(lineIndent);
         builder.write(singleIndent);
         builder.write('case ');
-        builder.write(patternCode);
+        _writePatternParts(builder, patternParts);
         builder.writeln(':');
         builder.write(lineIndent);
         builder.write(singleIndent);
@@ -123,5 +108,22 @@ class AddMissingSwitchCases extends CorrectionProducer {
         builder.write(location.suffix);
       });
     });
+  }
+
+  void _writePatternParts(
+    DartEditBuilder builder,
+    List<MissingPatternPart> parts,
+  ) {
+    for (final part in parts) {
+      if (part is MissingPatternEnumValuePart) {
+        builder.writeReference(part.enumElement);
+        builder.write('.');
+        builder.write(part.value.name);
+      } else if (part is MissingPatternTextPart) {
+        builder.write(part.text);
+      } else if (part is MissingPatternTypePart) {
+        builder.writeType(part.type);
+      }
+    }
   }
 }
