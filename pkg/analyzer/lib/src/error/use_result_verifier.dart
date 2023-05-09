@@ -235,6 +235,7 @@ class UseResultVerifier {
         parent is PropertyAccess ||
         parent is ReturnStatement ||
         parent is SetOrMapLiteral ||
+        parent is SwitchExpressionCase ||
         parent is SwitchStatement ||
         parent is ThrowExpression ||
         parent is VariableDeclaration ||

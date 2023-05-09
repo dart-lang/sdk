@@ -66,25 +66,33 @@ class ImplementationHandler
         "appendAllSubtypes",
         (performance) => server.searchEngine
             .appendAllSubtypes(interfaceElement, allSubtypes, performance));
+
     final locations = performance.run(
         "filter and get location",
         (_) => allSubtypes
-            .map((e) {
-              int offset = e.nameOffset;
-              int length = e.nameLength;
-              if (needsMember) {
-                // Filter based on type, so when searching for members we don't
-                // include any intermediate classes that don't have
-                // implementations for the method.
-                var member = helper.findMemberElement(e)?.nonSynthetic;
-                if (member == null) return null;
-                offset = member.nameOffset;
-                length = member.nameLength;
+            .map((element) {
+              return needsMember
+                  // Filter based on type, so when searching for members we don't
+                  // include any intermediate classes that don't have
+                  // implementations for the method.
+                  ? helper.findMemberElement(element)?.nonSynthetic
+                  : element;
+            })
+            .whereNotNull()
+            .toSet()
+            .map((element) {
+              final unitElement =
+                  element.thisOrAncestorOfType<CompilationUnitElement>();
+              if (unitElement == null) {
+                return null;
               }
-              var unitElement = e.enclosingElement;
               return Location(
                 uri: Uri.file(unitElement.source.fullName),
-                range: toRange(unitElement.lineInfo, offset, length),
+                range: toRange(
+                  unitElement.lineInfo,
+                  element.nameOffset,
+                  element.nameLength,
+                ),
               );
             })
             .whereNotNull()

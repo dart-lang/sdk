@@ -44,6 +44,13 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitDeclaredIdentifier(node);
+  }
+
+  @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     _addOccurrence(node.declaredElement!, node.name.offset);
 

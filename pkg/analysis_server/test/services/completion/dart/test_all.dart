@@ -9,7 +9,6 @@ import 'closure_contributor_test.dart' as closure_contributor;
 import 'completion_manager_test.dart' as completion_manager;
 import 'declaration/test_all.dart' as declaration;
 import 'imported_reference_contributor_test.dart' as imported_ref_test;
-import 'library_member_contributor_test.dart' as library_member_test;
 import 'local_library_contributor_test.dart' as local_lib_test;
 import 'local_reference_contributor_test.dart' as local_ref_test;
 import 'location/test_all.dart' as location;
@@ -28,7 +27,6 @@ void main() {
     completion_manager.main();
     declaration.main();
     imported_ref_test.main();
-    library_member_test.main();
     local_lib_test.main();
     local_ref_test.main();
     location.main();

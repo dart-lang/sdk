@@ -1046,7 +1046,13 @@ class _Cookie implements Cookie {
         } else if (name == "secure") {
           secure = true;
         } else if (name == "samesite") {
-          sameSite = SameSite._byName(value);
+          sameSite = switch (value) {
+            "lax" => SameSite.lax,
+            "none" => SameSite.none,
+            "strict" => SameSite.strict,
+            _ => throw HttpException(
+                'SameSite value should be one of Lax, Strict or None.')
+          };
         }
         if (!done()) index++; // Skip the ; character
       }

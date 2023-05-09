@@ -84,6 +84,9 @@ class AnalysisError implements Diagnostic {
   /// if there are no context messages.
   final List<DiagnosticMessage> _contextMessages;
 
+  /// Data associated with this error, specific for [errorCode].
+  final Object? data;
+
   /// The correction to be displayed for this error, or `null` if there is no
   /// correction information for this error.
   String? _correctionMessage;
@@ -104,6 +107,7 @@ class AnalysisError implements Diagnostic {
     ErrorCode errorCode, [
     List<Object?>? arguments,
     List<DiagnosticMessage> contextMessages = const [],
+    Object? data,
   ]) {
     return AnalysisError.tmp(
       source: source,
@@ -112,6 +116,7 @@ class AnalysisError implements Diagnostic {
       errorCode: errorCode,
       arguments: arguments ?? const [],
       contextMessages: contextMessages,
+      data: data,
     );
   }
 
@@ -124,6 +129,7 @@ class AnalysisError implements Diagnostic {
     required String message,
     String? correctionMessage,
     List<DiagnosticMessage> contextMessages = const [],
+    this.data,
   })  : _correctionMessage = correctionMessage,
         _contextMessages = contextMessages {
     _problemMessage = DiagnosticMessageImpl(
@@ -147,6 +153,7 @@ class AnalysisError implements Diagnostic {
     required this.errorCode,
     List<Object?> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
+    this.data,
   }) : _contextMessages = contextMessages {
     assert(
       arguments.length == errorCode.numParameters,

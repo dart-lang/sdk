@@ -1222,6 +1222,25 @@ const a = 'a';
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/52314
+  test_switchExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  bool m(Object o) {
+    return switch (o) {
+      String() => methodWithAnnotation(),
+      _ => false,
+    };
+  }
+
+  @useResult
+  bool methodWithAnnotation() => true;
+}
+''');
+  }
+
   test_topLevelFunction_prefixExpression_bang() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

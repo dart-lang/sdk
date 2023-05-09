@@ -246,6 +246,19 @@ class A {
     await prepareOccurrences();
   }
 
+  Future<void> test_for_in() async {
+    await assertOccurrences(
+      kind: ElementKind.LOCAL_VARIABLE,
+      '''
+void f() {
+  for (final /*[0*/x^/*0]*/ in []) {
+    /*[1*/x/*1]*/;
+  }
+}
+      ''',
+    );
+  }
+
   Future<void> test_localVariable() async {
     await assertOccurrences(
       kind: ElementKind.LOCAL_VARIABLE,
