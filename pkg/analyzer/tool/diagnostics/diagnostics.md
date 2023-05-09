@@ -1646,7 +1646,7 @@ for-in loop:
 
 {% prettify dart tag=pre+code %}
 void f(list) {
-  await for (var e [!in!] list) {
+  [!await!] for (var e in list) {
     print(e);
   }
 }

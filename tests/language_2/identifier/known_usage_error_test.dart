@@ -69,9 +69,9 @@ Iterable<int> f3() sync* {
 
   Stream<int> s = new Stream<int>.fromFuture(new Future<int>.value(1));
   await for (int i in s) {
-  //               ^^
-  // [analyzer] COMPILE_TIME_ERROR.ASYNC_FOR_IN_WRONG_CONTEXT
-  // [cfe] The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
+//^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ASYNC_FOR_IN_WRONG_CONTEXT
+// [cfe] The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
     yield i + 1;
   }
 }
@@ -83,9 +83,9 @@ int f4() {
 
   Stream s = new Stream<int>.fromFuture(new Future<int>.value(1));
   await for (int i in s) {
-  //               ^^
-  // [analyzer] COMPILE_TIME_ERROR.ASYNC_FOR_IN_WRONG_CONTEXT
-  // [cfe] The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
+//^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ASYNC_FOR_IN_WRONG_CONTEXT
+// [cfe] The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
     return i + 1;
   }
 
