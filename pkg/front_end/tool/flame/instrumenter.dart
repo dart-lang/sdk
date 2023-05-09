@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/util/options.dart';
@@ -14,6 +16,94 @@ import '../_fasta/additional_targets.dart';
 import '../_fasta/command_line.dart';
 import '../_fasta/compile.dart' as fasta_compile;
 
+/// Instrumenter that can produce flame graphs, count invocations,
+/// perform time tracking etc.
+///
+/// ### Example of using this to produce data for a flame graph
+///
+/// ```
+/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/_fasta/compile.dart
+/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill --omit-platform pkg/front_end/tool/_fasta/compile.dart
+/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/_fasta/compile.dart --candidates=cfe_compile_trace_candidates.txt
+/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill --omit-platform pkg/front_end/tool/_fasta/compile.dart
+/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/_fasta/compile.dart --candidates=cfe_compile_trace_candidates_subsequent.txt
+/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill --omit-platform pkg/front_end/tool/_fasta/compile.dart
+/// ```
+///
+/// Where it's instrumented in several passes to automatically find the
+/// "interesting" procedures to instrument which gives a good overview without
+/// costing too much (and thereby still display ~correct timings).
+///
+/// This produces a file "cfe_compile_trace.txt" that can be displayed via
+/// Chromes about://tracing tool.
+///
+///
+/// ### Example of using this to count method calls
+///
+/// ```
+/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/_fasta/compile.dart --count
+/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill pkg/front_end/tool/_fasta/compile.dart
+/// ```
+///
+/// It will produce an output like this:
+/// ```
+/// [...]
+///  4,597,852: utf8_bytes_scanner.dart|Utf8BytesScanner.stringOffset
+///  4,775,443: ast_to_binary.dart|BinaryPrinter.writeUInt30
+///  5,213,581: token.dart|SimpleToken.kind
+///  5,299,735: ast_to_binary.dart|BufferedSink.addByte
+///  8,253,178: abstract_scanner.dart|_isIdentifierChar
+/// 11,853,919: util.dart|optional
+/// 12,889,502: token.dart|SimpleToken.stringValue
+/// 20,468,609: token.dart|SimpleToken.type
+/// 20,749,114: utf8_bytes_scanner.dart|Utf8BytesScanner.advance
+/// ```
+///
+/// ### Example of using this to get combined time on stack
+///
+/// ```
+/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart -Diterations=10 pkg/front_end/tool/_fasta/compile.dart --single-timer "--candidates-raw=flow_analysis.dart|*"
+/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill pkg/front_end/tool/_fasta/compile.dart
+/// ```
+///
+/// This will give a combined runtime of when any of the instrumented procedures
+/// was on the stack. In the example note how `-Diterations=10` will be passed
+/// to the compilation, but that the "candidates" (i.e. the data to instrument)
+/// is given directly via `"--candidates-raw=flow_analysis.dart|*"` and uses the
+/// `*` as a wildcard meaning everything in this file.
+///
+/// It will produce an output like this:
+/// ```
+/// Runtime: 3834491044
+/// Runtime in seconds: 3.834491044
+/// Visits: 52643690
+/// Active: 0
+/// Stopwatch frequency: 1000000000
+/// ```
+///
+/// ### Example of using this to get timings for when on stack:
+///
+/// ```
+/// out/ReleaseX64/dart --enable-asserts pkg/front_end/tool/flame/instrumenter.dart -Diterations=10 pkg/front_end/tool/_fasta/compile.dart --timer "--candidates-raw=flow_analysis.dart|*"
+/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill pkg/front_end/tool/_fasta/compile.dart
+/// ```
+///
+/// This will give runtime info for all instrumented procedures, timing when
+/// they're on the stack.
+/// Note in the example output below for instance `_FlowAnalysisImpl._merge`
+/// just passes to `FlowModel.merge`, so while the "self time" of the first is
+/// almost nothing it's actually on the stack (slightly) longer.
+///
+/// This will produce output like this:
+/// ```
+/// [...]
+/// flow_analysis.dart|_FlowAnalysisImpl.propertyGet: runtime: 818095151 (0.818095151 s), visits: 1328320, active: 0
+/// flow_analysis.dart|FlowModel._updateVariableInfo: runtime: 827669322 (0.827669322 s), visits: 968180, active: 0
+/// flow_analysis.dart|_FlowAnalysisImpl.variableRead: runtime: 1012755488 (1.012755488 s), visits: 1100140, active: 0
+/// flow_analysis.dart|FlowModel.joinVariableInfo: runtime: 1118758076 (1.118758076 s), visits: 320810, active: 0
+/// flow_analysis.dart|FlowModel.merge: runtime: 1185477853 (1.185477853 s), visits: 334100, active: 0
+/// flow_analysis.dart|_FlowAnalysisImpl._merge: runtime: 1238735352 (1.238735352 s), visits: 334100, active: 0
+/// ```
 Future<void> main(List<String> arguments) async {
   Directory tmpDir = Directory.systemTemp.createTempSync("cfe_instrumenter");
   try {
@@ -25,19 +115,28 @@ Future<void> main(List<String> arguments) async {
 
 Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
   List<String> candidates = [];
+  List<String> candidatesRaw = [];
   List<String> arguments = [];
   bool doCount = false;
+  bool doTimer = false;
+  bool doSingleTimer = false;
   for (String arg in inputArguments) {
     if (arg == "--count") {
       doCount = true;
+    } else if (arg == "--timer") {
+      doTimer = true;
+    } else if (arg == "--single-timer") {
+      doSingleTimer = true;
     } else if (arg.startsWith("--candidates=")) {
       candidates.add(arg.substring("--candidates=".length));
+    } else if (arg.startsWith("--candidates-raw=")) {
+      candidatesRaw.add(arg.substring("--candidates-raw=".length));
     } else {
       arguments.add(arg);
     }
   }
-  bool reportCandidates = candidates.isEmpty;
-  setupWantedMap(candidates);
+  bool reportCandidates = candidates.isEmpty && candidatesRaw.isEmpty;
+  setupWantedMap(candidates, candidatesRaw);
 
   installAdditionalTargets();
   ParsedOptions parsedOptions =
@@ -52,6 +151,10 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
   String libFilename = "instrumenter_lib.dart";
   if (doCount) {
     libFilename = "instrumenter_lib_counter.dart";
+  } else if (doTimer) {
+    libFilename = "instrumenter_lib_timer.dart";
+  } else if (doSingleTimer) {
+    libFilename = "instrumenter_lib_single_timer.dart";
   }
   await fasta_compile.main([
     "--omit-platform",
@@ -77,7 +180,7 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
     for (Class c in lib.classes) {
       addIfWantedProcedures(procedures, c.procedures,
           includeAll: reportCandidates);
-      if (!reportCandidates || doCount) {
+      if (!reportCandidates || doCount || doTimer || doSingleTimer) {
         addIfWantedConstructors(constructors, c.constructors,
             includeAll: reportCandidates);
       }
@@ -132,7 +235,8 @@ void addIfWantedProcedures(List<Procedure> output, List<Procedure> input,
       String name = getProcedureName(p);
       Set<String> procedureNamesWantedInFile =
           wanted[p.fileUri.pathSegments.last] ?? const {};
-      if (!procedureNamesWantedInFile.contains(name)) {
+      if (!procedureNamesWantedInFile.contains(name) &&
+          !procedureNamesWantedInFile.contains("*")) {
         continue;
       }
     }
@@ -148,7 +252,8 @@ void addIfWantedConstructors(List<Constructor> output, List<Constructor> input,
       String name = getConstructorName(c);
       Set<String> constructorNamesWantedInFile =
           wanted[c.fileUri.pathSegments.last] ?? const {};
-      if (!constructorNamesWantedInFile.contains(name)) {
+      if (!constructorNamesWantedInFile.contains(name) &&
+          !constructorNamesWantedInFile.contains("*")) {
         continue;
       }
     }
@@ -174,13 +279,25 @@ String getConstructorName(Constructor c) {
   return "${parent.name}.$name";
 }
 
-void setupWantedMap(List<String> candidates) {
+void setupWantedMap(List<String> candidates, List<String> candidatesRaw) {
   for (String filename in candidates) {
     File f = new File(filename);
     if (!f.existsSync()) throw "$filename doesn't exist.";
     for (String line in f.readAsLinesSync()) {
-      String file = line.substring(0, line.indexOf("|"));
-      String displayName = line.substring(line.indexOf("|") + 1);
+      int index = line.indexOf("|");
+      if (index < 0) throw "Not correctly formatted: $line (from $filename)";
+      String file = line.substring(0, index);
+      String displayName = line.substring(index + 1);
+      Set<String> existingInFile = wanted[file] ??= {};
+      existingInFile.add(displayName);
+    }
+  }
+  for (String raw in candidatesRaw) {
+    for (String line in raw.split(",")) {
+      int index = line.indexOf("|");
+      if (index < 0) throw "Not correctly formatted: $line ($raw)";
+      String file = line.substring(0, index);
+      String displayName = line.substring(index + 1);
       Set<String> existingInFile = wanted[file] ??= {};
       existingInFile.add(displayName);
     }
@@ -196,13 +313,6 @@ void initializeAndReport(
     List<Constructor> constructors,
     Procedure instrumenterReport,
     bool reportCandidates) {
-  ChildReplacer childReplacer;
-  try {
-    childReplacer = getBody(mainProcedure.function);
-  } catch (e) {
-    throw "$mainProcedure: $e";
-  }
-
   Block block = new Block([
     new ExpressionStatement(new StaticInvocation(
         initializeProcedure,
@@ -211,7 +321,7 @@ void initializeAndReport(
           new BoolLiteral(reportCandidates),
         ]))),
     new TryFinally(
-        childReplacer.originalChild as Statement,
+        mainProcedure.function.body as Statement,
         new ExpressionStatement(new StaticInvocation(
             instrumenterReport,
             new Arguments([
@@ -225,83 +335,23 @@ void initializeAndReport(
               ]),
             ])))),
   ]);
-  childReplacer.replacer(block);
-}
-
-class ChildReplacer {
-  final void Function(TreeNode replacement) replacer;
-  final TreeNode originalChild;
-
-  ChildReplacer(this.replacer, this.originalChild);
-}
-
-ChildReplacer getBody(FunctionNode functionNode) {
-  // Is this an originally non-sync, but now transformed method?
-  if (functionNode.dartAsyncMarker != AsyncMarker.Sync &&
-      functionNode.dartAsyncMarker != functionNode.asyncMarker) {
-    if (functionNode.dartAsyncMarker == AsyncMarker.Async) {
-      // It was originally an async method. (this will work for the VM async
-      // transformation).
-      Block block = functionNode.body as Block;
-      FunctionDeclaration functionDeclaration = block.statements
-          .firstWhere((s) => s is FunctionDeclaration) as FunctionDeclaration;
-      TryCatch tryCatch = functionDeclaration.function.body as TryCatch;
-      Block tryCatchBlock = tryCatch.body as Block;
-      LabeledStatement labeledStatement =
-          tryCatchBlock.statements[0] as LabeledStatement;
-      Block labeledStatementBlock = labeledStatement.body as Block;
-      return new ChildReplacer((TreeNode newChild) {
-        Block newBlock = new Block([newChild as Statement]);
-        labeledStatement.body = newBlock;
-        newBlock.parent = labeledStatement;
-      }, labeledStatementBlock);
-    } else if (functionNode.dartAsyncMarker == AsyncMarker.SyncStar) {
-      // It was originally a sync* method. This will work for the VM
-      // transformation.
-      Block block = functionNode.body as Block;
-      FunctionDeclaration functionDeclaration = block.statements
-          .firstWhere((s) => s is FunctionDeclaration) as FunctionDeclaration;
-      Block functionDeclarationBlock =
-          functionDeclaration.function.body as Block;
-      Block nestedBlock = functionDeclarationBlock.statements[0] as Block;
-      return new ChildReplacer((TreeNode newChild) {
-        functionDeclarationBlock.statements[0] = newChild as Statement;
-        newChild.parent = functionDeclarationBlock;
-      }, nestedBlock);
-    } else {
-      throw "Unsupported: ${functionNode.dartAsyncMarker}: "
-          "${functionNode.body}";
-    }
-  } else {
-    // Should be a regular sync method.
-    assert(functionNode.dartAsyncMarker == AsyncMarker.Sync);
-    assert(functionNode.asyncMarker == AsyncMarker.Sync);
-    return new ChildReplacer((TreeNode newChild) {
-      functionNode.body = newChild as Statement;
-      newChild.parent = functionNode;
-    }, functionNode.body as TreeNode);
-  }
+  mainProcedure.function.body = block;
+  block.parent = mainProcedure.function;
 }
 
 void wrapProcedure(Procedure p, int id, Procedure instrumenterEnter,
     Procedure instrumenterExit) {
-  ChildReplacer childReplacer;
-  try {
-    childReplacer = getBody(p.function);
-  } catch (e) {
-    throw "$p: $e";
-  }
-
   Block block = new Block([
     new ExpressionStatement(new StaticInvocation(
         instrumenterEnter, new Arguments([new IntLiteral(id)]))),
-    childReplacer.originalChild as Statement
+    p.function.body as Statement
   ]);
   TryFinally tryFinally = new TryFinally(
       block,
       new ExpressionStatement(new StaticInvocation(
           instrumenterExit, new Arguments([new IntLiteral(id)]))));
-  childReplacer.replacer(tryFinally);
+  p.function.body = tryFinally;
+  tryFinally.parent = p.function;
 }
 
 void wrapConstructor(Constructor c, int id, Procedure instrumenterEnter,

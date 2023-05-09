@@ -123,6 +123,7 @@ characteristics
 charset
 checkme
 checkout
+chromes
 chunked
 cipd
 circular
@@ -159,6 +160,7 @@ conversions
 coo
 corge
 corners
+costing
 cov
 coverages
 cp
@@ -223,6 +225,7 @@ discrepancies
 dispatcher
 dispose
 dist
+diterations
 div
 divergent
 doctest
