@@ -93,7 +93,6 @@ enum DartTypeNodeKind {
   invalidType,
   thisInterfaceType,
   exactInterfaceType,
-  doesNotComplete,
   neverType,
   futureOrType,
   nullType,
