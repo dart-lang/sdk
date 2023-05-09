@@ -45,13 +45,13 @@ var tests = <IsolateTest>[
     final isolateId = isolate.id!;
     // Verify awaiter stack trace is the current frame + the awaiter.
     Stack stack = await service.getStack(isolateId);
-    expect(stack.awaiterFrames, isNotNull);
-    List<Frame> awaiterFrames = stack.awaiterFrames!;
-    expect(awaiterFrames.length, greaterThanOrEqualTo(2));
-    // Awaiter frame.
-    expect(awaiterFrames[0].function!.name, 'foobar');
-    // Awaiter frame.
-    expect(awaiterFrames[1].function!.name, 'helper');
+    expect(stack.asyncCausalFrames, isNotNull);
+    List<Frame> asyncCausalFrames = stack.asyncCausalFrames!;
+    expect(asyncCausalFrames.length, greaterThanOrEqualTo(4));
+    expect(asyncCausalFrames[0].function!.name, 'foobar');
+    expect(asyncCausalFrames[1].kind, FrameKind.kAsyncSuspensionMarker);
+    expect(asyncCausalFrames[2].function!.name, 'helper');
+    expect(asyncCausalFrames[3].kind, FrameKind.kAsyncSuspensionMarker);
   },
 ];
 

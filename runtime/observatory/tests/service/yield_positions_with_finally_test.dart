@@ -2,18 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const int LINE = 106;
-const int LINE_A = 23;
-const int LINE_B = 36;
-const int LINE_C = 47;
-const int LINE_D = 61;
-const int LINE_E = 78;
-const int LINE_F = 93;
+const int LINE = 113;
+const int LINE_A = 24;
+const int LINE_B = 38;
+const int LINE_C = 50;
+const int LINE_D = 65;
+const int LINE_E = 83;
+const int LINE_F = 99;
 
 // break statement
 Stream<int> testBreak() async* {
@@ -21,7 +22,8 @@ Stream<int> testBreak() async* {
     try {
       if (t == 1) break;
       await throwException(); // LINE_A
-    } catch (e) {} finally {
+    } catch (e) {
+    } finally {
       yield t;
     }
   }
@@ -34,7 +36,8 @@ Stream<int> testReturn() async* {
       yield t;
       if (t == 1) return;
       await throwException(); // LINE_B
-    } catch (e) {} finally {
+    } catch (e) {
+    } finally {
       yield t;
     }
   }
@@ -45,7 +48,8 @@ Stream<int> testMultipleFunctions() async* {
   try {
     yield 0;
     await throwException(); // LINE_C
-  } catch (e) {} finally {
+  } catch (e) {
+  } finally {
     yield 1;
   }
 }
@@ -59,7 +63,8 @@ Stream<int> testContinueSwitch() async* {
         try {
           if (currentState == 1) continue label;
           await throwException(); // LINE_D
-        } catch (e) {} finally {
+        } catch (e) {
+        } finally {
           yield 0;
         }
         yield 1;
@@ -76,7 +81,8 @@ Stream<int> testNestFinally() async* {
   try {
     if (i == 1) return;
     await throwException(); //LINE_E
-  } catch (e) {} finally {
+  } catch (e) {
+  } finally {
     try {
       yield i;
     } finally {
@@ -91,7 +97,8 @@ Stream<int> testAsyncClosureInFinally() async* {
   try {
     if (i == 1) return;
     await throwException(); //LINE_F
-  } catch (e) {} finally {
+  } catch (e) {
+  } finally {
     inner() async {
       await Future.delayed(Duration(milliseconds: 10));
     }
@@ -119,92 +126,33 @@ var tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE),
   resumeIsolate,
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE),
-  (Isolate isolate) async {
-    // test break statement
-    ServiceMap stack = await isolate.getStack();
-    expect(stack['awaiterFrames'], isNotNull);
-    expect(stack['awaiterFrames'].length, greaterThanOrEqualTo(2));
-
-    // Check second top frame contains correct line number
-    Script script = stack['awaiterFrames'][1].location.script;
-    expect(script.tokenToLine(stack['awaiterFrames'][1].location.tokenPos),
-        equals(LINE_A));
-  },
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE),
-  (Isolate isolate) async {
-    // test return statement
-    ServiceMap stack = await isolate.getStack();
-    expect(stack['awaiterFrames'], isNotNull);
-    expect(stack['awaiterFrames'].length, greaterThanOrEqualTo(2));
-
-    // Check second top frame contains correct line number
-    Script script = stack['awaiterFrames'][1].location.script;
-    expect(script.tokenToLine(stack['awaiterFrames'][1].location.tokenPos),
-        equals(LINE_B));
-  },
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE),
-  (Isolate isolate) async {
-    // test break statement
-    ServiceMap stack = await isolate.getStack();
-    expect(stack['awaiterFrames'], isNotNull);
-    expect(stack['awaiterFrames'].length, greaterThanOrEqualTo(2));
-
-    // Check second top frame contains correct line number
-    Script script = stack['awaiterFrames'][1].location.script;
-    expect(script.tokenToLine(stack['awaiterFrames'][1].location.tokenPos),
-        equals(LINE_C));
-  },
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE),
-  (Isolate isolate) async {
-    // test break statement
-    ServiceMap stack = await isolate.getStack();
-    expect(stack['awaiterFrames'], isNotNull);
-    expect(stack['awaiterFrames'].length, greaterThanOrEqualTo(2));
-
-    // Check second top frame contains correct line number
-    Script script = stack['awaiterFrames'][1].location.script;
-    expect(script.tokenToLine(stack['awaiterFrames'][1].location.tokenPos),
-        equals(LINE_D));
-  },
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE),
-  (Isolate isolate) async {
-    // test nested finally statement
-    ServiceMap stack = await isolate.getStack();
-    expect(stack['awaiterFrames'], isNotNull);
-    expect(stack['awaiterFrames'].length, greaterThanOrEqualTo(2));
-
-    // Check second top frame contains correct line number
-    Script script = stack['awaiterFrames'][1].location.script;
-    expect(script.tokenToLine(stack['awaiterFrames'][1].location.tokenPos),
-        equals(LINE_E));
-  },
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE),
-  (Isolate isolate) async {
-    // test async closure within finally block
-    ServiceMap stack = await isolate.getStack();
-    expect(stack['awaiterFrames'], isNotNull);
-    expect(stack['awaiterFrames'].length, greaterThanOrEqualTo(2));
-
-    // Check second top frame contains correct line number
-    Script script = stack['awaiterFrames'][1].location.script;
-    expect(script.tokenToLine(stack['awaiterFrames'][1].location.tokenPos),
-        equals(LINE_F));
-  },
-  resumeIsolate,
+  for (var line in [LINE_A, LINE_B, LINE_C, LINE_D, LINE_E, LINE_F]) ...[
+    hasStoppedAtBreakpoint,
+    stoppedAtLine(LINE),
+    _expectSecondFrameFromTheTopToBeAt(line),
+    resumeIsolate,
+  ],
   hasStoppedAtExit
 ];
+
+Future<void> Function(Isolate) _expectSecondFrameFromTheTopToBeAt(int line) {
+  return (isolate) async {
+    ServiceMap stack = await isolate.getStack();
+    expect(stack['asyncCausalFrames'], isNotNull);
+    expect(stack['asyncCausalFrames'].length, greaterThanOrEqualTo(3));
+
+    // Check second top frame contains correct line number.
+    final frames = (stack['asyncCausalFrames'] as List).cast<Frame>();
+    expect(frames[0].kind, M.FrameKind.regular);
+    final script0 = frames[0].location!.script;
+    expect(script0.tokenToLine(frames[0].location!.tokenPos), equals(LINE));
+    expect(frames[1].kind, M.FrameKind.asyncSuspensionMarker);
+    expect(frames[2].location, isNotNull);
+    expect(frames[2].kind, M.FrameKind.asyncCausal);
+    final script2 = frames[2].location!.script;
+    expect(script2.tokenToLine(frames[2].location!.tokenPos), equals(line));
+  };
+}
 
 main(args) {
   runIsolateTestsSynchronous(args, tests,

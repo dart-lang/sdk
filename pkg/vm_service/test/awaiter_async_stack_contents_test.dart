@@ -40,7 +40,7 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     Stack stack = await service.getStack(isolateRef.id!);
     // No awaiter frames because we are in a completely synchronous stack.
-    expect(stack.awaiterFrames, isNull);
+    expect(stack.asyncCausalFrames, isNull);
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
@@ -51,14 +51,14 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     // Verify awaiter stack trace is the current frame + the awaiter.
     Stack stack = await service.getStack(isolateRef.id!);
-    expect(stack.awaiterFrames, isNotNull);
-    List<Frame> awaiterFrames = stack.awaiterFrames!;
+    expect(stack.asyncCausalFrames, isNotNull);
+    List<Frame> asyncCausalFrames = stack.asyncCausalFrames!;
 
-    expect(awaiterFrames.length, greaterThanOrEqualTo(2));
-    // Awaiter frame.
-    expect(await awaiterFrames[0].function!.name, 'foobar');
-    // Awaiter frame.
-    expect(await awaiterFrames[1].function!.name, 'helper');
+    expect(asyncCausalFrames.length, greaterThanOrEqualTo(4));
+    expect(await asyncCausalFrames[0].function!.name, 'foobar');
+    expect(await asyncCausalFrames[1].kind, FrameKind.kAsyncSuspensionMarker);
+    expect(await asyncCausalFrames[2].function!.name, 'helper');
+    expect(await asyncCausalFrames[3].kind, FrameKind.kAsyncSuspensionMarker);
     // "helper" is not await'ed.
   },
 ];

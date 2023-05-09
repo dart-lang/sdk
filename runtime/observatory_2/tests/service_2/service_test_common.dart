@@ -340,7 +340,7 @@ IsolateTest stoppedInFunction(String functionName) {
   };
 }
 
-IsolateTest hasLocalVarInTopAwaiterStackFrame(String varName) {
+IsolateTest hasLocalVarInTopStackFrame(String varName, String framesField) {
   return (Isolate isolate) async {
     print("Checking we have variable '$varName' in the top frame");
 
@@ -351,7 +351,7 @@ IsolateTest hasLocalVarInTopAwaiterStackFrame(String varName) {
     final ServiceMap stack = await isolate.getStack();
     expect(stack.type, equals('Stack'));
 
-    final List frames = stack['awaiterFrames'];
+    final List frames = stack[framesField];
     expect(frames.length, greaterThanOrEqualTo(1));
 
     final Frame top = frames[0];
