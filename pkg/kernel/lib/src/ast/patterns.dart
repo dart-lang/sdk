@@ -1088,6 +1088,11 @@ class NamedPattern extends Pattern {
   /// This is set during inference.
   DartType? resultType;
 
+  /// When used in an object pattern, this is set to `true` if the field value
+  /// needs to be checked against the [resultType]. This is needed for fields
+  /// whose type contain covariant types that occur in non-covariant positions.
+  bool checkReturn = false;
+
   /// When used in an object pattern, this holds the record on which the
   /// property for this pattern is read.
   ///

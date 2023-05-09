@@ -253,11 +253,13 @@ IsExpression createIsExpression(Expression operand, DartType type,
 AsExpression createAsExpression(Expression operand, DartType type,
     {required bool forNonNullableByDefault,
     bool isUnchecked = false,
+    bool isCovarianceCheck = false,
     required int fileOffset}) {
   return new AsExpression(operand, type)
     ..fileOffset = fileOffset
     ..isForNonNullableByDefault = forNonNullableByDefault
-    ..isUnchecked = isUnchecked;
+    ..isUnchecked = isUnchecked
+    ..isCovarianceCheck = isCovarianceCheck;
 }
 
 /// Creates a [NullCheck] of [expression].

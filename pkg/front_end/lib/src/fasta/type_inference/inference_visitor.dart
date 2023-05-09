@@ -10475,6 +10475,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           field.accessKind = ObjectAccessKind.Dynamic;
           break;
       }
+      if (fieldTarget.isInstanceMember || fieldTarget.isObjectMember) {
+        Member interfaceMember = fieldTarget.member!;
+        if (interfaceMember is Procedure) {
+          DartType typeToCheck = isNonNullableByDefault
+              ? interfaceMember.function
+                  .computeFunctionType(libraryBuilder.nonNullable)
+              : interfaceMember.function.returnType;
+          field.checkReturn =
+              InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
+                  interfaceMember.enclosingClass!, typeToCheck);
+        } else if (interfaceMember is Field) {
+          field.checkReturn =
+              InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
+                  interfaceMember.enclosingClass!, interfaceMember.type);
+        }
+      }
     }
 
     pushRewrite(replacement ?? node);
