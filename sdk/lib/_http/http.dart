@@ -761,13 +761,6 @@ final class SameSite {
 
   const SameSite._(this.name);
 
-  static SameSite _byName(String name) {
-    for (var value in values) {
-      if (name.toLowerCase() == value.name.toLowerCase()) return value;
-    }
-    throw HttpException('SameSite value should be one of Lax, Strict or None.');
-  }
-
   @override
   String toString() => "SameSite=$name";
 }
