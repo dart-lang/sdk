@@ -424,18 +424,25 @@ class DelayedAsExpression implements DelayedExpression {
   final DartType _type;
   final bool isUnchecked;
   final bool isImplicit;
+  final bool isCovarianceCheck;
   final int fileOffset;
 
   DelayedAsExpression(this._operand, this._type,
       {this.isUnchecked = false,
       this.isImplicit = false,
+      this.isCovarianceCheck = false,
       required this.fileOffset});
 
   @override
   Expression createExpression(TypeEnvironment typeEnvironment,
       [List<Expression>? effects]) {
     Expression operand = _operand.createExpression(typeEnvironment, effects);
-    if (isImplicit) {
+    if (isCovarianceCheck) {
+      return createAsExpression(operand, _type,
+          forNonNullableByDefault: true,
+          isCovarianceCheck: true,
+          fileOffset: fileOffset);
+    } else if (isImplicit) {
       DartType operandType = _operand.getType(typeEnvironment);
       if (typeEnvironment.isSubtypeOf(
           operandType, _type, SubtypeCheckMode.withNullabilities)) {

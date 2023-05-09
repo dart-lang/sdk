@@ -4917,6 +4917,9 @@ class EquivalenceStrategy {
     if (!checkNamedPattern_resultType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkNamedPattern_checkReturn(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkNamedPattern_recordType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -9147,6 +9150,12 @@ class EquivalenceStrategy {
   bool checkNamedPattern_resultType(
       EquivalenceVisitor visitor, NamedPattern node, NamedPattern other) {
     return visitor.checkNodes(node.resultType, other.resultType, 'resultType');
+  }
+
+  bool checkNamedPattern_checkReturn(
+      EquivalenceVisitor visitor, NamedPattern node, NamedPattern other) {
+    return visitor.checkValues(
+        node.checkReturn, other.checkReturn, 'checkReturn');
   }
 
   bool checkNamedPattern_recordType(

@@ -1,0 +1,57 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+  abstract get g() → (self::A::X%) → void;
+}
+class B extends core::Object implements self::A<core::int> {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  get g() → (core::int) → void
+    return (core::int i) → void => let final core::int #t1 = self::callCount in let final core::int #t2 = self::callCount = #t1.{core::num::+}(1){(core::num) → core::int} in #t1;
+}
+static field core::int callCount = 0;
+static method foo(core::Object o, core::num value) → void {
+  #L1:
+  {
+    final synthesized core::Object #0#0 = o;
+    function ##0#2#initializer() → (core::int) → void
+      return #0#0{self::B}.{self::B::g}{(core::int) → void};
+    late final synthesized (core::int) → void #0#2 = ##0#2#initializer(){() → (core::int) → void};
+    {
+      hoisted (core::num) → void f;
+      if(#0#0 is{ForNonNullableByDefault} self::B && (let final (core::int) → void #t3 = #0#2 in true) && (let final (core::num) → void #t4 = f = #0#2 as{CovarianceCheck,ForNonNullableByDefault} (core::num) → void in true)) {
+        {
+          f(value){(core::num) → void};
+        }
+      }
+    }
+  }
+}
+static method main() → void {
+  self::expect(0, self::callCount);
+  self::throws(() → void => self::foo(new self::B::•(), 25.7));
+  self::expect(0, self::callCount);
+  self::throws(() → void => self::foo(new self::B::•(), 1));
+  self::expect(0, self::callCount);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {
+    throw "Expected ${expected}, actual ${actual}";
+  }
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print(e);
+    return;
+  }
+  throw "No exception thrown";
+}
