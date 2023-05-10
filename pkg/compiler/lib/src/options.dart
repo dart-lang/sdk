@@ -20,6 +20,35 @@ enum FeatureStatus {
   canary,
 }
 
+enum Dart2JSStage {
+  all,
+  cfe,
+  modularAnalysis,
+  allFromDill,
+  cfeFromDill,
+  modularAnalysisFromDill,
+  closedWorld,
+  globalInference,
+  codegenAndJsEmitter,
+  codegenSharded,
+  jsEmitter;
+
+  bool get shouldOnlyComputeDill =>
+      this == Dart2JSStage.cfe || this == Dart2JSStage.cfeFromDill;
+  bool get shouldLoadFromDill => this.index >= Dart2JSStage.allFromDill.index;
+  bool get shouldComputeModularAnalysis =>
+      this == Dart2JSStage.modularAnalysis ||
+      this == Dart2JSStage.modularAnalysisFromDill;
+  bool get canUseModularAnalysis =>
+      this == Dart2JSStage.modularAnalysis ||
+      this.index >= Dart2JSStage.modularAnalysisFromDill.index;
+  bool get shouldReadClosedWorld => this.index > Dart2JSStage.closedWorld.index;
+  bool get shouldReadGlobalInference =>
+      this.index > Dart2JSStage.globalInference.index;
+  bool get shouldReadCodegenShards =>
+      this.index > Dart2JSStage.codegenSharded.index;
+}
+
 /// A [FeatureOption] is both a set of flags and an option. By default, creating
 /// a [FeatureOption] will create two flags, `--$flag` and `--no-$flag`. The
 /// default behavior for a [FeatureOption] in the [FeatureOptions.canary] set is
@@ -186,7 +215,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// Returns the compilation target specified by these options.
   Uri? get compilationTarget => inputDillUri ?? entryUri;
 
-  bool get fromDill {
+  bool get _fromDill {
     if (sources != null) return false;
     var targetPath = compilationTarget!.path;
     return targetPath.endsWith('.dill');
@@ -212,9 +241,6 @@ class CompilerOptions implements DiagnosticOptions {
   List<Uri>? sources;
 
   Uri? writeModularAnalysisUri;
-
-  /// Helper to determine if compiler is being run just for modular analysis.
-  bool get modularMode => writeModularAnalysisUri != null && !cfeOnly;
 
   List<Uri>? modularAnalysisInputs;
 
@@ -334,9 +360,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Note: the resulting program still correctly checks that loadLibrary &
   /// checkLibrary calls are correct.
   bool disableProgramSplit = false;
-
-  // Whether or not to stop compilation after splitting the
-  bool stopAfterProgramSplit = false;
 
   /// Reads a program split json file and applies the parsed constraints to
   /// deferred loading.
@@ -602,6 +625,102 @@ class CompilerOptions implements DiagnosticOptions {
   // Whether or not to disable byte cache for sources loaded from Kernel dill.
   bool disableDiagnosticByteCache = false;
 
+  late final Dart2JSStage stage = _calculateStage();
+
+  Dart2JSStage _calculateStage() {
+    if (cfeOnly) {
+      return _fromDill ? Dart2JSStage.cfeFromDill : Dart2JSStage.cfe;
+    }
+    if (writeModularAnalysisUri != null) {
+      return _fromDill
+          ? Dart2JSStage.modularAnalysisFromDill
+          : Dart2JSStage.modularAnalysis;
+    }
+    if (writeClosedWorldUri != null) {
+      return Dart2JSStage.closedWorld;
+    }
+    if (writeDataUri != null) {
+      return Dart2JSStage.globalInference;
+    }
+    if (writeCodegenUri != null) {
+      return Dart2JSStage.codegenSharded;
+    }
+    if (outputUri != null) {
+      if (readCodegenUri != null) {
+        return Dart2JSStage.jsEmitter;
+      } else if (readDataUri != null) {
+        return Dart2JSStage.codegenAndJsEmitter;
+      }
+    }
+    return _fromDill ? Dart2JSStage.allFromDill : Dart2JSStage.all;
+  }
+
+  void _validateStage() {
+    switch (stage) {
+      case Dart2JSStage.all:
+      case Dart2JSStage.cfe:
+      case Dart2JSStage.allFromDill:
+      case Dart2JSStage.cfeFromDill:
+        if (compilationTarget == null) {
+          throw ArgumentError(
+              'Must provide ${Flags.inputDill} or ${Flags.entryUri}.');
+        }
+        break;
+      case Dart2JSStage.modularAnalysis:
+      case Dart2JSStage.modularAnalysisFromDill:
+        break;
+      case Dart2JSStage.closedWorld:
+        if (inputDillUri == null) {
+          throw ArgumentError(
+              'Must provide ${Flags.inputDill} with ${Flags.writeClosedWorld}');
+        }
+        break;
+      case Dart2JSStage.globalInference:
+        if (inputDillUri == null) {
+          throw ArgumentError(
+              'Must provide ${Flags.inputDill} with ${Flags.writeData}');
+        }
+        if (readClosedWorldUri == null) {
+          throw ArgumentError(
+              'Must provide ${Flags.readClosedWorld} with ${Flags.writeData}');
+        }
+        break;
+      case Dart2JSStage.codegenSharded:
+      case Dart2JSStage.codegenAndJsEmitter:
+        if (inputDillUri == null) {
+          throw ArgumentError(
+              'Must provide ${Flags.inputDill} with ${Flags.writeCodegen}');
+        }
+        if (readClosedWorldUri == null) {
+          throw ArgumentError(
+              'Must provide ${Flags.readClosedWorld} with ${Flags.writeCodegen}');
+        }
+        if (readDataUri == null) {
+          throw ArgumentError(
+              'Must provide ${Flags.readData} with ${Flags.writeCodegen}');
+        }
+        break;
+      case Dart2JSStage.jsEmitter:
+        if (inputDillUri == null) {
+          throw ArgumentError(
+              'Must provide ${Flags.inputDill} with ${Flags.writeCodegen}');
+        }
+        if (readClosedWorldUri == null) {
+          throw ArgumentError(
+              'Must provide ${Flags.readClosedWorld} with ${Flags.writeCodegen}');
+        }
+        if (readDataUri == null) {
+          throw ArgumentError(
+              'Must provide ${Flags.readData} with ${Flags.writeCodegen}');
+        }
+        if (readCodegenUri == null) {
+          throw ArgumentError(
+              'Must provide ${Flags.readData} with ${Flags.writeCodegen}');
+        }
+        break;
+    }
+  }
+
   late FeatureOptions features;
 
   // -------------------------------------------------
@@ -648,7 +767,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
-      ..stopAfterProgramSplit = _hasOption(options, Flags.stopAfterProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
       ..useTrivialAbstractValueDomain =
           _hasOption(options, Flags.useTrivialAbstractValueDomain)
@@ -745,9 +863,7 @@ class CompilerOptions implements DiagnosticOptions {
   }
 
   void validate() {
-    // TODO(sigmund): should entrypoint be here? should we validate it is not
-    // null? In unittests we use the same compiler to analyze or build multiple
-    // entrypoints.
+    _validateStage();
     if (librariesSpecificationUri == null) {
       throw ArgumentError("[librariesSpecificationUri] is null.");
     }

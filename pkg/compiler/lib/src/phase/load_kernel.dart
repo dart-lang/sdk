@@ -154,7 +154,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
 
   await read(resolvedUri);
 
-  if (options.modularMode) {
+  if (options.stage.shouldComputeModularAnalysis) {
     moduleLibraries = component.libraries.map((lib) => lib.importUri).toList();
   }
 
@@ -171,8 +171,8 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
 
   // When compiling modularly, a dill for the SDK will be provided. In those
   // cases we ignore the implicit platform binary.
-  bool platformBinariesIncluded =
-      options.modularMode || options.hasModularAnalysisInputs;
+  bool platformBinariesIncluded = options.stage.shouldComputeModularAnalysis ||
+      options.hasModularAnalysisInputs;
   if (options.platformBinaries != null && !platformBinariesIncluded) {
     var platformUri = options.platformBinaries
         ?.resolve(_getPlatformFilename(options, targetName));
@@ -198,7 +198,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
   }
 
   // We apply global transforms when running phase 0.
-  if (options.cfeOnly) {
+  if (options.stage.shouldOnlyComputeDill) {
     _doGlobalTransforms(component);
   }
   _doTransformsOnKernelLoad(component);
@@ -321,7 +321,7 @@ Output _createOutput(
     fe.InitializedCompilerState? initializedCompilerState) {
   Uri? rootLibraryUri = null;
   Iterable<ir.Library> libraries = component.libraries;
-  if (!options.modularMode) {
+  if (!options.stage.shouldComputeModularAnalysis) {
     // For non-modular builds we should always have a [mainMethod] at this
     // point.
     if (component.mainMethod == null) {
@@ -392,7 +392,7 @@ Future<Output?> run(Input input) async {
   List<Uri> moduleLibraries = const [];
   fe.InitializedCompilerState? initializedCompilerState =
       input.initializedCompilerState;
-  if (options.fromDill) {
+  if (options.stage.shouldLoadFromDill) {
     _LoadFromKernelResult result =
         await _loadFromKernel(options, compilerInput, targetName);
     component = result.component;
@@ -411,6 +411,8 @@ Future<Output?> run(Input input) async {
     List<int> data = serializeComponent(component);
     component = ir.Component();
     BinaryBuilder(data).readComponent(component);
+    // Ensure we use the new deserialized entry point library.
+    entryLibrary = _findEntryLibrary(component, options.entryUri!);
   }
   return _createOutput(options, reporter, entryLibrary, component,
       moduleLibraries, initializedCompilerState);
