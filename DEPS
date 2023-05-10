@@ -121,7 +121,7 @@ vars = {
   "collection_rev": "6abff472ff09a0e4f9e9e386642bdcb674af15f4",
   "convert_rev": "b652c00afc0adfd55193053417d16c5f637203ad",
   "crypto_rev": "4e9dde199bbf591db5154ba85ba0168a92968ea1",
-  "csslib_rev": "923edf0030be22bc13f456f9fe6a63e4e19dd2bb",
+  "csslib_rev": "c4e904c4249ca676b2e350f3ea5c046ec3f000ab",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -134,29 +134,29 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "6c9bc10cf2dc6496b2ce863c8d614aa0781abf90", # disable rev_sdk_deps.dart
   "dartdoc_rev": "d01ddc58600c0d2edbbd953d2074996c36604cfc",
-  "ffi_rev": "1a859e0b25658f057efdd8d7a29c9f29241ea5d4",
+  "ffi_rev": "7f4acbd7532d94a793452030ff96bfef8cd96b68",
   "file_rev": "b9051806a1fde54066d080a2a3f00333c7bae415",
   "fixnum_rev": "006a130f193469f0cabb928d44b0b5b099c47bca",
   "glob_rev": "46403bee475c70f0448fcc1ce32035daf618929d",
   "html_rev": "593d6f67ef93477312d85c403f5a9b5928467f9c",
-  "http_rev": "406ce749ba7897603a72186f083f0a00bb69356d",
+  "http_rev": "db84d12e7b54f4a008143147ceb2cdf0e8b05db0",
   "http_multi_server_rev": "d1fffed3666dd8e8aed9fe67faeb3dca58d1f550",
   "http_parser_rev": "5a33f5fdb8896d9a7fecc3f024b0956ed39ab88c",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "800843e2aaf948ace35ddcab7037b9abc4222bfc",
-  "leak_tracker_rev": "fc14e36d1757d486257623b34114b883fe8e4de3",
+  "leak_tracker_rev": "46a1fa0e7b6f19e824c3846895c5a061a0f6171a",
   "linter_rev": "599b5288ee883393bf3a9ae4d2cfe90c168cce91", # disable rev_sdk_deps.dart
   "lints_rev": "17276ec940bd3c075b5b227054cebf726e2e2514",
   "logging_rev": "4779d7ecc445df17efef2d58a457e276ff912765",
   "markdown_rev": "6db8fc1819f741685e0968fb2d9b66852260e98f",
   "matcher_rev": "5890f2b61704481f6f09ea3a443159c0dc307180",
-  "mime_rev": "cd8001e8886879eb7bfe1a2d191a920b1d89b102",
+  "mime_rev": "57fbf6e83a5eb78367268cc83d0ffef37441d26b",
   "mockito_rev": "56173fa356c7017e1d2137ce3600963518bf497d",
   "native_rev": "a72037604f66190ad0123863774111014546e37c", # disable rev_sdk_deps.dart
   "package_config_rev": "f41f92cd4d2c539d910f2ef041ba6f6bd8469e78",
   "path_rev": "1552cfd9539ea5d0f644487dff71cf5b0ee986ba",
   "pool_rev": "86b4f4328a32a9e9eb4f1601c8296e22d3e50552",
-  "protobuf_rev": "9d7cf0de83f0ab4ae7010319263214840167f2d8",
+  "protobuf_rev": "05058a75a02c7fcb8eb45ff9807efb21134098f2",
   "pub_rev": "a3f8b2fd36ec432450caf907474a02023ef3e44e", # disable rev_sdk_deps.dart
   "pub_semver_rev": "6dd19082145e330a61916634e9317dea8cc239ab",
   "shelf_rev": "79e3cee71701b34dd549aa8b95952da6471372a0",
@@ -169,20 +169,20 @@ vars = {
   "string_scanner_rev": "3bc6e54553b59f551cce05b04b95b4cf4b88d187",
   "sync_http_rev": "c3d6ad48ec997c56b7f076bc9f8b4134c4a9225c",
   "term_glyph_rev": "3de5f1b6b07c3e713ff5d0ab6e4305b0403d7162",
-  "test_rev": "1d65501b31ee368e7f683ccc96fd9f1a5492a4e6",
+  "test_rev": "0b306dd5a8f9736fb428533b3ff3146e67380204",
   "test_descriptor_rev": "23e49a21fc6b4bf3164d336c699b29d1b8bb4622",
   "test_process_rev": "89c4fdc496ba08473459ed32d00372b5069fd4de",
   "test_reflective_loader_rev": "d1b763f6281a46a48e1da6f0a6e8152e3480e8d2",
   "tools_rev": "62c96040d8090bc1bb866db75d40bd1707876cf9",
-  "typed_data_rev": "021f25a3f1f20844a6919158caf1ad3e28c42d3a",
+  "typed_data_rev": "921f5c0380c6c487d8a065c45618162efa4cbd92",
   "usage_rev": "929a4e31f0bd4f861dd0e34d4c6f7184c751b569",
   "vector_math_rev": "e3de8da3e7db3b9b4f56a16061e9e480539fb08c",
   "watcher_rev": "6c0c838bb8bcfb8c1f8faaf643d6586ea04c0e47",
   "web_socket_channel_rev": "2630714bad933a4e5be420e55ad61c504703808c",
-  "webdev_rev": "fe5b97584b620fc7865524da3a279a0bc54757e0",
+  "webdev_rev": "469b1058fe45caef27243c0454bfa40605e56799",
   "webdriver_rev": "d0f78d004a5ea7bfc8c492639248b0a1b04c1d62",
   "webkit_inspection_protocol_rev": "39a3c297ff573635e7936b015ce4f3466e4739d6",
-  "yaml_rev": "1f39ffed06a2545f9e984c5de333e509fcb66594",
+  "yaml_rev": "af3d8cdc539b32879dd2b9ea360b4a31b5560440",
   "yaml_edit_rev": "763ca9477ee457d904eff790ba473ae707fca6e4",
 
   # Windows deps
