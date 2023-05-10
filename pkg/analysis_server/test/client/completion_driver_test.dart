@@ -72,10 +72,15 @@ abstract class AbstractCompletionDriverTest
   Future<List<CompletionSuggestion>> addTestFile(String content,
       {int? offset}) async {
     driver.addTestFile(content, offset: offset);
-    await getSuggestions();
+
+    // Wait after adding the test file, this might affect diagnostics.
+    await pumpEventQueue(times: 1000);
+
     // For sanity, ensure that there are no errors recorded for project files
     // since that may lead to unexpected results.
     _assertNoErrorsInProjectFiles();
+
+    await getSuggestions();
     return suggestions;
   }
 
