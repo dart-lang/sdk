@@ -465,13 +465,13 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
       wait_for_sync(1);  // Wait for threads to exit safepoint
       { DeoptSafepointOperationScope safepoint_operation(thread); }
       wait_for_sync(2);  // Wait for threads to exit safepoint
-      { ReloadOperationScope reload(thread); }
+      { RELOAD_OPERATION_SCOPE(thread); }
       wait_for_sync(3);  // Wait for threads to exit safepoint
       { GcSafepointOperationScope safepoint_operation(thread); }
       wait_for_sync(4);  // Wait for threads to exit safepoint
       { DeoptSafepointOperationScope safepoint_operation(thread); }
       wait_for_sync(5);  // Wait for threads to exit safepoint
-      { ReloadOperationScope reload(thread); }
+      { RELOAD_OPERATION_SCOPE(thread); }
     }
     for (intptr_t i = 0; i < kTaskCount; i++) {
       threads[i]->MarkAndNotify(CheckinTask::kPleaseExit);
@@ -698,9 +698,7 @@ class ReloadTask : public StateMachineTask {
   explicit ReloadTask(std::shared_ptr<Data> data) : StateMachineTask(data) {}
 
  protected:
-  virtual void RunInternal() {
-    ReloadOperationScope reload_operation_scope(thread_);
-  }
+  virtual void RunInternal() { RELOAD_OPERATION_SCOPE(thread_); }
 };
 
 ISOLATE_UNIT_TEST_CASE(Reload_AtReloadSafepoint) {

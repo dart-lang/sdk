@@ -98,6 +98,101 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     expect(contents[filePath], equals(expectedContent));
   }
 
+  Future<void> test_addImport_noPreference() async {
+    newFile(
+      join(projectFolderPath, 'lib', 'class.dart'),
+      'class MyClass {}',
+    );
+
+    final code = TestCode.parse('''
+MyCla^ss? a;
+''');
+
+    newFile(mainFilePath, code.code);
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions =
+        await getCodeActions(mainFileUri, position: code.position.position);
+    final codeActionTitles = codeActions.map((action) =>
+        action.map((command) => command.title, (action) => action.title));
+
+    expect(
+      codeActionTitles,
+      // With no preference, server defaults to absolute.
+      containsAllInOrder([
+        "Import library 'package:test/class.dart'",
+        "Import library 'class.dart'",
+      ]),
+    );
+  }
+
+  Future<void> test_addImport_preferAbsolute() async {
+    _enableLints(['always_use_package_imports']);
+
+    newFile(
+      join(projectFolderPath, 'lib', 'class.dart'),
+      'class MyClass {}',
+    );
+
+    final code = TestCode.parse('''
+MyCla^ss? a;
+''');
+
+    newFile(mainFilePath, code.code);
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions =
+        await getCodeActions(mainFileUri, position: code.position.position);
+    final codeActionTitles = codeActions.map((action) =>
+        action.map((command) => command.title, (action) => action.title));
+
+    expect(
+      codeActionTitles,
+      containsAllInOrder([
+        "Import library 'package:test/class.dart'",
+        "Import library 'class.dart'",
+      ]),
+    );
+  }
+
+  Future<void> test_addImport_preferRelative() async {
+    _enableLints(['prefer_relative_imports']);
+
+    newFile(
+      join(projectFolderPath, 'lib', 'class.dart'),
+      'class MyClass {}',
+    );
+
+    final code = TestCode.parse('''
+MyCla^ss? a;
+''');
+
+    newFile(mainFilePath, code.code);
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions =
+        await getCodeActions(mainFileUri, position: code.position.position);
+    final codeActionTitles = codeActions.map((action) =>
+        action.map((command) => command.title, (action) => action.title));
+
+    expect(
+      codeActionTitles,
+      containsAllInOrder([
+        "Import library 'class.dart'",
+        "Import library 'package:test/class.dart'",
+      ]),
+    );
+  }
+
   Future<void> test_analysisOptions() async {
     registerLintRules();
 
@@ -400,12 +495,13 @@ void main() {
     expect(
       codeActionKinds,
       containsAllInOrder([
-        // Non-ignore fixes are alphabetical by title.
+        // Non-ignore fixes (order doesn't matter here, but this is what
+        // server produces).
         'quickfix.create.class',
-        'quickfix.create.localVariable',
         'quickfix.create.mixin',
+        'quickfix.create.localVariable',
         'quickfix.remove.unusedLocalVariable',
-        // Fixes are last and line is always sorted above file.
+        // Ignore fixes last, with line sorted above file.
         'quickfix.ignore.line',
         'quickfix.ignore.file',
       ]),
@@ -849,5 +945,15 @@ useFunction(int g(a, b)) {}
     };
     applyDocumentChanges(contents, edit.documentChanges!);
     expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  void _enableLints(List<String> lintNames) {
+    registerLintRules();
+    final lintsYaml = lintNames.map((name) => '    - $name\n').join();
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+$lintsYaml
+''');
   }
 }

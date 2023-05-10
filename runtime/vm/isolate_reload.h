@@ -440,27 +440,23 @@ class CallSiteResetter : public ValueObject {
 
 // Ensures all other mutators are stopped at a well-defined place where reload
 // is allowed.
-class ReloadOperationScope : public StackResource {
- public:
-  explicit ReloadOperationScope(Thread* thread);
-  ~ReloadOperationScope() {}
-
- private:
-  // As the background compiler is a mutator it participates in safepoint
-  // operations. Though the BG compiler won't check into reload safepoint
-  // requests - as it's not a well-defined place to do reload.
-  // So we ensure the background compiler is stopped before we get all other
-  // mutators to reload safepoints.
-  NoBackgroundCompilerScope stop_bg_compiler_;
-
-  // This will enable the current thread to perform reload operations (as well
-  // as check-in with other thread's reload operations).
-  ReloadParticipationScope allow_reload_;
-
-  // The actual reload operation that will ensure all other mutators are stopped
-  // at well-defined places where reload can happen.
-  ReloadSafepointOperationScope safepoint_operation_;
-};
+#define RELOAD_OPERATION_SCOPE(thread_expr)                                    \
+  auto _thread_ = (thread_expr);                                               \
+                                                                               \
+  /* As the background compiler is a mutator it participates in safepoint */   \
+  /* operations. Though the BG compiler won't check into reload safepoint */   \
+  /* requests - as it's not a well-defined place to do reload.            */   \
+  /* So we ensure the background compiler is stopped before we get all    */   \
+  /* other mutators to reload safepoints.                                 */   \
+  NoBackgroundCompilerScope _stop_bg_compiler_(_thread_);                      \
+                                                                               \
+  /* This will enable the current thread to perform reload operations (as */   \
+  /* well as check-in with other thread's reload operations).             */   \
+  ReloadParticipationScope _allow_reload_(_thread_);                           \
+                                                                               \
+  /* The actual reload operation that will ensure all other mutators are */    \
+  /* stopped at well-defined places where reload can happen.             */    \
+  ReloadSafepointOperationScope _safepoint_operation_(_thread_);
 
 }  // namespace dart
 

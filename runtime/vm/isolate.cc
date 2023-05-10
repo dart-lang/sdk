@@ -1902,7 +1902,7 @@ bool IsolateGroup::ReloadSources(JSONStream* js,
 
   // Ensure all isolates inside the isolate group are paused at a place where we
   // can safely do a reload.
-  ReloadOperationScope reload_operation(Thread::Current());
+  RELOAD_OPERATION_SCOPE(Thread::Current());
 
   auto class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
@@ -1931,7 +1931,7 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
 
   // Ensure all isolates inside the isolate group are paused at a place where we
   // can safely do a reload.
-  ReloadOperationScope reload_operation(Thread::Current());
+  RELOAD_OPERATION_SCOPE(Thread::Current());
 
   auto class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(

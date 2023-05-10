@@ -1,0 +1,14 @@
+name: dap
+version: 1.0.0
+description: >-
+  A package of classes that are generated from the DAP specifications along with their generating code.
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/dap
+
+environment:
+  sdk: '>=2.19.0 <4.0.0'
+
+dev_dependencies:
+  args: any
+  collection: any
+  http: any
+  path: any

@@ -289,7 +289,7 @@ bool cfeOnly(Uri uri) {
 List<Uri> cfeAndBackendsEntryPoints = [
   Uri.base.resolve('pkg/front_end/tool/_fasta/compile.dart'),
   Uri.base.resolve('pkg/vm/lib/kernel_front_end.dart'),
-  Uri.base.resolve('pkg/compiler/bin/dart2js.dart'),
+  Uri.base.resolve('pkg/compiler/lib/src/dart2js.dart'),
   Uri.base.resolve('pkg/dev_compiler/bin/dartdevc.dart'),
   Uri.base.resolve('pkg/frontend_server/bin/frontend_server_starter.dart'),
 ];

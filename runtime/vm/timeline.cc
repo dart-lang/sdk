@@ -860,9 +860,24 @@ inline void AddEndEventFields(
       perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_END);
 }
 
+bool TimelineEvent::CanBeRepresentedByPerfettoTracePacket() const {
+  switch (event_type()) {
+    case TimelineEvent::kBegin:
+    case TimelineEvent::kEnd:
+    case TimelineEvent::kInstant:
+    case TimelineEvent::kAsyncBegin:
+    case TimelineEvent::kAsyncEnd:
+    case TimelineEvent::kAsyncInstant:
+      return true;
+    default:
+      return false;
+  }
+}
+
 void TimelineEvent::PopulateTracePacket(
     perfetto::protos::pbzero::TracePacket* packet) const {
   ASSERT(packet != nullptr);
+  ASSERT(CanBeRepresentedByPerfettoTracePacket());
 
   perfetto_utils::SetTrustedPacketSequenceId(packet);
   // TODO(derekx): We should be able to set the unit_multiplier_ns field in a
@@ -1648,6 +1663,9 @@ void TimelineEventFixedBufferRecorder::PrintPerfettoEvents(
     const TimelineEventFilter& filter) {
   PrintEventsCommon(filter, [this,
                              &jsonBase64String](const TimelineEvent& event) {
+    if (!event.CanBeRepresentedByPerfettoTracePacket()) {
+      return;
+    }
     event.PopulateTracePacket(packet().get());
     perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet());
     packet().Reset();
@@ -2113,9 +2131,13 @@ void TimelineEventPerfettoFileRecorder::WritePacket(
 }
 
 void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
+  if (!event.CanBeRepresentedByPerfettoTracePacket()) {
+    return;
+  }
   event.PopulateTracePacket(packet().get());
   WritePacket(&packet());
   packet().Reset();
+
   if (event.event_type() == TimelineEvent::kAsyncBegin ||
       event.event_type() == TimelineEvent::kAsyncInstant) {
     AddAsyncTrackMetadataBasedOnEvent(event);
@@ -2168,6 +2190,9 @@ void TimelineEventEndlessRecorder::PrintPerfettoEvents(
     const TimelineEventFilter& filter) {
   PrintEventsCommon(filter, [this,
                              &jsonBase64String](const TimelineEvent& event) {
+    if (!event.CanBeRepresentedByPerfettoTracePacket()) {
+      return;
+    }
     event.PopulateTracePacket(packet().get());
     perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet());
     packet().Reset();

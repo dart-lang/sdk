@@ -458,6 +458,7 @@ class TimelineEvent {
 #endif
   void PrintJSON(JSONWriter* writer) const;
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  bool CanBeRepresentedByPerfettoTracePacket() const;
   /*
    * Populates the fields of |packet| with this event's data.
    */
