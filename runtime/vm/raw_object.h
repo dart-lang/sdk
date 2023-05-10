@@ -3492,6 +3492,7 @@ class UntaggedWeakReference : public UntaggedInstance {
   friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
+  friend class ObjectGraph;
   friend class FastObjectCopy;  // For OFFSET_OF
   friend class SlowObjectCopy;  // For OFFSET_OF
 };
@@ -3527,6 +3528,7 @@ class UntaggedFinalizerBase : public UntaggedInstance {
   friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
+  friend class ObjectGraph;
 };
 
 class UntaggedFinalizer : public UntaggedFinalizerBase {
@@ -3603,6 +3605,7 @@ class UntaggedFinalizerEntry : public UntaggedInstance {
   template <bool>
   friend class ScavengerVisitorBase;
   friend class ScavengerFinalizerVisitor;
+  friend class ObjectGraph;
 };
 
 // MirrorReferences are used by mirrors to hold reflectees that are VM
