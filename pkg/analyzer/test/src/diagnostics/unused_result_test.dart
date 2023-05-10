@@ -1222,6 +1222,21 @@ const a = 'a';
 ''');
   }
 
+  test_recordLiteral() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  (bool, bool) m() {
+    return (true, methodWithAnnotation());
+  }
+
+  @useResult
+  bool methodWithAnnotation() => true;
+}
+''');
+  }
+
   /// https://github.com/dart-lang/sdk/issues/52314
   test_switchExpression() async {
     await assertNoErrorsInCode(r'''
@@ -1558,5 +1573,20 @@ void main() {
 ''', [
       error(WarningCode.UNUSED_RESULT, 75, 3),
     ]);
+  }
+
+  test_whenClause() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  void m(Object o) {
+    if (o case String() when methodWithAnnotation()) print(o);
+  }
+
+  @useResult
+  bool methodWithAnnotation() => true;
+}
+''');
   }
 }

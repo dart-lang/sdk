@@ -233,12 +233,14 @@ class UseResultVerifier {
         parent is MethodInvocation ||
         parent is NamedExpression ||
         parent is PropertyAccess ||
+        parent is RecordLiteral ||
         parent is ReturnStatement ||
         parent is SetOrMapLiteral ||
         parent is SwitchExpressionCase ||
         parent is SwitchStatement ||
         parent is ThrowExpression ||
         parent is VariableDeclaration ||
+        parent is WhenClause ||
         parent is WhileStatement ||
         parent is YieldStatement;
   }
