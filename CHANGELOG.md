@@ -132,9 +132,9 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 
   String lastName(Amigo amigo) =>
       switch (amigo) {
-        case Lucky _ => 'Day';
-        case Ned _   => 'Nederlander';
-      }
+        Lucky _ => 'Day',
+        Ned _   => 'Nederlander',
+      };
   ```
 
   In this last example, the compiler reports an error that the switch doesn't
