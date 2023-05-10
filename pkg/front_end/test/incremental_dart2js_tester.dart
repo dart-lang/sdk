@@ -180,7 +180,7 @@ class Dart2jsTester {
   Future<helper.TestIncrementalCompiler> setup() async {
     stopwatch.reset();
     stopwatch.start();
-    Uri input = Platform.script.resolve("../../compiler/bin/dart2js.dart");
+    Uri input = Platform.script.resolve("../../compiler/lib/src/dart2js.dart");
     CompilerOptions options = helper.getOptions();
     options.explicitExperimentalFlags[ExperimentalFlag
         .alternativeInvalidationStrategy] = useExperimentalInvalidation;

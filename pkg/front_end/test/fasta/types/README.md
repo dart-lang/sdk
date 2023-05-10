@@ -14,14 +14,14 @@ isSubtypeOf.
 To collect new data for a benchmark, follow these steps:
 
 1. Identify the program that the benchmark is based on, for example,
-`pkg/compiler/bin/dart2js.dart`.
+`pkg/compiler/lib/src/dart2js.dart`.
 
 2. Modify `pkg/kernel/lib/type_environment.dart` as described in the method
 `SubtypeTester._collect_isSubtypeOf`.
 
 3. Compile the program using Fasta, for example:
 
-    ./sdk/bin/dart pkg/front_end/tool/_fasta/compile.dart pkg/compiler/bin/dart2js.dart
+    ./sdk/bin/dart pkg/front_end/tool/_fasta/compile.dart pkg/compiler/lib/src/dart2js.dart
 
 4. This produces a file named `type_checks.json` in the current directory.
 

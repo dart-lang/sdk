@@ -2868,7 +2868,7 @@ e() {
         '--output-incremental-dill=${incrementalDillFile.path}'
       ];
       File dart2js = File.fromUri(
-          Platform.script.resolve("../../../pkg/compiler/bin/dart2js.dart"));
+          Platform.script.resolve("../../../pkg/compiler/lib/src/dart2js.dart"));
       expect(dart2js.existsSync(), equals(true));
       File dart2jsOtherFile = File.fromUri(Platform.script
           .resolve("../../../pkg/compiler/lib/src/compiler.dart"));
