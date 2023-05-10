@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 
 import 'test_helper.dart';
+
+const MB = 1 << 20;
 
 class _TestClass {
   _TestClass(this.x, this.y);
@@ -24,6 +28,9 @@ invoke1() => myVar = new _TestClass(null, null);
 
 @pragma("vm:entry-point")
 invoke2() => myVar = new _TestClass(new _TestClass(null, null), null);
+
+@pragma("vm:entry-point")
+invoke3() => myVar = new _TestClass(new WeakReference(new Uint8List(MB)), null);
 
 invoke(Isolate isolate, String selector) async {
   Map params = {
@@ -71,6 +78,17 @@ var tests = <IsolateTest>[
     int value3 = int.parse(result['valueAsString']);
     expect(value3, isPositive);
     expect(value3, equals(value2));
+
+    // Target of WeakReference not retained.
+    evalResult = await invoke(isolate, 'invoke3');
+    params = {
+      'targetId': evalResult['id'],
+    };
+    result = await isolate.invokeRpcNoUpgrade('_getRetainedSize', params);
+    expect(result['type'], equals('@Instance'));
+    expect(result['kind'], equals('Int'));
+    int value4 = int.parse(result['valueAsString']);
+    expect(value4, lessThan(MB));
   },
 ];
 

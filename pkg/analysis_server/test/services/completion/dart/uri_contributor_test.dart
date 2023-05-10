@@ -123,6 +123,51 @@ class UriContributorTest extends DartCompletionContributorTest {
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  Future<void> test_import_configuration() async {
+    addTestSource('import "" if (dart.library.io) "^"');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+  }
+
+  Future<void> test_import_configuration_without_closing_quote_eof() async {
+    addTestSource('import "" if (dart.library.io) "^');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+  }
+
+  Future<void> test_import_configuration_without_closing_quote_eof2() async {
+    addTestSource('import "" if (dart.library.io) "^d');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 1);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+  }
+
+  Future<void> test_import_configuration_without_closing_quote_eof3() async {
+    addTestSource('import "" if (dart.library.io) "d^');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+  }
+
+  Future<void> test_import_configuration_without_closing_quote_eof4() async {
+    addTestSource('import "" if (dart.library.io) "d^"');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+  }
+
   Future<void> test_import_dart() async {
     addTestSource('import "d^" import');
     await computeSuggestions();

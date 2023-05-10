@@ -475,7 +475,7 @@ abstract class LegacyImplement<E extends LinkedListEntry<E>>
     implements LegacyImplementBaseCore<E> {}
 //             ^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'LinkedList' can't be implemented outside of its library because it's a base class.
 
 /// It is an error if BaseClass is the `on` type of something which is not base.
 

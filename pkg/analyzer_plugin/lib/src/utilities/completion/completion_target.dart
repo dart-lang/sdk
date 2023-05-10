@@ -485,9 +485,21 @@ class CompletionTarget {
         if (containingNode is NamespaceDirective) {
           directive = containingNode;
           uri = containingNode.uri;
+          // Check whether the offset was in a configurations URI.
+          for (final configuration in containingNode.configurations) {
+            if (configuration.uri.offset <= requestOffset &&
+                configuration.uri.end >= requestOffset) {
+              uri = configuration.uri;
+              break;
+            }
+          }
         } else if (containingNode is SimpleStringLiteral) {
           uri = containingNode;
-          directive = containingNode.parent.ifTypeOrNull();
+          directive =
+              // SimpleString -> Directive
+              containingNode.parent.ifTypeOrNull() ??
+                  // SimpleString -> Configuration -> Directive
+                  containingNode.parent?.parent.ifTypeOrNull();
         }
         // Replacement range for a URI.
         if (directive != null && uri is SimpleStringLiteral) {

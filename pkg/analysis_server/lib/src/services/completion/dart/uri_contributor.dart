@@ -35,16 +35,21 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    visitNamespaceDirective(node);
+    visitNamespaceDirectiveUri(node.uri);
+    for (final configuration in node.configurations) {
+      visitNamespaceDirectiveUri(configuration.uri);
+    }
   }
 
   @override
   void visitImportDirective(ImportDirective node) {
-    visitNamespaceDirective(node);
+    visitNamespaceDirectiveUri(node.uri);
+    for (final configuration in node.configurations) {
+      visitNamespaceDirectiveUri(configuration.uri);
+    }
   }
 
-  void visitNamespaceDirective(NamespaceDirective node) {
-    var uri = node.uri;
+  void visitNamespaceDirectiveUri(StringLiteral uri) {
     if (uri is SimpleStringLiteral) {
       var offset = request.offset;
       var start = uri.offset;
@@ -87,6 +92,13 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     var parent = node.parent;
     if (parent is NamespaceDirective && parent.uri == node) {
+      var partialUri = _extractPartialUri(node);
+      if (partialUri != null) {
+        _addDartSuggestions();
+        _addPackageSuggestions(partialUri);
+        _addFileSuggestions(partialUri);
+      }
+    } else if (parent is Configuration && parent.uri == node) {
       var partialUri = _extractPartialUri(node);
       if (partialUri != null) {
         _addDartSuggestions();

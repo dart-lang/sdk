@@ -240,10 +240,48 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
       }
       if (direction == ObjectGraph::Visitor::kProceed) {
         set_gc_root_type(node.gc_root_type);
-        obj->untag()->VisitPointers(this);
+        ASSERT(obj->IsHeapObject());
+        switch (obj->GetClassId()) {
+          case kWeakArrayCid:
+            VisitWeakArray(static_cast<WeakArrayPtr>(obj));
+            break;
+          case kWeakReferenceCid:
+            VisitWeakReference(static_cast<WeakReferencePtr>(obj));
+            break;
+          case kFinalizerEntryCid:
+            VisitFinalizerEntry(static_cast<FinalizerEntryPtr>(obj));
+            break;
+          default:
+            obj->untag()->VisitPointers(this);
+            break;
+        }
         clear_gc_root_type();
       }
     }
+  }
+
+  void VisitWeakArray(WeakArrayPtr array) {}
+
+  void VisitWeakReference(WeakReferencePtr ref) {
+#if !defined(DART_COMPRESSED_POINTERS)
+    VisitPointers(&ref->untag()->type_arguments_,
+                  &ref->untag()->type_arguments_);
+#else
+    VisitCompressedPointers(ref->heap_base(), &ref->untag()->type_arguments_,
+                            &ref->untag()->type_arguments_);
+#endif
+  }
+
+  void VisitFinalizerEntry(FinalizerEntryPtr entry) {
+#if !defined(DART_COMPRESSED_POINTERS)
+    VisitPointers(&entry->untag()->token_, &entry->untag()->token_);
+    VisitPointers(&entry->untag()->next_, &entry->untag()->next_);
+#else
+    VisitCompressedPointers(entry->heap_base(), &entry->untag()->token_,
+                            &entry->untag()->token_);
+    VisitCompressedPointers(entry->heap_base(), &entry->untag()->next_,
+                            &entry->untag()->next_);
+#endif
   }
 
   bool visit_weak_persistent_handles() const override {
