@@ -120,7 +120,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       return assists.map((assist) {
         final action =
             createAssistAction(assist.change, unit.path, unit.lineInfo);
-        return CodeActionWithPriority(action, assist.kind.priority);
+        return (action: action, priority: assist.kind.priority);
       }).toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
@@ -169,7 +169,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             fixes.map((fix) {
               final action =
                   createFixAction(fix.change, diagnostic, path, lineInfo);
-              return CodeActionWithPriority(action, fix.kind.priority);
+              return (action: action, priority: fix.kind.priority);
             }),
           );
         }

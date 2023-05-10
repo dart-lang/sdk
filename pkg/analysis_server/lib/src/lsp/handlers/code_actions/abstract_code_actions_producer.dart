@@ -17,6 +17,14 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:meta/meta.dart';
 
+typedef CodeActionWithPriority = ({CodeAction action, int priority});
+
+typedef CodeActionWithPriorityAndIndex = ({
+  CodeAction action,
+  int priority,
+  int index
+});
+
 /// A base for classes that produce [CodeAction]s for the LSP handler.
 abstract class AbstractCodeActionsProducer
     with RequestHandlerMixin<LspAnalysisServer> {
@@ -126,13 +134,4 @@ abstract class AbstractCodeActionsProducer
       return null;
     }
   }
-}
-
-/// A wrapper that contains an LSP [CodeAction] and a server-supplied priority
-/// used for sorting before sending to the client.
-class CodeActionWithPriority {
-  final CodeAction action;
-  final int priority;
-
-  CodeActionWithPriority(this.action, this.priority);
 }
