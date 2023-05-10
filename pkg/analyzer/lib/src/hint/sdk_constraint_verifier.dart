@@ -456,7 +456,7 @@ extension on VersionConstraint {
   bool requiresAtLeast(Version version) {
     final self = this;
     if (self is Version) {
-      return self == version;
+      return self >= version;
     }
     if (self is VersionRange) {
       final min = self.min;

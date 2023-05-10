@@ -608,9 +608,7 @@ class A {}
 import 'dart:foo';
 
 void f(A a) {}
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 27, 1),
-    ]);
+''');
   }
 
   test_constraints_exact_less() async {
