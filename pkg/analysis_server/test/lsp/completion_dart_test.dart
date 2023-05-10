@@ -1399,6 +1399,72 @@ abstract class MyItem implements NotNullableName, NullableName {}
     }
   }
 
+  Future<void> test_import() async {
+    final content = '''
+import '^';
+''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'dart:async'), isTrue);
+  }
+
+  Future<void> test_import_configuration() async {
+    final content = '''
+import 'dart:core' if (dart.library.io) '^';
+''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'dart:async'), isTrue);
+  }
+
+  Future<void> test_import_configuration_eof() async {
+    final content = '''
+import 'dart:core' if (dart.library.io) '^
+''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'dart:async'), isTrue);
+  }
+
+  Future<void> test_import_configuration_partial() async {
+    final content = '''
+import 'dart:core' if (dart.library.io) 'dart:^';
+''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'dart:async'), isTrue);
+  }
+
+  Future<void> test_import_eof() async {
+    final content = '''
+import '^
+''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'dart:async'), isTrue);
+  }
+
+  Future<void> test_import_partial() async {
+    final content = '''
+import 'dart:^';
+''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'dart:async'), isTrue);
+  }
+
   Future<void> test_insertReplaceRanges() async {
     final content = '''
     class MyClass {
