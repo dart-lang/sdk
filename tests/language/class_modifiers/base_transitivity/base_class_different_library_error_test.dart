@@ -472,8 +472,12 @@ base mixin BaseMixinImplement implements BaseClass {}
 // Implementing a legacy class that implements a core library base class.
 
 abstract class LegacyImplement<E extends LinkedListEntry<E>>
-    implements LegacyImplementBaseCore<E> {}
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//             ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [cfe] The type 'LegacyImplement' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
+    implements
+        LegacyImplementBaseCore<E> {}
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'LinkedList' can't be implemented outside of its library because it's a base class.
 

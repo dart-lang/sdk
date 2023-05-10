@@ -57,6 +57,27 @@ class B extends A {}
     ]);
   }
 
+  test_class_extends_outside_viaLanguage219AndCore() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart=2.19
+import 'dart:collection';
+abstract class A implements LinkedListEntry<Never> {}
+''');
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+abstract class B extends A {}
+''', [
+      error(CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          32, 1,
+          text:
+              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'LinkedListEntry' is 'base'."),
+    ]);
+  }
+
   test_class_implements() async {
     await assertErrorsInCode(r'''
 base class A {}
@@ -78,6 +99,47 @@ mixin B implements A {}
           22, 1,
           text:
               "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'."),
+    ]);
+  }
+
+  test_class_implements_outside() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+base class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+class B implements A {}
+''', [
+      error(CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          23, 1,
+          text:
+              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'."),
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 36,
+          1),
+    ]);
+  }
+
+  test_class_implements_outside_viaLanguage219AndCore() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart=2.19
+import 'dart:collection';
+abstract class A implements LinkedListEntry<Never> {}
+''');
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+abstract class B implements A {}
+''', [
+      error(CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          32, 1,
+          text:
+              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'LinkedListEntry' is 'base'."),
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
+          1),
     ]);
   }
 
