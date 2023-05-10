@@ -814,16 +814,18 @@ class AssemblerBase : public StackResource {
                             int32_t offset = 0) = 0;
 
   // Loads nullability from an AbstractType [type] to [dst].
-  virtual void LoadAbstractTypeNullability(Register dst, Register type) = 0;
+  void LoadAbstractTypeNullability(Register dst, Register type);
   // Loads nullability from an AbstractType [type] and compares it
   // to [value]. Clobbers [scratch].
-  virtual void CompareAbstractTypeNullabilityWith(Register type,
-                                                  /*Nullability*/ int8_t value,
-                                                  Register scratch) = 0;
+  void CompareAbstractTypeNullabilityWith(Register type,
+                                          /*Nullability*/ int8_t value,
+                                          Register scratch);
 
   virtual void CompareImmediate(Register reg,
                                 target::word imm,
                                 OperandSize width = kWordBytes) = 0;
+
+  virtual void AndImmediate(Register dst, target::word imm) = 0;
 
   virtual void LsrImmediate(Register dst, int32_t shift) = 0;
 
@@ -863,15 +865,7 @@ class AssemblerBase : public StackResource {
                                    Register hash,
                                    Register scratch = TMP) = 0;
 
-  void LoadTypeClassId(Register dst, Register src) {
-#if !defined(TARGET_ARCH_IA32)
-    EnsureHasClassIdInDEBUG(kTypeCid, src, TMP);
-#endif
-    LoadFieldFromOffset(dst, src,
-                        compiler::target::AbstractType::flags_offset(),
-                        kUnsignedFourBytes);
-    LsrImmediate(dst, compiler::target::UntaggedType::kTypeClassIdShift);
-  }
+  void LoadTypeClassId(Register dst, Register src);
 
   virtual void EnsureHasClassIdInDEBUG(intptr_t cid,
                                        Register src,
