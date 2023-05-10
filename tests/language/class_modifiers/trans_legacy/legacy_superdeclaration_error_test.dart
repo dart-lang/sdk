@@ -13,162 +13,140 @@ abstract base class ImplementsLegacyImplementsFinal
     implements LegacyImplementsFinal {
 //             ^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'MapEntry' can't be implemented outside of its library because it's a final class.
 }
 
 abstract base class ImplementsLegacyExtendsFinal implements LegacyExtendsFinal {
 //                                                          ^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'ListQueue' can't be implemented outside of its library because it's a final class.
 }
 
-abstract class ImplementsLegacyMixesInFinal implements LegacyMixesInFinal {
-//                                                     ^^^^^^^^^^^^^^^^^^
+abstract base class ImplementsLegacyMixesInFinal implements LegacyMixesInFinal {
+//                                                          ^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'BigInt' can't be implemented outside of its library because it's a final class.
 }
 
 abstract base class ImplementsLegacyImplementsBase
     implements LegacyImplementsBase {
 //             ^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'LinkedList' can't be implemented outside of its library because it's a base class.
 }
 
 abstract base class ImplementsLegacyMixinOnFinal implements LegacyMixinOnFinal {
 //                                                          ^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'MapEntry' can't be implemented outside of its library because it's a final class.
 }
 
 // Not allowed to omit base on classes with base/final superclasses.
 
 abstract class ExtendsLegacyImplementsFinal extends LegacyImplementsFinal {
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'ExtendsLegacyImplementsFinal' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'.
 }
 
 abstract class ExtendsLegacyImplementsFinal2 = LegacyImplementsFinal
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'ExtendsLegacyImplementsFinal2' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'.
     with
         _AnyMixin;
 
 abstract class ExtendsLegacyExtendsFinal extends LegacyExtendsFinal {}
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'ExtendsLegacyExtendsFinal' must be 'base', 'final' or 'sealed' because the supertype 'ListQueue' is 'final'.
 
 abstract class ExtendsLegacyExtendsFinal2 = LegacyExtendsFinal2 with _AnyMixin;
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'ExtendsLegacyExtendsFinal2' must be 'base', 'final' or 'sealed' because the supertype 'ListQueue' is 'final'.
 
 abstract class ExtendsLegacyMixesInFinal extends LegacyMixesInFinal {}
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'ExtendsLegacyMixesInFinal' must be 'base', 'final' or 'sealed' because the supertype 'BigInt' is 'final'.
 
 abstract class ExtendsLegacyMixesInFinal2 = LegacyMixesInFinal2 with _AnyMixin;
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'ExtendsLegacyMixesInFinal2' must be 'base', 'final' or 'sealed' because the supertype 'BigInt' is 'final'.
 
 abstract class ExtendsLegacyImplementsBase extends LegacyImplementsBase {}
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'ExtendsLegacyImplementsBase' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
 
 abstract class ExtendsLegacyImplementsBase2 = LegacyImplementsBase
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'ExtendsLegacyImplementsBase2' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
     with
         _AnyMixin;
 
 abstract class MixesInLegacyImplementsFinal with LegacyImplementsFinal {}
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInLegacyImplementsFinal' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'.
 
 abstract class MixesInLegacyImplementsFinal2 = Object
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInLegacyImplementsFinal2' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'.
     with
         LegacyImplementsFinal;
 
 abstract class MixesInLegacyMixesInFinal with LegacyMixesInFinal2 {}
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInLegacyMixesInFinal' must be 'base', 'final' or 'sealed' because the supertype 'BigInt' is 'final'.
 
 abstract class MixesInLegacyMixesInFinal2 = Object with LegacyMixesInFinal2;
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInLegacyMixesInFinal2' must be 'base', 'final' or 'sealed' because the supertype 'BigInt' is 'final'.
 
 abstract class MixesInLegacyImplementsBase with LegacyImplementsBase {}
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInLegacyImplementsBase' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
 
 abstract class MixesInLegacyImplementsBase2 = Object with LegacyImplementsBase;
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInLegacyImplementsBase2' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
 
 abstract class MixesInMixinOnFinal extends LegacyImplementsFinal
-//             ^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInMixinOnFinal' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'.
     with
         LegacyMixinOnFinal {}
 
 abstract class MixesInMixinOnFinal2 = LegacyImplementsFinal
-//             ^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInMixinOnFinal2' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'.
     with
         LegacyMixinOnFinal;
 
 abstract class MixesInMixinOnBase extends LegacyMixinOnBaseSuper
-//             ^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInMixinOnBase' must be 'base', 'final' or 'sealed' because the supertype 'LinkedListEntry' is 'base'.
     with
         LegacyMixinOnBase {}
 
 abstract class MixesInMixinOnBase2 = LegacyMixinOnBaseSuper
-//             ^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInMixinOnBase2' must be 'base', 'final' or 'sealed' because the supertype 'LinkedListEntry' is 'base'.
     with
         LegacyMixinOnBase;
 
 abstract class MixesInMixinImplementsFinal with LegacyMixinImplementsFinal {}
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInMixinImplementsFinal' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'.
 
 abstract class MixesInMixinImplementsFinal2 = Object
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInMixinImplementsFinal2' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'.
     with
         LegacyMixinImplementsFinal;
 
 abstract class MixesInMixinImplementsBase with LegacyMixinImplementsBase {}
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInMixinImplementsBase' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
 
 abstract class MixesInMixinImplementsBase2 = Object
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] unspecified
-// [analyzer] unspecified
+//             ^
+// [cfe] The type 'MixesInMixinImplementsBase2' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
     with
         LegacyMixinImplementsBase;
 

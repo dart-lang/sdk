@@ -190,7 +190,7 @@ base mixin BaseMixinImplement implements FinalClass {}
 class LegacyImplement implements LegacyImplementFinalCore {
 //                               ^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'MapEntry' can't be implemented outside of its library because it's a final class.
   int get key => 0;
   int get value => 1;
   String toString() => "Bad";
