@@ -39,30 +39,51 @@ main(List<String> arguments) {
   final args = argParser().parse(arguments);
   Uri path = Uri.parse(args['path']);
 
-  generate(path, "ffi.g.dart", generatePublicExtension);
-  generate(path, "ffi_patch.g.dart", generatePatchExtension);
+  update(Uri.file('sdk/lib/ffi/ffi.dart'), generatePublicExtension);
+  update(Uri.file('sdk/lib/_internal/vm/lib/ffi_patch.dart'),
+      generatePatchExtension);
 }
 
-void generate(Uri path, String fileName,
-    Function(StringBuffer, Config, String) generator) {
+void update(Uri fileName, Function(StringBuffer, Config, String) generator) {
+  final file = File.fromUri(fileName);
+  if (!file.existsSync()) {
+    print('$fileName does not exist, run from the root of the SDK.');
+    return;
+  }
+
+  final fileContents = file.readAsStringSync();
+  final split1 = fileContents.split(header);
+  if (split1.length != 2) {
+    print('$fileName has unexpected contents.');
+    print(split1.length);
+    return;
+  }
+  final split2 = split1[1].split(footer);
+  if (split2.length != 2) {
+    print('$fileName has unexpected contents 2.');
+    print(split2.length);
+    return;
+  }
+
   final buffer = StringBuffer();
-  generateHeader(buffer);
+  buffer.write(split1[0]);
+  buffer.write(header);
   configuration.forEach((Config c) => generator(buffer, c, "Pointer"));
   configuration.forEach((Config c) => generator(buffer, c, "Array"));
-  generateFooter(buffer);
+  buffer.write(footer);
+  buffer.write(split2[1]);
 
-  final fullPath = path.resolve(fileName).path;
-  File(fullPath).writeAsStringSync(buffer.toString());
-  final fmtResult = Process.runSync(dartPath().path, ["format", fullPath]);
+  file.writeAsStringSync(buffer.toString());
+  final fmtResult =
+      Process.runSync(dartPath().path, ["format", fileName.toFilePath()]);
   if (fmtResult.exitCode != 0) {
     throw Exception(
         "Formatting failed:\n${fmtResult.stdout}\n${fmtResult.stderr}\n");
   }
-  print("Generated $fullPath.");
+  print("Updated $fileName.");
 }
 
-void generateHeader(StringBuffer buffer) {
-  const header = """
+const header = """
 //
 // The following code is generated, do not edit by hand.
 //
@@ -71,6 +92,7 @@ void generateHeader(StringBuffer buffer) {
 
 """;
 
+void generateHeader(StringBuffer buffer) {
   buffer.write(header);
 }
 
@@ -173,7 +195,15 @@ void generatePublicExtension(
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
-$alignment  external $typedListType asTypedList(int length);
+  ///
+  /// If provided, [finalizer] will be run on the pointer once the typed list
+  /// is GCed. If provided, [token] will be passed to [finalizer], otherwise
+  /// the this pointer itself will be passed.
+$alignment  external $typedListType asTypedList(
+    int length, {
+    @Since('3.1') Pointer<NativeFinalizerFunction>? finalizer,
+    @Since('3.1') Pointer<Void>? token,
+  });
 """;
 
   if (container == "Pointer") {
@@ -228,12 +258,20 @@ void generatePatchExtension(
       ? ""
       : """
   @patch
-  $typedListType asTypedList(int length) {
+  $typedListType asTypedList(
+    int length, {
+     Pointer<NativeFinalizerFunction>? finalizer,
+     Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<$nativeType>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, $elementSize);
     _checkPointerAlignment(address, $elementSize);
-    return _asExternalTypedData$nativeType(this, length);
+    final result = _asExternalTypedData$nativeType(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, $sizeTimes length);
+    }
+    return result;
   }
 """;
 
@@ -279,13 +317,13 @@ extension ${nativeType}Array on Array<$nativeType> {
   }
 }
 
-void generateFooter(StringBuffer buffer) {
-  final footer = """
+final footer = """
 //
 // End of generated code.
 //
 """;
 
+void generateFooter(StringBuffer buffer) {
   buffer.write(footer);
 }
 
