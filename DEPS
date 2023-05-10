@@ -152,7 +152,7 @@ vars = {
   "matcher_rev": "5890f2b61704481f6f09ea3a443159c0dc307180",
   "mime_rev": "57fbf6e83a5eb78367268cc83d0ffef37441d26b",
   "mockito_rev": "56173fa356c7017e1d2137ce3600963518bf497d",
-  "native_rev": "a72037604f66190ad0123863774111014546e37c", # disable rev_sdk_deps.dart
+  "native_rev": "908e61f44cfba3cad84febe47c239893fa6945d0",
   "package_config_rev": "f41f92cd4d2c539d910f2ef041ba6f6bd8469e78",
   "path_rev": "1552cfd9539ea5d0f644487dff71cf5b0ee986ba",
   "pool_rev": "86b4f4328a32a9e9eb4f1601c8296e22d3e50552",
