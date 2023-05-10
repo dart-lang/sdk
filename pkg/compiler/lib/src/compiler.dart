@@ -296,7 +296,6 @@ class Compiler {
   Future runInternal() async {
     clearState();
     var compilationTarget = options.compilationTarget;
-    assert(compilationTarget != null);
     reporter.log('Compiling $compilationTarget (${options.buildId})');
 
     if (options.readProgramSplit != null) {

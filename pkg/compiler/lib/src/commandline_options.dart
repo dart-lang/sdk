@@ -124,6 +124,7 @@ class Flags {
   static const String codegenShard = '--codegen-shard';
   static const String codegenShards = '--codegen-shards';
   static const String cfeOnly = '--cfe-only';
+  static const String stage = '--stage';
   static const String debugGlobalInference = '--debug-global-inference';
 
   static const String serverMode = '--server-mode';

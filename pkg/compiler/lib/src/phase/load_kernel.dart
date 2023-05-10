@@ -142,7 +142,7 @@ void _doTransformsOnKernelLoad(Component? component) {
 Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
     api.CompilerInput compilerInput, String targetName) async {
   Library? entryLibrary;
-  var resolvedUri = options.compilationTarget!;
+  var resolvedUri = options.compilationTarget;
   ir.Component component = ir.Component();
   List<Uri> moduleLibraries = [];
 
@@ -258,7 +258,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
       ..fileSystem = fileSystem
       ..onDiagnostic = onDiagnostic
       ..verbosity = verbosity;
-    Uri resolvedUri = options.compilationTarget!;
+    Uri resolvedUri = options.compilationTarget;
     bool isLegacy =
         await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
     if (isLegacy && options.nullSafetyMode == NullSafetyMode.sound) {
@@ -272,7 +272,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
             "the Dart 3.0 stable release)."
       }));
     }
-    sources.add(options.compilationTarget!);
+    sources.add(options.compilationTarget);
   }
 
   // If we are performing a modular compile, we expect the platform binary to be

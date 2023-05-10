@@ -86,7 +86,7 @@ Future<void> verifyComponentTrim() async {
     '--input-dill=memory:main.dill',
     '--cfe-only',
     '--out=out.dill',
-    '--entry-uri=main.dart',
+    '--entry-uri=memory:main.dart',
     '--sound-null-safety',
   ];
   List<int> newBytes = await buildDillAndVerify(

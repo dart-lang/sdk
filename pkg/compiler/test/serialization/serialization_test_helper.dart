@@ -155,7 +155,7 @@ runTest(
   File(cfeDillFileUri.path)
       .writeAsBytesSync(cfeDillCollector.binaryOutputMap[cfeDillFileUri]!.list);
 
-  var dillUri = Uri.parse('out.dill');
+  var dillUri = dir.uri.resolve('out.dill');
   var closedWorldUri = Uri.parse('world.data');
   OutputCollector collector3a = OutputCollector();
   CompilationResult result3a = await runCompiler(
