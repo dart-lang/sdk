@@ -9,7 +9,7 @@
 
 import "dart:async" show Timer;
 import "dart:core" hide Symbol;
-import "dart:ffi" show Pointer, Struct, Union, IntPtr, Handle, Void, FfiNative;
+import "dart:ffi" show Pointer, Struct, Union, IntPtr, Handle, Void, Native;
 import "dart:isolate" show SendPort;
 import "dart:typed_data" show Int32List, Uint8List;
 
@@ -425,7 +425,8 @@ class FinalizerEntry {
   external int get externalSize;
 
   /// Update the external size.
-  @FfiNative<Void Function(Handle, IntPtr)>('FinalizerEntry_SetExternalSize')
+  @Native<Void Function(Handle, IntPtr)>(
+      symbol: 'FinalizerEntry_SetExternalSize')
   external void setExternalSize(int externalSize);
 }
 

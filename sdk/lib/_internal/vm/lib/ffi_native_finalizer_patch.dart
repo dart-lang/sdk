@@ -5,6 +5,7 @@
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
 import 'dart:_internal';
+import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -38,7 +39,7 @@ final class _NativeFinalizer extends FinalizerBase implements NativeFinalizer {
   }
 
   void attach(
-    Finalizable value,
+    Object value,
     Pointer<Void> token, {
     Object? detach,
     int? externalSize,
@@ -102,3 +103,43 @@ final class _NativeFinalizer extends FinalizerBase implements NativeFinalizer {
     finalizer._removeEntries();
   }
 }
+
+@Native<Pointer<NativeFinalizerFunction> Function()>(
+    symbol: 'Pointer_asTypedListFinalizerCallbackPointer')
+external Pointer<NativeFinalizerFunction>
+    _asTypedListFinalizerCallbackPointer();
+
+final Pointer<NativeFinalizerFunction> _asTypedListFinalizerCallback =
+    _asTypedListFinalizerCallbackPointer();
+
+final _asTypedListFinalizer = _NativeFinalizer(_asTypedListFinalizerCallback);
+
+final class _AsTypedListFinalizerData extends Struct {
+  external Pointer<NativeFinalizerFunction> callback;
+  external Pointer<Void> token;
+}
+
+@patch
+void _attachAsTypedListFinalizer(
+  Pointer<NativeFinalizerFunction> callback,
+  Object typedList,
+  Pointer pointer,
+  int? externalSize,
+) {
+  final data = _allocateData();
+  data.ref.callback = callback;
+  data.ref.token = pointer.cast();
+  _asTypedListFinalizer.attach(
+    typedList,
+    data.cast(),
+    externalSize: externalSize,
+  );
+}
+
+// Ensure we use the `malloc` that corresponds to the `free` used inside
+// `_asTypedListFinalizerCallback` in the VM.
+@Native<Pointer<_AsTypedListFinalizerData> Function()>(
+  symbol: 'Pointer_asTypedListFinalizerAllocateData',
+  isLeaf: true,
+)
+external Pointer<_AsTypedListFinalizerData> _allocateData();

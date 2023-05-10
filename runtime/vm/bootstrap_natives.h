@@ -466,7 +466,9 @@ namespace dart {
   V(VariableMirror_type, 2)
 
 #define BOOTSTRAP_FFI_NATIVE_LIST(V)                                           \
-  V(FinalizerEntry_SetExternalSize, void, (Dart_Handle, intptr_t))
+  V(FinalizerEntry_SetExternalSize, void, (Dart_Handle, intptr_t))             \
+  V(Pointer_asTypedListFinalizerAllocateData, void*, ())                       \
+  V(Pointer_asTypedListFinalizerCallbackPointer, void*, ())
 
 class BootstrapNatives : public AllStatic {
  public:
@@ -474,7 +476,7 @@ class BootstrapNatives : public AllStatic {
                                     int argument_count,
                                     bool* auto_setup_scope);
 
-  // For use with @FfiNative.
+  // For use with @Native.
   static void* LookupFfiNative(const char* name, uintptr_t argument_count);
 
   static const uint8_t* Symbol(Dart_NativeFunction nf);

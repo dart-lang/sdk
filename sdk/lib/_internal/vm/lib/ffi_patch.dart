@@ -451,12 +451,20 @@ extension Int8Pointer on Pointer<Int8> {
   Pointer<Int8> elementAt(int index) => Pointer.fromAddress(address + index);
 
   @patch
-  Int8List asTypedList(int length) {
+  Int8List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Int8>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 1);
     _checkPointerAlignment(address, 1);
-    return _asExternalTypedDataInt8(this, length);
+    final result = _asExternalTypedDataInt8(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, length);
+    }
+    return result;
   }
 }
 
@@ -478,12 +486,20 @@ extension Int16Pointer on Pointer<Int16> {
       Pointer.fromAddress(address + 2 * index);
 
   @patch
-  Int16List asTypedList(int length) {
+  Int16List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Int16>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 2);
     _checkPointerAlignment(address, 2);
-    return _asExternalTypedDataInt16(this, length);
+    final result = _asExternalTypedDataInt16(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 2 * length);
+    }
+    return result;
   }
 }
 
@@ -505,12 +521,20 @@ extension Int32Pointer on Pointer<Int32> {
       Pointer.fromAddress(address + 4 * index);
 
   @patch
-  Int32List asTypedList(int length) {
+  Int32List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Int32>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 4);
     _checkPointerAlignment(address, 4);
-    return _asExternalTypedDataInt32(this, length);
+    final result = _asExternalTypedDataInt32(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 4 * length);
+    }
+    return result;
   }
 }
 
@@ -532,12 +556,20 @@ extension Int64Pointer on Pointer<Int64> {
       Pointer.fromAddress(address + 8 * index);
 
   @patch
-  Int64List asTypedList(int length) {
+  Int64List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Int64>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 8);
     _checkPointerAlignment(address, 8);
-    return _asExternalTypedDataInt64(this, length);
+    final result = _asExternalTypedDataInt64(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 8 * length);
+    }
+    return result;
   }
 }
 
@@ -558,12 +590,20 @@ extension Uint8Pointer on Pointer<Uint8> {
   Pointer<Uint8> elementAt(int index) => Pointer.fromAddress(address + index);
 
   @patch
-  Uint8List asTypedList(int length) {
+  Uint8List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Uint8>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 1);
     _checkPointerAlignment(address, 1);
-    return _asExternalTypedDataUint8(this, length);
+    final result = _asExternalTypedDataUint8(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, length);
+    }
+    return result;
   }
 }
 
@@ -585,12 +625,20 @@ extension Uint16Pointer on Pointer<Uint16> {
       Pointer.fromAddress(address + 2 * index);
 
   @patch
-  Uint16List asTypedList(int length) {
+  Uint16List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Uint16>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 2);
     _checkPointerAlignment(address, 2);
-    return _asExternalTypedDataUint16(this, length);
+    final result = _asExternalTypedDataUint16(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 2 * length);
+    }
+    return result;
   }
 }
 
@@ -612,12 +660,20 @@ extension Uint32Pointer on Pointer<Uint32> {
       Pointer.fromAddress(address + 4 * index);
 
   @patch
-  Uint32List asTypedList(int length) {
+  Uint32List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Uint32>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 4);
     _checkPointerAlignment(address, 4);
-    return _asExternalTypedDataUint32(this, length);
+    final result = _asExternalTypedDataUint32(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 4 * length);
+    }
+    return result;
   }
 }
 
@@ -639,12 +695,20 @@ extension Uint64Pointer on Pointer<Uint64> {
       Pointer.fromAddress(address + 8 * index);
 
   @patch
-  Uint64List asTypedList(int length) {
+  Uint64List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Uint64>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 8);
     _checkPointerAlignment(address, 8);
-    return _asExternalTypedDataUint64(this, length);
+    final result = _asExternalTypedDataUint64(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 8 * length);
+    }
+    return result;
   }
 }
 
@@ -666,12 +730,20 @@ extension FloatPointer on Pointer<Float> {
       Pointer.fromAddress(address + 4 * index);
 
   @patch
-  Float32List asTypedList(int length) {
+  Float32List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Float>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 4);
     _checkPointerAlignment(address, 4);
-    return _asExternalTypedDataFloat(this, length);
+    final result = _asExternalTypedDataFloat(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 4 * length);
+    }
+    return result;
   }
 }
 
@@ -693,12 +765,20 @@ extension DoublePointer on Pointer<Double> {
       Pointer.fromAddress(address + 8 * index);
 
   @patch
-  Float64List asTypedList(int length) {
+  Float64List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Double>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 8);
     _checkPointerAlignment(address, 8);
-    return _asExternalTypedDataDouble(this, length);
+    final result = _asExternalTypedDataDouble(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 8 * length);
+    }
+    return result;
   }
 }
 

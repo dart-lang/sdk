@@ -189,4 +189,27 @@ DEFINE_FFI_NATIVE_ENTRY(FinalizerEntry_SetExternalSize,
   }
 };
 
+namespace {
+struct AsTypedListFinalizerData {
+  void (*callback)(void*);
+  void* token;
+};
+}  // namespace
+
+DEFINE_FFI_NATIVE_ENTRY(Pointer_asTypedListFinalizerAllocateData, void*, ()) {
+  return malloc(sizeof(AsTypedListFinalizerData));
+};
+
+void AsTypedListFinalizerCallback(void* peer) {
+  const auto* data = reinterpret_cast<AsTypedListFinalizerData*>(peer);
+  data->callback(data->token);
+  free(peer);
+}
+
+DEFINE_FFI_NATIVE_ENTRY(Pointer_asTypedListFinalizerCallbackPointer,
+                        void*,
+                        ()) {
+  return reinterpret_cast<void*>(&AsTypedListFinalizerCallback);
+};
+
 }  // namespace dart

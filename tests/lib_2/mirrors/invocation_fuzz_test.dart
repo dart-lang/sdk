@@ -44,6 +44,9 @@ var denylist = [
   // Don't try to invoke FFI Natives on simulator.
   // TODO(http://dartbug.com/48365): Support FFI in simulators.
   'dart._internal.FinalizerEntry.setExternalSize',
+
+  // Don't instantiate structs with bogus memory.
+  'dart.ffi._AsTypedListFinalizerData',
 ];
 
 bool isDenylisted(Symbol qualifiedSymbol) {
