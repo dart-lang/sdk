@@ -584,7 +584,7 @@ void ListenSocket::DoClose() {
   }
   // To finish resetting the state of the ListenSocket back to what it was
   // before EnsureInitialized was called, we have to reset the AcceptEx_
-  // and GetAcceptExSockaddrs_ function pointer.
+  // and GetAcceptExSockaddrs_ function pointers.
   AcceptEx_ = nullptr;
   GetAcceptExSockaddrs_ = nullptr;
 }

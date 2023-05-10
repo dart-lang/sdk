@@ -444,13 +444,13 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 // Information on connected sockets.
 class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  public:
-  explicit ClientSocket(intptr_t s, RawAddr* premote_addr = nullptr)
+  explicit ClientSocket(intptr_t s, RawAddr* remote_addr = nullptr)
       : DescriptorInfoSingleMixin(s, true),
         DisconnectEx_(nullptr),
         next_(nullptr),
         connected_(false),
         closed_(false),
-        remote_addr_(premote_addr) {
+        remote_addr_(remote_addr) {
     LoadDisconnectEx();
     type_ = kClientSocket;
   }
