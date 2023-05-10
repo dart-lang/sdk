@@ -32,7 +32,7 @@ void f() {
 SimpleIdentifier
   token: v
   staticElement: v@34
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 

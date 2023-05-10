@@ -69,6 +69,7 @@ class PropertyElementResolver with ScopeHelpers {
 
       return _toIndexResult(
         result,
+        atDynamicTarget: false,
         hasRead: hasRead,
         hasWrite: hasWrite,
       );
@@ -133,6 +134,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     return _toIndexResult(
       result,
+      atDynamicTarget: targetType is DynamicType,
       hasRead: hasRead,
       hasWrite: hasWrite,
     );
@@ -506,6 +508,7 @@ class PropertyElementResolver with ScopeHelpers {
       readElementRecovery: result.setter,
       writeElementRequested: result.setter,
       writeElementRecovery: result.getter,
+      atDynamicTarget: targetType is DynamicType,
       recordField: result.recordField,
       getType: getType,
     );
@@ -865,6 +868,7 @@ class PropertyElementResolver with ScopeHelpers {
 
   PropertyElementResolverResult _toIndexResult(
     ResolutionResult result, {
+    required bool atDynamicTarget,
     required bool hasRead,
     required bool hasWrite,
   }) {
@@ -876,6 +880,7 @@ class PropertyElementResolver with ScopeHelpers {
         : writeElement.firstParameterType;
 
     return PropertyElementResolverResult(
+      atDynamicTarget: atDynamicTarget,
       readElementRequested: readElement,
       writeElementRequested: writeElement,
       indexContextType: contextType,
@@ -888,7 +893,8 @@ class PropertyElementResolverResult {
   final Element? readElementRecovery;
   final Element? writeElementRequested;
   final Element? writeElementRecovery;
-  final FunctionType? functionTypeCallType;
+  final bool atDynamicTarget;
+  final DartType? functionTypeCallType;
   final RecordTypeField? recordField;
   final DartType? getType;
 
@@ -901,6 +907,7 @@ class PropertyElementResolverResult {
     this.readElementRecovery,
     this.writeElementRequested,
     this.writeElementRecovery,
+    this.atDynamicTarget = false,
     this.indexContextType,
     this.functionTypeCallType,
     this.recordField,

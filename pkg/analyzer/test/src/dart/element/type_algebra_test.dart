@@ -377,6 +377,11 @@ class SubstituteTest extends _Base {
     _assertIdenticalType(type, {T: intNone});
   }
 
+  test_invalid() async {
+    var T = typeParameter('T');
+    _assertIdenticalType(InvalidTypeImpl.instance, {T: intNone});
+  }
+
   test_record_doesNotUseTypeParameter() async {
     final T = typeParameter('T');
 

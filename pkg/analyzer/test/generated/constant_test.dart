@@ -81,7 +81,7 @@ const x = kIsWeb ? a : b;
 
     var result = findElement.topVar('x').evaluationResult;
     assertDartObjectText(result.value, r'''
-dynamic <unknown>
+InvalidType <unknown>
   variable: self::@variable::x
 ''');
   }

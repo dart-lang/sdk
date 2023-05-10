@@ -35,7 +35,6 @@ import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 
@@ -754,11 +753,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     // `is dynamic` or `is! dynamic`
     if (rightType is DynamicType) {
-      var rightTypeStr = rightNode.ifTypeOrNull<NamedType>()?.qualifiedName;
-      if (rightTypeStr == Keyword.DYNAMIC.lexeme) {
-        report();
-        return true;
-      }
+      report();
+      return true;
+    }
+
+    // `is CannotResolveType` or `is! CannotResolveType`
+    if (rightType is InvalidType) {
       return false;
     }
 
@@ -1605,8 +1605,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    // `x as Unresolved` is already reported as an error.
+    // `x as dynamic` is a valid use case.
     if (rightType is DynamicType) {
+      return false;
+    }
+
+    // `x as Unresolved` is already reported as an error.
+    if (rightType is InvalidType) {
       return false;
     }
 

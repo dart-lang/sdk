@@ -241,7 +241,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return;
     }
 
-    DartType staticType = DynamicTypeImpl.instance;
+    DartType staticType = InvalidTypeImpl.instance;
     if (element is InterfaceElement) {
       if (_isExpressionIdentifier(node)) {
         node.staticType = _typeProvider.typeType;
@@ -270,13 +270,13 @@ class SimpleIdentifierResolver with ScopeHelpers {
           parent is MethodInvocation && parent.target == node) {
         return;
       }
-      staticType = _typeProvider.dynamicType;
+      staticType = InvalidTypeImpl.instance;
     } else if (element is DynamicElementImpl) {
       staticType = _typeProvider.typeType;
     } else if (element is NeverElementImpl) {
       staticType = _typeProvider.typeType;
     } else {
-      staticType = DynamicTypeImpl.instance;
+      staticType = InvalidTypeImpl.instance;
     }
 
     if (!_resolver.isConstructorTearoffsEnabled) {

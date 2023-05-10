@@ -77,6 +77,10 @@ class DynamicBoundedTest extends AbstractTypeSystemTest {
     _assertNotDynamicBounded(intStar);
   }
 
+  test_invalidType() {
+    _assertDynamicBounded(invalidType);
+  }
+
   test_never() {
     _assertNotDynamicBounded(neverNone);
     _assertNotDynamicBounded(neverQuestion);

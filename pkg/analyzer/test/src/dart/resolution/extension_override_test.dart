@@ -1509,11 +1509,11 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: self::@extension::E::@method::v
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -1540,11 +1540,11 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: self::@extension::E::@method::v
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     }
   }

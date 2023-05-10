@@ -662,6 +662,9 @@ class ResolutionSink extends _SummaryDataWriter {
         _writeNullabilitySuffix(nullabilitySuffix);
       }
       _writeTypeAliasElementArguments(type);
+    } else if (type is InvalidType) {
+      writeByte(Tag.InvalidType);
+      _writeTypeAliasElementArguments(type);
     } else if (type is NeverType) {
       writeByte(Tag.NeverType);
       _writeNullabilitySuffix(type.nullabilitySuffix);

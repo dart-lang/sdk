@@ -323,7 +323,7 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
 
   @override
   bool isDynamic(DartType type) {
-    return type is DynamicType;
+    return type is DynamicType || type is InvalidType;
   }
 
   @override

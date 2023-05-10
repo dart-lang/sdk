@@ -47,6 +47,21 @@ Object f(bool x) {
       error(WarningCode.UNREACHABLE_SWITCH_CASE, 78, 2),
     ]);
   }
+
+  test_unresolved_wildcard() async {
+    await assertErrorsInCode(r'''
+int f(Object? x) {
+  return switch (x) {
+    Unresolved() => 0,
+    _ => -1,
+  };
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 45, 10),
+      error(WarningCode.DEAD_CODE, 68, 7),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 70, 2),
+    ]);
+  }
 }
 
 @reflectiveTest

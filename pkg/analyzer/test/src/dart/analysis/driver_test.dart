@@ -2987,10 +2987,10 @@ var b = new B();
       var partUnit = result.element;
 
       expect(partUnit.topLevelVariables[0].name, 'a');
-      assertType(partUnit.topLevelVariables[0].type, 'dynamic');
+      assertType(partUnit.topLevelVariables[0].type, 'InvalidType');
 
       expect(partUnit.topLevelVariables[1].name, 'b');
-      assertType(partUnit.topLevelVariables[1].type, 'dynamic');
+      assertType(partUnit.topLevelVariables[1].type, 'InvalidType');
     }
   }
 

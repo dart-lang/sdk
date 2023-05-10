@@ -2891,7 +2891,7 @@ void f() {
 
   Future<void> test_ForEachStatement_body_untyped() async {
     // Block  ForEachStatement
-    addTestSource('void f(args) {for (var foo in bar) {^}}');
+    addTestSource('void f(args) {for (var foo in args) {^}}');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -5769,7 +5769,7 @@ class B extends A1 with A2 {
     assertSuggestClass('B');
     assertSuggestField('a', 'int');
     assertSuggestMethod('b', 'B', 'int');
-    assertSuggestField('foo', 'dynamic');
+    assertSuggestField('foo', 'InvalidType');
     assertSuggestClass('A1');
     assertSuggestConstructor('A1');
     assertNotSuggested('x');

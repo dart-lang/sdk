@@ -68,9 +68,9 @@ VariableDeclaration
               identifier: SimpleIdentifier
                 token: length
                 staticElement: <null>
-                staticType: dynamic
+                staticType: InvalidType
               staticElement: <null>
-              staticType: dynamic
+              staticType: InvalidType
           declaredElement: @99
             type: int Function(Object?)
           parameter: ParameterMember

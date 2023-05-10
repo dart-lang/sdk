@@ -328,9 +328,9 @@ PrefixedIdentifier
   identifier: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -361,6 +361,54 @@ PrefixedIdentifier
     staticType: int
   staticElement: package:test/a.dart::@getter::foo
   staticType: int
+''');
+  }
+
+  test_read_dynamicIdentifier_hashCode() async {
+    await assertNoErrorsInCode('''
+void f(dynamic a) {
+  a.hashCode;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: dynamic
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticElement: dart:core::@class::Object::@getter::hashCode
+  staticType: int
+''');
+  }
+
+  test_read_dynamicIdentifier_identifier() async {
+    await assertNoErrorsInCode('''
+void f(dynamic a) {
+  a.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: dynamic
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticElement: <null>
+  staticType: dynamic
 ''');
   }
 
@@ -831,5 +879,48 @@ int Function() foo() {
       findElement.importFind('package:test/a.dart').topGet('a'),
     );
     assertType(identifier, 'A');
+  }
+
+  test_read_interfaceType_unresolved() async {
+    await assertErrorsInCode('''
+void f(int a) {
+  a.foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 20, 3),
+    ]);
+
+    final node = findNode.prefixed('foo;');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: int
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: InvalidType
+  staticElement: <null>
+  staticType: InvalidType
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: int*
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: InvalidType
+  staticElement: <null>
+  staticType: InvalidType
+''');
+    }
   }
 }

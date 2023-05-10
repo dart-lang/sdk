@@ -62,7 +62,11 @@ class AssignmentExpressionResolver {
     var writeElement = leftResolution.writeElement;
 
     if (hasRead) {
-      _resolver.setReadElement(left, readElement);
+      _resolver.setReadElement(
+        left,
+        readElement,
+        atDynamicTarget: leftResolution.atDynamicTarget,
+      );
       {
         final recordField = leftResolution.recordField;
         if (recordField != null) {
@@ -71,7 +75,11 @@ class AssignmentExpressionResolver {
       }
       _resolveOperator(node);
     }
-    _resolver.setWriteElement(left, writeElement);
+    _resolver.setWriteElement(
+      left,
+      writeElement,
+      atDynamicTarget: leftResolution.atDynamicTarget,
+    );
     _resolver.migrationResolutionHooks
         ?.setCompoundAssignmentExpressionTypes(node);
 
@@ -261,9 +269,11 @@ class AssignmentExpressionResolver {
         operator == TokenType.BAR_BAR_EQ) {
       assignedType = _typeProvider.boolType;
     } else {
+      var leftType = node.readType!;
       var operatorElement = node.staticElement;
-      if (operatorElement != null) {
-        var leftType = node.readType!;
+      if (leftType is DynamicType) {
+        assignedType = DynamicTypeImpl.instance;
+      } else if (operatorElement != null) {
         var rightType = rightHandSide.typeOrThrow;
         assignedType = _typeSystem.refineBinaryExpressionType(
           leftType,
@@ -273,7 +283,7 @@ class AssignmentExpressionResolver {
           operatorElement,
         );
       } else {
-        assignedType = DynamicTypeImpl.instance;
+        assignedType = InvalidTypeImpl.instance;
       }
     }
 

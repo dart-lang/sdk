@@ -108,7 +108,7 @@ class FunctionReferenceResolver {
         function,
         [],
       );
-      node.staticType = DynamicTypeImpl.instance;
+      node.staticType = InvalidTypeImpl.instance;
       return true;
     }
     return false;
@@ -228,6 +228,11 @@ class FunctionReferenceResolver {
       node.staticType = DynamicTypeImpl.instance;
     }
 
+    if (rawType is InvalidType) {
+      node.staticType = InvalidTypeImpl.instance;
+      return;
+    }
+
     if (rawType is TypeParameterTypeImpl) {
       // If the type of the function is a type parameter, the tearoff is
       // disallowed, reported in [_resolveDisallowedExpression]. Use the type
@@ -241,7 +246,7 @@ class FunctionReferenceResolver {
       // [CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR] is
       // reported elsewhere; don't check type arguments here.
       if (node.function is ConstructorReference) {
-        node.staticType = DynamicTypeImpl.instance;
+        node.staticType = InvalidTypeImpl.instance;
       } else {
         var typeArguments = node.typeArguments;
         if (typeArguments == null) {
@@ -268,8 +273,12 @@ class FunctionReferenceResolver {
           node.function,
           [],
         );
+        node.staticType = InvalidTypeImpl.instance;
+      } else if (rawType is DynamicType) {
+        node.staticType = DynamicTypeImpl.instance;
+      } else {
+        node.staticType = InvalidTypeImpl.instance;
       }
-      node.staticType = DynamicTypeImpl.instance;
     }
   }
 
@@ -345,7 +354,7 @@ class FunctionReferenceResolver {
     var member = _resolver.toLegacyElement(result.getter);
 
     if (member == null) {
-      node.staticType = DynamicTypeImpl.instance;
+      node.staticType = InvalidTypeImpl.instance;
       return;
     }
 
@@ -410,8 +419,8 @@ class FunctionReferenceResolver {
         function.prefix,
         [function.name],
       );
-      function.staticType = DynamicTypeImpl.instance;
-      node.staticType = DynamicTypeImpl.instance;
+      function.staticType = InvalidTypeImpl.instance;
+      node.staticType = InvalidTypeImpl.instance;
       return;
     }
 
@@ -430,8 +439,8 @@ class FunctionReferenceResolver {
           function.identifier,
           [functionName, function.prefix.name],
         );
-        function.staticType = DynamicTypeImpl.instance;
-        node.staticType = DynamicTypeImpl.instance;
+        function.staticType = InvalidTypeImpl.instance;
+        node.staticType = InvalidTypeImpl.instance;
         return;
       } else {
         functionElement = _resolver.toLegacyElement(functionElement);
@@ -486,7 +495,7 @@ class FunctionReferenceResolver {
       );
     }
     function.accept(_resolver);
-    node.staticType = DynamicTypeImpl.instance;
+    node.staticType = InvalidTypeImpl.instance;
   }
 
   void _resolvePropertyAccessFunction(
@@ -526,7 +535,10 @@ class FunctionReferenceResolver {
           node,
           [],
         );
-        node.staticType = DynamicTypeImpl.instance;
+        node.staticType = InvalidTypeImpl.instance;
+        return;
+      } else if (targetType is InvalidType) {
+        node.staticType = InvalidTypeImpl.instance;
         return;
       }
       var functionType = _resolveTypeProperty(
@@ -553,7 +565,7 @@ class FunctionReferenceResolver {
         );
       }
 
-      node.staticType = DynamicTypeImpl.instance;
+      node.staticType = InvalidTypeImpl.instance;
       return;
     }
 
@@ -626,9 +638,9 @@ class FunctionReferenceResolver {
       return;
     } else if (element is ExtensionElement) {
       prefix.identifier.staticElement = element;
-      prefix.identifier.staticType = DynamicTypeImpl.instance;
-      prefix.staticType = DynamicTypeImpl.instance;
-      _resolveDisallowedExpression(node, DynamicTypeImpl.instance);
+      prefix.identifier.staticType = InvalidTypeImpl.instance;
+      prefix.staticType = InvalidTypeImpl.instance;
+      _resolveDisallowedExpression(node, InvalidTypeImpl.instance);
       return;
     }
 
@@ -637,7 +649,7 @@ class FunctionReferenceResolver {
       'Member of prefixed element, $prefixElement, is not a class, mixin, '
       'type alias, or executable element: $element (${element.runtimeType})',
     );
-    node.staticType = DynamicTypeImpl.instance;
+    node.staticType = InvalidTypeImpl.instance;
   }
 
   void _resolveSimpleIdentifierFunction(
@@ -659,8 +671,8 @@ class FunctionReferenceResolver {
             function,
             [function.name],
           );
-          function.staticType = DynamicTypeImpl.instance;
-          node.staticType = DynamicTypeImpl.instance;
+          function.staticType = InvalidTypeImpl.instance;
+          node.staticType = InvalidTypeImpl.instance;
           return;
         }
       }
@@ -698,8 +710,8 @@ class FunctionReferenceResolver {
           function,
           [function.name, receiverType],
         );
-        function.staticType = DynamicTypeImpl.instance;
-        node.staticType = DynamicTypeImpl.instance;
+        function.staticType = InvalidTypeImpl.instance;
+        node.staticType = InvalidTypeImpl.instance;
         return;
       }
     }
@@ -766,8 +778,8 @@ class FunctionReferenceResolver {
       return;
     } else if (element is ExtensionElement) {
       function.staticElement = element;
-      function.staticType = DynamicTypeImpl.instance;
-      _resolveDisallowedExpression(node, DynamicTypeImpl.instance);
+      function.staticType = InvalidTypeImpl.instance;
+      _resolveDisallowedExpression(node, InvalidTypeImpl.instance);
       return;
     } else {
       _resolveDisallowedExpression(node, DynamicTypeImpl.instance);

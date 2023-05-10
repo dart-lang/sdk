@@ -79,7 +79,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
       constructorId = 'TransformProperty';
     } else {
       constructorId = 'DiagnosticsProperty';
-      if (type is! DynamicType) {
+      if (!(type is DynamicType || type is InvalidType)) {
         typeArgs = [type];
       }
     }
@@ -94,7 +94,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
         builder.write('<');
         builder.writeTypes(typeArgs);
         builder.write('>');
-      } else if (type is DynamicType) {
+      } else if (type is DynamicType || type is InvalidType) {
         TypeAnnotation? declType;
         final decl = node.thisOrAncestorOfType<VariableDeclarationList>();
         if (decl != null) {

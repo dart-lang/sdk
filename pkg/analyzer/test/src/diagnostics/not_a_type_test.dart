@@ -50,7 +50,7 @@ E a;
 NamedType
   name: E
   element: self::@extension::E
-  type: dynamic
+  type: InvalidType
 ''');
   }
 

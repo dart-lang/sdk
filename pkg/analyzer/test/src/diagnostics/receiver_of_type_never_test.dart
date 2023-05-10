@@ -163,7 +163,7 @@ BinaryExpression
     staticType: int
   staticElement: <null>
   staticInvokeType: null
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -272,11 +272,11 @@ AssignmentExpression
     staticInvokeType: num Function(num)
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -322,7 +322,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -351,7 +351,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -396,11 +396,11 @@ AssignmentExpression
     staticInvokeType: num Function(num)
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -446,7 +446,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -690,7 +690,7 @@ PrefixExpression
   writeElement: self::@function::f::@parameter::x
   writeType: Never?
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -752,11 +752,11 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -806,7 +806,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -825,7 +825,7 @@ void f(Never? x) {
     assertSimpleIdentifier(
       findNode.simple('foo'),
       element: null,
-      type: 'dynamic',
+      type: 'InvalidType',
     );
   }
 
@@ -943,7 +943,7 @@ BinaryExpression
     staticType: int*
   staticElement: <null>
   staticInvokeType: null
-  staticType: dynamic
+  staticType: InvalidType
 ''');
 
     assertType(findNode.binary('1 + 2'), 'int');

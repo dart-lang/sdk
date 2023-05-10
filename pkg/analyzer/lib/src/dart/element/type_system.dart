@@ -917,6 +917,11 @@ class TypeSystemImpl implements TypeSystem {
       return true;
     }
 
+    // Accept the invalid type, we have already reported an error for it.
+    if (fromType is InvalidType) {
+      return true;
+    }
+
     // A 'call' method tearoff.
     if (fromType is InterfaceType &&
         !isNullable(fromType) &&
@@ -1005,7 +1010,8 @@ class TypeSystemImpl implements TypeSystem {
   /// whose bound is dynamic bounded, or an intersection (promoted type
   /// parameter type) whose second operand is dynamic bounded.
   bool isDynamicBounded(DartType type) {
-    if (identical(type, DynamicTypeImpl.instance)) {
+    if (identical(type, DynamicTypeImpl.instance) ||
+        identical(type, InvalidTypeImpl.instance)) {
       return true;
     }
 
@@ -1193,12 +1199,14 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // MORETOP(dynamic, S) = true
-    if (identical(T, DynamicTypeImpl.instance)) {
+    if (identical(T, DynamicTypeImpl.instance) ||
+        identical(T, InvalidTypeImpl.instance)) {
       return true;
     }
 
     // MORETOP(T, dynamic) = false
-    if (identical(S, DynamicTypeImpl.instance)) {
+    if (identical(S, DynamicTypeImpl.instance) ||
+        identical(S, InvalidTypeImpl.instance)) {
       return false;
     }
 
@@ -1266,6 +1274,7 @@ class TypeSystemImpl implements TypeSystem {
   @override
   bool isNonNullable(DartType type) {
     if (type is DynamicType ||
+        type is InvalidType ||
         type is UnknownInferredType ||
         type is VoidType ||
         type.isDartCoreNull) {
@@ -1310,6 +1319,7 @@ class TypeSystemImpl implements TypeSystem {
   @override
   bool isNullable(DartType type) {
     if (type is DynamicType ||
+        type is InvalidType ||
         type is UnknownInferredType ||
         type is VoidType ||
         type.isDartCoreNull) {
@@ -1355,6 +1365,7 @@ class TypeSystemImpl implements TypeSystem {
   @override
   bool isStrictlyNonNullable(DartType type) {
     if (type is DynamicType ||
+        type is InvalidType ||
         type is UnknownInferredType ||
         type is VoidType ||
         type.isDartCoreNull) {
@@ -1387,7 +1398,8 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // TOP(dynamic) is true
-    if (identical(type, DynamicTypeImpl.instance)) {
+    if (identical(type, DynamicTypeImpl.instance) ||
+        identical(type, InvalidTypeImpl.instance)) {
       return true;
     }
 

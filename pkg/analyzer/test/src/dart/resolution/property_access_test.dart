@@ -126,8 +126,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -206,8 +206,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -831,8 +831,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: $3
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -856,8 +856,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: $0a
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -881,8 +881,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: $zero
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -935,8 +935,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: a$0
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -983,8 +983,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: bar
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1010,8 +1010,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1054,6 +1054,35 @@ PropertyAccess
     staticElement: dart:core::@class::int::@getter::isEven
     staticType: bool
   staticType: bool
+''');
+  }
+
+  test_unresolved_identifier() async {
+    await assertErrorsInCode('''
+void f() {
+  (a).foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 14, 1),
+    ]);
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: InvalidType
+    rightParenthesis: )
+    staticType: InvalidType
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 }
@@ -1594,13 +1623,13 @@ PropertyAccess
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -1608,13 +1637,13 @@ PropertyAccess
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -1631,13 +1660,13 @@ PropertyAccess
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -1645,13 +1674,13 @@ PropertyAccess
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -1674,16 +1703,16 @@ DefaultFormalParameter
     target: SimpleIdentifier
       token: b
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     cascadeSections
       PropertyAccess
         operator: ?..
         propertyName: SimpleIdentifier
           token: foo
           staticElement: <null>
-          staticType: dynamic
-        staticType: dynamic
-    staticType: dynamic
+          staticType: InvalidType
+        staticType: InvalidType
+    staticType: InvalidType
   declaredElement: self::@function::f::@parameter::a
     type: dynamic
 ''');
@@ -1700,19 +1729,19 @@ DefaultFormalParameter
       target: SimpleIdentifier
         token: b
         staticElement: <null>
-        staticType: dynamic
+        staticType: InvalidType
       operator: ?.
       propertyName: SimpleIdentifier
         token: <empty> <synthetic>
         staticElement: <null>
-        staticType: dynamic
-      staticType: dynamic
+        staticType: InvalidType
+      staticType: InvalidType
     operator: .
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
-    staticType: dynamic
+      staticType: InvalidType
+    staticType: InvalidType
   declaredElement: self::@function::f::@parameter::a
     type: dynamic
 ''');
@@ -2349,8 +2378,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -2367,8 +2396,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -2407,8 +2436,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -2425,8 +2454,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }

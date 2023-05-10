@@ -59,8 +59,16 @@ class PrefixExpressionResolver {
       var readElement = operandResolution.readElement;
       var writeElement = operandResolution.writeElement;
 
-      _resolver.setReadElement(operand, readElement);
-      _resolver.setWriteElement(operand, writeElement);
+      _resolver.setReadElement(
+        operand,
+        readElement,
+        atDynamicTarget: operandResolution.atDynamicTarget,
+      );
+      _resolver.setWriteElement(
+        operand,
+        writeElement,
+        atDynamicTarget: operandResolution.atDynamicTarget,
+      );
       _resolver.migrationResolutionHooks
           ?.setCompoundAssignmentExpressionTypes(node);
 
@@ -116,7 +124,7 @@ class PrefixExpressionResolver {
     } else if (element is ExecutableElement) {
       return InvocationInferrer.computeInvokeReturnType(element.type);
     }
-    return DynamicTypeImpl.instance;
+    return InvalidTypeImpl.instance;
   }
 
   /// Return the name of the method invoked by the given postfix [expression].
@@ -157,6 +165,9 @@ class PrefixExpressionResolver {
       }
 
       var readType = node.readType ?? operand.typeOrThrow;
+      if (readType is InvalidType) {
+        return;
+      }
       if (identical(readType, NeverTypeImpl.instance)) {
         _resolver.errorReporter.reportErrorForNode(
           WarningCode.RECEIVER_OF_TYPE_NEVER,
@@ -193,18 +204,26 @@ class PrefixExpressionResolver {
 
   void _resolve2(PrefixExpressionImpl node, {required DartType? contextType}) {
     TokenType operator = node.operator.type;
-    if (identical(node.readType, NeverTypeImpl.instance)) {
+    final readType = node.readType ?? node.operand.staticType;
+    if (identical(readType, NeverTypeImpl.instance)) {
       _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance,
           contextType: contextType);
     } else {
       // The other cases are equivalent to invoking a method.
-      var staticMethodElement = node.staticElement;
-      DartType staticType = _computeStaticReturnType(staticMethodElement);
+      DartType staticType;
+      if (readType is DynamicType) {
+        staticType = DynamicTypeImpl.instance;
+      } else if (readType is InvalidType) {
+        staticType = InvalidTypeImpl.instance;
+      } else {
+        var staticMethodElement = node.staticElement;
+        staticType = _computeStaticReturnType(staticMethodElement);
+      }
       Expression operand = node.operand;
       if (operand is ExtensionOverride) {
         // No special handling for incremental operators.
       } else if (operator.isIncrementOperator) {
-        if (node.readType!.isDartCoreInt) {
+        if (readType!.isDartCoreInt) {
           staticType = _typeProvider.intType;
         } else {
           _checkForInvalidAssignmentIncDec(node, staticType);
