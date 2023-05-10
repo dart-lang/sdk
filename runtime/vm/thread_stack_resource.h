@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_THREAD_STACK_RESOURCE_H_
 #define RUNTIME_VM_THREAD_STACK_RESOURCE_H_
 
+#include <type_traits>
 #include <utility>
 
 #include "vm/allocation.h"
@@ -34,6 +35,7 @@ class ThreadStackResource : public StackResource {
 template <typename T, typename... Args>
 class AsThreadStackResource : public ThreadStackResource {
  public:
+  static_assert(!std::is_base_of<StackResource, T>::value);
   AsThreadStackResource(Thread* thread, Args&&... args)
       : ThreadStackResource(thread),
         member_(thread, std::forward<Args>(args)...) {}

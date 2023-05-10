@@ -2830,16 +2830,6 @@ void ProgramReloadContext::RebuildDirectSubclasses() {
   }
 }
 
-ReloadOperationScope::ReloadOperationScope(Thread* thread)
-    : StackResource(thread),
-      stop_bg_compiler_(thread),
-      allow_reload_(thread),
-      safepoint_operation_(thread) {
-  ASSERT(!thread->IsInNoReloadScope());
-  ASSERT(thread->current_safepoint_level() ==
-         SafepointLevel::kGCAndDeoptAndReload);
-}
-
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

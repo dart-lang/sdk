@@ -639,7 +639,7 @@ void Thread::FreeActiveThread(Thread* thread, bool bypass_safepoint) {
     // at event-loop boundary (or shutting down). We participate in reload in
     // those scenarios.
     //
-    // (It may be that an active [ReloadOperationScope] sent an OOB message to
+    // (It may be that an active [RELOAD_OPERATION_SCOPE] sent an OOB message to
     // this isolate but it didn't handle the OOB due to shutting down, so we'll
     // still have to update the reloading thread that it's ok to continue)
     RawReloadParticipationScope enable_reload(thread);
