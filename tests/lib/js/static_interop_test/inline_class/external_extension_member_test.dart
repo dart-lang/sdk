@@ -72,12 +72,8 @@ void main() {
   extension.renamedGetSet = 'renamedGetSet';
   expect(extension.renamedGetSet, 'renamedGetSet');
 
-  // Methods and tear-offs.
+  // Methods.
   expect(extension.method(), 'method');
-  expect((extension.method)(), 'method');
   expect(extension.differentArgsMethod('method'), 'methodundefined');
-  expect((extension.differentArgsMethod)('optional', 'method'),
-      'optionalmethod');
   expect(extension.renamedMethod(), 'method');
-  expect((extension.renamedMethod)(), 'method');
 }

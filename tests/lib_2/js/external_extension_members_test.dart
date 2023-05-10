@@ -115,24 +115,6 @@ void main() {
     expect(foo.otherSumFn(10, 5), equals(15));
   });
 
-  // TODO(41375): Remove if JS interop default value arguments are disallowed.
-  test('optional arguments', () {
-    var foo = Foo(42);
-    expect(foo.getField(), equals(42));
-
-    foo.setField10();
-    expect(foo.getField(), equals(10));
-    foo.setField10(6);
-    expect(foo.getField(), equals(6));
-
-    // Test using tearoffs
-    var setF = foo.setField10;
-    setF();
-    expect(foo.getField(), equals(10));
-    setF(6);
-    expect(foo.getField(), equals(6));
-  });
-
   test('module class', () {
     var bar = Bar(5);
     expect(js_util.getProperty(bar, 'fieldAnnotation'), equals(5));

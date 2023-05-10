@@ -11,7 +11,7 @@ dart benchmark/benchmarks.dart list
 To run an individual benchmark, run:
 
 ```
-dart benchmark/benchmarks.dart run --no-pub <benchmark-id>
+dart benchmark/benchmarks.dart run <benchmark-id>
 ```
 
 ## How they're tested

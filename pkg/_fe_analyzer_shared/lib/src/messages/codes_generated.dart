@@ -8128,18 +8128,6 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     correctionMessage: r"""Try replacing this with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropStaticInteropAnonymousFactoryTearoff =
-    messageJsInteropStaticInteropAnonymousFactoryTearoff;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropStaticInteropAnonymousFactoryTearoff =
-    const MessageCode("JsInteropStaticInteropAnonymousFactoryTearoff",
-        problemMessage:
-            r"""Factories of `@anonymous` `@staticInterop` classes can not be torn off.""",
-        correctionMessage:
-            r"""Declare a closure that forwards to this factory instead.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null>
     codeJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
     messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters;
@@ -8291,6 +8279,37 @@ const MessageCode messageJsInteropStaticInteropSyntheticConstructor = const Mess
         r"""Synthetic constructors on `@staticInterop` classes can not be used.""",
     correctionMessage:
         r"""Declare an external factory constructor for this `@staticInterop` class and use that instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String name)>
+    templateJsInteropStaticInteropTearOffsDisallowed =
+    const Template<Message Function(String string, String name)>(
+        problemMessageTemplate:
+            r"""Tear-offs of external #string '#name' are disallowed.""",
+        correctionMessageTemplate:
+            r"""Declare a closure that calls this member instead.""",
+        withArguments: _withArgumentsJsInteropStaticInteropTearOffsDisallowed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String name)>
+    codeJsInteropStaticInteropTearOffsDisallowed =
+    const Code<Message Function(String string, String name)>(
+  "JsInteropStaticInteropTearOffsDisallowed",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropTearOffsDisallowed(
+    String string, String name) {
+  if (string.isEmpty) throw 'No string provided';
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropStaticInteropTearOffsDisallowed,
+      problemMessage:
+          """Tear-offs of external ${string} '${name}' are disallowed.""",
+      correctionMessage:
+          """Declare a closure that calls this member instead.""",
+      arguments: {'string': string, 'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
