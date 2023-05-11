@@ -527,7 +527,7 @@ BinaryExpression
     staticType: InvalidType
   staticElement: dart:core::@class::num::@method::*
   staticInvokeType: num Function(num)
-  staticType: num
+  staticType: double
 ''');
   }
 

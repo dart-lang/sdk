@@ -37,6 +37,18 @@ void f(dynamic a) {
 ''');
   }
 
+  test_function_argument_invalidType() async {
+    await assertErrorsInCode(r'''
+void foo<T extends num>(T t) {}
+
+void f(X x) {
+  foo(x);
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 1),
+    ]);
+  }
+
   test_functionType() async {
     await assertNoErrorsInCode('''
 void f<X>() {}
