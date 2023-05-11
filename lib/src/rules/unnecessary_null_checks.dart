@@ -16,7 +16,7 @@ const _details = r'''
 
 **BAD:**
 ```dart
-f(int? i);
+f(int? i) {}
 m() {
   int? j;
   f(j!);
@@ -26,7 +26,7 @@ m() {
 
 **GOOD:**
 ```dart
-f(int? i);
+f(int? i) {}
 m() {
   int? j;
   f(j);
