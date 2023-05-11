@@ -308,6 +308,18 @@ Future<void> f() async {}
 ''');
   }
 
+  test_await_expressionContainsReferenceToContext() async {
+    // Await expression contains use of BuildContext, is OK.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(
+    BuildContext context, Future<bool> Function(BuildContext) condition) async {
+  await condition(context);
+}
+''');
+  }
+
   // https://github.com/dart-lang/linter/issues/3457
   test_awaitInIfCondition_aboveReferenceToContext() async {
     // Await in an if-condition, then use of BuildContext in the if-body, is
@@ -372,19 +384,34 @@ Future<bool> c() async => true;
     ]);
   }
 
-  test_awaitInIfReferencesContext_beforeReferenceToContext() async {
-    // Await in an if-condition, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
+  test_awaitInIfCondition_expressionContainsReferenceToContext() async {
+    // Await expression contains use of BuildContext, is OK.
+    await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(
     BuildContext context, Future<bool> Function(BuildContext) condition) async {
   if (await condition(context)) {
+    return;
+  }
+}
+''');
+  }
+
+  test_awaitInIfReferencesContext_beforeReferenceToContext() async {
+    // Await in an if-condition, then use of BuildContext in if-then statement,
+    // is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  if (await c()) {
     Navigator.of(context);
   }
 }
+Future<bool> c() async => true;
 ''', [
-      lint(169, 21),
+      lint(102, 21),
     ]);
   }
 
