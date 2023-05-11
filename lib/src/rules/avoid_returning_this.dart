@@ -72,6 +72,8 @@ class AvoidReturningThis extends LintRule {
 class _BodyVisitor extends RecursiveAstVisitor {
   List<ReturnStatement> returnStatements = [];
 
+  bool foundNonThisReturn = false;
+
   List<ReturnStatement> collectReturns(BlockFunctionBody body) {
     body.accept(this);
     return returnStatements;
@@ -84,9 +86,14 @@ class _BodyVisitor extends RecursiveAstVisitor {
 
   @override
   visitReturnStatement(ReturnStatement node) {
+    // Short-circuit if we've encountered a non-this return.
+    if (foundNonThisReturn) return;
     // Short-circuit if not returning this.
-    if (!_returnsThis(node)) return;
-
+    if (!_returnsThis(node)) {
+      foundNonThisReturn = true;
+      returnStatements.clear();
+      return;
+    }
     returnStatements.add(node);
     super.visitReturnStatement(node);
   }

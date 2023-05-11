@@ -17,6 +17,36 @@ class AvoidReturningThisTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_returning_this';
 
+  /// https://github.com/dart-lang/linter/issues/3853
+  test_conditionalReturn() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C getInstance(C? c) {
+    if (c == null) return this;
+    return c;
+  }
+}
+''');
+  }
+
+  test_conditionalReturn_expression_ternary() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C getInstance(C? c) => c == null ? this : c;
+}
+''');
+  }
+
+  test_conditionalReturn_ternary() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C getInstance(C? c) {
+    return c == null ? this : c;
+  }
+}
+''');
+  }
+
   test_method() async {
     await assertDiagnostics(r'''
 enum A {
