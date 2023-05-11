@@ -106,18 +106,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   }
 
   bool ProcessMarkingStack(intptr_t remaining_budget) {
-    ObjectPtr raw_obj = work_list_.Pop();
-    if ((raw_obj == nullptr) && ProcessPendingWeakProperties()) {
-      raw_obj = work_list_.Pop();
-    }
-
-    if (raw_obj == nullptr) {
-      return false;  // No more work.
-    }
-
     do {
-      do {
-        // First drain the marking stacks.
+      // First drain the marking stacks.
+      ObjectPtr raw_obj;
+      while (work_list_.Pop(&raw_obj)) {
         const intptr_t class_id = raw_obj->GetClassId();
 
         intptr_t size;
@@ -144,17 +136,9 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         if (remaining_budget < 0) {
           return true;  // More to mark.
         }
-
-        raw_obj = work_list_.Pop();
-      } while (raw_obj != nullptr);
-
+      }
       // Marking stack is empty.
-      ProcessPendingWeakProperties();
-
-      // Check whether any further work was pushed either by other markers or
-      // by the handling of weak properties.
-      raw_obj = work_list_.Pop();
-    } while (raw_obj != nullptr);
+    } while (ProcessPendingWeakProperties());
 
     return false;  // No more work.
   }
@@ -250,7 +234,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
   void ProcessDeferredMarking() {
     ObjectPtr raw_obj;
-    while ((raw_obj = deferred_work_list_.Pop()) != nullptr) {
+    while (deferred_work_list_.Pop(&raw_obj)) {
       ASSERT(raw_obj->IsHeapObject() && raw_obj->IsOldObject());
       // We need to scan objects even if they were already scanned via ordinary
       // marking. An object may have changed since its ordinary scan and been
