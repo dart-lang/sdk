@@ -13,9 +13,8 @@ namespace dart {
 
 class UnwindingRecords : public AllStatic {
  public:
-  static void Init();
-  static void Cleanup();
-  static intptr_t SizeInBytes();
+  static const void* GenerateRecordsInto(intptr_t offset,
+                                         uint8_t* target_buffer);
   static void RegisterExecutablePage(Page* page);
   static void UnregisterExecutablePage(Page* page);
 };

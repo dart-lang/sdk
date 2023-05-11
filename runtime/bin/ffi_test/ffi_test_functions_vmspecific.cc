@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <csignal>
 #include <cstdlib>
+#include <cstring>
 
 #include "platform/globals.h"
 #include "platform/memory_sanitizer.h"
@@ -1331,6 +1332,7 @@ DART_EXPORT RefCountedResource* AllocateRefcountedResource() {
   auto peer =
       static_cast<RefCountedResource*>(malloc(sizeof(RefCountedResource)));
   auto resource = malloc(128);
+  memset(resource, 0, 128);
   peer->resource = resource;
   peer->refcount = 0;  // We're not going to count the reference here.
   return peer;
@@ -1343,11 +1345,12 @@ DART_EXPORT void IncreaseRefcount(RefCountedResource* peer) {
 }
 
 // And delete if zero.
-DART_EXPORT void DecreaseRefcount(RefCountedResource* peer) {
+DART_EXPORT void DecreaseRefcount(void* peer) {
+  auto* resource = static_cast<RefCountedResource*>(peer);
   ref_counted_resource_mutex.lock();
-  peer->refcount--;
-  if (peer->refcount <= 0) {
-    free(peer->resource);
+  resource->refcount--;
+  if (resource->refcount <= 0) {
+    free(resource->resource);
     free(peer);
   }
   ref_counted_resource_mutex.unlock();

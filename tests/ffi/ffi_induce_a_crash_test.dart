@@ -19,8 +19,6 @@ import 'dylib_utils.dart';
 void main(List<String> args) async {
   // Test exercises JIT, Windows-only functionality.
   if (!Platform.isWindows) return;
-  if (path.basenameWithoutExtension(Platform.executable) ==
-      'dart_precompiled_runtime') return;
   if (args.length == 0) {
     asyncStart();
     final results = await Process.run(

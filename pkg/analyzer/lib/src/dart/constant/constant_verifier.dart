@@ -718,6 +718,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             _typeProvider.nullType,
             NullState.NULL_STATE,
           );
+        } else if (defaultValue.typeOrThrow is InvalidType) {
+          // We have already reported an error.
         } else {
           result = _validate(
               defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);

@@ -37,10 +37,12 @@ import '../builder/constructor_reference_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
+import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/inline_class_builder.dart';
+import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -53,6 +55,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -2424,6 +2427,42 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
           }
           return usesTypeVariables(type.returnType);
+        } else if (type is RecordTypeBuilder) {
+          if (type.positionalFields != null) {
+            for (RecordTypeFieldBuilder fieldBuilder
+                in type.positionalFields!) {
+              if (usesTypeVariables(fieldBuilder.type)) {
+                return true;
+              }
+            }
+          }
+          if (type.namedFields != null) {
+            for (RecordTypeFieldBuilder fieldBuilder in type.namedFields!) {
+              if (usesTypeVariables(fieldBuilder.type)) {
+                return true;
+              }
+            }
+          }
+        } else if (type is DependentTypeBuilder) {
+          return false;
+        } else if (type is FixedTypeBuilder) {
+          return false;
+        } else if (type is ImplicitTypeBuilder) {
+          return false;
+        } else if (type is InferableTypeBuilder) {
+          return false;
+        } else if (type is InvalidTypeBuilder) {
+          return false;
+        } else if (type is OmittedTypeBuilder) {
+          return false;
+        } else if (type == null) {
+          return false;
+        } else {
+          return unhandled(
+              "${type.runtimeType}",
+              "SourceLibraryBuilder._applyMixins.usesTypeVariables",
+              type.charOffset ?? TreeNode.noOffset,
+              type.fileUri ?? fileUri);
         }
         return false;
       }

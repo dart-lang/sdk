@@ -1885,8 +1885,8 @@ class _Uri implements Uri {
         if (path.length < 3 ||
             path.codeUnitAt(1) != _COLON ||
             path.codeUnitAt(2) != _BACKSLASH) {
-          throw ArgumentError(
-              r"Windows paths with \\?\ prefix must be absolute");
+          throw ArgumentError.value(
+              path, "path", r"Windows paths with \\?\ prefix must be absolute");
         }
       }
     } else {
@@ -1896,7 +1896,8 @@ class _Uri implements Uri {
     if (path.length > 1 && path.codeUnitAt(1) == _COLON) {
       _checkWindowsDriveLetter(path.codeUnitAt(0), true);
       if (path.length == 2 || path.codeUnitAt(2) != _BACKSLASH) {
-        throw ArgumentError("Windows paths with drive letter must be absolute");
+        throw ArgumentError.value(
+            path, "path", "Windows paths with drive letter must be absolute");
       }
       // Absolute file://C:/ URI.
       var pathSegments = path.split(sep);

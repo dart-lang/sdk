@@ -197,7 +197,10 @@ struct AsTypedListFinalizerData {
 }  // namespace
 
 DEFINE_FFI_NATIVE_ENTRY(Pointer_asTypedListFinalizerAllocateData, void*, ()) {
-  return malloc(sizeof(AsTypedListFinalizerData));
+  auto* result = malloc(sizeof(AsTypedListFinalizerData));
+  // Initialized with FFI stores.
+  MSAN_UNPOISON(result, sizeof(AsTypedListFinalizerData));
+  return result;
 };
 
 void AsTypedListFinalizerCallback(void* peer) {
