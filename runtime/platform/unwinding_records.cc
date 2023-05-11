@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/unwinding_records.h"
-#include "vm/globals.h"
+#include "platform/globals.h"
 
 #if !defined(DART_HOST_OS_WINDOWS) || !defined(TARGET_ARCH_X64)
 
