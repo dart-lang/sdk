@@ -225,9 +225,9 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.name.staticElement;
+    var element = node.element;
     if (element != null && isPrivate(element)) {
-      rule.reportLint(node.name);
+      rule.reportLintForToken(node.name2);
     }
     node.typeArguments?.accept(this);
   }

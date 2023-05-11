@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -70,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var type = node.expression.staticType;
     if (!(type == null ||
         type.isDartAsyncFuture ||
-        type.isDynamic ||
+        type is DynamicType ||
         type.extendsClass('Future', 'dart.async') ||
         type.implementsInterface('Future', 'dart.async') ||
         type.isDartAsyncFutureOr)) {

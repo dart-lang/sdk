@@ -132,7 +132,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    if (node.readType?.isDynamic != true) {
+    if (node.readType is! DynamicType) {
       // An assignment expression can only be a dynamic call if it is a
       // "compound assignment" (i.e. such as `x += 1`); so if `readType` is not
       // dynamic, we don't need to check further.
@@ -244,7 +244,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _lintIfDynamic(Expression? node) {
-    if (node?.staticType?.isDynamic ?? false) {
+    if (node?.staticType is DynamicType) {
       rule.reportLint(node);
       return true;
     } else {
@@ -257,7 +257,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (staticType == null) {
       return;
     }
-    if (staticType.isDynamic) {
+    if (staticType is DynamicType) {
       rule.reportLint(node);
     }
     if (staticType.isDartCoreFunction) {
@@ -270,7 +270,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (root is CompoundAssignmentExpression) {
-      if (root.readType?.isDynamic ?? false) {
+      if (root.readType is DynamicType) {
         // An assignment expression can only be a dynamic call if it is a
         // "compound assignment" (i.e. such as `x += 1`); so if `readType` is
         // dynamic we should lint.

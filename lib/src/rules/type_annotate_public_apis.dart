@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -139,7 +140,7 @@ class _VisitorHelper extends RecursiveAstVisitor {
   bool hasInferredType(VariableDeclaration node) {
     var staticType = node.initializer?.staticType;
     return staticType != null &&
-        !staticType.isDynamic &&
+        staticType is! DynamicType &&
         !staticType.isDartCoreNull;
   }
 

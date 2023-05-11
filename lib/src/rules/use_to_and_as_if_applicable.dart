@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -55,7 +56,7 @@ bool _beginsWithAsOrTo(String name) {
 }
 
 bool _isVoid(TypeAnnotation? returnType) =>
-    returnType is NamedType && returnType.name.name == 'void';
+    returnType is NamedType && returnType.type is VoidType;
 
 class UseToAndAsIfApplicable extends LintRule {
   static const LintCode code = LintCode('use_to_and_as_if_applicable',

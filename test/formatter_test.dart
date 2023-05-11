@@ -35,7 +35,8 @@ void defineTests() {
 
       var source = MockSource('/foo/bar/baz.dart');
 
-      var error = AnalysisError(source, 10, 3, code);
+      var error = AnalysisError.tmp(
+          source: source, offset: 10, length: 3, errorCode: code);
 
       var info = AnalysisErrorInfoImpl([error], lineInfo);
 
@@ -85,7 +86,8 @@ mock_code                               1
 
       var source = MockSource('/foo/bar/baz.dart');
 
-      var error = AnalysisError(source, 12, 13, code);
+      var error = AnalysisError.tmp(
+          source: source, offset: 12, length: 13, errorCode: code);
 
       var info = AnalysisErrorInfoImpl([error], lineInfo);
 

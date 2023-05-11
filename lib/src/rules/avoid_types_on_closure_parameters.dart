@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
@@ -85,7 +86,7 @@ class AvoidTypesOnClosureParametersVisitor extends SimpleAstVisitor {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = node.type;
-    if (type is NamedType && type.name.name != 'dynamic') {
+    if (type is NamedType && type.type is! DynamicType) {
       rule.reportLint(node.type);
     }
   }

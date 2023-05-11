@@ -217,8 +217,11 @@ class _Visitor extends RecursiveAstVisitor<void> {
     for (var unit in units) {
       for (var variable in lateables[unit] ?? const <VariableDeclaration>[]) {
         if (!allNullableAccess.contains(variable.declaredElement)) {
-          rule.reporter.reportError(AnalysisError(
-              unit.source, variable.offset, variable.length, rule.lintCode));
+          rule.reporter.reportError(AnalysisError.tmp(
+              source: unit.source,
+              offset: variable.offset,
+              length: variable.length,
+              errorCode: rule.lintCode));
         }
       }
     }

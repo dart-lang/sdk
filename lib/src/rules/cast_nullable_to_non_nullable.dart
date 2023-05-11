@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
@@ -78,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var type = node.type.type;
     if (expressionType != null &&
         type != null &&
-        !expressionType.isDynamic &&
+        expressionType is! DynamicType &&
         context.typeSystem.isNullable(expressionType) &&
         context.typeSystem.isNonNullable(type)) {
       rule.reportLint(node);

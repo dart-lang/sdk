@@ -103,7 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (loopParts is ForEachPartsWithDeclaration) {
       var loopVariableType = loopParts.loopVariable.type;
       var staticType = loopVariableType?.type;
-      if (staticType == null || staticType.isDynamic) {
+      if (staticType == null || staticType is DynamicType) {
         return;
       }
       var iterableType = loopParts.iterable.staticType;
@@ -141,7 +141,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _visitVariableDeclarationList(VariableDeclarationList node) {
     var staticType = node.type?.type;
     if (staticType == null ||
-        staticType.isDynamic ||
+        staticType is DynamicType ||
         staticType.isDartCoreNull) {
       return;
     }

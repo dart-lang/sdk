@@ -163,7 +163,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitNamedType(NamedType namedType) {
     var type = namedType.type;
     if (type is InterfaceType) {
-      var element = namedType.name.staticElement;
+      var element = namedType.element;
       if (element is TypeParameterizedElement &&
           element.typeParameters.isNotEmpty &&
           namedType.typeArguments == null &&

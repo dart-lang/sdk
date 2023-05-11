@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
@@ -69,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element is! DeclaredVariablePattern) return;
     var type = element.declaredElement?.type;
     if (type == null) return;
-    if (type.isDynamic) return;
+    if (type is DynamicType) return;
     var valueType = element.matchedValueType;
     if (valueType == null) return;
     if (context.typeSystem.isNullable(type) &&
@@ -124,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     var declaredElement = variable.declaredElement;
-    if (declaredElement == null || declaredElement.type.isDynamic) {
+    if (declaredElement == null || declaredElement.type is DynamicType) {
       return;
     }
 

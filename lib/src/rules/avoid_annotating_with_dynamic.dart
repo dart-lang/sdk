@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
@@ -81,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkNode(NormalFormalParameter node, TypeAnnotation? type) {
-    if (type is NamedType && type.name.name == 'dynamic') {
+    if (type is NamedType && type.type is DynamicType) {
       rule.reportLint(node);
     }
   }

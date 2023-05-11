@@ -89,8 +89,11 @@ void defineLinterEngineTests() {
         expect(visited, isTrue);
       });
       test('error collecting', () {
-        var error = AnalysisError(StringSource('foo', ''), 0, 0,
-            LintCode('MockLint', 'This is a test...'));
+        var error = AnalysisError.tmp(
+            source: StringSource('foo', ''),
+            offset: 0,
+            length: 0,
+            errorCode: LintCode('MockLint', 'This is a test...'));
         var linter = SourceLinter(LinterOptions([]))..onError(error);
         expect(linter.errors.contains(error), isTrue);
       });

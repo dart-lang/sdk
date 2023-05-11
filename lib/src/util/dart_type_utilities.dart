@@ -153,10 +153,10 @@ bool typesAreUnrelated(
   // return false as they _might_ be related.
   if (leftType == null ||
       leftType.isBottom ||
-      leftType.isDynamic ||
+      leftType is DynamicType ||
       rightType == null ||
       rightType.isBottom ||
-      rightType.isDynamic) {
+      rightType is DynamicType) {
     return false;
   }
   var promotedLeftType = typeSystem.promoteToNonNull(leftType);

@@ -65,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, LinterContext context) : typeSystem = context.typeSystem;
 
   bool isTypeAcceptableWhenExpectingFutureOrVoid(DartType type) {
-    if (type.isDynamic) return true;
+    if (type is DynamicType) return true;
     if (isTypeAcceptableWhenExpectingVoid(type)) return true;
     if (type.isDartAsyncFutureOr ||
         type.isDartAsyncFuture &&
@@ -154,7 +154,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (expectedType is VoidType &&
-        !type.isDynamic &&
+        type is! DynamicType &&
         node is ReturnStatement) {
       return;
     }

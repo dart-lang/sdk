@@ -161,16 +161,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (methodName == 'createFragment' &&
-        (type.isDynamic || type.extendsDartHtmlClass('Element'))) {
+        (type is DynamicType || type.extendsDartHtmlClass('Element'))) {
       rule.reportLint(node,
           arguments: ['createFragment', 'Element'],
           errorCode: unsafeMethodCode);
     } else if (methodName == 'setInnerHtml' &&
-        (type.isDynamic || type.extendsDartHtmlClass('Element'))) {
+        (type is DynamicType || type.extendsDartHtmlClass('Element'))) {
       rule.reportLint(node,
           arguments: ['setInnerHtml', 'Element'], errorCode: unsafeMethodCode);
     } else if (methodName == 'open' &&
-        (type.isDynamic || type.extendsDartHtmlClass('Window'))) {
+        (type is DynamicType || type.extendsDartHtmlClass('Window'))) {
       rule.reportLint(node,
           arguments: ['open', 'Window'], errorCode: unsafeMethodCode);
     }
@@ -183,12 +183,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     // It is more efficient to check the setter's name before checking whether
     // the target is an interesting type.
     if (property.name == 'href') {
-      if (type.isDynamic || type.extendsDartHtmlClass('AnchorElement')) {
+      if (type is DynamicType || type.extendsDartHtmlClass('AnchorElement')) {
         rule.reportLint(assignment,
             arguments: ['href'], errorCode: unsafeAttributeCode);
       }
     } else if (property.name == 'src') {
-      if (type.isDynamic ||
+      if (type is DynamicType ||
           type.extendsDartHtmlClass('EmbedElement') ||
           type.extendsDartHtmlClass('IFrameElement') ||
           type.extendsDartHtmlClass('ScriptElement')) {
@@ -196,7 +196,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             arguments: ['src'], errorCode: unsafeAttributeCode);
       }
     } else if (property.name == 'srcdoc') {
-      if (type.isDynamic || type.extendsDartHtmlClass('IFrameElement')) {
+      if (type is DynamicType || type.extendsDartHtmlClass('IFrameElement')) {
         rule.reportLint(assignment,
             arguments: ['srcdoc'], errorCode: unsafeAttributeCode);
       }

@@ -102,7 +102,9 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
     var value = param.computeConstantValue();
-    if (value != null && value.hasKnownValue) {
+    if (value == null && arg is NullLiteral) {
+      rule.reportLint(arg);
+    } else if (value != null && value.hasKnownValue) {
       var expressionValue = context.evaluateConstant(arg).value;
       if ((expressionValue?.hasKnownValue ?? false) &&
           expressionValue == value) {

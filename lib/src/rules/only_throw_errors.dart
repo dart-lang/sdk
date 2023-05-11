@@ -55,7 +55,7 @@ final LinkedHashSet<InterfaceTypeDefinition> _interfaceDefinitions =
 bool _isThrowable(DartType? type) {
   var typeForInterfaceCheck = type?.typeForInterfaceCheck;
   return typeForInterfaceCheck == null ||
-      typeForInterfaceCheck.isDynamic ||
+      typeForInterfaceCheck is DynamicType ||
       type is NeverType ||
       typeForInterfaceCheck.implementsAnyInterface(_interfaceDefinitions);
 }

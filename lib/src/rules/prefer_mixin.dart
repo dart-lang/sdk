@@ -78,7 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (element is MixinElement) continue;
         if ((element is ClassElement && !element.isMixinClass) &&
             !isAllowed(element)) {
-          rule.reportLint(mixinNode, arguments: [mixinNode.name.name]);
+          rule.reportLint(mixinNode, arguments: [mixinNode.name2.lexeme]);
         }
       }
     }
