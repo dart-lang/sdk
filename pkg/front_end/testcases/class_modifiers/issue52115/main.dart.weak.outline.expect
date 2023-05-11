@@ -16,6 +16,25 @@ library /*isNonNullableByDefault*/;
 // final class MapEntry<K, V> {
 //             ^
 //
+// pkg/front_end/testcases/class_modifiers/issue52115/main.dart:20:16: Error: The type 'LegacyImplementBaseNoModifier' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
+// Try adding 'base', 'final', or 'sealed' to the type.
+// abstract class LegacyImplementBaseNoModifier<E extends LinkedListEntry<E>>
+//                ^
+//
+// pkg/front_end/testcases/class_modifiers/issue52115/main.dart:21:16: Error: The class 'LinkedList' can't be implemented outside of its library because it's a base class.
+//     implements LegacyImplementBaseCore<E> {}
+//                ^
+// sdk/lib/collection/linked_list.dart:81:12: Context: The type 'LegacyImplementBaseCore' is a subtype of 'LinkedList', and 'LinkedList' is defined here.
+// base class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
+//            ^
+//
+// pkg/front_end/testcases/class_modifiers/issue52115/main.dart:24:49: Error: The class 'MapEntry' can't be implemented outside of its library because it's a final class.
+// class LegacyImplementFinalNoModifier implements LegacyImplementFinalCore {
+//                                                 ^
+// sdk/lib/core/map.dart:472:13: Context: The type 'LegacyImplementFinalCore' is a subtype of 'MapEntry', and 'MapEntry' is defined here.
+// final class MapEntry<K, V> {
+//             ^
+//
 import self as self;
 import "dart:collection" as col;
 import "dart:core" as core;
@@ -30,6 +49,20 @@ abstract base class LegacyImplementBase<E extends col::LinkedListEntry<self::Leg
 }
 final class LegacyImplementFinal extends core::Object implements mai::LegacyImplementFinalCore {
   synthetic constructor •() → self::LegacyImplementFinal
+    ;
+  get key() → core::int
+    ;
+  get value() → core::int
+    ;
+  method toString() → core::String
+    ;
+}
+abstract class LegacyImplementBaseNoModifier<E extends col::LinkedListEntry<self::LegacyImplementBaseNoModifier::E> = col::LinkedListEntry<dynamic>> extends core::Object implements mai::LegacyImplementBaseCore<self::LegacyImplementBaseNoModifier::E> {
+  synthetic constructor •() → self::LegacyImplementBaseNoModifier<self::LegacyImplementBaseNoModifier::E>
+    ;
+}
+class LegacyImplementFinalNoModifier extends core::Object implements mai::LegacyImplementFinalCore {
+  synthetic constructor •() → self::LegacyImplementFinalNoModifier
     ;
   get key() → core::int
     ;
