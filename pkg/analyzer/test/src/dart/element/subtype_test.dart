@@ -2677,11 +2677,6 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
   }
 
-  test_invalidType() {
-    isSubtype2('InvalidType', 'int');
-    isSubtype2('int', 'InvalidType');
-  }
-
   test_multi_function_nonGeneric_oneArgument() {
     isSubtype2('num* Function(num*)*', 'num* Function(int*)*');
     isSubtype2('int* Function(num*)*', 'num* Function(num*)*');

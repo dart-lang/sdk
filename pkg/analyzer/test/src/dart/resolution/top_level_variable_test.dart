@@ -72,11 +72,11 @@ VariableDeclaration
               staticElement: <null>
               staticType: InvalidType
           declaredElement: @99
-            type: InvalidType Function(Object?)
+            type: int Function(Object?)
           parameter: ParameterMember
             base: root::@parameter::b
             substitution: {T: String}
-          staticType: InvalidType Function(Object?)
+          staticType: int Function(Object?)
       rightParenthesis: )
     staticInvokeType: String? Function(String Function(), int Function(String))
     staticType: String?

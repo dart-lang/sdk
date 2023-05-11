@@ -22,7 +22,6 @@ mixin StringTypes on AbstractTypeSystemTest {
 
   void defineStringTypes() {
     _defineType('dynamic', dynamicType);
-    _defineType('InvalidType', invalidType);
     _defineType('void', voidNone);
 
     _defineType('Never', neverNone);

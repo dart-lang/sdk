@@ -45,12 +45,6 @@ class SubtypeHelper {
       return true;
     }
 
-    // `InvalidType` is treated as a top and a bottom type.
-    if (identical(T0_, InvalidTypeImpl.instance) ||
-        identical(T1_, InvalidTypeImpl.instance)) {
-      return true;
-    }
-
     var T0 = T0_ as TypeImpl;
     var T1 = T1_ as TypeImpl;
 

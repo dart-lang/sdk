@@ -739,8 +739,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// [WarningCode.UNNECESSARY_TYPE_CHECK_FALSE].
   bool _checkAllTypeChecks(IsExpression node) {
     var leftNode = node.expression;
-    var leftType = leftNode.typeOrThrow;
-
     var rightNode = node.type;
     var rightType = rightNode.type as TypeImpl;
 
@@ -751,11 +749,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             : WarningCode.UNNECESSARY_TYPE_CHECK_FALSE,
         node,
       );
-    }
-
-    // `cannotResolve is X` or `cannotResolve is! X`
-    if (leftType is InvalidType) {
-      return false;
     }
 
     // `is dynamic` or `is! dynamic`
@@ -785,6 +778,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (_isNonNullableByDefault) {
+      var leftType = leftNode.typeOrThrow;
       if (_typeSystem.isSubtypeOf(leftType, rightType)) {
         report();
         return true;

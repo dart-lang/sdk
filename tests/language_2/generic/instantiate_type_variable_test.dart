@@ -10,6 +10,8 @@ class Foo<T> {
   Foo() {}
   T make() {
     return new T();
+    //     ^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_NEW_EXPR
     //         ^
     // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
     // [cfe] Couldn't find constructor 'T'.
