@@ -52,6 +52,8 @@ int f01() => 0;
 suggestions
   A1
     kind: class
+  A1.named
+    kind: constructorInvocation
   c01
     kind: topLevelVariable
   const

@@ -188,6 +188,7 @@ suggestions
     kind: class
   B1
     kind: class
+    deprecated: true
 ''');
   }
 
@@ -402,6 +403,10 @@ suggestions
   Future
     kind: constructorInvocation
   Future.delayed
+    kind: constructorInvocation
+  Future.microtask
+    kind: constructorInvocation
+  Future.value
     kind: constructorInvocation
 ''');
     }

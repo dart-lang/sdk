@@ -15,14 +15,14 @@ void main() {
 
 @reflectiveTest
 class ExtensionMemberTest1 extends AbstractCompletionDriverTest
-    with ExtensionMemberTestCases {
+    with ExtensionMemberTestCases, StaticExtensionMemberTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
 class ExtensionMemberTest2 extends AbstractCompletionDriverTest
-    with ExtensionMemberTestCases {
+    with ExtensionMemberTestCases, StaticExtensionMemberTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
@@ -498,6 +498,53 @@ void f() {
     assertResponse(r'''
 replacement
   left: 1
+suggestions
+''');
+  }
+}
+
+mixin StaticExtensionMemberTestCases on AbstractCompletionDriverTest {
+  Future<void> test_afterPeriod() async {
+    await computeSuggestions('''
+extension E0 on Object {
+  static int i0;
+  static String s0;
+}
+void f() {
+  E0.^
+}
+''');
+    assertResponse(r'''
+suggestions
+  i0
+    kind: field
+  s0
+    kind: field
+''');
+  }
+
+  Future<void> test_afterPeriod_private() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension E on Object {
+  static int _f0 = 0;
+  static String get _g0 => '';
+  static int _m0() => 0;
+  static set _s0(v) {}
+  void m() {
+    _f0;
+    _g0;
+    _m0();
+    _s0 = 0;
+  }
+}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+void f() {
+  E.^;
+}
+''');
+    assertResponse(r'''
 suggestions
 ''');
   }

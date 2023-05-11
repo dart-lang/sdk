@@ -433,10 +433,18 @@ suggestions
     kind: class
   A0
     kind: constructorInvocation
+  A0.f02
+    kind: field
+  A0.g02
+    kind: getter
   A1
     kind: class
   A1
     kind: constructorInvocation
+  A1.f12
+    kind: field
+  A1.g12
+    kind: getter
   const
     kind: keyword
   false
@@ -516,10 +524,18 @@ suggestions
     kind: class
   A0
     kind: constructorInvocation
+  A0.f02
+    kind: field
+  A0.g02
+    kind: getter
   A1
     kind: class
   A1
     kind: constructorInvocation
+  A1.f12
+    kind: field
+  A1.g12
+    kind: getter
   const
     kind: keyword
   false

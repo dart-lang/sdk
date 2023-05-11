@@ -88,6 +88,8 @@ class CompletionResponsePrinter {
         return 'identifier';
       } else if (elementKind == ElementKind.CLASS) {
         return 'class';
+      } else if (elementKind == ElementKind.CONSTRUCTOR) {
+        return 'constructorInvocation';
       } else if (elementKind == ElementKind.ENUM) {
         return 'enum';
       } else if (elementKind == ElementKind.ENUM_CONSTANT) {
@@ -156,6 +158,12 @@ class CompletionResponsePrinter {
       _writelnWithIndent('|$completion|');
     } else {
       _writelnWithIndent(completion);
+    }
+  }
+
+  void _writeDeprecated(CompletionSuggestion suggestion) {
+    if (suggestion.isDeprecated) {
+      _writelnWithIndent('deprecated: true');
     }
   }
 
@@ -265,6 +273,7 @@ class CompletionResponsePrinter {
     _writeCompletion(suggestion);
     _withIndent(() {
       _writeSuggestionKind(suggestion);
+      _writeDeprecated(suggestion);
       _writeDisplayText(suggestion);
       _writeDocumentation(suggestion);
       _writeElement(suggestion);
