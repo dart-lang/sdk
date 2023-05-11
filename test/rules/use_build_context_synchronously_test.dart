@@ -54,6 +54,70 @@ Future<void> f() async {}
     ]);
   }
 
+  test_awaitBeforeConditional_mountedGuard() async {
+    // Await, then an "if mounted" guard in a conditional expression, and use of
+    // BuildContext in the conditional-then, is OK.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await c();
+  mounted ? Navigator.of(context) : null;
+}
+Future<void> c() async => true;
+bool mounted = false;
+''');
+  }
+
+  test_awaitBeforeConditional_mountedGuard2() async {
+    // Await, then an "if not mounted" guard in a conditional expression, and
+    // use of BuildContext in the conditional-else, is OK.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await c();
+  !mounted ? null : Navigator.of(context);
+}
+Future<void> c() async => true;
+bool mounted = false;
+''');
+  }
+
+  test_awaitBeforeConditional_mountedGuard3() async {
+    // Await, then an "if mounted" guard in a conditional expression, and
+    // use of BuildContext in the conditional-else, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await c();
+  mounted ? null : Navigator.of(context);
+}
+Future<void> c() async => true;
+bool mounted = false;
+''', [
+      lint(111, 21),
+    ]);
+  }
+
+  test_awaitBeforeConditional_mountedGuard4() async {
+    // Await, then an "if not mounted" guard in a conditional expression, and
+    // use of BuildContext in the conditional-then, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await c();
+  !mounted ? Navigator.of(context) : null;
+}
+Future<void> c() async => true;
+bool mounted = false;
+''', [
+      lint(105, 21),
+    ]);
+  }
+
   test_awaitBeforeIf_mountedExitGuardInIf_beforeReferenceToContext() async {
     // Await, then a proper "exit if not mounted" guard in an if-condition (or'd
     // with another bool), then use of BuildContext, is OK.
@@ -69,6 +133,28 @@ void foo(BuildContext context) async {
 bool mounted = false;
 Future<void> f() async {}
 bool get c => true;
+''');
+  }
+
+  test_awaitBeforeIf_mountedExitGuardInIf_beforeReferenceToContext4() async {
+    // Await, then an unrelated if/else, with a proper "exit if not mounted"
+    // guard in the then-statement, and another in the else-statement, then use
+    // of BuildContext, is OK.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+  if (1 == 2) {
+    if (!mounted) return;
+  } else {
+    if (!mounted) return;
+  }
+  Navigator.of(context);
+}
+
+bool mounted = false;
+Future<void> f() async {}
 ''');
   }
 
@@ -141,6 +227,27 @@ bool mounted = false;
 Future<void> f() async {}
 bool get c => true;
 ''');
+  }
+
+  test_awaitBeforeIf_mountedGuardInIf3() async {
+    // Await, then a proper "if mounted" guard in an if-condition, then use of
+    // BuildContext in the else-body, is OK.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+  if (mounted) {
+  } else {
+    Navigator.of(context);
+  }
+}
+
+bool mounted = false;
+Future<void> f() async {}
+''', [
+      lint(124, 21),
+    ]);
   }
 
   test_awaitBeforeIfStatement_withReferenceToContext() async {
@@ -231,6 +338,37 @@ void foo(BuildContext context) async {
 Future<bool> c() async => true;
 ''', [
       lint(106, 21),
+    ]);
+  }
+
+  test_awaitInIfCondition_beforeReferenceToContext2() async {
+    // Await in an if-condition, and use of BuildContext in single-statement
+    // if-then, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  if (await c()) Navigator.of(context);
+}
+Future<bool> c() async => true;
+''', [
+      lint(96, 21),
+    ]);
+  }
+
+  test_awaitInIfCondition_beforeReferenceToContext3() async {
+    // Await in an if-condition, and use of BuildContext in single-statement
+    // if-else, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  if (await c()) print(1);
+  else Navigator.of(context);
+}
+Future<bool> c() async => true;
+''', [
+      lint(113, 21),
     ]);
   }
 
@@ -423,6 +561,21 @@ Future<bool> c() async => true;
       // No lint.
       error(WarningCode.DEAD_CODE, 166, 22),
     ]);
+  }
+
+  test_conditionalOperator() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+Future<String> foo(BuildContext context, bool condition) async {
+  await Future<void>.delayed(Duration());
+  return mounted ? bar(context) : 'no';
+}
+
+bool get mounted => true;
+
+String bar(BuildContext context) => 'bar';
+''');
   }
 
   /// https://github.com/dart-lang/linter/issues/3818
