@@ -12,8 +12,8 @@ import 'src/mmap_impl.dart';
 
 /// Whether memory mapping files is supported.
 ///
-/// Currently we only support linux-x64.
-final bool supportsMMap = Platform.isLinux && sizeOf<IntPtr>() == 8;
+/// Currently we only support Linux.
+final bool supportsMMap = finalizerCode[Abi.current()] != null;
 
 class MemoryMappedFile {
   /// The memory mapped region of the address space as bytes.
