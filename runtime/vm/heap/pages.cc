@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "platform/leak_sanitizer.h"
+#include "platform/unwinding_records.h"
 #include "vm/dart.h"
 #include "vm/heap/become.h"
 #include "vm/heap/compactor.h"
@@ -217,7 +218,7 @@ Page* PageSpace::AllocatePage(bool is_exec, bool link) {
 
 Page* PageSpace::AllocateLargePage(intptr_t size, bool is_exec) {
   const intptr_t page_size_in_words = LargePageSizeInWordsFor(
-      size + (is_exec ? UnwindingRecords::SizeInBytes() : 0));
+      size + (is_exec ? UnwindingRecordsPlatform::SizeInBytes() : 0));
   {
     MutexLocker ml(&pages_lock_);
     if (!CanIncreaseCapacityInWordsLocked(page_size_in_words)) {

@@ -2,15 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/unwinding_records.h"
+#include "platform/unwinding_records.h"
 #include "vm/globals.h"
 
 #if !defined(DART_HOST_OS_WINDOWS) || !defined(TARGET_ARCH_X64)
 
 namespace dart {
 
-void UnwindingRecords::RegisterExecutablePage(Page* page) {}
-void UnwindingRecords::UnregisterExecutablePage(Page* page) {}
+void UnwindingRecordsPlatform::Init() {}
+void UnwindingRecordsPlatform::Cleanup() {}
+void UnwindingRecordsPlatform::RegisterExecutableMemory(
+    void* start,
+    intptr_t size,
+    void** pp_dynamic_table) {}
+void UnwindingRecordsPlatform::UnregisterDynamicTable(void* p_dynamic_table) {}
+intptr_t UnwindingRecordsPlatform::SizeInBytes() {
+  return 0;
+}
 
 }  // namespace dart
 

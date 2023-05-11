@@ -7,6 +7,8 @@
 
 #include "vm/dart.h"
 
+#include "platform/unwinding_records.h"
+
 #include "vm/app_snapshot.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/runtime_offsets_extracted.h"
@@ -334,7 +336,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Api::Init();
   NativeSymbolResolver::Init();
   NOT_IN_PRODUCT(Profiler::Init());
-  UnwindingRecords::Init();
+  UnwindingRecordsPlatform::Init();
   Page::Init();
   StoreBuffer::Init();
   MarkingStack::Init();
@@ -767,7 +769,7 @@ char* Dart::Cleanup() {
   StoreBuffer::Cleanup();
   Object::Cleanup();
   Page::Cleanup();
-  UnwindingRecords::Cleanup();
+  UnwindingRecordsPlatform::Cleanup();
   StubCode::Cleanup();
 #if defined(SUPPORT_TIMELINE)
   if (FLAG_trace_shutdown) {
