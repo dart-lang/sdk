@@ -740,7 +740,7 @@ SwitchStatement
           expression: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@54, a@81]
-            staticType: dynamic
+            staticType: InvalidType
           semicolon: ;
   rightBracket: }
 ''');
@@ -836,7 +836,7 @@ SwitchStatement
           expression: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@48, a@75]
-            staticType: dynamic
+            staticType: InvalidType
           semicolon: ;
   rightBracket: }
 ''');

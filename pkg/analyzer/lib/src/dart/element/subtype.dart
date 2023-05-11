@@ -54,6 +54,7 @@ class SubtypeHelper {
     // Right Top: if `T1` is a top type (i.e. `dynamic`, or `void`, or
     // `Object?`) then `T0 <: T1`.
     if (identical(T1, DynamicTypeImpl.instance) ||
+        identical(T1, InvalidTypeImpl.instance) ||
         identical(T1, VoidTypeImpl.instance) ||
         T1_nullability == NullabilitySuffix.question && T1.isDartCoreObject) {
       return true;
@@ -62,6 +63,7 @@ class SubtypeHelper {
     // Left Top: if `T0` is `dynamic` or `void`,
     //   then `T0 <: T1` if `Object? <: T1`.
     if (identical(T0, DynamicTypeImpl.instance) ||
+        identical(T0, InvalidTypeImpl.instance) ||
         identical(T0, VoidTypeImpl.instance)) {
       if (isSubtypeOf(_objectQuestion, T1)) {
         return true;
@@ -107,6 +109,7 @@ class SubtypeHelper {
       //   then the subtyping does not hold, the result is false.
       if (T0_nullability == NullabilitySuffix.none && T0.isDartCoreNull ||
           identical(T0, DynamicTypeImpl.instance) ||
+          identical(T0, InvalidTypeImpl.instance) ||
           identical(T0, VoidTypeImpl.instance) ||
           T0_nullability == NullabilitySuffix.question) {
         return false;

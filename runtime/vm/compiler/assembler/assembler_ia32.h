@@ -774,7 +774,7 @@ class Assembler : public AssemblerBase {
       imull(reg, Immediate(imm));
     }
   }
-  void AndImmediate(Register dst, int32_t value) {
+  void AndImmediate(Register dst, int32_t value) override {
     andl(dst, Immediate(value));
   }
   void AndImmediate(Register dst, Register src, int32_t value) {
@@ -922,19 +922,6 @@ class Assembler : public AssemblerBase {
   void LockCmpxchgl(const Address& address, Register reg) {
     lock();
     cmpxchgl(address, reg);
-  }
-
-  void LoadAbstractTypeNullability(Register dst, Register type) override {
-    movzxb(dst,
-           FieldAddress(type, compiler::target::AbstractType::flags_offset()));
-    andl(dst,
-         Immediate(compiler::target::UntaggedAbstractType::kNullabilityMask));
-  }
-  void CompareAbstractTypeNullabilityWith(Register type,
-                                          /*Nullability*/ int8_t value,
-                                          Register scratch) override {
-    LoadAbstractTypeNullability(scratch, type);
-    cmpl(scratch, Immediate(value));
   }
 
   void EnterFrame(intptr_t frame_space);

@@ -15,7 +15,7 @@ import '../compiler_api.dart' as api;
 import 'commandline_options.dart';
 import 'common/ram_usage.dart';
 import 'io/mapped_file.dart';
-import 'options.dart' show CompilerOptions, FeatureOptions;
+import 'options.dart' show CompilerOptions, Dart2JSStage, FeatureOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
@@ -136,18 +136,8 @@ Future<api.CompilationResult> compile(List<String> argv,
   Uri? entryUri;
   Uri? inputDillUri;
   Uri librariesSpecificationUri = Uri.base.resolve('lib/libraries.json');
-  bool outputSpecified = false;
   Uri? out;
   Uri? sourceMapOut;
-  Uri? writeModularAnalysisUri;
-  Uri? readDataUri;
-  Uri? writeDataUri;
-  Uri? readClosedWorldUri;
-  Uri? writeClosedWorldUri;
-  Uri? readCodegenUri;
-  Uri? writeCodegenUri;
-  int? codegenShard;
-  int? codegenShards;
   List<String>? bazelPaths;
   List<Uri>? multiRoots;
   String? multiRootScheme = 'org-dartlang-app';
@@ -169,8 +159,6 @@ Future<api.CompilationResult> compile(List<String> argv,
   int? optimizationLevel;
   Uri? platformBinaries;
   Map<String, String> environment = Map<String, String>();
-  ReadStrategy readStrategy = ReadStrategy.fromDart;
-  WriteStrategy writeStrategy = WriteStrategy.toJs;
   FeatureOptions features = FeatureOptions();
   String? invoker;
 
@@ -187,10 +175,12 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setEntryUri(String argument) {
     entryUri = extractResolvedFileUri(argument);
+    options.add('${Flags.entryUri}=$entryUri');
   }
 
   void setInputDillUri(String argument) {
     inputDillUri = extractResolvedFileUri(argument);
+    options.add('${Flags.inputDill}=$inputDillUri');
   }
 
   void setLibrarySpecificationUri(String argument) {
@@ -201,8 +191,14 @@ Future<api.CompilationResult> compile(List<String> argv,
     packageConfig = extractResolvedFileUri(argument);
   }
 
+  void Function(String) setDataUri(String flag) {
+    return (String argument) {
+      final uri = fe.nativeToUri(extractPath(argument, isDirectory: false));
+      options.add('$flag=$uri');
+    };
+  }
+
   void setOutput(Iterator<String> arguments) {
-    outputSpecified = true;
     String option = arguments.current;
     String path;
     if (option == '-o' || option == '--out' || option == '--output') {
@@ -214,6 +210,7 @@ Future<api.CompilationResult> compile(List<String> argv,
       path = extractParameter(option);
     }
     out = Uri.base.resolve(fe.nativeToUriPath(path));
+    options.add('--out=$out');
   }
 
   void setOptimizationLevel(String argument) {
@@ -332,163 +329,12 @@ Future<api.CompilationResult> compile(List<String> argv,
     setUriList(Flags.readModularAnalysis, argument);
   }
 
-  void setWriteModularAnalysis(String argument) {
-    if (writeStrategy == WriteStrategy.toClosedWorld) {
-      _fail("Cannot use ${Flags.writeModularAnalysis} "
-          "and write serialized closed world simultaneously.");
-    }
-    if (writeStrategy == WriteStrategy.toData) {
-      _fail("Cannot use ${Flags.writeModularAnalysis} "
-          "and write serialized global data simultaneously.");
-    }
-    if (writeStrategy == WriteStrategy.toCodegen) {
-      _fail("Cannot use ${Flags.writeModularAnalysis} "
-          "and write serialized codegen simultaneously.");
-    }
-    if (argument != Flags.writeModularAnalysis) {
-      writeModularAnalysisUri =
-          fe.nativeToUri(extractPath(argument, isDirectory: false));
-    }
-    writeStrategy = writeStrategy == WriteStrategy.toKernel
-        ? WriteStrategy.toKernelWithModularAnalysis
-        : WriteStrategy.toModularAnalysis;
-  }
-
-  void setReadData(String argument) {
-    if (argument != Flags.readData) {
-      readDataUri = fe.nativeToUri(extractPath(argument, isDirectory: false));
-    }
-
-    if (readStrategy == ReadStrategy.fromDart) {
-      readStrategy = ReadStrategy.fromData;
-    } else if (readStrategy == ReadStrategy.fromClosedWorld) {
-      readStrategy = ReadStrategy.fromDataAndClosedWorld;
-    } else if (readStrategy == ReadStrategy.fromCodegen) {
-      readStrategy = ReadStrategy.fromCodegenAndData;
-    } else if (readStrategy == ReadStrategy.fromCodegenAndClosedWorld) {
-      readStrategy = ReadStrategy.fromCodegenAndClosedWorldAndData;
-    }
-  }
-
-  void setReadClosedWorld(String argument) {
-    if (argument != Flags.readClosedWorld) {
-      readClosedWorldUri =
-          fe.nativeToUri(extractPath(argument, isDirectory: false));
-    }
-
-    if (readStrategy == ReadStrategy.fromDart) {
-      readStrategy = ReadStrategy.fromClosedWorld;
-    } else if (readStrategy == ReadStrategy.fromData) {
-      readStrategy = ReadStrategy.fromDataAndClosedWorld;
-    } else if (readStrategy == ReadStrategy.fromCodegen) {
-      readStrategy = ReadStrategy.fromCodegenAndClosedWorld;
-    } else if (readStrategy == ReadStrategy.fromCodegenAndData) {
-      readStrategy = ReadStrategy.fromCodegenAndClosedWorldAndData;
-    }
-  }
-
   void setDillDependencies(String argument) {
     setUriList(Flags.dillDependencies, argument);
   }
 
   void setSources(String argument) {
     sources = setUriList(Flags.sources, argument);
-  }
-
-  void setCfeOnly(String argument) {
-    if (writeStrategy == WriteStrategy.toClosedWorld) {
-      _fail("Cannot use ${Flags.cfeOnly} "
-          "and write serialized closed world simultaneously.");
-    }
-    if (writeStrategy == WriteStrategy.toData) {
-      _fail("Cannot use ${Flags.cfeOnly} "
-          "and write serialized data simultaneously.");
-    }
-    if (writeStrategy == WriteStrategy.toCodegen) {
-      _fail("Cannot use ${Flags.cfeOnly} "
-          "and write serialized codegen simultaneously.");
-    }
-    writeStrategy = writeStrategy == WriteStrategy.toModularAnalysis
-        ? WriteStrategy.toKernelWithModularAnalysis
-        : WriteStrategy.toKernel;
-  }
-
-  void setReadCodegen(String argument) {
-    if (argument != Flags.readCodegen) {
-      readCodegenUri =
-          fe.nativeToUri(extractPath(argument, isDirectory: false));
-    }
-
-    if (readStrategy == ReadStrategy.fromDart) {
-      readStrategy = ReadStrategy.fromCodegen;
-    } else if (readStrategy == ReadStrategy.fromClosedWorld) {
-      readStrategy = ReadStrategy.fromCodegenAndClosedWorld;
-    } else if (readStrategy == ReadStrategy.fromData) {
-      readStrategy = ReadStrategy.fromCodegenAndData;
-    } else if (readStrategy == ReadStrategy.fromDataAndClosedWorld) {
-      readStrategy = ReadStrategy.fromCodegenAndClosedWorldAndData;
-    }
-  }
-
-  void setWriteData(String argument) {
-    if (writeStrategy == WriteStrategy.toKernel) {
-      _fail("Cannot use ${Flags.cfeOnly} "
-          "and write serialized data simultaneously.");
-    }
-    if (writeStrategy == WriteStrategy.toClosedWorld) {
-      _fail("Cannot write closed world and data simultaneously.");
-    }
-    if (writeStrategy == WriteStrategy.toCodegen) {
-      _fail("Cannot write serialized data and codegen simultaneously.");
-    }
-    if (argument != Flags.writeData) {
-      writeDataUri = fe.nativeToUri(extractPath(argument, isDirectory: false));
-    }
-    writeStrategy = WriteStrategy.toData;
-  }
-
-  void setWriteClosedWorld(String argument) {
-    if (writeStrategy == WriteStrategy.toKernel) {
-      _fail("Cannot use ${Flags.cfeOnly} "
-          "and write serialized data simultaneously.");
-    }
-    if (writeStrategy == WriteStrategy.toData) {
-      _fail("Cannot write both closed world and data");
-    }
-    if (writeStrategy == WriteStrategy.toCodegen) {
-      _fail("Cannot write serialized data and codegen simultaneously.");
-    }
-    if (argument != Flags.writeClosedWorld) {
-      writeClosedWorldUri =
-          fe.nativeToUri(extractPath(argument, isDirectory: false));
-    }
-    writeStrategy = WriteStrategy.toClosedWorld;
-  }
-
-  void setWriteCodegen(String argument) {
-    if (writeStrategy == WriteStrategy.toKernel) {
-      _fail("Cannot use ${Flags.cfeOnly} "
-          "and write serialized codegen simultaneously.");
-    }
-    if (writeStrategy == WriteStrategy.toClosedWorld) {
-      _fail("Cannot write closed world and codegen simultaneously.");
-    }
-    if (writeStrategy == WriteStrategy.toData) {
-      _fail("Cannot write serialized data and codegen data simultaneously.");
-    }
-    if (argument != Flags.writeCodegen) {
-      writeCodegenUri =
-          fe.nativeToUri(extractPath(argument, isDirectory: false));
-    }
-    writeStrategy = WriteStrategy.toCodegen;
-  }
-
-  void setCodegenShard(String argument) {
-    codegenShard = int.parse(extractParameter(argument));
-  }
-
-  void setCodegenShards(String argument) {
-    codegenShards = int.parse(extractParameter(argument));
   }
 
   void setDumpInfo(String argument) {
@@ -580,22 +426,22 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption('${Flags.dillDependencies}=.+', setDillDependencies),
     _OneOption('${Flags.sources}=.+', setSources),
     _OneOption('${Flags.readModularAnalysis}=.+', setModularAnalysisInputs),
-    _OneOption('${Flags.writeModularAnalysis}|${Flags.writeModularAnalysis}=.+',
-        setWriteModularAnalysis),
-    _OneOption('${Flags.readData}|${Flags.readData}=.+', setReadData),
-    _OneOption('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
+    _OneOption('${Flags.writeModularAnalysis}=.+',
+        setDataUri(Flags.writeModularAnalysis)),
+    _OneOption('${Flags.readData}=.+', setDataUri(Flags.readData)),
+    _OneOption('${Flags.writeData}=.+', setDataUri(Flags.writeData)),
+    _OneOption(
+        '${Flags.readClosedWorld}=.+', setDataUri(Flags.readClosedWorld)),
+    _OneOption(
+        '${Flags.writeClosedWorld}=.+', setDataUri(Flags.writeClosedWorld)),
+    _OneOption('${Flags.readCodegen}=.+', setDataUri(Flags.readCodegen)),
+    _OneOption('${Flags.writeCodegen}=.+', setDataUri(Flags.writeCodegen)),
+    _OneOption('${Flags.codegenShard}=.+', passThrough),
+    _OneOption('${Flags.codegenShards}=.+', passThrough),
+    _OneOption(Flags.cfeOnly, passThrough),
     _OneOption(Flags.memoryMappedFiles, passThrough),
     _OneOption(Flags.noClosedWorldInData, ignoreOption),
-    _OneOption('${Flags.readClosedWorld}|${Flags.readClosedWorld}=.+',
-        setReadClosedWorld),
-    _OneOption('${Flags.writeClosedWorld}|${Flags.writeClosedWorld}=.+',
-        setWriteClosedWorld),
-    _OneOption('${Flags.readCodegen}|${Flags.readCodegen}=.+', setReadCodegen),
-    _OneOption(
-        '${Flags.writeCodegen}|${Flags.writeCodegen}=.+', setWriteCodegen),
-    _OneOption('${Flags.codegenShard}=.+', setCodegenShard),
-    _OneOption('${Flags.codegenShards}=.+', setCodegenShards),
-    _OneOption(Flags.cfeOnly, setCfeOnly),
+    _OneOption('${Flags.stage}=.+', passThrough),
     _OneOption(Flags.debugGlobalInference, passThrough),
     _ManyOptions('--output(?:=.+)?|--out(?:=.+)?|-o.*', setOutput),
     _OneOption('-O.*', setOptimizationLevel),
@@ -818,14 +664,16 @@ Future<api.CompilationResult> compile(List<String> argv,
     String sourceOrDill = arguments[0];
     Uri file = Uri.base.resolve(fe.nativeToUriPath(sourceOrDill));
     if (sourceOrDill.endsWith('.dart')) {
+      options.add('${Flags.entryUri}=$file');
       entryUri = file;
     } else {
       assert(sourceOrDill.endsWith('.dill'));
+      options.add('${Flags.inputDill}=$file');
       inputDillUri = file;
     }
   }
 
-  // Make [scriptName] a relative path..
+  // Make [scriptName] a relative path.
   String scriptName = sources == null
       ? fe.relativizeUri(
           Uri.base, inputDillUri ?? entryUri!, Platform.isWindows)
@@ -833,139 +681,29 @@ Future<api.CompilationResult> compile(List<String> argv,
           .map((uri) => fe.relativizeUri(Uri.base, uri, Platform.isWindows))
           .join(',');
 
-  switch (writeStrategy) {
-    case WriteStrategy.toJs:
-      out ??= Uri.base.resolve('out.js');
-      break;
-    case WriteStrategy.toKernel:
-      out ??= Uri.base.resolve('out.dill');
-      options.add(Flags.cfeOnly);
-      if (readStrategy == ReadStrategy.fromClosedWorld) {
-        _fail("Cannot use ${Flags.cfeOnly} "
-            "and read serialized closed world simultaneously.");
-      } else if (readStrategy == ReadStrategy.fromData) {
-        _fail("Cannot use ${Flags.cfeOnly} "
-            "and read serialized data simultaneously.");
-      } else if (readStrategy == ReadStrategy.fromCodegen) {
-        _fail("Cannot use ${Flags.cfeOnly} "
-            "and read serialized codegen simultaneously.");
-      }
-      break;
-    case WriteStrategy.toKernelWithModularAnalysis:
-      out ??= Uri.base.resolve('out.dill');
-      options.add(Flags.cfeOnly);
-      writeModularAnalysisUri ??= Uri.base.resolve('$out.mdata');
-      options.add('${Flags.writeModularAnalysis}=${writeModularAnalysisUri}');
-      break;
-    case WriteStrategy.toModularAnalysis:
-      writeModularAnalysisUri ??= Uri.base.resolve('$out.mdata');
-      options.add('${Flags.writeModularAnalysis}=${writeModularAnalysisUri}');
-      out ??= Uri.base.resolve('out.dill');
-      break;
-    case WriteStrategy.toClosedWorld:
-      out ??= Uri.base.resolve('out.dill');
-      writeClosedWorldUri ??= Uri.base.resolve('$out.world');
-      options.add('${Flags.writeClosedWorld}=${writeClosedWorldUri}');
-      if (readStrategy == ReadStrategy.fromClosedWorld) {
-        _fail("Cannot read and write serialized data simultaneously.");
-      } else if (readStrategy == ReadStrategy.fromData) {
-        _fail("Cannot read from both closed world and data");
-      } else if (readStrategy == ReadStrategy.fromCodegen) {
-        _fail("Cannot read serialized codegen and "
-            "write serialized data simultaneously.");
-      }
-      break;
-    case WriteStrategy.toData:
-      writeDataUri ??= Uri.base.resolve('${out ?? 'global'}.data');
-      options.add('${Flags.writeData}=${writeDataUri}');
-      if (readStrategy == ReadStrategy.fromData) {
-        _fail("Cannot read and write serialized data simultaneously.");
-      } else if (readStrategy == ReadStrategy.fromCodegen) {
-        _fail("Cannot read serialized codegen and "
-            "write serialized data simultaneously.");
-      }
-      break;
-    case WriteStrategy.toCodegen:
-      writeCodegenUri ??= Uri.base.resolve('${out ?? 'codegen'}.code');
-      options.add('${Flags.writeCodegen}=${writeCodegenUri}');
-      if (readStrategy == ReadStrategy.fromCodegen) {
-        _fail("Cannot read and write serialized codegen simultaneously.");
-      }
-      if (readStrategy != ReadStrategy.fromDataAndClosedWorld) {
-        _fail("Can only write serialized codegen from serialized data.");
-      }
-      if (codegenShards == null) {
-        _fail("Cannot write serialized codegen without setting "
-            "${Flags.codegenShards}.");
-      } else if (codegenShards! <= 0) {
-        _fail("${Flags.codegenShards} must be a positive integer.");
-      }
-      if (codegenShard == null) {
-        _fail("Cannot write serialized codegen without setting "
-            "${Flags.codegenShard}.");
-      } else if (codegenShard! < 0 || codegenShard! >= codegenShards!) {
-        _fail("${Flags.codegenShard} must be between 0 and "
-            "${Flags.codegenShards}.");
-      }
-      options.add('${Flags.codegenShard}=$codegenShard');
-      options.add('${Flags.codegenShards}=$codegenShards');
-      break;
-  }
-  switch (readStrategy) {
-    case ReadStrategy.fromDart:
-      break;
-    case ReadStrategy.fromClosedWorld:
-      readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
-      options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
-      break;
-    case ReadStrategy.fromData:
-      _fail("Must read from closed world and data.");
-    case ReadStrategy.fromDataAndClosedWorld:
-      readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
-      options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
-      readDataUri ??= Uri.base.resolve('$scriptName.data');
-      options.add('${Flags.readData}=${readDataUri}');
-      break;
-    case ReadStrategy.fromCodegen:
-    case ReadStrategy.fromCodegenAndData:
-    case ReadStrategy.fromCodegenAndClosedWorld:
-      _fail("Must read from closed world, data, and codegen");
-    case ReadStrategy.fromCodegenAndClosedWorldAndData:
-      readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
-      options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
-      readDataUri ??= Uri.base.resolve('$scriptName.data');
-      options.add('${Flags.readData}=${readDataUri}');
-      readCodegenUri ??= Uri.base.resolve('$scriptName.code');
-      options.add('${Flags.readCodegen}=${readCodegenUri}');
-      if (codegenShards == null) {
-        _fail("Cannot write serialized codegen without setting "
-            "${Flags.codegenShards}.");
-      } else if (codegenShards! <= 0) {
-        _fail("${Flags.codegenShards} must be a positive integer.");
-      }
-      options.add('${Flags.codegenShards}=$codegenShards');
-      break;
-  }
-  if (out != null) {
-    options.add('--out=$out');
-  }
-  if (writeStrategy == WriteStrategy.toJs) {
-    sourceMapOut = Uri.parse('$out.map');
-    options.add('--source-map=${sourceMapOut}');
-  }
-
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       featureOptions: features,
       librariesSpecificationUri: librariesSpecificationUri,
       platformBinaries: platformBinaries,
+      useDefaultOutputUri: true,
       onError: (String message) => _fail(message),
       onWarning: (String message) => print(message))
-    ..entryUri = entryUri
-    ..inputDillUri = inputDillUri
     ..packageConfig = packageConfig
     ..environment = environment
     ..kernelInitializedCompilerState = kernelInitializedCompilerState
     ..optimizationLevel = optimizationLevel;
+
+  final errorMessage = compilerOptions.validateStage();
+  if (errorMessage != null) {
+    _fail(errorMessage);
+  }
+
+  out = compilerOptions.setResolvedOutputUri();
+
+  if (compilerOptions.stage.emitsJs) {
+    sourceMapOut = Uri.parse('$out.map');
+    compilerOptions.sourceMapUri ??= sourceMapOut;
+  }
 
   // TODO(johnniwinther): Measure time for reading files.
   SourceFileByteReader byteReader = compilerOptions.memoryMappedFiles
@@ -1017,109 +755,127 @@ Future<api.CompilationResult> compile(List<String> argv,
     String outputName;
 
     String? summary;
-    switch (readStrategy) {
-      case ReadStrategy.fromDart:
+    switch (compilerOptions.stage) {
+      case Dart2JSStage.all:
+      case Dart2JSStage.cfe:
+      case Dart2JSStage.allFromDill:
+      case Dart2JSStage.cfeFromDill:
+      case Dart2JSStage.modularAnalysis:
+      case Dart2JSStage.modularAnalysisFromDill:
+      case Dart2JSStage.closedWorld:
         final sourceCharCount =
             _formatCharacterCount(inputProvider.sourceBytesFromDill);
         inputName = 'input bytes ($sourceCharCount characters source)';
         inputSize = inputProvider.bytesRead;
         summary = 'Dart file $input ';
         break;
-      case ReadStrategy.fromClosedWorld:
+      case Dart2JSStage.globalInference:
         inputName = 'bytes data';
         inputSize = inputProvider.bytesRead;
-        String dataInput =
-            fe.relativizeUri(Uri.base, readClosedWorldUri!, Platform.isWindows);
+        String dataInput = fe.relativizeUri(
+            Uri.base,
+            compilerOptions.dataInputUriForStage(Dart2JSStage.closedWorld),
+            Platform.isWindows);
         summary = 'Data files $input and $dataInput ';
         break;
-      case ReadStrategy.fromData:
-        _fail("Must read from closed world and data.");
-      case ReadStrategy.fromDataAndClosedWorld:
+      case Dart2JSStage.codegenSharded:
+      case Dart2JSStage.codegenAndJsEmitter:
         inputName = 'bytes data';
         inputSize = inputProvider.bytesRead;
-        String worldInput =
-            fe.relativizeUri(Uri.base, readClosedWorldUri!, Platform.isWindows);
-        String dataInput =
-            fe.relativizeUri(Uri.base, readDataUri!, Platform.isWindows);
+        String worldInput = fe.relativizeUri(
+            Uri.base,
+            compilerOptions.dataInputUriForStage(Dart2JSStage.closedWorld),
+            Platform.isWindows);
+        String dataInput = fe.relativizeUri(
+            Uri.base,
+            compilerOptions.dataInputUriForStage(Dart2JSStage.globalInference),
+            Platform.isWindows);
         summary = 'Data files $input, $worldInput, and $dataInput ';
         break;
-      case ReadStrategy.fromCodegen:
-      case ReadStrategy.fromCodegenAndData:
-      case ReadStrategy.fromCodegenAndClosedWorld:
-        _fail("Must read from closed world, data, and codegen");
-      case ReadStrategy.fromCodegenAndClosedWorldAndData:
+      case Dart2JSStage.jsEmitter:
         inputName = 'bytes data';
         inputSize = inputProvider.bytesRead;
-        String worldInput =
-            fe.relativizeUri(Uri.base, readClosedWorldUri!, Platform.isWindows);
-        String dataInput =
-            fe.relativizeUri(Uri.base, readDataUri!, Platform.isWindows);
-        String codeInput =
-            fe.relativizeUri(Uri.base, readCodegenUri!, Platform.isWindows);
+        String worldInput = fe.relativizeUri(
+            Uri.base,
+            compilerOptions.dataInputUriForStage(Dart2JSStage.closedWorld),
+            Platform.isWindows);
+        String dataInput = fe.relativizeUri(
+            Uri.base,
+            compilerOptions.dataInputUriForStage(Dart2JSStage.globalInference),
+            Platform.isWindows);
+        String codeInput = fe.relativizeUri(
+            Uri.base,
+            compilerOptions.dataInputUriForStage(Dart2JSStage.codegenSharded),
+            Platform.isWindows);
         summary = 'Data files $input, $worldInput, $dataInput and '
-            '${codeInput}[0-${codegenShards! - 1}] ';
+            '${codeInput}[0-${compilerOptions.codegenShards! - 1}] ';
         break;
     }
 
-    switch (writeStrategy) {
-      case WriteStrategy.toJs:
+    switch (compilerOptions.stage) {
+      case Dart2JSStage.all:
+      case Dart2JSStage.allFromDill:
+      case Dart2JSStage.jsEmitter:
+      case Dart2JSStage.codegenAndJsEmitter:
         processName = 'Compiled';
         outputName = 'characters JavaScript';
         outputSize = outputProvider.totalCharactersWrittenJavaScript;
         primaryOutputSize = outputProvider.totalCharactersWrittenPrimary;
-        String output = fe.relativizeUri(Uri.base, out!, Platform.isWindows);
+        String output = fe.relativizeUri(
+            Uri.base, out ?? Uri.parse('out.js'), Platform.isWindows);
         summary += 'compiled to JavaScript: ${output}';
         break;
-      case WriteStrategy.toKernel:
+      case Dart2JSStage.cfe:
+      case Dart2JSStage.cfeFromDill:
         processName = 'Compiled';
         outputName = 'kernel bytes';
         outputSize = outputProvider.totalDataWritten;
         String output = fe.relativizeUri(Uri.base, out!, Platform.isWindows);
         summary += 'compiled to dill: ${output}.';
         break;
-      case WriteStrategy.toKernelWithModularAnalysis:
-        processName = 'Compiled';
-        outputName = 'kernel and bytes data';
-        outputSize = outputProvider.totalDataWritten;
-        String output = fe.relativizeUri(Uri.base, out!, Platform.isWindows);
-        String dataOutput = fe.relativizeUri(
-            Uri.base, writeModularAnalysisUri!, Platform.isWindows);
-        summary += 'compiled to dill and data: ${output} and ${dataOutput}.';
-        break;
-      case WriteStrategy.toModularAnalysis:
+      case Dart2JSStage.modularAnalysis:
+      case Dart2JSStage.modularAnalysisFromDill:
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
         String output = fe.relativizeUri(Uri.base, out!, Platform.isWindows);
         String dataOutput = fe.relativizeUri(
-            Uri.base, writeModularAnalysisUri!, Platform.isWindows);
+            Uri.base,
+            compilerOptions.dataOutputUriForStage(compilerOptions.stage),
+            Platform.isWindows);
         summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
         break;
-      case WriteStrategy.toClosedWorld:
+      case Dart2JSStage.closedWorld:
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
         String output = fe.relativizeUri(Uri.base, out!, Platform.isWindows);
         String dataOutput = fe.relativizeUri(
-            Uri.base, writeClosedWorldUri!, Platform.isWindows);
+            Uri.base,
+            compilerOptions.dataOutputUriForStage(compilerOptions.stage),
+            Platform.isWindows);
         summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
         break;
-      case WriteStrategy.toData:
+      case Dart2JSStage.globalInference:
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
-        String dataOutput =
-            fe.relativizeUri(Uri.base, writeDataUri!, Platform.isWindows);
+        String dataOutput = fe.relativizeUri(
+            Uri.base,
+            compilerOptions.dataOutputUriForStage(compilerOptions.stage),
+            Platform.isWindows);
         summary += 'serialized to data: ${dataOutput}.';
         break;
-      case WriteStrategy.toCodegen:
+      case Dart2JSStage.codegenSharded:
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
-        String codeOutput =
-            fe.relativizeUri(Uri.base, writeCodegenUri!, Platform.isWindows);
+        String codeOutput = fe.relativizeUri(
+            Uri.base,
+            compilerOptions.dataOutputUriForStage(compilerOptions.stage),
+            Platform.isWindows);
         summary += 'serialized to codegen data: '
-            '${codeOutput}${codegenShard}.';
+            '${codeOutput}${compilerOptions.codegenShard}.';
         break;
     }
 
@@ -1132,8 +888,8 @@ Future<api.CompilationResult> compile(List<String> argv,
       diagnostic.info('${_formatCharacterCount(primaryOutputSize)} $outputName '
           'in ${fe.relativizeUri(Uri.base, out!, Platform.isWindows)}');
     }
-    if (writeStrategy == WriteStrategy.toJs) {
-      if (outputSpecified || diagnostic.verbose) {
+    if (compilerOptions.stage.emitsJs) {
+      if (diagnostic.verbose) {
         print(summary);
         if (diagnostic.verbose) {
           var files = outputProvider.allOutputFiles;

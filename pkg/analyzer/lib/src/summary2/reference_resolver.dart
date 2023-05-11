@@ -359,7 +359,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
     if (element == null) {
-      node.type = DynamicTypeImpl.instance;
+      node.type = InvalidTypeImpl.instance;
     } else if (element is TypeParameterElement) {
       node.type = TypeParameterTypeImpl(
         element: element,

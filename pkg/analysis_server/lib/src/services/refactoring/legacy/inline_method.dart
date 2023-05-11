@@ -88,7 +88,9 @@ String _getMethodSourceForInvocation(
       var range = occurrence.range;
       // prepare argument source to apply at this occurrence
       String occurrenceArgumentSource;
-      if (argumentPrecedence < occurrence.parentPrecedence) {
+      if (occurrence.inStringInterpolation && argument is! SimpleIdentifier) {
+        occurrenceArgumentSource = '{$argumentSource}';
+      } else if (argumentPrecedence < occurrence.parentPrecedence) {
         occurrenceArgumentSource = '($argumentSource)';
       } else {
         occurrenceArgumentSource = argumentSource;
@@ -447,10 +449,15 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 }
 
 class _ParameterOccurrence {
-  final Precedence parentPrecedence;
   final SourceRange range;
+  final Precedence parentPrecedence;
+  final bool inStringInterpolation;
 
-  _ParameterOccurrence(this.parentPrecedence, this.range);
+  _ParameterOccurrence({
+    required this.range,
+    required this.parentPrecedence,
+    required this.inStringInterpolation,
+  });
 }
 
 /// Processor for single [SearchMatch] reference to [methodElement].
@@ -746,15 +753,25 @@ class _SourcePart {
     _implicitThisOffsets.add(offset - _base);
   }
 
-  void addParameterOccurrence(ParameterElement parameter,
-      SourceRange identifierRange, Precedence precedence) {
+  void addParameterOccurrence({
+    required ParameterElement parameter,
+    required SourceRange identifierRange,
+    required Precedence parentPrecedence,
+    required bool inStringInterpolation,
+  }) {
     var occurrences = _parameters[parameter];
     if (occurrences == null) {
       occurrences = [];
       _parameters[parameter] = occurrences;
     }
     identifierRange = range.offsetBy(identifierRange, -_base);
-    occurrences.add(_ParameterOccurrence(precedence, identifierRange));
+    occurrences.add(
+      _ParameterOccurrence(
+        parentPrecedence: parentPrecedence,
+        range: identifierRange,
+        inStringInterpolation: inStringInterpolation,
+      ),
+    );
   }
 
   void addVariable(VariableElement element, SourceRange identifierRange) {
@@ -865,7 +882,11 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     var nodeRange = range.node(node);
     var parentPrecedence = getExpressionParentPrecedence(node);
     result.addParameterOccurrence(
-        parameterElement, nodeRange, parentPrecedence);
+      parameter: parameterElement,
+      identifierRange: nodeRange,
+      parentPrecedence: parentPrecedence,
+      inStringInterpolation: node.parent is InterpolationExpression,
+    );
   }
 
   void _addVariable(SimpleIdentifier node) {

@@ -879,7 +879,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type == null) {
       return false;
     }
-    if (type is DynamicType) {
+    if (type is DynamicType || type is InvalidType) {
       if (required) {
         return true;
       }
@@ -1223,7 +1223,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type == null) {
       return false;
     }
-    if (type is DynamicType) {
+    if (type is DynamicType || type is InvalidType) {
       if (required) {
         write('dynamic');
         return true;

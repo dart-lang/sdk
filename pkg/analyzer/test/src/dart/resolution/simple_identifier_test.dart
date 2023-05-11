@@ -291,7 +291,7 @@ extension E on ({int foo}) {
 SimpleIdentifier
   token: bar
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -367,7 +367,7 @@ extension E on (int, String) {
 SimpleIdentifier
   token: $3
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 }
@@ -408,7 +408,7 @@ main() {
     assertSimpleIdentifier(
       findNode.simple('dynamic;'),
       element: null,
-      type: 'dynamic',
+      type: 'InvalidType',
     );
   }
 

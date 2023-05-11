@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
@@ -175,6 +176,9 @@ class TypeAssertions {
 
   /// Primitive assertion for the int type.
   Asserter<DartType> get isInt => isType(_typeProvider.intType);
+
+  /// Primitive assertion for the dynamic type.
+  Asserter<DartType> get isInvalidType => isType(InvalidTypeImpl.instance);
 
   /// Primitive assertion for the list type.
   Asserter<DartType> get isList => hasElement(_typeProvider.listElement);

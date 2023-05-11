@@ -3077,7 +3077,7 @@ void f() {new C().^}''');
     expect(replacementLength, 0);
     assertSuggestGetter('f', 'X');
     assertSuggestGetter('_g', null);
-    assertSuggestField(r'$p', 'dynamic');
+    assertSuggestField(r'$p', 'InvalidType');
     assertSuggestMethod(r'$q', 'I', 'void');
     assertNotSuggested('b');
     assertNotSuggested('_c');

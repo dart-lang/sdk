@@ -70,6 +70,38 @@ ForStatement
 ''');
   }
 
+  test_iterable_dynamic() async {
+    await assertErrorsInCode(r'''
+void f(dynamic values) {
+  for (var v in values) {}
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+    ]);
+
+    final node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithDeclaration
+    loopVariable: DeclaredIdentifier
+      keyword: var
+      name: v
+      declaredElement: hasImplicitType v@36
+        type: dynamic
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: values
+      staticElement: self::@function::f::@parameter::values
+      staticType: dynamic
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_iterable_missing() async {
     await assertErrorsInCode(r'''
 void f() {
@@ -91,12 +123,12 @@ ForStatement
       keyword: var
       name: v
       declaredElement: hasImplicitType v@22
-        type: dynamic
+        type: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: <empty> <synthetic>
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
   rightParenthesis: )
   body: Block
     leftBracket: {
@@ -105,7 +137,7 @@ ForStatement
         expression: SimpleIdentifier
           token: v
           staticElement: v@22
-          staticType: dynamic
+          staticType: InvalidType
         semicolon: ;
     rightBracket: }
 ''');
@@ -586,10 +618,10 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@31
-          type: dynamic
-        matchedValueType: dynamic
+          type: InvalidType
+        matchedValueType: InvalidType
       rightParenthesis: )
-      matchedValueType: dynamic
+      matchedValueType: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -603,7 +635,7 @@ ForStatement
         expression: SimpleIdentifier
           token: a
           staticElement: a@31
-          staticType: dynamic
+          staticType: InvalidType
         semicolon: ;
     rightBracket: }
 ''');
@@ -904,10 +936,10 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@43
-          type: dynamic
-        matchedValueType: dynamic
+          type: InvalidType
+        matchedValueType: InvalidType
       rightParenthesis: )
-      matchedValueType: dynamic
+      matchedValueType: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -921,7 +953,7 @@ ForStatement
         expression: SimpleIdentifier
           token: a
           staticElement: a@43
-          staticType: dynamic
+          staticType: InvalidType
         semicolon: ;
     rightBracket: }
 ''');

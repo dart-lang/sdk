@@ -57,7 +57,7 @@ BinaryExpression
     staticType: int
   staticElement: <null>
   staticInvokeType: null
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 

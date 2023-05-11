@@ -583,7 +583,7 @@ class Assembler : public AssemblerBase {
                      OperandSize width = kEightBytes);
 
   void AndImmediate(Register dst, const Immediate& imm);
-  void AndImmediate(Register dst, int64_t value) {
+  void AndImmediate(Register dst, int64_t value) override {
     AndImmediate(dst, Immediate(value));
   }
   void AndImmediate(Register dst, Register src, int64_t value) {
@@ -1251,19 +1251,6 @@ class Assembler : public AssemblerBase {
                                             Register base,
                                             int32_t offset) {
     OBJ(cmp)(value, FieldAddress(base, offset));
-  }
-
-  void LoadAbstractTypeNullability(Register dst, Register type) override {
-    movzxb(dst,
-           FieldAddress(type, compiler::target::AbstractType::flags_offset()));
-    andl(dst,
-         Immediate(compiler::target::UntaggedAbstractType::kNullabilityMask));
-  }
-  void CompareAbstractTypeNullabilityWith(Register type,
-                                          /*Nullability*/ int8_t value,
-                                          Register scratch) override {
-    LoadAbstractTypeNullability(scratch, type);
-    cmpl(scratch, Immediate(value));
   }
 
   void RestoreCodePointer();

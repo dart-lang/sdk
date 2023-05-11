@@ -137,7 +137,7 @@ class ConstructorReferenceResolver {
     } else {
       var constructorElement = constructorName.staticElement;
       if (constructorElement == null) {
-        node.staticType = DynamicTypeImpl.instance;
+        node.staticType = InvalidTypeImpl.instance;
       } else {
         node.staticType = constructorElement.type;
       }

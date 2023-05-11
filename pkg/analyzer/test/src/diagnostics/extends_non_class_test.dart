@@ -86,7 +86,7 @@ ExtendsClause
   superclass: NamedType
     name: v
     element: self::@getter::v
-    type: dynamic
+    type: InvalidType
 ''');
   }
 
@@ -113,7 +113,7 @@ ExtendsClause
           type: int
       rightBracket: >
     element: self::@getter::v
-    type: dynamic
+    type: InvalidType
 ''');
   }
 
@@ -149,7 +149,7 @@ ExtendsClause
   superclass: NamedType
     name: A
     element: <null>
-    type: dynamic
+    type: InvalidType
 ''');
   }
 
@@ -173,7 +173,7 @@ ExtendsClause
       element: self::@prefix::p
     name: A
     element: <null>
-    type: dynamic
+    type: InvalidType
 ''');
   }
 
@@ -275,7 +275,7 @@ ExtendsClause
       element: self::@prefix::p
     name: A
     element: <null>
-    type: dynamic
+    type: InvalidType
 ''');
   }
 }

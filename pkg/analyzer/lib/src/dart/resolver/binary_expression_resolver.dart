@@ -179,6 +179,7 @@ class BinaryExpressionResolver {
     var rightContextType = contextType;
     if (rightContextType == null ||
         rightContextType is DynamicType ||
+        rightContextType is InvalidType ||
         rightContextType is UnknownInferredType) {
       rightContextType = leftType;
     }
@@ -262,7 +263,7 @@ class BinaryExpressionResolver {
       {required DartType? contextType}) {
     node.leftOperand.accept(_resolver);
     node.rightOperand.accept(_resolver);
-    _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance,
+    _inferenceHelper.recordStaticType(node, InvalidTypeImpl.instance,
         contextType: contextType);
   }
 
@@ -377,8 +378,12 @@ class BinaryExpressionResolver {
       return;
     }
 
-    DartType staticType =
-        node.staticInvokeType?.returnType ?? DynamicTypeImpl.instance;
+    var staticType = node.staticInvokeType?.returnType;
+    if (leftType is DynamicType) {
+      staticType ??= DynamicTypeImpl.instance;
+    } else {
+      staticType ??= InvalidTypeImpl.instance;
+    }
     if (leftOperand is! ExtensionOverride) {
       staticType = _typeSystem.refineBinaryExpressionType(
         leftType,

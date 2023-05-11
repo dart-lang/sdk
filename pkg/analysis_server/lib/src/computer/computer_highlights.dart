@@ -601,7 +601,7 @@ class DartUnitHighlightsComputer {
 
   static bool _isDynamicExpression(Expression e) {
     var type = e.staticType;
-    return type != null && type is DynamicType;
+    return type != null && type is DynamicType || type is InvalidType;
   }
 }
 

@@ -901,8 +901,8 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     };
 
     Label function_type_param;
-    __ LoadFieldFromOffset(kScratchReg, kCurrentTypeReg,
-                           target::AbstractType::flags_offset(), kUnsignedByte);
+    __ LoadFromSlot(kScratchReg, TypeTestABI::kDstTypeReg,
+                    Slot::AbstractType_flags());
     __ BranchIfBit(kScratchReg,
                    target::UntaggedTypeParameter::kIsFunctionTypeParameterBit,
                    NOT_ZERO, &function_type_param, Assembler::kNearJump);
@@ -1013,8 +1013,8 @@ static void BuildTypeParameterTypeTestStub(Assembler* assembler,
   };
 
   Label function_type_param;
-  __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
-                         target::AbstractType::flags_offset(), kUnsignedByte);
+  __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
+                  Slot::AbstractType_flags());
   __ BranchIfBit(TypeTestABI::kScratchReg,
                  target::UntaggedTypeParameter::kIsFunctionTypeParameterBit,
                  NOT_ZERO, &function_type_param, Assembler::kNearJump);
@@ -1099,8 +1099,8 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
   __ BranchIf(NOT_EQUAL, &is_complex_case, Assembler::kNearJump);
 
   // Check whether this [Type] is instantiated/uninstantiated.
-  __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
-                         target::AbstractType::flags_offset(), kByte);
+  __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
+                  Slot::AbstractType_flags());
   __ AndImmediate(
       TypeTestABI::kScratchReg,
       Utils::NBitMask<int32_t>(target::UntaggedAbstractType::kTypeStateBits)

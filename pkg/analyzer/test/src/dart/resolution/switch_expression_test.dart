@@ -715,9 +715,9 @@ SwitchExpression
       expression: SimpleIdentifier
         token: a
         staticElement: <null>
-        staticType: dynamic
+        staticType: InvalidType
   rightBracket: }
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 }

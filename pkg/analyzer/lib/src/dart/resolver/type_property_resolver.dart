@@ -325,6 +325,7 @@ class TypePropertyResolver {
       // reported as an undefined getter.
       needsGetterError:
           _needsGetterError && _name.isNotEmpty && !_reportedGetterError,
+      isGetterInvalid: _needsGetterError || _reportedGetterError,
       setter: setter,
       needsSetterError: _needsSetterError && !_reportedSetterError,
     );

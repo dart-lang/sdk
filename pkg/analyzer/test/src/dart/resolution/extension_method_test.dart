@@ -4155,7 +4155,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@extension::E2::@getter::foo
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -4174,7 +4174,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@extension::E2::@getter::foo
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int*
 ''');
@@ -4818,14 +4818,14 @@ extension E2 on int {
 SimpleIdentifier
   token: foo
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     }
   }

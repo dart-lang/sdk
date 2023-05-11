@@ -749,7 +749,7 @@ library
   definingUnit
     functions
       f @27
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -780,7 +780,7 @@ library
       definingUnit
         functions
           f @31
-            returnType: dynamic
+            returnType: InvalidType
   definingUnit
     functions
       f @44
@@ -12683,7 +12683,7 @@ library
               readElement: self::@getter::a
               readType: int
               writeElement: self::@getter::a
-              writeType: dynamic
+              writeType: InvalidType
               staticElement: dart:core::@class::num::@method::+
               staticType: int
             rightParenthesis: ) @30
@@ -13356,7 +13356,7 @@ library
   definingUnit
     topLevelVariables
       static const v @6
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
         constantInitializer
           SimpleIdentifier
@@ -13365,7 +13365,7 @@ library
             staticType: null
     accessors
       synthetic static get v @-1
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -14242,7 +14242,7 @@ library
   definingUnit
     topLevelVariables
       static const V @6
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
         constantInitializer
           InstanceCreationExpression
@@ -14255,15 +14255,15 @@ library
                   element: <null>
                 name: named @18
                 element: <null>
-                type: dynamic
+                type: InvalidType
               staticElement: <null>
             argumentList: ArgumentList
               leftParenthesis: ( @23
               rightParenthesis: ) @24
-            staticType: dynamic
+            staticType: InvalidType
     accessors
       synthetic static get V @-1
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -14326,7 +14326,7 @@ library
   definingUnit
     topLevelVariables
       static const V @28
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
         constantInitializer
           InstanceCreationExpression
@@ -14339,7 +14339,7 @@ library
                   element: self::@prefix::p
                 name: C @40
                 element: <null>
-                type: dynamic
+                type: InvalidType
               period: . @41
               name: SimpleIdentifier
                 token: named @42
@@ -14349,10 +14349,10 @@ library
             argumentList: ArgumentList
               leftParenthesis: ( @47
               rightParenthesis: ) @48
-            staticType: dynamic
+            staticType: InvalidType
     accessors
       synthetic static get V @-1
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -14365,7 +14365,7 @@ library
   definingUnit
     topLevelVariables
       static const V @6
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
         constantInitializer
           InstanceCreationExpression
@@ -14378,7 +14378,7 @@ library
                   element: <null>
                 name: C @18
                 element: <null>
-                type: dynamic
+                type: InvalidType
               period: . @19
               name: SimpleIdentifier
                 token: named @20
@@ -14388,10 +14388,10 @@ library
             argumentList: ArgumentList
               leftParenthesis: ( @25
               rightParenthesis: ) @26
-            staticType: dynamic
+            staticType: InvalidType
     accessors
       synthetic static get V @-1
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -14564,7 +14564,7 @@ library
   definingUnit
     topLevelVariables
       static const V @6
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
         constantInitializer
           InstanceCreationExpression
@@ -14573,15 +14573,15 @@ library
               type: NamedType
                 name: C @16
                 element: <null>
-                type: dynamic
+                type: InvalidType
               staticElement: <null>
             argumentList: ArgumentList
               leftParenthesis: ( @17
               rightParenthesis: ) @18
-            staticType: dynamic
+            staticType: InvalidType
     accessors
       synthetic static get V @-1
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -14598,7 +14598,7 @@ library
   definingUnit
     topLevelVariables
       static const V @28
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
         constantInitializer
           InstanceCreationExpression
@@ -14611,15 +14611,15 @@ library
                   element: self::@prefix::p
                 name: C @40
                 element: <null>
-                type: dynamic
+                type: InvalidType
               staticElement: <null>
             argumentList: ArgumentList
               leftParenthesis: ( @41
               rightParenthesis: ) @42
-            staticType: dynamic
+            staticType: InvalidType
     accessors
       synthetic static get V @-1
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -14632,7 +14632,7 @@ library
   definingUnit
     topLevelVariables
       static const V @6
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
         constantInitializer
           InstanceCreationExpression
@@ -14645,15 +14645,15 @@ library
                   element: <null>
                 name: C @18
                 element: <null>
-                type: dynamic
+                type: InvalidType
               staticElement: <null>
             argumentList: ArgumentList
               leftParenthesis: ( @19
               rightParenthesis: ) @20
-            staticType: dynamic
+            staticType: InvalidType
     accessors
       synthetic static get V @-1
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -15767,7 +15767,7 @@ library
             readElement: self::@getter::a
             readType: int
             writeElement: self::@getter::a
-            writeType: dynamic
+            writeType: InvalidType
             staticElement: dart:core::@class::num::@method::+
             staticType: int
     accessors
@@ -15914,7 +15914,7 @@ library
             readElement: self::@getter::a
             readType: int
             writeElement: self::@getter::a
-            writeType: dynamic
+            writeType: InvalidType
             staticElement: dart:core::@class::num::@method::+
             staticType: int
     accessors
@@ -16953,16 +16953,16 @@ library
   definingUnit
     topLevelVariables
       static const V @6
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
         constantInitializer
           SimpleIdentifier
             token: foo @10
             staticElement: <null>
-            staticType: dynamic
+            staticType: InvalidType
     accessors
       synthetic static get V @-1
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -16980,7 +16980,7 @@ library
           synthetic @-1
     topLevelVariables
       static const V @17
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
         constantInitializer
           PrefixedIdentifier
@@ -16992,12 +16992,12 @@ library
             identifier: SimpleIdentifier
               token: foo @23
               staticElement: <null>
-              staticType: dynamic
+              staticType: InvalidType
             staticElement: <null>
-            staticType: dynamic
+            staticType: InvalidType
     accessors
       synthetic static get V @-1
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -17016,7 +17016,7 @@ library
   definingUnit
     topLevelVariables
       static const V @30
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
         constantInitializer
           PropertyAccess
@@ -17036,11 +17036,11 @@ library
             propertyName: SimpleIdentifier
               token: foo @38
               staticElement: <null>
-              staticType: dynamic
-            staticType: dynamic
+              staticType: InvalidType
+            staticType: InvalidType
     accessors
       synthetic static get V @-1
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -18155,15 +18155,15 @@ library
   definingUnit
     topLevelVariables
       static const vSuper @6
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
         constantInitializer
           SuperExpression
             superKeyword: super @15
-            staticType: dynamic
+            staticType: InvalidType
     accessors
       synthetic static get vSuper @-1
-        returnType: dynamic
+        returnType: InvalidType
 ''');
   }
 
@@ -19337,10 +19337,10 @@ library
       f @20
         parameters
           optionalPositional default compare @37
-            type: int* Function(dynamic, dynamic)*
+            type: int* Function(InvalidType, InvalidType)*
               alias: dart:core::@typeAlias::Comparator
                 typeArguments
-                  dynamic
+                  InvalidType
             constantInitializer
               PrefixedIdentifier
                 prefix: SimpleIdentifier
@@ -23879,13 +23879,13 @@ library
             defaultType: dynamic
         fields
           final f @21
-            type: dynamic
+            type: InvalidType
             shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
           synthetic get f @-1
-            returnType: dynamic
+            returnType: InvalidType
 ''');
   }
 
@@ -24300,6 +24300,22 @@ library
 ''');
   }
 
+  test_function_parameter_type_unresolved() async {
+    var library = await buildLibrary(r'''
+void f(A a) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional a @9
+            type: InvalidType
+        returnType: void
+''');
+  }
+
   test_function_parameters() async {
     var library = await buildLibrary('f(x, y) {}');
     checkElementText(library, r'''
@@ -24324,6 +24340,19 @@ library
     functions
       f @0
         returnType: dynamic
+''');
+  }
+
+  test_function_return_type_unresolved() async {
+    var library = await buildLibrary(r'''
+A f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @2
+        returnType: InvalidType
 ''');
   }
 
@@ -24805,7 +24834,7 @@ library
         type: FutureOr<int>
         shouldUseTypeForInitializerInference: false
       static y @65
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
@@ -24816,11 +24845,11 @@ library
             type: FutureOr<int>
         returnType: void
       synthetic static get y @-1
-        returnType: dynamic
+        returnType: InvalidType
       synthetic static set y @-1
         parameters
           requiredPositional _y @-1
-            type: dynamic
+            type: InvalidType
         returnType: void
     functions
       f @35
@@ -24833,7 +24862,7 @@ library
     var y = variables[1];
     expect(y.name, 'y');
     _assertTypeStr(x.type, 'FutureOr<int>');
-    _assertTypeStr(y.type, 'dynamic');
+    _assertTypeStr(y.type, 'InvalidType');
   }
 
   test_generic_function_type_nullability_none() async {
@@ -28821,7 +28850,7 @@ library
               SimpleIdentifier
                 token: V @43
                 staticElement: <null>
-                staticType: dynamic
+                staticType: InvalidType
         returnType: dynamic
 ''');
   }
@@ -38963,15 +38992,15 @@ library
   definingUnit
     topLevelVariables
       static v @38
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get v @-1
-        returnType: dynamic
+        returnType: InvalidType
       synthetic static set v @-1
         parameters
           requiredPositional _v @-1
-            type: dynamic
+            type: InvalidType
         returnType: void
 ''');
   }
@@ -39401,7 +39430,7 @@ library
           m @15
             parameters
               requiredPositional p @21
-                type: dynamic
+                type: InvalidType
             returnType: dynamic
 ''');
   }
@@ -39415,15 +39444,15 @@ library
   definingUnit
     topLevelVariables
       static v @4
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get v @-1
-        returnType: dynamic
+        returnType: InvalidType
       synthetic static set v @-1
         parameters
           requiredPositional _v @-1
-            type: dynamic
+            type: InvalidType
         returnType: void
 ''');
   }
@@ -40735,15 +40764,15 @@ library
   definingUnit
     topLevelVariables
       static c @2
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
-        returnType: dynamic
+        returnType: InvalidType
       synthetic static set c @-1
         parameters
           requiredPositional _c @-1
-            type: dynamic
+            type: InvalidType
         returnType: void
 ''');
   }
@@ -40758,15 +40787,15 @@ library
   definingUnit
     topLevelVariables
       static c @35
-        type: dynamic
+        type: InvalidType
         shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
-        returnType: dynamic
+        returnType: InvalidType
       synthetic static set c @-1
         parameters
           requiredPositional _c @-1
-            type: dynamic
+            type: InvalidType
         returnType: void
 ''');
   }
@@ -42794,7 +42823,7 @@ library
       f @37
         parameters
           requiredPositional a @41
-            type: dynamic
+            type: InvalidType
         returnType: void
 ''');
   }
@@ -43187,7 +43216,7 @@ library
               arguments
                 SuperExpression
                   superKeyword: super @30
-                  staticType: dynamic
+                  staticType: InvalidType
               rightParenthesis: ) @35
             element: self::@class::A::@constructor::new
         constructors

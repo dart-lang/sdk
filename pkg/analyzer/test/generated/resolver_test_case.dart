@@ -70,7 +70,9 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     var operandType = node.leftOperand.staticType;
-    if (operandType == null || operandType is DynamicType) {
+    if (operandType == null ||
+        operandType is DynamicType ||
+        operandType is InvalidType) {
       return;
     }
     _checkResolved(node, node.staticElement, (node) => node is MethodElement);
@@ -197,7 +199,9 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     Expression target = node.realTarget;
     target.accept(this);
     var targetType = target.staticType;
-    if (targetType == null || targetType is DynamicType) {
+    if (targetType == null ||
+        targetType is DynamicType ||
+        targetType is InvalidType) {
       return;
     }
     var parent = node.parent;

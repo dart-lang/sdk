@@ -229,7 +229,7 @@ IfElement
   elseElement: SimpleIdentifier
     token: a
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
 ''');
   }
 

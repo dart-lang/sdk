@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -27,9 +26,13 @@ main() {
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 38, 1),
     ]);
 
-    var pRef = findNode.simple('p; // use');
-    assertElement(pRef, findElement.prefix('p'));
-    assertTypeDynamic(pRef);
+    final node = findNode.simple('p; // use');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: p
+  staticElement: self::@prefix::p
+  staticType: InvalidType
+''');
   }
 
   test_asExpression_forIn_iterable() async {
@@ -44,12 +47,27 @@ main() {
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 52, 1),
     ]);
 
-    var xRef = findNode.declaredIdentifier('x in');
-    expect(xRef.declaredElement, isNotNull);
-
-    var pRef = findNode.simple('p) {}');
-    assertElement(pRef, findElement.prefix('p'));
-    assertTypeDynamic(pRef);
+    final node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithDeclaration
+    loopVariable: DeclaredIdentifier
+      keyword: var
+      name: x
+      declaredElement: hasImplicitType x@47
+        type: InvalidType
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: p
+      staticElement: self::@prefix::p
+      staticType: InvalidType
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   test_asExpression_instanceCreation_argument() async {
@@ -68,9 +86,31 @@ main() {
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 76, 1),
     ]);
 
-    var pRef = findNode.simple('p);');
-    assertElement(pRef, findElement.prefix('p'));
-    assertTypeDynamic(pRef);
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: self::@class::C
+      type: C<dynamic>
+    staticElement: ConstructorMember
+      base: self::@class::C::@constructor::new
+      substitution: {T: dynamic}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: p
+        parameter: ParameterMember
+          base: self::@class::C::@constructor::new::@parameter::a
+          substitution: {T: dynamic}
+        staticElement: self::@prefix::p
+        staticType: InvalidType
+    rightParenthesis: )
+  staticType: C<dynamic>
+''');
   }
 
   test_asPrefix_methodInvocation() async {

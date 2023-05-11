@@ -218,6 +218,8 @@ abstract class LinkedHashSet<E> implements Set<E> {
   }
 }
 
+abstract base mixin class LinkedListEntry<E extends LinkedListEntry<E>> { }
+
 abstract mixin class ListMixin<E> implements List<E> { }
 
 abstract mixin class MapMixin<K, V> implements Map<K, V> { }

@@ -162,9 +162,14 @@ class BaseOrFinalTypeVerifier {
       ClassOrMixinElementImpl element, ClassOrMixinElementImpl superElement,
       {NamedType? implementsNamedType}) {
     ClassOrMixinElementImpl? baseOrFinalSuperElement;
-    if (superElement.isBase || superElement.isFinal) {
+    if (superElement.isBase ||
+        superElement.isFinal ||
+        (!superElement.library.featureSet.isEnabled(Feature.class_modifiers) &&
+            element.library.featureSet.isEnabled(Feature.class_modifiers))) {
       // The 'base' or 'final' modifier may be an induced modifier. Find the
       // explicitly declared 'base' or 'final' in the hierarchy.
+      // In the case where the super element is in a pre-feature library, we
+      // need to check if there's an indirect core library super element.
       baseOrFinalSuperElement = _getExplicitlyBaseOrFinalElement(superElement);
     } else {
       // There are no restrictions on this element's modifiers.
@@ -213,11 +218,24 @@ class BaseOrFinalTypeVerifier {
 
       if (!element.isBase && !element.isFinal && !element.isSealed) {
         if (baseOrFinalSuperElement.isFinal) {
+          // If you can't extend, implement or mix in a final element outside of
+          // its library anyways, it's not helpful to report a subelement
+          // modifier error.
           if (baseOrFinalSuperElement.library != element.library) {
-            // If you can't extend, implement or mix in a final element outside of
-            // its library anyways, it's not helpful to report a subelement
-            // modifier error.
-            return false;
+            // In the case where the 'baseOrFinalSuperElement' is a core
+            // library element and we are subtyping from a super element that's
+            // from a pre-feature library, we want to produce a final
+            // transitivity error.
+            //
+            // For implements clauses with the above scenario, we avoid
+            // over-reporting since there will already be a
+            // [FinalClassImplementedOutsideOfLibrary] error.
+            if (superElement.library.featureSet
+                    .isEnabled(Feature.class_modifiers) ||
+                !baseOrFinalSuperElement.library.isInSdk ||
+                implementsNamedType != null) {
+              return false;
+            }
           }
           _errorReporter.reportErrorForElement(
               CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,

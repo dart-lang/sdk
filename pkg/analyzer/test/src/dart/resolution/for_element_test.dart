@@ -167,10 +167,10 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@32
-          type: dynamic
-        matchedValueType: dynamic
+          type: InvalidType
+        matchedValueType: InvalidType
       rightParenthesis: )
-      matchedValueType: dynamic
+      matchedValueType: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -180,7 +180,7 @@ ForElement
   body: SimpleIdentifier
     token: a
     staticElement: a@32
-    staticType: dynamic
+    staticType: InvalidType
 ''');
   }
 
@@ -481,10 +481,10 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@44
-          type: dynamic
-        matchedValueType: dynamic
+          type: InvalidType
+        matchedValueType: InvalidType
       rightParenthesis: )
-      matchedValueType: dynamic
+      matchedValueType: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -494,7 +494,7 @@ ForElement
   body: SimpleIdentifier
     token: a
     staticElement: a@44
-    staticType: dynamic
+    staticType: InvalidType
 ''');
   }
 

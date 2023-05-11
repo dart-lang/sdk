@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -35,6 +36,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
   TypeAssertions? _assertions;
 
   late final Asserter<DartType> _isDynamic;
+  late final Asserter<DartType> _isInvalidType;
   late final Asserter<InterfaceType> _isFutureOfDynamic;
   late final Asserter<InterfaceType> _isFutureOfInt;
   late final Asserter<InterfaceType> _isFutureOfNull;
@@ -80,6 +82,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
       _isObject = assertions.isObject;
       _isString = assertions.isString;
       _isDynamic = assertions.isDynamic;
+      _isInvalidType = assertions.isInvalidType;
       _isListOf = assertions.isListOf;
       _isMapOf = assertions.isMapOf;
       _isFunction2Of = assertions.isFunction2Of;
@@ -861,7 +864,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
     expect(functionReturnValue(0).staticType, typeProvider.intType);
     expect(functionReturnValue(1).staticType, typeProvider.intType);
     expect(functionReturnValue(2).staticType, typeProvider.intType);
-    expect(functionReturnValue(3).staticType, typeProvider.dynamicType);
+    expect(functionReturnValue(3).staticType, InvalidTypeImpl.instance);
     expect(functionReturnValue(4).staticType, typeProvider.stringType);
   }
 
@@ -1057,7 +1060,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
     ''', expectedErrors: [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 61, 3),
     ]);
-    _isDynamic(invoke.typeOrThrow);
+    _isInvalidType(invoke.typeOrThrow);
   }
 
   test_futureOr_methods3() async {
@@ -1067,7 +1070,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
     ''', expectedErrors: [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 61, 4),
     ]);
-    _isDynamic(invoke.typeOrThrow);
+    _isInvalidType(invoke.typeOrThrow);
   }
 
   test_futureOr_methods4() async {
@@ -1083,7 +1086,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
           65,
           3),
     ]);
-    _isDynamic(invoke.typeOrThrow);
+    _isInvalidType(invoke.typeOrThrow);
   }
 
   test_futureOr_no_return() async {

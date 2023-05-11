@@ -459,19 +459,6 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP));
   }
 
-  void LoadAbstractTypeNullability(Register dst, Register type) override {
-    ldrb(dst,
-         FieldAddress(type, compiler::target::AbstractType::flags_offset()));
-    and_(dst, dst,
-         Operand(compiler::target::UntaggedAbstractType::kNullabilityMask));
-  }
-  void CompareAbstractTypeNullabilityWith(Register type,
-                                          /*Nullability*/ int8_t value,
-                                          Register scratch) override {
-    LoadAbstractTypeNullability(scratch, type);
-    cmp(scratch, Operand(value));
-  }
-
   // Misc. functionality
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
@@ -889,8 +876,11 @@ class Assembler : public AssemblerBase {
     }
   }
   void AndImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
-  void AndImmediate(Register rd, int32_t imm, Condition cond = AL) {
+  void AndImmediate(Register rd, int32_t imm, Condition cond) {
     AndImmediate(rd, rd, imm, cond);
+  }
+  void AndImmediate(Register rd, int32_t imm) override {
+    AndImmediate(rd, rd, imm, AL);
   }
   void AndImmediateSetFlags(Register rd,
                             Register rn,

@@ -140,7 +140,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -181,7 +181,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -211,7 +211,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -241,7 +241,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -285,7 +285,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -311,7 +311,7 @@ FunctionReference
       staticElement: <null>
       staticType: null
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -320,7 +320,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -330,34 +330,31 @@ bar() {
   a.b.foo<int>;
 }
 ''', [
-      // TODO(srawlins): Get the information to [FunctionReferenceResolve] that
-      //  [PropertyElementResolver] encountered an error, to avoid double reporting.
-      error(CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
-          10, 12),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
     ]);
 
-    assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
+    final node = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
         staticElement: <null>
-        staticType: dynamic
+        staticType: InvalidType
       period: .
       identifier: SimpleIdentifier
         token: b
         staticElement: <null>
-        staticType: dynamic
+        staticType: InvalidType
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     operator: .
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
-    staticType: dynamic
+      staticType: InvalidType
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -366,7 +363,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -388,7 +385,7 @@ FunctionReference
   function: SimpleIdentifier
     token: E
     staticElement: self::@extension::E
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -397,7 +394,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -428,9 +425,9 @@ FunctionReference
     identifier: SimpleIdentifier
       token: E
       staticElement: package:test/a.dart::@extension::E
-      staticType: dynamic
+      staticType: InvalidType
     staticElement: package:test/a.dart::@extension::E
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -439,7 +436,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -490,7 +487,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -750,8 +747,8 @@ FunctionReference
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
-    staticType: dynamic
+      staticType: InvalidType
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -760,7 +757,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -816,7 +813,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -825,7 +822,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1518,7 +1515,7 @@ FunctionReference
         element: dart:core::@class::String
         type: String
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1561,7 +1558,7 @@ FunctionReference
         element: dart:core::@class::String
         type: String
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1775,7 +1772,7 @@ FunctionReference
         element: dart:core::@class::double
         type: double
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1990,8 +1987,6 @@ class A {
   }
 }
 ''', [
-      error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 24, 9),
       error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 30, 3),
     ]);
 
@@ -2005,8 +2000,8 @@ FunctionReference
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
-    staticType: dynamic
+      staticType: InvalidType
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -2015,7 +2010,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -2025,8 +2020,6 @@ bar() {
   super.foo<int>;
 }
 ''', [
-      error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 10, 9),
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 10, 5),
     ]);
 
@@ -2035,13 +2028,13 @@ FunctionReference
   function: PropertyAccess
     target: SuperExpression
       superKeyword: super
-      staticType: dynamic
+      staticType: InvalidType
     operator: .
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
-    staticType: dynamic
+      staticType: InvalidType
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -2050,7 +2043,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -2262,8 +2255,8 @@ FunctionReference
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
-    staticType: dynamic
+      staticType: InvalidType
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -2272,7 +2265,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -2296,9 +2289,9 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -2307,7 +2300,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -2537,7 +2530,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -2546,7 +2539,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -2750,7 +2743,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -2807,7 +2800,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -2837,7 +2830,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -2937,7 +2930,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -3474,7 +3467,7 @@ FunctionReference
       staticElement: <null>
       staticType: null
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -3483,7 +3476,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -3600,8 +3593,6 @@ bar() {
   prefix.a.foo<int>;
 }
 ''', [
-      error(CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
-          38, 17),
       error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 45, 1),
     ]);
 
@@ -3618,15 +3609,15 @@ FunctionReference
       identifier: SimpleIdentifier
         token: a
         staticElement: <null>
-        staticType: dynamic
+        staticType: InvalidType
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     operator: .
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
-    staticType: dynamic
+      staticType: InvalidType
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -3635,7 +3626,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -3659,9 +3650,9 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -3670,7 +3661,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -3694,9 +3685,9 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -3705,7 +3696,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -3723,7 +3714,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -3732,7 +3723,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -3760,9 +3751,9 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -3771,7 +3762,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -3800,7 +3791,7 @@ FunctionReference
       staticElement: <null>
       staticType: null
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -3809,7 +3800,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 }

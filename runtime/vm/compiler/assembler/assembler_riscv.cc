@@ -2627,18 +2627,6 @@ void Assembler::CompareWithMemoryValue(Register value, Address address) {
   CompareRegisters(value, TMP2);
 }
 
-void Assembler::LoadAbstractTypeNullability(Register dst, Register type) {
-  lbu(dst, FieldAddress(type, compiler::target::AbstractType::flags_offset()));
-  andi(dst, dst, compiler::target::UntaggedAbstractType::kNullabilityMask);
-}
-
-void Assembler::CompareAbstractTypeNullabilityWith(Register type,
-                                                   /*Nullability*/ int8_t value,
-                                                   Register scratch) {
-  LoadAbstractTypeNullability(scratch, type);
-  CompareImmediate(scratch, value);
-}
-
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   if (frame_space != 0) {
     addi(SP, SP, -frame_space);

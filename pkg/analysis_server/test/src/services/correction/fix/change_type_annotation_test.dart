@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -118,17 +117,5 @@ f() {
   print(v);
 }
 ''');
-  }
-
-  Future<void> test_synthetic_implicitCast() async {
-    createAnalysisOptionsFile(implicitCasts: false);
-    await resolveTestCode('''
-int foo =
-''');
-    await assertNoFix(
-      errorFilter: (e) {
-        return e.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT;
-      },
-    );
   }
 }

@@ -1544,7 +1544,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // REDIRECT_TO_MISSING_CONSTRUCTOR case
       NamedType constructorNamedType = redirectedConstructor.type;
       DartType redirectedType = constructorNamedType.typeOrThrow;
-      if (redirectedType is! DynamicType) {
+      if (!(redirectedType is DynamicType || redirectedType is InvalidType)) {
         // Prepare the constructor name
         String constructorStrName = constructorNamedType.qualifiedName;
         if (redirectedConstructor.name != null) {
