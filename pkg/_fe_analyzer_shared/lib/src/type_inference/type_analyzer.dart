@@ -1760,7 +1760,7 @@ mixin TypeAnalyzer<
           handleNoGuard(node, i);
           // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
         }
-        handleCaseHead(node, memberInfo.head, caseIndex: i, subIndex: 0);
+        handleCaseHead(node, caseIndex: i, subIndex: 0);
       } else {
         handleDefault(node, caseIndex: i, subIndex: 0);
       }
@@ -1854,8 +1854,7 @@ mixin TypeAnalyzer<
           } else {
             handleNoGuard(node, caseIndex);
           }
-          head = handleCaseHead(node, head,
-              caseIndex: caseIndex, subIndex: headIndex);
+          handleCaseHead(node, caseIndex: caseIndex, subIndex: headIndex);
         } else {
           hasDefault = true;
           handleDefault(node, caseIndex: caseIndex, subIndex: headIndex);
@@ -2141,14 +2140,11 @@ mixin TypeAnalyzer<
   /// an optional guard.
   ///
   /// [node] is the enclosing switch statement or switch expression,
-  /// [head] is the head to be handled, and
-  /// [caseIndex] is the index of the `case` clause.
-  ///
-  /// Returns the updated case head.
+  /// [caseIndex] is the index of the `case` clause, and [subIndex] is the index
+  /// of the case head.
   ///
   /// Stack effect: pops (Pattern, Expression) and pushes (CaseHead).
-  CaseHeadOrDefaultInfo<Node, Expression, Variable> handleCaseHead(
-      Node node, CaseHeadOrDefaultInfo<Node, Expression, Variable> head,
+  void handleCaseHead(Node node,
       {required int caseIndex, required int subIndex});
 
   /// Called after visiting a `default` clause.

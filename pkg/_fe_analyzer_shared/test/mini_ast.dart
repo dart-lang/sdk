@@ -3727,8 +3727,7 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  CaseHeadOrDefaultInfo<Node, Expression, Var> handleCaseHead(
-      Node node, CaseHeadOrDefaultInfo<Node, Expression, Var> head,
+  void handleCaseHead(Node node,
       {required int caseIndex, required int subIndex}) {
     Iterable<Var> variables = [];
     if (node is _SwitchExpression) {
@@ -3749,8 +3748,6 @@ class _MiniAstTypeAnalyzer
     _irBuilder.apply(
         'head', [Kind.pattern, Kind.expression, Kind.variables], Kind.caseHead,
         location: node.location);
-
-    return head;
   }
 
   void handleDeclaredVariablePattern(covariant _VariablePattern node,

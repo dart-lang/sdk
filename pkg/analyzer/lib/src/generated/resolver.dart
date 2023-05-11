@@ -1127,9 +1127,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       AstNode node, int caseIndex, Iterable<PromotableElement> variables) {}
 
   @override
-  CaseHeadOrDefaultInfo<AstNode, Expression, PromotableElement> handleCaseHead(
-    covariant AstNodeImpl node,
-    CaseHeadOrDefaultInfo<AstNode, Expression, PromotableElement> head, {
+  void handleCaseHead(
+    covariant AstNodeImpl node, {
     required int caseIndex,
     required int subIndex,
   }) {
@@ -1144,8 +1143,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       legacySwitchExhaustiveness
           ?.visitSwitchExpressionCase(node.cases[caseIndex]);
     }
-
-    return head;
   }
 
   @override
