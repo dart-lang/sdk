@@ -253,6 +253,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Add '@override' annotations everywhere in file",
   );
+  static const ADD_REOPEN = FixKind(
+    'dart.fix.add.reopen',
+    DartFixKindPriority.DEFAULT,
+    "Add '@reopen' annotation",
+  );
+  static const ADD_REOPEN_MULTI = FixKind(
+    'dart.fix.add.reopen.multi',
+    DartFixKindPriority.IN_FILE,
+    "Add '@reopen' annotations everywhere in file",
+  );
   static const ADD_REQUIRED = FixKind(
     'dart.fix.add.required',
     DartFixKindPriority.DEFAULT,

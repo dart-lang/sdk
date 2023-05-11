@@ -72,6 +72,7 @@ class LintNames {
   static const String exhaustive_cases = 'exhaustive_cases';
   static const String hash_and_equals = 'hash_and_equals';
   static const String implicit_call_tearoffs = 'implicit_call_tearoffs';
+  static const String implicit_reopen = 'implicit_reopen';
   static const String invalid_case_patterns = 'invalid_case_patterns';
   static const String leading_newlines_in_multiline_strings =
       'leading_newlines_in_multiline_strings';
