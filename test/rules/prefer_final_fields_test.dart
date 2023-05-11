@@ -29,4 +29,91 @@ enum A {
       error(CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM, 24, 2),
     ]);
   }
+
+  test_overrideField_extends() async {
+    await assertNoDiagnostics(r'''
+class A {
+  bool _a = false;
+  void m() {
+    _a = true;
+    print(_a);
+  }
+}
+
+class B extends A {
+  @override
+  bool _a = false;
+
+  @override
+  void m() {
+    print(_a);
+  }
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/3760
+  test_overrideField_implements() async {
+    await assertNoDiagnostics(r'''
+class A {
+  bool _a = false;
+  void m() {
+    _a = true;
+    print(_a);
+  }
+}
+
+class B implements A {
+  @override
+  bool _a = false;
+
+  @override
+  void m() {
+    print(_a);
+  }
+}
+''');
+  }
+
+  test_overrideSetter_extends() async {
+    await assertNoDiagnostics(r'''
+class A {
+  set _a(bool a) {}
+  void m() {
+    _a = true;
+  }
+}
+
+class B extends A {
+  @override
+  bool _a = false;
+
+  @override
+  void m() {
+    print(_a);
+  }
+}
+''');
+  }
+
+  test_overrideSetter_implements() async {
+    await assertNoDiagnostics(r'''
+class A {
+  set _a(bool a) {}
+  void m() {
+    _a = true;
+  }
+}
+
+class B implements A {
+  @override
+  bool _a = false;
+
+  @override
+  void m() {
+    print(_a);
+  }
+}
+''');
+  }
 }

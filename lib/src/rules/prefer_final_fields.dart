@@ -193,6 +193,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         var isFieldInConstructors = constructors.any(fieldInConstructor);
         var isFieldInAllConstructors = constructors.every(fieldInConstructor);
 
+        if (element.overridesField()) continue;
+
         if (isFieldInConstructors) {
           if (isFieldInAllConstructors) {
             rule.reportLint(variable, arguments: [variable.name.lexeme]);
@@ -202,5 +204,19 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       }
     }
+  }
+}
+
+extension on VariableElement {
+  bool overridesField() {
+    var enclosingElement = this.enclosingElement;
+    if (enclosingElement is! InterfaceElement) return false;
+
+    var library = this.library;
+    if (library == null) return false;
+
+    return enclosingElement.thisType
+            .lookUpSetter2(name, inherited: true, library) !=
+        null;
   }
 }
