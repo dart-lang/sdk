@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
     show SearchMatch;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -66,15 +65,6 @@ class ReferencesHandler
       OperationPerformanceImpl performance) async {
     final node = NodeLocator(offset).searchWithin(result.unit);
     var element = server.getElementOfNode(node);
-    if (element is LibraryImportElement) {
-      element = element.prefix?.element;
-    }
-    if (element is FieldFormalParameterElement) {
-      element = element.field;
-    }
-    if (element is PropertyAccessorElement) {
-      element = element.variable;
-    }
     if (element == null) {
       return success(null);
     }
@@ -84,7 +74,7 @@ class ReferencesHandler
     final results = await performance.runAsync(
         "computer.compute",
         (childPerformance) =>
-            computer.compute(element!, false, performance: childPerformance));
+            computer.compute(element, false, performance: childPerformance));
 
     Location? toLocation(SearchMatch result) {
       final file = session.getFile(result.file);
