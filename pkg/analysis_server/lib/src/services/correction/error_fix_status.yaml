@@ -2358,10 +2358,7 @@ LintCode.unnecessary_null_aware_assignments:
 LintCode.unnecessary_null_aware_operator_on_extension_on_nullable:
   status: needsFix
 LintCode.unnecessary_null_checks:
-  status: needsFix
-  notes: |-
-    The fix is to remove the null check. Note that 'unnecessary' isn't right
-    here; the check isn't unnecessary, it's dangerous.
+  status: hasFix
 LintCode.unnecessary_null_in_if_null_operators:
   status: hasFix
 LintCode.unnecessary_nullable_for_final_variable_declarations:

@@ -731,6 +731,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_null_aware_assignments: [
       RemoveAssignment.new,
     ],
+    LintNames.unnecessary_null_checks: [
+      RemoveNonNullAssertion.new,
+    ],
     LintNames.unnecessary_null_in_if_null_operators: [
       RemoveIfNullOperator.new,
     ],
