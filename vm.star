@@ -427,42 +427,28 @@ _extra_builder(
     dimensions = focal,
 )
 
-#vm|legacy|jit
-_extra_builder(
+# vm|legacy|jit
+_nightly_builder(
     "vm-kernel-linux-debug-x64",
     category = "vm|legacy|jit|d",
     channels = ["try"],
 )
-_extra_builder(
+_nightly_builder(
     "vm-kernel-linux-release-x64",
     category = "vm|legacy|jit|r",
     channels = ["try"],
 )
-_extra_builder(
-    "vm-kernel-checked-linux-release-x64",
-    category = "vm|legacy|jit|rc",
-    experiments = {"dart.use_update_script": 100},
-)
-_nightly_builder(
-    "vm-kernel-win-debug-ia32",
-    category = "vm|legacy|jit|wd3",
-    channels = ["try"],
-    dimensions = windows,
-    properties = [slow_shards],
-)
 
 # vm|legacy|aot
-_extra_builder(
+_nightly_builder(
     "vm-kernel-precomp-linux-debug-x64",
     category = "vm|legacy|aot|d",
+    channels = ["try"],
 )
-_extra_builder(
-    "vm-kernel-precomp-linux-release-simarm",
-    category = "vm|legacy|aot|a32",
-)
-_extra_builder(
+_nightly_builder(
     "vm-kernel-precomp-linux-release-x64",
     category = "vm|legacy|aot|r",
+    channels = ["try"],
 )
 
 # Isolate stress test builder
