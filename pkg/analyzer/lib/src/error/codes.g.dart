@@ -1896,7 +1896,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode ILLEGAL_ASYNC_RETURN_TYPE =
       CompileTimeErrorCode(
     'ILLEGAL_ASYNC_RETURN_TYPE',
-    "Functions marked 'async' must have a return type assignable to 'Future'.",
+    "Functions marked 'async' must have a return type which is a supertype of "
+        "'Future'.",
     correctionMessage:
         "Try fixing the return type of the function, or removing the modifier "
         "'async' from the function body.",

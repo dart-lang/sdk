@@ -18,6 +18,9 @@ deferred/load_in_correct_order_test: SkipByDesign # jsshell preamble does not su
 [ $browser ]
 native/*: Skip
 
+[ $builder_tag == canary && $compiler == ddc ]
+async_stacktrace_test: Skip # Issue 50666
+
 [ $compiler == dart2js && $mode == debug ]
 operator_test: Skip
 string_interpolation_test: Skip

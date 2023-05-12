@@ -212,6 +212,10 @@ name: test
         if (kind == CompletionSuggestionKind.IDENTIFIER ||
             kind == CompletionSuggestionKind.INVOCATION) {
           var completion = suggestion.completion;
+          var periodIndex = completion.indexOf('.');
+          if (periodIndex > 0) {
+            completion = completion.substring(0, periodIndex);
+          }
           return RegExp(r'^_?[a-zA-Z][0-9]+$').hasMatch(completion) ||
               allowedIdentifiers.contains(completion);
         } else if (kind == CompletionSuggestionKind.KEYWORD) {

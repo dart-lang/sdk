@@ -6,7 +6,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
 import '../completion_check.dart';
-import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -29,21 +28,218 @@ class EnumTest2 extends AbstractCompletionDriverTest with EnumTestCases {
 
 mixin EnumTestCases on AbstractCompletionDriverTest {
   @override
+  bool get includeKeywords => false;
+
+  @override
   Future<void> setUp() async {
     await super.setUp();
+    allowedIdentifiers = {'values'};
+  }
 
-    printerConfiguration = printer.Configuration(
-      filter: (suggestion) => true,
-    );
+  Future<void> test_afterCascade() async {
+    await computeSuggestions('''
+enum E {
+  o0, t0
+}
+void f() {
+  E..^
+}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_afterCascade_partial() async {
+    await computeSuggestions('''
+enum E {
+  o0, t0
+}
+void f() {
+  E..o^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+  }
+
+  Future<void> test_afterPeriod() async {
+    await computeSuggestions('''
+enum E0 {
+  o0, t0
+}
+void f() {
+  E0.^
+}
+''');
+    assertResponse(r'''
+suggestions
+  o0
+    kind: enumConstant
+  t0
+    kind: enumConstant
+  values
+    kind: field
+''');
+  }
+
+  Future<void> test_afterPeriod_beforeStatement() async {
+    await computeSuggestions('''
+enum E0 {
+  o0, t0
+}
+void f() {
+  E0.^
+  int g;
+}
+''');
+    assertResponse(r'''
+suggestions
+  o0
+    kind: enumConstant
+  t0
+    kind: enumConstant
+  values
+    kind: field
+''');
+  }
+
+  Future<void> test_afterPeriod_deprecated() async {
+    await computeSuggestions('''
+@deprecated enum E0 {
+  o0, t0
+}
+void f() {
+  E0.^
+}
+''');
+    assertResponse(r'''
+suggestions
+  o0
+    kind: enumConstant
+    deprecated: true
+  t0
+    kind: enumConstant
+    deprecated: true
+  values
+    kind: field
+    deprecated: true
+''');
+  }
+
+  Future<void> test_afterPeriod_partial() async {
+    await computeSuggestions('''
+enum E0 {
+  o0, t0
+}
+void f() {
+  E0.o^
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  o0
+    kind: enumConstant
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  o0
+    kind: enumConstant
+  t0
+    kind: enumConstant
+  values
+    kind: field
+''');
+    }
+  }
+
+  Future<void> test_afterPeriod_throughTypedef() async {
+    newFile('$testPackageLibPath/a.dart', '''
+enum E0 {
+  a0,
+  _b0,
+  c0
+}
+void f() {
+  E0._b0;
+}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+typedef A = E0;
+
+void f() {
+  A.^;
+}
+''');
+    assertResponse(r'''
+suggestions
+  a0
+    kind: enumConstant
+  c0
+    kind: enumConstant
+  values
+    kind: field
+''');
+  }
+
+  Future<void> test_betweenPeriods() async {
+    await computeSuggestions('''
+enum E0 {
+  o0, t0
+}
+void f() {
+  E0.^.
+}
+''');
+    assertResponse(r'''
+suggestions
+  o0
+    kind: enumConstant
+  t0
+    kind: enumConstant
+  values
+    kind: field
+''');
+  }
+
+  Future<void> test_betweenPeriods_partial() async {
+    await computeSuggestions('''
+enum E0 {
+  o0, t0
+}
+void f() {
+  E0.^.o
+}
+''');
+    assertResponse(r'''
+suggestions
+  o0
+    kind: enumConstant
+  t0
+    kind: enumConstant
+  values
+    kind: field
+''');
   }
 
   Future<void> test_enumConstantName() async {
     await _check_locations(
       declaration: '''
-enum MyEnum { foo01 }
-enum OtherEnum { foo02 }
+enum E0 { foo01 }
+enum E1 { foo02 }
 ''',
-      declarationForContextType: 'void useMyEnum(MyEnum _) {}',
+      declarationForContextType: 'void useMyEnum(E0 _) {}',
       codeAtCompletion: 'useMyEnum(foo0^);',
       validator: (response, context) {
         if (isProtocolVersion2) {
@@ -51,7 +247,7 @@ enum OtherEnum { foo02 }
 replacement
   left: 4
 suggestions
-  MyEnum.foo01
+  E0.foo01
     kind: enumConstant
 ''');
         } else {
@@ -63,9 +259,7 @@ suggestions
 replacement
   left: 4
 suggestions
-  MyEnum
-    kind: enum
-  MyEnum.foo01
+  E0.foo01
     kind: enumConstant
 ''');
           }
@@ -76,8 +270,8 @@ suggestions
 
   Future<void> test_enumConstantName_imported_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
-enum MyEnum { foo01 }
-enum OtherEnum { foo02 }
+enum E0 { foo01 }
+enum E1 { foo02 }
 ''');
 
     if (isProtocolVersion1) {
@@ -85,9 +279,9 @@ enum OtherEnum { foo02 }
     }
 
     await computeSuggestions('''
-import 'a.dart' as prefix;
+import 'a.dart' as p0;
 
-void useMyEnum(prefix.MyEnum _) {}
+void useMyEnum(p0.E0 _) {}
 
 void f() {
   useMyEnum(foo0^);
@@ -99,7 +293,7 @@ void f() {
 replacement
   left: 4
 suggestions
-  prefix.MyEnum.foo01
+  p0.E0.foo01
     kind: enumConstant
 ''');
     } else {
@@ -109,11 +303,9 @@ suggestions
 replacement
   left: 4
 suggestions
-  MyEnum
-    kind: enum
-  MyEnum.foo01
+  E0.foo01
     kind: enumConstant
-  OtherEnum.foo02
+  E1.foo02
     kind: enumConstant
 ''');
     }
@@ -121,17 +313,17 @@ suggestions
 
   Future<void> test_enumName() async {
     await _check_locations(
-      declaration: 'enum MyEnum { foo01 }',
-      codeAtCompletion: 'MyEnu^',
+      declaration: 'enum E0 { foo01 }',
+      codeAtCompletion: 'E^',
       referencesDeclaration: false,
       validator: (response, context) {
         if (isProtocolVersion2) {
           // No enum constants.
           assertResponse(r'''
 replacement
-  left: 5
+  left: 1
 suggestions
-  MyEnum
+  E0
     kind: enum
 ''');
         } else {
@@ -140,20 +332,16 @@ suggestions
             case _Context.local:
               assertResponse(r'''
 replacement
-  left: 5
+  left: 1
 suggestions
-  MyEnum
-    kind: enum
 ''');
             case _Context.imported:
             case _Context.notImported:
               assertResponse(r'''
 replacement
-  left: 5
+  left: 1
 suggestions
-  MyEnum
-    kind: enum
-  MyEnum.foo01
+  E0.foo01
     kind: enumConstant
 ''');
           }
@@ -172,7 +360,7 @@ enum MyEnum { foo01 }
     }
 
     await computeSuggestions('''
-import 'a.dart' as prefix;
+import 'a.dart' as p0;
 
 void f() {
   MyEnu^
@@ -184,7 +372,7 @@ void f() {
 replacement
   left: 5
 suggestions
-  prefix.MyEnum
+  p0.MyEnum
     kind: enum
 ''');
     } else {
@@ -212,10 +400,10 @@ enum MyEnum { v }
     }
 
     await computeSuggestions('''
-import 'a.dart' as prefix01;
+import 'a.dart' as p0;
 
 void f() {
-  prefix0^
+  p0^
 }
 ''');
 
@@ -223,9 +411,9 @@ void f() {
       // TODO(scheglov) The kind should be a prefix.
       assertResponse(r'''
 replacement
-  left: 7
+  left: 2
 suggestions
-  prefix01
+  p0
     kind: library
 ''');
     } else {
@@ -233,7 +421,7 @@ suggestions
       // TODO(scheglov) This is wrong.
       assertResponse(r'''
 replacement
-  left: 7
+  left: 2
 suggestions
   MyEnum
     kind: enum
@@ -245,7 +433,7 @@ suggestions
 
   Future<void> test_importPrefix_dot() async {
     newFile('$testPackageLibPath/a.dart', r'''
-enum MyEnum { v }
+enum E0 { v }
 ''');
 
     if (isProtocolVersion1) {
@@ -253,10 +441,10 @@ enum MyEnum { v }
     }
 
     await computeSuggestions('''
-import 'a.dart' as prefix;
+import 'a.dart' as p0;
 
 void f() {
-  prefix.^
+  p0.^
 }
 ''');
 
@@ -264,7 +452,7 @@ void f() {
     // Should include constants, as [test_nothing_imported_withPrefix] does.
     assertResponse(r'''
 suggestions
-  MyEnum
+  E0
     kind: enum
 ''');
   }
@@ -320,9 +508,9 @@ enum MyEnum { foo01 }
 ''');
 
     await computeSuggestions('''
-import 'a.dart' as prefix;
+import 'a.dart' as p0;
 
-void useMyEnum(prefix.MyEnum _) {}
+void useMyEnum(p0.MyEnum _) {}
 
 void f() {
   useMyEnum(^);
@@ -332,9 +520,9 @@ void f() {
     if (isProtocolVersion2) {
       assertResponse(r'''
 suggestions
-  prefix.MyEnum
+  p0.MyEnum
     kind: enum
-  prefix.MyEnum.foo01
+  p0.MyEnum.foo01
     kind: enumConstant
 ''');
     } else {

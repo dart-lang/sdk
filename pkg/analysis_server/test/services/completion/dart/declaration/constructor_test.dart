@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -29,20 +28,79 @@ class ConstructorTest2 extends AbstractCompletionDriverTest
 }
 
 mixin ConstructorTestCases on AbstractCompletionDriverTest {
-  @override
-  Future<void> setUp() async {
-    await super.setUp();
+  Future<void> test_noKeyword() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0 {
+  A0.f0();
+  A0.b0();
+}
+''');
+    await computeSuggestions('''
+import 'a.dart';
 
-    printerConfiguration = printer.Configuration(
-      filter: (suggestion) {
-        final completion = suggestion.completion;
-        return completion.contains('Foo');
-      },
-    );
+void f() {
+  A0.^;
+}
+''');
+    assertResponse(r'''
+suggestions
+  b0
+    kind: constructorInvocation
+  f0
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_noKeyword_matchForContextType() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0 {
+  A0.f0();
+  A0.b0();
+}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+void f() {
+  A Function() v = A0.^;
+}
+''');
+    assertResponse(r'''
+suggestions
+  b0
+    kind: constructorInvocation
+  f0
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_noKeyword_notMatchForContextType() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0 {
+  A0.f0();
+  A0.b0();
+}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+void f() {
+  int Function() v = A0.^;
+}
+''');
+    assertResponse(r'''
+suggestions
+  b0
+    kind: constructorInvocation
+  f0
+    kind: constructorInvocation
+''');
   }
 
   Future<void> test_sealed_library() async {
-    newFile('$testPackageLibPath/a.dart', 'sealed class FooSealed {}');
+    newFile('$testPackageLibPath/a.dart', '''
+sealed class S0 {}
+''');
     await computeSuggestions('''
 import 'a.dart';
 void f() {
@@ -53,7 +111,7 @@ void f() {
     if (isProtocolVersion1) {
       assertResponse(r'''
 suggestions
-  FooSealed
+  S0
     kind: constructorInvocation
 ''');
     } else {
@@ -65,7 +123,7 @@ suggestions
 
   Future<void> test_sealed_local() async {
     await computeSuggestions('''
-sealed class FooSealed {}
+sealed class S0 {}
 void f() {
   var x = new ^
 }

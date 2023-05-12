@@ -7621,7 +7621,8 @@ int f() => 0;
 
 ### illegal_async_return_type
 
-_Functions marked 'async' must have a return type assignable to 'Future'._
+_Functions marked 'async' must have a return type which is a supertype of
+'Future'._
 
 #### Description
 

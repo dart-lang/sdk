@@ -1881,7 +1881,7 @@ LintCode.avoid_equals_and_hash_code_on_mutable_classes:
   status: noFix
   notes: |-
     Theoretically we could remove the methods, but the fix is probably
-    apporpriate so seldom that it isn't worth offering it.
+    appropriate so seldom that it isn't worth offering it.
 LintCode.avoid_escaping_inner_quotes:
   status: hasFix
 LintCode.avoid_field_initializers_in_const_classes:
@@ -2074,9 +2074,7 @@ LintCode.implementation_imports:
 LintCode.implicit_call_tearoffs:
   status: hasFix
 LintCode.implicit_reopen:
-  status: needsFix
-  notes: |-
-    The correction is to add `@reopen`.
+  status: hasFix
 LintCode.invalid_case_patterns:
   status: hasFix
 LintCode.invariant_booleans:
@@ -2360,10 +2358,7 @@ LintCode.unnecessary_null_aware_assignments:
 LintCode.unnecessary_null_aware_operator_on_extension_on_nullable:
   status: needsFix
 LintCode.unnecessary_null_checks:
-  status: needsFix
-  notes: |-
-    The fix is to remove the null check. Note that 'unnecessary' isn't right
-    here; the check isn't unnecessary, it's dangerous.
+  status: hasFix
 LintCode.unnecessary_null_in_if_null_operators:
   status: hasFix
 LintCode.unnecessary_nullable_for_final_variable_declarations:
