@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
+import 'constants.dart';
 import 'exceptions.dart';
 import 'protocol_common.dart';
 import 'protocol_generated.dart';
@@ -143,13 +144,20 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
       assert(sendResponseCalled,
           'sendResponse was not called in ${request.command}');
     } catch (e, s) {
+      // TODO(helin24): Consider adding an error type to DebugAdapterException.
+      final messageText = e is DebugAdapterException ? e.message : '$e';
+      final errorMessage = Message(
+        id: ErrorMessageType.general,
+        format: '{message}\n{stack}',
+        variables: {'message': messageText, 'stack': '$s'},
+      );
       final response = Response(
         success: false,
         requestSeq: request.seq,
         seq: _sequence++,
         command: request.command,
-        message: e is DebugAdapterException ? e.message : '$e',
-        body: '$s',
+        message: messageText,
+        body: ErrorResponseBody(error: errorMessage),
       );
       responseWriter(response);
     }

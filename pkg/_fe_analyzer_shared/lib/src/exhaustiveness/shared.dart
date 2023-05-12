@@ -39,6 +39,9 @@ abstract class TypeOperations<Type extends Object> {
   /// Returns `true` if [type] is the `Never` type.
   bool isNeverType(Type type);
 
+  /// Returns `true` if [type] is the `InvalidType` type.
+  bool isErrorType(Type type);
+
   /// Returns `true` if [type] is the `Object?` type.
   bool isNullableObject(Type type);
 
@@ -163,7 +166,9 @@ class ExhaustivenessCache<
 
   /// Returns the [StaticType] for [type].
   StaticType getStaticType(Type type) {
-    if (typeOperations.isNeverType(type)) {
+    if (typeOperations.isErrorType(type)) {
+      return StaticType.errorType;
+    } else if (typeOperations.isNeverType(type)) {
       return StaticType.neverType;
     } else if (typeOperations.isNullType(type)) {
       return StaticType.nullType;

@@ -50,8 +50,12 @@ abstract class AbstractCompletionDriverTest
   late printer.Configuration printerConfiguration;
 
   /// A set of identifiers that will be included in the printed version of the
-  /// selections. Individual tests can replace the default set.
+  /// suggestions. Individual tests can replace the default set.
   Set<String> allowedIdentifiers = const {};
+
+  /// A set of completion kinds that should be included in the printed version
+  /// of the suggestions. Individual tests can replace the default set.
+  Set<CompletionSuggestionKind> allowedKinds = {};
 
   /// Return `true` if keywords should be included in the text to be compared.
   bool get includeKeywords => true;
@@ -220,6 +224,8 @@ name: test
               allowedIdentifiers.contains(completion);
         } else if (kind == CompletionSuggestionKind.KEYWORD) {
           return includeKeywords;
+        } else if (allowedKinds.contains(kind)) {
+          return true;
         }
         return true;
       },

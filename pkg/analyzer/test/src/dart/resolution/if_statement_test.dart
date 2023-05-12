@@ -958,8 +958,6 @@ void f(Object? x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 56, 1),
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          56, 1),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 56, 1),
     ]);
 

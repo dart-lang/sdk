@@ -78,7 +78,9 @@ class Rename extends Change<_Data> {
   // ignore: library_private_types_in_public_api
   _Data? validate(DataDrivenFix fix) {
     var node = fix.node;
-    if (node is MethodDeclaration) {
+    if (node is ExtensionOverride) {
+      return _Data(node, node.name);
+    } else if (node is MethodDeclaration) {
       return _Data(node, node.name);
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;

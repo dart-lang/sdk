@@ -994,14 +994,14 @@ _canonicalMember(obj, name) {
 }
 
 @notNull
-bool _realDeferredLoading = false;
+bool _ddcDeferredLoading = false;
 
 /// Sets the runtime mode to perform deferred loading (instead of just runtime
 /// correctness checks on loaded libraries).
 ///
 /// This is only supported in the DDC module system.
-void realDeferredLoading(bool enable) {
-  _realDeferredLoading = enable;
+void ddcDeferredLoading(bool enable) {
+  _ddcDeferredLoading = enable;
 }
 
 /// A map from libraries to a set of import prefixes that have been loaded.
@@ -1016,7 +1016,7 @@ final deferredImports = JS<Object>('!', 'new Map()');
 /// Only supported in the DDC module system.
 Future<void> loadLibrary(@notNull String libraryUri,
     @notNull String importPrefix, @notNull String targetModule) {
-  if (!_realDeferredLoading) {
+  if (!_ddcDeferredLoading) {
     var result = JS('', '#.get(#)', deferredImports, libraryUri);
     if (JS<bool>('', '# === void 0', result)) {
       JS('', '#.set(#, # = new Set())', deferredImports, libraryUri, result);
@@ -1057,7 +1057,7 @@ Future<void> loadLibrary(@notNull String libraryUri,
 
 void checkDeferredIsLoaded(
     @notNull String libraryUri, @notNull String importPrefix) {
-  if (!_realDeferredLoading) {
+  if (!_ddcDeferredLoading) {
     var loaded = JS('', '#.get(#)', deferredImports, libraryUri);
     if (JS<bool>('', '# === void 0', loaded) ||
         JS<bool>('', '!#.has(#)', loaded, importPrefix)) {

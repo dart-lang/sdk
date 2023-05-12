@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -1431,6 +1432,20 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    final importPrefix = node.importPrefix;
+    if (importPrefix != null) {
+      final element = importPrefix.element;
+      if (elements.contains(element)) {
+        _addResult(importPrefix.name, SearchResultKind.REFERENCE);
+      }
+    }
+
+    node.typeArguments?.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
@@ -1462,12 +1477,12 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _addResult(AstNode node, SearchResultKind kind) {
-    bool isQualified = node.parent is Label;
+  void _addResult(SyntacticEntity entity, SearchResultKind kind) {
+    bool isQualified = entity is AstNode ? entity.parent is Label : false;
     Element enclosingElement =
-        _getEnclosingElement(enclosingUnitElement, node.offset);
-    results.add(SearchResult._(
-        enclosingElement, kind, node.offset, node.length, true, isQualified));
+        _getEnclosingElement(enclosingUnitElement, entity.offset);
+    results.add(SearchResult._(enclosingElement, kind, entity.offset,
+        entity.length, true, isQualified));
   }
 }
 

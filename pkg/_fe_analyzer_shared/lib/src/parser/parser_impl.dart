@@ -10061,6 +10061,12 @@ class Parser {
         listener.handleRestPattern(dots, hasSubPattern: hasSubPattern);
       } else {
         token = parsePattern(token, patternContext);
+        if (identical(next, token.next)) {
+          // No tokens were consumed (though it's possible that a synthetic
+          // token was inserted). If this happens, go ahead and skip the next
+          // token to ensure that progress is made.
+          token = token.next!;
+        }
       }
       next = token.next!;
       ++count;
@@ -10136,6 +10142,12 @@ class Parser {
               new SyntheticToken(TokenType.COLON, next.charOffset));
         }
         token = parsePattern(colon, patternContext);
+        if (identical(next, token.next)) {
+          // No tokens were consumed (though it's possible that a synthetic
+          // token was inserted). If this happens, go ahead and skip the next
+          // token to ensure that progress is made.
+          token = token.next!;
+        }
         listener.handleMapPatternEntry(colon, token.next!);
       }
       ++count;

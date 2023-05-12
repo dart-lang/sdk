@@ -35,6 +35,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
     _checkForDeprecated(node.element?.exportedLibrary, node);
   }
 
+  void extensionOverride(ExtensionOverride node) {
+    _checkForDeprecated(node.element, node);
+  }
+
   void functionExpressionInvocation(FunctionExpressionInvocation node) {
     var callElement = node.staticElement;
     if (callElement is MethodElement &&
@@ -164,6 +168,8 @@ abstract class BaseDeprecatedMemberUseVerifier {
       } else if (node is PropertyAccess) {
         errorEntity = node.propertyName;
       }
+    } else if (node is ExtensionOverride) {
+      errorEntity = node.name;
     } else if (node is NamedExpression) {
       errorEntity = node.name.label;
     } else if (node is PatternFieldImpl) {

@@ -39,25 +39,19 @@ exhaustiveTyped(
         A<num>
             a) => /*cfe.
              fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
-             type=Never
+             type=A<num>
             */ /*analyzer.
- checkingOrder={Object?,Object,Null},
- error=non-exhaustive:Object(),
  fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
- subtypes={Object,Null},
- type=Object?
+ type=A<num>
 */
-    switch (o) {
+    switch (a) {
       A<int>(
         :void Function(int) member
-      ) /*cfe.space=Never(A<int>.member: void Function(int) (void Function(int)))*/ /*analyzer.space=A<int>(A<int>.member: void Function(int) (void Function(int)))*/ =>
+      ) /*space=A<int>(A<int>.member: void Function(int) (void Function(int)))*/ =>
         0,
       A<num>(
         :void Function(num) member
-      ) /*cfe.
-       error=unreachable,
-       space=Never(A<num>.member: void Function(num) (void Function(num)))
-      */ /*analyzer.space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
+      ) /*space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
         1,
     };
 
@@ -65,24 +59,21 @@ unreachable(
         A<num>
             a) => /*cfe.
              fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
-             type=Never
+             type=A<num>
             */ /*analyzer.
- checkingOrder={Object?,Object,Null},
- error=non-exhaustive:Object(),
  fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
- subtypes={Object,Null},
- type=Object?
+ type=A<num>
 */
-    switch (o) {
+    switch (a) {
       A<num>(
         :var member
-      ) /*cfe.space=Never(A<num>.member: void Function(num) (void Function(num)))*/ /*analyzer.space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
+      ) /*space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
         1,
       A<int>(
         :var member
       ) /*cfe.
        error=unreachable,
-       space=Never(A<int>.member: void Function(int) (void Function(int)))
+       space=A<int>(A<int>.member: void Function(int) (void Function(int)))
       */ /*analyzer.
      error=unreachable,
      space=A<int>(A<int>.member: void Function(int) (void Function(int)))
@@ -95,24 +86,21 @@ nonExhaustiveRestricted(
         A<num>
             a) => /*cfe.
              fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
-             type=Never
+             type=A<num>
             */ /*analyzer.
- checkingOrder={Object?,Object,Null},
- error=non-exhaustive:Object(),
  fields={A<int>.member:void Function(int),A<num>.member:void Function(num)},
- subtypes={Object,Null},
- type=Object?
+ type=A<num>
 */
-    switch (o) {
+    switch (a) {
       A<num>(
         :void Function(num) member
-      ) /*cfe.space=Never(A<num>.member: void Function(num) (void Function(num)))*/ /*analyzer.space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
+      ) /*space=A<num>(A<num>.member: void Function(num) (void Function(num)))*/ =>
         1,
       A<int>(
         :var member
       ) /*cfe.
        error=unreachable,
-       space=Never(A<int>.member: void Function(int) (void Function(int)))
+       space=A<int>(A<int>.member: void Function(int) (void Function(int)))
       */ /*analyzer.
      error=unreachable,
      space=A<int>(A<int>.member: void Function(int) (void Function(int)))

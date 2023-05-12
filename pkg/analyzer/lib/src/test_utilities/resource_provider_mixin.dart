@@ -5,12 +5,19 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:path/path.dart' as path;
 
 /// A mixin for test classes that adds a [ResourceProvider] and utility methods
 /// for manipulating the file system. The utility methods all take a posix style
 /// path and convert it as appropriate for the actual platform.
 mixin ResourceProviderMixin {
-  MemoryResourceProvider resourceProvider = MemoryResourceProvider();
+  MemoryResourceProvider? _resourceProvider;
+
+  path.Context get fileSystem => path.posix;
+
+  MemoryResourceProvider get resourceProvider {
+    return _resourceProvider ??= MemoryResourceProvider(context: fileSystem);
+  }
 
   String convertPath(String path) => resourceProvider.convertPath(path);
 

@@ -58,8 +58,6 @@ int f(Object? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 45, 10),
-      error(WarningCode.DEAD_CODE, 68, 7),
-      error(WarningCode.UNREACHABLE_SWITCH_CASE, 70, 2),
     ]);
   }
 }
@@ -79,6 +77,40 @@ void f(bool x) {
 }
 ''', [
       error(WarningCode.UNREACHABLE_SWITCH_CASE, 67, 4),
+    ]);
+  }
+
+  test_const_unresolvedIdentifier_const() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case 0:
+      break;
+    case unresolved:
+      break;
+    case 2:
+      break;
+  };
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 69, 10),
+    ]);
+  }
+
+  test_const_unresolvedObject_const() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case 0:
+      break;
+    case Unresolved():
+      break;
+    case 2:
+      break;
+  };
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 69, 10),
     ]);
   }
 

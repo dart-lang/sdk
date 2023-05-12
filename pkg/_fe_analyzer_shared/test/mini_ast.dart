@@ -902,6 +902,7 @@ class MiniAstOperations
     'bool <: bool': Type('bool'),
     'dynamic <: int': Type('dynamic'),
     'error <: int': Type('error'),
+    'error <: num': Type('error'),
     'int <: dynamic': Type('int'),
     'int <: num': Type('int'),
     'int <: Object?': Type('int'),

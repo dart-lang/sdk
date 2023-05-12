@@ -22,6 +22,9 @@ abstract class StaticType {
   /// Built-in `Never` type.
   static const StaticType neverType = const _NeverType();
 
+  /// Built-in `Error` type.
+  static const StaticType errorType = const _ErrorType();
+
   /// The static types of the fields this type exposes for record destructuring.
   ///
   /// Includes inherited fields.
@@ -261,6 +264,35 @@ class _NeverType extends _BaseStaticType with _ObjectFieldMixin {
 
   @override
   StaticType get nullable => StaticType.nullType;
+
+  @override
+  StaticType get nonNullable => this;
+
+  @override
+  bool get isImplicitlyNullable => false;
+
+  @override
+  void typeToDart(DartTemplateBuffer buffer) {
+    buffer.writeCoreType(name);
+  }
+}
+
+class _ErrorType extends _BaseStaticType with _ObjectFieldMixin {
+  const _ErrorType();
+
+  @override
+  bool get isSealed => false;
+
+  @override
+  bool isSubtypeOf(StaticType other) {
+    return false;
+  }
+
+  @override
+  String get name => 'InvalidType';
+
+  @override
+  StaticType get nullable => this;
 
   @override
   StaticType get nonNullable => this;

@@ -567,4 +567,25 @@ void f<T>(x) {
           28, 1),
     ]);
   }
+
+  test_unresolvedIdentifier() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case foo) {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 33, 3),
+    ]);
+
+    final node = findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: InvalidType
+    matchedValueType: Object?
+''');
+  }
 }

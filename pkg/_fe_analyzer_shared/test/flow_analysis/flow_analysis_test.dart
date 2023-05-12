@@ -8660,6 +8660,21 @@ main() {
           checkReachable(false),
         ]);
       });
+
+      test('error type does not make following cases unreachable', () {
+        // We don't know the correct type, so recover by expecting that the
+        // following cases still will be useful once the error is fixed.
+        h.run([
+          switchExpr(expr('num'), [
+            wildcard(type: 'error').thenExpr(block([
+              checkReachable(true),
+            ]).thenExpr(intLiteral(0))),
+            wildcard().thenExpr(block([
+              checkReachable(true),
+            ]).thenExpr(intLiteral(1))),
+          ]).stmt,
+        ]);
+      });
     });
 
     group('Switch statement:', () {
@@ -8964,6 +8979,21 @@ main() {
               'case(heads(head(wildcardPattern(matchedType: Object), true, '
               'variables()), variables()), '
               'block(stmt(1), synthetic-break())))'),
+        ]);
+      });
+
+      test('error type does not make following cases unreachable', () {
+        // We don't know the correct type, so recover by expecting that the
+        // following cases still will be useful once the error is fixed.
+        h.run([
+          switch_(expr('num'), [
+            wildcard(type: 'error').then([
+              checkReachable(true),
+            ]),
+            wildcard().then([
+              checkReachable(true),
+            ]),
+          ]),
         ]);
       });
 

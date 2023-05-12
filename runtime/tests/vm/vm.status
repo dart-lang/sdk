@@ -65,11 +65,9 @@ dart_2/transferable_throws_oom_test: SkipByDesign # This test tries to allocate 
 [ $builder_tag == obfuscated ]
 dart/heapsnapshot_cli_test: SkipByDesign # Relies on symbol names
 dart/isolate_exit_unsendable_test: SkipByDesign # Relies on symbol names
-dart/isolates/send_unsupported_objects_test: SkipByDesign # Relies on symbol names
 dart/sendandexit_test: SkipByDesign # Relies on symbol names
 dart_2/heapsnapshot_cli_test: SkipByDesign # Relies on symbol names
 dart_2/isolate_exit_unsendable_test: SkipByDesign # Relies on symbol names
-dart_2/isolates/send_unsupported_objects_test: SkipByDesign # Relies on symbol names
 dart_2/sendandexit_test: SkipByDesign # Relies on symbol names
 
 [ $builder_tag == optimization_counter_threshold ]

@@ -53,6 +53,11 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   ClassHierarchy get _classHierarchy => _typeEnvironment.hierarchy;
 
   @override
+  bool isErrorType(DartType type) {
+    return type is InvalidType;
+  }
+
+  @override
   DartType getNonNullable(DartType type) {
     return type.toNonNull();
   }

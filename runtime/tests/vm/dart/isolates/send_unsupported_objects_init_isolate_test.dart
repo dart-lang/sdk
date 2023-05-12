@@ -23,13 +23,12 @@ main() async {
       Expect.fail('This closure should fail to be sent, shouldn\'t be called');
     });
   } catch (e) {
-    checkForRetainingPath(e, <String>[
-      'NativeWrapper',
+    Expect.isTrue(checkForRetainingPath(e, <String>[
       'Baz',
       'Fu',
       'Context',
       'Closure',
-    ]);
+    ]));
     asyncEnd();
   }
 }

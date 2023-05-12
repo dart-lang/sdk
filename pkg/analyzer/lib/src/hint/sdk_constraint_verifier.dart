@@ -216,6 +216,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
         node.name,
       );
     }
+    _checkSinceSdkVersion(node.element, node);
     super.visitExtensionOverride(node);
   }
 
@@ -372,6 +373,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
             }
             if (target is ConstructorName) {
               errorEntity = target.name?.token ?? target.type.name2;
+            } else if (target is ExtensionOverride) {
+              errorEntity = target.name;
             } else if (target is FunctionExpressionInvocation) {
               errorEntity = target.argumentList;
             } else if (target is IndexExpression) {

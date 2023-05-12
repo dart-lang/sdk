@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 
 class TestEnvironment implements ObjectPropertyLookup {
@@ -136,9 +136,14 @@ class TestEnvironment implements ObjectPropertyLookup {
 class _Type {
   static const _InterfaceType Object = _InterfaceType(_Class.Object);
   static const _Type NullableObject = _NullableType(_Type.Object);
+  static const _Type Error = _ErrorType();
   static const _InterfaceType Never = _InterfaceType(_Class.Never);
   static const _InterfaceType Bool = _InterfaceType(_Class.Bool);
   static const _Type Null = _NullableType(_Type.Never);
+}
+
+class _ErrorType implements _Type {
+  const _ErrorType();
 }
 
 class _Class {
@@ -300,6 +305,11 @@ class _TypeOperations implements TypeOperations<_Type> {
   @override
   bool isBoolType(_Type type) {
     return type == _Type.Bool;
+  }
+
+  @override
+  bool isErrorType(_Type type) {
+    return type == _Type.Error;
   }
 
   @override

@@ -47,7 +47,6 @@ class Class {
       //   ^^^^^
       // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
       //   ^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       // [cfe] Method invocation is not a constant expression.
     }
 
