@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection' show LinkedHashMap;
+
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/closures.dart';
 import 'package:dart2wasm/dispatch_table.dart';
@@ -61,7 +63,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   /// Finalizers to run on a `break`. `breakFinalizers[L].last` (which should
   /// always be present) is the `br` target for the label `L` that will run the
   /// finalizers, or break out of the loop.
-  final Map<LabeledStatement, List<w.Label>> breakFinalizers = {};
+  final LinkedHashMap<LabeledStatement, List<w.Label>> breakFinalizers =
+      LinkedHashMap();
 
   final List<w.Label> tryLabels = [];
 
