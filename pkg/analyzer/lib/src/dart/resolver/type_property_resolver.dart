@@ -80,7 +80,8 @@ class TypePropertyResolver {
       return _toResult();
     }
 
-    if (_typeSystem.isDynamicBounded(receiverType)) {
+    if (_typeSystem.isDynamicBounded(receiverType) ||
+        _typeSystem.isInvalidBounded(receiverType)) {
       _lookupInterfaceType(
         _typeProvider.objectType,
         recoverWithStatic: false,

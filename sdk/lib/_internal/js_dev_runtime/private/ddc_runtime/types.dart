@@ -2283,12 +2283,11 @@ RecordType recordType(@notNull Shape shape, @notNull List types) =>
 
 /// Creates a shape and binds it to [types].
 ///
-/// [shapeRecipe] consists of a space-separated list of elements, where the
-/// first element is the number of positional elements, followed by every
-/// named element in sorted order.
-RecordType recordTypeLiteral(@notNull String shapeRecipe,
-    @notNull int positionals, List<String>? named, @notNull List types) {
-  var shape = registerShape(shapeRecipe, positionals, named);
+/// The [shapeKey] must agree with the number of [positionals] and the [named]
+/// elements list. See [shapes] for a description of the shape key format.
+RecordType recordTypeLiteral(@notNull String shapeKey, @notNull int positionals,
+    List<String>? named, @notNull List types) {
+  var shape = registerShape(shapeKey, positionals, named);
   return recordType(shape, types);
 }
 

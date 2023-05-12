@@ -157,9 +157,8 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       Set.unmodifiable(_visitedInterfaceTypes);
 
   @override
-  String defaultDartType(DartType node) {
-    throw UnimplementedError('Unknown DartType: $node');
-  }
+  String defaultDartType(DartType node) =>
+      throw UnimplementedError('Unknown DartType: $node');
 
   @override
   String visitDynamicType(DynamicType node) => Recipe.pushDynamicString;
@@ -263,11 +262,24 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   }
 
   @override
-  // Just emit the recipe for dynamic as a temporary workaround to unblock
-  // the use of record types landing in the sdk.
-  // See: https://github.com/dart-lang/sdk/issues/51904
-  // TODO(nshahan): Implement valid record type recipes.
-  String visitRecordType(RecordType node) => Recipe.pushDynamicString;
+  String visitRecordType(RecordType node) {
+    var recipeBuffer = StringBuffer(Recipe.startRecordString);
+    // Add the names of the named elements.
+    recipeBuffer.writeAll(
+        node.named.map((element) => element.name), Recipe.separatorString);
+    // Add all element types.
+    recipeBuffer.write(Recipe.startFunctionArgumentsString);
+    var elementTypes = [
+      ...node.positional,
+      ...node.named.map((element) => element.type)
+    ];
+    recipeBuffer.writeAll(elementTypes.map((element) => element.accept(this)),
+        Recipe.separatorString);
+    recipeBuffer.write(Recipe.endFunctionArgumentsString);
+    // Add the records nullability.
+    recipeBuffer.write(_nullabilityRecipe(node));
+    return recipeBuffer.toString();
+  }
 
   @override
   String visitTypeParameterType(TypeParameterType node) {

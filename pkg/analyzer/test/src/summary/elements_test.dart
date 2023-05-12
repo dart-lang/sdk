@@ -13499,6 +13499,28 @@ library
 ''');
   }
 
+  test_const_invalid_patternAssignment() async {
+    var library = await buildLibrary('''
+const v = (a,) = (0,);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const v @6
+        type: (int)
+        shouldUseTypeForInitializerInference: false
+        constantInitializer
+          SimpleIdentifier
+            token: _notSerializableExpression @-1
+            staticElement: <null>
+            staticType: null
+    accessors
+      synthetic static get v @-1
+        returnType: (int)
+''');
+  }
+
   test_const_invalid_topLevel() async {
     var library = await buildLibrary(r'''
 const v = 1 + foo();

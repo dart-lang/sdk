@@ -508,7 +508,7 @@ class PropertyElementResolver with ScopeHelpers {
       readElementRecovery: result.setter,
       writeElementRequested: result.setter,
       writeElementRecovery: result.getter,
-      atDynamicTarget: targetType is DynamicType,
+      atDynamicTarget: _typeSystem.isDynamicBounded(targetType),
       recordField: result.recordField,
       getType: getType,
     );

@@ -3523,10 +3523,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // RecordType names are already sorted alphabetically in kernel.
     var positionals = positionalTypeReps.length;
     var names = type.named.map((e) => e.name);
-    var shape = '$positionals ${names.join(" ")}';
+    var shapeKey = _recordShapeKey(positionals, names);
 
     return runtimeCall('recordTypeLiteral(#, #, #, [#])', [
-      js.string(shape),
+      js.string(shapeKey),
       js.number(positionals),
       names.isEmpty ? js.call('void 0') : js.stringArray(names),
       [
@@ -6912,17 +6912,27 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         [_emitType(keyType), _emitType(valueType), entries]));
   }
 
+  /// Returns the key used for shape lookup at runtime.
+  ///
+  /// See `shapes` in dart:_runtime (records.dart) for a description.
+  String _recordShapeKey(
+      int positionalElementCount, Iterable<String> namedElementNames) {
+    var elementCount = positionalElementCount + namedElementNames.length;
+    return '$elementCount;${namedElementNames.join(',')}';
+  }
+
   @override
   js_ast.Expression visitRecordLiteral(RecordLiteral node) {
     var names = node.named.map((element) => element.name);
-    var recipe = '${node.positional.length} ${names.join(" ")}';
+    var positionalElementCount = node.positional.length;
+    var shapeKey = _recordShapeKey(positionalElementCount, names);
     var shapeExpr = runtimeCall('recordLiteral(#, #, #, [#])', [
-      js.string(recipe),
-      js.number(node.positional.length),
+      js.string(shapeKey),
+      js.number(positionalElementCount),
       names.isEmpty ? js.call('void 0') : js.stringArray(names),
       [
-        ...node.positional.map(_visitExpression),
-        ...node.named.map((e) => _visitExpression(e.value))
+        for (var positional in node.positional) _visitExpression(positional),
+        for (var named in node.named) _visitExpression(named.value),
       ]
     ]);
     return shapeExpr;
@@ -7276,10 +7286,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitRecordConstant(RecordConstant node) {
     // RecordConstant names are already sorted alphabetically in kernel.
     var names = node.named.keys;
-    var shape = '${node.positional.length} ${names.join(" ")}';
+    var positionalElementCount = node.positional.length;
+    var shapeKey = _recordShapeKey(positionalElementCount, names);
     return runtimeCall('recordLiteral(#, #, #, [#])', [
-      js.string(shape),
-      js.number(node.positional.length),
+      js.string(shapeKey),
+      js.number(positionalElementCount),
       names.isEmpty ? js.call('void 0') : js.stringArray(names),
       [
         ...node.positional.map(visitConstant),

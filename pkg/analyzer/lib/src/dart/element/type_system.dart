@@ -1010,8 +1010,7 @@ class TypeSystemImpl implements TypeSystem {
   /// whose bound is dynamic bounded, or an intersection (promoted type
   /// parameter type) whose second operand is dynamic bounded.
   bool isDynamicBounded(DartType type) {
-    if (identical(type, DynamicTypeImpl.instance) ||
-        identical(type, InvalidTypeImpl.instance)) {
+    if (identical(type, DynamicTypeImpl.instance)) {
       return true;
     }
 
@@ -1059,6 +1058,27 @@ class TypeSystemImpl implements TypeSystem {
 
       var promotedBound = type.promotedBound;
       if (promotedBound != null && isFunctionBounded(promotedBound)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// Either [InvalidType] itself, or an intersection with it.
+  bool isInvalidBounded(DartType type) {
+    if (identical(type, InvalidTypeImpl.instance)) {
+      return true;
+    }
+
+    if (type is TypeParameterTypeImpl) {
+      var bound = type.element.bound;
+      if (bound != null && isInvalidBounded(bound)) {
+        return true;
+      }
+
+      var promotedBound = type.promotedBound;
+      if (promotedBound != null && isInvalidBounded(promotedBound)) {
         return true;
       }
     }

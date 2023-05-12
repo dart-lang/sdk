@@ -100,6 +100,16 @@ void f(a) {
 ''');
   }
 
+  test_expression_invalidType() async {
+    await assertErrorsInCode(r'''
+void f() {
+  x as int;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
+    ]);
+  }
+
   test_function_toSubtype_viaParameter() async {
     await assertNoErrorsInCode(r'''
 void f(void Function(int) a) {

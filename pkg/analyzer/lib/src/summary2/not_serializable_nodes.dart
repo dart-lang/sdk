@@ -42,6 +42,11 @@ class _IsSerializableNodeVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPatternAssignment(PatternAssignment node) {
+    result = false;
+  }
+
+  @override
   void visitSwitchExpression(SwitchExpression node) {
     result = false;
   }
