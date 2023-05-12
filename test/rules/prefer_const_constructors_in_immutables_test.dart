@@ -15,10 +15,10 @@ main() {
 @reflectiveTest
 class PreferConstConstructorsInImmutablesTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_const_constructors_in_immutables';
+  bool get addMetaPackageDep => true;
 
   @override
-  bool get addMetaPackageDep => true;
+  String get lintRule => 'prefer_const_constructors_in_immutables';
 
   test_assertInitializer_canBeConst() async {
     await assertDiagnostics(r'''
@@ -42,6 +42,24 @@ class C {
   C.named(a) : assert(a.toString() == 'string');
 }
 ''');
+  }
+
+  test_implicitSuperConstructorInvocation_undefined() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@immutable
+class A {
+  const A.named();
+}
+
+class B extends A {
+  B();
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+          99, 1),
+    ]);
   }
 
   test_returnOfInvalidType() async {

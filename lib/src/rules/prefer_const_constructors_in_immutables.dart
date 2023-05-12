@@ -119,9 +119,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return redirectInvocation.staticElement?.isConst ?? false;
     }
     // Constructor with implicit `super()` call.
-    var supertype = clazz.supertype;
-    return supertype != null &&
-        supertype.constructors.firstWhere((e) => e.name.isEmpty).isConst;
+    var unnamedSuperConstructor =
+        clazz.supertype?.constructors.firstWhereOrNull((e) => e.name.isEmpty);
+    return unnamedSuperConstructor != null && unnamedSuperConstructor.isConst;
   }
 
   /// Whether [clazz] or any of it's super-types are annotated with
