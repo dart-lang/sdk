@@ -90,6 +90,7 @@ class JsInteropChecks extends RecursiveVisitor {
     '_interceptors', // for ddc JS string
     '_native_typed_data',
     '_runtime', // for ddc types at runtime
+    '_js_helper', // for ddc inlined helper methods
     'async',
     'core', // for environment constructors
     'html',

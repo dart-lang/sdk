@@ -39,6 +39,7 @@ import 'dart:_js_helper'
         DeferredNotLoadedError,
         TypeErrorImpl,
         JsLinkedHashMap,
+        jsObjectSetPrototypeOf,
         ImmutableMap,
         Primitives,
         PrivateSymbol,

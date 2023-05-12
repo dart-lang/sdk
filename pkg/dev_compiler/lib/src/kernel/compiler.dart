@@ -594,6 +594,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// True when [library] is the sdk internal library 'dart:_internal'.
   bool _isDartInternal(Library library) => isDartLibrary(library, '_internal');
 
+  /// True when [library] is the sdk internal library 'dart:_js_helper'.
+  bool _isDartJsHelper(Library library) => isDartLibrary(library, '_js_helper');
+
   /// True when [library] is the sdk internal library 'dart:_internal'.
   bool _isDartForeignHelper(Library library) =>
       isDartLibrary(library, '_foreign_helper');
@@ -6067,6 +6070,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             _emitType(type.withDeclaredNullability(Nullability.nonNullable))
           ]);
         }
+      }
+    }
+    if (_isDartJsHelper(enclosingLibrary)) {
+      var name = target.name.text;
+      if (name == 'jsObjectGetPrototypeOf') {
+        var obj = node.arguments.positional.single;
+        return js.call('Object.getPrototypeOf(#)', _visitExpression(obj));
+      }
+      if (name == 'jsObjectSetPrototypeOf') {
+        var obj = node.arguments.positional.first;
+        var prototype = node.arguments.positional.last;
+        return js.call('Object.setPrototypeOf(#, #)',
+            [_visitExpression(obj), _visitExpression(prototype)]);
       }
     }
     if (target.isExternal &&
