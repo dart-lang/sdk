@@ -238,7 +238,7 @@ void hotRestart() {
   _cacheMaps.clear();
   JS('', '#.clear()', _nullComparisonSet);
   JS('', '#.clear()', constantMaps);
-  if (!_realDeferredLoading) {
+  if (!_ddcDeferredLoading) {
     JS('', '#.clear()', deferredImports);
   }
 }
