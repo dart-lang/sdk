@@ -23,7 +23,7 @@ extension AstNodeExtension on AstNode {
         //   after the previous token, or
         // - both immediately after the last token in the node and immediately
         //   before the next token.
-        if (offset == node.offset && offset == node.beginToken.previous!.end) {
+        if (offset == node.offset && offset == node.beginToken.previous?.end) {
           return false;
         }
         if (offset == node.end && offset == node.endToken.next!.offset) {
