@@ -462,11 +462,15 @@ class MatchingCache {
     if (staticTarget != null) {
       assert(typeArguments != null,
           "No type arguments provided for static target $staticTarget.");
-      cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
-          typeArguments!, propertyName, [new IntegerKey(tailSize)]);
+      cacheKey = new StaticAccessKey(
+          receiver.cacheKey,
+          staticTarget,
+          typeArguments!,
+          propertyName,
+          [new IntegerKey(headSize), new IntegerKey(tailSize)]);
     } else {
-      cacheKey = new DynamicAccessKey(
-          receiver.cacheKey, propertyName, [new IntegerKey(tailSize)]);
+      cacheKey = new DynamicAccessKey(receiver.cacheKey, propertyName,
+          [new IntegerKey(headSize), new IntegerKey(tailSize)]);
     }
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
