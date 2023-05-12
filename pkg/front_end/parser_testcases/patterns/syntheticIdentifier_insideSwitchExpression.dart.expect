@@ -1,0 +1,70 @@
+Problems reported:
+
+parser/patterns/syntheticIdentifier_insideSwitchExpression:1:34: Expected an identifier, but got 'if'.
+void f(Object? x) => switch (x) {if};
+                                 ^^
+
+parser/patterns/syntheticIdentifier_insideSwitchExpression:1:34: Expected '=>' before this.
+void f(Object? x) => switch (x) {if};
+                                 ^^
+
+parser/patterns/syntheticIdentifier_insideSwitchExpression:1:34: Expected an identifier, but got 'if'.
+void f(Object? x) => switch (x) {if};
+                                 ^^
+
+parser/patterns/syntheticIdentifier_insideSwitchExpression:1:34: Expected '}' before this.
+void f(Object? x) => switch (x) {if};
+                                 ^^
+
+beginCompilationUnit(void)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(f, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(Object)
+        endMetadataStar(0)
+        beginFormalParameter(Object, MemberKind.TopLevelMethod, null, null, null)
+          handleIdentifier(Object, typeReference)
+          handleNoTypeArguments(?)
+          handleType(Object, ?)
+          handleIdentifier(x, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, x, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginSwitchExpression(switch)
+        handleIdentifier(x, expression)
+        handleNoTypeArguments())
+        handleNoArguments())
+        handleSend(x, ))
+        handleParenthesizedCondition((, null, null)
+        beginSwitchExpressionBlock({)
+          beginSwitchExpressionCase()
+            beginPattern({)
+              beginConstantPattern(null)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'if'., Try inserting an identifier before 'if'., {lexeme: if}], if, if)
+                handleIdentifier(, expression)
+                handleNoTypeArguments(if)
+                handleNoArguments(if)
+                handleSend(, if)
+              endConstantPattern(null)
+            endPattern()
+            handleSwitchExpressionCasePattern()
+            handleRecoverableError(Message[ExpectedButGot, Expected '=>' before this., null, {string: =>}], if, if)
+            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'if'., Try inserting an identifier before 'if'., {lexeme: if}], if, if)
+            handleIdentifier(, expression)
+            handleNoTypeArguments(if)
+            handleNoArguments(if)
+            handleSend(, if)
+          endSwitchExpressionCase(null, =>, )
+          handleRecoverableError(Message[ExpectedButGot, Expected '}' before this., null, {string: }}], if, if)
+        endSwitchExpressionBlock(1, {, })
+      endSwitchExpression(switch, })
+      handleExpressionFunctionBody(=>, ;)
+    endTopLevelMethod(void, null, ;)
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

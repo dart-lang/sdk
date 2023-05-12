@@ -1,0 +1,94 @@
+Problems reported:
+
+parser/patterns/syntheticIdentifier_insideMapPattern:3:14: Expected an identifier, but got 'if'.
+    case {0: if}:
+             ^^
+
+parser/patterns/syntheticIdentifier_insideMapPattern:3:14: Expected ',' before this.
+    case {0: if}:
+             ^^
+
+parser/patterns/syntheticIdentifier_insideMapPattern:3:14: Expected an identifier, but got 'if'.
+    case {0: if}:
+             ^^
+
+parser/patterns/syntheticIdentifier_insideMapPattern:3:14: Expected ':' before this.
+    case {0: if}:
+             ^^
+
+parser/patterns/syntheticIdentifier_insideMapPattern:3:14: Expected an identifier, but got 'if'.
+    case {0: if}:
+             ^^
+
+beginCompilationUnit(void)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(f, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(Object)
+        endMetadataStar(0)
+        beginFormalParameter(Object, MemberKind.TopLevelMethod, null, null, null)
+          handleIdentifier(Object, typeReference)
+          handleNoTypeArguments(?)
+          handleType(Object, ?)
+          handleIdentifier(x, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, x, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginSwitchStatement(switch)
+          handleIdentifier(x, expression)
+          handleNoTypeArguments())
+          handleNoArguments())
+          handleSend(x, ))
+          handleParenthesizedCondition((, null, null)
+          beginSwitchBlock({)
+            beginCaseExpression(case)
+              beginPattern(case)
+                handleNoTypeArguments({)
+                handleLiteralInt(0)
+                beginPattern(:)
+                  beginConstantPattern(null)
+                    handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'if'., Try inserting an identifier before 'if'., {lexeme: if}], if, if)
+                    handleIdentifier(, expression)
+                    handleNoTypeArguments(if)
+                    handleNoArguments(if)
+                    handleSend(, if)
+                  endConstantPattern(null)
+                endPattern()
+                handleMapPatternEntry(:, if)
+                handleRecoverableError(Message[ExpectedButGot, Expected ',' before this., null, {string: ,}], if, if)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'if'., Try inserting an identifier before 'if'., {lexeme: if}], if, if)
+                handleIdentifier(, expression)
+                handleNoTypeArguments(if)
+                handleNoArguments(if)
+                handleSend(, if)
+                handleRecoverableError(Message[ExpectedButGot, Expected ':' before this., null, {string: :}], if, if)
+                beginPattern(:)
+                  beginConstantPattern(null)
+                    handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'if'., Try inserting an identifier before 'if'., {lexeme: if}], if, if)
+                    handleIdentifier(, expression)
+                    handleNoTypeArguments(if)
+                    handleNoArguments(if)
+                    handleSend(, if)
+                  endConstantPattern(null)
+                endPattern()
+                handleMapPatternEntry(:, })
+                handleMapPattern(2, {, })
+              endPattern(})
+              handleSwitchCaseNoWhenClause(})
+            endCaseExpression(case, null, :)
+            beginSwitchCase(0, 1, case)
+            endSwitchCase(0, 1, null, null, 0, case, })
+          endSwitchBlock(1, {, })
+        endSwitchStatement(switch, })
+        handleEmptyStatement(;)
+      endBlockFunctionBody(2, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )
