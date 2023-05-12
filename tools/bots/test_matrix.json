@@ -1235,7 +1235,6 @@
         "vm-aot-linux-product-x64",
         "vm-aot-linux-release-simarm64",
         "vm-aot-linux-release-x64",
-        "vm-aot-mac-release-simarm64",
         "vm-aot-win-debug-x64c",
         "vm-aot-win-product-x64",
         "vm-aot-win-release-x64"
@@ -1309,7 +1308,6 @@
     {
       "builders": [
         "vm-aot-mac-product-arm64",
-        "vm-aot-mac-product-x64",
         "vm-aot-mac-release-arm64",
         "vm-aot-mac-release-x64"
       ],
