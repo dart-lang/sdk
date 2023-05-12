@@ -7,3 +7,7 @@ class Command {
   static const configurationDone = 'configurationDone';
   static const attach = 'attach';
 }
+
+class ErrorMessageType {
+  static const general = 1;
+}
