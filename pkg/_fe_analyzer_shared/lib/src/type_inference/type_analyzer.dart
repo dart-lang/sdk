@@ -1842,7 +1842,6 @@ mixin TypeAnalyzer<
           }
           head = handleCaseHead(node, head,
               caseIndex: caseIndex, subIndex: headIndex);
-          guard = head.guard;
         } else {
           hasDefault = true;
           handleDefault(node, caseIndex: caseIndex, subIndex: headIndex);
