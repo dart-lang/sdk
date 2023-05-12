@@ -437,7 +437,7 @@ class UntaggedObject {
   }
 
   template <class V>
-  intptr_t VisitPointersNonvirtual(V* visitor) {
+  DART_FORCE_INLINE intptr_t VisitPointersNonvirtual(V* visitor) {
     // Fall back to virtual variant for predefined classes
     intptr_t class_id = GetClassId();
     if (class_id < kNumPredefinedCids) {
