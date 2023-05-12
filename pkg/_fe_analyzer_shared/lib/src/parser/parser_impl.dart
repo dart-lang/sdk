@@ -117,6 +117,7 @@ import 'type_info.dart'
         computeType,
         computeTypeParamOrArg,
         computeVariablePatternType,
+        illegalPatternIdentifiers,
         isValidNonRecordTypeReference,
         noType,
         noTypeParamOrArg;
@@ -9874,12 +9875,18 @@ class Parser {
       } else if (dot == null) {
         // It's a single identifier.  If it's a wildcard pattern or we're in an
         // irrefutable context, parse it as a variable pattern.
-        if (!patternContext.isRefutable || firstIdentifier.lexeme == '_') {
+        String name = firstIdentifier.lexeme;
+        if (!patternContext.isRefutable || name == '_') {
           // It's a wildcard pattern with no preceding type, so parse it as a
           // variable pattern.
           isLastPatternAllowedInsideUnaryPattern = true;
           return parseVariablePattern(beforeFirstIdentifier, patternContext,
               typeInfo: typeInfo);
+        } else if (illegalPatternIdentifiers.contains(name)) {
+          reportRecoverableError(
+              firstIdentifier,
+              codes.templateIllegalPatternIdentifierName
+                  .withArguments(firstIdentifier));
         }
       }
       // It's not an object pattern so parse it as an expression.
@@ -9963,8 +9970,18 @@ class Parser {
       }
       listener.handleWildcardPattern(keyword, token);
     } else if (inAssignmentPattern && isBareIdentifier) {
+      if (illegalPatternIdentifiers.contains(variableName)) {
+        reportRecoverableError(
+            token,
+            codes.templateIllegalPatternAssignmentVariableName
+                .withArguments(token));
+      }
       listener.handleAssignedVariablePattern(token);
     } else {
+      if (illegalPatternIdentifiers.contains(variableName)) {
+        reportRecoverableError(token,
+            codes.templateIllegalPatternVariableName.withArguments(token));
+      }
       if (isBareIdentifier) {
         listener.handleNoType(token);
       }

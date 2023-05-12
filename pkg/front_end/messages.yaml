@@ -6719,6 +6719,54 @@ VariablePatternKeywordInDeclarationContext:
     }
     ```
 
+IllegalPatternVariableName:
+  problemMessage: The variable declared by a variable pattern can't be named '#lexeme'.
+  correctionMessage: Choose a different name.
+  analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME
+  index: 154
+  experiments: patterns
+  comment: |-
+    Parameters:
+    0: the illegal name
+  script: |
+    void f(x) {
+      switch (x) {
+        case var when:
+      }
+    }
+
+IllegalPatternAssignmentVariableName:
+  problemMessage: A variable assigned by a pattern assignment can't be named '#lexeme'.
+  correctionMessage: Choose a different name.
+  analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME
+  index: 155
+  experiments: patterns
+  comment: |-
+    Parameters:
+    0: the illegal name
+  script: |
+    void f(x) {
+      dynamic when;
+      (when) = x;
+    }
+
+IllegalPatternIdentifierName:
+  problemMessage: A pattern can't refer to an identifier named '#lexeme'.
+  correctionMessage: Match the identifier using '== #lexeme'.
+  analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME
+  index: 156
+  experiments: patterns
+  comment: |-
+    Parameters:
+    0: the illegal name
+  script: |
+    void f(x) {
+      const when = 0;
+      switch (x) {
+        case when:
+      }
+    }
+
 InvalidInsideUnaryPattern:
   problemMessage: This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.
   correctionMessage: Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.

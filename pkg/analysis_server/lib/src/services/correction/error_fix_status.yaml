@@ -2686,6 +2686,12 @@ ParserErrorCode.GETTER_WITH_PARAMETERS:
   status: hasFix
 ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE:
   status: needsEvaluation
+ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME:
+  status: needsEvaluation
+ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME:
+  status: needsEvaluation
+ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME:
+  status: needsEvaluation
 ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS:
   status: needsEvaluation
 ParserErrorCode.IMPLEMENTS_BEFORE_ON:
