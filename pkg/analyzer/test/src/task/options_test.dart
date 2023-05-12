@@ -6,7 +6,6 @@ import 'dart:mirrors';
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -688,7 +687,6 @@ class OptionsProviderTest with ResourceProviderMixin {
       );
 
   void setUp() {
-    resourceProvider = MemoryResourceProvider();
     sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     provider = AnalysisOptionsProvider(sourceFactory);
   }
