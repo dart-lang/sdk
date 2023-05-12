@@ -12,7 +12,7 @@ part of dart._interceptors;
  */
 @JsPeerInterface(name: 'String')
 final class JSString extends Interceptor
-    implements String, JSIndexable<String> {
+    implements String, JSIndexable<String>, TrustedGetRuntimeType {
   const JSString();
 
   @notNull
@@ -207,8 +207,10 @@ final class JSString extends Interceptor
         case 0x0D:
         case 0x20:
         case 0x85:
-        case 0xA0: return true;
-        default: return false;
+        case 0xA0:
+          return true;
+        default:
+          return false;
       }
     }
     switch (codeUnit) {
@@ -229,8 +231,10 @@ final class JSString extends Interceptor
       case 0x202F:
       case 0x205F:
       case 0x3000:
-      case 0xFEFF: return true;
-      default: return false;
+      case 0xFEFF:
+        return true;
+      default:
+        return false;
     }
   }
 

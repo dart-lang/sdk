@@ -16,7 +16,8 @@ final class JSNumNotInt extends JSNumber implements double {}
 ///
 /// These are made available as extension methods on `Number` in JS.
 @JsPeerInterface(name: 'Number')
-final class JSNumber extends Interceptor implements double {
+final class JSNumber extends Interceptor
+    implements double, TrustedGetRuntimeType {
   const JSNumber();
 
   @notNull

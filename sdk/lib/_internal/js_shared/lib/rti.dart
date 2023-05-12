@@ -22,40 +22,11 @@ import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
 import 'dart:_js_helper' as records
     show createRecordTypePredicate, getRtiForRecord;
+import 'dart:_js_helper' as helper show TrustedGetRuntimeType;
 import 'dart:_js_names'
     show getSpecializedTestTag, unmangleGlobalNameIfPreservedAnyways;
 import 'dart:_js_shared_embedded_names';
 import 'dart:_recipe_syntax';
-
-/// A marker interface for classes with 'trustworthy' implementations of `get
-/// runtimeType`.
-///
-/// Generally, overrides of `get runtimeType` are not used in displaying the
-/// types of irritants in TypeErrors or computing the structural `runtimeType`
-/// of records. Instead the Rti (aka 'true') type is used.
-///
-/// The 'true' type is sometimes confusing because it shows implementation
-/// details, e.g. the true type of `42` is `JSInt` and `2.1` is `JSNumNotInt`.
-///
-/// For a limited number of implementation classes we tell a 'white lie' that
-/// the value is of another type, e.g. that `42` is an `int` and `2.1` is
-/// `double`. This is achieved by overriding `get runtimeType` to return the
-/// desired type, and marking the implementation class type with `implements
-/// [TrustedGetRuntimeType]`.
-///
-/// [TrustedGetRuntimeType] is not exposed outside the `dart:` libraries so
-/// users cannot tell lies.
-///
-/// The `Type` returned by a trusted `get runtimeType` must be an instance of
-/// the system `Type`, which is guaranteed by using a type literal. Type
-/// literals can be generic and dependent on type variables, e.g. `List<E>`.
-///
-/// Care needs to taken to ensure that the runtime does not get caught telling
-/// lies. Generally, a class's `runtimeType` lies by returning an abstract
-/// supertype of the class.  Since both the the marker interface and `get
-/// runtimeType` are inherited, there should be no way in which a user can
-/// extend the class or implement interface of the class.
-abstract class TrustedGetRuntimeType {}
 
 /// The name of a property on the constructor function of Dart Object
 /// and interceptor types, used for caching Rti types.
@@ -986,7 +957,7 @@ Rti _structuralTypeOf(Object? object) {
   if (object is Record) return records.getRtiForRecord(object);
   final functionRti = _instanceFunctionType(object);
   if (functionRti != null) return functionRti;
-  if (object is TrustedGetRuntimeType) {
+  if (object is helper.TrustedGetRuntimeType) {
     final type = object.runtimeType;
     return _Utils.as_Type(type)._rti;
   }

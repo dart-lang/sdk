@@ -41,7 +41,8 @@ import 'dart:_js_helper'
         throwConcurrentModificationError,
         lookupAndCacheInterceptor,
         StringMatch,
-        firstMatchAfter;
+        firstMatchAfter,
+        TrustedGetRuntimeType;
 
 import 'dart:_foreign_helper'
     show
@@ -56,8 +57,7 @@ import 'dart:_rti'
     show
         createRuntimeType,
         getRuntimeTypeOfArray,
-        getRuntimeTypeOfInterceptorNotArray,
-        TrustedGetRuntimeType;
+        getRuntimeTypeOfInterceptorNotArray;
 
 import 'dart:math' show Random, ln2;
 

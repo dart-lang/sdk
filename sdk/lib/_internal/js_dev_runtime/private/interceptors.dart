@@ -30,7 +30,7 @@ abstract class Interceptor {
  * The interceptor class for [bool].
  */
 @JsPeerInterface(name: 'Boolean')
-final class JSBool extends Interceptor implements bool {
+final class JSBool extends Interceptor implements bool, TrustedGetRuntimeType {
   const JSBool();
 
   // Note: if you change this, also change the function [S].
