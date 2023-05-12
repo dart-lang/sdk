@@ -54,6 +54,40 @@ Future<void> f() async {}
     ]);
   }
 
+  test_await_beforeReferenceToContext_inParens() async {
+    // Await, then use of BuildContext in parentheses, in statement block is
+    // REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+  Navigator.of((context));
+}
+
+Future<void> f() async {}
+''', [
+      lint(94, 23),
+    ]);
+  }
+
+  test_await_beforeReferenceToContext_nullAsserted() async {
+    // Await, then use of null-asserted BuildContext, in statement block is
+    // REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext? context) async {
+  await f();
+  Navigator.of(context!);
+}
+
+Future<void> f() async {}
+''', [
+      lint(95, 22),
+    ]);
+  }
+
   test_awaitBeforeConditional_mountedGuard() async {
     // Await, then an "if mounted" guard in a conditional expression, and use of
     // BuildContext in the conditional-then, is OK.

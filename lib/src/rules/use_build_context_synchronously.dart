@@ -313,37 +313,8 @@ class _Visitor extends SimpleAstVisitor {
 
   _Visitor(this.rule);
 
-  bool accessesContext(ArgumentList argumentList) {
-    for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression) {
-        argument = argument.expression;
-      }
-      if (argument is PropertyAccess) {
-        argument = argument.propertyName;
-      }
-      if (argument is Identifier) {
-        var element = argument.staticElement;
-        if (element == null) {
-          return false;
-        }
-
-        // Get the declaration to ensure checks from un-migrated libraries work.
-        DartType? argType;
-        var declaration = element.declaration;
-        if (declaration is ExecutableElement) {
-          argType = declaration.returnType;
-        } else if (declaration is VariableElement) {
-          argType = declaration.type;
-        }
-
-        var isGetter = element is PropertyAccessorElement;
-        if (isBuildContext(argType, skipNullable: isGetter)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool accessesContext(ArgumentList argumentList) =>
+      argumentList.arguments.any((argument) => argument.accessesContext);
 
   void check(AstNode node) {
     /// Checks each of the [statements] before [child] for a `mounted` check,
@@ -488,6 +459,43 @@ extension on BinaryExpression {
 }
 
 extension on Expression {
+  /// Whether this accesses a `BuildContext`.
+  bool get accessesContext {
+    var self = this;
+    if (self is NamedExpression) {
+      self = self.expression;
+    }
+    if (self is PropertyAccess) {
+      // TODO(srawlins): What about `BuildContext` in the middle, like
+      // `foo.bar.buildContext.baz`? Seems this should be reported.
+      self = self.propertyName;
+    }
+
+    if (self is Identifier) {
+      var element = self.staticElement;
+      if (element == null) {
+        return false;
+      }
+
+      var declaration = element.declaration;
+      // Get the declaration to ensure checks from un-migrated libraries work.
+      DartType? argType = switch (declaration) {
+        ExecutableElement() => declaration.returnType,
+        VariableElement() => declaration.type,
+        _ => null,
+      };
+
+      var isGetter = element is PropertyAccessorElement;
+      return isBuildContext(argType, skipNullable: isGetter);
+    } else if (self is ParenthesizedExpression) {
+      return self.expression.accessesContext;
+    } else if (self is PostfixExpression) {
+      return self.operator.type == TokenType.BANG &&
+          self.operand.accessesContext;
+    }
+    return false;
+  }
+
   /// Whether this has an [AwaitExpression] inside.
   bool get hasAwait {
     var visitor = _AwaitVisitor();
