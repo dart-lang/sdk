@@ -128,6 +128,7 @@ class StaticInteropClassEraser extends Transformer {
   late final Set<String> _erasableCoreLibraries = {
     'js_interop_unsafe',
     'ui',
+    'ui_web',
     '_engine',
     '_skwasm_impl'
   };
