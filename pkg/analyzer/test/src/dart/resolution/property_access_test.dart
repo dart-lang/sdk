@@ -2378,8 +2378,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: InvalidType
-  staticType: InvalidType
+    staticType: dynamic
+  staticType: dynamic
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -2396,8 +2396,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: InvalidType
-  staticType: InvalidType
+    staticType: dynamic
+  staticType: dynamic
 ''');
     }
   }
