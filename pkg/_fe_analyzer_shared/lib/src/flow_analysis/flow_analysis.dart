@@ -4489,6 +4489,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       required Type knownType,
       bool matchFailsIfWrongType = true,
       bool matchMayFailEvenIfCorrectType = false}) {
+    if (operations.isError(knownType)) {
+      _unmatched = _join(_unmatched!, _current);
+      return false;
+    }
+
     if (operations.classifyType(matchedType) ==
         TypeClassification.nonNullable) {
       // The matched type is non-nullable, so promote to a non-nullable type.

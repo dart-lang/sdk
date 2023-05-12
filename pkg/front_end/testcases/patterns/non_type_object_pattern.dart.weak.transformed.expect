@@ -263,10 +263,10 @@ static method testUnresolved(dynamic o) → dynamic {
   }
   #L1:
   {
-    final synthesized invalid-type #3#0 = o{invalid-type};
+    final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t4 = field = #3#0{<invalid>}.field in true)) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t4 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L1;
         }
@@ -275,12 +275,12 @@ static method testUnresolved(dynamic o) → dynamic {
   }
   o = block {
     core::String #t5;
-    final synthesized invalid-type #4#0 = o{invalid-type};
+    final synthesized dynamic #4#0 = o;
     #L2:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t6 = field = #4#0{<invalid>}.field in true)) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t6 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t5 = "matched";
           break #L2;
         }
@@ -321,10 +321,10 @@ static method testNonType(dynamic o) → dynamic {
   }
   #L3:
   {
-    final synthesized invalid-type #3#0 = o{invalid-type};
+    final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t10 = field = #3#0{<invalid>}.field in true)) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t10 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L3;
         }
@@ -333,12 +333,12 @@ static method testNonType(dynamic o) → dynamic {
   }
   o = block {
     core::String #t11;
-    final synthesized invalid-type #4#0 = o{invalid-type};
+    final synthesized dynamic #4#0 = o;
     #L4:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t12 = field = #4#0{<invalid>}.field in true)) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t12 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t11 = "matched";
           break #L4;
         }
@@ -379,10 +379,10 @@ static method testExtension(dynamic o) → dynamic {
   }
   #L5:
   {
-    final synthesized invalid-type #3#0 = o{invalid-type};
+    final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t16 = field = #3#0{<invalid>}.field in true)) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t16 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L5;
         }
@@ -391,12 +391,12 @@ static method testExtension(dynamic o) → dynamic {
   }
   o = block {
     core::String #t17;
-    final synthesized invalid-type #4#0 = o{invalid-type};
+    final synthesized dynamic #4#0 = o;
     #L6:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t18 = field = #4#0{<invalid>}.field in true)) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t18 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t17 = "matched";
           break #L6;
         }
@@ -437,10 +437,10 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
   }
   #L7:
   {
-    final synthesized invalid-type #3#0 = o{invalid-type};
+    final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t22 = field = #3#0{<invalid>}.field in true)) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t22 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L7;
         }
@@ -449,12 +449,12 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
   }
   o = block {
     core::String #t23;
-    final synthesized invalid-type #4#0 = o{invalid-type};
+    final synthesized dynamic #4#0 = o;
     #L8:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t24 = field = #4#0{<invalid>}.field in true)) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t24 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t23 = "matched";
           break #L8;
         }
@@ -495,10 +495,10 @@ static method testPrefixedNonType(dynamic o) → dynamic {
   }
   #L9:
   {
-    final synthesized invalid-type #3#0 = o{invalid-type};
+    final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t28 = field = #3#0{<invalid>}.field in true)) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t28 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L9;
         }
@@ -507,12 +507,12 @@ static method testPrefixedNonType(dynamic o) → dynamic {
   }
   o = block {
     core::String #t29;
-    final synthesized invalid-type #4#0 = o{invalid-type};
+    final synthesized dynamic #4#0 = o;
     #L10:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t30 = field = #4#0{<invalid>}.field in true)) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t30 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t29 = "matched";
           break #L10;
         }
@@ -553,10 +553,10 @@ static method testPrefixedExtension(dynamic o) → dynamic {
   }
   #L11:
   {
-    final synthesized invalid-type #3#0 = o{invalid-type};
+    final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t34 = field = #3#0{<invalid>}.field in true)) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t34 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L11;
         }
@@ -565,12 +565,12 @@ static method testPrefixedExtension(dynamic o) → dynamic {
   }
   o = block {
     core::String #t35;
-    final synthesized invalid-type #4#0 = o{invalid-type};
+    final synthesized dynamic #4#0 = o;
     #L12:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t36 = field = #4#0{<invalid>}.field in true)) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t36 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t35 = "matched";
           break #L12;
         }
@@ -611,10 +611,10 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
   }
   #L13:
   {
-    final synthesized invalid-type #3#0 = o{invalid-type};
+    final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t40 = field = #3#0{<invalid>}.field in true)) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t40 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L13;
         }
@@ -623,12 +623,12 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
   }
   o = block {
     core::String #t41;
-    final synthesized invalid-type #4#0 = o{invalid-type};
+    final synthesized dynamic #4#0 = o;
     #L14:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t42 = field = #4#0{<invalid>}.field in true)) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t42 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t41 = "matched";
           break #L14;
         }
@@ -669,10 +669,10 @@ static method testMemberAccess(dynamic o) → dynamic {
   }
   #L15:
   {
-    final synthesized invalid-type #3#0 = o{invalid-type};
+    final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t46 = field = #3#0{<invalid>}.field in true)) {
+      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t46 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L15;
         }
@@ -681,12 +681,12 @@ static method testMemberAccess(dynamic o) → dynamic {
   }
   o = block {
     core::String #t47;
-    final synthesized invalid-type #4#0 = o{invalid-type};
+    final synthesized dynamic #4#0 = o;
     #L16:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t48 = field = #4#0{<invalid>}.field in true)) {
+        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t48 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t47 = "matched";
           break #L16;
         }

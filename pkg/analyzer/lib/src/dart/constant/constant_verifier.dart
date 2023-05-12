@@ -131,6 +131,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     super.visitConstantPattern(node);
 
     var expression = node.expression.unParenthesized;
+    if (expression.typeOrThrow is InvalidType) {
+      return;
+    }
+
     DartObjectImpl? value = _validate(
       expression,
       CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
