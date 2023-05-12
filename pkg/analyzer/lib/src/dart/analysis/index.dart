@@ -543,8 +543,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record that [element] has a relation of the given [kind] at the location
   /// of the given [token].
   void recordRelationToken(
-      Element? element, IndexRelationKind kind, Token token) {
-    recordRelationOffset(element, kind, token.offset, token.length, true);
+    Element? element,
+    IndexRelationKind kind,
+    Token token, {
+    bool isQualified = true,
+  }) {
+    recordRelationOffset(
+        element, kind, token.offset, token.length, isQualified);
   }
 
   /// Record a relation between a super [namedType] and its [Element].
@@ -753,6 +758,29 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitExtendsClause(ExtendsClause node) {
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
     node.superclass.accept(this);
+  }
+
+  @override
+  visitExtensionOverride(ExtensionOverride node) {
+    final importPrefix = node.importPrefix;
+    if (importPrefix != null) {
+      recordRelationToken(
+        importPrefix.element,
+        IndexRelationKind.IS_REFERENCED_BY,
+        importPrefix.name,
+        isQualified: false,
+      );
+    }
+
+    recordRelationToken(
+      node.element,
+      IndexRelationKind.IS_REFERENCED_BY,
+      node.name,
+      isQualified: importPrefix != null,
+    );
+
+    node.typeArguments?.accept(this);
+    node.argumentList.accept(this);
   }
 
   @override

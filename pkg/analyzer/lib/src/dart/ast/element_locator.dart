@@ -104,6 +104,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitExtensionOverride(ExtensionOverride node) {
+    return node.element;
+  }
+
+  @override
   Element? visitFormalParameter(FormalParameter node) {
     return node.declaredElement;
   }

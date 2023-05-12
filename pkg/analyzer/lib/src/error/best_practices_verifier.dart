@@ -349,6 +349,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    _deprecatedVerifier.extensionOverride(node);
+    super.visitExtensionOverride(node);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
 

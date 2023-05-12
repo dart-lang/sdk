@@ -1965,6 +1965,27 @@ self::@function::main
 ''');
   }
 
+  test_searchReferences_PrefixElement_extensionOverride() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on int {
+  void foo() {}
+}
+''');
+
+    await resolveTestCode('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.E(0).foo();
+}
+''');
+    final element = findElement.prefix('prefix');
+    await assertElementReferencesText(element, r'''
+self::@function::f
+  41 4:3 |prefix| REFERENCE
+''');
+  }
+
   test_searchReferences_PrefixElement_inPackage() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
 

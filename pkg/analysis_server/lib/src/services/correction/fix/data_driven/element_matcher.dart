@@ -161,6 +161,8 @@ class _MatcherBuilder {
       _buildFromBinaryExpression(node);
     } else if (node is ConstructorName) {
       _buildFromConstructorName(node);
+    } else if (node is ExtensionOverride) {
+      _buildFromExtensionOverride(node);
     } else if (node is FunctionDeclaration) {
       _addMatcher(components: [node.name.lexeme], kinds: []);
     } else if (node is Literal) {

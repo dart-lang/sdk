@@ -1409,6 +1409,22 @@ void f() {
 ''');
   }
 
+  test_isReferencedBy_ExtensionElement_withPrefix() async {
+    await _indexTestUnit('''
+extension E on int {
+  void foo() {}
+}
+
+void f() {
+  E(0).foo();
+}
+''');
+    final element = findElement.extension_('E');
+    assertElementIndexText(element, r'''
+53 6:3 |E| IS_REFERENCED_BY
+''');
+  }
+
   test_isReferencedBy_FieldElement_class() async {
     await _indexTestUnit('''
 class A {

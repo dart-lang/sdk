@@ -869,6 +869,21 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    computer._addRegion_token(
+      node.importPrefix?.name,
+      HighlightRegionType.IMPORT_PREFIX,
+    );
+
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.EXTENSION,
+    );
+
+    super.visitExtensionOverride(node);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
