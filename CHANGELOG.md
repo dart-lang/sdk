@@ -1,3 +1,13 @@
+## 3.0.1
+
+### Tools
+
+#### Formatter
+
+- Don't indent parameters with metadata annotations.
+- Don't split before `.` following a record literal.
+- Don't split unnecessarily in switch expression cases following comments.
+
 ## 3.0.0 - 2023-05-10
 
 ### Language
