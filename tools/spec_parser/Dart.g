@@ -6,8 +6,6 @@
 // v0.34
 // - Convert left-recursion in `cascade` to iteration.
 // - Convert right-recursion in `unaryExpression` to iteration.
-// - Add await and negation as prefixes to prefixed super unaryExpressions
-//   to match the implementation.
 // - Remove the dependency on order for disambiguating
 //   `<typeArguments> <arguments>` and `<arguments>` in selectors.
 // - Fix inconsistent order-dependent disambiguation between external
