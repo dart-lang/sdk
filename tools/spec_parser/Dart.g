@@ -949,7 +949,7 @@ unaryExpression
 
 unaryExpressionTail
     :    postfixExpression
-    |    prefixOperator SUPER
+    |    (minusOperator | tildeOperator) SUPER
     |    incrementOperator assignableExpression
     ;
 
