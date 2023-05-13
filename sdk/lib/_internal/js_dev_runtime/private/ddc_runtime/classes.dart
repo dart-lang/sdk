@@ -598,18 +598,19 @@ definePrimitiveHashCode(proto) {
 }
 
 /// Link the extension to the type it's extending as a base class.
-setBaseClass(derived, base) {
-  JS('', '#.prototype.__proto__ = #.prototype', derived, base);
+void setBaseClass(@notNull Object derived, @notNull Object base) {
+  jsObjectSetPrototypeOf(
+      JS('', '#.prototype', derived), JS('', '#.prototype', base));
   // We use __proto__ to track the superclass hierarchy (see isSubtypeOf).
-  JS('', '#.__proto__ = #', derived, base);
+  jsObjectSetPrototypeOf(derived, base);
 }
 
 /// Like [setBaseClass], but for generic extension types such as `JSArray<E>`.
-setExtensionBaseClass(dartType, jsType) {
+void setExtensionBaseClass(@notNull Object dartType, @notNull Object jsType) {
   // Mark the generic type as an extension type and link the prototype objects.
-  var dartProto = JS('', '#.prototype', dartType);
+  var dartProto = JS<Object>('!', '#.prototype', dartType);
   JS('', '#[#] = #', dartProto, _extensionType, dartType);
-  JS('', '#.__proto__ = #.prototype', dartProto, jsType);
+  jsObjectSetPrototypeOf(dartProto, JS('', '#.prototype', jsType));
 }
 
 /// Adds type test predicates to a class/interface type [ctor], using the

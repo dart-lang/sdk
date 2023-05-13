@@ -1,3 +1,8 @@
+## 5.13.0-dev
+* `InvalidType` is now used when types or property cannot be resolved.
+  Previously `DynamicType` was used.
+* Fixed #52352, #52360, #52362, #35828, #26710, #52313, #52327.
+
 ## 5.12.0
 * Deprecated `DartType.isDynamic`, use `is DynamicType` instead.
 * Updated `NamedType` to use `importPrefix` and `name2` token.
