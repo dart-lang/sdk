@@ -75,7 +75,6 @@ class ContextBuilderImpl implements ContextBuilder {
   }) {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
-    ArgumentError.checkNotNull(sdkPath, 'sdkPath');
     if (updateAnalysisOptions != null && updateAnalysisOptions2 != null) {
       throw ArgumentError(
           'Either updateAnalysisOptions or updateAnalysisOptions2 must be '

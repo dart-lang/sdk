@@ -844,8 +844,6 @@ abstract class FileSystemEntity {
 
   // TODO(bkonyi): find a way to do this with raw paths.
   static String _trimTrailingPathSeparators(String path) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(path, "path");
     if (Platform.isWindows) {
       while (path.length > 1 &&
           (path.endsWith(Platform.pathSeparator) || path.endsWith('/'))) {

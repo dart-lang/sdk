@@ -456,8 +456,6 @@ extension Int8Pointer on Pointer<Int8> {
     Pointer<NativeFinalizerFunction>? finalizer,
     Pointer<Void>? token,
   }) {
-    ArgumentError.checkNotNull(this, "Pointer<Int8>");
-    ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 1);
     _checkPointerAlignment(address, 1);
     final result = _asExternalTypedDataInt8(this, length);
@@ -491,8 +489,6 @@ extension Int16Pointer on Pointer<Int16> {
     Pointer<NativeFinalizerFunction>? finalizer,
     Pointer<Void>? token,
   }) {
-    ArgumentError.checkNotNull(this, "Pointer<Int16>");
-    ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 2);
     _checkPointerAlignment(address, 2);
     final result = _asExternalTypedDataInt16(this, length);
@@ -526,8 +522,6 @@ extension Int32Pointer on Pointer<Int32> {
     Pointer<NativeFinalizerFunction>? finalizer,
     Pointer<Void>? token,
   }) {
-    ArgumentError.checkNotNull(this, "Pointer<Int32>");
-    ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 4);
     _checkPointerAlignment(address, 4);
     final result = _asExternalTypedDataInt32(this, length);
@@ -561,8 +555,6 @@ extension Int64Pointer on Pointer<Int64> {
     Pointer<NativeFinalizerFunction>? finalizer,
     Pointer<Void>? token,
   }) {
-    ArgumentError.checkNotNull(this, "Pointer<Int64>");
-    ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 8);
     _checkPointerAlignment(address, 8);
     final result = _asExternalTypedDataInt64(this, length);
@@ -595,8 +587,6 @@ extension Uint8Pointer on Pointer<Uint8> {
     Pointer<NativeFinalizerFunction>? finalizer,
     Pointer<Void>? token,
   }) {
-    ArgumentError.checkNotNull(this, "Pointer<Uint8>");
-    ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 1);
     _checkPointerAlignment(address, 1);
     final result = _asExternalTypedDataUint8(this, length);
@@ -630,8 +620,6 @@ extension Uint16Pointer on Pointer<Uint16> {
     Pointer<NativeFinalizerFunction>? finalizer,
     Pointer<Void>? token,
   }) {
-    ArgumentError.checkNotNull(this, "Pointer<Uint16>");
-    ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 2);
     _checkPointerAlignment(address, 2);
     final result = _asExternalTypedDataUint16(this, length);
@@ -665,8 +653,6 @@ extension Uint32Pointer on Pointer<Uint32> {
     Pointer<NativeFinalizerFunction>? finalizer,
     Pointer<Void>? token,
   }) {
-    ArgumentError.checkNotNull(this, "Pointer<Uint32>");
-    ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 4);
     _checkPointerAlignment(address, 4);
     final result = _asExternalTypedDataUint32(this, length);
@@ -700,8 +686,6 @@ extension Uint64Pointer on Pointer<Uint64> {
     Pointer<NativeFinalizerFunction>? finalizer,
     Pointer<Void>? token,
   }) {
-    ArgumentError.checkNotNull(this, "Pointer<Uint64>");
-    ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 8);
     _checkPointerAlignment(address, 8);
     final result = _asExternalTypedDataUint64(this, length);
@@ -735,8 +719,6 @@ extension FloatPointer on Pointer<Float> {
     Pointer<NativeFinalizerFunction>? finalizer,
     Pointer<Void>? token,
   }) {
-    ArgumentError.checkNotNull(this, "Pointer<Float>");
-    ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 4);
     _checkPointerAlignment(address, 4);
     final result = _asExternalTypedDataFloat(this, length);
@@ -770,8 +752,6 @@ extension DoublePointer on Pointer<Double> {
     Pointer<NativeFinalizerFunction>? finalizer,
     Pointer<Void>? token,
   }) {
-    ArgumentError.checkNotNull(this, "Pointer<Double>");
-    ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 8);
     _checkPointerAlignment(address, 8);
     final result = _asExternalTypedDataDouble(this, length);

@@ -40,10 +40,7 @@ class LinkedElementFactory {
     this.analysisContext,
     this.analysisSession,
     this.rootReference,
-  ) {
-    ArgumentError.checkNotNull(analysisContext, 'analysisContext');
-    ArgumentError.checkNotNull(analysisSession, 'analysisSession');
-  }
+  );
 
   LibraryElementImpl get dartAsyncElement {
     return libraryOfUri2(_dartAsyncUri);

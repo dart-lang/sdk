@@ -203,8 +203,6 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Directory renameSync(String newPath) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(newPath, "newPath");
     var result = _rename(_Namespace._namespace, _rawPath, newPath);
     if (result is OSError) {
       throw FileSystemException._fromOSError(result, "Rename failed", path);
@@ -226,9 +224,6 @@ class _Directory extends FileSystemEntity implements Directory {
 
   List<FileSystemEntity> listSync(
       {bool recursive = false, bool followLinks = true}) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(recursive, "recursive");
-    ArgumentError.checkNotNull(followLinks, "followLinks");
     var result = <FileSystemEntity>[];
     _fillWithDirectoryListing(
         _Namespace._namespace,
@@ -246,7 +241,6 @@ class _Directory extends FileSystemEntity implements Directory {
 
   // TODO(40614): Remove once non-nullability is sound.
   static T _checkNotNull<T>(T t, String name) {
-    ArgumentError.checkNotNull(t, name);
     return t;
   }
 }

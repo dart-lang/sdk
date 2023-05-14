@@ -671,16 +671,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (host is! String && host is! InternetAddress) {
       throw new ArgumentError("host is not a String or an InternetAddress");
     }
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(requestedPort, "requestedPort");
     if (requestedPort < 0 || requestedPort > 65535) {
       throw ArgumentError("requestedPort is not in the range 0..65535");
     }
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(
-        requestClientCertificate, "requestClientCertificate");
-    ArgumentError.checkNotNull(
-        requireClientCertificate, "requireClientCertificate");
   }
 
   int get port => _socket.port;

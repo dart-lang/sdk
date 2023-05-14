@@ -678,7 +678,6 @@ class _File extends FileSystemEntity implements File {
 
   // TODO(40614): Remove once non-nullability is sound.
   static T _checkNotNull<T>(T t, String name) {
-    ArgumentError.checkNotNull(t, name);
     return t;
   }
 }
@@ -780,8 +779,6 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<Uint8List> read(int bytes) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(bytes, "bytes");
     return _dispatch(_IOService.fileRead, [null, bytes]).then((response) {
       _checkForErrorResponse(response, "read failed", path);
       var result = (response as List<Object?>)[1] as Uint8List;
@@ -791,8 +788,6 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Uint8List readSync(int bytes) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(bytes, "bytes");
     _checkAvailable();
     var result = _ops.read(bytes);
     if (result is! Uint8List) {
@@ -803,8 +798,6 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<int> readInto(List<int> buffer, [int start = 0, int? end]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(buffer, "buffer");
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
       return new Future.value(0);
@@ -822,8 +815,6 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   int readIntoSync(List<int> buffer, [int start = 0, int? end]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(buffer, "buffer");
     _checkAvailable();
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
@@ -838,8 +829,6 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> writeByte(int value) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(value, "value");
     return _dispatch(_IOService.fileWriteByte, [null, value]).then((response) {
       _checkForErrorResponse(response, "writeByte failed", path);
       _resourceInfo.addWrite(1);
@@ -849,8 +838,6 @@ class _RandomAccessFile implements RandomAccessFile {
 
   int writeByteSync(int value) {
     _checkAvailable();
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(value, "value");
     var result = _ops.writeByte(value);
     if (result is OSError) {
       throw new FileSystemException("writeByte failed", path, result);
@@ -861,9 +848,6 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> writeFrom(List<int> buffer,
       [int start = 0, int? end]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(buffer, "buffer");
-    ArgumentError.checkNotNull(start, "start");
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
       return new Future.value(this);
@@ -889,9 +873,6 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void writeFromSync(List<int> buffer, [int start = 0, int? end]) {
     _checkAvailable();
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(buffer, "buffer");
-    ArgumentError.checkNotNull(start, "start");
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
       return;
@@ -908,15 +889,11 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> writeString(String string,
       {Encoding encoding = utf8}) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(encoding, "encoding");
     var data = encoding.encode(string);
     return writeFrom(data, 0, data.length);
   }
 
   void writeStringSync(String string, {Encoding encoding = utf8}) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(encoding, "encoding");
     var data = encoding.encode(string);
     writeFromSync(data, 0, data.length);
   }
@@ -1009,10 +986,6 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> lock(
       [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(mode, "mode");
-    ArgumentError.checkNotNull(start, "start");
-    ArgumentError.checkNotNull(end, "end");
     if ((start < 0) || (end < -1) || ((end != -1) && (start >= end))) {
       throw new ArgumentError();
     }
@@ -1025,9 +998,6 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> unlock([int start = 0, int end = -1]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(start, "start");
-    ArgumentError.checkNotNull(end, "end");
     if (start == end) {
       throw new ArgumentError();
     }
@@ -1041,10 +1011,6 @@ class _RandomAccessFile implements RandomAccessFile {
   void lockSync(
       [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]) {
     _checkAvailable();
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(mode, "mode");
-    ArgumentError.checkNotNull(start, "start");
-    ArgumentError.checkNotNull(end, "end");
     if ((start < 0) || (end < -1) || ((end != -1) && (start >= end))) {
       throw new ArgumentError();
     }
@@ -1057,9 +1023,6 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void unlockSync([int start = 0, int end = -1]) {
     _checkAvailable();
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(start, "start");
-    ArgumentError.checkNotNull(end, "end");
     if (start == end) {
       throw new ArgumentError();
     }

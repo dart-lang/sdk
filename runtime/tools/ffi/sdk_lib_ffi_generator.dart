@@ -263,8 +263,6 @@ void generatePatchExtension(
      Pointer<NativeFinalizerFunction>? finalizer,
      Pointer<Void>? token,
   }) {
-    ArgumentError.checkNotNull(this, "Pointer<$nativeType>");
-    ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, $elementSize);
     _checkPointerAlignment(address, $elementSize);
     final result = _asExternalTypedData$nativeType(this, length);

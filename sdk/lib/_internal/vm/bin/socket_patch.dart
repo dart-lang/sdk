@@ -114,16 +114,12 @@ class NetworkInterface {
 }
 
 void _throwOnBadPort(int port) {
-  // TODO(40614): Remove once non-nullability is sound.
-  ArgumentError.checkNotNull(port, "port");
   if ((port < 0) || (port > 0xFFFF)) {
     throw new ArgumentError("Invalid port $port");
   }
 }
 
 void _throwOnBadTtl(int ttl) {
-  // TODO(40614): Remove once non-nullability is sound.
-  ArgumentError.checkNotNull(ttl, "ttl");
   if (ttl < 1 || ttl > 255) {
     throw new ArgumentError('Invalid ttl $ttl');
   }
@@ -215,8 +211,6 @@ class _InternetAddress implements InternetAddress {
 
   factory _InternetAddress.fromString(String address,
       {InternetAddressType? type}) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(address, 'address');
     if (type == InternetAddressType.unix) {
       var rawAddress = FileSystemEntity._toUtf8Array(address);
       return _InternetAddress(
@@ -259,7 +253,6 @@ class _InternetAddress implements InternetAddress {
   factory _InternetAddress.fromRawAddress(Uint8List rawAddress,
       {InternetAddressType? type}) {
     if (type == InternetAddressType.unix) {
-      ArgumentError.checkNotNull(rawAddress, 'rawAddress');
       var rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawAddress);
       var address = FileSystemEntity._toStringFromUtf8Array(rawAddress);
       return _InternetAddress(InternetAddressType.unix, address, null, rawPath);
@@ -1607,32 +1600,22 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   }
 
   dynamic getOption(SocketOption option) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(option, "option");
     var result = nativeGetOption(option._value, address.type._value);
     if (result is OSError) throw result;
     return result;
   }
 
   bool setOption(SocketOption option, value) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(option, "option");
     nativeSetOption(option._value, address.type._value, value);
     return true;
   }
 
   Uint8List getRawOption(RawSocketOption option) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(option, "option");
-    ArgumentError.checkNotNull(option.value, "option.value");
     nativeGetRawOption(option.level, option.option, option.value);
     return option.value;
   }
 
   void setRawOption(RawSocketOption option) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(option, "option");
-    ArgumentError.checkNotNull(option.value, "option.value");
     nativeSetRawOption(option.level, option.option, option.value);
   }
 

@@ -81,8 +81,6 @@ final class Service {
   /// the server will not output information to the console.
   static Future<ServiceProtocolInfo> controlWebServer(
       {bool enable = false, bool? silenceOutput}) async {
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(enable, 'enable');
     // Port to receive response from service isolate.
     final RawReceivePort receivePort =
         new RawReceivePort(null, 'Service.controlWebServer');
@@ -103,8 +101,6 @@ final class Service {
   /// Returns null if the running Dart environment does not support the service
   /// protocol.
   static String? getIsolateID(Isolate isolate) {
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(isolate, 'isolate');
     return _getIsolateIDFromSendPort(isolate.controlPort);
   }
 }

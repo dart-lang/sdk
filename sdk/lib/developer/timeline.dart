@@ -115,8 +115,6 @@ abstract final class Timeline {
   /// returning to the event queue.
   static void startSync(String name, {Map? arguments, Flow? flow}) {
     if (!_hasTimeline) return;
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(name, 'name');
     if (!_isDartStreamEnabled()) {
       // Push a null onto the stack and return.
       _stack.add(null);
@@ -149,8 +147,6 @@ abstract final class Timeline {
   /// Emit an instant event.
   static void instantSync(String name, {Map? arguments}) {
     if (!_hasTimeline) return;
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(name, 'name');
     if (!_isDartStreamEnabled()) {
       // Stream is disabled.
       return;
@@ -216,17 +212,12 @@ final class TimelineTask {
   TimelineTask.withTaskId(int taskId, {String? filterKey})
       : _parent = null,
         _filterKey = filterKey,
-        _taskId = taskId {
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(taskId, 'taskId');
-  }
+        _taskId = taskId;
 
   /// Start a synchronous operation within this task named [name].
   /// Optionally takes a [Map] of [arguments].
   void start(String name, {Map? arguments}) {
     if (!_hasTimeline) return;
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(name, 'name');
     if (!_isDartStreamEnabled()) {
       // Push a null onto the stack and return.
       _stack.add(null);
@@ -253,8 +244,6 @@ final class TimelineTask {
   /// Optionally takes a [Map] of [arguments].
   void instant(String name, {Map? arguments}) {
     if (!_hasTimeline) return;
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(name, 'name');
     if (!_isDartStreamEnabled()) {
       // Stream is disabled.
       return;

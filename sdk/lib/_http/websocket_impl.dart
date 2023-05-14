@@ -109,8 +109,6 @@ class _WebSocketProtocolTransformer extends StreamTransformerBase<List<int>,
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
     _eventSink!.addError(error, stackTrace);
   }
 
@@ -718,8 +716,6 @@ class _WebSocketOutgoingTransformer
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
     _eventSink!.addError(error, stackTrace);
   }
 
@@ -1223,8 +1219,6 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   }
 
   void addUtf8Text(List<int> bytes) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(bytes, "bytes");
     _sink.add(_EncodedString(bytes));
   }
 

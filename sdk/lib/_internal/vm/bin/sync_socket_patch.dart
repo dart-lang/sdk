@@ -192,9 +192,6 @@ base class _NativeSynchronousSocket
   }
 
   int readIntoSync(List<int> buffer, int start, int? end) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(buffer, "buffer");
-    ArgumentError.checkNotNull(start, "start");
     _checkAvailable();
     if (isClosedRead) {
       throw new SocketException("Socket is closed for reading");
@@ -273,9 +270,6 @@ base class _NativeSynchronousSocket
   }
 
   void writeFromSync(List<int> buffer, int start, int? end) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(buffer, "buffer");
-    ArgumentError.checkNotNull(start, "start");
     _checkAvailable();
     if (isClosedWrite) {
       throw new SocketException("Socket is closed for writing");

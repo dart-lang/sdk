@@ -1458,9 +1458,7 @@ abstract class Name extends Literal implements Declaration, Parameter {
 class LiteralStringFromName extends LiteralString {
   final Name name;
 
-  LiteralStringFromName(this.name) : super('') {
-    ArgumentError.checkNotNull(name, 'name');
-  }
+  LiteralStringFromName(this.name);
 
   @override
   bool get isFinalized => name.isFinalized;
