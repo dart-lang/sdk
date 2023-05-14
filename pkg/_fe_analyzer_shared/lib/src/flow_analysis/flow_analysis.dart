@@ -4020,12 +4020,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void forwardExpression(Expression newExpression, Expression oldExpression) {
-    if (identical(_expressionWithInfo, oldExpression)) {
-      _expressionWithInfo = newExpression;
-    }
-    if (identical(_expressionWithReference, oldExpression)) {
-      _expressionWithReference = newExpression;
-    }
+    _forwardExpression(newExpression, oldExpression);
   }
 
   @override
@@ -4041,9 +4036,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void functionExpression_end() {
-    _SimpleContext<Type> context =
-        _stack.removeLast() as _FunctionExpressionContext<Type>;
-    _current = context._previous;
+    _functionExpression_end();
   }
 
   @override
@@ -4264,7 +4257,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // `late x = LAZY_MAGIC(() => expr);` (where `LAZY_MAGIC` creates a lazy
     // evaluation thunk that gets replaced by the result of `expr` once it is
     // evaluated).
-    functionExpression_end();
+    _functionExpression_end();
   }
 
   @override
@@ -4423,7 +4416,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void parenthesizedExpression(
       Expression outerExpression, Expression innerExpression) {
-    forwardExpression(outerExpression, innerExpression);
+    _forwardExpression(outerExpression, innerExpression);
   }
 
   @override
@@ -4916,6 +4909,21 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// [ExpressionInfo] is created recording the current flow analysis state.
   ExpressionInfo<Type> _expressionEnd(Expression? expression) =>
       _getExpressionInfo(expression) ?? new _TrivialExpressionInfo(_current);
+
+  void _forwardExpression(Expression newExpression, Expression oldExpression) {
+    if (identical(_expressionWithInfo, oldExpression)) {
+      _expressionWithInfo = newExpression;
+    }
+    if (identical(_expressionWithReference, oldExpression)) {
+      _expressionWithReference = newExpression;
+    }
+  }
+
+  void _functionExpression_end() {
+    _SimpleContext<Type> context =
+        _stack.removeLast() as _FunctionExpressionContext<Type>;
+    _current = context._previous;
+  }
 
   /// Gets the [ExpressionInfo] associated with the [expression] (which should
   /// be the last expression that was traversed).  If there is no
