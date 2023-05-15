@@ -6690,6 +6690,12 @@ main() {
           ]);
         });
       });
+
+      test('Error type does not trigger unnecessary cast warning', () {
+        h.run([
+          ifCase(expr('int'), wildcard().as_('error'), []),
+        ]);
+      });
     });
 
     group('Constant pattern:', () {
@@ -8240,6 +8246,25 @@ main() {
           ]);
         });
       });
+
+      test('Error type does not alter previous reachability conclusions', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('(Null, Object?)')),
+          ifCase(
+              x.expr,
+              recordPattern([
+                relationalPattern('!=', nullLiteral).recordField(),
+                wildcard(type: 'error').recordField()
+              ]),
+              [
+                checkReachable(false),
+              ],
+              [
+                checkReachable(true),
+              ]),
+        ]);
+      });
     });
 
     group('Relational pattern:', () {
@@ -9668,6 +9693,13 @@ main() {
               checkReachable(true),
               checkPromoted(x, 'Future<int>'),
             ]),
+      ]);
+    });
+
+    test('Error type does not trigger unnecessary wildcard warning', () {
+      h.run([
+        ifCase(expr('num'), wildcard(type: 'int').and(wildcard(type: 'error')),
+            []),
       ]);
     });
   });

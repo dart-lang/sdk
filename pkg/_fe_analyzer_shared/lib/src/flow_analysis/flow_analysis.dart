@@ -719,7 +719,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// If [matchMayFailEvenIfCorrectType] is `true`, flow analysis would always
   /// update the unmatched value.
   ///
-  /// Returns `true` if [matchedType] is a subtype of [knownType].
+  /// Returns `true` if [matchedType] is a subtype of [knownType] (and thus the
+  /// user might need to be warned of an unnecessary cast or unnecessary
+  /// wildcard pattern).
   bool promoteForPattern(
       {required Type matchedType,
       required Type knownType,
