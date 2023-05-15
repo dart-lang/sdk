@@ -1842,7 +1842,7 @@ bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) {
     return true;
   }
 
-  if (_isInterfaceSubtype(JS('', '#.__proto__', t1), t2, strictMode)) {
+  if (_isInterfaceSubtype(jsObjectGetPrototypeOf(t1), t2, strictMode)) {
     return true;
   }
 
@@ -2255,7 +2255,8 @@ Object? _getMatchingSupertype(Object? subtype, Object supertype) {
     return subtype; // matching supertype found!
   }
 
-  var result = _getMatchingSupertype(JS('', '#.__proto__', subtype), supertype);
+  var result =
+      _getMatchingSupertype(jsObjectGetPrototypeOf(subtype), supertype);
   if (result != null) return result;
 
   // Check mixin.
