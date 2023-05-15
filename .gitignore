@@ -75,6 +75,9 @@ client/tests/drt
 packages
 pubspec.lock
 
+# Files for native assets auto-generated per checkout.
+/.dart_tool/native_assets_builder/
+
 # The top level package file (this is auto-generated per checkout).
 /.dart_tool/package_config.json
 

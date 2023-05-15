@@ -105,6 +105,9 @@
     "meta": {
       "experimentSet": "nullSafety"
     },
+    "native_assets_builder": {
+      "experimentSet": "nullSafety"
+    },
     "native_stack_traces": {
       "experimentSet": "nullSafety"
     },

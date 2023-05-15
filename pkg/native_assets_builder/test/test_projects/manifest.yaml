@@ -1,0 +1,25 @@
+# The list of files to copy to a temporary folder to ensure running tests from
+# a completely clean setup.
+- dart_app/bin/dart_app.dart
+- dart_app/pubspec.yaml
+- native_add/build.dart
+- native_add/ffigen.yaml
+- native_add/lib/native_add.dart
+- native_add/lib/src/native_add_bindings_generated.dart
+- native_add/lib/src/native_add.dart
+- native_add/pubspec.yaml
+- native_add/src/native_add.c
+- native_add/src/native_add.h
+- native_add/test/native_add_test.dart
+- native_subtract/build.dart
+- native_subtract/ffigen.yaml
+- native_subtract/lib/native_subtract.dart
+- native_subtract/lib/src/native_subtract_bindings_generated.dart
+- native_subtract/lib/src/native_subtract.dart
+- native_subtract/pubspec.yaml
+- native_subtract/src/native_subtract.c
+- native_subtract/src/native_subtract.h
+- package_reading_metadata/build.dart
+- package_reading_metadata/pubspec.yaml
+- package_with_metadata/build.dart
+- package_with_metadata/pubspec.yaml

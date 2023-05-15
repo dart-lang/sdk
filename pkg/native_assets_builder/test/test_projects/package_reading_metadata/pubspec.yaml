@@ -1,0 +1,21 @@
+name: package_reading_metadata
+description: Reads some metadata in its build.dart
+version: 0.1.0
+
+publish_to: none
+
+environment:
+  sdk: ">=2.19.3 <4.0.0"
+
+dependencies:
+  cli_config: ^0.1.1
+  native_assets_cli:
+    path: ../../../../../third_party/pkg/native/pkgs/native_assets_cli/
+  package_with_metadata:
+    path: ../package_with_metadata/
+  yaml: ^3.1.1
+  yaml_edit: ^2.1.0
+
+dev_dependencies:
+  lints: ^2.0.0
+

@@ -276,6 +276,7 @@
       "pkg/kernel/",
       "pkg/meta/",
       "pkg/native_stack_traces/",
+      "pkg/native_assets_builder/",
       "pkg/pkg.status",
       "pkg/smith/",
       "pkg/status_file/",

@@ -858,6 +858,9 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "meta": {
     ExperimentalFlag.nonNullable,
   },
+  "native_assets_builder": {
+    ExperimentalFlag.nonNullable,
+  },
   "native_stack_traces": {
     ExperimentalFlag.nonNullable,
   },
