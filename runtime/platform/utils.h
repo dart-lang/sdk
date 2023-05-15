@@ -200,9 +200,34 @@ class Utils {
     return (value == 0) ? 0 : (Utils::HighestBit(value) + 1);
   }
 
-  static int CountLeadingZeros64(uint64_t x);
-  static int CountLeadingZeros32(uint32_t x);
-
+  static int CountLeadingZeros32(uint32_t x) {
+#if defined(DART_HOST_OS_WINDOWS)
+    unsigned long position;  // NOLINT
+    return (_BitScanReverse(&position, x) == 0)
+               ? 32
+               : 31 - static_cast<int>(position);
+#else
+    return x == 0 ? 32 : __builtin_clz(x);
+#endif
+  }
+  static int CountLeadingZeros64(uint64_t x) {
+#if defined(DART_HOST_OS_WINDOWS)
+#if defined(ARCH_IS_32_BIT)
+    const uint32_t x_hi = static_cast<uint32_t>(x >> 32);
+    if (x_hi != 0) {
+      return CountLeadingZeros32(x_hi);
+    }
+    return 32 + CountLeadingZeros32(static_cast<uint32_t>(x));
+#else
+    unsigned long position;  // NOLINT
+    return (_BitScanReverse64(&position, x) == 0)
+               ? 64
+               : 63 - static_cast<int>(position);
+#endif
+#else
+    return x == 0 ? 64 : __builtin_clzll(x);
+#endif
+  }
   static int CountLeadingZerosWord(uword x) {
 #ifdef ARCH_IS_64_BIT
     return CountLeadingZeros64(x);
@@ -211,9 +236,32 @@ class Utils {
 #endif
   }
 
-  static int CountTrailingZeros64(uint64_t x);
-  static int CountTrailingZeros32(uint32_t x);
-
+  static int CountTrailingZeros32(uint32_t x) {
+#if defined(DART_HOST_OS_WINDOWS)
+    unsigned long position;  // NOLINT
+    return (_BitScanForward(&position, x) == 0) ? 32
+                                                : static_cast<int>(position);
+#else
+    return x == 0 ? 32 : __builtin_ctz(x);
+#endif
+  }
+  static int CountTrailingZeros64(uint64_t x) {
+#if defined(DART_HOST_OS_WINDOWS)
+#if defined(ARCH_IS_32_BIT)
+    const uint32_t x_lo = static_cast<uint32_t>(x);
+    if (x_lo != 0) {
+      return CountTrailingZeros32(x_lo);
+    }
+    return 32 + CountTrailingZeros32(static_cast<uint32_t>(x >> 32));
+#else
+    unsigned long position;  // NOLINT
+    return (_BitScanForward64(&position, x) == 0) ? 64
+                                                  : static_cast<int>(position);
+#endif
+#else
+    return x == 0 ? 64 : __builtin_ctzll(x);
+#endif
+  }
   static int CountTrailingZerosWord(uword x) {
 #ifdef ARCH_IS_64_BIT
     return CountTrailingZeros64(x);
