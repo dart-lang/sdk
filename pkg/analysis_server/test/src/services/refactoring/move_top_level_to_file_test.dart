@@ -37,6 +37,46 @@ class ^A {}
     arguments[0] = newFileUri.toString();
   }
 
+  /// Test that references to getter/setters in different libraries used in
+  /// a compound assignment are both imported into the destination file.
+  Future<void> test_compoundAssignment_multipleLibraries() async {
+    addSource('$projectFolderPath/lib/getter.dart', '''
+int get splitVariable => 0;
+''');
+    addSource('$projectFolderPath/lib/setter.dart', '''
+set splitVariable(num _) {}
+''');
+
+    var originalSource = '''
+import 'package:test/getter.dart';
+import 'package:test/setter.dart';
+
+void function^ToMove() {
+  splitVariable += 1;
+}
+''';
+    var modifiedSource = '''
+import 'package:test/getter.dart';
+import 'package:test/setter.dart';
+''';
+    var declarationName = 'functionToMove';
+    var newFileName = 'function_to_move.dart';
+    var newFileContent = '''
+import 'package:test/getter.dart';
+import 'package:test/setter.dart';
+
+void functionToMove() {
+  splitVariable += 1;
+}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
   Future<void> test_copyFileHeader() async {
     var originalSource = '''
 // File header.
@@ -146,6 +186,96 @@ class A {}
     expect(content[newFilePath], expectedNewFileContent);
   }
 
+  Future<void> test_imports_extensionMethod() async {
+    var otherFilePath = '$projectFolderPath/lib/extensions.dart';
+    var otherFileContent = '''
+import 'package:test/main.dart';
+
+extension AExtension on A {
+  void extensionMethod() {}
+}
+''';
+
+    var originalSource = '''
+import 'package:test/extensions.dart';
+
+class A {}
+
+void ^f() {
+  A().extensionMethod();
+}
+''';
+    var modifiedSource = '''
+import 'package:test/extensions.dart';
+
+class A {}
+''';
+    var declarationName = 'f';
+    var newFileName = 'f.dart';
+    var newFileContent = '''
+import 'package:test/extensions.dart';
+import 'package:test/main.dart';
+
+void f() {
+  A().extensionMethod();
+}
+''';
+
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent,
+        otherFilePath: otherFilePath,
+        otherFileContent: otherFileContent);
+  }
+
+  Future<void> test_imports_extensionOperator() async {
+    var otherFilePath = '$projectFolderPath/lib/extensions.dart';
+    var otherFileContent = '''
+import 'package:test/main.dart';
+
+extension AExtension on A {
+  A operator +(A other) => this;
+}
+''';
+
+    var originalSource = '''
+import 'package:test/extensions.dart';
+
+class A {}
+
+void ^f() {
+  A() + A();
+}
+''';
+    var modifiedSource = '''
+import 'package:test/extensions.dart';
+
+class A {}
+''';
+    var declarationName = 'f';
+    var newFileName = 'f.dart';
+    var newFileContent = '''
+import 'package:test/extensions.dart';
+import 'package:test/main.dart';
+
+void f() {
+  A() + A();
+}
+''';
+
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent,
+        otherFilePath: otherFilePath,
+        otherFileContent: otherFileContent);
+  }
+
   Future<void> test_imports_prefix_cascade() async {
     var otherFileDeclarations = '''
 final list = <int>[];
@@ -192,6 +322,23 @@ class Mov^ing extends other.A {}
     await _testPrefixCopied(
       declarations: otherFileDeclarations,
       movingDeclarationName: 'Moving',
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_compoundAssignment() async {
+    var otherFileDeclarations = '''
+int a = 0;
+''';
+
+    var movingCode = '''
+void ^moving() {
+  other.a += 1;
+}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
       movingCode: movingCode,
     );
   }
@@ -258,6 +405,98 @@ final ^moving = other.A.new;
       declarations: otherFileDeclarations,
       movingCode: movingCode,
     );
+  }
+
+  Future<void> test_imports_prefix_extension_method() async {
+    var otherFilePath = '$projectFolderPath/lib/extensions.dart';
+    var otherFileContent = '''
+import 'package:test/main.dart';
+
+extension X on A {
+  void extensionMethod();
+}
+''';
+
+    var originalSource = '''
+import 'package:test/extensions.dart' as other;
+
+class A {}
+
+void ^moving() {
+  A().extensionMethod();
+}
+''';
+    var modifiedSource = '''
+import 'package:test/extensions.dart' as other;
+
+class A {}
+''';
+    var movingDeclarationName = 'moving';
+    var newFileName = 'moving.dart';
+    // The prefix is not included because it's not used (the only use of
+    // extensions.dart is the extension method).
+    var newFileContent = '''
+import 'package:test/extensions.dart';
+import 'package:test/main.dart';
+
+void moving() {
+  A().extensionMethod();
+}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: movingDeclarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent,
+        otherFilePath: otherFilePath,
+        otherFileContent: otherFileContent);
+  }
+
+  Future<void> test_imports_prefix_extension_operator() async {
+    var otherFilePath = '$projectFolderPath/lib/extensions.dart';
+    var otherFileContent = '''
+import 'package:test/main.dart';
+
+extension X on A {
+  A operator +(A other) => this;
+}
+''';
+
+    var originalSource = '''
+import 'package:test/extensions.dart' as other;
+
+class A {}
+
+void ^moving() {
+  A() + A();
+}
+''';
+    var modifiedSource = '''
+import 'package:test/extensions.dart' as other;
+
+class A {}
+''';
+    var movingDeclarationName = 'moving';
+    var newFileName = 'moving.dart';
+    // The prefix is not included because it's not used (the only use of
+    // extensions.dart is the extension method).
+    var newFileContent = '''
+import 'package:test/extensions.dart';
+import 'package:test/main.dart';
+
+void moving() {
+  A() + A();
+}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: movingDeclarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent,
+        otherFilePath: otherFilePath,
+        otherFileContent: otherFileContent);
   }
 
   Future<void> test_imports_prefix_extensionOverride() async {
@@ -336,6 +575,40 @@ set a(String value) {}
 void ^moving() {
   other.a = '';
   other.a;
+}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_postfixIncrement() async {
+    var otherFileDeclarations = '''
+int a = 0;
+''';
+
+    var movingCode = '''
+void ^moving() {
+  other.a++;
+}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_prefixIncrement() async {
+    var otherFileDeclarations = '''
+int a = 0;
+''';
+
+    var movingCode = '''
+void ^moving() {
+  ++other.a;
 }
 ''';
 
@@ -717,6 +990,46 @@ class A {}
 ''');
     await initializeServer(experimentalOptInFlag: false);
     await expectNoCodeAction(null);
+  }
+
+  /// Test that references to getter/setters in different libraries used in
+  /// a postfix increment are both imported into the destination file.
+  Future<void> test_postfixIncrement_multipleLibraries() async {
+    addSource('$projectFolderPath/lib/getter.dart', '''
+int get splitVariable => 0;
+''');
+    addSource('$projectFolderPath/lib/setter.dart', '''
+set splitVariable(num _) {}
+''');
+
+    var originalSource = '''
+import 'package:test/getter.dart';
+import 'package:test/setter.dart';
+
+void function^ToMove() {
+  splitVariable++;
+}
+''';
+    var modifiedSource = '''
+import 'package:test/getter.dart';
+import 'package:test/setter.dart';
+''';
+    var declarationName = 'functionToMove';
+    var newFileName = 'function_to_move.dart';
+    var newFileContent = '''
+import 'package:test/getter.dart';
+import 'package:test/setter.dart';
+
+void functionToMove() {
+  splitVariable++;
+}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
   }
 
   Future<void>

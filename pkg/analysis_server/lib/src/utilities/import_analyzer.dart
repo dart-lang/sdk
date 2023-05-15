@@ -144,12 +144,15 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    var writeElement = node.writeElement;
-    if (writeElement != null) {
-      recorder.recordReference(writeElement, node.offset,
-          _getPrefixFromExpression(node.leftHandSide));
-    }
+    _recordReference(node.writeElement, node, node.leftHandSide);
+    _recordReference(node.readElement, node, node.leftHandSide);
     super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitBinaryExpression(BinaryExpression node) {
+    _recordReference(node.staticElement, node, node.parent);
+    super.visitBinaryExpression(node);
   }
 
   @override
@@ -219,17 +222,22 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPostfixExpression(PostfixExpression node) {
+    _recordReference(node.writeElement, node, node.operand);
+    _recordReference(node.readElement, node, node.operand);
+    super.visitPostfixExpression(node);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    _recordReference(node.writeElement, node, node.operand);
+    _recordReference(node.readElement, node, node.operand);
+    super.visitPrefixExpression(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
-    if (element is ExecutableElement &&
-        element.enclosingElement is ExtensionElement &&
-        !element.isStatic) {
-      element = element.enclosingElement;
-    }
-    if (element != null && element.isInterestingReference) {
-      recorder.recordReference(
-          element, node.offset, _getPrefixFromExpression(node.parent));
-    }
+    _recordReference(node.staticElement, node, node.parent);
     super.visitSimpleIdentifier(node);
   }
 
@@ -267,6 +275,24 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
       }
     }
     return null;
+  }
+
+  /// Records a reference to [element] (if not null) at the offset of [node],
+  /// extracting any prefix from [prefixNode].
+  void _recordReference(Element? element, AstNode node, AstNode? prefixNode) {
+    if (element == null) {
+      return;
+    }
+    if (element is ExecutableElement &&
+        element.enclosingElement is ExtensionElement &&
+        !element.isStatic) {
+      element = element.enclosingElement;
+    }
+    if (!element.isInterestingReference) {
+      return;
+    }
+    recorder.recordReference(
+        element, node.offset, _getPrefixFromExpression(prefixNode));
   }
 }
 
