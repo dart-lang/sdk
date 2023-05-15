@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -66,6 +67,23 @@ void f() async {
   await doSomething();
 }
 ''');
+  }
+
+  Future<void> test_methodInvocationWithParserError() async {
+    await resolveTestCode('''
+Future doSomething() => Future.value('');
+
+void f() async {
+  doSomething()
+}
+''');
+    await assertHasFix('''
+Future doSomething() => Future.value('');
+
+void f() async {
+  await doSomething()
+}
+''', errorFilter: (error) => error.errorCode != ParserErrorCode.EXPECTED_TOKEN);
   }
 
   Future<void> test_nonBoolCondition_futureBool() async {

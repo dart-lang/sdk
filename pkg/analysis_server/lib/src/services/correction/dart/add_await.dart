@@ -46,7 +46,7 @@ class AddAwait extends CorrectionProducer {
 
   Future<void> _addAwait(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, 'await ');
+      builder.addSimpleInsertion(errorOffset ?? node.offset, 'await ');
     });
   }
 
