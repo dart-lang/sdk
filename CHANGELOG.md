@@ -1,5 +1,12 @@
 ## 3.0.1
 
+This is a patch release that:
+
+- Fixes a compiler crash involving redirecting factories and FFI
+  (issue [#124369]).
+
+[#124369]: https://github.com/flutter/flutter/issues/124369
+
 ### Tools
 
 #### Formatter
