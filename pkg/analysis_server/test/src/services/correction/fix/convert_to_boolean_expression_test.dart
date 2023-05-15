@@ -56,6 +56,20 @@ void f(bool value) {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/52368
+  Future<void> test_ifFalse_asExpression() async {
+    await resolveTestCode(r'''
+void f(Object value) {
+ if (value as bool == false) print(value);
+}
+''');
+    await assertHasFix(r'''
+void f(Object value) {
+ if (!(value as bool)) print(value);
+}
+''');
+  }
+
   Future<void> test_ifFalse_reversed() async {
     await resolveTestCode(r'''
 void f(bool value) {
