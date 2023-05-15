@@ -1863,6 +1863,54 @@
     },
     {
       "builders": [
+        "vm-win-debug-arm64",
+        "vm-win-release-arm64"
+      ],
+      "meta": {
+          "description": "This configuration is for the ARM64 JIT builders, no shards."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+              "-nvm-${system}-${mode}-${arch}"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-win-debug-arm64",
+        "vm-aot-win-release-arm64"
+      ],
+      "meta": {
+          "description": "This configuration is for the ARM64 AOT builders, no shards."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+              "-nvm-aot-${system}-${mode}-${arch}"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-appjit-linux-debug-x64",
         "vm-appjit-linux-release-x64",
         "vm-appjit-linux-product-x64"
