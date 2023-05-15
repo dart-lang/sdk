@@ -6,6 +6,7 @@
 #define RUNTIME_VM_TIMELINE_H_
 
 #include <functional>
+#include <memory>
 
 #include "include/dart_tools_api.h"
 
@@ -445,8 +446,8 @@ class TimelineEvent {
 
   bool HasIsolateId() const;
   bool HasIsolateGroupId() const;
-  char* GetFormattedIsolateId() const;
-  char* GetFormattedIsolateGroupId() const;
+  std::unique_ptr<const char[]> GetFormattedIsolateId() const;
+  std::unique_ptr<const char[]> GetFormattedIsolateGroupId() const;
 
   // The lowest time value stored in this event.
   int64_t LowTime() const;

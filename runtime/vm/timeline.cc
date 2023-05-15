@@ -944,17 +944,17 @@ void TimelineEvent::PopulateTracePacket(
     perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
         *track_event->add_debug_annotations();
     debug_annotation.set_name("isolateId");
-    char* formatted_isolate_id = GetFormattedIsolateId();
-    debug_annotation.set_string_value(formatted_isolate_id);
-    free(formatted_isolate_id);
+    std::unique_ptr<const char[]> formatted_isolate_id =
+        GetFormattedIsolateId();
+    debug_annotation.set_string_value(formatted_isolate_id.get());
   }
   if (HasIsolateGroupId()) {
     perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
         *track_event->add_debug_annotations();
     debug_annotation.set_name("isolateGroupId");
-    char* formatted_isolate_group = GetFormattedIsolateGroupId();
-    debug_annotation.set_string_value(formatted_isolate_group);
-    free(formatted_isolate_group);
+    std::unique_ptr<const char[]> formatted_isolate_group =
+        GetFormattedIsolateGroupId();
+    debug_annotation.set_string_value(formatted_isolate_group.get());
   }
 }
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
@@ -991,24 +991,30 @@ bool TimelineEvent::HasIsolateGroupId() const {
   return isolate_group_id_ != ILLEGAL_ISOLATE_GROUP_ID;
 }
 
-char* TimelineEvent::GetFormattedIsolateId() const {
+std::unique_ptr<const char[]> TimelineEvent::GetFormattedIsolateId() const {
   ASSERT(HasIsolateId());
-  intptr_t formatted_isolate_id_len =
-      Utils::SNPrint(nullptr, 0, ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id_);
-  char* formatted_isolate_id =
-      reinterpret_cast<char*>(malloc(formatted_isolate_id_len + 1));
-  Utils::SNPrint(formatted_isolate_id, formatted_isolate_id_len + 1,
+  intptr_t formatted_isolate_id_buffer_size =
+      Utils::SNPrint(nullptr, 0, ISOLATE_SERVICE_ID_FORMAT_STRING,
+                     isolate_id_) +
+      1;
+  auto formatted_isolate_id =
+      std::make_unique<char[]>(formatted_isolate_id_buffer_size);
+  Utils::SNPrint(formatted_isolate_id.get(), formatted_isolate_id_buffer_size,
                  ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id_);
   return formatted_isolate_id;
 }
 
-char* TimelineEvent::GetFormattedIsolateGroupId() const {
+std::unique_ptr<const char[]> TimelineEvent::GetFormattedIsolateGroupId()
+    const {
   ASSERT(HasIsolateGroupId());
-  intptr_t formatted_isolate_group_id_len = Utils::SNPrint(
-      nullptr, 0, ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id_);
-  char* formatted_isolate_group_id =
-      reinterpret_cast<char*>(malloc(formatted_isolate_group_id_len + 1));
-  Utils::SNPrint(formatted_isolate_group_id, formatted_isolate_group_id_len + 1,
+  intptr_t formatted_isolate_group_id_buffer_size =
+      Utils::SNPrint(nullptr, 0, ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
+                     isolate_group_id_) +
+      1;
+  auto formatted_isolate_group_id =
+      std::make_unique<char[]>(formatted_isolate_group_id_buffer_size);
+  Utils::SNPrint(formatted_isolate_group_id.get(),
+                 formatted_isolate_group_id_buffer_size,
                  ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id_);
   return formatted_isolate_group_id;
 }
