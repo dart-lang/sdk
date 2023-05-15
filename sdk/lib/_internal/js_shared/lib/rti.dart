@@ -861,7 +861,8 @@ Rti _instanceTypeFromConstructorMiss(Object? instance, Object? constructor) {
     // TODO(sra): Can this test be avoided, e.g. by putting $ti on the
     // prototype of Closure/BoundClosure/StaticClosure classes?
     var effectiveConstructor = _isClosure(instance)
-        ? JS('', '#.__proto__.__proto__.constructor', instance)
+        ? JS('', 'Object.getPrototypeOf(Object.getPrototypeOf(#)).constructor',
+            instance)
         : constructor;
     rti = _Universe.findErasedType(
         _theUniverse(), JS('String', '#.name', effectiveConstructor));
