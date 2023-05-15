@@ -1232,7 +1232,11 @@ int64_t Dart::UptimeMicros() {
 uword Dart::AllocateReadOnlyHandle() {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(predefined_handles_ != nullptr);
-  return predefined_handles_->handles_.AllocateScopedHandle();
+  uword handle = predefined_handles_->handles_.AllocateScopedHandle();
+#if defined(DEBUG)
+  *reinterpret_cast<uword*>(handle + kOffsetOfIsZoneHandle * kWordSize) = 0;
+#endif
+  return handle;
 }
 
 LocalHandle* Dart::AllocateReadOnlyApiHandle() {

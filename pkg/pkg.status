@@ -63,6 +63,7 @@ front_end/test/incremental_dart2js_test: Pass, Slow
 front_end/testcases/*: Skip # These are not tests but input for tests.
 front_end/tool/incremental_perf_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
+native_assets_builder/test/test_projects/*: SkipByDesign # These test projects don't work without running pub in the project itself.
 vm/test/kernel_front_end_test: Slow, Pass
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
@@ -89,6 +90,7 @@ front_end/tool/*: SkipByDesign # Only meant to run on vm
 modular_test/test/memory_pipeline_test: Slow, Pass
 modular_test/test/validate_pipeline_test: Slow, Pass
 modular_test/test/validate_suite_test: Slow, Pass
+native_assets_builder/test/*: SkipByDesign # Only meant to run on vm
 nnbd_migration/test/*: SkipByDesign # Uses mirrors
 nnbd_migration/tool/*: SkipByDesign # Only meant to run on vm
 smith/test/*: SkipByDesign # Only meant to run on vm

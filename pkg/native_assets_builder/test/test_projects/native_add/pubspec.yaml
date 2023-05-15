@@ -1,0 +1,26 @@
+name: native_add
+description: Sums two numbers with native code.
+version: 0.1.0
+
+publish_to: none
+
+environment:
+  sdk: ">=2.19.3 <4.0.0"
+
+dependencies:
+  c_compiler:
+    path: ../../../../../third_party/pkg/native/pkgs/c_compiler/
+  cli_config: ^0.1.1
+  logging: ^1.1.1
+  native_assets_cli:
+    path: ../../../../../third_party/pkg/native/pkgs/native_assets_cli/
+
+dev_dependencies:
+  ffigen: ^7.2.9
+  lints: ^2.0.0
+  test: ^1.23.1
+
+dependency_overrides:
+  native_assets_cli:
+    path: ../../../../../third_party/pkg/native/pkgs/native_assets_cli/
+

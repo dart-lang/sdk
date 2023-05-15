@@ -276,6 +276,7 @@
       "pkg/kernel/",
       "pkg/meta/",
       "pkg/native_stack_traces/",
+      "pkg/native_assets_builder/",
       "pkg/pkg.status",
       "pkg/smith/",
       "pkg/status_file/",
@@ -1857,6 +1858,54 @@
           ],
           "fileset": "vm-kernel",
           "shards": 1
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-win-debug-arm64",
+        "vm-win-release-arm64"
+      ],
+      "meta": {
+          "description": "This configuration is for the ARM64 JIT builders, no shards."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+              "-nvm-${system}-${mode}-${arch}"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-win-debug-arm64",
+        "vm-aot-win-release-arm64"
+      ],
+      "meta": {
+          "description": "This configuration is for the ARM64 AOT builders, no shards."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+              "-nvm-aot-${system}-${mode}-${arch}"
+          ]
         }
       ]
     },
