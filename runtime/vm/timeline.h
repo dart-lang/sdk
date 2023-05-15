@@ -529,6 +529,10 @@ class TimelineEvent {
 
   intptr_t arguments_length() const { return arguments_.length(); }
 
+  bool ArgsArePreSerialized() const {
+    return PreSerializedArgsBit::decode(state_);
+  }
+
   TimelineEvent* next() const {
     return next_;
   }
@@ -558,10 +562,6 @@ class TimelineEvent {
   void set_flow_id(int64_t flow_id) {
     ASSERT(flow_id_ == TimelineEvent::kNoFlowId);
     flow_id_ = flow_id;
-  }
-
-  bool pre_serialized_args() const {
-    return PreSerializedArgsBit::decode(state_);
   }
 
   void set_pre_serialized_args(bool pre_serialized_args) {
@@ -1007,7 +1007,7 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
 #if !defined(PRODUCT)
   inline void PrintEventsCommon(
       const TimelineEventFilter& filter,
-      std::function<void(const TimelineEvent&)> print_impl);
+      std::function<void(const TimelineEvent&)>&& print_impl);
 #endif  // !defined(PRODUCT)
 };
 
@@ -1136,7 +1136,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 #if !defined(PRODUCT)
   inline void PrintEventsCommon(
       const TimelineEventFilter& filter,
-      std::function<void(const TimelineEvent&)> print_impl);
+      std::function<void(const TimelineEvent&)>&& print_impl);
 #endif  // !defined(PRODUCT)
 
   friend class TimelineTestHelper;
