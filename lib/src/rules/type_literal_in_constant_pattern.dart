@@ -10,25 +10,29 @@ import '../analyzer.dart';
 const _desc = r"Don't use constant patterns with type literals.";
 
 const _details = r'''
-Use `== TypeName` or `TypeName _` instead of type literals in patterns.
+If you meant to test if the object has type `Foo`, instead write `Foo _`.
 
 **BAD:**
 ```dart
-void f(Type x) {
-  if (x case int) {
-    print('int');
+void f(Object? x) {
+  if (x case num) {
+    print('int or double');
   }
 }
 ```
 
 **GOOD:**
 ```dart
-void f(Type x) {
-  if (x case == int) {
-    print('int');
+void f(Object? x) {
+  if (x case num _) {
+    print('int or double');
   }
 }
 ```
+
+If you do mean to test that the matched value (which you expect to have the
+type `Type`) is equal to the type literal `Foo`, then this lint can be
+silenced using `const (Foo)`.
 
 **BAD:**
 ```dart
@@ -42,12 +46,11 @@ void f(Object? x) {
 **GOOD:**
 ```dart
 void f(Object? x) {
-  if (x case int _) {
+  if (x case const (int)) {
     print('int');
   }
 }
 ```
-
 ''';
 
 class TypeLiteralInConstantPattern extends LintRule {
@@ -86,18 +89,14 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitConstantPattern(ConstantPattern node) {
+    // `const (MyType)` is fine.
+    if (node.constKeyword != null) {
+      return;
+    }
+
     var expressionType = node.expression.staticType;
     if (expressionType != null && expressionType.isDartCoreType) {
-      var matchedValueType = node.matchedValueType;
-      if (matchedValueType != null) {
-        var typeSystem = context.typeSystem;
-        matchedValueType = typeSystem.resolveToBound(matchedValueType);
-        if (!matchedValueType.isDartCoreType) {
-          if (typeSystem.isSubtypeOf(expressionType, matchedValueType)) {
-            rule.reportLint(node);
-          }
-        }
-      }
+      rule.reportLint(node);
     }
   }
 }

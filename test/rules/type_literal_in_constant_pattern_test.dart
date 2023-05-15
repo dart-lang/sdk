@@ -46,16 +46,6 @@ void f(dynamic x) {
     ]);
   }
 
-  test_constType_matchNum() async {
-    await assertDiagnostics(r'''
-void f(num x) {
-  if (x case int) {}
-}
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 29, 3),
-    ]);
-  }
-
   test_constType_matchObject() async {
     await assertDiagnostics(r'''
 void f(Object x) {
@@ -77,11 +67,13 @@ void f(Object? x) {
   }
 
   test_constType_matchType() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(r'''
 void f(Type x) {
   if (x case int) {}
 }
-''');
+''', [
+      lint(30, 3),
+    ]);
   }
 
   test_constType_matchType_explicitConst() async {
@@ -93,7 +85,7 @@ void f(Type x) {
   }
 
   test_constType_matchType_nested() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(r'''
 void f(A x) {
   if (x case A(type: int)) {}
 }
@@ -102,7 +94,9 @@ class A {
   final Type type;
   A(this.type);
 }
-''');
+''', [
+      lint(35, 3),
+    ]);
   }
 
   test_constType_matchTypeParameter_boundObjectNullable() async {
@@ -117,10 +111,12 @@ void f<T extends Object?>(T x) {
 
   /// Nobody will write such code, but just in case.
   test_constType_matchTypeParameter_boundType() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(r'''
 void f<T extends Type>(T x) {
   if (x case int) {}
 }
-''');
+''', [
+      lint(43, 3),
+    ]);
   }
 }
