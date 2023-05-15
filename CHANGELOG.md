@@ -528,6 +528,11 @@ using Dart version 2.19, before upgrading to Dart version 3.0.
 - `dart pub get` and related commands will now by default also update the
   dependencies in the `example` folder (if it exists). Use `--no-example` to
   avoid this.
+- On Windows the `PUB_CACHE` has moved to `%LOCALAPPDATA%`, since Dart 2.8 the
+  `PUB_CACHE` has been created in `%LOCALAPPDATA%` when one wasn't present.
+  Hence, this only affects users with a `PUB_CACHE` created by Dart 2.7 or
+  earlier. If you have `path/to/.pub-cache/bin` in `PATH` you may need to
+  update your `PATH`.
 
 ## 2.19.6 - 2023-03-29
 
