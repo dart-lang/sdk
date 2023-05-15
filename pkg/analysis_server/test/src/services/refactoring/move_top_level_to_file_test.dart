@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -143,6 +144,307 @@ class A {}
     await executeRefactor(action);
 
     expect(content[newFilePath], expectedNewFileContent);
+  }
+
+  Future<void> test_imports_prefix_cascade() async {
+    var otherFileDeclarations = '''
+final list = <int>[];
+''';
+
+    var movingCode = '''
+void ^moving() {
+  other.list
+    ..add(1)
+    ..add(2);
+}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_class() async {
+    var otherFileDeclarations = '''
+class A {}
+''';
+
+    var movingCode = '''
+other.A? ^moving;
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_class_extends() async {
+    var otherFileDeclarations = '''
+class A {}
+''';
+
+    var movingCode = '''
+class Mov^ing extends other.A {}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingDeclarationName: 'Moving',
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_constructor_named() async {
+    var otherFileDeclarations = '''
+class A {
+  A.named();
+}
+''';
+
+    var movingCode = '''
+final ^moving = other.A.named();
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_constructor_named_tearoff() async {
+    var otherFileDeclarations = '''
+class A {
+  A.named();
+}
+''';
+
+    var movingCode = '''
+final ^moving = other.A.named;
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_constructor_unnamed() async {
+    var otherFileDeclarations = '''
+class A {}
+''';
+
+    var movingCode = '''
+final ^moving = other.A();
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_constructor_unnamed_tearoff() async {
+    var otherFileDeclarations = '''
+class A {}
+''';
+
+    var movingCode = '''
+final ^moving = other.A.new;
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_extensionOverride() async {
+    var otherFileDeclarations = '''
+extension E on int { void f() {} },
+''';
+
+    var movingCode = '''
+void ^moving() {
+  other.E(0).f();
+}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_function() async {
+    var otherFileDeclarations = '''
+void f() {}
+''';
+
+    var movingCode = '''
+void ^moving() {
+  other.f();
+}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_function_tearoff() async {
+    var otherFileDeclarations = '''
+void f() {}
+''';
+
+    var movingCode = '''
+final mov^ing = other.f;
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_functionInvocationExpression() async {
+    var otherFileDeclarations = '''
+final f = () {};
+''';
+
+    var movingCode = '''
+void mov^ing() {
+  other.f();
+}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_getterSetter() async {
+    var otherFileDeclarations = '''
+String get a => '';
+set a(String value) {}
+''';
+
+    var movingCode = '''
+void ^moving() {
+  other.a = '';
+  other.a;
+}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_staticGetterSetter() async {
+    var otherFileDeclarations = '''
+class A {
+  static String get a => '';
+  static set a(String value) {}
+}
+''';
+
+    var movingCode = '''
+void ^moving() {
+  other.A.a = '';
+  other.A.a;
+}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_staticMethod() async {
+    var otherFileDeclarations = '''
+class A {
+  static void f() {}
+}
+''';
+
+    var movingCode = '''
+void ^moving() {
+  other.A.f();
+}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_typeArgument() async {
+    var otherFileDeclarations = '''
+class A {}
+''';
+
+    var movingCode = '''
+List<other.A>? ^moving;
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_typeDefinition_source() async {
+    var otherFileDeclarations = '''
+typedef A = String;
+''';
+
+    var movingCode = '''
+other.A? ^moving;
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_typeDefinition_target() async {
+    var otherFileDeclarations = '''
+class A {}
+''';
+
+    var movingCode = '''
+typedef ^Moving = other.A;
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingDeclarationName: 'Moving',
+      movingCode: movingCode,
+    );
+  }
+
+  Future<void> test_imports_prefix_typeParameter() async {
+    var otherFileDeclarations = '''
+class A {}
+''';
+
+    var movingCode = '''
+class Mov^ing<T extends other.A> {}
+''';
+
+    await _testPrefixCopied(
+      declarations: otherFileDeclarations,
+      movingDeclarationName: 'Moving',
+      movingCode: movingCode,
+    );
   }
 
   Future<void> test_imports_referenceFromMovingToImported() async {
@@ -1054,5 +1356,42 @@ class A {}
         otherFilePath: otherFilePath,
         otherFileContent: otherFileContent,
         modifiedOtherFileContent: modifiedOtherFileContent);
+  }
+
+  /// Tests that prefixes are included in imports copied to the new code.
+  ///
+  /// [declarations] will be written to 'package:test/other.dart' which will
+  /// be imported into [code] with the prefix 'other'.
+  Future<void> _testPrefixCopied({
+    required String declarations,
+    required String movingCode,
+    String movingDeclarationName = 'moving',
+  }) async {
+    var code = TestCode.parse(movingCode);
+    var otherFilePath = '$projectFolderPath/lib/other.dart';
+    var otherFileContent = declarations;
+
+    var originalSource = '''
+import 'package:test/other.dart' as other;
+
+${code.rawCode}
+''';
+    var modifiedSource = '''
+import 'package:test/other.dart' as other;
+''';
+    var newFileName = 'moving.dart';
+    var newFileContent = '''
+import 'package:test/other.dart' as other;
+
+${code.code}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: movingDeclarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent,
+        otherFilePath: otherFilePath,
+        otherFileContent: otherFileContent);
   }
 }

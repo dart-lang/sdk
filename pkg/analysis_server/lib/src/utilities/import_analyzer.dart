@@ -103,10 +103,10 @@ class _ElementRecorder {
   }
 
   /// Record that the [element] is referenced in the library at the
-  /// [referenceOffset]. The [prefix] is the prefix used to reference the
-  /// element, or an empty string if no prefix was used.
+  /// [referenceOffset]. [prefix] is the prefixused to reference the element, or
+  /// `null` if no prefix was used.
   void recordReference(
-      Element referencedElement, int referenceOffset, String prefix) {
+      Element referencedElement, int referenceOffset, PrefixElement? prefix) {
     if (referencedElement is PropertyAccessorElement &&
         referencedElement.isSynthetic) {
       referencedElement = referencedElement.variable;
@@ -114,11 +114,11 @@ class _ElementRecorder {
     if (_isBeingMoved(referenceOffset)) {
       var prefixes =
           analyzer.movingReferences.putIfAbsent(referencedElement, () => {});
-      prefixes.add(prefix);
+      prefixes.add(prefix?.name ?? '');
     } else {
       var prefixes =
           analyzer.stayingReferences.putIfAbsent(referencedElement, () => {});
-      prefixes.add(prefix);
+      prefixes.add(prefix?.name ?? '');
     }
   }
 
@@ -228,7 +228,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
     }
     if (element != null && element.isInterestingReference) {
       recorder.recordReference(
-          element, node.offset, _getPrefixForIdentifier(node));
+          element, node.offset, _getPrefixFromExpression(node.parent));
     }
     super.visitSimpleIdentifier(node);
   }
@@ -241,27 +241,32 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
     super.visitTopLevelVariableDeclaration(node);
   }
 
-  /// Return the prefix used to reference the [node].
-  String _getPrefixForIdentifier(SimpleIdentifier node) {
-    return _getPrefixFromExpression(node.parent);
-  }
-
-  /// Return the prefix used to reference the [node].
-  String _getPrefixFromExpression(AstNode? node) {
+  /// Return the prefix used in [node].
+  PrefixElement? _getPrefixFromExpression(AstNode? node) {
     if (node is PrefixedIdentifier) {
       var prefix = node.prefix;
-      if (prefix.staticElement is PrefixElement) {
-        return prefix.name;
+      var element = prefix.staticElement;
+      if (element is PrefixElement) {
+        return element;
       }
     } else if (node is PropertyAccess) {
-      // TODO(brianwilkerson) Remove this branch after all prefixes are
-      //  rewritten as a `PrefixedIdentifier`.
-      var propertyName = node.propertyName;
-      if (propertyName.staticElement is PrefixElement) {
-        return propertyName.name;
+      var target = node.target;
+      if (target is PrefixedIdentifier) {
+        var element = target.prefix.staticElement;
+        if (element is PrefixElement) {
+          return element;
+        }
+      }
+    } else if (node is MethodInvocation) {
+      var target = node.target;
+      if (target is SimpleIdentifier) {
+        var element = target.staticElement;
+        if (element is PrefixElement) {
+          return element;
+        }
       }
     }
-    return '';
+    return null;
   }
 }
 
