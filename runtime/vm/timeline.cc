@@ -880,12 +880,7 @@ void TimelineEvent::PopulateTracePacket(
   ASSERT(CanBeRepresentedByPerfettoTracePacket());
 
   perfetto_utils::SetTrustedPacketSequenceId(packet);
-  // TODO(derekx): We should be able to set the unit_multiplier_ns field in a
-  // ClockSnapshot to avoid manually converting from microseconds to
-  // nanoseconds, but I haven't been able to get it to work.
-  packet->set_timestamp(TimeOrigin() * 1000);
-  packet->set_timestamp_clock_id(
-      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
+  perfetto_utils::SetTimestampAndMonotonicClockId(packet, TimeOrigin());
   perfetto::protos::pbzero::TrackEvent* track_event = packet->set_track_event();
   track_event->add_categories(stream()->name());
 

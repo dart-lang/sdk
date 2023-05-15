@@ -1834,9 +1834,8 @@ void Profile::PrintSamplesPerfetto(
     packet->set_sequence_flags(
         perfetto::protos::pbzero::TracePacket_SequenceFlags::
             SEQ_NEEDS_INCREMENTAL_STATE);
-    packet->set_timestamp(sample->timestamp() * 1000);
-    packet->set_timestamp_clock_id(
-        perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
+    perfetto_utils::SetTimestampAndMonotonicClockId(packet.get(),
+                                                    sample->timestamp());
 
     const intptr_t callstack_iid = sample_index + 1;
     // Add a |Callstack| to the interned data table that represents the stack
