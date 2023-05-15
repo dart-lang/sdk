@@ -925,7 +925,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     enterTreeNode(node);
     checkTargetedInvocation(node.target, node);
     if (node.target.enclosingClass.isAbstract) {
-      problem(node, "ConstructorInvocation of abstract class.");
+      problem(node, "$node of abstract class ${node.target.enclosingClass}.");
     }
     if (node.isConst && !node.target.isConst) {
       problem(
