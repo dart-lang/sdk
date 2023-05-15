@@ -129,10 +129,13 @@ Future<String?> _commitReferenceToVersion(String version) async {
   var output = result.stdout;
   if (output is String) {
     var tags = _linterReleasePattern.allMatches(output);
-    // Take the earliest (first) release which includes this commit
-    var latestTag = tags.first.group(0);
-    if (latestTag != null) {
-      return latestTag;
+    // If commit is contained by a linter tag
+    if (tags.isNotEmpty) {
+      // Take the earliest (first) release which includes this commit
+      var latestTag = tags.first.group(0);
+      if (latestTag != null) {
+        return latestTag;
+      }
     }
   }
 
@@ -143,7 +146,7 @@ Future<String?> _fetchLinterForVersion(String version) async {
   var deps = await _fetchDEPSforVersion(version);
   for (var untrimmedLine in deps.split('\n')) {
     var line = untrimmedLine.trim();
-    if (line.startsWith('"lint')) {
+    if (line.startsWith('"linter')) {
       // "linter_tag": "0.1.59",
       var oldSplit = line.split('"linter_tag":');
       if (oldSplit.length == 2) {
@@ -172,7 +175,7 @@ Future<List<String>> _fetchLinterReleaseTags(Authentication? auth) async =>
 
 Future<List<String>> _fetchSdkTags(Authentication? auth,
         {bool onlyStable = false}) async =>
-    await _fetchRepoTags('dart-lang', 'linter', auth, (t) {
+    await _fetchRepoTags('dart-lang', 'sdk', auth, (t) {
       // Filter on numeric release tags.
       if (!t.startsWith(_releaseTagPattern)) {
         return false;
