@@ -399,10 +399,10 @@ class ConstantsTransformer extends RemovingTransformer {
   final bool errorOnUnevaluatedConstant;
   final bool isLateLocalLoweringEnabled;
 
-  /// Cache used for checking exhaustiveness.
-  late final CfeExhaustivenessCache exhaustivenessCache;
-
   final ExhaustivenessDataForTesting? _exhaustivenessDataForTesting;
+
+  /// Cache used for checking exhaustiveness.
+  CfeExhaustivenessCache? _exhaustivenessCache;
 
   ConstantsTransformer(
       Target target,
@@ -431,9 +431,7 @@ class ConstantsTransformer extends RemovingTransformer {
             enableConstFunctions: enableConstFunctions,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             evaluationMode: evaluationMode),
-        _exhaustivenessDataForTesting = exhaustivenessDataForTesting {
-    exhaustivenessCache = new CfeExhaustivenessCache(constantEvaluator);
-  }
+        _exhaustivenessDataForTesting = exhaustivenessDataForTesting {}
 
   /// Whether to preserve constant [Field]s. All use-sites will be rewritten.
   bool get keepFields => backend.keepFields;
@@ -451,6 +449,9 @@ class ConstantsTransformer extends RemovingTransformer {
   void convertLibrary(Library library) {
     _staticTypeContext =
         new StaticTypeContext.forAnnotations(library, typeEnvironment);
+
+    _exhaustivenessCache =
+        new CfeExhaustivenessCache(constantEvaluator, library);
 
     transformAnnotations(library.annotations, library);
 
@@ -471,6 +472,7 @@ class ConstantsTransformer extends RemovingTransformer {
       });
     }
     _staticTypeContext = null;
+    _exhaustivenessCache = null;
   }
 
   @override
@@ -1537,14 +1539,14 @@ class ConstantsTransformer extends RemovingTransformer {
       required bool hasDefault,
       required bool mustBeExhaustive,
       required bool isSwitchExpression}) {
-    StaticType type = exhaustivenessCache.getStaticType(
+    StaticType type = _exhaustivenessCache!.getStaticType(
         // Treat invalid types as empty.
         expressionType is InvalidType
             ? const NeverType.nonNullable()
             : expressionType);
     List<Space> cases = [];
     PatternConverter patternConverter = new PatternConverter(
-        exhaustivenessCache, staticTypeContext,
+        _exhaustivenessCache!, staticTypeContext,
         hasPrimitiveEquality: (Constant constant) => constantEvaluator
             .hasPrimitiveEqual(constant, staticTypeContext: staticTypeContext));
     for (PatternGuard patternGuard in patternGuards) {
@@ -1552,7 +1554,7 @@ class ConstantsTransformer extends RemovingTransformer {
           hasGuard: patternGuard.guard != null));
     }
     List<ExhaustivenessError> errors =
-        reportErrors(exhaustivenessCache, type, cases);
+        reportErrors(_exhaustivenessCache!, type, cases);
     List<ExhaustivenessError>? reportedErrors;
     if (_exhaustivenessDataForTesting != null) {
       reportedErrors = [];
@@ -1592,7 +1594,7 @@ class ConstantsTransformer extends RemovingTransformer {
       }
     }
     if (_exhaustivenessDataForTesting != null) {
-      _exhaustivenessDataForTesting!.objectFieldLookup ??= exhaustivenessCache;
+      _exhaustivenessDataForTesting!.objectFieldLookup ??= _exhaustivenessCache;
       _exhaustivenessDataForTesting!.switchResults[replacement] =
           new ExhaustivenessResult(type, cases,
               patternGuards.map((c) => c.fileOffset).toList(), reportedErrors!);
