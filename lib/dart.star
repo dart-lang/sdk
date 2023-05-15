@@ -6,7 +6,7 @@ Defines rules that can be used to define dart builders.
 """
 
 load("//lib/accounts.star", "accounts")
-load("//lib/defaults.star", "defaults", "focal", "linux", "mac", "windows")
+load("//lib/defaults.star", "defaults", "focal", "linux", "mac", "windows", "windows11")
 load("//lib/paths.star", "paths")
 load("//lib/priority.star", "priority")
 
@@ -202,7 +202,7 @@ def _builder(
         if os_pattern in name and os not in expected_os:
             fail("builder %s should be a %s builder but was %s" % (name, expected_os, os))
 
-    expect_os("-win", windows["os"])
+    expect_os("-win", [windows["os"], windows11["os"]])
     expect_os("-linux", [linux["os"], focal["os"]])
     expect_os("-mac", mac["os"])
 

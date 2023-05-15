@@ -15,6 +15,7 @@ load(
     "no_android",
     "slow_shards",
     "windows",
+    "windows11",
 )
 load("//lib/paths.star", "paths")
 load("//lib/priority.star", "priority")
@@ -168,6 +169,11 @@ _builder(
     "vm-win-release-x64",
     category = "vm|jit|wr",
     dimensions = windows,
+)
+dart.try_builder(
+    "vm-win-release-arm64",
+    dimensions = [windows11, arm64],
+    pool = "luci.flutter.staging",
 )
 
 # vm|appjit

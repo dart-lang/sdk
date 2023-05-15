@@ -27,6 +27,7 @@ _MAC = {"os": "Mac"}
 _BIONIC = {"os": "Ubuntu-18"}
 _FOCAL = {"os": "Ubuntu-20"}
 _WINDOWS10 = {"os": "Windows-10"}
+_WINDOWS11 = {"os": "Windows-11"}
 
 _EXPERIMENTAL = {"host_class": "experimental"}
 
@@ -75,6 +76,7 @@ linux = _BIONIC
 mac = _MAC
 windows = _WINDOWS10
 windows10 = _WINDOWS10
+windows11 = _WINDOWS11
 
 # Properties
 
