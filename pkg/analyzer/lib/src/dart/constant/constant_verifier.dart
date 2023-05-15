@@ -795,13 +795,15 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     final caseSpaces = <Space>[];
     var hasDefault = false;
 
-    // Build spaces for cases.
     final patternConverter = PatternConverter(
       featureSet: _currentLibrary.featureSet,
       cache: _exhaustivenessCache,
       mapPatternKeyValues: mapPatternKeyValues,
       constantPatternValues: constantPatternValues,
     );
+    patternConverter.hasInvalidType = scrutineeType is InvalidType;
+
+    // Build spaces for cases.
     for (final caseNode in caseNodes) {
       GuardedPattern? guardedPattern;
       if (caseNode is SwitchDefault) {
@@ -827,8 +829,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     final exhaustivenessDataForTesting = this.exhaustivenessDataForTesting;
 
     // Compute and report errors.
-    final errors =
-        reportErrors(_exhaustivenessCache, scrutineeTypeEx, caseSpaces);
+    final errors = patternConverter.hasInvalidType
+        ? const <ExhaustivenessError>[]
+        : reportErrors(_exhaustivenessCache, scrutineeTypeEx, caseSpaces);
+
     final reportNonExhaustive = mustBeExhaustive && !hasDefault;
     for (final error in errors) {
       if (error is UnreachableCaseError) {
