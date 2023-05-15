@@ -24,7 +24,7 @@ class JSArray<E> extends JavaScriptObject
     //
     // TODO(jmesserly): this uses special compiler magic to close over the
     // parameterized ES6 'JSArray' class.
-    JS('', '#.__proto__ = JSArray.prototype', list);
+    jsObjectSetPrototypeOf(list, JS('', 'JSArray.prototype'));
     if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
       JS('', '#.# = #', list, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY),
           JSArray<E>);
@@ -33,7 +33,7 @@ class JSArray<E> extends JavaScriptObject
 
   // TODO(jmesserly): consider a fixed array subclass instead.
   factory JSArray.fixed(list) {
-    JS('', '#.__proto__ = JSArray.prototype', list);
+    jsObjectSetPrototypeOf(list, JS('', 'JSArray.prototype'));
     JS('', r'#.fixed$length = Array', list);
     if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
       JS('', '#.# = #', list, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY),
@@ -42,7 +42,7 @@ class JSArray<E> extends JavaScriptObject
   }
 
   factory JSArray.unmodifiable(list) {
-    JS('', '#.__proto__ = JSArray.prototype', list);
+    jsObjectSetPrototypeOf(list, JS('', 'JSArray.prototype'));
     JS('', r'#.fixed$length = Array', list);
     JS('', r'#.immutable$list = Array', list);
     if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
