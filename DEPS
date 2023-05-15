@@ -109,12 +109,12 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "args_rev": "1864048a01630afe190d1fdc0033cc5d6943884e",
-  "async_rev": "0f368d36fa949f6d946242d2bc6ea595ca8fa3f0",
-  "bazel_worker_rev": "1b86d3c1253a9c2cf85fd12c8194a65b91d0997d",
-  "benchmark_harness_rev": "f81b0421b5672b5b6105547e996f16276b2f79e0",
-  "boolean_selector_rev": "7eed40256e0bdfcecd3ae533666699d866536e3a",
-  "browser_launcher_rev": "551e101eb9455259709fc9eee7bfcdfb68c094f7",
+  "args_rev": "f0f6cd22d29f15f86b3d2caab053bae029d30c9a",
+  "async_rev": "d744058ed4f69d23d9f3d4aaca1e3f1077ab9483",
+  "bazel_worker_rev": "d9b389f30848253d3310f931a9b8d39ca07102b1",
+  "benchmark_harness_rev": "e717ad41a2c7f9b14e197a1ffdf598f2470b5eda",
+  "boolean_selector_rev": "23e08e02de194e798aaa44f9722194f8af9bd5d0",
+  "browser_launcher_rev": "40e431543840cbe7fc05b95a2f851d9f1bd3bc14",
   "characters_rev": "2af678348545df00cdcb58711bfdb9f08c79bd77",
   "cli_util_rev": "7234f17b0cfc51cc9b52d53c90f6546ad4d32e23",
   "clock_rev": "6b9df3eedec2d4389729106e380608174a6f6544",
@@ -133,9 +133,9 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "156f5c8c3bfe4e3b8e7adc95f7cf24d9500f11c6", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "d01ddc58600c0d2edbbd953d2074996c36604cfc",
+  "dartdoc_rev": "0cf21c15d7346a81838bd1c56677d88d690887f5",
   "ffi_rev": "7f4acbd7532d94a793452030ff96bfef8cd96b68",
-  "file_rev": "e90e5ed8e9695f68bb00d2839c6b91233f48b8d9",
+  "file_rev": "f05f5db0733274bed584e9915c39d34bb812fbb8",
   "fixnum_rev": "006a130f193469f0cabb928d44b0b5b099c47bca",
   "glob_rev": "46403bee475c70f0448fcc1ce32035daf618929d",
   "html_rev": "593d6f67ef93477312d85c403f5a9b5928467f9c",
@@ -151,7 +151,7 @@ vars = {
   "markdown_rev": "6db8fc1819f741685e0968fb2d9b66852260e98f",
   "matcher_rev": "4dfd9adfdcd3de95e6964fc295075a32635e5b37",
   "mime_rev": "eb9d54b8f6fab9442b2b733e19137dc25fb0b868",
-  "mockito_rev": "51a7728927c505a907384860f4a407f8b7219004",
+  "mockito_rev": "b14d571abd06514ce68bc73d9e45446b33feb8a9",
   "native_rev": "e01aa63e851ce971390bc45fc17d16240b8d164a",
   "package_config_rev": "f41f92cd4d2c539d910f2ef041ba6f6bd8469e78",
   "path_rev": "f8d15c2775835fd61ea5e06bb0ab99232f5ec446",
@@ -173,7 +173,7 @@ vars = {
   "test_descriptor_rev": "23e49a21fc6b4bf3164d336c699b29d1b8bb4622",
   "test_process_rev": "b6a6cd5f598250c71d8deeea3d38eb821af5e932",
   "test_reflective_loader_rev": "d1b763f6281a46a48e1da6f0a6e8152e3480e8d2",
-  "tools_rev": "62c96040d8090bc1bb866db75d40bd1707876cf9",
+  "tools_rev": "49da4cabaddec3c82485b15d83ddac2278f947db",
   "typed_data_rev": "921f5c0380c6c487d8a065c45618162efa4cbd92",
   "usage_rev": "929a4e31f0bd4f861dd0e34d4c6f7184c751b569",
   "vector_math_rev": "e3de8da3e7db3b9b4f56a16061e9e480539fb08c",
