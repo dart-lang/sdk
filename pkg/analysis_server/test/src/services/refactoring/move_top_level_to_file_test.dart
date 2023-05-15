@@ -186,6 +186,37 @@ class A {}
     expect(content[newFilePath], expectedNewFileContent);
   }
 
+  Future<void> test_imports_declarationInSrc() async {
+    var libFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    var srcFilePath = join(projectFolderPath, 'lib', 'src', 'a.dart');
+    addSource(libFilePath, 'export "src/a.dart";');
+    addSource(srcFilePath, 'class A {}');
+    var originalSource = '''
+import 'package:test/a.dart';
+
+A? staying;
+A? mov^ing;
+''';
+    var modifiedSource = '''
+import 'package:test/a.dart';
+
+A? staying;
+''';
+    var declarationName = 'moving';
+    var newFileName = 'moving.dart';
+    var newFileContent = '''
+import 'package:test/a.dart';
+
+A? moving;
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
   Future<void> test_imports_extensionMethod() async {
     var otherFilePath = '$projectFolderPath/lib/extensions.dart';
     var otherFileContent = '''
@@ -433,10 +464,8 @@ class A {}
 ''';
     var movingDeclarationName = 'moving';
     var newFileName = 'moving.dart';
-    // The prefix is not included because it's not used (the only use of
-    // extensions.dart is the extension method).
     var newFileContent = '''
-import 'package:test/extensions.dart';
+import 'package:test/extensions.dart' as other;
 import 'package:test/main.dart';
 
 void moving() {
@@ -479,10 +508,8 @@ class A {}
 ''';
     var movingDeclarationName = 'moving';
     var newFileName = 'moving.dart';
-    // The prefix is not included because it's not used (the only use of
-    // extensions.dart is the extension method).
     var newFileContent = '''
-import 'package:test/extensions.dart';
+import 'package:test/extensions.dart' as other;
 import 'package:test/main.dart';
 
 void moving() {
