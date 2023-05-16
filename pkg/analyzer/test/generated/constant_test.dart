@@ -660,7 +660,7 @@ const x = (0, f1: 10, f2: 2.3);
 
     final value = _topVarConstValue('x');
     assertDartObjectText(value, r'''
-Record
+Record(int, {int f1, double f2})
   positionalFields
     $1: int 0
   namedFields
@@ -677,7 +677,7 @@ const x = (f1: 10, f2: -3);
 
     final value = _topVarConstValue('x');
     assertDartObjectText(value, r'''
-Record
+Record({int f1, int f2})
   namedFields
     f1: int 10
     f2: int -3
@@ -692,7 +692,7 @@ const x = (20, 0, 7);
 
     final value = _topVarConstValue('x');
     assertDartObjectText(value, r'''
-Record
+Record(int, int, int)
   positionalFields
     $1: int 20
     $2: int 0

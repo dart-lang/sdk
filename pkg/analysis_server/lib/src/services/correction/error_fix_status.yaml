@@ -2378,7 +2378,7 @@ LintCode.unnecessary_string_interpolations:
 LintCode.unnecessary_this:
   status: hasFix
 LintCode.unnecessary_to_list_in_spreads:
-  status: needsFix
+  status: hasFix
 LintCode.unreachable_from_main:
   status: noFix
   notes: |-

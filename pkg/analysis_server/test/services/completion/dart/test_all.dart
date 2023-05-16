@@ -16,7 +16,6 @@ import 'named_constructor_contributor_test.dart' as named_contributor_test;
 import 'relevance/test_all.dart' as relevance_tests;
 import 'text_expectations.dart';
 import 'type_member_contributor_test.dart' as type_member_contributor_test;
-import 'variable_name_contributor_test.dart' as variable_name_contributor_test;
 
 void main() {
   defineReflectiveSuite(() {
@@ -31,7 +30,6 @@ void main() {
     named_contributor_test.main();
     relevance_tests.main();
     type_member_contributor_test.main();
-    variable_name_contributor_test.main();
     defineReflectiveTests(UpdateTextExpectations);
   }, name: 'dart');
 }

@@ -791,7 +791,21 @@ class InferrerEngine {
           info.type = info.refine(this);
           info.doNotEnqueue = true;
         }
-        _workQueue.addAll(info.users);
+        for (final user in info.users) {
+          _workQueue.add(user);
+          // Virtual parameters that are part of a cycle can end up stuck in
+          // a refinement pattern that prevents the members of the cycle from
+          // converging. We avoid this by adding the concrete parameter and
+          // corresponding narrowing type to the queue before other members of
+          // the cycle.
+          if (user is ParameterTypeInformation) {
+            final concreteParameterType = user.concreteParameterType;
+            if (concreteParameterType != null) {
+              _workQueue.add(concreteParameterType);
+              _workQueue.addAll(concreteParameterType.users);
+            }
+          }
+        }
         if (info.hasStableType(this)) {
           info.stabilize(this);
         }
@@ -855,7 +869,7 @@ class InferrerEngine {
         }
         if (type == null) type = getDefaultTypeOfParameter(parameter);
         TypeInformation info =
-            types.getInferredTypeOfParameter(parameter, virtual: virtualCall);
+            types.getInferredTypeOfParameter(parameter, isVirtual: virtualCall);
         if (remove) {
           info.removeInput(type);
         } else {
@@ -908,9 +922,10 @@ class InferrerEngine {
       types.strategy.forEachParameter(member as FunctionEntity,
           (Local parameter) {
         final virtualParamInfo =
-            types.getInferredTypeOfParameter(parameter, virtual: true);
+            types.getInferredTypeOfParameter(parameter, isVirtual: true);
         final realParamInfo = types.getInferredTypeOfParameter(parameter);
         realParamInfo.addInput(virtualParamInfo);
+        assert(virtualParamInfo.users.first == realParamInfo);
       });
       if (member.isFunction) {
         virtualCallType.addInput(types.getInferredTypeOfMember(member));
@@ -927,7 +942,7 @@ class InferrerEngine {
     final Map<String, TypeInformation> named = {};
     types.strategy.forEachParameter(parent, (Local parameter) {
       TypeInformation type =
-          types.getInferredTypeOfParameter(parameter, virtual: true);
+          types.getInferredTypeOfParameter(parameter, isVirtual: true);
       if (parameterIndex < parameterStructure.requiredPositionalParameters) {
         positional.add(type);
       } else if (parameterStructure.namedParameters.isNotEmpty) {
@@ -956,7 +971,7 @@ class InferrerEngine {
       // default value will be used within the body of the override.
       parentParamInfo ??= getDefaultTypeOfParameter(parameter);
       TypeInformation overrideParamInfo =
-          types.getInferredTypeOfParameter(parameter, virtual: true);
+          types.getInferredTypeOfParameter(parameter, isVirtual: true);
       overrideParamInfo.addInput(parentParamInfo);
       parameterIndex++;
     });
@@ -979,7 +994,7 @@ class InferrerEngine {
         types.strategy.forEachParameter(override as FunctionEntity,
             (Local parameter) {
           final paramInfo =
-              types.getInferredTypeOfParameter(parameter, virtual: true);
+              types.getInferredTypeOfParameter(parameter, isVirtual: true);
           paramInfo.addInput(parentType);
         });
       } else {
@@ -1002,7 +1017,7 @@ class InferrerEngine {
         types.strategy.forEachParameter(parent as FunctionEntity,
             (Local parameter) {
           final paramInfo =
-              types.getInferredTypeOfParameter(parameter, virtual: true);
+              types.getInferredTypeOfParameter(parameter, isVirtual: true);
           overrideType.addInput(paramInfo);
         });
       }
@@ -1032,8 +1047,8 @@ class InferrerEngine {
       }
       types.strategy.forEachParameter(member as FunctionEntity,
           (Local parameter) {
-        ParameterTypeInformation info =
-            types.getInferredTypeOfParameter(parameter, virtual: isVirtualCall);
+        ParameterTypeInformation info = types
+            .getInferredTypeOfParameter(parameter, isVirtual: isVirtualCall);
         info.tagAsTearOffClosureParameter(this);
         if (addToQueue) _workQueue.add(info);
       });
@@ -1099,7 +1114,7 @@ class InferrerEngine {
     TypeInformation info = types.getInferredTypeOfParameter(parameter);
     if (existing != null && existing is PlaceholderTypeInformation) {
       TypeInformation virtualInfo =
-          types.getInferredTypeOfParameter(parameter, virtual: true);
+          types.getInferredTypeOfParameter(parameter, isVirtual: true);
       // Replace references to [existing] to use [type] instead.
       info.inputs.replace(existing, type);
       virtualInfo.inputs.replace(existing, type);
@@ -1508,7 +1523,8 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
   ParameterTypeInformation createParameterTypeInformation(
       AbstractValueDomain abstractValueDomain,
       covariant JLocal parameter,
-      TypeSystem types) {
+      TypeSystem types,
+      {required bool isVirtual}) {
     MemberEntity context = parameter.memberContext;
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(context);
     ir.FunctionNode functionNode =
@@ -1537,7 +1553,8 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
           parameter,
           type,
           member as FunctionEntity,
-          ParameterInputs.instanceMember());
+          ParameterInputs.instanceMember(),
+          isVirtual: isVirtual);
     } else {
       return ParameterTypeInformation.static(abstractValueDomain,
           memberTypeInformation, parameter, type, member as FunctionEntity);

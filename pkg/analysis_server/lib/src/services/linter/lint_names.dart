@@ -176,6 +176,8 @@ class LintNames {
   static const String unnecessary_string_escapes = 'unnecessary_string_escapes';
   static const String unnecessary_string_interpolations =
       'unnecessary_string_interpolations';
+  static const String unnecessary_to_list_in_spreads =
+      'unnecessary_to_list_in_spreads';
   static const String unnecessary_this = 'unnecessary_this';
   static const String use_decorated_box = 'use_decorated_box';
   static const String use_enums = 'use_enums';

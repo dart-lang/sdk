@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -1145,23 +1144,38 @@ const void Function(int) g = self.C.f;
     _assertTypeArguments(result, ['int']);
   }
 
+  test_visitRecordLiteral_objectField_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  final (T, T) record;
+  const A(T a) : record = (a, a);
+}
+
+const a = A(42);
+''');
+    final value = _evaluateConstant('a');
+    assertDartObjectText(value, r'''
+A<int>
+  record: Record(int, int)
+    positionalFields
+      $1: int 42
+      $2: int 42
+''');
+  }
+
   test_visitRecordLiteral_withoutEnvironment() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const a = (1, 'b', c: false);
 ''');
-    var result = _evaluateConstant('a');
-    var type = result.type;
-    if (type is! RecordType) {
-      fail('Expected a record type');
-    }
-    var positionalFields = type.positionalFields;
-    var namedFields = type.namedFields;
-    expect(positionalFields, hasLength(2));
-    expect(positionalFields[0].type, typeProvider.intType);
-    expect(positionalFields[1].type, typeProvider.stringType);
-    expect(namedFields, hasLength(1));
-    expect(namedFields[0].name, 'c');
-    expect(namedFields[0].type, typeProvider.boolType);
+    final value = _evaluateConstant('a');
+    assertDartObjectText(value, r'''
+Record(int, String, {bool c})
+  positionalFields
+    $1: int 1
+    $2: String b
+  namedFields
+    c: bool false
+''');
   }
 
   test_visitSimpleIdentifier_className() async {

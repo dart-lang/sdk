@@ -109,18 +109,18 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "args_rev": "1864048a01630afe190d1fdc0033cc5d6943884e",
-  "async_rev": "0f368d36fa949f6d946242d2bc6ea595ca8fa3f0",
-  "bazel_worker_rev": "1b86d3c1253a9c2cf85fd12c8194a65b91d0997d",
-  "benchmark_harness_rev": "f81b0421b5672b5b6105547e996f16276b2f79e0",
-  "boolean_selector_rev": "7eed40256e0bdfcecd3ae533666699d866536e3a",
-  "browser_launcher_rev": "551e101eb9455259709fc9eee7bfcdfb68c094f7",
-  "characters_rev": "2af678348545df00cdcb58711bfdb9f08c79bd77",
-  "cli_util_rev": "7234f17b0cfc51cc9b52d53c90f6546ad4d32e23",
-  "clock_rev": "6b9df3eedec2d4389729106e380608174a6f6544",
-  "collection_rev": "6abff472ff09a0e4f9e9e386642bdcb674af15f4",
+  "args_rev": "f0f6cd22d29f15f86b3d2caab053bae029d30c9a",
+  "async_rev": "d744058ed4f69d23d9f3d4aaca1e3f1077ab9483",
+  "bazel_worker_rev": "d9b389f30848253d3310f931a9b8d39ca07102b1",
+  "benchmark_harness_rev": "e717ad41a2c7f9b14e197a1ffdf598f2470b5eda",
+  "boolean_selector_rev": "3a1c982002f580b835b4380f44d9f8e5bc37fc4f",
+  "browser_launcher_rev": "40e431543840cbe7fc05b95a2f851d9f1bd3bc14",
+  "characters_rev": "3ef888399ab2c211518bdbfd62ca2331a63bfcce",
+  "cli_util_rev": "5a499478ff0df4766f89eac7ca2033f2a7a9c7bc",
+  "clock_rev": "fe85908f0445586f47e77acfec9e2593abc6dcd0",
+  "collection_rev": "db2da4891f848b598fe604f1e64aa3eb2efe2b6d",
   "convert_rev": "b652c00afc0adfd55193053417d16c5f637203ad",
-  "crypto_rev": "4e9dde199bbf591db5154ba85ba0168a92968ea1",
+  "crypto_rev": "216931ae7dce946e41adb3904d3b33095dfaf51a",
   "csslib_rev": "923edf0030be22bc13f456f9fe6a63e4e19dd2bb", # b/281862233
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
@@ -133,7 +133,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "156f5c8c3bfe4e3b8e7adc95f7cf24d9500f11c6", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "d01ddc58600c0d2edbbd953d2074996c36604cfc",
+  "dartdoc_rev": "2952f6bfa5812f8dc7d76eb682c3df5831e710d4",
   "ffi_rev": "7f4acbd7532d94a793452030ff96bfef8cd96b68",
   "file_rev": "e90e5ed8e9695f68bb00d2839c6b91233f48b8d9",
   "fixnum_rev": "006a130f193469f0cabb928d44b0b5b099c47bca",
@@ -144,9 +144,9 @@ vars = {
   "http_parser_rev": "5a33f5fdb8896d9a7fecc3f024b0956ed39ab88c",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "800843e2aaf948ace35ddcab7037b9abc4222bfc",
-  "leak_tracker_rev": "bc7f604ed2e26b416e71f7c03dbdec71290f5eff",
+  "leak_tracker_rev": "8ae200a0cde6c0da991767ac5d5e700e2060cd9e",
   "linter_rev": "599b5288ee883393bf3a9ae4d2cfe90c168cce91", # disable rev_sdk_deps.dart
-  "lints_rev": "17276ec940bd3c075b5b227054cebf726e2e2514",
+  "lints_rev": "72f107a3be948a22d080e994257be3ba63f1bb41",
   "logging_rev": "b75cba7877f58bf10a0718c1385e0ca01ae4c217",
   "markdown_rev": "6db8fc1819f741685e0968fb2d9b66852260e98f",
   "matcher_rev": "4dfd9adfdcd3de95e6964fc295075a32635e5b37",
@@ -559,55 +559,11 @@ deps = {
       "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/third_party/android_tools/ndk": {
+  Var("dart_root") + "/third_party/android_tools": {
       "packages": [
           {
-            "package": "flutter/android/ndk/${{os}}-amd64",
-            "version": "version:r21.0.6113669"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
-
-  Var("dart_root") + "/third_party/android_tools/sdk/build-tools": {
-      "packages": [
-          {
-            "package": "flutter/android/sdk/build-tools/${{os}}-amd64",
-            "version": "version:30.0.1"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
-
-  Var("dart_root") + "/third_party/android_tools/sdk/platform-tools": {
-     "packages": [
-          {
-            "package": "flutter/android/sdk/platform-tools/${{os}}-amd64",
-            "version": "version:29.0.2"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
-
-  Var("dart_root") + "/third_party/android_tools/sdk/platforms": {
-      "packages": [
-          {
-            "package": "flutter/android/sdk/platforms",
-            "version": "version:30r3"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
-
-  Var("dart_root") + "/third_party/android_tools/sdk/tools": {
-      "packages": [
-          {
-            "package": "flutter/android/sdk/tools/${{os}}-amd64",
-            "version": "version:26.1.1"
+            "package": "flutter/android/sdk/all/${{os}}-amd64",
+            "version": "version:33v6"
           }
       ],
       "condition": "download_android_deps",

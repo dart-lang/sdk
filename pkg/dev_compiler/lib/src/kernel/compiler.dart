@@ -1895,8 +1895,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Statement _emitSuperConstructorCall(
       js_ast.Expression className, String name, List<js_ast.Expression> args) {
-    return js.statement('#.__proto__.#.call(this, #);',
-        [className, _constructorName(name), args]);
+    return js.statement('#.#.call(this, #);',
+        [_emitJSObjectGetPrototypeOf(className), _constructorName(name), args]);
   }
 
   bool _hasUnnamedInheritedConstructor(Class? c) {

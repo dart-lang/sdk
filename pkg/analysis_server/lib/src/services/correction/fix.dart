@@ -1403,6 +1403,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove all unnecessary string interpolations in file',
   );
+  static const REMOVE_UNNECESSARY_TO_LIST = FixKind(
+    'dart.fix.remove.unnecessaryToList',
+    DartFixKindPriority.DEFAULT,
+    "Remove unnecessary 'toList' call",
+  );
+  static const REMOVE_UNNECESSARY_TO_LIST_MULTI = FixKind(
+    'dart.fix.remove.unnecessaryToList.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove unnecessary 'toList' calls in file",
+  );
   static const REMOVE_UNNECESSARY_WILDCARD_PATTERN = FixKind(
     'dart.fix.remove.unnecessaryWildcardPattern',
     DartFixKindPriority.DEFAULT,

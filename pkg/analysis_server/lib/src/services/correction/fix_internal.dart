@@ -155,6 +155,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_required.dar
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_to_list.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
@@ -754,6 +755,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_string_interpolations: [
       RemoveUnnecessaryStringInterpolation.new,
+    ],
+    LintNames.unnecessary_to_list_in_spreads: [
+      RemoveToList.new,
     ],
     LintNames.unnecessary_this: [
       RemoveThisExpression.new,

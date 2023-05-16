@@ -331,7 +331,6 @@ config("compiler") {
       "-ffunction-sections",
       "-funwind-tables",
       "-fno-short-enums",
-      "-nostdinc++",
     ]
     if (!is_clang) {
       # Clang doesn't support these flags.
@@ -356,15 +355,10 @@ config("compiler") {
     defines += [ "HAVE_SYS_UIO_H" ]
 
     # Use gold for Android for most CPU architectures.
-    if (current_cpu == "x86" || current_cpu == "x64" || current_cpu == "arm" ||
-        current_cpu == "arm64") {
-      ldflags += [ "-fuse-ld=gold" ]
-      if (is_clang) {
-        # Let clang find the ld.gold in the NDK.
-        toolchain_root = rebase_path(android_toolchain_root, root_build_dir)
-        ldflags += [ "--gcc-toolchain=$toolchain_root" ]
-        ldflags += [ "-B${toolchain_root}/bin" ]
-      }
+    if (is_clang) {
+      # Let clang find the ld.gold in the NDK.
+      toolchain_root = rebase_path(android_toolchain_root, root_build_dir)
+      ldflags += [ "--gcc-toolchain=$toolchain_root" ]
     }
 
     ldflags += [
@@ -372,6 +366,8 @@ config("compiler") {
       # re-exported.
       "-Wl,--exclude-libs=libgcc.a",
       "-Wl,--exclude-libs=libc++_static.a",
+
+      "-fuse-ld=lld",
     ]
 
     if (is_clang) {
@@ -506,25 +502,7 @@ config("runtime_library") {
       "-nostdlib",
     ]
 
-    # NOTE: The libc++ header include paths below are specified in cflags
-    # rather than include_dirs because they need to come after include_dirs.
-    # Think of them like system headers, but don't use '-isystem' because the
-    # arm-linux-androideabi-4.4.3 toolchain (circa Gingerbread) will exhibit
-    # strange errors. The include ordering here is important; change with
-    # caution.
-    cflags += [
-      "-isystem" + rebase_path("$android_libcpp_root/include", root_build_dir),
-      "-isystem" + rebase_path(
-              "$android_ndk_root/sources/cxx-stl/llvm-libc++abi/include",
-              root_build_dir),
-      "-isystem" +
-          rebase_path("$android_ndk_root/sources/android/support/include",
-                      root_build_dir),
-      "-isystem" + rebase_path(
-              "$android_ndk_root/sysroot/usr/include/$android_target_triple",
-              root_build_dir),
-      "-D__ANDROID_API__=$android_api_level",
-    ]
+    cflags += [ "-D__ANDROID_API__=$android_api_level" ]
 
     lib_dirs += [ "$android_libcpp_root/libs/$android_app_abi" ]
 
