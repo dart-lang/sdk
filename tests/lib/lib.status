@@ -18,6 +18,9 @@ js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByD
 mirrors/*: SkipByDesign
 web/*: SkipByDesign
 
+[ $compiler != dart2wasm ]
+js/static_interop_test/interop_and_ffi_static_test: SkipByDesign # dart:ffi only allowed on dart2wasm
+
 [ $mode == product ]
 developer/timeline_test: Skip # Not supported
 isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
