@@ -47,35 +47,36 @@ enum _Flag {
   isInstanceMemberParameter, // 5
   isClosureParameter, // 6
   isInitializingFormal, // 7
+  isVirtual, // 8
 
   // ---Flags for [CallSiteTypeInformation]---
-  inLoop, // 8
+  inLoop, // 9
 
   // ---Flags for [DynamicCallSiteTypeInformation]---
-  isConditional, // 9
-  hasClosureCallTargets, // 10
-  targetsIncludeComplexNoSuchMethod, // 11
-  hasTargetsIncludeComplexNoSuchMethod, // 12
+  isConditional, // 10
+  hasClosureCallTargets, // 11
+  targetsIncludeComplexNoSuchMethod, // 12
+  hasTargetsIncludeComplexNoSuchMethod, // 13
 
   // ---Flags for [PhiElementTypeInformation]---
-  isTry, // 13
+  isTry, // 14
 
   // ---Flags for [ValueInMapTypeInformation]---
-  valueInMapNonNull, // 14
+  valueInMapNonNull, // 15
 
   // ---Flags for [MemberTypeInformation]---
-  isCalled, // 15
-  isCalledMoreThanOnce, // 16
+  isCalled, // 16
+  isCalledMoreThanOnce, // 17
 
   // ---Flags for [ApplyableTypeInformation]---
-  mightBePassedToFunctionApply, // 17
+  mightBePassedToFunctionApply, // 18
 
   // ---Flags for [InferredTypeInformation]---
-  inferred, // 18
+  inferred, // 19
 
   // ---Flags for [TracedTypeInformation]---
-  notBailedOut, // 19
-  analyzed, // 20
+  notBailedOut, // 20
+  analyzed, // 21
 }
 
 /// Common class for all nodes in the graph. The current nodes are:
@@ -787,6 +788,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
   bool get _isClosureParameter => _hasFlag(_Flag.isClosureParameter);
   bool get _isInitializingFormal => _hasFlag(_Flag.isInitializingFormal);
   bool _isTearOffClosureParameter = false;
+  TypeInformation? get concreteParameterType =>
+      _hasFlag(_Flag.isVirtual) ? users.first : null;
 
   ParameterTypeInformation.localFunction(
       super.abstractValueDomain,
@@ -815,9 +818,11 @@ class ParameterTypeInformation extends ElementTypeInformation {
       this._parameter,
       this._type,
       this._method,
-      ParameterInputs inputs)
+      ParameterInputs inputs,
+      {required bool isVirtual})
       : super._withInputs(abstractValueDomain, context, inputs) {
     _setFlag(_Flag.isInstanceMemberParameter);
+    _setFlagTo(_Flag.isVirtual, isVirtual);
   }
 
   FunctionEntity get method => _method;
