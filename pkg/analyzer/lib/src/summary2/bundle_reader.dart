@@ -496,6 +496,11 @@ class LibraryReader {
     _reader.offset = _offset;
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/51855
+    // This should not be needed.
+    // But I have a suspicion that we attempt to read the library twice.
+    _classMembersLengthsIndex = 0;
+
     var name = _reader.readStringReference();
     var featureSet = _readFeatureSet();
 
