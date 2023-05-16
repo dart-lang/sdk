@@ -16,6 +16,7 @@ dependencies:
   crypto: any
   dart_style: any
   http: any
+  leak_tracker: any
   linter: any
   meta: any
   path: any
