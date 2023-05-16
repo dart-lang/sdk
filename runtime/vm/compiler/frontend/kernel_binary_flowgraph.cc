@@ -4875,14 +4875,18 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
   SwitchBlock block(flow_graph_builder_, case_count);
 
   Fragment instructions = BuildExpression();  // read condition.
-  SkipOptionalDartType();                     // skip expression type
+  const AbstractType* expression_type = &Object::dynamic_type();
+  if (ReadTag() == kSomething) {
+    expression_type = &T.BuildType();  // read expression type.
+  }
   instructions +=
       StoreLocal(TokenPosition::kNoSource, scopes()->switch_variable);
   instructions += Drop();
 
   case_count = ReadListLength();  // read number of cases.
 
-  SwitchHelper helper(Z, pos, is_exhaustive, &block, case_count);
+  SwitchHelper helper(Z, pos, is_exhaustive, *expression_type, &block,
+                      case_count);
 
   // Build the case bodies and collect the expressions into the helper
   // for the next step.
@@ -5076,8 +5080,7 @@ Fragment StreamingFlowGraphBuilder::BuildOptimizedSwitchPrelude(
   TargetEntryInstr* then_entry;
   TargetEntryInstr* otherwise_entry;
 
-  const AbstractType& expression_type =
-      AbstractType::ZoneHandle(Z, helper->expression_class().RareType());
+  const AbstractType& expression_type = helper->expression_type();
   ASSERT(dart::SimpleInstanceOfType(expression_type));
 
   Fragment instructions;
