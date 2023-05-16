@@ -205,6 +205,7 @@ import 'remove_unnecessary_string_escapes_test.dart'
     as remove_unnecessary_string_escapes;
 import 'remove_unnecessary_string_interpolation_test.dart'
     as remove_unnecessary_string_interpolation;
+import 'remove_unnecessary_to_list_test.dart' as remove_unnecessary_to_list;
 import 'remove_unnecessary_wildcard_pattern_test.dart'
     as remove_unnecessary_wildcard_pattern;
 import 'remove_unused_catch_clause_test.dart' as remove_unused_catch_clause;
@@ -445,6 +446,7 @@ void main() {
     remove_unnecessary_raw_string.main();
     remove_unnecessary_string_escapes.main();
     remove_unnecessary_string_interpolation.main();
+    remove_unnecessary_to_list.main();
     remove_unnecessary_wildcard_pattern.main();
     remove_unused_catch_clause.main();
     remove_unused_catch_stack.main();
