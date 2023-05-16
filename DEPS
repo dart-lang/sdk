@@ -559,55 +559,11 @@ deps = {
       "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/third_party/android_tools/ndk": {
+  Var("dart_root") + "/third_party/android_tools": {
       "packages": [
           {
-            "package": "flutter/android/ndk/${{os}}-amd64",
-            "version": "version:r21.0.6113669"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
-
-  Var("dart_root") + "/third_party/android_tools/sdk/build-tools": {
-      "packages": [
-          {
-            "package": "flutter/android/sdk/build-tools/${{os}}-amd64",
-            "version": "version:30.0.1"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
-
-  Var("dart_root") + "/third_party/android_tools/sdk/platform-tools": {
-     "packages": [
-          {
-            "package": "flutter/android/sdk/platform-tools/${{os}}-amd64",
-            "version": "version:29.0.2"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
-
-  Var("dart_root") + "/third_party/android_tools/sdk/platforms": {
-      "packages": [
-          {
-            "package": "flutter/android/sdk/platforms",
-            "version": "version:30r3"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
-
-  Var("dart_root") + "/third_party/android_tools/sdk/tools": {
-      "packages": [
-          {
-            "package": "flutter/android/sdk/tools/${{os}}-amd64",
-            "version": "version:26.1.1"
+            "package": "flutter/android/sdk/all/${{os}}-amd64",
+            "version": "version:33v6"
           }
       ],
       "condition": "download_android_deps",
