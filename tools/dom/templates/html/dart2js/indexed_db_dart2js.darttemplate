@@ -8,12 +8,10 @@
 
 /// A client-side key-value store with support for indexes.
 ///
-/// Many browsers support IndexedDB&mdash;a web standard for
-/// an indexed database.
-/// By storing data on the client in an IndexedDB,
-/// a web app gets some advantages, such as faster performance and persistence.
-/// To find out which browsers support IndexedDB,
-/// refer to [Can I Use?](http://caniuse.com/#feat=indexeddb)
+/// IndexedDB is a web standard API for client-side storage of
+/// structured data. By storing data on the client in an IndexedDB,
+/// apps can get advantages such as faster performance and
+/// persistence.
 ///
 /// In IndexedDB, each record is identified by a unique index or key,
 /// making data retrieval speedy.
@@ -30,8 +28,9 @@
 ///
 ///     import 'dart:indexed_db';
 ///
-/// A web app can determine if the browser supports
-/// IndexedDB with [IdbFactory.supported]:
+/// IndexedDB is almost universally supported in modern web browsers, but
+/// a web app can determine if the browser supports IndexedDB
+/// with [IdbFactory.supported]:
 ///
 ///     if (IdbFactory.supported)
 ///       // Use indexeddb.
