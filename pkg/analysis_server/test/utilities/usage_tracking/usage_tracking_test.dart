@@ -10,10 +10,10 @@ void main() {
     test('parses correct config', () {
       final config = parseAutoSnapshottingConfig(_argsWithSnapshotting)!;
 
-      expect(config.thresholdMb, 200);
-      expect(config.increaseMb, 100);
+      expect(config.thresholdMb, 6000);
+      expect(config.increaseMb, 500);
       expect(config.directory, '/Users/polinach/Downloads/analyzer_snapshots');
-      expect(config.directorySizeLimitMb, 10000);
+      expect(config.directorySizeLimitMb, 30000);
       expect(config.minDelayBetweenSnapshots, Duration(seconds: 20));
     });
 
@@ -48,4 +48,4 @@ const _argsWithSnapshotting = [
 
 // This constant is referenced in README.md for auto-snapshotting.
 const _autosnapshottingArg =
-    '--autosnapshotting=thresholdMb=200,increaseMb=100,dir=/Users/polinach/Downloads/analyzer_snapshots,dirLimitMb=10000,delaySec=20';
+    '--autosnapshotting=thresholdMb=6000,increaseMb=500,dir=/Users/polinach/Downloads/analyzer_snapshots,dirLimitMb=30000,delaySec=20';

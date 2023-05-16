@@ -18,11 +18,11 @@ the instances.
 ## Create auto-snapshotting argument
 
 Based on the reported and expected values, construct auto-snapshotting argument. See example in
-the [test file](../../../../test/utilities/autosnapshotting/autosnapshotting_test.dart), the
+the [test file](../../../../test/utilities/usage_tracking/usage_tracking_test.dart), the
 constant `_autosnapshottingArg`.
 
 See explanation of parameters in
-[documentation for AutoSnapshottingConfig](https://github.com/dart-lang/leak_tracker/blob/main/lib/src/autosnapshotting/model.dart).
+[documentation for AutoSnapshottingConfig](https://github.com/dart-lang/leak_tracker/blob/main/lib/src/usage_tracking/model.dart).
 
 ## Instruct user to configure analyzer
 
