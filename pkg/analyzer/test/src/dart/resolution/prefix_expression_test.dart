@@ -51,6 +51,30 @@ PrefixExpression
 ''');
   }
 
+  test_bang_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    !super;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
+      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 28, 5),
+    ]);
+
+    final node = findNode.singlePrefixExpression;
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: !
+  operand: SuperExpression
+    superKeyword: super
+    staticType: A
+  staticElement: <null>
+  staticType: bool
+''');
+  }
+
   test_formalParameter_inc_inc() async {
     await assertErrorsInCode(r'''
 void f(int x) {

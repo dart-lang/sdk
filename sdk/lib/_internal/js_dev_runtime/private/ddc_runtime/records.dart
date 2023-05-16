@@ -152,7 +152,7 @@ Object registerRecord(
       '!',
       '''
     #.new = function (shape, values) {
-      #.__proto__.new.call(this, shape, values);
+      Object.getPrototypeOf(#).new.call(this, shape, values);
     }
   ''',
       recordClass,

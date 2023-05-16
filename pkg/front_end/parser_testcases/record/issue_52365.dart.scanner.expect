@@ -1,0 +1,133 @@
+void main() {
+var f0 = () => print("hello");
+
+f0 > 42;
+(() => print("hello")) > 42;
+
+f0 >> 42;
+(() => print("hello")) >> 42;
+
+f0 >>> 42;
+(() => print("hello")) >>> 42;
+
+var f1 = (x) => print("hello $x");
+
+f1 > 42;
+((x) => print("hello $x")) > 42;
+
+f1 >> 42;
+((x) => print("hello $x")) >> 42;
+
+f1 >>> 42;
+((x) => print("hello $x")) >>> 42;
+
+var f2 = (x, y) => print("hello $x $y");
+
+f2 > 42;
+((x, y) => print("hello $x $y")) > 42;
+
+f2 >> 42;
+((x, y) => print("hello $x $y")) >> 42;
+
+f2 >>> 42;
+((x, y) => print("hello $x $y")) >>> 42;
+
+
+(() => print("hello"), ) > 42;
+(() => print("hello"), ) >> 42;
+(() => print("hello"), ) >>> 42;
+(() => print("hello"), () => print("hello")) > 42;
+(() => print("hello"), () => print("hello")) >> 42;
+(() => print("hello"), () => print("hello")) >>> 42;
+}
+
+extension FunctionExtension on Function {
+operator>(dynamic x) {
+print("You did > with '$x' on '$this' (Function)");
+}
+operator>>(dynamic x) {
+print("You did >> with '$x' on '$this' (Function)");
+}
+operator>>>(dynamic x) {
+print("You did >>> with '$x' on '$this' (Function)");
+}
+}
+
+extension RecordExtension on Record {
+operator>(dynamic x) {
+print("You did > with '$x' on '$this' (Record)");
+}
+operator>>(dynamic x) {
+print("You did >> with '$x' on '$this' (Record)");
+}
+operator>>>(dynamic x) {
+print("You did >>> with '$x' on '$this' (Record)");
+}
+}
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] f0[StringToken] =[SimpleToken] ([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken];[SimpleToken]
+
+f0[StringToken] >[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken])[SimpleToken] >[SimpleToken] 42[StringToken];[SimpleToken]
+
+f0[StringToken] >>[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken])[SimpleToken] >>[SimpleToken] 42[StringToken];[SimpleToken]
+
+f0[StringToken] >>>[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken])[SimpleToken] >>>[SimpleToken] 42[StringToken];[SimpleToken]
+
+var[KeywordToken] f1[StringToken] =[SimpleToken] ([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello [StringToken]$[SimpleToken]x[StringToken]"[StringToken])[SimpleToken];[SimpleToken]
+
+f1[StringToken] >[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello [StringToken]$[SimpleToken]x[StringToken]"[StringToken])[SimpleToken])[SimpleToken] >[SimpleToken] 42[StringToken];[SimpleToken]
+
+f1[StringToken] >>[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello [StringToken]$[SimpleToken]x[StringToken]"[StringToken])[SimpleToken])[SimpleToken] >>[SimpleToken] 42[StringToken];[SimpleToken]
+
+f1[StringToken] >>>[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello [StringToken]$[SimpleToken]x[StringToken]"[StringToken])[SimpleToken])[SimpleToken] >>>[SimpleToken] 42[StringToken];[SimpleToken]
+
+var[KeywordToken] f2[StringToken] =[SimpleToken] ([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello [StringToken]$[SimpleToken]x[StringToken] [StringToken]$[SimpleToken]y[StringToken]"[StringToken])[SimpleToken];[SimpleToken]
+
+f2[StringToken] >[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello [StringToken]$[SimpleToken]x[StringToken] [StringToken]$[SimpleToken]y[StringToken]"[StringToken])[SimpleToken])[SimpleToken] >[SimpleToken] 42[StringToken];[SimpleToken]
+
+f2[StringToken] >>[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello [StringToken]$[SimpleToken]x[StringToken] [StringToken]$[SimpleToken]y[StringToken]"[StringToken])[SimpleToken])[SimpleToken] >>[SimpleToken] 42[StringToken];[SimpleToken]
+
+f2[StringToken] >>>[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello [StringToken]$[SimpleToken]x[StringToken] [StringToken]$[SimpleToken]y[StringToken]"[StringToken])[SimpleToken])[SimpleToken] >>>[SimpleToken] 42[StringToken];[SimpleToken]
+
+
+([BeginToken]([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken],[SimpleToken] )[SimpleToken] >[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken],[SimpleToken] )[SimpleToken] >>[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken],[SimpleToken] )[SimpleToken] >>>[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken],[SimpleToken] ([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken])[SimpleToken] >[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken],[SimpleToken] ([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken])[SimpleToken] >>[SimpleToken] 42[StringToken];[SimpleToken]
+([BeginToken]([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken],[SimpleToken] ([BeginToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken])[SimpleToken] >>>[SimpleToken] 42[StringToken];[SimpleToken]
+}[SimpleToken]
+
+extension[KeywordToken] FunctionExtension[StringToken] on[KeywordToken] Function[KeywordToken] {[BeginToken]
+operator[KeywordToken]>[SimpleToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"You did > with '[StringToken]$[SimpleToken]x[StringToken]' on '[StringToken]$[SimpleToken]this[KeywordToken]' (Function)"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+operator[KeywordToken]>>[SimpleToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"You did >> with '[StringToken]$[SimpleToken]x[StringToken]' on '[StringToken]$[SimpleToken]this[KeywordToken]' (Function)"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+operator[KeywordToken]>>>[SimpleToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"You did >>> with '[StringToken]$[SimpleToken]x[StringToken]' on '[StringToken]$[SimpleToken]this[KeywordToken]' (Function)"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+extension[KeywordToken] RecordExtension[StringToken] on[KeywordToken] Record[StringToken] {[BeginToken]
+operator[KeywordToken]>[SimpleToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"You did > with '[StringToken]$[SimpleToken]x[StringToken]' on '[StringToken]$[SimpleToken]this[KeywordToken]' (Record)"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+operator[KeywordToken]>>[SimpleToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"You did >> with '[StringToken]$[SimpleToken]x[StringToken]' on '[StringToken]$[SimpleToken]this[KeywordToken]' (Record)"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+operator[KeywordToken]>>>[SimpleToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"You did >>> with '[StringToken]$[SimpleToken]x[StringToken]' on '[StringToken]$[SimpleToken]this[KeywordToken]' (Record)"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

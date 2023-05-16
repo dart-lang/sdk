@@ -1,3 +1,6 @@
+# 2.8.2
+- [DAP] Fixed an issue that could result in unhandled exceptions from in-flight requests when the application/VM Service is shutting down.
+
 # 2.8.1
 - Updated DDS protocol version to 1.5.
 - Added `getPerfettoVMTimelineWithCpuSamples` RPC.

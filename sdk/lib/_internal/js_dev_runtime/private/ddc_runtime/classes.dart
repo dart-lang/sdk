@@ -290,6 +290,7 @@ Object instantiateClass(Object genericClass, List<Object> typeArgs) {
 
 final _constructorSig = JS('', 'Symbol("sigCtor")');
 final _methodSig = JS('', 'Symbol("sigMethod")');
+final _methodsDefaultTypeArgSig = JS('', 'Symbol("sigMethodDefaultTypeArgs")');
 final _fieldSig = JS('', 'Symbol("sigField")');
 final _getterSig = JS('', 'Symbol("sigGetter")');
 final _setterSig = JS('', 'Symbol("sigSetter")');
@@ -302,6 +303,8 @@ final _libraryUri = JS('', 'Symbol("libraryUri")');
 
 getConstructors(value) => _getMembers(value, _constructorSig);
 getMethods(value) => _getMembers(value, _methodSig);
+getMethodsDefaultTypeArgs(value) =>
+    _getMembers(value, _methodsDefaultTypeArgSig);
 getFields(value) => _getMembers(value, _fieldSig);
 getGetters(value) => _getMembers(value, _getterSig);
 getSetters(value) => _getMembers(value, _setterSig);
@@ -351,6 +354,11 @@ getMethodType(type, name) {
   return m != null ? JS('', '#[#]', m, name) : null;
 }
 
+/// Returns the default type argument values for the instance method [name] on
+/// the class [type].
+JSArray<Object> getMethodDefaultTypeArgs(type, name) =>
+    JS('!', '#[#]', getMethodsDefaultTypeArgs(type), name);
+
 /// Gets the type of the corresponding setter (this includes writable fields).
 getSetterType(type, name) {
   var setters = getSetters(type);
@@ -394,6 +402,8 @@ classGetConstructorType(cls, name) {
 }
 
 void setMethodSignature(f, sigF) => JS('', '#[#] = #', f, _methodSig, sigF);
+void setMethodsDefaultTypeArgSignature(f, sigF) =>
+    JS('', '#[#] = #', f, _methodsDefaultTypeArgSig, sigF);
 void setFieldSignature(f, sigF) => JS('', '#[#] = #', f, _fieldSig, sigF);
 void setGetterSignature(f, sigF) => JS('', '#[#] = #', f, _getterSig, sigF);
 void setSetterSignature(f, sigF) => JS('', '#[#] = #', f, _setterSig, sigF);

@@ -1,3 +1,4 @@
 import 'dart:test';
 
+test() {}
 main() {}

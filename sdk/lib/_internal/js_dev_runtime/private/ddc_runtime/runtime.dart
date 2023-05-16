@@ -21,7 +21,6 @@ import 'dart:_foreign_helper'
         spread;
 import 'dart:_interceptors'
     show
-        JavaScriptObject,
         JSArray,
         JSInt,
         jsNull,
@@ -39,6 +38,7 @@ import 'dart:_js_helper'
         DeferredNotLoadedError,
         TypeErrorImpl,
         JsLinkedHashMap,
+        jsObjectGetPrototypeOf,
         jsObjectSetPrototypeOf,
         ImmutableMap,
         Primitives,
@@ -50,15 +50,19 @@ import 'dart:_js_helper'
 import 'dart:_js_shared_embedded_names';
 import 'dart:_rti' as rti
     show
+        bindingRtiFromList,
         createRuntimeType,
         constructorRtiCachePropertyName,
         findType,
         getFunctionParametersForDynamicChecks,
+        getGenericFunctionBounds,
         instanceType,
+        instantiatedGenericFunctionType,
         interfaceTypeRecipePropertyName,
         isGenericFunctionType,
         isSubtype,
         Rti,
+        substitute,
         rtiToString;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;

@@ -2425,17 +2425,29 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     try {
       return await func();
     } on vm.RPCError catch (e) {
-      // If we've been asked to shut down while this request was occurring,
-      // it's normal to get some types of errors from in-flight VM Service
-      // requests and we should handle them silently.
-      if (isTerminating) {
-        // kServiceDisappeared is thrown sometimes when services disappear.
-        if (e.code == RpcErrorCodes.kServiceDisappeared) {
+      // kServiceDisappeared is thrown sometimes when the VM Service is
+      // shutting down. Usually this is because we're shutting down (and
+      // `isTerminating` is true), but it can also happen if the app is closed
+      // outside of the DAP (eg. closing the simulator) so it's possible our
+      // requests will fail in this way before we've handled any event to set
+      // `isTerminating`.
+      if (e.code == RpcErrorCodes.kServiceDisappeared) {
+        return null;
+      }
+
+      // For any other kind of server error, ignore it if we're shutting down
+      // (because lots of requests can generate all sorts of errors if the VM
+      // and Isolates are shutting down), or if it's a "client closed with
+      // pending request" error (which also indicates a shutdown, but as above,
+      // we might not have set `isTerminating` yet).
+      if (e.code == json_rpc_errors.SERVER_ERROR) {
+        // Ignore all server errors during shutdown.
+        if (isTerminating) {
           return null;
         }
-        // SERVER_ERROR can occur when DDS completes any outstanding requests
-        // with "The client closed with pending request".
-        if (e.code == json_rpc_errors.SERVER_ERROR) {
+
+        // Always ignore "closed with pending request" errors.
+        if (e.message.contains("The client closed with pending request")) {
           return null;
         }
       }

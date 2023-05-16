@@ -55,14 +55,20 @@ bind(obj, name, method) {
   // TODO(jmesserly): canonicalize tearoffs.
   JS('', '#._boundObject = #', f, obj);
   JS('', '#._boundMethod = #', f, method);
-  JS(
-      '',
-      '#[#] = #',
-      f,
-      JS_GET_FLAG('NEW_RUNTIME_TYPES')
-          ? JS_GET_NAME(JsGetName.SIGNATURE_NAME)
-          : _runtimeType,
-      getMethodType(getType(obj), name));
+  var objType = getType(obj);
+  var methodType = getMethodType(objType, name);
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    if (rti.isGenericFunctionType(methodType)) {
+      // Attach the default type argument values to the new function in case
+      // they are needed for a dynamic call.
+      var defaultTypeArgs = getMethodDefaultTypeArgs(objType, name);
+      JS('', '#._defaultTypeArgs = #', f, defaultTypeArgs);
+    }
+    JS('', '#[#] = #', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME), methodType);
+  } else {
+    JS('', '#[#] = #', f, _runtimeType, methodType);
+  }
+
   return f;
 }
 
@@ -77,21 +83,25 @@ bind(obj, name, method) {
 /// a native type/interface with `call`.
 bindCall(obj, name) {
   if (obj == null) return null;
-  var ftype = getMethodType(getType(obj), name);
+  var objType = getType(obj);
+  var ftype = getMethodType(objType, name);
   if (ftype == null) return null;
   var method = JS('', '#[#]', obj, name);
   var f = JS('', '#.bind(#)', method, obj);
   // TODO(jmesserly): canonicalize tearoffs.
   JS('', '#._boundObject = #', f, obj);
   JS('', '#._boundMethod = #', f, method);
-  JS(
-      '',
-      '#[#] = #',
-      f,
-      JS_GET_FLAG('NEW_RUNTIME_TYPES')
-          ? JS_GET_NAME(JsGetName.SIGNATURE_NAME)
-          : _runtimeType,
-      ftype);
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    JS('', '#[#] = #', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME), ftype);
+    if (rti.isGenericFunctionType(ftype)) {
+      // Attach the default type argument values to the new function in case
+      // they are needed for a dynamic call.
+      var defaultTypeArgs = getMethodDefaultTypeArgs(objType, name);
+      JS('', '#._defaultTypeArgs = #', f, defaultTypeArgs);
+    }
+  } else {
+    JS('', '#[#] = #', f, _runtimeType, ftype);
+  }
   return f;
 }
 
@@ -100,22 +110,31 @@ bindCall(obj, name) {
 /// We need to apply the type arguments both to the function, as well as its
 /// associated function type.
 gbind(f, @rest List<Object> typeArgs) {
+  var instantiatedType;
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    throw 'TODO: Support tearing off generic methods';
+    Object fnType = JS('!', '#[#]', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
+    // TODO(nshahan): The old type system checks type arguments against the
+    // bounds here but why? Is it possible to reach this code without knowing
+    // if the provided type args are valid or not?
+    var instantiationBinding =
+        rti.bindingRtiFromList(JS<JSArray>('!', '#', typeArgs));
+    instantiatedType = rti.instantiatedGenericFunctionType(
+        JS<rti.Rti>('!', '#', fnType), instantiationBinding);
   } else {
     GenericFunctionType type = JS('!', '#[#]', f, _runtimeType);
     type.checkBounds(typeArgs);
-    // Create a JS wrapper function that will also pass the type arguments.
-    var result =
-        JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
-    // Tag the wrapper with the original function to be used for equality
-    // checks.
-    JS('', '#["_originalFn"] = #', result, f);
-    JS('', '#["_typeArgs"] = #', result, constList(typeArgs, Object));
-
-    // Tag the wrapper with the instantiated function type.
-    return fn(result, type.instantiate(typeArgs));
+    instantiatedType = type.instantiate(typeArgs);
   }
+  // Create a JS wrapper function that will also pass the type arguments.
+  var result =
+      JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
+  // Tag the wrapper with the original function to be used for equality
+  // checks.
+  JS('', '#["_originalFn"] = #', result, f);
+  JS('', '#["_typeArgs"] = #', result, constList(typeArgs, Object));
+
+  // Tag the wrapper with the instantiated function type.
+  return fn(result, instantiatedType);
 }
 
 dloadRepl(obj, field) => dload(obj, replNameLookup(obj, field));
@@ -463,16 +482,63 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
     return JS('', '#.apply(#, #)', f, obj, args);
   }
 
-  // Apply type arguments
+  // Apply type arguments if needed.
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
     if (rti.isGenericFunctionType(ftype)) {
-      throw 'TODO: Support dynamic calls of functions with generic type '
-          'arguments.';
+      var typeParameterBounds = rti.getGenericFunctionBounds(ftype);
+      var typeParameterCount = JS<int>('!', '#.length', typeParameterBounds);
+      if (typeArgs == null) {
+        // No type arguments were provided so they will take on their default
+        // values that are attached to generic function tearoffs for this
+        // purpose.
+        //
+        // Note the default value is not always equivalent to the bound for a
+        // given type parameter. The bound can reference other type parameters
+        // and contain infinite cycles where the default value is determined
+        // with an algorithm that will terminate. This means that the default
+        // values will need to be checked against the instantiated bounds just
+        // like any other type arguments.
+        typeArgs = JS('!', '#._defaultTypeArgs', f);
+      }
+      var typeArgCount = JS<int>('!', '#.length', typeArgs);
+      if (typeArgCount != typeParameterCount) {
+        return callNSM('Dynamic call with incorrect number of type arguments. '
+            'Expected: $typeParameterCount Actual: $typeArgCount');
+      } else {
+        // Check the provided type arguments against the instantiated bounds.
+        for (var i = 0; i < typeParameterCount; i++) {
+          var bound = JS<rti.Rti>('!', '#[#]', typeParameterBounds, i);
+          var typeArg = JS<rti.Rti>('!', '#[#]', typeArgs, i);
+          // TODO(nshahan): Skip type checks when the bound is a top type once
+          // there is no longer any warnings/errors in weak null safety mode.
+          if (bound != typeArg) {
+            var instantiatedBound = rti.substitute(bound, typeArgs);
+            var validSubtype = compileTimeFlag('soundNullSafety')
+                ? rti.isSubtype(JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), typeArg,
+                    instantiatedBound)
+                : _isSubtypeWithWarning(typeArg, instantiatedBound);
+            if (!validSubtype) {
+              throwTypeError("The type '${rti.rtiToString(typeArg)}' "
+                  "is not a subtype of the type variable bound "
+                  "'${rti.rtiToString(instantiatedBound)}' "
+                  "of type variable 'T${i + 1}' "
+                  "in '${rti.rtiToString(ftype)}'.");
+            }
+          }
+        }
+      }
+      var instantiationBinding =
+          rti.bindingRtiFromList(JS<JSArray>('!', '#', typeArgs));
+      ftype = rti.instantiatedGenericFunctionType(
+          JS<rti.Rti>('!', '#', ftype), instantiationBinding);
+    } else if (typeArgs != null) {
+      return callNSM('Dynamic call with unexpected type arguments. '
+          'Expected: 0 Actual: ${JS<int>('!', '#.length', typeArgs)}');
     }
   } else {
+    // Old runtime types.
     if (_jsInstanceOf(ftype, GenericFunctionType)) {
       var formalCount = JS<int>('!', '#.formalCount', ftype);
-
       if (typeArgs == null) {
         typeArgs = JS<List>('!', '#.instantiateDefaultBounds()', ftype);
       } else if (JS<bool>('!', '#.length != #', typeArgs, formalCount)) {
@@ -564,6 +630,12 @@ callMethod(obj, name, typeArgs, args, named, displayName) {
   var f = obj != null ? JS('', '#[#]', obj, symbol) : null;
   var type = getType(obj);
   var ftype = getMethodType(type, symbol);
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    if (ftype != null && rti.isGenericFunctionType(ftype) && typeArgs == null) {
+      // No type arguments were provided, use the default values in this call.
+      typeArgs = getMethodDefaultTypeArgs(type, name);
+    }
+  }
   // No such method if dart object and ftype is missing.
   return _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName);
 }
@@ -664,6 +736,45 @@ cast(obj, type) {
     var actual = getReifiedType(obj);
     if (isSubtypeOf(actual, type)) return obj;
     return castError(obj, type);
+  }
+}
+
+/// Returns `true` if [t1] is a subtype of [t2].
+///
+/// This method should only be called when running with weak null safety.
+///
+/// Will produce a warning/error (if enabled) when the subtype passes but would
+/// fail in sound null safety.
+///
+/// Currently only called from _checkAndCall to test type arguments applied to
+/// dynamic method calls.
+// TODO(48585) Revise argument types after removing old type representation.
+@notNull
+bool _isSubtypeWithWarning(@notNull t1, @notNull t2) {
+  // Avoid classes from the rti library appearing unless they are used.
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    var t1Rti = JS<rti.Rti>('!', '#', t1);
+    var t2Rti = JS<rti.Rti>('!', '#', t2);
+    var legacyErasedRecipe = rti.Rti.getLegacyErasedRecipe(t2Rti);
+    var legacyErasedType = rti.findType(legacyErasedRecipe);
+    legacyTypeChecks = false;
+    var validSubtype = rti.isSubtype(
+        JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), t1Rti, legacyErasedType);
+    legacyTypeChecks = true;
+    if (validSubtype) return true;
+    validSubtype =
+        rti.isSubtype(JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), t1Rti, t2Rti);
+    if (validSubtype) {
+      // Subtype check passes put would fail with sound null safety.
+      _nullWarn('${rti.createRuntimeType(t1Rti)} '
+          'is not a subtype of '
+          '${rti.createRuntimeType(t2Rti)}.');
+    }
+    return validSubtype;
+  } else {
+    // Should never be reached because this method isn't called when using old
+    // runtime type representation.
+    throwUnimplementedInOldRti();
   }
 }
 

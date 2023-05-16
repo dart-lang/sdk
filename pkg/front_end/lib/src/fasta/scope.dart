@@ -1599,8 +1599,14 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
           // Patch libraries implicitly assume matching members are patch
           // members.
           existingConstructor.applyPatch(newConstructor);
-        } else {
+        } else if (name.startsWith('_')) {
           // Members injected into patch are not part of the origin scope.
+          _originConstructorScope.addLocalMember(name, newConstructor);
+          for (ConstructorScope augmentationScope
+              in _augmentationConstructorScopes.values) {
+            _addConstructorToAugmentationScope(
+                augmentationScope, name, newConstructor);
+          }
         }
       }
     });

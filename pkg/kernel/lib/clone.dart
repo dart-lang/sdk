@@ -832,7 +832,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   TreeNode visitInstanceGetterInvocation(InstanceGetterInvocation node) {
     return new InstanceGetterInvocation.byReference(
         node.kind, clone(node.receiver), node.name, clone(node.arguments),
-        functionType: visitOptionalType(node.functionType) as FunctionType,
+        functionType: visitOptionalType(node.functionType) as FunctionType?,
         interfaceTargetReference: node.interfaceTargetReference);
   }
 

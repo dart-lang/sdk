@@ -128,7 +128,14 @@ class TTestResult {
     }
   }
 
-  String _format(double d) {
-    return d.toStringAsFixed(2);
+  String _format(double d, {int fractionDigits = 2}) {
+    return d.toStringAsFixed(fractionDigits);
+  }
+
+  String? percentChangeIfSignificant({int fractionDigits = 2}) {
+    if (!significant) return null;
+    return "${_format(percentDiff, fractionDigits: fractionDigits)}% "
+        "+/- "
+        "${_format(percentDiffConfidence, fractionDigits: fractionDigits)}%";
   }
 }

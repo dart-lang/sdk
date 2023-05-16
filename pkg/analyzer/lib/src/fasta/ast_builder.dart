@@ -5450,6 +5450,7 @@ class AstBuilder extends StackListener {
         endToken: typeArguments.rightBracket,
       );
     }
+    reportErrorIfSuper(receiver);
     push(
       FunctionReferenceImpl(
         function: receiver,
@@ -5508,10 +5509,16 @@ class AstBuilder extends StackListener {
     assert(operator.type.isUnaryPrefixOperator);
     debugEvent("UnaryPrefixExpression");
 
+    final operand = pop() as ExpressionImpl;
+    if (!(operator.type == TokenType.MINUS ||
+        operator.type == TokenType.TILDE)) {
+      reportErrorIfSuper(operand);
+    }
+
     push(
       PrefixExpressionImpl(
         operator: operator,
-        operand: pop() as ExpressionImpl,
+        operand: operand,
       ),
     );
   }
