@@ -8,7 +8,7 @@ import 'dart:io' as io;
 import 'dart:math' show max, min;
 
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart'
-    show transformJSTypesForJSCompilers;
+    show eraseStaticInteropTypesForJSCompilers;
 import 'package:collection/collection.dart'
     show IterableExtension, IterableNullableExtension;
 import 'package:front_end/src/api_unstable/ddc.dart';
@@ -3255,25 +3255,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     js_ast.Expression? typeRep;
 
     // Type parameters don't matter as JS interop types cannot be reified.
-    // package:js types fall under `@JS`, `@anonymous`, or `@staticInterop`
-    // types. `@JS` types are used to correspond to JS types that exist, but we
-    // do not use the underlying type for type checks, so they operate virtually
-    // the same as `@anonymous` types. `@staticInterop` types, however, can be
-    // casted to other `package:js` types as well as any type that inherits
-    // `JavaScriptObject`. This is to match the behavior across the other
-    // backends that use erasure. We represent `@JS` and `@anonymous` types with
-    // a NonStaticInteropType and `@staticInterop` with a StaticInteropType to
-    // make this distinction at runtime.
-    var jsName = isJSAnonymousType(c)
-        ? getLocalClassName(c)
-        : _emitJsNameWithoutGlobal(c);
-    if (jsName != null) {
-      if (isDartJSTypesType(c)) {
-        typeRep = visitInterfaceType(
-            transformJSTypesForJSCompilers(_coreTypes, type));
-      } else {
-        typeRep = runtimeCall('packageJSType(#, #)',
-            [js.escapedString(jsName), js.boolean(isStaticInteropType(c))]);
+    // package:js types fall under non-`@staticInterop` and `@staticInterop`
+    // types. non-`@staticInterop` types are represented at runtime using
+    // PackageJSType. `@staticInterop` types are erased here during emission to
+    // `JavaScriptObject`.
+    if (isStaticInteropType(c)) {
+      typeRep = visitInterfaceType(
+          eraseStaticInteropTypesForJSCompilers(_coreTypes, type));
+    } else {
+      var jsName = isJSAnonymousType(c)
+          ? getLocalClassName(c)
+          : _emitJsNameWithoutGlobal(c);
+      if (jsName != null) {
+        typeRep = runtimeCall('packageJSType(#)', [js.escapedString(jsName)]);
       }
     }
 

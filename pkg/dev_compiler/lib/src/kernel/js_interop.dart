@@ -147,12 +147,6 @@ bool hasObjectLiteralAnnotation(Annotatable a) =>
 bool hasJSInteropAnnotation(Class c) =>
     c.annotations.any(isJSInteropAnnotation);
 
-/// Returns true iff [c] is a class from `dart:_js_types` implemented using
-/// `@staticInterop`.
-bool isDartJSTypesType(Class c) =>
-    _isLibrary(c.enclosingLibrary, const ['dart:_js_types']) &&
-    isStaticInteropType(c);
-
 /// Returns true iff this element is a JS interop member.
 ///
 /// JS annotations are required explicitly on classes. Other elements, such as
