@@ -5450,6 +5450,7 @@ class AstBuilder extends StackListener {
         endToken: typeArguments.rightBracket,
       );
     }
+    reportErrorIfSuper(receiver);
     push(
       FunctionReferenceImpl(
         function: receiver,

@@ -82,6 +82,8 @@ class FindNode {
 
   ImplementsClause get singleImplementsClause => _single();
 
+  ImplicitCallReference get singleImplicitCallReference => _single();
+
   ImportDirective get singleImportDirective => _single();
 
   IndexExpression get singleIndexExpression => _single();

@@ -3255,6 +3255,42 @@ FunctionReference
 ''');
   }
 
+  test_superExpression() async {
+    await assertErrorsInCode(r'''
+class A {
+  void call<T>() {}
+}
+
+class B extends A {
+  void f() {
+    super<int>;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 70, 5),
+    ]);
+
+    final node = findNode.singleImplicitCallReference;
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SuperExpression
+    superKeyword: super
+    staticType: B
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticElement: self::@class::A::@method::call
+  staticType: void Function()
+  typeArgumentTypes
+    int
+''');
+  }
+
   test_tooFewTypeArguments() async {
     await assertErrorsInCode('''
 class A {
