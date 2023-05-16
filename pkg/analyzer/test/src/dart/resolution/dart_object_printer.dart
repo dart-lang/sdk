@@ -77,7 +77,7 @@ class DartObjectPrinter {
           }
         });
       } else if (state is RecordState) {
-        _writeRecord(state);
+        _writeRecord(type, state);
       } else {
         throw UnimplementedError();
       }
@@ -147,8 +147,10 @@ class DartObjectPrinter {
     sink.writeln(line);
   }
 
-  void _writeRecord(RecordState state) {
-    sink.writeln('Record');
+  void _writeRecord(DartType type, RecordState state) {
+    final typeStr = type.getDisplayString(withNullability: true);
+    sink.writeln('Record$typeStr');
+
     _withIndent(() {
       final positionalFields = state.positionalFields;
       if (positionalFields.isNotEmpty) {

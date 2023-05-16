@@ -1064,10 +1064,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitRecordLiteral(RecordLiteral node) {
-    var nodeType = node.staticType;
-    if (nodeType == null) {
-      return null;
-    }
     var positionalFields = <DartObjectImpl>[];
     var namedFields = <String, DartObjectImpl>{};
     for (var field in node.fields) {
@@ -1086,6 +1082,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         positionalFields.add(value);
       }
     }
+
+    final nodeType = RecordType(
+      positional: positionalFields.map((e) => e.type).toList(),
+      named: namedFields.map((name, value) => MapEntry(name, value.type)),
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
     return DartObjectImpl(
         typeSystem, nodeType, RecordState(positionalFields, namedFields));
   }
