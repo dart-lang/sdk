@@ -3,6 +3,8 @@ import self as self;
 
 import "dart:test";
 
+static method test() → dynamic
+  ;
 static method main() → dynamic
   ;
 
@@ -16,12 +18,20 @@ import "dart:_internal";
 @_in::patch
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::bool defaultValue /* from org-dartlang-testcase:///patch_lib.dart */;
+  constructor _privateInjected() → self2::Class
+    ;
+  constructor redirect() → self2::Class
+    ;
+  constructor redirectInjected() → self2::Class
+    ;
   @_in::patch
   external constructor generative({core::bool defaultValue = true}) → self2::Class;
   @_in::patch
   const constructor constGenerative({core::bool defaultValue = true}) → self2::Class
     : self2::Class::defaultValue = defaultValue, super core::Object::•()
     ;
+  @_in::patch
+  external constructor _private() → self2::Class;
 }
 @_in::patch
 class Class2 extends core::Object {
@@ -29,11 +39,20 @@ class Class2 extends core::Object {
   field core::int field;
   external constructor •(core::int field) → self2::Class2;
 }
+class Subclass extends self2::Class {
+  constructor private() → self2::Subclass
+    ;
+  constructor privateInjected() → self2::Subclass
+    ;
+}
+static method test() → dynamic
+  ;
 
 
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:6:49 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:43 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:16:9 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
-Extra constant evaluation: evaluated: 5, effectively constant: 4
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:17:8 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:24:60 -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 6, effectively constant: 5
