@@ -360,7 +360,7 @@ class DisassemblerX64 : public ValueObject {
 
   bool DecodeInstructionType(uint8_t** data);
 
-  void UnimplementedInstruction() { UNREACHABLE(); }
+  void UnimplementedInstruction(uint8_t byte);
 
   char* buffer_;          // Decode instructions into this buffer.
   intptr_t buffer_size_;  // The size of the buffer_.
@@ -435,7 +435,7 @@ int DisassemblerX64::PrintRightOperandHelper(
                 1 << scale);
           return 2;
         } else {
-          UnimplementedInstruction();
+          UnimplementedInstruction(*modrmp);
           return 1;
         }
       } else {
@@ -476,7 +476,7 @@ int DisassemblerX64::PrintRightOperandHelper(
       Print("%s", (this->*register_name)(rm));
       return 1;
     default:
-      UnimplementedInstruction();
+      UnimplementedInstruction(*modrmp);
       return 1;
   }
   UNREACHABLE();
@@ -629,7 +629,8 @@ int DisassemblerX64::PrintImmediateOp(uint8_t* data) {
       mnem = "cmp";
       break;
     default:
-      UnimplementedInstruction();
+      UnimplementedInstruction(*data);
+      return 1;
   }
   Print("%s%s ", mnem, operand_size_code());
   int count = PrintRightOperand(data + 1);
@@ -670,8 +671,8 @@ int DisassemblerX64::F6F7Instruction(uint8_t* data) {
           NameOfCPURegister(2));
     return 1 + PrintRightOperand(data + 1);
   } else {
-    UnimplementedInstruction();
-    return 2;
+    UnimplementedInstruction(*data);
+    return 1;
   }
 }
 
@@ -681,7 +682,7 @@ int DisassemblerX64::ShiftInstruction(uint8_t* data) {
   // D2/D3: Shift CL
   uint8_t op = *data & (~1);
   if (op != 0xD0 && op != 0xD2 && op != 0xC0) {
-    UnimplementedInstruction();
+    UnimplementedInstruction(*data);
     return 1;
   }
   uint8_t* modrm = data + 1;
@@ -713,8 +714,8 @@ int DisassemblerX64::ShiftInstruction(uint8_t* data) {
       mnem = "sar";
       break;
     default:
-      UnimplementedInstruction();
-      return num_bytes;
+      UnimplementedInstruction(*data);
+      return 1;
   }
   ASSERT(nullptr != mnem);
   Print("%s%s ", mnem, operand_size_code());
@@ -863,7 +864,7 @@ int DisassemblerX64::FPUInstruction(uint8_t* data) {
 int DisassemblerX64::MemoryFPUInstruction(int escape_opcode,
                                           int modrm_byte,
                                           uint8_t* modrm_start) {
-  const char* mnem = "?";
+  const char* mnem = nullptr;
   int regop = (modrm_byte >> 3) & 0x7;  // reg/op field of modrm byte.
   switch (escape_opcode) {
     case 0xD9:
@@ -880,8 +881,6 @@ int DisassemblerX64::MemoryFPUInstruction(int escape_opcode,
         case 7:
           mnem = "fnstcw";
           break;
-        default:
-          UnimplementedInstruction();
       }
       break;
 
@@ -899,8 +898,6 @@ int DisassemblerX64::MemoryFPUInstruction(int escape_opcode,
         case 3:
           mnem = "fistp_s";
           break;
-        default:
-          UnimplementedInstruction();
       }
       break;
 
@@ -912,8 +909,6 @@ int DisassemblerX64::MemoryFPUInstruction(int escape_opcode,
         case 3:
           mnem = "fstp_d";
           break;
-        default:
-          UnimplementedInstruction();
       }
       break;
 
@@ -925,13 +920,12 @@ int DisassemblerX64::MemoryFPUInstruction(int escape_opcode,
         case 7:
           mnem = "fistp_d";
           break;
-        default:
-          UnimplementedInstruction();
       }
       break;
-
-    default:
-      UnimplementedInstruction();
+  }
+  if (mnem == nullptr) {
+    UnimplementedInstruction(escape_opcode);
+    return 1;
   }
   Print("%s ", mnem);
   int count = PrintRightOperand(modrm_start);
@@ -945,8 +939,8 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
 
   switch (escape_opcode) {
     case 0xD8:
-      UnimplementedInstruction();
-      break;
+      UnimplementedInstruction(escape_opcode);
+      return 1;
 
     case 0xD9:
       switch (modrm_byte & 0xF8) {
@@ -1015,7 +1009,8 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
               mnem = "fcos";
               break;
             default:
-              UnimplementedInstruction();
+              UnimplementedInstruction(escape_opcode);
+              return 1;
           }
       }
       break;
@@ -1024,7 +1019,8 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
       if (modrm_byte == 0xE9) {
         mnem = "fucompp";
       } else {
-        UnimplementedInstruction();
+        UnimplementedInstruction(escape_opcode);
+        return 1;
       }
       break;
 
@@ -1035,7 +1031,8 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
       } else if (modrm_byte == 0xE2) {
         mnem = "fclex";
       } else {
-        UnimplementedInstruction();
+        UnimplementedInstruction(escape_opcode);
+        return 1;
       }
       break;
 
@@ -1055,7 +1052,8 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
           mnem = "fdiv";
           break;
         default:
-          UnimplementedInstruction();
+          UnimplementedInstruction(escape_opcode);
+          return 1;
       }
       break;
 
@@ -1069,7 +1067,8 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
           mnem = "fstp";
           break;
         default:
-          UnimplementedInstruction();
+          UnimplementedInstruction(escape_opcode);
+          return 1;
       }
       break;
 
@@ -1092,7 +1091,8 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
             mnem = "fdivp";
             break;
           default:
-            UnimplementedInstruction();
+            UnimplementedInstruction(escape_opcode);
+            return 1;
         }
       }
       break;
@@ -1107,7 +1107,8 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
       break;
 
     default:
-      UnimplementedInstruction();
+      UnimplementedInstruction(escape_opcode);
+      return 1;
   }
 
   if (has_register) {
@@ -1261,7 +1262,7 @@ int DisassemblerX64::Print660F38Instruction(uint8_t* current) {
     Print("pcmpeqq %s,", NameOfXMMRegister(regop));
     return 1 + PrintRightXMMOperand(current + 1);
   } else {
-    UnimplementedInstruction();
+    UnimplementedInstruction(*current);
     return 1;
   }
 }
@@ -1307,7 +1308,8 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
         Print(", %d", (*current) & 3);
         current += 1;
       } else {
-        UnimplementedInstruction();
+        UnimplementedInstruction(*data);
+        return 1;
       }
     } else {
       get_modrm(*current, &mod, &regop, &rm);
@@ -1376,7 +1378,8 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
         } else if (opcode == 0xEF) {
           mnemonic = "pxor";
         } else {
-          UnimplementedInstruction();
+          UnimplementedInstruction(*data);
+          return 1;
         }
         Print("%s %s,", mnemonic, NameOfXMMRegister(regop));
         current += PrintRightXMMOperand(current);
@@ -1425,7 +1428,8 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       Print("%s %s,", mnemonic, NameOfXMMRegister(regop));
       current += PrintRightXMMOperand(current);
     } else {
-      UnimplementedInstruction();
+      UnimplementedInstruction(*data);
+      return 1;
     }
   } else if (group_1_prefix_ == 0xF3) {
     // Instructions with prefix 0xF3.
@@ -1480,7 +1484,8 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       // LZCNT (rep BSR encoding).
       current += PrintOperands("lzcnt", REG_OPER_OP_ORDER, current);
     } else {
-      UnimplementedInstruction();
+      UnimplementedInstruction(*data);
+      return 1;
     }
   } else if (opcode == 0x1F) {
     // NOP
@@ -1539,8 +1544,8 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
                                             "movlhps"};
     const char* mnemonic = mnemonics[opcode - 0x10];
     if (mnemonic == nullptr) {
-      UnimplementedInstruction();
-      mnemonic = "???";
+      UnimplementedInstruction(*data);
+      return 1;
     }
     int mod, regop, rm;
     get_modrm(*current, &mod, &regop, &rm);
@@ -1604,7 +1609,8 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     uint8_t bit = *current++;
     Print(",%d", bit);
   } else {
-    UnimplementedInstruction();
+    UnimplementedInstruction(*data);
+    return 1;
   }
   return static_cast<int>(current - data);
 }
@@ -1826,7 +1832,8 @@ int DisassemblerX64::InstructionDecode(uword pc) {
           Print("decb ");
           data += PrintRightByteOperand(data);
         } else {
-          UnimplementedInstruction();
+          UnimplementedInstruction(*data);
+          return 1;
         }
         break;
       }
@@ -1879,8 +1886,8 @@ int DisassemblerX64::InstructionDecode(uword pc) {
             break;
           }
           default:
-            UnimplementedInstruction();
-            data += 2;
+            UnimplementedInstruction(*data);
+            return 1;
         }
         break;
 
@@ -1976,8 +1983,8 @@ int DisassemblerX64::InstructionDecode(uword pc) {
 #endif
 
       default:
-        UnimplementedInstruction();
-        data += 1;
+        UnimplementedInstruction(*data);
+        return 1;
     }
   }  // !processed
 
@@ -1987,6 +1994,10 @@ int DisassemblerX64::InstructionDecode(uword pc) {
   ASSERT(instr_len > 0);  // Ensure progress.
 
   return instr_len;
+}
+
+void DisassemblerX64::UnimplementedInstruction(uint8_t byte) {
+  Print("unknown");
 }
 
 void Disassembler::DecodeInstruction(char* hex_buffer,

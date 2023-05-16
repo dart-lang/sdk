@@ -26,6 +26,17 @@ ISOLATE_UNIT_TEST_CASE(Disassembler) {
   Disassembler::Disassemble(test.entry(), test.entry() + assembler.CodeSize());
 }
 
+ISOLATE_UNIT_TEST_CASE(Disassembler_InvalidInput) {
+  // Test that Disassembler doesn't crash even if the input is nonsense.
+  uint32_t bad_input[] = {
+      0x00000000, 0xFFFFFFFF, 0x12345678, 0x9ABCDEF0, 0x01110001,
+      0xDEADC0DE, 0xBAADF00D, 0xDABADEEE, 0xDABAD111, 0xB000DEAD,
+  };
+  Disassembler::Disassemble(
+      reinterpret_cast<uword>(&bad_input[0]),
+      reinterpret_cast<uword>(ARRAY_SIZE(bad_input) + &bad_input[0]));
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart
