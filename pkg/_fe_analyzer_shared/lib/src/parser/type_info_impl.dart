@@ -777,7 +777,10 @@ class ComplexTypeInfo implements TypeInfo {
         // * List<List<List<(int, int)>>>
         // * typedef F2<T extends List<(int, int)>>= T Function();
         // * typedef F3<T extends List<List<(int, int)>>>= T Function();
-        if (!isOneOfOrEof(next, const [",", ">", ">>", ">>=", ">>>", ">>>="])) {
+        //
+        // But don't confuse e.g. `(() => print("hello")) >> 42;` for that.
+        if (recovered ||
+            !isOneOfOrEof(next, const [",", ">", ">>", ">>=", ">>>", ">>>="])) {
           return noType;
         }
       }
