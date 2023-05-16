@@ -299,9 +299,9 @@ class FunctionDefinitionBuilderImpl extends DefinitionBuilderBase
   });
 
   @override
-  void augment(FunctionBodyCode body) {
+  void augment(FunctionBodyCode body, {CommentCode? docComments}) {
     DeclarationCode augmentation =
-        _buildFunctionAugmentation(body, declaration);
+        _buildFunctionAugmentation(body, declaration, docComments: docComments);
     if (declaration is MemberDeclaration) {
       _typeAugmentations.update(
           (declaration as MethodDeclarationImpl).definingType,
@@ -330,12 +330,15 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
   });
 
   @override
-  void augment({FunctionBodyCode? body, List<Code>? initializers}) {
+  void augment(
+      {FunctionBodyCode? body,
+      List<Code>? initializers,
+      CommentCode? docComments}) {
     body ??= new FunctionBodyCode.fromString('''{
       augment super();
     }''');
     DeclarationCode augmentation = _buildFunctionAugmentation(body, declaration,
-        initializers: initializers);
+        initializers: initializers, docComments: docComments);
     _typeAugmentations.update(
         declaration.definingType, (value) => value..add(augmentation),
         ifAbsent: () => [augmentation]);
@@ -362,12 +365,14 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
   void augment(
       {DeclarationCode? getter,
       DeclarationCode? setter,
-      ExpressionCode? initializer}) {
+      ExpressionCode? initializer,
+      CommentCode? initializerDocComments}) {
     List<DeclarationCode> augmentations = _buildVariableAugmentations(
         declaration,
         getter: getter,
         setter: setter,
-        initializer: initializer);
+        initializer: initializer,
+        initializerDocComments: initializerDocComments);
     if (declaration is MemberDeclaration) {
       _typeAugmentations.update(
           (declaration as FieldDeclarationImpl).definingType,
@@ -384,7 +389,13 @@ List<DeclarationCode> _buildVariableAugmentations(
     VariableDeclaration declaration,
     {DeclarationCode? getter,
     DeclarationCode? setter,
-    ExpressionCode? initializer}) {
+    ExpressionCode? initializer,
+    CommentCode? initializerDocComments}) {
+  if (initializerDocComments != null && initializer == null) {
+    throw new ArgumentError(
+        'initializerDocComments cannot be provided if an initializer is not '
+        'provided.');
+  }
   List<DeclarationCode> augmentations = [];
   if (getter != null) {
     augmentations.add(new DeclarationCode.fromParts([
@@ -402,6 +413,7 @@ List<DeclarationCode> _buildVariableAugmentations(
   }
   if (initializer != null) {
     augmentations.add(new DeclarationCode.fromParts([
+      if (initializerDocComments != null) initializerDocComments,
       'augment ',
       if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
       if (declaration.isFinal) 'final ',
@@ -424,10 +436,11 @@ List<DeclarationCode> _buildVariableAugmentations(
 /// constructor.
 DeclarationCode _buildFunctionAugmentation(
     FunctionBodyCode body, FunctionDeclaration declaration,
-    {List<Code>? initializers}) {
+    {List<Code>? initializers, CommentCode? docComments}) {
   assert(initializers == null || declaration is ConstructorDeclaration);
 
   return new DeclarationCode.fromParts([
+    if (docComments != null) docComments,
     'augment ',
     if (declaration is ConstructorDeclaration) ...[
       declaration.definingType.name,

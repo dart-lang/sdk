@@ -193,16 +193,29 @@ abstract class ConstructorDefinitionBuilder implements DefinitionBuilder {
   ///
   /// The [initializers] should not contain trailing or preceding commas.
   ///
+  /// If [docComments] are supplied, they will be added above this augment
+  /// declaration.
+  ///
   /// TODO: Link the library augmentations proposal to describe the semantics.
-  void augment({FunctionBodyCode? body, List<Code>? initializers});
+  void augment({
+    FunctionBodyCode? body,
+    List<Code>? initializers,
+    CommentCode? docComments,
+  });
 }
 
 /// The APIs used by [Macro]s to augment functions or methods.
 abstract class FunctionDefinitionBuilder implements DefinitionBuilder {
   /// Augments the function.
   ///
+  /// If [docComments] are supplied, they will be added above this augment
+  /// declaration.
+  ///
   /// TODO: Link the library augmentations proposal to describe the semantics.
-  void augment(FunctionBodyCode body);
+  void augment(
+    FunctionBodyCode body, {
+    CommentCode? docComments,
+  });
 }
 
 /// The API used by [Macro]s to augment a top level variable or instance field.
@@ -212,11 +225,19 @@ abstract class VariableDefinitionBuilder implements DefinitionBuilder {
   /// For [getter] and [setter] the full function declaration should be
   /// provided, minus the `augment` keyword (which will be implicitly added).
   ///
+  /// If [initializerDocComments] are supplied, they will be added above the
+  /// augment declaration for [initializer]. It is an error to provide
+  /// [initializerDocComments] but not [initializer].
+  ///
+  /// To provide doc comments for [getter] or [setter], just include them in
+  /// the [DeclarationCode] object for those.
+  ///
   /// TODO: Link the library augmentations proposal to describe the semantics.
   void augment({
     DeclarationCode? getter,
     DeclarationCode? setter,
     ExpressionCode? initializer,
+    CommentCode? initializerDocComments,
   });
 }
 

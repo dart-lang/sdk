@@ -32,6 +32,17 @@ class DeclarationCode extends Code {
   DeclarationCode.fromParts(super.parts) : super.fromParts();
 }
 
+/// A piece of code representing a code comment. This may contain identifier
+/// references inside of `[]` brackets if the comments are doc comments.
+class CommentCode extends Code {
+  @override
+  CodeKind get kind => CodeKind.comment;
+
+  CommentCode.fromString(super.code) : super.fromString();
+
+  CommentCode.fromParts(super.parts) : super.fromParts();
+}
+
 /// A piece of code representing a syntactically valid expression.
 class ExpressionCode extends Code {
   @override
@@ -331,6 +342,7 @@ extension Join<T extends Object> on List<T> {
 }
 
 enum CodeKind {
+  comment,
   declaration,
   expression,
   functionBody,
