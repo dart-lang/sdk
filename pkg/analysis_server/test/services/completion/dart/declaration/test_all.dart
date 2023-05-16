@@ -16,6 +16,7 @@ import 'library_test.dart' as library_;
 import 'pattern_variable_test.dart' as pattern_variable;
 import 'record_type_test.dart' as record_type;
 import 'uri_test.dart' as uri;
+import 'variable_name_test.dart' as variable_name;
 
 /// Tests suggestions produced for various kinds of declarations.
 void main() {
@@ -32,5 +33,6 @@ void main() {
     pattern_variable.main();
     record_type.main();
     uri.main();
+    variable_name.main();
   });
 }
