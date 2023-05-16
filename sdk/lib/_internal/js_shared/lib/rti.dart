@@ -439,6 +439,9 @@ Object getFunctionParametersForDynamicChecks(Object? rti) {
 bool isGenericFunctionType(Object? rti) =>
     Rti._getKind(_Utils.asRti(rti)) == Rti.kindGenericFunction;
 
+JSArray getGenericFunctionBounds(Object? rti) =>
+    Rti._getGenericFunctionBounds(_Utils.asRti(rti));
+
 class _FunctionParameters {
   static _FunctionParameters allocate() => _FunctionParameters();
 
@@ -525,7 +528,9 @@ Rti? instantiatedGenericFunctionType(
   // instantiation appears to be an interface type instead.
   if (genericFunctionRti == null) return null;
   var bounds = Rti._getGenericFunctionBounds(genericFunctionRti);
-  var typeArguments = Rti._getInterfaceTypeArguments(instantiationRti);
+  var typeArguments = JS_GET_FLAG('DEV_COMPILER')
+      ? Rti._getBindingArguments(instantiationRti)
+      : Rti._getInterfaceTypeArguments(instantiationRti);
   assert(_Utils.arrayLength(bounds) == _Utils.arrayLength(typeArguments));
 
   var cache = Rti._getBindCache(genericFunctionRti);
@@ -540,6 +545,21 @@ Rti? instantiatedGenericFunctionType(
       Rti._getGenericFunctionBase(genericFunctionRti), typeArguments, 0);
   _Utils.mapSet(cache, key, rti);
   return rti;
+}
+
+Rti substitute(Object? rti, Object? typeArguments) =>
+    _substitute(_theUniverse(), _Utils.asRti(rti), typeArguments, 0);
+
+/// Returns a single binding [Rti] in the order of the provided [rtis].
+Rti bindingRtiFromList(JSArray rtis) {
+  Rti binding = _rtiEval(
+      rtis[0],
+      '@'
+      '${Recipe.startTypeArgumentsString}'
+      '0'
+      '${Recipe.endTypeArgumentsString}');
+  for (int i = 1; i < rtis.length; i++) binding = _rtiBind(binding, rtis[i]);
+  return binding;
 }
 
 /// Substitutes [typeArguments] for generic function parameters in [rti].

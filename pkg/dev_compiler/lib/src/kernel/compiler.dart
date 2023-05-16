@@ -1580,6 +1580,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var extAccessors = _classProperties!.extensionAccessors;
     var staticMethods = <js_ast.Property>[];
     var instanceMethods = <js_ast.Property>[];
+    var instanceMethodsDefaultTypeArgs = <js_ast.Property>[];
     var staticGetters = <js_ast.Property>[];
     var instanceGetters = <js_ast.Property>[];
     var staticSetters = <js_ast.Property>[];
@@ -1635,14 +1636,28 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       if (needsSignature) {
         js_ast.Expression type;
+        var memberName = _declareMemberName(member);
         if (member.isAccessor) {
           type = _emitType(member.isGetter
               ? reifiedType.returnType
               : reifiedType.positionalParameters[0]);
         } else {
           type = visitFunctionType(reifiedType);
+          if (_options.newRuntimeTypes &&
+              reifiedType.typeParameters.isNotEmpty) {
+            // Instance methods with generic type parameters require extra
+            // information to support dynamic calls. The default values for the
+            // type parameters are encoded into a separate storage object for
+            // use at runtime.
+            var defaultTypeArgs = js_ast.ArrayInitializer([
+              for (var parameter in reifiedType.typeParameters)
+                _emitType(parameter.defaultType)
+            ]);
+            var property = js_ast.Property(memberName, defaultTypeArgs);
+            instanceMethodsDefaultTypeArgs.add(property);
+          }
         }
-        var property = js_ast.Property(_declareMemberName(member), type);
+        var property = js_ast.Property(memberName, type);
         var signatures = getSignatureList(member);
         signatures.add(property);
         if (!member.isStatic &&
@@ -1654,6 +1669,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     emitSignature('Method', instanceMethods);
+    emitSignature('MethodsDefaultTypeArg', instanceMethodsDefaultTypeArgs);
     // TODO(40273) Skip for all statics when the debugger consumes signature
     // information from symbol files.
     emitSignature('StaticMethod', staticMethods);
@@ -3034,7 +3050,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // Avoid tagging a closure as Function? or Function*
         type.withDeclaredNullability(Nullability.nonNullable),
         lazy: lazy);
-    return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
+    if (_options.newRuntimeTypes) {
+      if (type.typeParameters.isEmpty) {
+        return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
+      } else {
+        var typeParameterDefaults = [
+          for (var parameter in type.typeParameters)
+            _emitType(parameter.defaultType)
+        ];
+        var defaultInstantiatedBounds =
+            _emitConstList(const DynamicType(), typeParameterDefaults);
+        return runtimeCall(
+            'gFn(#, #, #)', [fn, typeRep, defaultInstantiatedBounds]);
+      }
+    } else {
+      return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
+    }
   }
 
   /// Whether the expression for [type] can be evaluated at this point in the JS

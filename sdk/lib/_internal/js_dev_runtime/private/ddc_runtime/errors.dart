@@ -17,7 +17,7 @@ argumentError(value) {
 /// that should never be executed.
 // TODO(48585): Remove after switching to the new runtime type system.
 Never throwUnimplementedInOldRti() => throw UnimplementedError(
-    'This code path is not support with the old runtime type system.');
+    'This code path is not supported with the old runtime type system.');
 
 throwUnimplementedError(String message) {
   throw UnimplementedError(message);
