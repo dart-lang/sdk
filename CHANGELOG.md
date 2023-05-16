@@ -460,7 +460,7 @@ information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
 Updates the Linter to `1.35.0`, which includes changes that
 
 - add new lints:
-  - `explicit_reopen`
+  - `implicit_reopen`
   - `unnecessary_breaks`
   - `type_literal_in_constant_pattern`
   - `invalid_case_patterns`
