@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:path/path.dart' as path;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
@@ -13,8 +12,6 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UriTest1);
     defineReflectiveTests(UriTest2);
-    defineReflectiveTests(UriWindowsTest1);
-    defineReflectiveTests(UriWindowsTest2);
   });
 }
 
@@ -581,18 +578,14 @@ suggestions
   }
 
   Future<void> test_import_file() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
     await computeSuggestions('''
 import "^" import
 ''');
+    // TODO(brianwilkerson) Before being converted, this test used to produce
+    //  'other.dart' and 'foo/'.
     assertResponse(r'''
 suggestions
   dart:
@@ -627,18 +620,14 @@ suggestions
   }
 
   Future<void> test_import_file2() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
     await computeSuggestions('''
 import "..^" import
 ''');
+    // TODO(brianwilkerson) Before being converted, this test used to produce
+    //  'other.dart' and 'foo/'.
     if (isProtocolVersion2) {
       assertResponse(r'''
 replacement
@@ -683,18 +672,14 @@ suggestions
   }
 
   Future<void> test_import_file_child() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
     await computeSuggestions('''
 import "foo/^" import
 ''');
+    // TODO(brianwilkerson) Before being converted, this test used to produce
+    //  'foo/bar.dart'.
     if (isProtocolVersion2) {
       assertResponse(r'''
 replacement
@@ -802,18 +787,10 @@ suggestions
   }
 
   Future<void> test_import_file_parent() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
-    newFile('$workspaceRootPath/aaa/boo.dart', '''
-
-''');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
+    newFile('$workspaceRootPath/aaa/boo.dart', '');
     await computeSuggestions('''
 import "../^" import
 ''');
@@ -863,15 +840,9 @@ suggestions
   }
 
   Future<void> test_import_file_parent2() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
     await computeSuggestions('''
 import "../b^" import
 ''');
@@ -974,9 +945,7 @@ suggestions
 
   Future<void> test_import_only_dart_files() async {
     newAnalysisOptionsYamlFile(testPackageRootPath, '');
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
+    newFile('$testPackageRootPath/other.dart', '');
     await computeSuggestions('''
 import "package:^";
 ''');
@@ -1720,15 +1689,9 @@ suggestions
   }
 
   Future<void> test_part_file() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
     await computeSuggestions('''
 library x; part "^" import
 ''');
@@ -1740,15 +1703,9 @@ suggestions
   }
 
   Future<void> test_part_file2() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
     await computeSuggestions('''
 library x; part "..^" import
 ''');
@@ -1762,15 +1719,9 @@ suggestions
   }
 
   Future<void> test_part_file_child() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
     await computeSuggestions('''
 library x; part "foo/^" import
 ''');
@@ -1784,403 +1735,9 @@ suggestions
   }
 
   Future<void> test_part_file_parent() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
-    await computeSuggestions('''
-library x; part "../^" import
-''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
-    //  '../blat.dart'.
-    assertResponse(r'''
-replacement
-  left: 3
-suggestions
-''');
-  }
-}
-
-@reflectiveTest
-class UriWindowsTest1 extends AbstractCompletionDriverTest
-    with UriWindowsTestCases {
-  @override
-  path.Context get fileSystem => path.posix;
-
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class UriWindowsTest2 extends AbstractCompletionDriverTest
-    with UriWindowsTestCases {
-  @override
-  path.Context get fileSystem => path.posix;
-
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
-
-mixin UriWindowsTestCases on AbstractCompletionDriverTest {
-  Future<void> test_import_file() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
-    await computeSuggestions('''
-import "^" import
-''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
-    //  'other.dart' and 'foo/'.
-    assertResponse(r'''
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-  }
-
-  Future<void> test_import_file2() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
-    await computeSuggestions('''
-import "..^" import
-''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
-    //  'other.dart' and 'foo/'.
-    if (isProtocolVersion2) {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
-  }
-
-  Future<void> test_import_file_child() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
-    await computeSuggestions('''
-import "foo/^" import
-''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
-    //  'foo/bar.dart'.
-    if (isProtocolVersion2) {
-      assertResponse(r'''
-replacement
-  left: 4
-suggestions
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 4
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
-  }
-
-  Future<void> test_import_file_parent() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
-    await computeSuggestions('''
-import "../^" import
-''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
-    //  '../blat.dart'.
-    if (isProtocolVersion2) {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
-  }
-
-  Future<void> test_import_file_parent2() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
-    await computeSuggestions('''
-import "../b^" import
-''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
-    //  '../blat.dart'.
-    if (isProtocolVersion2) {
-      assertResponse(r'''
-replacement
-  left: 4
-suggestions
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 4
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
-  }
-
-  Future<void> test_part_file() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
-    await computeSuggestions('''
-library x; part "^" import
-''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
-    //  'other.dart' and 'foo/'.
-    assertResponse(r'''
-suggestions
-''');
-  }
-
-  Future<void> test_part_file2() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
-    await computeSuggestions('''
-library x; part "..^" import
-''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
-    //  'other.dart' and 'foo/'.
-    assertResponse(r'''
-replacement
-  left: 2
-suggestions
-''');
-  }
-
-  Future<void> test_part_file_child() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
-    await computeSuggestions('''
-library x; part "foo/^" import
-''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
-    //  'foo/bar.dart'.
-    assertResponse(r'''
-replacement
-  left: 4
-suggestions
-''');
-  }
-
-  Future<void> test_part_file_parent() async {
-    newFile('$testPackageRootPath/other.dart', '''
-
-''');
-    newFile('$testPackageRootPath/foo/bar.dart', '''
-
-''');
-    newFile('$workspaceRootPath/blat.dart', '''
-
-''');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
     await computeSuggestions('''
 library x; part "../^" import
 ''');

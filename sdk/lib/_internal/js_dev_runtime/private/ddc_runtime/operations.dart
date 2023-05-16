@@ -545,7 +545,7 @@ replNameLookup(object, field) => JS('', '''(() => {
       let sym = symbols[s];
       if (target == sym.toString()) return sym;
     }
-    proto = proto.__proto__;
+    proto = Object.getPrototypeOf(proto);
   }
   // We didn't find a plausible alternate private symbol so just fall back
   // to the regular field.

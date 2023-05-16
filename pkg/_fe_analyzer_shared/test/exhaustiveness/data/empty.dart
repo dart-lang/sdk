@@ -64,18 +64,14 @@ emptyNever(Never never) => /*type=Never*/ switch (never) {  };
 
 emptyUnresolved(
         Unresolved
-            unresolved) => /*cfe.type=Never*/ /*analyzer.
- error=non-exhaustive:InvalidType(),type=InvalidType
-*/
+            unresolved) => /*cfe.type=Never*/ /*analyzer.type=InvalidType*/
     switch (unresolved) {
       
     };
 
 nonEmptyUnresolved(
         Unresolved
-            unresolved) => /*cfe.type=Never*/ /*analyzer.
- error=non-exhaustive:InvalidType(),type=InvalidType
-*/
+            unresolved) => /*cfe.type=Never*/ /*analyzer.type=InvalidType*/
     switch (unresolved) {
       _ /*cfe.space=∅*/ /*analyzer.space=InvalidType*/ => 0,
     };

@@ -78,6 +78,14 @@ Object f(E x) {
           correctionContains: 'E.a'),
     ]);
   }
+
+  test_invalidType_empty() async {
+    await assertErrorsInCode(r'''
+void f(Unresolved x) => switch (x) {};
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -425,6 +433,38 @@ void f(A x) {
 ''');
   }
 
+  test_alwaysExhaustive_sealedClass_unresolvedIdentifier() async {
+    await assertErrorsInCode(r'''
+sealed class A {}
+class B extends A {}
+
+void f(A x) {
+  switch (x) {
+    case unresolved:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 78, 10),
+    ]);
+  }
+
+  test_alwaysExhaustive_sealedClass_unresolvedObject() async {
+    await assertErrorsInCode(r'''
+sealed class A {}
+class B extends A {}
+
+void f(A x) {
+  switch (x) {
+    case Unresolved():
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 78, 10),
+    ]);
+  }
+
   test_alwaysExhaustive_typeVariable_bound_bool_true() async {
     await assertErrorsInCode(r'''
 void f<T extends bool>(T x) {
@@ -477,6 +517,16 @@ void f<T>(T x) {
   }
 }
 ''');
+  }
+
+  test_invalidType_empty() async {
+    await assertErrorsInCode(r'''
+void f(Unresolved x) {
+  switch (x) {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10),
+    ]);
   }
 
   test_notAlwaysExhaustive_int() async {

@@ -6,7 +6,7 @@ library dart._debugger;
 
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSArray;
-import 'dart:_js_helper' show InternalMap;
+import 'dart:_js_helper' show InternalMap, jsObjectGetPrototypeOf;
 import 'dart:_runtime' as dart;
 import 'dart:core';
 import 'dart:collection';
@@ -947,7 +947,7 @@ class ClassFormatter implements Formatter {
           name: '[[Mixins]]', value: HeritageClause('mixins', [mixin])));
     }
 
-    var baseProto = JS('', '#.__proto__', type);
+    var baseProto = jsObjectGetPrototypeOf(type);
     if (baseProto != null && !dart.isJsInterop(baseProto)) {
       ret.add(NameValuePair(
           name: "[[base class]]",

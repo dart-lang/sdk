@@ -327,11 +327,6 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
-  bool isErrorType(DartType type) {
-    return type is InvalidType;
-  }
-
-  @override
   bool isGeneric(DartType type) {
     return type is InterfaceType && type.typeArguments.isNotEmpty;
   }
@@ -472,6 +467,10 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
   final Map<Expression, DartObjectImpl> mapPatternKeyValues;
   final Map<ConstantPattern, DartObjectImpl> constantPatternValues;
 
+  /// If we saw an invalid type, we already have a diagnostic reported,
+  /// and there is no need to verify exhaustiveness.
+  bool hasInvalidType = false;
+
   PatternConverter({
     required this.featureSet,
     required this.cache,
@@ -499,6 +498,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
 
   @override
   StaticType createStaticType(DartType type) {
+    hasInvalidType |= type is InvalidType;
     return cache.getStaticType(type);
   }
 
@@ -652,6 +652,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
       if (value != null) {
         return _convertConstantValue(value, path);
       }
+      hasInvalidType = true;
       return createUnknownSpace(path);
     }
     assert(false, "Unexpected pattern $pattern (${pattern.runtimeType})");
