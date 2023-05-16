@@ -38,7 +38,7 @@ To work with the Dart code, you need to download and build the development branc
 
 ## Starting a patch with git
 
-Create a new branch using `git new-branch` (this is a command added by the aforementioned depot_tools). 
+Create a new branch using `git new-branch` (this is a command added by the aforementioned depot_tools).
 
 You can be in any branch when you run `git new-branch`.
 
