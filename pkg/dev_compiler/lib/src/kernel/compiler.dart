@@ -1204,7 +1204,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           c.getThisType(_coreTypes, c.enclosingLibrary.nonNullable),
           emitNullability: false);
       while (--count >= 0) {
-        base = js.call('#.__proto__', [base]);
+        base = _emitJSObjectGetPrototypeOf(base);
       }
       return base;
     }
@@ -6101,7 +6101,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var name = target.name.text;
       if (name == 'jsObjectGetPrototypeOf') {
         var obj = node.arguments.positional.single;
-        return js.call('Object.getPrototypeOf(#)', _visitExpression(obj));
+        return _emitJSObjectGetPrototypeOf(_visitExpression(obj));
       }
       if (name == 'jsObjectSetPrototypeOf') {
         var obj = node.arguments.positional.first;
@@ -6184,6 +6184,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var args = _emitArgumentList(node.arguments, target: target);
     return js_ast.Call(fn, args);
   }
+
+  js_ast.Expression _emitJSObjectGetPrototypeOf(js_ast.Expression obj) =>
+      js.call('Object.getPrototypeOf(#)', obj);
 
   bool _isDebuggerCall(Procedure target) {
     return target.name.text == 'debugger' &&
