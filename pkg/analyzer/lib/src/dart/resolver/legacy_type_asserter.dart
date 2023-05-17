@@ -166,6 +166,11 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
   }
 
   static bool assertLegacyTypes(CompilationUnit compilationUnit) {
+    if (compilationUnit.languageVersionToken != null &&
+        compilationUnit.directives.whereType<PartOfDirective>().isNotEmpty) {
+      return true;
+    }
+
     LegacyTypeAsserter().visitCompilationUnit(compilationUnit);
     return true;
   }
