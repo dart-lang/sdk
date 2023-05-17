@@ -19,6 +19,7 @@ const String limitedMarker = 'limited';
 
 const String statementMarker = 'stmt';
 const String expressionMarker = 'expr';
+const String initializerMarker = 'init';
 
 const AstTextStrategy normalStrategy = const AstTextStrategy(
     includeLibraryNamesInMembers: false,
@@ -131,6 +132,14 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   }
 
   @override
+  void visitConstructor(Constructor node) {
+    if (!node.name.text.startsWith(initializerMarker)) {
+      node.function.accept(this);
+    }
+    computeForMember(node);
+  }
+
+  @override
   void visitProcedure(Procedure node) {
     if (!node.name.text.startsWith(expressionMarker) &&
         !node.name.text.startsWith(statementMarker)) {
@@ -150,9 +159,6 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String? computeMemberValue(Id id, Member node) {
-    if (node.name.text == 'stmtVariableDeclarationMulti') {
-      print(node);
-    }
     if (node.name.text.startsWith(expressionMarker)) {
       if (node is Procedure) {
         Statement? body = node.function.body;
@@ -169,6 +175,14 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
           // Prefix with newline to make multiline text representations more
           // readable.
           return '\n${body.statements.single.toText(strategy)}';
+        }
+      }
+    } else if (node.name.text.startsWith(initializerMarker)) {
+      if (node is Constructor) {
+        if (node.initializers.length == 1) {
+          // Prefix with newline to make multiline text representations more
+          // readable.
+          return '\n${node.initializers.single.toText(strategy)}';
         }
       }
     }

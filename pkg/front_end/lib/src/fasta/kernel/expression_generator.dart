@@ -202,7 +202,7 @@ abstract class Generator {
       int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false});
 
-  Expression_Generator buildSelectorAccess(
+  Expression_Generator_Initializer buildSelectorAccess(
       Selector selector, int operatorOffset, bool isNullAware) {
     selector.reportNewAsSelector();
     if (selector is InvocationSelector) {
@@ -266,7 +266,7 @@ abstract class Generator {
         message.withLocation(_uri, fileOffset, lengthForToken(token)));
   }
 
-  /* Expression | Generator */ Object qualifiedLookup(Token name) {
+  Expression_Generator qualifiedLookup(Token name) {
     return new UnexpectedQualifiedUseGenerator(_helper, name, this, false);
   }
 
@@ -4498,7 +4498,7 @@ class ThisAccessGenerator extends Generator {
   }
 
   @override
-  Expression_Generator buildSelectorAccess(
+  Expression_Generator_Initializer buildSelectorAccess(
       Selector selector, int operatorOffset, bool isNullAware) {
     Name name = selector.name;
     Arguments? arguments = selector.arguments;
@@ -4607,36 +4607,30 @@ class ThisAccessGenerator extends Generator {
     return super.buildUnaryOperation(token, unaryName);
   }
 
-  Initializer buildConstructorInitializer(
+  Expression_Initializer buildConstructorInitializer(
       int offset, Name name, Arguments arguments) {
-    Constructor? constructor =
-        _helper.lookupConstructor(name, isSuper: isSuper);
-    if (constructor == null) {
-      String fullName = isSuper
-          ? _helper.superConstructorNameForDiagnostics(name.text)
-          : _helper.constructorNameForDiagnostics(name.text);
-      LocatedMessage message = (isSuper
-              ? templateSuperclassHasNoConstructor
-              : templateConstructorNotFound)
-          .withArguments(fullName)
-          .withLocation(_uri, fileOffset, lengthForToken(token));
-      return _helper.buildInvalidInitializer(
-          _helper.buildUnresolvedError(
-              isSuper
-                  ? _helper.superConstructorNameForDiagnostics(name.text)
-                  : _helper.constructorNameForDiagnostics(name.text),
-              offset,
-              arguments: arguments,
-              isSuper: isSuper,
-              message: message,
-              kind: UnresolvedKind.Constructor),
-          offset);
-    } else if (isSuper) {
-      return _helper.buildSuperInitializer(
-          false, constructor, arguments, offset);
+    if (isSuper) {
+      Constructor? constructor = _helper.lookupSuperConstructor(name);
+      if (constructor == null) {
+        String fullName = _helper.superConstructorNameForDiagnostics(name.text);
+        LocatedMessage message = templateSuperclassHasNoConstructor
+            .withArguments(fullName)
+            .withLocation(_uri, fileOffset, lengthForToken(token));
+        return _helper.buildInvalidInitializer(
+            _helper.buildUnresolvedError(
+                _helper.superConstructorNameForDiagnostics(name.text), offset,
+                arguments: arguments,
+                isSuper: true,
+                message: message,
+                kind: UnresolvedKind.Constructor),
+            offset);
+      } else {
+        return _helper.buildSuperInitializer(
+            false, constructor, arguments, offset);
+      }
     } else {
-      return _helper.buildRedirectingInitializer(
-          constructor, arguments, offset);
+      return _helper.buildRedirectingInitializer(name, arguments,
+          fileOffset: offset);
     }
   }
 

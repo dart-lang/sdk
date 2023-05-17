@@ -29,6 +29,7 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart'
     show
         DelayedDefaultValueCloner,
@@ -180,16 +181,6 @@ abstract class AbstractSourceConstructorBuilder
 
   @override
   List<Initializer> get initializers;
-
-  @override
-  bool get isRedirecting {
-    for (Initializer initializer in initializers) {
-      if (initializer is RedirectingInitializer) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   void _injectInvalidInitializer(Message message, int charOffset, int length,
       ExpressionGeneratorHelper helper) {
@@ -451,6 +442,16 @@ class DeclaredSourceConstructorBuilder
       }
     }
     return isExternal;
+  }
+
+  @override
+  bool get isRedirecting {
+    for (Initializer initializer in initializers) {
+      if (initializer is RedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -1135,8 +1136,9 @@ class SourceInlineClassConstructorBuilder
     if (!isExternal) {
       VariableDeclaration thisVariable = this.thisVariable!;
       List<Statement> statements = [thisVariable];
-      _InitializerToStatementConverter visitor =
-          new _InitializerToStatementConverter(statements, thisVariable);
+      InlineClassInitializerToStatementConverter visitor =
+          new InlineClassInitializerToStatementConverter(
+              statements, thisVariable);
       for (Initializer initializer in initializers) {
         initializer.accept(visitor);
       }
@@ -1241,6 +1243,16 @@ class SourceInlineClassConstructorBuilder
   bool get isEffectivelyExternal => isExternal;
 
   @override
+  bool get isRedirecting {
+    for (Initializer initializer in initializers) {
+      if (initializer is InlineClassRedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get isEffectivelyRedirecting => isRedirecting;
 
   Substitution? _substitutionCache;
@@ -1273,14 +1285,26 @@ class SourceInlineClassConstructorBuilder
       new InlineClassConstructorBodyBuilderContext(this);
 }
 
-class _InitializerToStatementConverter implements InitializerVisitor<void> {
+class InlineClassInitializerToStatementConverter
+    implements InitializerVisitor<void> {
   VariableDeclaration thisVariable;
   final List<Statement> statements;
 
-  _InitializerToStatementConverter(this.statements, this.thisVariable);
+  InlineClassInitializerToStatementConverter(
+      this.statements, this.thisVariable);
 
   @override
   void defaultInitializer(Initializer node) {
+    if (node is InlineClassRedirectingInitializer) {
+      statements.add(new ExpressionStatement(
+          new VariableSet(
+              thisVariable,
+              new StaticInvocation(node.target, node.arguments)
+                ..fileOffset = node.fileOffset)
+            ..fileOffset = node.fileOffset)
+        ..fileOffset = node.fileOffset);
+      return;
+    }
     throw new UnsupportedError(
         "Unexpected initializer $node (${node.runtimeType})");
   }
@@ -1293,7 +1317,7 @@ class _InitializerToStatementConverter implements InitializerVisitor<void> {
   @override
   void visitFieldInitializer(FieldInitializer node) {
     thisVariable
-      ..initializer = node.value
+      ..initializer = (node.value..parent = thisVariable)
       ..fileOffset = node.fileOffset;
   }
 
@@ -1311,7 +1335,8 @@ class _InitializerToStatementConverter implements InitializerVisitor<void> {
 
   @override
   void visitRedirectingInitializer(RedirectingInitializer node) {
-    // TODO(johnniwinther): Support redirecting generative constructors.
+    throw new UnsupportedError(
+        "Unexpected initializer $node (${node.runtimeType})");
   }
 
   @override

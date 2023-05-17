@@ -38,6 +38,7 @@ import '../type_inference/inference_results.dart'
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import '../type_inference/type_schema.dart' show UnknownType;
 import 'expression_generator_helper.dart';
+import 'internal_ast.dart';
 
 abstract class BodyBuilderContext {
   final BodyBuilderDeclarationContext _declarationContext;
@@ -60,8 +61,19 @@ abstract class BodyBuilderContext {
         isSetter: isSetter);
   }
 
-  Constructor? lookupConstructor(Name name) {
+  Builder? lookupConstructor(Name name) {
     return _declarationContext.lookupConstructor(name);
+  }
+
+  /// Creates an [Initializer] for a redirecting initializer call to
+  /// [constructorBuilder] with the given [arguments] from within a constructor
+  /// in the same class.
+  Initializer buildRedirectingInitializer(
+      Builder constructorBuilder, Arguments arguments,
+      {required int fileOffset}) {
+    return _declarationContext.buildRedirectingInitializer(
+        constructorBuilder, arguments,
+        fileOffset: fileOffset);
   }
 
   Constructor? lookupSuperConstructor(Name name) {
@@ -222,6 +234,9 @@ abstract class BodyBuilderDeclarationContext {
       } else if (declarationBuilder is DillClassBuilder) {
         return new _DillClassBodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
+      } else if (declarationBuilder is SourceInlineClassBuilder) {
+        return new _SourceInlineClassBodyBuilderDeclarationContext(
+            libraryBuilder, declarationBuilder);
       } else {
         return new _DeclarationBodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
@@ -238,8 +253,14 @@ abstract class BodyBuilderDeclarationContext {
     throw new UnsupportedError('${runtimeType}.lookupSuperMember');
   }
 
-  Constructor? lookupConstructor(Name name) {
+  Builder? lookupConstructor(Name name) {
     throw new UnsupportedError('${runtimeType}.lookupConstructor');
+  }
+
+  Initializer buildRedirectingInitializer(
+      Builder constructorBuilder, Arguments arguments,
+      {required int fileOffset}) {
+    throw new UnsupportedError('${runtimeType}.buildRedirectingInitializer');
   }
 
   Constructor? lookupSuperConstructor(Name name) {
@@ -324,13 +345,23 @@ class _SourceClassBodyBuilderDeclarationContext
   }
 
   @override
-  Constructor? lookupConstructor(Name name) {
-    return _sourceClassBuilder.lookupConstructor(name, isSuper: false);
+  SourceConstructorBuilder? lookupConstructor(Name name) {
+    return _sourceClassBuilder.lookupConstructor(name);
+  }
+
+  @override
+  Initializer buildRedirectingInitializer(
+      covariant SourceConstructorBuilder constructorBuilder,
+      Arguments arguments,
+      {required int fileOffset}) {
+    return new RedirectingInitializer(
+        constructorBuilder.invokeTarget as Constructor, arguments)
+      ..fileOffset = fileOffset;
   }
 
   @override
   Constructor? lookupSuperConstructor(Name name) {
-    return _sourceClassBuilder.lookupConstructor(name, isSuper: true);
+    return _sourceClassBuilder.lookupSuperConstructor(name);
   }
 
   @override
@@ -390,6 +421,45 @@ class _DillClassBodyBuilderDeclarationContext
       {bool isSetter = false}) {
     return _declarationBuilder.lookupInstanceMember(hierarchy, name,
         isSetter: isSetter, isSuper: true);
+  }
+}
+
+class _SourceInlineClassBodyBuilderDeclarationContext
+    extends BodyBuilderDeclarationContext
+    with _DeclarationBodyBuilderDeclarationContextMixin {
+  final SourceInlineClassBuilder _sourceClassBuilder;
+
+  _SourceInlineClassBodyBuilderDeclarationContext(
+      LibraryBuilder libraryBuilder, this._sourceClassBuilder)
+      : super._(libraryBuilder);
+
+  @override
+  DeclarationBuilder get _declarationBuilder => _sourceClassBuilder;
+
+  @override
+  SourceConstructorBuilder? lookupConstructor(Name name) {
+    return _sourceClassBuilder.lookupConstructor(name);
+  }
+
+  @override
+  bool isConstructorCyclic(String source, String target) {
+    // TODO(johnniwinther): Implement this.
+    return false;
+  }
+
+  @override
+  Initializer buildRedirectingInitializer(
+      covariant SourceConstructorBuilder constructorBuilder,
+      Arguments arguments,
+      {required int fileOffset}) {
+    return new InlineClassRedirectingInitializer(
+        constructorBuilder.invokeTarget as Procedure, arguments)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
+  String get className {
+    return _sourceClassBuilder.fullNameForErrors;
   }
 }
 
@@ -711,6 +781,11 @@ class InlineClassConstructorBodyBuilderContext extends BodyBuilderContext
   InlineClassConstructorBodyBuilderContext(this._member)
       : super(_member.libraryBuilder, _member.declarationBuilder,
             isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+
+  @override
+  bool isConstructorCyclic(String name) {
+    return _declarationContext.isConstructorCyclic(_member.name, name);
+  }
 }
 
 class FactoryBodyBuilderContext extends BodyBuilderContext
@@ -723,6 +798,7 @@ class FactoryBodyBuilderContext extends BodyBuilderContext
   FactoryBodyBuilderContext(this._member)
       : super(_member.libraryBuilder, _member.declarationBuilder,
             isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+
   @override
   void setAsyncModifier(AsyncMarker asyncModifier) {
     _member.asyncModifier = asyncModifier;

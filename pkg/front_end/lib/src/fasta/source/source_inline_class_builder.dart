@@ -26,6 +26,7 @@ import '../scope.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
+import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
@@ -233,6 +234,20 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
             fileUri, charOffset, noLength)
       ]);
     }
+  }
+
+  /// Looks up the constructor by [name] on the class built by this class
+  /// builder.
+  SourceInlineClassConstructorBuilder? lookupConstructor(Name name) {
+    if (name.text == "new") {
+      name = new Name("", name.library);
+    }
+
+    Builder? builder = constructorScope.lookupLocalMember(name.text);
+    if (builder is SourceInlineClassConstructorBuilder) {
+      return builder;
+    }
+    return null;
   }
 
   // TODO(johnniwinther): Implement representationType.
