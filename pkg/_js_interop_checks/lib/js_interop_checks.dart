@@ -14,6 +14,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropEnclosingClassJSAnnotationContext,
         messageJsInteropExternalExtensionMemberOnTypeInvalid,
         messageJsInteropExternalMemberNotJSAnnotated,
+        messageJsInteropFfiNotAllowedInSameLibraryContext,
         messageJsInteropInlineClassUsedWithWrongJsAnnotation,
         messageJsInteropInvalidStaticClassMemberName,
         messageJsInteropNamedParameters,
@@ -24,11 +25,12 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropStaticInteropGenerativeConstructor,
         messageJsInteropStaticInteropSyntheticConstructor,
         templateJsInteropDartClassExtendsJSClass,
+        templateJsInteropFfiNotAllowedInSameLibrary,
+        templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNonStaticWithStaticInteropSupertype,
         templateJsInteropStaticInteropNoJSAnnotation,
         templateJsInteropStaticInteropWithInstanceMembers,
         templateJsInteropStaticInteropWithNonStaticSupertype,
-        templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNativeClassInAnnotation,
         templateJsInteropStaticInteropTearOffsDisallowed,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
@@ -69,11 +71,7 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _classHasStaticInteropAnnotation = false;
   bool _inTearoff = false;
   bool _libraryHasJSAnnotation = false;
-  // TODO(joshualitt): These checks add value for our users, but unfortunately
-  // some backends support multiple native APIs. We should really make a neutral
-  // 'ExternalUsageVerifier` class, but until then we just disable this check on
-  // Dart2Wasm.
-  final bool enableDisallowedExternalCheck;
+  final bool isDart2Wasm;
 
   /// If [enableStrictMode] is true, then static interop methods must use JS
   /// types.
@@ -131,8 +129,7 @@ class JsInteropChecks extends RecursiveVisitor {
 
   JsInteropChecks(this._coreTypes, ClassHierarchy hierarchy,
       this._diagnosticsReporter, this._nativeClasses,
-      {this.enableDisallowedExternalCheck = true,
-      this.enableStrictMode = false})
+      {this.isDart2Wasm = false, this.enableStrictMode = false})
       : exportChecker =
             ExportChecker(_diagnosticsReporter, _coreTypes.objectClass),
         _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
@@ -363,6 +360,8 @@ class JsInteropChecks extends RecursiveVisitor {
         }
       }
     }
+
+    _checkNoFfiAndInterop(node);
 
     if (_libraryHasJSAnnotation) {
       var libraryAnnotation = getJSName(node);
@@ -674,8 +673,11 @@ class JsInteropChecks extends RecursiveVisitor {
   /// Assumes given [member] is not JS interop, and reports an error if
   /// [member] is `external` and not an allowed `external` usage.
   void _checkDisallowedExternal(Member member) {
-    // Some backends have multiple native APIs.
-    if (!enableDisallowedExternalCheck) return;
+    // TODO(joshualitt): These checks add value for our users, but unfortunately
+    // some backends support multiple native APIs. We should really make a
+    // neutral 'ExternalUsageVerifier` class, but until then we just disable
+    // this check on Dart2Wasm.
+    if (isDart2Wasm) return;
     if (member.isExternal) {
       if (_isAllowedExternalUsage(member)) return;
       if (member.isExtensionMember) {
@@ -859,6 +861,58 @@ class JsInteropChecks extends RecursiveVisitor {
       return true;
     }
     return false;
+  }
+
+  /// Check that [node] doesn't import 'dart:ffi' and an interop library.
+  ///
+  /// Note that this check is only enabled for Dart2Wasm as the JS backends
+  /// cannot import 'dart:ffi'.
+  ///
+  /// TODO(srujzs): This only checks direct imports, but not imports of
+  /// libraries that may transitively export 'dart:ffi'. It's not clear if this
+  /// is worthwhile to check, as it's probably rare, and processing every
+  /// imported library's exports might be needlessly expensive.
+  void _checkNoFfiAndInterop(Library node) {
+    if (!isDart2Wasm) return;
+    LibraryDependency? ffi;
+    final interopLibraries = <LibraryDependency>[];
+    // TODO(srujzs): Remove unavailable libraries once they're removed on
+    // dart2wasm.
+    const publicInteropLibraries = <String>{
+      'dart:js',
+      'dart:js_interop',
+      'dart:js_interop_unsafe',
+      'dart:js_util',
+      'package:js/js.dart',
+      'package:js/js_util.dart',
+    };
+    for (final dependency in node.dependencies) {
+      if (dependency.isImport) {
+        final uri = dependency.targetLibrary.importUri.toString();
+        if (uri == 'dart:ffi') {
+          ffi = dependency;
+        } else if (publicInteropLibraries.contains(uri)) {
+          interopLibraries.add(dependency);
+        }
+      }
+    }
+    if (ffi != null && interopLibraries.isNotEmpty) {
+      for (final dependency in interopLibraries) {
+        _diagnosticsReporter.report(
+            templateJsInteropFfiNotAllowedInSameLibrary
+                .withArguments(dependency.targetLibrary.importUri.toString()),
+            dependency.fileOffset,
+            1,
+            dependency.location!.file,
+            context: <LocatedMessage>[
+              messageJsInteropFfiNotAllowedInSameLibraryContext.withLocation(
+                ffi.location!.file,
+                ffi.fileOffset,
+                1,
+              )
+            ]);
+      }
+    }
   }
 }
 

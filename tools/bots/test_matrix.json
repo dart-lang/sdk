@@ -604,17 +604,6 @@
         "nnbd": "strong"
       }
     },
-    "dartkp-(linux|win|mac)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
-      "options": {
-        "use-elf": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ]
-      }
-    },
     "vm-aot-dwarf-linux-(debug|release|product)-x64": {
       "options": {
         "builder-tag": "dwarf",
@@ -625,7 +614,7 @@
         "use-elf": true
       }
     },
-    "dartkp-(linux|mac)-(debug|release|product)-(x64|x64c)": {
+    "dartkp-linux-(debug|release)-x64": {
       "options": {
         "vm-options": [
           "--no-sound-null-safety"
@@ -644,48 +633,23 @@
         ]
       }
     },
-    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
+    "dartk-linux-(debug|release)-x64": {
       "options": {
         "vm-options": [
           "--no-sound-null-safety"
         ]
       }
     },
-    "dartk-linux-debug-(ia32|x64)-canary": {
-      "options": {
-        "builder-tag": "canary",
-        "vm-options": [
-          "--no-sound-null-safety"
-        ]
-      }
-    },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(arm64|x64|x64c)": {
+    "dartkp-weak-asserts-linux-(debug|release)-x64": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
-      "options": {
-        "enable-asserts": true,
-        "use-elf": true,
-        "builder-tag": "vm_nnbd"
-      }
-    },
-    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|x64|x64c|simriscv32|simriscv64)": {
+    "dartk-weak-asserts-linux-(debug|release)-x64": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
-      }
-    },
-    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
-      "options": {
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ]
       }
     },
     "vm-eager-optimization-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
@@ -1326,8 +1290,7 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-linux-debug-x64",
-        "vm-kernel-precomp-linux-release-simarm"
+        "vm-kernel-precomp-linux-debug-x64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp debug builders. It uses 15 shards for testing to avoid 1 hour shard timeouts."
@@ -1682,31 +1645,6 @@
             "runtime",
             "runtime_precompiled"
           ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-win-debug-ia32"
-      ],
-      "meta": {
-        "description": "This configuration is for the kernel builder group."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartk-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
         }
       ]
     },

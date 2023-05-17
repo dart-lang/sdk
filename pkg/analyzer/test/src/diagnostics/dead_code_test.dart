@@ -137,6 +137,20 @@ void f(int a) {
       error(WarningCode.DEAD_CODE, 30, 7),
     ]);
   }
+
+  test_objectPattern_neverTypedGetter() async {
+    await assertErrorsInCode(r'''
+class A {
+  Never get foo => throw 0;
+}
+
+void f(Object x) {
+  if (x case A(foo: _)) {}
+}
+''', [
+      error(WarningCode.DEAD_CODE, 84, 2),
+    ]);
+  }
 }
 
 @reflectiveTest

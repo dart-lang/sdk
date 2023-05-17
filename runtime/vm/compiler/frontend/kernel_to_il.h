@@ -1038,22 +1038,13 @@ class SwitchHelper {
   SwitchHelper(Zone* zone,
                TokenPosition position,
                bool is_exhaustive,
+               const AbstractType& expression_type,
                SwitchBlock* switch_block,
-               intptr_t case_count)
-      : zone_(zone),
-        position_(position),
-        is_exhaustive_(is_exhaustive),
-        switch_block_(switch_block),
-        case_count_(case_count),
-        case_bodies_(case_count),
-        case_expression_counts_(case_count),
-        expressions_(case_count),
-        sorted_expressions_(case_count) {
-    case_expression_counts_.FillWith(0, 0, case_count);
-  }
+               intptr_t case_count);
 
-  // A switch statement is optimizable if all expression are of the same type
-  // and have integer representations.
+  // A switch statement is optimizable if static type of the scrutinee
+  // expression is a non-nullable int or enum, and all case expressions
+  // are instances of the scrutinee static type.
   bool is_optimizable() const { return is_optimizable_; }
   const TokenPosition& position() const { return position_; }
   bool is_exhaustive() const { return is_exhaustive_; }
@@ -1082,11 +1073,8 @@ class SwitchHelper {
     return sorted_expressions_;
   }
 
-  // The common class of all expressions. The statement must be optimizable.
-  const Class& expression_class() const {
-    ASSERT(expression_class_ != nullptr);
-    return *expression_class_;
-  }
+  // Static type of the scrutinee expression.
+  const AbstractType& expression_type() const { return expression_type_; }
 
   const Integer& expression_min() const {
     ASSERT(expression_min_ != nullptr);
@@ -1099,7 +1087,7 @@ class SwitchHelper {
 
   bool has_default() const { return default_case_ >= 0; }
 
-  bool is_enum_switch() const { return expression_class().is_enum_class(); }
+  bool is_enum_switch() const { return is_enum_switch_; }
 
   // Returns size of [min..max] range, or kMaxInt64 on overflow.
   int64_t ExpressionRange() const;
@@ -1120,8 +1108,10 @@ class SwitchHelper {
 
   Zone* zone_;
   bool is_optimizable_ = false;
+  bool is_enum_switch_ = false;
   const TokenPosition position_;
   const bool is_exhaustive_;
+  const AbstractType& expression_type_;
   SwitchBlock* const switch_block_;
   const intptr_t case_count_;
   intptr_t default_case_ = -1;
@@ -1129,7 +1119,6 @@ class SwitchHelper {
   GrowableArray<intptr_t> case_expression_counts_;
   GrowableArray<SwitchExpression> expressions_;
   GrowableArray<SwitchExpression*> sorted_expressions_;
-  const Class* expression_class_ = nullptr;
   const Integer* expression_min_ = nullptr;
   const Integer* expression_max_ = nullptr;
 };

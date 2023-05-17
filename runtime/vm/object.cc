@@ -3695,7 +3695,9 @@ TypeParameterPtr Class::TypeParameterAt(intptr_t index,
   ASSERT(index >= 0 && index < NumTypeParameters());
   TypeParameter& type_param =
       TypeParameter::Handle(TypeParameter::New(*this, 0, index, nullability));
-  if (is_type_finalized()) {
+  // Finalize type parameter only if its declaring class is
+  // finalized and available in the current class table.
+  if (is_type_finalized() && (type_param.parameterized_class() == ptr())) {
     type_param ^= ClassFinalizer::FinalizeType(type_param);
   }
   return type_param.ptr();
