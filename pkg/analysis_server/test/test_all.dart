@@ -26,7 +26,6 @@ import 'services/test_all.dart' as services;
 import 'socket_server_test.dart' as socket_server;
 import 'src/test_all.dart' as src;
 import 'tool/test_all.dart' as tool;
-import 'utilities/test_all.dart' as utilities;
 import 'verify_error_fix_status_test.dart' as verify_error_fix_status;
 import 'verify_no_solo_test.dart' as verify_no_solo;
 import 'verify_sorted_test.dart' as verify_sorted;
@@ -55,7 +54,6 @@ void main() {
     socket_server.main();
     src.main();
     tool.main();
-    utilities.main();
     verify_error_fix_status.main();
     verify_no_solo.main();
     verify_sorted.main();
