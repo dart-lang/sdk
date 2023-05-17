@@ -4,6 +4,12 @@
 
 ### Libraries
 
+#### `dart:core`
+
+- `Uri.base` on native platforms now respectes `IOOverrides` overriding
+   current directory ([#39796][]).
+
+[#39796]: https://darbug.com/39796
 #### `dart:io`
 
 - **Breaking change** [#51486][]:

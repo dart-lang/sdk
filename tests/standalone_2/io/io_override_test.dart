@@ -12,6 +12,7 @@ import 'dart:typed_data';
 import "package:expect/expect.dart";
 
 class DirectoryMock extends FileSystemEntity implements Directory {
+  static final _mockUri = Uri.parse('http:///mockdir/');
   final String path = "/mockdir";
 
   DirectoryMock(String path);
@@ -20,8 +21,8 @@ class DirectoryMock extends FileSystemEntity implements Directory {
   static DirectoryMock getCurrent() => new DirectoryMock(null);
   static void setCurrent(String path) {}
   static DirectoryMock getSystemTemp() => new DirectoryMock(null);
+  Uri get uri => _mockUri;
 
-  Uri get uri => null;
   Future<Directory> create({bool recursive: false}) => null;
   void createSync({bool recursive: false}) {}
   Future<Directory> createTemp([String prefix]) => null;
@@ -205,6 +206,7 @@ Future<Null> ioOverridesRunTest() async {
     () async {
       Expect.isTrue(new Directory("directory") is DirectoryMock);
       Expect.isTrue(Directory.current is DirectoryMock);
+      Expect.identical(Uri.base, DirectoryMock._mockUri);
       Expect.isTrue(Directory.systemTemp is DirectoryMock);
       Expect.isTrue(new File("file") is FileMock);
       Expect.isTrue(await FileStat.stat("file") is FileStatMock);
