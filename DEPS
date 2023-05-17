@@ -135,7 +135,7 @@ vars = {
   "dart_style_rev": "156f5c8c3bfe4e3b8e7adc95f7cf24d9500f11c6", # disable rev_sdk_deps.dart
   "dartdoc_rev": "2952f6bfa5812f8dc7d76eb682c3df5831e710d4",
   "ffi_rev": "7f4acbd7532d94a793452030ff96bfef8cd96b68",
-  "file_rev": "f05f5db0733274bed584e9915c39d34bb812fbb8",
+  "file_rev": "e90e5ed8e9695f68bb00d2839c6b91233f48b8d9",
   "fixnum_rev": "006a130f193469f0cabb928d44b0b5b099c47bca",
   "glob_rev": "46403bee475c70f0448fcc1ce32035daf618929d",
   "html_rev": "593d6f67ef93477312d85c403f5a9b5928467f9c",
