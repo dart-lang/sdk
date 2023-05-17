@@ -1989,9 +1989,7 @@ LintCode.cancel_subscriptions:
 LintCode.cascade_invocations:
   status: hasFix
 LintCode.cast_nullable_to_non_nullable:
-  status: needsFix
-  notes: |-
-    The fix is to add an explicit null check (`!`).
+  status: hasFix
 LintCode.close_sinks:
   status: noFix
 LintCode.collection_methods_unrelated_type:
