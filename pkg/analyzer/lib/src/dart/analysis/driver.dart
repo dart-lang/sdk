@@ -1346,34 +1346,56 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           testingData: testingData,
         ).analyze();
 
-        late UnitAnalysisResult fileResult;
-        late Uint8List bytes;
+        final isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
+
+        late AnalysisResult result;
         for (var unitResult in results) {
-          var unitBytes =
-              _serializeResolvedUnit(unitResult.unit, unitResult.errors);
-          String unitSignature =
-              _getResolvedUnitSignature(library, unitResult.file);
+          var unitFile = unitResult.file;
+
+          final index = enableIndex
+              ? indexUnit(unitResult.unit)
+              : AnalysisDriverUnitIndexBuilder();
+
+          final unitBytes = AnalysisDriverResolvedUnitBuilder(
+            errors: unitResult.errors.map((error) {
+              return ErrorEncoding.encode(error);
+            }).toList(),
+            index: index,
+          ).toBuffer();
+
+          final resolvedUnit = _createResolvedUnitImpl(
+            file: unitFile,
+            unitResult: unitResult,
+          );
+
+          if (isLibraryWithPriorityFile) {
+            _priorityResults[unitFile.path] = resolvedUnit;
+          }
+
+          String unitSignature = _getResolvedUnitSignature(library, unitFile);
           String unitKey = _getResolvedUnitKey(unitSignature);
           _byteStore.putGet(unitKey, unitBytes);
-          if (unitResult.file == file) {
-            fileResult = unitResult;
-            bytes = unitBytes;
+
+          _updateHasErrorOrWarningFlag(file, resolvedUnit.errors);
+
+          if (unitFile == file) {
+            if (withUnit) {
+              result = AnalysisResult.unit(signature, resolvedUnit, index);
+            } else {
+              result = AnalysisResult.errors(
+                signature,
+                _createErrorsResultImpl(
+                  file: unitFile,
+                  errors: unitResult.errors,
+                ),
+                index,
+              );
+            }
           }
         }
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        var result = _getAnalysisResultFromBytes(
-          file,
-          signature,
-          bytes,
-          content: withUnit ? file.content : null,
-          resolvedUnit: withUnit ? fileResult.unit : null,
-          errors: fileResult.errors,
-        );
-        if (withUnit && _priorityFiles.contains(path)) {
-          _priorityResults[path] = result.unitResult!;
-        }
         return result;
       } catch (exception, stackTrace) {
         String? contextKey =
@@ -1421,18 +1443,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       for (var unitResult in unitResults) {
         var unitFile = unitResult.file;
         resolvedUnits.add(
-          ResolvedUnitResultImpl(
-            session: currentSession,
-            path: unitFile.path,
-            uri: unitFile.uri,
-            exists: unitFile.exists,
-            content: unitFile.content,
-            lineInfo: unitFile.lineInfo,
-            isAugmentation: unitFile.kind is AugmentationFileKind,
-            isLibrary: unitFile.kind is LibraryFileKind,
-            isPart: unitFile.kind is PartFileKind,
-            unit: unitResult.unit,
-            errors: unitResult.errors,
+          _createResolvedUnitImpl(
+            file: unitFile,
+            unitResult: unitResult,
           ),
         );
       }
@@ -1472,6 +1485,22 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     });
   }
 
+  ErrorsResultImpl _createErrorsResultImpl({
+    required FileState file,
+    required List<AnalysisError> errors,
+  }) {
+    return ErrorsResultImpl(
+      session: currentSession,
+      path: file.path,
+      uri: file.uri,
+      lineInfo: file.lineInfo,
+      isAugmentation: file.kind is AugmentationFileKind,
+      isLibrary: file.kind is LibraryFileKind,
+      isPart: file.kind is PartFileKind,
+      errors: errors,
+    );
+  }
+
   /// Creates new [FileSystemState] and [FileTracker] objects.
   ///
   /// This is used both on initial construction and whenever the configuration
@@ -1507,6 +1536,25 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       testData: testView?.fileSystem,
     );
     _fileTracker = FileTracker(_logger, _fsState, _fileContentStrategy);
+  }
+
+  ResolvedUnitResultImpl _createResolvedUnitImpl({
+    required FileState file,
+    required UnitAnalysisResult unitResult,
+  }) {
+    return ResolvedUnitResultImpl(
+      session: currentSession,
+      path: file.path,
+      uri: file.uri,
+      exists: file.exists,
+      content: file.content,
+      lineInfo: file.lineInfo,
+      isAugmentation: file.kind is AugmentationFileKind,
+      isLibrary: file.kind is LibraryFileKind,
+      isPart: file.kind is PartFileKind,
+      unit: unitResult.unit,
+      errors: unitResult.errors,
+    );
   }
 
   /// If this has not been done yet, schedule discovery of all files that are
@@ -1620,14 +1668,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       );
       return AnalysisResult.unit(signature, resolvedUnitResult, index);
     } else {
-      var errorsResult = ErrorsResultImpl(
-        session: currentSession,
-        path: file.path,
-        uri: file.uri,
-        lineInfo: file.lineInfo,
-        isAugmentation: file.kind is AugmentationFileKind,
-        isLibrary: file.kind is LibraryFileKind,
-        isPart: file.kind is PartFileKind,
+      var errorsResult = _createErrorsResultImpl(
+        file: file,
         errors: errors,
       );
       return AnalysisResult.errors(signature, errorsResult, index);
@@ -1675,6 +1717,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   bool _isAbsolutePath(String path) {
     return _resourceProvider.pathContext.isAbsolute(path);
+  }
+
+  bool _isLibraryWithPriorityFile(LibraryFileKind library) {
+    for (final file in library.files) {
+      if (_priorityFiles.contains(file.path)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Future<void> _maybeDispose() async {
@@ -1841,20 +1892,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         resolvedNodes: analysisResult.resolvedNodes,
       );
     });
-  }
-
-  /// Serialize the given [resolvedUnit] errors and index into bytes.
-  Uint8List _serializeResolvedUnit(
-      CompilationUnit resolvedUnit, List<AnalysisError> errors) {
-    AnalysisDriverUnitIndexBuilder index = enableIndex
-        ? indexUnit(resolvedUnit)
-        : AnalysisDriverUnitIndexBuilder();
-    return AnalysisDriverResolvedUnitBuilder(
-            errors: errors.map((error) {
-              return ErrorEncoding.encode(error);
-            }).toList(),
-            index: index)
-        .toBuffer();
   }
 
   String? _storeExceptionContext(String path, LibraryFileKind library,
