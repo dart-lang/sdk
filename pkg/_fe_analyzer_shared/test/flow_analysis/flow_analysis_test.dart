@@ -8072,6 +8072,22 @@ main() {
           ]);
         });
       });
+
+      test('Read of Never typed getter makes unreachable', () {
+        h.addDownwardInfer(name: 'A', context: 'Object', result: 'A');
+        h.addMember('A', 'foo', 'Never');
+        h.run([
+          ifCase(
+            expr('Object'),
+            objectPattern(requiredType: 'A', fields: [
+              Var('foo').pattern().recordField('foo'),
+            ]),
+            [
+              checkReachable(false),
+            ],
+          ),
+        ]);
+      });
     });
 
     group('Pattern assignment:', () {

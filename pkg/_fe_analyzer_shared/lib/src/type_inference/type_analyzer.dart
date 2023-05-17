@@ -1293,6 +1293,9 @@ mixin TypeAnalyzer<
             receiverType: requiredType,
             field: field,
           );
+      if (operations.isNever(propertyType)) {
+        flow.handleExit();
+      }
       flow.pushSubpattern(propertyType);
       dispatchPattern(
         context.withUnnecessaryWildcardKind(null),
