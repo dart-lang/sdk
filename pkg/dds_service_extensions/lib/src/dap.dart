@@ -1,12 +1,11 @@
-import 'package:dap/dap.dart' as dap;
 // ignore: implementation_imports
-import 'package:vm_service/src/vm_service.dart' as vm;
+import 'package:vm_service/src/vm_service.dart';
 
-extension DapExtension on vm.VmService {
+extension DapExtension on VmService {
   static bool _factoriesRegistered = false;
-  Future<DapResponse> sendDapRequest(String message) async {
+  Future<DapResponse> handleDap(String message) async {
     return _callHelper<DapResponse>(
-      'sendDapRequest',
+      'handleDap',
       args: {'message': message},
     );
   }
@@ -26,21 +25,20 @@ extension DapExtension on vm.VmService {
   }
 
   static void _registerFactories() {
-    vm.addTypeFactory('DapResponse', DapResponse.parse);
+    addTypeFactory('DapResponse', DapResponse.parse);
     _factoriesRegistered = true;
   }
 }
 
-class DapResponse extends vm.Response {
+class DapResponse extends Response {
   static DapResponse? parse(Map<String, dynamic>? json) =>
       json == null ? null : DapResponse._fromJson(json);
 
   DapResponse({
-    required this.dapResponse,
+    required this.message,
   });
 
-  DapResponse._fromJson(Map<String, dynamic> json)
-      : dapResponse = dap.Response.fromJson(json['dapResponse']);
+  DapResponse._fromJson(Map<String, dynamic> json) : message = json['message'];
 
   @override
   String get type => 'DapResponse';
@@ -48,5 +46,5 @@ class DapResponse extends vm.Response {
   @override
   String toString() => '[DapResponse]';
 
-  final dap.Response dapResponse;
+  final Map<String, Object?> message;
 }
