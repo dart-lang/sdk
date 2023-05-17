@@ -81,17 +81,6 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
                                                : function.EnsureHasCode());
   ASSERT(!code.IsNull());
 
-#if defined(TARGET_ARCH_IA32)
-  // On ia32, store the stack delta that we need to use when returning.
-  const intptr_t stack_return_delta =
-      function.FfiCSignatureReturnsStruct() && CallingConventions::kUsesRet4
-          ? compiler::target::kWordSize
-          : 0;
-#else
-  const intptr_t stack_return_delta = 0;
-#endif
-  thread->SetFfiCallbackCode(function, code, stack_return_delta);
-
   uword entry_point = code.EntryPoint();
 
   // In JIT we use one more indirection:
@@ -105,8 +94,9 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   // is why we use the jit trampoline).
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (NativeCallbackTrampolines::Enabled()) {
-    entry_point = isolate->native_callback_trampolines()->TrampolineForId(
-        function.FfiCallbackId());
+    entry_point =
+        isolate->group()->native_callback_trampolines()->TrampolineForId(
+            function.FfiCallbackId());
   }
 #endif
 

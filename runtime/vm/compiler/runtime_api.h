@@ -1206,8 +1206,6 @@ class Thread : public AllStatic {
   static word saved_stack_limit_offset();
   static word unboxed_runtime_arg_offset();
 
-  static word callback_code_offset();
-  static word callback_stack_return_offset();
   static word tsan_utils_offset();
   static word jump_to_frame_entry_point_offset();
 
@@ -1318,6 +1316,9 @@ class ObjectStore : public AllStatic {
   static word record_field_names_offset();
   static word string_type_offset();
   static word type_type_offset();
+
+  static word ffi_callback_code_offset();
+  static word ffi_callback_stack_return_offset();
 
   static word suspend_state_await_offset();
   static word suspend_state_await_with_type_check_offset();

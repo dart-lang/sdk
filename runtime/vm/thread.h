@@ -457,13 +457,6 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, safepoint_state_);
   }
 
-  static intptr_t callback_code_offset() {
-    return OFFSET_OF(Thread, ffi_callback_code_);
-  }
-
-  static intptr_t callback_stack_return_offset() {
-    return OFFSET_OF(Thread, ffi_callback_stack_return_);
-  }
 
   // Tag state is maintained on transitions.
   enum {
@@ -1097,22 +1090,6 @@ class Thread : public ThreadState {
     }
   }
 
-  // Store 'code' for the native callback identified by 'callback_id'.
-  //
-  // Expands the callback code array as necessary to accomodate the callback
-  // ID.
-  void SetFfiCallbackCode(const Function& ffi_trampoline,
-                          const Code& code,
-                          intptr_t stack_return_delta);
-
-  // Ensure that 'callback_id' refers to a valid callback in this isolate.
-  //
-  // If "entry != 0", additionally checks that entry is inside the instructions
-  // of this callback.
-  //
-  // Aborts if any of these conditions fails.
-  void VerifyCallbackIsolate(int32_t callback_id, uword entry);
-
   Thread* next() const { return next_; }
 
   // Visit all object pointers.
@@ -1283,8 +1260,6 @@ class Thread : public ThreadState {
    *     [UnwindErrorInProgressField]
    */
   std::atomic<uword> safepoint_state_;
-  GrowableObjectArrayPtr ffi_callback_code_;
-  TypedDataPtr ffi_callback_stack_return_;
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
   uint8_t double_truncate_round_supported_;
@@ -1452,10 +1427,6 @@ class Thread : public ThreadState {
   //
   // Thread needs to be at-safepoint.
   static void FreeActiveThread(Thread* thread, bool bypass_safepoint);
-
-  // Ensures that we have allocated necessary thread-local data structures for
-  // [callback_id].
-  void EnsureFfiCallbackMetadata(intptr_t callback_id);
 
   static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 

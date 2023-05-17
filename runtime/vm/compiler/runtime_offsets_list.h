@@ -195,6 +195,8 @@
   FIELD(ObjectStore, record_field_names_offset)                                \
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(ObjectStore, type_type_offset)                                         \
+  FIELD(ObjectStore, ffi_callback_code_offset)                                 \
+  FIELD(ObjectStore, ffi_callback_stack_return_offset)                         \
   FIELD(ObjectStore, suspend_state_await_offset)                               \
   FIELD(ObjectStore, suspend_state_await_with_type_check_offset)               \
   FIELD(ObjectStore, suspend_state_handle_exception_offset)                    \
@@ -340,8 +342,6 @@
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
   COMPRESSED_ONLY(FIELD(Thread, heap_base_offset))                             \
-  FIELD(Thread, callback_code_offset)                                          \
-  FIELD(Thread, callback_stack_return_offset)                                  \
   FIELD(Thread, next_task_id_offset)                                           \
   FIELD(Thread, random_offset)                                                 \
   FIELD(Thread, jump_to_frame_entry_point_offset)                              \

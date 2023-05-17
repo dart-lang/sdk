@@ -72,8 +72,6 @@ Thread::Thread(bool is_vm_isolate)
       resume_pc_(0),
       execution_state_(kThreadInNative),
       safepoint_state_(0),
-      ffi_callback_code_(GrowableObjectArray::null()),
-      ffi_callback_stack_return_(TypedData::null()),
       api_top_scope_(nullptr),
       double_truncate_round_supported_(
           TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
@@ -346,8 +344,6 @@ void Thread::AssertEmptyThreadInvariants() {
   if (active_stacktrace_.untag() != 0) {
     ASSERT(field_table_values_ == nullptr);
     ASSERT(global_object_pool_ == Object::null());
-    ASSERT(ffi_callback_code_ == Object::null());
-    ASSERT(ffi_callback_stack_return_ == Object::null());
 #define CHECK_REUSABLE_HANDLE(object) ASSERT(object##_handle_->IsNull());
     REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
 #undef CHECK_REUSABLE_HANDLE
@@ -888,9 +884,6 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_exception_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ffi_callback_code_));
-  visitor->VisitPointer(
-      reinterpret_cast<ObjectPtr*>(&ffi_callback_stack_return_));
 
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;
@@ -1378,8 +1371,6 @@ void Thread::ResetDartMutatorState(Isolate* isolate) {
   is_unwind_in_progress_ = false;
 
   field_table_values_ = nullptr;
-  ffi_callback_code_ = GrowableObjectArray::null();
-  ffi_callback_stack_return_ = TypedData::null();
   ONLY_IN_PRECOMPILED(global_object_pool_ = ObjectPool::null());
   ONLY_IN_PRECOMPILED(dispatch_table_array_ = nullptr);
 }
@@ -1431,113 +1422,6 @@ NoReloadScope::~NoReloadScope() {
     }
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-}
-
-void Thread::EnsureFfiCallbackMetadata(intptr_t callback_id) {
-  static constexpr intptr_t kInitialCallbackIdsReserved = 16;
-
-  if (ffi_callback_code_ == GrowableObjectArray::null()) {
-    ffi_callback_code_ = GrowableObjectArray::New(kInitialCallbackIdsReserved);
-  }
-#if defined(TARGET_ARCH_IA32)
-  if (ffi_callback_stack_return_ == TypedData::null()) {
-    ffi_callback_stack_return_ = TypedData::New(
-        kTypedDataInt8ArrayCid, kInitialCallbackIdsReserved, Heap::kOld);
-  }
-#endif  // defined(TARGET_ARCH_IA32)
-
-  const auto& code_array =
-      GrowableObjectArray::Handle(zone(), ffi_callback_code_);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  auto* const tramps = isolate()->native_callback_trampolines();
-#if defined(TARGET_ARCH_IA32)
-  auto& stack_array = TypedData::Handle(zone(), ffi_callback_stack_return_);
-#endif
-#endif
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // Verify invariants of the 3 arrays hold.
-  ASSERT(code_array.Length() == tramps->next_callback_id());
-#if defined(TARGET_ARCH_IA32)
-  ASSERT(code_array.Length() <= stack_array.Length());
-#endif
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-  if (code_array.Length() <= callback_id) {
-    // Ensure we've enough space in the 3 arrays.
-    while (!(callback_id < code_array.Length())) {
-      code_array.Add(Code::null_object());
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      tramps->AllocateTrampoline();
-#endif
-    }
-
-#if defined(TARGET_ARCH_IA32)
-    if (callback_id >= stack_array.Length()) {
-      const int32_t capacity = stack_array.Length();
-      if (callback_id >= capacity) {
-        // Ensure both that we grow enough and an exponential growth strategy.
-        const int32_t new_capacity =
-            Utils::Maximum(callback_id + 1, capacity * 2);
-        stack_array = TypedData::Grow(stack_array, new_capacity);
-        ffi_callback_stack_return_ = stack_array.ptr();
-      }
-    }
-#endif  // defined(TARGET_ARCH_IA32)
-  }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // Verify invariants of the 3 arrays (still) hold.
-  ASSERT(code_array.Length() == tramps->next_callback_id());
-#if defined(TARGET_ARCH_IA32)
-  ASSERT(code_array.Length() <= stack_array.Length());
-#endif
-#endif
-  ASSERT(callback_id < code_array.Length());
-}
-
-void Thread::SetFfiCallbackCode(const Function& ffi_trampoline,
-                                const Code& code,
-                                intptr_t stack_return_delta) {
-  const intptr_t callback_id = ffi_trampoline.FfiCallbackId();
-  EnsureFfiCallbackMetadata(callback_id);
-
-  const auto& code_array =
-      GrowableObjectArray::Handle(zone(), ffi_callback_code_);
-  code_array.SetAt(callback_id, code);
-
-#if defined(TARGET_ARCH_IA32)
-  const auto& stack_delta_array =
-      TypedData::Handle(zone(), ffi_callback_stack_return_);
-  stack_delta_array.SetUint8(callback_id, stack_return_delta);
-#endif  // defined(TARGET_ARCH_IA32)
-}
-
-void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {
-  NoSafepointScope _;
-
-  const GrowableObjectArrayPtr array = ffi_callback_code_;
-  if (array == GrowableObjectArray::null()) {
-    FATAL("Cannot invoke callback on incorrect isolate.");
-  }
-
-  const SmiPtr length_smi = GrowableObjectArray::NoSafepointLength(array);
-  const intptr_t length = Smi::Value(length_smi);
-
-  if (callback_id < 0 || callback_id >= length) {
-    FATAL("Cannot invoke callback on incorrect isolate.");
-  }
-
-  if (entry != 0) {
-    CompressedObjectPtr* const code_array =
-        Array::DataOf(GrowableObjectArray::NoSafepointData(array));
-    // RawCast allocates handles in ASSERTs.
-    const CodePtr code = static_cast<CodePtr>(
-        code_array[callback_id].Decompress(array.heap_base()));
-    if (!Code::ContainsInstructionAt(code, entry)) {
-      FATAL("Cannot invoke callback on incorrect isolate.");
-    }
-  }
 }
 
 }  // namespace dart

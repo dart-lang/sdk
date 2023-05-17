@@ -335,6 +335,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       is_system_isolate_group_(source->flags.is_system_isolate),
       random_(),
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      native_callback_trampolines_(),
+#endif
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
@@ -1570,9 +1573,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       finalizers_(GrowableObjectArray::null()),
       isolate_group_(isolate_group),
       isolate_object_store_(new IsolateObjectStore()),
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      native_callback_trampolines_(),
-#endif
       isolate_flags_(0),
 #if !defined(PRODUCT)
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),

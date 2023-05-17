@@ -12,11 +12,10 @@
 namespace dart {
 
 static HMODULE ntdll_module;
-static decltype(
-    &::RtlAddGrowableFunctionTable) add_growable_function_table_func_ = nullptr;
-static decltype(
-    &::RtlDeleteGrowableFunctionTable) delete_growable_function_table_func_ =
-    nullptr;
+static decltype(&::RtlAddGrowableFunctionTable)
+    add_growable_function_table_func_ = nullptr;
+static decltype(&::RtlDeleteGrowableFunctionTable)
+    delete_growable_function_table_func_ = nullptr;
 
 const intptr_t kReservedUnwindingRecordsSizeBytes = 64;
 intptr_t UnwindingRecordsPlatform::SizeInBytes() {
