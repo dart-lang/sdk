@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'class_member_test.dart' as class_member;
 import 'class_test.dart' as class_;
+import 'closure_test.dart' as closure;
 import 'constructor_test.dart' as constructor_;
 import 'enum_test.dart' as enum_;
 import 'extension_member_test.dart' as extension_member;
@@ -23,6 +24,7 @@ void main() {
   defineReflectiveSuite(() {
     class_member.main();
     class_.main();
+    closure.main();
     constructor_.main();
     enum_.main();
     extension_member.main();
