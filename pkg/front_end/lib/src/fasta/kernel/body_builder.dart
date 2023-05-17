@@ -2034,7 +2034,7 @@ class BodyBuilder extends StackListenerImpl
       /// >If no superinitializer is provided, an implicit superinitializer
       /// >of the form super() is added at the end of k’s initializer list,
       /// >unless the enclosing class is class Object.
-      Constructor? superTarget = lookupConstructor(emptyName, isSuper: true);
+      Constructor? superTarget = lookupSuperConstructor(emptyName);
       Initializer initializer;
       ArgumentsImpl arguments;
       List<Expression>? positionalArguments;
@@ -3128,10 +3128,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  Constructor? lookupConstructor(Name name, {bool isSuper = false}) {
-    return isSuper
-        ? _context.lookupSuperConstructor(name)
-        : _context.lookupConstructor(name);
+  Constructor? lookupSuperConstructor(Name name) {
+    return _context.lookupSuperConstructor(name);
   }
 
   @override
@@ -8831,18 +8829,37 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  Initializer buildRedirectingInitializer(
-      Constructor constructor, Arguments arguments,
-      [int charOffset = -1]) {
-    if (_context.isConstructorCyclic(constructor.name.text)) {
-      int length = constructor.name.text.length;
-      if (length == 0) length = "this".length;
-      addProblem(fasta.messageConstructorCyclic, charOffset, length);
-      // TODO(askesc): Produce invalid initializer.
+  Initializer buildRedirectingInitializer(Name name, Arguments arguments,
+      {required int fileOffset}) {
+    Builder? constructorBuilder = _context.lookupConstructor(name);
+    if (constructorBuilder == null) {
+      int length = name.text.length;
+      if (length == 0) {
+        // The constructor is unnamed so the offset points to 'this'.
+        length = "this".length;
+      }
+      String fullName = constructorNameForDiagnostics(name.text);
+      LocatedMessage message = fasta.templateConstructorNotFound
+          .withArguments(fullName)
+          .withLocation(uri, fileOffset, length);
+      return buildInvalidInitializer(
+          buildUnresolvedError(fullName, fileOffset,
+              arguments: arguments,
+              isSuper: false,
+              message: message,
+              kind: UnresolvedKind.Constructor),
+          fileOffset);
+    } else {
+      if (_context.isConstructorCyclic(name.text)) {
+        int length = name.text.length;
+        if (length == 0) length = "this".length;
+        addProblem(fasta.messageConstructorCyclic, fileOffset, length);
+        // TODO(askesc): Produce invalid initializer.
+      }
+      needsImplicitSuperInitializer = false;
+      return _context.buildRedirectingInitializer(constructorBuilder, arguments,
+          fileOffset: fileOffset);
     }
-    needsImplicitSuperInitializer = false;
-    return new RedirectingInitializer(constructor, arguments)
-      ..fileOffset = charOffset;
   }
 
   @override

@@ -7853,6 +7853,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         (int i) => new TypeParameterType.withDefaultNullabilityForLibrary(
             classTypeParameters[i], libraryBuilder.library),
         growable: false);
+    // The redirecting initializer syntax doesn't include type arguments passed
+    // to the target constructor but we need to add them to the arguments before
+    // calling [inferInvocation]. These are removed again afterwards.
     ArgumentsImpl.setNonInferrableArgumentTypes(
         node.arguments as ArgumentsImpl, typeArguments);
     FunctionType functionType = replaceReturnType(
@@ -7870,6 +7873,39 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         staticTarget: node.target);
     ArgumentsImpl.removeNonInferrableArgumentTypes(
         node.arguments as ArgumentsImpl);
+    return new InitializerInferenceResult.fromInvocationInferenceResult(
+        inferenceResult);
+  }
+
+  InitializerInferenceResult visitInlineClassRedirectingInitializer(
+      InlineClassRedirectingInitializer node) {
+    ensureMemberType(node.target);
+    List<TypeParameter> constructorTypeParameters =
+        constructorDeclaration!.function.typeParameters;
+    List<DartType> typeArguments = new List<DartType>.generate(
+        constructorTypeParameters.length,
+        (int i) => new TypeParameterType.withDefaultNullabilityForLibrary(
+            constructorTypeParameters[i], libraryBuilder.library),
+        growable: false);
+    // The redirecting initializer syntax doesn't include type arguments passed
+    // to the target constructor but we need to add them to the arguments before
+    // calling [inferInvocation].
+    //
+    // Unlike in [visitRedirectingInitializer] we leave in the type arguments
+    // for the call to the target, since these are needed for the static
+    // invocation of the lowering.
+    ArgumentsImpl.setNonInferrableArgumentTypes(
+        node.arguments as ArgumentsImpl, typeArguments);
+    FunctionType functionType = node.target.function
+        .computeThisFunctionType(libraryBuilder.nonNullable);
+    InvocationInferenceResult inferenceResult = inferInvocation(
+        this,
+        const UnknownType(),
+        node.fileOffset,
+        functionType,
+        node.arguments as ArgumentsImpl,
+        skipTypeArgumentInference: true,
+        staticTarget: node.target);
     return new InitializerInferenceResult.fromInvocationInferenceResult(
         inferenceResult);
   }
