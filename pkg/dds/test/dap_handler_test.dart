@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dap/dap.dart';
 import 'package:dds/dds.dart';
-import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:dds_service_extensions/src/dap.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service_io.dart';
@@ -54,11 +54,12 @@ void main() {
     );
 
     // TODO(helinx): Check result format after using better typing from JSON.
-    final result = await service.handleDap(jsonEncode(setBreakpointsRequest));
-    expect(result.message, isNotNull);
-    expect(result.message['type'], 'response');
-    expect(result.message['success'], true);
-    expect(result.message['command'], 'setBreakpoints');
-    expect(result.message['body'], isNotNull);
+    final result =
+        await service.sendDapRequest(jsonEncode(setBreakpointsRequest));
+    expect(result.dapResponse, isNotNull);
+    expect(result.dapResponse.type, 'response');
+    expect(result.dapResponse.success, true);
+    expect(result.dapResponse.command, 'setBreakpoints');
+    expect(result.dapResponse.body, isNotNull);
   });
 }

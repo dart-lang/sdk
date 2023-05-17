@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'package:dap/dap.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import '../dap.dart';
@@ -14,7 +15,7 @@ import 'dds_impl.dart';
 class DapHandler {
   DapHandler(this.dds);
 
-  Future<Map<String, dynamic>> handle(
+  Future<Map<String, dynamic>> sendRequest(
     DdsHostedAdapter adapter,
     json_rpc.Parameters parameters,
   ) async {
@@ -37,7 +38,7 @@ class DapHandler {
 
     return <String, dynamic>{
       'type': 'DapResponse',
-      'message': result.toJson(),
+      'dapResponse': result,
     };
   }
 

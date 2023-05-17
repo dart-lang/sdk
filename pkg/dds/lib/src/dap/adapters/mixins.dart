@@ -6,10 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dap/dap.dart';
 import 'package:path/path.dart' as path;
 
 import '../logging.dart';
-import '../protocol_common.dart';
 
 /// A mixin providing some utility functions for locating/working with
 /// package_config.json files.

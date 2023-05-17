@@ -4,11 +4,8 @@
 
 export 'src/dap/adapters/dart.dart';
 export 'src/dap/adapters/mixins.dart';
-export 'src/dap/exceptions.dart';
 export 'src/dap/logging.dart';
 export 'src/dap/progress_reporter.dart';
-export 'src/dap/protocol_common.dart';
-export 'src/dap/protocol_generated.dart';
 export 'src/dap/protocol_stream.dart';
 export 'src/dap/server.dart' show DapServer;
 export 'src/dap/stream_transformers.dart';
