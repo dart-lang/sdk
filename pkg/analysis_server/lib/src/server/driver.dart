@@ -41,8 +41,6 @@ import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:unified_analytics/unified_analytics.dart';
 
-import '../utilities/usage_tracking/usage_tracking.dart';
-
 /// The [Driver] class represents a single running instance of the analysis
 /// server application.  It is responsible for parsing command line options
 /// and starting the HTTP and/or stdio servers.
@@ -357,11 +355,6 @@ class Driver implements ServerStarter {
           errorNotifier,
           sendPort);
     }
-
-    configureMemoryUsageTracking(
-      arguments,
-      (memoryUsageEvent) => analyticsManager.sendMemoryUsage(memoryUsageEvent),
-    );
   }
 
   void startAnalysisServer(

@@ -20,7 +20,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:collection/collection.dart';
-import 'package:leak_tracker/src/usage_tracking/model.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 /// An interface for managing and reporting analytics.
@@ -189,28 +188,6 @@ class AnalyticsManager {
   void initialized({required List<String> openWorkspacePaths}) {
     var requestData = _getRequestData(Method.initialized.toString());
     requestData.addValue('openWorkspacePaths', openWorkspacePaths.length);
-  }
-
-  Future<void> sendMemoryUsage(MemoryUsageEvent event) async {
-    final delta = event.delta;
-    var seconds = event.period?.inSeconds;
-
-    assert((event.delta == null) == (event.period == null));
-
-    if (delta == null || seconds == null) {
-      await analytics.sendEvent(eventName: DashEvent.memoryInfo, eventData: {
-        'rss': event.rss,
-      });
-      return;
-    }
-
-    if (seconds == 0) seconds = 1;
-
-    await analytics.sendEvent(eventName: DashEvent.memoryInfo, eventData: {
-      'rss': event.rss,
-      'periodSec': seconds,
-      'mbPerSec': delta / seconds,
-    });
   }
 
   /// Record that the given [response] was sent to the client.
