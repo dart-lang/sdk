@@ -80,11 +80,11 @@ class D<T> {
 }
 ''');
 
-  final maxCount = instantiateCounts.reduce(((v, e) => max(v, e)));
+  final maxCount = instantiateCounts.reduce(max);
   for (int i = 0; i < maxCount; i++) {
     output.write('''
 
-class C${i} {}
+class C$i {}
 ''');
   }
 }

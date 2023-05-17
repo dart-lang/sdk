@@ -6,13 +6,11 @@
 // via exit/send.
 
 import 'dart:async';
-import 'dart:typed_data';
-import 'dart:math' as math;
 import 'dart:isolate';
 
 import 'latency.dart';
 
-main() async {
+Future<void> main() async {
   final statsFuture =
       measureEventLoopLatency(const Duration(milliseconds: 1), 4000, work: () {
     // Every 1 ms we allocate some objects which may trigger GC some time.

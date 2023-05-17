@@ -15,8 +15,8 @@ import '../../BigIntParsePrint/dart/BigIntParsePrint.dart'
     deferred as lib_BigIntParsePrint;
 import '../../Iterators/dart/Iterators.dart' deferred as lib_Iterators;
 import '../../ListCopy/dart/ListCopy.dart' deferred as lib_ListCopy;
-import '../../MapCopy/dart/MapCopy.dart' deferred as lib_MapCopy;
 import '../../MD5/dart/md5.dart' deferred as lib_MD5;
+import '../../MapCopy/dart/MapCopy.dart' deferred as lib_MapCopy;
 import '../../RecordCollections/dart/RecordCollections.dart'
     deferred as lib_RecordCollections;
 import '../../RuntimeType/dart/RuntimeType.dart' deferred as lib_RuntimeType;

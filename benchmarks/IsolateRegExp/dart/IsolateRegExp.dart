@@ -49,7 +49,7 @@ class SendReceiveHelper {
     outbox.send(null);
     await workerExitedPort.first;
     workerExitedPort.close();
-    inbox.cancel();
+    await inbox.cancel();
   }
 
   // Send regexp to worker, get one back, repeat few times.
@@ -78,7 +78,7 @@ Future<void> isolate(SendPort sendPort) async {
       break;
     }
     // use RegExp to ensure it is compiled
-    RegExp re = received as RegExp;
+    final RegExp re = received as RegExp;
     re.firstMatch('h' * 1000);
     // send the RegExp
     sendPort.send(re);
