@@ -486,6 +486,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.cascade_invocations: [
       ConvertToCascade.new,
     ],
+    LintNames.cast_nullable_to_non_nullable: [
+      AddNullCheck.withoutAssignabilityCheck,
+    ],
     LintNames.combinators_ordering: [
       SortCombinators.new,
     ],

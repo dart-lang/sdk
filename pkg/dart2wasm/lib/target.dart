@@ -123,7 +123,7 @@ class WasmTarget extends Target {
         hierarchy,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!,
-        isDart2Wasm: true,
+        enableDisallowedExternalCheck: false,
         enableStrictMode: true);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {

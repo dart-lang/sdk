@@ -7960,45 +7960,6 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            name)> templateJsInteropFfiNotAllowedInSameLibrary = const Template<
-        Message Function(String name)>(
-    problemMessageTemplate:
-        r"""The same library can not use both JS interop library '#name' and 'dart:ffi'.""",
-    correctionMessageTemplate: r"""Remove at least one of the imports.""",
-    withArguments: _withArgumentsJsInteropFfiNotAllowedInSameLibrary);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeJsInteropFfiNotAllowedInSameLibrary =
-    const Code<Message Function(String name)>(
-  "JsInteropFfiNotAllowedInSameLibrary",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropFfiNotAllowedInSameLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeJsInteropFfiNotAllowedInSameLibrary,
-      problemMessage:
-          """The same library can not use both JS interop library '${name}' and 'dart:ffi'.""",
-      correctionMessage: """Remove at least one of the imports.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropFfiNotAllowedInSameLibraryContext =
-    messageJsInteropFfiNotAllowedInSameLibraryContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropFfiNotAllowedInSameLibraryContext =
-    const MessageCode("JsInteropFfiNotAllowedInSameLibraryContext",
-        severity: Severity.context,
-        problemMessage: r"""This is where 'dart:ffi' is imported.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropInlineClassUsedWithWrongJsAnnotation =
     messageJsInteropInlineClassUsedWithWrongJsAnnotation;
 

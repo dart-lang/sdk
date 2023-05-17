@@ -5496,14 +5496,6 @@ JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
-JsInteropFfiNotAllowedInSameLibrary:
-  problemMessage: "The same library can not use both JS interop library '#name' and 'dart:ffi'."
-  correctionMessage: "Remove at least one of the imports."
-
-JsInteropFfiNotAllowedInSameLibraryContext:
-  problemMessage: "This is where 'dart:ffi' is imported."
-  severity: CONTEXT
-
 JsInteropInlineClassUsedWithWrongJsAnnotation:
   problemMessage: "Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'."
   correctionMessage: "Try using the '@JS' annotation from 'dart:js_interop' annotation on this inline class instead."

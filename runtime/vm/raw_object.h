@@ -271,6 +271,8 @@ class UntaggedObject {
     return (addr & kObjectAlignmentMask) == kOldObjectAlignmentOffset;
   }
 
+  uword tags() const { return tags_; }
+
   // Support for GC marking bit. Marked objects are either grey (not yet
   // visited) or black (already visited).
   static bool IsMarked(uword tags) { return !OldAndNotMarkedBit::decode(tags); }

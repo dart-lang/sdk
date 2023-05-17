@@ -16,11 +16,24 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddNullCheck extends CorrectionProducer {
+  final bool skipAssignabilityCheck;
+
+  @override
+  final bool canBeAppliedInBulk;
+
   @override
   FixKind fixKind = DartFixKind.ADD_NULL_CHECK;
 
   @override
   List<Object>? fixArguments;
+
+  AddNullCheck()
+      : skipAssignabilityCheck = false,
+        canBeAppliedInBulk = false;
+
+  AddNullCheck.withoutAssignabilityCheck()
+      : skipAssignabilityCheck = true,
+        canBeAppliedInBulk = true;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -80,6 +93,8 @@ class AddNullCheck extends CorrectionProducer {
           target = coveredNode.rightOperand;
         }
       }
+    } else if (coveredNode is AsExpression) {
+      target = coveredNode.expression;
     }
 
     if (target == null) {
@@ -103,6 +118,8 @@ class AddNullCheck extends CorrectionProducer {
     var parent = target.parent;
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
       toType = parent.writeType;
+    } else if (parent is AsExpression) {
+      toType = parent.staticType;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
       toType = parent.declaredElement?.type;
     } else if (parent is ArgumentList) {
@@ -156,6 +173,7 @@ class AddNullCheck extends CorrectionProducer {
       return;
     }
     if (toType != null &&
+        !skipAssignabilityCheck &&
         !typeSystem.isAssignableTo(
             typeSystem.promoteToNonNull(fromType), toType)) {
       // The reason that `fromType` can't be assigned to `toType` is more than

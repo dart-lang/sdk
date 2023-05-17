@@ -294,8 +294,8 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
         // This probably shouldn't happen and means canonicalization is mixing
         // before and after. At any rate, don't submit a self-fowarding to
         // become.
-        ASSERT(old_value.ptr()->untag()->HeapSize() ==
-               new_class_.host_instance_size());
+        RELEASE_ASSERT(old_value.ptr()->untag()->HeapSize() ==
+                       new_class_.host_instance_size());
       } else {
         // Convert the old instance into a filler object. We will switch to the
         // new class table before the next heap walk, so there must be no
@@ -319,8 +319,15 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
 
     // We also forward Enum.values. No filler is needed because arrays never
     // change shape.
-    ASSERT(old_values.ptr() != new_values.ptr());
-    become->Add(old_values, new_values);
+    if (old_value.ptr() == new_value.ptr()) {
+      // This probably shouldn't happen and means canonicalization is mixing
+      // before and after. At any rate, don't submit a self-fowarding to
+      // become.
+      RELEASE_ASSERT(old_class_.host_instance_size() ==
+                     new_class_.host_instance_size());
+    } else {
+      become->Add(old_values, new_values);
+    }
 
 #if defined(DEBUG)
     for (intptr_t i = 0; i < before_.length(); i++) {

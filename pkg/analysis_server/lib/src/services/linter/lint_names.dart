@@ -52,6 +52,8 @@ class LintNames {
   static const String avoid_void_async = 'avoid_void_async';
   static const String await_only_futures = 'await_only_futures';
   static const String cascade_invocations = 'cascade_invocations';
+  static const String cast_nullable_to_non_nullable =
+      'cast_nullable_to_non_nullable';
   static const String combinators_ordering = 'combinators_ordering';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
