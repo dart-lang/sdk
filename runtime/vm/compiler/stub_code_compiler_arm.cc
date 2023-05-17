@@ -450,7 +450,11 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   COMPILE_ASSERT(!IsArgumentRegister(R8));
 
   // Load the code object.
-  __ LoadFromOffset(R5, THR, compiler::target::Thread::callback_code_offset());
+  __ LoadFromOffset(R5, THR, compiler::target::Thread::isolate_group_offset());
+  __ LoadFromOffset(R5, R5,
+                    compiler::target::IsolateGroup::object_store_offset());
+  __ LoadFromOffset(R5, R5,
+                    compiler::target::ObjectStore::ffi_callback_code_offset());
   __ LoadFieldFromOffset(R5, R5,
                          compiler::target::GrowableObjectArray::data_offset());
   __ ldr(R5, __ ElementAddressForRegIndex(

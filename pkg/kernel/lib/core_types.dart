@@ -1200,7 +1200,13 @@ class CoreTypes {
   ///
   /// For the definition of BOTTOM see the following:
   /// https://github.com/dart-lang/language/blob/master/resources/type-system/upper-lower-bounds.md#helper-predicates
+  @pragma("vm:prefer-inline")
   bool isBottom(DartType type) {
+    if (type is InterfaceType) return false;
+    return _isBottom(type);
+  }
+
+  bool _isBottom(DartType type) {
     if (type is InvalidType) return false;
 
     // BOTTOM(Never) is true.

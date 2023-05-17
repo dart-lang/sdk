@@ -30,6 +30,7 @@
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/compiler_timings.h"
+#include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
@@ -3432,6 +3433,11 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   } else {  // not optimized.
     function.set_unoptimized_code(code);
     function.AttachCode(code);
+  }
+
+  if (function.IsFfiTrampoline() &&
+      function.FfiCallbackTarget() != Function::null()) {
+    compiler::ffi::SetFfiCallbackCode(thread(), function, code);
   }
 }
 

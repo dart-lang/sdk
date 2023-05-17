@@ -1288,7 +1288,12 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load the code object.
   __ movl(EAX, compiler::Address(
-                   THR, compiler::target::Thread::callback_code_offset()));
+                   THR, compiler::target::Thread::isolate_group_offset()));
+  __ movl(EAX, compiler::Address(
+                   EAX, compiler::target::IsolateGroup::object_store_offset()));
+  __ movl(EAX,
+          compiler::Address(
+              EAX, compiler::target::ObjectStore::ffi_callback_code_offset()));
   __ movl(EAX, compiler::FieldAddress(
                    EAX, compiler::target::GrowableObjectArray::data_offset()));
   __ movl(CODE_REG, compiler::FieldAddress(

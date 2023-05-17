@@ -107,34 +107,34 @@ class StubCodeCompiler {
 #if defined(TARGET_ARCH_X64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
 #if defined(DART_COMPRESSED_POINTERS)
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 225;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 236;
 #else
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 217;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 228;
 #endif
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_IA32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 134;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 152;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 140;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 148;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
 #if defined(DART_COMPRESSED_POINTERS)
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 260;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 268;
 #else
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 236;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 244;
 #endif
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 230;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 238;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 202;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 210;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #else
 #error What architecture?

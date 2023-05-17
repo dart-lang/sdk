@@ -22,6 +22,7 @@
 #include "vm/compiler/cha.h"
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
@@ -469,6 +470,12 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
       function.SetUsageCounter(0);
     }
   }
+
+  if (function.IsFfiTrampoline() &&
+      function.FfiCallbackTarget() != Function::null()) {
+    compiler::ffi::SetFfiCallbackCode(thread(), function, code);
+  }
+
   return code.ptr();
 }
 

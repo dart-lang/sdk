@@ -3844,6 +3844,41 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepointIgnoreUnwindInProgress,
                               false,
                               &DFLRT_ExitSafepointIgnoreUnwindInProgress);
 
+// Ensure that 'callback_id' refers to a valid callback.
+//
+// If "entry != 0", additionally checks that entry is inside the instructions
+// of this callback.
+//
+// Aborts if any of these conditions fails.
+static void VerifyCallbackIdMetadata(Thread* thread,
+                                     int32_t callback_id,
+                                     uword entry) {
+  NoSafepointScope _;
+
+  const GrowableObjectArrayPtr array =
+      thread->isolate_group()->object_store()->ffi_callback_code();
+  if (array == GrowableObjectArray::null()) {
+    FATAL("Cannot invoke callback on incorrect isolate.");
+  }
+
+  const SmiPtr length_smi = GrowableObjectArray::NoSafepointLength(array);
+  const intptr_t length = Smi::Value(length_smi);
+
+  if (callback_id < 0 || callback_id >= length) {
+    FATAL("Cannot invoke callback on incorrect isolate.");
+  }
+
+  if (entry != 0) {
+    CompressedObjectPtr* const code_array =
+        Array::DataOf(GrowableObjectArray::NoSafepointData(array));
+    const CodePtr code =
+        Code::RawCast(code_array[callback_id].Decompress(array.heap_base()));
+    if (!Code::ContainsInstructionAt(code, entry)) {
+      FATAL("Cannot invoke callback on incorrect isolate.");
+    }
+  }
+}
+
 // Not registered as a runtime entry because we can't use Thread to look it up.
 static Thread* GetThreadForNativeCallback(uword callback_id,
                                           uword return_address) {
@@ -3867,7 +3902,7 @@ static Thread* GetThreadForNativeCallback(uword callback_id,
   thread->set_execution_state(Thread::kThreadInVM);
 
   thread->ExitSafepoint();
-  thread->VerifyCallbackIsolate(callback_id, return_address);
+  VerifyCallbackIdMetadata(thread, callback_id, return_address);
 
   return thread;
 }

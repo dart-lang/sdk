@@ -264,12 +264,12 @@ void main() {
   setNativeResolverForTest(getRootLibraryUrl());
 
   final benchmarks = [
-    () => Uint8x01(),
-    () => Int64x20(),
-    () => Doublex01(),
-    () => Doublex20(),
-    () => Handlex01(),
-    () => Handlex20(),
+    Uint8x01.new,
+    Int64x20.new,
+    Doublex01.new,
+    Doublex20.new,
+    Handlex01.new,
+    Handlex20.new,
   ];
   for (final benchmark in benchmarks) {
     benchmark().report();

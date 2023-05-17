@@ -70,7 +70,6 @@ void NativeCallbackTrampolines::AllocateTrampoline() {
 
 #if !defined(PRODUCT)
     const char* name = "FfiJitCallbackTrampolines";
-    ASSERT(!Thread::Current()->OwnsSafepoint());
     if (CodeObservers::AreActive()) {
       const auto& comments = CreateCommentsFrom(&assembler);
       CodeObservers::NotifyAll(name,

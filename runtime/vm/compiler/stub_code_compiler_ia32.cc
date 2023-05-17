@@ -264,7 +264,12 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // Load the target from the thread.
   __ movl(ECX, compiler::Address(
-                   THR, compiler::target::Thread::callback_code_offset()));
+                   THR, compiler::target::Thread::isolate_group_offset()));
+  __ movl(ECX, compiler::Address(
+                   ECX, compiler::target::IsolateGroup::object_store_offset()));
+  __ movl(ECX,
+          compiler::Address(
+              ECX, compiler::target::ObjectStore::ffi_callback_code_offset()));
   __ movl(ECX, compiler::FieldAddress(
                    ECX, compiler::target::GrowableObjectArray::data_offset()));
   __ movl(ECX, __ ElementAddressForRegIndex(
@@ -293,9 +298,15 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   //   - ECX free
 
   // Load the return stack delta from the thread.
-  __ movl(ECX,
-          compiler::Address(
-              THR, compiler::target::Thread::callback_stack_return_offset()));
+  __ movl(ECX, compiler::Address(
+                   THR, compiler::target::Thread::isolate_group_offset()));
+  __ movl(ECX, compiler::Address(
+                   ECX, compiler::target::IsolateGroup::object_store_offset()));
+  __ movl(
+      ECX,
+      compiler::Address(
+          ECX,
+          compiler::target::ObjectStore::ffi_callback_stack_return_offset()));
   __ popl(EBX);  // Compiler callback id.
   __ movzxb(EBX, __ ElementAddressForRegIndex(
                      /*external=*/false,

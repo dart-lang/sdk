@@ -1537,7 +1537,12 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load the code object.
   __ movq(RAX, compiler::Address(
-                   THR, compiler::target::Thread::callback_code_offset()));
+                   THR, compiler::target::Thread::isolate_group_offset()));
+  __ movq(RAX, compiler::Address(
+                   RAX, compiler::target::IsolateGroup::object_store_offset()));
+  __ movq(RAX,
+          compiler::Address(
+              RAX, compiler::target::ObjectStore::ffi_callback_code_offset()));
   __ LoadCompressed(
       RAX, compiler::FieldAddress(
                RAX, compiler::target::GrowableObjectArray::data_offset()));
