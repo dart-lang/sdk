@@ -532,6 +532,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool? _isNonNullableByDefault;
 
   @override
+  @pragma("vm:prefer-inline")
   bool get isNonNullableByDefault {
     assert(
         _isNonNullableByDefault == null ||
@@ -539,7 +540,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         "Unstable isNonNullableByDefault property, changed "
         "from ${_isNonNullableByDefault} to "
         "${_computeIsNonNullableByDefault()}");
-    return _ensureIsNonNullableByDefault();
+    return _isNonNullableByDefault ?? _ensureIsNonNullableByDefault();
   }
 
   bool _ensureIsNonNullableByDefault() {

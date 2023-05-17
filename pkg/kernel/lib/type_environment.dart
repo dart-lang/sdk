@@ -398,6 +398,19 @@ class IsSubtypeOf {
           subtype: subtype, supertype: supertype);
     }
 
+    return _basedSolelyOnNullabilitiesNotInvalidType(subtype, supertype);
+  }
+
+  /// Checks if two types are in relation based solely on their nullabilities
+  /// and where the caller knows that neither type is a `InvalidType`.
+  factory IsSubtypeOf.basedSolelyOnNullabilitiesNotInvalidType(
+      DartType subtype, DartType supertype) {
+    return _basedSolelyOnNullabilitiesNotInvalidType(subtype, supertype);
+  }
+
+  @pragma("vm:prefer-inline")
+  static IsSubtypeOf _basedSolelyOnNullabilitiesNotInvalidType(
+      DartType subtype, DartType supertype) {
     if (subtype.isPotentiallyNullable && supertype.isPotentiallyNonNullable) {
       // It's a special case to test X% <: X%, FutureOr<X%> <: FutureOr<X%>,
       // FutureOr<FutureOr<X%>> <: FutureOr<FutureOr<X%>>, etc, where X is a

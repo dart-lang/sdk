@@ -222,7 +222,8 @@ List<DartType> calculateBoundsInternal(
       bound = isNonNullableByDefault && isContravariant
           ? const NeverType.nonNullable()
           : const DynamicType();
-    } else if (bound is InterfaceType && bound.classNode == objectClass) {
+    } else if (bound is InterfaceType &&
+        bound.className == objectClass.reference) {
       DartType defaultType = typeParameters[i].defaultType;
       if (!(defaultType is InterfaceType &&
           defaultType.classNode == objectClass)) {
