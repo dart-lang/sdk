@@ -34,6 +34,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
         templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
         templateJsInteropStrictModeForbiddenLibrary;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 // Used for importing CFE utility functions for constructor tear-offs.
@@ -54,7 +55,7 @@ import 'src/js_interop.dart';
 class JsInteropChecks extends RecursiveVisitor {
   final Set<Constant> _constantCache = {};
   final CoreTypes _coreTypes;
-  final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
+  final JsInteropDiagnosticReporter _diagnosticsReporter;
   final ExportChecker exportChecker;
   final Procedure _functionToJSTarget;
   final InlineExtensionIndex _inlineExtensionIndex = InlineExtensionIndex();
@@ -874,5 +875,21 @@ class _TypeParameterVisitor extends RecursiveVisitor {
   @override
   void visitTypeParameterType(TypeParameterType node) {
     _visitedTypeParameterType = true;
+  }
+}
+
+class JsInteropDiagnosticReporter {
+  bool hasJsInteropErrors = false;
+  final DiagnosticReporter<Message, LocatedMessage> _reporter;
+  JsInteropDiagnosticReporter(this._reporter);
+
+  void report(Message message, int charOffset, int length, Uri? fileUri,
+      {List<LocatedMessage>? context}) {
+    if (context == null) {
+      _reporter.report(message, charOffset, length, fileUri);
+    } else {
+      _reporter.report(message, charOffset, length, fileUri, context: context);
+    }
+    if (message.code.severity == Severity.error) hasJsInteropErrors = true;
   }
 }

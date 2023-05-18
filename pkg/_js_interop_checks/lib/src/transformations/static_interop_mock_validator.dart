@@ -6,22 +6,21 @@
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
-        Message,
-        LocatedMessage,
         templateJsInteropStaticInteropMockMissingGetterOrSetter,
         templateJsInteropStaticInteropMockMissingImplements;
+import 'package:_js_interop_checks/js_interop_checks.dart'
+    show JsInteropDiagnosticReporter;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show templateJsInteropStaticInteropMockNotStaticInteropType;
 import 'package:kernel/ast.dart';
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'export_checker.dart';
 
 class StaticInteropMockValidator {
   final Map<ExtensionMemberDescriptor, String> _descriptorToExtensionName = {};
-  final DiagnosticReporter<Message, LocatedMessage> _diagnosticReporter;
+  final JsInteropDiagnosticReporter _diagnosticReporter;
   final ExportChecker _exportChecker;
   // Cache of @staticInterop classes to a mapping between their extension
   // members and those members' export names.
