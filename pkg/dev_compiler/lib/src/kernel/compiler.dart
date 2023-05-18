@@ -1204,7 +1204,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           c.getThisType(_coreTypes, c.enclosingLibrary.nonNullable),
           emitNullability: false);
       while (--count >= 0) {
-        base = _emitJSObjectGetPrototypeOf(base);
+        base = _emitJSObjectGetPrototypeOf(base, fullyQualifiedName: true);
       }
       return base;
     }
@@ -1895,8 +1895,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Statement _emitSuperConstructorCall(
       js_ast.Expression className, String name, List<js_ast.Expression> args) {
-    return js.statement('#.__proto__.#.call(this, #);',
-        [className, _constructorName(name), args]);
+    return js.statement('#.#.call(this, #);', [
+      _emitJSObjectGetPrototypeOf(className, fullyQualifiedName: true),
+      _constructorName(name),
+      args
+    ]);
   }
 
   bool _hasUnnamedInheritedConstructor(Class? c) {
@@ -6101,7 +6104,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var name = target.name.text;
       if (name == 'jsObjectGetPrototypeOf') {
         var obj = node.arguments.positional.single;
-        return _emitJSObjectGetPrototypeOf(_visitExpression(obj));
+        return _emitJSObjectGetPrototypeOf(_visitExpression(obj),
+            fullyQualifiedName: false);
       }
       if (name == 'jsObjectSetPrototypeOf') {
         var obj = node.arguments.positional.first;
@@ -6185,8 +6189,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return js_ast.Call(fn, args);
   }
 
-  js_ast.Expression _emitJSObjectGetPrototypeOf(js_ast.Expression obj) =>
-      js.call('Object.getPrototypeOf(#)', obj);
+  js_ast.Expression _emitJSObjectGetPrototypeOf(js_ast.Expression obj,
+          {required bool fullyQualifiedName}) =>
+      fullyQualifiedName
+          ? runtimeCall('global.Object.getPrototypeOf(#)', [obj])
+          : js.call('Object.getPrototypeOf(#)', obj);
 
   bool _isDebuggerCall(Procedure target) {
     return target.name.text == 'debugger' &&
