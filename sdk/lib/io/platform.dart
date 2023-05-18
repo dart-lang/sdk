@@ -252,4 +252,8 @@ final class Platform {
   /// `"\r\n"`
   @pragma("vm:platform-const")
   static String get lineTerminator => isWindows ? '\r\n' : '\n';
+
+  @Deprecated("Do not instantiate this class, it will become abstract in a "
+      "future Dart version")
+  Platform();
 }
