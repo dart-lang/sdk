@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dds/src/dap/protocol_generated.dart';
+import 'package:dap/dap.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

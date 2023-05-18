@@ -259,8 +259,8 @@ class DartDevelopmentServiceClient {
     );
 
     _clientPeer.registerMethod(
-      'handleDap',
-      (parameters) => dds.dapHandler.handle(adapter, parameters),
+      'sendDapRequest',
+      (parameters) => dds.dapHandler.sendRequest(adapter, parameters),
     );
 
     // When invoked within a fallback, the next fallback will start executing.
