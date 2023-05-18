@@ -264,6 +264,15 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    if (node.element == element) {
+      references.add(node);
+    }
+
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     final staticElement = node.writeOrReadElement;
     if (staticElement == element) {

@@ -89,6 +89,14 @@ class TemplateContext {
     } else if (node is InstanceCreationExpression ||
         node is InvocationExpression) {
       return node;
+    } else if (node is NamedType) {
+      var parent = node.parent;
+      if (parent is ConstructorName) {
+        var grandparent = parent.parent;
+        if (grandparent is InstanceCreationExpression) {
+          return grandparent;
+        }
+      }
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is ConstructorName) {

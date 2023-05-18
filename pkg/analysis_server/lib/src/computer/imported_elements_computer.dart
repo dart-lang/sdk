@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 
 /// An object used to compute the list of elements referenced within a given
-/// region of a compilation unit that are imported into the compilation unit's
+/// portion of a compilation unit that are imported into the compilation unit's
 /// library.
 class ImportedElementsComputer {
   /// The compilation unit in which the elements are referenced.
@@ -53,10 +53,10 @@ class ImportedElementsComputer {
 /// The visitor used by an [ImportedElementsComputer] to record the names of all
 /// imported elements.
 class _Visitor extends UnifyingAstVisitor<void> {
-  /// The offset of the start of the region of text being copied.
+  /// The offset of the start of the portion of text being copied.
   final int startOffset;
 
-  /// The offset of the end of the region of text being copied.
+  /// The offset of the end of the portion of text being copied.
   final int endOffset;
 
   /// A table mapping library path and prefix keys to the imported elements from
@@ -64,8 +64,19 @@ class _Visitor extends UnifyingAstVisitor<void> {
   Map<String, ImportedElements> importedElements = <String, ImportedElements>{};
 
   /// Initialize a newly created visitor to visit nodes within a specified
-  /// region.
+  /// portion.
   _Visitor(this.startOffset, this.endOffset);
+
+  @override
+  void visitNamedType(NamedType node) {
+    if (node.offset <= endOffset && node.end >= startOffset) {
+      final importPrefix = node.importPrefix;
+      final prefix = importPrefix?.element?.name ?? '';
+      _addElement(prefix, node.element);
+    }
+
+    super.visitNamedType(node);
+  }
 
   @override
   void visitNode(AstNode node) {
@@ -81,32 +92,42 @@ class _Visitor extends UnifyingAstVisitor<void> {
         node.end >= startOffset &&
         !_isConstructorDeclarationReturnType(node)) {
       var nodeElement = node.writeOrReadElement;
-      if (nodeElement != null &&
-          nodeElement.enclosingElement is CompilationUnitElement) {
-        var nodeLibrary = nodeElement.library;
-        var path = nodeLibrary?.definingCompilationUnit.source.fullName;
-        if (path == null) {
-          return;
-        }
-        var prefix = '';
-        var parent = node.parent;
-        if (parent is PrefixedIdentifier && parent.identifier == node) {
-          prefix = _getPrefixFrom(parent.prefix);
-        } else if (parent is MethodInvocation && parent.methodName == node) {
-          var target = parent.target;
-          if (target is SimpleIdentifier) {
-            prefix = _getPrefixFrom(target);
-          }
-        }
-        var key = '$prefix;$path';
-        var elements = importedElements.putIfAbsent(
-            key, () => ImportedElements(path, prefix, <String>[]));
-        var elementNames = elements.elements;
-        var elementName = nodeElement.name;
-        if (elementName != null && !elementNames.contains(elementName)) {
-          elementNames.add(elementName);
+
+      var prefix = '';
+      var parent = node.parent;
+      if (parent is PrefixedIdentifier && parent.identifier == node) {
+        prefix = _getPrefixFrom(parent.prefix);
+      } else if (parent is MethodInvocation && parent.methodName == node) {
+        var target = parent.target;
+        if (target is SimpleIdentifier) {
+          prefix = _getPrefixFrom(target);
         }
       }
+
+      _addElement(prefix, nodeElement);
+    }
+  }
+
+  void _addElement(String prefix, Element? element) {
+    if (element == null) {
+      return;
+    }
+    if (element.enclosingElement is! CompilationUnitElement) {
+      return;
+    }
+
+    final path = element.library?.definingCompilationUnit.source.fullName;
+    if (path == null) {
+      return;
+    }
+
+    var key = '$prefix;$path';
+    var elements = importedElements.putIfAbsent(
+        key, () => ImportedElements(path, prefix, <String>[]));
+    var elementNames = elements.elements;
+    var elementName = element.name;
+    if (elementName != null && !elementNames.contains(elementName)) {
+      elementNames.add(elementName);
     }
   }
 

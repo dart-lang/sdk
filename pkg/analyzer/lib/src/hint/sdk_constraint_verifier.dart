@@ -283,6 +283,15 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    _checkAsyncExportedFromCode(
+      name: node.name2,
+      element: node.element,
+    );
+
+    if (checkNnbd && node.element == _typeProvider.neverType.element) {
+      _errorReporter.reportErrorForNode(WarningCode.SDK_VERSION_NEVER, node);
+    }
+
     _checkSinceSdkVersion(node.element, node);
     super.visitNamedType(node);
   }
@@ -322,7 +331,22 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     _checkSinceSdkVersion(node.staticElement, node);
-    var element = node.staticElement;
+  }
+
+  @override
+  void visitSpreadElement(SpreadElement node) {
+    _validateUiAsCode(node);
+    _validateUiAsCodeInConstContext(node);
+    bool wasInUiAsCode = _inUiAsCode;
+    _inUiAsCode = true;
+    super.visitSpreadElement(node);
+    _inUiAsCode = wasInUiAsCode;
+  }
+
+  void _checkAsyncExportedFromCode({
+    required Token name,
+    required Element? element,
+  }) {
     if (checkFutureAndStream &&
         element is InterfaceElement &&
         (element == _typeProvider.futureElement ||
@@ -336,23 +360,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
           }
         }
       }
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE,
-          node,
-          [element.name]);
-    } else if (checkNnbd && element == _typeProvider.neverType.element) {
-      _errorReporter.reportErrorForNode(WarningCode.SDK_VERSION_NEVER, node);
+      _errorReporter.reportErrorForToken(
+        WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE,
+        name,
+        [element.name],
+      );
     }
-  }
-
-  @override
-  void visitSpreadElement(SpreadElement node) {
-    _validateUiAsCode(node);
-    _validateUiAsCodeInConstContext(node);
-    bool wasInUiAsCode = _inUiAsCode;
-    _inUiAsCode = true;
-    super.visitSpreadElement(node);
-    _inUiAsCode = wasInUiAsCode;
   }
 
   void _checkSinceSdkVersion(

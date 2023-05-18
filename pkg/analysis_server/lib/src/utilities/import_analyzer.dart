@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -239,6 +240,20 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     recorder.recordDeclaration(node.declaredElement);
     super.visitMixinDeclaration(node);
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    var element = node.element;
+    if (element != null && element.isInterestingReference) {
+      recorder.recordReference(
+        element,
+        node.offset,
+        node.importPrefix?.element.ifTypeOrNull(),
+      );
+    }
+
+    super.visitNamedType(node);
   }
 
   @override

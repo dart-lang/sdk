@@ -1924,6 +1924,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _tokenOrNull(node.name);
+    _tokenOrNull(node.period);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
@@ -1991,8 +1997,10 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    node.importPrefix?.accept(this);
+    _tokenOrNull(node.name2);
+    node.typeArguments?.accept(this);
     _tokenOrNull(node.question);
-    super.visitNamedType(node);
   }
 
   @override

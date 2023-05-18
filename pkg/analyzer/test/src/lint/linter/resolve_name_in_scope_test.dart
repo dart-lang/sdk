@@ -596,7 +596,7 @@ class A<T> {
   T? a;
 }
 ''');
-    var node = findNode.simple('T?');
+    var node = findNode.namedType('T?');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -721,7 +721,7 @@ void foo(void Function<T>(String T) b) {}
     await resolve('''
 typedef A<T> = List<T>;
 ''');
-    var node = findNode.simple('T>;');
+    var node = findNode.namedType('T>;');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -757,7 +757,7 @@ mixin A<T> {
   T? a;
 }
 ''');
-    var node = findNode.simple('T?');
+    var node = findNode.namedType('T?');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 

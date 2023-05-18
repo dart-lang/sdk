@@ -628,6 +628,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    _deprecatedVerifier.namedType(node);
+    _invalidAccessVerifier.verifyNamedType(node);
     var question = node.question;
     if (question != null) {
       var type = node.typeOrThrow;
@@ -1755,7 +1757,12 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    _checkForInvalidInternalAccess(identifier, element);
+    _checkForInvalidInternalAccess(
+      parent: identifier.parent,
+      nameToken: identifier.token,
+      element: element,
+    );
+
     _checkForOtherInvalidAccess(identifier, element);
   }
 
@@ -1791,6 +1798,27 @@ class _InvalidAccessVerifier {
           node,
           [node.uri.stringValue!]);
     }
+  }
+
+  void verifyNamedType(NamedType node) {
+    var element = node.element;
+
+    final parent = node.parent;
+    if (parent is ConstructorName) {
+      element = parent.staticElement;
+    }
+
+    if (element == null || _inCurrentLibrary(element)) {
+      return;
+    }
+
+    _checkForInvalidInternalAccess(
+      parent: node,
+      nameToken: node.name2,
+      element: element,
+    );
+
+    _checkForOtherInvalidAccess(node, element);
   }
 
   void verifyPatternField(PatternFieldImpl node) {
@@ -1830,24 +1858,32 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void _checkForInvalidInternalAccess(Identifier identifier, Element element) {
+  void _checkForInvalidInternalAccess({
+    required AstNode? parent,
+    required Token nameToken,
+    required Element element,
+  }) {
     if (_hasInternal(element) &&
         !_isLibraryInWorkspacePackage(element.library)) {
       String name;
-      AstNode node;
+      SyntacticEntity node;
 
-      var grandparent = identifier.parent?.parent;
+      var grandparent = parent?.parent;
 
       if (grandparent is ConstructorName) {
         name = grandparent.toSource();
         node = grandparent;
       } else {
-        name = identifier.name;
-        node = identifier;
+        name = nameToken.lexeme;
+        node = nameToken;
       }
 
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, node, [name]);
+      _errorReporter.reportErrorForOffset(
+        WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+        node.offset,
+        node.length,
+        [name],
+      );
     }
   }
 
@@ -1883,13 +1919,21 @@ class _InvalidAccessVerifier {
     String name;
     SyntacticEntity errorEntity = node;
 
-    var grandparent = node.parent?.parent;
+    var parent = node.parent;
+    var grandparent = parent?.parent;
     if (node is Identifier) {
       if (grandparent is ConstructorName) {
         name = grandparent.toSource();
         errorEntity = grandparent;
       } else {
         name = node.name;
+      }
+    } else if (node is NamedType) {
+      if (parent is ConstructorName) {
+        name = parent.toSource();
+        errorEntity = parent;
+      } else {
+        name = node.name2.lexeme;
       }
     } else if (node is PatternFieldImpl) {
       name = element.displayName;

@@ -771,7 +771,7 @@ main(A p) {
   A v;
 }
 ''');
-    final element = findNode.simple('A p').staticElement!;
+    final element = findNode.namedType('A p').element!;
     await assertElementReferencesText(element, r'''
 self::@function::main::@parameter::p
   24 2:6 |A| REFERENCE
@@ -1363,15 +1363,15 @@ self::@function::bar
 import 'dart:async' as p;
 import 'dart:math' as p;
 main() {
-  p.Random;
-  p.Future;
+  p.Random r;
+  p.Future f;
 }
 ''');
     {
       final element = findElement.import('dart:async');
       await assertElementReferencesText(element, r'''
 self::@function::main
-  74 5:3 |p.| REFERENCE
+  76 5:3 |p.| REFERENCE
 ''');
     }
     {

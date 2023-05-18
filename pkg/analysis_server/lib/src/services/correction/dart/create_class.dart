@@ -24,9 +24,9 @@ class CreateClass extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var targetNode = node;
     Element? prefixElement;
-    SimpleIdentifier nameNode;
     ArgumentList? arguments;
 
+    String? className;
     if (targetNode is Annotation) {
       var name = targetNode.name;
       arguments = targetNode.arguments;
@@ -37,19 +37,27 @@ class CreateClass extends CorrectionProducer {
       }
       targetNode = name;
     }
-    if (targetNode is SimpleIdentifier) {
-      nameNode = targetNode;
+    if (targetNode is NamedType) {
+      final importPrefix = targetNode.importPrefix;
+      if (importPrefix != null) {
+        prefixElement = importPrefix.element;
+        if (prefixElement == null) {
+          return;
+        }
+      }
+      className = targetNode.name2.lexeme;
+    } else if (targetNode is SimpleIdentifier) {
+      className = nameOfType(targetNode);
     } else if (targetNode is PrefixedIdentifier) {
       prefixElement = targetNode.prefix.staticElement;
       if (prefixElement == null) {
         return;
       }
-      nameNode = targetNode.identifier;
+      className = nameOfType(targetNode.identifier);
     } else {
       return;
     }
 
-    final className = nameOfType(nameNode);
     if (className == null) {
       return;
     }
@@ -96,16 +104,18 @@ class CreateClass extends CorrectionProducer {
     if (filePath == null || offset < 0) {
       return;
     }
+
+    final className2 = className;
     await builder.addDartFileEdit(filePath, (builder) {
       builder.addInsertion(offset, (builder) {
         builder.write(prefix);
         if (arguments == null) {
-          builder.writeClassDeclaration(className, nameGroupName: 'NAME');
+          builder.writeClassDeclaration(className2, nameGroupName: 'NAME');
         } else {
-          builder.writeClassDeclaration(className, nameGroupName: 'NAME',
+          builder.writeClassDeclaration(className2, nameGroupName: 'NAME',
               membersWriter: () {
             builder.write('  ');
-            builder.writeConstructorDeclaration(className,
+            builder.writeConstructorDeclaration(className2,
                 argumentList: arguments,
                 classNameGroupName: 'NAME',
                 isConst: true);

@@ -202,6 +202,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitNamedType(NamedType node) {
+    return node.element;
+  }
+
+  @override
   Element? visitPartOfDirective(PartOfDirective node) {
     return node.element;
   }
