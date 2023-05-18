@@ -960,6 +960,8 @@ class AstBuilder extends StackListener {
     debugEvent("AwaitExpression");
 
     var expression = pop() as ExpressionImpl;
+    reportErrorIfSuper(expression);
+
     push(
       AwaitExpressionImpl(
         awaitKeyword: awaitKeyword,
