@@ -142,7 +142,7 @@ class FindDeclarations {
   final List<AnalysisDriver> drivers;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final RegExp? regExp;
+  final bool Function(String)? isMatch;
   final String? onlyForFile;
   final bool onlyAnalyzed;
   final OperationPerformanceImpl performance;
@@ -150,7 +150,7 @@ class FindDeclarations {
   FindDeclarations(
     this.drivers,
     this.result,
-    this.regExp,
+    this.isMatch,
     this.maxResults, {
     this.onlyForFile,
     this.onlyAnalyzed = false,
@@ -182,7 +182,7 @@ class FindDeclarations {
       await _FindDeclarations(
         searchedFiles,
         result,
-        regExp,
+        isMatch,
         maxResults,
         onlyForFile: onlyForFile,
         performance: performance,
@@ -1005,7 +1005,7 @@ class _FindCompilationUnitDeclarations {
   final LineInfo lineInfo;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final RegExp? regExp;
+  final bool Function(String)? isMatch;
   final void Function(Declaration) collect;
   final OperationPerformanceImpl performance;
 
@@ -1014,7 +1014,7 @@ class _FindCompilationUnitDeclarations {
     this.filePath,
     this.result,
     this.maxResults,
-    this.regExp,
+    this.isMatch,
     this.collect,
     this.performance,
   ) : lineInfo = unit.lineInfo;
@@ -1071,8 +1071,9 @@ class _FindCompilationUnitDeclarations {
     performance.run('addDeclaration', (performance) {
       performance.run('doNothing', (performance) {});
 
-      final satisfiesRegExp = performance.run('regExp', (performance) {
-        return regExp == null || regExp!.hasMatch(name);
+      final satisfiesRegExp = performance.run('isMatch', (performance) {
+        final isMatch = this.isMatch;
+        return isMatch == null || isMatch(name);
       });
       if (!satisfiesRegExp) {
         return;
@@ -1185,14 +1186,14 @@ class _FindDeclarations {
   final SearchedFiles files;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final RegExp? regExp;
+  final bool Function(String)? isMatch;
   final String? onlyForFile;
   final OperationPerformanceImpl performance;
 
   _FindDeclarations(
     this.files,
     this.result,
-    this.regExp,
+    this.isMatch,
     this.maxResults, {
     this.onlyForFile,
     required this.performance,
@@ -1235,7 +1236,7 @@ class _FindDeclarations {
                 filePath,
                 result,
                 maxResults,
-                regExp,
+                isMatch,
                 result.declarations.add,
                 performance,
               );

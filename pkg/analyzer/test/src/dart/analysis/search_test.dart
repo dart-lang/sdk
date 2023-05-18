@@ -383,6 +383,35 @@ testFile
 ''');
   }
 
+  test_declarations_isMatchFunction() async {
+    await resolveTestCode('''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      RegExp(r'[A-C]').hasMatch,
+      null,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  CLASS A
+    offset: 6 1:7
+    codeOffset: 0 + 10
+  CLASS B
+    offset: 17 2:7
+    codeOffset: 11 + 10
+  CLASS C
+    offset: 28 3:7
+    codeOffset: 22 + 10
+''');
+  }
+
   test_declarations_maxResults() async {
     await resolveTestCode('''
 class A {}
@@ -575,35 +604,6 @@ testFile
     codeOffset: 81 + 50
     className: A
     parameters: (Map<Map<T2, U2>, Map<U1, T>> a)
-''');
-  }
-
-  test_declarations_regExp() async {
-    await resolveTestCode('''
-class A {}
-class B {}
-class C {}
-class D {}
-''');
-    var results = WorkspaceSymbols();
-    await FindDeclarations(
-      [driver],
-      results,
-      RegExp(r'[A-C]'),
-      null,
-      performance: performance,
-    ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
-testFile
-  CLASS A
-    offset: 6 1:7
-    codeOffset: 0 + 10
-  CLASS B
-    offset: 17 2:7
-    codeOffset: 11 + 10
-  CLASS C
-    offset: 28 3:7
-    codeOffset: 22 + 10
 ''');
   }
 

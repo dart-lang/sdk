@@ -70,7 +70,7 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
     await search.FindDeclarations(
       analysisDrivers,
       workspaceSymbols,
-      regExp,
+      regExp?.hasMatch,
       params.maxResults,
       onlyForFile: params.file,
       performance: performance,
