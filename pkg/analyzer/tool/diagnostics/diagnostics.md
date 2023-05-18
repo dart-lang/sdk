@@ -1315,7 +1315,7 @@ variable._
 
 The analyzer produces this diagnostic when the value of a function
 (including methods and getters) that is explicitly or implicitly marked by
-the `[doNotStore][meta-doNotStore]` annotation is stored in either a field
+the [`doNotStore`][meta-doNotStore] annotation is stored in either a field
 or top-level variable.
 
 #### Example
@@ -9208,7 +9208,7 @@ _The member '{0}' can't be exported as a part of a package's public API._
 #### Description
 
 The analyzer produces this diagnostic when a [public library][] exports a
-declaration that is marked with the `[internal][meta-internal]`
+declaration that is marked with the [`internal`][meta-internal]
 annotation.
 
 #### Example
@@ -9249,7 +9249,7 @@ indirectly exported as part of the signature of '{1}'._
 
 The analyzer produces this diagnostic when a [public library][] exports a
 top-level function  with a return type or at least one parameter type that
-is marked with the `[internal][meta-internal]` annotation.
+is marked with the [`internal`][meta-internal] annotation.
 
 #### Example
 
@@ -9342,12 +9342,12 @@ _Factory method '{0}' must have a return type._
 #### Description
 
 The analyzer produces this diagnostic when a method that is annotated with
-the `[factory][meta-factory]` annotation has a return type of `void`.
+the [`factory`][meta-factory] annotation has a return type of `void`.
 
 #### Example
 
 The following code produces this diagnostic because the method `createC`
-is annotated with the `[factory][meta-factory]` annotation but doesn't
+is annotated with the [`factory`][meta-factory] annotation but doesn't
 return any value:
 
 {% prettify dart tag=pre+code %}
@@ -9383,7 +9383,7 @@ _Factory method '{0}' doesn't return a newly allocated object._
 #### Description
 
 The analyzer produces this diagnostic when a method that is annotated with
-the `[factory][meta-factory]` annotation doesn't return a newly allocated
+the [`factory`][meta-factory] annotation doesn't return a newly allocated
 object.
 
 #### Example
@@ -9734,13 +9734,13 @@ internal._
 #### Description
 
 The analyzer produces this diagnostic when a declaration is annotated with
-the `[internal][meta-internal]` annotation and that declaration is either
+the [`internal`][meta-internal] annotation and that declaration is either
 in a [public library][] or has a private name.
 
 #### Example
 
 The following code, when in a [public library][], produces this diagnostic
-because the `[internal][meta-internal]` annotation can't be applied to
+because the [`internal`][meta-internal] annotation can't be applied to
 declarations in a [public library][]:
 
 {% prettify dart tag=pre+code %}
@@ -9751,7 +9751,7 @@ class C {}
 {% endprettify %}
 
 The following code, whether in a public or internal library, produces this
-diagnostic because the `[internal][meta-internal]` annotation can't be
+diagnostic because the [`internal`][meta-internal] annotation can't be
 applied to declarations with private names:
 
 {% prettify dart tag=pre+code %}
@@ -9842,7 +9842,7 @@ _Only const constructors can have the `@literal` annotation._
 
 #### Description
 
-The analyzer produces this diagnostic when the `[literal][[meta-literal]]`
+The analyzer produces this diagnostic when the [`literal`][meta-literal]
 annotation is applied to anything other than a const constructor.
 
 #### Examples
@@ -10792,13 +10792,13 @@ _The member '{0}' can only be used within its package._
 #### Description
 
 The analyzer produces this diagnostic when a reference to a declaration
-that is annotated with the `[internal][meta-internal]` annotation is found
+that is annotated with the [`internal`][meta-internal] annotation is found
 outside the package containing the declaration.
 
 #### Example
 
 Given a package `p` that defines a library containing a declaration marked
-with the `[internal][meta-internal]` annotation:
+with the [`internal`][meta-internal] annotation:
 
 {% prettify dart tag=pre+code %}
 import 'package:meta/meta.dart';
@@ -10926,7 +10926,7 @@ _The member '{0}' can only be used for overriding._
 #### Description
 
 The analyzer produces this diagnostic when an instance member that is
-annotated with `[visibleForOverriding][meta-visibleForOverriding]` is
+annotated with [`visibleForOverriding`][meta-visibleForOverriding] is
 referenced outside the library in which it's declared for any reason other
 than to override it.
 
@@ -11024,7 +11024,7 @@ meaningful on declarations of public members._
 #### Description
 
 The analyzer produces this diagnostic when either the `visibleForTemplate`
-or `[visibleForTesting][meta-visibleForTesting]` annotation is applied to
+or [`visibleForTesting`][meta-visibleForTesting] annotation is applied to
 a non-public declaration.
 
 #### Example
@@ -11071,7 +11071,7 @@ member that can be overridden._
 
 The analyzer produces this diagnostic when anything other than a public
 instance member of a class is annotated with
-`[visibleForOverriding][meta-visibleForOverriding]`. Because only public
+[`visibleForOverriding`][meta-visibleForOverriding]. Because only public
 instance members can be overridden outside the defining library, there's
 no value to annotating any other declarations.
 
@@ -12941,7 +12941,7 @@ and any class mixing in this mixin must have '{0}' as a superclass._
 
 The analyzer produces this diagnostic when the superclass constraint of a
 mixin is a class from a different package that was marked as
-`[sealed][meta-sealed]`. Classes that are sealed can't be extended,
+[`sealed`][meta-sealed]. Classes that are sealed can't be extended,
 implemented, mixed in, or used as a superclass constraint.
 
 #### Example
@@ -13274,7 +13274,7 @@ _This class (or a class that this class inherits from) is marked as
 The analyzer produces this diagnostic when an immutable class defines one
 or more instance fields that aren't final. A class is immutable if it's
 marked as being immutable using the annotation
-`[immutable][meta-immutable]` or if it's a subclass of an immutable class.
+[`immutable`][meta-immutable] or if it's a subclass of an immutable class.
 
 #### Example
 
@@ -13328,7 +13328,7 @@ doesn't invoke the overridden method._
 #### Description
 
 The analyzer produces this diagnostic when a method that overrides a method
-that is annotated as `[mustCallSuper][meta-mustCallSuper]` doesn't invoke
+that is annotated as [`mustCallSuper`][meta-mustCallSuper] doesn't invoke
 the overridden method as required.
 
 #### Example
@@ -14210,7 +14210,7 @@ as '@literal'._
 #### Description
 
 The analyzer produces this diagnostic when a constructor that has the
-`[literal][meta-literal]` annotation is invoked without using the `const`
+[`literal`][meta-literal] annotation is invoked without using the `const`
 keyword, but all of the arguments to the constructor are constants. The
 annotation indicates that the constructor should be used to create a
 constant value whenever possible.
@@ -17768,7 +17768,7 @@ also annotated._
 #### Description
 
 The analyzer produces this diagnostic when a value that is annotated with
-the `[doNotStore][meta-doNotStore]` annotation is returned from a method,
+the [`doNotStore`][meta-doNotStore] annotation is returned from a method,
 getter, or function that doesn't have the same annotation.
 
 #### Example
@@ -17789,7 +17789,7 @@ int g() => [!f()!];
 #### Common fixes
 
 If the value that shouldn't be stored is the correct value to return, then
-mark the function with the `[doNotStore][meta-doNotStore]` annotation:
+mark the function with the [`doNotStore`][meta-doNotStore] annotation:
 
 {% prettify dart tag=pre+code %}
 import 'package:meta/meta.dart';
@@ -18910,7 +18910,7 @@ sealed._
 #### Description
 
 The analyzer produces this diagnostic when a sealed class (one that either
-has the `[sealed][meta-sealed]` annotation or inherits or mixes in a
+has the [`sealed`][meta-sealed] annotation or inherits or mixes in a
 sealed class) is referenced in either the `extends`, `implements`, or
 `with` clause of a class or mixin declaration if the declaration isn't in
 the same package as the sealed class.
@@ -21028,7 +21028,7 @@ _The parameter '{0}' isn't defined by '{1}'._
 #### Description
 
 The analyzer produces this diagnostic when an annotation of the form
-`[UseResult][meta-UseResult].unless(parameterDefined: parameterName)`
+[`UseResult.unless(parameterDefined: parameterName)`][meta-UseResult]
 specifies a parameter name that isn't defined by the annotated function.
 
 #### Example
@@ -22112,7 +22112,7 @@ _The value of '{0}' should be used._
 #### Description
 
 The analyzer produces this diagnostic when a function annotated with
-`[useResult][meta-useResult]` is invoked, and the value returned by that
+[`useResult`][meta-useResult] is invoked, and the value returned by that
 function isn't used. The value is considered to be used if a member of the
 value is invoked, if the value is passed to another function, or if the
 value is assigned to a variable or field.
@@ -22121,7 +22121,7 @@ value is assigned to a variable or field.
 
 The following code produces this diagnostic because the invocation of
 `c.a()` isn't used, even though the method `a` is annotated with
-`[useResult][meta-useResult]`:
+[`useResult`][meta-useResult]:
 
 {% prettify dart tag=pre+code %}
 import 'package:meta/meta.dart';
