@@ -4,6 +4,7 @@
 
 // @dart = 2.9
 
+import 'dart:convert';
 import "dart:io";
 import "dart:isolate";
 
@@ -33,6 +34,10 @@ test() {
   Expect.equals(Platform.isAndroid, Platform.operatingSystem == "android");
   var sep = Platform.pathSeparator;
   Expect.isTrue(sep == '/' || (os == 'windows' && sep == '\\'));
+  final eol = Platform.lineTerminator;
+  Expect.isTrue(
+      (eol == '\n' && os != 'windows') || (eol == '\r\n' && os == 'windows'),
+      "unexpected line ending ${utf8.encode(eol)} on $os");
   var hostname = Platform.localHostname;
   Expect.isTrue(hostname is String && hostname != "");
   var environment = Platform.environment;

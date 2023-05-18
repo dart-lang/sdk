@@ -15,6 +15,9 @@
 - **Breaking change** [#51486][]:
   - Added `sameSite` to the `Cookie` class.
   - Added class `SameSite`.
+- Added `Platform.lineTerminator` which exposes the character or characters
+  that the operating system uses to separate lines of text, e.g.,
+  `"\r\n"` on Windows.
 
 [#51486]: https://github.com/dart-lang/sdk/issues/51486
 
