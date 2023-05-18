@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:dap/dap.dart' as dap;
 import 'package:dds/dap.dart';
 import 'package:dds/src/dap/adapters/dart_cli_adapter.dart';
 import 'package:dds/src/dap/adapters/dart_test_adapter.dart';
@@ -119,7 +118,7 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
   }
 }
 
-class MockRequest extends dap.Request {
+class MockRequest extends Request {
   static var _requestId = 1;
   MockRequest()
       : super.fromMap({

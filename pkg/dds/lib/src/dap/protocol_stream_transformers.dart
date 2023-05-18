@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dap/dap.dart';
+import 'exceptions.dart';
 
 class InvalidEncodingException extends InvalidHeadersException {
   InvalidEncodingException(String headers)
