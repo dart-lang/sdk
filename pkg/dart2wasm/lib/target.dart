@@ -118,19 +118,17 @@ class WasmTarget extends Target {
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    final jsInteropReporter = JsInteropDiagnosticReporter(
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
     final jsInteropChecks = JsInteropChecks(
-        coreTypes,
-        hierarchy,
-        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-        _nativeClasses!,
-        enableDisallowedExternalCheck: false,
-        enableStrictMode: true);
+        coreTypes, hierarchy, jsInteropReporter, _nativeClasses!,
+        enableDisallowedExternalCheck: false, enableStrictMode: true);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
     }
     final exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
-        diagnosticReporter, jsInteropChecks.exportChecker);
+        jsInteropReporter, jsInteropChecks.exportChecker);
     for (Library library in interopDependentLibraries) {
       exportCreator.visitLibrary(library);
     }

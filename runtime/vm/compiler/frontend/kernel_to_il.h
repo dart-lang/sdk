@@ -298,6 +298,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Converts 0 to false and the rest to true.
   Fragment IntToBool();
 
+  // Compares arbitrary integers.
+  Fragment IntRelationalOp(TokenPosition position, Token::Kind kind);
+
   // Creates an ffi.Pointer holding a given address.
   Fragment FfiPointerFromAddress();
 

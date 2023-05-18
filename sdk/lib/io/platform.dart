@@ -240,4 +240,16 @@ final class Platform {
   /// possibly followed by whitespace and other version and
   /// build details.
   static String get version => _version;
+
+  /// The current operating system's default line terminator.
+  ///
+  /// The default character sequence that the operating system
+  /// uses to separate or terminate text lines.
+  ///
+  /// The line terminator is currently the single line-feed character,
+  /// U+000A or `"\n"`, on all supported operating systems except Windows,
+  /// which uses the carriage-return + line-feed sequence, U+000D U+000A or
+  /// `"\r\n"`
+  @pragma("vm:platform-const")
+  static String get lineTerminator => isWindows ? '\r\n' : '\n';
 }

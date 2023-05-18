@@ -4287,6 +4287,39 @@ Fragment FlowGraphBuilder::IntToBool() {
   return body;
 }
 
+Fragment FlowGraphBuilder::IntRelationalOp(TokenPosition position,
+                                           Token::Kind kind) {
+  if (CompilerState::Current().is_aot()) {
+    Value* right = Pop();
+    Value* left = Pop();
+    RelationalOpInstr* instr = new (Z) RelationalOpInstr(
+        InstructionSource(position), kind, left, right, kMintCid,
+        GetNextDeoptId(), Instruction::SpeculativeMode::kNotSpeculative);
+    Push(instr);
+    return Fragment(instr);
+  }
+  const String* name = nullptr;
+  switch (kind) {
+    case Token::kLT:
+      name = &Symbols::LAngleBracket();
+      break;
+    case Token::kGT:
+      name = &Symbols::RAngleBracket();
+      break;
+    case Token::kLTE:
+      name = &Symbols::LessEqualOperator();
+      break;
+    case Token::kGTE:
+      name = &Symbols::GreaterEqualOperator();
+      break;
+    default:
+      UNREACHABLE();
+  }
+  return InstanceCall(
+      position, *name, kind, /*type_args_len=*/0, /*argument_count=*/2,
+      /*argument_names=*/Array::null_array(), /*checked_argument_count=*/2);
+}
+
 Fragment FlowGraphBuilder::NativeReturn(
     const compiler::ffi::CallbackMarshaller& marshaller) {
   auto* instr = new (Z)
