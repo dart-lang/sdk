@@ -58,6 +58,12 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _recordPrefixedElement(node.importPrefix, node.element);
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     _recordAssignmentTarget(node, node.operand);
     return super.visitPostfixExpression(node);
@@ -97,6 +103,36 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
       if (enclosingElement is ExtensionElement) {
         _recordUsedExtension(enclosingElement);
       }
+    }
+  }
+
+  void _recordPrefixedElement(
+    ImportPrefixReference? importPrefix,
+    Element? element,
+  ) {
+    if (element is MultiplyDefinedElement) {
+      for (final component in element.conflictingElements) {
+        _recordPrefixedElement(importPrefix, component);
+        return;
+      }
+    }
+
+    // Invalid code can use `importPrefix` as a named type;
+    if (element is PrefixElement) {
+      usedElements.prefixMap[element] ??= [];
+      return;
+    }
+
+    if (importPrefix != null) {
+      final prefixElement = importPrefix.element;
+      if (prefixElement is PrefixElement) {
+        final map = usedElements.prefixMap[prefixElement] ??= [];
+        if (element != null) {
+          map.add(element);
+        }
+      }
+    } else if (element != null) {
+      _recordUsedElement(element);
     }
   }
 

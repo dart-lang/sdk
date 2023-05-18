@@ -5450,11 +5450,6 @@ class C {
     expect(never.isNullable, isFalse);
   }
 
-  Future<void> test_non_null_hint_is_not_expression_hint() async {
-    await analyze('int/*!*/ x;');
-    expect(hasNullCheckHint(findNode.simple('int')), isFalse);
-  }
-
   Future<void> test_override_mixin_method() async {
     await analyze('''
   mixin M {

@@ -19,6 +19,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -1585,6 +1586,15 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor<void> {
   final Set<String> names = <String>{};
 
   @override
+  void visitNamedType(NamedType node) {
+    if (node.importPrefix == null) {
+      names.add(node.name2.lexeme);
+    }
+
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (!_isPrefixed(node)) {
       names.add(node.name);
@@ -1627,6 +1637,13 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   final List<SimpleIdentifier> references = [];
 
   _ElementReferenceCollector(this.element);
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    if (node.element == element) {
+      references.add(SimpleIdentifierImpl(node.name));
+    }
+  }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

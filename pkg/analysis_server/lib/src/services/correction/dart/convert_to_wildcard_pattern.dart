@@ -23,7 +23,16 @@ class ConvertToWildcardPattern extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final namedType = node.parent;
+    var namedType = node;
+
+    // TODO(scheglov) Remove after https://dart-review.googlesource.com/c/sdk/+/303280
+    if (namedType is! NamedType) {
+      final parent = node.parent;
+      if (parent is NamedType) {
+        namedType = parent;
+      }
+    }
+
     if (namedType is! NamedType) {
       return;
     }

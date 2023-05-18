@@ -112,6 +112,10 @@ class MakeFinal extends CorrectionProducer {
       return parent;
     }
 
+    if (node is NamedType && parent is VariableDeclarationList) {
+      return parent;
+    }
+
     final parent2 = parent?.parent;
     if (parent is NamedType && parent2 is VariableDeclarationList) {
       return parent2;

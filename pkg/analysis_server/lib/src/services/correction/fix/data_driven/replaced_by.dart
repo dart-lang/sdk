@@ -125,6 +125,31 @@ class ReplacedBy extends Change<_Data> {
           return _Data(range.node(identifier));
         }
       }
+    } else if (node is NamedType) {
+      var identifier = node.name2;
+      var components = fix.element.components;
+      if (components.length > 1 &&
+          components[0].isEmpty &&
+          components[1] == identifier.lexeme) {
+        // We have a '<prefix>.<className>' pattern, so we replace only the
+        // class name.
+        return _Data(range.token(identifier));
+      }
+      final parent = node.parent;
+      if (parent is ConstructorName) {
+        var classNameToken = parent.type.name2;
+        var constructorNameNode = parent.name;
+        var constructorName = constructorNameNode?.name ?? '';
+        var components = fix.element.components;
+        if (components.length == 2 &&
+            constructorName == components[0] &&
+            classNameToken.lexeme == components[1]) {
+          if (constructorNameNode != null) {
+            return _Data(range.startEnd(classNameToken, constructorNameNode));
+          }
+          return _Data(range.token(classNameToken));
+        }
+      }
     } else if (node is ConstructorName) {
       var classNameToken = node.type.name2;
       var constructorNameNode = node.name;

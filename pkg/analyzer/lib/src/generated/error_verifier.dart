@@ -889,6 +889,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _checkForReferenceBeforeDeclaration(
+      nameToken: node.name,
+      element: node.element,
+    );
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     if (node.isNullAware) {
       _checkForUnnecessaryNullAware(
@@ -1029,6 +1037,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitNamedType(NamedType node) {
+    _checkForAmbiguousImport(
+      name: node.name2,
+      element: node.element,
+    );
+    _checkForTypeParameterReferencedByStatic(
+      name: node.name2,
+      element: node.element,
+    );
     _typeArgumentsVerifier.checkNamedType(node);
     super.visitNamedType(node);
   }
@@ -1172,10 +1188,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _checkForAmbiguousImport(node);
-    _checkForReferenceBeforeDeclaration(node);
+    _checkForAmbiguousImport(
+      name: node.token,
+      element: node.writeOrReadElement,
+    );
+    _checkForReferenceBeforeDeclaration(
+      nameToken: node.token,
+      element: node.staticElement,
+    );
     _checkForInvalidInstanceMemberAccess(node);
-    _checkForTypeParameterReferencedByStatic(node);
+    _checkForTypeParameterReferencedByStatic(
+      name: node.token,
+      element: node.staticElement,
+    );
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
     }
@@ -1614,15 +1639,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check the given node to see whether it was ambiguous because the name was
   /// imported from two or more imports.
-  void _checkForAmbiguousImport(SimpleIdentifier node) {
-    var element = node.writeOrReadElement;
+  void _checkForAmbiguousImport({
+    required Token name,
+    required Element? element,
+  }) {
     if (element is MultiplyDefinedElementImpl) {
       var conflictingMembers = element.conflictingElements;
       var libraryNames =
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
       libraryNames.sort();
-      errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_IMPORT,
-          node, [node.name, libraryNames.quotedAndCommaSeparatedWithAnd]);
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+        name,
+        [name.lexeme, libraryNames.quotedAndCommaSeparatedWithAnd],
+      );
     }
   }
 
@@ -4380,17 +4410,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForReferenceBeforeDeclaration(SimpleIdentifier node) {
-    var element = node.staticElement;
-    if (!node.inDeclarationContext() &&
-        element != null &&
+  void _checkForReferenceBeforeDeclaration({
+    required Token nameToken,
+    required Element? element,
+  }) {
+    if (element != null &&
         _hiddenElements != null &&
-        _hiddenElements!.contains(element) &&
-        node.parent is! CommentReference) {
+        _hiddenElements!.contains(element)) {
       errorReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,
-          nameToken: node.token,
+          nameToken: nameToken,
           element: element,
         ),
       );
@@ -4638,17 +4668,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForTypeParameterReferencedByStatic(SimpleIdentifier identifier) {
+  void _checkForTypeParameterReferencedByStatic({
+    required Token name,
+    required Element? element,
+  }) {
     if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
-      var element = identifier.staticElement;
       if (element is TypeParameterElement &&
           element.enclosingElement is InterfaceElement) {
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
-            identifier);
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
+          name,
+        );
       }
     }
   }

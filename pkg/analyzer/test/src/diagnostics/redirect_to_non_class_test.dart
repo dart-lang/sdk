@@ -15,6 +15,10 @@ main() {
 
 @reflectiveTest
 class RedirectToNonClassTest extends PubPackageResolutionTest {
+  @FailingTest(
+    reason: 'This test should start passing after landing '
+        'https://dart-review.googlesource.com/c/sdk/+/303280',
+  )
   test_notAType() async {
     await assertErrorsInCode('''
 class B {
@@ -22,7 +26,6 @@ class B {
   factory B() = A;
 }''', [
       error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 39, 1),
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 39, 1),
     ]);
   }
 

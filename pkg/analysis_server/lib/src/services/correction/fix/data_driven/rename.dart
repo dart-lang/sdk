@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -82,6 +83,13 @@ class Rename extends Change<_Data> {
       return _Data(node, node.name);
     } else if (node is MethodDeclaration) {
       return _Data(node, node.name);
+    } else if (node is NamedType) {
+      final parent = node.parent;
+      if (fix.element.kind == ElementKind.constructorKind &&
+          parent is ConstructorName) {
+        return _Data(parent, parent.name?.token);
+      }
+      return _Data(node, node.name2);
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
       var grandParent = parent?.parent;

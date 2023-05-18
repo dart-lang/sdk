@@ -193,6 +193,29 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   void visitImportDirective(ImportDirective node) {}
 
   @override
+  void visitNamedType(NamedType node) {
+    if (importedElements.contains(node.element)) {
+      final importElementPrefix = importElement.prefix;
+      final importPrefix = node.importPrefix;
+      if (importElementPrefix == null) {
+        if (importPrefix == null) {
+          _addResult(node.offset, 0);
+        }
+      } else {
+        if (importPrefix != null &&
+            importPrefix.element == importElementPrefix.element) {
+          final offset = importPrefix.offset;
+          final end = importPrefix.period.end;
+          _addResult(offset, end - offset);
+        }
+      }
+    }
+
+    node.importPrefix?.accept(this);
+    node.typeArguments?.accept(this);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
@@ -1436,16 +1459,28 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    final importPrefix = node.importPrefix;
-    if (importPrefix != null) {
-      final element = importPrefix.element;
-      if (elements.contains(element)) {
-        _addResult(importPrefix.name, SearchResultKind.REFERENCE);
-      }
-    }
-
+    node.importPrefix?.accept(this);
     node.typeArguments?.accept(this);
     node.argumentList.accept(this);
+  }
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    final element = node.element;
+    if (elements.contains(element)) {
+      _addResult(node.name, SearchResultKind.REFERENCE);
+    }
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    final element = node.element;
+    if (elements.contains(element)) {
+      _addResult(node.name2, SearchResultKind.REFERENCE);
+    }
+
+    node.importPrefix?.accept(this);
+    node.typeArguments?.accept(this);
   }
 
   @override

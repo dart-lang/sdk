@@ -194,6 +194,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _useIdentifierElement(node.element, parent: node);
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitPatternField(PatternField node) {
     usedElements.addMember(node.element);
     usedElements.addReadMember(node.element);
@@ -250,9 +256,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       }
     } else {
       var parent = node.parent!;
-      _useIdentifierElement(node, node.readElement, parent: parent);
-      _useIdentifierElement(node, node.writeElement, parent: parent);
-      _useIdentifierElement(node, node.staticElement, parent: parent);
+      _useIdentifierElement(node.readElement, parent: parent);
+      _useIdentifierElement(node.writeElement, parent: parent);
+      _useIdentifierElement(node.staticElement, parent: parent);
       var grandparent = parent.parent;
       // If [node] is a tear-off, assume all parameters are used.
       var functionReferenceIsCall =
@@ -333,9 +339,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Marks the [element] of [node] as used in the library.
+  /// Marks the [element] as used in the library.
   void _useIdentifierElement(
-    Identifier node,
     Element? element, {
     required AstNode parent,
   }) {
@@ -354,6 +359,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // Ignore places where the element is not actually used.
+    // TODO(scheglov) Do we need 'parent' at all?
     if (parent is NamedType) {
       if (element is InterfaceElement) {
         var enclosingVariableDeclaration = _enclosingVariableDeclaration;

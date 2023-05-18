@@ -517,7 +517,7 @@ Text createEmptyText() => new Text('');
     }
 
     {
-      var expression = findNode.simple('Container(');
+      var expression = findNode.namedType('Container(');
       expect(_flutter.isWidgetExpression(expression), isFalse);
     }
 

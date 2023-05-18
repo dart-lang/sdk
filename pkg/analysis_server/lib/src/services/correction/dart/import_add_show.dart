@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -58,13 +59,24 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   _ReferenceFinder(this.namespace);
 
   @override
+  void visitNamedType(NamedType node) {
+    _addName(node.name2, node.element);
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
-    if (element != null &&
-        (namespace[node.name] == element ||
-            (node.name != element.name &&
-                namespace[element.name] == element))) {
-      referencedNames.add(element.displayName);
+    _addName(node.token, element);
+  }
+
+  void _addName(Token nameToken, Element? element) {
+    if (element != null) {
+      var name = nameToken.lexeme;
+      if (namespace[name] == element ||
+          (name != element.name && namespace[element.name] == element)) {
+        referencedNames.add(element.displayName);
+      }
     }
   }
 }

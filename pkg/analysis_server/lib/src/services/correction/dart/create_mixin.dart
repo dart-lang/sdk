@@ -23,9 +23,17 @@ class CreateMixin extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     Element? prefixElement;
-    SimpleIdentifier nameNode;
     final node = this.node;
-    if (node is SimpleIdentifier) {
+    if (node is NamedType) {
+      final importPrefix = node.importPrefix;
+      if (importPrefix != null) {
+        prefixElement = importPrefix.element;
+        if (prefixElement == null) {
+          return;
+        }
+      }
+      _mixinName = node.name2.lexeme;
+    } else if (node is SimpleIdentifier) {
       var parent = node.parent;
       var grandParent = parent?.parent;
       if (parent is NamedType &&
@@ -33,8 +41,7 @@ class CreateMixin extends CorrectionProducer {
           grandParent.parent is InstanceCreationExpression) {
         return;
       } else {
-        nameNode = node;
-        _mixinName = nameNode.name;
+        _mixinName = node.name;
       }
     } else if (node is PrefixedIdentifier) {
       if (node.parent is InstanceCreationExpression) {
@@ -44,12 +51,8 @@ class CreateMixin extends CorrectionProducer {
       if (prefixElement == null) {
         return;
       }
-      nameNode = node.identifier;
       _mixinName = node.identifier.name;
     } else {
-      return;
-    }
-    if (nameOfType(nameNode) == null) {
       return;
     }
     // prepare environment

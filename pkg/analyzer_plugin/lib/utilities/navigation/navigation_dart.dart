@@ -451,6 +451,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    computer._addRegionForToken(node.name, node.element);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
     var element = node.writeOrReadElement;
@@ -467,6 +472,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     computer._addRegionForToken(node.name, node.declaredElement);
     super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    node.importPrefix?.accept(this);
+    computer._addRegionForToken(node.name2, node.element);
+    node.typeArguments?.accept(this);
   }
 
   @override

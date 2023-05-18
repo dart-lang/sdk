@@ -344,6 +344,22 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    if (node.element == element) {
+      references.add(
+        MatchInfo(
+          node.name2.offset,
+          node.name2.length,
+          MatchKind.REFERENCE,
+        ),
+      );
+    }
+
+    node.importPrefix?.accept(this);
+    node.typeArguments?.accept(this);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     var e = node.staticElement;
