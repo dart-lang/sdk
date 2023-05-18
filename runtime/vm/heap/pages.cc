@@ -1047,7 +1047,7 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
     MutexLocker ml(freelist->mutex());
     while (page != nullptr) {
       Page* next_page = page->next();
-      bool page_in_use = sweeper.SweepPage(page, freelist, true /*is_locked*/);
+      bool page_in_use = sweeper.SweepPage(page, freelist);
       if (page_in_use) {
         prev_page = page;
       } else {
@@ -1169,7 +1169,14 @@ void PageSpace::Sweep(bool exclusive) {
     // evenly distributed among the freelists and so roughly evenly available
     // to each scavenger worker.
     shard = (shard + 1) % num_shards;
-    bool page_in_use = sweeper.SweepPage(page, DataFreeList(shard), exclusive);
+    FreeList* freelist = DataFreeList(shard);
+    if (!exclusive) {
+      freelist->mutex()->Lock();
+    }
+    bool page_in_use = sweeper.SweepPage(page, freelist);
+    if (!exclusive) {
+      freelist->mutex()->Unlock();
+    }
     intptr_t size;
     if (!page_in_use) {
       size = page->memory_->size();
