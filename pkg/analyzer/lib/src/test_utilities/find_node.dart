@@ -36,6 +36,8 @@ class FindNode {
 
   AssignmentExpression get singleAssignmentExpression => _single();
 
+  AwaitExpression get singleAwaitExpression => _single();
+
   BinaryExpression get singleBinaryExpression => _single();
 
   Block get singleBlock => _single();

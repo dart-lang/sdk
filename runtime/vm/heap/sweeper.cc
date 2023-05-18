@@ -15,11 +15,12 @@
 
 namespace dart {
 
-bool GCSweeper::SweepPage(Page* page, FreeList* freelist, bool locked) {
+bool GCSweeper::SweepPage(Page* page, FreeList* freelist) {
   ASSERT(!page->is_image());
   // Large executable pages are handled here. We never truncate Instructions
   // objects, so we never truncate executable pages.
   ASSERT(!page->is_large() || page->is_executable());
+  DEBUG_ASSERT(freelist->mutex()->IsOwnedByCurrentThread());
 
   // Keep track whether this page is still in use.
   intptr_t used_in_bytes = 0;
@@ -68,11 +69,7 @@ bool GCSweeper::SweepPage(Page* page, FreeList* freelist, bool locked) {
       }
       if ((current != start) || (free_end != end)) {
         // Only add to the free list if not covering the whole page.
-        if (locked) {
-          freelist->FreeLocked(current, obj_size);
-        } else {
-          freelist->Free(current, obj_size);
-        }
+        freelist->FreeLocked(current, obj_size);
       }
     }
     current += obj_size;

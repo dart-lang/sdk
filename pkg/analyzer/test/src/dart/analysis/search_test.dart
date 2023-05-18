@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -48,6 +49,7 @@ class SearchMultipleDriversTest extends PubPackageResolutionTest {
       results,
       null,
       null,
+      performance: OperationPerformanceImpl('<root>'),
     ).compute();
 
     // Ensure only one result for an SDK class, and that the file was tracked as searched.
@@ -59,6 +61,9 @@ class SearchMultipleDriversTest extends PubPackageResolutionTest {
 
 @reflectiveTest
 class SearchTest extends PubPackageResolutionTest {
+  final OperationPerformanceImpl performance =
+      OperationPerformanceImpl('<root>');
+
   AnalysisDriver get driver => driverFor(testFile);
 
   String get testUriStr => 'package:test/test.dart';
@@ -190,8 +195,13 @@ class C {
 ''');
     var results = WorkspaceSymbols();
     var token = CancelableToken();
-    var searchFuture =
-        FindDeclarations([driver], results, null, null).compute(token);
+    var searchFuture = FindDeclarations(
+      [driver],
+      results,
+      null,
+      null,
+      performance: performance,
+    ).compute(token);
     token.cancel();
     await searchFuture;
     expect(results.cancelled, isTrue);
@@ -209,7 +219,13 @@ class C {
 }
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      null,
+      null,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   CLASS C
@@ -267,7 +283,13 @@ testFile
     await resolveTestCode('class T {}');
 
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      null,
+      null,
+      performance: performance,
+    ).compute();
 
     assertDeclarationsText(results, {
       testFile: 'testFile',
@@ -298,7 +320,13 @@ enum E {
 ''');
 
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      null,
+      null,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   ENUM E
@@ -326,7 +354,13 @@ extension E on int {
 }
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      null,
+      null,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   EXTENSION E
@@ -356,7 +390,13 @@ class B {}
 class C {}
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, 2).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      null,
+      2,
+      performance: performance,
+    ).compute();
     expect(results.declarations, hasLength(2));
   }
 
@@ -370,7 +410,13 @@ mixin M {
 }
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      null,
+      null,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   MIXIN M
@@ -402,8 +448,14 @@ testFile
     var b = newFile('$testPackageLibPath/b.dart', 'class B {}');
 
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null, onlyForFile: b.path)
-        .compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      null,
+      null,
+      onlyForFile: b.path,
+      performance: performance,
+    ).compute();
     expect(results.files, [b.path]);
 
     assertDeclarationsText(results, {testFile: 'testFile', b: 'file_b'}, r'''
@@ -423,7 +475,13 @@ class C {
 void f(bool a, String b) {}
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      null,
+      null,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   CLASS C
@@ -453,7 +511,13 @@ void f3(bool Function(int a, String b) c) {}
 void f4(bool Function(int, String) a) {}
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      null,
+      null,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   FUNCTION f1
@@ -484,7 +548,13 @@ class A<T, T2> {
 }
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      null,
+      null,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   CLASS A
@@ -516,7 +586,13 @@ class C {}
 class D {}
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, RegExp(r'[A-C]'), null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      RegExp(r'[A-C]'),
+      null,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   CLASS A
@@ -541,7 +617,13 @@ typedef void tf1();
 typedef tf2<T> = int Function<S>(T tp, S sp);
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      null,
+      null,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   GETTER g

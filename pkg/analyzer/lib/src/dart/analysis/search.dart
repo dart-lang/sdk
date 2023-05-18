@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:collection/collection.dart';
 
@@ -144,9 +145,17 @@ class FindDeclarations {
   final RegExp? regExp;
   final String? onlyForFile;
   final bool onlyAnalyzed;
+  final OperationPerformanceImpl performance;
 
-  FindDeclarations(this.drivers, this.result, this.regExp, this.maxResults,
-      {this.onlyForFile, this.onlyAnalyzed = false});
+  FindDeclarations(
+    this.drivers,
+    this.result,
+    this.regExp,
+    this.maxResults, {
+    this.onlyForFile,
+    this.onlyAnalyzed = false,
+    required this.performance,
+  });
 
   Future<void> compute([CancellationToken? cancellationToken]) async {
     var searchedFiles = SearchedFiles();
@@ -156,18 +165,29 @@ class FindDeclarations {
       searchedFiles.ownAnalyzed(driver.search);
     }
     if (!onlyAnalyzed) {
-      await Future.wait(
-        drivers.map((driver) => driver.discoverAvailableFiles()),
-      );
+      await performance.runAsync('discoverAvailableFiles', (performance) async {
+        await Future.wait(
+          drivers.map((driver) => driver.discoverAvailableFiles()),
+        );
+      });
 
-      for (var driver in drivers) {
-        searchedFiles.ownKnown(driver.search);
-      }
+      performance.run('ownKnown', (performance) {
+        for (var driver in drivers) {
+          searchedFiles.ownKnown(driver.search);
+        }
+      });
     }
 
-    await _FindDeclarations(searchedFiles, result, regExp, maxResults,
-            onlyForFile: onlyForFile)
-        .compute(cancellationToken);
+    await performance.runAsync('findDeclarations', (performance) async {
+      await _FindDeclarations(
+        searchedFiles,
+        result,
+        regExp,
+        maxResults,
+        onlyForFile: onlyForFile,
+        performance: performance,
+      ).compute(cancellationToken);
+    });
   }
 }
 
@@ -987,6 +1007,7 @@ class _FindCompilationUnitDeclarations {
   final int? maxResults;
   final RegExp? regExp;
   final void Function(Declaration) collect;
+  final OperationPerformanceImpl performance;
 
   _FindCompilationUnitDeclarations(
     this.unit,
@@ -995,6 +1016,7 @@ class _FindCompilationUnitDeclarations {
     this.maxResults,
     this.regExp,
     this.collect,
+    this.performance,
   ) : lineInfo = unit.lineInfo;
 
   void compute(CancellationToken? cancellationToken) {
@@ -1046,56 +1068,63 @@ class _FindCompilationUnitDeclarations {
       throw const _MaxNumberOfDeclarationsError();
     }
 
-    if (regExp != null && !regExp!.hasMatch(name)) {
-      return;
-    }
+    performance.run('addDeclaration', (performance) {
+      performance.run('doNothing', (performance) {});
 
-    var enclosing = element.enclosingElement;
-
-    String? className;
-    String? mixinName;
-    if (enclosing is EnumElement) {
-      // skip
-    } else if (enclosing is MixinElement) {
-      mixinName = enclosing.name;
-    } else if (enclosing is InterfaceElement) {
-      className = enclosing.name;
-    }
-
-    var kind = _getSearchElementKind(element);
-    if (kind == null) {
-      return;
-    }
-
-    String? parameters;
-    if (element is ExecutableElement) {
-      var displayString = element.getDisplayString(withNullability: true);
-      var parameterIndex = displayString.indexOf('(');
-      if (parameterIndex > 0) {
-        parameters = displayString.substring(parameterIndex);
+      final satisfiesRegExp = performance.run('regExp', (performance) {
+        return regExp == null || regExp!.hasMatch(name);
+      });
+      if (!satisfiesRegExp) {
+        return;
       }
-    }
 
-    element as ElementImpl; // to access codeOffset/codeLength
-    var locationOffset = element.nameOffset;
-    var locationStart = lineInfo.getLocation(locationOffset);
+      var enclosing = element.enclosingElement;
 
-    collect(
-      Declaration(
-        result._getPathIndex(filePath),
-        lineInfo,
-        name,
-        kind,
-        locationOffset,
-        locationStart.lineNumber,
-        locationStart.columnNumber,
-        element.codeOffset ?? 0,
-        element.codeLength ?? 0,
-        className,
-        mixinName,
-        parameters,
-      ),
-    );
+      String? className;
+      String? mixinName;
+      if (enclosing is EnumElement) {
+        // skip
+      } else if (enclosing is MixinElement) {
+        mixinName = enclosing.name;
+      } else if (enclosing is InterfaceElement) {
+        className = enclosing.name;
+      }
+
+      var kind = _getSearchElementKind(element);
+      if (kind == null) {
+        return;
+      }
+
+      String? parameters;
+      if (element is ExecutableElement) {
+        var displayString = element.getDisplayString(withNullability: true);
+        var parameterIndex = displayString.indexOf('(');
+        if (parameterIndex > 0) {
+          parameters = displayString.substring(parameterIndex);
+        }
+      }
+
+      element as ElementImpl; // to access codeOffset/codeLength
+      var locationOffset = element.nameOffset;
+      var locationStart = lineInfo.getLocation(locationOffset);
+
+      collect(
+        Declaration(
+          result._getPathIndex(filePath),
+          lineInfo,
+          name,
+          kind,
+          locationOffset,
+          locationStart.lineNumber,
+          locationStart.columnNumber,
+          element.codeOffset ?? 0,
+          element.codeLength ?? 0,
+          className,
+          mixinName,
+          parameters,
+        ),
+      );
+    });
   }
 
   void _addExtensions(List<ExtensionElement> elements) {
@@ -1158,9 +1187,16 @@ class _FindDeclarations {
   final int? maxResults;
   final RegExp? regExp;
   final String? onlyForFile;
+  final OperationPerformanceImpl performance;
 
-  _FindDeclarations(this.files, this.result, this.regExp, this.maxResults,
-      {this.onlyForFile});
+  _FindDeclarations(
+    this.files,
+    this.result,
+    this.regExp,
+    this.maxResults, {
+    this.onlyForFile,
+    required this.performance,
+  });
 
   /// Add matching declarations to the [result].
   Future<void> compute(CancellationToken? cancellationToken) async {
@@ -1179,8 +1215,12 @@ class _FindDeclarations {
       for (var entry in files.uriOwners.entries) {
         var uri = entry.key;
         var search = entry.value;
-        var elementResult =
-            await search._driver.getLibraryByUri(uri.toString());
+        var elementResult = await performance.runAsync(
+          'getLibraryByUri',
+          (performance) async {
+            return await search._driver.getLibraryByUri(uri.toString());
+          },
+        );
         if (elementResult is LibraryElementResult) {
           var units = elementResult.element.units;
           for (var i = 0; i < units.length; i++) {
@@ -1189,15 +1229,18 @@ class _FindDeclarations {
             if (onlyForFile != null && filePath != onlyForFile) {
               continue;
             }
-            var finder = _FindCompilationUnitDeclarations(
-              unit,
-              filePath,
-              result,
-              maxResults,
-              regExp,
-              result.declarations.add,
-            );
-            finder.compute(cancellationToken);
+            performance.run('finder', (performance) {
+              var finder = _FindCompilationUnitDeclarations(
+                unit,
+                filePath,
+                result,
+                maxResults,
+                regExp,
+                result.declarations.add,
+                performance,
+              );
+              finder.compute(cancellationToken);
+            });
           }
         }
 
