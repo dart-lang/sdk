@@ -943,6 +943,10 @@ class CorrectionUtils {
       );
     }
 
+    if (type is InvalidType) {
+      return 'dynamic';
+    }
+
     if (type is NeverType) {
       return 'Never';
     }

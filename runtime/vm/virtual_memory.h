@@ -63,6 +63,11 @@ class VirtualMemory {
                                         bool is_compressed,
                                         const char* name);
 
+  // Duplicates kReadExecute memory. This is designed to work on all platforms,
+  // including iOS, which doesn't allow creating new executable memory. The
+  // VirtualMemory being duplicated must have the kReadExecute protection level.
+  VirtualMemory* DuplicateRX();
+
   // Returns the cached page size. Use only if Init() has been called.
   static intptr_t PageSize() {
     ASSERT(page_size_ != 0);

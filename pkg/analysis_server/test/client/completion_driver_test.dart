@@ -57,6 +57,10 @@ abstract class AbstractCompletionDriverTest
   /// of the suggestions. Individual tests can replace the default set.
   Set<CompletionSuggestionKind> allowedKinds = {};
 
+  /// Return `true` if closures (suggestions starting with a left paren) should
+  /// be included in the text to be compared.
+  bool get includeClosures => false;
+
   /// Return `true` if keywords should be included in the text to be compared.
   bool get includeKeywords => true;
 
@@ -216,6 +220,9 @@ name: test
         if (kind == CompletionSuggestionKind.IDENTIFIER ||
             kind == CompletionSuggestionKind.INVOCATION) {
           var completion = suggestion.completion;
+          if (includeClosures && completion.startsWith('(')) {
+            return true;
+          }
           var periodIndex = completion.indexOf('.');
           if (periodIndex > 0) {
             completion = completion.substring(0, periodIndex);

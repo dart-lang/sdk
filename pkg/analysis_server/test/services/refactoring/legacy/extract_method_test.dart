@@ -2046,6 +2046,24 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_singleExpression_unresolved() async {
+    verifyNoTestUnitErrors = false;
+    await indexTestUnit('''
+Object f() {
+  return unresolved;
+}
+''');
+    _createRefactoringForString('unresolved');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+Object f() {
+  return res();
+}
+
+dynamic res() => unresolved;
+''');
+  }
+
   Future<void> test_singleExpression_usesParameter() async {
     await indexTestUnit('''
 fooA(int a1) {

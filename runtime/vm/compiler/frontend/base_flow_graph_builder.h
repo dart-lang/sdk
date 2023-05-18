@@ -35,12 +35,17 @@ class Fragment {
       : entry(instruction), current(instruction) {}
 
   Fragment(Instruction* entry, Instruction* current)
-      : entry(entry), current(current) {}
+      : entry(entry), current(current) {
+    ASSERT(is_valid());
+  }
 
   bool is_open() const { return entry == nullptr || current != nullptr; }
   bool is_closed() const { return !is_open(); }
 
   bool is_empty() const { return entry == nullptr && current == nullptr; }
+
+  // Non-empty fragment should have an entry.
+  bool is_valid() const { return is_empty() || (entry != nullptr); }
 
   void Prepend(Instruction* start);
 

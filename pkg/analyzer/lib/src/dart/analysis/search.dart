@@ -1215,7 +1215,10 @@ class _IndexRequest {
       return;
     }
 
-    for (; index.supertypes[superIndex] == superId; superIndex++) {
+    for (;
+        superIndex < index.supertypes.length &&
+            index.supertypes[superIndex] == superId;
+        superIndex++) {
       var subtype = index.subtypes[superIndex];
       var name = index.strings[subtype.name];
       var subId = '${library.file.uriStr};${file.uriStr};$name';

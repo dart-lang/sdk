@@ -64,18 +64,24 @@ class AddEnumConstant extends CorrectionProducer {
     var length = constructors.length;
     if (length > 1) return;
 
-    var name = length == 1 ? constructors.first.name?.lexeme : null;
+    var constructorName = length == 1 ? constructors.first.name?.lexeme : null;
+    var addition = constructorName != null ? '.$constructorName()' : '';
 
-    var offset = targetNode.constants.last.end;
-
-    var addition = name != null ? '.$name()' : '';
+    var lastConstant = targetNode.constants.lastOrNull;
 
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addInsertion(offset, (builder) {
-        builder.write(', ');
-        builder.write(_constantName);
-        builder.write(addition);
-      });
+      if (lastConstant != null) {
+        builder.addInsertion(lastConstant.end, (builder) {
+          builder.write(', ');
+          builder.write(_constantName);
+          builder.write(addition);
+        });
+      } else {
+        builder.addInsertion(targetNode.rightBracket.offset, (builder) {
+          builder.write(_constantName);
+          builder.write(addition);
+        });
+      }
     });
   }
 }

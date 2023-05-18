@@ -869,6 +869,138 @@ part 'part.dart';
     expect(result2, isNot(same(result1)));
   }
 
+  test_cachedPriorityResults_wholeLibrary_priorityLibrary_askLibrary() async {
+    final a = newFile('/test/lib/a.dart', r'''
+part 'b.dart';
+''').path;
+
+    final b = newFile('/test/lib/b.dart', r'''
+part of 'a.dart';
+''').path;
+
+    driver.priorityFiles = [a];
+
+    // Ask the result for `a`, should cache for both `a` and `b`.
+    final aResult1 = await driver.getResultValid(a);
+
+    final testView = driver.testView!;
+    final cache = testView.priorityResults;
+    final bResult1 = cache[b];
+    expect(bResult1, isNotNull);
+
+    expect(cache, containsPair(a, aResult1));
+    expect(cache, containsPair(b, bResult1));
+    expect(cache.keys, containsAll([a, b]));
+
+    await waitForIdleWithoutExceptions();
+    testView.numOfAnalyzedLibraries = 0;
+    allResults.clear();
+
+    // Get the (cached) result, not reported to the stream: a
+    {
+      final aResult2 = await driver.getResultValid(a);
+      expect(aResult2, same(aResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+
+    // Get the (cached) result, not reported to the stream: b
+    {
+      final bResult2 = await driver.getResultValid(b);
+      expect(bResult2, same(bResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+  }
+
+  test_cachedPriorityResults_wholeLibrary_priorityLibrary_askPart() async {
+    final a = newFile('/test/lib/a.dart', r'''
+part 'b.dart';
+''').path;
+
+    final b = newFile('/test/lib/b.dart', r'''
+part of 'a.dart';
+''').path;
+
+    driver.priorityFiles = [a];
+
+    // Ask the result for `b`, should cache for both `a` and `b`.
+    final bResult1 = await driver.getResultValid(b);
+
+    final testView = driver.testView!;
+    final cache = testView.priorityResults;
+    final aResult1 = cache[a];
+    expect(bResult1, isNotNull);
+
+    expect(cache, containsPair(a, aResult1));
+    expect(cache, containsPair(b, bResult1));
+    expect(cache.keys, containsAll([a, b]));
+
+    await waitForIdleWithoutExceptions();
+    testView.numOfAnalyzedLibraries = 0;
+    allResults.clear();
+
+    // Get the (cached) result, not reported to the stream: a
+    {
+      final aResult2 = await driver.getResultValid(a);
+      expect(aResult2, same(aResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+
+    // Get the (cached) result, not reported to the stream: b
+    {
+      final bResult2 = await driver.getResultValid(b);
+      expect(bResult2, same(bResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+  }
+
+  test_cachedPriorityResults_wholeLibrary_priorityPart_askPart() async {
+    final a = newFile('/test/lib/a.dart', r'''
+part 'b.dart';
+''').path;
+
+    final b = newFile('/test/lib/b.dart', r'''
+part of 'a.dart';
+''').path;
+
+    driver.priorityFiles = [b];
+
+    // Ask the result for `b`, should cache for both `a` and `b`.
+    final bResult1 = await driver.getResultValid(b);
+
+    final testView = driver.testView!;
+    final cache = testView.priorityResults;
+    final aResult1 = cache[a];
+    expect(bResult1, isNotNull);
+
+    expect(cache, containsPair(a, aResult1));
+    expect(cache, containsPair(b, bResult1));
+    expect(cache.keys, containsAll([a, b]));
+
+    await waitForIdleWithoutExceptions();
+    testView.numOfAnalyzedLibraries = 0;
+    allResults.clear();
+
+    // Get the (cached) result, not reported to the stream: a
+    {
+      final aResult2 = await driver.getResultValid(a);
+      expect(aResult2, same(aResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+
+    // Get the (cached) result, not reported to the stream: b
+    {
+      final bResult2 = await driver.getResultValid(b);
+      expect(bResult2, same(bResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+  }
+
   test_changeFile_implicitlyAnalyzed() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');

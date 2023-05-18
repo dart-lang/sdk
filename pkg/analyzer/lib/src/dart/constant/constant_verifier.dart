@@ -806,7 +806,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     // Build spaces for cases.
     for (final caseNode in caseNodes) {
       GuardedPattern? guardedPattern;
-      if (caseNode is SwitchDefault) {
+      if (caseNode is SwitchCase) {
+        // Should not happen, ignore.
+      } else if (caseNode is SwitchDefault) {
         hasDefault = true;
       } else if (caseNode is SwitchExpressionCase) {
         guardedPattern = caseNode.guardedPattern;

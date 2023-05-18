@@ -31,6 +31,7 @@ ISOLATE_UNIT_TEST_CASE(Disassembler_InvalidInput) {
   uint32_t bad_input[] = {
       0x00000000, 0xFFFFFFFF, 0x12345678, 0x9ABCDEF0, 0x01110001,
       0xDEADC0DE, 0xBAADF00D, 0xDABADEEE, 0xDABAD111, 0xB000DEAD,
+      0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
   };
   Disassembler::Disassemble(
       reinterpret_cast<uword>(&bad_input[0]),

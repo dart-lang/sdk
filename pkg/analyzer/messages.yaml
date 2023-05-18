@@ -21314,7 +21314,7 @@ WarningCode:
 
       The analyzer produces this diagnostic when the value of a function
       (including methods and getters) that is explicitly or implicitly marked by
-      the `[doNotStore][meta-doNotStore]` annotation is stored in either a field
+      the [`doNotStore`][meta-doNotStore] annotation is stored in either a field
       or top-level variable.
 
       #### Example
@@ -22213,7 +22213,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a [public library][] exports a
-      declaration that is marked with the `[internal][meta-internal]`
+      declaration that is marked with the [`internal`][meta-internal]
       annotation.
 
       #### Example
@@ -22258,7 +22258,7 @@ WarningCode:
 
       The analyzer produces this diagnostic when a [public library][] exports a
       top-level function  with a return type or at least one parameter type that
-      is marked with the `[internal][meta-internal]` annotation.
+      is marked with the [`internal`][meta-internal] annotation.
 
       #### Example
 
@@ -22306,12 +22306,12 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a method that is annotated with
-      the `[factory][meta-factory]` annotation has a return type of `void`.
+      the [`factory`][meta-factory] annotation has a return type of `void`.
 
       #### Example
 
       The following code produces this diagnostic because the method `createC`
-      is annotated with the `[factory][meta-factory]` annotation but doesn't
+      is annotated with the [`factory`][meta-factory] annotation but doesn't
       return any value:
 
       ```dart
@@ -22349,7 +22349,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a method that is annotated with
-      the `[factory][meta-factory]` annotation doesn't return a newly allocated
+      the [`factory`][meta-factory] annotation doesn't return a newly allocated
       object.
 
       #### Example
@@ -22398,13 +22398,13 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a declaration is annotated with
-      the `[internal][meta-internal]` annotation and that declaration is either
+      the [`internal`][meta-internal] annotation and that declaration is either
       in a [public library][] or has a private name.
 
       #### Example
 
       The following code, when in a [public library][], produces this diagnostic
-      because the `[internal][meta-internal]` annotation can't be applied to
+      because the [`internal`][meta-internal] annotation can't be applied to
       declarations in a [public library][]:
 
       ```dart
@@ -22415,7 +22415,7 @@ WarningCode:
       ```
 
       The following code, whether in a public or internal library, produces this
-      diagnostic because the `[internal][meta-internal]` annotation can't be
+      diagnostic because the [`internal`][meta-internal] annotation can't be
       applied to declarations with private names:
 
       ```dart
@@ -22542,7 +22542,7 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when the `[literal][[meta-literal]]`
+      The analyzer produces this diagnostic when the [`literal`][meta-literal]
       annotation is applied to anything other than a const constructor.
 
       #### Examples
@@ -22776,13 +22776,13 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a reference to a declaration
-      that is annotated with the `[internal][meta-internal]` annotation is found
+      that is annotated with the [`internal`][meta-internal] annotation is found
       outside the package containing the declaration.
 
       #### Example
 
       Given a package `p` that defines a library containing a declaration marked
-      with the `[internal][meta-internal]` annotation:
+      with the [`internal`][meta-internal] annotation:
 
       ```dart
       %uri="package:p/src/p.dart"
@@ -22823,7 +22823,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when an instance member that is
-      annotated with `[visibleForOverriding][meta-visibleForOverriding]` is
+      annotated with [`visibleForOverriding`][meta-visibleForOverriding] is
       referenced outside the library in which it's declared for any reason other
       than to override it.
 
@@ -22943,7 +22943,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when either the `visibleForTemplate`
-      or `[visibleForTesting][meta-visibleForTesting]` annotation is applied to
+      or [`visibleForTesting`][meta-visibleForTesting] annotation is applied to
       a non-public declaration.
 
       #### Example
@@ -22989,7 +22989,7 @@ WarningCode:
 
       The analyzer produces this diagnostic when anything other than a public
       instance member of a class is annotated with
-      `[visibleForOverriding][meta-visibleForOverriding]`. Because only public
+      [`visibleForOverriding`][meta-visibleForOverriding]. Because only public
       instance members can be overridden outside the defining library, there's
       no value to annotating any other declarations.
 
@@ -23307,7 +23307,7 @@ WarningCode:
 
       The analyzer produces this diagnostic when the superclass constraint of a
       mixin is a class from a different package that was marked as
-      `[sealed][meta-sealed]`. Classes that are sealed can't be extended,
+      [`sealed`][meta-sealed]. Classes that are sealed can't be extended,
       implemented, mixed in, or used as a superclass constraint.
 
       #### Example
@@ -23351,7 +23351,7 @@ WarningCode:
       The analyzer produces this diagnostic when an immutable class defines one
       or more instance fields that aren't final. A class is immutable if it's
       marked as being immutable using the annotation
-      `[immutable][meta-immutable]` or if it's a subclass of an immutable class.
+      [`immutable`][meta-immutable] or if it's a subclass of an immutable class.
 
       #### Example
 
@@ -23406,7 +23406,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a method that overrides a method
-      that is annotated as `[mustCallSuper][meta-mustCallSuper]` doesn't invoke
+      that is annotated as [`mustCallSuper`][meta-mustCallSuper] doesn't invoke
       the overridden method as required.
 
       #### Example
@@ -23472,7 +23472,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a constructor that has the
-      `[literal][meta-literal]` annotation is invoked without using the `const`
+      [`literal`][meta-literal] annotation is invoked without using the `const`
       keyword, but all of the arguments to the constructor are constants. The
       annotation indicates that the constructor should be used to create a
       constant value whenever possible.
@@ -23768,7 +23768,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a value that is annotated with
-      the `[doNotStore][meta-doNotStore]` annotation is returned from a method,
+      the [`doNotStore`][meta-doNotStore] annotation is returned from a method,
       getter, or function that doesn't have the same annotation.
 
       #### Example
@@ -23789,7 +23789,7 @@ WarningCode:
       #### Common fixes
 
       If the value that shouldn't be stored is the correct value to return, then
-      mark the function with the `[doNotStore][meta-doNotStore]` annotation:
+      mark the function with the [`doNotStore`][meta-doNotStore] annotation:
 
       ```dart
       import 'package:meta/meta.dart';
@@ -24483,7 +24483,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a sealed class (one that either
-      has the `[sealed][meta-sealed]` annotation or inherits or mixes in a
+      has the [`sealed`][meta-sealed] annotation or inherits or mixes in a
       sealed class) is referenced in either the `extends`, `implements`, or
       `with` clause of a class or mixin declaration if the declaration isn't in
       the same package as the sealed class.
@@ -24710,7 +24710,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when an annotation of the form
-      `[UseResult][meta-UseResult].unless(parameterDefined: parameterName)`
+      [`UseResult.unless(parameterDefined: parameterName)`][meta-UseResult]
       specifies a parameter name that isn't defined by the annotated function.
 
       #### Example
@@ -25361,7 +25361,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a function annotated with
-      `[useResult][meta-useResult]` is invoked, and the value returned by that
+      [`useResult`][meta-useResult] is invoked, and the value returned by that
       function isn't used. The value is considered to be used if a member of the
       value is invoked, if the value is passed to another function, or if the
       value is assigned to a variable or field.
@@ -25370,7 +25370,7 @@ WarningCode:
 
       The following code produces this diagnostic because the invocation of
       `c.a()` isn't used, even though the method `a` is annotated with
-      `[useResult][meta-useResult]`:
+      [`useResult`][meta-useResult]:
 
       ```dart
       import 'package:meta/meta.dart';
