@@ -9929,6 +9929,158 @@ SwitchExpression
 ''');
   }
 
+  test_syntheticIdentifier_insideListPattern() {
+    _parse('''
+void f(Object? x) {
+  switch (x) {
+    case [if]:
+  };
+}
+''', errors: [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 45, 2),
+    ]);
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  guardedPattern: GuardedPattern
+    pattern: ListPattern
+      leftBracket: [
+      elements
+        ConstantPattern
+          expression: SimpleIdentifier
+            token: <empty> <synthetic>
+      rightBracket: ]
+  colon: :
+''');
+  }
+
+  test_syntheticIdentifier_insideMapPattern() {
+    _parse('''
+void f(Object? x) {
+  switch (x) {
+    case {0: if}:
+  };
+}
+''', errors: [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
+      error(ParserErrorCode.EXPECTED_TOKEN, 48, 2),
+      error(ParserErrorCode.EXPECTED_TOKEN, 48, 2),
+    ]);
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  guardedPattern: GuardedPattern
+    pattern: MapPattern
+      leftBracket: {
+      elements
+        MapPatternEntry
+          key: IntegerLiteral
+            literal: 0
+          separator: :
+          value: ConstantPattern
+            expression: SimpleIdentifier
+              token: <empty> <synthetic>
+        MapPatternEntry
+          key: SimpleIdentifier
+            token: <empty> <synthetic>
+          separator: : <synthetic>
+          value: ConstantPattern
+            expression: SimpleIdentifier
+              token: <empty> <synthetic>
+      rightBracket: }
+  colon: :
+''');
+  }
+
+  test_syntheticIdentifier_insideParenthesizedPattern() {
+    _parse('''
+void f(Object? x) {
+  switch (x) {
+    case (if):
+  };
+}
+''', errors: [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 45, 2),
+      error(ParserErrorCode.EXPECTED_TOKEN, 45, 2),
+    ]);
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  guardedPattern: GuardedPattern
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: ConstantPattern
+        expression: SimpleIdentifier
+          token: <empty> <synthetic>
+      rightParenthesis: )
+  colon: :
+''');
+  }
+
+  test_syntheticIdentifier_insideRecordPattern() {
+    _parse('''
+void f(Object? x) {
+  switch (x) {
+    case (_, if):
+  };
+}
+''', errors: [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
+      error(ParserErrorCode.EXPECTED_TOKEN, 48, 2),
+    ]);
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  guardedPattern: GuardedPattern
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        PatternField
+          pattern: WildcardPattern
+            name: _
+        PatternField
+          pattern: ConstantPattern
+            expression: SimpleIdentifier
+              token: <empty> <synthetic>
+      rightParenthesis: )
+  colon: :
+''');
+  }
+
+  test_syntheticIdentifier_insideSwitchExpression() {
+    _parse('''
+void f(Object? x) => switch (x) {if};
+''', errors: [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 33, 2),
+      error(ParserErrorCode.EXPECTED_TOKEN, 33, 2),
+      error(ParserErrorCode.EXPECTED_TOKEN, 33, 2),
+    ]);
+    var node = findNode.switchExpression('if');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: SimpleIdentifier
+            token: <empty> <synthetic>
+      arrow: => <synthetic>
+      expression: SimpleIdentifier
+        token: <empty> <synthetic>
+  rightBracket: }
+''');
+  }
+
   test_typeQuestionBeforeWhen_conditional() {
     // The logic for parsing types has special disambiguation rules for deciding
     // whether a trailing `?` should be included in the type; these rules are

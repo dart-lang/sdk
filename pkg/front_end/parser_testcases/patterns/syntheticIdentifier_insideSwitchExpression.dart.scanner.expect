@@ -1,0 +1,5 @@
+void f(Object? x) => switch (x) {if};
+
+
+void[KeywordToken] f[StringToken]([BeginToken]Object[StringToken]?[SimpleToken] x[StringToken])[SimpleToken] =>[SimpleToken] switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]if[KeywordToken]}[SimpleToken];[SimpleToken]
+[SimpleToken]
