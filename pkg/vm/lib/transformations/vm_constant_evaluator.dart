@@ -61,8 +61,8 @@ class VMConstantEvaluator extends ConstantEvaluator {
     // being evaluated.
     final os = _targetOS;
     if (os != null && _platformClass != null) {
-      _constantFields['_operatingSystem'] = StringConstant(os.name);
-      _constantFields['_pathSeparator'] = StringConstant(os.pathSeparator);
+      _constantFields['operatingSystem'] = StringConstant(os.name);
+      _constantFields['pathSeparator'] = StringConstant(os.pathSeparator);
     }
   }
 
