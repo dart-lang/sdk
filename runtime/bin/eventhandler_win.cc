@@ -464,13 +464,13 @@ bool ListenSocket::LoadAcceptEx() {
 }
 
 bool ListenSocket::LoadGetAcceptExSockaddrs() {
-  // Load the LoadGetAcceptExSockaddrs function into memory using WSAIoctl.
-  GUID guid_load_accept_ex_sockaddrs = WSAID_GETACCEPTEXSOCKADDRS;
+  // Load the GetAcceptExSockaddrs function into memory using WSAIoctl.
+  GUID guid_get_accept_ex_sockaddrs = WSAID_GETACCEPTEXSOCKADDRS;
   DWORD bytes;
   int status =
       WSAIoctl(socket(), SIO_GET_EXTENSION_FUNCTION_POINTER,
-               &guid_load_accept_ex_sockaddrs,
-               sizeof(guid_load_accept_ex_sockaddrs), &GetAcceptExSockaddrs_,
+               &guid_get_accept_ex_sockaddrs,
+               sizeof(guid_get_accept_ex_sockaddrs), &GetAcceptExSockaddrs_,
                sizeof(GetAcceptExSockaddrs_), &bytes, nullptr, nullptr);
   return (status != SOCKET_ERROR);
 }
