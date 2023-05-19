@@ -23,7 +23,7 @@ enum TestEnum {
 
 f(void g([bool? b])) {
   // Function Expression Invocation.
-  g(null); // LINT
+  g(null); // TODO: https://github.com/dart-lang/linter/issues/4368
 }
 
 bool q() => true;

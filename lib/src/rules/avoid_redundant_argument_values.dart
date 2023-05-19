@@ -102,9 +102,11 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
     var value = param.computeConstantValue();
-    if (value == null && arg is NullLiteral) {
-      rule.reportLint(arg);
-    } else if (value != null && value.hasKnownValue) {
+    // todo(pq): reenable and do ecosystem cleanup (https://github.com/dart-lang/linter/issues/4368)
+    // if (value == null && arg is NullLiteral) {
+    //   rule.reportLint(arg);
+    // } else ...
+    if (value != null && value.hasKnownValue) {
       var expressionValue = context.evaluateConstant(arg).value;
       if ((expressionValue?.hasKnownValue ?? false) &&
           expressionValue == value) {
