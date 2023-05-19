@@ -1,3 +1,9 @@
+## 3.0.2
+
+This is a patch release that:
+
+- Fixes a dart2js crash when using a switch case expression on a record where the fields don't match the cases. (issue [#52438]).
+
 ## 3.0.1
 
 This is a patch release that:

@@ -917,10 +917,15 @@ class CommonMasks with AbstractValueDomain {
 
   @override
   AbstractValue getGetterTypeInRecord(AbstractValue value, String getterName) {
-    final type = value is RecordTypeMask
-        ? value.types[value.shape.indexOfGetterName(getterName)]
-        : null;
-    return type ?? dynamicType;
+    if (value is RecordTypeMask) {
+      final getterIndex = value.shape.indexOfGetterName(getterName);
+      // Generated code can sometimes contain record accesses for invalid
+      // getters.
+      if (getterIndex >= 0) {
+        return value.types[getterIndex];
+      }
+    }
+    return dynamicType;
   }
 
   @override
