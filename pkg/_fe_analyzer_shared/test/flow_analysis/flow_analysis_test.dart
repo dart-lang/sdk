@@ -571,8 +571,8 @@ main() {
         h.thisType = 'C';
         h.addMember('C', 'f', 'Object?');
         h.run([
-          if_(thisOrSuperProperty('f').is_('Null'), [
-            if_(thisOrSuperProperty('f').eq(nullLiteral), [
+          if_(thisProperty('f').is_('Null'), [
+            if_(thisProperty('f').eq(nullLiteral), [
               checkReachable(true),
             ], [
               checkReachable(true),
@@ -1624,7 +1624,7 @@ main() {
         h.thisType = 'C';
         h.addMember('C', 'f', 'Object?');
         h.run([
-          if_(thisOrSuperProperty('f').is_('Never'), [
+          if_(thisProperty('f').is_('Never'), [
             checkReachable(false),
           ], [
             checkReachable(true),
@@ -5896,10 +5896,10 @@ main() {
         h.thisType = 'C';
         h.addMember('C', 'field', 'Object?');
         h.run([
-          if_(thisOrSuperProperty('field').eq(nullLiteral), [
+          if_(thisProperty('field').eq(nullLiteral), [
             return_(),
           ]),
-          thisOrSuperProperty('field').whyNotPromoted((reasons) {
+          thisProperty('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason = reasons.values.single;
             expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
@@ -5977,11 +5977,11 @@ main() {
       h.thisType = 'C';
       h.addMember('C', '_field', 'Object?', promotable: true);
       h.run([
-        if_(thisOrSuperProperty('_field').eq(nullLiteral), [
+        if_(thisProperty('_field').eq(nullLiteral), [
           return_(),
         ]),
-        checkPromoted(thisOrSuperProperty('_field'), 'Object'),
-        thisOrSuperProperty('_field').checkType('Object').stmt,
+        checkPromoted(thisProperty('_field'), 'Object'),
+        thisProperty('_field').checkType('Object').stmt,
       ]);
     });
 
@@ -6002,11 +6002,11 @@ main() {
       h.thisType = 'C';
       h.addMember('C', '_field', 'Object?', promotable: false);
       h.run([
-        if_(thisOrSuperProperty('_field').eq(nullLiteral), [
+        if_(thisProperty('_field').eq(nullLiteral), [
           return_(),
         ]),
-        checkNotPromoted(thisOrSuperProperty('_field')),
-        thisOrSuperProperty('_field').checkType('Object?').stmt,
+        checkNotPromoted(thisProperty('_field')),
+        thisProperty('_field').checkType('Object?').stmt,
       ]);
     });
 
@@ -6030,14 +6030,14 @@ main() {
       h.thisType = 'C';
       h.addMember('C', '_field', 'Object?', promotable: true);
       h.run([
-        if_(thisOrSuperProperty('_field').eq(nullLiteral), [
+        if_(thisProperty('_field').eq(nullLiteral), [
           return_(),
         ]),
-        if_(thisOrSuperProperty('_field').isNot('int'), [
+        if_(thisProperty('_field').isNot('int'), [
           return_(),
         ]),
-        checkPromoted(thisOrSuperProperty('_field'), 'int'),
-        thisOrSuperProperty('_field').checkType('int').stmt,
+        checkPromoted(thisProperty('_field'), 'int'),
+        thisProperty('_field').checkType('int').stmt,
       ]);
     });
 
@@ -6134,7 +6134,7 @@ main() {
       h.run([
         declare(x, type: 'C', initializer: expr('C')),
         declare(y, type: 'C', initializer: expr('C')),
-        if_(thisOrSuperProperty('_field1').isNot('String'), [
+        if_(thisProperty('_field1').isNot('String'), [
           return_(),
         ]),
         if_(this_.property('_field2').isNot('String?'), [
@@ -6146,12 +6146,12 @@ main() {
         if_(y.expr.property('_field1').isNot('double'), [
           return_(),
         ]),
-        checkPromoted(thisOrSuperProperty('_field1'), 'String'),
-        thisOrSuperProperty('_field1').checkType('String').stmt,
+        checkPromoted(thisProperty('_field1'), 'String'),
+        thisProperty('_field1').checkType('String').stmt,
         checkPromoted(this_.property('_field1'), 'String'),
         this_.property('_field1').checkType('String').stmt,
-        checkPromoted(thisOrSuperProperty('_field2'), 'String?'),
-        thisOrSuperProperty('_field2').checkType('String?').stmt,
+        checkPromoted(thisProperty('_field2'), 'String?'),
+        thisProperty('_field2').checkType('String?').stmt,
         checkPromoted(this_.property('_field2'), 'String?'),
         this_.property('_field2').checkType('String?').stmt,
         checkPromoted(x.expr.property('_field1'), 'int'),
@@ -6334,16 +6334,32 @@ main() {
       h.addMember('C', '_field1', 'D', promotable: false);
       h.addMember('D', '_field2', 'Object?', promotable: true);
       h.run([
-        if_(
-            thisOrSuperProperty('_field1').property('_field2').isNot('String'),
-            [
-              return_(),
-            ]),
-        checkNotPromoted(thisOrSuperProperty('_field1').property('_field2')),
-        thisOrSuperProperty('_field1')
-            .property('_field2')
-            .checkType('Object?')
-            .stmt,
+        if_(thisProperty('_field1').property('_field2').isNot('String'), [
+          return_(),
+        ]),
+        checkNotPromoted(thisProperty('_field1').property('_field2')),
+        thisProperty('_field1').property('_field2').checkType('Object?').stmt,
+      ]);
+    });
+
+    test('super tracked separately', () {
+      // This test verifies that promotion of `this._field` and promotion of
+      // `super._field` are tracked separately. This is necessary in case
+      // `this._field` overrides `super._field` (and hence the two accesses
+      // refer to different underlying fields).
+      h.thisType = 'C';
+      h.addMember('C', '_field', 'int?', promotable: true);
+      h.run([
+        if_(thisProperty('_field').notEq(nullLiteral), [
+          checkPromoted(thisProperty('_field'), 'int'),
+          this_.property('_field').checkType('int').stmt,
+          checkNotPromoted(superProperty('_field')),
+        ]),
+        if_(superProperty('_field').notEq(nullLiteral), [
+          checkPromoted(superProperty('_field'), 'int'),
+          checkNotPromoted(thisProperty('_field')),
+          this_.property('_field').checkType('int?').stmt,
+        ]),
       ]);
     });
   });

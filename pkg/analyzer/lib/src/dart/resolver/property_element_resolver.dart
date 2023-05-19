@@ -261,7 +261,8 @@ class PropertyElementResolver with ScopeHelpers {
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
         getType = _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(
-                node, node.name, readElementRequested, unpromotedType) ??
+                node, node.name, readElementRequested, unpromotedType,
+                isSuperAccess: false) ??
             unpromotedType;
       }
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
@@ -817,8 +818,9 @@ class PropertyElementResolver with ScopeHelpers {
         }
         var unpromotedType =
             readElement?.returnType ?? _typeSystem.typeProvider.dynamicType;
-        getType = _resolver.flowAnalysis.flow?.propertyGet(
-                node, target, propertyName.name, readElement, unpromotedType) ??
+        getType = _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(
+                node, propertyName.name, readElement, unpromotedType,
+                isSuperAccess: true) ??
             unpromotedType;
       }
 
