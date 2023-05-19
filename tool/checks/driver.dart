@@ -18,12 +18,14 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:path/path.dart' as path;
 
+import 'rules/no_solo_tests.dart';
 import 'rules/visit_registered_nodes.dart';
 
 Future<void> main() async {
   var rules =
       path.normalize(io.File(path.join('lib', 'src', 'rules')).absolute.path);
-  await Driver([VisitRegisteredNodes()]).analyze([rules]);
+  var tests = path.normalize(io.File(path.join('test')).absolute.path);
+  await Driver([VisitRegisteredNodes(), NoSoloTests()]).analyze([rules, tests]);
 }
 
 class Driver {
