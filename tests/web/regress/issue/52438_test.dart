@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Switches geenrate record accesses on non-existent fields. These accesses
+// Switches generate record accesses on non-existent fields. These accesses
 // should be guarded by a type check but Dart2JS does not always promote
 // correctly after the type check.
 
