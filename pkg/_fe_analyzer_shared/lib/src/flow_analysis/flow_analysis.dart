@@ -677,9 +677,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// the property is currently promoted.  Otherwise returns `null`.
   ///
   /// The [target] parameter determines which expression's property is being
-  /// queried; if it is `null`, a property of `this` is being queried.  If it is
-  /// non-`null`, this method should be called just after visiting the target
-  /// expression.
+  /// queried; if it is `null`, a property of `this` or `super` is being
+  /// queried.  If it is non-`null`, this method should be called just after
+  /// visiting the target expression.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
   /// track of the field or property being accessed.  If not `null`,
@@ -687,13 +687,18 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// the property is promotable.  [staticType] should be the static type of the
   /// value returned by the property get.
   ///
+  /// [isSuperAccess] indicates whether the property in question is being
+  /// accessed through `super.`. If [target] is non-null, the caller should pass
+  /// `false` for [isSuperAccess].
+  ///
   /// Note: although only fields can be promoted, this method uses the
   /// nomenclature "property" rather than "field", to highlight the fact that
   /// it is not necessary for the client to check whether a property refers to a
   /// field before calling this method; if the property does not refer to a
   /// field, `null` will be returned.
   Type? promotedPropertyType(Expression? target, String propertyName,
-      Object? propertyMember, Type staticType);
+      Object? propertyMember, Type staticType,
+      {required bool isSuperAccess});
 
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
@@ -868,10 +873,14 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// get, this value can be retrieved from
   /// [PropertyNotPromoted.propertyMember].
   ///
+  /// [isSuperAccess] indicates whether the property in question is being
+  /// accessed through `super.`.
+  ///
   /// If the property's type is currently promoted, the promoted type is
   /// returned.  Otherwise `null` is returned.
   Type? thisOrSuperPropertyGet(Expression expression, String propertyName,
-      Object? propertyMember, Type staticType);
+      Object? propertyMember, Type staticType,
+      {required bool isSuperAccess});
 
   /// Call this method just before visiting the body of a "try/catch" statement.
   ///
@@ -1595,12 +1604,14 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   Type? promotedPropertyType(Expression? target, String propertyName,
-      Object? propertyMember, Type staticType) {
+      Object? propertyMember, Type staticType,
+      {required bool isSuperAccess}) {
     return _wrap(
         'promotedPropertyType($target, $propertyName, $propertyMember, '
-        '$staticType)',
+        '$staticType, isSuperAccess: $isSuperAccess)',
         () => _wrapped.promotedPropertyType(
-            target, propertyName, propertyMember, staticType),
+            target, propertyName, propertyMember, staticType,
+            isSuperAccess: isSuperAccess),
         isQuery: true);
   }
 
@@ -1718,12 +1729,14 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   Type? thisOrSuperPropertyGet(Expression expression, String propertyName,
-      Object? propertyMember, Type staticType) {
+      Object? propertyMember, Type staticType,
+      {required bool isSuperAccess}) {
     return _wrap(
         'thisOrSuperPropertyGet($expression, $propertyName, $propertyMember, '
-        '$staticType)',
+        '$staticType, isSuperAccess: $isSuperAccess)',
         () => _wrapped.thisOrSuperPropertyGet(
-            expression, propertyName, propertyMember, staticType),
+            expression, propertyName, propertyMember, staticType,
+            isSuperAccess: isSuperAccess),
         isQuery: false,
         isPure: false);
   }
@@ -4465,9 +4478,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   Type? promotedPropertyType(Expression? target, String propertyName,
-      Object? propertyMember, Type staticType) {
+      Object? propertyMember, Type staticType,
+      {required bool isSuperAccess}) {
     return _handleProperty(
-        null, target, propertyName, propertyMember, staticType);
+        null, target, propertyName, propertyMember, staticType,
+        isSuperAccess: isSuperAccess);
   }
 
   @override
@@ -4531,7 +4546,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   Type? propertyGet(Expression? wholeExpression, Expression target,
       String propertyName, Object? propertyMember, Type staticType) {
     return _handleProperty(
-        wholeExpression, target, propertyName, propertyMember, staticType);
+        wholeExpression, target, propertyName, propertyMember, staticType,
+        isSuperAccess: false);
   }
 
   @override
@@ -4681,9 +4697,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   Type? thisOrSuperPropertyGet(Expression expression, String propertyName,
-      Object? propertyMember, Type staticType) {
+      Object? propertyMember, Type staticType,
+      {required bool isSuperAccess}) {
     return _handleProperty(
-        expression, null, propertyName, propertyMember, staticType);
+        expression, null, propertyName, propertyMember, staticType,
+        isSuperAccess: isSuperAccess);
   }
 
   @override
@@ -5084,13 +5102,17 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   Type? _handleProperty(Expression? wholeExpression, Expression? target,
-      String propertyName, Object? propertyMember, Type staticType) {
+      String propertyName, Object? propertyMember, Type staticType,
+      {required bool isSuperAccess}) {
     int targetKey;
     bool isPromotable = propertyMember != null &&
         operations.isPropertyPromotable(propertyMember);
     if (target == null) {
-      targetKey = promotionKeyStore.thisPromotionKey;
+      targetKey = isSuperAccess
+          ? promotionKeyStore.shadowedSuperPromotionKey
+          : promotionKeyStore.thisPromotionKey;
     } else {
+      assert(!isSuperAccess);
       ReferenceWithType<Type>? targetReference =
           _getExpressionReference(target);
       if (targetReference == null) return null;
@@ -5895,7 +5917,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   Type? promotedPropertyType(Expression? target, String propertyName,
-          Object? propertyMember, Type staticType) =>
+          Object? propertyMember, Type staticType,
+          {required bool isSuperAccess}) =>
       null;
 
   @override
@@ -5960,7 +5983,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   Type? thisOrSuperPropertyGet(Expression expression, String propertyName,
-          Object? propertyMember, Type staticType) =>
+          Object? propertyMember, Type staticType,
+          {required bool isSuperAccess}) =>
       null;
 
   @override

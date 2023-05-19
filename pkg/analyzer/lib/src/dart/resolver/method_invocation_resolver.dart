@@ -705,7 +705,7 @@ class MethodInvocationResolver with ScopeHelpers {
       nameNode.staticElement = target;
       if (target is PropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(node, target.returnType,
-            contextType: contextType);
+            contextType: contextType, isSuperAccess: true);
       }
       _setResolution(node, target.type, whyNotPromotedList,
           contextType: contextType);
@@ -887,7 +887,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// [FunctionExpressionInvocation].
   void _rewriteAsFunctionExpressionInvocation(
       MethodInvocationImpl node, DartType getterReturnType,
-      {required DartType? contextType}) {
+      {required DartType? contextType, bool isSuperAccess = false}) {
     var targetType = _typeSystem.resolveToBound(getterReturnType);
 
     ExpressionImpl functionExpression;
@@ -898,7 +898,8 @@ class MethodInvocationResolver with ScopeHelpers {
               functionExpression,
               node.methodName.name,
               node.methodName.staticElement,
-              getterReturnType) ??
+              getterReturnType,
+              isSuperAccess: false) ??
           targetType;
     } else {
       if (target is SimpleIdentifierImpl &&
@@ -915,13 +916,23 @@ class MethodInvocationResolver with ScopeHelpers {
           propertyName: node.methodName,
         );
       }
-      targetType = _resolver.flowAnalysis.flow?.propertyGet(
-              functionExpression,
-              target,
-              node.methodName.name,
-              node.methodName.staticElement,
-              getterReturnType) ??
-          targetType;
+      if (target is SuperExpressionImpl) {
+        targetType = _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(
+                functionExpression,
+                node.methodName.name,
+                node.methodName.staticElement,
+                getterReturnType,
+                isSuperAccess: true) ??
+            targetType;
+      } else {
+        targetType = _resolver.flowAnalysis.flow?.propertyGet(
+                functionExpression,
+                target,
+                node.methodName.name,
+                node.methodName.staticElement,
+                getterReturnType) ??
+            targetType;
+      }
       functionExpression.staticType = targetType;
     }
     _inferenceHelper.recordStaticType(node.methodName, targetType,

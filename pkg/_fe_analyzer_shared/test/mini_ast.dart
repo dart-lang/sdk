@@ -364,6 +364,9 @@ Pattern relationalPattern(String operator, Expression operand,
 
 Statement return_() => new Return._(location: computeLocation());
 
+PromotableLValue superProperty(String name) => new ThisOrSuperProperty._(name,
+    location: computeLocation(), isSuperAccess: true);
+
 Statement switch_(Expression expression, List<SwitchStatementMember> cases,
         {bool? isLegacyExhaustive,
         bool? expectHasDefault,
@@ -397,8 +400,8 @@ SwitchStatementMember switchStatementMember(
   );
 }
 
-PromotableLValue thisOrSuperProperty(String name) =>
-    new ThisOrSuperProperty._(name, location: computeLocation());
+PromotableLValue thisProperty(String name) => new ThisOrSuperProperty._(name,
+    location: computeLocation(), isSuperAccess: false);
 
 Expression throw_(Expression operand) =>
     new Throw._(operand, location: computeLocation());
@@ -3205,8 +3208,9 @@ class Property extends PromotableLValue {
     var receiverType =
         h.typeAnalyzer.analyzeExpression(target, h.typeAnalyzer.unknownType);
     var member = h.typeAnalyzer._lookupMember(this, receiverType, propertyName);
-    return h.flow
-        .promotedPropertyType(target, propertyName, member, member!._type);
+    return h.flow.promotedPropertyType(
+        target, propertyName, member, member!._type,
+        isSuperAccess: false);
   }
 
   @override
@@ -3590,8 +3594,10 @@ class This extends Expression {
 
 class ThisOrSuperProperty extends PromotableLValue {
   final String propertyName;
+  final bool isSuperAccess;
 
-  ThisOrSuperProperty._(this.propertyName, {required super.location})
+  ThisOrSuperProperty._(this.propertyName,
+      {required super.location, required this.isSuperAccess})
       : super._();
 
   @override
@@ -3600,17 +3606,24 @@ class ThisOrSuperProperty extends PromotableLValue {
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
-    var result = h.typeAnalyzer.analyzeThisPropertyGet(this, propertyName);
-    h.irBuilder.atom('this.$propertyName', Kind.expression, location: location);
+    var result = h.typeAnalyzer.analyzeThisOrSuperPropertyGet(
+        this, propertyName,
+        isSuperAccess: isSuperAccess);
+    var thisOrSuper = isSuperAccess ? 'super' : 'this';
+    h.irBuilder.atom('$thisOrSuper.$propertyName', Kind.expression,
+        location: location);
     return result;
   }
 
   @override
   Type? _getPromotedType(Harness h) {
-    h.irBuilder.atom('this.$propertyName', Kind.expression, location: location);
+    var thisOrSuper = isSuperAccess ? 'super' : 'this';
+    h.irBuilder.atom('$thisOrSuper.$propertyName', Kind.expression,
+        location: location);
     var member = h.typeAnalyzer._lookupMember(this, h._thisType!, propertyName);
-    return h.flow
-        .promotedPropertyType(null, propertyName, member, member!._type);
+    return h.flow.promotedPropertyType(
+        null, propertyName, member, member!._type,
+        isSuperAccess: isSuperAccess);
   }
 
   @override
@@ -4590,12 +4603,14 @@ class _MiniAstTypeAnalyzer
     return new SimpleTypeAnalysisResult<Type>(type: thisType);
   }
 
-  SimpleTypeAnalysisResult<Type> analyzeThisPropertyGet(
-      Expression node, String propertyName) {
+  SimpleTypeAnalysisResult<Type> analyzeThisOrSuperPropertyGet(
+      Expression node, String propertyName,
+      {required bool isSuperAccess}) {
     var member = _lookupMember(node, thisType, propertyName);
     var memberType = member?._type ?? dynamicType;
-    var promotedType =
-        flow.thisOrSuperPropertyGet(node, propertyName, member, memberType);
+    var promotedType = flow.thisOrSuperPropertyGet(
+        node, propertyName, member, memberType,
+        isSuperAccess: isSuperAccess);
     return new SimpleTypeAnalysisResult<Type>(type: promotedType ?? memberType);
   }
 

@@ -11,6 +11,12 @@ class PromotionKeyStore<Variable extends Object> {
   /// Special promotion key to represent `this`.
   late final int thisPromotionKey = _makeNewKey();
 
+  /// Special promotion key to represent `super`. Fields accessed through
+  /// `super` are promoted independently from those accessed through `this` to
+  /// avoid soundness holes in the case where a field in `this` overrides a
+  /// field in `super`.
+  late final int shadowedSuperPromotionKey = _makeNewKey();
+
   final Map<Variable, int> _variableKeys = new Map<Variable, int>.identity();
 
   final List<_PromotionKeyInfo<Variable>> _keyToInfo = [];

@@ -3678,7 +3678,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
     inferredType = flowAnalysis.thisOrSuperPropertyGet(
-            expression, name.text, member, inferredType) ??
+            expression, name.text, member, inferredType,
+            isSuperAccess: true) ??
         inferredType;
     return new ExpressionInferenceResult(inferredType, expression);
   }
