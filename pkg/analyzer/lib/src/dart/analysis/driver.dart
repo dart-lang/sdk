@@ -749,6 +749,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// store, or built for a file to which the given [uri] is resolved.
   Future<SomeLibraryElementResult> getLibraryByUri(String uri) async {
     var uriObj = uriCache.parse(uri);
+
+    // Check if the element is already computed.
+    if (_pendingFileChanges.isEmpty) {
+      final rootReference = libraryContext.elementFactory.rootReference;
+      final reference = rootReference.getChild('$uriObj');
+      final element = reference.element;
+      if (element is LibraryElementImpl) {
+        return LibraryElementResultImpl(element);
+      }
+    }
+
     var fileOr = _fsState.getFileForUri(uriObj);
     return fileOr.map(
       (file) async {
