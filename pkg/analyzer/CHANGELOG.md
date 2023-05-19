@@ -1,4 +1,4 @@
-## 5.13.0-dev
+## 5.13.0
 * `InvalidType` is now used when types or property cannot be resolved.
   Previously `DynamicType` was used.
 * Fixed #52352, #52360, #52362, #35828, #26710, #52313, #52327.
