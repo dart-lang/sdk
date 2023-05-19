@@ -142,7 +142,7 @@ class FindDeclarations {
   final List<AnalysisDriver> drivers;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final bool Function(String)? isMatch;
+  final bool Function(String) isMatch;
   final String? onlyForFile;
   final bool onlyAnalyzed;
   final OperationPerformanceImpl performance;
@@ -1005,9 +1005,8 @@ class _FindCompilationUnitDeclarations {
   final LineInfo lineInfo;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final bool Function(String)? isMatch;
+  final bool Function(String) isMatch;
   final void Function(Declaration) collect;
-  final OperationPerformanceImpl performance;
 
   _FindCompilationUnitDeclarations(
     this.unit,
@@ -1016,7 +1015,6 @@ class _FindCompilationUnitDeclarations {
     this.maxResults,
     this.isMatch,
     this.collect,
-    this.performance,
   ) : lineInfo = unit.lineInfo;
 
   void compute(CancellationToken? cancellationToken) {
@@ -1068,64 +1066,56 @@ class _FindCompilationUnitDeclarations {
       throw const _MaxNumberOfDeclarationsError();
     }
 
-    performance.run('addDeclaration', (performance) {
-      performance.run('doNothing', (performance) {});
+    if (!isMatch(name)) {
+      return;
+    }
 
-      final satisfiesRegExp = performance.run('isMatch', (performance) {
-        final isMatch = this.isMatch;
-        return isMatch == null || isMatch(name);
-      });
-      if (!satisfiesRegExp) {
-        return;
+    var enclosing = element.enclosingElement;
+
+    String? className;
+    String? mixinName;
+    if (enclosing is EnumElement) {
+      // skip
+    } else if (enclosing is MixinElement) {
+      mixinName = enclosing.name;
+    } else if (enclosing is InterfaceElement) {
+      className = enclosing.name;
+    }
+
+    var kind = _getSearchElementKind(element);
+    if (kind == null) {
+      return;
+    }
+
+    String? parameters;
+    if (element is ExecutableElement) {
+      var displayString = element.getDisplayString(withNullability: true);
+      var parameterIndex = displayString.indexOf('(');
+      if (parameterIndex > 0) {
+        parameters = displayString.substring(parameterIndex);
       }
+    }
 
-      var enclosing = element.enclosingElement;
+    element as ElementImpl; // to access codeOffset/codeLength
+    var locationOffset = element.nameOffset;
+    var locationStart = lineInfo.getLocation(locationOffset);
 
-      String? className;
-      String? mixinName;
-      if (enclosing is EnumElement) {
-        // skip
-      } else if (enclosing is MixinElement) {
-        mixinName = enclosing.name;
-      } else if (enclosing is InterfaceElement) {
-        className = enclosing.name;
-      }
-
-      var kind = _getSearchElementKind(element);
-      if (kind == null) {
-        return;
-      }
-
-      String? parameters;
-      if (element is ExecutableElement) {
-        var displayString = element.getDisplayString(withNullability: true);
-        var parameterIndex = displayString.indexOf('(');
-        if (parameterIndex > 0) {
-          parameters = displayString.substring(parameterIndex);
-        }
-      }
-
-      element as ElementImpl; // to access codeOffset/codeLength
-      var locationOffset = element.nameOffset;
-      var locationStart = lineInfo.getLocation(locationOffset);
-
-      collect(
-        Declaration(
-          result._getPathIndex(filePath),
-          lineInfo,
-          name,
-          kind,
-          locationOffset,
-          locationStart.lineNumber,
-          locationStart.columnNumber,
-          element.codeOffset ?? 0,
-          element.codeLength ?? 0,
-          className,
-          mixinName,
-          parameters,
-        ),
-      );
-    });
+    collect(
+      Declaration(
+        result._getPathIndex(filePath),
+        lineInfo,
+        name,
+        kind,
+        locationOffset,
+        locationStart.lineNumber,
+        locationStart.columnNumber,
+        element.codeOffset ?? 0,
+        element.codeLength ?? 0,
+        className,
+        mixinName,
+        parameters,
+      ),
+    );
   }
 
   void _addExtensions(List<ExtensionElement> elements) {
@@ -1186,7 +1176,7 @@ class _FindDeclarations {
   final SearchedFiles files;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final bool Function(String)? isMatch;
+  final bool Function(String) isMatch;
   final String? onlyForFile;
   final OperationPerformanceImpl performance;
 
@@ -1238,7 +1228,6 @@ class _FindDeclarations {
                 maxResults,
                 isMatch,
                 result.declarations.add,
-                performance,
               );
               finder.compute(cancellationToken);
             });

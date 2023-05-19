@@ -10,6 +10,7 @@ import 'import_analyzer_test.dart' as import_analyzer;
 import 'profiling_test.dart' as profiling;
 import 'selection_coverage_test.dart' as selection_coverage;
 import 'selection_test.dart' as selection;
+import 'source_change_merger_test.dart' as source_change_merger;
 import 'strings_test.dart' as strings;
 
 void main() {
@@ -20,6 +21,7 @@ void main() {
     profiling.main();
     selection_coverage.main();
     selection.main();
+    source_change_merger.main();
     strings.main();
   });
 }

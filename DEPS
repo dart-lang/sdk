@@ -73,7 +73,7 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_version": "git_revision:5344d8e10bb7d8672d4bfae8adb010465470d51b",
+  "clang_version": "git_revision:6d667d4b261e81f325756fdfd5bb43b3b3d2451d",
   "gn_version": "git_revision:5a004f9427a050c6c393c07ddb85cba8ff3849fa",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
@@ -110,7 +110,7 @@ vars = {
   # revision.
 
   "args_rev": "f0f6cd22d29f15f86b3d2caab053bae029d30c9a",
-  "async_rev": "d744058ed4f69d23d9f3d4aaca1e3f1077ab9483",
+  "async_rev": "96c29d0af81436443a3a24683915d39202172cde",
   "bazel_worker_rev": "d9b389f30848253d3310f931a9b8d39ca07102b1",
   "benchmark_harness_rev": "e717ad41a2c7f9b14e197a1ffdf598f2470b5eda",
   "boolean_selector_rev": "3a1c982002f580b835b4380f44d9f8e5bc37fc4f",
@@ -121,7 +121,7 @@ vars = {
   "collection_rev": "db2da4891f848b598fe604f1e64aa3eb2efe2b6d",
   "convert_rev": "9a387f0554381537afc61212c58df3beaabbbce1",
   "crypto_rev": "216931ae7dce946e41adb3904d3b33095dfaf51a",
-  "csslib_rev": "923edf0030be22bc13f456f9fe6a63e4e19dd2bb", # b/281862233
+  "csslib_rev": "b2b9b55ada8ba0c6efb1eb9db0983ac4f6ab522d",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -136,22 +136,22 @@ vars = {
   "dartdoc_rev": "702f3ff7baed9d8d49de2714e5aff62c1cd4f069",
   "ffi_rev": "7f4acbd7532d94a793452030ff96bfef8cd96b68",
   "file_rev": "f05f5db0733274bed584e9915c39d34bb812fbb8",
-  "fixnum_rev": "006a130f193469f0cabb928d44b0b5b099c47bca",
-  "glob_rev": "46403bee475c70f0448fcc1ce32035daf618929d",
-  "html_rev": "593d6f67ef93477312d85c403f5a9b5928467f9c",
-  "http_rev": "fb3b4be3a3ba6665ce01bbb8dfbc4a03d0e27f42",
-  "http_multi_server_rev": "d1fffed3666dd8e8aed9fe67faeb3dca58d1f550",
-  "http_parser_rev": "5a33f5fdb8896d9a7fecc3f024b0956ed39ab88c",
+  "fixnum_rev": "d9b9a2a288d5eb467fb1597e80beb063b05cd4f6",
+  "glob_rev": "30f6aba4a63ae3bf030818de6b9e9424e523ba4c",
+  "html_rev": "92eacabadf40aa24c8f4289682ef2822c5d7e414",
+  "http_rev": "d8455600fd4304bf9aaa1a7b84b663b1982be007",
+  "http_multi_server_rev": "a209cd59d99b52ff08b32ba37bdc9fc1a79bc9f2",
+  "http_parser_rev": "1ef3e56ebc5e505dbf375f2e27faa40956eb0da1",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "800843e2aaf948ace35ddcab7037b9abc4222bfc",
-  "leak_tracker_rev": "8ae200a0cde6c0da991767ac5d5e700e2060cd9e",
+  "leak_tracker_rev": "571c24aeee986767e6a5b8eef4056278cf747850",
   "linter_rev": "599b5288ee883393bf3a9ae4d2cfe90c168cce91", # disable rev_sdk_deps.dart
   "lints_rev": "72f107a3be948a22d080e994257be3ba63f1bb41",
-  "logging_rev": "b75cba7877f58bf10a0718c1385e0ca01ae4c217",
-  "markdown_rev": "6db8fc1819f741685e0968fb2d9b66852260e98f",
-  "matcher_rev": "4dfd9adfdcd3de95e6964fc295075a32635e5b37",
+  "logging_rev": "fa2486d7c5422638066227f5f230c27cc7073b5c",
+  "markdown_rev": "b951454b113c311dfd83fa47cddd01c45bc997df",
+  "matcher_rev": "7e1011772566a8d1817c725a71f091e2791721c8",
   "mime_rev": "eb9d54b8f6fab9442b2b733e19137dc25fb0b868",
-  "mockito_rev": "3fadd2d8015c57cc851dbb121efa1bf8d658d8db",
+  "mockito_rev": "28f174fd8310937426d2f16135cb646aadc14997",
   "native_rev": "3d891667678bfca9d672784d9cbcf9275bbf6594",
   "package_config_rev": "f41f92cd4d2c539d910f2ef041ba6f6bd8469e78",
   "path_rev": "f8d15c2775835fd61ea5e06bb0ab99232f5ec446",
@@ -159,8 +159,8 @@ vars = {
   "protobuf_rev": "038872bc66a28ecde1c3522e3c1f3f601b6fc6f7",
   "pub_rev": "a3f8b2fd36ec432450caf907474a02023ef3e44e", # disable rev_sdk_deps.dart
   "pub_semver_rev": "6dd19082145e330a61916634e9317dea8cc239ab",
-  "shelf_rev": "79e3cee71701b34dd549aa8b95952da6471372a0",
-  "source_map_stack_trace_rev": "09715f9d13c7c6144a7e21ff63bbc417e30d77e4",
+  "shelf_rev": "8793687e30036c3d463a59bbbc8d746f3bfe1882",
+  "source_map_stack_trace_rev": "b83af01938225c1706bbc6c1f86bd4a394f91380",
   "source_maps_rev": "f0a85063bd6082a60295d0feb949c228e1bab442",
   "source_span_rev": "69fa991bbd94b6a5b59fd63714aee5c44ab3e3a4",
   "sse_rev": "11ba89e8be5326330ea268cfe2970731a27b2e64",
@@ -173,7 +173,7 @@ vars = {
   "test_descriptor_rev": "23e49a21fc6b4bf3164d336c699b29d1b8bb4622",
   "test_process_rev": "d7a1711e57d0340f66a9ef1e712c55be7b072cb0",
   "test_reflective_loader_rev": "d1b763f6281a46a48e1da6f0a6e8152e3480e8d2",
-  "tools_rev": "62c96040d8090bc1bb866db75d40bd1707876cf9",
+  "tools_rev": "49da4cabaddec3c82485b15d83ddac2278f947db",
   "typed_data_rev": "921f5c0380c6c487d8a065c45618162efa4cbd92",
   "usage_rev": "929a4e31f0bd4f861dd0e34d4c6f7184c751b569",
   "vector_math_rev": "e3de8da3e7db3b9b4f56a16061e9e480539fb08c",
