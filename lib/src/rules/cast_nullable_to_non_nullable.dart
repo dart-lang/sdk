@@ -77,10 +77,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitAsExpression(AsExpression node) {
     var expressionType = node.expression.staticType;
     var type = node.type.type;
-    if (expressionType != null &&
-        type != null &&
-        expressionType is! DynamicType &&
+    if (expressionType is! DynamicType &&
+        expressionType is! InvalidType &&
+        expressionType != null &&
         context.typeSystem.isNullable(expressionType) &&
+        type != null &&
         context.typeSystem.isNonNullable(type)) {
       rule.reportLint(node);
     }
