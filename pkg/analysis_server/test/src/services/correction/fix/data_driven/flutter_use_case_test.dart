@@ -3618,4 +3618,63 @@ void f(WidgetsBinding binding) {
 }
 ''');
   }
+
+  Future<void> test_widgets_WidgetsBinding_window_replace_with_view() async {
+    setPackageContent('''
+class Window {}
+
+class BuildContext{}
+
+class View {
+  static void of(BuildContext context){}
+}
+class WidgetsBinding {
+  static WidgetsBinding get instance => _instance!;
+  static WidgetsBinding? _instance;
+  final Window _window = Window();
+  @deprecated
+  Window get window => _window;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace window with View.of'
+    date: 2023-05-14
+    element:
+      uris: ['$importUri']
+      getter: 'window'
+      inClass: 'WidgetsBinding'
+    changes:
+      - kind: 'replacedBy'
+        replaceTarget: true
+        newElement:
+          uris: ['$importUri']
+          method: 'of'
+          inClass: 'View'
+          static: true
+        arguments: [
+          expression: 'context'
+        ]
+    variables:
+      context:
+        kind: import
+        uris: [ '$importUri' ]
+        name: 'BuildContext'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(WidgetsBinding binding) {
+  WidgetsBinding.instance.window;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(WidgetsBinding binding) {
+  View.of(context);
+}
+''');
+  }
 }

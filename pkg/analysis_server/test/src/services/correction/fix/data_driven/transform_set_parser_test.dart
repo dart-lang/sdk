@@ -835,6 +835,41 @@ transforms:
     expect(newElement.components, ['m', 'C']);
   }
 
+  void test_replacedBy_target() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Replace'
+  date: 2021-11-30
+  element:
+    uris: ['test.dart']
+    getter: 'f'
+    inClass: 'foo'
+  changes:
+    - kind: 'replacedBy'
+      replaceTarget: true
+      newElement:
+        uris: ['test.dart']
+        method: 'm'
+        inClass: 'C'
+      arguments: [
+        expression : 'context'
+      ]
+''');
+    var transforms = _transforms('f');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Replace');
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ReplacedBy;
+    var newElement = change.newElement;
+    expect(newElement.kind, ElementKind.methodKind);
+    expect(newElement.components, ['m', 'C']);
+    expect(change.replaceTarget, true);
+    expect(change.arguments, hasLength(1));
+  }
+
   void test_requiredIf() {
     assertNoErrors('''
 version: 1

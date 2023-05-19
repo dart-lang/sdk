@@ -40,6 +40,7 @@ class ErrorContext {
 
 /// A parser used to read a transform set from a file.
 class TransformSetParser {
+  static const String _arguments = 'arguments';
   static const String _argumentValueKey = 'argumentValue';
   static const String _bulkApplyKey = 'bulkApply';
   static const String _changesKey = 'changes';
@@ -70,6 +71,7 @@ class TransformSetParser {
   static const String _nullabilityKey = 'nullability';
   static const String _oldNameKey = 'oldName';
   static const String _oneOfKey = 'oneOf';
+  static const String _replaceTarget = 'replaceTarget';
   static const String _requiredIfKey = 'requiredIf';
   static const String _setterKey = 'setter';
   static const String _staticKey = 'static';
@@ -925,7 +927,8 @@ class TransformSetParser {
   /// change, or `null` if the [node] does not represent a valid replaced_by
   /// change.
   ReplacedBy? _translateReplacedByChange(YamlMap node) {
-    _reportUnsupportedKeys(node, const {_kindKey, _newElementKey});
+    _reportUnsupportedKeys(
+        node, const {_arguments, _kindKey, _newElementKey, _replaceTarget});
     var newElement = _translateElement(node.valueAt(_newElementKey),
         ErrorContext(key: _newElementKey, parentNode: node));
     if (newElement == null) {
@@ -949,7 +952,24 @@ class TransformSetParser {
         return null;
       }
     }
-    return ReplacedBy(newElement: newElement);
+    bool? replaceTarget;
+    var replaceTargetNode = node.valueAt(_replaceTarget);
+    replaceTarget = replaceTargetNode == null
+        ? false
+        : _translateBool(replaceTargetNode,
+                ErrorContext(key: _replaceTarget, parentNode: node)) ??
+            false;
+    var argumentsNode = node.valueAt(_arguments);
+    var argumentList = argumentsNode == null
+        ? null
+        : _translateList(
+            argumentsNode,
+            ErrorContext(key: _arguments, parentNode: node),
+            _translateCodeTemplate);
+    return ReplacedBy(
+        newElement: newElement,
+        replaceTarget: replaceTarget,
+        argumentList: argumentList);
   }
 
   /// Translate the [node] into a string. Return the resulting string, or `null`
