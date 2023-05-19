@@ -115,6 +115,10 @@ abstract class Mixin {}
 class DerivedClass3 extends ClassBase implements Mixin {}
 ```
 
+**DEPRECATED:** This rule is deprecated in favor of
+`collection_methods_unrelated_type`.
+The rule will be removed in a future Dart release.
+
 ''';
 
 class ListRemoveUnrelatedType extends LintRule {
@@ -123,10 +127,12 @@ class ListRemoveUnrelatedType extends LintRule {
 
   ListRemoveUnrelatedType()
       : super(
-            name: 'list_remove_unrelated_type',
-            description: _desc,
-            details: _details,
-            group: Group.errors);
+          name: 'list_remove_unrelated_type',
+          description: _desc,
+          details: _details,
+          group: Group.errors,
+          state: State.deprecated(),
+        );
 
   @override
   LintCode get lintCode => code;
