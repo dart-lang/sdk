@@ -114,6 +114,7 @@ VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
   EXPECT_EQ(246, testFunction2(123));
 
   delete vm;
+  delete vm2;
 }
 
 }  // namespace dart

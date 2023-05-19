@@ -15,6 +15,7 @@
 - **Breaking change** [#51486][]:
   - Added `sameSite` to the `Cookie` class.
   - Added class `SameSite`.
+- Added a deprecation warning when `Platform` is instantiated.
 - Added `Platform.lineTerminator` which exposes the character or characters
   that the operating system uses to separate lines of text, e.g.,
   `"\r\n"` on Windows.
