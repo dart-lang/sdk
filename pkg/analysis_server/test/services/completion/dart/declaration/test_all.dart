@@ -16,6 +16,7 @@ import 'library_prefix_test.dart' as library_prefix;
 import 'library_test.dart' as library_;
 import 'pattern_variable_test.dart' as pattern_variable;
 import 'record_type_test.dart' as record_type;
+import 'type_member_test.dart' as type_member;
 import 'uri_test.dart' as uri;
 import 'variable_name_test.dart' as variable_name;
 
@@ -34,6 +35,7 @@ void main() {
     library_.main();
     pattern_variable.main();
     record_type.main();
+    type_member.main();
     uri.main();
     variable_name.main();
   });

@@ -13,7 +13,6 @@ import 'local_reference_contributor_test.dart' as local_ref_test;
 import 'location/test_all.dart' as location;
 import 'relevance/test_all.dart' as relevance_tests;
 import 'text_expectations.dart';
-import 'type_member_contributor_test.dart' as type_member_contributor_test;
 
 void main() {
   defineReflectiveSuite(() {
@@ -25,7 +24,6 @@ void main() {
     local_ref_test.main();
     location.main();
     relevance_tests.main();
-    type_member_contributor_test.main();
     defineReflectiveTests(UpdateTextExpectations);
   }, name: 'dart');
 }

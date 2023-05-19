@@ -161,6 +161,21 @@ class CompletionResponsePrinter {
     }
   }
 
+  void _writeDeclaringType(CompletionSuggestion suggestion) {
+    if (configuration.withDeclaringType) {
+      _writelnWithIndent('declaringType: ${suggestion.declaringType}');
+    }
+  }
+
+  void _writeDefaultArgumentList(CompletionSuggestion suggestion) {
+    if (configuration.withDefaultArgumentList) {
+      _writelnWithIndent(
+          'defaultArgumentList: ${suggestion.defaultArgumentListString}');
+      _writelnWithIndent(
+          'defaultArgumentListRanges: ${suggestion.defaultArgumentListTextRanges}');
+    }
+  }
+
   void _writeDeprecated(CompletionSuggestion suggestion) {
     if (suggestion.isDeprecated) {
       _writelnWithIndent('deprecated: true');
@@ -273,7 +288,9 @@ class CompletionResponsePrinter {
     _writeCompletion(suggestion);
     _withIndent(() {
       _writeSuggestionKind(suggestion);
+      _writeDeclaringType(suggestion);
       _writeDeprecated(suggestion);
+      _writeDefaultArgumentList(suggestion);
       _writeDisplayText(suggestion);
       _writeDocumentation(suggestion);
       _writeElement(suggestion);
@@ -310,6 +327,8 @@ class CompletionResponsePrinter {
 
 class Configuration {
   Sorting sorting;
+  bool withDeclaringType;
+  bool withDefaultArgumentList;
   bool withDisplayText;
   bool withDocumentation;
   bool withElement;
@@ -324,6 +343,8 @@ class Configuration {
 
   Configuration({
     this.sorting = Sorting.completionThenKind,
+    this.withDeclaringType = false,
+    this.withDefaultArgumentList = false,
     this.withDisplayText = false,
     this.withDocumentation = false,
     this.withElement = false,
