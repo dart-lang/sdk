@@ -126,13 +126,15 @@ class ConstantEvaluationEngine {
         // invoked).
         if (dartObject != null && constant.isConst) {
           if (!library.typeSystem.runtimeTypeMatch(dartObject, constant.type)) {
-            // TODO(brianwilkerson) This should not be reported if
-            //  CompileTimeErrorCode.INVALID_ASSIGNMENT has already been
-            //  reported (that is, if the static types are also wrong).
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
-                constantInitializer,
-                [dartObject.type, constant.type]);
+            // If the static types are mismatched, an error would have already
+            // been reported.
+            if (library.typeSystem.isAssignableTo(
+                constantInitializer.typeOrThrow, constant.type)) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+                  constantInitializer,
+                  [dartObject.type, constant.type]);
+            }
           }
 
           // Associate with the variable.

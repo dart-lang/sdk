@@ -28,6 +28,14 @@ main() {
 @reflectiveTest
 class ConstantVisitorTest extends ConstantVisitorTestSupport
     with ConstantVisitorTestCases {
+  test_declaration_staticError_notAssignable() async {
+    await assertErrorsInCode('''
+const int x = 'foo';
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 5),
+    ]);
+  }
+
   test_equalEqual_double_object() async {
     await assertNoErrorsInCode('''
 const v = 1.2 == Object();
