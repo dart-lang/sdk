@@ -13,10 +13,10 @@
 part of dart._runtime;
 
 /// Returns a new type that mixes members from base and the mixin.
-void applyMixin(to, from) {
+void applyMixin(@notNull Object to, @notNull Object from) {
   JS('', '#[#] = #', to, _mixin, from);
-  var toProto = JS('', '#.prototype', to);
-  var fromProto = JS('', '#.prototype', from);
+  var toProto = JS<Object>('!', '#.prototype', to);
+  var fromProto = JS<Object>('!', '#.prototype', from);
   _copyMembers(toProto, fromProto);
   _mixinSignature(to, from, _methodSig);
   _mixinSignature(to, from, _fieldSig);
@@ -24,22 +24,23 @@ void applyMixin(to, from) {
   _mixinSignature(to, from, _setterSig);
   var mixinOnFn = JS('', '#[#]', from, mixinOn);
   if (mixinOnFn != null) {
-    var proto = JS('', '#(#.__proto__).prototype', mixinOnFn, to);
+    var proto = JS<Object>(
+        '!', '#(#).prototype', mixinOnFn, jsObjectGetPrototypeOf(to));
     _copyMembers(toProto, proto);
   }
 }
 
-void _copyMembers(to, from) {
+void _copyMembers(@notNull Object to, @notNull Object from) {
   var names = getOwnNamesAndSymbols(from);
   for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     String name = JS('', '#[#]', names, i);
     if (name == 'constructor') continue;
     _copyMember(to, from, name);
   }
-  return to;
 }
 
-void _copyMember(to, from, name) {
+void _copyMember(
+    @notNull Object to, @notNull Object from, @notNull Object name) {
   var desc = getOwnPropertyDescriptor(from, name);
   if (JS('!', '# == Symbol.iterator', name)) {
     // On native types, Symbol.iterator may already be present.
@@ -59,26 +60,16 @@ void _copyMember(to, from, name) {
   if (getter != null) {
     if (setter == null) {
       var obj = JS<Object>(
-          '!',
-          '#.set = { __proto__: #.__proto__, '
-              'set [#](x) { return super[#] = x; } }',
-          desc,
-          to,
-          name,
-          name);
+          '!', '{ set [#](x) { return super[#] = x; } }', name, name);
+      jsObjectSetPrototypeOf(obj, jsObjectGetPrototypeOf(to));
       JS<Object>(
           '!', '#.set = #.set', desc, getOwnPropertyDescriptor(obj, name));
     }
   } else if (setter != null) {
     if (getter == null) {
-      var obj = JS<Object>(
-          '!',
-          '#.get = { __proto__: #.__proto__, '
-              'get [#]() { return super[#]; } }',
-          desc,
-          to,
-          name,
-          name);
+      var obj =
+          JS<Object>('!', '{ get [#]() { return super[#]; } }', name, name);
+      jsObjectSetPrototypeOf(obj, jsObjectGetPrototypeOf(to));
       JS<Object>(
           '!', '#.get = #.get', desc, getOwnPropertyDescriptor(obj, name));
     }
@@ -86,12 +77,14 @@ void _copyMember(to, from, name) {
   defineProperty(to, name, desc);
 }
 
-void _mixinSignature(to, from, kind) {
+void _mixinSignature(@notNull Object to, @notNull Object from, kind) {
   JS('', '#[#] = #', to, kind, () {
-    var baseMembers = _getMembers(JS('', '#.__proto__', to), kind);
+    var baseMembers = _getMembers(jsObjectGetPrototypeOf(to), kind);
+    // Coerce undefined to null.
+    baseMembers = baseMembers == null ? null : baseMembers;
     var fromMembers = _getMembers(from, kind);
     if (fromMembers == null) return baseMembers;
-    var toSignature = JS('', '{ __proto__: # }', baseMembers);
+    var toSignature = JS('', 'Object.create(#)', baseMembers);
     copyProperties(toSignature, fromMembers);
     return toSignature;
   });
@@ -455,7 +448,7 @@ void _installProperties(jsProto, dartType, installedParent) {
   }
   // If the extension methods of the parent have been installed on the parent
   // of [jsProto], the methods will be available via prototype inheritance.
-  var dartSupertype = JS<Object>('!', '#.__proto__', dartType);
+  var dartSupertype = jsObjectGetPrototypeOf(JS<Object>('!', '#', dartType));
   if (JS('!', '# !== #', dartSupertype, installedParent)) {
     _installProperties(jsProto, dartSupertype, installedParent);
   }
@@ -489,7 +482,7 @@ final _extensionMap = JS('', 'new Map()');
 void _applyExtension(jsType, dartExtType) {
   // TODO(vsm): Not all registered js types are real.
   if (jsType == null) return;
-  var jsProto = JS('', '#.prototype', jsType);
+  var jsProto = JS<Object?>('', '#.prototype', jsType);
   if (jsProto == null) return;
 
   if (JS('!', '# === #', dartExtType, JS_CLASS_REF(Object))) {
@@ -593,8 +586,8 @@ void defineExtensionAccessors(type, Iterable memberNames) {
   for (var name in memberNames) {
     // Find the member. It should always exist (or we have a compiler bug).
     var member;
-    var p = proto;
-    for (;; p = JS<Object>('!', '#.__proto__', p)) {
+    Object? p = proto;
+    for (; p != null; p = jsObjectGetPrototypeOf(p)) {
       member = getOwnPropertyDescriptor(p, name);
       if (member != null) break;
     }
