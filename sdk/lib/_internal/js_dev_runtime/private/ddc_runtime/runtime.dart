@@ -106,18 +106,18 @@ bool polyfill(window) => JS('', '''(() => {
       $window.PannerNode = audioContext.createPanner().constructor;
     }
     if (typeof $window.AudioSourceNode == "undefined") {
-      $window.AudioSourceNode = MediaElementAudioSourceNode.__proto__;
+      $window.AudioSourceNode = Object.getPrototypeOf(MediaElementAudioSourceNode);
     }
     if (typeof $window.FontFaceSet == "undefined") {
       // CSS Font Loading is not supported on Edge.
       if (typeof $window.document.fonts != "undefined") {
-        $window.FontFaceSet = $window.document.fonts.__proto__.constructor;
+        $window.FontFaceSet = Object.getPrototypeOf($window.document.fonts).constructor;
       }
     }
     if (typeof $window.MemoryInfo == "undefined") {
       if (typeof $window.performance.memory != "undefined") {
         $window.MemoryInfo = function () {};
-        $window.MemoryInfo.prototype = $window.performance.memory.__proto__;
+        $window.MemoryInfo.prototype = Object.getPrototypeOf($window.performance.memory);
       }
     }
     if (typeof $window.Geolocation == "undefined") {

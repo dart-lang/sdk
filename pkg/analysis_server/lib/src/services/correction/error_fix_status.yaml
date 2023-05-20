@@ -133,9 +133,9 @@ AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES:
   status: noFix
   notes: |-
     There are either no valid options to suggest, or there are too many to
-    provide a fix for every one of them. For some cases it migiht be possible to
+    provide a fix for every one of them. For some cases it might be possible to
     suggest similarly spelled valid options, but we'd probably want to split
-    this code into an `UNDUPPORTED_OPTION_WITH_SIMILAR_VALUES` code to handle
+    this code into an `UNSUPPORTED_OPTION_WITH_SIMILAR_VALUES` code to handle
     those cases.
 AnalysisOptionsWarningCode.UNSUPPORTED_VALUE:
   status: needsFix
@@ -282,7 +282,7 @@ CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER:
   notes: |-
     Theoretically we could look for static members whose name is similar in
     spelling and suggest them (and remove the type arguments), but it's probably
-    not valuable often enough to warrent the cost.
+    not valuable often enough to warrant the cost.
   since: in 2.15
 CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
   status: noFix
@@ -1955,7 +1955,7 @@ LintCode.avoid_single_cascade_in_expression_statements:
 LintCode.avoid_slow_async_io:
   status: needsFix
   notes: |-
-    The fix is to use the corresponding synch method and to remove the `await`,
+    The fix is to use the corresponding sync method and to remove the `await`,
     but it's probably very seldom needed, so it's low priority.
 LintCode.avoid_type_to_string:
   status: noFix
@@ -2059,7 +2059,7 @@ LintCode.file_names:
 LintCode.flutter_style_todos:
   status: noFix
   notes: |-
-    The fix would be to convert the existing TODO to the approriate style, but
+    The fix would be to convert the existing TODO to the appropriate style, but
     that can't reliably be done.
 LintCode.hash_and_equals:
   status: hasFix
@@ -2118,7 +2118,7 @@ LintCode.matching_super_parameters:
 LintCode.missing_whitespace_between_adjacent_strings:
   status: needsFix
   notes: |-
-    The fix is to add the whitepace. Might require a preference to know which
+    The fix is to add the whitespace. Might require a preference to know which
     string to add it to.
 LintCode.no_adjacent_strings_in_list:
   status: needsFix
@@ -2180,7 +2180,7 @@ LintCode.package_prefixed_library_names:
 LintCode.parameter_assignments:
   status: noFix
   notes: |-
-    Theoratically we could assign the parameter to a local variable and replace
+    Theoretically we could assign the parameter to a local variable and replace
     all references to the parameter with a reference to the variable, but that
     would require choosing a name for the local variable.
 LintCode.prefer_adjacent_string_concatenation:
@@ -3089,7 +3089,7 @@ ParserErrorCode.NAMED_FUNCTION_TYPE:
 ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP:
   status: needsFix
   notes: |-
-    Move it inside a group, creating the group if it doesn't alreay exist.
+    Move it inside a group, creating the group if it doesn't already exist.
 ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE:
   status: needsFix
   notes: |-
@@ -3224,7 +3224,7 @@ ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR:
 ParserErrorCode.TYPEDEF_IN_CLASS:
   status: needsFix
   notes: |-
-    Move the typdef to the top level.
+    Move the typedef to the top level.
 ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
   status: needsFix
   notes: |-
