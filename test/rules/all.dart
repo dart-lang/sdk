@@ -31,6 +31,7 @@ import 'avoid_types_as_parameter_names_test.dart'
 import 'avoid_unused_constructor_parameters_test.dart'
     as avoid_unused_constructor_parameters;
 import 'avoid_void_async_test.dart' as avoid_void_async;
+import 'await_only_futures_test.dart' as await_only_futures;
 import 'cancel_subscriptions_test.dart' as cancel_subscriptions;
 import 'cast_nullable_to_non_nullable_test.dart'
     as cast_nullable_to_non_nullable;
@@ -168,6 +169,7 @@ void main() {
   avoid_types_as_parameter_names.main();
   avoid_unused_constructor_parameters.main();
   avoid_void_async.main();
+  await_only_futures.main();
   cancel_subscriptions.main();
   cast_nullable_to_non_nullable.main();
   collection_methods_unrelated_type.main();

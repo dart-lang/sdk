@@ -72,6 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!(type == null ||
         type.isDartAsyncFuture ||
         type is DynamicType ||
+        type is InvalidType ||
         type.extendsClass('Future', 'dart.async') ||
         type.implementsInterface('Future', 'dart.async') ||
         type.isDartAsyncFutureOr)) {
