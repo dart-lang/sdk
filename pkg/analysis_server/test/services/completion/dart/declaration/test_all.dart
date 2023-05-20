@@ -14,6 +14,7 @@ import 'label_test.dart' as label;
 import 'library_member_test.dart' as library_member;
 import 'library_prefix_test.dart' as library_prefix;
 import 'library_test.dart' as library_;
+import 'local_library_test.dart' as local_library;
 import 'pattern_variable_test.dart' as pattern_variable;
 import 'record_type_test.dart' as record_type;
 import 'type_member_test.dart' as type_member;
@@ -33,6 +34,7 @@ void main() {
     library_member.main();
     library_prefix.main();
     library_.main();
+    local_library.main();
     pattern_variable.main();
     record_type.main();
     type_member.main();
