@@ -228,7 +228,7 @@ mac_toolchain("clang_x64") {
   cxx = "${goma_prefix}$prefix/clang++"
   ar = "${prefix}/llvm-ar"
   ld = cxx
-  strip = "strip"
+  strip = "${prefix}/llvm-strip"
   is_clang = true
   if (mac_enable_relative_sdk_path) {
     mac_sdk_path = rebase_path(mac_sdk_path, root_build_dir)
@@ -244,7 +244,7 @@ mac_toolchain("clang_arm64") {
   cxx = "${goma_prefix}$prefix/clang++"
   ar = "${prefix}/llvm-ar"
   ld = cxx
-  strip = "strip"
+  strip = "${prefix}/llvm-strip"
   is_clang = true
   if (mac_enable_relative_sdk_path) {
     mac_sdk_path = rebase_path(mac_sdk_path, root_build_dir)

@@ -120,8 +120,9 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(
       }
     } else {
       // If the field is boxed, then we can either return the box directly or
-      // unbox it and return unboxed representation.
-      return true;
+      // unbox it and return unboxed representation (unless it is a record
+      // which requires a more sophisticated unboxing).
+      return !function.has_unboxed_record_return();
     }
   } else {
     ASSERT(is_setter);

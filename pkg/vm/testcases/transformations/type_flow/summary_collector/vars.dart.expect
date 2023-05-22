@@ -10,22 +10,29 @@ RESULT: _T {}?
 %a1 = _Parameter #0 [_T (dart.core::Object)+?]
 %a2 = _Parameter #1 [_T (dart.core::Object)+?]
 t2* = _Call direct get [#lib::someStatic] ()
-t3* = _Call direct [#lib::A.] (_T (#lib::A))
+t3* = _Call direct [#lib::A.] (_T (#lib::A)) {t2}
 a1_0 = _Join [dart.core::Object] (t3, %a1)
 t5 = _Call direct [#lib::bar] (a1_0, _T (dart.core::_Smi, 42))
 t6* = _Call direct [#lib::B.] (_T (#lib::B))
 t7* = _Call [dart.core::Object.==] (_T (dart.core::Object)+?, _T (dart.core::Object)+?)
-t8 = _Join [dart.core::Object?] (t6, %a2)
-t9 = _Narrow (t8 to _T (dart.core::Object)+?)
-RESULT: t9
+t8 = Not (t7)
+t9 = Move (t6) {t8}
+t10 = Not (t8)
+t11 = Move (%a2) {t10}
+t12 = _Join [dart.core::Object?] (t9, t11)
+t13 = _Narrow (t12 to _T (dart.core::Object)+?)
+RESULT: t13
 ------------ bar ------------
 %a1 = _Parameter #0 [_T (dart.core::Object)+?]
 %a2 = _Parameter #1 [_T (dart.core::int)+?]
 t2 = _TypeCheck (%a1 against dart.core::int) (for v1 is dart.core::int)
-t3* = _Call [dart.core::num.+] (t2, %a2)
-t4* = _Call [dart.core::num.*] (t3, _T (dart.core::_Smi, 3))
-t5* = _Call [dart.core::int.unary-] (_T (dart.core::_Smi, 1))
-%result = _Join [dart.core::int] (t4, t5)
+t3 = IsEmpty (t2)
+t4 = Not (t3)
+t5* = _Call [dart.core::num.+] (t2, %a2) {t4}
+t6* = _Call [dart.core::num.*] (t5, _T (dart.core::_Smi, 3)) {t4}
+t7 = Not (t4)
+t8* = _Call [dart.core::int.unary-] (_T (dart.core::_Smi, 1)) {t7}
+%result = _Join [dart.core::int] (t6, t8)
 RESULT: %result
 ------------ loop1 ------------
 %a1 = _Parameter #0 [_T (dart.core::Object)+?]

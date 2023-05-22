@@ -222,6 +222,8 @@ if (!is_clang && (is_asan || is_lsan || is_msan || is_tsan || is_ubsan)) {
   is_clang = true
 }
 
+use_flutter_cxx = is_msan || is_android
+
 # =============================================================================
 # TARGET DEFAULTS
 # =============================================================================
@@ -235,6 +237,7 @@ if (!is_clang && (is_asan || is_lsan || is_msan || is_tsan || is_ubsan)) {
 # duplication in each target below.
 _native_compiler_configs = [
   "//build/config/compiler:compiler",
+  "//build/config/compiler:cxx_version_default",
   "//build/config/compiler:clang_stackrealign",
   "//build/config/compiler:compiler_arm_fpu",
   "//build/config/compiler:compiler_arm_thumb",
@@ -243,6 +246,14 @@ _native_compiler_configs = [
   "//build/config/compiler:no_rtti",
   "//build/config/compiler:runtime_library",
 ]
+
+if (use_flutter_cxx) {
+  _native_compiler_configs += [
+    "//third_party/libcxxabi:libcxxabi_config",
+    "//third_party/libcxx:libcxx_config",
+  ]
+}
+
 if (is_win) {
   _native_compiler_configs += [
     "//build/config/win:lean_and_mean",
@@ -253,7 +264,10 @@ if (is_win) {
   ]
 }
 if (is_posix) {
-  _native_compiler_configs += [ "//build/config/gcc:relative_paths" ]
+  _native_compiler_configs += [
+    "//build/config/gcc:relative_paths",
+    "//build/config/gcc:no_exceptions",
+  ]
   if (is_product) {
     _native_compiler_configs +=
         [ "//build/config/gcc:symbol_visibility_hidden" ]
@@ -416,6 +430,31 @@ if (is_win) {
     set_default_toolchain("//build/toolchain/fuchsia")
   } else {
     assert(false, "Unknown host for fuchsia cross compile")
+  }
+}
+
+# Sets default dependencies for executable and shared_library targets.
+#
+# Variables
+#   no_default_deps: If true, no standard dependencies will be added.
+if (use_flutter_cxx) {
+  foreach(_target_type,
+          [
+            "executable",
+            "loadable_module",
+            "shared_library",
+          ]) {
+    template(_target_type) {
+      target(_target_type, target_name) {
+        forward_variables_from(invoker, "*", [ "no_default_deps" ])
+        if (!defined(deps)) {
+          deps = []
+        }
+        if (!defined(invoker.no_default_deps) || !invoker.no_default_deps) {
+          deps += [ "//third_party/libcxx" ]
+        }
+      }
+    }
   }
 }
 
