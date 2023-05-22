@@ -22,7 +22,17 @@ import 'package:yaml/yaml.dart';
 /// 0: the rule name
 const AnalysisOptionsHintCode DEPRECATED_LINT_HINT = AnalysisOptionsHintCode(
     'DEPRECATED_LINT_HINT',
-    "'{0}' is a deprecated lint rule and should not be used");
+    "'{0}' is a deprecated lint rule and should not be used",
+    correctionMessage: "Try removing '{0}'.");
+
+/// A hint code indicating reference to a deprecated lint.
+///
+/// Parameters:
+/// 0: the rule name
+const AnalysisOptionsHintCode DEPRECATED_LINT_HINT_WITH_REPLACEMENT =
+    AnalysisOptionsHintCode('DEPRECATED_LINT_HINT_WITH_REPLACEMENT',
+        "'{0}' is deprecated and should be replaced by '{1}'",
+        correctionMessage: "Try replacing '{0}' with '{1}'.");
 
 /// Duplicate rules.
 ///
@@ -79,10 +89,8 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   LintRule? getRegisteredLint(Object value) =>
       ruleProvider().firstWhereOrNull((rule) => rule.name == value);
 
-  bool isDeprecatedInCurrentSdk(State state) {
-    if (state is! DeprecatedState) return false;
-    return currentSdkAllows(state.since);
-  }
+  bool isDeprecatedInCurrentSdk(DeprecatedState state) =>
+      currentSdkAllows(state.since);
 
   bool isRemovedInCurrentSdk(State state) {
     if (state is! RemovedState) return false;
@@ -135,8 +143,15 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       // includes).
       if (sourceIsOptionsForContextRoot) {
         var state = rule.state;
-        if (isDeprecatedInCurrentSdk(state)) {
-          reporter.reportErrorForSpan(DEPRECATED_LINT_HINT, node.span, [value]);
+        if (state is DeprecatedState && isDeprecatedInCurrentSdk(state)) {
+          var replacedBy = state.replacedBy;
+          if (replacedBy != null) {
+            reporter.reportErrorForSpan(DEPRECATED_LINT_HINT_WITH_REPLACEMENT,
+                node.span, [value, replacedBy]);
+          } else {
+            reporter
+                .reportErrorForSpan(DEPRECATED_LINT_HINT, node.span, [value]);
+          }
         } else if (isRemovedInCurrentSdk(state)) {
           var since = state.since.toString();
           var replacedBy = (state as RemovedState).replacedBy;
