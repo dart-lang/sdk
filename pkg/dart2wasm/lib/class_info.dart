@@ -17,6 +17,14 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// [ClassInfo._addField] (for manually added fields) or by a line in
 /// [FieldIndex.validate] (for fields declared in Dart code).
 class FieldIndex {
+  static const asyncSuspendStateResume = 2;
+  static const asyncSuspendStateContext = 3;
+  static const asyncSuspendStateTargetIndex = 4;
+  static const asyncSuspendStateCompleter = 5;
+  static const asyncSuspendStateCurrentException = 6;
+  static const asyncSuspendStateCurrentExceptionStackTrace = 7;
+  static const asyncSuspendStateCurrentReturnValue = 8;
+
   static const classId = 0;
   static const boxValue = 1;
   static const identityHash = 1;
@@ -60,6 +68,21 @@ class FieldIndex {
               expectedIndex,
           "Unexpected field index for ${cls.name}.$name");
     }
+
+    check(translator.asyncSuspendStateClass, "_resume",
+        FieldIndex.asyncSuspendStateResume);
+    check(translator.asyncSuspendStateClass, "_context",
+        FieldIndex.asyncSuspendStateContext);
+    check(translator.asyncSuspendStateClass, "_targetIndex",
+        FieldIndex.asyncSuspendStateTargetIndex);
+    check(translator.asyncSuspendStateClass, "_completer",
+        FieldIndex.asyncSuspendStateCompleter);
+    check(translator.asyncSuspendStateClass, "_currentException",
+        FieldIndex.asyncSuspendStateCurrentException);
+    check(translator.asyncSuspendStateClass, "_currentExceptionStackTrace",
+        FieldIndex.asyncSuspendStateCurrentExceptionStackTrace);
+    check(translator.asyncSuspendStateClass, "_currentReturnValue",
+        FieldIndex.asyncSuspendStateCurrentReturnValue);
 
     check(translator.boxedBoolClass, "value", FieldIndex.boxValue);
     check(translator.boxedIntClass, "value", FieldIndex.boxValue);

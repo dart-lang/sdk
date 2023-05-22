@@ -6,7 +6,7 @@
 //
 // Run as follows:
 //
-// $> d8 --experimental-wasm-gc --experimental-wasm-stack-switching \
+// $> d8 --experimental-wasm-gc \
 //       --experimental-wasm-type-reflection run_wasm.js \
 //       -- /abs/path/to/<dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm] \
 //       [-- Dart commandline arguments...]

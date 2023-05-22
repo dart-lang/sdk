@@ -260,6 +260,10 @@ class _FallthroughDetector extends ast.StatementVisitor<bool> {
       node.statements.isEmpty || node.statements.last.accept(this);
 
   @override
+  bool visitAssertBlock(AssertBlock node) =>
+      node.statements.isEmpty || node.statements.last.accept(this);
+
+  @override
   bool visitEmptyStatement(EmptyStatement node) => true;
 
   @override

@@ -593,7 +593,6 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     final args = testFile.dartOptions;
     return [
       '--experimental-wasm-gc',
-      '--experimental-wasm-stack-switching',
       '--experimental-wasm-type-reflection',
       'pkg/dart2wasm/bin/run_wasm.js',
       '--',
