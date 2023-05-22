@@ -40,6 +40,7 @@ class NativeAssetsBuildRunner {
     required Target target,
     required Uri workingDirectory,
     CCompilerConfig? cCompilerConfig,
+    IOSSdk? targetIOSSdk,
     required bool includeParentEnvironment,
   }) async {
     assert(_metadata.isEmpty);
@@ -68,6 +69,7 @@ class NativeAssetsBuildRunner {
         buildParentDir: packageLayout.dartToolNativeAssetsBuilder,
         dependencyMetadata: dependencyMetadata,
         cCompilerConfig: cCompilerConfig,
+        targetIOSSdk: targetIOSSdk,
       );
       final assets = await _buildPackageCached(
         config,
