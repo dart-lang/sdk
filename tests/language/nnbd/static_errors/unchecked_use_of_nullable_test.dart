@@ -16,7 +16,7 @@ void main() async {
   x.toString(); //# 02: ok
   x.hashCode; //# 03: ok
   x.runtimeType; //# 04: ok
-  x.noSuchMethod(Invocation.method(#toString, [])); //# 05: ok
+  x.noSuchMethod(Invocation.method(#toString, [])); //# 05: runtime error
   x + 1; //# 06: compile-time error
   -x; //# 06: compile-time error
   x++; //# 07: compile-time error
