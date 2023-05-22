@@ -8137,13 +8137,26 @@ Message _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropOperatorCannotBeRenamed =
+    messageJsInteropOperatorCannotBeRenamed;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropOperatorCannotBeRenamed = const MessageCode(
+    "JsInteropOperatorCannotBeRenamed",
+    problemMessage:
+        r"""JS interop operator methods cannot be renamed using the '@JS' annotation.""",
+    correctionMessage:
+        r"""Remove the annotation or remove the value inside the annotation.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropOperatorsNotSupported =
     messageJsInteropOperatorsNotSupported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     "JsInteropOperatorsNotSupported",
-    problemMessage: r"""JS interop classes do not support operator methods.""",
+    problemMessage:
+        r"""JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.""",
     correctionMessage: r"""Try replacing this with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

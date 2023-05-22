@@ -606,6 +606,8 @@ JsInteropNonExternalMember/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalMember/example: Fail # Web compiler specific
 JsInteropNonStaticWithStaticInteropSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropNonStaticWithStaticInteropSupertype/example: Fail # Web compiler specific
+JsInteropOperatorCannotBeRenamed/analyzerCode: Fail # Web compiler specific
+JsInteropOperatorCannotBeRenamed/example: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
 JsInteropObjectLiteralConstructorPositionalParameters/analyzerCode: Fail # Web compiler specific

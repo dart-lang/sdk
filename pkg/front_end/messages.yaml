@@ -5523,8 +5523,12 @@ JsInteropObjectLiteralConstructorPositionalParameters:
   problemMessage: "#string should not contain any positional parameters."
   correctionMessage: "Try replacing them with named parameters instead."
 
+JsInteropOperatorCannotBeRenamed:
+  problemMessage: "JS interop operator methods cannot be renamed using the '@JS' annotation."
+  correctionMessage: "Remove the annotation or remove the value inside the annotation."
+
 JsInteropOperatorsNotSupported:
-  problemMessage: "JS interop classes do not support operator methods."
+  problemMessage: "JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop."
   correctionMessage: "Try replacing this with a normal method."
 
 JsInteropNonStaticWithStaticInteropSupertype:

@@ -407,17 +407,16 @@ class JsUtilOptimizer extends Transformer {
   /// Returns a new function body for the given [node] external operator.
   ReturnStatement? _getExternalOperatorBody(
       Procedure node, bool shouldTrustTypes) {
-    switch (_inlineExtensionIndex.operatorName(node)) {
+    final operator =
+        _inlineExtensionIndex.getInlineDescriptor(node)?.name.text ??
+            _inlineExtensionIndex.getExtensionDescriptor(node)?.name.text;
+    switch (operator) {
       case '[]':
         return _getExternalGetterBody(node, shouldTrustTypes);
       case '[]=':
         return _getExternalSetterBody(node);
       default:
-        // TODO(joshualitt): Unfortunately, our current behavior is to allow
-        // operators on extension methods to `@JS` classes, but the runtime
-        // behavior is undefined. We should really convert this to an error, but
-        // it would also technically be a breaking change.
-        return null;
+        throw 'External operator $operator is unsupported for static interop.';
     }
   }
 
@@ -906,22 +905,6 @@ class InlineExtensionIndex {
       InlineClassMemberKind.Operator,
       ExtensionMemberKind.Operator,
       ProcedureKind.Operator);
-
-  String operatorName(Procedure node) {
-    if (getJSName(node).isNotEmpty) {
-      throw Exception('Operators cannot have `@JS` annotations.');
-    }
-    final String name;
-    if (node.isInlineClassMember) {
-      name = getInlineDescriptor(node)!.name.text;
-    } else if (node.isExtensionMember) {
-      name = getExtensionDescriptor(node)!.name.text;
-    } else {
-      throw Exception(
-          'Operators are only allowed on extensions / inline classes');
-    }
-    return name;
-  }
 
   /// Check if [node] is an interop member that can be lowered using
   /// invocation-level semantics.
