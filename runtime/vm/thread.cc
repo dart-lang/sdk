@@ -376,7 +376,9 @@ bool Thread::EnterIsolate(Isolate* isolate) {
       (is_resumable && isolate->mutator_thread()->top_exit_frame_info() != 0);
 
   auto group = isolate->group();
-  group->IncreaseMutatorCount(isolate, is_nested_reenter);
+  if (!(is_nested_reenter && isolate->mutator_thread()->OwnsSafepoint())) {
+    group->IncreaseMutatorCount(isolate, is_nested_reenter);
+  }
 
   // Two threads cannot enter isolate at same time.
   ASSERT(isolate->scheduled_mutator_thread_ == nullptr);
@@ -472,7 +474,9 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
   // To let VM's thread pool (if we run on it) know that this thread is
   // occupying a mutator again (decreases its max size).
   ASSERT(!(isolate_shutdown && is_nested_exit));
-  group->DecreaseMutatorCount(isolate, is_nested_exit);
+  if (!(is_nested_exit && thread->OwnsSafepoint())) {
+    group->DecreaseMutatorCount(isolate, is_nested_exit);
+  }
 }
 
 bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
