@@ -418,7 +418,9 @@ class _Visitor extends SimpleAstVisitor {
     }
     // Getter access.
     if (isBuildContext(node.prefix.staticType, skipNullable: true)) {
-      check(node);
+      if (node.identifier.name != 'mounted') {
+        check(node);
+      }
     }
   }
 }

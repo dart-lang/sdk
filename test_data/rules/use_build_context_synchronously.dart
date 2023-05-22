@@ -282,6 +282,12 @@ class _MyState extends State<MyWidget> {
     Navigator.of(context).pushNamed('routeName'); // OK
   }
 
+  void methodWithBuildContextParameter4(BuildContext context) async {
+    await Future<void>.delayed(Duration());
+    if (!context.mounted) return;
+    await Navigator.of(context).pushNamed('routeName'); // OK
+  }
+
   void methodWithMountedFieldCheck(
       BuildContext context, WidgetStateContext stateContext) async {
     await Future<void>.delayed(Duration());
