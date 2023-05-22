@@ -876,7 +876,7 @@ abstract class FileSystemEntity {
 }
 
 /// Base event class emitted by [FileSystemEntity.watch].
-final class FileSystemEvent {
+sealed class FileSystemEvent {
   /// Bitfield for [FileSystemEntity.watch], to enable [FileSystemCreateEvent]s.
   static const int create = 1 << 0;
 

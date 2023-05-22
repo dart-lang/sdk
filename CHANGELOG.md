@@ -10,17 +10,22 @@
    current directory ([#39796][]).
 
 [#39796]: https://darbug.com/39796
+
 #### `dart:io`
 
 - **Breaking change** [#51486][]:
   - Added `sameSite` to the `Cookie` class.
   - Added class `SameSite`.
+- **Breaking change** [#52027][]: `FileSystemEvent` is
+  [`sealed`](https://dart.dev/language/class-modifiers#sealed). This means
+  that `FileSystemEvent` cannot be extended or implemented.
 - Added a deprecation warning when `Platform` is instantiated.
 - Added `Platform.lineTerminator` which exposes the character or characters
   that the operating system uses to separate lines of text, e.g.,
   `"\r\n"` on Windows.
 
 [#51486]: https://github.com/dart-lang/sdk/issues/51486
+[#52027]: https://github.com/dart-lang/sdk/issues/52027
 
 ### Other libraries
 
