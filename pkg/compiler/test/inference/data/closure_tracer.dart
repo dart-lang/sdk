@@ -206,15 +206,15 @@ testStaticClosure4() {
 /*member: bar1:[subclass=Closure]*/
 int Function(int, [int]) bar1(
         int /*[exact=JSUInt31]*/ a) => /*[subclass=JSInt]*/
-    (int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/ b,
-            [int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/
+    (int /*spec.[null|subclass=Object]*/ /*prod.[subclass=JSInt]*/ b,
+            [int /*spec.[null|subclass=Object]*/ /*prod.[subclass=JSInt]*/
                 c = 17]) =>
         a /*invoke: [exact=JSUInt31]*/ + b /*invoke: [subclass=JSInt]*/ + c;
 /*member: bar2:[subclass=Closure]*/
 int Function(int, [int]) bar2(
         int /*[exact=JSUInt31]*/ a) => /*[subclass=JSInt]*/
-    (int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/ b,
-            [int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/
+    (int /*spec.[null|subclass=Object]*/ /*prod.[subclass=JSInt]*/ b,
+            [int /*spec.[null|subclass=Object]*/ /*prod.[subclass=JSInt]*/
                 c = 17]) =>
         a /*invoke: [exact=JSUInt31]*/ + b /*invoke: [subclass=JSInt]*/ + c;
 /*member: bar3:[subclass=Closure]*/
@@ -222,10 +222,33 @@ int Function(int, [int]) bar3(
         int /*[exact=JSUInt31]*/ a) => /*[subclass=JSPositiveInt]*/
     (int /*[exact=JSUInt31]*/ b, [int /*[exact=JSUInt31]*/ c = 17]) =>
         a /*invoke: [exact=JSUInt31]*/ + b /*invoke: [subclass=JSUInt32]*/ + c;
+/*member: bar4:[subclass=Closure]*/
+num Function(int, [int]) bar4(
+        int /*[exact=JSUInt31]*/ a) => /*[subclass=JSNumber]*/
+    (int /*spec.[null|subclass=Object]*/ /*prod.[subclass=JSInt]*/ b,
+            [dynamic /*[null|su
+    bclass=Object]*/
+                c]) =>
+        a /*invoke: [exact=JSUInt31]*/ + b /*invoke: [subclass=JSInt]*/ + c;
+/*member: bar5:[subclass=Closure]*/
+num Function(int, [int]) bar5(
+        int /*[exact=JSUInt31]*/ a) => /*[subclass=JSNumber]*/
+    (int /*spec.[null|subclass=Object]*/ /*prod.[subclass=JSInt]*/ b,
+            [num? /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSNumber]*/
+                c]) =>
+        a /*invoke: [exact=JSUInt31]*/ +
+        b /*invoke: [subclass=JSInt]*/ +
+        (c ?? 0);
 
 /*member: testFunctionApply:[null|subclass=Object]*/
 testFunctionApply() {
   return Function.apply(bar1(10), [20]);
+}
+
+/*member: testFunctionApplyNoDefault:[null|subclass=Object]*/
+testFunctionApplyNoDefault() {
+  Function.apply(bar4(10), [30]);
+  return Function.apply(bar5(10), [30]);
 }
 
 /*member: testRecordFunctionApply:[null|subclass=Object]*/
@@ -255,5 +278,6 @@ main() {
   testStaticClosure3();
   testStaticClosure4();
   testFunctionApply();
+  testFunctionApplyNoDefault();
   testRecordFunctionApply();
 }
