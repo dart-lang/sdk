@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // @dart = 2.2
+// Requirements=nnbd-weak
+
 import 'package:expect/expect.dart';
 
 class late {
