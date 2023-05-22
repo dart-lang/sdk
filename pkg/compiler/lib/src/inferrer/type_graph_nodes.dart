@@ -795,19 +795,26 @@ class ParameterTypeInformation extends ElementTypeInformation {
   final Local _parameter;
   final AbstractValue _type;
   final FunctionEntity _method;
+
+  /// The input type is calculated directly from the union of this node's
+  /// inputs (i.e. the actual arguments for this parameter). When this
+  /// parameter's static type is not trusted, an implicit check will be added
+  /// based on this type. [type] on the other hand is the type of this parameter
+  /// within the function body so it is narrowed using the static type.
+  AbstractValue _inputType;
   bool get _isInstanceMemberParameter =>
       _hasFlag(_Flag.isInstanceMemberParameter);
   bool get _isClosureParameter => _hasFlag(_Flag.isClosureParameter);
   bool get _isInitializingFormal => _hasFlag(_Flag.isInitializingFormal);
   bool _isTearOffClosureParameter = false;
-  TypeInformation? get concreteParameterType =>
-      _hasFlag(_Flag.isVirtual) ? users.first : null;
+  bool get _isVirtual => _hasFlag(_Flag.isVirtual);
 
   ParameterTypeInformation.localFunction(super.abstractValueDomain,
       super.context, this._parameter, DartType type, this._method)
       : _type = abstractValueDomain
             .createFromStaticType(type, nullable: true)
             .abstractValue,
+        _inputType = abstractValueDomain.uncomputedType,
         super._internal() {
     _setFlag(_Flag.isClosureParameter);
   }
@@ -822,6 +829,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
       : _type = abstractValueDomain
             .createFromStaticType(type, nullable: true)
             .abstractValue,
+        _inputType = abstractValueDomain.uncomputedType,
         super._internal() {
     _setFlagTo(_Flag.isInitializingFormal, isInitializingFormal);
   }
@@ -831,6 +839,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
       {required bool isVirtual})
       : _type =
             _createInstanceMemberStaticType(abstractValueDomain, type, _method),
+        _inputType = abstractValueDomain.uncomputedType,
         super._withInputs() {
     _setFlag(_Flag.isInstanceMemberParameter);
     _setFlagTo(_Flag.isVirtual, isVirtual);
@@ -916,53 +925,61 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   AbstractValue potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    if (inferrer.closedWorld.annotationsData
-        .getParameterCheckPolicy(method)
-        .isTrusted) {
-      // In checked or strong mode we don't trust the types of the arguments
-      // passed to a parameter. The means that the checking of a parameter is
-      // based on the actual arguments.
-      //
-      // With --trust-type-annotations or --omit-implicit-checks we _do_ trust
-      // the arguments passed to a parameter - and we never check them.
-      //
-      // In all these cases we _do_ trust the static type of a parameter within
-      // the method itself. For instance:
-      //
-      //     method(int i) => i;
-      //     main() {
-      //       dynamic f = method;
-      //       f(0); // valid call
-      //       f(''); // invalid call
-      //     }
-      //
-      // Here, in all cases, we infer the returned value of `method` to be an
-      // `int`. In checked and strong mode we infer the parameter of `method` to
-      // be either `int` or `String` and therefore insert a check at the entry
-      // of 'method'. With --trust-type-annotations or --omit-implicit-checks we
-      // (unsoundly) infer the parameter to be `int` and leave the parameter
-      // unchecked, and `method` will at runtime actually return a `String` from
-      // the second invocation.
-      //
-      // The trusting of the parameter types within the body of the method is
-      // is done through `LocalsHandler.update` called in
-      // `KernelTypeGraphBuilder.handleParameter`.
-      return _narrowType(inferrer.abstractValueDomain, mask, _type);
-    }
-    return mask;
+    return _narrowType(inferrer.abstractValueDomain, mask, _type);
+  }
+
+  AbstractValue checkedType(InferrerEngine inferrer) {
+    // By default we don't trust the types of the arguments passed to a
+    // parameter. This means that the checking of a parameter is based on the
+    // actual arguments.
+    //
+    // With --omit-implicit-checks we _do_ trust the arguments passed to a
+    // parameter - and we never check them.
+    //
+    // In all these cases we _do_ trust the static type of a parameter within
+    // the method itself. For instance:
+    //
+    //     method(int i) => i;
+    //     main() {
+    //       dynamic f = method;
+    //       f(0); // valid call
+    //       f(''); // invalid call
+    //     }
+    //
+    // Here, in all cases, we infer the returned value of `method` to be an
+    // `int`. By default we infer the parameter of `method` to be either
+    // `int` or `String` and therefore insert a check at the entry of 'method'.
+    // With --omit-implicit-checks we (unsoundly) infer the parameter to be
+    // `int` and leave the parameter unchecked, and `method` will at runtime
+    // actually return a `String` from the second invocation.
+    //
+    // The trusting of the parameter types within the body of the method is
+    // handled by `potentiallyNarrowType` on each call to `computeType`.
+    return inferrer.closedWorld.annotationsData
+            .getParameterCheckPolicy(method)
+            .isTrusted
+        ? type
+        : _inputType;
   }
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
     final special = handleSpecialCases(inferrer);
     if (special != null) return special;
-    return potentiallyNarrowType(
-        inferrer.types.computeTypeMask(inputs), inferrer);
+    final inputType = _inputType = inferrer.types.computeTypeMask(inputs);
+    // Virtual parameters are only inputs to other parameters (virtual or
+    // concrete) and not function bodies. The user parameters need to know the
+    // full set of inputs passed to the virtual parameter.
+    return _isVirtual ? inputType : potentiallyNarrowType(inputType, inferrer);
   }
 
   @override
   AbstractValue safeType(InferrerEngine inferrer) {
-    return potentiallyNarrowType(super.safeType(inferrer), inferrer);
+    final inputType = _inputType = super.safeType(inferrer);
+    // Virtual parameters are only inputs to other parameters (virtual or
+    // concrete) and not function bodies. The user parameters need to know the
+    // full set of inputs passed to the virtual parameter.
+    return _isVirtual ? inputType : potentiallyNarrowType(inputType, inferrer);
   }
 
   @override
