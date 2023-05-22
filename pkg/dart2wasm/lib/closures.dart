@@ -1078,9 +1078,9 @@ class CaptureFinder extends RecursiveVisitor {
   final Closures closures;
   final Member member;
   final Map<TreeNode, int> variableDepth = {};
-  final List<bool> functionIsSyncStar = [false];
+  final List<bool> functionIsSyncStarOrAsync = [false];
 
-  int get depth => functionIsSyncStar.length - 1;
+  int get depth => functionIsSyncStarOrAsync.length - 1;
 
   CaptureFinder(this.closures, this.member);
 
@@ -1091,15 +1091,23 @@ class CaptureFinder extends RecursiveVisitor {
   @override
   void visitFunctionNode(FunctionNode node) {
     assert(depth == 0); // Nested function nodes are skipped by [_visitLambda].
-    functionIsSyncStar[0] = node.asyncMarker == AsyncMarker.SyncStar;
+    functionIsSyncStarOrAsync[0] = node.asyncMarker == AsyncMarker.SyncStar ||
+        node.asyncMarker == AsyncMarker.Async;
     node.visitChildren(this);
-    functionIsSyncStar[0] = false;
+    functionIsSyncStarOrAsync[0] = false;
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
     if (translator.options.enableAsserts) {
-      node.visitChildren(this);
+      super.visitAssertStatement(node);
+    }
+  }
+
+  @override
+  void visitAssertBlock(AssertBlock node) {
+    if (translator.options.enableAsserts) {
+      super.visitAssertBlock(node);
     }
   }
 
@@ -1124,9 +1132,9 @@ class CaptureFinder extends RecursiveVisitor {
   void _visitVariableUse(TreeNode variable) {
     int declDepth = variableDepth[variable] ?? 0;
     assert(declDepth <= depth);
-    if (declDepth < depth || functionIsSyncStar[declDepth]) {
+    if (declDepth < depth || functionIsSyncStarOrAsync[declDepth]) {
       final capture = closures.captures[variable] ??= Capture(variable);
-      if (functionIsSyncStar[declDepth]) capture.written = true;
+      if (functionIsSyncStarOrAsync[declDepth]) capture.written = true;
     } else if (variable is VariableDeclaration &&
         variable.parent is FunctionDeclaration) {
       closures.closurizedFunctions.add(variable.parent as FunctionDeclaration);
@@ -1146,7 +1154,7 @@ class CaptureFinder extends RecursiveVisitor {
   }
 
   void _visitThis() {
-    if (depth > 0 || functionIsSyncStar[0]) {
+    if (depth > 0 || functionIsSyncStarOrAsync[0]) {
       closures.isThisCaptured = true;
     }
   }
@@ -1200,9 +1208,10 @@ class CaptureFinder extends RecursiveVisitor {
         m.addFunction(type, "$member closure at ${node.location}");
     closures.lambdas[node] = Lambda(node, function);
 
-    functionIsSyncStar.add(node.asyncMarker == AsyncMarker.SyncStar);
+    functionIsSyncStarOrAsync.add(node.asyncMarker == AsyncMarker.SyncStar ||
+        node.asyncMarker == AsyncMarker.Async);
     node.visitChildren(this);
-    functionIsSyncStar.removeLast();
+    functionIsSyncStarOrAsync.removeLast();
   }
 
   @override
@@ -1232,7 +1241,14 @@ class ContextCollector extends RecursiveVisitor {
   @override
   void visitAssertStatement(AssertStatement node) {
     if (enableAsserts) {
-      node.visitChildren(this);
+      super.visitAssertStatement(node);
+    }
+  }
+
+  @override
+  void visitAssertBlock(AssertBlock node) {
+    if (enableAsserts) {
+      super.visitAssertBlock(node);
     }
   }
 

@@ -29,9 +29,10 @@ import 'package:front_end/src/api_prototype/constant_evaluator.dart'
 import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;
 
+import 'package:dart2wasm/await_transformer.dart' as awaitTrans;
 import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
-import 'package:dart2wasm/transformers.dart' as wasmTrans;
 import 'package:dart2wasm/records.dart' show RecordShape;
+import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 class WasmTarget extends Target {
   WasmTarget({this.constantBranchPruning = true});
@@ -222,6 +223,8 @@ class WasmTarget extends Target {
 
     wasmTrans.transformLibraries(
         libraries, coreTypes, hierarchy, diagnosticReporter);
+
+    awaitTrans.transformLibraries(libraries, hierarchy, coreTypes);
   }
 
   @override

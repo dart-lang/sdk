@@ -5,11 +5,13 @@
 part of dart.async;
 
 abstract class _Completer<T> implements Completer<T> {
+  @pragma("wasm:entry-point")
   final _Future<T> future = new _Future<T>();
 
   // Overridden by either a synchronous or asynchronous implementation.
   void complete([FutureOr<T>? value]);
 
+  @pragma("wasm:entry-point")
   void completeError(Object error, [StackTrace? stackTrace]) {
     // TODO(40614): Remove once non-nullability is sound.
     checkNotNullable(error, "error");
@@ -34,6 +36,7 @@ abstract class _Completer<T> implements Completer<T> {
 
 /// Completer which completes future asynchronously.
 class _AsyncCompleter<T> extends _Completer<T> {
+  @pragma("wasm:entry-point")
   void complete([FutureOr<T>? value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
     future._asyncComplete(value == null ? value as dynamic : value);

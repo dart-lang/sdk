@@ -13,7 +13,6 @@ let buildArgsList;
 //   the module will be instantiated.
 // This function returns a promise to the instantiated module.
 export const instantiate = async (modulePromise, importObjectPromise) => {
-    let asyncBridge;
     let dartInstance;
     function stringFromDartString(string) {
         const totalLength = dartInstance.exports.$stringLength(string);
@@ -101,11 +100,6 @@ const jsRuntimeBlobPart2 = r'''
         ...(await importObjectPromise),
     });
 
-    // Initialize async bridge.
-    asyncBridge = new WebAssembly.Function(
-        {parameters: ['anyref', 'anyref'], results: ['externref']},
-        dartInstance.exports.$asyncBridge,
-        {promising: 'first'});
     return dartInstance;
 }
 
