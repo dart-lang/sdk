@@ -151,13 +151,13 @@ dart.ci_sandbox_builder("gclient", recipe = "dart/gclient", category = "misc|g")
 # `vm-ffi-qemu-linux-release-arm` and the `pkg-linux-release`
 # are used because qemu is the main difference on focal, they don't trigger
 # shards and run a few different builds. See also https://crbug.com/1207358.
-cron.nightly_builder(
+cron.image_builder(
     "vm-ffi-qemu-linux-release-arm-experimental",
     channels = [],
     dimensions = [experimental, focal],
     notifies = "infra",
 )
-cron.nightly_builder(
+cron.image_builder(
     "pkg-linux-release-experimental",
     channels = [],
     dimensions = experimental,

@@ -8,6 +8,26 @@ Defines rules that can be used to define nightly and weekly builders.
 load("//lib/dart.star", "dart")
 load("//lib/priority.star", "priority")
 
+def _image_builder(name, notifies = None, **kwargs):
+    dart.ci_sandbox_builder(
+        name,
+        notifies = notifies or [luci.notifier(
+            name = "nightly",
+            on_new_failure = True,
+        )],
+        on_cq = False,
+        priority = priority.low,
+        triggered_by = [luci.gitiles_poller(
+            name = "dart-image-trigger",
+            bucket = "ci",
+            repo = dart.git,
+            refs = ["refs/heads/main"],
+            # Finish before the image roller runs at Mon-Fri 08:00 UTC.
+            schedule = "45 6 * * 1-5",  # Mon-Fri at 06:45 UTC
+        )],
+        **kwargs
+    )
+
 def _nightly_builder(name, notifies = None, **kwargs):
     dart.ci_sandbox_builder(
         name,
@@ -44,6 +64,7 @@ def _weekly_builder(name, notifies = None, **kwargs):
     )
 
 cron = struct(
+    image_builder = _image_builder,
     nightly_builder = _nightly_builder,
     weekly_builder = _weekly_builder,
 )
