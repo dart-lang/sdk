@@ -2899,16 +2899,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType namedType in implementsClause.interfaces) {
         final type = namedType.type;
         if (type is InterfaceType) {
-          final element = type.element;
-          if (element is ClassElement &&
-              element.isFinal &&
-              !element.isSealed &&
-              element.library != _currentLibrary &&
-              !_mayIgnoreClassModifiers(element.library)) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                namedType,
-                [element.name]);
+          final implementedInterfaces = [
+            type,
+            ...type.element.allSupertypes,
+          ].map((e) => e.element).toList();
+          for (final element in implementedInterfaces) {
+            if (element is ClassElement &&
+                element.isFinal &&
+                !element.isSealed &&
+                element.library != _currentLibrary &&
+                !_mayIgnoreClassModifiers(element.library)) {
+              // If the final interface is an indirect interface and is in a
+              // different library that has class modifiers enabled, there is a
+              // nearer declaration that would emit an error, if any.
+              if (element != type.element &&
+                  type.element.library.featureSet
+                      .isEnabled(Feature.class_modifiers)) {
+                continue;
+              }
+
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode
+                      .FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                  namedType,
+                  [element.name]);
+              break;
+            }
           }
         }
       }

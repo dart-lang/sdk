@@ -6,7 +6,9 @@
 
 /// Test the invalid uses of a base class defined in a different library
 
+import 'dart:collection';
 import "shared_library_definitions.dart" show SimpleClass, BaseClass;
+import 'shared_library_definitions_legacy.dart' show LegacyImplementBaseCore;
 
 mixin _MixinOnObject {}
 
@@ -221,6 +223,18 @@ base mixin BaseMixinImplement implements BaseClass {}
 //                                       ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
+
+// Implementing a legacy class that implements a core library base class.
+
+abstract class LegacyImplement<E extends LinkedListEntry<E>>
+//             ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [cfe] The type 'LegacyImplement' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
+    implements
+        LegacyImplementBaseCore<E> {}
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'LinkedList' can't be implemented outside of its library because it's a base class.
 
 /// It is an error if BaseClass is the `on` type of something which is not base.
 

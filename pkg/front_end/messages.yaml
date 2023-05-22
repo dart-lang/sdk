@@ -6299,7 +6299,7 @@ BaseClassImplementedOutsideOfLibrary:
     lib.dart:
       base class A {}
 
-BaseClassImplementedOutsideOfLibraryCause:
+BaseOrFinalClassImplementedOutsideOfLibraryCause:
   problemMessage: "The type '#name' is a subtype of '#name2', and '#name2' is defined here."
   severity: CONTEXT
 

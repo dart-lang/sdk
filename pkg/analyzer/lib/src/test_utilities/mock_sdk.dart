@@ -218,6 +218,8 @@ abstract class LinkedHashSet<E> implements Set<E> {
   }
 }
 
+abstract base mixin class LinkedListEntry<E extends LinkedListEntry<E>> { }
+
 abstract mixin class ListMixin<E> implements List<E> { }
 
 abstract mixin class MapMixin<K, V> implements Map<K, V> { }
@@ -539,7 +541,7 @@ final class Null extends Object {
   }
 }
 
-class MapEntry<K, V> {
+final class MapEntry<K, V> {
   final K key;
   final V value;
   const factory MapEntry(K key, V value) = MapEntry<K, V>._;

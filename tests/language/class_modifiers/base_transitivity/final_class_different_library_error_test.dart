@@ -7,6 +7,7 @@
 /// Test the invalid uses of a final class defined in a different library
 
 import "shared_library_definitions.dart" show FinalClass, SimpleClass;
+import 'shared_library_definitions_legacy.dart' show LegacyImplementFinalCore;
 
 mixin _MixinOnObject {}
 
@@ -176,6 +177,17 @@ base mixin BaseMixinImplement implements FinalClass {}
 //                                       ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'FinalClass' can't be implemented outside of its library because it's a final class.
+
+// Implementing a legacy class that implements a core library final class.
+
+class LegacyImplement implements LegacyImplementFinalCore {
+//                               ^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'MapEntry' can't be implemented outside of its library because it's a final class.
+  int get key => 0;
+  int get value => 1;
+  String toString() => "Bad";
+}
 
 // It is an error if FinalClass is the `on` type of a mixin outside of
 // FinalClass' library.
