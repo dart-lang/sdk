@@ -7707,18 +7707,6 @@ Message _withArgumentsJointPatternVariablesMismatch(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropAnonymousFactoryPositionalParameters =
-    messageJsInteropAnonymousFactoryPositionalParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropAnonymousFactoryPositionalParameters =
-    const MessageCode("JsInteropAnonymousFactoryPositionalParameters",
-        problemMessage:
-            r"""Factory constructors for @anonymous JS interop classes should not contain any positional parameters.""",
-        correctionMessage:
-            r"""Try replacing them with named parameters instead.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
@@ -8023,7 +8011,7 @@ const Code<Null> codeJsInteropNamedParameters = messageJsInteropNamedParameters;
 const MessageCode messageJsInteropNamedParameters = const MessageCode(
     "JsInteropNamedParameters",
     problemMessage:
-        r"""Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.""",
+        r"""Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.""",
     correctionMessage:
         r"""Try replacing them with normal or optional parameters.""");
 
@@ -8116,6 +8104,36 @@ Message _withArgumentsJsInteropNonStaticWithStaticInteropSupertype(
           """Class '${name}' does not have an `@staticInterop` annotation, but has supertype '${name2}', which does.""",
       correctionMessage: """Try marking '${name}' as a `@staticInterop` class, or don't inherit '${name2}'.""",
       arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateJsInteropObjectLiteralConstructorPositionalParameters =
+    const Template<Message Function(String string)>(
+        problemMessageTemplate:
+            r"""#string should not contain any positional parameters.""",
+        correctionMessageTemplate:
+            r"""Try replacing them with named parameters instead.""",
+        withArguments:
+            _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeJsInteropObjectLiteralConstructorPositionalParameters =
+    const Code<Message Function(String string)>(
+  "JsInteropObjectLiteralConstructorPositionalParameters",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters(
+    String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropObjectLiteralConstructorPositionalParameters,
+      problemMessage:
+          """${string} should not contain any positional parameters.""",
+      correctionMessage:
+          """Try replacing them with named parameters instead.""",
+      arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

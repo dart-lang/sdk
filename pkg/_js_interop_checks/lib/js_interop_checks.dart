@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         Message,
         LocatedMessage,
-        messageJsInteropAnonymousFactoryPositionalParameters,
         messageJsInteropDartJsInteropAnnotationForStaticInteropOnly,
         messageJsInteropEnclosingClassJSAnnotation,
         messageJsInteropEnclosingClassJSAnnotationContext,
@@ -24,11 +23,12 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropStaticInteropGenerativeConstructor,
         messageJsInteropStaticInteropSyntheticConstructor,
         templateJsInteropDartClassExtendsJSClass,
+        templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNonStaticWithStaticInteropSupertype,
         templateJsInteropStaticInteropNoJSAnnotation,
         templateJsInteropStaticInteropWithInstanceMembers,
         templateJsInteropStaticInteropWithNonStaticSupertype,
-        templateJsInteropJSClassExtendsDartClass,
+        templateJsInteropObjectLiteralConstructorPositionalParameters,
         templateJsInteropNativeClassInAnnotation,
         templateJsInteropStaticInteropTearOffsDisallowed,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
@@ -435,18 +435,18 @@ class JsInteropChecks extends RecursiveVisitor {
       }
 
       // Check JS Interop positional and named parameters.
-      final isObjectLiteralFactory =
-          _classHasAnonymousAnnotation && node.isFactory ||
-              node.isInlineClassMember && hasObjectLiteralAnnotation(node);
-      if (isObjectLiteralFactory) {
+      final isObjectLiteralConstructor =
+          node.isInlineClassMember && hasObjectLiteralAnnotation(node);
+      final isAnonymousFactory = _classHasAnonymousAnnotation && node.isFactory;
+      if (isObjectLiteralConstructor || isAnonymousFactory) {
         var positionalParams = node.function.positionalParameters;
-        if (node.isInlineClassMember) {
-          positionalParams = positionalParams.skip(1).toList();
-        }
-        if (node.function.positionalParameters.isNotEmpty) {
+        if (positionalParams.isNotEmpty) {
           final firstPositionalParam = positionalParams[0];
           _diagnosticsReporter.report(
-              messageJsInteropAnonymousFactoryPositionalParameters,
+              templateJsInteropObjectLiteralConstructorPositionalParameters
+                  .withArguments(isObjectLiteralConstructor
+                      ? 'Object literal constructors'
+                      : '@anonymous factories'),
               firstPositionalParam.fileOffset,
               firstPositionalParam.name!.length,
               firstPositionalParam.location!.file);
