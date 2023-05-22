@@ -45,7 +45,7 @@ class Utf8Encode extends BenchmarkBase {
     final String repeatedText = originalText * (size / nRunes).ceil();
     final List<int> runes = repeatedText.runes.toList();
     final int nChunks = (size < nRunes) ? (nRunes / size).floor() : 1;
-    benchmarkTextChunks = List<String>(nChunks);
+    benchmarkTextChunks = List<String>.filled(nChunks, null);
     for (int i = 0; i < nChunks; i++) {
       final offset = i * size;
       benchmarkTextChunks[i] =
