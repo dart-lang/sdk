@@ -290,7 +290,7 @@ class ArgumentError extends Error {
   ArgumentError([message]);
 
   @Since("2.1")
-  static T checkNotNull<T>(T argument, [String, name]) => argument;
+  static T checkNotNull<@Since("2.8") T>(T? argument, [String? name]) => argument!;
 }
 
 abstract final class BigInt implements Comparable<BigInt> {
