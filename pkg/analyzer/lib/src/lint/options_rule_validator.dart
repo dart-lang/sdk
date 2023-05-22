@@ -28,7 +28,8 @@ const AnalysisOptionsHintCode DEPRECATED_LINT_HINT = AnalysisOptionsHintCode(
 /// A hint code indicating reference to a deprecated lint.
 ///
 /// Parameters:
-/// 0: the rule name
+/// 0: the deprecated lint name
+/// 1: the replacing rule name
 const AnalysisOptionsHintCode DEPRECATED_LINT_HINT_WITH_REPLACEMENT =
     AnalysisOptionsHintCode('DEPRECATED_LINT_HINT_WITH_REPLACEMENT',
         "'{0}' is deprecated and should be replaced by '{1}'",
