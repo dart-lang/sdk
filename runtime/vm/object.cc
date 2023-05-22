@@ -15812,16 +15812,9 @@ void ObjectPool::DebugPrint() const {
       uword pc = RawValueAt(i);
       uintptr_t start = 0;
       char* name = NativeSymbolResolver::LookupSymbolName(pc, &start);
-      char* dso_name;
-      uword dso_base;
       if (name != nullptr) {
         THR_Print("%s (native function)\n", name);
         NativeSymbolResolver::FreeSymbolName(name);
-      } else if (NativeSymbolResolver::LookupSharedObject(pc, &dso_base,
-                                                          &dso_name)) {
-        uword dso_offset = pc - dso_base;
-        THR_Print("%s+0x%" Px " (native function)\n", dso_name, dso_offset);
-        NativeSymbolResolver::FreeSymbolName(dso_name);
       } else {
         THR_Print("0x%" Px " (native function)\n", pc);
       }

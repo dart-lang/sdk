@@ -19,7 +19,6 @@ allowed_hosts = [
   'dart.googlesource.com',
   'dart-internal.googlesource.com',
   'fuchsia.googlesource.com',
-  'llvm.googlesource.com',
 ]
 
 vars = {
@@ -43,7 +42,6 @@ vars = {
   # Chromium git
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
-  "llvm_git": "https://llvm.googlesource.com",
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure,
@@ -97,8 +95,6 @@ vars = {
   "devtools_rev": "026f0adf03725fbab24d601ac74c811808f258e5",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
-  "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
-  "libcxxabi_rev": "2ce528fb5e0f92e57c97ec3ff53b75359d33af12",
   "libprotobuf_rev": "24487dd1045c7f3d64a21f38a3f0c06cc4cf2edb",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "perfetto_rev": "b8da07095979310818f0efde2ef3c69ea70d62c5",
@@ -278,12 +274,6 @@ deps = {
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
       "@" + Var("zlib_rev"),
-
-  Var("dart_root") + "/third_party/libcxx":
-      Var("llvm_git") + "/llvm-project/libcxx" + "@" + Var("libcxx_rev"),
-
-  Var("dart_root") + "/third_party/libcxxabi":
-      Var("llvm_git") + "/llvm-project/libcxxabi" + "@" + Var("libcxxabi_rev"),
 
   Var("dart_root") + "/third_party/boringssl":
       Var("dart_git") + "boringssl_gen.git" + "@" + Var("boringssl_gen_rev"),
