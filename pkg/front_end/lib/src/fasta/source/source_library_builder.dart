@@ -2032,7 +2032,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       ProcedureBuilder setterBuilder, TypeEnvironment typeEnvironment) {
     DartType getterType;
     List<TypeParameter>? getterExtensionTypeParameters;
-    if (getterBuilder.isExtensionInstanceMember) {
+    if (getterBuilder.isExtensionInstanceMember ||
+        setterBuilder.isInlineClassInstanceMember) {
       // An extension instance getter
       //
       //     extension E<T> on A {
@@ -2043,6 +2044,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       //
       //   T# E#get#property<T#>(A #this) => ...
       //
+      // Similarly for inline class instance getters.
+      //
       Procedure procedure = getterBuilder.procedure;
       getterType = procedure.function.returnType;
       getterExtensionTypeParameters = procedure.function.typeParameters;
@@ -2050,7 +2053,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       getterType = getterBuilder.procedure.getterType;
     }
     DartType setterType;
-    if (setterBuilder.isExtensionInstanceMember) {
+    if (setterBuilder.isExtensionInstanceMember ||
+        setterBuilder.isInlineClassInstanceMember) {
       // An extension instance setter
       //
       //     extension E<T> on A {
@@ -2060,6 +2064,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // is encoded as a top level method
       //
       //   void E#set#property<T#>(A #this, T# value) { ... }
+      //
+      // Similarly for inline class instance setters.
       //
       Procedure procedure = setterBuilder.procedure;
       setterType = procedure.function.positionalParameters[1].type;
