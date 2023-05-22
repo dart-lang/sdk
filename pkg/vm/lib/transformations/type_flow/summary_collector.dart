@@ -35,7 +35,7 @@ const bool kPartialMixinResolution = true;
 /// * Breaks loops between statements.
 /// * Removes unused statements (except parameters and calls).
 /// * Eliminates joins with a single input.
-class _SummaryNormalizer extends StatementVisitor {
+class _SummaryNormalizer implements StatementVisitor {
   final Summary _summary;
   final TypesBuilder _typesBuilder;
   Set<Statement> _processed = new Set<Statement>();
@@ -49,8 +49,10 @@ class _SummaryNormalizer extends StatementVisitor {
     _summary.reset();
 
     for (int i = 0; i < _summary.positionalParameterCount; i++) {
-      _processed.add(statements[i]);
-      _summary.add(statements[i]);
+      final statement = statements[i];
+      assert(statement is Parameter);
+      _processed.add(statement);
+      _summary.add(statement);
     }
 
     // Sort named parameters.
@@ -62,12 +64,13 @@ class _SummaryNormalizer extends StatementVisitor {
       namedParams.sort((Statement s1, Statement s2) =>
           (s1 as Parameter).name.compareTo((s2 as Parameter).name));
       namedParams.forEach((Statement st) {
+        assert(st is Parameter);
         _processed.add(st);
         _summary.add(st);
       });
     }
 
-    for (Statement st in statements) {
+    for (final st in statements) {
       if (st is Call || st is TypeCheck || st is NarrowNotNull) {
         _normalizeExpr(st, false);
       } else if (st is Use) {
@@ -96,47 +99,20 @@ class _SummaryNormalizer extends StatementVisitor {
           return _handleLoop(st);
         }
 
-        if (st is Join) {
-          final n = st.values.length;
-          if (n == 0) {
-            return const EmptyType();
-          } else if (n == 1) {
-            return st.values.single;
-          } else {
-            final first = st.values.first;
-            if (first is Type) {
-              bool allMatch = true;
-              for (int i = 1; i < n; ++i) {
-                if (first != st.values[i]) {
-                  allMatch = false;
-                  break;
-                }
-              }
-              if (allMatch) {
-                return first;
-              }
+        final TypeExpr? condition = st.condition;
+        if (condition != null) {
+          if (condition is Type) {
+            if (condition is EmptyType ||
+                identical(condition, _typesBuilder.constantFalse)) {
+              return const EmptyType();
             }
+            st.condition = null;
           }
-        } else if (st is NarrowNotNull) {
-          // This pattern may appear after approximations during summary
-          // normalization, so it's not enough to handle it in
-          // _makeNarrowNotNull.
-          final arg = st.arg;
-          if (arg is Type) {
-            return st.handleArgument(arg);
-          }
-        } else if (st is Narrow) {
-          // This pattern may appear after approximations during summary
-          // normalization (so it's not enough to handle it in _makeNarrow).
-          final arg = st.arg;
-          if (st.type is AnyType) {
-            if (arg is Type) {
-              return (arg is NullableType) ? arg.baseType : arg;
-            }
-            if (arg is Call && arg.isInstanceCreation) {
-              return arg;
-            }
-          }
+        }
+
+        final simplified = st.simplify(_typesBuilder);
+        if (simplified != null) {
+          return simplified;
         }
 
         _processed.add(st);
@@ -166,13 +142,24 @@ class _SummaryNormalizer extends StatementVisitor {
     }
   }
 
+  void visitStatement(Statement st) {
+    final cond = st.condition;
+    if (cond != null) {
+      st.condition = _normalizeExpr(cond, true);
+    }
+  }
+
   @override
   void visitNarrow(Narrow expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
     expr.arg = _normalizeExpr(expr.arg, true);
   }
 
   @override
   void visitJoin(Join expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
     for (int i = 0; i < expr.values.length; i++) {
       expr.values[i] = _normalizeExpr(expr.values[i], true);
 
@@ -183,12 +170,19 @@ class _SummaryNormalizer extends StatementVisitor {
   }
 
   @override
+  void visitParameter(Parameter expr) {
+    throw '"Parameter" statement should not be referenced: $expr';
+  }
+
+  @override
   void visitUse(Use expr) {
-    throw '\'Use\' statement should not be referenced: $expr';
+    throw '"Use" statement should not be referenced: $expr';
   }
 
   @override
   void visitCall(Call expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
     for (int i = 0; i < expr.args.values.length; i++) {
       expr.args.values[i] = _normalizeExpr(expr.args.values[i], true);
 
@@ -200,6 +194,8 @@ class _SummaryNormalizer extends StatementVisitor {
 
   @override
   void visitCreateConcreteType(CreateConcreteType expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
     for (int i = 0; i < expr.flattenedTypeArgs.length; ++i) {
       expr.flattenedTypeArgs[i] =
           _normalizeExpr(expr.flattenedTypeArgs[i], true);
@@ -209,6 +205,8 @@ class _SummaryNormalizer extends StatementVisitor {
 
   @override
   void visitCreateRuntimeType(CreateRuntimeType expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
     for (int i = 0; i < expr.flattenedTypeArgs.length; ++i) {
       expr.flattenedTypeArgs[i] =
           _normalizeExpr(expr.flattenedTypeArgs[i], true);
@@ -218,6 +216,8 @@ class _SummaryNormalizer extends StatementVisitor {
 
   @override
   void visitTypeCheck(TypeCheck expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
     expr.arg = _normalizeExpr(expr.arg, true);
     if (_inLoop) return;
     expr.type = _normalizeExpr(expr.type, true);
@@ -225,12 +225,32 @@ class _SummaryNormalizer extends StatementVisitor {
 
   @override
   void visitExtract(Extract expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
     expr.arg = _normalizeExpr(expr.arg, true);
   }
 
   @override
   void visitApplyNullability(ApplyNullability expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
     expr.arg = _normalizeExpr(expr.arg, true);
+  }
+
+  @override
+  void visitUnaryOperation(UnaryOperation expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
+    expr.arg = _normalizeExpr(expr.arg, true);
+  }
+
+  @override
+  void visitBinaryOperation(BinaryOperation expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
+    expr.arg1 = _normalizeExpr(expr.arg1, true);
+    if (_inLoop) return;
+    expr.arg2 = _normalizeExpr(expr.arg2, true);
   }
 }
 
@@ -567,7 +587,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   // State of variables after corresponding LabeledStatement.
   // Used to collect states from BreakStatements.
-  Map<LabeledStatement, List<TypeExpr?>>? _variableValuesAfterLabeledStatements;
+  Map<LabeledStatement, List<List<TypeExpr?>>>?
+      _variableValuesAfterLabeledStatements;
 
   // Joins corresponding to variables on entry to switch cases.
   // Used to propagate state from ContinueSwitchStatement to a target case.
@@ -621,6 +642,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     _joinsAtSwitchCases = null;
     _returnValue = null;
     _receiver = null;
+    _currentCondition = null;
 
     final hasReceiver = hasReceiverArg(member);
 
@@ -768,10 +790,13 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       } else {
         _visitWithoutResult(function.body!);
 
-        if (_fallthroughDetector.controlCanFallThrough(function)) {
+        if (_currentCondition is! EmptyType &&
+            _fallthroughDetector.controlCanFallThrough(function)) {
           _returnValue!.values.add(_nullType);
         }
       }
+
+      _currentCondition = null;
 
       if (member.name.text == '==') {
         // In addition to what is returned from the function body,
@@ -975,7 +1000,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final int varIndex = _variablesInfo.varIndex[variable]!;
     final Join? join = _variableCells[varIndex];
     if (join != null) {
-      join.values.add(value);
+      _addValueToJoin(join, value);
     } else {
       _variableValues[varIndex] = value;
     }
@@ -1002,9 +1027,22 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _variablesInfo.varDeclarations[varIndex];
     final name = '${variable.name}_${_variableVersions[varIndex]++}';
     final Join join = new Join(name, variable.type);
+    join.condition = _currentCondition;
     _summary.add(join);
     join.values.add(value);
     return join;
+  }
+
+  void _addValueToJoin(Join dst, TypeExpr src) {
+    if (dst.values.contains(src)) {
+      return;
+    }
+    if (_currentCondition != null &&
+        _currentCondition != dst.condition &&
+        (src is! Statement || src.condition != _currentCondition)) {
+      src = _makeUnaryOperation(UnaryOp.Move, src);
+    }
+    dst.values.add(src);
   }
 
   void _mergeVariableValues(List<TypeExpr?> dst, List<TypeExpr?> src) {
@@ -1019,11 +1057,17 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         dst[i] = null;
       } else if (dstValue is EmptyType) {
         dst[i] = srcValue;
-      } else if (dstValue is Join && dstValue.values.contains(srcValue)) {
+      } else if (dstValue is Join &&
+          dstValue.values.contains(srcValue) &&
+          (dstValue.condition == null ||
+              dstValue.condition == _currentCondition)) {
         continue;
       } else if (srcValue is EmptyType) {
         continue;
-      } else if (srcValue is Join && srcValue.values.contains(dstValue)) {
+      } else if (srcValue is Join &&
+          srcValue.values.contains(dstValue) &&
+          (srcValue.condition == null ||
+              srcValue.condition == _currentCondition)) {
         dst[i] = srcValue;
       } else {
         final Join join = _makeJoin(i, dstValue);
@@ -1102,6 +1146,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         : true;
     final typeCheck = new TypeCheck(value, runtimeType, node,
         _typesBuilder.fromStaticType(type, canBeNull), kind);
+    typeCheck.condition = _currentCondition;
     _summary.add(typeCheck);
     return typeCheck;
   }
@@ -1130,6 +1175,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       staticResultType = _staticType(node);
     }
     Call call = new Call(selector, args, staticResultType, isInstanceCreation);
+    call.condition = _currentCondition;
     _summary.add(call);
     callSites[node] = call;
     return call;
@@ -1157,6 +1203,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       return arg;
     }
     Narrow narrow = new Narrow(arg, type);
+    narrow.condition = _currentCondition;
     _summary.add(narrow);
     return narrow;
   }
@@ -1203,9 +1250,28 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
     final narrow = NarrowNotNull(arg);
     nullTests[node] = narrow;
+    narrow.condition = _currentCondition;
     _summary.add(narrow);
     return narrow;
   }
+
+  UnaryOperation _makeUnaryOperation(UnaryOp op, TypeExpr arg) {
+    final operation = UnaryOperation(op, arg);
+    operation.condition = _currentCondition;
+    _summary.add(operation);
+    return operation;
+  }
+
+  BinaryOperation _makeBinaryOperation(
+      BinaryOp op, TypeExpr arg1, TypeExpr arg2) {
+    final operation = BinaryOperation(op, arg1, arg2);
+    operation.condition = _currentCondition;
+    _summary.add(operation);
+    return operation;
+  }
+
+  // Control-flow dependent condition for executing current node.
+  TypeExpr? _currentCondition;
 
   // Add an artificial use of given expression in order to make it possible to
   // infer its type even if it is not used in a summary.
@@ -1214,6 +1280,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       _addUse(arg.arg);
     } else if (arg is Join || arg is Call || arg is TypeCheck) {
       _summary.add(new Use(arg));
+    } else if (arg is UnaryOperation) {
+      _addUse(arg.arg);
+    } else if (arg is BinaryOperation) {
+      _addUse(arg.arg1);
+      _addUse(arg.arg2);
     } else {
       assert(arg is Type || arg is Parameter);
     }
@@ -1225,14 +1296,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   Type _staticType(Expression node) =>
       _typesBuilder.fromStaticType(_staticDartType(node), true);
 
-  late final ConcreteType _boolType =
-      _entryPointsListener.addAllocatedClass(_environment.coreTypes.boolClass);
-
-  late final ConcreteType _boolTrue =
-      ConcreteType(_boolType.cls, null, BoolConstant(true));
-
-  late final ConcreteType _boolFalse =
-      ConcreteType(_boolType.cls, null, BoolConstant(false));
+  late final ConcreteType _boolType = _typesBuilder.boolType;
+  late final ConcreteType _boolTrue = _typesBuilder.constantTrue;
+  late final ConcreteType _boolFalse = _typesBuilder.constantFalse;
 
   late final Type _doubleType =
       ConeType(_typesBuilder.getTFClass(_environment.coreTypes.doubleClass));
@@ -1297,6 +1363,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   void _handleNestedFunctionNode(FunctionNode node) {
     final savedReturn = _returnValue;
     _returnValue = null;
+    final savedCondition = _currentCondition;
     final savedVariableValues = _variableValues;
     _variableValues = _makeEmptyVariableValues();
 
@@ -1307,6 +1374,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
     _visitWithoutResult(node.body!);
 
+    _currentCondition = savedCondition;
     _variableValues = savedVariableValues;
     _returnValue = savedReturn;
   }
@@ -1345,38 +1413,50 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   // Visits bool expression and updates trueState and falseState with
   // variable values in case of `true` and `false` outcomes.
   // On entry _variableValues, trueState and falseState should be the same.
-  // On exit _variableValues is null, so caller should explicitly pick
+  // On exit _variableValues is empty, so caller should explicitly pick
   // either trueState or falseState.
-  void _visitCondition(
+  TypeExpr _visitCondition(
       Expression node, List<TypeExpr?> trueState, List<TypeExpr?> falseState) {
     assert(_isIdenticalState(_variableValues, trueState));
     assert(_isIdenticalState(_variableValues, falseState));
     if (node is Not) {
-      _visitCondition(node.operand, falseState, trueState);
+      final operand = _visitCondition(node.operand, falseState, trueState);
+      final result = _makeUnaryOperation(UnaryOp.Not, operand);
       _variableValues = const <TypeExpr?>[]; // Should not be used.
-      return;
+      return result;
     } else if (node is LogicalExpression) {
       final isOR = (node.operatorEnum == LogicalExpressionOperator.OR);
-      _visitCondition(node.left, trueState, falseState);
+      final left = _visitCondition(node.left, trueState, falseState);
+      final conditionAfterLHS = _currentCondition;
+      TypeExpr result;
       if (isOR) {
         // expr1 || expr2
+        _currentCondition = _makeUnaryOperation(UnaryOp.Not, left);
         _variableValues = _cloneVariableValues(falseState);
         final trueStateAfterRHS = _cloneVariableValues(_variableValues);
-        _visitCondition(node.right, trueStateAfterRHS, falseState);
+        final right =
+            _visitCondition(node.right, trueStateAfterRHS, falseState);
+        _currentCondition = conditionAfterLHS;
         _mergeVariableValues(trueState, trueStateAfterRHS);
+        result = _makeBinaryOperation(BinaryOp.Or, left, right);
       } else {
         // expr1 && expr2
+        _currentCondition = left;
         _variableValues = _cloneVariableValues(trueState);
         final falseStateAfterRHS = _cloneVariableValues(_variableValues);
-        _visitCondition(node.right, trueState, falseStateAfterRHS);
+        final right =
+            _visitCondition(node.right, trueState, falseStateAfterRHS);
+        _currentCondition = conditionAfterLHS;
         _mergeVariableValues(falseState, falseStateAfterRHS);
+        result = _makeBinaryOperation(BinaryOp.And, left, right);
       }
       _variableValues = const <TypeExpr?>[]; // Should not be used.
-      return;
+      return result;
     } else if (node is VariableGet ||
         (node is AsExpression && node.operand is VariableGet)) {
       // 'x' or 'x as{TypeError} core::bool', where x is a variable.
-      _addUse(_visit(node));
+      final result = _visit(node);
+      _addUse(result);
       final variableGet =
           (node is AsExpression ? node.operand : node) as VariableGet;
       final int varIndex = _variablesInfo.varIndex[variableGet.variable]!;
@@ -1385,7 +1465,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         falseState[varIndex] = _boolFalse;
       }
       _variableValues = const <TypeExpr?>[]; // Should not be used.
-      return;
+      return result;
     } else if (node is EqualsCall && node.left is VariableGet) {
       final lhs = node.left as VariableGet;
       final rhs = node.right;
@@ -1398,13 +1478,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           (rhs is ConstantExpression &&
               !_hasOverriddenEquals(lhs.variable.type))) {
         // 'x == c', where x is a variable and c is a constant.
-        _addUse(_visit(node));
+        final result = _visit(node);
+        _addUse(result);
         final int varIndex = _variablesInfo.varIndex[lhs.variable]!;
         if (_variableCells[varIndex] == null) {
           trueState[varIndex] = _visit(rhs);
         }
         _variableValues = const <TypeExpr?>[]; // Should not be used.
-        return;
+        return result;
       }
     } else if (node is EqualsNull && node.expression is VariableGet) {
       final lhs = node.expression as VariableGet;
@@ -1418,8 +1499,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         trueState[varIndex] = _nullType;
         falseState[varIndex] = narrowedNotNull;
       }
+      final result = _makeUnaryOperation(UnaryOp.IsNull, expr);
       _variableValues = const <TypeExpr?>[]; // Should not be used.
-      return;
+      return result;
     } else if (node is IsExpression && node.operand is VariableGet) {
       // Handle 'x is T', where x is a variable.
       final operand = node.operand as VariableGet;
@@ -1430,13 +1512,17 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       if (_variableCells[varIndex] == null) {
         trueState[varIndex] = typeCheck;
       }
+      final result = _makeUnaryOperation(
+          UnaryOp.Not, _makeUnaryOperation(UnaryOp.IsEmpty, typeCheck));
       _variableValues = const <TypeExpr?>[]; // Should not be used.
-      return;
+      return result;
     }
-    _addUse(_visit(node));
+    final result = _visit(node);
+    _addUse(result);
     _copyVariableValues(trueState, _variableValues);
     _copyVariableValues(falseState, _variableValues);
     _variableValues = const <TypeExpr?>[]; // Should not be used.
+    return result;
   }
 
   void _updateReceiverAfterCall(
@@ -1508,20 +1594,45 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr visitConditionalExpression(ConditionalExpression node) {
     final trueState = _cloneVariableValues(_variableValues);
     final falseState = _cloneVariableValues(_variableValues);
-    _visitCondition(node.condition, trueState, falseState);
 
     final Join v = new Join(null, _staticDartType(node));
+    v.condition = _currentCondition;
     _summary.add(v);
 
+    final conditionValue =
+        _visitCondition(node.condition, trueState, falseState);
+    final conditionBeforeBranch = _currentCondition;
+
+    _currentCondition = conditionValue;
     _variableValues = trueState;
-    v.values.add(_visit(node.then));
-    final stateAfter = _variableValues;
+    _addValueToJoin(v, _visit(node.then));
+    final conditionAfterThen = _currentCondition;
+    final stateAfterThen = _variableValues;
 
+    _currentCondition = conditionBeforeBranch;
+    _currentCondition = _makeUnaryOperation(UnaryOp.Not, conditionValue);
     _variableValues = falseState;
-    v.values.add(_visit(node.otherwise));
+    _addValueToJoin(v, _visit(node.otherwise));
+    final conditionAfterElse = _currentCondition;
+    final stateAfterElse = _variableValues;
 
-    _mergeVariableValues(stateAfter, _variableValues);
-    _variableValues = stateAfter;
+    if (conditionAfterThen is EmptyType) {
+      // 'then' part does not continue,
+      // use condition and variable values from 'else' part.
+      _currentCondition = conditionAfterElse;
+      _variableValues = stateAfterElse;
+    } else if (conditionAfterElse is EmptyType) {
+      // 'else' part does not continue,
+      // use condition and variable values from 'then' part.
+      _currentCondition = conditionAfterThen;
+      _variableValues = stateAfterThen;
+    } else {
+      // Both parts continue,
+      // use condition before branching and merge variable values.
+      _currentCondition = conditionBeforeBranch;
+      _mergeVariableValues(stateAfterThen, _variableValues);
+      _variableValues = stateAfterThen;
+    }
     return _makeNarrow(v, _staticType(node));
   }
 
@@ -1595,10 +1706,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr visitLogicalExpression(LogicalExpression node) {
     final trueState = _cloneVariableValues(_variableValues);
     final falseState = _cloneVariableValues(_variableValues);
-    _visitCondition(node, trueState, falseState);
+    final result = _visitCondition(node, trueState, falseState);
     _variableValues = trueState;
     _mergeVariableValues(_variableValues, falseState);
-    return _boolType;
+    return result;
   }
 
   @override
@@ -1713,6 +1824,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       default:
         final join = new Join(null, list.typeArgument);
         join.values.addAll(elementTypes);
+        join.condition = _currentCondition;
         _summary.add(join);
         return join;
     }
@@ -1776,7 +1888,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     // are approximated eagerly to static types during summary construction.
     _makeCall(node, DirectSelector(_environment.coreTypes.objectEquals),
         Args<TypeExpr>([_staticType(node.expression), _nullType]));
-    return _boolType;
+    return _makeUnaryOperation(UnaryOp.IsNull, arg);
   }
 
   TypeExpr _handlePropertyGet(
@@ -1899,8 +2011,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitNot(Not node) {
-    _addUse(_visit(node.operand));
-    return _boolType;
+    final operand = _visit(node.operand);
+    _addUse(operand);
+    return _makeUnaryOperation(UnaryOp.Not, operand);
   }
 
   @override
@@ -1910,6 +2023,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitRethrow(Rethrow node) {
+    _currentCondition = const EmptyType();
     _variableValues = _makeEmptyVariableValues();
     return const EmptyType();
   }
@@ -1993,6 +2107,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitThrow(Throw node) {
     _visit(node.expression);
+    _currentCondition = const EmptyType();
     _variableValues = _makeEmptyVariableValues();
     return const EmptyType();
   }
@@ -2056,17 +2171,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitBreakStatement(BreakStatement node) {
-    var afterLabels = _variableValuesAfterLabeledStatements;
-    if (afterLabels == null) {
-      _variableValuesAfterLabeledStatements =
-          afterLabels = <LabeledStatement, List<TypeExpr?>>{};
-    }
-    final state = afterLabels[node.target];
-    if (state != null) {
-      _mergeVariableValues(state, _variableValues);
-    } else {
-      afterLabels[node.target] = _variableValues;
-    }
+    final afterLabels = (_variableValuesAfterLabeledStatements ??= {});
+    final states = (afterLabels[node.target] ??= []);
+    states.add(_variableValues);
+    _currentCondition = const EmptyType();
     _variableValues = _makeEmptyVariableValues();
     return null;
   }
@@ -2075,6 +2183,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr? visitContinueSwitchStatement(ContinueSwitchStatement node) {
     _mergeVariableValuesToJoins(
         _variableValues, _joinsAtSwitchCases![node.target]!);
+    _currentCondition = const EmptyType();
     _variableValues = _makeEmptyVariableValues();
     return null;
   }
@@ -2111,9 +2220,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     _declareVariableWithStaticType(node.variable);
 
     final List<Join?> joins = _insertJoinsForModifiedVariables(node, false);
+    final conditionAfterLoop = _currentCondition;
     final stateAfterLoop = _cloneVariableValues(_variableValues);
     _visitWithoutResult(node.body);
     _mergeVariableValuesToJoins(_variableValues, joins);
+    _currentCondition = conditionAfterLoop;
     _variableValues = stateAfterLoop;
     return null;
   }
@@ -2127,6 +2238,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     if (node.condition != null) {
       _visitCondition(node.condition!, trueState, falseState);
     }
+    final conditionAfterLoop = _currentCondition;
     _variableValues = trueState;
     _visitWithoutResult(node.body);
     node.updates.forEach(_visit);
@@ -2136,6 +2248,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     // condition be false after the 'for'.
     // Any break would jump to the LabeledStatement outside the 'for'.
     _variableValues = falseState;
+    _currentCondition = conditionAfterLoop;
     return null;
   }
 
@@ -2152,28 +2265,56 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr? visitIfStatement(IfStatement node) {
     final trueState = _cloneVariableValues(_variableValues);
     final falseState = _cloneVariableValues(_variableValues);
-    _visitCondition(node.condition, trueState, falseState);
+    final conditionValue =
+        _visitCondition(node.condition, trueState, falseState);
 
+    final conditionBeforeBranch = _currentCondition;
+    _currentCondition = conditionValue;
     _variableValues = trueState;
     _visitWithoutResult(node.then);
-    final stateAfter = _variableValues;
+    final conditionAfterThen = _currentCondition;
+    final stateAfterThen = _variableValues;
 
+    _currentCondition = conditionBeforeBranch;
+    _currentCondition = _makeUnaryOperation(UnaryOp.Not, conditionValue);
     _variableValues = falseState;
     if (node.otherwise != null) {
       _visitWithoutResult(node.otherwise!);
     }
+    final conditionAfterElse = _currentCondition;
+    final stateAfterElse = _variableValues;
 
-    _mergeVariableValues(stateAfter, _variableValues);
-    _variableValues = stateAfter;
+    if (conditionAfterThen is EmptyType) {
+      // 'then' part does not continue,
+      // use condition and variable values from 'else' part.
+      _currentCondition = conditionAfterElse;
+      _variableValues = stateAfterElse;
+    } else if (conditionAfterElse is EmptyType) {
+      // 'else' part does not continue,
+      // use condition and variable values from 'then' part.
+      _currentCondition = conditionAfterThen;
+      _variableValues = stateAfterThen;
+    } else {
+      // Both parts continue,
+      // use condition before branching and merge variable values.
+      _currentCondition = conditionBeforeBranch;
+      _mergeVariableValues(stateAfterThen, _variableValues);
+      _variableValues = stateAfterThen;
+    }
+
     return null;
   }
 
   @override
   TypeExpr? visitLabeledStatement(LabeledStatement node) {
+    final conditionOnEntry = _currentCondition;
     _visitWithoutResult(node.body);
-    final state = _variableValuesAfterLabeledStatements?.remove(node);
-    if (state != null) {
-      _mergeVariableValues(_variableValues, state);
+    final states = _variableValuesAfterLabeledStatements?.remove(node);
+    if (states != null) {
+      _currentCondition = conditionOnEntry;
+      for (final state in states) {
+        _mergeVariableValues(_variableValues, state);
+      }
     }
     return null;
   }
@@ -2182,7 +2323,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr? visitReturnStatement(ReturnStatement node) {
     final expression = node.expression;
     TypeExpr ret = (expression != null) ? _visit(expression) : _nullType;
-    _returnValue?.values.add(ret);
+    final returnValueJoin = _returnValue;
+    if (returnValueJoin != null) {
+      _addValueToJoin(returnValueJoin, ret);
+    }
+    _currentCondition = const EmptyType();
     _variableValues = _makeEmptyVariableValues();
     return null;
   }
@@ -2191,6 +2336,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr? visitSwitchStatement(SwitchStatement node) {
     _visit(node.expression);
     // Insert joins at each case in case there are 'continue' statements.
+    final conditionOnEntry = _currentCondition;
     final stateOnEntry = _variableValues;
     final variableValuesAtCaseEntry = <SwitchCase, List<TypeExpr?>>{};
     Map<SwitchCase, List<Join?>>? joinsAtSwitchCases = _joinsAtSwitchCases;
@@ -2205,12 +2351,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
     bool hasDefault = false;
     for (var switchCase in node.cases) {
+      _currentCondition = conditionOnEntry;
       _variableValues = variableValuesAtCaseEntry[switchCase]!;
       switchCase.expressions.forEach(_visit);
       _visitWithoutResult(switchCase.body);
       hasDefault = hasDefault || switchCase.isDefault;
     }
     if (!hasDefault) {
+      _currentCondition = conditionOnEntry;
       _mergeVariableValues(_variableValues, stateOnEntry);
     }
     return null;
@@ -2220,10 +2368,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr? visitTryCatch(TryCatch node) {
     final joins = _insertJoinsForModifiedVariables(node, true);
     final stateAfterTry = _cloneVariableValues(_variableValues);
+    final conditionOnEntry = _currentCondition;
     _visitWithoutResult(node.body);
     _restoreVariableCellsAfterTry(joins);
     List<TypeExpr?>? stateAfterCatch;
     for (var catchClause in node.catches) {
+      _currentCondition = conditionOnEntry;
       _variableValues = _cloneVariableValues(stateAfterTry);
       if (catchClause.exception != null) {
         _declareVariableWithStaticType(catchClause.exception!);
@@ -2238,6 +2388,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _mergeVariableValues(stateAfterCatch, _variableValues);
       }
     }
+    _currentCondition = conditionOnEntry;
     _variableValues = stateAfterTry;
     _mergeVariableValues(_variableValues, stateAfterCatch!);
     return null;
@@ -2247,8 +2398,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr? visitTryFinally(TryFinally node) {
     final joins = _insertJoinsForModifiedVariables(node, true);
     final stateAfterTry = _cloneVariableValues(_variableValues);
+    final conditionOnEntry = _currentCondition;
     _visitWithoutResult(node.body);
     _restoreVariableCellsAfterTry(joins);
+    _currentCondition = conditionOnEntry;
     _variableValues = stateAfterTry;
     _visitWithoutResult(node.finalizer);
     return null;
@@ -2273,6 +2426,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final trueState = _cloneVariableValues(_variableValues);
     final falseState = _cloneVariableValues(_variableValues);
     _visitCondition(node.condition, trueState, falseState);
+    final conditionOnEntry = _currentCondition;
     _variableValues = trueState;
     _visitWithoutResult(node.body);
     _mergeVariableValuesToJoins(_variableValues, joins);
@@ -2281,6 +2435,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     // condition be false after the 'while'.
     // Any break would jump to the LabeledStatement outside the while.
     _variableValues = falseState;
+    _currentCondition = conditionOnEntry;
     return null;
   }
 

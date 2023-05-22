@@ -144,6 +144,15 @@ abstract class TypesBuilder {
 
   late final Type functionType = ConeType(getTFClass(coreTypes.functionClass));
 
+  late final ConcreteType boolType =
+      getTFClass(coreTypes.boolClass).concreteType;
+
+  late final ConcreteType constantTrue =
+      ConcreteType(boolType.cls, null, BoolConstant(true));
+
+  late final ConcreteType constantFalse =
+      ConcreteType(boolType.cls, null, BoolConstant(false));
+
   /// Create a Type which corresponds to a set of instances constrained by
   /// Dart type annotation [dartType].
   /// [canBeNull] can be set to false to further constrain the resulting
@@ -517,6 +526,12 @@ class SetType extends Type {
     while ((i1 < types1.length) && (i2 < types2.length)) {
       final t1 = types1[i1];
       final t2 = types2[i2];
+      if (identical(t1, t2)) {
+        types.add(t1);
+        ++i1;
+        ++i2;
+        continue;
+      }
       final id1 = t1.cls.id;
       final id2 = t2.cls.id;
       if (id1 < id2) {
@@ -526,13 +541,7 @@ class SetType extends Type {
         types.add(t2);
         ++i2;
       } else {
-        if (t1 == t2) {
-          types.add(t1);
-        } else {
-          // TODO(sjindel/tfa): Merge the type arguments vectors.
-          // (e.g., Map<?, int> vs Map<String, int> can become Map<?, int>)
-          types.add(t1.raw);
-        }
+        types.add(t1.raw);
         ++i1;
         ++i2;
       }
@@ -553,6 +562,12 @@ class SetType extends Type {
     while ((i1 < types1.length) && (i2 < types2.length)) {
       final t1 = types1[i1];
       final t2 = types2[i2];
+      if (identical(t1, t2)) {
+        types.add(t1);
+        ++i1;
+        ++i2;
+        continue;
+      }
       final id1 = t1.cls.id;
       final id2 = t2.cls.id;
       if (id1 < id2) {
@@ -560,16 +575,9 @@ class SetType extends Type {
       } else if (id1 > id2) {
         ++i2;
       } else {
-        if (t1.typeArgs == null &&
-            t1.constant == null &&
-            t2.typeArgs == null &&
-            t2.constant == null) {
-          types.add(t1);
-        } else {
-          final intersect = t1.intersection(t2, typeHierarchy);
-          if (intersect is! EmptyType) {
-            types.add(intersect as ConcreteType);
-          }
+        final intersect = t1.intersection(t2, typeHierarchy);
+        if (intersect is! EmptyType) {
+          types.add(intersect as ConcreteType);
         }
         ++i1;
         ++i2;
