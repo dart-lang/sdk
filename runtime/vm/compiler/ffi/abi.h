@@ -24,6 +24,7 @@ enum class Abi {
   kAndroidArm64,
   kAndroidIA32,
   kAndroidX64,
+  kAndroidRiscv64,
   kFuchsiaArm64,
   kFuchsiaX64,
   kFuchsiaRiscv64,
@@ -50,9 +51,9 @@ const int64_t num_abis = static_cast<int64_t>(Abi::kWindowsX64) + 1;
 // - runtime/vm/compiler/frontend/kernel_to_il.cc
 static_assert(static_cast<int64_t>(Abi::kAndroidArm) == 0,
               "Enum value unexpected.");
-static_assert(static_cast<int64_t>(Abi::kWindowsX64) == 20,
+static_assert(static_cast<int64_t>(Abi::kWindowsX64) == 21,
               "Enum value unexpected.");
-static_assert(num_abis == 21, "Enum value unexpected.");
+static_assert(num_abis == 22, "Enum value unexpected.");
 
 // The target ABI. Defines sizes and alignment of native types.
 Abi TargetAbi();
