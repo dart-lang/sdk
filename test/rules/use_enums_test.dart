@@ -113,7 +113,9 @@ class _E {
       error(WarningCode.UNUSED_ELEMENT, 6, 2),
       error(WarningCode.UNUSED_FIELD, 29, 1),
       error(WarningCode.UNUSED_FIELD, 57, 1),
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 83, 1),
+      // We are reversing the deprecation: This code will remain a `HintCode`.
+      // ignore: deprecated_member_use
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 83, 1),
     ]);
   }
 
