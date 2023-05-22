@@ -131,7 +131,8 @@ class IterableContainsUnrelatedType extends LintRule {
           description: _desc,
           details: _details,
           group: Group.errors,
-          state: State.deprecated(),
+          state:
+              State.deprecated(replacedBy: 'collection_methods_unrelated_type'),
         );
 
   @override
