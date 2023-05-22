@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.34 Add support for inline classes.
+//
 // v0.33 This commit does not change the derived language at all. It just
 // changes several rules to use the regexp-like grammar operators to simplify
 // onParts, recordLiteralNoConst, functionTypeTails, and functionType.
@@ -244,6 +246,7 @@ libraryDefinition
 topLevelDefinition
     :    classDeclaration
     |    mixinDeclaration
+    |    inlineClassDeclaration
     |    extensionDeclaration
     |    enumType
     |    typeAlias
@@ -428,6 +431,16 @@ mixinModifier
 
 // TODO: We might want to make this more strict.
 mixinMemberDeclaration
+    :    classMemberDeclaration
+    ;
+
+inlineClassDeclaration
+    :    FINAL? INLINE CLASS typeWithParameters interfaces?
+         LBRACE (metadata inlineMemberDeclaration)* RBRACE
+    ;
+
+// TODO: We might want to make this more strict.
+inlineMemberDeclaration
     :    classMemberDeclaration
     ;
 
@@ -1613,6 +1626,7 @@ otherIdentifier
     :    ASYNC
     |    BASE
     |    HIDE
+    |    INLINE
     |    OF
     |    ON
     |    SEALED
@@ -1896,6 +1910,10 @@ BASE
 
 HIDE
     :    'hide'
+    ;
+
+INLINE
+    :    'inline'
     ;
 
 OF
