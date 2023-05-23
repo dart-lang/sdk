@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'pkgs/cronet_http/**'
-      - 'pkgs/http_client_conformance_tests/**'
 
 jobs:
   analyze:
