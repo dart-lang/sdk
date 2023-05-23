@@ -125,7 +125,6 @@ class _DeclarationGatherer {
 ///
 /// "References" are most often [SimpleIdentifier]s, but can also be other
 /// nodes which refer to a declaration.
-// TODO(srawlins): Add support for patterns.
 class _ReferenceVisitor extends RecursiveAstVisitor {
   Map<Element, Declaration> declarationMap;
 
@@ -143,9 +142,27 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  void visitAsExpression(AsExpression node) {
+    node.expression.accept(this);
+    // Intentionally do not visit `node.type`, as a reference in the type of an
+    // as-expression is not good enough to count as "reachable". Marking a type
+    // as reachable only because it was seen in an as-expression would be a
+    // miscategorization if the type is never instantiated or subtyped.
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _visitCompoundAssignmentExpression(node);
     super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitCastPattern(CastPattern node) {
+    node.pattern.accept(this);
+    // Intentionally do not visit `node.type`, as a reference in the type in a
+    // cast pattern is not good enough to count as "reachable". Marking a type
+    // as reachable only because it was seen in a cast pattern would be a
+    // miscategorization if the type is never instantiated or subtyped.
   }
 
   @override
@@ -203,6 +220,25 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
       _addDeclaration(e);
     }
     super.visitConstructorName(node);
+  }
+
+  @override
+  void visitIsExpression(IsExpression node) {
+    node.expression.accept(this);
+    // Intentionally do not visit `node.type`, as a reference in an
+    // is-expression is not good enough to count as "reachable".
+    // Marking a type as reachable only because it was seen in an is-expression
+    // would be a miscategorization if the type is never instantiated or
+    // subtyped.
+  }
+
+  @override
+  void visitObjectPattern(ObjectPattern node) {
+    node.fields.accept(this);
+    // Intentionally do not visit `node.type`, as a reference as the type in an
+    // object pattern is not good enough to count as "reachable". Marking a type
+    // as reachable only because it was seen in an object pattern would be a
+    // miscategorization if the type is never instantiated or subtyped.
   }
 
   @override

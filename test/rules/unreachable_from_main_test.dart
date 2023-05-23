@@ -105,6 +105,54 @@ class C {}
     ]);
   }
 
+  test_class_unreachable_foundInAsExpression() async {
+    await assertDiagnostics(r'''
+class A {}
+
+void main() {
+  f();
+}
+
+void f([Object? o]) {
+  o as A;
+}
+''', [
+      lint(6, 1),
+    ]);
+  }
+
+  test_class_unreachable_foundInAsPattern() async {
+    await assertDiagnostics(r'''
+class A {}
+
+void main() {
+  f();
+}
+
+void f([(Object, )? l]) {
+  var (_ as A, ) = l!;
+}
+''', [
+      lint(6, 1),
+    ]);
+  }
+
+  test_class_unreachable_foundInIsExpression() async {
+    await assertDiagnostics(r'''
+class A {}
+
+void main() {
+  f();
+}
+
+void f([Object? o]) {
+  o is A;
+}
+''', [
+      lint(6, 1),
+    ]);
+  }
+
   test_class_unreachable_hasNamedConstructors() async {
     await assertDiagnostics(r'''
 void main() {}
@@ -473,6 +521,40 @@ class C {
   C();
 }
 ''');
+  }
+
+  test_constructor_unnamed_referencedInConstantPattern_generic() async {
+    await assertDiagnostics(r'''
+class C<T> {
+  const C();
+}
+
+void main() {
+  f();
+}
+
+void f([C? c]) {
+  if (c case const C<int>()) {}
+}
+''', [
+      lint(21, 1),
+    ]);
+  }
+
+  test_constructor_unnamed_referencedInObjectPattern() async {
+    await assertDiagnostics(r'''
+class C {}
+
+void main() {
+  f();
+}
+
+void f([Object? c]) {
+  if (c case C()) {}
+}
+''', [
+      lint(6, 1),
+    ]);
   }
 
   test_constructor_unnamed_unreachable() async {
