@@ -16,6 +16,7 @@ load("//lib/cron.star", "cron")
 load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
+    "bionic",
     "experimental",
     "focal",
     "js_engines",
@@ -160,7 +161,7 @@ cron.image_builder(
 cron.image_builder(
     "pkg-linux-release-experimental",
     channels = [],
-    dimensions = experimental,
+    dimensions = [experimental, bionic],
     notifies = "infra",
 )
 

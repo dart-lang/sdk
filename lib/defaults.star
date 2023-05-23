@@ -9,7 +9,7 @@ _PROPERTIES = {"clobber": True}
 _DIMENSIONS = {
     "cpu": "x86-64",
     "host_class": "default",
-    "os": "Ubuntu-18",
+    "os": "Ubuntu-20",
     "pool": "luci.dart.try",
 }
 _CACHES = {
@@ -71,8 +71,9 @@ defaults = struct(
 
 arm64 = _ARM64
 experimental = _EXPERIMENTAL
+bionic = _BIONIC
 focal = _FOCAL
-linux = _BIONIC
+linux = _FOCAL
 mac = _MAC
 windows = _WINDOWS10
 windows10 = _WINDOWS10
