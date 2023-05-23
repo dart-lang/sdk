@@ -22,6 +22,9 @@ jobs:
 #        run: git branch -u origin/main
 #fatal: could not set upstream of HEAD to origin/main when it does not point to any branch.
 #Error: Process completed with exit code 128.
+      - name: Sync
+        working-directory: ./sdk
+        run: ls && gclient sync -D
       - name: Run presubmit
         working-directory: ./sdk
         run: ls && git cl presubmit
