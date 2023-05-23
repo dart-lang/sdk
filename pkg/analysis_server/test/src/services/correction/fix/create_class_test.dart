@@ -121,6 +121,55 @@ class Test {
     assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
   }
 
+  Future<void> test_instanceCreation_withConst() async {
+    await resolveTestCode('''
+void f() {
+  const Test();
+}
+''');
+    await assertHasFix('''
+void f() {
+  const Test();
+}
+
+class Test {
+  const Test();
+}
+''');
+  }
+
+  Future<void> test_instanceCreation_withNew() async {
+    await resolveTestCode('''
+void f() {
+  new Test();
+}
+''');
+    await assertHasFix('''
+void f() {
+  new Test();
+}
+
+class Test {
+}
+''');
+    assertLinkedGroup(change.linkedEditGroups[0], ['Test();', 'Test {']);
+  }
+
+  Future<void> test_instanceCreation_withoutKeyword_constContext() async {
+    await resolveTestCode('''
+const v = Test();
+''');
+    await assertHasFix('''
+const v = Test();
+
+class Test {
+  const Test();
+}
+''', errorFilter: (e) {
+      return e.errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION;
+    });
+  }
+
   Future<void> test_instanceCreation_withoutNew_fromFunction() async {
     await resolveTestCode('''
 void f() {
