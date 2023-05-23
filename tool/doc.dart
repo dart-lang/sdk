@@ -203,8 +203,7 @@ Future<void> generateDocs(String? dir,
     var fixStatus = getFixStatus(rule, fixStatusMap);
     RuleHtmlGenerator(rule, fixStatus).generate(outDir);
     if (enableMarkdown) {
-      RuleMarkdownGenerator(rule)
-          .generate(filePath: outDir, fixStatus: fixStatus);
+      RuleMarkdownGenerator(rule, fixStatus).generate(outDir);
     }
   }
 
@@ -576,13 +575,42 @@ linter:
 ''';
 }
 
-class RuleHtmlGenerator {
+abstract class RuleGenerator {
   final LintRule rule;
   final String fixStatus;
 
-  RuleHtmlGenerator(this.rule, this.fixStatus);
+  RuleGenerator(this.rule, this.fixStatus);
 
   String get details => rule.details;
+
+  String get group => rule.group.name;
+
+  String get humanReadableName => rule.name;
+
+  String get name => rule.name;
+
+  State get state => rule.state;
+
+  String get usageMarkdown => '''
+## Usage
+
+To enable the `$name` lint,
+add `$name` under **linter > rules** in your
+[`analysis_options.yaml`](https://dart.dev/guides/language/analysis-options)
+file:
+
+```yaml
+linter:
+  rules:
+    - $name
+```
+  ''';
+
+  void generate([String? filePath]);
+}
+
+class RuleHtmlGenerator extends RuleGenerator {
+  RuleHtmlGenerator(super.rule, super.fixStatus);
 
   String get detailsHeader {
     if (state.isRemoved) {
@@ -593,10 +621,6 @@ class RuleHtmlGenerator {
     }
     return '';
   }
-
-  String get group => rule.group.name;
-
-  String get humanReadableName => rule.name;
 
   String get incompatibleRuleDetails {
     var sb = StringBuffer();
@@ -617,8 +641,6 @@ class RuleHtmlGenerator {
     return sb.toString();
   }
 
-  String get name => rule.name;
-
   String get since {
     var info = sinceInfo[name]!;
     var sdkVersion = info.sinceDartSdk != null
@@ -629,8 +651,6 @@ class RuleHtmlGenerator {
         : '<strong>Unreleased</strong>';
     return 'Dart SDK: $sdkVersion • <small>(Linter $linterVersion)</small>';
   }
-
-  State get state => rule.state;
 
   String get stateString {
     if (state.isDeprecated) {
@@ -644,6 +664,7 @@ class RuleHtmlGenerator {
     }
   }
 
+  @override
   void generate([String? filePath]) {
     var generated = _generate();
     if (filePath != null) {
@@ -689,6 +710,7 @@ class RuleHtmlGenerator {
             $detailsHeader
             ${markdownToHtml(details)}
             $incompatibleRuleDetails
+            ${markdownToHtml(usageMarkdown)}
          </section>
       </div>
       <footer>
@@ -700,16 +722,8 @@ class RuleHtmlGenerator {
 ''';
 }
 
-class RuleMarkdownGenerator {
-  final LintRule rule;
-
-  RuleMarkdownGenerator(this.rule);
-
-  String get details => rule.details;
-
-  String get group => rule.group.name;
-
-  String get name => rule.name;
+class RuleMarkdownGenerator extends RuleGenerator {
+  RuleMarkdownGenerator(super.rule, super.fixStatus);
 
   String get since {
     var info = sinceInfo[name]!;
@@ -721,15 +735,16 @@ class RuleMarkdownGenerator {
     return 'Dart SDK: $sdkVersion • _(Linter $linterVersion)_';
   }
 
-  String get state => describeState(rule);
+  String get stateString => describeState(rule);
 
-  void generate({String? filePath, String? fixStatus}) {
+  @override
+  void generate([String? filePath]) {
     var buffer = StringBuffer();
 
     buffer.writeln('# Rule $name');
     buffer.writeln();
     buffer.writeln('**Group**: $group\\');
-    buffer.writeln('**State**: $state\\');
+    buffer.writeln('**State**: $stateString\\');
     buffer.writeln('**Since**: $since\\');
     buffer.writeln();
 
@@ -757,17 +772,20 @@ class RuleMarkdownGenerator {
     buffer.writeln('## Description');
     buffer.writeln();
     buffer.writeln(details.trim());
+    buffer.writeln();
 
     // incompatible rules
     var incompatibleRules = rule.incompatibleRules;
     if (incompatibleRules.isNotEmpty) {
-      buffer.writeln('## Incompatible With');
+      buffer.writeln('## Incompatible with');
       buffer.writeln();
       for (var rule in incompatibleRules) {
         buffer.writeln('- [$rule]($rule.md)');
       }
       buffer.writeln();
     }
+
+    buffer.write(usageMarkdown);
 
     if (filePath == null) {
       print(buffer);
