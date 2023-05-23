@@ -45,6 +45,34 @@ f() {
 ''');
   }
 
+  test_list() async {
+    await assertDiagnostics(r'''
+f() {
+  for (var [i, j] in [[1, 2]]) { }
+} 
+''', [
+      lint(17, 6),
+    ]);
+  }
+
+  test_list_final() async {
+    await assertNoDiagnostics(r'''
+f() {
+  for (final [i, j] in [[1, 2]]) { }
+} 
+''');
+  }
+
+  test_list_mutated() async {
+    await assertNoDiagnostics(r'''
+f() {
+  for (var [i, j] in [[1, 2]]) { 
+    i += 2;
+  }
+}   
+''');
+  }
+
   /// https://github.com/dart-lang/linter/issues/4353
   test_listLiteral_forEach() async {
     await assertDiagnostics(r'''
@@ -64,6 +92,77 @@ List<int> f() => [
 ''');
   }
 
+  test_map() async {
+    await assertDiagnostics(r'''
+f() {
+  for (var {'i' : j} in [{'i' : 1}]) { }
+}
+''', [
+      lint(17, 9),
+    ]);
+  }
+
+  test_map_final() async {
+    await assertNoDiagnostics(r'''
+f() {
+  for (final {'i' : j} in [{'i' : 1}]) { }
+}
+''');
+  }
+
+  test_map_mutated() async {
+    await assertNoDiagnostics(r'''
+f() {
+  for (var {'i' : j} in [{'i' : 1}]) { 
+    j += 2;
+  }
+}  
+''');
+  }
+
+  test_object() async {
+    await assertDiagnostics(r'''
+class A {
+  int a;
+  A(this.a);
+}
+
+f() {
+  for (var A(:a) in [A(1)]) { }
+} 
+''', [
+      lint(52, 5),
+    ]);
+  }
+
+  test_object_final() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int a;
+  A(this.a);
+}
+
+f() {
+  for (final A(:a) in [A(1)]) { }
+} 
+''');
+  }
+
+  test_object_mutated() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int a;
+  A(this.a);
+}
+
+f() {
+  for (var A(:a) in [A(1)]) { 
+    a += 2;
+  }
+}   
+''');
+  }
+
   test_outOfLoopDeclaration_ok() async {
     await assertNoDiagnostics(r'''
 f() {    
@@ -73,18 +172,17 @@ f() {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4290')
   test_record() async {
     await assertDiagnostics(r'''
 f() {
   for (var (i, j) in [(1, 2)]) { }
 }  
 ''', [
-      lint(13, 3),
+      lint(17, 6),
     ]);
   }
 
-  test_record_final_ok() async {
+  test_record_final() async {
     await assertNoDiagnostics(r'''
 f() {
   for (final (i, j) in [(1, 2)]) { }
@@ -92,7 +190,7 @@ f() {
 ''');
   }
 
-  test_record_mutated_ok() async {
+  test_record_mutated() async {
     await assertNoDiagnostics(r'''
 f() {
   for (var (int i, j) in [(1, 2)]) {

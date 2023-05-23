@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc =
     r'Prefer final in for-each loop variable if reference is not reassigned.';
@@ -47,6 +48,10 @@ class PreferFinalInForEach extends LintRule {
       'prefer_final_in_for_each', "The variable '{0}' should be final.",
       correctionMessage: 'Try making the variable final.');
 
+  static const LintCode patternCode = LintCode(
+      'prefer_final_in_for_each', 'The pattern should be final.',
+      correctionMessage: 'Try making the pattern final.');
+
   PreferFinalInForEach()
       : super(
             name: 'prefer_final_in_for_each',
@@ -62,6 +67,7 @@ class PreferFinalInForEach extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
     registry.addForEachPartsWithDeclaration(this, visitor);
+    registry.addForEachPartsWithPattern(this, visitor);
   }
 }
 
@@ -84,4 +90,44 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLintForToken(name, arguments: [name.lexeme]);
     }
   }
+
+  @override
+  void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    if (node.keyword.isFinal) return;
+
+    var function = node.thisOrAncestorOfType<FunctionBody>();
+    if (function == null) return;
+
+    var pattern = node.pattern;
+    if (pattern is RecordPattern) {
+      if (!function.potentiallyMutatesAnyField(pattern.fields)) {
+        rule.reportLint(pattern, errorCode: PreferFinalInForEach.patternCode);
+      }
+    } else if (pattern is ObjectPattern) {
+      if (!function.potentiallyMutatesAnyField(pattern.fields)) {
+        rule.reportLint(pattern, errorCode: PreferFinalInForEach.patternCode);
+      }
+    } else if (pattern is ListPattern) {
+      if (!pattern.elements.any((e) => function.potentiallyMutates(e))) {
+        rule.reportLint(pattern, errorCode: PreferFinalInForEach.patternCode);
+      }
+    } else if (pattern is MapPattern) {
+      if (!pattern.elements.any((e) =>
+          e is! MapPatternEntry || function.potentiallyMutates(e.value))) {
+        rule.reportLint(pattern, errorCode: PreferFinalInForEach.patternCode);
+      }
+    }
+  }
+}
+
+extension on FunctionBody {
+  bool potentiallyMutates(Object pattern) {
+    if (pattern is! DeclaredVariablePattern) return true;
+    var element = pattern.declaredElement;
+    if (element == null) return true;
+    return isPotentiallyMutatedInScope(element.declaration);
+  }
+
+  bool potentiallyMutatesAnyField(List<PatternField> fields) =>
+      fields.any((f) => potentiallyMutates(f.pattern));
 }
