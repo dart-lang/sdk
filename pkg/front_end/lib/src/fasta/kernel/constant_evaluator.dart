@@ -2906,6 +2906,16 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // ignore: unnecessary_null_comparison
     assert(named != null);
 
+    if (shouldBeUnevaluated) {
+      return unevaluated(
+          node,
+          new RecordLiteral([
+            for (Constant c in positional) _wrap(c),
+          ], [
+            for (String key in named.keys)
+              new NamedExpression(key, _wrap(named[key]!)),
+          ], node.recordType, isConst: true));
+    }
     return canonicalize(new RecordConstant(positional, named, node.recordType));
   }
 
@@ -5193,14 +5203,22 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     List<Constant> result = new List<Constant>.filled(
         positional.length, dummyConstant,
         growable: true);
+    // These expressions are at the same level, so one of them being
+    // unevaluated doesn't mean a sibling is or has an unevaluated child.
+    // We therefore reset it before each call, combine it and set it correctly
+    // at the end.
+    bool wasOrBecameUnevaluated = seenUnevaluatedChild;
     for (int i = 0; i < positional.length; i++) {
+      seenUnevaluatedChild = false;
       Constant constant = _evaluateSubexpression(positional[i]);
+      wasOrBecameUnevaluated |= seenUnevaluatedChild;
       if (constant is AbortConstant) {
         _gotError = constant;
         return null;
       }
       result[i] = constant;
     }
+    seenUnevaluatedChild = wasOrBecameUnevaluated;
     return result;
   }
 
@@ -5210,9 +5228,16 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (named.isEmpty) return const <String, Constant>{};
 
     final Map<String, Constant> result = {};
+    // These expressions are at the same level, so one of them being
+    // unevaluated doesn't mean a sibling is or has an unevaluated child.
+    // We therefore reset it before each call, combine it and set it correctly
+    // at the end.
+    bool wasOrBecameUnevaluated = seenUnevaluatedChild;
     for (NamedExpression pair in named) {
       if (_gotError != null) return null;
+      seenUnevaluatedChild = false;
       Constant constant = _evaluateSubexpression(pair.value);
+      wasOrBecameUnevaluated |= seenUnevaluatedChild;
       if (constant is AbortConstant) {
         _gotError = constant;
         return null;
@@ -5220,6 +5245,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       result[pair.name] = constant;
     }
     if (_gotError != null) return null;
+    seenUnevaluatedChild = wasOrBecameUnevaluated;
     return result;
   }
 
