@@ -804,7 +804,6 @@ class InferrerEngine {
     _workQueue.addAll(types.allocatedTypes);
     _workQueue.addAll(types.allocatedClosures);
     _workQueue.addAll(types.allocatedCalls);
-    _workQueue.addAll(types.allocatedRecords.values);
   }
 
   /// Update the inputs to parameters in the graph. [remove] tells whether

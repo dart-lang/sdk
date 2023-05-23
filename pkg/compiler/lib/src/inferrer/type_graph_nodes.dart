@@ -2104,13 +2104,11 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
 /// constants and literals.
 class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
   final RecordShape recordShape;
-  final AbstractValue originalType;
-
   final List<TypeInformation> fieldTypes;
 
-  RecordTypeInformation(MemberTypeInformation? context, this.originalType,
-      this.recordShape, this.fieldTypes)
-      : super(originalType, context) {
+  RecordTypeInformation(
+      super.type, super.context, this.recordShape, this.fieldTypes)
+      : super.noInputs() {
     for (final fieldType in fieldTypes) {
       fieldType.addUser(this);
     }
@@ -2137,8 +2135,14 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
   }
 
   @override
-  // TODO(50701): This could be a top type of the record shape.
-  AbstractValue safeType(InferrerEngine inferrer) => originalType;
+  AbstractValue safeType(InferrerEngine inferrer) {
+    final shapeClass = inferrer.closedWorld.recordData
+        .representationForShape(recordShape)
+        ?.cls;
+    return shapeClass != null
+        ? inferrer.abstractValueDomain.createNonNullSubtype(shapeClass)
+        : inferrer.abstractValueDomain.recordType;
+  }
 
   @override
   bool hasStableType(InferrerEngine inferrer) {
@@ -2188,7 +2192,11 @@ class RecordFieldAccessTypeInformation extends TypeInformation {
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
     final recordType = receiver.type;
-    if (!inferrer.abstractValueDomain.isRecord(recordType)) {
+    if (inferrer.abstractValueDomain.isEmpty(recordType).isDefinitelyTrue) {
+      // These field accesses should begin at empty until we have a type for the
+      // receiver.
+      return inferrer.abstractValueDomain.emptyType;
+    } else if (!inferrer.abstractValueDomain.isRecord(recordType)) {
       return safeType(inferrer);
     }
     final getterType = inferrer.abstractValueDomain
