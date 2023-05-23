@@ -17,6 +17,11 @@ jobs:
         run: git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
       - name: Add depot_tools to path
         run: echo $(realpath depot_tools) >> $GITHUB_PATH
+      - name: Set origin
+        working-directory: ./sdk
+        run: git branch -u origin/main
       - name: Run presubmit
         working-directory: ./sdk
         run: git cl presubmit
+
+git branch -u
