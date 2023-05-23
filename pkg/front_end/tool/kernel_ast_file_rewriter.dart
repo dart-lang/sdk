@@ -24,6 +24,9 @@ void main(List<String> args) {
   Map<String, TopLevelDeclarationEnd> classes = {};
   for (TopLevelDeclarationEnd cls in ast.getClasses()) {
     IdentifierHandle identifier = cls.getIdentifier();
+    // TODO(srawlins): Look into fixing this code. Right now we get:
+    // "The argument type 'Token' isn't related to 'String'."
+    // ignore: collection_methods_unrelated_type
     assert(classes[identifier.token] == null);
     classes[identifier.token.toString()] = cls;
   }
