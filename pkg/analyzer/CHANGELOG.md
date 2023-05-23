@@ -1,3 +1,7 @@
+## 5.14.0-dev
+* Updated SDK constraint to `>=3.0.0 <4.0.0`.
+* Fixed #52486.
+
 ## 5.13.0
 * `InvalidType` is now used when types or property cannot be resolved.
   Previously `DynamicType` was used.

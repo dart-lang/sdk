@@ -414,6 +414,59 @@ class A {
     _checkMethodRequestedLocalVariable();
   }
 
+  test_class_method_requested_patternVariable_ifCase() async {
+    await resolve('''
+class A {
+  void foo() {}
+
+  void bar(Object? x) {
+    if (x case A(:var foo)) {
+      this.foo();
+    }
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 73, 3),
+    ]);
+    _checkMethodRequestedLocalVariable();
+  }
+
+  test_class_method_requested_patternVariable_switchExpression() async {
+    await resolve('''
+class A {
+  void foo() {}
+
+  void bar(Object? x) {
+    (switch (x) {
+      A(:var foo) => this.foo(),
+      _ => 0,
+    });
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 82, 3),
+    ]);
+    _checkMethodRequestedLocalVariable();
+  }
+
+  test_class_method_requested_patternVariable_switchStatement() async {
+    await resolve('''
+class A {
+  void foo() {}
+
+  void bar(Object? x) {
+    switch (x) {
+      case A(:var foo):
+        this.foo();
+    }
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 86, 3),
+    ]);
+    _checkMethodRequestedLocalVariable();
+  }
+
   test_class_method_requested_thisClass() async {
     await resolve('''
 class A {

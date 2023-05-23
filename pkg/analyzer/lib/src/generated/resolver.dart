@@ -4961,6 +4961,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
     for (var case_ in node.cases) {
       _withNameScope(() {
+        _setNodeNameScope(case_, nameScope);
         var guardedPattern = case_.guardedPattern;
         var variables = guardedPattern.variables;
         for (var variable in variables.values) {
