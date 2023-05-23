@@ -420,6 +420,10 @@ void setStaticSetterSignature(f, sigF) =>
 
 _getMembers(type, kind) {
   var sig = JS('', '#[#]', type, kind);
+  // The results of these lookups are sometimes used as a proto for new
+  // signature storage objects in subclasses. Undefined is coerced to null so
+  // the value can be used in `Object.setPrototypeOf()`.
+  if (sig == null) return null;
   return JS<bool>('!', 'typeof # == "function"', sig)
       ? JS('', '#[#] = #()', type, kind, sig)
       : sig;
