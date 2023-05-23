@@ -539,9 +539,10 @@ class TypeSystem {
       allocatedTypes.add(getterType);
     }
 
-    final record = RecordTypeInformation(currentMember,
-        _abstractValueDomain.recordType, recordType.shape, fieldTypes);
+    final record = RecordTypeInformation(_abstractValueDomain.recordType,
+        currentMember, recordType.shape, fieldTypes);
     allocatedRecords[node] = record;
+    allocatedTypes.add(record);
     return record;
   }
 

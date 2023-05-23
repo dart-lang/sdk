@@ -1558,11 +1558,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (!name.startsWith('Static')) {
         var proto = c == _coreTypes.objectClass
             ? js.call('Object.create(null)')
-            : runtimeCall('get${name}s(#.__proto__)', [className]);
-        elements.insert(0, js_ast.Property(propertyName('__proto__'), proto));
+            : runtimeCall('get${name}s(#)', [
+                _emitJSObjectGetPrototypeOf(className, fullyQualifiedName: true)
+              ]);
+
         setSignature = runtimeStatement('set${name}Signature(#, () => #)', [
           className,
-          js_ast.ObjectInitializer(elements, multiline: elements.length > 1)
+          _emitJSObjectSetPrototypeOf(
+              js_ast.ObjectInitializer(elements,
+                  multiline: elements.length > 1),
+              proto,
+              fullyQualifiedName: true)
         ]);
       } else {
         // TODO(40273) Only tagging with the names of static members until the
