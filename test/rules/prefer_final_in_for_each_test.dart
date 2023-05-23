@@ -45,6 +45,25 @@ f() {
 ''');
   }
 
+  /// https://github.com/dart-lang/linter/issues/4353
+  test_listLiteral_forEach() async {
+    await assertDiagnostics(r'''
+List<int> f() => [
+      for (var i in [1, 2]) i + 3
+    ];
+''', [
+      lint(34, 1),
+    ]);
+  }
+
+  test_listLiteral_forEach_mutated() async {
+    await assertNoDiagnostics(r'''
+List<int> f() => [
+      for (var i in [1, 2]) i += 3
+    ];
+''');
+  }
+
   test_outOfLoopDeclaration_ok() async {
     await assertNoDiagnostics(r'''
 f() {    

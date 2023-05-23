@@ -61,7 +61,7 @@ class PreferFinalInForEach extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
-    registry.addForStatement(this, visitor);
+    registry.addForEachPartsWithDeclaration(this, visitor);
   }
 }
 
@@ -71,27 +71,17 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitForStatement(ForStatement node) {
-    var forLoopParts = node.forLoopParts;
-    // If the following `if` test fails, then either the statement is not a
-    // for-each loop, or it is something like `for(a in b) { ... }`.  In the
-    // second case, notice `a` is not actually declared from within the
-    // loop. `a` is a variable declared outside the loop.
-    if (forLoopParts is ForEachPartsWithDeclaration) {
-      var loopVariable = forLoopParts.loopVariable;
+  void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    var loopVariable = node.loopVariable;
+    if (loopVariable.isFinal) return;
 
-      if (loopVariable.isFinal) {
-        return;
-      }
-
-      var function = node.thisOrAncestorOfType<FunctionBody>();
-      var loopVariableElement = loopVariable.declaredElement;
-      if (function != null &&
-          loopVariableElement != null &&
-          !function.isPotentiallyMutatedInScope(loopVariableElement)) {
-        var name = loopVariable.name;
-        rule.reportLintForToken(name, arguments: [name.lexeme]);
-      }
+    var function = node.thisOrAncestorOfType<FunctionBody>();
+    var loopVariableElement = loopVariable.declaredElement;
+    if (function != null &&
+        loopVariableElement != null &&
+        !function.isPotentiallyMutatedInScope(loopVariableElement)) {
+      var name = loopVariable.name;
+      rule.reportLintForToken(name, arguments: [name.lexeme]);
     }
   }
 }
