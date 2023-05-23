@@ -14,57 +14,57 @@ import 'package:expect/expect.dart';
 class Foo {
   external int singleNamedArg({int? a});
   //                                ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
   external int mixedNamedArgs(int a, {int? b});
   //                                       ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 }
 
 @JS()
 class Bar {
   external static int singleNamedArg({int? a});
   //                                       ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
   external static int mixedNamedArgs(int a, {int? b});
   //                                              ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 }
 
 external int singleNamedArg({int? a});
 //                                ^
-// [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+// [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 external int mixedNamedArgs(int a, {int? b});
 //                                       ^
-// [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+// [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 
 @JS()
 @anonymous
 class Baz {
   external int singleNamedArg({int? a});
   //                                ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
   external int mixedNamedArgs(int a, {int? b});
   //                                       ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 }
 
 @JS()
 abstract class Qux {
   external int singleNamedArg({int? a});
   //                                ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
   external int mixedNamedArgs(int a, {int? b});
   //                                       ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 }
 
 extension ExtensionFoo on Foo {
   external int singleNamedArg({int? a});
   //                                ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
   external int mixedNamedArgs(int a, {int? b});
   //                                       ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 }
 
 main() {}

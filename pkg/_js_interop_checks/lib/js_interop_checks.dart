@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         Message,
         LocatedMessage,
-        messageJsInteropAnonymousFactoryPositionalParameters,
         messageJsInteropDartJsInteropAnnotationForStaticInteropOnly,
         messageJsInteropEnclosingClassJSAnnotation,
         messageJsInteropEnclosingClassJSAnnotationContext,
@@ -19,16 +18,18 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropNamedParameters,
         messageJsInteropNonExternalConstructor,
         messageJsInteropNonExternalMember,
+        messageJsInteropOperatorCannotBeRenamed,
         messageJsInteropOperatorsNotSupported,
         messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters,
         messageJsInteropStaticInteropGenerativeConstructor,
         messageJsInteropStaticInteropSyntheticConstructor,
         templateJsInteropDartClassExtendsJSClass,
+        templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNonStaticWithStaticInteropSupertype,
         templateJsInteropStaticInteropNoJSAnnotation,
         templateJsInteropStaticInteropWithInstanceMembers,
         templateJsInteropStaticInteropWithNonStaticSupertype,
-        templateJsInteropJSClassExtendsDartClass,
+        templateJsInteropObjectLiteralConstructorPositionalParameters,
         templateJsInteropNativeClassInAnnotation,
         templateJsInteropStaticInteropTearOffsDisallowed,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
@@ -428,25 +429,21 @@ class JsInteropChecks extends RecursiveVisitor {
     if (!_isJSInteropMember(node)) {
       _checkDisallowedExternal(node);
     } else {
-      // Check JS interop indexing.
-      if (!node.isStatic && node.kind == ProcedureKind.Operator) {
-        _diagnosticsReporter.report(messageJsInteropOperatorsNotSupported,
-            node.fileOffset, node.name.text.length, node.fileUri);
-      }
+      _checkJsInteropMemberNotOperator(node);
 
       // Check JS Interop positional and named parameters.
-      final isObjectLiteralFactory =
-          _classHasAnonymousAnnotation && node.isFactory ||
-              node.isInlineClassMember && hasObjectLiteralAnnotation(node);
-      if (isObjectLiteralFactory) {
+      final isObjectLiteralConstructor =
+          node.isInlineClassMember && hasObjectLiteralAnnotation(node);
+      final isAnonymousFactory = _classHasAnonymousAnnotation && node.isFactory;
+      if (isObjectLiteralConstructor || isAnonymousFactory) {
         var positionalParams = node.function.positionalParameters;
-        if (node.isInlineClassMember) {
-          positionalParams = positionalParams.skip(1).toList();
-        }
-        if (node.function.positionalParameters.isNotEmpty) {
+        if (positionalParams.isNotEmpty) {
           final firstPositionalParam = positionalParams[0];
           _diagnosticsReporter.report(
-              messageJsInteropAnonymousFactoryPositionalParameters,
+              templateJsInteropObjectLiteralConstructorPositionalParameters
+                  .withArguments(isObjectLiteralConstructor
+                      ? 'Object literal constructors'
+                      : '@anonymous factories'),
               firstPositionalParam.fileOffset,
               firstPositionalParam.name!.length,
               firstPositionalParam.location!.file);
@@ -860,6 +857,38 @@ class JsInteropChecks extends RecursiveVisitor {
       return true;
     }
     return false;
+  }
+
+  /// Given JS interop member [node], checks that it is not an operator that is
+  /// disallowed.
+  ///
+  /// Also checks that no renaming is done on interop operators.
+  void _checkJsInteropMemberNotOperator(Procedure node) {
+    var isInvalidOperator = false;
+    var operatorHasRenaming = false;
+    if ((node.isInlineClassMember &&
+            _inlineExtensionIndex.getInlineDescriptor(node)?.kind ==
+                InlineClassMemberKind.Operator) ||
+        (node.isExtensionMember &&
+            _inlineExtensionIndex.getExtensionDescriptor(node)?.kind ==
+                ExtensionMemberKind.Operator)) {
+      final operator =
+          _inlineExtensionIndex.getInlineDescriptor(node)?.name.text ??
+              _inlineExtensionIndex.getExtensionDescriptor(node)?.name.text;
+      isInvalidOperator = operator != '[]' && operator != '[]=';
+      operatorHasRenaming = getJSName(node).isNotEmpty;
+    } else if (!node.isStatic && node.kind == ProcedureKind.Operator) {
+      isInvalidOperator = true;
+      operatorHasRenaming = getJSName(node).isNotEmpty;
+    }
+    if (isInvalidOperator) {
+      _diagnosticsReporter.report(messageJsInteropOperatorsNotSupported,
+          node.fileOffset, node.name.text.length, node.fileUri);
+    }
+    if (operatorHasRenaming) {
+      _diagnosticsReporter.report(messageJsInteropOperatorCannotBeRenamed,
+          node.fileOffset, node.name.text.length, node.fileUri);
+    }
   }
 }
 

@@ -791,21 +791,7 @@ class InferrerEngine {
           info.type = info.refine(this);
           info.doNotEnqueue = true;
         }
-        for (final user in info.users) {
-          _workQueue.add(user);
-          // Virtual parameters that are part of a cycle can end up stuck in
-          // a refinement pattern that prevents the members of the cycle from
-          // converging. We avoid this by adding the concrete parameter and
-          // corresponding narrowing type to the queue before other members of
-          // the cycle.
-          if (user is ParameterTypeInformation) {
-            final concreteParameterType = user.concreteParameterType;
-            if (concreteParameterType != null) {
-              _workQueue.add(concreteParameterType);
-              _workQueue.addAll(concreteParameterType.users);
-            }
-          }
-        }
+        _workQueue.addAll(info.users);
         if (info.hasStableType(this)) {
           info.stabilize(this);
         }

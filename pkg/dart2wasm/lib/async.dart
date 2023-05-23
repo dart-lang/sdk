@@ -1068,7 +1068,7 @@ class AsyncCodeGenerator extends CodeGenerator {
           // directly, instead of via throw/catch. Would that be faster?
           exceptionHandlers.forEachFinalizer(
               (finalizer, _last) => finalizer.setContinuationRethrow(
-                    () => _getVariable(catch_.exception!),
+                    () => _getVariableBoxed(catch_.exception!),
                     () => _getVariable(catch_.stackTrace!),
                   ));
           b.throw_(translator.exceptionTag);
@@ -1304,7 +1304,7 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     exceptionHandlers.forEachFinalizer((finalizer, _last) {
       finalizer.setContinuationRethrow(
-        () => _getVariable(catchVars.exception),
+        () => _getVariableBoxed(catchVars.exception),
         () => _getVariable(catchVars.stackTrace),
       );
     });
@@ -1413,22 +1413,31 @@ class AsyncCodeGenerator extends CodeGenerator {
     }
   }
 
-  void _getVariable(VariableDeclaration variable) {
+  w.ValueType _getVariable(VariableDeclaration variable) {
     final w.Local? local = locals[variable];
     final Capture? capture = closures.captures[variable];
     if (capture != null) {
       if (!capture.written && local != null) {
         b.local_get(local);
+        return local.type;
       } else {
         b.local_get(capture.context.currentLocal);
         b.struct_get(capture.context.struct, capture.fieldIndex);
+        return capture.context.struct.fields[capture.fieldIndex].type.unpacked;
       }
     } else {
       if (local == null) {
         throw "Write of undefined variable ${variable}";
       }
       b.local_get(local);
+      return local.type;
     }
+  }
+
+  /// Same as [_getVariable], but boxes the value if it's not already boxed.
+  void _getVariableBoxed(VariableDeclaration variable) {
+    final varType = _getVariable(variable);
+    translator.convertType(function, varType, translator.topInfo.nullableType);
   }
 
   void _getCurrentException() {

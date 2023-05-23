@@ -594,11 +594,14 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 class FieldTypeInformation extends MemberTypeInformation {
   @override
   final FieldEntity _member;
-  final DartType _type;
+  final AbstractValue _type;
 
   FieldTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, this._type)
-      : super._internal(abstractValueDomain, _member);
+      AbstractValueDomain abstractValueDomain, this._member, DartType type)
+      : _type = abstractValueDomain
+            .createFromStaticType(type, nullable: true)
+            .abstractValue,
+        super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -626,7 +629,7 @@ class FieldTypeInformation extends MemberTypeInformation {
   @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    return _narrowType(inferrer.closedWorld, mask, _type);
+    return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 
   @override
@@ -643,11 +646,14 @@ class FieldTypeInformation extends MemberTypeInformation {
 class GetterTypeInformation extends MemberTypeInformation {
   @override
   final FunctionEntity _member;
-  final FunctionType _type;
+  final AbstractValue _type;
 
   GetterTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, this._type)
-      : super._internal(abstractValueDomain, _member);
+      AbstractValueDomain abstractValueDomain, this._member, FunctionType type)
+      : _type = abstractValueDomain
+            .createFromStaticType(type.returnType, nullable: true)
+            .abstractValue,
+        super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -657,7 +663,7 @@ class GetterTypeInformation extends MemberTypeInformation {
   @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    return _narrowType(inferrer.closedWorld, mask, _type.returnType);
+    return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 }
 
@@ -683,11 +689,14 @@ class SetterTypeInformation extends MemberTypeInformation {
 class MethodTypeInformation extends MemberTypeInformation {
   @override
   final FunctionEntity _member;
-  final FunctionType _type;
+  final AbstractValue _type;
 
   MethodTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, this._type)
-      : super._internal(abstractValueDomain, _member);
+      AbstractValueDomain abstractValueDomain, this._member, FunctionType type)
+      : _type = abstractValueDomain
+            .createFromStaticType(type.returnType, nullable: true)
+            .abstractValue,
+        super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -700,7 +709,7 @@ class MethodTypeInformation extends MemberTypeInformation {
     if (inferrer.commonElements.isLateReadCheck(_member)) {
       mask = inferrer.abstractValueDomain.excludeLateSentinel(mask);
     }
-    return _narrowType(inferrer.closedWorld, mask, _type.returnType);
+    return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 
   @override
@@ -710,11 +719,14 @@ class MethodTypeInformation extends MemberTypeInformation {
 class FactoryConstructorTypeInformation extends MemberTypeInformation {
   @override
   final ConstructorEntity _member;
-  final FunctionType _type;
+  final AbstractValue _type;
 
   FactoryConstructorTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, this._type)
-      : super._internal(abstractValueDomain, _member);
+      AbstractValueDomain abstractValueDomain, this._member, FunctionType type)
+      : _type = abstractValueDomain
+            .createFromStaticType(type.returnType, nullable: true)
+            .abstractValue,
+        super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -738,7 +750,7 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
   @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    return _narrowType(inferrer.closedWorld, mask, _type.returnType);
+    return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 
   @override
@@ -781,23 +793,29 @@ class GenerativeConstructorTypeInformation extends MemberTypeInformation {
 /// the [ElementTypeInformation] factory.
 class ParameterTypeInformation extends ElementTypeInformation {
   final Local _parameter;
-  final DartType _type;
+  final AbstractValue _type;
   final FunctionEntity _method;
+
+  /// The input type is calculated directly from the union of this node's
+  /// inputs (i.e. the actual arguments for this parameter). When this
+  /// parameter's static type is not trusted, an implicit check will be added
+  /// based on this type. [type] on the other hand is the type of this parameter
+  /// within the function body so it is narrowed using the static type.
+  AbstractValue _inputType;
   bool get _isInstanceMemberParameter =>
       _hasFlag(_Flag.isInstanceMemberParameter);
   bool get _isClosureParameter => _hasFlag(_Flag.isClosureParameter);
   bool get _isInitializingFormal => _hasFlag(_Flag.isInitializingFormal);
   bool _isTearOffClosureParameter = false;
-  TypeInformation? get concreteParameterType =>
-      _hasFlag(_Flag.isVirtual) ? users.first : null;
+  bool get _isVirtual => _hasFlag(_Flag.isVirtual);
 
-  ParameterTypeInformation.localFunction(
-      super.abstractValueDomain,
-      MemberTypeInformation super.context,
-      this._parameter,
-      this._type,
-      this._method)
-      : super._internal() {
+  ParameterTypeInformation.localFunction(super.abstractValueDomain,
+      super.context, this._parameter, DartType type, this._method)
+      : _type = abstractValueDomain
+            .createFromStaticType(type, nullable: true)
+            .abstractValue,
+        _inputType = abstractValueDomain.uncomputedType,
+        super._internal() {
     _setFlag(_Flag.isClosureParameter);
   }
 
@@ -805,24 +823,37 @@ class ParameterTypeInformation extends ElementTypeInformation {
       super.abstractValueDomain,
       MemberTypeInformation super.context,
       this._parameter,
-      this._type,
+      DartType type,
       this._method,
       {bool isInitializingFormal = false})
-      : super._internal() {
+      : _type = abstractValueDomain
+            .createFromStaticType(type, nullable: true)
+            .abstractValue,
+        _inputType = abstractValueDomain.uncomputedType,
+        super._internal() {
     _setFlagTo(_Flag.isInitializingFormal, isInitializingFormal);
   }
 
-  ParameterTypeInformation.instanceMember(
-      AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation context,
-      this._parameter,
-      this._type,
-      this._method,
-      ParameterInputs inputs,
+  ParameterTypeInformation.instanceMember(super.abstractValueDomain,
+      super.context, this._parameter, DartType type, this._method, super.inputs,
       {required bool isVirtual})
-      : super._withInputs(abstractValueDomain, context, inputs) {
+      : _type =
+            _createInstanceMemberStaticType(abstractValueDomain, type, _method),
+        _inputType = abstractValueDomain.uncomputedType,
+        super._withInputs() {
     _setFlag(_Flag.isInstanceMemberParameter);
     _setFlagTo(_Flag.isVirtual, isVirtual);
+  }
+
+  static AbstractValue _createInstanceMemberStaticType(
+      AbstractValueDomain domain, DartType type, FunctionEntity method) {
+    final staticType =
+        domain.createFromStaticType(type, nullable: true).abstractValue;
+    // We include null in the type of `==` because it usually does not already
+    // include null. When we narrow the inferred type using this static type
+    // we want to allow for null so that downstream we can know if null flows
+    // into this parameter and add the appropriate checks.
+    return method.name == '==' ? domain.includeNull(staticType) : staticType;
   }
 
   FunctionEntity get method => _method;
@@ -894,53 +925,61 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   AbstractValue potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    if (inferrer.closedWorld.annotationsData
-        .getParameterCheckPolicy(method)
-        .isTrusted) {
-      // In checked or strong mode we don't trust the types of the arguments
-      // passed to a parameter. The means that the checking of a parameter is
-      // based on the actual arguments.
-      //
-      // With --trust-type-annotations or --omit-implicit-checks we _do_ trust
-      // the arguments passed to a parameter - and we never check them.
-      //
-      // In all these cases we _do_ trust the static type of a parameter within
-      // the method itself. For instance:
-      //
-      //     method(int i) => i;
-      //     main() {
-      //       dynamic f = method;
-      //       f(0); // valid call
-      //       f(''); // invalid call
-      //     }
-      //
-      // Here, in all cases, we infer the returned value of `method` to be an
-      // `int`. In checked and strong mode we infer the parameter of `method` to
-      // be either `int` or `String` and therefore insert a check at the entry
-      // of 'method'. With --trust-type-annotations or --omit-implicit-checks we
-      // (unsoundly) infer the parameter to be `int` and leave the parameter
-      // unchecked, and `method` will at runtime actually return a `String` from
-      // the second invocation.
-      //
-      // The trusting of the parameter types within the body of the method is
-      // is done through `LocalsHandler.update` called in
-      // `KernelTypeGraphBuilder.handleParameter`.
-      return _narrowType(inferrer.closedWorld, mask, _type);
-    }
-    return mask;
+    return _narrowType(inferrer.abstractValueDomain, mask, _type);
+  }
+
+  AbstractValue checkedType(InferrerEngine inferrer) {
+    // By default we don't trust the types of the arguments passed to a
+    // parameter. This means that the checking of a parameter is based on the
+    // actual arguments.
+    //
+    // With --omit-implicit-checks we _do_ trust the arguments passed to a
+    // parameter - and we never check them.
+    //
+    // In all these cases we _do_ trust the static type of a parameter within
+    // the method itself. For instance:
+    //
+    //     method(int i) => i;
+    //     main() {
+    //       dynamic f = method;
+    //       f(0); // valid call
+    //       f(''); // invalid call
+    //     }
+    //
+    // Here, in all cases, we infer the returned value of `method` to be an
+    // `int`. By default we infer the parameter of `method` to be either
+    // `int` or `String` and therefore insert a check at the entry of 'method'.
+    // With --omit-implicit-checks we (unsoundly) infer the parameter to be
+    // `int` and leave the parameter unchecked, and `method` will at runtime
+    // actually return a `String` from the second invocation.
+    //
+    // The trusting of the parameter types within the body of the method is
+    // handled by `potentiallyNarrowType` on each call to `computeType`.
+    return inferrer.closedWorld.annotationsData
+            .getParameterCheckPolicy(method)
+            .isTrusted
+        ? type
+        : _inputType;
   }
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
     final special = handleSpecialCases(inferrer);
     if (special != null) return special;
-    return potentiallyNarrowType(
-        inferrer.types.computeTypeMask(inputs), inferrer);
+    final inputType = _inputType = inferrer.types.computeTypeMask(inputs);
+    // Virtual parameters are only inputs to other parameters (virtual or
+    // concrete) and not function bodies. The user parameters need to know the
+    // full set of inputs passed to the virtual parameter.
+    return _isVirtual ? inputType : potentiallyNarrowType(inputType, inferrer);
   }
 
   @override
   AbstractValue safeType(InferrerEngine inferrer) {
-    return potentiallyNarrowType(super.safeType(inferrer), inferrer);
+    final inputType = _inputType = super.safeType(inferrer);
+    // Virtual parameters are only inputs to other parameters (virtual or
+    // concrete) and not function bodies. The user parameters need to know the
+    // full set of inputs passed to the virtual parameter.
+    return _isVirtual ? inputType : potentiallyNarrowType(inputType, inferrer);
   }
 
   @override
@@ -2339,40 +2378,10 @@ abstract class TypeInformationVisitor<T> {
   T visitYieldTypeInformation(YieldTypeInformation info);
 }
 
-AbstractValue _narrowType(
-    JClosedWorld closedWorld, AbstractValue type, DartType annotation,
-    {bool isNullable = true}) {
-  AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-
-  AbstractValue _intersectionWith(AbstractValue otherType) {
-    if (isNullable) {
-      otherType = abstractValueDomain.includeNull(otherType);
-    }
-    AbstractValue newType = abstractValueDomain.intersection(type, otherType);
-    return abstractValueDomain.isLateSentinel(type).isPotentiallyTrue
-        ? abstractValueDomain.includeLateSentinel(newType)
-        : newType;
-  }
-
-  // TODO(joshualitt): FutureOrType, TypeVariableType, and FunctionTypeVariable
-  // can be narrowed.
-  // TODO(fishythefish): Use nullability.
-  annotation = annotation.withoutNullability;
-  if (closedWorld.dartTypes.isTopType(annotation) ||
-      annotation is FutureOrType ||
-      annotation is TypeVariableType ||
-      annotation is FunctionTypeVariable) {
-    return type;
-  } else if (annotation is NeverType) {
-    return _intersectionWith(abstractValueDomain.emptyType);
-  } else if (annotation is InterfaceType) {
-    return _intersectionWith(
-        abstractValueDomain.createNonNullSubtype(annotation.element));
-  } else if (annotation is FunctionType) {
-    return _intersectionWith(abstractValueDomain.functionType);
-  } else if (annotation is RecordType) {
-    return _intersectionWith(abstractValueDomain.recordType);
-  } else {
-    throw 'Unexpected annotation type $annotation';
-  }
+AbstractValue _narrowType(AbstractValueDomain abstractValueDomain,
+    AbstractValue type, AbstractValue annotation) {
+  final narrowType = abstractValueDomain.intersection(type, annotation);
+  return abstractValueDomain.isLateSentinel(type).isPotentiallyTrue
+      ? abstractValueDomain.includeLateSentinel(narrowType)
+      : narrowType;
 }

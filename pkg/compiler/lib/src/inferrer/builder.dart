@@ -282,9 +282,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   void handleParameter(ir.VariableDeclaration node,
       {required bool isOptional}) {
     Local local = _localsMap.getLocalVariable(node);
-    DartType type = _localsMap.getLocalType(_elementMap, local);
-    _state.updateLocal(_inferrer, _capturedAndBoxed, local,
-        _inferrer.typeOfParameter(local), type);
+    _state.setLocal(
+        _inferrer, _capturedAndBoxed, local, _inferrer.typeOfParameter(local));
     if (isOptional) {
       TypeInformation type;
       if (node.initializer != null) {
@@ -2502,11 +2501,21 @@ class LocalState {
       {isCast = true,
       excludeNull = false,
       excludeLateSentinel = false}) {
-    type = inferrer.types.narrowType(type, staticType,
-        isCast: isCast,
-        excludeNull: excludeNull,
-        excludeLateSentinel: excludeLateSentinel);
+    setLocal(
+        inferrer,
+        capturedAndBoxed,
+        local,
+        inferrer.types.narrowType(type, staticType,
+            isCast: isCast,
+            excludeNull: excludeNull,
+            excludeLateSentinel: excludeLateSentinel));
+  }
 
+  void setLocal(
+      InferrerEngine inferrer,
+      Map<Local, FieldEntity> capturedAndBoxed,
+      Local local,
+      TypeInformation type) {
     final field = capturedAndBoxed[local];
     if (field != null) {
       inferrer.recordTypeOfField(field, type);

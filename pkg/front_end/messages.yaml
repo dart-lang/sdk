@@ -5439,10 +5439,6 @@ NullableInterfaceError:
 NullableMixinError:
   problemMessage: "Can't mix '#name' in because it's marked with '?'."
 
-JsInteropAnonymousFactoryPositionalParameters:
-  problemMessage: "Factory constructors for @anonymous JS interop classes should not contain any positional parameters."
-  correctionMessage: "Try replacing them with named parameters instead."
-
 JsInteropDartClassExtendsJSClass:
   problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."
   correctionMessage: "Try adding the JS interop annotation or removing it from the parent class."
@@ -5508,7 +5504,7 @@ JsInteropJSClassExtendsDartClass:
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
 
 JsInteropNamedParameters:
-  problemMessage: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."
+  problemMessage: "Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories."
   correctionMessage: "Try replacing them with normal or optional parameters."
 
 JsInteropNativeClassInAnnotation:
@@ -5523,8 +5519,16 @@ JsInteropNonExternalMember:
   problemMessage: "This JS interop member must be annotated with `external`. Only factories and static methods can be non-external."
   correctionMessage: "Try annotating the member with `external`."
 
+JsInteropObjectLiteralConstructorPositionalParameters:
+  problemMessage: "#string should not contain any positional parameters."
+  correctionMessage: "Try replacing them with named parameters instead."
+
+JsInteropOperatorCannotBeRenamed:
+  problemMessage: "JS interop operator methods cannot be renamed using the '@JS' annotation."
+  correctionMessage: "Remove the annotation or remove the value inside the annotation."
+
 JsInteropOperatorsNotSupported:
-  problemMessage: "JS interop classes do not support operator methods."
+  problemMessage: "JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop."
   correctionMessage: "Try replacing this with a normal method."
 
 JsInteropNonStaticWithStaticInteropSupertype:

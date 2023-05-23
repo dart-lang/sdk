@@ -529,6 +529,15 @@ class ConstantCollector extends ir.RecursiveVisitor {
   }
 
   @override
+  void visitRecordLiteral(ir.RecordLiteral literal) {
+    if (literal.isConst) {
+      add(literal);
+    } else {
+      super.visitRecordLiteral(literal);
+    }
+  }
+
+  @override
   void visitConstructorInvocation(ir.ConstructorInvocation node) {
     if (node.isConst) {
       add(node);

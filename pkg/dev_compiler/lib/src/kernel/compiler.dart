@@ -6110,8 +6110,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (name == 'jsObjectSetPrototypeOf') {
         var obj = node.arguments.positional.first;
         var prototype = node.arguments.positional.last;
-        return js.call('Object.setPrototypeOf(#, #)',
-            [_visitExpression(obj), _visitExpression(prototype)]);
+        return _emitJSObjectSetPrototypeOf(
+            _visitExpression(obj), _visitExpression(prototype),
+            fullyQualifiedName: false);
       }
     }
     if (target.isExternal &&
@@ -6194,6 +6195,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       fullyQualifiedName
           ? runtimeCall('global.Object.getPrototypeOf(#)', [obj])
           : js.call('Object.getPrototypeOf(#)', obj);
+
+  js_ast.Expression _emitJSObjectSetPrototypeOf(
+          js_ast.Expression obj, js_ast.Expression prototype,
+          {required bool fullyQualifiedName}) =>
+      fullyQualifiedName
+          ? runtimeCall('global.Object.setPrototypeOf(#, #)', [obj, prototype])
+          : js.call('Object.setPrototypeOf(#, #)', [obj, prototype]);
 
   bool _isDebuggerCall(Procedure target) {
     return target.name.text == 'debugger' &&
@@ -7372,7 +7380,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _emitInterfaceType(type as InterfaceType, emitNullability: false);
     var prototype = js.call('#.prototype', [classRef]);
     var properties = [
-      js_ast.Property(propertyName('__proto__'), prototype),
       if (_options.newRuntimeTypes && type.typeArguments.isNotEmpty)
         // Generic interface type instances require a type information tag.
         js_ast.Property(
@@ -7380,8 +7387,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       for (var e in node.fieldValues.entries.toList().reversed)
         entryToProperty(e),
     ];
-    return canonicalizeConstObject(
-        js_ast.ObjectInitializer(properties, multiline: true));
+    return canonicalizeConstObject(_emitJSObjectSetPrototypeOf(
+        js_ast.ObjectInitializer(properties, multiline: true), prototype,
+        fullyQualifiedName: false));
   }
 
   /// Emits a private name JS Symbol for [member] unique to a Dart class

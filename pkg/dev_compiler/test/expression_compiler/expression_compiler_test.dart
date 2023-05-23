@@ -539,9 +539,8 @@ void main() {
               const CT = Object.create(null);
               dart.defineLazy(CT, {
                 get C0() {
-                  return C[0] = dart.const({
-                    __proto__: foo.B.prototype
-                  });
+                  return C[0] = dart.const(Object.setPrototypeOf({
+                  }, foo.B.prototype));
                 }
               }, false);
               var C = [void 0];
@@ -568,9 +567,8 @@ void main() {
               const CT = Object.create(null);
               dart.defineLazy(CT, {
                 get C0() {
-                  return C[0] = dart.const({
-                    __proto__: foo.A.prototype
-                  });
+                  return C[0] = dart.const(Object.setPrototypeOf({
+                  }, foo.A.prototype));
                 }
               }, false);
               var C = [void 0];

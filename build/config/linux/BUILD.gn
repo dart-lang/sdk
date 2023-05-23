@@ -15,12 +15,10 @@ config("sdk") {
 
   # Explicitly use static linking for libstdc++ and libgcc to minimize
   # dependencies.
-  if (!use_flutter_cxx) {
-    ldflags += [
-      "-static-libgcc",
-      "-static-libstdc++",
-    ]
-  }
+  ldflags += [
+    "-static-libgcc",
+    "-static-libstdc++",
+  ]
 
   if (sysroot != "") {
     cflags += [ "--sysroot=" + sysroot ]

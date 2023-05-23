@@ -199,10 +199,29 @@ class AddKeyToConstructors extends CorrectionProducer {
     }
     if (superParameters) {
       if (invocation != null && invocation.argumentList.arguments.isEmpty) {
-        var previous = initializers.length == 1
-            ? constructor.parameters
-            : initializers[initializers.indexOf(invocation) - 1];
-        builder.addDeletion(range.endStart(previous, constructor.body));
+        final invocationIndex = initializers.indexOf(invocation);
+        if (initializers.length == 1) {
+          builder.addDeletion(
+            range.endStart(
+              constructor.parameters,
+              constructor.body,
+            ),
+          );
+        } else if (invocationIndex == 0) {
+          builder.addDeletion(
+            range.startStart(
+              invocation,
+              initializers[invocationIndex + 1],
+            ),
+          );
+        } else {
+          builder.addDeletion(
+            range.endEnd(
+              initializers[invocationIndex - 1],
+              invocation,
+            ),
+          );
+        }
       }
       return;
     }
