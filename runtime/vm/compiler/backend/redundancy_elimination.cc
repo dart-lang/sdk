@@ -2187,6 +2187,12 @@ class LoadOptimizer : public ValueObject {
             if (auto* const load = use->instruction()->AsLoadField()) {
               place_id = GetPlaceId(load);
               slot = &load->slot();
+              if (alloc->IsAllocateTypedData() &&
+                  slot == &Slot::PointerBase_data()) {
+                // Typed data payload elements are unboxed and initialized to
+                // zero, so don't forward a tagged null value.
+                continue;
+              }
             } else if (auto* const store = use->instruction()->AsStoreField()) {
               ASSERT(!alloc->IsArrayAllocation());
               place_id = GetPlaceId(store);

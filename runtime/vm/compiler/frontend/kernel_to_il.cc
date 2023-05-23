@@ -1305,7 +1305,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(arg_pointer);
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // No GC from here til LoadIndexed.
-      body += LoadUntagged(compiler::target::PointerBase::data_offset());
+      body += LoadNativeField(Slot::PointerBase_data());
+      body += ConvertUnboxedToUntagged(kUnboxedIntPtr);
       body += LoadLocal(arg_offset_not_null);
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += LoadIndexed(typed_data_cid, /*index_scale=*/1,
@@ -1373,14 +1374,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(arg_pointer);  // Pointer.
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // No GC from here til StoreIndexed.
-      body += LoadUntagged(compiler::target::PointerBase::data_offset());
+      body += LoadNativeField(Slot::PointerBase_data());
+      body += ConvertUnboxedToUntagged(kUnboxedIntPtr);
       body += LoadLocal(arg_offset_not_null);
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += LoadLocal(arg_value_not_null);
       if (kind == MethodRecognizer::kFfiStorePointer) {
-        // This can only be Pointer, so it is always safe to LoadUntagged.
-        body += LoadUntagged(compiler::target::PointerBase::data_offset());
-        body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
+        body += LoadNativeField(Slot::PointerBase_data());
       } else {
         // Avoid any unnecessary (and potentially deoptimizing) int
         // conversions by using the representation consumed by StoreIndexed.
@@ -1417,9 +1417,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Pointer.
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
-      // This can only be Pointer, so it is always safe to LoadUntagged.
-      body += LoadUntagged(compiler::target::PointerBase::data_offset());
-      body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
+      body += LoadNativeField(Slot::PointerBase_data());
       body += Box(kUnboxedFfiIntPtr);
     } break;
     case MethodRecognizer::kHas63BitSmis: {
@@ -1501,8 +1499,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       // Initialize the result's data pointer field.
       body += LoadLocal(typed_data_object);
       body += LoadLocal(arg_pointer);
-      body += LoadUntagged(compiler::target::PointerBase::data_offset());
-      body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+      body += LoadNativeField(Slot::PointerBase_data());
       body += StoreNativeField(Slot::PointerBase_data(),
                                StoreFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
@@ -1716,8 +1713,7 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   // instructions!
   body += LoadLocal(view_object);
   body += LoadLocal(typed_data);
-  body += LoadUntagged(compiler::target::PointerBase::data_offset());
-  body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+  body += LoadNativeField(Slot::PointerBase_data());
   body += LoadLocal(offset_in_bytes);
   body += UnboxSmiToIntptr();
   body += AddIntptrIntegers();
@@ -4401,7 +4397,8 @@ Fragment FlowGraphBuilder::CopyFromCompoundToStack(
   for (intptr_t i = 0; i < num_defs; i++) {
     body += LoadLocal(variable);
     body += LoadTypedDataBaseFromCompound();
-    body += LoadUntagged(compiler::target::PointerBase::data_offset());
+    body += LoadNativeField(Slot::PointerBase_data());
+    body += ConvertUnboxedToUntagged(kUnboxedIntPtr);
     body += IntConstant(offset_in_bytes);
     const Representation representation = representations[i];
     offset_in_bytes += RepresentationUtils::ValueSize(representation);
@@ -4423,7 +4420,8 @@ Fragment FlowGraphBuilder::PopFromStackToTypedDataBase(
   for (intptr_t i = 0; i < num_defs; i++) {
     const Representation representation = representations[i];
     body += LoadLocal(uint8_list);
-    body += LoadUntagged(compiler::target::PointerBase::data_offset());
+    body += LoadNativeField(Slot::PointerBase_data());
+    body += ConvertUnboxedToUntagged(kUnboxedIntPtr);
     body += IntConstant(offset_in_bytes);
     body += LoadLocal(definitions->At(i));
     body += StoreIndexedTypedDataUnboxed(representation, /*index_scale=*/1,
@@ -4477,7 +4475,8 @@ Fragment FlowGraphBuilder::CopyFromTypedDataBaseToUnboxedAddress(
     const classid_t typed_data_cidd = typed_data_cid(chunk_sizee);
 
     body += LoadLocal(typed_data_base);
-    body += LoadUntagged(compiler::target::PointerBase::data_offset());
+    body += LoadNativeField(Slot::PointerBase_data());
+    body += ConvertUnboxedToUntagged(kUnboxedIntPtr);
     body += IntConstant(offset_in_bytes);
     body += LoadIndexed(typed_data_cidd, /*index_scale=*/1,
                         /*index_unboxed=*/false);
@@ -4522,7 +4521,8 @@ Fragment FlowGraphBuilder::CopyFromUnboxedAddressToTypedDataBase(
     LocalVariable* chunk_value = MakeTemporary("chunk_value");
 
     body += LoadLocal(typed_data_base);
-    body += LoadUntagged(compiler::target::PointerBase::data_offset());
+    body += LoadNativeField(Slot::PointerBase_data());
+    body += ConvertUnboxedToUntagged(kUnboxedIntPtr);
     body += IntConstant(offset_in_bytes);
     body += LoadLocal(chunk_value);
     body += StoreIndexedTypedData(typed_data_cidd, /*index_scale=*/1,
@@ -4678,9 +4678,7 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
 
   Fragment body;
   if (marshaller.IsPointer(arg_index)) {
-    // This can only be Pointer, so it is always safe to LoadUntagged.
-    body += LoadUntagged(compiler::target::PointerBase::data_offset());
-    body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
+    body += LoadNativeField(Slot::PointerBase_data());
   } else if (marshaller.IsHandle(arg_index)) {
     body += WrapHandle();
   } else {
@@ -4816,9 +4814,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
                     Z, Class::Handle(IG->object_store()->ffi_pointer_class()))
                     ->context_variables()[0]));
 
-  // This can only be Pointer, so it is always safe to LoadUntagged.
-  body += LoadUntagged(compiler::target::PointerBase::data_offset());
-  body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
+  body += LoadNativeField(Slot::PointerBase_data());
 
   if (marshaller.PassTypedData()) {
     body += LoadLocal(typed_data);

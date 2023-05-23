@@ -969,7 +969,8 @@ static void ReplaceParameterStubs(Zone* zone,
   for (intptr_t i = 0; i < defns->length(); ++i) {
     ConstantInstr* constant = (*defns)[i]->AsConstant();
     if (constant != nullptr && constant->HasUses()) {
-      constant->ReplaceUsesWith(caller_graph->GetConstant(constant->value()));
+      constant->ReplaceUsesWith(caller_graph->GetConstant(
+          constant->value(), constant->representation()));
     }
   }
 
@@ -977,7 +978,8 @@ static void ReplaceParameterStubs(Zone* zone,
   for (intptr_t i = 0; i < defns->length(); ++i) {
     ConstantInstr* constant = (*defns)[i]->AsConstant();
     if (constant != nullptr && constant->HasUses()) {
-      constant->ReplaceUsesWith(caller_graph->GetConstant(constant->value()));
+      constant->ReplaceUsesWith(caller_graph->GetConstant(
+          constant->value(), constant->representation()));
     }
 
     SpecialParameterInstr* param = (*defns)[i]->AsSpecialParameter();
