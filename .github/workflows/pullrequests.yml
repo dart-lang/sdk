@@ -17,9 +17,11 @@ jobs:
         run: git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
       - name: Add depot_tools to path
         run: echo $(realpath depot_tools) >> $GITHUB_PATH
-      - name: Set origin
-        working-directory: ./sdk
-        run: git branch -u origin/main
+#      - name: Set origin
+#        working-directory: ./sdk
+#        run: git branch -u origin/main
+#fatal: could not set upstream of HEAD to origin/main when it does not point to any branch.
+#Error: Process completed with exit code 128.
       - name: Run presubmit
         working-directory: ./sdk
         run: git cl presubmit
