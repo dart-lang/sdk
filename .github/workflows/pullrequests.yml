@@ -24,4 +24,4 @@ jobs:
 #Error: Process completed with exit code 128.
       - name: Run presubmit
         working-directory: ./sdk
-        run: git cl presubmit origin/main
+        run: git cl presubmit origin/main..
