@@ -91,10 +91,10 @@ Please file feature requests and bugs in the [issue tracker][tracker].
 
 [analyzer_cli]: https://dart.dev/tools/dart-analyze
 [dart_cli]: https://dart.dev/tools/dart-tool
-[effective_dart]:https://dart.dev/guides/language/effective-dart
+[effective_dart]: https://dart.dev/effective-dart
 [lints]: https://dart-lang.github.io/linter/lints/
 [options_file]: https://dart.dev/guides/language/analysis-options#the-analysis-options-file
 [package-dart-lints]: https://github.com/dart-lang/lints
 [package-flutter-lints]: https://github.com/flutter/packages/tree/main/packages/flutter_lints
-[style_guide]:https://dart.dev/guides/language/effective-dart/style/
+[style_guide]: https://dart.dev/effective-dart/style
 [tracker]: https://github.com/dart-lang/linter/issues

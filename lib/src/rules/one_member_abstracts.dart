@@ -11,7 +11,7 @@ const _desc =
     r'Avoid defining a one-member abstract class when a simple function will do.';
 
 const _details = r'''
-From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
+From [Effective Dart](https://dart.dev/effective-dart/design#avoid-defining-a-one-member-abstract-class-when-a-simple-function-will-do):
 
 **AVOID** defining a one-member abstract class when a simple function will do.
 

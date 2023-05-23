@@ -10,7 +10,7 @@ import '../analyzer.dart';
 const _desc = r'Use `;` instead of `{}` for empty constructor bodies.';
 
 const _details = r'''
-From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
+From [Effective Dart](https://dart.dev/effective-dart/usage#do-use--instead-of--for-empty-constructor-bodies):
 
 **DO** use `;` instead of `{}` for empty constructor bodies.
 

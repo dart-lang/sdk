@@ -14,7 +14,7 @@ const _desc = "Don't use `final` for local variables.";
 const _details = r'''
 Use `var`, not `final`, when declaring local variables.
 
-Per [Effective Dart](https://dart.dev/guides/language/effective-dart/usage#do-follow-a-consistent-rule-for-var-and-final-on-local-variables),
+Per [Effective Dart](https://dart.dev/effective-dart/usage#do-follow-a-consistent-rule-for-var-and-final-on-local-variables),
 there are two styles in wide use. This rule enforces the `var` style.
 For the alternative style that prefers `final`, enable `prefer_final_locals`
 and `prefer_final_in_for_each` instead.

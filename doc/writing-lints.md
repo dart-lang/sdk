@@ -160,7 +160,7 @@ Details are under active development.  Feedback is most [welcome][issues]!
 [adding new checks to errorprone]: https://github.com/google/error-prone/wiki/Criteria-for-new-checks
 [Dart package naming conventions]: https://dart.dev/tools/pub/pubspec#name
 [parallel construction]: https://en.wikipedia.org/wiki/Parallelism_(grammar)
-[style guide]: https://dart.dev/guides/language/effective-dart/style/
+[style guide]: https://dart.dev/effective-dart/style/
 [lints]: https://dart-lang.github.io/linter/lints/
 [lib/src/rules]: https://github.com/dart-lang/linter/tree/main/lib/src/rules
 [test_data/rules]: https://github.com/dart-lang/linter/tree/main/test_data/rules

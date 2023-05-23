@@ -8,8 +8,6 @@ const _desc =
     r'Place the `super` call last in a constructor initialization list.';
 
 const _details = r'''
-From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
-
 **DO** place the `super` call last in a constructor initialization list.
 
 Field initializers are evaluated in the order that they appear in the

@@ -11,7 +11,7 @@ import '../utils.dart';
 const _desc = r'Name extensions using UpperCamelCase.';
 
 const _details = r'''
-From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
+From [Effective Dart](https://dart.dev/effective-dart/style#do-name-extensions-using-uppercamelcase):
 
 **DO** name extensions using `UpperCamelCase`.
 

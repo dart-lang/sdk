@@ -14,12 +14,12 @@ const _desc =
     r'Avoid overloading operator == and hashCode on classes not marked `@immutable`.';
 
 const _details = r'''
+From [Effective Dart](https://dart.dev/effective-dart/design#avoid-defining-custom-equality-for-mutable-classes):
+
 **AVOID** overloading operator == and hashCode on classes not marked `@immutable`.
 
-If a class is not immutable, overloading operator == and hashCode can lead to
-unpredictable and undesirable behavior when used in collections. See
-https://dart.dev/guides/language/effective-dart/design#avoid-defining-custom-equality-for-mutable-classes
-for more information.
+If a class is not immutable, overloading `operator ==` and `hashCode` can
+lead to unpredictable and undesirable behavior when used in collections.
 
 **BAD:**
 ```dart

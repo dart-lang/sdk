@@ -13,7 +13,7 @@ import '../analyzer.dart';
 const _desc = r"Don't compare booleans to boolean literals.";
 
 const _details = r'''
-From [Effective Dart](https://dart.dev/guides/language/effective-dart/usage#dont-use-true-or-false-in-equality-operations):
+From [Effective Dart](https://dart.dev/effective-dart/usage#dont-use-true-or-false-in-equality-operations):
 
 **DON'T** use `true` or `false` in equality operations.
 

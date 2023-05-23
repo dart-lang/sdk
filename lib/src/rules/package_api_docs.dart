@@ -53,7 +53,7 @@ abstract class Foo {
 ```
 
 Advice for writing good doc comments can be found in the
-[Doc Writing Guidelines](https://dart.dev/guides/language/effective-dart/documentation).
+[Doc Writing Guidelines](https://dart.dev/effective-dart/documentation).
 
 ''';
 

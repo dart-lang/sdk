@@ -7,8 +7,6 @@ import '../analyzer.dart';
 const _desc = r'Use `=` to separate a named parameter from its default value.';
 
 const _details = r'''
-From the [style guide](https://dart.dev/guides/language/effective-dart/usage):
-
 **DO** use `=` to separate a named parameter from its default value.
 
 **BAD:**

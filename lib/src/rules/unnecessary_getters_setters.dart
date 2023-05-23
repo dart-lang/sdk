@@ -12,7 +12,7 @@ const _desc =
     r'Avoid wrapping fields in getters and setters just to be "safe".';
 
 const _details = r'''
-From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
+From [Effective Dart](https://dart.dev/effective-dart/usage#dont-wrap-a-field-in-a-getter-and-setter-unnecessarily):
 
 **AVOID** wrapping fields in getters and setters just to be "safe".
 

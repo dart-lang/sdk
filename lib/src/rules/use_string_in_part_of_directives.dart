@@ -10,7 +10,7 @@ import '../analyzer.dart';
 const _desc = r'Use string in part of directives.';
 
 const _details = r'''
-From [Effective Dart](https://dart.dev/guides/language/effective-dart/usage#do-use-strings-in-part-of-directives):
+From [Effective Dart](https://dart.dev/effective-dart/usage#do-use-strings-in-part-of-directives):
 
 **DO** use strings in `part of` directives.
 

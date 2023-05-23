@@ -11,7 +11,7 @@ import '../analyzer.dart';
 const _desc = "Don't type annotate initializing formals.";
 
 const _details = r'''
-From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
+From [Effective Dart](https://dart.dev/effective-dart/design#dont-type-annotate-initializing-formals):
 
 **DON'T** type annotate initializing formals.
 

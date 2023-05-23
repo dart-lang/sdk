@@ -13,7 +13,7 @@ const _desc =
     r'Start the name of the method with to/_to or as/_as if applicable.';
 
 const _details = r'''
-From the [Effective Dart](https://dart.dev/guides/language/effective-dart/design):
+From [Effective Dart](https://dart.dev/effective-dart/design#prefer-naming-a-method-to___-if-it-copies-the-objects-state-to-a-new-object):
 
 **PREFER** naming a method `to___()` if it copies the object's state to a new
 object.
