@@ -1,0 +1,25 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'pkgs/cronet_http/**'
+      - 'pkgs/http_client_conformance_tests/**'
+
+jobs:
+  analyze:
+    name: Lint and static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: 'sdk'
+      - name: Checkout depot_tools
+        run: git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+      - name: Add depot_tools to path
+        run: echo $(realpath depot_tools) >> $GITHUB_PATH
+      - name: Run presubmit
+        working-directory: ./sdk
+        run: git cl presubmit
