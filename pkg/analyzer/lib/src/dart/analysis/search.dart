@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:collection/collection.dart';
 
 Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
@@ -142,7 +143,8 @@ class FindDeclarations {
   final List<AnalysisDriver> drivers;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final bool Function(String) isMatch;
+  final String matchString;
+  final FuzzyMatcher matcher;
   final String? onlyForFile;
   final bool onlyAnalyzed;
   final OperationPerformanceImpl performance;
@@ -150,12 +152,12 @@ class FindDeclarations {
   FindDeclarations(
     this.drivers,
     this.result,
-    this.isMatch,
+    this.matchString,
     this.maxResults, {
     this.onlyForFile,
     this.onlyAnalyzed = false,
     required this.performance,
-  });
+  }) : matcher = FuzzyMatcher(matchString);
 
   Future<void> compute([CancellationToken? cancellationToken]) async {
     var searchedFiles = SearchedFiles();
@@ -182,7 +184,7 @@ class FindDeclarations {
       await _FindDeclarations(
         searchedFiles,
         result,
-        isMatch,
+        matcher,
         maxResults,
         onlyForFile: onlyForFile,
         performance: performance,
@@ -1005,7 +1007,7 @@ class _FindCompilationUnitDeclarations {
   final LineInfo lineInfo;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final bool Function(String) isMatch;
+  final FuzzyMatcher matcher;
   final void Function(Declaration) collect;
 
   _FindCompilationUnitDeclarations(
@@ -1013,7 +1015,7 @@ class _FindCompilationUnitDeclarations {
     this.filePath,
     this.result,
     this.maxResults,
-    this.isMatch,
+    this.matcher,
     this.collect,
   ) : lineInfo = unit.lineInfo;
 
@@ -1066,7 +1068,7 @@ class _FindCompilationUnitDeclarations {
       throw const _MaxNumberOfDeclarationsError();
     }
 
-    if (!isMatch(name)) {
+    if (matcher.score(name) < 0) {
       return;
     }
 
@@ -1176,14 +1178,14 @@ class _FindDeclarations {
   final SearchedFiles files;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final bool Function(String) isMatch;
+  final FuzzyMatcher matcher;
   final String? onlyForFile;
   final OperationPerformanceImpl performance;
 
   _FindDeclarations(
     this.files,
     this.result,
-    this.isMatch,
+    this.matcher,
     this.maxResults, {
     this.onlyForFile,
     required this.performance,
@@ -1226,7 +1228,7 @@ class _FindDeclarations {
                 filePath,
                 result,
                 maxResults,
-                isMatch,
+                matcher,
                 result.declarations.add,
               );
               finder.compute(cancellationToken);

@@ -5,7 +5,6 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
 class WorkspaceSymbolHandler
@@ -42,9 +41,6 @@ class WorkspaceSymbolHandler
     final searchOnlyAnalyzed = !server
         .clientConfiguration.global.includeDependenciesInWorkspaceSymbols;
 
-    final fuzzyMatcher = FuzzyMatcher(query);
-    bool isMatch(String name) => fuzzyMatcher.score(name) > 0;
-
     // Cap the number of results we'll return because short queries may match
     // huge numbers on large projects.
     var remainingResults = 500;
@@ -57,7 +53,7 @@ class WorkspaceSymbolHandler
         await search.FindDeclarations(
           analysisDrivers,
           workspaceSymbols,
-          isMatch,
+          query,
           remainingResults,
           onlyAnalyzed: searchOnlyAnalyzed,
           performance: performance,

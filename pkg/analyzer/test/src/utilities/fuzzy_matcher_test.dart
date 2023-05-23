@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
+import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -96,9 +96,9 @@ class FuzzyMatcherTest {
   void test_considersTheEmptyStringToMatchAll() {
     var matcher = FuzzyMatcher('');
     expect(matcher.score('def'), greaterThan(0));
-    expect(matcher.getMatchedRanges(), []);
+    expect(matcher.getMatchedRanges(), isEmpty);
     expect(matcher.score('Ab stuff c'), greaterThan(0));
-    expect(matcher.getMatchedRanges(), []);
+    expect(matcher.getMatchedRanges(), isEmpty);
   }
 
   void test_ranksActions() {

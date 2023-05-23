@@ -23,6 +23,7 @@ if (is_win) {
   import("//build/config/win/visual_studio_version.gni")
 }
 
+import("//build/config/c++/c++.gni")
 import("//build/toolchain/ccache.gni")
 
 # default_include_dirs ---------------------------------------------------------
@@ -134,6 +135,14 @@ config("compiler") {
     if (is_ubsan) {
       cflags += [ "-fsanitize=undefined" ]
       ldflags += [ "-fsanitize=undefined" ]
+    }
+
+    if (use_custom_libcxx) {
+      cflags_cc += [ "-nostdinc++" ]
+      include_dirs = [
+        "//buildtools/third_party/libc++/trunk/include",
+        "//buildtools/third_party/libc++abi/trunk/include",
+      ]
     }
   }
 
@@ -250,8 +259,19 @@ config("compiler") {
   }
 
   if (is_android || is_linux || is_mac || is_fuchsia) {
-    cflags += [ "-fPIE" ]
-    ldflags += [ "-fPIE" ]
+    if (use_flutter_cxx) {
+      # shared_library_config isn't transitive, so we don't automatically get
+      # another versions of libcxx with and without -fPIC. Properly setting this
+      # up so only shard libraries pay the extra cost fPIC over fPIE means
+      # something like separate GN toolchains like in the Fuchsia GN build. For
+      # now, globally enabling fPIC is okay because it is limited to test-only
+      # builds.
+      cflags += [ "-fPIC" ]
+      ldflags += [ "-fPIC" ]
+    } else {
+      cflags += [ "-fPIE" ]
+      ldflags += [ "-fPIE" ]
+    }
   }
 
   # Linux-specific compiler flags setup.
@@ -418,6 +438,56 @@ config("compiler") {
   }
 }
 
+config("cxx_version_default") {
+  if (is_win) {
+    cc_std = [ "/std:c++17" ]
+  } else {
+    cc_std = [ "-std=c++17" ]
+  }
+  cflags_cc = cc_std
+  cflags_objcc = cc_std
+}
+
+config("cxx_version_11") {
+  if (is_win) {
+    cc_std = [ "/std:c++11" ]
+  } else {
+    cc_std = [ "-std=c++11" ]
+  }
+  cflags_cc = cc_std
+  cflags_objcc = cc_std
+}
+
+config("cxx_version_14") {
+  if (is_win) {
+    cc_std = [ "/std:c++14" ]
+  } else {
+    cc_std = [ "-std=c++14" ]
+  }
+  cflags_cc = cc_std
+  cflags_objcc = cc_std
+}
+
+config("cxx_version_17") {
+  if (is_win) {
+    cc_std = [ "/std:c++17" ]
+  } else {
+    cc_std = [ "-std=c++17" ]
+  }
+  cflags_cc = cc_std
+  cflags_objcc = cc_std
+}
+
+config("cxx_version_20") {
+  if (is_win) {
+    cc_std = [ "/std:c++20" ]
+  } else {
+    cc_std = [ "-std=c++20" ]
+  }
+  cflags_cc = cc_std
+  cflags_objcc = cc_std
+}
+
 # This is separate from :compiler_codegen (and not even a sub-config there)
 # so that some targets can remove it from the list with:
 #   configs -= [ "//build/config/compiler:clang_stackrealign" ]
@@ -462,6 +532,8 @@ config("compiler_arm_thumb") {
 
 config("runtime_library") {
   cflags = []
+  cflags_cc = []
+  cflags_objcc = []
   defines = []
   ldflags = []
   lib_dirs = []
@@ -480,6 +552,16 @@ config("runtime_library") {
       "_CRT_SECURE_NO_DEPRECATE",
       "_HAS_EXCEPTIONS=0",
       "_SCL_SECURE_NO_DEPRECATE",
+    ]
+  }
+
+  if (use_flutter_cxx) {
+    cflags_cc += [ "-nostdinc++" ]
+    cflags_objcc += [ "-nostdinc++" ]
+    ldflags += [ "-nostdlib++" ]
+    include_dirs = [
+      "//third_party/libcxx/include",
+      "//third_party/libcxxabi/include",
     ]
   }
 

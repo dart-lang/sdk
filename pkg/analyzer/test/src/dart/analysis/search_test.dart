@@ -47,7 +47,7 @@ class SearchMultipleDriversTest extends PubPackageResolutionTest {
     await FindDeclarations(
       [driver, otherDriver],
       results,
-      (_) => true,
+      '',
       null,
       performance: OperationPerformanceImpl('<root>'),
     ).compute();
@@ -198,7 +198,7 @@ class C {
     var searchFuture = FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       null,
       performance: performance,
     ).compute(token);
@@ -222,7 +222,7 @@ class C {
     await FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       null,
       performance: performance,
     ).compute();
@@ -286,7 +286,7 @@ testFile
     await FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       null,
       performance: performance,
     ).compute();
@@ -323,7 +323,7 @@ enum E {
     await FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       null,
       performance: performance,
     ).compute();
@@ -357,7 +357,7 @@ extension E on int {
     await FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       null,
       performance: performance,
     ).compute();
@@ -383,7 +383,7 @@ testFile
 ''');
   }
 
-  test_declarations_isMatchFunction() async {
+  test_declarations_fuzzyMatch() async {
     await resolveTestCode('''
 class A {}
 class B {}
@@ -394,7 +394,7 @@ class D {}
     await FindDeclarations(
       [driver],
       results,
-      RegExp(r'[A-C]').hasMatch,
+      'A',
       null,
       performance: performance,
     ).compute();
@@ -403,12 +403,6 @@ testFile
   CLASS A
     offset: 6 1:7
     codeOffset: 0 + 10
-  CLASS B
-    offset: 17 2:7
-    codeOffset: 11 + 10
-  CLASS C
-    offset: 28 3:7
-    codeOffset: 22 + 10
 ''');
   }
 
@@ -422,7 +416,7 @@ class C {}
     await FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       2,
       performance: performance,
     ).compute();
@@ -442,7 +436,7 @@ mixin M {
     await FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       null,
       performance: performance,
     ).compute();
@@ -480,7 +474,7 @@ testFile
     await FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       null,
       onlyForFile: b.path,
       performance: performance,
@@ -507,7 +501,7 @@ void f(bool a, String b) {}
     await FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       null,
       performance: performance,
     ).compute();
@@ -543,7 +537,7 @@ void f4(bool Function(int, String) a) {}
     await FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       null,
       performance: performance,
     ).compute();
@@ -580,7 +574,7 @@ class A<T, T2> {
     await FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       null,
       performance: performance,
     ).compute();
@@ -620,7 +614,7 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
     await FindDeclarations(
       [driver],
       results,
-      (_) => true,
+      '',
       null,
       performance: performance,
     ).compute();
