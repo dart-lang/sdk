@@ -10,6 +10,7 @@ environment:
 
 dependencies:
   async: ^2.4.1
+  dap: ^1.0.0
   vm_service: ^11.0.0
 
 # We use 'any' version constraints here as we get our package versions from

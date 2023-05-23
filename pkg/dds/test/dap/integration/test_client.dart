@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:dap/dap.dart';
 import 'package:dds/src/dap/adapters/dart.dart';
 import 'package:dds/src/dap/logging.dart';
-import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:dds/src/dap/protocol_stream.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' as vm;

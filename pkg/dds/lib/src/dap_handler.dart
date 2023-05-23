@@ -14,7 +14,7 @@ import 'dds_impl.dart';
 class DapHandler {
   DapHandler(this.dds);
 
-  Future<Map<String, dynamic>> handle(
+  Future<Map<String, dynamic>> sendRequest(
     DdsHostedAdapter adapter,
     json_rpc.Parameters parameters,
   ) async {
@@ -37,7 +37,7 @@ class DapHandler {
 
     return <String, dynamic>{
       'type': 'DapResponse',
-      'message': result.toJson(),
+      'dapResponse': result,
     };
   }
 

@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:dds/dap.dart';
+import 'package:dap/dap.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

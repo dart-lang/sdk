@@ -14,6 +14,7 @@ dependencies:
   browser_launcher: ^1.0.0
   collection: ^1.15.0
   dds_service_extensions: ^1.3.0
+  dap: ^1.0.0
   devtools_shared: ^2.14.1
   http_multi_server: ^3.0.0
   json_rpc_2: ^3.0.0

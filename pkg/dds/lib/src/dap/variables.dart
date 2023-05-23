@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dap/dap.dart';
 import 'package:vm_service/vm_service.dart';
-
-import 'protocol_generated.dart';
 
 /// A wrapper around variables for use in `variablesRequest` that can hold
 /// additional data, such as a formatting information supplied in an evaluation
