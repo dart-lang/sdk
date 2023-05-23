@@ -1,0 +1,9 @@
+expect(expected, actual) {}
+
+inline class Id {
+  Id(int id) : _id = id;
+  final int _id;
+}
+
+main() {}
+test() {}
