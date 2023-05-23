@@ -109,26 +109,13 @@ def monorepo_builder(name, short_name, category):
         cq_branches = [],
     )
 
-# Builder names before recipe change
-# https://flutter-review.googlesource.com/c/recipes/+/44300 lands.
-# Remove this section after that change lands.
-# Issue b/245485535
-monorepo_builder("flutter-android-debug", "android-debug", "build")
-monorepo_builder("flutter-android-profile", "android-profile", "build")
-monorepo_builder("flutter-linux-debug", "debug", "build")
-monorepo_builder("flutter-linux-debug-unopt", "debug-unopt", "build")
-monorepo_builder("flutter-linux-profile", "profile", "build")
-monorepo_builder("flutter-linux-release", "release", "build")
-monorepo_builder("flutter-wasm-release", "wasm", "build")
-
-# Builder names after change lands. Remove -2 when old builders are removed.
-monorepo_builder("flutter-linux-android_debug", "android-debug-2", "build")
-monorepo_builder("flutter-linux-android_profile", "android-profile-2", "build")
-monorepo_builder("flutter-linux-host_debug", "debug-2", "build")
-monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt-2", "build")
-monorepo_builder("flutter-linux-host_profile", "profile-2", "build")
-monorepo_builder("flutter-linux-host_release", "release-2", "build")
-monorepo_builder("flutter-linux-wasm_release", "wasm-2", "build")
+monorepo_builder("flutter-linux-android_debug", "android-debug", "build")
+monorepo_builder("flutter-linux-android_profile", "android-profile", "build")
+monorepo_builder("flutter-linux-host_debug", "debug", "build")
+monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "build")
+monorepo_builder("flutter-linux-host_profile", "profile", "build")
+monorepo_builder("flutter-linux-host_release", "release", "build")
+monorepo_builder("flutter-linux-wasm_release", "wasm", "build")
 
 def monorepo_tester(name, short_name, category):
     dart.ci_sandbox_builder(
