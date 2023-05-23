@@ -23,5 +23,3 @@ jobs:
       - name: Run presubmit
         working-directory: ./sdk
         run: git cl presubmit
-
-git branch -u
