@@ -3628,10 +3628,8 @@ main() {
 
         var s = FlowModel<Type>(Reachability.initial)._write(
             h, null, objectQVar, Type('Object?'), new SsaNode<Type>(null));
-        // TODO(srawlins): Look into fixing this code. Right now we get:
-        // "The argument type 'Var' isn't related to 'int'."
-        // ignore: collection_methods_unrelated_type
-        expect(s.variableInfo[objectQVar], isNull);
+        expect(s.variableInfo[h.promotionKeyStore.keyForVariable(objectQVar)],
+            isNull);
       });
 
       test('unchanged', () {
