@@ -8,15 +8,16 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
 
 const _details = r'''
-Top-level members in an executable library should be used directly inside this
-library.  An executable library is a library that contains a `main` top-level
-function or that contains a top-level function annotated with
+Top-level members and static members in an executable library should be used
+directly inside this library.  An executable library is a library that contains
+a `main` top-level function or that contains a top-level function annotated with
 `@pragma('vm:entry-point')`).  Executable libraries are not usually imported
 and it's better to avoid defining unused members.
 
@@ -43,7 +44,7 @@ void f() {}
 
 class UnreachableFromMain extends LintRule {
   static const LintCode code = LintCode('unreachable_from_main',
-      'Unreachable top-level member in an executable library.',
+      "Unreachable member '{0}' in an executable library.",
       correctionMessage: 'Try referencing the member or removing it.');
 
   UnreachableFromMain()
@@ -99,7 +100,12 @@ class _DeclarationGatherer {
   }
 
   void _addStaticMember(ClassMember member) {
-    if (member is FieldDeclaration && member.isStatic) {
+    if (member is ConstructorDeclaration) {
+      var e = member.declaredElement;
+      if (e != null && e.isPublic && member.parent is! EnumDeclaration) {
+        declarations.add(member);
+      }
+    } else if (member is FieldDeclaration && member.isStatic) {
       for (var field in member.fields.variables) {
         var e = field.declaredElement;
         if (e != null && e.isPublic) {
@@ -115,18 +121,88 @@ class _DeclarationGatherer {
   }
 }
 
-/// A visitor which gathers the declarations of the identifiers it visits.
-class _IdentifierVisitor extends RecursiveAstVisitor {
+/// A visitor which gathers the declarations of the "references" it visits.
+///
+/// "References" are most often [SimpleIdentifier]s, but can also be other
+/// nodes which refer to a declaration.
+// TODO(srawlins): Add support for patterns.
+class _ReferenceVisitor extends RecursiveAstVisitor {
   Map<Element, Declaration> declarationMap;
 
   Set<Declaration> declarations = {};
 
-  _IdentifierVisitor(this.declarationMap);
+  _ReferenceVisitor(this.declarationMap);
+
+  @override
+  void visitAnnotation(Annotation node) {
+    var e = node.element;
+    if (e != null) {
+      _addDeclaration(e);
+    }
+    super.visitAnnotation(node);
+  }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _visitCompoundAssignmentExpression(node);
     super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    var element = node.declaredElement;
+    if (element != null) {
+      var hasConstructors =
+          node.members.any((e) => e is ConstructorDeclaration);
+      if (!hasConstructors) {
+        // The default constructor will have an implicit super-initializer to
+        // the super-type's unnamed constructor.
+        _addDefaultSuperConstructorDeclaration(node);
+      }
+
+      var metadata = element.metadata;
+      // This for-loop style is copied from analyzer's `hasX` getters on Element.
+      for (var i = 0; i < metadata.length; i++) {
+        var annotation = metadata[i].element;
+        if (annotation is PropertyAccessorElement &&
+            annotation.name == 'reflectiveTest' &&
+            annotation.library.name == 'test_reflective_loader') {
+          // The class is instantiated through the use of mirrors in
+          // 'test_reflective_loader'.
+          var unnamedConstructor = element.constructors
+              .firstWhereOrNull((constructor) => constructor.name == '');
+          if (unnamedConstructor != null) {
+            _addDeclaration(unnamedConstructor);
+          }
+        }
+      }
+    }
+    super.visitClassDeclaration(node);
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    // If a constructor does not have an explicit super-initializer (or
+    // redirection?) then it has an implicit super-initializer to the
+    // super-type's unnamed constructor.
+    var hasSuperInitializer =
+        node.initializers.any((e) => e is SuperConstructorInvocation);
+    if (!hasSuperInitializer) {
+      var enclosingClass = node.parent;
+      if (enclosingClass is ClassDeclaration) {
+        _addDefaultSuperConstructorDeclaration(enclosingClass);
+      }
+    }
+    super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitConstructorName(ConstructorName node) {
+    var e = node.staticElement;
+    if (e != null) {
+      _addDeclaration(e);
+    }
+    super.visitConstructorName(node);
   }
 
   @override
@@ -142,6 +218,16 @@ class _IdentifierVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    var element = node.staticElement;
+    if (element != null) {
+      _addDeclaration(element);
+    }
+    super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (!node.inDeclarationContext()) {
       var e = node.staticElement;
@@ -150,6 +236,15 @@ class _IdentifierVisitor extends RecursiveAstVisitor {
       }
     }
     super.visitSimpleIdentifier(node);
+  }
+
+  @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    var e = node.staticElement;
+    if (e != null) {
+      _addDeclaration(e);
+    }
+    super.visitSuperConstructorInvocation(node);
   }
 
   /// Adds the declaration of the top-level element which contains [element] to
@@ -167,8 +262,8 @@ class _IdentifierVisitor extends RecursiveAstVisitor {
       declarations.add(enclosingTopLevelDeclaration);
     }
 
-    // Also add [element]'s declaration if it is a static accessor or static
-    // method.
+    // Also add [element]'s declaration if it is a constructor, static accessor,
+    // or static method.
     if (element.isPrivate) {
       return;
     }
@@ -178,7 +273,7 @@ class _IdentifierVisitor extends RecursiveAstVisitor {
     }
     if (enclosingElement is InterfaceElement ||
         enclosingElement is ExtensionElement) {
-      if (element is PropertyAccessorElement && element.isStatic) {
+      if (element is ConstructorElement) {
         var declaration = declarationMap[element];
         if (declaration != null) {
           declarations.add(declaration);
@@ -188,6 +283,23 @@ class _IdentifierVisitor extends RecursiveAstVisitor {
         if (declaration != null) {
           declarations.add(declaration);
         }
+      } else if (element is PropertyAccessorElement && element.isStatic) {
+        var declaration = declarationMap[element];
+        if (declaration != null) {
+          declarations.add(declaration);
+        }
+      }
+    }
+  }
+
+  void _addDefaultSuperConstructorDeclaration(ClassDeclaration class_) {
+    var classElement = class_.declaredElement;
+    var supertype = classElement?.supertype;
+    if (supertype != null) {
+      var unnamedConstructor =
+          supertype.constructors.firstWhereOrNull((e) => e.name.isEmpty);
+      if (unnamedConstructor != null) {
+        _addDeclaration(unnamedConstructor);
       }
     }
   }
@@ -241,13 +353,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    // The set of the declarations which each top-level declaration references.
+    // The set of the declarations which each top-level and static declaration
+    // references.
     var dependencies = <Declaration, Set<Declaration>>{};
 
     // Map each declaration to the collection of declarations which are
     // referenced within its body.
     for (var declaration in declarations) {
-      var visitor = _IdentifierVisitor(declarationByElement);
+      var visitor = _ReferenceVisitor(declarationByElement);
       declaration.accept(visitor);
       dependencies[declaration] = visitor.declarations;
     }
@@ -276,15 +389,25 @@ class _Visitor extends SimpleAstVisitor<void> {
     });
 
     for (var member in unusedMembers) {
-      if (member is NamedCompilationUnitMember) {
-        rule.reportLintForToken(member.name);
+      if (member is ConstructorDeclaration) {
+        if (member.name == null) {
+          rule.reportLint(member.returnType, arguments: [member.nameForError]);
+        } else {
+          rule.reportLintForToken(member.name,
+              arguments: [member.nameForError]);
+        }
+      } else if (member is NamedCompilationUnitMember) {
+        rule.reportLintForToken(member.name, arguments: [member.nameForError]);
       } else if (member is VariableDeclaration) {
-        rule.reportLintForToken(member.name);
+        rule.reportLintForToken(member.name, arguments: [member.nameForError]);
       } else if (member is ExtensionDeclaration) {
+        var memberName = member.name;
         rule.reportLintForToken(
-            member.name ?? member.firstTokenAfterCommentAndMetadata);
+            memberName ?? member.firstTokenAfterCommentAndMetadata,
+            arguments: [member.nameForError]);
       } else {
-        rule.reportLintForToken(member.firstTokenAfterCommentAndMetadata);
+        rule.reportLintForToken(member.firstTokenAfterCommentAndMetadata,
+            arguments: [member.nameForError]);
       }
     }
   }
@@ -321,5 +444,31 @@ extension on Annotation {
       return false;
     }
     return type is InterfaceType && type.element.isPragma;
+  }
+}
+
+extension on Declaration {
+  String get nameForError {
+    // TODO(srawlins): Move this to analyzer when other uses are found.
+    // TODO(srawlins): Convert to switch-expression, hopefully.
+    var self = this;
+    if (self is ConstructorDeclaration) {
+      var name = self.name?.lexeme ?? 'new';
+      return '${self.returnType.name}.$name';
+    } else if (self is EnumConstantDeclaration) {
+      return self.name.lexeme;
+    } else if (self is ExtensionDeclaration) {
+      var name = self.name;
+      return name?.lexeme ?? 'the unnamed extension';
+    } else if (self is MethodDeclaration) {
+      return self.name.lexeme;
+    } else if (self is NamedCompilationUnitMember) {
+      return self.name.lexeme;
+    } else if (self is VariableDeclaration) {
+      return self.name.lexeme;
+    }
+
+    assert(false, 'Uncovered Declaration subtype: ${self.runtimeType}');
+    return '';
   }
 }
