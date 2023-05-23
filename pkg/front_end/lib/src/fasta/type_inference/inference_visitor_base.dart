@@ -1002,21 +1002,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// Returns inline class member declared immediately for [inlineType].
-  ///
-  /// If none is found, [defaultTarget] is returned.
-  ObjectAccessTarget _findDirectInlineTypeMember(
-      DartType receiverType, InlineType inlineType, Name name, int fileOffset,
-      {required ObjectAccessTarget defaultTarget,
-      required bool isSetter,
-      required bool isReceiverTypePotentiallyNullable}) {
-    ObjectAccessTarget? target = _findDirectInlineTypeMemberInternal(
-        receiverType, inlineType, name, fileOffset,
-        isSetter: isSetter,
-        isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
-    return target ?? defaultTarget;
-  }
-
-  ObjectAccessTarget? _findDirectInlineTypeMemberInternal(
+  ObjectAccessTarget? _findDirectInlineTypeMember(
       DartType receiverType, InlineType inlineType, Name name, int fileOffset,
       {required bool isSetter,
       required bool isReceiverTypePotentiallyNullable}) {
@@ -1088,7 +1074,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         InlineType supertype = hierarchyBuilder.getInlineTypeAsInstanceOf(
             inlineType, implement.inlineClass,
             isNonNullableByDefault: isNonNullableByDefault)!;
-        ObjectAccessTarget? target = _findDirectInlineTypeMemberInternal(
+        ObjectAccessTarget? target = _findDirectInlineTypeMember(
             receiverType, supertype, name, fileOffset,
             isSetter: isSetter,
             isReceiverTypePotentiallyNullable:
@@ -4826,11 +4812,13 @@ class _ObjectAccessDescriptor {
         }
       }
     } else if (receiverBound is InlineType) {
-      return visitor._findDirectInlineTypeMember(
+      ObjectAccessTarget? target = visitor._findDirectInlineTypeMember(
           receiverType, receiverBound, name, fileOffset,
-          defaultTarget: const ObjectAccessTarget.missing(),
           isSetter: isSetter,
           isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
+      if (target != null) {
+        return target;
+      }
     }
 
     ObjectAccessTarget? target;

@@ -88,6 +88,9 @@ class TestEnvironment implements ObjectPropertyLookup {
     if (fields.isNotEmpty) {
       Map<Key, _Type> fieldMap = _fields[cls] ??= {};
       for (MapEntry<String, StaticType> entry in fields.entries) {
+        // TODO(srawlins): Look into fixing this code. Right now we get:
+        // "The argument type 'String' isn't related to 'Key'."
+        // ignore: collection_methods_unrelated_type
         assert(!fieldMap.containsKey(entry.key),
             "Duplicate field '${entry.key}' in $cls.");
         fieldMap[new NameKey(entry.key)] = _typeFromStaticType(entry.value);
