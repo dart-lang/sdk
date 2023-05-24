@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=inline-class
+
 @JS()
 library strict_mode_test;
 
 import 'dart:js_interop';
-   import 'dart:js';
-// ^
+/**/ import 'dart:js';
+//   ^
 // [web] Library 'dart:js' is forbidden when strict mode is enabled.
 
-   import 'dart:js_util';
-// ^
+/**/ import 'dart:js_util';
+//   ^
 // [web] Library 'dart:js_util' is forbidden when strict mode is enabled.
 
 @JS()
@@ -101,7 +103,19 @@ extension JSClassExtension on JSClass {
 }
 
 @JS()
+inline class Inline {
+  final JSObject obj;
+  external Inline();
+}
+
+@JS()
 external void jsFunctionTest(JSFunction foo);
+
+@JS()
+external void useStaticInteropClass(JSClass foo);
+
+@JS()
+external void useStaticInteropInlineClass(Inline foo);
 
 void main() {
   jsFunctionTest(((double foo) => 4.0.toJS).toJS);
@@ -115,5 +129,4 @@ void main() {
   jsFunctionTest(((((JSNumber foo) => 4.0) as dynamic) as Function).toJS);
   //                                                                ^
   // [web] `Function.toJS` requires a statically known function type, but Type 'Function' is not a function type, e.g., `void Function()`.
-
 }

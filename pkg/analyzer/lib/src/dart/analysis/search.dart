@@ -12,6 +12,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -143,7 +144,7 @@ class FindDeclarations {
   final List<AnalysisDriver> drivers;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final String matchString;
+  final String pattern;
   final FuzzyMatcher matcher;
   final String? onlyForFile;
   final bool onlyAnalyzed;
@@ -152,12 +153,12 @@ class FindDeclarations {
   FindDeclarations(
     this.drivers,
     this.result,
-    this.matchString,
+    this.pattern,
     this.maxResults, {
     this.onlyForFile,
     this.onlyAnalyzed = false,
     required this.performance,
-  }) : matcher = FuzzyMatcher(matchString);
+  }) : matcher = FuzzyMatcher(pattern);
 
   Future<void> compute([CancellationToken? cancellationToken]) async {
     var searchedFiles = SearchedFiles();
@@ -184,6 +185,7 @@ class FindDeclarations {
       await _FindDeclarations(
         searchedFiles,
         result,
+        pattern,
         matcher,
         maxResults,
         onlyForFile: onlyForFile,
@@ -1178,6 +1180,7 @@ class _FindDeclarations {
   final SearchedFiles files;
   final WorkspaceSymbols result;
   final int? maxResults;
+  final String pattern;
   final FuzzyMatcher matcher;
   final String? onlyForFile;
   final OperationPerformanceImpl performance;
@@ -1185,6 +1188,7 @@ class _FindDeclarations {
   _FindDeclarations(
     this.files,
     this.result,
+    this.pattern,
     this.matcher,
     this.maxResults, {
     this.onlyForFile,
@@ -1208,21 +1212,33 @@ class _FindDeclarations {
       for (var entry in files.uriOwners.entries) {
         var uri = entry.key;
         var search = entry.value;
-        var elementResult = await performance.runAsync(
+
+        final libraryElement = await performance.runAsync(
           'getLibraryByUri',
           (performance) async {
-            return await search._driver.getLibraryByUri(uri.toString());
+            final result = await search._driver.getLibraryByUri('$uri');
+            if (result is LibraryElementResultImpl) {
+              return result.element as LibraryElementImpl;
+            }
+            return null;
           },
         );
-        if (elementResult is LibraryElementResult) {
-          var units = elementResult.element.units;
+
+        if (libraryElement != null) {
+          // Check if there is any name that could match the pattern.
+          var match = libraryElement.nameUnion.contains(pattern);
+          if (!match) {
+            continue;
+          }
+
+          var units = libraryElement.units;
           for (var i = 0; i < units.length; i++) {
             var unit = units[i];
             var filePath = unit.source.fullName;
             if (onlyForFile != null && filePath != onlyForFile) {
               continue;
             }
-            performance.run('finder', (performance) {
+            performance.run('unitDeclarations', (performance) {
               var finder = _FindCompilationUnitDeclarations(
                 unit,
                 filePath,

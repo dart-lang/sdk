@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
+import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 
 enum FieldNameType { Field, Getter, Setter, IsSetField }
@@ -155,6 +156,9 @@ class NameScheme {
     switch (containerType) {
       case ContainerType.Library:
       case ContainerType.Class:
+        if (isTearOff) {
+          name = constructorTearOffName(name);
+        }
         return name.startsWith('_')
             ? new PrivateMemberName(libraryName, name)
             : new PublicMemberName(name);
@@ -458,17 +462,15 @@ class InlineClassConstructorName extends UpdatableMemberName {
   @override
   Name _createName() {
     String className = _containerName.name;
-    String kindInfix;
     // Constructors and tear-offs are converted to methods so we use an
     // infix to make their names unique.
+    String name;
     if (isTearOff) {
-      kindInfix = 'get#';
+      name = constructorTearOffName(_text);
     } else {
-      kindInfix = '';
+      name = _text;
     }
-
-    return new Name.byReference(
-        '${className}|${kindInfix}${_text}', _libraryName.reference);
+    return new Name.byReference('${className}|${name}', _libraryName.reference);
   }
 }
 

@@ -302,6 +302,71 @@ void f(Object? x) {
 ''');
   }
 
+  Future<void> test_match_listPattern_typed() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case [0, int foo]) {}
+}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case [0, int _]) {}
+}
+''');
+  }
+
+  Future<void> test_match_listPattern_typed_final() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case [0, final int foo, 2]) {}
+}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case [0, int _, 2]) {}
+}
+''');
+  }
+
+  Future<void> test_match_listPattern_untyped_final() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case [0, final foo]) {}
+}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case [0, _]) {}
+}
+''');
+  }
+
+  Future<void> test_match_listPattern_untyped_var() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case [0, var foo]) {}
+}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case [0, _]) {}
+}
+''');
+  }
+
+  Future<void> test_match_mapPattern() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case {0: 1, 2: var foo}) {}
+}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case {0: 1, 2: _}) {}
+}
+''');
+  }
+
   Future<void> test_objectPattern_declarationStatement_multi_first() async {
     await resolveTestCode(r'''
 void f(A a) {

@@ -123,6 +123,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     switch (memberKind) {
       case BuiltMemberKind.Constructor:
       case BuiltMemberKind.RedirectingFactory:
+      case BuiltMemberKind.Factory:
       case BuiltMemberKind.Field:
       case BuiltMemberKind.Method:
       case BuiltMemberKind.InlineClassConstructor:

@@ -19,41 +19,43 @@ import "dart:core" as core;
 
 inline class Foo /* declaredRepresentationType = core::int */ {
   constructor • = self::Foo|;
-  tearoff • = self::Foo|get#;
+  tearoff • = self::Foo|_#new#tearOff;
   constructor _ = self::Foo|_;
-  tearoff _ = self::Foo|get#_;
+  tearoff _ = self::Foo|_#_#tearOff;
   constructor redirectNamed1 = self::Foo|redirectNamed1;
-  tearoff redirectNamed1 = self::Foo|get#redirectNamed1;
+  tearoff redirectNamed1 = self::Foo|_#redirectNamed1#tearOff;
   constructor redirectNamed2 = self::Foo|redirectNamed2;
-  tearoff redirectNamed2 = self::Foo|get#redirectNamed2;
+  tearoff redirectNamed2 = self::Foo|_#redirectNamed2#tearOff;
   constructor named = self::Foo|named;
-  tearoff named = self::Foo|get#named;
+  tearoff named = self::Foo|_#named#tearOff;
   constructor erroneous = self::Foo|erroneous;
-  tearoff erroneous = self::Foo|get#erroneous;
+  tearoff erroneous = self::Foo|_#erroneous#tearOff;
 }
 inline class Bar<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
   constructor • = self::Bar|;
+  tearoff • = self::Bar|_#new#tearOff;
   constructor _ = self::Bar|_;
+  tearoff _ = self::Bar|_#_#tearOff;
 }
 static method Foo|(core::int i) → self::Foo {
   final self::Foo #this;
   #this = self::Foo|_(i.{core::num::+}(2){(core::num) → core::int});
   return #this;
 }
-static method Foo|get#(core::int i) → self::Foo
+static method Foo|_#new#tearOff(core::int i) → self::Foo
   return self::Foo|(i);
 static method Foo|_(core::int i) → self::Foo {
   final self::Foo #this = i;
   return #this;
 }
-static method Foo|get#_(core::int i) → self::Foo
+static method Foo|_#_#tearOff(core::int i) → self::Foo
   return self::Foo|_(i);
 static method Foo|redirectNamed1(core::int a, core::int b) → self::Foo {
   final self::Foo #this;
   #this = self::Foo|named(a, subtract: b);
   return #this;
 }
-static method Foo|get#redirectNamed1(core::int a, core::int b) → self::Foo
+static method Foo|_#redirectNamed1#tearOff(core::int a, core::int b) → self::Foo
   return self::Foo|redirectNamed1(a, b);
 static method Foo|redirectNamed2(core::int a, core::int b) → self::Foo {
   final self::Foo #this;
@@ -61,13 +63,13 @@ static method Foo|redirectNamed2(core::int a, core::int b) → self::Foo {
   #this = self::Foo|named(a, subtract: #t1);
   return #this;
 }
-static method Foo|get#redirectNamed2(core::int a, core::int b) → self::Foo
+static method Foo|_#redirectNamed2#tearOff(core::int a, core::int b) → self::Foo
   return self::Foo|redirectNamed2(a, b);
 static method Foo|named(core::int value, {required core::int subtract = #C1}) → self::Foo {
   final self::Foo #this = value.{core::num::-}(subtract){(core::num) → core::int};
   return #this;
 }
-static method Foo|get#named(core::int value, {required core::int subtract}) → self::Foo
+static method Foo|_#named#tearOff(core::int value, {required core::int subtract}) → self::Foo
   return self::Foo|named(value, subtract: subtract);
 static method Foo|erroneous() → self::Foo {
   final self::Foo #this;
@@ -76,17 +78,21 @@ static method Foo|erroneous() → self::Foo {
                          ^^^^^^^^^^";
   return #this;
 }
-static method Foo|get#erroneous() → self::Foo
+static method Foo|_#erroneous#tearOff() → self::Foo
   return self::Foo|erroneous();
 static method Bar|<T extends core::Object? = dynamic>(self::Bar|::T% i) → self::Bar<self::Bar|::T%> {
   final self::Bar<self::Bar|::T%> #this;
   #this = self::Bar|_<self::Bar|::T%>(i);
   return #this;
 }
+static method Bar|_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|_#new#tearOff::T% i) → self::Bar<self::Bar|_#new#tearOff::T%>
+  return self::Bar|<self::Bar|_#new#tearOff::T%>(i);
 static method Bar|_<T extends core::Object? = dynamic>(self::Bar|_::T% i) → self::Bar<self::Bar|_::T%> {
   final self::Bar<self::Bar|_::T%> #this = i;
   return #this;
 }
+static method Bar|_#_#tearOff<T extends core::Object? = dynamic>(self::Bar|_#_#tearOff::T% i) → self::Bar<self::Bar|_#_#tearOff::T%>
+  return self::Bar|_<self::Bar|_#_#tearOff::T%>(i);
 static method main() → dynamic {
   self::expect(44, self::Foo|(42) as{ForNonNullableByDefault} core::int);
   self::expect(42, self::Foo|_(42) as{ForNonNullableByDefault} core::int);

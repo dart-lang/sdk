@@ -14,7 +14,7 @@ const int KB = 1024;
 const int MB = KB * KB;
 const int GB = KB * KB * KB;
 
-class SlowConsumer extends StreamConsumer<List<int>> {
+class SlowConsumer implements StreamConsumer<List<int>> {
   int receivedCount = 0;
   final int bytesPerSecond;
   final int bufferSize;

@@ -12,13 +12,13 @@ import "dart:core" as core;
 
 inline class Id /* declaredRepresentationType = core::int */ {
   constructor • = self::Id|;
-  tearoff • = self::Id|get#;
+  tearoff • = self::Id|_#new#tearOff;
 }
 static method Id|(core::int id) → self::Id {
   final self::Id #this = id;
   return #this;
 }
-static method Id|get#(core::int id) → self::Id
+static method Id|_#new#tearOff(core::int id) → self::Id
   return self::Id|(id);
 static method test() → dynamic {
   self::Id c = self::Id|(2);

@@ -391,7 +391,11 @@ class DeclaredSourceConstructorBuilder
     _constructorTearOff = createConstructorTearOffProcedure(name,
         compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
         forAbstractClassOrEnum: forAbstractClassOrEnum);
-    // TODO(johnniwinther): Use [NameScheme] for constructor tear-off names.
+    if (_constructorTearOff != null) {
+      nameScheme
+          .getConstructorMemberName(name, isTearOff: true)
+          .attachMember(_constructorTearOff!);
+    }
   }
 
   @override
@@ -1091,8 +1095,7 @@ class SourceInlineClassConstructorBuilder
     _constructorTearOff = createConstructorTearOffProcedure(name,
         compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
         forAbstractClassOrEnum: forAbstractClassOrEnum,
-        // TODO(johnniwinther): Support tear-offs on generic classes.
-        forceCreateLowering: typeVariables == null);
+        forceCreateLowering: true);
     if (_constructorTearOff != null) {
       nameScheme
           .getConstructorMemberName(name, isTearOff: true)
@@ -1196,8 +1199,6 @@ class SourceInlineClassConstructorBuilder
             tearOff: _constructorTearOff!,
             declarationConstructor: _constructor,
             implementationConstructor: _constructor,
-            enclosingDeclarationTypeParameters:
-                inlineClassBuilder.inlineClass.typeParameters,
             libraryBuilder: libraryBuilder);
       }
 

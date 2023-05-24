@@ -55,7 +55,7 @@ inline class InlineClass /* declaredRepresentationType = core::int */ {
   tearoff call = self::InlineClass|get#call;
   set setter = self::InlineClass|set#setter;
   constructor • = self::InlineClass|;
-  tearoff • = self::InlineClass|get#;
+  tearoff • = self::InlineClass|_#new#tearOff;
 }
 static method _extension#0|get#setter(lowered final core::Object #this) → core::int
   return 42;
@@ -64,7 +64,7 @@ static method InlineClass|(core::int it) → self::InlineClass {
   final self::InlineClass #this = it;
   return #this;
 }
-static method InlineClass|get#(core::int it) → self::InlineClass
+static method InlineClass|_#new#tearOff(core::int it) → self::InlineClass
   return self::InlineClass|(it);
 static method InlineClass|test(lowered final self::InlineClass #this) → dynamic {
   core::int a = self::InlineClass|+(#this, 2);

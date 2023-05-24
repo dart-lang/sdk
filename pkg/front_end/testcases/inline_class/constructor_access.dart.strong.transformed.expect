@@ -4,56 +4,97 @@ import "dart:core" as core;
 
 inline class Class /* declaredRepresentationType = core::int */ {
   constructor • = self::Class|;
-  tearoff • = self::Class|get#;
+  tearoff • = self::Class|_#new#tearOff;
   constructor named = self::Class|named;
-  tearoff named = self::Class|get#named;
+  tearoff named = self::Class|_#named#tearOff;
 }
 inline class GenericClass<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
   constructor • = self::GenericClass|;
+  tearoff • = self::GenericClass|_#new#tearOff;
 }
 static method Class|(core::int it) → self::Class {
   final self::Class #this = it;
   return #this;
 }
-static method Class|get#(core::int it) → self::Class
+static method Class|_#new#tearOff(core::int it) → self::Class
   return self::Class|(it);
 static method Class|named(core::int it) → self::Class {
   final self::Class #this = it.{core::num::+}(1){(core::num) → core::int};
   return #this;
 }
-static method Class|get#named(core::int it) → self::Class
+static method Class|_#named#tearOff(core::int it) → self::Class
   return self::Class|named(it);
 static method GenericClass|<T extends core::Object? = dynamic>(self::GenericClass|::T% it) → self::GenericClass<self::GenericClass|::T%> {
   final self::GenericClass<self::GenericClass|::T%> #this = it;
   return #this;
 }
+static method GenericClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|_#new#tearOff::T%>
+  return self::GenericClass|<self::GenericClass|_#new#tearOff::T%>(it);
 static method main() → dynamic {
   self::Class a = self::Class|(3);
   self::Class b = self::Class|(4);
+  self::Class b2 = #C1(4){(core::int) → self::Class};
   self::Class c = self::Class|named(5);
+  self::Class c2 = #C2(5){(core::int) → self::Class};
   self::GenericClass<core::String> d = self::GenericClass|<core::String>("foo");
+  self::GenericClass<core::String> d2 = #C4("foo"){(core::String) → self::GenericClass<core::String>};
+  self::GenericClass<core::String> d3 = #C3<core::String>("foo"){(core::String) → self::GenericClass<core::String>};
   self::GenericClass<core::String> e = self::GenericClass|<core::String>("bar");
+  self::GenericClass<core::String> e2 = #C4("bar"){(core::String) → self::GenericClass<core::String>};
+  self::GenericClass<core::String> e3 = #C3<core::String>("bar"){(core::String) → self::GenericClass<core::String>};
   self::GenericClass<core::int> f = self::GenericClass|<core::int>(42);
+  self::GenericClass<core::int> f2 = #C5(42){(core::int) → self::GenericClass<core::int>};
+  self::GenericClass<core::int> f3 = #C3<core::int>(42){(core::int) → self::GenericClass<core::int>};
   self::GenericClass<core::int> g = self::GenericClass|<core::int>(87);
+  self::GenericClass<core::int> g2 = #C3<core::int>(87){(core::int) → self::GenericClass<core::int>};
   self::GenericClass<core::num> h = self::GenericClass|<core::num>(123);
+  self::GenericClass<core::num> h2 = #C3<core::num>(123){(core::num) → self::GenericClass<core::num>};
   self::expect(3, a as{ForNonNullableByDefault} core::int);
   self::expect(3, a);
   self::expect(4, b as{ForNonNullableByDefault} core::int);
   self::expect(4, b);
+  self::expect(4, b2 as{ForNonNullableByDefault} core::int);
+  self::expect(4, b2);
   self::expect(6, c as{ForNonNullableByDefault} core::int);
   self::expect(6, c);
+  self::expect(6, c2 as{ForNonNullableByDefault} core::int);
+  self::expect(6, c2);
   self::expect("foo", d as{ForNonNullableByDefault} core::String);
   self::expect("foo", d);
+  self::expect("foo", d2 as{ForNonNullableByDefault} core::String);
+  self::expect("foo", d2);
+  self::expect("foo", d3 as{ForNonNullableByDefault} core::String);
+  self::expect("foo", d3);
   self::expect("bar", e as{ForNonNullableByDefault} core::String);
   self::expect("bar", e);
+  self::expect("bar", e2 as{ForNonNullableByDefault} core::String);
+  self::expect("bar", e2);
+  self::expect("bar", e3 as{ForNonNullableByDefault} core::String);
+  self::expect("bar", e3);
   self::expect(42, f as{ForNonNullableByDefault} core::int);
   self::expect(42, f);
+  self::expect(42, f2 as{ForNonNullableByDefault} core::int);
+  self::expect(42, f2);
+  self::expect(42, f3 as{ForNonNullableByDefault} core::int);
+  self::expect(42, f3);
   self::expect(87, g as{ForNonNullableByDefault} core::int);
   self::expect(87, g);
+  self::expect(87, g2 as{ForNonNullableByDefault} core::int);
+  self::expect(87, g2);
   self::expect(123, h as{ForNonNullableByDefault} core::num);
   self::expect(123, h);
+  self::expect(123, h2 as{ForNonNullableByDefault} core::num);
+  self::expect(123, h2);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = static-tearoff self::Class|_#new#tearOff
+  #C2 = static-tearoff self::Class|_#named#tearOff
+  #C3 = static-tearoff self::GenericClass|_#new#tearOff
+  #C4 = instantiation #C3 <core::String>
+  #C5 = instantiation #C3 <core::int>
 }

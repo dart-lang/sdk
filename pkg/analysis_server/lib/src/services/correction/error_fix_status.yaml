@@ -2426,10 +2426,7 @@ LintCode.use_string_buffers:
   notes: |-
     It isn't clear that this occurs often enough to justify the cost.
 LintCode.use_string_in_part_of_directives:
-  status: needsFix
-  notes: |-
-    There should be a fix to replace the library name with the URI of the
-    library.
+  status: hasFix
 LintCode.use_super_parameters:
   status: hasFix
 LintCode.use_test_throws_matchers:

@@ -113,6 +113,8 @@ class BundleWriter {
 
     _writeExportedReferences(libraryElement.exportedReferences);
 
+    _sink.writeUint30List(libraryElement.nameUnion.mask);
+
     _libraries.add(
       _Library(
         uriStr: '${libraryElement.source.uri}',
