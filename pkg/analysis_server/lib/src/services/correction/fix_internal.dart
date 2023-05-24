@@ -58,6 +58,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_map_from_it
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_boolean_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_constant_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_function_declaration.dart';
@@ -697,6 +698,7 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.other,
     ],
     LintNames.type_literal_in_constant_pattern: [
+      ConvertToConstantPattern.new,
       ConvertToWildcardPattern.new,
     ],
     LintNames.unawaited_futures: [
