@@ -61,7 +61,7 @@
 ////// ```
 ///
 /// When executed with `dart run --observe`, and opened in DevTools,
-/// the Performance tab will display a timeline containing the annocations
+/// the Performance tab will display a timeline containing the annotations
 /// passed to `timeSync`.
 ///
 /// ## Developer tools
