@@ -385,6 +385,7 @@ vm_sources = [
 
 vm_sources_tests = [
   "allocation_test.cc",
+  "ama_test.cc",
   "assert_test.cc",
   "atomic_test.cc",
   "base64_test.cc",
