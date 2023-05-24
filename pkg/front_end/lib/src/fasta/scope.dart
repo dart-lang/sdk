@@ -1441,9 +1441,14 @@ abstract class MergedScope<T extends Builder> {
       } else {
         if (!parentBuilder.isAugmentation && !name.startsWith('_')) {
           // We special-case public members injected in patch libraries.
+          // TODO(johnniwinther): Avoid this special-casing and just report the
+          // error.
           _addInjectedPatchMember(name, newBuilder);
         } else {
           _originScope.addLocalMember(name, newBuilder, setter: setter);
+          if (newBuilder is ExtensionBuilder) {
+            _originScope.addExtension(newBuilder);
+          }
           for (Scope augmentationScope in _augmentationScopes.values) {
             _addBuilderToAugmentationScope(augmentationScope, name, newBuilder,
                 setter: setter);
@@ -1460,6 +1465,9 @@ abstract class MergedScope<T extends Builder> {
         augmentationScope.lookupLocalMember(name, setter: setter);
     if (augmentationMember == null) {
       augmentationScope.addLocalMember(name, member, setter: setter);
+      if (member is ExtensionBuilder) {
+        augmentationScope.addExtension(member);
+      }
     }
   }
 
@@ -1486,6 +1494,15 @@ abstract class MergedScope<T extends Builder> {
           _originScope.lookupLocalMember(name, setter: true),
           setter: true);
     });
+    scope.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
+      if (extensionBuilder is SourceExtensionBuilder &&
+          extensionBuilder.isUnnamedExtension) {
+        _originScope.addExtension(extensionBuilder);
+        for (Scope augmentationScope in _augmentationScopes.values) {
+          augmentationScope.addExtension(extensionBuilder);
+        }
+      }
+    });
 
     // Include all origin scope members in the augmentation scope.
     _originScope.forEachLocalMember((String name, Builder originMember) {
@@ -1493,6 +1510,12 @@ abstract class MergedScope<T extends Builder> {
     });
     _originScope.forEachLocalSetter((String name, Builder originMember) {
       _addBuilderToAugmentationScope(scope, name, originMember, setter: true);
+    });
+    _originScope.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
+      if (extensionBuilder is SourceExtensionBuilder &&
+          extensionBuilder.isUnnamedExtension) {
+        scope.addExtension(extensionBuilder);
+      }
     });
 
     _augmentationScopes[parentBuilder] = scope;
