@@ -194,9 +194,6 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       case BuiltMemberKind.InlineClassTearOff:
         kind = InlineClassMemberKind.TearOff;
         break;
-      case BuiltMemberKind.InlineClassFactory:
-        kind = InlineClassMemberKind.Factory;
-        break;
     }
     // ignore: unnecessary_null_comparison
     assert(kind != null);
