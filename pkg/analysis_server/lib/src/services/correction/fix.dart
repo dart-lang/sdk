@@ -1750,6 +1750,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Replace the '{0}' with a '{1}' in the invocation",
   );
+  static const REPLACE_WITH_PART_OF_URI = FixKind(
+    'dart.fix.replace.withPartOfUri',
+    DartFixKindPriority.DEFAULT,
+    "Replace with 'part of {0}'",
+  );
   static const REPLACE_WITH_TEAR_OFF = FixKind(
     'dart.fix.replace.withTearOff',
     DartFixKindPriority.DEFAULT,

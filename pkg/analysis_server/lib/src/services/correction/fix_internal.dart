@@ -206,6 +206,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_is_emp
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_part_of_uri.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
@@ -785,6 +786,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.use_rethrow_when_possible: [
       UseRethrow.new,
+    ],
+    LintNames.use_string_in_part_of_directives: [
+      ReplaceWithPartOrUriEmpty.new,
     ],
     LintNames.use_super_parameters: [
       ConvertToSuperParameters.new,
