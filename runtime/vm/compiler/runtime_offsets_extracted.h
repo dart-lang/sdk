@@ -113,7 +113,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x4;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -544,7 +543,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x8;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0xc;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x14;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x10;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x14;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x18;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x14;
@@ -567,16 +567,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset = 0xc;
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x4;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x14;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x20;
+    FunctionType_named_parameter_names_offset = 0x1c;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x24;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x28;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x1c;
+    FunctionType_parameter_types_offset = 0x18;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x14;
+    FunctionType_type_parameters_offset = 0x10;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x1a;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -617,7 +618,7 @@ static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         0x2e8, 0x2ec, 0x2f0, 0x2f4, 0x2f8, -1, 0x2fc, -1,
         0x300, 0x304, -1,    -1,    -1,    -1, -1,    -1};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Array_header_size = 0xc;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x8;
@@ -820,7 +821,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -1252,7 +1252,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x10;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0x10;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x30;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x28;
@@ -1276,16 +1277,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset =
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x8;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x28;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x40;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x40;
+    FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x38;
+    FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x28;
+    FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x32;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -1329,7 +1331,7 @@ static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         0x5d0, 0x5d8, 0x5e0, 0x5e8, -1,    -1,    0x5f0, 0x5f8,
         0x600, 0x608, 0x610, -1,    0x618, 0x620, -1,    -1};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x18;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x10;
@@ -1529,7 +1531,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x4;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -1960,7 +1961,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x8;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0xc;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x14;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x10;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x14;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x18;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x14;
@@ -1983,16 +1985,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset = 0xc;
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x4;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x14;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x20;
+    FunctionType_named_parameter_names_offset = 0x1c;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x24;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x28;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x1c;
+    FunctionType_parameter_types_offset = 0x18;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x14;
+    FunctionType_type_parameters_offset = 0x10;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x1a;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -2032,7 +2035,7 @@ static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
 static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         0x2e8, 0x2ec, 0x2f0, 0x2f4, -1, -1, -1, 0x2f8};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Array_header_size = 0xc;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x8;
@@ -2235,7 +2238,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -2667,7 +2669,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x10;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0x10;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x30;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x28;
@@ -2691,16 +2694,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset =
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x8;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x28;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x40;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x40;
+    FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x38;
+    FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x28;
+    FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x32;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -2746,7 +2750,7 @@ static constexpr dart::compiler::target::word
         0x610, 0x618, 0x620, 0x628, 0x630, 0x638, 0x640, -1,
         -1,    -1,    -1,    0x648, 0x650, -1,    -1,    0x658,
         0x660, 0x668, -1,    -1,    -1,    -1,    -1,    -1};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x18;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x10;
@@ -2947,7 +2951,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -3380,7 +3383,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x10;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0x10;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x1c;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x18;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x24;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x20;
@@ -3404,16 +3408,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset =
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x8;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x20;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x28;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x28;
+    FunctionType_named_parameter_names_offset = 0x24;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x2c;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x30;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x24;
+    FunctionType_parameter_types_offset = 0x20;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x1c;
+    FunctionType_type_parameters_offset = 0x18;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x22;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -3455,7 +3460,7 @@ static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         0x5d8, 0x5e0, 0x5e8, 0x5f0, -1,    -1,    0x5f8, 0x600,
         0x608, 0x610, 0x618, -1,    0x620, 0x628, -1,    -1};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x20;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x10;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x10;
@@ -3656,7 +3661,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -4089,7 +4093,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x10;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0x10;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x1c;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x18;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x24;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x20;
@@ -4113,16 +4118,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset =
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x8;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x20;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x28;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x28;
+    FunctionType_named_parameter_names_offset = 0x24;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x2c;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x30;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x24;
+    FunctionType_parameter_types_offset = 0x20;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x1c;
+    FunctionType_type_parameters_offset = 0x18;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x22;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -4166,7 +4172,7 @@ static constexpr dart::compiler::target::word
         0x618, 0x620, 0x628, 0x630, 0x638, 0x640, 0x648, -1,
         -1,    -1,    -1,    0x650, 0x658, -1,    -1,    0x660,
         0x668, 0x670, -1,    -1,    -1,    -1,    -1,    -1};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x20;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x10;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x10;
@@ -4366,7 +4372,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x4;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -4797,7 +4802,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x8;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0xc;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x14;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x10;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x14;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x18;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x14;
@@ -4820,16 +4826,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset = 0xc;
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x4;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x14;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x20;
+    FunctionType_named_parameter_names_offset = 0x1c;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x24;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x28;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x1c;
+    FunctionType_parameter_types_offset = 0x18;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x14;
+    FunctionType_type_parameters_offset = 0x10;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x1a;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -4871,7 +4878,7 @@ static constexpr dart::compiler::target::word
         -1,    -1,    -1, -1, -1, 0x2e8, 0x2ec, 0x2f0, -1,    -1,    0x2f4,
         0x2f8, 0x2fc, -1, -1, -1, 0x300, 0x304, 0x308, 0x30c, 0x310, 0x314,
         0x318, 0x31c, -1, -1, -1, -1,    0x320, 0x324, 0x328, 0x32c};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Array_header_size = 0xc;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x8;
@@ -5074,7 +5081,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -5506,7 +5512,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x10;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0x10;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x30;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x28;
@@ -5530,16 +5537,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset =
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x8;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x28;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x40;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x40;
+    FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x38;
+    FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x28;
+    FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x32;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -5584,7 +5592,7 @@ static constexpr dart::compiler::target::word
         -1,    -1,    -1, -1, -1, 0x5d0, 0x5d8, 0x5e0, -1,    -1,    0x5e8,
         0x5f0, 0x5f8, -1, -1, -1, 0x600, 0x608, 0x610, 0x618, 0x620, 0x628,
         0x630, 0x638, -1, -1, -1, -1,    0x640, 0x648, 0x650, 0x658};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x18;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x10;
@@ -5783,7 +5791,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x4;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -6209,7 +6216,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x8;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0xc;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x14;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x10;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x14;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x18;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x14;
@@ -6232,16 +6240,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset = 0xc;
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x4;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x14;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x20;
+    FunctionType_named_parameter_names_offset = 0x1c;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x24;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x28;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x1c;
+    FunctionType_parameter_types_offset = 0x18;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x14;
+    FunctionType_type_parameters_offset = 0x10;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x1a;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -6282,7 +6291,7 @@ static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         0x2e8, 0x2ec, 0x2f0, 0x2f4, 0x2f8, -1, 0x2fc, -1,
         0x300, 0x304, -1,    -1,    -1,    -1, -1,    -1};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Array_header_size = 0xc;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x8;
@@ -6482,7 +6491,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -6909,7 +6917,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x10;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0x10;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x30;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x28;
@@ -6933,16 +6942,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset =
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x8;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x28;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x40;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x40;
+    FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x38;
+    FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x28;
+    FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x32;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -6986,7 +6996,7 @@ static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         0x5d0, 0x5d8, 0x5e0, 0x5e8, -1,    -1,    0x5f0, 0x5f8,
         0x600, 0x608, 0x610, -1,    0x618, 0x620, -1,    -1};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x18;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x10;
@@ -7183,7 +7193,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x4;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -7609,7 +7618,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x8;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0xc;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x14;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x10;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x14;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x18;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x14;
@@ -7632,16 +7642,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset = 0xc;
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x4;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x14;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x20;
+    FunctionType_named_parameter_names_offset = 0x1c;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x24;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x28;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x1c;
+    FunctionType_parameter_types_offset = 0x18;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x14;
+    FunctionType_type_parameters_offset = 0x10;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x1a;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -7681,7 +7692,7 @@ static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
 static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         0x2e8, 0x2ec, 0x2f0, 0x2f4, -1, -1, -1, 0x2f8};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Array_header_size = 0xc;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x8;
@@ -7881,7 +7892,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -8308,7 +8318,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x10;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0x10;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x30;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x28;
@@ -8332,16 +8343,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset =
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x8;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x28;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x40;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x40;
+    FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x38;
+    FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x28;
+    FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x32;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -8387,7 +8399,7 @@ static constexpr dart::compiler::target::word
         0x610, 0x618, 0x620, 0x628, 0x630, 0x638, 0x640, -1,
         -1,    -1,    -1,    0x648, 0x650, -1,    -1,    0x658,
         0x660, 0x668, -1,    -1,    -1,    -1,    -1,    -1};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x18;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x10;
@@ -8585,7 +8597,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -9013,7 +9024,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x10;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0x10;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x1c;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x18;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x24;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x20;
@@ -9037,16 +9049,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset =
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x8;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x20;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x28;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x28;
+    FunctionType_named_parameter_names_offset = 0x24;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x2c;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x30;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x24;
+    FunctionType_parameter_types_offset = 0x20;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x1c;
+    FunctionType_type_parameters_offset = 0x18;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x22;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -9088,7 +9101,7 @@ static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         0x5d8, 0x5e0, 0x5e8, 0x5f0, -1,    -1,    0x5f8, 0x600,
         0x608, 0x610, 0x618, -1,    0x620, 0x628, -1,    -1};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x20;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x10;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x10;
@@ -9286,7 +9299,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -9714,7 +9726,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x10;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0x10;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x1c;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x18;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x24;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x20;
@@ -9738,16 +9751,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset =
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x8;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x20;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x28;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x28;
+    FunctionType_named_parameter_names_offset = 0x24;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x2c;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x30;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x24;
+    FunctionType_parameter_types_offset = 0x20;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x1c;
+    FunctionType_type_parameters_offset = 0x18;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x22;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -9791,7 +9805,7 @@ static constexpr dart::compiler::target::word
         0x618, 0x620, 0x628, 0x630, 0x638, 0x640, 0x648, -1,
         -1,    -1,    -1,    0x650, 0x658, -1,    -1,    0x660,
         0x668, 0x670, -1,    -1,    -1,    -1,    -1,    -1};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x20;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x10;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x10;
@@ -9988,7 +10002,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x4;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -10414,7 +10427,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x8;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0xc;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x14;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x10;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x14;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x18;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x14;
@@ -10437,16 +10451,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset = 0xc;
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x4;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x14;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x20;
+    FunctionType_named_parameter_names_offset = 0x1c;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x24;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x28;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x1c;
+    FunctionType_parameter_types_offset = 0x18;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x14;
+    FunctionType_type_parameters_offset = 0x10;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x1a;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -10488,7 +10503,7 @@ static constexpr dart::compiler::target::word
         -1,    -1,    -1, -1, -1, 0x2e8, 0x2ec, 0x2f0, -1,    -1,    0x2f4,
         0x2f8, 0x2fc, -1, -1, -1, 0x300, 0x304, 0x308, 0x30c, 0x310, 0x314,
         0x318, 0x31c, -1, -1, -1, -1,    0x320, 0x324, 0x328, 0x32c};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Array_header_size = 0xc;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x8;
@@ -10688,7 +10703,6 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
-static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -11115,7 +11129,8 @@ static constexpr dart::compiler::target::word TsanUtils_exception_fp_offset =
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     0x10;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 0x10;
-static constexpr dart::compiler::target::word Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     0x30;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 0x28;
@@ -11139,16 +11154,17 @@ static constexpr dart::compiler::target::word FinalizerEntry_token_offset =
 static constexpr dart::compiler::target::word FinalizerEntry_value_offset = 0x8;
 static constexpr dart::compiler::target::word NativeFinalizer_callback_offset =
     0x28;
+static constexpr dart::compiler::target::word FunctionType_hash_offset = 0x40;
 static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 0x40;
+    FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    FunctionType_parameter_types_offset = 0x38;
+    FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    FunctionType_type_parameters_offset = 0x28;
+    FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word TypeParameter_index_offset = 0x32;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -11193,7 +11209,7 @@ static constexpr dart::compiler::target::word
         -1,    -1,    -1, -1, -1, 0x5d0, 0x5d8, 0x5e0, -1,    -1,    0x5e8,
         0x5f0, 0x5f8, -1, -1, -1, 0x600, 0x608, 0x610, 0x618, 0x620, 0x628,
         0x630, 0x638, -1, -1, -1, -1,    0x640, 0x648, 0x650, 0x658};
-static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x18;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 0x10;
@@ -11401,8 +11417,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x10;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x4;
 static constexpr dart::compiler::target::word
@@ -11870,7 +11884,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0xc;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x14;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x10;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x14;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -11897,16 +11912,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x4;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x14;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x20;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x20;
+    AOT_FunctionType_named_parameter_names_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x24;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x28;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x1c;
+    AOT_FunctionType_parameter_types_offset = 0x18;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x14;
+    AOT_FunctionType_type_parameters_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x1a;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -11958,7 +11975,7 @@ static constexpr dart::compiler::target::word
         0x2e8, 0x2ec, 0x2f0, 0x2f4, 0x2f8, -1, 0x2fc, -1,
         0x300, 0x304, -1,    -1,    -1,    -1, -1,    -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x14;
+    0x10;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0xc;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x8;
@@ -12184,8 +12201,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x20;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word
@@ -12653,7 +12668,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x30;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -12680,16 +12696,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x8;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x40;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x40;
+    AOT_FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x38;
+    AOT_FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x28;
+    AOT_FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x32;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -12741,7 +12759,7 @@ static constexpr dart::compiler::target::word
         0x5d0, 0x5d8, 0x5e0, 0x5e8, -1,    -1,    0x5f0, 0x5f8,
         0x600, 0x608, 0x610, -1,    0x618, 0x620, -1,    -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x10;
@@ -12970,8 +12988,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x20;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word
@@ -13439,7 +13455,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x30;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -13466,16 +13483,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x8;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x40;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x40;
+    AOT_FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x38;
+    AOT_FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x28;
+    AOT_FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x32;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -13529,7 +13548,7 @@ static constexpr dart::compiler::target::word
         -1,    -1,    -1,    0x648, 0x650, -1,    -1,    0x658,
         0x660, 0x668, -1,    -1,    -1,    -1,    -1,    -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x10;
@@ -13755,8 +13774,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x18;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word
@@ -14226,7 +14243,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x1c;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x18;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x24;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -14253,16 +14271,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x8;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x28;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x28;
+    AOT_FunctionType_named_parameter_names_offset = 0x24;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x2c;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x30;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x24;
+    AOT_FunctionType_parameter_types_offset = 0x20;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x1c;
+    AOT_FunctionType_type_parameters_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x22;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -14314,7 +14334,7 @@ static constexpr dart::compiler::target::word
         0x5d8, 0x5e0, 0x5e8, 0x5f0, -1,    -1,    0x5f8, 0x600,
         0x608, 0x610, 0x618, -1,    0x620, 0x628, -1,    -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x20;
+    0x18;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0x10;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x10;
@@ -14540,8 +14560,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x18;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word
@@ -15011,7 +15029,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x1c;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x18;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x24;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -15038,16 +15057,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x8;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x28;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x28;
+    AOT_FunctionType_named_parameter_names_offset = 0x24;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x2c;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x30;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x24;
+    AOT_FunctionType_parameter_types_offset = 0x20;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x1c;
+    AOT_FunctionType_type_parameters_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x22;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -15101,7 +15122,7 @@ static constexpr dart::compiler::target::word
         -1,    -1,    -1,    0x650, 0x658, -1,    -1,    0x660,
         0x668, 0x670, -1,    -1,    -1,    -1,    -1,    -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x20;
+    0x18;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0x10;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x10;
@@ -15327,8 +15348,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x10;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x4;
 static constexpr dart::compiler::target::word
@@ -15796,7 +15815,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0xc;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x14;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x10;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x14;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -15823,16 +15843,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x4;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x14;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x20;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x20;
+    AOT_FunctionType_named_parameter_names_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x24;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x28;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x1c;
+    AOT_FunctionType_parameter_types_offset = 0x18;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x14;
+    AOT_FunctionType_type_parameters_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x1a;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -15885,7 +15907,7 @@ static constexpr dart::compiler::target::word
         0x2f8, 0x2fc, -1, -1, -1, 0x300, 0x304, 0x308, 0x30c, 0x310, 0x314,
         0x318, 0x31c, -1, -1, -1, -1,    0x320, 0x324, 0x328, 0x32c};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x14;
+    0x10;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0xc;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x8;
@@ -16111,8 +16133,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x20;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word
@@ -16580,7 +16600,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x30;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -16607,16 +16628,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x8;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x40;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x40;
+    AOT_FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x38;
+    AOT_FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x28;
+    AOT_FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x32;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -16669,7 +16692,7 @@ static constexpr dart::compiler::target::word
         0x5f0, 0x5f8, -1, -1, -1, 0x600, 0x608, 0x610, 0x618, 0x620, 0x628,
         0x630, 0x638, -1, -1, -1, -1,    0x640, 0x648, 0x650, 0x658};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x10;
@@ -16894,8 +16917,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x10;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x4;
 static constexpr dart::compiler::target::word
@@ -17357,7 +17378,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0xc;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x14;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x10;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x14;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -17384,16 +17406,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x4;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x14;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x20;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x20;
+    AOT_FunctionType_named_parameter_names_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x24;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x28;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x1c;
+    AOT_FunctionType_parameter_types_offset = 0x18;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x14;
+    AOT_FunctionType_type_parameters_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x1a;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -17445,7 +17469,7 @@ static constexpr dart::compiler::target::word
         0x2e8, 0x2ec, 0x2f0, 0x2f4, 0x2f8, -1, 0x2fc, -1,
         0x300, 0x304, -1,    -1,    -1,    -1, -1,    -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x14;
+    0x10;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0xc;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x8;
@@ -17668,8 +17692,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x20;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word
@@ -18131,7 +18153,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x30;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -18158,16 +18181,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x8;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x40;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x40;
+    AOT_FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x38;
+    AOT_FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x28;
+    AOT_FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x32;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -18219,7 +18244,7 @@ static constexpr dart::compiler::target::word
         0x5d0, 0x5d8, 0x5e0, 0x5e8, -1,    -1,    0x5f0, 0x5f8,
         0x600, 0x608, 0x610, -1,    0x618, 0x620, -1,    -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x10;
@@ -18445,8 +18470,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x20;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word
@@ -18908,7 +18931,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x30;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -18935,16 +18959,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x8;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x40;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x40;
+    AOT_FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x38;
+    AOT_FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x28;
+    AOT_FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x32;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -18998,7 +19024,7 @@ static constexpr dart::compiler::target::word
         -1,    -1,    -1,    0x648, 0x650, -1,    -1,    0x658,
         0x660, 0x668, -1,    -1,    -1,    -1,    -1,    -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x10;
@@ -19221,8 +19247,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x18;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word
@@ -19686,7 +19710,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x1c;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x18;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x24;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -19713,16 +19738,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x8;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x28;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x28;
+    AOT_FunctionType_named_parameter_names_offset = 0x24;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x2c;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x30;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x24;
+    AOT_FunctionType_parameter_types_offset = 0x20;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x1c;
+    AOT_FunctionType_type_parameters_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x22;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -19774,7 +19801,7 @@ static constexpr dart::compiler::target::word
         0x5d8, 0x5e0, 0x5e8, 0x5f0, -1,    -1,    0x5f8, 0x600,
         0x608, 0x610, 0x618, -1,    0x620, 0x628, -1,    -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x20;
+    0x18;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0x10;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x10;
@@ -19997,8 +20024,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x18;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word
@@ -20462,7 +20487,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x1c;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x18;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x24;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -20489,16 +20515,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x8;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x28;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x28;
+    AOT_FunctionType_named_parameter_names_offset = 0x24;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x2c;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x30;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x24;
+    AOT_FunctionType_parameter_types_offset = 0x20;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x1c;
+    AOT_FunctionType_type_parameters_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x22;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -20552,7 +20580,7 @@ static constexpr dart::compiler::target::word
         -1,    -1,    -1,    0x650, 0x658, -1,    -1,    0x660,
         0x668, 0x670, -1,    -1,    -1,    -1,    -1,    -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x20;
+    0x18;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0x10;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x10;
@@ -20775,8 +20803,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x10;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x4;
 static constexpr dart::compiler::target::word
@@ -21238,7 +21264,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0xc;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x14;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x10;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x14;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -21265,16 +21292,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x4;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x14;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x20;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x20;
+    AOT_FunctionType_named_parameter_names_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x24;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x28;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x1c;
+    AOT_FunctionType_parameter_types_offset = 0x18;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x14;
+    AOT_FunctionType_type_parameters_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x1a;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -21327,7 +21356,7 @@ static constexpr dart::compiler::target::word
         0x2f8, 0x2fc, -1, -1, -1, 0x300, 0x304, 0x308, 0x30c, 0x310, 0x314,
         0x318, 0x31c, -1, -1, -1, -1,    0x320, 0x324, 0x328, 0x32c};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x14;
+    0x10;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0xc;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x8;
@@ -21550,8 +21579,6 @@ static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
-    0x20;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 0x8;
 static constexpr dart::compiler::target::word
@@ -22013,7 +22040,8 @@ static constexpr dart::compiler::target::word
     AOT_TimelineStream_enabled_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
     0x10;
-static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 0x28;
 static constexpr dart::compiler::target::word
     AOT_Finalizer_type_arguments_offset = 0x30;
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
@@ -22040,16 +22068,18 @@ static constexpr dart::compiler::target::word AOT_FinalizerEntry_value_offset =
     0x8;
 static constexpr dart::compiler::target::word
     AOT_NativeFinalizer_callback_offset = 0x28;
+static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset =
+    0x40;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 0x40;
+    AOT_FunctionType_named_parameter_names_offset = 0x38;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 0x48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 0x4c;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_parameter_types_offset = 0x38;
+    AOT_FunctionType_parameter_types_offset = 0x30;
 static constexpr dart::compiler::target::word
-    AOT_FunctionType_type_parameters_offset = 0x28;
+    AOT_FunctionType_type_parameters_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
     0x32;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
@@ -22102,7 +22132,7 @@ static constexpr dart::compiler::target::word
         0x5f0, 0x5f8, -1, -1, -1, 0x600, 0x608, 0x610, 0x618, 0x620, 0x628,
         0x630, 0x638, -1, -1, -1, -1,    0x640, 0x648, 0x650, 0x658};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 0x10;

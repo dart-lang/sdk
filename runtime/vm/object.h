@@ -8528,9 +8528,6 @@ class AbstractType : public Instance {
   static intptr_t flags_offset() {
     return OFFSET_OF(UntaggedAbstractType, flags_);
   }
-  static intptr_t hash_offset() {
-    return OFFSET_OF(UntaggedAbstractType, hash_);
-  }
 
   bool IsFinalized() const {
     const auto state = type_state();
@@ -8666,8 +8663,7 @@ class AbstractType : public Instance {
   // list and mark ambiguous triplets to be printed.
   virtual void EnumerateURIs(URIs* uris) const;
 
-  uword Hash() const;
-  virtual uword ComputeHash() const;
+  virtual uword Hash() const;
 
   // The name of this type's class, i.e. without the type argument names of this
   // type.
@@ -8841,8 +8837,6 @@ class AbstractType : public Instance {
                                const AbstractType& other_type,
                                TypeEquality kind) const;
 
-  void SetHash(intptr_t value) const;
-
   UntaggedAbstractType::TypeState type_state() const {
     return static_cast<UntaggedAbstractType::TypeState>(
         UntaggedAbstractType::TypeStateBits::decode(untag()->flags()));
@@ -8853,7 +8847,6 @@ class AbstractType : public Instance {
 
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Instance);
   friend class Class;
-  friend class ClearTypeHashVisitor;
   friend class Function;
   friend class TypeArguments;
 };
@@ -8865,6 +8858,7 @@ class Type : public AbstractType {
   static intptr_t arguments_offset() {
     return OFFSET_OF(UntaggedType, arguments_);
   }
+  static intptr_t hash_offset() { return OFFSET_OF(UntaggedType, hash_); }
   virtual bool HasTypeClass() const {
     ASSERT(type_class_id() != kIllegalCid);
     return true;
@@ -8917,7 +8911,8 @@ class Type : public AbstractType {
   virtual void PrintName(NameVisibility visibility,
                          BaseTextBuffer* printer) const;
 
-  virtual uword ComputeHash() const;
+  virtual uword Hash() const;
+  uword ComputeHash() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedType));
@@ -8992,6 +8987,8 @@ class Type : public AbstractType {
                      Heap::Space space = Heap::kOld);
 
  private:
+  void SetHash(intptr_t value) const;
+
   // Takes an intptr_t since the cids of some classes are larger than will fit
   // in ClassIdTagType. This allows us to guard against that case, instead of
   // silently truncating the cid.
@@ -9002,6 +8999,7 @@ class Type : public AbstractType {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
   friend class Class;
   friend class TypeArguments;
+  friend class ClearTypeHashVisitor;
 };
 
 // A FunctionType represents the type of a function. It describes most of the
@@ -9022,6 +9020,9 @@ class FunctionType : public AbstractType {
   using PackedNumOptionalParameters =
       UntaggedFunctionType::PackedNumOptionalParameters;
 
+  static intptr_t hash_offset() {
+    return OFFSET_OF(UntaggedFunctionType, hash_);
+  }
   virtual bool HasTypeClass() const { return false; }
   FunctionTypePtr ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const { return kIllegalCid; }
@@ -9057,7 +9058,8 @@ class FunctionType : public AbstractType {
   virtual void PrintName(NameVisibility visibility,
                          BaseTextBuffer* printer) const;
 
-  virtual uword ComputeHash() const;
+  virtual uword Hash() const;
+  uword ComputeHash() const;
 
   bool IsSubtypeOf(
       const FunctionType& other,
@@ -9286,10 +9288,13 @@ class FunctionType : public AbstractType {
   static FunctionTypePtr Clone(const FunctionType& orig, Heap::Space space);
 
  private:
+  void SetHash(intptr_t value) const;
+
   static FunctionTypePtr New(Heap::Space space);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(FunctionType, AbstractType);
   friend class Class;
+  friend class ClearTypeHashVisitor;
   friend class Function;
 };
 
@@ -9363,6 +9368,8 @@ class TypeParameter : public AbstractType {
   virtual void PrintName(NameVisibility visibility,
                          BaseTextBuffer* printer) const;
 
+  virtual uword Hash() const;
+
   // Returns type corresponding to [this] type parameter from the
   // given [instantiator_type_arguments] and [function_type_arguments].
   // Unlike InstantiateFrom, nullability of type parameter is not applied to
@@ -9391,7 +9398,8 @@ class TypeParameter : public AbstractType {
                               Nullability nullability);
 
  private:
-  virtual uword ComputeHash() const;
+  uword ComputeHash() const;
+  void SetHash(intptr_t value) const;
 
   void set_owner(const Object& value) const;
 
@@ -9399,6 +9407,7 @@ class TypeParameter : public AbstractType {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
   friend class Class;
+  friend class ClearTypeHashVisitor;
 };
 
 class Number : public Instance {
@@ -11037,6 +11046,7 @@ class RecordShape {
 // names of the named fields.
 class RecordType : public AbstractType {
  public:
+  static intptr_t hash_offset() { return OFFSET_OF(UntaggedRecordType, hash_); }
   virtual bool HasTypeClass() const { return false; }
   RecordTypePtr ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const { return kIllegalCid; }
@@ -11072,7 +11082,8 @@ class RecordType : public AbstractType {
   virtual void PrintName(NameVisibility visibility,
                          BaseTextBuffer* printer) const;
 
-  virtual uword ComputeHash() const;
+  virtual uword Hash() const;
+  uword ComputeHash() const;
 
   bool IsSubtypeOf(
       const RecordType& other,
@@ -11103,6 +11114,8 @@ class RecordType : public AbstractType {
                            Heap::Space space = Heap::kOld);
 
  private:
+  void SetHash(intptr_t value) const;
+
   void set_shape(RecordShape shape) const;
   void set_field_types(const Array& value) const;
 
@@ -11111,6 +11124,7 @@ class RecordType : public AbstractType {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(RecordType, AbstractType);
   friend class Class;
   friend class ClassFinalizer;
+  friend class ClearTypeHashVisitor;
   friend class Record;
 };
 
@@ -13039,7 +13053,7 @@ ObjectPtr MegamorphicCache::GetTargetFunction(const Array& array,
   return array.At((index * kEntryLength) + kTargetFunctionIndex);
 }
 
-inline uword AbstractType::Hash() const {
+inline uword Type::Hash() const {
   ASSERT(IsFinalized());
   intptr_t result = Smi::Value(untag()->hash());
   if (result != 0) {
@@ -13048,7 +13062,37 @@ inline uword AbstractType::Hash() const {
   return ComputeHash();
 }
 
-inline void AbstractType::SetHash(intptr_t value) const {
+inline void Type::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  untag()->set_hash(Smi::New(value));
+}
+
+inline uword FunctionType::Hash() const {
+  ASSERT(IsFinalized());
+  intptr_t result = Smi::Value(untag()->hash());
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+inline void FunctionType::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  untag()->set_hash(Smi::New(value));
+}
+
+inline uword RecordType::Hash() const {
+  ASSERT(IsFinalized());
+  intptr_t result = Smi::Value(untag()->hash());
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+inline void RecordType::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   untag()->set_hash(Smi::New(value));
@@ -13056,6 +13100,21 @@ inline void AbstractType::SetHash(intptr_t value) const {
 
 inline intptr_t RecordType::NumFields() const {
   return Array::LengthOf(field_types());
+}
+
+inline uword TypeParameter::Hash() const {
+  ASSERT(IsFinalized());
+  intptr_t result = Smi::Value(untag()->hash());
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+inline void TypeParameter::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  untag()->set_hash(Smi::New(value));
 }
 
 inline uword TypeArguments::Hash() const {
