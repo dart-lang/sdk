@@ -66,11 +66,13 @@ class RequireTrailingCommas extends LintRule {
   ) {
     var visitor = _Visitor(this);
     registry
-      ..addCompilationUnit(this, visitor)
       ..addArgumentList(this, visitor)
-      ..addFormalParameterList(this, visitor)
+      ..addAssertInitializer(this, visitor)
       ..addAssertStatement(this, visitor)
-      ..addAssertInitializer(this, visitor);
+      ..addCompilationUnit(this, visitor)
+      ..addFormalParameterList(this, visitor)
+      ..addListLiteral(this, visitor)
+      ..addSetOrMapLiteral(this, visitor);
   }
 }
 
@@ -129,6 +131,30 @@ class _Visitor extends SimpleAstVisitor<void> {
       node.rightParenthesis,
       node.parameters.last,
     );
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    super.visitListLiteral(node);
+    if (node.elements.isNotEmpty) {
+      _checkTrailingComma(
+        node.leftBracket,
+        node.rightBracket,
+        node.elements.last,
+      );
+    }
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    super.visitSetOrMapLiteral(node);
+    if (node.elements.isNotEmpty) {
+      _checkTrailingComma(
+        node.leftBracket,
+        node.rightBracket,
+        node.elements.last,
+      );
+    }
   }
 
   void _checkTrailingComma(

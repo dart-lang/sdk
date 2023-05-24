@@ -39,7 +39,7 @@ class RequireTrailingCommasExample {
       : assert(true,
             'A very very very very very very very very long string'); // LINT
 
-  void method1(Object param1, Object param2, {Object? param3, Object? param4}) {}
+  void method1(Object p1, Object p2, {Object? param3, Object? param4}) {}
 
   void method2(
     Object param1,
@@ -275,3 +275,48 @@ A multiline string
 }
 
 class AnExtremelyLongClassNameOneTwoThreeFourFiveSixSevenEightNineTen {}
+
+lists() {
+  var x;
+  x = []; //OK
+  x = [1]; //OK
+  x = [1, if (true) 2]; //OK
+  x = [
+    1, //
+    2
+  ]; // LINT
+  x = [
+    1, //
+    if (true) 2
+  ]; // LINT
+}
+
+sets() {
+  var x;
+  x = <dynamic>{}; //OK
+  x = {1}; //OK
+  x = {1, if (true) 2}; //OK
+  x = {
+    1, //
+    2
+  }; // LINT
+  x = {
+    1, //
+    if (true) 2
+  }; // LINT
+}
+
+maps() {
+  var x;
+  x = {}; //OK
+  x = {1: 1}; //OK
+  x = {1: 1, if (true) 2: 2}; //OK
+  x = {
+    1: 1, //
+    2: 2
+  }; // LINT
+  x = {
+    1: 1, //
+    if (true) 2: 2
+  }; // LINT
+}
