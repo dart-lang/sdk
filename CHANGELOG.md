@@ -1,3 +1,8 @@
+## 3.0.3
+
+This is a patch release that:
+- Fixes an AOT compiler crash when generating an implicit getter returning an unboxed record (issue [#52449]).
+
 ## 3.0.2
 
 This is a patch release that:
