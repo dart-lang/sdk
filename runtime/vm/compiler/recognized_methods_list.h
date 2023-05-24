@@ -374,7 +374,6 @@ namespace dart {
   V(_TwoByteString, ==, TwoByteString_equality, 0x4ea9ddc9)                    \
   V(_AbstractType, get:hashCode, AbstractType_getHashCode, 0x75e0d454)         \
   V(_AbstractType, ==, AbstractType_equality, 0x465868ae)                      \
-  V(_Type, get:hashCode, Type_getHashCode, 0x75e0d454)                         \
   V(_Type, ==, Type_equality, 0x465868ae)                                      \
   V(::, _getHash, Object_getHash, 0xc60ff758)                                  \
 

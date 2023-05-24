@@ -2643,6 +2643,7 @@ class UntaggedAbstractType : public UntaggedInstance {
   // Accessed from generated code.
   std::atomic<uint32_t> flags_;
   COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_FROM(type_test_stub)
 
   uint32_t flags() const { return flags_.load(std::memory_order_relaxed); }
@@ -2682,8 +2683,7 @@ class UntaggedType : public UntaggedAbstractType {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, arguments)
-  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
-  VISIT_TO(hash)
+  VISIT_TO(arguments)
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2707,8 +2707,7 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, result_type)
   COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_types)
   COMPRESSED_POINTER_FIELD(ArrayPtr, named_parameter_names);
-  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
-  VISIT_TO(hash)
+  VISIT_TO(named_parameter_names)
   AtomicBitFieldContainer<uint32_t> packed_parameter_counts_;
   AtomicBitFieldContainer<uint16_t> packed_type_parameter_counts_;
 
@@ -2758,8 +2757,7 @@ class UntaggedRecordType : public UntaggedAbstractType {
 
   COMPRESSED_SMI_FIELD(SmiPtr, shape)
   COMPRESSED_POINTER_FIELD(ArrayPtr, field_types)
-  COMPRESSED_SMI_FIELD(SmiPtr, hash)
-  VISIT_TO(hash)
+  VISIT_TO(field_types)
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
@@ -2774,7 +2772,6 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
-  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   // FunctionType or Smi (class id).
   COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
   VISIT_TO(owner)
