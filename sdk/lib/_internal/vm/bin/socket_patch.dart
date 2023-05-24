@@ -2107,7 +2107,7 @@ class Socket {
   }
 }
 
-class _SocketStreamConsumer extends StreamConsumer<List<int>> {
+class _SocketStreamConsumer implements StreamConsumer<List<int>> {
   StreamSubscription? subscription;
   final _Socket socket;
   int? offset;

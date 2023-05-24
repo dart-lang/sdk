@@ -186,7 +186,7 @@ class _FileStream extends Stream<List<int>> {
   }
 }
 
-class _FileStreamConsumer extends StreamConsumer<List<int>> {
+class _FileStreamConsumer implements StreamConsumer<List<int>> {
   File? _file;
   Future<RandomAccessFile> _openFuture;
 
