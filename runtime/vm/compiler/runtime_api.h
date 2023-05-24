@@ -1318,7 +1318,6 @@ class ObjectStore : public AllStatic {
   static word type_type_offset();
 
   static word ffi_callback_code_offset();
-  static word ffi_callback_stack_return_offset();
 
   static word suspend_state_await_offset();
   static word suspend_state_await_with_type_check_offset();

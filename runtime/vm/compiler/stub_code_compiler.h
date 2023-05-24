@@ -104,44 +104,6 @@ class StubCodeCompiler {
   void GenerateUsageCounterIncrement(Register temp_reg);
   void GenerateOptimizedUsageCounterIncrement();
 
-#if defined(TARGET_ARCH_X64)
-  static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
-#if defined(DART_COMPRESSED_POINTERS)
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 236;
-#else
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 228;
-#endif
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
-#elif defined(TARGET_ARCH_IA32)
-  static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 152;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
-#elif defined(TARGET_ARCH_ARM)
-  static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 148;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
-#elif defined(TARGET_ARCH_ARM64)
-  static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
-#if defined(DART_COMPRESSED_POINTERS)
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 268;
-#else
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 244;
-#endif
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
-#elif defined(TARGET_ARCH_RISCV32)
-  static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 238;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
-#elif defined(TARGET_ARCH_RISCV64)
-  static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 210;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
-#else
-#error What architecture?
-#endif
-
-  void GenerateJITCallbackTrampolines(intptr_t next_callback_id);
-
   // Calculates the offset (in words) from FP to the provided [cpu_register].
   //
   // Assumes
@@ -155,8 +117,6 @@ class StubCodeCompiler {
   static intptr_t WordOffsetFromFpToCpuRegister(Register cpu_register);
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(StubCodeCompiler);
-
   // Common function for generating InitLateStaticField and
   // InitLateFinalStaticField stubs.
   void GenerateInitLateStaticFieldStub(bool is_final);
@@ -201,6 +161,11 @@ class StubCodeCompiler {
   void GenerateReturnStub(intptr_t return_entry_point_offset_in_thread,
                           intptr_t return_function_offset_in_object_store,
                           intptr_t return_stub_offset_in_thread);
+
+  void GenerateLoadFfiCallbackMetadataRuntimeFunction(uword function_index,
+                                                      Register dst);
+
+  DISALLOW_COPY_AND_ASSIGN(StubCodeCompiler);
 };
 
 }  // namespace compiler

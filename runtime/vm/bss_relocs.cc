@@ -37,13 +37,6 @@ void BSS::Initialize(Thread* current, uword* bss_start, bool vm) {
     InitializeBSSEntry(Relocation::InstructionsRelocatedAddress,
                        instructions - dso_base, bss_start);
   }
-
-  if (!vm) {
-    // Fill values at isolate-only indices.
-    InitializeBSSEntry(Relocation::DRT_GetThreadForNativeCallback,
-                       reinterpret_cast<uword>(DLRT_GetThreadForNativeCallback),
-                       bss_start);
-  }
 }
 
 }  // namespace dart
