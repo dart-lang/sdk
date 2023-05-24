@@ -2916,7 +2916,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               new NamedExpression(key, _wrap(named[key]!)),
           ], node.recordType, isConst: true));
     }
-    return canonicalize(new RecordConstant(positional, named, node.recordType));
+    return canonicalize(new RecordConstant(
+        positional, named, env.substituteType(node.recordType) as RecordType));
   }
 
   @override
