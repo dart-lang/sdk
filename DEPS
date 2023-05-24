@@ -149,7 +149,7 @@ vars = {
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "b2ed6bd1659b932062b1ce5878f5c754ce68679f",
   "leak_tracker_rev": "571c24aeee986767e6a5b8eef4056278cf747850",
-  "linter_rev": "599b5288ee883393bf3a9ae4d2cfe90c168cce91", # disable rev_sdk_deps.dart
+  "linter_rev": "0ad0fad19ef00ed4416dbf88e3114fb01519661e", # disable rev_sdk_deps.dart
   "lints_rev": "72f107a3be948a22d080e994257be3ba63f1bb41",
   "logging_rev": "7ba155ac2cf09ab29d0bf41a5e67d03e12760cf0",
   "markdown_rev": "bd6ae8d741327e24319f3e036d57107f91229843",

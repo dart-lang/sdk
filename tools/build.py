@@ -240,8 +240,6 @@ def Main():
     options = parser.parse_args()
 
     targets = options.build_targets
-    if len(targets) == 0:
-        targets = ['all']
 
     if not gn_py.ProcessOptions(options):
         parser.print_help()

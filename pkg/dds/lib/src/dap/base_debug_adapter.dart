@@ -4,12 +4,10 @@
 
 import 'dart:async';
 
+import 'package:dap/dap.dart';
 import 'package:meta/meta.dart';
 
 import 'constants.dart';
-import 'exceptions.dart';
-import 'protocol_common.dart';
-import 'protocol_generated.dart';
 import 'protocol_stream.dart';
 
 typedef _FromJsonHandler<T> = T Function(Map<String, Object?>);

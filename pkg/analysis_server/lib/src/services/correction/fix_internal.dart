@@ -1018,6 +1018,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
+      CreateClass.new,
     ],
     CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION: [
       AddConst.new,
@@ -1155,6 +1156,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
+      CreateClass.new,
     ],
     CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR: [
       CreateConstructor.new,

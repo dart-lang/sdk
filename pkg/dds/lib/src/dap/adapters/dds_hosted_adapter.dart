@@ -7,10 +7,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:dap/dap.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
-import '../exceptions.dart';
-import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 import 'dart.dart';
 import 'mixins.dart';

@@ -6,12 +6,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:dap/dap.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../rpc_error_codes.dart';
 import 'adapters/dart.dart';
-import 'exceptions.dart';
-import 'protocol_generated.dart';
 import 'utils.dart';
 import 'variables.dart';
 

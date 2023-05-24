@@ -213,7 +213,7 @@
       "sdk/",
       ".dart_tool/package_config.json"
     ],
-    "vm-kernel": [
+    "vm": [
       "benchmarks/",
       "out/",
       "xcodebuild/",
@@ -946,7 +946,7 @@
             "-nvm-aot-android-${mode}-${arch}",
             "-j2"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 15
         }
       ]
@@ -978,7 +978,7 @@
             "-nvm-android-${mode}-${arch}",
             "ffi"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 1
         }
       ]
@@ -1104,7 +1104,7 @@
           "arguments": [
             "-ndartkp-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 6
         },
         {
@@ -1113,7 +1113,7 @@
             "-ndartkp-${system}-${mode}-${arch}",
             "co19_2"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         },
         {
@@ -1121,7 +1121,7 @@
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 6
         },
         {
@@ -1130,7 +1130,7 @@
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
             "co19"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 15
         }
       ]
@@ -1170,7 +1170,7 @@
           "arguments": [
             "-nvm-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         },
         {
@@ -1179,7 +1179,7 @@
             "-nvm-${system}-${mode}-${arch}",
             "co19"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         }
       ]
@@ -1213,7 +1213,7 @@
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         },
         {
@@ -1222,7 +1222,7 @@
             "-nvm-aot-${system}-${mode}-${arch}",
             "co19"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 12
         }
       ]
@@ -1257,7 +1257,7 @@
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         }
       ]
@@ -1309,7 +1309,7 @@
           "arguments": [
             "-ndartkp-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 15
         }
       ]
@@ -1335,7 +1335,7 @@
           "arguments": [
             "-nvm-aot-dwarf-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         }
       ]
@@ -1361,7 +1361,7 @@
           "arguments": [
             "-nvm-aot-obfuscate-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         }
       ]
@@ -1396,7 +1396,7 @@
             "utils",
             "vm"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 4
         }
       ]
@@ -1423,7 +1423,7 @@
             "vm",
             "standalone"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         }
       ]
@@ -1453,7 +1453,7 @@
             "vm",
             "standalone"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 4
         }
       ]
@@ -1481,7 +1481,7 @@
             "vm",
             "standalone"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         }
       ]
@@ -1669,7 +1669,7 @@
           "arguments": [
             "-ndartk-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         },
         {
@@ -1678,7 +1678,7 @@
             "-ndartk-${system}-${mode}-${arch}",
             "co19_2"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         },
         {
@@ -1686,7 +1686,7 @@
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 6
         },
         {
@@ -1695,7 +1695,7 @@
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
             "co19"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         }
       ]
@@ -1720,7 +1720,7 @@
           "arguments": [
             "-nvm-checked-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 4
         }
       ]
@@ -1767,7 +1767,7 @@
           "arguments": [
             "-nvm-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 1
         }
       ]
@@ -1794,7 +1794,7 @@
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 1
         }
       ]
@@ -1870,7 +1870,7 @@
             "-nvm-appjit-${system}-${mode}-${arch}"
           ],
           "shards": 6,
-          "fileset": "vm-kernel"
+          "fileset": "vm"
         }
       ]
     },
@@ -2256,7 +2256,7 @@
             "utils",
             "vm"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         }
       ]
@@ -2290,7 +2290,7 @@
             "utils",
             "vm"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         }
       ]
@@ -2324,7 +2324,7 @@
             "utils",
             "vm"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         }
       ]
@@ -3562,7 +3562,7 @@
             "--copy-coredumps"
           ],
           "shards": 10,
-          "fileset": "vm-kernel"
+          "fileset": "vm"
         }
       ]
     }
