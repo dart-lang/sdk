@@ -6704,8 +6704,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
     DartType readType = readTarget.getGetterType(this);
-    readType = flowAnalysis.propertyGet(propertyGetNode, receiver,
-            propertyName.text, readTarget.member, readType) ??
+    readType = flowAnalysis.propertyGet(
+            propertyGetNode,
+            new ExpressionPropertyTarget(receiver),
+            propertyName.text,
+            readTarget.member,
+            readType) ??
         readType;
     return createPropertyGet(
         fileOffset: fileOffset,
@@ -7717,8 +7721,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // TODO(johnniwinther,paulberry): Should the we pass the resulting node
     // as the "whole-expression" instead of [node] ? (We do this for field
     // invocation).
-    flowAnalysis.propertyGet(node, node.receiver, node.name.text,
-        propertyGetInferenceResult.member, readResult.inferredType);
+    flowAnalysis.propertyGet(
+        node,
+        new ExpressionPropertyTarget(node.receiver),
+        node.name.text,
+        propertyGetInferenceResult.member,
+        readResult.inferredType);
     ExpressionInferenceResult expressionInferenceResult =
         createNullAwareExpressionInferenceResult(
             readResult.inferredType, readResult.expression, nullAwareGuards);
