@@ -398,7 +398,7 @@ architecture: ia32 x64
    mode: debug release
    runtime: chrome d8
    system: android fuchsia
-   nnbd: legacy strong
+   nnbd: strong strong
    sanitizer: none none
    builder-tag: a tag b tag
    vm-options: [vm a1, vm a2] [vm b1, vm b2]
@@ -429,7 +429,7 @@ architecture: ia32 ia32
    mode: debug debug
    runtime: chrome chrome
    system: android android
-   nnbd: legacy legacy
+   nnbd: strong strong
    sanitizer: none none
    builder-tag: a tag a tag
    vm-options: [vm a1, vm a2] [vm a1, vm a2]

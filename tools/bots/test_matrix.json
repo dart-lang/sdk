@@ -371,136 +371,110 @@
     },
     "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "nnbd": "strong"
       }
     },
     "vm-checked-(linux|mac|win|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "nnbd": "strong",
         "enable-asserts": true
       }
     },
     "vm-aot-(linux|mac)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
-        "nnbd": "strong"
       }
     },
     "vm-aot-win-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
-        "nnbd": "strong",
         "use-elf": true
       }
     },
     "vm-aot-(linux|mac|win)-(debug|product|release)-(simarm|simarm_x64|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "nnbd": "strong",
         "use-elf": true
       }
     },
     "vm-asan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "asan",
-        "timeout": 240,
-        "nnbd": "strong"
+        "timeout": 240
       }
     },
     "vm-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "lsan",
-        "timeout": 240,
-        "nnbd": "strong"
+        "timeout": 240
       }
     },
     "vm-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "msan",
-        "timeout": 240,
-        "nnbd": "strong"
+        "timeout": 240
       }
     },
     "vm-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "tsan",
-        "timeout": 240,
-        "nnbd": "strong"
+        "timeout": 240
       }
     },
     "vm-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "ubsan",
-        "timeout": 240,
-        "nnbd": "strong"
+        "timeout": 240
       }
     },
     "vm-aot-asan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "builder-tag": "asan",
-        "timeout": 240,
-        "nnbd": "strong",
-        "compiler": "dartkp"
+        "builder-tag": "asan"
       }
     },
     "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "lsan",
-        "timeout": 240,
-        "nnbd": "strong",
-        "compiler": "dartkp"
+        "timeout": 240
       }
     },
     "vm-aot-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "msan",
-        "timeout": 240,
-        "nnbd": "strong",
-        "compiler": "dartkp"
+        "timeout": 240
       }
     },
     "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "tsan",
-        "timeout": 240,
-        "nnbd": "strong",
-        "compiler": "dartkp"
+        "timeout": 240
       }
     },
     "vm-aot-ubsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "ubsan",
-        "timeout": 240,
-        "nnbd": "strong",
-        "compiler": "dartkp"
+        "timeout": 240
       }
     },
     "dart2js-(linux|win)-chrome": {
       "options": {
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "dart2js-(linux|win)-firefox": {
       "options": {
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "dart2js-win-ie11": {
       "options": {
         "babel": "{\"presets\":[\"es2015\"]}",
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "dart2js-win-edge": {
       "options": {
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "dart2js-mac-(chrome|safari)": {
       "options": {
         "architecture": "arm64",
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -508,14 +482,12 @@
       "options": {
         "csp": true,
         "minified": true,
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "dart2js-minified-linux-d8": {
       "options": {
         "minified": true,
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -525,7 +497,6 @@
         "dart2js-options": [
           "-O3"
         ],
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -535,7 +506,6 @@
         "dart2js-options": [
           "-O0"
         ],
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -546,14 +516,12 @@
           "--canary"
         ],
         "host-checked": true,
-        "nnbd": "strong",
         "timeout": 240
       }
     },
     "dart2js-hostasserts-linux-d8": {
       "options": {
         "host-checked": true,
-        "nnbd": "strong",
         "timeout": 240
       }
     },
@@ -580,12 +548,12 @@
           "--simple-load-ids"
         ],
         "host-checked": true,
-        "nnbd": "strong",
         "timeout": 240
       }
     },
     "dart2wasm-hostasserts-linux-x64-d8": {
       "options": {
+        "nnbd": "legacy",
         "host-checked": true,
         "timeout": 240,
         "builder-tag": "dart2wasm"
@@ -594,14 +562,12 @@
     "vm-aot-android-(debug|product|release)-arm_x64": {
       "options": {
         "builder-tag": "crossword",
-        "use-elf": true,
-        "nnbd": "strong"
+        "use-elf": true
       }
     },
     "vm-aot-android-(debug|product|release)-(arm|arm64|arm64c)": {
       "options": {
-        "use-elf": true,
-        "nnbd": "strong"
+        "use-elf": true
       }
     },
     "vm-aot-dwarf-linux-(debug|release|product)-x64": {
@@ -610,12 +576,12 @@
         "vm-options": [
           "--dwarf_stack_traces"
         ],
-        "nnbd": "strong",
         "use-elf": true
       }
     },
     "dartkp-linux-(debug|release)-x64": {
       "options": {
+        "nnbd": "legacy",
         "vm-options": [
           "--no-sound-null-safety"
         ],
@@ -627,7 +593,6 @@
     "vm-aot-obfuscate-linux-(debug|release|product)-x64": {
       "options": {
         "builder-tag": "obfuscated",
-        "nnbd": "strong",
         "vm-options": [
           "--obfuscate"
         ]
@@ -635,6 +600,7 @@
     },
     "dartk-linux-(debug|release)-x64": {
       "options": {
+        "nnbd": "legacy",
         "vm-options": [
           "--no-sound-null-safety"
         ]
@@ -658,44 +624,37 @@
         "vm-options": [
           "--optimization-counter-threshold=5",
           "--random-seed=__RANDOM__"
-        ],
-        "nnbd": "strong"
+        ]
       }
     },
     "vm-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
       "options": {
-        "hot-reload": true,
-        "nnbd": "strong"
+        "hot-reload": true
       }
     },
     "vm-reload-rollback-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
       "options": {
-        "hot-reload-rollback": true,
-        "nnbd": "strong"
+        "hot-reload-rollback": true
       }
     },
     "vm-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
-        "use-qemu": true,
-        "nnbd": "strong"
+        "use-qemu": true
       }
     },
     "vm-aot-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
-        "use-qemu": true,
-        "nnbd": "strong"
+        "use-qemu": true
       }
     },
     "vm-appjit-(linux|mac|win)-(debug|product|release)-(x64|arm64)": {
       "options": {
-        "compiler": "app_jitk",
-        "nnbd": "strong"
+        "compiler": "app_jitk"
       }
     },
     "ddc-(linux|win)-chrome": {
       "options": {
         "checked": true,
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -703,14 +662,12 @@
       "options": {
         "architecture": "arm64",
         "checked": true,
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "ddc-linux-firefox": {
       "options": {
         "checked": true,
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -736,7 +693,6 @@
         "ddc-options": [
           "--canary"
         ],
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -753,6 +709,7 @@
     },
     "cfe-(linux|mac|win)": {
       "options": {
+        "nnbd": "legacy",
         "compiler": "fasta"
       }
     },
@@ -768,12 +725,14 @@
     },
     "analyzer-(linux|mac|win)": {
       "options": {
+        "nnbd": "legacy",
         "compiler": "dart2analyzer",
         "use-sdk": true
       }
     },
     "analyzer-asserts-(linux|mac|win)": {
       "options": {
+        "nnbd": "legacy",
         "compiler": "dart2analyzer",
         "enable-asserts": true,
         "use-sdk": true
