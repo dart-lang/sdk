@@ -57,7 +57,7 @@ vars = {
   "co19_2_rev": "ae846ed2a987a2d2dbe4b9e9c68448a21f91ef5b",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "a72da9eed591014535eb47d81185deca39e65ef5",
+  "benchmarks_internal_rev": "f048a4a853e3062056d39c3db100acdde42f16d6",
   "checkout_benchmarks_internal": False,
 
   # Checkout Android dependencies only on Mac and Linux.
