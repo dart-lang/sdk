@@ -993,6 +993,31 @@ class CommonMasks with AbstractValueDomain {
   }
 
   @override
+  bool isValidRefinement(covariant TypeMask before, covariant TypeMask after) {
+    // Consider a typegraph node which simply outputs the union of its inputs,
+    // and suppose such a node has K inputs with types: A, B, C, and D. The
+    // union would flatten to a common supertype, e.g. `Object`. However, a
+    // refinement pass might widen C and D such that they now have the
+    // same type, E. The union now no longer needs flattening and is instead
+    // A | B | E, which is narrower than `Object` rather than wider.
+    //
+    // The violation of monotonicity described above can cause the type of a
+    // given typegraph node to not converge when it is part of a graph cycle
+    // (e.g. mutually recursive functions). The nodes in a cycle can end up
+    // oscillating between the wider and narrower type if the refinement
+    // ordering does not allow any one type to fully propagate through the
+    // cycle. It would be expensive to detect when we are in this scenario and
+    // handle it explicitly so instead we take the conservative approach and
+    // always use the wider type.
+    //
+    // We could assert that every refine must be a widening
+    // (i.e. omit UnionTypeMask type check). But since it is only the behavior
+    // of UnionTypeMask that can lead to a narrowing, we save work by only doing
+    // the subtype check when a UnionTypeMask is involved.
+    return after is! UnionTypeMask || before.isInMask(after, _closedWorld);
+  }
+
+  @override
   TypeMask readAbstractValueFromDataSource(DataSourceReader source) {
     return source
         .readCached<TypeMask>(() => TypeMask.readFromDataSource(source, this));
