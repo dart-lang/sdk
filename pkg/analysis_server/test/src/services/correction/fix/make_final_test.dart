@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -171,6 +172,48 @@ class PreferFinalInForEachTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_final_in_for_each;
 
+  @FailingTest(reason: 'Supported in next linter release')
+  Future<void> test_inList() async {
+    await resolveTestCode('''
+f() {
+  var l = [ for (var i in [1, 2]) i + 3 ];
+}
+''');
+    await assertHasFix('''
+f() {
+  var l = [ for (final i in [1, 2]) i + 3 ];
+}
+''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
+  }
+
+  @FailingTest(reason: 'Supported in next linter release')
+  Future<void> test_listPattern() async {
+    await resolveTestCode('''
+f() {
+  for (var [i, j] in [[1, 2]]) { }
+}
+''');
+    await assertHasFix('''
+f() {
+  for (final [i, j] in [[1, 2]]) { }
+}
+''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
+  }
+
+  @FailingTest(reason: 'Supported in next linter release')
+  Future<void> test_mapPattern() async {
+    await resolveTestCode('''
+f() {
+  for (var {'i' : j} in [{'i' : 1}]) { }
+}
+''');
+    await assertHasFix('''
+f() {
+  for (final {'i' : j} in [{'i' : 1}]) { }
+}
+''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
+  }
+
   Future<void> test_noType() async {
     await resolveTestCode('''
 void fn() {
@@ -186,6 +229,44 @@ void fn() {
   }
 }
 ''');
+  }
+
+  @FailingTest(reason: 'Supported in next linter release')
+  Future<void> test_objectPattern() async {
+    await resolveTestCode('''
+class A {
+  int a;
+  A(this.a);
+}
+
+f() {
+  for (var A(:a) in [A(1)]) { }
+} 
+''');
+    await assertHasFix('''
+class A {
+  int a;
+  A(this.a);
+}
+
+f() {
+  for (final A(:a) in [A(1)]) { }
+} 
+''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
+  }
+
+  @FailingTest(reason: 'Supported in next linter release')
+  Future<void> test_recordPattern() async {
+    await resolveTestCode('''
+f() {
+  for (var (i, j) in [(1, 2)]) { }
+}
+''');
+    await assertHasFix('''
+f() {
+  for (final (i, j) in [(1, 2)]) { }
+}
+''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
   }
 
   Future<void> test_type() async {
