@@ -3032,9 +3032,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     ContainerType containerType =
-        currentTypeParameterScopeBuilder.parent!.containerType;
+        currentTypeParameterScopeBuilder.containerType;
     ContainerName? containerName =
-        currentTypeParameterScopeBuilder.parent!.containerName;
+        currentTypeParameterScopeBuilder.containerName;
 
     NameScheme procedureNameScheme = new NameScheme(
         containerName: containerName,

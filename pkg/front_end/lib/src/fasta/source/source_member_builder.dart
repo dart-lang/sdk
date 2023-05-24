@@ -180,6 +180,7 @@ enum BuiltMemberKind {
   RedirectingFactory,
   Field,
   Method,
+  Factory,
   ExtensionField,
   ExtensionMethod,
   ExtensionGetter,

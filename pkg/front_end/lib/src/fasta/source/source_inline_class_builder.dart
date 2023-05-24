@@ -159,6 +159,7 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       case BuiltMemberKind.RedirectingFactory:
       case BuiltMemberKind.Field:
       case BuiltMemberKind.Method:
+      case BuiltMemberKind.Factory:
       case BuiltMemberKind.ExtensionMethod:
       case BuiltMemberKind.ExtensionGetter:
       case BuiltMemberKind.ExtensionSetter:
@@ -172,6 +173,9 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
         break;
       case BuiltMemberKind.InlineClassConstructor:
         kind = InlineClassMemberKind.Constructor;
+        break;
+      case BuiltMemberKind.InlineClassFactory:
+        kind = InlineClassMemberKind.Factory;
         break;
       case BuiltMemberKind.InlineClassMethod:
         kind = InlineClassMemberKind.Method;

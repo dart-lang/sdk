@@ -4,23 +4,26 @@ import "dart:core" as core;
 
 inline class Class /* declaredRepresentationType = core::int */ {
   constructor • = self::Class|;
-  tearoff • = self::Class|get#;
+  tearoff • = self::Class|_#new#tearOff;
   constructor named = self::Class|named;
-  tearoff named = self::Class|get#named;
+  tearoff named = self::Class|_#named#tearOff;
 }
 inline class GenericClass<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
   constructor • = self::GenericClass|;
+  tearoff • = self::GenericClass|_#new#tearOff;
 }
 static method Class|(core::int it) → self::Class
   ;
-static method Class|get#(core::int it) → self::Class
+static method Class|_#new#tearOff(core::int it) → self::Class
   return self::Class|(it);
 static method Class|named(core::int it) → self::Class
   ;
-static method Class|get#named(core::int it) → self::Class
+static method Class|_#named#tearOff(core::int it) → self::Class
   return self::Class|named(it);
 static method GenericClass|<T extends core::Object? = dynamic>(self::GenericClass|::T% it) → self::GenericClass<self::GenericClass|::T%>
   ;
+static method GenericClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|_#new#tearOff::T%>
+  return self::GenericClass|<self::GenericClass|_#new#tearOff::T%>(it);
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic

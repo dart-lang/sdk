@@ -4,21 +4,21 @@ import "dart:core" as core;
 
 inline class X /* declaredRepresentationType = core::int */ {
   constructor • = self::X|;
-  tearoff • = self::X|get#;
+  tearoff • = self::X|_#new#tearOff;
   constructor named = self::X|named;
-  tearoff named = self::X|get#named;
+  tearoff named = self::X|_#named#tearOff;
 }
 static method X|() → self::X {
   final self::X #this = 0;
   return #this;
 }
-static method X|get#() → self::X
+static method X|_#new#tearOff() → self::X
   return self::X|();
 static method X|named() → self::X {
   final self::X #this = 0;
   return #this;
 }
-static method X|get#named() → self::X
+static method X|_#named#tearOff() → self::X
   return self::X|named();
 static method main() → void {
   core::print(#C1(){() → self::X} as{ForNonNullableByDefault} core::int);
@@ -26,6 +26,6 @@ static method main() → void {
 }
 
 constants  {
-  #C1 = static-tearoff self::X|get#
-  #C2 = static-tearoff self::X|get#named
+  #C1 = static-tearoff self::X|_#new#tearOff
+  #C2 = static-tearoff self::X|_#named#tearOff
 }
