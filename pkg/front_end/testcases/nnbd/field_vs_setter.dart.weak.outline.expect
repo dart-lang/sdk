@@ -279,10 +279,6 @@ library /*isNonNullableByDefault*/;
 //   static final int? duplicateExtensionStaticFieldAndInstanceSetter2 = null;
 //                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart: Error: 'topLevelFieldAndDuplicateSetter' is exported from both 'pkg/front_end/testcases/nnbd/field_vs_setter.dart' and 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart: Error: 'topLevelLateFinalFieldAndDuplicateSetter' is exported from both 'pkg/front_end/testcases/nnbd/field_vs_setter.dart' and 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
-//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:6:10: Error: Conflicts with the implicit setter of the field 'topLevelFieldAndSetter'.
 // void set topLevelFieldAndSetter(int? value) {}
 //          ^
@@ -774,7 +770,6 @@ static field core::int? Extension|duplicateExtensionInstanceFieldAndStaticSetter
 static final field core::int? Extension|duplicateExtensionInstanceFieldAndStaticSetter2;
 static field core::int? Extension|duplicateExtensionStaticFieldAndInstanceSetter1;
 static final field core::int? Extension|duplicateExtensionStaticFieldAndInstanceSetter2;
-static const field dynamic _exports# = "{\"topLevelFieldAndDuplicateSetter\":\"'topLevelFieldAndDuplicateSetter' is exported from both 'pkg/front_end/testcases/nnbd/field_vs_setter.dart' and 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.\",\"topLevelLateFinalFieldAndDuplicateSetter\":\"'topLevelLateFinalFieldAndDuplicateSetter' is exported from both 'pkg/front_end/testcases/nnbd/field_vs_setter.dart' and 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.\"}" /*isLegacy*/;
 static method test() → dynamic
   ;
 static method main() → dynamic

@@ -62,9 +62,8 @@ class _AsyncSuspendState {
 
 // Note: [_AsyncCompleter] is taken as an argument to be able to pass the type
 // parameter to [_AsyncCompleter] without having to add a type parameter to
-// [_AsyncSuspendState].
-//
-// TODO (omersa): I'm not sure if the type parameter is necessary?
+// [_AsyncSuspendState]. Completer type parameter is passed to the completer's
+// future, which the outer function returns to the caller.
 @pragma("wasm:entry-point")
 _AsyncSuspendState _newAsyncSuspendState(_AsyncResumeFun resume,
         WasmStructRef? context, _AsyncCompleter completer) =>

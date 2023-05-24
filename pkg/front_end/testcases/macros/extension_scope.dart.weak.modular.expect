@@ -1,0 +1,287 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/macros/extension_scope.dart:8:5: Error: The method '_namedExtensionPrivateMethod' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named '_namedExtensionPrivateMethod'.
+//   c._namedExtensionPrivateMethod(); // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/extension_scope.dart:9:5: Error: The method 'unnamedExtensionMethod' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'unnamedExtensionMethod'.
+//   c.unnamedExtensionMethod(); // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/extension_scope.dart:10:5: Error: The method '_unnamedExtensionPrivateMethod' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named '_unnamedExtensionPrivateMethod'.
+//   c._unnamedExtensionPrivateMethod(); // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/extension_scope.dart:12:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
+//   c._namedInjectedExtensionPrivateMethod1(); // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/extension_scope.dart:13:5: Error: The method 'unnamedInjectedExtensionMethod1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'unnamedInjectedExtensionMethod1'.
+//   c.unnamedInjectedExtensionMethod1(); // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/extension_scope.dart:14:5: Error: The method '_unnamedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named '_unnamedInjectedExtensionPrivateMethod1'.
+//   c._unnamedInjectedExtensionPrivateMethod1(); // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/extension_scope.dart:16:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
+//   c._namedInjectedExtensionPrivateMethod2(); // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/extension_scope.dart:17:5: Error: The method 'unnamedInjectedExtensionMethod2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'unnamedInjectedExtensionMethod2'.
+//   c.unnamedInjectedExtensionMethod2(); // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/extension_scope.dart:18:5: Error: The method '_unnamedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named '_unnamedInjectedExtensionPrivateMethod2'.
+//   c._unnamedInjectedExtensionPrivateMethod2(); // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "extension_scope_lib.dart" as ext;
+
+import "org-dartlang-testcase:///extension_scope_lib.dart";
+
+static method test(ext::Class c) → dynamic {
+  invalid-expression "pkg/front_end/testcases/macros/extension_scope.dart:8:5: Error: The method '_namedExtensionPrivateMethod' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+Try correcting the name to the name of an existing method, or defining a method named '_namedExtensionPrivateMethod'.
+  c._namedExtensionPrivateMethod(); // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._namedExtensionPrivateMethod();
+  invalid-expression "pkg/front_end/testcases/macros/extension_scope.dart:9:5: Error: The method 'unnamedExtensionMethod' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'unnamedExtensionMethod'.
+  c.unnamedExtensionMethod(); // Error
+    ^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.unnamedExtensionMethod();
+  invalid-expression "pkg/front_end/testcases/macros/extension_scope.dart:10:5: Error: The method '_unnamedExtensionPrivateMethod' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+Try correcting the name to the name of an existing method, or defining a method named '_unnamedExtensionPrivateMethod'.
+  c._unnamedExtensionPrivateMethod(); // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._unnamedExtensionPrivateMethod();
+  invalid-expression "pkg/front_end/testcases/macros/extension_scope.dart:12:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
+  c._namedInjectedExtensionPrivateMethod1(); // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._namedInjectedExtensionPrivateMethod1();
+  invalid-expression "pkg/front_end/testcases/macros/extension_scope.dart:13:5: Error: The method 'unnamedInjectedExtensionMethod1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'unnamedInjectedExtensionMethod1'.
+  c.unnamedInjectedExtensionMethod1(); // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.unnamedInjectedExtensionMethod1();
+  invalid-expression "pkg/front_end/testcases/macros/extension_scope.dart:14:5: Error: The method '_unnamedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+Try correcting the name to the name of an existing method, or defining a method named '_unnamedInjectedExtensionPrivateMethod1'.
+  c._unnamedInjectedExtensionPrivateMethod1(); // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._unnamedInjectedExtensionPrivateMethod1();
+  invalid-expression "pkg/front_end/testcases/macros/extension_scope.dart:16:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
+  c._namedInjectedExtensionPrivateMethod2(); // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._namedInjectedExtensionPrivateMethod2();
+  invalid-expression "pkg/front_end/testcases/macros/extension_scope.dart:17:5: Error: The method 'unnamedInjectedExtensionMethod2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'unnamedInjectedExtensionMethod2'.
+  c.unnamedInjectedExtensionMethod2(); // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.unnamedInjectedExtensionMethod2();
+  invalid-expression "pkg/front_end/testcases/macros/extension_scope.dart:18:5: Error: The method '_unnamedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/extension_scope_lib.dart'.
+Try correcting the name to the name of an existing method, or defining a method named '_unnamedInjectedExtensionPrivateMethod2'.
+  c._unnamedInjectedExtensionPrivateMethod2(); // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._unnamedInjectedExtensionPrivateMethod2();
+}
+static method method(ext::Class c) → dynamic {
+  ext::Extension|namedExtensionMethod(c);
+  ext::NamedInjectedExtension1|namedInjectedExtensionMethod1(c);
+  ext::NamedInjectedExtension2|namedInjectedExtensionMethod2(c);
+}
+static method main() → dynamic {
+  self::method(new ext::Class::•());
+}
+
+library /*isNonNullableByDefault*/;
+import self as ext;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///extension_scope_lib.dart";
+import "org-dartlang-testcase:///extension_scope_lib.dart";
+
+class Class extends core::Object {
+  synthetic constructor •() → ext::Class
+    : super core::Object::•()
+    ;
+  method _method() → void {
+    ext::Extension|namedExtensionMethod(this);
+    ext::Extension|_namedExtensionPrivateMethod(this);
+    ext::_extension#5|unnamedExtensionMethod(this);
+    ext::_extension#5|_unnamedExtensionPrivateMethod(this);
+    ext::NamedInjectedExtension1|namedInjectedExtensionMethod1(this);
+    ext::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(this);
+    ext::_extension#1|unnamedInjectedExtensionMethod1(this);
+    ext::_extension#1|_unnamedInjectedExtensionPrivateMethod1(this);
+    ext::NamedInjectedExtension2|namedInjectedExtensionMethod2(this);
+    ext::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(this);
+    ext::_extension#3|unnamedInjectedExtensionMethod2(this);
+    ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2(this);
+  }
+  method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _method1() → void {
+    ext::Extension|namedExtensionMethod(this);
+    ext::Extension|_namedExtensionPrivateMethod(this);
+    ext::_extension#5|unnamedExtensionMethod(this);
+    ext::_extension#5|_unnamedExtensionPrivateMethod(this);
+    ext::NamedInjectedExtension1|namedInjectedExtensionMethod1(this);
+    ext::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(this);
+    ext::_extension#1|unnamedInjectedExtensionMethod1(this);
+    ext::_extension#1|_unnamedInjectedExtensionPrivateMethod1(this);
+    ext::NamedInjectedExtension2|namedInjectedExtensionMethod2(this);
+    ext::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(this);
+    ext::_extension#3|unnamedInjectedExtensionMethod2(this);
+    ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2(this);
+  }
+  method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _method2() → void {
+    ext::Extension|namedExtensionMethod(this);
+    ext::Extension|_namedExtensionPrivateMethod(this);
+    ext::_extension#5|unnamedExtensionMethod(this);
+    ext::_extension#5|_unnamedExtensionPrivateMethod(this);
+    ext::NamedInjectedExtension1|namedInjectedExtensionMethod1(this);
+    ext::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(this);
+    ext::_extension#1|unnamedInjectedExtensionMethod1(this);
+    ext::_extension#1|_unnamedInjectedExtensionPrivateMethod1(this);
+    ext::NamedInjectedExtension2|namedInjectedExtensionMethod2(this);
+    ext::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(this);
+    ext::_extension#3|unnamedInjectedExtensionMethod2(this);
+    ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2(this);
+  }
+}
+extension NamedInjectedExtension1 on ext::Class { // from org-dartlang-testcase:///extension_scope_lib1.dart
+  method namedInjectedExtensionMethod1 = ext::NamedInjectedExtension1|namedInjectedExtensionMethod1;
+  tearoff namedInjectedExtensionMethod1 = ext::NamedInjectedExtension1|get#namedInjectedExtensionMethod1;
+  method _namedInjectedExtensionPrivateMethod1 = ext::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1;
+  tearoff _namedInjectedExtensionPrivateMethod1 = ext::NamedInjectedExtension1|get#_namedInjectedExtensionPrivateMethod1;
+}
+extension /* unnamed */ _extension#1 on ext::Class { // from org-dartlang-testcase:///extension_scope_lib1.dart
+  method unnamedInjectedExtensionMethod1 = ext::_extension#1|unnamedInjectedExtensionMethod1;
+  tearoff unnamedInjectedExtensionMethod1 = ext::_extension#1|get#unnamedInjectedExtensionMethod1;
+  method _unnamedInjectedExtensionPrivateMethod1 = ext::_extension#1|_unnamedInjectedExtensionPrivateMethod1;
+  tearoff _unnamedInjectedExtensionPrivateMethod1 = ext::_extension#1|get#_unnamedInjectedExtensionPrivateMethod1;
+}
+extension NamedInjectedExtension2 on ext::Class { // from org-dartlang-testcase:///extension_scope_lib2.dart
+  method namedInjectedExtensionMethod2 = ext::NamedInjectedExtension2|namedInjectedExtensionMethod2;
+  tearoff namedInjectedExtensionMethod2 = ext::NamedInjectedExtension2|get#namedInjectedExtensionMethod2;
+  method _namedInjectedExtensionPrivateMethod2 = ext::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2;
+  tearoff _namedInjectedExtensionPrivateMethod2 = ext::NamedInjectedExtension2|get#_namedInjectedExtensionPrivateMethod2;
+}
+extension /* unnamed */ _extension#3 on ext::Class { // from org-dartlang-testcase:///extension_scope_lib2.dart
+  method unnamedInjectedExtensionMethod2 = ext::_extension#3|unnamedInjectedExtensionMethod2;
+  tearoff unnamedInjectedExtensionMethod2 = ext::_extension#3|get#unnamedInjectedExtensionMethod2;
+  method _unnamedInjectedExtensionPrivateMethod2 = ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2;
+  tearoff _unnamedInjectedExtensionPrivateMethod2 = ext::_extension#3|get#_unnamedInjectedExtensionPrivateMethod2;
+}
+extension Extension on ext::Class {
+  method namedExtensionMethod = ext::Extension|namedExtensionMethod;
+  tearoff namedExtensionMethod = ext::Extension|get#namedExtensionMethod;
+  method _namedExtensionPrivateMethod = ext::Extension|_namedExtensionPrivateMethod;
+  tearoff _namedExtensionPrivateMethod = ext::Extension|get#_namedExtensionPrivateMethod;
+}
+extension /* unnamed */ _extension#5 on ext::Class {
+  method unnamedExtensionMethod = ext::_extension#5|unnamedExtensionMethod;
+  tearoff unnamedExtensionMethod = ext::_extension#5|get#unnamedExtensionMethod;
+  method _unnamedExtensionPrivateMethod = ext::_extension#5|_unnamedExtensionPrivateMethod;
+  tearoff _unnamedExtensionPrivateMethod = ext::_extension#5|get#_unnamedExtensionPrivateMethod;
+}
+static method _method(ext::Class c) → void {
+  ext::Extension|namedExtensionMethod(c);
+  ext::Extension|_namedExtensionPrivateMethod(c);
+  ext::_extension#5|unnamedExtensionMethod(c);
+  ext::_extension#5|_unnamedExtensionPrivateMethod(c);
+  ext::NamedInjectedExtension1|namedInjectedExtensionMethod1(c);
+  ext::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(c);
+  ext::_extension#1|unnamedInjectedExtensionMethod1(c);
+  ext::_extension#1|_unnamedInjectedExtensionPrivateMethod1(c);
+  ext::NamedInjectedExtension2|namedInjectedExtensionMethod2(c);
+  ext::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(c);
+  ext::_extension#3|unnamedInjectedExtensionMethod2(c);
+  ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2(c);
+}
+static method Extension|namedExtensionMethod(lowered final ext::Class #this) → void {}
+static method Extension|get#namedExtensionMethod(lowered final ext::Class #this) → () → void
+  return () → void => ext::Extension|namedExtensionMethod(#this);
+static method Extension|_namedExtensionPrivateMethod(lowered final ext::Class #this) → void {}
+static method Extension|get#_namedExtensionPrivateMethod(lowered final ext::Class #this) → () → void
+  return () → void => ext::Extension|_namedExtensionPrivateMethod(#this);
+static method _extension#5|unnamedExtensionMethod(lowered final ext::Class #this) → void {}
+static method _extension#5|get#unnamedExtensionMethod(lowered final ext::Class #this) → () → void
+  return () → void => ext::_extension#5|unnamedExtensionMethod(#this);
+static method _extension#5|_unnamedExtensionPrivateMethod(lowered final ext::Class #this) → void {}
+static method _extension#5|get#_unnamedExtensionPrivateMethod(lowered final ext::Class #this) → () → void
+  return () → void => ext::_extension#5|_unnamedExtensionPrivateMethod(#this);
+static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _method1(ext::Class c) → void {
+  ext::Extension|namedExtensionMethod(c);
+  ext::Extension|_namedExtensionPrivateMethod(c);
+  ext::_extension#5|unnamedExtensionMethod(c);
+  ext::_extension#5|_unnamedExtensionPrivateMethod(c);
+  ext::NamedInjectedExtension1|namedInjectedExtensionMethod1(c);
+  ext::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(c);
+  ext::_extension#1|unnamedInjectedExtensionMethod1(c);
+  ext::_extension#1|_unnamedInjectedExtensionPrivateMethod1(c);
+  ext::NamedInjectedExtension2|namedInjectedExtensionMethod2(c);
+  ext::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(c);
+  ext::_extension#3|unnamedInjectedExtensionMethod2(c);
+  ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2(c);
+}
+static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|namedInjectedExtensionMethod1(lowered final ext::Class #this) → void {}
+static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|get#namedInjectedExtensionMethod1(lowered final ext::Class #this) → () → void
+  return () → void => ext::NamedInjectedExtension1|namedInjectedExtensionMethod1(#this);
+static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → void {}
+static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|get#_namedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → () → void
+  return () → void => ext::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(#this);
+static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|unnamedInjectedExtensionMethod1(lowered final ext::Class #this) → void {}
+static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|get#unnamedInjectedExtensionMethod1(lowered final ext::Class #this) → () → void
+  return () → void => ext::_extension#1|unnamedInjectedExtensionMethod1(#this);
+static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|_unnamedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → void {}
+static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|get#_unnamedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → () → void
+  return () → void => ext::_extension#1|_unnamedInjectedExtensionPrivateMethod1(#this);
+static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _method2(ext::Class c) → void {
+  ext::Extension|namedExtensionMethod(c);
+  ext::Extension|_namedExtensionPrivateMethod(c);
+  ext::_extension#5|unnamedExtensionMethod(c);
+  ext::_extension#5|_unnamedExtensionPrivateMethod(c);
+  ext::NamedInjectedExtension1|namedInjectedExtensionMethod1(c);
+  ext::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(c);
+  ext::_extension#1|unnamedInjectedExtensionMethod1(c);
+  ext::_extension#1|_unnamedInjectedExtensionPrivateMethod1(c);
+  ext::NamedInjectedExtension2|namedInjectedExtensionMethod2(c);
+  ext::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(c);
+  ext::_extension#3|unnamedInjectedExtensionMethod2(c);
+  ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2(c);
+}
+static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|namedInjectedExtensionMethod2(lowered final ext::Class #this) → void {}
+static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|get#namedInjectedExtensionMethod2(lowered final ext::Class #this) → () → void
+  return () → void => ext::NamedInjectedExtension2|namedInjectedExtensionMethod2(#this);
+static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → void {}
+static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|get#_namedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → () → void
+  return () → void => ext::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(#this);
+static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|unnamedInjectedExtensionMethod2(lowered final ext::Class #this) → void {}
+static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|get#unnamedInjectedExtensionMethod2(lowered final ext::Class #this) → () → void
+  return () → void => ext::_extension#3|unnamedInjectedExtensionMethod2(#this);
+static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|_unnamedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → void {}
+static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|get#_unnamedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → () → void
+  return () → void => ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2(#this);

@@ -5,7 +5,6 @@
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
 import 'dart:_internal';
-import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';
 
