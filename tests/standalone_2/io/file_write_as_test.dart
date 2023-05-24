@@ -31,6 +31,13 @@ testWriteAsStringSync(dir) {
   Expect.equals('$data$data', f.readAsStringSync());
 }
 
+void testWriteAsStringSyncLineEndings(Directory dir) {
+  final f = new File('${dir.path}/eol.txt');
+  f.writeAsStringSync('Hi\nLo', flush: true);
+  final readBytes = f.readAsBytesSync();
+  Expect.listEquals([72, 105, 10, 76, 111], readBytes);
+}
+
 testWriteWithLargeList(dir) {
   // 0x100000000 exceeds the maximum of unsigned long.
   // This should no longer hang.
@@ -136,6 +143,7 @@ main() {
   var tempDir = Directory.systemTemp.createTempSync('dart_file_write_as');
   testWriteAsBytesSync(tempDir);
   testWriteAsStringSync(tempDir);
+  testWriteAsStringSyncLineEndings(tempDir);
   testWriteWithLargeList(tempDir);
   testWriteAsSubtypeSync(tempDir);
   testCustomizedSubtypeSync(tempDir);
