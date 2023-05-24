@@ -2,6 +2,53 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/macros/library_members_import.dart:8:3: Error: Method not found: 'orphanedMethod'.
+//   orphanedMethod();
+//   ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/library_members_import.dart:9:3: Error: Setter not found: 'orphanedSetter'.
+//   orphanedSetter = 0;
+//   ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/library_members_import.dart:10:7: Error: Couldn't find constructor 'OrphanedClass'.
+//   new OrphanedClass();
+//       ^^^^^^^^^^^^^
+//
+import self as self;
+import "library_members.dart" as lib;
+
+import "org-dartlang-testcase:///library_members.dart";
+
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/macros/library_members_import.dart:8:3: Error: Method not found: 'orphanedMethod'.
+  orphanedMethod();
+  ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/macros/library_members_import.dart:9:3: Error: Setter not found: 'orphanedSetter'.
+  orphanedSetter = 0;
+  ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/macros/library_members_import.dart:10:7: Error: Couldn't find constructor 'OrphanedClass'.
+  new OrphanedClass();
+      ^^^^^^^^^^^^^";
+}
+static method main() → dynamic {
+  lib::augmentedMethod();
+  lib::injectedMethod();
+  lib::existingMethod();
+  lib::ExistingClass2();
+  lib::augmentedSetter = 0;
+  lib::injectedSetter = 0;
+  lib::existingSetter = 0;
+  new lib::ExistingClass::•();
+  new lib::AugmentedClass::•();
+  new lib::InjectedClass::•();
+  new lib::existingMethod2::•();
+  lib::augmentMain();
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
 // pkg/front_end/testcases/macros/library_members_lib.dart:8:6: Error: Member 'existingMethod' conflicts with an existing member of the same name in the augmented library.
 // Try changing the name of the member or adding an 'augment' modifier.
 // void existingMethod() {
@@ -69,43 +116,43 @@ library /*isNonNullableByDefault*/;
 //   new OrphanedClass();
 //       ^^^^^^^^^^^^^
 //
-import self as self;
+import self as lib;
 import "dart:core" as core;
 
 import "org-dartlang-testcase:///library_members.dart";
 
 class ExistingClass#0#1 extends core::Object { // from org-dartlang-testcase:///library_members_lib.dart
-  synthetic constructor •() → self::ExistingClass#0#1
+  synthetic constructor •() → lib::ExistingClass#0#1
     : super core::Object::•()
     ;
 }
 class ExistingClass2#0#1 extends core::Object { // from org-dartlang-testcase:///library_members_lib.dart
-  synthetic constructor •() → self::ExistingClass2#0#1
+  synthetic constructor •() → lib::ExistingClass2#0#1
     : super core::Object::•()
     ;
 }
 class InjectedClass extends core::Object { // from org-dartlang-testcase:///library_members_lib.dart
-  synthetic constructor •() → self::InjectedClass
+  synthetic constructor •() → lib::InjectedClass
     : super core::Object::•()
     ;
 }
 class OrphanedClass extends core::Object { // from org-dartlang-testcase:///library_members_lib.dart
-  synthetic constructor •() → self::OrphanedClass
+  synthetic constructor •() → lib::OrphanedClass
     : super core::Object::•()
     ;
 }
 class ExistingClass extends core::Object {
-  synthetic constructor •() → self::ExistingClass
+  synthetic constructor •() → lib::ExistingClass
     : super core::Object::•()
     ;
 }
 class AugmentedClass extends core::Object {
-  synthetic constructor •() → self::AugmentedClass
+  synthetic constructor •() → lib::AugmentedClass
     : super core::Object::•()
     ;
 }
 class existingMethod2 extends core::Object {
-  synthetic constructor •() → self::existingMethod2
+  synthetic constructor •() → lib::existingMethod2
     : super core::Object::•()
     ;
 }
@@ -134,18 +181,18 @@ static method test() → dynamic {
       ^^^^^^^^^^^^^";
 }
 static method main() → dynamic {
-  self::augmentedMethod();
-  self::injectedMethod();
-  self::existingMethod();
-  self::ExistingClass2();
-  self::augmentedSetter = 0;
-  self::injectedSetter = 0;
-  self::existingSetter = 0;
-  new self::ExistingClass::•();
-  new self::AugmentedClass::•();
-  new self::InjectedClass::•();
-  new self::existingMethod2::•();
-  self::augmentMain();
+  lib::augmentedMethod();
+  lib::injectedMethod();
+  lib::existingMethod();
+  lib::ExistingClass2();
+  lib::augmentedSetter = 0;
+  lib::injectedSetter = 0;
+  lib::existingSetter = 0;
+  new lib::ExistingClass::•();
+  new lib::AugmentedClass::•();
+  new lib::InjectedClass::•();
+  new lib::existingMethod2::•();
+  lib::augmentMain();
 }
 static method /* from org-dartlang-testcase:///library_members_lib.dart */ existingMethod#1() → void {
   core::print("existingMethod-duplicate");
@@ -169,19 +216,19 @@ static set /* from org-dartlang-testcase:///library_members_lib.dart */ orphaned
   core::print("orphanedSetter");
 }
 static method /* from org-dartlang-testcase:///library_members_lib.dart */ augmentTest() → void {
-  self::orphanedMethod();
-  self::orphanedMethod();
-  self::orphanedSetter = 0;
-  new self::OrphanedClass::•();
+  lib::orphanedMethod();
+  lib::orphanedMethod();
+  lib::orphanedSetter = 0;
+  new lib::OrphanedClass::•();
 }
 static method /* from org-dartlang-testcase:///library_members_lib.dart */ augmentMain() → void {
-  self::augmentedMethod();
-  self::injectedMethod();
-  self::existingMethod#1();
-  self::augmentedSetter = 0;
-  self::injectedSetter = 0;
-  self::existingSetter#1 = 0;
-  new self::ExistingClass#0#1::•();
-  new self::AugmentedClass::•();
-  new self::InjectedClass::•();
+  lib::augmentedMethod();
+  lib::injectedMethod();
+  lib::existingMethod#1();
+  lib::augmentedSetter = 0;
+  lib::injectedSetter = 0;
+  lib::existingSetter#1 = 0;
+  new lib::ExistingClass#0#1::•();
+  new lib::AugmentedClass::•();
+  new lib::InjectedClass::•();
 }
