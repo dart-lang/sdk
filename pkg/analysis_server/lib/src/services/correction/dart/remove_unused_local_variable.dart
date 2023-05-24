@@ -72,6 +72,11 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
         }
       case DeclaredVariablePattern declaredVariable:
         switch (node.parent) {
+          case ListPattern _:
+          case MapPatternEntry _:
+            return _deleteDeclarationInContainerPattern(
+              declaredVariable: declaredVariable,
+            );
           case LogicalAndPattern logicalAnd:
             return _deleteDeclarationInLogicalAndPattern(
               declaredVariable: declaredVariable,
@@ -87,6 +92,25 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
 
     // We don't know the declaration, disable the fix.
     return false;
+  }
+
+  bool _deleteDeclarationInContainerPattern({
+    required DeclaredVariablePattern declaredVariable,
+  }) {
+    final String replacement;
+    if (declaredVariable.type case final typeNode?) {
+      final typeStr = utils.getNodeText(typeNode);
+      replacement = '$typeStr _';
+    } else {
+      replacement = '_';
+    }
+    _commands.add(
+      _ReplaceSourceRangeCommand(
+        sourceRange: range.node(declaredVariable),
+        replacement: replacement,
+      ),
+    );
+    return true;
   }
 
   bool _deleteDeclarationInLogicalAndPattern({
