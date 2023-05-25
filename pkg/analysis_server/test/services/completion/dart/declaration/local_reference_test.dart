@@ -5413,8 +5413,7 @@ void f() {
   print("hello \${n^0.length}");
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
   right: 1
@@ -5422,16 +5421,6 @@ suggestions
   n0
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 1
-suggestions
-  n0
-    kind: localVariable
-''');
-    }
   }
 
   Future<void> test_isExpression() async {
@@ -7202,8 +7191,7 @@ void f0() {
   a0.^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   b0
     kind: field
@@ -7217,22 +7205,6 @@ suggestions
   s1
     kind: setter
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  b0
-    kind: field
-    deprecated: true
-  d0
-    kind: getter
-  f0
-    kind: getter
-  m0
-    kind: methodInvocation
-  s1
-    kind: setter
-''');
-    }
   }
 
   Future<void> test_prefixedIdentifier_class_local() async {

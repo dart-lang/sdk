@@ -216,23 +216,13 @@ void f() {
   C.i0^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   i0
     kind: getter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  i0
-    kind: getter
-''');
-    }
   }
 
   Future<void> test_afterPeriod_private() async {
