@@ -66,7 +66,7 @@ import '../test_utils.dart';
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();
 
-abstract class MatchContext implements ChainContext {
+mixin MatchContext implements ChainContext {
   bool get updateExpectations;
 
   String get updateExpectationsOption;
