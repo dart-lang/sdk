@@ -553,7 +553,6 @@
     },
     "dart2wasm-hostasserts-linux-x64-d8": {
       "options": {
-        "nnbd": "legacy",
         "host-checked": true,
         "timeout": 240,
         "builder-tag": "dart2wasm"
