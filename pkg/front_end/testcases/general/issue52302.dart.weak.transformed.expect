@@ -1,0 +1,583 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "issue52302_lib.dart" as iss;
+import "dart:_internal" as _in;
+import "dart:collection" as col;
+
+import "org-dartlang-testcase:///issue52302_lib.dart";
+
+abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object implements iss::MixesInMixin /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy, from org-dartlang-sdk:///sdk/lib/core/iterable.dart */;
+  const synthetic constructor •() → self::_MixesInMixesInMixin&Object&MixesInMixin
+    : super core::Object::•()
+    ;
+  abstract get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterator() → core::Iterator<core::int>;
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ cast<R extends core::Object? = dynamic>() → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::cast::R%>
+    return _in::CastIterable::•<core::int, self::_MixesInMixesInMixin&Object&MixesInMixin::cast::R%>(this);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ followedBy(covariant-by-class core::Iterable<core::int> other) → core::Iterable<core::int> {
+    core::Iterable<core::int> self = this;
+    if(self is{ForNonNullableByDefault} _in::EfficientLengthIterable<core::int>) {
+      return _in::FollowedByIterable::firstEfficient<core::int>(self{_in::EfficientLengthIterable<core::int>}, other);
+    }
+    return new _in::FollowedByIterable::•<core::int>(this, other);
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ map<T extends core::Object? = dynamic>((core::int) → self::_MixesInMixesInMixin&Object&MixesInMixin::map::T% toElement) → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::map::T%>
+    return _in::MappedIterable::•<core::int, self::_MixesInMixesInMixin&Object&MixesInMixin::map::T%>(this, toElement);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ where((core::int) → core::bool test) → core::Iterable<core::int>
+    return new _in::WhereIterable::•<core::int>(this, test);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ whereType<T extends core::Object? = dynamic>() → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::whereType::T%>
+    return new _in::WhereTypeIterable::•<self::_MixesInMixesInMixin&Object&MixesInMixin::whereType::T%>(this);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ expand<T extends core::Object? = dynamic>((core::int) → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::expand::T%> toElements) → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::expand::T%>
+    return new _in::ExpandIterable::•<core::int, self::_MixesInMixesInMixin&Object&MixesInMixin::expand::T%>(this, toElements);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ contains(core::Object? element) → core::bool {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int e = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          if(e =={core::Object::==}{(core::Object) → core::bool} element)
+            return true;
+        }
+      }
+    }
+    return false;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ forEach((core::int) → void action) → void {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
+        action(element){(core::int) → void};
+      }
+    }
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ reduce(covariant-by-class (core::int, core::int) → core::int combine) → core::int {
+    core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    if(!iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+      throw _in::IterableElementError::noElement();
+    }
+    core::int value = iterator.{core::Iterator::current}{core::int};
+    while (iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+      value = combine(value, iterator.{core::Iterator::current}{core::int}){(core::int, core::int) → core::int};
+    }
+    return value;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ fold<T extends core::Object? = dynamic>(self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T% initialValue, (self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T%, core::int) → self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T% combine) → self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T% {
+    self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T% value = initialValue;
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
+        value = combine(value, element){(self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T%, core::int) → self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T%};
+      }
+    }
+    return value;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ every((core::int) → core::bool test) → core::bool {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          if(!test(element){(core::int) → core::bool})
+            return false;
+        }
+      }
+    }
+    return true;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ join([core::String separator = #C2]) → core::String {
+    core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
+      return "";
+    core::String first = iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String};
+    if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
+      return first;
+    core::StringBuffer buffer = new core::StringBuffer::•(first);
+    if(separator == null || separator.{core::String::isEmpty}{core::bool}) {
+      do {
+        buffer.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String}){(core::Object?) → void};
+      }
+      while (iterator.{core::Iterator::moveNext}(){() → core::bool})
+    }
+    else {
+      do {
+        let final core::StringBuffer #t1 = buffer in block {
+          #t1.{core::StringBuffer::write}(separator){(core::Object?) → void};
+          #t1.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String}){(core::Object?) → void};
+        } =>#t1;
+      }
+      while (iterator.{core::Iterator::moveNext}(){() → core::bool})
+    }
+    return buffer.{core::StringBuffer::toString}(){() → core::String};
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ any((core::int) → core::bool test) → core::bool {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          if(test(element){(core::int) → core::bool})
+            return true;
+        }
+      }
+    }
+    return false;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toList({core::bool growable = #C3}) → core::List<core::int>
+    return core::List::of<core::int>(this, growable: growable);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toSet() → core::Set<core::int>
+    return col::LinkedHashSet::of<core::int>(this);
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ length() → core::int {
+    assert(!(this is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>));
+    core::int count = 0;
+    core::Iterator<core::Object?> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    while (it.{core::Iterator::moveNext}(){() → core::bool}) {
+      count = count.{core::num::+}(1){(core::num) → core::int};
+    }
+    return count;
+  }
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ isEmpty() → core::bool
+    return !this.{core::Iterable::iterator}{core::Iterator<core::int>}.{core::Iterator::moveNext}(){() → core::bool};
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ isNotEmpty() → core::bool
+    return !this.{core::Iterable::isEmpty}{core::bool};
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ take(core::int count) → core::Iterable<core::int>
+    return _in::TakeIterable::•<core::int>(this, count);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ takeWhile((core::int) → core::bool test) → core::Iterable<core::int>
+    return new _in::TakeWhileIterable::•<core::int>(this, test);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ skip(core::int count) → core::Iterable<core::int>
+    return _in::SkipIterable::•<core::int>(this, count);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ skipWhile((core::int) → core::bool test) → core::Iterable<core::int>
+    return new _in::SkipWhileIterable::•<core::int>(this, test);
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ first() → core::int {
+    core::Iterator<core::int> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    if(!it.{core::Iterator::moveNext}(){() → core::bool}) {
+      throw _in::IterableElementError::noElement();
+    }
+    return it.{core::Iterator::current}{core::int};
+  }
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ last() → core::int {
+    core::Iterator<core::int> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    if(!it.{core::Iterator::moveNext}(){() → core::bool}) {
+      throw _in::IterableElementError::noElement();
+    }
+    core::int result;
+    do {
+      result = it.{core::Iterator::current}{core::int};
+    }
+    while (it.{core::Iterator::moveNext}(){() → core::bool})
+    return result;
+  }
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ single() → core::int {
+    core::Iterator<core::int> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    if(!it.{core::Iterator::moveNext}(){() → core::bool})
+      throw _in::IterableElementError::noElement();
+    core::int result = it.{core::Iterator::current}{core::int};
+    if(it.{core::Iterator::moveNext}(){() → core::bool})
+      throw _in::IterableElementError::tooMany();
+    return result;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          if(test(element){(core::int) → core::bool})
+            return element;
+        }
+      }
+    }
+    if(!(orElse == null))
+      return orElse{() → core::int}(){() → core::int};
+    throw _in::IterableElementError::noElement();
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+    core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    core::int result;
+    do {
+      if(!iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+        if(!(orElse == null))
+          return orElse{() → core::int}(){() → core::int};
+        throw _in::IterableElementError::noElement();
+      }
+      result = iterator.{core::Iterator::current}{core::int};
+    }
+    while (!test(result){(core::int) → core::bool})
+    while (iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+      core::int current = iterator.{core::Iterator::current}{core::int};
+      if(test(current){(core::int) → core::bool})
+        result = current;
+    }
+    return result;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+    core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    core::int result;
+    do {
+      if(!iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+        if(!(orElse == null))
+          return orElse{() → core::int}(){() → core::int};
+        throw _in::IterableElementError::noElement();
+      }
+      result = iterator.{core::Iterator::current}{core::int};
+    }
+    while (!test(result){(core::int) → core::bool})
+    while (iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+      if(test(iterator.{core::Iterator::current}{core::int}){(core::int) → core::bool})
+        throw _in::IterableElementError::tooMany();
+    }
+    return result;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ elementAt(core::int index) → core::int {
+    core::RangeError::checkNotNegative(index, "index");
+    core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    core::int skipCount = index;
+    while (iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+      if(skipCount =={core::num::==}{(core::Object) → core::bool} 0)
+        return iterator.{core::Iterator::current}{core::int};
+      skipCount = skipCount.{core::num::-}(1){(core::num) → core::int};
+    }
+    throw new core::IndexError::withLength(index, index.{core::num::-}(skipCount){(core::num) → core::int}, indexable: this, name: "index");
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toString() → core::String
+    return core::Iterable::iterableToShortString(this, "(", ")");
+  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ castFrom<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::S%> source) → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::T%>
+    return _in::CastIterable::•<self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::S%, self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::T%>(source);
+  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToShortString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C5, core::String rightDelimiter = #C6]) → core::String {
+    if(_in::isToStringVisiting(iterable)) {
+      if(leftDelimiter =={core::String::==}{(core::Object) → core::bool} "(" && rightDelimiter =={core::String::==}{(core::Object) → core::bool} ")") {
+        return "(...)";
+      }
+      return "${leftDelimiter}...${rightDelimiter}";
+    }
+    core::List<core::String> parts = core::_GrowableList::•<core::String>(0);
+    _in::toStringVisiting.{core::List::add}(iterable){(core::Object) → void};
+    try {
+      core::_iterablePartsToStrings(iterable, parts);
+    }
+    finally {
+      assert(core::identical(_in::toStringVisiting.{core::Iterable::last}{core::Object}, iterable));
+      _in::toStringVisiting.{core::List::removeLast}(){() → core::Object};
+    }
+    return (let final core::StringBuffer #t2 = new core::StringBuffer::•(leftDelimiter) in block {
+      #t2.{core::StringBuffer::writeAll}(parts, ", "){(core::Iterable<dynamic>, [core::String]) → void};
+      #t2.{core::StringBuffer::write}(rightDelimiter){(core::Object?) → void};
+    } =>#t2).{core::StringBuffer::toString}(){() → core::String};
+  }
+  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToFullString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C5, core::String rightDelimiter = #C6]) → core::String {
+    if(_in::isToStringVisiting(iterable)) {
+      return "${leftDelimiter}...${rightDelimiter}";
+    }
+    core::StringBuffer buffer = new core::StringBuffer::•(leftDelimiter);
+    _in::toStringVisiting.{core::List::add}(iterable){(core::Object) → void};
+    try {
+      buffer.{core::StringBuffer::writeAll}(iterable, ", "){(core::Iterable<dynamic>, [core::String]) → void};
+    }
+    finally {
+      assert(core::identical(_in::toStringVisiting.{core::Iterable::last}{core::Object}, iterable));
+      _in::toStringVisiting.{core::List::removeLast}(){() → core::Object};
+    }
+    buffer.{core::StringBuffer::write}(rightDelimiter){(core::Object?) → void};
+    return buffer.{core::StringBuffer::toString}(){() → core::String};
+  }
+}
+abstract base class MixesInMixesInMixin extends self::_MixesInMixesInMixin&Object&MixesInMixin {
+  synthetic constructor •() → self::MixesInMixesInMixin
+    : super self::_MixesInMixesInMixin&Object&MixesInMixin::•()
+    ;
+}
+static method main() → void {}
+
+library /*isNonNullableByDefault*/;
+import self as iss;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+import "dart:collection" as col;
+
+abstract mixin class MixesInMixin extends core::Object implements core::Iterable<core::int> /*isEliminatedMixin,hasConstConstructor*/  {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy, from org-dartlang-sdk:///sdk/lib/core/iterable.dart */;
+  const synthetic constructor •() → iss::MixesInMixin
+    : super core::Object::•()
+    ;
+  abstract get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterator() → core::Iterator<core::int>;
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ cast<R extends core::Object? = dynamic>() → core::Iterable<iss::MixesInMixin::cast::R%>
+    return _in::CastIterable::•<core::int, iss::MixesInMixin::cast::R%>(this);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ followedBy(covariant-by-class core::Iterable<core::int> other) → core::Iterable<core::int> {
+    core::Iterable<core::int> self = this;
+    if(self is{ForNonNullableByDefault} _in::EfficientLengthIterable<core::int>) {
+      return _in::FollowedByIterable::firstEfficient<core::int>(self{_in::EfficientLengthIterable<core::int>}, other);
+    }
+    return new _in::FollowedByIterable::•<core::int>(this, other);
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ map<T extends core::Object? = dynamic>((core::int) → iss::MixesInMixin::map::T% toElement) → core::Iterable<iss::MixesInMixin::map::T%>
+    return _in::MappedIterable::•<core::int, iss::MixesInMixin::map::T%>(this, toElement);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ where((core::int) → core::bool test) → core::Iterable<core::int>
+    return new _in::WhereIterable::•<core::int>(this, test);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ whereType<T extends core::Object? = dynamic>() → core::Iterable<iss::MixesInMixin::whereType::T%>
+    return new _in::WhereTypeIterable::•<iss::MixesInMixin::whereType::T%>(this);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ expand<T extends core::Object? = dynamic>((core::int) → core::Iterable<iss::MixesInMixin::expand::T%> toElements) → core::Iterable<iss::MixesInMixin::expand::T%>
+    return new _in::ExpandIterable::•<core::int, iss::MixesInMixin::expand::T%>(this, toElements);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ contains(core::Object? element) → core::bool {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int e = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          if(e =={core::Object::==}{(core::Object) → core::bool} element)
+            return true;
+        }
+      }
+    }
+    return false;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ forEach((core::int) → void action) → void {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
+        action(element){(core::int) → void};
+      }
+    }
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ reduce(covariant-by-class (core::int, core::int) → core::int combine) → core::int {
+    core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    if(!iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+      throw _in::IterableElementError::noElement();
+    }
+    core::int value = iterator.{core::Iterator::current}{core::int};
+    while (iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+      value = combine(value, iterator.{core::Iterator::current}{core::int}){(core::int, core::int) → core::int};
+    }
+    return value;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ fold<T extends core::Object? = dynamic>(iss::MixesInMixin::fold::T% initialValue, (iss::MixesInMixin::fold::T%, core::int) → iss::MixesInMixin::fold::T% combine) → iss::MixesInMixin::fold::T% {
+    iss::MixesInMixin::fold::T% value = initialValue;
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
+        value = combine(value, element){(iss::MixesInMixin::fold::T%, core::int) → iss::MixesInMixin::fold::T%};
+      }
+    }
+    return value;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ every((core::int) → core::bool test) → core::bool {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          if(!test(element){(core::int) → core::bool})
+            return false;
+        }
+      }
+    }
+    return true;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ join([core::String separator = #C2]) → core::String {
+    core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
+      return "";
+    core::String first = iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String};
+    if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
+      return first;
+    core::StringBuffer buffer = new core::StringBuffer::•(first);
+    if(separator == null || separator.{core::String::isEmpty}{core::bool}) {
+      do {
+        buffer.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String}){(core::Object?) → void};
+      }
+      while (iterator.{core::Iterator::moveNext}(){() → core::bool})
+    }
+    else {
+      do {
+        let final core::StringBuffer #t3 = buffer in block {
+          #t3.{core::StringBuffer::write}(separator){(core::Object?) → void};
+          #t3.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String}){(core::Object?) → void};
+        } =>#t3;
+      }
+      while (iterator.{core::Iterator::moveNext}(){() → core::bool})
+    }
+    return buffer.{core::StringBuffer::toString}(){() → core::String};
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ any((core::int) → core::bool test) → core::bool {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          if(test(element){(core::int) → core::bool})
+            return true;
+        }
+      }
+    }
+    return false;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toList({core::bool growable = #C3}) → core::List<core::int>
+    return core::List::of<core::int>(this, growable: growable);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toSet() → core::Set<core::int>
+    return col::LinkedHashSet::of<core::int>(this);
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ length() → core::int {
+    assert(!(this is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>));
+    core::int count = 0;
+    core::Iterator<core::Object?> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    while (it.{core::Iterator::moveNext}(){() → core::bool}) {
+      count = count.{core::num::+}(1){(core::num) → core::int};
+    }
+    return count;
+  }
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ isEmpty() → core::bool
+    return !this.{core::Iterable::iterator}{core::Iterator<core::int>}.{core::Iterator::moveNext}(){() → core::bool};
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ isNotEmpty() → core::bool
+    return !this.{core::Iterable::isEmpty}{core::bool};
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ take(core::int count) → core::Iterable<core::int>
+    return _in::TakeIterable::•<core::int>(this, count);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ takeWhile((core::int) → core::bool test) → core::Iterable<core::int>
+    return new _in::TakeWhileIterable::•<core::int>(this, test);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ skip(core::int count) → core::Iterable<core::int>
+    return _in::SkipIterable::•<core::int>(this, count);
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ skipWhile((core::int) → core::bool test) → core::Iterable<core::int>
+    return new _in::SkipWhileIterable::•<core::int>(this, test);
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ first() → core::int {
+    core::Iterator<core::int> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    if(!it.{core::Iterator::moveNext}(){() → core::bool}) {
+      throw _in::IterableElementError::noElement();
+    }
+    return it.{core::Iterator::current}{core::int};
+  }
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ last() → core::int {
+    core::Iterator<core::int> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    if(!it.{core::Iterator::moveNext}(){() → core::bool}) {
+      throw _in::IterableElementError::noElement();
+    }
+    core::int result;
+    do {
+      result = it.{core::Iterator::current}{core::int};
+    }
+    while (it.{core::Iterator::moveNext}(){() → core::bool})
+    return result;
+  }
+  get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ single() → core::int {
+    core::Iterator<core::int> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    if(!it.{core::Iterator::moveNext}(){() → core::bool})
+      throw _in::IterableElementError::noElement();
+    core::int result = it.{core::Iterator::current}{core::int};
+    if(it.{core::Iterator::moveNext}(){() → core::bool})
+      throw _in::IterableElementError::tooMany();
+    return result;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          if(test(element){(core::int) → core::bool})
+            return element;
+        }
+      }
+    }
+    if(!(orElse == null))
+      return orElse{() → core::int}(){() → core::int};
+    throw _in::IterableElementError::noElement();
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+    core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    core::int result;
+    do {
+      if(!iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+        if(!(orElse == null))
+          return orElse{() → core::int}(){() → core::int};
+        throw _in::IterableElementError::noElement();
+      }
+      result = iterator.{core::Iterator::current}{core::int};
+    }
+    while (!test(result){(core::int) → core::bool})
+    while (iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+      core::int current = iterator.{core::Iterator::current}{core::int};
+      if(test(current){(core::int) → core::bool})
+        result = current;
+    }
+    return result;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+    core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    core::int result;
+    do {
+      if(!iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+        if(!(orElse == null))
+          return orElse{() → core::int}(){() → core::int};
+        throw _in::IterableElementError::noElement();
+      }
+      result = iterator.{core::Iterator::current}{core::int};
+    }
+    while (!test(result){(core::int) → core::bool})
+    while (iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+      if(test(iterator.{core::Iterator::current}{core::int}){(core::int) → core::bool})
+        throw _in::IterableElementError::tooMany();
+    }
+    return result;
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ elementAt(core::int index) → core::int {
+    core::RangeError::checkNotNegative(index, "index");
+    core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
+    core::int skipCount = index;
+    while (iterator.{core::Iterator::moveNext}(){() → core::bool}) {
+      if(skipCount =={core::num::==}{(core::Object) → core::bool} 0)
+        return iterator.{core::Iterator::current}{core::int};
+      skipCount = skipCount.{core::num::-}(1){(core::num) → core::int};
+    }
+    throw new core::IndexError::withLength(index, index.{core::num::-}(skipCount){(core::num) → core::int}, indexable: this, name: "index");
+  }
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toString() → core::String
+    return core::Iterable::iterableToShortString(this, "(", ")");
+  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ castFrom<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(core::Iterable<iss::MixesInMixin::castFrom::S%> source) → core::Iterable<iss::MixesInMixin::castFrom::T%>
+    return _in::CastIterable::•<iss::MixesInMixin::castFrom::S%, iss::MixesInMixin::castFrom::T%>(source);
+  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToShortString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C5, core::String rightDelimiter = #C6]) → core::String {
+    if(_in::isToStringVisiting(iterable)) {
+      if(leftDelimiter =={core::String::==}{(core::Object) → core::bool} "(" && rightDelimiter =={core::String::==}{(core::Object) → core::bool} ")") {
+        return "(...)";
+      }
+      return "${leftDelimiter}...${rightDelimiter}";
+    }
+    core::List<core::String> parts = core::_GrowableList::•<core::String>(0);
+    _in::toStringVisiting.{core::List::add}(iterable){(core::Object) → void};
+    try {
+      core::_iterablePartsToStrings(iterable, parts);
+    }
+    finally {
+      assert(core::identical(_in::toStringVisiting.{core::Iterable::last}{core::Object}, iterable));
+      _in::toStringVisiting.{core::List::removeLast}(){() → core::Object};
+    }
+    return (let final core::StringBuffer #t4 = new core::StringBuffer::•(leftDelimiter) in block {
+      #t4.{core::StringBuffer::writeAll}(parts, ", "){(core::Iterable<dynamic>, [core::String]) → void};
+      #t4.{core::StringBuffer::write}(rightDelimiter){(core::Object?) → void};
+    } =>#t4).{core::StringBuffer::toString}(){() → core::String};
+  }
+  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToFullString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C5, core::String rightDelimiter = #C6]) → core::String {
+    if(_in::isToStringVisiting(iterable)) {
+      return "${leftDelimiter}...${rightDelimiter}";
+    }
+    core::StringBuffer buffer = new core::StringBuffer::•(leftDelimiter);
+    _in::toStringVisiting.{core::List::add}(iterable){(core::Object) → void};
+    try {
+      buffer.{core::StringBuffer::writeAll}(iterable, ", "){(core::Iterable<dynamic>, [core::String]) → void};
+    }
+    finally {
+      assert(core::identical(_in::toStringVisiting.{core::Iterable::last}{core::Object}, iterable));
+      _in::toStringVisiting.{core::List::removeLast}(){() → core::Object};
+    }
+    buffer.{core::StringBuffer::write}(rightDelimiter){(core::Object?) → void};
+    return buffer.{core::StringBuffer::toString}(){() → core::String};
+  }
+}
+
+constants  {
+  #C1 = constructor-tearoff core::Iterable::empty
+  #C2 = ""
+  #C3 = true
+  #C4 = null
+  #C5 = "("
+  #C6 = ")"
+}

@@ -1,0 +1,150 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "issue52302_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue52302_lib.dart";
+
+abstract class _MixesInMixesInMixin&Object&MixesInMixin = core::Object with iss::MixesInMixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MixesInMixesInMixin&Object&MixesInMixin
+    : super core::Object::•()
+    ;
+  abstract mixin-stub get iterator() → core::Iterator<core::int>; -> core::Iterable::iterator
+  mixin-super-stub method cast<R extends core::Object? = dynamic>() → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::cast::R%>
+    return super.{core::Iterable::cast}<self::_MixesInMixesInMixin&Object&MixesInMixin::cast::R%>();
+  mixin-super-stub method followedBy(covariant-by-class core::Iterable<core::int> other) → core::Iterable<core::int>
+    return super.{core::Iterable::followedBy}(other);
+  mixin-super-stub method map<T extends core::Object? = dynamic>((core::int) → self::_MixesInMixesInMixin&Object&MixesInMixin::map::T% toElement) → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::map::T%>
+    return super.{core::Iterable::map}<self::_MixesInMixesInMixin&Object&MixesInMixin::map::T%>(toElement);
+  mixin-super-stub method where((core::int) → core::bool test) → core::Iterable<core::int>
+    return super.{core::Iterable::where}(test);
+  mixin-super-stub method whereType<T extends core::Object? = dynamic>() → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::whereType::T%>
+    return super.{core::Iterable::whereType}<self::_MixesInMixesInMixin&Object&MixesInMixin::whereType::T%>();
+  mixin-super-stub method expand<T extends core::Object? = dynamic>((core::int) → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::expand::T%> toElements) → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::expand::T%>
+    return super.{core::Iterable::expand}<self::_MixesInMixesInMixin&Object&MixesInMixin::expand::T%>(toElements);
+  mixin-super-stub method contains(core::Object? element) → core::bool
+    return super.{core::Iterable::contains}(element);
+  mixin-super-stub method forEach((core::int) → void action) → void
+    return super.{core::Iterable::forEach}(action);
+  mixin-super-stub method reduce(covariant-by-class (core::int, core::int) → core::int combine) → core::int
+    return super.{core::Iterable::reduce}(combine);
+  mixin-super-stub method fold<T extends core::Object? = dynamic>(self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T% initialValue, (self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T%, core::int) → self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T% combine) → self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T%
+    return super.{core::Iterable::fold}<self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T%>(initialValue, combine);
+  mixin-super-stub method every((core::int) → core::bool test) → core::bool
+    return super.{core::Iterable::every}(test);
+  mixin-super-stub method join([core::String separator]) → core::String
+    return super.{core::Iterable::join}(separator);
+  mixin-super-stub method any((core::int) → core::bool test) → core::bool
+    return super.{core::Iterable::any}(test);
+  mixin-super-stub method toList({core::bool growable}) → core::List<core::int>
+    return super.{core::Iterable::toList}(growable: growable);
+  mixin-super-stub method toSet() → core::Set<core::int>
+    return super.{core::Iterable::toSet}();
+  mixin-super-stub get length() → core::int
+    return super.{core::Iterable::length};
+  mixin-super-stub get isEmpty() → core::bool
+    return super.{core::Iterable::isEmpty};
+  mixin-super-stub get isNotEmpty() → core::bool
+    return super.{core::Iterable::isNotEmpty};
+  mixin-super-stub method take(core::int count) → core::Iterable<core::int>
+    return super.{core::Iterable::take}(count);
+  mixin-super-stub method takeWhile((core::int) → core::bool test) → core::Iterable<core::int>
+    return super.{core::Iterable::takeWhile}(test);
+  mixin-super-stub method skip(core::int count) → core::Iterable<core::int>
+    return super.{core::Iterable::skip}(count);
+  mixin-super-stub method skipWhile((core::int) → core::bool test) → core::Iterable<core::int>
+    return super.{core::Iterable::skipWhile}(test);
+  mixin-super-stub get first() → core::int
+    return super.{core::Iterable::first};
+  mixin-super-stub get last() → core::int
+    return super.{core::Iterable::last};
+  mixin-super-stub get single() → core::int
+    return super.{core::Iterable::single};
+  mixin-super-stub method firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+    return super.{core::Iterable::firstWhere}(test, orElse: orElse);
+  mixin-super-stub method lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+    return super.{core::Iterable::lastWhere}(test, orElse: orElse);
+  mixin-super-stub method singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+    return super.{core::Iterable::singleWhere}(test, orElse: orElse);
+  mixin-super-stub method elementAt(core::int index) → core::int
+    return super.{core::Iterable::elementAt}(index);
+  mixin-super-stub method toString() → core::String
+    return super.{core::Iterable::toString}();
+}
+abstract base class MixesInMixesInMixin extends self::_MixesInMixesInMixin&Object&MixesInMixin {
+  synthetic constructor •() → self::MixesInMixesInMixin
+    ;
+}
+static method main() → void
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as iss;
+import "dart:core" as core;
+
+abstract mixin class MixesInMixin = core::Object with core::Iterable<core::int> /*hasConstConstructor*/  {
+  const synthetic constructor •() → iss::MixesInMixin
+    : super core::Object::•()
+    ;
+  abstract mixin-stub get iterator() → core::Iterator<core::int>; -> core::Iterable::iterator
+  mixin-super-stub method cast<R extends core::Object? = dynamic>() → core::Iterable<iss::MixesInMixin::cast::R%>
+    return super.{core::Iterable::cast}<iss::MixesInMixin::cast::R%>();
+  mixin-super-stub method followedBy(covariant-by-class core::Iterable<core::int> other) → core::Iterable<core::int>
+    return super.{core::Iterable::followedBy}(other);
+  mixin-super-stub method map<T extends core::Object? = dynamic>((core::int) → iss::MixesInMixin::map::T% toElement) → core::Iterable<iss::MixesInMixin::map::T%>
+    return super.{core::Iterable::map}<iss::MixesInMixin::map::T%>(toElement);
+  mixin-super-stub method where((core::int) → core::bool test) → core::Iterable<core::int>
+    return super.{core::Iterable::where}(test);
+  mixin-super-stub method whereType<T extends core::Object? = dynamic>() → core::Iterable<iss::MixesInMixin::whereType::T%>
+    return super.{core::Iterable::whereType}<iss::MixesInMixin::whereType::T%>();
+  mixin-super-stub method expand<T extends core::Object? = dynamic>((core::int) → core::Iterable<iss::MixesInMixin::expand::T%> toElements) → core::Iterable<iss::MixesInMixin::expand::T%>
+    return super.{core::Iterable::expand}<iss::MixesInMixin::expand::T%>(toElements);
+  mixin-super-stub method contains(core::Object? element) → core::bool
+    return super.{core::Iterable::contains}(element);
+  mixin-super-stub method forEach((core::int) → void action) → void
+    return super.{core::Iterable::forEach}(action);
+  mixin-super-stub method reduce(covariant-by-class (core::int, core::int) → core::int combine) → core::int
+    return super.{core::Iterable::reduce}(combine);
+  mixin-super-stub method fold<T extends core::Object? = dynamic>(iss::MixesInMixin::fold::T% initialValue, (iss::MixesInMixin::fold::T%, core::int) → iss::MixesInMixin::fold::T% combine) → iss::MixesInMixin::fold::T%
+    return super.{core::Iterable::fold}<iss::MixesInMixin::fold::T%>(initialValue, combine);
+  mixin-super-stub method every((core::int) → core::bool test) → core::bool
+    return super.{core::Iterable::every}(test);
+  mixin-super-stub method join([core::String separator]) → core::String
+    return super.{core::Iterable::join}(separator);
+  mixin-super-stub method any((core::int) → core::bool test) → core::bool
+    return super.{core::Iterable::any}(test);
+  mixin-super-stub method toList({core::bool growable}) → core::List<core::int>
+    return super.{core::Iterable::toList}(growable: growable);
+  mixin-super-stub method toSet() → core::Set<core::int>
+    return super.{core::Iterable::toSet}();
+  mixin-super-stub get length() → core::int
+    return super.{core::Iterable::length};
+  mixin-super-stub get isEmpty() → core::bool
+    return super.{core::Iterable::isEmpty};
+  mixin-super-stub get isNotEmpty() → core::bool
+    return super.{core::Iterable::isNotEmpty};
+  mixin-super-stub method take(core::int count) → core::Iterable<core::int>
+    return super.{core::Iterable::take}(count);
+  mixin-super-stub method takeWhile((core::int) → core::bool test) → core::Iterable<core::int>
+    return super.{core::Iterable::takeWhile}(test);
+  mixin-super-stub method skip(core::int count) → core::Iterable<core::int>
+    return super.{core::Iterable::skip}(count);
+  mixin-super-stub method skipWhile((core::int) → core::bool test) → core::Iterable<core::int>
+    return super.{core::Iterable::skipWhile}(test);
+  mixin-super-stub get first() → core::int
+    return super.{core::Iterable::first};
+  mixin-super-stub get last() → core::int
+    return super.{core::Iterable::last};
+  mixin-super-stub get single() → core::int
+    return super.{core::Iterable::single};
+  mixin-super-stub method firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+    return super.{core::Iterable::firstWhere}(test, orElse: orElse);
+  mixin-super-stub method lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+    return super.{core::Iterable::lastWhere}(test, orElse: orElse);
+  mixin-super-stub method singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+    return super.{core::Iterable::singleWhere}(test, orElse: orElse);
+  mixin-super-stub method elementAt(core::int index) → core::int
+    return super.{core::Iterable::elementAt}(index);
+  mixin-super-stub method toString() → core::String
+    return super.{core::Iterable::toString}();
+}
