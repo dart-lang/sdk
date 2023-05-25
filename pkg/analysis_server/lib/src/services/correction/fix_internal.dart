@@ -216,6 +216,7 @@ import 'package:analysis_server/src/services/correction/dart/sort_child_property
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
+import 'package:analysis_server/src/services/correction/dart/split_multiple_declarations.dart';
 import 'package:analysis_server/src/services/correction/dart/surround_with_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
@@ -430,6 +431,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_init_to_null: [
       RemoveInitializer.bulkFixable,
+    ],
+    LintNames.avoid_multiple_declarations_per_line: [
+      SplitMultipleDeclarations.new,
     ],
     LintNames.avoid_null_checks_in_equality_operators: [
       RemoveComparison.new,

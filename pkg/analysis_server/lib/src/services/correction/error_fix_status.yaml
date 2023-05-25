@@ -1904,9 +1904,7 @@ LintCode.avoid_init_to_null:
 LintCode.avoid_js_rounded_ints:
   status: noFix
 LintCode.avoid_multiple_declarations_per_line:
-  status: needsFix
-  notes: |-
-    The fix is to split the declaration into multiple lines.
+  status: hasFix
 LintCode.avoid_null_checks_in_equality_operators:
   status: hasFix
 LintCode.avoid_positional_boolean_parameters:

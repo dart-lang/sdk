@@ -262,6 +262,8 @@ import 'sort_combinators_test.dart' as sort_combinators_test;
 import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
 import 'sort_unnamed_constructor_first_test.dart'
     as sort_unnamed_constructor_first_test;
+import 'split_multiple_declarations_test.dart'
+    as split_multiple_declarations_test;
 import 'surround_with_parentheses_test.dart' as surround_with_parentheses;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_curly_braces_test.dart' as use_curly_braces;
@@ -500,6 +502,7 @@ void main() {
     sort_constructor_first_test.main();
     sort_combinators_test.main();
     sort_unnamed_constructor_first_test.main();
+    split_multiple_declarations_test.main();
     surround_with_parentheses.main();
     update_sdk_constraints.main();
     use_curly_braces.main();
