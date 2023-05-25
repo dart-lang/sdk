@@ -989,8 +989,6 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   Timer? _closeTimer;
   _WebSocketPerMessageDeflate? _deflate;
 
-  static final HttpClient _httpClient = HttpClient();
-
   static Future<WebSocket> connect(
       String url, Iterable<String>? protocols, Map<String, dynamic>? headers,
       {CompressionOptions compression = CompressionOptions.compressionDefault,
@@ -1018,7 +1016,12 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         path: uri.path,
         query: uri.query,
         fragment: uri.fragment);
-    return (customClient ?? _httpClient).openUrl("GET", uri).then((request) {
+    final client = customClient ?? HttpClient();
+    // The default userAgent is only overriden, if no custom HttpClient is set.
+    if (customClient == null && _overrideUserAgent) {
+      client.userAgent = _userAgent;
+    }
+    return client.openUrl("GET", uri).then((request) {
       if (uri.userInfo != null && uri.userInfo.isNotEmpty) {
         // If the URL contains user information use that for basic
         // authorization.
@@ -1263,11 +1266,16 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     }
     return _sink.close();
   }
+  
+  static bool _overrideUserAgent = false;
 
-  static String? get userAgent => _httpClient.userAgent;
+  static String? _userAgent;
+
+  static String? get userAgent => _userAgent;
 
   static set userAgent(String? userAgent) {
-    _httpClient.userAgent = userAgent;
+    _userAgent = userAgent;
+    _overrideUserAgent = true;
   }
 
   void _close([int? code, String? reason]) {
