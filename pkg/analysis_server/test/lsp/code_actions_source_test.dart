@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:linter/src/rules.dart';
@@ -63,18 +65,67 @@ linter:
   rules:
     - unnecessary_new
     - prefer_collection_literals
-    ''';
+''';
     const content = '''
-    final a = new Object();
-    final b = new Set<String>();
-    ''';
+final a = new Object();
+final b = new Set<String>();
+''';
     const expectedContent = '''
-    final a = Object();
-    final b = <String>{};
-    ''';
+final a = Object();
+final b = <String>{};
+''';
 
     registerLintRules();
     newFile(analysisOptionsPath, analysisOptionsContent);
+    newFile(mainFilePath, content);
+
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    final codeActions = await getSourceCodeActions(mainFileUri);
+    final codeAction = findCommand(codeActions, Commands.fixAll)!;
+
+    await verifyCodeActionEdits(codeAction, content, expectedContent);
+  }
+
+  Future<void> test_unusedUsings_notRemovedIfSave() async {
+    const content = '''
+import 'dart:async';
+int? a;
+''';
+
+    newFile(mainFilePath, content);
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    final codeActions = await getSourceCodeActions(mainFileUri,
+        triggerKind: CodeActionTriggerKind.Automatic);
+    final command = findCommand(codeActions, Commands.fixAll)!
+        .map((command) => command, (action) => action.command)!;
+
+    // We should not get an applyEdit call during the command execution because
+    // no edits should be produced.
+    final applyEditSubscription = requestsFromServer
+        .where((n) => n.method == Method.workspace_applyEdit)
+        .listen((_) => throw 'workspace/applyEdit was unexpectedly called');
+    final commandResponse = await executeCommand(command);
+    expect(commandResponse, isNull);
+
+    await pumpEventQueue();
+    await applyEditSubscription.cancel();
+  }
+
+  Future<void> test_unusedUsings_removedByDefault() async {
+    const content = '''
+import 'dart:async';
+int? a;
+''';
+    const expectedContent = '''
+int? a;
+''';
+
     newFile(mainFilePath, content);
 
     await initialize(
@@ -99,14 +150,14 @@ import 'dart:convert';
 
 Completer foo;
 int minified(int x, int y) => min(x, y);
-    ''';
+''';
     const expectedContent = '''
 import 'dart:async';
 import 'dart:math';
 
 Completer foo;
 int minified(int x, int y) => min(x, y);
-    ''';
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities: withApplyEditSupport(
@@ -127,14 +178,14 @@ import 'dart:convert';
 
 Completer foo;
 int minified(int x, int y) => min(x, y);
-    ''';
+''';
     const expectedContent = '''
 import 'dart:async';
 import 'dart:math';
 
 Completer foo;
 int minified(int x, int y) => min(x, y);
-    ''';
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
@@ -246,7 +297,7 @@ import 'dart:math';
 
 Completer foo;
 int minified(int x, int y) => min(x, y);
-    ''';
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
@@ -294,13 +345,13 @@ int minified(int x, int y) => min(x, y);
 class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
   Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
     const content = '''
-    String b;
-    String a;
-    ''';
+String b;
+String a;
+''';
     const expectedContent = '''
-    String a;
-    String b;
-    ''';
+String a;
+String b;
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities: withApplyEditSupport(
@@ -315,13 +366,13 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
 
   Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
     const content = '''
-    String b;
-    String a;
-    ''';
+String b;
+String a;
+''';
     const expectedContent = '''
-    String a;
-    String b;
-    ''';
+String a;
+String b;
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
@@ -365,9 +416,9 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
 
   Future<void> test_failsIfClientDoesntApplyEdits() async {
     const content = '''
-    String b;
-    String a;
-    ''';
+String b;
+String a;
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:

@@ -211,14 +211,15 @@ class BulkFixProcessor {
 
   /// Return a change builder that has been used to create fixes for the
   /// diagnostics in [file] in the given [context].
-  Future<ChangeBuilder> fixErrorsForFile(
-      AnalysisContext context, String path) async {
+  Future<ChangeBuilder> fixErrorsForFile(AnalysisContext context, String path,
+      {bool removeUnusedImports = true}) async {
     var pathContext = context.contextRoot.resourceProvider.pathContext;
 
     if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
       var library = await context.currentSession.getResolvedLibrary(path);
       if (!isCancelled && library is ResolvedLibraryResult) {
-        await _fixErrorsInLibrary(library);
+        await _fixErrorsInLibrary(library,
+            removeUnusedImports: removeUnusedImports);
       }
     }
 
@@ -306,7 +307,7 @@ class BulkFixProcessor {
   /// Use the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result,
-      {bool stopAfterFirst = false}) async {
+      {bool stopAfterFirst = false, bool removeUnusedImports = true}) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
 
     Iterable<AnalysisError> filteredErrors(ResolvedUnitResult result) sync* {
@@ -372,7 +373,7 @@ class BulkFixProcessor {
     var definingUnit = result.units[0];
     AnalysisError? directivesOrderingError;
     var unusedImportErrors = <AnalysisError>[];
-    if (!builder.hasEditsFor(definingUnit.path)) {
+    if (removeUnusedImports && !builder.hasEditsFor(definingUnit.path)) {
       for (var error in filteredErrors(definingUnit)) {
         var errorCode = error.errorCode;
         if (errorCode is LintCode) {
