@@ -389,7 +389,7 @@ typedef struct {
   const char* value;
 } Dart_TimelineRecorderEvent_Argument;
 
-#define DART_TIMELINE_RECORDER_CURRENT_VERSION (0x00000001)
+#define DART_TIMELINE_RECORDER_CURRENT_VERSION (0x00000002)
 
 typedef struct {
   /* Set to DART_TIMELINE_RECORDER_CURRENT_VERSION */
@@ -415,6 +415,12 @@ typedef struct {
    * Dart_CurrentIsolateGroupId, or ILLEGAL_PORT if the event had no current
    * isolate group. */
   Dart_IsolateGroupId isolate_group;
+
+  /* The callback data associated with the isolate if any. */
+  void* isolate_data;
+
+  /* The callback data associated with the isolate group if any. */
+  void* isolate_group_data;
 
   /* The name / label of the event. */
   const char* label;

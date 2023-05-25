@@ -448,6 +448,8 @@ static Dart_Port expected_isolate;
 static Dart_IsolateGroupId expected_isolate_group;
 static bool saw_begin;
 static bool saw_end;
+static void* expected_isolate_data;
+static void* expected_isolate_group_data;
 
 static void TestTimelineRecorderCallback(Dart_TimelineRecorderEvent* event) {
   EXPECT_EQ(DART_TIMELINE_RECORDER_CURRENT_VERSION, event->version);
@@ -458,6 +460,8 @@ static void TestTimelineRecorderCallback(Dart_TimelineRecorderEvent* event) {
     EXPECT_NE(0, event->timestamp0);
     EXPECT_EQ(expected_isolate, event->isolate);
     EXPECT_EQ(expected_isolate_group, event->isolate_group);
+    EXPECT_EQ(expected_isolate_data, event->isolate_data);
+    EXPECT_EQ(expected_isolate_group_data, event->isolate_group_data);
     EXPECT_STREQ("Dart", event->stream);
     EXPECT_EQ(1, event->argument_count);
     EXPECT_STREQ("Dart Arguments", event->arguments[0].name);
@@ -470,6 +474,8 @@ static void TestTimelineRecorderCallback(Dart_TimelineRecorderEvent* event) {
     EXPECT_NE(0, event->timestamp0);
     EXPECT_EQ(expected_isolate, event->isolate);
     EXPECT_EQ(expected_isolate_group, event->isolate_group);
+    EXPECT_EQ(expected_isolate_data, event->isolate_data);
+    EXPECT_EQ(expected_isolate_group_data, event->isolate_group_data);
     EXPECT_STREQ("Dart", event->stream);
     EXPECT_EQ(1, event->argument_count);
     EXPECT_STREQ("Dart Arguments", event->arguments[0].name);
@@ -498,9 +504,13 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
   params.cleanup_group = TesterState::group_cleanup_callback;
   params.start_kernel_isolate = true;
 
+  int64_t isolate_data = 0;
+
   EXPECT(Dart_Initialize(&params) == nullptr);
   {
-    TestIsolateScope scope;
+    // Note: run_vm_tests will create and attach an instance of
+    // bin::IsolateGroupData to the newly created isolate group.
+    TestIsolateScope scope(/*isolate_group_data=*/nullptr, &isolate_data);
     const char* kScriptChars =
         "import 'dart:developer';\n"
         "main() {\n"
@@ -514,6 +524,9 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
     EXPECT_NE(ILLEGAL_PORT, expected_isolate);
     expected_isolate_group = Dart_CurrentIsolateGroupId();
     EXPECT_NE(ILLEGAL_PORT, expected_isolate_group);
+    expected_isolate_data = &isolate_data;
+    EXPECT_EQ(expected_isolate_data, Dart_CurrentIsolateData());
+    expected_isolate_group_data = Dart_CurrentIsolateGroupData();
     saw_begin = false;
     saw_end = false;
 

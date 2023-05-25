@@ -679,6 +679,10 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   auto isolate_group = thread != nullptr ? thread->isolate_group() : nullptr;
   isolate_id_ = (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT;
   isolate_group_id_ = (isolate_group != nullptr) ? isolate_group->id() : 0;
+  isolate_data_ =
+      (isolate != nullptr) ? isolate->init_callback_data() : nullptr;
+  isolate_group_data_ =
+      (isolate_group != nullptr) ? isolate_group->embedder_data() : nullptr;
   label_ = label;
   arguments_.Free();
   set_event_type(event_type);
@@ -1929,6 +1933,8 @@ void TimelineEventEmbedderCallbackRecorder::OnEvent(TimelineEvent* event) {
   recorder_event.timestamp1_or_async_id = event->timestamp1();
   recorder_event.isolate = event->isolate_id();
   recorder_event.isolate_group = event->isolate_group_id();
+  recorder_event.isolate_data = event->isolate_data();
+  recorder_event.isolate_group_data = event->isolate_group_data();
   recorder_event.label = event->label();
   recorder_event.stream = event->stream()->name();
   recorder_event.argument_count = event->GetNumArguments();

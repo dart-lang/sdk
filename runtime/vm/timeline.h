@@ -474,6 +474,10 @@ class TimelineEvent {
 
   uint64_t isolate_group_id() const { return isolate_group_id_; }
 
+  void* isolate_data() const { return isolate_data_; }
+
+  void* isolate_group_data() const { return isolate_group_data_; }
+
   const char* label() const { return label_; }
 
   // Does this duration end before |micros| ?
@@ -597,6 +601,8 @@ class TimelineEvent {
   ThreadId thread_;
   Dart_Port isolate_id_;
   uint64_t isolate_group_id_;
+  void* isolate_data_;
+  void* isolate_group_data_;
   TimelineEvent* next_;
 
   friend class TimelineEventRecorder;
