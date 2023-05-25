@@ -32,13 +32,13 @@ part '../test.dart';
     await resolveTestCode('''
 part of my.lib;
 
-class A {} 
+class A {}
 ''');
 
     await assertHasFix('''
 part of 'nested/a.dart';
 
-class A {} 
+class A {}
 ''');
   }
 
@@ -48,18 +48,18 @@ library my.lib;
 part 'nested/test.dart';
 ''');
 
-    testFile = '$testPackageLibPath/nested/test.dart';
+    testFile = getFile('$testPackageLibPath/nested/test.dart').path;
 
     await resolveTestCode('''
 part of my.lib;
 
-class A {} 
+class A {}
 ''');
 
     await assertHasFix('''
 part of '../a.dart';
 
-class A {} 
+class A {}
 ''');
   }
 
@@ -72,13 +72,13 @@ part 'test.dart';
     await resolveTestCode('''
 part of my.lib;
 
-class A {} 
+class A {}
 ''');
 
     await assertHasFix('''
 part of 'a.dart';
 
-class A {} 
+class A {}
 ''');
   }
 
@@ -88,18 +88,18 @@ library my.lib;
 part '../second/test.dart';
 ''');
 
-    testFile = '$testPackageLibPath/second/test.dart';
+    testFile = getFile('$testPackageLibPath/second/test.dart').path;
 
     await resolveTestCode('''
 part of my.lib;
 
-class A {} 
+class A {}
 ''');
 
     await assertHasFix('''
 part of '../first/a.dart';
 
-class A {} 
+class A {}
 ''');
   }
 }

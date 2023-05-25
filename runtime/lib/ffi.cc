@@ -13,6 +13,7 @@
 #include "vm/class_id.h"
 #include "vm/compiler/ffi/native_type.h"
 #include "vm/exceptions.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/flags.h"
 #include "vm/heap/gc_shared.h"
 #include "vm/log.h"
@@ -76,31 +77,8 @@ CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA)
 
 DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   const auto& function = Function::CheckedHandle(zone, arguments->NativeArg0());
-  const auto& code =
-      Code::Handle(zone, FLAG_precompiled_mode ? function.CurrentCode()
-                                               : function.EnsureHasCode());
-  ASSERT(!code.IsNull());
-
-  uword entry_point = code.EntryPoint();
-
-  // In JIT we use one more indirection:
-  //   * AOT: Native -> Ffi Trampoline -> Dart function
-  //   * JIT: Native -> Jit trampoline -> Ffi Trampoline -> Dart function
-  //
-  // We do that since ffi trampoline code lives in Dart heap. During GC we can
-  // flip page protections from RX to RW to GC JITed code. During that time
-  // machine code on such pages cannot be executed. Native code therefore has to
-  // perform the safepoint transition before executing code in Dart heap (which
-  // is why we use the jit trampoline).
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (NativeCallbackTrampolines::Enabled()) {
-    entry_point =
-        isolate->group()->native_callback_trampolines()->TrampolineForId(
-            function.FfiCallbackId());
-  }
-#endif
-
-  return Pointer::New(entry_point);
+  void* pointer = isolate->CreateSyncFfiCallback(zone, function);
+  return Pointer::New(reinterpret_cast<uword>(pointer));
 }
 
 DEFINE_NATIVE_ENTRY(DartNativeApiFunctionPointer, 0, 1) {

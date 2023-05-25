@@ -20,6 +20,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/constants.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/instructions.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/tags.h"
@@ -292,37 +293,53 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ jr(S3);
 }
 
-#if !defined(DART_PRECOMPILER)
-void StubCodeCompiler::GenerateJITCallbackTrampolines(
-    intptr_t next_callback_id) {
-#if defined(USING_SIMULATOR)
-  // TODO(37299): FFI is not support in SIMRISCV32/64.
+void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
+    uword function_index,
+    Register dst) {
+  // Keep in sync with FfiCallbackMetadata::EnsureFirstTrampolinePageLocked.
+  // Note: If the stub was aligned, this could be a single PC relative load.
+
+  // Load a pointer to the beginning of the stub into dst.
+  const intptr_t code_size = __ CodeSize();
+  __ auipc(dst, 0);
+  __ AddImmediate(dst, -code_size);
+
+  // Round dst down to the page size.
+  __ AndImmediate(dst, FfiCallbackMetadata::kPageMask);
+
+  // Load the function from the function table.
+  __ LoadFromOffset(
+      dst,
+      Address(dst, FfiCallbackMetadata::RuntimeFunctionOffset(function_index)));
+}
+
+void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
+#if defined(USING_SIMULATOR) && !defined(DART_PRECOMPILER)
+  // TODO(37299): FFI is not supported in SIMRISCV32/64.
   __ ebreak();
 #else
-  Label loaded_callback_id_hi;
+  Label body;
 
   // T1 is volatile and not used for passing any arguments.
   COMPILE_ASSERT(!IsCalleeSavedRegister(T1) && !IsArgumentRegister(T1));
-  for (intptr_t i = 0;
-       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
-    // We don't use LoadImmediate because we need the trampoline size to be
-    // fixed independently of the callback ID.
-    // lui has 20 bits of range.
-    __ lui_fixed(T1, (next_callback_id + i) << 12);
-    __ j(&loaded_callback_id_hi);
+  for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
+       ++i) {
+    // The FfiCallbackMetadata table is keyed by the trampoline entry point. So
+    // look up the current PC, then jump to the shared section.
+    __ auipc(T1, 0);
+    __ j(&body);
   }
 
-  ASSERT(__ CodeSize() ==
-         kNativeCallbackTrampolineSize *
-             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
+  ASSERT_EQUAL(__ CodeSize(),
+               FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+                   FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  __ Bind(&loaded_callback_id_hi);
-  __ srai(T1, T1, 12);
+  __ Bind(&body);
 
   // Save THR (callee-saved) and RA. Keeps stack aligned.
-  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 2);
   __ PushRegisterPair(RA, THR);
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
@@ -334,37 +351,31 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
-  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
-  // in order to safe code size on this shared stub.
+  // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
+  // code size on this shared stub.
   {
     __ PushRegisters(all_registers);
+
     __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
+    // Reserve one slot for the entry point and one for the tramp abi.
+    __ ReserveAlignedFrameSpace(2 * target::kWordSize);
 
-    // Since DLRT_GetThreadForNativeCallbackTrampoline can theoretically be
-    // loaded anywhere, we use the same trick as before to ensure a predictable
-    // instruction sequence.
+    // Since DLRT_GetFfiCallbackMetadata can theoretically be loaded anywhere,
+    // we use the same trick as before to ensure a predictable instruction
+    // sequence.
     Label call;
-    __ mv(A0, T1);
+    __ mv(A0, T1);                          // trampoline
+    __ mv(A1, SPREG);                       // out_entry_point
+    __ addi(A2, SPREG, target::kWordSize);  // out_trampoline_type
 
-    const intptr_t kPCRelativeLoadOffset = 12;
-    intptr_t start = __ CodeSize();
-    __ auipc(T1, 0);
-    __ lx(T1, Address(T1, kPCRelativeLoadOffset));
-    __ j(&call);
-
-    ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
-#if XLEN == 32
-    __ Emit32(
-        reinterpret_cast<int32_t>(&DLRT_GetThreadForNativeCallbackTrampoline));
-#else
-    __ Emit64(
-        reinterpret_cast<int64_t>(&DLRT_GetThreadForNativeCallbackTrampoline));
-#endif
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kGetFfiCallbackMetadata, T1);
 
     __ Bind(&call);
     __ jalr(T1);
     __ mv(THR, A0);
+    __ lx(T2, Address(SPREG, 0));                  // entry_point
+    __ lx(T3, Address(SPREG, target::kWordSize));  // trampoline_type
 
     __ LeaveFrame();
 
@@ -373,26 +384,6 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   COMPILE_ASSERT(!IsCalleeSavedRegister(T2) && !IsArgumentRegister(T2));
   COMPILE_ASSERT(!IsCalleeSavedRegister(T3) && !IsArgumentRegister(T3));
-
-  // Load the code object.
-  __ LoadFromOffset(T2, THR, compiler::target::Thread::isolate_group_offset());
-  __ LoadFromOffset(T2, T2,
-                    compiler::target::IsolateGroup::object_store_offset());
-  __ LoadFromOffset(T2, T2,
-                    compiler::target::ObjectStore::ffi_callback_code_offset());
-  __ LoadCompressedFieldFromOffset(
-      T2, T2, compiler::target::GrowableObjectArray::data_offset());
-  __ LoadCompressed(
-      T2,
-      __ ElementAddressForRegIndex(
-          /*external=*/false,
-          /*array_cid=*/kArrayCid,
-          /*index_scale, smi-tagged=*/compiler::target::kCompressedWordSize * 2,
-          /*index_unboxed=*/false,
-          /*array=*/T2,
-          /*index=*/T1,
-          /*temp=*/T3));
-  __ LoadFieldFromOffset(T2, T2, compiler::target::Code::entry_point_offset());
 
   // Clobbers all volatile registers, including the callback ID in T1.
   __ jalr(T2);
@@ -403,18 +394,17 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ PopRegisterPair(RA, THR);
   __ ret();
 
-  ASSERT_EQUAL((__ CodeSize() - shared_stub_start),
-               kNativeCallbackSharedStubSize);
-  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
+  ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
+                       FfiCallbackMetadata::kNativeCallbackSharedStubSize);
+  ASSERT_LESS_OR_EQUAL(__ CodeSize(), FfiCallbackMetadata::kPageSize);
 
 #if defined(DEBUG)
-  while (__ CodeSize() < VirtualMemory::PageSize()) {
+  while (__ CodeSize() < FfiCallbackMetadata::kPageSize) {
     __ ebreak();
   }
 #endif
 #endif
 }
-#endif  // !defined(DART_PRECOMPILER)
 
 // T1: The extracted method.
 // T4: The type_arguments_field_offset (or 0)

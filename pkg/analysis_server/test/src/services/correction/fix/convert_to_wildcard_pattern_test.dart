@@ -11,34 +11,12 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TypeLiteralInConstantPatternBulkTest);
-    defineReflectiveTests(TypeLiteralInConstantPatternTest);
+    defineReflectiveTests(ConvertToWildcardPatternPatternTest);
   });
 }
 
 @reflectiveTest
-class TypeLiteralInConstantPatternBulkTest extends BulkFixProcessorTest {
-  @override
-  String get lintCode => LintNames.type_literal_in_constant_pattern;
-
-  Future<void> test_singleFile() async {
-    await resolveTestCode('''
-void f(Object x) {
-  if (x case int) {}
-  if (x case double) {}
-}
-''');
-    await assertHasFix('''
-void f(Object x) {
-  if (x case int _) {}
-  if (x case double _) {}
-}
-''');
-  }
-}
-
-@reflectiveTest
-class TypeLiteralInConstantPatternTest extends FixProcessorLintTest {
+class ConvertToWildcardPatternPatternTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_TO_WILDCARD_PATTERN;
 

@@ -20,6 +20,7 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/dispatch_table.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/flags.h"
 #include "vm/heap/heap.h"
 #include "vm/heap/pointer_block.h"
@@ -335,9 +336,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       is_system_isolate_group_(source->flags.is_system_isolate),
       random_(),
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      native_callback_trampolines_(),
-#endif
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
@@ -2308,6 +2306,13 @@ void Isolate::LowLevelShutdown() {
   delete message_handler();
   set_message_handler(nullptr);
 
+  // Clean up any synchronous FFI callbacks registered with this isolate. Skip
+  // if this isolate never registered any.
+  if (ffi_callback_sync_list_head_ != nullptr) {
+    FfiCallbackMetadata::Instance()->DeleteSyncTrampolines(
+        &ffi_callback_sync_list_head_);
+  }
+
 #if !defined(PRODUCT)
   if (FLAG_dump_megamorphic_stats) {
     MegamorphicCacheTable::PrintSizes(this);
@@ -2501,7 +2506,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
     // memory might have become unreachable. We should evaluate how to best
     // inform the GC about this situation.
   }
-}  // namespace dart
+}
 
 Dart_InitializeIsolateCallback Isolate::initialize_callback_ = nullptr;
 Dart_IsolateGroupCreateCallback Isolate::create_group_callback_ = nullptr;
@@ -3502,6 +3507,11 @@ void Isolate::WaitForOutstandingSpawns() {
   while (spawn_count_ > 0) {
     ml.WaitWithSafepointCheck(thread);
   }
+}
+
+void* Isolate::CreateSyncFfiCallback(Zone* zone, const Function& function) {
+  return FfiCallbackMetadata::Instance()->CreateSyncFfiCallback(
+      this, zone, function, &ffi_callback_sync_list_head_);
 }
 
 #if !defined(PRODUCT)

@@ -1362,8 +1362,8 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
 void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
                                        Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ LoadCompressed(R0, FieldAddress(R0, target::Type::hash_offset()));
-  __ cbz(normal_ir_body, R0);
+  __ LoadCompressedSmi(R0, FieldAddress(R0, target::Type::hash_offset()));
+  __ cbz(normal_ir_body, R0, kObjectBytes);
   __ ret();
   // Hash not yet computed.
   __ Bind(normal_ir_body);
@@ -1432,8 +1432,9 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ LoadCompressed(R0, FieldAddress(R0, target::FunctionType::hash_offset()));
-  __ cbz(normal_ir_body, R0);
+  __ LoadCompressedSmi(R0,
+                       FieldAddress(R0, target::FunctionType::hash_offset()));
+  __ cbz(normal_ir_body, R0, kObjectBytes);
   __ ret();
   // Hash not yet computed.
   __ Bind(normal_ir_body);

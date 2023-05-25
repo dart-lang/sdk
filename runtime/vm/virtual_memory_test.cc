@@ -106,8 +106,11 @@ VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
       reinterpret_cast<void*>(page_start), 2 * page_size);
   EXPECT_NE(nullptr, vm);
 
-  VirtualMemory* vm2 = vm->DuplicateRX();
-  EXPECT_NE(nullptr, vm2);
+  VirtualMemory* vm2 = VirtualMemory::AllocateAligned(
+      vm->size(), kPageSize, /*is_executable=*/false,
+      /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
+  bool ok = vm->DuplicateRX(vm2);
+  EXPECT_EQ(true, ok);
 
   auto testFunction2 = reinterpret_cast<int (*)(int)>(vm2->start() + offset);
   EXPECT_NE(&testFunction, testFunction2);

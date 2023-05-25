@@ -1251,10 +1251,10 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
 void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
                                        Label* normal_ir_body) {
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // Type object.
-  __ LoadCompressed(RAX, FieldAddress(RAX, target::Type::hash_offset()));
+  __ LoadCompressedSmi(RAX, FieldAddress(RAX, target::Type::hash_offset()));
   ASSERT(kSmiTag == 0);
   ASSERT(kSmiTagShift == 1);
-  __ testq(RAX, RAX);
+  __ OBJ(test)(RAX, RAX);
   __ j(ZERO, normal_ir_body, Assembler::kNearJump);
   __ ret();
   __ Bind(normal_ir_body);
@@ -1325,11 +1325,11 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // FunctionType object.
-  __ LoadCompressed(RAX,
-                    FieldAddress(RAX, target::FunctionType::hash_offset()));
+  __ LoadCompressedSmi(RAX,
+                       FieldAddress(RAX, target::FunctionType::hash_offset()));
   ASSERT(kSmiTag == 0);
   ASSERT(kSmiTagShift == 1);
-  __ testq(RAX, RAX);
+  __ OBJ(test)(RAX, RAX);
   __ j(ZERO, normal_ir_body, Assembler::kNearJump);
   __ ret();
   __ Bind(normal_ir_body);

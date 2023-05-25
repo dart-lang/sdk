@@ -21,6 +21,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/constants.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/instructions.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/tags.h"
@@ -372,45 +373,59 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ bx(R4);
 }
 
-#if !defined(DART_PRECOMPILER)
-void StubCodeCompiler::GenerateJITCallbackTrampolines(
-    intptr_t next_callback_id) {
-#if defined(USING_SIMULATOR)
-  // TODO(37299): FFI is not support in SIMARM.
+void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
+    uword function_index,
+    Register dst) {
+  // Keep in sync with FfiCallbackMetadata::EnsureFirstTrampolinePageLocked.
+  // Note: If the stub was aligned, this could be a single PC relative load.
+
+  // Load a pointer to the beginning of the stub into dst.
+  const intptr_t code_size = __ CodeSize();
+  __ SubImmediate(dst, PC, Instr::kPCReadOffset + code_size);
+
+  // Round dst down to the page size.
+  __ AndImmediate(dst, dst, FfiCallbackMetadata::kPageMask);
+
+  // Load the function from the function table.
+  __ LoadFromOffset(
+      dst,
+      Address(dst, FfiCallbackMetadata::RuntimeFunctionOffset(function_index)));
+}
+
+void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
+#if defined(USING_SIMULATOR) && !defined(DART_PRECOMPILER)
+  // TODO(37299): FFI is not supported in SIMARM.
   __ Breakpoint();
 #else
-  Label done;
+  Label body;
 
   // TMP is volatile and not used for passing any arguments.
   COMPILE_ASSERT(!IsCalleeSavedRegister(TMP) && !IsArgumentRegister(TMP));
-
-  for (intptr_t i = 0;
-       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
-    // We don't use LoadImmediate because we need the trampoline size to be
-    // fixed independently of the callback ID.
-    //
-    // PC points two instructions ahead of the current one -- directly where we
-    // store the callback ID.
-    __ ldr(TMP, Address(PC, 0));
-    __ b(&done);
-    __ Emit(next_callback_id + i);
+  for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
+       ++i) {
+    // The FfiCallbackMetadata table is keyed by the trampoline entry point. So
+    // look up the current PC, then jump to the shared section. The PC is offset
+    // by Instr::kPCReadOffset, which is subtracted below.
+    __ mov(TMP, Operand(PC));
+    __ b(&body);
   }
 
   ASSERT(__ CodeSize() ==
-         kNativeCallbackTrampolineSize *
-             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
+         FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+             FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
-  __ Bind(&done);
+  __ Bind(&body);
 
   const intptr_t shared_stub_start = __ CodeSize();
 
   // Save THR (callee-saved), R4 & R5 (temporaries, callee-saved), and LR.
-  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 4);
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
   SPILLS_LR_TO_FRAME(
       __ PushList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5)));
 
-  // Don't rely on TMP being preserved by assembler macros anymore.
-  __ mov(R4, Operand(TMP));
+  // The PC is in TMP, but is offset by kPCReadOffset. To get the actual
+  // trampoline entry point we need to subtract that.
+  __ sub(R4, TMP, Operand(Instr::kPCReadOffset));
 
   COMPILE_ASSERT(IsCalleeSavedRegister(R4));
   COMPILE_ASSERT(!IsArgumentRegister(THR));
@@ -421,51 +436,41 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
-  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
-  // in order to safe code size on this shared stub.
+  // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
+  // code size on this shared stub.
   {
+    __ mov(R0, Operand(R4));
+
+    // We also need to look up the entry point for the trampoline. This is
+    // returned using a pointer passed to the second arg of the C function
+    // below. We aim that pointer at a reserved stack slot.
+    __ sub(SP, SP, Operand(compiler::target::kWordSize));
+    __ mov(R1, Operand(SP));
+
+    // We also need to know if this is a sync or async callback. This is also
+    // returned by pointer.
+    __ sub(SP, SP, Operand(compiler::target::kWordSize));
+    __ mov(R2, Operand(SP));
+
     __ EnterFrame(1 << FP, 0);
     __ ReserveAlignedFrameSpace(0);
 
-    __ mov(R0, Operand(R4));
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
 
-    // Since DLRT_GetThreadForNativeCallbackTrampoline can theoretically be
-    // loaded anywhere, we use the same trick as before to ensure a predictable
-    // instruction sequence.
-    Label call;
-    __ ldr(R1, Address(PC, 0));
-    __ b(&call);
-    __ Emit(
-        reinterpret_cast<intptr_t>(&DLRT_GetThreadForNativeCallbackTrampoline));
-
-    __ Bind(&call);
-    __ blx(R1);
+    __ blx(R4);
     __ mov(THR, Operand(R0));
 
     __ LeaveFrame(1 << FP);
+
+    // The trampoline type is at the top of the stack. Pop it into R4.
+    __ Pop(R4);
+
+    // Entry point is now at the top of the stack. Pop it into R5.
+    __ Pop(R5);
   }
 
   __ PopRegisters(argument_registers);
-
-  COMPILE_ASSERT(!IsArgumentRegister(R8));
-
-  // Load the code object.
-  __ LoadFromOffset(R5, THR, compiler::target::Thread::isolate_group_offset());
-  __ LoadFromOffset(R5, R5,
-                    compiler::target::IsolateGroup::object_store_offset());
-  __ LoadFromOffset(R5, R5,
-                    compiler::target::ObjectStore::ffi_callback_code_offset());
-  __ LoadFieldFromOffset(R5, R5,
-                         compiler::target::GrowableObjectArray::data_offset());
-  __ ldr(R5, __ ElementAddressForRegIndex(
-                 /*is_load=*/true,
-                 /*external=*/false,
-                 /*array_cid=*/kArrayCid,
-                 /*index_scale, smi-tagged=*/compiler::target::kWordSize * 2,
-                 /*index_unboxed=*/false,
-                 /*array=*/R5,
-                 /*index=*/R4));
-  __ LoadFieldFromOffset(R5, R5, compiler::target::Code::entry_point_offset());
 
   // On entry to the function, there will be four extra slots on the stack:
   // saved THR, R4, R5 and the return address. The target will know to skip
@@ -478,17 +483,17 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // Returns.
   __ PopList((1 << PC) | (1 << THR) | (1 << R4) | (1 << R5));
 
-  ASSERT((__ CodeSize() - shared_stub_start) == kNativeCallbackSharedStubSize);
-  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
+  ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
+                       FfiCallbackMetadata::kNativeCallbackSharedStubSize);
+  ASSERT_LESS_OR_EQUAL(__ CodeSize(), FfiCallbackMetadata::kPageSize);
 
 #if defined(DEBUG)
-  while (__ CodeSize() < VirtualMemory::PageSize()) {
+  while (__ CodeSize() < FfiCallbackMetadata::kPageSize) {
     __ Breakpoint();
   }
 #endif
 #endif
 }
-#endif  // !defined(DART_PRECOMPILER)
 
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {
   __ EnterStubFrame();

@@ -68,6 +68,7 @@ import 'convert_quotes_test.dart' as convert_quotes;
 import 'convert_to_boolean_expression_test.dart'
     as convert_to_boolean_expression;
 import 'convert_to_cascade_test.dart' as convert_to_cascade;
+import 'convert_to_constant_pattern_test.dart' as convert_to_constant_pattern;
 import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
@@ -95,6 +96,7 @@ import 'convert_to_single_quoted_string_test.dart'
 import 'convert_to_spread_test.dart' as convert_to_spread;
 import 'convert_to_super_parameters_test.dart' as convert_to_super_parameters;
 import 'convert_to_where_type_test.dart' as convert_to_where_type;
+import 'convert_to_wildcard_pattern_test.dart' as convert_to_wildcard_pattern;
 import 'create_class_test.dart' as create_class;
 import 'create_constructor_for_final_fields_test.dart'
     as create_constructor_for_final_field;
@@ -261,8 +263,6 @@ import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
 import 'sort_unnamed_constructor_first_test.dart'
     as sort_unnamed_constructor_first_test;
 import 'surround_with_parentheses_test.dart' as surround_with_parentheses;
-import 'type_literal_in_constant_pattern_test.dart'
-    as type_literal_in_constant_pattern;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 import 'use_effective_integer_division_test.dart'
@@ -330,6 +330,7 @@ void main() {
     convert_quotes.main();
     convert_to_boolean_expression.main();
     convert_to_cascade.main();
+    convert_to_constant_pattern.main();
     convert_to_contains.main();
     convert_to_double_quoted_string.main();
     convert_to_for_element.main();
@@ -352,6 +353,7 @@ void main() {
     convert_to_spread.main();
     convert_to_super_parameters.main();
     convert_to_where_type.main();
+    convert_to_wildcard_pattern.main();
     create_class.main();
     create_constructor_for_final_field.main();
     create_constructor_super.main();
@@ -499,7 +501,6 @@ void main() {
     sort_combinators_test.main();
     sort_unnamed_constructor_first_test.main();
     surround_with_parentheses.main();
-    type_literal_in_constant_pattern.main();
     update_sdk_constraints.main();
     use_curly_braces.main();
     use_effective_integer_division.main();
