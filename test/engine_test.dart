@@ -177,8 +177,8 @@ void defineLinterEngineTests() {
 typedef NodeVisitor = void Function(Object node);
 
 class MockLinter extends LintRule {
-  final NodeVisitor? nodeVisitor;
-  MockLinter([this.nodeVisitor])
+  final NodeVisitor nodeVisitor;
+  MockLinter(this.nodeVisitor)
       : super(
             name: 'MockLint',
             group: Group.style,
