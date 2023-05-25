@@ -88,7 +88,9 @@ declare_args() {
   # We create a kernel service app-jit snapshot only for when the target
   # architecture is x64 for other cases we will use the '.dill' file
   # which is already linked in the VM.
-  create_kernel_service_snapshot = dart_target_arch == "x64"
+  create_kernel_service_snapshot =
+      dart_target_arch == "x64" ||
+      (dart_target_arch == "arm64" && target_os == "mac")
 
   # The analyze_snapshot tool is only supported on 64 bit AOT builds that use
   # ELF.
