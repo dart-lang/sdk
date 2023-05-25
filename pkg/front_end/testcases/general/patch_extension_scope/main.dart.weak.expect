@@ -131,102 +131,6 @@ library /*isNonNullableByDefault*/;
 // extension NamedInjectedExtension2 on Class /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/general/patch_extension_scope/patch_lib1.dart:21:5: Error: The method 'namedInjectedExtensionMethod2' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod2'.
-//     namedInjectedExtensionMethod2(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/patch_lib1.dart:22:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
-//     _namedInjectedExtensionPrivateMethod2(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/patch_lib1.dart:39:5: Error: The method 'namedInjectedExtensionMethod2' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod2'.
-//   c.namedInjectedExtensionMethod2(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/patch_lib1.dart:40:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
-//   c._namedInjectedExtensionPrivateMethod2(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/patch_lib2.dart:16:5: Error: The method 'namedInjectedExtensionMethod1' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod1'.
-//     namedInjectedExtensionMethod1(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/patch_lib2.dart:17:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
-//     _namedInjectedExtensionPrivateMethod1(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/patch_lib2.dart:34:5: Error: The method 'namedInjectedExtensionMethod1' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod1'.
-//   c.namedInjectedExtensionMethod1(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/patch_lib2.dart:35:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
-//   c._namedInjectedExtensionPrivateMethod1(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:12:5: Error: The method 'namedInjectedExtensionMethod1' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod1'.
-//     namedInjectedExtensionMethod1(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:13:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
-//     _namedInjectedExtensionPrivateMethod1(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:17:5: Error: The method 'namedInjectedExtensionMethod2' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod2'.
-//     namedInjectedExtensionMethod2(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:18:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
-//     _namedInjectedExtensionPrivateMethod2(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:30:5: Error: The method 'namedInjectedExtensionMethod1' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod1'.
-//   c.namedInjectedExtensionMethod1(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:31:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
-//   c._namedInjectedExtensionPrivateMethod1(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:35:5: Error: The method 'namedInjectedExtensionMethod2' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod2'.
-//   c.namedInjectedExtensionMethod2(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:36:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
-//  - 'Class' is from 'dart:test'.
-// Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
-//   c._namedInjectedExtensionPrivateMethod2(); // Ok
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 import self as test;
 import "dart:_internal" as _in;
 import "dart:core" as core;
@@ -245,28 +149,12 @@ class Class extends core::Object {
     test::Extension|_namedExtensionPrivateMethod(this);
     test::_extension#5|unnamedExtensionMethod(this);
     test::_extension#5|_unnamedExtensionPrivateMethod(this);
-    invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:12:5: Error: The method 'namedInjectedExtensionMethod1' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod1'.
-    namedInjectedExtensionMethod1(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}.namedInjectedExtensionMethod1();
-    invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:13:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
-    _namedInjectedExtensionPrivateMethod1(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}._namedInjectedExtensionPrivateMethod1();
+    test::NamedInjectedExtension1|namedInjectedExtensionMethod1(this);
+    test::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(this);
     test::_extension#1|unnamedInjectedExtensionMethod1(this);
     test::_extension#1|_unnamedInjectedExtensionPrivateMethod1(this);
-    invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:17:5: Error: The method 'namedInjectedExtensionMethod2' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod2'.
-    namedInjectedExtensionMethod2(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}.namedInjectedExtensionMethod2();
-    invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:18:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
-    _namedInjectedExtensionPrivateMethod2(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}._namedInjectedExtensionPrivateMethod2();
+    test::NamedInjectedExtension2|namedInjectedExtensionMethod2(this);
+    test::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(this);
     test::_extension#3|unnamedInjectedExtensionMethod2(this);
     test::_extension#3|_unnamedInjectedExtensionPrivateMethod2(this);
   }
@@ -279,16 +167,8 @@ Try correcting the name to the name of an existing method, or defining a method 
     test::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(this);
     test::_extension#1|unnamedInjectedExtensionMethod1(this);
     test::_extension#1|_unnamedInjectedExtensionPrivateMethod1(this);
-    invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/patch_lib1.dart:21:5: Error: The method 'namedInjectedExtensionMethod2' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod2'.
-    namedInjectedExtensionMethod2(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}.namedInjectedExtensionMethod2();
-    invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/patch_lib1.dart:22:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
-    _namedInjectedExtensionPrivateMethod2(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}._namedInjectedExtensionPrivateMethod2();
+    test::NamedInjectedExtension2|namedInjectedExtensionMethod2(this);
+    test::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(this);
     test::_extension#3|unnamedInjectedExtensionMethod2(this);
     test::_extension#3|_unnamedInjectedExtensionPrivateMethod2(this);
   }
@@ -297,16 +177,8 @@ Try correcting the name to the name of an existing method, or defining a method 
     test::Extension|_namedExtensionPrivateMethod(this);
     test::_extension#5|unnamedExtensionMethod(this);
     test::_extension#5|_unnamedExtensionPrivateMethod(this);
-    invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/patch_lib2.dart:16:5: Error: The method 'namedInjectedExtensionMethod1' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod1'.
-    namedInjectedExtensionMethod1(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}.namedInjectedExtensionMethod1();
-    invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/patch_lib2.dart:17:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
-    _namedInjectedExtensionPrivateMethod1(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}._namedInjectedExtensionPrivateMethod1();
+    test::NamedInjectedExtension1|namedInjectedExtensionMethod1(this);
+    test::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(this);
     test::_extension#1|unnamedInjectedExtensionMethod1(this);
     test::_extension#1|_unnamedInjectedExtensionPrivateMethod1(this);
     test::NamedInjectedExtension2|namedInjectedExtensionMethod2(this);
@@ -356,28 +228,12 @@ static method _method(test::Class c) → void {
   test::Extension|_namedExtensionPrivateMethod(c);
   test::_extension#5|unnamedExtensionMethod(c);
   test::_extension#5|_unnamedExtensionPrivateMethod(c);
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:30:5: Error: The method 'namedInjectedExtensionMethod1' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod1'.
-  c.namedInjectedExtensionMethod1(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.namedInjectedExtensionMethod1();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:31:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
-  c._namedInjectedExtensionPrivateMethod1(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._namedInjectedExtensionPrivateMethod1();
+  test::NamedInjectedExtension1|namedInjectedExtensionMethod1(c);
+  test::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(c);
   test::_extension#1|unnamedInjectedExtensionMethod1(c);
   test::_extension#1|_unnamedInjectedExtensionPrivateMethod1(c);
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:35:5: Error: The method 'namedInjectedExtensionMethod2' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod2'.
-  c.namedInjectedExtensionMethod2(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.namedInjectedExtensionMethod2();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/origin_lib.dart:36:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
-  c._namedInjectedExtensionPrivateMethod2(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._namedInjectedExtensionPrivateMethod2();
+  test::NamedInjectedExtension2|namedInjectedExtensionMethod2(c);
+  test::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(c);
   test::_extension#3|unnamedInjectedExtensionMethod2(c);
   test::_extension#3|_unnamedInjectedExtensionPrivateMethod2(c);
 }
@@ -402,16 +258,8 @@ static method /* from org-dartlang-testcase:///patch_lib1.dart */ _method1(test:
   test::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(c);
   test::_extension#1|unnamedInjectedExtensionMethod1(c);
   test::_extension#1|_unnamedInjectedExtensionPrivateMethod1(c);
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/patch_lib1.dart:39:5: Error: The method 'namedInjectedExtensionMethod2' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod2'.
-  c.namedInjectedExtensionMethod2(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.namedInjectedExtensionMethod2();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/patch_lib1.dart:40:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
-  c._namedInjectedExtensionPrivateMethod2(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._namedInjectedExtensionPrivateMethod2();
+  test::NamedInjectedExtension2|namedInjectedExtensionMethod2(c);
+  test::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(c);
   test::_extension#3|unnamedInjectedExtensionMethod2(c);
   test::_extension#3|_unnamedInjectedExtensionPrivateMethod2(c);
 }
@@ -432,16 +280,8 @@ static method /* from org-dartlang-testcase:///patch_lib2.dart */ _method2(test:
   test::Extension|_namedExtensionPrivateMethod(c);
   test::_extension#5|unnamedExtensionMethod(c);
   test::_extension#5|_unnamedExtensionPrivateMethod(c);
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/patch_lib2.dart:34:5: Error: The method 'namedInjectedExtensionMethod1' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named 'namedInjectedExtensionMethod1'.
-  c.namedInjectedExtensionMethod1(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.namedInjectedExtensionMethod1();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/patch_lib2.dart:35:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
- - 'Class' is from 'dart:test'.
-Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
-  c._namedInjectedExtensionPrivateMethod1(); // Ok
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._namedInjectedExtensionPrivateMethod1();
+  test::NamedInjectedExtension1|namedInjectedExtensionMethod1(c);
+  test::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(c);
   test::_extension#1|unnamedInjectedExtensionMethod1(c);
   test::_extension#1|_unnamedInjectedExtensionPrivateMethod1(c);
   test::NamedInjectedExtension2|namedInjectedExtensionMethod2(c);

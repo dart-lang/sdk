@@ -16,6 +16,15 @@ print(b);
 }
 }
 
+testNullable(a) {
+switch (a) {
+case (foo: (int, int)? b) when b != (2, 3):
+print(b);
+case Class(field: (int, int)? b) when b != (2, 3):
+print(b);
+}
+}
+
 
 class[KeywordToken] Class[StringToken] {[BeginToken]
 dynamic[KeywordToken] field[StringToken];[SimpleToken]
@@ -31,6 +40,15 @@ print[StringToken]([BeginToken]b[StringToken])[SimpleToken];[SimpleToken]
 case[KeywordToken] Class[StringToken]([BeginToken]field[StringToken]:[SimpleToken] int[StringToken] b[StringToken])[SimpleToken] when[KeywordToken] b[StringToken] !=[SimpleToken] 2[StringToken]:[SimpleToken]
 print[StringToken]([BeginToken]b[StringToken])[SimpleToken];[SimpleToken]
 case[KeywordToken] Class[StringToken]([BeginToken]field[StringToken]:[SimpleToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] b[StringToken])[SimpleToken] when[KeywordToken] b[StringToken] !=[SimpleToken] ([BeginToken]2[StringToken],[SimpleToken] 3[StringToken])[SimpleToken]:[SimpleToken]
+print[StringToken]([BeginToken]b[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+testNullable[StringToken]([BeginToken]a[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]a[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] ([BeginToken]foo[StringToken]:[SimpleToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]?[SimpleToken] b[StringToken])[SimpleToken] when[KeywordToken] b[StringToken] !=[SimpleToken] ([BeginToken]2[StringToken],[SimpleToken] 3[StringToken])[SimpleToken]:[SimpleToken]
+print[StringToken]([BeginToken]b[StringToken])[SimpleToken];[SimpleToken]
+case[KeywordToken] Class[StringToken]([BeginToken]field[StringToken]:[SimpleToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]?[SimpleToken] b[StringToken])[SimpleToken] when[KeywordToken] b[StringToken] !=[SimpleToken] ([BeginToken]2[StringToken],[SimpleToken] 3[StringToken])[SimpleToken]:[SimpleToken]
 print[StringToken]([BeginToken]b[StringToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]
 }[SimpleToken]
