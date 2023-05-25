@@ -3098,7 +3098,7 @@ abstract final class ClassOrAugmentationDeclaration
 /// A class type alias.
 ///
 ///    classTypeAlias ::=
-///        name [TypeParameterList]? '=' classModifiers mixinApplication
+///        classModifiers 'class' [SimpleIdentifier] [TypeParameterList]? '=' mixinApplication
 ///
 ///    classModifiers ::= 'sealed'
 ///      | 'abstract'? ('base' | 'interface' | 'final')?
@@ -8881,7 +8881,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 /// A function type alias.
 ///
 ///    functionTypeAlias ::=
-///        functionPrefix [TypeParameterList]? [FormalParameterList] ';'
+///        'typedef' functionPrefix [TypeParameterList]? [FormalParameterList] ';'
 ///
 ///    functionPrefix ::=
 ///        [TypeAnnotation]? [SimpleIdentifier]
@@ -9302,7 +9302,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 /// A generic type alias.
 ///
 ///    functionTypeAlias ::=
-///        metadata 'typedef' name [TypeParameterList]? = [FunctionType] ';'
+///        'typedef' [SimpleIdentifier] [TypeParameterList]? = [FunctionType] ';'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract final class GenericTypeAlias implements TypeAlias {
@@ -18473,18 +18473,16 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 /// The declaration of a type alias.
 ///
 ///    typeAlias ::=
-///        'typedef' typeAliasBody
-///
-///    typeAliasBody ::=
-///        classTypeAlias
-///      | functionTypeAlias
+///        [ClassTypeAlias]
+///      | [FunctionTypeAlias]
+///      | [GenericTypeAlias]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract final class TypeAlias implements NamedCompilationUnitMember {
   /// Return the semicolon terminating the declaration.
   Token get semicolon;
 
-  /// Return the token representing the 'typedef' keyword.
+  /// Return the token representing the 'typedef' or 'class' keyword.
   Token get typedefKeyword;
 }
 
