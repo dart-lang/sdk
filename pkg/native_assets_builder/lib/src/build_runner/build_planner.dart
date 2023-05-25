@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:kernel/util/graph.dart' as graph;
+import 'package:graphs/graphs.dart' as graphs;
 import 'package:package_config/package_config.dart';
 
 class NativeAssetsBuildPlanner {
@@ -67,7 +67,7 @@ class NativeAssetsBuildPlanner {
   }
 }
 
-class PackageGraph implements graph.Graph<String> {
+class PackageGraph {
   final Map<String, List<String>> map;
 
   PackageGraph(this.map);
@@ -91,12 +91,10 @@ class PackageGraph implements graph.Graph<String> {
     return PackageGraph(result);
   }
 
-  @override
   Iterable<String> neighborsOf(String vertex) => map[vertex] ?? [];
 
-  @override
   Iterable<String> get vertices => map.keys;
 
   List<List<String>> computeStrongComponents() =>
-      graph.computeStrongComponents(this);
+      graphs.stronglyConnectedComponents(vertices, neighborsOf);
 }
