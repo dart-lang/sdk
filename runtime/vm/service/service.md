@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.7
+# Dart VM Service Protocol 4.8
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.7_ of the Dart VM Service Protocol. This
+This document describes of _version 4.8_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -49,6 +49,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getIsolate](#getisolate)
   - [getIsolateGroup](#getisolategroup)
   - [getMemoryUsage](#getmemoryusage)
+  - [getIsolatePauseEvent](#getisolatePauseEvent)
   - [getObject](#getobject)
   - [getPerfettoCpuSamples](#getperfettocpusamples)
   - [getPerfettoVMTimeline](#getperfettovmtimeline)
@@ -952,6 +953,20 @@ _IsolateGroup_ _id_ is an opaque identifier that can be fetched from an
  _IsolateGroup_. List of active _IsolateGroup_'s, for example, is available on _VM_ object.
 
 See [IsolateGroup](#isolategroup), [VM](#vm).
+
+### getIsolatePauseEvent
+
+```
+Event|Sentinel getIsolatePauseEvent(string isolateId)
+```
+
+The _getIsolatePauseEvent_ RPC is used to lookup an isolate's pause event by its
+_id_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [Isolate](#isolate).
 
 ### getMemoryUsage
 
@@ -4676,5 +4691,6 @@ version | comments
 4.5 | Added `getPerfettoVMTimeline` RPC.
 4.6 | Added `getPerfettoCpuSamples` RPC. Added a deprecation notice to `InstanceKind.TypeRef`.
 4.7 | Added a deprecation notice to `Stack.awaiterFrames` field. Added a deprecation notice to `FrameKind.AsyncActivation`.
+4.8 | Added `getIsolatePauseEvent` RPC.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

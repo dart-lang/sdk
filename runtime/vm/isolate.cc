@@ -2836,6 +2836,51 @@ static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
   }
 }
 
+static ServiceEvent IsolatePauseEvent(Isolate* isolate) {
+  if (!isolate->is_runnable()) {
+    // Isolate is not yet runnable.
+    ASSERT((isolate->debugger() == nullptr) ||
+           (isolate->debugger()->PauseEvent() == nullptr));
+    return ServiceEvent(isolate, ServiceEvent::kNone);
+  } else if (isolate->message_handler()->should_pause_on_start()) {
+    if (isolate->message_handler()->is_paused_on_start()) {
+      ASSERT((isolate->debugger() == nullptr) ||
+             (isolate->debugger()->PauseEvent() == nullptr));
+      return ServiceEvent(isolate, ServiceEvent::kPauseStart);
+    } else {
+      // Isolate is runnable but not paused on start.
+      // Some service clients get confused if they see:
+      // NotRunnable -> Runnable -> PausedAtStart
+      // Treat Runnable+ShouldPauseOnStart as NotRunnable so they see:
+      // NonRunnable -> PausedAtStart
+      // The should_pause_on_start flag is set to false after resume.
+      ASSERT((isolate->debugger() == nullptr) ||
+             (isolate->debugger()->PauseEvent() == nullptr));
+      return ServiceEvent(isolate, ServiceEvent::kNone);
+    }
+  } else if (isolate->message_handler()->is_paused_on_exit() &&
+             ((isolate->debugger() == nullptr) ||
+              (isolate->debugger()->PauseEvent() == nullptr))) {
+    return ServiceEvent(isolate, ServiceEvent::kPauseExit);
+  } else if ((isolate->debugger() != nullptr) &&
+             (isolate->debugger()->PauseEvent() != nullptr) &&
+             !isolate->ResumeRequest()) {
+    return *(isolate->debugger()->PauseEvent());
+  } else {
+    ServiceEvent pause_event(isolate, ServiceEvent::kResume);
+
+    if (isolate->debugger() != nullptr) {
+      // TODO(turnidge): Don't compute a full stack trace.
+      DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+      if (stack->Length() > 0) {
+        pause_event.set_top_frame(stack->FrameAt(0));
+      }
+    }
+
+    return pause_event;
+  }
+}
+
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
@@ -2887,47 +2932,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("_isReloading", group()->IsReloading());
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  if (!is_runnable()) {
-    // Isolate is not yet runnable.
-    ASSERT((debugger() == nullptr) || (debugger()->PauseEvent() == nullptr));
-    ServiceEvent pause_event(this, ServiceEvent::kNone);
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (message_handler()->should_pause_on_start()) {
-    if (message_handler()->is_paused_on_start()) {
-      ASSERT((debugger() == nullptr) || (debugger()->PauseEvent() == nullptr));
-      ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
-      jsobj.AddProperty("pauseEvent", &pause_event);
-    } else {
-      // Isolate is runnable but not paused on start.
-      // Some service clients get confused if they see:
-      // NotRunnable -> Runnable -> PausedAtStart
-      // Treat Runnable+ShouldPauseOnStart as NotRunnable so they see:
-      // NonRunnable -> PausedAtStart
-      // The should_pause_on_start flag is set to false after resume.
-      ASSERT((debugger() == nullptr) || (debugger()->PauseEvent() == nullptr));
-      ServiceEvent pause_event(this, ServiceEvent::kNone);
-      jsobj.AddProperty("pauseEvent", &pause_event);
-    }
-  } else if (message_handler()->is_paused_on_exit() &&
-             ((debugger() == nullptr) ||
-              (debugger()->PauseEvent() == nullptr))) {
-    ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if ((debugger() != nullptr) && (debugger()->PauseEvent() != nullptr) &&
-             !ResumeRequest()) {
-    jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());
-  } else {
-    ServiceEvent pause_event(this, ServiceEvent::kResume);
-
-    if (debugger() != nullptr) {
-      // TODO(turnidge): Don't compute a full stack trace.
-      DebuggerStackTrace* stack = debugger()->StackTrace();
-      if (stack->Length() > 0) {
-        pause_event.set_top_frame(stack->FrameAt(0));
-      }
-    }
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  }
+  ServiceEvent pause_event = IsolatePauseEvent(this);
+  jsobj.AddProperty("pauseEvent", &pause_event);
 
   const Library& lib = Library::Handle(group()->object_store()->root_library());
   if (!lib.IsNull()) {
@@ -3001,6 +3007,10 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
 void Isolate::PrintMemoryUsageJSON(JSONStream* stream) {
   group()->heap()->PrintMemoryUsageJSON(stream);
+}
+
+void Isolate::PrintPauseEventJSON(JSONStream* stream) {
+  IsolatePauseEvent(this).PrintJSON(stream);
 }
 
 #endif

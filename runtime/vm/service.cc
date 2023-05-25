@@ -1623,6 +1623,15 @@ static void GetIsolateGroupMemoryUsage(Thread* thread, JSONStream* js) {
   });
 }
 
+static const MethodParameter* const get_isolate_pause_event_params[] = {
+    ISOLATE_PARAMETER,
+    nullptr,
+};
+
+static void GetIsolatePauseEvent(Thread* thread, JSONStream* js) {
+  thread->isolate()->PrintPauseEventJSON(js);
+}
+
 static const MethodParameter* const get_scripts_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     nullptr,
@@ -5821,6 +5830,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_isolate_metric_params },
   { "_getIsolateMetricList", GetIsolateMetricList,
     get_isolate_metric_list_params },
+  { "getIsolatePauseEvent", GetIsolatePauseEvent,
+    get_isolate_pause_event_params },
   { "getObject", GetObject,
     get_object_params },
   { "_getObjectStore", GetObjectStore,

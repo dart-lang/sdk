@@ -1268,6 +1268,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Creates an object with the total heap memory usage statistics for this
   // isolate.
   void PrintMemoryUsageJSON(JSONStream* stream);
+
+  void PrintPauseEventJSON(JSONStream* stream);
 #endif
 
 #if !defined(PRODUCT)
