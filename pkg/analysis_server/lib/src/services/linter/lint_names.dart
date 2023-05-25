@@ -23,6 +23,8 @@ class LintNames {
   static const String avoid_function_literals_in_foreach_calls =
       'avoid_function_literals_in_foreach_calls';
   static const String avoid_init_to_null = 'avoid_init_to_null';
+  static const String avoid_multiple_declarations_per_line =
+      'avoid_multiple_declarations_per_line';
   static const String avoid_null_checks_in_equality_operators =
       'avoid_null_checks_in_equality_operators';
   static const String avoid_print = 'avoid_print';

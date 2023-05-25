@@ -1830,6 +1830,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Move all unnamed constructors before named constructors',
   );
+  static const SPLIT_MULTIPLE_DECLARATIONS = FixKind(
+    'dart.fix.split.multipleDeclarations',
+    DartFixKindPriority.DEFAULT,
+    'Split multiple declarations into multiple lines',
+  );
+  static const SPLIT_MULTIPLE_DECLARATIONS_MULTI = FixKind(
+    'dart.fix.split.multipleDeclarations.multi',
+    DartFixKindPriority.DEFAULT,
+    'Split all multiple declarations into multiple lines',
+  );
   static const SURROUND_WITH_PARENTHESES = FixKind(
     'dart.fix.surround.parentheses',
     DartFixKindPriority.DEFAULT,

@@ -99,8 +99,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -127,34 +126,5 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  A01
-    kind: class
-  A01
-    kind: constructorInvocation
-  A02
-    kind: class
-  A02
-    kind: constructorInvocation
-  B01
-    kind: class
-  B01
-    kind: constructorInvocation
-  const
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 }

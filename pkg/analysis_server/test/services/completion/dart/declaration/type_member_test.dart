@@ -2573,19 +2573,11 @@ void f(a0) {
   for (S^ f0 in a0) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-''');
-    }
   }
 
   Future<void> test_formalParameterList() async {
@@ -2668,23 +2660,13 @@ void f0() {
   for (int i0 = 0; i0 < 10; ++i^)
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   i0
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  i0
-    kind: localVariable
-''');
-    }
   }
 
   Future<void> test_functionDeclaration_returnType_afterComment() async {
@@ -3523,23 +3505,13 @@ void f() {
   C.in^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   instance
     kind: getter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  instance
-    kind: getter
-''');
-    }
   }
 
   Future<void> test_keyword2() async {
@@ -3681,23 +3653,13 @@ void f() {
   print([S^]);
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   S0
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  S0
-    kind: localVariable
-''');
-    }
   }
 
   Future<void> test_literal_string() async {
@@ -5827,19 +5789,11 @@ class A {
   }
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-''');
-    }
   }
 
   Future<void> test_switchStatement_case() async {

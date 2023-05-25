@@ -9,7 +9,7 @@ environment:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
-  kernel: any # For Graph topological sort.
+  graphs: any
   logging: any
   native_assets_cli: any
   package_config: any
