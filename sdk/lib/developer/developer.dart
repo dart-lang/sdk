@@ -58,7 +58,7 @@
 /// }
 ///
 /// int fibonacci(int n) => (n < 2) ? n : fibonacci(n - 2) + fibonacci(n - 1);
-////// ```
+/// ```
 ///
 /// When executed with `dart run --observe`, and opened in DevTools,
 /// the Performance tab will display a timeline containing the annotations
