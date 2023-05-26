@@ -2573,9 +2573,9 @@ void f(MyEnum myEnum) {
 ''');
   }
 
-  test_switchCase_implementsEquals_enum_language218() async {
+  test_switchCase_implementsEquals_enum_language219() async {
     await assertNoErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 enum MyEnum {a, b, c}
 
 void f(MyEnum myEnum) {

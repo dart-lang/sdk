@@ -10,7 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BodyMayCompleteNormallyTest);
-    defineReflectiveTests(BodyMayCompleteNormallyTest_Language218);
+    defineReflectiveTests(BodyMayCompleteNormallyTest_Language219);
   });
 }
 
@@ -22,8 +22,8 @@ class BodyMayCompleteNormallyTest extends PubPackageResolutionTest
 }
 
 @reflectiveTest
-class BodyMayCompleteNormallyTest_Language218 extends PubPackageResolutionTest
-    with WithLanguage218Mixin, BodyMayCompleteNormallyTestCases {
+class BodyMayCompleteNormallyTest_Language219 extends PubPackageResolutionTest
+    with WithLanguage219Mixin, BodyMayCompleteNormallyTestCases {
   @override
   bool get _arePatternsEnabled => false;
 }

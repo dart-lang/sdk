@@ -1747,13 +1747,13 @@ void f(int a) {
     );
   }
 
-  test_topLevelVariable_switchCase_language218() async {
+  test_topLevelVariable_switchCase_language219() async {
     newFile(externalLibPath, r'''
 @deprecated
 const int x = 1;
 ''');
     await assertErrorsInCode('''
-// @dart = 2.18
+// @dart = 2.19
 import '$externalLibUri';
 void f(int a) {
   switch (a) {
@@ -1783,13 +1783,13 @@ void f() {
     );
   }
 
-  test_topLevelVariable_switchStatement_language218() async {
+  test_topLevelVariable_switchStatement_language219() async {
     newFile(externalLibPath, r'''
 @deprecated
 int x = 1;
 ''');
     await assertErrorsInCode('''
-// @dart = 2.18
+// @dart = 2.19
 import '$externalLibUri';
 void f() {
   switch (x) {}

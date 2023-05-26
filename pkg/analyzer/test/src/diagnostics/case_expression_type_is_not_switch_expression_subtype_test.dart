@@ -12,7 +12,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CaseExpressionTypeIsNotSwitchExpressionSubtypeTest);
     defineReflectiveTests(
-        CaseExpressionTypeIsNotSwitchExpressionSubtypeTest_Language218);
+        CaseExpressionTypeIsNotSwitchExpressionSubtypeTest_Language219);
   });
 }
 
@@ -25,10 +25,10 @@ class CaseExpressionTypeIsNotSwitchExpressionSubtypeTest
 }
 
 @reflectiveTest
-class CaseExpressionTypeIsNotSwitchExpressionSubtypeTest_Language218
+class CaseExpressionTypeIsNotSwitchExpressionSubtypeTest_Language219
     extends PubPackageResolutionTest
     with
-        WithLanguage218Mixin,
+        WithLanguage219Mixin,
         CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases {
   @override
   _Variant get _variant => _Variant.nullSafe;

@@ -214,22 +214,22 @@ void f(Record r) {}
 ''');
   }
 
-  test_Record_language218() async {
+  test_Record_language219() async {
     await assertErrorsInCode('''
-// @dart = 2.18
+// @dart = 2.19
 void f(Record r) {}
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 23, 6),
     ]);
   }
 
-  test_Record_language218_exported() async {
+  test_Record_language219_exported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 export 'dart:core' show Record;
 ''');
 
     await assertNoErrorsInCode('''
-// @dart = 2.18
+// @dart = 2.19
 import 'a.dart';
 void f(Record r) {}
 ''');

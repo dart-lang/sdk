@@ -135,9 +135,9 @@ void f(int a) {
     assertElement(findNode.simple('v;'), findElement.localFunction('v'));
   }
 
-  test_hideInSwitchCase_function_language218() async {
+  test_hideInSwitchCase_function_language219() async {
     await assertErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 var v = 0;
 
 void f(int a) {
@@ -174,9 +174,9 @@ void f(int a) {
     assertElement(findNode.simple('v;'), findElement.localVar('v'));
   }
 
-  test_hideInSwitchCase_local_language218() async {
+  test_hideInSwitchCase_local_language219() async {
     await assertErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 var v = 0;
 
 void f(int a) {
@@ -213,9 +213,9 @@ void f(int a) {
     assertElement(findNode.simple('v;'), findElement.localFunction('v'));
   }
 
-  test_hideInSwitchDefault_function_language218() async {
+  test_hideInSwitchDefault_function_language219() async {
     await assertErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 var v = 0;
 
 void f(int a) {
@@ -252,9 +252,9 @@ void f(int a) {
     assertElement(findNode.simple('v;'), findElement.localVar('v'));
   }
 
-  test_hideInSwitchDefault_local_language218() async {
+  test_hideInSwitchDefault_local_language219() async {
     await assertErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 var v = 0;
 
 void f(int a) {

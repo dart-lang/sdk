@@ -568,9 +568,9 @@ PrefixedIdentifier
 ''');
   }
 
-  test_language218() async {
+  test_language219() async {
     await assertNoErrorsInCode('''
-// @dart=2.18
+// @dart = 2.19
 class C {
   final int? _foo;
   C(this._foo);
