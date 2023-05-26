@@ -3056,13 +3056,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Map<TypeParameterElement, DecoratedType> getterSubstitution = const {};
     Map<TypeParameterElement, DecoratedType> setterSubstitution = const {};
     if (class_ != null) {
-      var getterClass = getter.enclosingElement as ClassElement;
+      var getterClass = getter.enclosingElement as InterfaceElement;
       if (!identical(class_, getterClass)) {
         getterSubstitution = _decoratedClassHierarchy!
             .getDecoratedSupertype(class_, getterClass)
             .asSubstitution;
       }
-      var setterClass = setter.enclosingElement as ClassElement;
+      var setterClass = setter.enclosingElement as InterfaceElement;
       if (!identical(class_, setterClass)) {
         setterSubstitution = _decoratedClassHierarchy!
             .getDecoratedSupertype(class_, setterClass)

@@ -36,6 +36,13 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
 
   CommandHandler(this.server);
 
+  /// Whether this command records its own analytics and should be excluded from
+  /// logging by the main command handler.
+  ///
+  /// This is useful if a command is generic (for example "performRefactor") and
+  /// can record a more specific command name.
+  bool get recordsOwnAnalytics => false;
+
   Future<ErrorOr<Object?>> handle(Map<String, Object?> parameters,
       ProgressReporter progress, CancellationToken cancellationToken);
 }

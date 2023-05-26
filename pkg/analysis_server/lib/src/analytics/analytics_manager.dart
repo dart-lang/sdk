@@ -21,6 +21,7 @@ import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:collection/collection.dart';
 import 'package:leak_tracker/src/usage_tracking/model.dart';
+import 'package:meta/meta.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 /// An interface for managing and reporting analytics.
@@ -123,7 +124,7 @@ class AnalyticsManager {
   void changedWorkspaceFolders(
       {required List<String> added, required List<String> removed}) {
     var requestData =
-        _getRequestData(Method.workspace_didChangeWorkspaceFolders.toString());
+        getRequestData(Method.workspace_didChangeWorkspaceFolders.toString());
     requestData.addValue('added', added.length);
     requestData.addValue('removed', removed.length);
   }
@@ -147,8 +148,14 @@ class AnalyticsManager {
   /// Record that the given [command] was executed.
   void executedCommand(String command) {
     var requestData =
-        _getRequestData(Method.workspace_executeCommand.toString());
+        getRequestData(Method.workspace_executeCommand.toString());
     requestData.addEnumValue('command', command);
+  }
+
+  /// Return the request data for requests that have the given [method].
+  @visibleForTesting
+  RequestData getRequestData(String method) {
+    return _completedRequests.putIfAbsent(method, () => RequestData(method));
   }
 
   /// Record that the given [notification] was received and has been handled.
@@ -187,7 +194,7 @@ class AnalyticsManager {
 
   /// Record the number of [openWorkspacePaths].
   void initialized({required List<String> openWorkspacePaths}) {
-    var requestData = _getRequestData(Method.initialized.toString());
+    var requestData = getRequestData(Method.initialized.toString());
     requestData.addValue('openWorkspacePaths', openWorkspacePaths.length);
   }
 
@@ -246,7 +253,7 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedGetRefactoring(EditGetRefactoringParams params) {
-    var requestData = _getRequestData(EDIT_REQUEST_GET_REFACTORING);
+    var requestData = getRequestData(EDIT_REQUEST_GET_REFACTORING);
     requestData.addEnumValue(
         EDIT_REQUEST_GET_REFACTORING_KIND, params.kind.name);
   }
@@ -269,7 +276,7 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedSetAnalysisRoots(AnalysisSetAnalysisRootsParams params) {
-    var requestData = _getRequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS);
+    var requestData = getRequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS);
     requestData.addValue(
         ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED, params.included.length);
     requestData.addValue(
@@ -278,7 +285,7 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedSetPriorityFiles(AnalysisSetPriorityFilesParams params) {
-    var requestData = _getRequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES);
+    var requestData = getRequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES);
     requestData.addValue(
         ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES, params.files.length);
   }
@@ -421,11 +428,6 @@ class AnalyticsManager {
     return buffer.toString();
   }
 
-  /// Return the request data for requests that have the given [method].
-  RequestData _getRequestData(String method) {
-    return _completedRequests.putIfAbsent(method, () => RequestData(method));
-  }
-
   /// Record that the request with the given [id] was responded to at the given
   /// [sendTime].
   void _recordResponseData(String id, DateTime sendTime) {
@@ -438,7 +440,7 @@ class AnalyticsManager {
     var clientRequestTime = data.clientRequestTime;
     var startTime = data.startTime.millisecondsSinceEpoch;
 
-    var requestData = _getRequestData(method);
+    var requestData = getRequestData(method);
 
     if (clientRequestTime != null) {
       var latencyTime = startTime - clientRequestTime;

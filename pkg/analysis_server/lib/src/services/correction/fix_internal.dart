@@ -314,6 +314,7 @@ class FixInFileProcessor {
           var sourceChange = fixState.builder.sourceChange;
           if (sourceChange.edits.isNotEmpty && fixState.fixCount > 1) {
             var fixKind = fixState.fixKind;
+            sourceChange.id = fixKind.id;
             sourceChange.message = fixKind.message;
             fixes.add(Fix(fixKind, sourceChange));
           }

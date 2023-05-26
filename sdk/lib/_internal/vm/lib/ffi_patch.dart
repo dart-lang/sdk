@@ -77,7 +77,6 @@ int sizeOf<T extends NativeType>() {
 }
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_fromAddress")
 external Pointer<T> _fromAddress<T extends NativeType>(int ptr);
 
 // The real implementation of this function (for interface calls) lives in
@@ -89,43 +88,33 @@ external DS _asFunctionInternal<DS extends Function, NS extends Function>(
     Pointer<NativeFunction<NS>> ptr, bool isLeaf);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataInt8")
 external Int8List _asExternalTypedDataInt8(Pointer<Int8> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataInt16")
 external Int16List _asExternalTypedDataInt16(Pointer<Int16> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataInt32")
 external Int32List _asExternalTypedDataInt32(Pointer<Int32> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataInt64")
 external Int64List _asExternalTypedDataInt64(Pointer<Int64> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataUint8")
 external Uint8List _asExternalTypedDataUint8(Pointer<Uint8> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataUint16")
 external Uint16List _asExternalTypedDataUint16(Pointer<Uint16> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataUint32")
 external Uint32List _asExternalTypedDataUint32(Pointer<Uint32> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataUint64")
 external Uint64List _asExternalTypedDataUint64(Pointer<Uint64> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataFloat")
 external Float32List _asExternalTypedDataFloat(Pointer<Float> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataDouble")
 external Float64List _asExternalTypedDataDouble(
     Pointer<Double> ptr, int length);
 
@@ -175,7 +164,6 @@ final class Pointer<T extends NativeType> {
 
   @patch
   @pragma("vm:recognized", "other")
-  @pragma("vm:external-name", "Ffi_address")
   external int get address;
 
   @patch
@@ -266,42 +254,34 @@ external void _memCopy(Object target, int targetOffsetInBytes, Object source,
 // getting rid of these allocations by inlining these functions.
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadInt8")
 external int _loadInt8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadInt16")
 external int _loadInt16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadInt32")
 external int _loadInt32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadInt64")
 external int _loadInt64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadUint8")
 external int _loadUint8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadUint16")
 external int _loadUint16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadUint32")
 external int _loadUint32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadUint64")
 external int _loadUint64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
@@ -313,64 +293,51 @@ external int _loadAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
     Object typedDataBase, int index);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadFloat")
 external double _loadFloat(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadDouble")
 external double _loadDouble(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadFloatUnaligned")
 external double _loadFloatUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadDoubleUnaligned")
 external double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadPointer")
 external Pointer<S> _loadPointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeInt8")
 external void _storeInt8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeInt16")
 external void _storeInt16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeInt32")
 external void _storeInt32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeInt64")
 external void _storeInt64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeUint8")
 external void _storeUint8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeUint16")
 external void _storeUint16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeUint32")
 external void _storeUint32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeUint64")
 external void _storeUint64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
@@ -382,27 +349,22 @@ external int _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
     Object typedDataBase, int index, int value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeFloat")
 external void _storeFloat(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeDouble")
 external void _storeDouble(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeFloatUnaligned")
 external void _storeFloatUnaligned(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeDoubleUnaligned")
 external void _storeDoubleUnaligned(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storePointer")
 external void _storePointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes, Pointer<S> value);
 
