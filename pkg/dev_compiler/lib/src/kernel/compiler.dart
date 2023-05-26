@@ -499,6 +499,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Add all type hierarchy rules for the interface types used in this module.
     if (_options.newRuntimeTypes) {
+      // TODO(nshahan) This is likely more information than the application
+      // really uses. It could be reduced to only the types of values that are
+      // potentially "live" in the module which includes the types of all the
+      // constructor invocations and the types of the constructors torn off
+      // (potentially constructed) within the module. The current constructor
+      // tearoff lowering does make this harder to know since all constructors
+      // appeared to be invoked in the body of the method created by the
+      // lowering. For now we over estimate and simply use all the interface
+      // types introduced by all the classes defined in the module.
+      for (var library in libraries) {
+        for (var cls in library.classes) {
+          var type = cls.getThisType(_coreTypes, Nullability.nonNullable);
+          _typeRecipeGenerator.addLiveType(type);
+        }
+      }
       var universeClass =
           rtiLibrary.classes.firstWhere((cls) => cls.name == '_Universe');
       var typeRules = _typeRecipeGenerator.visitedInterfaceTypeRules;

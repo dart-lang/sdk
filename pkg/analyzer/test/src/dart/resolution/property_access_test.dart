@@ -613,13 +613,13 @@ PropertyAccess
 ''');
   }
 
-  test_ofRecordType_namedField_language218() async {
+  test_ofRecordType_namedField_language219() async {
     newFile('$testPackageLibPath/a.dart', r'''
 final r = (foo: 42);
 ''');
 
     await assertNoErrorsInCode('''
-// @dart = 2.18
+// @dart = 2.19
 import 'a.dart';
 void f() {
   r.foo;
@@ -886,13 +886,13 @@ PropertyAccess
 ''');
   }
 
-  test_ofRecordType_positionalField_language218() async {
+  test_ofRecordType_positionalField_language219() async {
     newFile('$testPackageLibPath/a.dart', r'''
 final r = (0, 'bar');
 ''');
 
     await assertNoErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 import 'a.dart';
 void f() {
   r.$1;

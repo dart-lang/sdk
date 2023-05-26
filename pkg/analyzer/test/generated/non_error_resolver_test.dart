@@ -748,9 +748,9 @@ class A {
 ''');
   }
 
-  test_breakWithoutLabelInSwitch_language218() async {
+  test_breakWithoutLabelInSwitch_language219() async {
     await assertNoErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 class A {
   void m(int i) {
     switch (i) {
@@ -2314,9 +2314,9 @@ f(E e) {
 ''');
   }
 
-  test_missingEnumConstantInSwitch_all_language218() async {
+  test_missingEnumConstantInSwitch_all_language219() async {
     await assertNoErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 enum E { A, B, C }
 
 f(E e) {
@@ -2342,9 +2342,9 @@ f(E e) {
 ''');
   }
 
-  test_missingEnumConstantInSwitch_default_language218() async {
+  test_missingEnumConstantInSwitch_default_language219() async {
     await assertNoErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 enum E { A, B, C }
 
 f(E e) {

@@ -9,7 +9,6 @@ main() {
   var a = A();
   if (a is "A") return 0;
   // [error line 10, column 12, length 0]
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_UNDEFINED_NAME
   // [cfe] Expected ')' before this.
   //       ^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN

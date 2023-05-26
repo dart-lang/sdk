@@ -5236,7 +5236,7 @@ library
 
   test_class_field_isPromotable_language217() async {
     var library = await buildLibrary(r'''
-// @dart = 2.18
+// @dart = 2.19
 class A {
   final int? _foo;
   A(this._foo);

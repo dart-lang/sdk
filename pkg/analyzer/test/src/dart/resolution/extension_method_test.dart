@@ -109,7 +109,6 @@ extension E {
 }
 ''', [
       error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 12, 0),
       error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
       error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 1),
     ]);
@@ -122,7 +121,6 @@ extension E {
 }
 ''', [
       error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 12, 0),
       error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
       error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 7),
     ]);
