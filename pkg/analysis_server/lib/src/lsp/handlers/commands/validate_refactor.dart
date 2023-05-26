@@ -18,6 +18,9 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
   String get commandName => 'Validate Refactor';
 
   @override
+  bool get recordsOwnAnalytics => true;
+
+  @override
   FutureOr<ErrorOr<ValidateRefactorResult>> execute(
     String path,
     String kind,
@@ -28,6 +31,9 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
     ProgressReporter reporter,
     int? docVersion,
   ) async {
+    final actionName = 'dart.refactor.${kind.toLowerCase()}.validate';
+    server.analyticsManager.executedCommand(actionName);
+
     // In order to prevent clients asking users for a method/widget name and
     // then failing because of something like "Cannot extract closure as method"
     // this command allows the client to call `checkInitialConditions()` after

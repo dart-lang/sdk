@@ -970,6 +970,15 @@ class ClassToMove {}
         newFileContent: newFileContent);
   }
 
+  Future<void> test_logsAction() async {
+    addTestSource(simpleClassContent);
+    await initializeServer();
+    final action = await expectCodeAction(simpleClassRefactorTitle);
+    await executeRefactor(action);
+
+    expectCommandLogged('dart.refactor.move_top_level_to_file');
+  }
+
   Future<void> test_multiple() async {
     var originalSource = '''
 class A {}

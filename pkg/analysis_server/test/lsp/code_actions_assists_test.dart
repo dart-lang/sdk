@@ -34,16 +34,16 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
   Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
     // This code should get an assist to add a show combinator.
     const content = '''
-    import '[[dart:async]]';
+import '[[dart:async]]';
 
-    Future f;
-    ''';
+Future f;
+''';
 
     const expectedContent = '''
-    import 'dart:async' show Future;
+import 'dart:async' show Future;
 
-    Future f;
-    ''';
+Future f;
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
@@ -75,16 +75,16 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
   Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
     // This code should get an assist to add a show combinator.
     const content = '''
-    import '[[dart:async]]';
+import '[[dart:async]]';
 
-    Future f;
-    ''';
+Future f;
+''';
 
     const expectedContent = '''
-    import 'dart:async' show Future;
+import 'dart:async' show Future;
 
-    Future f;
-    ''';
+Future f;
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
@@ -200,6 +200,29 @@ Widget build() {
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
+  Future<void> test_logsExecution() async {
+    const content = '''
+import '[[dart:async]]';
+
+Future f;
+''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+    );
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final assistAction = findEditAction(
+        codeActions,
+        CodeActionKind('refactor.add.showCombinator'),
+        "Add explicit 'show' combinator")!;
+
+    await executeCommand(assistAction.command!);
+    expectCommandLogged('dart.assist.add.showCombinator');
+  }
+
   Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize(
@@ -300,36 +323,36 @@ Widget build() {
     // produces multiple linked edit groups.
 
     const content = '''
-    import 'package:flutter/widgets.dart';
-    build() {
-      return Container(
-        child: Ro^w(
-          children: [
-            Text('111'),
-            Text('222'),
-            Container(),
-          ],
-        ),
-      );
-    }
-    ''';
+import 'package:flutter/widgets.dart';
+build() {
+  return Container(
+    child: Ro^w(
+      children: [
+        Text('111'),
+        Text('222'),
+        Container(),
+      ],
+    ),
+  );
+}
+''';
 
     const expectedContent = r'''
-    import 'package:flutter/widgets.dart';
-    build() {
-      return Container(
-        child: ${1:widget}(
-          ${2:child}: Row(
-            children: [
-              Text('111'),
-              Text('222'),
-              Container(),
-            ],
-          ),
-        ),
-      );
-    }
-    ''';
+import 'package:flutter/widgets.dart';
+build() {
+  return Container(
+    child: ${1:widget}(
+      ${2:child}: Row(
+        children: [
+          Text('111'),
+          Text('222'),
+          Container(),
+        ],
+      ),
+    ),
+  );
+}
+''';
 
     newFile(mainFilePath, withoutMarkers(content));
     await initialize(
@@ -367,41 +390,41 @@ Widget build() {
     // should select the text "widget".
 
     const content = '''
-    import 'package:flutter/widgets.dart';
-    build() {
-      return Container(
-        child: Row(
-          children: [^
-            Text('111'),
-            Text('222'),
-            Container(),
-          ],
-        ),
-      );
-    }
-    ''';
+import 'package:flutter/widgets.dart';
+build() {
+  return Container(
+    child: Row(
+      children: [^
+        Text('111'),
+        Text('222'),
+        Container(),
+      ],
+    ),
+  );
+}
+''';
 
     // For testing, the snippet will be inserted literally into the text, as
     // this requires some magic on the client. The expected text should
     // therefore contain the snippets in the standard format.
     const expectedContent = r'''
-    import 'package:flutter/widgets.dart';
-    build() {
-      return Container(
-        child: Row(
+import 'package:flutter/widgets.dart';
+build() {
+  return Container(
+    child: Row(
+      children: [
+        ${0:widget}(
           children: [
-            ${0:widget}(
-              children: [
-                Text('111'),
-                Text('222'),
-                Container(),
-              ],
-            ),
+            Text('111'),
+            Text('222'),
+            Container(),
           ],
         ),
-      );
-    }
-    ''';
+      ],
+    ),
+  );
+}
+''';
 
     newFile(mainFilePath, withoutMarkers(content));
     await initialize(
@@ -453,19 +476,19 @@ Widget build() {
     // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
 
     const content = '''
-    import 'package:flutter/widgets.dart';
-    build() {
-      return Container(
-        child: Row(
-          children: [^
-            Text('111'),
-            Text('222'),
-            Container(),
-          ],
-        ),
-      );
-    }
-    ''';
+import 'package:flutter/widgets.dart';
+build() {
+  return Container(
+    child: Row(
+      children: [^
+        Text('111'),
+        Text('222'),
+        Container(),
+      ],
+    ),
+  );
+}
+''';
 
     newFile(mainFilePath, withoutMarkers(content));
     await initialize(
@@ -504,10 +527,10 @@ Widget build() {
 
   Future<void> test_sort() async {
     const content = '''
-    import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 
-    build() => Contai^ner(child: Container());
-    ''';
+build() => Contai^ner(child: Container());
+''';
 
     newFile(mainFilePath, withoutMarkers(content));
     await initialize(

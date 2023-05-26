@@ -390,6 +390,31 @@ linter:
     expect(await ofKind(CodeActionKind.Refactor), isEmpty);
   }
 
+  Future<void> test_fixAll_logsExecution() async {
+    const content = '''
+void f(String a) {
+  [[print(a!!)]];
+  print(a!!);
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+      codeActions,
+      CodeActionKind('quickfix.remove.nonNullAssertion.multi'),
+      "Remove '!'s in file",
+    )!;
+
+    await executeCommand(fixAction.command!);
+    expectCommandLogged('dart.fix.remove.nonNullAssertion.multi');
+  }
+
   Future<void> test_fixAll_notWhenNoBatchFix() async {
     // Some fixes (for example 'create function foo') are not available in the
     // batch processor, so should not generate fix-all-in-file fixes even if there
@@ -459,7 +484,10 @@ void f(String a) {
     final codeActions =
         await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final fixAction = findEditAction(
-        codeActions, CodeActionKind('quickfix'), "Remove '!'s in file")!;
+      codeActions,
+      CodeActionKind('quickfix.remove.nonNullAssertion.multi'),
+      "Remove '!'s in file",
+    )!;
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
@@ -587,6 +615,27 @@ Future foo;''';
     };
     applyChanges(contents, fixAction.edit!.changes!);
     expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void> test_logsExecution() async {
+    const content = '''
+[[import]] 'dart:convert';
+''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.remove.unusedImport'),
+        'Remove unused import')!;
+
+    await executeCommand(fixAction.command!);
+    expectCommandLogged('dart.fix.remove.unusedImport');
   }
 
   /// Repro for https://github.com/Dart-Code/Dart-Code/issues/4462.

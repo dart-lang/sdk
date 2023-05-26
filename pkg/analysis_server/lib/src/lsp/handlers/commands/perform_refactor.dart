@@ -18,6 +18,9 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
   String get commandName => 'Perform Refactor';
 
   @override
+  bool get recordsOwnAnalytics => true;
+
+  @override
   FutureOr<ErrorOr<void>> execute(
     String path,
     String kind,
@@ -28,6 +31,9 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
     ProgressReporter reporter,
     int? docVersion,
   ) async {
+    final actionName = 'dart.refactor.${kind.toLowerCase()}';
+    server.analyticsManager.executedCommand(actionName);
+
     final result = await requireResolvedUnit(path);
     return result.mapResult((result) async {
       final refactoring = await getRefactoring(
