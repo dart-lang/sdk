@@ -39,11 +39,20 @@ class PackageMapUriResolver extends UriResolver {
 
   @override
   Uri? pathToUri(String path) {
+    // TODO: There should be an index on this instead of trying all entries.
+    // When analyzing rwf-materials (562 contexts) with a filled cache this
+    // function is called 624,750 times and a combined 39,352,289 iterations
+    // are done in the loop below.
+    // See for instance https://github.com/dart-lang/package_config/pull/117
+    // for inspiration, but also, maybe just use package:package_config?
     pathos.Context pathContext = resourceProvider.pathContext;
-    for (String pkgName in packageMap.keys) {
-      Folder pkgFolder = packageMap[pkgName]![0];
+    for (var packageEntry in packageMap.entries) {
+      String pkgName = packageEntry.key;
+      Folder pkgFolder = packageEntry.value[0];
       String pkgFolderPath = pkgFolder.path;
-      if (path.startsWith(pkgFolderPath + pathContext.separator)) {
+      if (path.length >= pkgFolderPath.length + pathContext.separator.length &&
+          path.startsWith(pkgFolderPath) &&
+          path.startsWith(pathContext.separator, pkgFolderPath.length)) {
         String relPath = path.substring(pkgFolderPath.length + 1);
         List<String> relPathComponents = pathContext.split(relPath);
         String relUriPath = pathos.posix.joinAll(relPathComponents);

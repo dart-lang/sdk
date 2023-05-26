@@ -1282,7 +1282,7 @@ abstract class Socket {
 
 final MockSdkLibrary _LIB_ISOLATE = MockSdkLibrary('isolate', [
   MockSdkLibraryUnit(
-    'isolate.dart',
+    'isolate/isolate.dart',
     '''
 library dart.isolate;
 
