@@ -76,14 +76,13 @@ Future<void> generateNative({
       throw 'Generating AOT kernel dill failed!';
     }
 
-    if (verbose) {
-      print('Generating AOT snapshot.');
-    }
-
     List<String> extraAotOptions = [
       if (!soundNullSafety) "--no-sound-null-safety",
       ...extraOptions
     ];
+    if (verbose) {
+      print('Generating AOT snapshot. $genSnapshot $extraAotOptions');
+    }
     final String snapshotFile = (outputKind == Kind.aot
         ? outputPath
         : path.join(tempDir.path, 'snapshot.aot'));
