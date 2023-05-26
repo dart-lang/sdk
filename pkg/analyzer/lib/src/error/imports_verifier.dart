@@ -85,7 +85,10 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
     CompoundAssignmentExpression node,
     Expression target,
   ) {
-    if (target is PrefixedIdentifier) {
+    if (target is IndexExpression) {
+      _recordIfExtensionMember(node.readElement);
+      _recordIfExtensionMember(node.writeElement);
+    } else if (target is PrefixedIdentifier) {
       _visitIdentifier(target.identifier, node.readElement);
       _visitIdentifier(target.identifier, node.writeElement);
     } else if (target is PropertyAccess) {

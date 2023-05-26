@@ -238,6 +238,52 @@ f() {
 ''');
   }
 
+  test_extension_instance_indexRead() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on int {
+  int operator[](_) => 0;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+void f() {
+  0[1];
+}
+''');
+  }
+
+  test_extension_instance_indexReadWrite() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on int {
+  int operator[](_) => 0;
+  void operator[]=(_, __) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+void f() {
+  0[1] += 2;
+}
+''');
+  }
+
+  test_extension_instance_indexWrite() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on int {
+  void operator[]=(_, __) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+void f() {
+  0[1] = 2;
+}
+''');
+  }
+
   test_extension_instance_method() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on String {
@@ -264,21 +310,6 @@ import 'lib1.dart';
 
 f() {
   'abc' - 'c';
-}
-''');
-  }
-
-  test_extension_instance_operator_index() async {
-    newFile('$testPackageLibPath/lib1.dart', r'''
-extension E on int {
-  int operator [](int i) => 0;
-}
-''');
-    await assertNoErrorsInCode('''
-import 'lib1.dart';
-
-f() {
-  9[7];
 }
 ''');
   }
