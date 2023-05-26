@@ -19,6 +19,7 @@ src/org/dartlang/vm/service/consumer/GetInstancesConsumer.java
 src/org/dartlang/vm/service/consumer/GetIsolateConsumer.java
 src/org/dartlang/vm/service/consumer/GetIsolateGroupConsumer.java
 src/org/dartlang/vm/service/consumer/GetIsolateGroupMemoryUsageConsumer.java
+src/org/dartlang/vm/service/consumer/GetIsolatePauseEventConsumer.java
 src/org/dartlang/vm/service/consumer/GetMemoryUsageConsumer.java
 src/org/dartlang/vm/service/consumer/GetObjectConsumer.java
 src/org/dartlang/vm/service/consumer/GetPerfettoCpuSamplesConsumer.java

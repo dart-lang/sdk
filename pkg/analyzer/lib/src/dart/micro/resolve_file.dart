@@ -742,6 +742,7 @@ class FileResolver {
         ),
         prefetchFiles: prefetchFiles,
         isGenerated: isGenerated,
+        onNewFile: (file) {},
         testData: testData?.fileSystem,
         unlinkedUnitStore: UnlinkedUnitStoreImpl(),
       );

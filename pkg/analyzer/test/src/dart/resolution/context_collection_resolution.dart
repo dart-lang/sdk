@@ -147,6 +147,10 @@ abstract class ContextResolutionTest
 
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
+  AnalysisContextCollectionImpl get analysisContextCollection {
+    return _analysisContextCollection!;
+  }
+
   List<String> get collectionIncludedPaths;
 
   set declaredVariables(Map<String, String> map) {

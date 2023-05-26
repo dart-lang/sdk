@@ -47,6 +47,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
@@ -295,6 +296,9 @@ abstract class AnalysisServer {
   /// Returns the function that can send `openUri` request to the client.
   /// Returns `null` is the client does not support it.
   OpenUriNotificationSender? get openUriNotificationSender;
+
+  /// Returns owners of files.
+  OwnedFiles get ownedFiles => contextManager.ownedFiles;
 
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.

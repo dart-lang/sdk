@@ -148,6 +148,7 @@ class FindDeclarations {
   final FuzzyMatcher matcher;
   final String? onlyForFile;
   final bool onlyAnalyzed;
+  final OwnedFiles ownedFiles;
   final OperationPerformanceImpl performance;
 
   FindDeclarations(
@@ -157,33 +158,27 @@ class FindDeclarations {
     this.maxResults, {
     this.onlyForFile,
     this.onlyAnalyzed = false,
+    required this.ownedFiles,
     required this.performance,
   }) : matcher = FuzzyMatcher(pattern);
 
   Future<void> compute([CancellationToken? cancellationToken]) async {
-    var searchedFiles = SearchedFiles();
-    // Add analyzed files first, so priority is given to drivers that analyze
-    // files over those that just reference them.
-    for (var driver in drivers) {
-      searchedFiles.ownAnalyzed(driver.search);
-    }
     if (!onlyAnalyzed) {
       await performance.runAsync('discoverAvailableFiles', (performance) async {
         await Future.wait(
           drivers.map((driver) => driver.discoverAvailableFiles()),
         );
       });
-
-      performance.run('ownKnown', (performance) {
-        for (var driver in drivers) {
-          searchedFiles.ownKnown(driver.search);
-        }
-      });
     }
+
+    final entries = [
+      ...ownedFiles.addedFiles.entries,
+      if (!onlyAnalyzed) ...ownedFiles.knownFiles.entries,
+    ];
 
     await performance.runAsync('findDeclarations', (performance) async {
       await _FindDeclarations(
-        searchedFiles,
+        entries,
         result,
         pattern,
         matcher,
@@ -1177,7 +1172,7 @@ class _FindCompilationUnitDeclarations {
 
 /// Searches through [files] for declarations.
 class _FindDeclarations {
-  final SearchedFiles files;
+  final List<MapEntry<Uri, AnalysisDriver>> fileEntries;
   final WorkspaceSymbols result;
   final int? maxResults;
   final String pattern;
@@ -1186,7 +1181,7 @@ class _FindDeclarations {
   final OperationPerformanceImpl performance;
 
   _FindDeclarations(
-    this.files,
+    this.fileEntries,
     this.result,
     this.pattern,
     this.matcher,
@@ -1209,14 +1204,14 @@ class _FindDeclarations {
 
     var filesProcessed = 0;
     try {
-      for (var entry in files.uriOwners.entries) {
+      for (var entry in fileEntries) {
         var uri = entry.key;
-        var search = entry.value;
+        var analysisDriver = entry.value;
 
         final libraryElement = await performance.runAsync(
           'getLibraryByUri',
           (performance) async {
-            final result = await search._driver.getLibraryByUri('$uri');
+            final result = await analysisDriver.getLibraryByUri('$uri');
             if (result is LibraryElementResultImpl) {
               return result.element as LibraryElementImpl;
             }
