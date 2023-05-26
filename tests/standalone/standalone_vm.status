@@ -64,7 +64,7 @@ io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: tim
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 35192
 
 [ $runtime == vm && $system == macos ]
-io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
+io/named_pipe_script_test: Skip # Issue 28737
 
 [ $runtime == vm && $simulator ]
 io/dart_std_io_pipe_test: Timeout, Pass
