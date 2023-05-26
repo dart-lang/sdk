@@ -71,28 +71,20 @@ void f([Object? p = const C()]) {}
 ''');
   }
 
-  test_class_reachableViaTypedefBound() async {
-    await assertNoDiagnostics(r'''
+  test_class_referencedInObjectPattern() async {
+    await assertDiagnostics(r'''
+class C {}
+
 void main() {
   f();
 }
 
-class C {}
-
-void f<T extends C>() {}
-''');
-  }
-
-  test_class_reachableViaTypeInFunction() async {
-    await assertNoDiagnostics(r'''
-void main() {
-  f();
+void f([Object? c]) {
+  if (c case C()) {}
 }
-
-class C {}
-
-void Function(C)? f() => null;
-''');
+''', [
+      lint(6, 1),
+    ]);
   }
 
   test_class_unreachable() async {
@@ -163,8 +155,8 @@ class C {
 }
 ''', [
       lint(22, 1),
-      // TODO(srawlins): See if we can skip reporting a declaration if it's
-      //enclosing declaration is being reported.
+      // TODO(srawlins): See if we can skip reporting a declaration if its
+      // enclosing declaration is being reported.
       lint(28, 1),
       lint(37, 5),
     ]);
@@ -182,6 +174,76 @@ part 'part.dart';
 class A {}
 ''', [
       lint(25, 1),
+    ]);
+  }
+
+  test_class_unreachable_referencedInTypeAnnotation_fieldDeclaration() async {
+    await assertDiagnostics(r'''
+void main() {
+  D();
+}
+
+class C {}
+
+class D {
+  C? c;
+}
+''', [
+      lint(30, 1),
+    ]);
+  }
+
+  test_class_unreachable_referencedInTypeAnnotation_parameter() async {
+    await assertDiagnostics(r'''
+void main() {
+  f();
+}
+
+void f([C? c]) {}
+
+class C {}
+''', [
+      lint(49, 1),
+    ]);
+  }
+
+  test_class_unreachable_referencedInTypeAnnotation_topLevelVariable() async {
+    await assertDiagnostics(r'''
+void main() {
+  print(c);
+}
+
+C? c;
+
+class C {}
+''', [
+      lint(42, 1),
+    ]);
+  }
+
+  test_class_unreachable_referencedInTypeAnnotation_variableDeclaration() async {
+    await assertDiagnostics(r'''
+void main() {
+  C? c;
+}
+
+class C {}
+''', [
+      lint(31, 1),
+    ]);
+  }
+
+  test_class_unreachable_typedefBound() async {
+    await assertDiagnostics(r'''
+void main() {
+  f();
+}
+
+class C {}
+
+void f<T extends C>() {}
+''', [
+      lint(30, 1),
     ]);
   }
 
@@ -258,37 +320,6 @@ enum E {
       // No lint.
       error(WarningCode.UNUSED_ELEMENT, 84, 5),
     ]);
-  }
-
-  test_constructor_reachableViaTestReflectiveLoader() async {
-    var testReflectiveLoaderPath = '$workspaceRootPath/test_reflective_loader';
-    var packageConfigBuilder = PackageConfigFileBuilder();
-    packageConfigBuilder.add(
-      name: 'test_reflective_loader',
-      rootPath: testReflectiveLoaderPath,
-    );
-    writeTestPackageConfig(packageConfigBuilder);
-    newFile('$testReflectiveLoaderPath/lib/test_reflective_loader.dart', r'''
-library test_reflective_loader;
-
-const Object reflectiveTest = _ReflectiveTest();
-class _ReflectiveTest {
-  const _ReflectiveTest();
-}
-''');
-    await assertNoDiagnostics(r'''
-import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-void main() {
-  // Usually some reference via `defineReflectiveTests`.
-  A;
-}
-
-@reflectiveTest
-class A {
-  A() {}
-}
-''');
   }
 
   test_constructor_named_reachableViaDirectCall() async {
@@ -386,6 +417,37 @@ class C {
 ''', [
       lint(42, 5),
     ]);
+  }
+
+  test_constructor_reachableViaTestReflectiveLoader() async {
+    var testReflectiveLoaderPath = '$workspaceRootPath/test_reflective_loader';
+    var packageConfigBuilder = PackageConfigFileBuilder();
+    packageConfigBuilder.add(
+      name: 'test_reflective_loader',
+      rootPath: testReflectiveLoaderPath,
+    );
+    writeTestPackageConfig(packageConfigBuilder);
+    newFile('$testReflectiveLoaderPath/lib/test_reflective_loader.dart', r'''
+library test_reflective_loader;
+
+const Object reflectiveTest = _ReflectiveTest();
+class _ReflectiveTest {
+  const _ReflectiveTest();
+}
+''');
+    await assertNoDiagnostics(r'''
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+void main() {
+  // Usually some reference via `defineReflectiveTests`.
+  A;
+}
+
+@reflectiveTest
+class A {
+  A() {}
+}
+''');
   }
 
   test_constructor_unnamed_reachableViaDefaultImplicitSuperCall() async {
@@ -538,22 +600,6 @@ void f([C? c]) {
 }
 ''', [
       lint(21, 1),
-    ]);
-  }
-
-  test_constructor_unnamed_referencedInObjectPattern() async {
-    await assertDiagnostics(r'''
-class C {}
-
-void main() {
-  f();
-}
-
-void f([Object? c]) {
-  if (c case C()) {}
-}
-''', [
-      lint(6, 1),
     ]);
   }
 
@@ -961,6 +1007,109 @@ int x = 1;
 ''', [
       lint(20, 1),
     ]);
+  }
+
+  test_typedef_reachable_referencedInObjectPattern() async {
+    await assertNoDiagnostics(r'''
+typedef T = int;
+
+void main() {
+  f();
+}
+
+void f([Object? c]) {
+  if (c case T()) {}
+}
+''');
+  }
+
+  test_typedef_reachable_referencedInTypeAnnotation_asExpression() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  1.5 as T;
+}
+
+typedef T = int;
+''');
+  }
+
+  test_typedef_reachable_referencedInTypeAnnotation_castPattern() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  var r = (1.5, );
+  var (s as T, ) = r;
+}
+
+typedef T = int;
+''');
+  }
+
+  test_typedef_reachable_referencedInTypeAnnotation_genericFunctionType() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  t = () => 7;
+}
+
+T? Function()? t;
+
+typedef T = int;
+''');
+  }
+
+  test_typedef_reachable_referencedInTypeAnnotation_isExpression() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  1.5 is T;
+}
+
+typedef T = int;
+''');
+  }
+
+  test_typedef_reachable_referencedInTypeAnnotation_parameter() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  f(() {});
+}
+
+void f([Cb? c]) {}
+
+typedef Cb = void Function();
+''');
+  }
+
+  test_typedef_reachable_referencedInTypeAnnotation_recordType() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  t = (1, );
+}
+
+(T, )? t;
+
+typedef T = int;
+''');
+  }
+
+  test_typedef_reachable_referencedInTypeAnnotation_topLevelVariable() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  c = () {};
+}
+
+Cb? c;
+
+typedef Cb = void Function();
+''');
+  }
+
+  test_typedef_reachable_referencedInTypeAnnotation_variableDeclaration() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  Cb c = () {};
+}
+
+typedef Cb = void Function();
+''');
   }
 
   test_typedef_unreachable() async {
