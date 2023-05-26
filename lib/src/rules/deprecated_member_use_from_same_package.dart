@@ -383,6 +383,12 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _deprecatedVerifier.namedType(node);
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     _deprecatedVerifier.postfixExpression(node);
     super.visitPostfixExpression(node);
