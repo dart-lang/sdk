@@ -7921,7 +7921,6 @@ class Parser {
         typeInfo.isNullable &&
         typeInfo.couldBeExpression) {
       assert(optional('?', token));
-      assert(next.isKeywordOrIdentifier);
       if (!looksLikeName(next)) {
         reportRecoverableError(
             next, codes.templateExpectedIdentifier.withArguments(next));
@@ -9775,8 +9774,12 @@ class Parser {
         return parseVariablePattern(token, patternContext);
       case '(':
         // "(" could start a record type (which has to be followed by an
-        // identifier though), e.g. `(int, int) foo`.
-        if (next.endGroup!.next!.isIdentifier) {
+        // identifier (or ? identifier) though), e.g. `(int, int) foo`
+        // or `(int, int)? bar`.
+        Token afterEndGroup = next.endGroup!.next!;
+        if (afterEndGroup.isIdentifier ||
+            (optional("?", afterEndGroup) &&
+                afterEndGroup.next!.isIdentifier)) {
           TypeInfo typeInfo = computeVariablePatternType(token);
           if (typeInfo is ComplexTypeInfo &&
               typeInfo.isRecordType &&

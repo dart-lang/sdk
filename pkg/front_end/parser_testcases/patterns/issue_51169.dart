@@ -15,3 +15,12 @@ test(a) {
       print(b);
   }
 }
+
+testNullable(a) {
+  switch (a) {
+    case (foo: (int, int)? b) when b != (2, 3):
+      print(b);
+    case Class(field: (int, int)? b) when b != (2, 3):
+      print(b);
+  }
+}
