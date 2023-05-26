@@ -507,6 +507,10 @@ class _ErrorHelper {
   }
 
   void reportNullOrNonTypeElement(NamedType node, Element? element) {
+    if (node.name2.isSynthetic) {
+      return;
+    }
+
     if (node.name2.lexeme == 'boolean') {
       final errorRange = _getErrorRange(node, skipImportPrefix: true);
       errorReporter.reportErrorForOffset(
