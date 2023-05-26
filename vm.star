@@ -173,6 +173,8 @@ _builder(
 dart.try_builder(
     "vm-win-release-arm64",
     dimensions = [windows11, arm64],
+    # TODO(https://github.com/flutter/flutter/issues/127691): Remove filtering of host_class.
+    no_host_class = True,
     pool = "luci.flutter.staging",
 )
 

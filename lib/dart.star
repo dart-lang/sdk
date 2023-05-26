@@ -99,7 +99,8 @@ def _try_builder(
         location_filters = None,
         pool = "luci.dart.try",
         properties = None,
-        on_cq = False):
+        on_cq = False,
+        no_host_class = False):
     """Creates a Dart tryjob.
 
     Args:
@@ -117,10 +118,13 @@ def _try_builder(
         pool: The pool to set in dimensions (defaults to "luci.dart.try").
         properties: Extra properties to set for builds.
         on_cq: Whether the build is added to the default set of CQ tryjobs.
+        no_host_class: Whether to filter "host_class" from the default dimensions.
     """
     if on_cq and location_filters:
         fail("Can't be on the default CQ and conditionally on the CQ")
     dimensions = defaults.dimensions(dimensions)
+    if no_host_class:
+        dimensions.pop("host_class")
     dimensions["pool"] = pool
     properties = defaults.properties(properties)
     builder_properties = _with_goma(goma, dimensions, properties)
