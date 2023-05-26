@@ -717,6 +717,7 @@ class Pointer : public AllStatic {
 class AbstractType : public AllStatic {
  public:
   static word flags_offset();
+  static word hash_offset();
   static word type_test_stub_entry_point_offset();
   static word InstanceSize();
   FINAL_CLASS();
@@ -724,7 +725,6 @@ class AbstractType : public AllStatic {
 
 class Type : public AllStatic {
  public:
-  static word hash_offset();
   static word arguments_offset();
   static word InstanceSize();
   FINAL_CLASS();
@@ -732,7 +732,6 @@ class Type : public AllStatic {
 
 class FunctionType : public AllStatic {
  public:
-  static word hash_offset();
   static word packed_parameter_counts_offset();
   static word packed_type_parameter_counts_offset();
   static word named_parameter_names_offset();

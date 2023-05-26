@@ -1396,16 +1396,6 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  __ lx(A0, Address(SP, 0 * target::kWordSize));
-  __ LoadCompressed(A0, FieldAddress(A0, target::Type::hash_offset()));
-  __ beqz(A0, normal_ir_body, Assembler::kNearJump);
-  __ ret();
-  // Hash not yet computed.
-  __ Bind(normal_ir_body);
-}
-
 void AsmIntrinsifier::Type_equality(Assembler* assembler,
                                     Label* normal_ir_body) {
   Label equal, not_equal, equiv_cids_may_be_generic, equiv_cids, check_legacy;
@@ -1468,7 +1458,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ lx(A0, Address(SP, 0 * target::kWordSize));
-  __ LoadCompressed(A0, FieldAddress(A0, target::FunctionType::hash_offset()));
+  __ LoadCompressed(A0, FieldAddress(A0, target::AbstractType::hash_offset()));
   __ beqz(A0, normal_ir_body, Assembler::kNearJump);
   __ ret();
   // Hash not yet computed.
