@@ -6,7 +6,7 @@
 // FFI leaf calls did not mark the thread for the transition and would cause
 // the stack walker to segfault when it was unable to interpret the frame.
 //
-// VMOptions=--deterministic --enable-vm-service=0 --profiler
+// VMOptions=--deterministic --enable-vm-service=0 --profiler --disable-dart-dev
 
 import 'dart:ffi';
 

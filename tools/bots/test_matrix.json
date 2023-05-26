@@ -990,6 +990,13 @@
           ]
         },
         {
+          "name": "vm jit ffi tests",
+          "arguments": [
+            "-nvm-linux-${mode}-arm-qemu",
+            "ffi"
+          ]
+        },
+        {
           "name": "vm aot ffi tests",
           "arguments": [
             "-nvm-aot-linux-${mode}-arm-qemu",
@@ -1030,6 +1037,13 @@
           "arguments": [
             "-nvm-linux-${mode}-riscv64-qemu",
             "vm/cc"
+          ]
+        },
+        {
+          "name": "vm jit ffi tests",
+          "arguments": [
+            "-nvm-linux-${mode}-riscv64-qemu",
+            "ffi"
           ]
         },
         {
