@@ -5749,6 +5749,7 @@ class FileSystemStateTest with ResourceProviderMixin {
       ),
       prefetchFiles: null,
       isGenerated: (_) => false,
+      onNewFile: (file) {},
       testData: null,
       unlinkedUnitStore: UnlinkedUnitStoreImpl(),
     );

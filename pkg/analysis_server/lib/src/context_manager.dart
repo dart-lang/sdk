@@ -69,6 +69,9 @@ abstract class ContextManager {
   /// to [setRoots].
   List<String> get includedPaths;
 
+  /// Returns owners of files.
+  OwnedFiles get ownedFiles;
+
   /// Return the existing analysis context that should be used to analyze the
   /// given [path], or `null` if the [path] is not analyzed in any of the
   /// created analysis contexts.
@@ -250,6 +253,11 @@ class ContextManagerImpl implements ContextManager {
   @override
   List<AnalysisContext> get analysisContexts =>
       _collection?.contexts.cast<AnalysisContext>() ?? const [];
+
+  @override
+  OwnedFiles get ownedFiles {
+    return _collection?.ownedFiles ?? OwnedFiles();
+  }
 
   @override
   DriverBasedAnalysisContext? getContextFor(String path) {

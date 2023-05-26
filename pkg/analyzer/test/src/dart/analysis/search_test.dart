@@ -49,6 +49,7 @@ class SearchMultipleDriversTest extends PubPackageResolutionTest {
       results,
       '',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: OperationPerformanceImpl('<root>'),
     ).compute();
 
@@ -200,6 +201,7 @@ class C {
       results,
       '',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute(token);
     token.cancel();
@@ -224,6 +226,7 @@ class C {
       results,
       '',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
@@ -288,6 +291,7 @@ testFile
       results,
       '',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
 
@@ -325,6 +329,7 @@ enum E {
       results,
       '',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
@@ -359,6 +364,7 @@ extension E on int {
       results,
       '',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
@@ -396,6 +402,7 @@ class D {}
       results,
       'A',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
@@ -418,6 +425,7 @@ class C {}
       results,
       '',
       2,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
     expect(results.declarations, hasLength(2));
@@ -438,6 +446,7 @@ mixin M {
       results,
       '',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
@@ -477,6 +486,7 @@ testFile
       '',
       null,
       onlyForFile: b.path,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
     expect(results.files, [b.path]);
@@ -503,6 +513,7 @@ void f(bool a, String b) {}
       results,
       '',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
@@ -539,6 +550,7 @@ void f4(bool Function(int, String) a) {}
       results,
       '',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
@@ -576,6 +588,7 @@ class A<T, T2> {
       results,
       '',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
@@ -616,6 +629,7 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
       results,
       '',
       null,
+      ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
