@@ -21601,7 +21601,10 @@ bool AbstractType::IsSubtypeOfFutureOr(
   return false;
 }
 
-uword AbstractType::ComputeHash() const {
+uword AbstractType::Hash() const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return 0;

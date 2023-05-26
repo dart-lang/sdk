@@ -1248,6 +1248,19 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
   // Hash not yet computed.
 }
 
+void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
+                                       Label* normal_ir_body) {
+  __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // Type object.
+  __ LoadCompressedSmi(RAX, FieldAddress(RAX, target::Type::hash_offset()));
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagShift == 1);
+  __ OBJ(test)(RAX, RAX);
+  __ j(ZERO, normal_ir_body, Assembler::kNearJump);
+  __ ret();
+  __ Bind(normal_ir_body);
+  // Hash not yet computed.
+}
+
 void AsmIntrinsifier::Type_equality(Assembler* assembler,
                                     Label* normal_ir_body) {
   Label equal, not_equal, equiv_cids_may_be_generic, equiv_cids, check_legacy;
@@ -1311,9 +1324,9 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
 void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
-  __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // AbstractType object.
+  __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // FunctionType object.
   __ LoadCompressedSmi(RAX,
-                       FieldAddress(RAX, target::AbstractType::hash_offset()));
+                       FieldAddress(RAX, target::FunctionType::hash_offset()));
   ASSERT(kSmiTag == 0);
   ASSERT(kSmiTagShift == 1);
   __ OBJ(test)(RAX, RAX);
