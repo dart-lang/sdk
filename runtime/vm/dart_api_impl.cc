@@ -6443,8 +6443,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
         // TODO(derekx): Dart_TimelineEvent() needs to be updated so that arrows
         // corresponding to flow events reported by embedders get included in
         // Perfetto traces.
-        event->Begin(label, timestamp1_or_async_id,
-                     /*flow_id=*/TimelineEvent::kNoFlowId, timestamp0);
+        event->Begin(label, timestamp1_or_async_id, timestamp0);
         break;
       case Dart_Timeline_Event_End:
         event->End(label, timestamp1_or_async_id, timestamp0);

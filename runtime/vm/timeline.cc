@@ -505,7 +505,8 @@ TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
       timestamp1_(0),
-      flow_id_(TimelineEvent::kNoFlowId),
+      flow_id_count_(0),
+      flow_ids_(),
       state_(0),
       label_(nullptr),
       stream_(nullptr),
@@ -585,14 +586,12 @@ void TimelineEvent::Duration(const char* label,
 
 void TimelineEvent::Begin(const char* label,
                           int64_t id,
-                          int64_t flow_id,
                           int64_t micros) {
   Init(kBegin, label);
   set_timestamp0(micros);
   // Overload timestamp1_ with the task id. This is required for the MacOS
   // recorder to work.
   set_timestamp1(id);
-  set_flow_id(flow_id);
 }
 
 void TimelineEvent::End(const char* label, int64_t id, int64_t micros) {
@@ -670,7 +669,8 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   state_ = 0;
   timestamp0_ = 0;
   timestamp1_ = 0;
-  flow_id_ = TimelineEvent::kNoFlowId;
+  flow_id_count_ = 0;
+  flow_ids_.reset();
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != nullptr);
   thread_ = os_thread->trace_id();
@@ -841,12 +841,12 @@ inline void AddBeginEventFields(
   AddBeginAndInstantEventCommonFields(track_event, event);
   track_event->set_type(
       perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_BEGIN);
-  if (event.HasFlowId()) {
+  for (intptr_t i = 0; i < event.flow_id_count(); ++i) {
     // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that we
     // aren't able to populate right now because we aren't keeping track of
     // terminating flow IDs in |TimelineEvent|. I'm not even sure if using that
     // field will provide any benefit though.
-    track_event->add_flow_ids(event.flow_id());
+    track_event->add_flow_ids(event.FlowIds()[i]);
   }
 }
 
@@ -983,10 +983,6 @@ int64_t TimelineEvent::TimeDuration() const {
     return OS::GetCurrentMonotonicMicrosForTimeline() - timestamp0_;
   }
   return timestamp1_ - timestamp0_;
-}
-
-bool TimelineEvent::HasFlowId() const {
-  return flow_id_ != TimelineEvent::kNoFlowId;
 }
 
 bool TimelineEvent::HasIsolateId() const {
@@ -1240,7 +1236,7 @@ void TimelineBeginEndScope::EmitBegin() {
   }
   ASSERT(event != nullptr);
   // Emit a begin event.
-  event->Begin(label(), id(), /*flow_id=*/TimelineEvent::kNoFlowId);
+  event->Begin(label(), id());
   event->Complete();
 }
 
@@ -2416,12 +2412,14 @@ void TimelineEventBlock::Finish() {
 #endif
 }
 
-void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
-                                               int64_t id,
-                                               int64_t flow_id,
-                                               intptr_t type,
-                                               char* name,
-                                               char* args) {
+void DartTimelineEventHelpers::ReportTaskEvent(
+    TimelineEvent* event,
+    int64_t id,
+    intptr_t flow_id_count,
+    std::unique_ptr<const int64_t[]>& flow_ids,
+    intptr_t type,
+    char* name,
+    char* args) {
   const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
   switch (static_cast<TimelineEvent::EventType>(type)) {
     case TimelineEvent::kAsyncInstant:
@@ -2434,7 +2432,7 @@ void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
       event->AsyncEnd(name, id, start);
       break;
     case TimelineEvent::kBegin:
-      event->Begin(name, id, flow_id, start);
+      event->Begin(name, id, start);
       break;
     case TimelineEvent::kEnd:
       event->End(name, id, start);
@@ -2453,6 +2451,14 @@ void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
       break;
     default:
       UNREACHABLE();
+  }
+  if (flow_id_count > 0) {
+    ASSERT(type == Dart_Timeline_Event_Begin ||
+           type == Dart_Timeline_Event_Instant ||
+           type == Dart_Timeline_Event_Async_Begin ||
+           type == Dart_Timeline_Event_Async_Instant);
+
+    event->SetFlowIds(flow_id_count, flow_ids);
   }
   event->set_owns_label(true);
   event->CompleteWithPreSerializedArgs(args);

@@ -373,7 +373,6 @@ class TimelineEvent {
 
   void Begin(const char* label,
              int64_t id,
-             int64_t flow_id,
              int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void End(const char* label,
@@ -441,8 +440,13 @@ class TimelineEvent {
   int64_t timestamp0() const { return timestamp0_; }
   int64_t timestamp1() const { return timestamp1_; }
 
-  bool HasFlowId() const;
-  int64_t flow_id() const { return flow_id_; }
+  void SetFlowIds(intptr_t flow_id_count,
+                  std::unique_ptr<const int64_t[]>& flow_ids) {
+    flow_id_count_ = flow_id_count;
+    flow_ids_.swap(flow_ids);
+  }
+  intptr_t flow_id_count() const { return flow_id_count_; }
+  const int64_t* FlowIds() const { return flow_ids_.get(); }
 
   bool HasIsolateId() const;
   bool HasIsolateGroupId() const;
@@ -563,11 +567,6 @@ class TimelineEvent {
     timestamp1_ = value;
   }
 
-  void set_flow_id(int64_t flow_id) {
-    ASSERT(flow_id_ == TimelineEvent::kNoFlowId);
-    flow_id_ = flow_id;
-  }
-
   void set_pre_serialized_args(bool pre_serialized_args) {
     state_ = PreSerializedArgsBit::update(pre_serialized_args, state_);
   }
@@ -588,12 +587,13 @@ class TimelineEvent {
 
   int64_t timestamp0_;
   int64_t timestamp1_;
+  intptr_t flow_id_count_;
   // This field is only used by the Perfetto recorders, because Perfetto's trace
   // format handles flow events by processing flow IDs attached to
   // |TimelineEvent::kBegin| events. Other recorders handle flow events by
   // processing events of type TimelineEvent::kFlowBegin|,
   // |TimelineEvent::kFlowStep|, and |TimelineEvent::kFlowEnd|.
-  int64_t flow_id_;
+  std::unique_ptr<const int64_t[]> flow_ids_;
   TimelineEventArguments arguments_;
   uword state_;
   const char* label_;
@@ -1293,7 +1293,8 @@ class DartTimelineEventHelpers : public AllStatic {
  public:
   static void ReportTaskEvent(TimelineEvent* event,
                               int64_t id,
-                              int64_t flow_id,
+                              intptr_t flow_id_count,
+                              std::unique_ptr<const int64_t[]>& flow_ids,
                               intptr_t type,
                               char* name,
                               char* args);
