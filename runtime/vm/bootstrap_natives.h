@@ -362,47 +362,12 @@ namespace dart {
   V(VMService_DecodeAssets, 1)                                                 \
   V(VMService_AddUserTagsToStreamableSampleList, 1)                            \
   V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
-  V(Ffi_loadInt8, 2)                                                           \
-  V(Ffi_loadInt16, 2)                                                          \
-  V(Ffi_loadInt32, 2)                                                          \
-  V(Ffi_loadInt64, 2)                                                          \
-  V(Ffi_loadUint8, 2)                                                          \
-  V(Ffi_loadUint16, 2)                                                         \
-  V(Ffi_loadUint32, 2)                                                         \
-  V(Ffi_loadUint64, 2)                                                         \
-  V(Ffi_loadFloat, 2)                                                          \
-  V(Ffi_loadDouble, 2)                                                         \
-  V(Ffi_loadPointer, 2)                                                        \
-  V(Ffi_loadStruct, 2)                                                         \
-  V(Ffi_storeInt8, 3)                                                          \
-  V(Ffi_storeInt16, 3)                                                         \
-  V(Ffi_storeInt32, 3)                                                         \
-  V(Ffi_storeInt64, 3)                                                         \
-  V(Ffi_storeUint8, 3)                                                         \
-  V(Ffi_storeUint16, 3)                                                        \
-  V(Ffi_storeUint32, 3)                                                        \
-  V(Ffi_storeUint64, 3)                                                        \
-  V(Ffi_storeFloat, 3)                                                         \
-  V(Ffi_storeDouble, 3)                                                        \
-  V(Ffi_storePointer, 3)                                                       \
-  V(Ffi_address, 1)                                                            \
-  V(Ffi_fromAddress, 1)                                                        \
   V(Ffi_asFunctionInternal, 2)                                                 \
   V(Ffi_pointerFromFunction, 1)                                                \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \
   V(Ffi_dl_providesSymbol, 2)                                                  \
-  V(Ffi_asExternalTypedDataInt8, 2)                                            \
-  V(Ffi_asExternalTypedDataInt16, 2)                                           \
-  V(Ffi_asExternalTypedDataInt32, 2)                                           \
-  V(Ffi_asExternalTypedDataInt64, 2)                                           \
-  V(Ffi_asExternalTypedDataUint8, 2)                                           \
-  V(Ffi_asExternalTypedDataUint16, 2)                                          \
-  V(Ffi_asExternalTypedDataUint32, 2)                                          \
-  V(Ffi_asExternalTypedDataUint64, 2)                                          \
-  V(Ffi_asExternalTypedDataFloat, 2)                                           \
-  V(Ffi_asExternalTypedDataDouble, 2)                                          \
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
   V(Ffi_GetFfiNativeResolver, 0)                                               \

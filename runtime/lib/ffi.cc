@@ -33,47 +33,10 @@
 
 namespace dart {
 
-// The remainder of this file implements the dart:ffi native methods.
-
-DEFINE_NATIVE_ENTRY(Ffi_fromAddress, 1, 1) {
-  UNREACHABLE();
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_address, 0, 1) {
-  UNREACHABLE();
-}
-
-#define DEFINE_NATIVE_ENTRY_LOAD(type)                                         \
-  DEFINE_NATIVE_ENTRY(Ffi_load##type, 0, 2) { UNREACHABLE(); }
-CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_LOAD)
-#undef DEFINE_NATIVE_ENTRY_LOAD
-
-DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
-  UNREACHABLE();
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
-  UNREACHABLE();
-}
-
-#define DEFINE_NATIVE_ENTRY_STORE(type)                                        \
-  DEFINE_NATIVE_ENTRY(Ffi_store##type, 0, 3) { UNREACHABLE(); }
-CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_STORE)
-#undef DEFINE_NATIVE_ENTRY_STORE
-
-DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
-  UNREACHABLE();
-}
-
 // Static invocations to this method are translated directly in streaming FGB.
 DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
   UNREACHABLE();
 }
-
-#define DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA(type)                       \
-  DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData##type, 0, 2) { UNREACHABLE(); }
-CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA)
-#undef DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA
 
 DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   const auto& function = Function::CheckedHandle(zone, arguments->NativeArg0());
