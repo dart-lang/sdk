@@ -72,8 +72,7 @@ class ContextRootImpl implements ContextRoot {
 
   @override
   bool isAnalyzed(String path) {
-    for (var includedPath in includedPaths) {
-      var included = resourceProvider.getResource(includedPath);
+    for (var included in this.included) {
       if (included is File) {
         if (included.path == path) {
           return true;
