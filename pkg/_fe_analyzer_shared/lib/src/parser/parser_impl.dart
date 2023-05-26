@@ -9813,7 +9813,8 @@ class Parser {
         if (afterEndGroup.isIdentifier ||
             (optional("?", afterEndGroup) &&
                 afterEndGroup.next!.isIdentifier)) {
-          TypeInfo typeInfo = computeVariablePatternType(token);
+          TypeInfo typeInfo =
+              computeVariablePatternType(token, /* required = */ true);
           if (typeInfo is ComplexTypeInfo &&
               typeInfo.isRecordType &&
               !typeInfo.recovered) {
