@@ -110,7 +110,7 @@ void defineLinterEngineTests() {
       });
       test('smoke', () async {
         var firstRuleTest =
-            Directory(ruleTestDir).listSync().firstWhere(isDartFile);
+            Directory(ruleTestDataDir).listSync().firstWhere(isDartFile);
         await cli.run([firstRuleTest.path]);
         expect(cli.isLinterErrorCode(exitCode), isFalse);
       });
@@ -130,7 +130,7 @@ void defineLinterEngineTests() {
       test('custom sdk path', () async {
         // Smoke test to ensure a custom sdk path doesn't sink the ship
         var firstRuleTest =
-            Directory(ruleTestDir).listSync().firstWhere(isDartFile);
+            Directory(ruleTestDataDir).listSync().firstWhere(isDartFile);
         var sdk = getSdkPath();
         await cli.run(['--dart-sdk', sdk, firstRuleTest.path]);
         expect(cli.isLinterErrorCode(exitCode), isFalse);

@@ -61,22 +61,25 @@ void generateRule(String ruleName, {String? outDir}) {
 
   // Update rule registry.
   updateRuleRegistry(ruleName);
+
+  print('A unit test has been stubbed out in:');
+  print('  $ruleTestDir/${ruleName}_test.dart');
 }
 
 void generateStub(String ruleName, String stubPath, Generator generator,
     {String? outDir}) {
-  var generated = generator(ruleName, toClassName(ruleName));
+  var (:file, :contents) = generator(ruleName, toClassName(ruleName));
   if (outDir != null) {
-    var outPath = path.join(outDir, stubPath, '$ruleName.dart');
+    var outPath = path.join(outDir, stubPath, file);
     var outFile = File(outPath);
     if (outFile.existsSync()) {
       print('Warning: stub already exists at $outPath; skipping');
       return;
     }
     print('Writing to $outPath');
-    outFile.writeAsStringSync(generated);
+    outFile.writeAsStringSync(contents);
   } else {
-    print(generated);
+    print(contents);
   }
 }
 
@@ -96,11 +99,11 @@ void updateRuleRegistry(String ruleName) {
   print("Don't forget to update lib/src/rules.dart with a line like:");
   print('  ..register(${toClassName(ruleName)}())');
   print('and add your rule to `example/all.yaml`.');
-  print('Then run your test like so:');
-  print('  dart test -N $ruleName');
 }
 
-String _generateClass(String ruleName, String className) => """
+GeneratedFile _generateClass(String ruleName, String className) => (
+      file: '$ruleName.dart',
+      contents: """
 // Copyright (c) $_thisYear, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -159,16 +162,44 @@ class _Visitor extends SimpleAstVisitor {
     // TODO: implement
   }
 }
-""";
+"""
+    );
 
-// todo(pq): update to generate a unit test instead.
-String _generateTest(String libName, String className) => '''
+GeneratedFile _generateTest(String libName, String className) => (
+      file: '${libName}_test.dart',
+      contents: '''
 // Copyright (c) $_thisYear, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N $libName`
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-''';
+import '../rule_test_support.dart';
 
-typedef Generator = String Function(String libName, String className);
+// TODO: add to all.dart
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(${className}Test);
+  });
+}
+
+@reflectiveTest
+class ${className}Test extends LintRuleTest {
+  @override
+  String get lintRule => '$libName';
+  
+  test_firstTest() async {
+    await assertDiagnostics(r\'\'\'
+  
+\'\'\', [
+   lint(0, 0),
+    ]);
+  }
+}
+'''
+    );
+
+typedef GeneratedFile = ({String file, String contents});
+
+typedef Generator = GeneratedFile Function(String libName, String className);

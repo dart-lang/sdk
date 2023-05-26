@@ -44,7 +44,7 @@ void defineRuleTests() {
   group('rule', () {
     group('dart', () {
       // Rule tests run with default analysis options.
-      testRules(ruleTestDir);
+      testRules(ruleTestDataDir);
 
       // Rule tests run against specific configurations.
       for (var entry in Directory(testConfigDir).listSync()) {
@@ -53,12 +53,12 @@ void defineRuleTests() {
           var analysisOptionsFile =
               File(p.join(entry.path, 'analysis_options.yaml'));
           var analysisOptions = analysisOptionsFile.readAsStringSync();
-          testRules(ruleTestDir, analysisOptions: analysisOptions);
+          testRules(ruleTestDataDir, analysisOptions: analysisOptions);
         });
       }
     });
     group('pub', () {
-      for (var entry in Directory(p.join(ruleTestDir, 'pub')).listSync()) {
+      for (var entry in Directory(p.join(ruleTestDataDir, 'pub')).listSync()) {
         if (entry is Directory) {
           for (var child in entry.listSync()) {
             if (child is File && isPubspecFile(child)) {
@@ -187,7 +187,7 @@ void defineSanityTests() {
 
 /// Handy for debugging.
 void defineSoloRuleTest(String ruleToTest) {
-  for (var entry in Directory(ruleTestDir).listSync()) {
+  for (var entry in Directory(ruleTestDataDir).listSync()) {
     if (entry is! File || !isDartFile(entry)) continue;
     var ruleName = p.basenameWithoutExtension(entry.path);
     if (ruleName == ruleToTest) {

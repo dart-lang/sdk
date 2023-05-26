@@ -20,6 +20,6 @@ import '../test_constants.dart';
 ///
 void main(List<String> args) {
   var ruleName = args.first;
-  var dir = Directory(ruleTestDir).absolute;
+  var dir = Directory(ruleTestDataDir).absolute;
   testRule(ruleName, File(p.join(dir.path, '$ruleName.dart')));
 }

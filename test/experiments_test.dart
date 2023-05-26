@@ -16,7 +16,7 @@ void main() {
     registerLintRuleExperiments();
 
     for (var entry
-        in Directory(p.join(ruleTestDir, 'experiments')).listSync()) {
+        in Directory(p.join(ruleTestDataDir, 'experiments')).listSync()) {
       if (entry is! Directory) continue;
 
       group(p.basename(entry.path), () {

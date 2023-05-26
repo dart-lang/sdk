@@ -14,7 +14,8 @@ void main() {
   group('un-mocked', () {
     // Validate that rule tests produce the expected results when run against
     // an un-mocked SDK.
-    for (var entry in Directory(p.join(ruleTestDir, 'unmocked')).listSync()) {
+    for (var entry
+        in Directory(p.join(ruleTestDataDir, 'unmocked')).listSync()) {
       if (entry is! File) continue;
 
       var ruleName = p.basenameWithoutExtension(entry.path);
