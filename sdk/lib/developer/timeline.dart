@@ -366,12 +366,12 @@ final class _SyncBlock {
   /// used.
   void finish() {
     // Report event to runtime.
-    _reportTaskEvent(taskId, flow?.id ?? _noFlowId, _end, name, _jsonArguments);
     final Flow? tempFlow = flow;
     if (tempFlow != null) {
       _reportTaskEvent(tempFlow.id, /*flowId=*/ _noFlowId, tempFlow._type,
           "${tempFlow.id}", _argumentsAsJson(null));
     }
+    _reportTaskEvent(taskId, flow?.id ?? _noFlowId, _end, name, _jsonArguments);
   }
 }
 
