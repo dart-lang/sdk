@@ -3152,8 +3152,7 @@ abstract final class ClassTypeAlias implements TypeAlias {
 /// A class type alias.
 ///
 ///    classTypeAlias ::=
-///        [SimpleIdentifier] [TypeParameterList]? '=' classModifiers
-///        mixinApplication
+///        classModifiers 'class' [SimpleIdentifier] [TypeParameterList]? '=' mixinApplication
 ///
 ///    classModifiers ::= 'sealed'
 ///      | 'abstract'? ('base' | 'interface' | 'final')?
@@ -8906,10 +8905,10 @@ abstract final class FunctionTypeAlias implements TypeAlias {
 /// A function type alias.
 ///
 ///    functionTypeAlias ::=
-///        functionPrefix [TypeParameterList]? [FormalParameterList] ';'
+///        'typedef' functionPrefix [TypeParameterList]? [FormalParameterList] ';'
 ///
 ///    functionPrefix ::=
-///        [TypeName]? [SimpleIdentifier]
+///        [TypeAnnotation]? [SimpleIdentifier]
 final class FunctionTypeAliasImpl extends TypeAliasImpl
     implements FunctionTypeAlias {
   /// The name of the return type of the function type being defined, or `null`
@@ -9327,8 +9326,7 @@ abstract final class GenericTypeAlias implements TypeAlias {
 /// A generic type alias.
 ///
 ///    functionTypeAlias ::=
-///        metadata 'typedef' [SimpleIdentifier] [TypeParameterList]? =
-///        [FunctionType] ';'
+///        'typedef' [SimpleIdentifier] [TypeParameterList]? = [FunctionType] ';'
 final class GenericTypeAliasImpl extends TypeAliasImpl
     implements GenericTypeAlias {
   /// The type being defined by the alias.
@@ -18489,14 +18487,12 @@ abstract final class TypeAlias implements NamedCompilationUnitMember {
 /// The declaration of a type alias.
 ///
 ///    typeAlias ::=
-///        'typedef' typeAliasBody
-///
-///    typeAliasBody ::=
-///        classTypeAlias
-///      | functionTypeAlias
+///        [ClassTypeAlias]
+///      | [FunctionTypeAlias]
+///      | [GenericTypeAlias]
 sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     implements TypeAlias {
-  /// The token representing the 'typedef' keyword.
+  /// The token representing the 'typedef' or 'class' keyword.
   @override
   final Token typedefKeyword;
 
