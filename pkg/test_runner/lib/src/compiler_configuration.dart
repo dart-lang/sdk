@@ -98,7 +98,8 @@ abstract class CompilerConfiguration {
             configuration.architecture == Architecture.simarm64c ||
             configuration.architecture == Architecture.simriscv32 ||
             configuration.architecture == Architecture.simriscv64 ||
-            configuration.system == System.android) {
+            configuration.system == System.android ||
+            configuration.useQemu) {
           return VMKernelCompilerConfiguration(configuration);
         }
         return NoneCompilerConfiguration(configuration);

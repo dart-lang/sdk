@@ -69,18 +69,21 @@ class FfiCallbackMetadata {
       struct {
         // Note: This is a pointer into an an Instructions object. This is only
         // safe because Instructions objects are never moved by the GC.
-        uword target_entry_point_ = 0;
+        uword target_entry_point_;
 
-        Trampoline sync_list_next_ = nullptr;
+        Trampoline sync_list_next_;
 
-        TrampolineType trampoline_type_ = TrampolineType::kSync;
+        TrampolineType trampoline_type_;
       };
 
       // !IsLive()
       Trampoline free_list_next_;
     };
 
-    Metadata() {}
+    Metadata()
+        : target_entry_point_(0),
+          sync_list_next_(nullptr),
+          trampoline_type_(TrampolineType::kSync) {}
     Metadata(Isolate* target_isolate,
              uword target_entry_point,
              Trampoline sync_list_next,
