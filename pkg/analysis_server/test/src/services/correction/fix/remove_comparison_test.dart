@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -370,6 +370,56 @@ void f(String s) {
 ''');
     await assertHasFix('''
 void f(String s) {
+  print(s);
+}
+''');
+  }
+
+  Future<void> test_ifStatement_thenBlock_withComment() async {
+    await resolveTestCode('''
+void f(String s) {
+  if (s != null) {
+    // leading comment
+    print(s);
+    // trailing comment
+  }
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  // leading comment
+  print(s);
+  // trailing comment
+}
+''');
+  }
+
+  Future<void> test_ifStatement_thenBlock_justComment() async {
+    await resolveTestCode('''
+void f(String s) {
+  if (s != null) {
+    // comment
+  }
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  // comment
+}
+''');
+  }
+
+  Future<void> test_ifStatement_thenStatement_withComment() async {
+    await resolveTestCode('''
+void f(String s) {
+  if (s != null)
+    /// comment
+    print(s);
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  /// comment
   print(s);
 }
 ''');
