@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -124,16 +124,30 @@ class RemoveComparison extends CorrectionProducer {
       if (body is Block) {
         var statements = body.statements;
         if (statements.isEmpty) {
-          builder.addDeletion(nodeRange);
-          return;
+          bodyCode = switch (body.rightBracket.precedingComments) {
+            final comments? =>
+              utils.getRangeText(utils.getLinesRange(range.token(comments))),
+            _ => ''
+          };
         } else {
           bodyCode = utils.getRangeText(
-            utils.getLinesRangeStatements(statements),
+            utils.getLinesRange(
+              range.startEnd(
+                statements.first.beginToken.precedingComments ??
+                    statements.first,
+                body.rightBracket.precedingComments ?? statements.last,
+              ),
+            ),
           );
         }
       } else {
         bodyCode = utils.getRangeText(
-          utils.getLinesRangeStatements([body]),
+          utils.getLinesRange(
+            range.startEnd(
+              body.beginToken.precedingComments ?? body.beginToken,
+              body,
+            ),
+          ),
         );
       }
 
