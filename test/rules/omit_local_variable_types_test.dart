@@ -9,60 +9,11 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OmitLocalVariableTypesTest);
-    defineReflectiveTests(OmitLocalVariableTypesTestLanguage300);
   });
 }
 
 @reflectiveTest
 class OmitLocalVariableTypesTest extends LintRuleTest {
-  @override
-  String get lintRule => 'omit_local_variable_types';
-
-  /// https://github.com/dart-lang/linter/issues/3016
-  @failingTest
-  test_paramIsType() async {
-    await assertDiagnostics(r'''
-T bar<T>(T d) => d;
-
-String f() {
-  String h = bar('');
-  return h;
-}
-''', [
-      lint(42, 26),
-    ]);
-  }
-
-  /// https://github.com/dart-lang/linter/issues/3016
-  test_typeNeededForInference() async {
-    await assertNoDiagnostics(r'''
-T bar<T>(dynamic d) => d;
-
-String f() {
-  String h = bar('');
-  return h;
-}
-''');
-  }
-
-  /// https://github.com/dart-lang/linter/issues/3016
-  test_typeParamProvided() async {
-    await assertDiagnostics(r'''
-T bar<T>(dynamic d) => d;
-
-String f() {
-  String h = bar<String>('');
-  return h;
-}
-''', [
-      lint(42, 26),
-    ]);
-  }
-}
-
-@reflectiveTest
-class OmitLocalVariableTypesTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
   @override
   String get lintRule => 'omit_local_variable_types';
 
@@ -111,6 +62,21 @@ f() {
 ''');
   }
 
+  /// https://github.com/dart-lang/linter/issues/3016
+  @failingTest
+  test_paramIsType() async {
+    await assertDiagnostics(r'''
+T bar<T>(T d) => d;
+
+String f() {
+  String h = bar('');
+  return h;
+}
+''', [
+      lint(42, 26),
+    ]);
+  }
+
   test_record_destructured() async {
     await assertNoDiagnostics(r'''
 f(Object o) {
@@ -129,5 +95,31 @@ f() {
   }
 }
 ''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/3016
+  test_typeNeededForInference() async {
+    await assertNoDiagnostics(r'''
+T bar<T>(dynamic d) => d;
+
+String f() {
+  String h = bar('');
+  return h;
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/3016
+  test_typeParamProvided() async {
+    await assertDiagnostics(r'''
+T bar<T>(dynamic d) => d;
+
+String f() {
+  String h = bar<String>('');
+  return h;
+}
+''', [
+      lint(42, 26),
+    ]);
   }
 }

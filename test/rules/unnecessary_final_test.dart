@@ -8,13 +8,12 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnnecessaryFinalTestLanguage300);
+    defineReflectiveTests(UnnecessaryFinalTest);
   });
 }
 
 @reflectiveTest
-class UnnecessaryFinalTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
+class UnnecessaryFinalTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_final';
 

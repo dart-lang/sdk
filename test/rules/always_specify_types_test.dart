@@ -8,13 +8,12 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AlwaysSpecifyTypesTestLanguage300);
+    defineReflectiveTests(AlwaysSpecifyTypesTest);
   });
 }
 
 @reflectiveTest
-class AlwaysSpecifyTypesTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
+class AlwaysSpecifyTypesTest extends LintRuleTest {
   @override
   String get lintRule => 'always_specify_types';
 

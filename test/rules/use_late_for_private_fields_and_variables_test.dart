@@ -9,7 +9,6 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseLateForPrivateFieldsAndVariablesTest);
-    defineReflectiveTests(UseLateForPrivateFieldsAndVariablesTestLanguage300);
   });
 }
 
@@ -51,6 +50,36 @@ class C {
   int? i;
 }
 ''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4180
+  test_patternAssignment_field() async {
+    await assertDiagnostics('''
+class C {
+  int? _i;
+  void m() {
+    _i?.abs();
+    (_i, ) = (null, );
+  }
+}
+''', [
+      // No lint.
+      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 54, 2),
+    ]);
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4180
+  test_patternAssignment_topLevel() async {
+    await assertDiagnostics('''
+int? _i;
+m() {
+  _i?.abs();
+  (_i, ) = (null, );
+}
+''', [
+      // No lint.
+      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 31, 2),
+    ]);
   }
 
   test_staticField_private_onExtension() async {
@@ -187,42 +216,5 @@ m() {
   _i = 1;
 }
 ''', [lint(24, 2)]);
-  }
-}
-
-@reflectiveTest
-class UseLateForPrivateFieldsAndVariablesTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
-  @override
-  String get lintRule => 'use_late_for_private_fields_and_variables';
-
-  /// https://github.com/dart-lang/linter/issues/4180
-  test_patternAssignment_field() async {
-    await assertDiagnostics('''
-class C {
-  int? _i;
-  void m() {
-    _i?.abs();
-    (_i, ) = (null, );
-  }
-}
-''', [
-      // No lint.
-      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 54, 2),
-    ]);
-  }
-
-  /// https://github.com/dart-lang/linter/issues/4180
-  test_patternAssignment_topLevel() async {
-    await assertDiagnostics('''
-int? _i;
-m() {
-  _i?.abs();
-  (_i, ) = (null, );
-}
-''', [
-      // No lint.
-      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 31, 2),
-    ]);
   }
 }

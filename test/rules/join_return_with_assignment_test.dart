@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class JoinReturnWithAssignmentTest extends LintRuleTest
-    with LanguageVersion300Mixin {
+class JoinReturnWithAssignmentTest extends LintRuleTest {
   @override
   String get lintRule => JoinReturnWithAssignment.code.name;
 

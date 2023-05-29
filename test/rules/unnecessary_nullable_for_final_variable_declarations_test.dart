@@ -13,8 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class UnnecessaryNullableForFinalVariableDeclarationsTest extends LintRuleTest
-    with LanguageVersion300Mixin {
+class UnnecessaryNullableForFinalVariableDeclarationsTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_nullable_for_final_variable_declarations';
 

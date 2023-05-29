@@ -8,13 +8,12 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AlwaysUsePackageImports);
+    defineReflectiveTests(AlwaysUsePackageImportsTest);
   });
 }
 
 @reflectiveTest
-class AlwaysUsePackageImports extends LintRuleTest
-    with LanguageVersion300Mixin {
+class AlwaysUsePackageImportsTest extends LintRuleTest {
   @override
   String get lintRule => 'always_use_package_imports';
 

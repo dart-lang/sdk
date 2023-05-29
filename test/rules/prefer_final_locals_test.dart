@@ -8,13 +8,12 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PreferFinalLocalsTestLanguage300);
+    defineReflectiveTests(PreferFinalLocalsTest);
   });
 }
 
 @reflectiveTest
-class PreferFinalLocalsTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
+class PreferFinalLocalsTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_final_locals';
 

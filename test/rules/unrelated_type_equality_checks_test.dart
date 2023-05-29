@@ -8,13 +8,12 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnrelatedTypeEqualityChecksTestLanguage300);
+    defineReflectiveTests(UnrelatedTypeEqualityChecksTest);
   });
 }
 
 @reflectiveTest
-class UnrelatedTypeEqualityChecksTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
+class UnrelatedTypeEqualityChecksTest extends LintRuleTest {
   @override
   String get lintRule => 'unrelated_type_equality_checks';
 

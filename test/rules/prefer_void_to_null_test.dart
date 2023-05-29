@@ -8,13 +8,12 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PreferVoidToNullTestLanguage300);
+    defineReflectiveTests(PreferVoidToNullTest);
   });
 }
 
 @reflectiveTest
-class PreferVoidToNullTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
+class PreferVoidToNullTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_void_to_null';
 

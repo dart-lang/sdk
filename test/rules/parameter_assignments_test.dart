@@ -9,7 +9,6 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ParameterAssignmentsTest);
-    defineReflectiveTests(ParameterAssignmentsTestLanguage300);
   });
 }
 
@@ -150,38 +149,6 @@ void f(int p) {
     ]);
   }
 
-  test_localFunction() async {
-    await assertDiagnostics(r'''
-void f(int p) {
-  void g() {
-    p = 3;
-  }
-  g();
-}
-''', [
-      lint(33, 5),
-    ]);
-  }
-
-  test_member_setter() async {
-    await assertDiagnostics(r'''
-class A {
-  set x(int v) {
-    v = 5;
-  }
-}
-''', [
-      lint(31, 5),
-    ]);
-  }
-}
-
-@reflectiveTest
-class ParameterAssignmentsTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
-  @override
-  String get lintRule => 'parameter_assignments';
-
   // If and switch cases don't need verification since params aren't valid
   // constant pattern expressions.
 
@@ -195,6 +162,19 @@ f(var b) {
     ]);
   }
 
+  test_localFunction() async {
+    await assertDiagnostics(r'''
+void f(int p) {
+  void g() {
+    p = 3;
+  }
+  g();
+}
+''', [
+      lint(33, 5),
+    ]);
+  }
+
   test_mapAssignment() async {
     await assertDiagnostics(r'''
 f(var a) {
@@ -202,6 +182,18 @@ f(var a) {
 }
 ''', [
       lint(13, 8),
+    ]);
+  }
+
+  test_member_setter() async {
+    await assertDiagnostics(r'''
+class A {
+  set x(int v) {
+    v = 5;
+  }
+}
+''', [
+      lint(31, 5),
     ]);
   }
 

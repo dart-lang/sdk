@@ -8,13 +8,12 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NullCheckOnNullableTypeParameterTestLanguage300);
+    defineReflectiveTests(NullCheckOnNullableTypeParameterTest);
   });
 }
 
 @reflectiveTest
-class NullCheckOnNullableTypeParameterTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
+class NullCheckOnNullableTypeParameterTest extends LintRuleTest {
   @override
   String get lintRule => 'null_check_on_nullable_type_parameter';
 

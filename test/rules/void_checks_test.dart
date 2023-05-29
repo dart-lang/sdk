@@ -9,7 +9,6 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(VoidChecksTest);
-    defineReflectiveTests(VoidChecksTestLanguage300);
   });
 }
 
@@ -42,24 +41,6 @@ void f(FutureOr<void>? arg) {
 ''');
   }
 
-  test_returnOfInvalidType() async {
-    await assertDiagnostics(r'''
-void bug2813() {
-  return 1;
-}
-''', [
-      // No lint
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class VoidChecksTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
-  @override
-  String get lintRule => 'void_checks';
-
   test_listPattern_local() async {
     await assertDiagnostics(r'''
 void f() {
@@ -89,6 +70,17 @@ void f(void p) {
 }
 ''', [
       lint(20, 1),
+    ]);
+  }
+
+  test_returnOfInvalidType() async {
+    await assertDiagnostics(r'''
+void bug2813() {
+  return 1;
+}
+''', [
+      // No lint
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
     ]);
   }
 }

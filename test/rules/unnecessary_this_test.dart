@@ -13,8 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class UnnecessaryNullChecksTest extends LintRuleTest
-    with LanguageVersion300Mixin {
+class UnnecessaryNullChecksTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_this';
 

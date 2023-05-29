@@ -9,7 +9,7 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExhaustiveCasesTestLanguage219);
-    defineReflectiveTests(ExhaustiveCasesTestLanguage300);
+    defineReflectiveTests(ExhaustiveCasesTest);
   });
 }
 
@@ -217,21 +217,20 @@ void s(Subclassed e) {
 }
 
 @reflectiveTest
-class ExhaustiveCasesTestLanguage219 extends BaseExhaustiveCasesTest
-    with LanguageVersion219Mixin {
+class ExhaustiveCasesTest extends BaseExhaustiveCasesTest {
   test_enum_ok() async {
     await assertDiagnostics(actualEnumSource, [
-      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 52, 10),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 52, 6),
     ]);
   }
 }
 
 @reflectiveTest
-class ExhaustiveCasesTestLanguage300 extends BaseExhaustiveCasesTest
-    with LanguageVersion300Mixin {
+class ExhaustiveCasesTestLanguage219 extends BaseExhaustiveCasesTest
+    with LanguageVersion219Mixin {
   test_enum_ok() async {
     await assertDiagnostics(actualEnumSource, [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 52, 6),
+      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 52, 10),
     ]);
   }
 }

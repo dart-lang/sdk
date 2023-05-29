@@ -9,7 +9,7 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferMixinTestLanguage219);
-    defineReflectiveTests(PreferMixinTestLanguage300);
+    defineReflectiveTests(PreferMixinTest);
   });
 }
 
@@ -45,6 +45,18 @@ mixin M {}
 typedef AAA = M;
 
 abstract class CCC with AAA { }
+''');
+  }
+}
+
+@reflectiveTest
+class PreferMixinTest extends BasePreferMixinTest {
+  /// https://github.com/dart-lang/linter/issues/4065
+  test_mixinClass() async {
+    await assertNoDiagnostics(r'''
+mixin class M { }
+
+class Z with M { }
 ''');
   }
 }
@@ -114,19 +126,6 @@ abstract class C with SetMixin {}
     await assertNoDiagnostics(r'''
 import 'dart:convert';
 abstract class C with StringConversionSinkMixin {}
-''');
-  }
-}
-
-@reflectiveTest
-class PreferMixinTestLanguage300 extends BasePreferMixinTest
-    with LanguageVersion300Mixin {
-  /// https://github.com/dart-lang/linter/issues/4065
-  test_mixinClass() async {
-    await assertNoDiagnostics(r'''
-mixin class M { }
-
-class Z with M { }
 ''');
   }
 }

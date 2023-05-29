@@ -8,13 +8,12 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonAdjacentStringsInListTestLanguage300);
+    defineReflectiveTests(NonAdjacentStringsInListTest);
   });
 }
 
 @reflectiveTest
-class NonAdjacentStringsInListTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
+class NonAdjacentStringsInListTest extends LintRuleTest {
   @override
   String get lintRule => 'no_adjacent_strings_in_list';
 

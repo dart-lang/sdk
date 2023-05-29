@@ -9,7 +9,7 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NoDuplicateCaseValuesTestLanguage219);
-    defineReflectiveTests(NoDuplicateCaseValuesTestLanguage300);
+    defineReflectiveTests(NoDuplicateCaseValuesTest);
   });
 }
 
@@ -19,101 +19,7 @@ abstract class BaseNoDuplicateCaseValuesTest extends LintRuleTest {
 }
 
 @reflectiveTest
-class NoDuplicateCaseValuesTestLanguage219 extends BaseNoDuplicateCaseValuesTest
-    with LanguageVersion219Mixin {
-  test_duplicateConstClassValue() async {
-    await assertDiagnostics(r'''
-class ConstClass {
-  final int v;
-  const ConstClass(this.v);
-}
-
-void switchConstClass() {
-  ConstClass v = new ConstClass(1);
-
-  switch (v) {
-    case const ConstClass(1):
-    case const ConstClass(2): 
-    case const ConstClass(3): 
-    case const ConstClass(2):
-    default:
-  }
-}
-''', [
-      lint(244, 19),
-    ]);
-  }
-
-  test_duplicateEnumValue() async {
-    await assertDiagnostics(r'''
-enum E {
-  one,
-  two,
-  three
-}
-
-void switchEnum() {
-  E v = E.one;
-
-  switch (v) {
-    case E.one:  
-    case E.two:  
-    case E.three: 
-    case E.two:
-    default:
-  }
-}
-''', [
-      lint(149, 5),
-    ]);
-  }
-
-  test_duplicateIntConstant() async {
-    await assertDiagnostics(r'''
-void switchInt() {
-  const int A = 1;
-  int v = 5;
-
-  switch (v) {
-    case 1:
-    case 2:
-    case A:
-    case 2:
-    case 3:
-    default:
-  }
-}
-''', [
-      lint(100, 1),
-      lint(112, 1),
-    ]);
-  }
-
-  test_duplicateStringConstant() async {
-    await assertDiagnostics(r'''
-void switchString() {
-  const String A = 'a';
-  String v = 'aa';
-
-  switch (v) {
-    case 'aa':
-    case 'bb':
-    case A + A:
-    case 'bb':
-    case A + 'b':
-    default:
-  }
-}
-''', [
-      lint(120, 5),
-      lint(136, 4),
-    ]);
-  }
-}
-
-@reflectiveTest
-class NoDuplicateCaseValuesTestLanguage300 extends BaseNoDuplicateCaseValuesTest
-    with LanguageVersion300Mixin {
+class NoDuplicateCaseValuesTest extends BaseNoDuplicateCaseValuesTest {
   test_duplicateConstClassValue_ok() async {
     await assertDiagnostics(r'''
 class ConstClass {
@@ -205,6 +111,99 @@ void switchString() {
       error(ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY, 122, 1),
       error(WarningCode.UNREACHABLE_SWITCH_CASE, 131, 4),
       error(ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY, 153, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NoDuplicateCaseValuesTestLanguage219 extends BaseNoDuplicateCaseValuesTest
+    with LanguageVersion219Mixin {
+  test_duplicateConstClassValue() async {
+    await assertDiagnostics(r'''
+class ConstClass {
+  final int v;
+  const ConstClass(this.v);
+}
+
+void switchConstClass() {
+  ConstClass v = new ConstClass(1);
+
+  switch (v) {
+    case const ConstClass(1):
+    case const ConstClass(2): 
+    case const ConstClass(3): 
+    case const ConstClass(2):
+    default:
+  }
+}
+''', [
+      lint(244, 19),
+    ]);
+  }
+
+  test_duplicateEnumValue() async {
+    await assertDiagnostics(r'''
+enum E {
+  one,
+  two,
+  three
+}
+
+void switchEnum() {
+  E v = E.one;
+
+  switch (v) {
+    case E.one:  
+    case E.two:  
+    case E.three: 
+    case E.two:
+    default:
+  }
+}
+''', [
+      lint(149, 5),
+    ]);
+  }
+
+  test_duplicateIntConstant() async {
+    await assertDiagnostics(r'''
+void switchInt() {
+  const int A = 1;
+  int v = 5;
+
+  switch (v) {
+    case 1:
+    case 2:
+    case A:
+    case 2:
+    case 3:
+    default:
+  }
+}
+''', [
+      lint(100, 1),
+      lint(112, 1),
+    ]);
+  }
+
+  test_duplicateStringConstant() async {
+    await assertDiagnostics(r'''
+void switchString() {
+  const String A = 'a';
+  String v = 'aa';
+
+  switch (v) {
+    case 'aa':
+    case 'bb':
+    case A + A:
+    case 'bb':
+    case A + 'b':
+    default:
+  }
+}
+''', [
+      lint(120, 5),
+      lint(136, 4),
     ]);
   }
 }

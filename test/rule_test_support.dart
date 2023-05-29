@@ -140,11 +140,6 @@ mixin LanguageVersion219Mixin on PubPackageResolutionTest {
   String? get testPackageLanguageVersion => '2.19';
 }
 
-mixin LanguageVersion300Mixin on PubPackageResolutionTest {
-  @override
-  String? get testPackageLanguageVersion => '3.0';
-}
-
 abstract class LintRuleTest extends PubPackageResolutionTest {
   bool get dumpAstOnFailures => true;
 

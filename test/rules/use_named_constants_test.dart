@@ -8,13 +8,12 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UseNamedConstantsTestLanguage300);
+    defineReflectiveTests(UseNamedConstantsTest);
   });
 }
 
 @reflectiveTest
-class UseNamedConstantsTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
+class UseNamedConstantsTest extends LintRuleTest {
   @override
   String get lintRule => 'use_named_constants';
 

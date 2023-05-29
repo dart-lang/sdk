@@ -8,31 +8,12 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LiteralOnlyBooleanExpressionsTestLanguage219);
-    defineReflectiveTests(LiteralOnlyBooleanExpressionsTestLanguage300);
+    defineReflectiveTests(LiteralOnlyBooleanExpressionsTest);
   });
 }
 
 @reflectiveTest
-class LiteralOnlyBooleanExpressionsTestLanguage219 extends LintRuleTest
-    with LanguageVersion219Mixin {
-  @override
-  String get lintRule => 'literal_only_boolean_expressions';
-
-  test_whileTrue() async {
-    await assertNoDiagnostics(r'''
-void f() {
-  while (true) {
-    print('!');
-  }
-}
-''');
-  }
-}
-
-@reflectiveTest
-class LiteralOnlyBooleanExpressionsTestLanguage300 extends LintRuleTest
-    with LanguageVersion300Mixin {
+class LiteralOnlyBooleanExpressionsTest extends LintRuleTest {
   @override
   String get lintRule => 'literal_only_boolean_expressions';
 
@@ -118,5 +99,15 @@ void f() {
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 35, 7),
       lint(43, 9),
     ]);
+  }
+
+  test_whileTrue() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  while (true) {
+    print('!');
+  }
+}
+''');
   }
 }

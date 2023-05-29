@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ImplicitReopenInducedModifierTest extends LintRuleTest
-    with LanguageVersion300Mixin {
+class ImplicitReopenInducedModifierTest extends LintRuleTest {
   @override
   bool get addMetaPackageDep => true;
 
@@ -145,7 +144,7 @@ class C extends S {}
 }
 
 @reflectiveTest
-class ImplicitReopenTest extends LintRuleTest with LanguageVersion300Mixin {
+class ImplicitReopenTest extends LintRuleTest {
   @override
   bool get addMetaPackageDep => true;
 
