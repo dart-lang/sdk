@@ -6419,7 +6419,7 @@ DART_EXPORT int64_t Dart_TimelineGetTicksFrequency() {
 
 DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     int64_t timestamp0,
-                                    int64_t timestamp1_or_id,
+                                    int64_t timestamp1_or_async_id,
                                     Dart_Timeline_Event_Type type,
                                     intptr_t argument_count,
                                     const char** argument_names,
@@ -6443,37 +6443,37 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
         // TODO(derekx): Dart_TimelineEvent() needs to be updated so that arrows
         // corresponding to flow events reported by embedders get included in
         // Perfetto traces.
-        event->Begin(label, timestamp1_or_id, timestamp0);
+        event->Begin(label, timestamp1_or_async_id, timestamp0);
         break;
       case Dart_Timeline_Event_End:
-        event->End(label, timestamp1_or_id, timestamp0);
+        event->End(label, timestamp1_or_async_id, timestamp0);
         break;
       case Dart_Timeline_Event_Instant:
         event->Instant(label, timestamp0);
         break;
       case Dart_Timeline_Event_Duration:
-        event->Duration(label, timestamp0, timestamp1_or_id);
+        event->Duration(label, timestamp0, timestamp1_or_async_id);
         break;
       case Dart_Timeline_Event_Async_Begin:
-        event->AsyncBegin(label, timestamp1_or_id, timestamp0);
+        event->AsyncBegin(label, timestamp1_or_async_id, timestamp0);
         break;
       case Dart_Timeline_Event_Async_End:
-        event->AsyncEnd(label, timestamp1_or_id, timestamp0);
+        event->AsyncEnd(label, timestamp1_or_async_id, timestamp0);
         break;
       case Dart_Timeline_Event_Async_Instant:
-        event->AsyncInstant(label, timestamp1_or_id, timestamp0);
+        event->AsyncInstant(label, timestamp1_or_async_id, timestamp0);
         break;
       case Dart_Timeline_Event_Counter:
         event->Counter(label, timestamp0);
         break;
       case Dart_Timeline_Event_Flow_Begin:
-        event->FlowBegin(label, timestamp0);
+        event->FlowBegin(label, timestamp1_or_async_id, timestamp0);
         break;
       case Dart_Timeline_Event_Flow_Step:
-        event->FlowStep(label, timestamp0);
+        event->FlowStep(label, timestamp1_or_async_id, timestamp0);
         break;
       case Dart_Timeline_Event_Flow_End:
-        event->FlowEnd(label, timestamp0);
+        event->FlowEnd(label, timestamp1_or_async_id, timestamp0);
         break;
       default:
         FATAL("Unknown Dart_Timeline_Event_Type");
