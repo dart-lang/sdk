@@ -10387,25 +10387,45 @@ static void CreateTimelineEvents(uword param) {
   do {
     Dart_TimelineEvent("T1", 0, 1, Dart_Timeline_Event_Begin, 0, nullptr,
                        nullptr);
-    Dart_TimelineEvent("T1", 0, 9, Dart_Timeline_Event_End, 0, nullptr,
+    Dart_TimelineEvent("T1", 10, 1, Dart_Timeline_Event_End, 0, nullptr,
                        nullptr);
-    Dart_TimelineEvent("T2", 0, 1, Dart_Timeline_Event_Instant, 0, nullptr,
+
+    Dart_TimelineEvent("T2", 20, 2, Dart_Timeline_Event_Instant, 0, nullptr,
                        nullptr);
-    Dart_TimelineEvent("T3", 0, 2, Dart_Timeline_Event_Duration, 0, nullptr,
+
+    Dart_TimelineEvent("T3", 30, /*timestamp1=*/40,
+                       Dart_Timeline_Event_Duration, 0, nullptr, nullptr);
+
+    Dart_TimelineEvent("T4", 50, 4, Dart_Timeline_Event_Async_Begin, 0, nullptr,
                        nullptr);
-    Dart_TimelineEvent("T4", 0, 3, Dart_Timeline_Event_Async_Begin, 0, nullptr,
+    Dart_TimelineEvent("T4", 60, 4, Dart_Timeline_Event_Async_End, 0, nullptr,
                        nullptr);
-    Dart_TimelineEvent("T4", 9, 3, Dart_Timeline_Event_Async_End, 0, nullptr,
-                       nullptr);
-    Dart_TimelineEvent("T5", 1, 4, Dart_Timeline_Event_Async_Instant, 0,
+
+    Dart_TimelineEvent("T5", 70, 5, Dart_Timeline_Event_Async_Instant, 0,
                        nullptr, nullptr);
-    Dart_TimelineEvent("T7", 1, 4, Dart_Timeline_Event_Counter, 0, nullptr,
+
+    Dart_TimelineEvent("T6", 80, /*timestamp1_or_id=*/-1,
+                       Dart_Timeline_Event_Counter, 0, nullptr, nullptr);
+
+    Dart_TimelineEvent("T7", 90, 7, Dart_Timeline_Event_Begin, 0, nullptr,
                        nullptr);
-    Dart_TimelineEvent("T8", 1, 4, Dart_Timeline_Event_Flow_Begin, 0, nullptr,
+    Dart_TimelineEvent("F", 90, /*timestamp1_or_id=*/-1,
+                       Dart_Timeline_Event_Flow_Begin, 0, nullptr, nullptr);
+    Dart_TimelineEvent("T7", 100, 7, Dart_Timeline_Event_End, 0, nullptr,
                        nullptr);
-    Dart_TimelineEvent("T8", 1, 4, Dart_Timeline_Event_Flow_Step, 0, nullptr,
+
+    Dart_TimelineEvent("T8", 110, 8, Dart_Timeline_Event_Begin, 0, nullptr,
                        nullptr);
-    Dart_TimelineEvent("T8", 1, 4, Dart_Timeline_Event_Flow_End, 0, nullptr,
+    Dart_TimelineEvent("F", 110, /*timestamp1_or_id=*/-1,
+                       Dart_Timeline_Event_Flow_Step, 0, nullptr, nullptr);
+    Dart_TimelineEvent("T8", 120, 8, Dart_Timeline_Event_End, 0, nullptr,
+                       nullptr);
+
+    Dart_TimelineEvent("T9", 130, 9, Dart_Timeline_Event_Begin, 0, nullptr,
+                       nullptr);
+    Dart_TimelineEvent("F", 130, /*timestamp1_or_id=*/-1,
+                       Dart_Timeline_Event_Flow_End, 0, nullptr, nullptr);
+    Dart_TimelineEvent("T9", 140, 9, Dart_Timeline_Event_End, 0, nullptr,
                        nullptr);
   } while (true);
 }
