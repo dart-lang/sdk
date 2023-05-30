@@ -41,6 +41,7 @@ class NativeAssetsBuildRunner {
     required Uri workingDirectory,
     CCompilerConfig? cCompilerConfig,
     IOSSdk? targetIOSSdk,
+    int? targetAndroidNdkApi,
     required bool includeParentEnvironment,
   }) async {
     assert(_metadata.isEmpty);
@@ -70,6 +71,7 @@ class NativeAssetsBuildRunner {
         dependencyMetadata: dependencyMetadata,
         cCompilerConfig: cCompilerConfig,
         targetIOSSdk: targetIOSSdk,
+        targetAndroidNdkApi: targetAndroidNdkApi,
       );
       final assets = await _buildPackageCached(
         config,
@@ -166,6 +168,7 @@ class NativeAssetsBuildRunner {
     required Uri packageRoot,
     required Target target,
     IOSSdk? targetIOSSdk,
+    int? targetAndroidNdkApi,
     required LinkModePreference linkMode,
     required Uri buildParentDir,
     CCompilerConfig? cCompilerConfig,
@@ -178,6 +181,7 @@ class NativeAssetsBuildRunner {
       targetIOSSdk: targetIOSSdk,
       cCompiler: cCompilerConfig,
       dependencyMetadata: dependencyMetadata,
+      targetAndroidNdkApi: targetAndroidNdkApi,
     );
     final outDirUri = buildParentDir.resolve('$buildDirName/');
     final outDir = Directory.fromUri(outDirUri);
