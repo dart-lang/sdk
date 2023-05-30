@@ -32,6 +32,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.macros: ExperimentalFeatures.macros,
   EnableString.named_arguments_anywhere:
       ExperimentalFeatures.named_arguments_anywhere,
+  EnableString.native_assets: ExperimentalFeatures.native_assets,
   EnableString.non_nullable: ExperimentalFeatures.non_nullable,
   EnableString.nonfunction_type_aliases:
       ExperimentalFeatures.nonfunction_type_aliases,
@@ -92,6 +93,9 @@ class EnableString {
 
   /// String to enable the experiment "named-arguments-anywhere"
   static const String named_arguments_anywhere = 'named-arguments-anywhere';
+
+  /// String to enable the experiment "native-assets"
+  static const String native_assets = 'native-assets';
 
   /// String to enable the experiment "non-nullable"
   static const String non_nullable = 'non-nullable';
@@ -278,8 +282,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.17.0'),
   );
 
-  static final non_nullable = ExperimentalFeature(
+  static final native_assets = ExperimentalFeature(
     index: 14,
+    enableString: EnableString.native_assets,
+    isEnabledByDefault: IsEnabledByDefault.native_assets,
+    isExpired: IsExpired.native_assets,
+    documentation: 'Compile and bundle native assets.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final non_nullable = ExperimentalFeature(
+    index: 15,
     enableString: EnableString.non_nullable,
     isEnabledByDefault: IsEnabledByDefault.non_nullable,
     isExpired: IsExpired.non_nullable,
@@ -289,7 +303,7 @@ class ExperimentalFeatures {
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
-    index: 15,
+    index: 16,
     enableString: EnableString.nonfunction_type_aliases,
     isEnabledByDefault: IsEnabledByDefault.nonfunction_type_aliases,
     isExpired: IsExpired.nonfunction_type_aliases,
@@ -299,7 +313,7 @@ class ExperimentalFeatures {
   );
 
   static final patterns = ExperimentalFeature(
-    index: 16,
+    index: 17,
     enableString: EnableString.patterns,
     isEnabledByDefault: IsEnabledByDefault.patterns,
     isExpired: IsExpired.patterns,
@@ -309,7 +323,7 @@ class ExperimentalFeatures {
   );
 
   static final records = ExperimentalFeature(
-    index: 17,
+    index: 18,
     enableString: EnableString.records,
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
@@ -319,7 +333,7 @@ class ExperimentalFeatures {
   );
 
   static final sealed_class = ExperimentalFeature(
-    index: 18,
+    index: 19,
     enableString: EnableString.sealed_class,
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
@@ -329,7 +343,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 19,
+    index: 20,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -339,7 +353,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 20,
+    index: 21,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -349,7 +363,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 21,
+    index: 22,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -359,7 +373,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 22,
+    index: 23,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -370,7 +384,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 23,
+    index: 24,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -380,7 +394,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 24,
+    index: 25,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -390,7 +404,7 @@ class ExperimentalFeatures {
   );
 
   static final value_class = ExperimentalFeature(
-    index: 25,
+    index: 26,
     enableString: EnableString.value_class,
     isEnabledByDefault: IsEnabledByDefault.value_class,
     isExpired: IsExpired.value_class,
@@ -400,7 +414,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 26,
+    index: 27,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -454,6 +468,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "named-arguments-anywhere"
   static const bool named_arguments_anywhere = true;
+
+  /// Default state of the experiment "native-assets"
+  static const bool native_assets = false;
 
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = true;
@@ -540,6 +557,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "named-arguments-anywhere"
   static const bool named_arguments_anywhere = true;
+
+  /// Expiration status of the experiment "native-assets"
+  static const bool native_assets = false;
 
   /// Expiration status of the experiment "non-nullable"
   static const bool non_nullable = true;
@@ -630,6 +650,9 @@ mixin _CurrentState {
   /// Current state for the flag "named-arguments-anywhere"
   bool get named_arguments_anywhere =>
       isEnabled(ExperimentalFeatures.named_arguments_anywhere);
+
+  /// Current state for the flag "native-assets"
+  bool get native_assets => isEnabled(ExperimentalFeatures.native_assets);
 
   /// Current state for the flag "non-nullable"
   bool get non_nullable => isEnabled(ExperimentalFeatures.non_nullable);

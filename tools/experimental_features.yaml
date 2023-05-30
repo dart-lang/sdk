@@ -133,6 +133,9 @@ features:
   inline-class:
     help: "Inline class"
 
+  native-assets:
+    help: "Compile and bundle native assets."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

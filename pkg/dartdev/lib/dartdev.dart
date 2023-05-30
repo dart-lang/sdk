@@ -17,6 +17,7 @@ import 'package:usage/usage.dart';
 
 import 'src/analytics.dart';
 import 'src/commands/analyze.dart';
+import 'src/commands/build.dart';
 import 'src/commands/compilation_server.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
@@ -54,7 +55,7 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
     }
 
     // Finally, call the runner to execute the command; see DartdevRunner.
-    final runner = DartdevRunner(args);
+    final runner = DartdevRunner(args, io.Platform.executableArguments);
     exitCode = await runner.run(args);
   } on UsageException catch (e) {
     // TODO(sigurdm): It is unclear when a UsageException gets to here, and
@@ -86,15 +87,23 @@ class DartdevRunner extends CommandRunner<int> {
 
   final bool verbose;
 
+  final List<String> vmEnabledExperiments;
+
   late Analytics _analytics;
 
-  DartdevRunner(List<String> args)
+  DartdevRunner(List<String> args, [List<String> vmArgs = const []])
       : verbose = args.contains('-v') || args.contains('--verbose'),
         argParser = globalDartdevOptionsParser(
             verbose: args.contains('-v') || args.contains('--verbose')),
+        vmEnabledExperiments = parseVmEnabledExperiments(vmArgs),
         super('dart', '$dartdevDescription.') {
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CompilationServerCommand(verbose: verbose));
+    final nativeAssetsExperimentEnabled =
+        nativeAssetsEnabled(vmEnabledExperiments);
+    if (nativeAssetsExperimentEnabled) {
+      addCommand(BuildCommand(verbose: verbose));
+    }
     addCommand(CompileCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
     addCommand(DebugAdapterCommand(verbose: verbose));
@@ -113,8 +122,13 @@ class DartdevRunner extends CommandRunner<int> {
         isVerbose: () => verbose,
       ),
     );
-    addCommand(RunCommand(verbose: verbose));
-    addCommand(TestCommand());
+    addCommand(RunCommand(
+      verbose: verbose,
+      nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
+    ));
+    addCommand(TestCommand(
+      nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
+    ));
   }
 
   @visibleForTesting

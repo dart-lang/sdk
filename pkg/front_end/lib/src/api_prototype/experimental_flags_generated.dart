@@ -171,6 +171,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 17),
       experimentReleasedVersion: const Version(2, 17));
 
+  static const ExperimentalFlag nativeAssets = const ExperimentalFlag(
+      name: 'native-assets',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(3, 1),
+      experimentEnabledVersion: const Version(3, 1),
+      experimentReleasedVersion: const Version(3, 1));
+
   static const ExperimentalFlag nonNullable = const ExperimentalFlag(
       name: 'non-nullable',
       isEnabledByDefault: true,
@@ -382,6 +390,10 @@ class GlobalFeatures {
   GlobalFeature get namedArgumentsAnywhere => _namedArgumentsAnywhere ??=
       _computeGlobalFeature(ExperimentalFlag.namedArgumentsAnywhere);
 
+  GlobalFeature? _nativeAssets;
+  GlobalFeature get nativeAssets =>
+      _nativeAssets ??= _computeGlobalFeature(ExperimentalFlag.nativeAssets);
+
   GlobalFeature? _nonNullable;
   GlobalFeature get nonNullable =>
       _nonNullable ??= _computeGlobalFeature(ExperimentalFlag.nonNullable);
@@ -526,6 +538,11 @@ class LibraryFeatures {
           canonicalUri,
           libraryVersion);
 
+  LibraryFeature? _nativeAssets;
+  LibraryFeature get nativeAssets =>
+      _nativeAssets ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.nativeAssets, canonicalUri, libraryVersion);
+
   LibraryFeature? _nonNullable;
   LibraryFeature get nonNullable =>
       _nonNullable ??= globalFeatures._computeLibraryFeature(
@@ -625,6 +642,8 @@ class LibraryFeatures {
         return macros;
       case shared.ExperimentalFlag.namedArgumentsAnywhere:
         return namedArgumentsAnywhere;
+      case shared.ExperimentalFlag.nativeAssets:
+        return nativeAssets;
       case shared.ExperimentalFlag.nonNullable:
         return nonNullable;
       case shared.ExperimentalFlag.nonfunctionTypeAliases:
@@ -690,6 +709,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.macros;
     case "named-arguments-anywhere":
       return ExperimentalFlag.namedArgumentsAnywhere;
+    case "native-assets":
+      return ExperimentalFlag.nativeAssets;
     case "non-nullable":
       return ExperimentalFlag.nonNullable;
     case "nonfunction-type-aliases":
@@ -749,6 +770,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.macros: ExperimentalFlag.macros.isEnabledByDefault,
   ExperimentalFlag.namedArgumentsAnywhere:
       ExperimentalFlag.namedArgumentsAnywhere.isEnabledByDefault,
+  ExperimentalFlag.nativeAssets:
+      ExperimentalFlag.nativeAssets.isEnabledByDefault,
   ExperimentalFlag.nonNullable: ExperimentalFlag.nonNullable.isEnabledByDefault,
   ExperimentalFlag.nonfunctionTypeAliases:
       ExperimentalFlag.nonfunctionTypeAliases.isEnabledByDefault,
@@ -974,6 +997,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.macros: ExperimentalFlag.macros,
   shared.ExperimentalFlag.namedArgumentsAnywhere:
       ExperimentalFlag.namedArgumentsAnywhere,
+  shared.ExperimentalFlag.nativeAssets: ExperimentalFlag.nativeAssets,
   shared.ExperimentalFlag.nonNullable: ExperimentalFlag.nonNullable,
   shared.ExperimentalFlag.nonfunctionTypeAliases:
       ExperimentalFlag.nonfunctionTypeAliases,
