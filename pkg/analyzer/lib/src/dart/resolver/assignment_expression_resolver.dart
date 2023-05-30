@@ -135,17 +135,18 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    if (writeType is RecordType) {
-      if (rightType is! RecordType && writeType.positionalFields.length == 1) {
-        var field = writeType.positionalFields.first;
-        if (_typeSystem.isAssignableTo(field.type, rightType)) {
-          _errorReporter.reportErrorForNode(
-            WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-            right,
-            [],
-          );
-          return;
-        }
+    if (writeType is RecordType &&
+        writeType.positionalFields.length == 1 &&
+        rightType is! RecordType &&
+        right is ParenthesizedExpression) {
+      var field = writeType.positionalFields.first;
+      if (_typeSystem.isAssignableTo(field.type, rightType)) {
+        _errorReporter.reportErrorForNode(
+          WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          right,
+          [],
+        );
+        return;
       }
     }
 
