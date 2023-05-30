@@ -58,7 +58,7 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
   }
 
   final WasmTarget target =
-      WasmTarget(constantBranchPruning: options.constantBranchPruning);
+      WasmTarget(removeAsserts: !options.translatorOptions.enableAsserts);
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
     ..sdkRoot = options.sdkPath

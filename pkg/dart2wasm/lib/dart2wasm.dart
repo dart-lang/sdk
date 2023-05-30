@@ -37,8 +37,6 @@ final List<Option> options = [
   Flag(
       "enable-asserts", (o, value) => o.translatorOptions.enableAsserts = value,
       defaultsTo: _d.translatorOptions.enableAsserts),
-  Flag("constant-branch-pruning", (o, value) => o.constantBranchPruning = value,
-      defaultsTo: _d.constantBranchPruning),
   Flag("omit-type-checks",
       (o, value) => o.translatorOptions.omitTypeChecks = value,
       defaultsTo: _d.translatorOptions.omitTypeChecks),

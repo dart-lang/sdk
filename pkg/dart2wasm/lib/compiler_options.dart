@@ -22,7 +22,6 @@ class CompilerOptions {
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
   String? multiRootScheme;
   List<Uri> multiRoots = const [];
-  bool constantBranchPruning = true;
 
   factory CompilerOptions.defaultOptions() =>
       CompilerOptions(mainUri: Uri(), outputFile: '');

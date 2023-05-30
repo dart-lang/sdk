@@ -38,7 +38,6 @@ where *options* include:
 | `--`[`no-`]`print-kernel`               | no      | Print IR for each function before compiling it.
 | `--`[`no-`]`print-wasm`                 | no      | Print Wasm instructions of each compiled function.
 | `--`[`no-`]`enable-asserts`             | no      | Enable assertions at runtime.
-| `--`[`no-`]`constant-branch-pruning`    | yes     | Avoid emitting code for dead branches of conditionals based on constants.
 | `--shared-memory-max-pages` *pagecount* |         | Max size of the imported memory buffer. If `--shared-import-memory` is specified, this must also be specified.
 | `--watch` *offset*                      |         | Print stack trace leading to the byte at offset *offset* in the `.wasm` output file. Can be specified multiple times.
 
