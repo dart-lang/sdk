@@ -8509,6 +8509,122 @@ NullCheckPattern
 ''');
   }
 
+  test_recordPattern_nonNullable_beforeAs() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (_,) as (Object,):
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: CastPattern
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        PatternField
+          pattern: WildcardPattern
+            name: _
+      rightParenthesis: )
+    asToken: as
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: Object
+      rightParenthesis: )
+''');
+  }
+
+  test_recordPattern_nonNullable_beforeWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (_,) when true:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: RecordPattern
+    leftParenthesis: (
+    fields
+      PatternField
+        pattern: WildcardPattern
+          name: _
+    rightParenthesis: )
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+''');
+  }
+
+  test_recordPattern_nullable_beforeAs() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (_,)? as (Object,):
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 36, 5),
+    ]);
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: CastPattern
+    pattern: NullCheckPattern
+      pattern: RecordPattern
+        leftParenthesis: (
+        fields
+          PatternField
+            pattern: WildcardPattern
+              name: _
+        rightParenthesis: )
+      operator: ?
+    asToken: as
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: Object
+      rightParenthesis: )
+''');
+  }
+
+  test_recordPattern_nullable_beforeWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (_,)? when true:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullCheckPattern
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        PatternField
+          pattern: WildcardPattern
+            name: _
+      rightParenthesis: )
+    operator: ?
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+''');
+  }
+
   test_recordTypedVariablePattern_nonNullable_beforeAnd() {
     _parse('''
 void f(x) {
