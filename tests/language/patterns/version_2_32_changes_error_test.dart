@@ -20,7 +20,6 @@ main() {
       case int as:
       //         ^
       // [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
       // [cfe] Expected a type, but got ':'.
       // [cfe] This couldn't be parsed.
     }
@@ -46,7 +45,6 @@ main() {
       case final int as:
       //               ^
       // [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
       // [cfe] Expected a type, but got ':'.
       // [cfe] This couldn't be parsed.
     }
@@ -129,7 +127,6 @@ main() {
     // [cfe] Can't declare 'int' because it was already used in this scope.
     //         ^
     // [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
     // [cfe] Expected a type, but got ')'.
     // [cfe] This couldn't be parsed.
     //                  ^^^

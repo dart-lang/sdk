@@ -12,6 +12,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -143,47 +144,43 @@ class FindDeclarations {
   final List<AnalysisDriver> drivers;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final String matchString;
+  final String pattern;
   final FuzzyMatcher matcher;
   final String? onlyForFile;
   final bool onlyAnalyzed;
+  final OwnedFiles ownedFiles;
   final OperationPerformanceImpl performance;
 
   FindDeclarations(
     this.drivers,
     this.result,
-    this.matchString,
+    this.pattern,
     this.maxResults, {
     this.onlyForFile,
     this.onlyAnalyzed = false,
+    required this.ownedFiles,
     required this.performance,
-  }) : matcher = FuzzyMatcher(matchString);
+  }) : matcher = FuzzyMatcher(pattern);
 
   Future<void> compute([CancellationToken? cancellationToken]) async {
-    var searchedFiles = SearchedFiles();
-    // Add analyzed files first, so priority is given to drivers that analyze
-    // files over those that just reference them.
-    for (var driver in drivers) {
-      searchedFiles.ownAnalyzed(driver.search);
-    }
     if (!onlyAnalyzed) {
       await performance.runAsync('discoverAvailableFiles', (performance) async {
         await Future.wait(
           drivers.map((driver) => driver.discoverAvailableFiles()),
         );
       });
-
-      performance.run('ownKnown', (performance) {
-        for (var driver in drivers) {
-          searchedFiles.ownKnown(driver.search);
-        }
-      });
     }
+
+    final entries = [
+      ...ownedFiles.addedFiles.entries,
+      if (!onlyAnalyzed) ...ownedFiles.knownFiles.entries,
+    ];
 
     await performance.runAsync('findDeclarations', (performance) async {
       await _FindDeclarations(
-        searchedFiles,
+        entries,
         result,
+        pattern,
         matcher,
         maxResults,
         onlyForFile: onlyForFile,
@@ -1175,16 +1172,18 @@ class _FindCompilationUnitDeclarations {
 
 /// Searches through [files] for declarations.
 class _FindDeclarations {
-  final SearchedFiles files;
+  final List<MapEntry<Uri, AnalysisDriver>> fileEntries;
   final WorkspaceSymbols result;
   final int? maxResults;
+  final String pattern;
   final FuzzyMatcher matcher;
   final String? onlyForFile;
   final OperationPerformanceImpl performance;
 
   _FindDeclarations(
-    this.files,
+    this.fileEntries,
     this.result,
+    this.pattern,
     this.matcher,
     this.maxResults, {
     this.onlyForFile,
@@ -1205,24 +1204,36 @@ class _FindDeclarations {
 
     var filesProcessed = 0;
     try {
-      for (var entry in files.uriOwners.entries) {
+      for (var entry in fileEntries) {
         var uri = entry.key;
-        var search = entry.value;
-        var elementResult = await performance.runAsync(
+        var analysisDriver = entry.value;
+
+        final libraryElement = await performance.runAsync(
           'getLibraryByUri',
           (performance) async {
-            return await search._driver.getLibraryByUri(uri.toString());
+            final result = await analysisDriver.getLibraryByUri('$uri');
+            if (result is LibraryElementResultImpl) {
+              return result.element as LibraryElementImpl;
+            }
+            return null;
           },
         );
-        if (elementResult is LibraryElementResult) {
-          var units = elementResult.element.units;
+
+        if (libraryElement != null) {
+          // Check if there is any name that could match the pattern.
+          var match = libraryElement.nameUnion.contains(pattern);
+          if (!match) {
+            continue;
+          }
+
+          var units = libraryElement.units;
           for (var i = 0; i < units.length; i++) {
             var unit = units[i];
             var filePath = unit.source.fullName;
             if (onlyForFile != null && filePath != onlyForFile) {
               continue;
             }
-            performance.run('finder', (performance) {
+            performance.run('unitDeclarations', (performance) {
               var finder = _FindCompilationUnitDeclarations(
                 unit,
                 filePath,

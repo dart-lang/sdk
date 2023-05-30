@@ -2417,13 +2417,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (constructorName.staticElement != null) {
       return;
     }
-    DartType type = namedType.typeOrThrow;
-    if (type is InterfaceType) {
-      if (type.element is EnumElement) {
-        // We have already reported the error.
-        return;
-      }
-    }
     // report as named or default constructor absence
     var name = constructorName.name;
     if (name != null) {

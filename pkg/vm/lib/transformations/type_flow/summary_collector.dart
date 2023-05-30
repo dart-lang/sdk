@@ -2146,11 +2146,18 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr? visitAssertStatement(AssertStatement node) {
     if (!kRemoveAsserts) {
-      _addUse(_visit(node.condition));
+      final trueState = _cloneVariableValues(_variableValues);
+      final falseState = _cloneVariableValues(_variableValues);
+      _visitCondition(node.condition, trueState, falseState);
+
       final message = node.message;
       if (message != null) {
+        final savedCondition = _currentCondition;
+        _variableValues = falseState;
         _visit(message);
+        _currentCondition = savedCondition;
       }
+      _variableValues = trueState;
     }
     return null;
   }

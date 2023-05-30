@@ -87,7 +87,7 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 273;
+  static const int DATA_VERSION = 276;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -137,6 +137,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// The instance of macro executor that is used for all macros.
   final macro.MultiMacroExecutor? macroExecutor;
+
+  /// The container, shared with other drivers within the same collection,
+  /// into which all drivers record files ownership.
+  final OwnedFiles? ownedFiles;
 
   /// The declared environment variables.
   final DeclaredVariables declaredVariables;
@@ -269,6 +273,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     required Packages packages,
     this.macroKernelBuilder,
     this.macroExecutor,
+    this.ownedFiles,
     this.analysisContext,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
@@ -1544,6 +1549,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       unlinkedUnitStore: _unlinkedUnitStore,
       prefetchFiles: null,
       isGenerated: (_) => false,
+      onNewFile: _onNewFile,
       testData: testView?.fileSystem,
     );
     _fileTracker = FileTracker(_logger, _fsState, _fileContentStrategy);
@@ -1775,6 +1781,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     );
     return AnalysisResult.errors(
         'missing', errorsResult, AnalysisDriverUnitIndexBuilder());
+  }
+
+  void _onNewFile(FileState file) {
+    final ownedFiles = this.ownedFiles;
+    if (ownedFiles != null) {
+      if (addedFiles.contains(file.path)) {
+        ownedFiles.addAdded(file.uri, this);
+      } else {
+        ownedFiles.addKnown(file.uri, this);
+      }
+    }
   }
 
   void _removePotentiallyAffectedLibraries(
@@ -2403,6 +2420,29 @@ class ExceptionResult {
     required this.exception,
     required this.contextKey,
   });
+}
+
+/// Container that keeps track of file owners.
+class OwnedFiles {
+  /// Key: the absolute file URI.
+  /// Value: the driver to which the file is added.
+  final Map<Uri, AnalysisDriver> addedFiles = {};
+
+  /// Key: the absolute file URI.
+  /// Value: a driver in which this file is available via dependencies.
+  /// This map does not contain any files that are in [addedFiles].
+  final Map<Uri, AnalysisDriver> knownFiles = {};
+
+  void addAdded(Uri uri, AnalysisDriver analysisDriver) {
+    addedFiles[uri] ??= analysisDriver;
+    knownFiles.remove(uri);
+  }
+
+  void addKnown(Uri uri, AnalysisDriver analysisDriver) {
+    if (!addedFiles.containsKey(uri)) {
+      knownFiles[uri] = analysisDriver;
+    }
+  }
 }
 
 /// Worker in [AnalysisDriverScheduler].

@@ -3181,8 +3181,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         kind, receiver, originalName,
         resultType: calleeType, interfaceTarget: originalTarget)
       ..fileOffset = fileOffset;
-    calleeType = flowAnalysis.propertyGet(originalPropertyGet, originalReceiver,
-            originalName.text, originalTarget, calleeType) ??
+    calleeType = flowAnalysis.propertyGet(
+            originalPropertyGet,
+            new ExpressionPropertyTarget(originalReceiver),
+            originalName.text,
+            originalTarget,
+            calleeType) ??
         calleeType;
     originalPropertyGet.resultType = calleeType;
     Expression propertyGet = originalPropertyGet;
@@ -3663,9 +3667,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
-    inferredType = flowAnalysis.thisOrSuperPropertyGet(
-            expression, name.text, member, inferredType,
-            isSuperAccess: true) ??
+    inferredType = flowAnalysis.propertyGet(expression,
+            SuperPropertyTarget.singleton, name.text, member, inferredType) ??
         inferredType;
     return new ExpressionInferenceResult(inferredType, expression);
   }

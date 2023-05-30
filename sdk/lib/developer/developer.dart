@@ -4,13 +4,71 @@
 
 /// Interact with developer tools such as the debugger and inspector.
 ///
-/// This library is platform dependent and has separate implementations for
-/// both web and the Dart VM. A specific platform may not support all
-/// operations.
+/// This is a specialized library intended for interacting with the Dart runtime
+/// programmatically for debugging and inspection. Sample uses include advanced
+/// debugging, and creating developer tools.
 ///
-/// To use this library in your code:
+/// This library has platform specific implementations for Dart web
+/// and Dart Native (VM). A specific platform may not support all operations.
 ///
-///     import 'dart:developer';
+/// The functionality provided by this library is generally only available
+/// to Dart code run in development mode, e.g., `dart run`, and not in production
+/// mode, e.g., the output of `dart compile exe`.
+///
+/// ## Debugging
+/// The [debugger] function can be used to stop the program as if a breakpoint
+/// was hit. The breakpoint will be placed right after the call to `debugger`.
+/// This functionality can be useful for triggering breakpoints based on logic
+/// in the code.
+///
+/// Example:
+///
+/// ```dart template:main
+/// var counter = 0;
+/// final someInterestingValue = 1000;
+/// while (true) {
+///   if (counter == someInterestingValue) {
+///     // Trigger a breakpoint in the the debugger.
+///     debugger();
+///   }
+///   counter++;
+/// }
+/// ```
+///
+/// When executed with `dart run --observe`, and opened in DevTools, the
+/// debugger will be stopped with `counter` at the value `1000`.
+///
+/// ## Inspection
+/// Developer tools, such as Dart DevTools, connected to the runtime system
+/// may allow for inspecting execution timing in a "timeline" view.
+/// The static methods of [Timeline] can add extra information and timing events
+/// to this view.
+///
+/// Example:
+///
+/// ```dart
+/// void main() {
+///   Timeline.timeSync('Calculation loop', () {
+///     for (var i = 30; i < 50; i++) {
+///       Timeline.timeSync('fib($i)', () {
+///         fibonacci(i);
+///       });
+///     }
+///   });
+/// }
+///
+/// int fibonacci(int n) => (n < 2) ? n : fibonacci(n - 2) + fibonacci(n - 1);
+/// ```
+///
+/// When executed with `dart run --observe`, and opened in DevTools,
+/// the Performance tab will display a timeline containing the annotations
+/// passed to `timeSync`.
+///
+/// ## Developer tools
+/// A developer tool, like the debugger built into the `dart` command,
+/// may access information about the running application
+/// exposed by the runtime system,
+/// using the [Service] and [ServiceProtocolInfo] classes.
 ///
 /// {@category Core}
 library dart.developer;

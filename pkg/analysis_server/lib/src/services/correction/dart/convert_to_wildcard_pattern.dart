@@ -10,16 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ConvertToWildcardPattern extends CorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
-
-  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_WILDCARD_PATTERN;
-
-  @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_WILDCARD_PATTERN_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

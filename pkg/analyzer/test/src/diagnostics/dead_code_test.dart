@@ -10,7 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
-    defineReflectiveTests(DeadCodeTest_Language218);
+    defineReflectiveTests(DeadCodeTest_Language219);
     defineReflectiveTests(DeadCodeWithoutNullSafetyTest);
   });
 }
@@ -154,9 +154,9 @@ void f(Object x) {
 }
 
 @reflectiveTest
-class DeadCodeTest_Language218 extends PubPackageResolutionTest
+class DeadCodeTest_Language219 extends PubPackageResolutionTest
     with
-        WithLanguage218Mixin,
+        WithLanguage219Mixin,
         DeadCodeTestCases,
         DeadCodeTestCases_Language212 {}
 

@@ -1,0 +1,142 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:test" as test;
+
+import "dart:test";
+
+static method test(test::Class c) → dynamic
+  ;
+static method method(test::Class c) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/patch_extension_scope/patch_lib1.dart:45:11: Error: Can't inject public 'NamedInjectedExtension1' into 'dart:test'.
+// Make 'NamedInjectedExtension1' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
+// extension NamedInjectedExtension1 on Class /* Error */ {
+//           ^
+//
+// pkg/front_end/testcases/general/patch_extension_scope/patch_lib2.dart:45:11: Error: Can't inject public 'NamedInjectedExtension2' into 'dart:test'.
+// Make 'NamedInjectedExtension2' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
+// extension NamedInjectedExtension2 on Class /* Error */ {
+//           ^
+//
+import self as test;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+import "dart:_internal";
+
+@_in::patch
+@_in::patch
+class Class extends core::Object {
+  synthetic constructor •() → test::Class
+    ;
+  method _method() → void
+    ;
+  method /* from org-dartlang-testcase:///patch_lib1.dart */ _method1() → void
+    ;
+  method /* from org-dartlang-testcase:///patch_lib2.dart */ _method2() → void
+    ;
+}
+extension NamedInjectedExtension1 on test::Class { // from org-dartlang-testcase:///patch_lib1.dart
+  method namedInjectedExtensionMethod1 = test::NamedInjectedExtension1|namedInjectedExtensionMethod1;
+  tearoff namedInjectedExtensionMethod1 = test::NamedInjectedExtension1|get#namedInjectedExtensionMethod1;
+  method _namedInjectedExtensionPrivateMethod1 = test::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1;
+  tearoff _namedInjectedExtensionPrivateMethod1 = test::NamedInjectedExtension1|get#_namedInjectedExtensionPrivateMethod1;
+}
+extension /* unnamed */ _extension#1 on test::Class { // from org-dartlang-testcase:///patch_lib1.dart
+  method unnamedInjectedExtensionMethod1 = test::_extension#1|unnamedInjectedExtensionMethod1;
+  tearoff unnamedInjectedExtensionMethod1 = test::_extension#1|get#unnamedInjectedExtensionMethod1;
+  method _unnamedInjectedExtensionPrivateMethod1 = test::_extension#1|_unnamedInjectedExtensionPrivateMethod1;
+  tearoff _unnamedInjectedExtensionPrivateMethod1 = test::_extension#1|get#_unnamedInjectedExtensionPrivateMethod1;
+}
+extension NamedInjectedExtension2 on test::Class { // from org-dartlang-testcase:///patch_lib2.dart
+  method namedInjectedExtensionMethod2 = test::NamedInjectedExtension2|namedInjectedExtensionMethod2;
+  tearoff namedInjectedExtensionMethod2 = test::NamedInjectedExtension2|get#namedInjectedExtensionMethod2;
+  method _namedInjectedExtensionPrivateMethod2 = test::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2;
+  tearoff _namedInjectedExtensionPrivateMethod2 = test::NamedInjectedExtension2|get#_namedInjectedExtensionPrivateMethod2;
+}
+extension /* unnamed */ _extension#3 on test::Class { // from org-dartlang-testcase:///patch_lib2.dart
+  method unnamedInjectedExtensionMethod2 = test::_extension#3|unnamedInjectedExtensionMethod2;
+  tearoff unnamedInjectedExtensionMethod2 = test::_extension#3|get#unnamedInjectedExtensionMethod2;
+  method _unnamedInjectedExtensionPrivateMethod2 = test::_extension#3|_unnamedInjectedExtensionPrivateMethod2;
+  tearoff _unnamedInjectedExtensionPrivateMethod2 = test::_extension#3|get#_unnamedInjectedExtensionPrivateMethod2;
+}
+extension Extension on test::Class {
+  method namedExtensionMethod = test::Extension|namedExtensionMethod;
+  tearoff namedExtensionMethod = test::Extension|get#namedExtensionMethod;
+  method _namedExtensionPrivateMethod = test::Extension|_namedExtensionPrivateMethod;
+  tearoff _namedExtensionPrivateMethod = test::Extension|get#_namedExtensionPrivateMethod;
+}
+extension /* unnamed */ _extension#5 on test::Class {
+  method unnamedExtensionMethod = test::_extension#5|unnamedExtensionMethod;
+  tearoff unnamedExtensionMethod = test::_extension#5|get#unnamedExtensionMethod;
+  method _unnamedExtensionPrivateMethod = test::_extension#5|_unnamedExtensionPrivateMethod;
+  tearoff _unnamedExtensionPrivateMethod = test::_extension#5|get#_unnamedExtensionPrivateMethod;
+}
+static method _method(test::Class c) → void
+  ;
+static method Extension|namedExtensionMethod(lowered final test::Class #this) → void
+  ;
+static method Extension|get#namedExtensionMethod(lowered final test::Class #this) → () → void
+  return () → void => test::Extension|namedExtensionMethod(#this);
+static method Extension|_namedExtensionPrivateMethod(lowered final test::Class #this) → void
+  ;
+static method Extension|get#_namedExtensionPrivateMethod(lowered final test::Class #this) → () → void
+  return () → void => test::Extension|_namedExtensionPrivateMethod(#this);
+static method _extension#5|unnamedExtensionMethod(lowered final test::Class #this) → void
+  ;
+static method _extension#5|get#unnamedExtensionMethod(lowered final test::Class #this) → () → void
+  return () → void => test::_extension#5|unnamedExtensionMethod(#this);
+static method _extension#5|_unnamedExtensionPrivateMethod(lowered final test::Class #this) → void
+  ;
+static method _extension#5|get#_unnamedExtensionPrivateMethod(lowered final test::Class #this) → () → void
+  return () → void => test::_extension#5|_unnamedExtensionPrivateMethod(#this);
+static method /* from org-dartlang-testcase:///patch_lib1.dart */ _method1(test::Class c) → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|namedInjectedExtensionMethod1(lowered final test::Class #this) → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|get#namedInjectedExtensionMethod1(lowered final test::Class #this) → () → void
+  return () → void => test::NamedInjectedExtension1|namedInjectedExtensionMethod1(#this);
+static method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|get#_namedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → () → void
+  return () → void => test::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(#this);
+static method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|unnamedInjectedExtensionMethod1(lowered final test::Class #this) → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|get#unnamedInjectedExtensionMethod1(lowered final test::Class #this) → () → void
+  return () → void => test::_extension#1|unnamedInjectedExtensionMethod1(#this);
+static method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|_unnamedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|get#_unnamedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → () → void
+  return () → void => test::_extension#1|_unnamedInjectedExtensionPrivateMethod1(#this);
+static method /* from org-dartlang-testcase:///patch_lib2.dart */ _method2(test::Class c) → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|namedInjectedExtensionMethod2(lowered final test::Class #this) → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|get#namedInjectedExtensionMethod2(lowered final test::Class #this) → () → void
+  return () → void => test::NamedInjectedExtension2|namedInjectedExtensionMethod2(#this);
+static method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|get#_namedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → () → void
+  return () → void => test::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(#this);
+static method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|unnamedInjectedExtensionMethod2(lowered final test::Class #this) → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|get#unnamedInjectedExtensionMethod2(lowered final test::Class #this) → () → void
+  return () → void => test::_extension#3|unnamedInjectedExtensionMethod2(#this);
+static method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|_unnamedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|get#_unnamedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → () → void
+  return () → void => test::_extension#3|_unnamedInjectedExtensionPrivateMethod2(#this);
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:30 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:30 -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 38, effectively constant: 2

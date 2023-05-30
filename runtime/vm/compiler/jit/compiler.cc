@@ -342,6 +342,11 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
   if (!optimized() && function.unoptimized_code() != Code::null()) {
     return function.unoptimized_code();
   }
+  // If another thread compiled and installed optimized code for the
+  // force-optimized function, skip installation.
+  if (optimized() && function.ForceOptimize() && function.HasOptimizedCode()) {
+    return function.CurrentCode();
+  }
   Zone* const zone = thread()->zone();
 
   // CreateDeoptInfo uses the object pool and needs to be done before

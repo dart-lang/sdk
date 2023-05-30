@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/since_sdk_version.dart';
@@ -4048,6 +4049,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   late final List<ExportedReference> exportedReferences;
 
   LibraryElementLinkedData? linkedData;
+
+  /// The union of names for all searchable elements in this library.
+  ElementNameUnion nameUnion = ElementNameUnion.empty();
 
   @override
   final FeatureSet featureSet;

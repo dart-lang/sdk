@@ -7,7 +7,13 @@
 /// AST nodes and then feed them to [Harness.run] to run them through flow
 /// analysis testing.
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
-    show EqualityInfo, FlowAnalysis, Operations;
+    show
+        EqualityInfo,
+        ExpressionPropertyTarget,
+        FlowAnalysis,
+        Operations,
+        SuperPropertyTarget,
+        ThisPropertyTarget;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
@@ -3209,8 +3215,7 @@ class Property extends PromotableLValue {
         h.typeAnalyzer.analyzeExpression(target, h.typeAnalyzer.unknownType);
     var member = h.typeAnalyzer._lookupMember(this, receiverType, propertyName);
     return h.flow.promotedPropertyType(
-        target, propertyName, member, member!._type,
-        isSuperAccess: false);
+        ExpressionPropertyTarget(target), propertyName, member, member!._type);
   }
 
   @override
@@ -3622,8 +3627,12 @@ class ThisOrSuperProperty extends PromotableLValue {
         location: location);
     var member = h.typeAnalyzer._lookupMember(this, h._thisType!, propertyName);
     return h.flow.promotedPropertyType(
-        null, propertyName, member, member!._type,
-        isSuperAccess: isSuperAccess);
+        isSuperAccess
+            ? SuperPropertyTarget.singleton
+            : ThisPropertyTarget.singleton,
+        propertyName,
+        member,
+        member!._type);
   }
 
   @override
@@ -4587,8 +4596,8 @@ class _MiniAstTypeAnalyzer
     var receiverType = analyzeExpression(receiver, unknownType);
     var member = _lookupMember(node, receiverType, propertyName);
     var memberType = member?._type ?? dynamicType;
-    var promotedType =
-        flow.propertyGet(node, receiver, propertyName, member, memberType);
+    var promotedType = flow.propertyGet(node,
+        ExpressionPropertyTarget(receiver), propertyName, member, memberType);
     // TODO(paulberry): handle null shorting
     return new SimpleTypeAnalysisResult<Type>(type: promotedType ?? memberType);
   }
@@ -4608,9 +4617,14 @@ class _MiniAstTypeAnalyzer
       {required bool isSuperAccess}) {
     var member = _lookupMember(node, thisType, propertyName);
     var memberType = member?._type ?? dynamicType;
-    var promotedType = flow.thisOrSuperPropertyGet(
-        node, propertyName, member, memberType,
-        isSuperAccess: isSuperAccess);
+    var promotedType = flow.propertyGet(
+        node,
+        isSuperAccess
+            ? SuperPropertyTarget.singleton
+            : ThisPropertyTarget.singleton,
+        propertyName,
+        member,
+        memberType);
     return new SimpleTypeAnalysisResult<Type>(type: promotedType ?? memberType);
   }
 

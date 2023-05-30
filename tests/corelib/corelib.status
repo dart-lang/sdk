@@ -6,8 +6,12 @@ bigint_parse_radix_test/3: Slow # Issue http://dartbug.com/47050
 bigint_test: Pass, Slow
 
 [ $builder_tag == obfuscated ]
-corelib/nsm_invocation_test: SkipByDesign # Relies on non-obfuscated symbols
-corelib/symbol_test: SkipByDesign # Relies on non-obfuscated symbols
+apply_generic_function_test: SkipByDesign # Function.apply with named args
+apply_test: Skip # Uses new Symbol via symbolToStringMap helper
+dynamic_nosuchmethod_test: SkipByDesign # Expects names in NSM
+nsm_invocation_test: SkipByDesign # Relies on non-obfuscated symbols
+symbol_test: SkipByDesign # Relies on non-obfuscated symbols
+type_tostring_test: SkipByDesign # Expects names in Type.toString()
 
 [ $compiler == dartkp ]
 bigint_parse_radix_test: Slow, Pass # --no_intrinsify
@@ -35,13 +39,6 @@ bigint_test: Skip # Issue 31659
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
-[ $builder_tag == obfuscated && $runtime == dart_precompiled ]
-apply_generic_function_test: SkipByDesign # Function.apply with named args
-apply_test: Skip # Uses new Symbol via symbolToStringMap helper
-dynamic_nosuchmethod_test: SkipByDesign # Expects names in NSM
-error_stack_trace1_test: SkipByDesign # Relies on symbol names in stack traces.
-type_tostring_test: SkipByDesign # Expects names in Type.toString()
-
 [ $compiler != dart2analyzer && $compiler != dart2js && $compiler != ddc ]
 bigint_js_test: SkipByDesign # JavaScript-specific test
 
@@ -63,6 +60,9 @@ int_parse_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 suppo
 integer_arith_vm_test: SkipByDesign # Is a VM optimization test that requires int64 support.
 iterable_return_type_int64_test: SkipByDesign # Requires int64 support.
 typed_data_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.
+
+[ $builder_tag == dwarf || $builder_tag == obfuscated ]
+error_stack_trace1_test: SkipByDesign # Relies on symbol names in stack traces.
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 regexp/global_test: Skip # Issue 21709

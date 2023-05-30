@@ -59,6 +59,8 @@ class FindNode {
 
   ForElement get singleForElement => _single();
 
+  FormalParameterList get singleFormalParameterList => _single();
+
   ForStatement get singleForStatement => _single();
 
   FunctionBody get singleFunctionBody => _single();
@@ -123,6 +125,8 @@ class FindNode {
 
   PropertyAccess get singlePropertyAccess => _single();
 
+  RecordLiteral get singleRecordLiteral => _single();
+
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
 
@@ -132,6 +136,8 @@ class FindNode {
 
   SuperConstructorInvocation get singleSuperConstructorInvocation => _single();
 
+  SwitchCase get singleSwitchCase => _single();
+
   SwitchExpression get singleSwitchExpression => _single();
 
   SwitchPatternCase get singleSwitchPatternCase => _single();
@@ -140,6 +146,8 @@ class FindNode {
       _single();
 
   TryStatement get singleTryStatement => _single();
+
+  VariableDeclaration get singleVariableDeclaration => _single();
 
   VariableDeclarationStatement get singleVariableDeclarationStatement =>
       _single();

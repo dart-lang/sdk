@@ -14,8 +14,6 @@ library /*isNonNullableByDefault*/;
 //   void set Class(value) {}
 //            ^^^^^
 //
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart: Error: 'topLevelMethodAndSetter' is exported from both 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart' and 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart'.
-//
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:9:10: Error: Conflicts with member 'topLevelMethodAndSetter'.
 // void set topLevelMethodAndSetter(value) {}
 //          ^
@@ -165,7 +163,6 @@ extension Extension on core::int? {
   static set extensionInstanceMethodAndStaticSetter = set self::Extension|extensionInstanceMethodAndStaticSetter;
   set extensionStaticMethodAndInstanceSetter = self::Extension|set#extensionStaticMethodAndInstanceSetter;
 }
-static const field dynamic _exports# = #C1 /*isLegacy*/;
 static method topLevelMethodAndSetter() → dynamic {}
 static set topLevelMethodAndSetter(dynamic value) → void {}
 static set classAndSetter(dynamic value) → void {}
@@ -214,7 +211,3 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   self::Extension|extensionInstanceMethodAndStaticSetter = self::Extension|extensionInstanceMethodAndStaticSetter(0);
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = "{\"topLevelMethodAndSetter\":\"'topLevelMethodAndSetter' is exported from both 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart' and 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart'.\"}"
-}

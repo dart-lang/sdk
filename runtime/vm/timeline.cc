@@ -504,8 +504,9 @@ TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
 
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
-      timestamp1_(0),
-      flow_id_(TimelineEvent::kNoFlowId),
+      timestamp1_or_id_(0),
+      flow_id_count_(0),
+      flow_ids_(),
       state_(0),
       label_(nullptr),
       stream_(nullptr),
@@ -539,7 +540,7 @@ void TimelineEvent::AsyncBegin(const char* label,
   Init(kAsyncBegin, label);
   set_timestamp0(micros);
   // Overload timestamp1_ with the async_id.
-  set_timestamp1(async_id);
+  set_timestamp1_or_id(async_id);
 }
 
 void TimelineEvent::AsyncInstant(const char* label,
@@ -548,7 +549,7 @@ void TimelineEvent::AsyncInstant(const char* label,
   Init(kAsyncInstant, label);
   set_timestamp0(micros);
   // Overload timestamp1_ with the async_id.
-  set_timestamp1(async_id);
+  set_timestamp1_or_id(async_id);
 }
 
 void TimelineEvent::AsyncEnd(const char* label,
@@ -557,17 +558,12 @@ void TimelineEvent::AsyncEnd(const char* label,
   Init(kAsyncEnd, label);
   set_timestamp0(micros);
   // Overload timestamp1_ with the async_id.
-  set_timestamp1(async_id);
+  set_timestamp1_or_id(async_id);
 }
 
 void TimelineEvent::DurationBegin(const char* label, int64_t micros) {
   Init(kDuration, label);
   set_timestamp0(micros);
-}
-
-void TimelineEvent::DurationEnd(int64_t micros) {
-  ASSERT(timestamp1_ == 0);
-  set_timestamp1(micros);
 }
 
 void TimelineEvent::Instant(const char* label, int64_t micros) {
@@ -580,27 +576,25 @@ void TimelineEvent::Duration(const char* label,
                              int64_t end_micros) {
   Init(kDuration, label);
   set_timestamp0(start_micros);
-  set_timestamp1(end_micros);
+  set_timestamp1_or_id(end_micros);
 }
 
 void TimelineEvent::Begin(const char* label,
                           int64_t id,
-                          int64_t flow_id,
                           int64_t micros) {
   Init(kBegin, label);
   set_timestamp0(micros);
-  // Overload timestamp1_ with the task id. This is required for the MacOS
+  // Overload timestamp1_ with the event ID. This is required for the MacOS
   // recorder to work.
-  set_timestamp1(id);
-  set_flow_id(flow_id);
+  set_timestamp1_or_id(id);
 }
 
 void TimelineEvent::End(const char* label, int64_t id, int64_t micros) {
   Init(kEnd, label);
   set_timestamp0(micros);
-  // Overload timestamp1_ with the task id. This is required for the MacOS
+  // Overload timestamp1_ with the event ID. This is required for the MacOS
   // recorder to work.
-  set_timestamp1(id);
+  set_timestamp1_or_id(id);
 }
 
 void TimelineEvent::Counter(const char* label, int64_t micros) {
@@ -609,30 +603,21 @@ void TimelineEvent::Counter(const char* label, int64_t micros) {
 }
 
 void TimelineEvent::FlowBegin(const char* label,
-                              int64_t async_id,
                               int64_t micros) {
   Init(kFlowBegin, label);
   set_timestamp0(micros);
-  // Overload timestamp1_ with the async_id.
-  set_timestamp1(async_id);
 }
 
 void TimelineEvent::FlowStep(const char* label,
-                             int64_t async_id,
                              int64_t micros) {
   Init(kFlowStep, label);
   set_timestamp0(micros);
-  // Overload timestamp1_ with the async_id.
-  set_timestamp1(async_id);
 }
 
 void TimelineEvent::FlowEnd(const char* label,
-                            int64_t async_id,
                             int64_t micros) {
   Init(kFlowEnd, label);
   set_timestamp0(micros);
-  // Overload timestamp1_ with the async_id.
-  set_timestamp1(async_id);
 }
 
 void TimelineEvent::Metadata(const char* label, int64_t micros) {
@@ -669,8 +654,9 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   ASSERT(label != nullptr);
   state_ = 0;
   timestamp0_ = 0;
-  timestamp1_ = 0;
-  flow_id_ = TimelineEvent::kNoFlowId;
+  timestamp1_or_id_ = 0;
+  flow_id_count_ = 0;
+  flow_ids_.reset();
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != nullptr);
   thread_ = os_thread->trace_id();
@@ -679,6 +665,10 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   auto isolate_group = thread != nullptr ? thread->isolate_group() : nullptr;
   isolate_id_ = (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT;
   isolate_group_id_ = (isolate_group != nullptr) ? isolate_group->id() : 0;
+  isolate_data_ =
+      (isolate != nullptr) ? isolate->init_callback_data() : nullptr;
+  isolate_group_data_ =
+      (isolate_group != nullptr) ? isolate_group->embedder_data() : nullptr;
   label_ = label;
   arguments_.Free();
   set_event_type(event_type);
@@ -837,12 +827,12 @@ inline void AddBeginEventFields(
   AddBeginAndInstantEventCommonFields(track_event, event);
   track_event->set_type(
       perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_BEGIN);
-  if (event.HasFlowId()) {
+  for (intptr_t i = 0; i < event.flow_id_count(); ++i) {
     // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that we
     // aren't able to populate right now because we aren't keeping track of
     // terminating flow IDs in |TimelineEvent|. I'm not even sure if using that
     // field will provide any benefit though.
-    track_event->add_flow_ids(event.flow_id());
+    track_event->add_flow_ids(event.FlowIds()[i]);
   }
 }
 
@@ -967,22 +957,19 @@ int64_t TimelineEvent::LowTime() const {
 
 int64_t TimelineEvent::HighTime() const {
   if (event_type() == kDuration) {
-    return timestamp1_;
+    return timestamp1_or_id_;
   } else {
     return timestamp0_;
   }
 }
 
 int64_t TimelineEvent::TimeDuration() const {
-  if (timestamp1_ == 0) {
+  ASSERT(event_type() == kDuration);
+  if (timestamp1_or_id_ == 0) {
     // This duration is still open, use current time as end.
     return OS::GetCurrentMonotonicMicrosForTimeline() - timestamp0_;
   }
-  return timestamp1_ - timestamp0_;
-}
-
-bool TimelineEvent::HasFlowId() const {
-  return flow_id_ != TimelineEvent::kNoFlowId;
+  return timestamp1_or_id_ - timestamp0_;
 }
 
 bool TimelineEvent::HasIsolateId() const {
@@ -1236,7 +1223,7 @@ void TimelineBeginEndScope::EmitBegin() {
   }
   ASSERT(event != nullptr);
   // Emit a begin event.
-  event->Begin(label(), id(), /*flow_id=*/TimelineEvent::kNoFlowId);
+  event->Begin(label(), id());
   event->Complete();
 }
 
@@ -1926,9 +1913,11 @@ void TimelineEventEmbedderCallbackRecorder::OnEvent(TimelineEvent* event) {
       return;
   }
   recorder_event.timestamp0 = event->timestamp0();
-  recorder_event.timestamp1_or_async_id = event->timestamp1();
+  recorder_event.timestamp1_or_id = event->timestamp1_or_id();
   recorder_event.isolate = event->isolate_id();
   recorder_event.isolate_group = event->isolate_group_id();
+  recorder_event.isolate_data = event->isolate_data();
+  recorder_event.isolate_group_data = event->isolate_group_data();
   recorder_event.label = event->label();
   recorder_event.stream = event->stream()->name();
   recorder_event.argument_count = event->GetNumArguments();
@@ -2410,12 +2399,14 @@ void TimelineEventBlock::Finish() {
 #endif
 }
 
-void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
-                                               int64_t id,
-                                               int64_t flow_id,
-                                               intptr_t type,
-                                               char* name,
-                                               char* args) {
+void DartTimelineEventHelpers::ReportTaskEvent(
+    TimelineEvent* event,
+    int64_t id,
+    intptr_t flow_id_count,
+    std::unique_ptr<const int64_t[]>& flow_ids,
+    intptr_t type,
+    char* name,
+    char* args) {
   const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
   switch (static_cast<TimelineEvent::EventType>(type)) {
     case TimelineEvent::kAsyncInstant:
@@ -2428,25 +2419,33 @@ void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
       event->AsyncEnd(name, id, start);
       break;
     case TimelineEvent::kBegin:
-      event->Begin(name, id, flow_id, start);
+      event->Begin(name, id, start);
       break;
     case TimelineEvent::kEnd:
       event->End(name, id, start);
       break;
     case TimelineEvent::kFlowBegin:
-      event->FlowBegin(name, id, start);
+      event->FlowBegin(name, start);
       break;
     case TimelineEvent::kFlowStep:
-      event->FlowStep(name, id, start);
+      event->FlowStep(name, start);
       break;
     case TimelineEvent::kFlowEnd:
-      event->FlowEnd(name, id, start);
+      event->FlowEnd(name, start);
       break;
     case TimelineEvent::kInstant:
       event->Instant(name, start);
       break;
     default:
       UNREACHABLE();
+  }
+  if (flow_id_count > 0) {
+    ASSERT(type == Dart_Timeline_Event_Begin ||
+           type == Dart_Timeline_Event_Instant ||
+           type == Dart_Timeline_Event_Async_Begin ||
+           type == Dart_Timeline_Event_Async_Instant);
+
+    event->SetFlowIds(flow_id_count, flow_ids);
   }
   event->set_owns_label(true);
   event->CompleteWithPreSerializedArgs(args);

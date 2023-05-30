@@ -60,6 +60,7 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
       params.pattern ?? '',
       params.maxResults,
       onlyForFile: params.file,
+      ownedFiles: server.ownedFiles,
       performance: performance,
     ).compute();
 

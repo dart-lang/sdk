@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -471,6 +472,127 @@ RecordLiteral
         String
   rightParenthesis: )
   staticType: (int, String)
+''');
+  }
+
+  test_language219_singleField_noComma() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.19
+final x = (0);
+''');
+
+    final node = findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer: ParenthesizedExpression
+    leftParenthesis: (
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredElement: self::@variable::x
+''');
+  }
+
+  test_language219_singleField_noComma_const() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.19
+final x = const (0);
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 32, 1),
+      error(ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 34,
+          1),
+    ]);
+
+    final node = findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer: ParenthesizedExpression
+    leftParenthesis: (
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredElement: self::@variable::x
+''');
+  }
+
+  test_language219_singleField_withComma() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.19
+final x = (0,);
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1),
+    ]);
+
+    final node = findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer: ParenthesizedExpression
+    leftParenthesis: (
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredElement: self::@variable::x
+''');
+  }
+
+  test_language219_twoFields() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.19
+final x = (0, 1);
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1),
+    ]);
+
+    final node = findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer: ParenthesizedExpression
+    leftParenthesis: (
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredElement: self::@variable::x
+''');
+  }
+
+  test_language219_zeroFields() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.19
+final x = ();
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1),
+    ]);
+
+    final node = findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: <empty> <synthetic>
+      staticElement: <null>
+      staticType: InvalidType
+    rightParenthesis: )
+    staticType: InvalidType
+  declaredElement: self::@variable::x
 ''');
   }
 

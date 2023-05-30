@@ -54,7 +54,7 @@ vmspecific_native_finalizer_isolate_groups_test: Skip # SpawnUri not available o
 regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.
 
 [ $qemu ]
-native_assets/asset_*: SkipByDesign # Only intended to run on host oses with AOT binaries available, not available on QEMU.
+native_assets/*: SkipByDesign # Only intended to run on host oses with AOT binaries available, not available on QEMU.
 
 [ $simulator ]
 *: Skip # FFI not yet supported on the arm simulator.

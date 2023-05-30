@@ -177,7 +177,7 @@ class FileTest extends _BaseTestNative {
   }
 }
 
-abstract class MemoryFileSystemTestMixin implements _BaseTest {
+mixin MemoryFileSystemTestMixin implements _BaseTest {
   late Uri tempUri;
 
   void setUp() {

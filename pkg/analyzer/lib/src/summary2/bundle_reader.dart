@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -527,6 +528,10 @@ class LibraryReader {
 
     libraryElement.exportedReferences = _reader.readTypedList(
       _readExportedReference,
+    );
+
+    libraryElement.nameUnion = ElementNameUnion.read(
+      _reader.readUInt30List(),
     );
 
     libraryElement.linkedData = LibraryElementLinkedData(

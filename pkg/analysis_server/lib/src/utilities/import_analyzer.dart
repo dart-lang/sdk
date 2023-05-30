@@ -244,15 +244,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element;
-    if (element != null && element.isInterestingReference) {
-      recorder.recordReference(
-        element,
-        node.offset,
-        node.importPrefix?.element.ifTypeOrNull(),
-      );
-    }
-
+    _recordReference(node.element, node, node);
     super.visitNamedType(node);
   }
 
@@ -345,6 +337,8 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
           return element;
         }
       }
+    } else if (node is NamedType) {
+      return node.importPrefix?.element.ifTypeOrNull();
     }
     return null;
   }

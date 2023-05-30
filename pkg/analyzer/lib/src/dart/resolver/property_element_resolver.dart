@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -260,9 +261,12 @@ class PropertyElementResolver with ScopeHelpers {
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
-        getType = _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(
-                node, node.name, readElementRequested, unpromotedType,
-                isSuperAccess: false) ??
+        getType = _resolver.flowAnalysis.flow?.propertyGet(
+                node,
+                ThisPropertyTarget.singleton,
+                node.name,
+                readElementRequested,
+                unpromotedType) ??
             unpromotedType;
       }
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
@@ -479,7 +483,11 @@ class PropertyElementResolver with ScopeHelpers {
       var unpromotedType =
           result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType;
       getType = _resolver.flowAnalysis.flow?.propertyGet(
-              node, target, propertyName.name, result.getter, unpromotedType) ??
+              node,
+              ExpressionPropertyTarget(target),
+              propertyName.name,
+              result.getter,
+              unpromotedType) ??
           unpromotedType;
 
       _checkForStaticMember(target, propertyName, result.getter);
@@ -818,9 +826,12 @@ class PropertyElementResolver with ScopeHelpers {
         }
         var unpromotedType =
             readElement?.returnType ?? _typeSystem.typeProvider.dynamicType;
-        getType = _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(
-                node, propertyName.name, readElement, unpromotedType,
-                isSuperAccess: true) ??
+        getType = _resolver.flowAnalysis.flow?.propertyGet(
+                node,
+                SuperPropertyTarget.singleton,
+                propertyName.name,
+                readElement,
+                unpromotedType) ??
             unpromotedType;
       }
 

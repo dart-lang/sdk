@@ -36,7 +36,8 @@ analyzer.
 
 ### For Android Studio
 
-1. Double-press Shift
+1. Open Android Stusio screen 'Welcome to Android Studio'
+2. Press Cmd + Shift + A
 2. Type 'Registry' into search field
 3. Click 'Registry...'
 4. Add the argument to the value of the key 'dart.server.additional.arguments'

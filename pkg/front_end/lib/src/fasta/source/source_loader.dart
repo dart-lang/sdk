@@ -1429,19 +1429,6 @@ severity: $severity
           exporters.add(exporter.exporter);
         }
       }
-
-      Iterable<SourceLibraryBuilder>? patches =
-          library is SourceLibraryBuilder ? library.patchLibraries : null;
-      if (patches != null) {
-        for (SourceLibraryBuilder patchLibrary in patches) {
-          if (patchLibrary.exporters.isNotEmpty) {
-            exportees.add(patchLibrary);
-            for (Export exporter in patchLibrary.exporters) {
-              exporters.add(exporter.exporter);
-            }
-          }
-        }
-      }
     }
     Set<SourceLibraryBuilder> both = new Set<SourceLibraryBuilder>();
     for (LibraryBuilder exported in exportees) {

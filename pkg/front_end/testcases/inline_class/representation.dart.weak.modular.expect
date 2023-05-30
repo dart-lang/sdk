@@ -31,28 +31,28 @@ inline class Missing /* declaredRepresentationType = invalid-type */ {
 inline class Static /* declaredRepresentationType = core::bool */ {
   static field staticField = self::Static|staticField;
   constructor • = self::Static|;
-  tearoff • = self::Static|get#;
+  tearoff • = self::Static|_#new#tearOff;
 }
 inline class Multiple /* declaredRepresentationType = core::bool */ {
   constructor • = self::Multiple|;
-  tearoff • = self::Multiple|get#;
+  tearoff • = self::Multiple|_#new#tearOff;
 }
 inline class Duplicate /* declaredRepresentationType = core::bool */ {
   constructor • = self::Duplicate|;
-  tearoff • = self::Duplicate|get#;
+  tearoff • = self::Duplicate|_#new#tearOff;
 }
 static field core::int Static|staticField = 42;
 static method Static|(core::bool instanceField) → self::Static {
   final self::Static #this = instanceField;
   return #this;
 }
-static method Static|get#(core::bool instanceField) → self::Static
+static method Static|_#new#tearOff(core::bool instanceField) → self::Static
   return self::Static|(instanceField);
 static method Multiple|(core::bool instanceField1) → self::Multiple {
   final self::Multiple #this = instanceField1;
   return #this;
 }
-static method Multiple|get#(core::bool instanceField1) → self::Multiple
+static method Multiple|_#new#tearOff(core::bool instanceField1) → self::Multiple
   return self::Multiple|(instanceField1);
 static method Duplicate|(core::int instanceField) → self::Duplicate {
   final self::Duplicate #this;
@@ -61,5 +61,5 @@ static method Duplicate|(core::int instanceField) → self::Duplicate {
                  ^^^^^^^^^^^^^";
   return #this;
 }
-static method Duplicate|get#(core::int instanceField) → self::Duplicate
+static method Duplicate|_#new#tearOff(core::int instanceField) → self::Duplicate
   return self::Duplicate|(instanceField);

@@ -24,8 +24,9 @@ import 'package:collection/collection.dart';
 /// different file. The destination file can either be a new file or an existing
 /// file.
 class MoveTopLevelToFile extends RefactoringProducer {
-  /// Return the name used for this command when communicating with the client.
-  static const String commandName = 'move_top_level_to_file';
+  /// Return the name used for this command when communicating with the client
+  /// (and for analytics).
+  static const String commandName = 'dart.refactor.move_top_level_to_file';
 
   @override
   late String title;

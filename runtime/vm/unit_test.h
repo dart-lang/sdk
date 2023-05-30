@@ -464,8 +464,10 @@ class RawTestCase : TestCaseBase {
 
 class TestIsolateScope {
  public:
-  TestIsolateScope() {
-    isolate_ = reinterpret_cast<Isolate*>(TestCase::CreateTestIsolate());
+  TestIsolateScope(void* isolate_group_data = nullptr,
+                   void* isolate_data = nullptr) {
+    isolate_ = reinterpret_cast<Isolate*>(TestCase::CreateTestIsolate(
+        /*name=*/nullptr, isolate_group_data, isolate_data));
     Dart_EnterScope();  // Create a Dart API scope for unit tests.
   }
   ~TestIsolateScope() {

@@ -13,53 +13,53 @@ extension DoubleToJSNumber on core::double {
 }
 inline class JSAny /* declaredRepresentationType = core::Object */ {
   constructor • = self::JSAny|;
-  tearoff • = self::JSAny|get#;
+  tearoff • = self::JSAny|_#new#tearOff;
 }
 inline class JSObject /* declaredRepresentationType = core::Object */ implements self::JSAny {
   constructor • = self::JSObject|;
-  tearoff • = self::JSObject|get#;
+  tearoff • = self::JSObject|_#new#tearOff;
 }
 inline class JSArray /* declaredRepresentationType = core::List<self::JSAny?> */ implements self::JSObject {
   constructor • = self::JSArray|;
-  tearoff • = self::JSArray|get#;
+  tearoff • = self::JSArray|_#new#tearOff;
 }
 inline class JSExportedDartObject /* declaredRepresentationType = core::Object */ implements self::JSObject {
   constructor • = self::JSExportedDartObject|;
-  tearoff • = self::JSExportedDartObject|get#;
+  tearoff • = self::JSExportedDartObject|_#new#tearOff;
 }
 inline class JSNumber /* declaredRepresentationType = core::double */ implements self::JSAny {
   constructor • = self::JSNumber|;
-  tearoff • = self::JSNumber|get#;
+  tearoff • = self::JSNumber|_#new#tearOff;
 }
 static method JSAny|(core::Object value) → self::JSAny {
   final self::JSAny #this = value;
   return #this;
 }
-static method JSAny|get#(core::Object value) → self::JSAny
+static method JSAny|_#new#tearOff(core::Object value) → self::JSAny
   return self::JSAny|(value);
 static method JSObject|(core::Object value) → self::JSObject {
   final self::JSObject #this = value;
   return #this;
 }
-static method JSObject|get#(core::Object value) → self::JSObject
+static method JSObject|_#new#tearOff(core::Object value) → self::JSObject
   return self::JSObject|(value);
 static method JSArray|(core::List<self::JSAny?> value) → self::JSArray {
   final self::JSArray #this = value;
   return #this;
 }
-static method JSArray|get#(core::List<self::JSAny?> value) → self::JSArray
+static method JSArray|_#new#tearOff(core::List<self::JSAny?> value) → self::JSArray
   return self::JSArray|(value);
 static method JSExportedDartObject|(core::Object value) → self::JSExportedDartObject {
   final self::JSExportedDartObject #this = value;
   return #this;
 }
-static method JSExportedDartObject|get#(core::Object value) → self::JSExportedDartObject
+static method JSExportedDartObject|_#new#tearOff(core::Object value) → self::JSExportedDartObject
   return self::JSExportedDartObject|(value);
 static method JSNumber|(core::double value) → self::JSNumber {
   final self::JSNumber #this = value;
   return #this;
 }
-static method JSNumber|get#(core::double value) → self::JSNumber
+static method JSNumber|_#new#tearOff(core::double value) → self::JSNumber
   return self::JSNumber|(value);
 static method ObjectToJSExportedDartObject|get#toJS(lowered final core::Object #this) → self::JSExportedDartObject
   return self::JSExportedDartObject|(#this);

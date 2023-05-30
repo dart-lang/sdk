@@ -8,10 +8,12 @@ library;
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -126,6 +128,13 @@ class BoolState extends InstanceState {
       value ? BoolState.TRUE_STATE : BoolState.FALSE_STATE;
 }
 
+/// A valid or invalid constant used by constant evaluator.
+///
+/// [DartObjectImpl] represents a valid result. Note that the [DartObjectImpl]
+/// could have an unknown state and still be a valid constant.
+/// [InvalidConstant] represents an invalid result with error information.
+abstract class Constant {}
+
 /// Information about a const constructor invocation.
 class ConstructorInvocation {
   /// The constructor that was called.
@@ -156,7 +165,7 @@ class ConstructorInvocation {
 }
 
 /// A representation of an instance of a Dart class.
-class DartObjectImpl implements DartObject {
+class DartObjectImpl implements DartObject, Constant {
   final TypeSystemImpl _typeSystem;
 
   @override
@@ -2333,6 +2342,22 @@ class IntState extends NumState {
 
   @override
   String toString() => value == null ? "-unknown-" : value.toString();
+}
+
+/// An invalid constant that contains diagnostic information.
+class InvalidConstant implements Constant {
+  /// The node where we could not compute a valid constant.
+  final AstNode node;
+
+  /// The error code that is reported at the location of the [node].
+  final ErrorCode errorCode;
+
+  /// Additional context messages for the error, including stack trace
+  /// information if the error occurs within a constructor.
+  final List<DiagnosticMessage> contextMessages;
+
+  InvalidConstant.withContextMessages(
+      this.node, this.errorCode, this.contextMessages);
 }
 
 /// The state of an object representing a list.

@@ -1770,7 +1770,7 @@ SuperFormalParameter
 
   void test_switchStatement_withPatternCase_whenDisabled() {
     var parseResult = parseStringWithErrors(r'''
-// @dart = 2.18
+// @dart = 2.19
 void f(Object value) {
   switch (value) {
     case (int a,) when a == 0:

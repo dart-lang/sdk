@@ -19,6 +19,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/constants.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/instructions.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/tags.h"
@@ -210,131 +211,108 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ jmp(EBX);
 }
 
-void StubCodeCompiler::GenerateJITCallbackTrampolines(
-    intptr_t next_callback_id) {
-  Label done, ret_4;
+void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
+  Label ret_4;
 
   // EAX is volatile and doesn't hold any arguments.
   COMPILE_ASSERT(!IsArgumentRegister(EAX) && !IsCalleeSavedRegister(EAX));
 
-  for (intptr_t i = 0;
-       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
-    __ movl(EAX, compiler::Immediate(next_callback_id + i));
-    __ jmp(&done);
+  Label body, load_tramp_addr;
+  const intptr_t kCallLength = 5;
+  for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
+       ++i) {
+    // The FfiCallbackMetadata table is keyed by the trampoline entry point. So
+    // look up the current PC, then jump to the shared section. There's no easy
+    // way to get the PC in ia32 so we have to do a call, grab the return adress
+    // from the stack, then return here (mismatched call/ret causes problems),
+    // then jump to the shared section.
+    const intptr_t size_before = __ CodeSize();
+    __ call(&load_tramp_addr);
+    const intptr_t size_after = __ CodeSize();
+    ASSERT_EQUAL(size_after - size_before, kCallLength);
+    __ jmp(&body);
   }
 
-  ASSERT(__ CodeSize() ==
-         kNativeCallbackTrampolineSize *
-             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
-
-  __ Bind(&done);
+  ASSERT_EQUAL(__ CodeSize(),
+               FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+                   FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
   const intptr_t shared_stub_start = __ CodeSize();
+
+  __ Bind(&load_tramp_addr);
+  // Load the return adress into EAX, and subtract the size of the call
+  // instruction. This is our original trampoline address.
+  __ movl(EAX, Address(SPREG, 0));
+  __ subl(EAX, Immediate(kCallLength));
+  __ ret();
+
+  __ Bind(&body);
 
   // Save THR and EBX which are callee-saved.
   __ pushl(THR);
   __ pushl(EBX);
 
-  // We need the callback ID after the call for return stack.
-  __ pushl(EAX);
-
   // THR & return address
-  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 4);
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
-  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
-  // in order to save code size on this shared stub.
+  // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to safe
+  // code size on this shared stub.
   {
     __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(compiler::target::kWordSize);
+    // entry_point, trampoline_type, &trampoline_type, &entry_point, trampoline
+    //                              ^------ GetFfiCallbackMetadata args ------^
+    __ ReserveAlignedFrameSpace(5 * target::kWordSize);
 
-    __ movl(compiler::Address(SPREG, 0), EAX);
-    __ movl(EAX, compiler::Immediate(reinterpret_cast<int64_t>(
-                     DLRT_GetThreadForNativeCallbackTrampoline)));
+    // Trampoline arg.
+    __ movl(Address(SPREG, 0 * target::kWordSize), EAX);
+
+    // Pointer to trampoline type stack slot.
+    __ movl(EAX, SPREG);
+    __ addl(EAX, Immediate(3 * target::kWordSize));
+    __ movl(Address(SPREG, 2 * target::kWordSize), EAX);
+
+    // Pointer to entry point stack slot.
+    __ addl(EAX, Immediate(target::kWordSize));
+    __ movl(Address(SPREG, 1 * target::kWordSize), EAX);
+
+    __ movl(EAX,
+            Immediate(reinterpret_cast<int64_t>(DLRT_GetFfiCallbackMetadata)));
     __ call(EAX);
     __ movl(THR, EAX);
-    __ movl(EAX, compiler::Address(SPREG, 0));
+
+    // Save the trampoline type in EBX, and the entry point in ECX.
+    __ movl(EBX, Address(SPREG, 3 * target::kWordSize));
+    __ movl(ECX, Address(SPREG, 4 * target::kWordSize));
 
     __ LeaveFrame();
+
+    // Save the trampoline type to the stack, because we'll need it after the
+    // call to decide whether to ret() or ret(4).
+    __ pushl(EBX);
   }
 
   COMPILE_ASSERT(!IsCalleeSavedRegister(ECX) && !IsArgumentRegister(ECX));
   COMPILE_ASSERT(ECX != THR);
 
-  // Load the target from the thread.
-  __ movl(ECX, compiler::Address(
-                   THR, compiler::target::Thread::isolate_group_offset()));
-  __ movl(ECX, compiler::Address(
-                   ECX, compiler::target::IsolateGroup::object_store_offset()));
-  __ movl(ECX,
-          compiler::Address(
-              ECX, compiler::target::ObjectStore::ffi_callback_code_offset()));
-  __ movl(ECX, compiler::FieldAddress(
-                   ECX, compiler::target::GrowableObjectArray::data_offset()));
-  __ movl(ECX, __ ElementAddressForRegIndex(
-                   /*external=*/false,
-                   /*array_cid=*/kArrayCid,
-                   /*index, smi-tagged=*/compiler::target::kWordSize * 2,
-                   /*index_unboxed=*/false,
-                   /*array=*/ECX,
-                   /*index=*/EAX));
-  __ movl(ECX, compiler::FieldAddress(
-                   ECX, compiler::target::Code::entry_point_offset()));
-
   // On entry to the function, there will be two extra slots on the stack:
   // the saved THR and the return address. The target will know to skip them.
   __ call(ECX);
 
-  // Register state:
-  // - callee saved registers (should be restored)
-  //   - EBX available as scratch because we restore it later.
-  //   - ESI(THR) contains thread
-  //   - EDI
-  // - return registers (should not be touched)
-  //   - EAX
-  //   - EDX
-  // - available scratch registers
-  //   - ECX free
-
-  // Load the return stack delta from the thread.
-  __ movl(ECX, compiler::Address(
-                   THR, compiler::target::Thread::isolate_group_offset()));
-  __ movl(ECX, compiler::Address(
-                   ECX, compiler::target::IsolateGroup::object_store_offset()));
-  __ movl(
-      ECX,
-      compiler::Address(
-          ECX,
-          compiler::target::ObjectStore::ffi_callback_stack_return_offset()));
-  __ popl(EBX);  // Compiler callback id.
-  __ movzxb(EBX, __ ElementAddressForRegIndex(
-                     /*external=*/false,
-                     /*array_cid=*/kTypedDataUint8ArrayCid,
-                     /*index=*/1,
-                     /*index_unboxed=*/false,
-                     /*array=*/ECX,
-                     /*index=*/EBX));
-#if defined(DEBUG)
-  // Stack delta should be either 0 or 4.
-  Label check_done;
-  __ BranchIfZero(EBX, &check_done);
-  __ CompareImmediate(EBX, compiler::target::kWordSize);
-  __ BranchIf(EQUAL, &check_done);
-  __ Breakpoint();
-  __ Bind(&check_done);
-#endif
-
   // Takes care to not clobber *any* registers (besides scratch).
   __ EnterFullSafepoint(/*scratch=*/ECX);
 
+  // Pop the trampoline type into ECX.
+  __ popl(ECX);
+
   // Restore callee-saved registers.
-  __ movl(ECX, EBX);
   __ popl(EBX);
   __ popl(THR);
 
-  __ cmpl(ECX, compiler::Immediate(Smi::RawValue(0)));
-  __ j(NOT_EQUAL, &ret_4, compiler::Assembler::kNearJump);
+  __ cmpl(ECX, Immediate(static_cast<uword>(
+                   FfiCallbackMetadata::TrampolineType::kSync)));
+  __ j(NOT_EQUAL, &ret_4, Assembler::kNearJump);
   __ ret();
 
   __ Bind(&ret_4);
@@ -342,11 +320,12 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
   // instruction size can vary slightly based on OS calling conventions.
-  ASSERT((__ CodeSize() - shared_stub_start) <= kNativeCallbackSharedStubSize);
-  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
+  ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
+                       FfiCallbackMetadata::kNativeCallbackSharedStubSize);
+  ASSERT_LESS_OR_EQUAL(__ CodeSize(), FfiCallbackMetadata::kPageSize);
 
 #if defined(DEBUG)
-  while (__ CodeSize() < VirtualMemory::PageSize()) {
+  while (__ CodeSize() < FfiCallbackMetadata::kPageSize) {
     __ Breakpoint();
   }
 #endif

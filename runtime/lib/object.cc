@@ -257,14 +257,6 @@ DEFINE_NATIVE_ENTRY(AbstractType_equality, 0, 2) {
   return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).ptr();
 }
 
-DEFINE_NATIVE_ENTRY(Type_getHashCode, 0, 1) {
-  const Type& type = Type::CheckedHandle(zone, arguments->NativeArgAt(0));
-  intptr_t hash_val = type.Hash();
-  ASSERT(hash_val > 0);
-  ASSERT(Smi::IsValid(hash_val));
-  return Smi::New(hash_val);
-}
-
 DEFINE_NATIVE_ENTRY(Type_equality, 0, 2) {
   const Type& type = Type::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Instance& other =

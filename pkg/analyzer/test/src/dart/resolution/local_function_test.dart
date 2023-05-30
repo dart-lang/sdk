@@ -63,9 +63,9 @@ f(int a) {
     assertElement(findNode.methodInvocation('g();'), element);
   }
 
-  test_element_switchCase_language218() async {
+  test_element_switchCase_language219() async {
     await assertNoErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 f(int a) {
   switch (a) {
     case 1:

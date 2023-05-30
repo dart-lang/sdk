@@ -56,6 +56,7 @@ class WorkspaceSymbolHandler
           query,
           remainingResults,
           onlyAnalyzed: searchOnlyAnalyzed,
+          ownedFiles: server.ownedFiles,
           performance: performance,
         ).compute(token);
       },

@@ -58,6 +58,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_map_from_it
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_boolean_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_constant_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_function_declaration.dart';
@@ -206,6 +207,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_is_emp
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_part_of_uri.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
@@ -214,6 +216,7 @@ import 'package:analysis_server/src/services/correction/dart/sort_child_property
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
+import 'package:analysis_server/src/services/correction/dart/split_multiple_declarations.dart';
 import 'package:analysis_server/src/services/correction/dart/surround_with_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
@@ -311,6 +314,7 @@ class FixInFileProcessor {
           var sourceChange = fixState.builder.sourceChange;
           if (sourceChange.edits.isNotEmpty && fixState.fixCount > 1) {
             var fixKind = fixState.fixKind;
+            sourceChange.id = fixKind.id;
             sourceChange.message = fixKind.message;
             fixes.add(Fix(fixKind, sourceChange));
           }
@@ -428,6 +432,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_init_to_null: [
       RemoveInitializer.bulkFixable,
+    ],
+    LintNames.avoid_multiple_declarations_per_line: [
+      SplitMultipleDeclarations.new,
     ],
     LintNames.avoid_null_checks_in_equality_operators: [
       RemoveComparison.new,
@@ -696,6 +703,7 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.other,
     ],
     LintNames.type_literal_in_constant_pattern: [
+      ConvertToConstantPattern.new,
       ConvertToWildcardPattern.new,
     ],
     LintNames.unawaited_futures: [
@@ -785,6 +793,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.use_rethrow_when_possible: [
       UseRethrow.new,
+    ],
+    LintNames.use_string_in_part_of_directives: [
+      ReplaceWithPartOrUriEmpty.new,
     ],
     LintNames.use_super_parameters: [
       ConvertToSuperParameters.new,
@@ -1018,6 +1029,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
+      CreateClass.new,
     ],
     CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION: [
       AddConst.new,
@@ -1155,6 +1167,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
+      CreateClass.new,
     ],
     CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR: [
       CreateConstructor.new,

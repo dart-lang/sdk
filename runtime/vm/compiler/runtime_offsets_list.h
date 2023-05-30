@@ -103,6 +103,7 @@
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
   CONSTANT(TypeArguments, kMaxElements)                                        \
   FIELD(AbstractType, flags_offset)                                            \
+  FIELD(AbstractType, hash_offset)                                             \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \
   FIELD(ArgumentsDescriptor, count_offset)                                     \
   FIELD(ArgumentsDescriptor, size_offset)                                      \
@@ -196,7 +197,6 @@
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(ObjectStore, type_type_offset)                                         \
   FIELD(ObjectStore, ffi_callback_code_offset)                                 \
-  FIELD(ObjectStore, ffi_callback_stack_return_offset)                         \
   FIELD(ObjectStore, suspend_state_await_offset)                               \
   FIELD(ObjectStore, suspend_state_await_with_type_check_offset)               \
   FIELD(ObjectStore, suspend_state_handle_exception_offset)                    \
@@ -354,7 +354,6 @@
   FIELD(TimelineStream, enabled_offset)                                        \
   FIELD(TwoByteString, data_offset)                                            \
   FIELD(Type, arguments_offset)                                                \
-  FIELD(Type, hash_offset)                                                     \
   FIELD(Finalizer, type_arguments_offset)                                      \
   FIELD(Finalizer, callback_offset)                                            \
   FIELD(FinalizerBase, all_entries_offset)                                     \
@@ -368,7 +367,6 @@
   FIELD(FinalizerEntry, token_offset)                                          \
   FIELD(FinalizerEntry, value_offset)                                          \
   FIELD(NativeFinalizer, callback_offset)                                      \
-  FIELD(FunctionType, hash_offset)                                             \
   FIELD(FunctionType, named_parameter_names_offset)                            \
   FIELD(FunctionType, packed_parameter_counts_offset)                          \
   FIELD(FunctionType, packed_type_parameter_counts_offset)                     \

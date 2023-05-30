@@ -147,6 +147,10 @@ abstract class ContextResolutionTest
 
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
+  AnalysisContextCollectionImpl get analysisContextCollection {
+    return _analysisContextCollection!;
+  }
+
   List<String> get collectionIncludedPaths;
 
   set declaredVariables(Map<String, String> map) {
@@ -536,9 +540,9 @@ class PubspecYamlFileDependency {
   });
 }
 
-mixin WithLanguage218Mixin on PubPackageResolutionTest {
+mixin WithLanguage219Mixin on PubPackageResolutionTest {
   @override
-  String? get testPackageLanguageVersion => '2.18';
+  String? get testPackageLanguageVersion => '2.19';
 }
 
 mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {

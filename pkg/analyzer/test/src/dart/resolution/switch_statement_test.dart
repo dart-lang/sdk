@@ -10,7 +10,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SwitchStatementResolutionTest);
-    defineReflectiveTests(SwitchStatementResolutionTest_Language218);
+    defineReflectiveTests(SwitchStatementResolutionTest_Language219);
   });
 }
 
@@ -1604,8 +1604,8 @@ SwitchStatement
 }
 
 @reflectiveTest
-class SwitchStatementResolutionTest_Language218 extends PubPackageResolutionTest
-    with WithLanguage218Mixin {
+class SwitchStatementResolutionTest_Language219 extends PubPackageResolutionTest
+    with WithLanguage219Mixin {
   test_default() async {
     await assertNoErrorsInCode(r'''
 void f(Object? x) {

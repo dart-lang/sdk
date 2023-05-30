@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -894,12 +895,12 @@ class MethodInvocationResolver with ScopeHelpers {
     var target = node.target;
     if (target == null) {
       functionExpression = node.methodName;
-      targetType = _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(
+      targetType = _resolver.flowAnalysis.flow?.propertyGet(
               functionExpression,
+              ThisPropertyTarget.singleton,
               node.methodName.name,
               node.methodName.staticElement,
-              getterReturnType,
-              isSuperAccess: false) ??
+              getterReturnType) ??
           targetType;
     } else {
       if (target is SimpleIdentifierImpl &&
@@ -917,17 +918,17 @@ class MethodInvocationResolver with ScopeHelpers {
         );
       }
       if (target is SuperExpressionImpl) {
-        targetType = _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(
+        targetType = _resolver.flowAnalysis.flow?.propertyGet(
                 functionExpression,
+                SuperPropertyTarget.singleton,
                 node.methodName.name,
                 node.methodName.staticElement,
-                getterReturnType,
-                isSuperAccess: true) ??
+                getterReturnType) ??
             targetType;
       } else {
         targetType = _resolver.flowAnalysis.flow?.propertyGet(
                 functionExpression,
-                target,
+                ExpressionPropertyTarget(target),
                 node.methodName.name,
                 node.methodName.staticElement,
                 getterReturnType) ??

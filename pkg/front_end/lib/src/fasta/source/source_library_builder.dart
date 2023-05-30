@@ -210,6 +210,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // This allows code generated in one library to use the private namespace of
   // another, for example during expression compilation (debugging).
   Library get nameOrigin => _nameOrigin?.library ?? library;
+
   @override
   LibraryBuilder get nameOriginBuilder => _nameOrigin ?? this;
   final LibraryBuilder? _nameOrigin;
@@ -333,7 +334,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             fileUri,
             _libraryTypeParameterScopeBuilder.toScope(importScope,
                 omittedTypeDeclarationBuilders: omittedTypes),
-            new Scope.top(kind: ScopeKind.library)) {
+            origin?.exportScope ?? new Scope.top(kind: ScopeKind.library)) {
     assert(
         _packageUri == null ||
             !importUri.isScheme('package') ||
@@ -1382,14 +1383,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildInitialScopes() {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.buildInitialScopes();
-      }
-    }
-
-    NameIterator iterator = localMembersNameIterator;
+    NameIterator iterator = scope.filteredNameIterator(
+        includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {
       addToExportScope(iterator.name, iterator.current);
     }
@@ -1436,54 +1431,47 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {
       String name = iterator.name;
-      Builder member = iterator.current;
-      if (member.parent != this) {
-        if (member is DynamicTypeDeclarationBuilder) {
+      Builder builder = iterator.current;
+      if (builder.parent?.origin != origin) {
+        if (builder is DynamicTypeDeclarationBuilder) {
           assert(name == 'dynamic',
               "Unexpected export name for 'dynamic': '$name'");
           (unserializableExports ??= {})[name] = exportDynamicSentinel;
-        } else if (member is NeverTypeDeclarationBuilder) {
+        } else if (builder is NeverTypeDeclarationBuilder) {
           assert(
               name == 'Never', "Unexpected export name for 'Never': '$name'");
           (unserializableExports ??= {})[name] = exportNeverSentinel;
         } else {
-          if (member is InvalidTypeDeclarationBuilder) {
+          if (builder is InvalidTypeDeclarationBuilder) {
             (unserializableExports ??= {})[name] =
-                member.message.problemMessage;
+                builder.message.problemMessage;
           } else {
-            // Eventually (in #buildBuilder) members aren't added to the
-            // library if the have 'next' pointers, so don't add them as
-            // additionalExports either. Add the last one only (the one that
-            // will eventually be added to the library).
-            Builder memberLast = member;
-            while (memberLast.next != null) {
-              memberLast = memberLast.next!;
-            }
-            if (memberLast is ClassBuilder) {
-              library.additionalExports.add(memberLast.cls.reference);
-            } else if (memberLast is InlineClassBuilder) {
-              library.additionalExports.add(memberLast.inlineClass.reference);
-            } else if (memberLast is TypeAliasBuilder) {
-              library.additionalExports.add(memberLast.typedef.reference);
-            } else if (memberLast is ExtensionBuilder) {
-              library.additionalExports.add(memberLast.extension.reference);
-            } else if (memberLast is MemberBuilder) {
-              for (Member member in memberLast.exportedMembers) {
-                if (member is Field) {
+            if (builder is ClassBuilder) {
+              library.additionalExports.add(builder.cls.reference);
+            } else if (builder is InlineClassBuilder) {
+              library.additionalExports.add(builder.inlineClass.reference);
+            } else if (builder is TypeAliasBuilder) {
+              library.additionalExports.add(builder.typedef.reference);
+            } else if (builder is ExtensionBuilder) {
+              library.additionalExports.add(builder.extension.reference);
+            } else if (builder is MemberBuilder) {
+              for (Member exportedMember in builder.exportedMembers) {
+                if (exportedMember is Field) {
                   // For fields add both getter and setter references
                   // so replacing a field with a getter/setter pair still
                   // exports correctly.
-                  library.additionalExports.add(member.getterReference);
-                  if (member.hasSetter) {
-                    library.additionalExports.add(member.setterReference!);
+                  library.additionalExports.add(exportedMember.getterReference);
+                  if (exportedMember.hasSetter) {
+                    library.additionalExports
+                        .add(exportedMember.setterReference!);
                   }
                 } else {
-                  library.additionalExports.add(member.reference);
+                  library.additionalExports.add(exportedMember.reference);
                 }
               }
             } else {
-              unhandled('member', 'exportScope', memberLast.charOffset,
-                  memberLast.fileUri);
+              unhandled(
+                  'member', 'exportScope', builder.charOffset, builder.fileUri);
             }
           }
         }
@@ -2576,7 +2564,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 : isMixinDeclaration
                     ? [supertype!, mixin]
                     : null,
-            null, // No `on` clause types.
+            null,
+            // No `on` clause types.
             new Scope(
                 kind: ScopeKind.declaration,
                 local: <String, MemberBuilder>{},
@@ -3043,9 +3032,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     ContainerType containerType =
-        currentTypeParameterScopeBuilder.parent!.containerType;
+        currentTypeParameterScopeBuilder.containerType;
     ContainerName? containerName =
-        currentTypeParameterScopeBuilder.parent!.containerName;
+        currentTypeParameterScopeBuilder.containerName;
 
     NameScheme procedureNameScheme = new NameScheme(
         containerName: containerName,
@@ -3176,7 +3165,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             charOffset,
             charEndOffset,
             name,
-            /* isMixinDeclaration = */ false,
+            /* isMixinDeclaration = */
+            false,
             typeVariables: typeVariables,
             isMacro: false,
             isSealed: false,
@@ -5296,7 +5286,8 @@ class TypeParameterScopeBuilder {
             TypeParameterScopeKind.library,
             <String, Builder>{},
             <String, MemberBuilder>{},
-            null, // No support for constructors in library scopes.
+            null,
+            // No support for constructors in library scopes.
             <ExtensionBuilder>{},
             "<library>",
             -1,
@@ -5309,7 +5300,8 @@ class TypeParameterScopeBuilder {
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
-        null, // No support for extensions in nested scopes.
+        null,
+        // No support for extensions in nested scopes.
         name,
         -1,
         this);

@@ -522,7 +522,7 @@ class _WasmTransformer extends Transformer {
             ]),
             null),
         IfStatement(
-            IsExpression(VariableGet(completerPrePassArg), completerBoolType),
+            Not(VariableGet(isEven)),
             ExpressionStatement(InstanceInvocation(
                 InstanceAccessKind.Instance,
                 VariableGet(completerPrePassArg),

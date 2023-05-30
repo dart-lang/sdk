@@ -878,10 +878,11 @@ class JsInteropChecks extends RecursiveVisitor {
     // said, for completeness, we may restrict these two types someday, and
     // provide JS types equivalents, but likely only if we have implicit
     // conversions between Dart types and JS types.
-    if (!_nonStrictModeIsAllowed &&
-        type is! VoidType &&
-        type is! NullType &&
-        (type is! InterfaceType || !hasJSInteropAnnotation(type.classNode))) {
+    if (!(_nonStrictModeIsAllowed ||
+        type is VoidType ||
+        type is NullType ||
+        (type is InterfaceType && hasStaticInteropAnnotation(type.classNode)) ||
+        (type is InlineType && hasDartJSInteropAnnotation(type.inlineClass)))) {
       _reporter.report(
           templateJsInteropStrictModeViolation.withArguments(type, true),
           node.fileOffset,

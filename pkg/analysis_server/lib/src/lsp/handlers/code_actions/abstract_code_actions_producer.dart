@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
@@ -69,6 +70,7 @@ abstract class AbstractCodeActionsProducer
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.Refactor),
       diagnostics: const [],
+      command: createLogActionCommand(change.id),
       edit: createWorkspaceEdit(server, change,
           allowSnippets: true, filePath: path, lineInfo: lineInfo),
     );
@@ -97,8 +99,28 @@ abstract class AbstractCodeActionsProducer
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.QuickFix),
       diagnostics: [diagnostic],
+      command: createLogActionCommand(change.id),
       edit: createWorkspaceEdit(server, change,
           allowSnippets: true, filePath: path, lineInfo: lineInfo),
+    );
+  }
+
+  /// Creates a command to log that a CodeAction was selected.
+  ///
+  /// Code Actions that provide their edits inline (and not via a command) do
+  /// not normally call back to the server when an action is selected so this
+  /// provides some visibility of them being chosen.
+  Command? createLogActionCommand(String? action) {
+    if (action == null) {
+      return null;
+    }
+
+    return Command(
+      command: Commands.logAction,
+      title: 'Log Action',
+      arguments: [
+        {'action': action}
+      ],
     );
   }
 

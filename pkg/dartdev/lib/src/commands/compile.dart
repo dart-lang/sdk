@@ -14,6 +14,7 @@ import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import '../core.dart';
 import '../experiments.dart';
+import '../native_assets.dart';
 import '../sdk.dart';
 import '../utils.dart';
 import '../vm_interop_handler.dart';
@@ -236,12 +237,14 @@ class CompileNativeCommand extends CompileSubcommandCommand {
   final String commandName;
   final String format;
   final String help;
+  final bool nativeAssetsExperimentEnabled;
 
   CompileNativeCommand({
     required this.commandName,
     required this.format,
     required this.help,
     bool verbose = false,
+    this.nativeAssetsExperimentEnabled = false,
   }) : super(commandName, 'Compile Dart $help', verbose) {
     argParser
       ..addOption(
@@ -324,6 +327,15 @@ Remove debugging information from the output and save it separately to the speci
 
     if (!args['sound-null-safety'] && !shouldAllowNoSoundNullSafety()) {
       return compileErrorExitCode;
+    }
+
+    if (nativeAssetsExperimentEnabled) {
+      final assets = await compileNativeAssetsJit();
+      if (assets?.isNotEmpty ?? false) {
+        stderr.writeln(
+            "'dart compile' does currently not support native assets.");
+        return 255;
+      }
     }
 
     try {
@@ -422,8 +434,10 @@ For example: dart compile $name --packages=/tmp/pkgs.json main.dart'''),
 
 class CompileCommand extends DartdevCommand {
   static const String cmdName = 'compile';
-  CompileCommand({bool verbose = false})
-      : super(cmdName, 'Compile Dart to various formats.', verbose) {
+  CompileCommand({
+    bool verbose = false,
+    bool nativeAssetsExperimentEnabled = false,
+  }) : super(cmdName, 'Compile Dart to various formats.', verbose) {
     addSubcommand(CompileJSCommand(verbose: verbose));
     addSubcommand(CompileSnapshotCommand(
       commandName: CompileSnapshotCommand.jitSnapshotCmdName,
@@ -446,6 +460,7 @@ class CompileCommand extends DartdevCommand {
       help: 'to a self-contained executable.',
       format: 'exe',
       verbose: verbose,
+      nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
     ));
     addSubcommand(CompileNativeCommand(
       commandName: CompileNativeCommand.aotSnapshotCmdName,
@@ -453,6 +468,7 @@ class CompileCommand extends DartdevCommand {
           'To run the snapshot use: dartaotruntime <AOT snapshot file>',
       format: 'aot',
       verbose: verbose,
+      nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
     ));
   }
 }

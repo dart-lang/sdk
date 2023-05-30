@@ -1,0 +1,4 @@
+import 'dart:test';
+
+main() {}
+test() {}

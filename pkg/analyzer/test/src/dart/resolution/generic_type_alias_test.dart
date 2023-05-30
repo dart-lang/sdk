@@ -214,7 +214,6 @@ void f() {
 }
 ''', [
       error(ParserErrorCode.EXPECTED_TYPE_NAME, 15, 1),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 15, 0),
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 1),
     ]);
   }

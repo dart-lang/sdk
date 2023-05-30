@@ -1439,15 +1439,23 @@ abstract class MergedScope<T extends Builder> {
         originLibrary.addProblem(
             message, newBuilder.charOffset, name.length, newBuilder.fileUri);
       } else {
-        if (!parentBuilder.isAugmentation && !name.startsWith('_')) {
-          // We special-case public members injected in patch libraries.
-          _addInjectedPatchMember(name, newBuilder);
-        } else {
-          _originScope.addLocalMember(name, newBuilder, setter: setter);
-          for (Scope augmentationScope in _augmentationScopes.values) {
-            _addBuilderToAugmentationScope(augmentationScope, name, newBuilder,
-                setter: setter);
-          }
+        if (!parentBuilder.isAugmentation &&
+            !name.startsWith('_') &&
+            !_allowInjectedPublicMember(newBuilder)) {
+          originLibrary.addProblem(
+              templatePatchInjectionFailed.withArguments(
+                  name, originLibrary.importUri),
+              newBuilder.charOffset,
+              noLength,
+              newBuilder.fileUri);
+        }
+        _originScope.addLocalMember(name, newBuilder, setter: setter);
+        if (newBuilder is ExtensionBuilder) {
+          _originScope.addExtension(newBuilder);
+        }
+        for (Scope augmentationScope in _augmentationScopes.values) {
+          _addBuilderToAugmentationScope(augmentationScope, name, newBuilder,
+              setter: setter);
         }
       }
     }
@@ -1460,6 +1468,9 @@ abstract class MergedScope<T extends Builder> {
         augmentationScope.lookupLocalMember(name, setter: setter);
     if (augmentationMember == null) {
       augmentationScope.addLocalMember(name, member, setter: setter);
+      if (member is ExtensionBuilder) {
+        augmentationScope.addExtension(member);
+      }
     }
   }
 
@@ -1486,6 +1497,15 @@ abstract class MergedScope<T extends Builder> {
           _originScope.lookupLocalMember(name, setter: true),
           setter: true);
     });
+    scope.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
+      if (extensionBuilder is SourceExtensionBuilder &&
+          extensionBuilder.isUnnamedExtension) {
+        _originScope.addExtension(extensionBuilder);
+        for (Scope augmentationScope in _augmentationScopes.values) {
+          augmentationScope.addExtension(extensionBuilder);
+        }
+      }
+    });
 
     // Include all origin scope members in the augmentation scope.
     _originScope.forEachLocalMember((String name, Builder originMember) {
@@ -1494,11 +1514,17 @@ abstract class MergedScope<T extends Builder> {
     _originScope.forEachLocalSetter((String name, Builder originMember) {
       _addBuilderToAugmentationScope(scope, name, originMember, setter: true);
     });
+    _originScope.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
+      if (extensionBuilder is SourceExtensionBuilder &&
+          extensionBuilder.isUnnamedExtension) {
+        scope.addExtension(extensionBuilder);
+      }
+    });
 
     _augmentationScopes[parentBuilder] = scope;
   }
 
-  void _addInjectedPatchMember(String name, Builder newBuilder);
+  bool _allowInjectedPublicMember(Builder newBuilder);
 }
 
 class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
@@ -1512,32 +1538,9 @@ class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
   }
 
   @override
-  void _addInjectedPatchMember(String name, Builder newBuilder) {
-    assert(!name.startsWith('_'), "Unexpected private member $newBuilder");
-    _exportMemberFromPatch(name, newBuilder);
-  }
-
-  void _exportMemberFromPatch(String name, Builder member) {
-    if (!originLibrary.importUri.isScheme("dart") ||
-        !originLibrary.importUri.path.startsWith("_")) {
-      originLibrary.addProblem(
-          templatePatchInjectionFailed.withArguments(
-              name, originLibrary.importUri),
-          member.charOffset,
-          noLength,
-          member.fileUri);
-    }
-    // Platform-private libraries, such as "dart:_internal" have special
-    // semantics: public members are injected into the origin library.
-    // TODO(ahe): See if we can remove this special case.
-
-    // If this member already exist in the origin library scope, it should
-    // have been marked as patch.
-    assert((member.isSetter &&
-            _originScope.lookupLocalMember(name, setter: true) == null) ||
-        (!member.isSetter &&
-            _originScope.lookupLocalMember(name, setter: false) == null));
-    originLibrary.addToExportScope(name, member);
+  bool _allowInjectedPublicMember(Builder newBuilder) {
+    return originLibrary.importUri.isScheme("dart") &&
+        originLibrary.importUri.path.startsWith("_");
   }
 }
 
@@ -1636,8 +1639,9 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
   }
 
   @override
-  void _addInjectedPatchMember(String name, Builder newBuilder) {
-    // Members injected into patch are not part of the origin scope.
+  bool _allowInjectedPublicMember(Builder newBuilder) {
+    // TODO(johnniwinther): Restrict the use of injected public class members.
+    return true;
   }
 }
 

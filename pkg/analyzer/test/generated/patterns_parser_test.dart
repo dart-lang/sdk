@@ -8509,6 +8509,1418 @@ NullCheckPattern
 ''');
   }
 
+  test_recordPattern_nonNullable_beforeAs() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (_,) as (Object,):
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: CastPattern
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        PatternField
+          pattern: WildcardPattern
+            name: _
+      rightParenthesis: )
+    asToken: as
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: Object
+      rightParenthesis: )
+''');
+  }
+
+  test_recordPattern_nonNullable_beforeWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (_,) when true:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: RecordPattern
+    leftParenthesis: (
+    fields
+      PatternField
+        pattern: WildcardPattern
+          name: _
+    rightParenthesis: )
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+''');
+  }
+
+  test_recordPattern_nullable_beforeAs() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (_,)? as (Object,):
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 36, 5),
+    ]);
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: CastPattern
+    pattern: NullCheckPattern
+      pattern: RecordPattern
+        leftParenthesis: (
+        fields
+          PatternField
+            pattern: WildcardPattern
+              name: _
+        rightParenthesis: )
+      operator: ?
+    asToken: as
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: Object
+      rightParenthesis: )
+''');
+  }
+
+  test_recordPattern_nullable_beforeWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (_,)? when true:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullCheckPattern
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        PatternField
+          pattern: WildcardPattern
+            name: _
+      rightParenthesis: )
+    operator: ?
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeAnd() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) y && _:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: LogicalAndPattern
+    leftOperand: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: y
+    operator: &&
+    rightOperand: WildcardPattern
+      name: _
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeAs() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) y as (Object,):
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: CastPattern
+    pattern: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: y
+    asToken: as
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: Object
+      rightParenthesis: )
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeColon() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) y:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: DeclaredVariablePattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+    name: y
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeComma() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [(int,) y, _]:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      DeclaredVariablePattern
+        type: RecordTypeAnnotation
+          leftParenthesis: (
+          positionalFields
+            RecordTypeAnnotationPositionalField
+              type: NamedType
+                name: int
+          rightParenthesis: )
+        name: y
+      WildcardPattern
+        name: _
+    rightBracket: ]
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeExclamation() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) y!:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullAssertPattern
+    pattern: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: y
+    operator: !
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeOr() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) y || _:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: LogicalOrPattern
+    leftOperand: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: y
+    operator: ||
+    rightOperand: WildcardPattern
+      name: _
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeQuestion() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) y?:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullCheckPattern
+    pattern: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: y
+    operator: ?
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeRightArrow() {
+    _parse('''
+void f(x) => switch (x) { (int,) y => 0 };
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: DeclaredVariablePattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+    name: y
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeRightBrace() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case {0: (int,) y}:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: MapPattern
+    leftBracket: {
+    elements
+      MapPatternEntry
+        key: IntegerLiteral
+          literal: 0
+        separator: :
+        value: DeclaredVariablePattern
+          type: RecordTypeAnnotation
+            leftParenthesis: (
+            positionalFields
+              RecordTypeAnnotationPositionalField
+                type: NamedType
+                  name: int
+            rightParenthesis: )
+          name: y
+    rightBracket: }
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeRightBracket() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [(int,) y]:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      DeclaredVariablePattern
+        type: RecordTypeAnnotation
+          leftParenthesis: (
+          positionalFields
+            RecordTypeAnnotationPositionalField
+              type: NamedType
+                name: int
+          rightParenthesis: )
+        name: y
+    rightBracket: ]
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeRightParen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case ((int,) y):
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: y
+    rightParenthesis: )
+''');
+  }
+
+  test_recordTypedVariablePattern_nonNullable_beforeWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) y when true:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: DeclaredVariablePattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+    name: y
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeAnd() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? y && _:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: LogicalAndPattern
+    leftOperand: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: y
+    operator: &&
+    rightOperand: WildcardPattern
+      name: _
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeAs() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? y as (Object,):
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: CastPattern
+    pattern: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: y
+    asToken: as
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: Object
+      rightParenthesis: )
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeColon() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? y:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: DeclaredVariablePattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+      question: ?
+    name: y
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeComma() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [(int,)? y, _]:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      DeclaredVariablePattern
+        type: RecordTypeAnnotation
+          leftParenthesis: (
+          positionalFields
+            RecordTypeAnnotationPositionalField
+              type: NamedType
+                name: int
+          rightParenthesis: )
+          question: ?
+        name: y
+      WildcardPattern
+        name: _
+    rightBracket: ]
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeExclamation() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? y!:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullAssertPattern
+    pattern: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: y
+    operator: !
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeOr() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? y || _:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: LogicalOrPattern
+    leftOperand: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: y
+    operator: ||
+    rightOperand: WildcardPattern
+      name: _
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeQuestion() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? y?:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullCheckPattern
+    pattern: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: y
+    operator: ?
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeRightArrow() {
+    _parse('''
+void f(x) => switch (x) { (int,)? y => 0 };
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: DeclaredVariablePattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+      question: ?
+    name: y
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeRightBrace() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case {0: (int,)? y}:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: MapPattern
+    leftBracket: {
+    elements
+      MapPatternEntry
+        key: IntegerLiteral
+          literal: 0
+        separator: :
+        value: DeclaredVariablePattern
+          type: RecordTypeAnnotation
+            leftParenthesis: (
+            positionalFields
+              RecordTypeAnnotationPositionalField
+                type: NamedType
+                  name: int
+            rightParenthesis: )
+            question: ?
+          name: y
+    rightBracket: }
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeRightBracket() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [(int,)? y]:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      DeclaredVariablePattern
+        type: RecordTypeAnnotation
+          leftParenthesis: (
+          positionalFields
+            RecordTypeAnnotationPositionalField
+              type: NamedType
+                name: int
+          rightParenthesis: )
+          question: ?
+        name: y
+    rightBracket: ]
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeRightParen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case ((int,)? y):
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: DeclaredVariablePattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: y
+    rightParenthesis: )
+''');
+  }
+
+  test_recordTypedVariablePattern_nullable_beforeWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? y when true:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: DeclaredVariablePattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+      question: ?
+    name: y
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeAnd() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) _ && _:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: LogicalAndPattern
+    leftOperand: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: _
+    operator: &&
+    rightOperand: WildcardPattern
+      name: _
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeAs() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) _ as (Object,):
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: CastPattern
+    pattern: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: _
+    asToken: as
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: Object
+      rightParenthesis: )
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeColon() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) _:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: WildcardPattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+    name: _
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeComma() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [(int,) _, _]:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      WildcardPattern
+        type: RecordTypeAnnotation
+          leftParenthesis: (
+          positionalFields
+            RecordTypeAnnotationPositionalField
+              type: NamedType
+                name: int
+          rightParenthesis: )
+        name: _
+      WildcardPattern
+        name: _
+    rightBracket: ]
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeExclamation() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) _!:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullAssertPattern
+    pattern: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: _
+    operator: !
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeOr() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) _ || _:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: LogicalOrPattern
+    leftOperand: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: _
+    operator: ||
+    rightOperand: WildcardPattern
+      name: _
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeQuestion() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) _?:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullCheckPattern
+    pattern: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: _
+    operator: ?
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeRightArrow() {
+    _parse('''
+void f(x) => switch (x) { (int,) _ => 0 };
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: WildcardPattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+    name: _
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeRightBrace() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case {0: (int,) _}:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: MapPattern
+    leftBracket: {
+    elements
+      MapPatternEntry
+        key: IntegerLiteral
+          literal: 0
+        separator: :
+        value: WildcardPattern
+          type: RecordTypeAnnotation
+            leftParenthesis: (
+            positionalFields
+              RecordTypeAnnotationPositionalField
+                type: NamedType
+                  name: int
+            rightParenthesis: )
+          name: _
+    rightBracket: }
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeRightBracket() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [(int,) _]:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      WildcardPattern
+        type: RecordTypeAnnotation
+          leftParenthesis: (
+          positionalFields
+            RecordTypeAnnotationPositionalField
+              type: NamedType
+                name: int
+          rightParenthesis: )
+        name: _
+    rightBracket: ]
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeRightParen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case ((int,) _):
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+      name: _
+    rightParenthesis: )
+''');
+  }
+
+  test_recordTypedWildcardPattern_nonNullable_beforeWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,) _ when true:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: WildcardPattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+    name: _
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeAnd() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? _ && _:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: LogicalAndPattern
+    leftOperand: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: _
+    operator: &&
+    rightOperand: WildcardPattern
+      name: _
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeAs() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? _ as (Object,):
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: CastPattern
+    pattern: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: _
+    asToken: as
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: Object
+      rightParenthesis: )
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeColon() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? _:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: WildcardPattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+      question: ?
+    name: _
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeComma() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [(int,)? _, _]:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      WildcardPattern
+        type: RecordTypeAnnotation
+          leftParenthesis: (
+          positionalFields
+            RecordTypeAnnotationPositionalField
+              type: NamedType
+                name: int
+          rightParenthesis: )
+          question: ?
+        name: _
+      WildcardPattern
+        name: _
+    rightBracket: ]
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeExclamation() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? _!:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullAssertPattern
+    pattern: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: _
+    operator: !
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeOr() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? _ || _:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: LogicalOrPattern
+    leftOperand: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: _
+    operator: ||
+    rightOperand: WildcardPattern
+      name: _
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeQuestion() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? _?:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullCheckPattern
+    pattern: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: _
+    operator: ?
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeRightArrow() {
+    _parse('''
+void f(x) => switch (x) { (int,)? _ => 0 };
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: WildcardPattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+      question: ?
+    name: _
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeRightBrace() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case {0: (int,)? _}:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: MapPattern
+    leftBracket: {
+    elements
+      MapPatternEntry
+        key: IntegerLiteral
+          literal: 0
+        separator: :
+        value: WildcardPattern
+          type: RecordTypeAnnotation
+            leftParenthesis: (
+            positionalFields
+              RecordTypeAnnotationPositionalField
+                type: NamedType
+                  name: int
+            rightParenthesis: )
+            question: ?
+          name: _
+    rightBracket: }
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeRightBracket() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [(int,)? _]:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      WildcardPattern
+        type: RecordTypeAnnotation
+          leftParenthesis: (
+          positionalFields
+            RecordTypeAnnotationPositionalField
+              type: NamedType
+                name: int
+          rightParenthesis: )
+          question: ?
+        name: _
+    rightBracket: ]
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeRightParen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case ((int,)? _):
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: WildcardPattern
+      type: RecordTypeAnnotation
+        leftParenthesis: (
+        positionalFields
+          RecordTypeAnnotationPositionalField
+            type: NamedType
+              name: int
+        rightParenthesis: )
+        question: ?
+      name: _
+    rightParenthesis: )
+''');
+  }
+
+  test_recordTypedWildcardPattern_nullable_beforeWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int,)? _ when true:
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: WildcardPattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int
+      rightParenthesis: )
+      question: ?
+    name: _
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+''');
+  }
+
   test_relational_containingBitwiseOrExpression_equality() {
     _parse('''
 void f(x) {

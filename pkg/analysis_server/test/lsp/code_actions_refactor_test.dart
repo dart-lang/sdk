@@ -381,6 +381,27 @@ i^o.File a;
     expect(codeAction, isNull);
   }
 
+  Future<void> test_logsAction() async {
+    const content = '''
+void f() {
+  print('Test!');
+  [[print('Test!');]]
+}
+''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+    final command =
+        codeAction.map((command) => command, (action) => action.command)!;
+
+    await executeCommandForEdits(command, {mainFilePath: content});
+    expectCommandLogged('dart.refactor.extract_method');
+  }
+
   Future<void> test_progress_clientProvided() async {
     const content = '''
 void f() {

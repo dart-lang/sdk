@@ -11,6 +11,7 @@ import 'package:kernel/core_types.dart';
 import 'package:path/path.dart' as p;
 
 import '../compiler/js_names.dart';
+import 'future_or_normalizer.dart';
 import 'kernel_helpers.dart';
 import 'type_environment.dart';
 
@@ -24,11 +25,13 @@ class TypeRecipeGenerator {
   final CoreTypes _coreTypes;
   final ClassHierarchy _hierarchy;
   final _TypeRecipeVisitor _recipeVisitor;
+  final FutureOrNormalizer _futureOrNormalizer;
 
   TypeRecipeGenerator(CoreTypes coreTypes, this._hierarchy)
       : _coreTypes = coreTypes,
         _recipeVisitor =
-            _TypeRecipeVisitor(const EmptyTypeEnvironment(), coreTypes);
+            _TypeRecipeVisitor(const EmptyTypeEnvironment(), coreTypes),
+        _futureOrNormalizer = FutureOrNormalizer(coreTypes);
 
   /// Returns a recipe for the provided [type] packaged with an environment with
   /// which to evaluate the recipe in.
@@ -43,10 +46,20 @@ class TypeRecipeGenerator {
     // Set the visitor state, generate the recipe, and package it with the
     // environment required to evaluate it.
     _recipeVisitor.setState(
-        environment: minimalEnvironment, recordInterfaceTypes: true);
+        environment: minimalEnvironment, addLiveInterfaceTypes: true);
     var recipe = type.accept(_recipeVisitor);
     return GeneratedRecipe(recipe, minimalEnvironment);
   }
+
+  /// Manually mark [type] as being live in this compilation.
+  ///
+  /// When values of a class are constructed that type becomes live in the
+  /// module even though the type itself might not appear. This method provides
+  /// a way to add it to ensure the type hierarchy rules will be generated for
+  /// it.
+  ///
+  /// See [_TypeRecipeVisitor.addLiveType] for more information.
+  void addLiveType(InterfaceType type) => _recipeVisitor.addLiveType(type);
 
   /// Returns a mapping of type hierarchies for all [InterfaceType]s that have
   /// appeared in type recipes.
@@ -64,6 +77,10 @@ class TypeRecipeGenerator {
   ///    ...
   ///   "type n": {...}}'
   /// ```
+  ///
+  /// It is expected that this method is called at the end of a compilation
+  /// after all types used in the module have already been visited. Otherwise
+  /// the results will be incomplete.
   Map<String, Map<String, List<String>>> get visitedInterfaceTypeRules {
     var rules = <String, Map<String, List<String>>>{};
     for (var type in _recipeVisitor.visitedInterfaceTypes) {
@@ -73,7 +90,9 @@ class TypeRecipeGenerator {
       // Avoid recording the types while iterating the visited types.
       _recipeVisitor.setState(
           environment: ClassTypeEnvironment(cls.typeParameters),
-          recordInterfaceTypes: false);
+          // No need to add any more live types at this time. Any "new" types
+          // seen in this process are not live.
+          addLiveInterfaceTypes: false);
       var supertypeEntries = <String, List<String>>{};
       // Encode type rules for all supers.
       var toVisit = ListQueue<Supertype>.from(cls.supers);
@@ -92,7 +111,7 @@ class TypeRecipeGenerator {
         var recipe = interfaceTypeRecipe(currentClass);
         var typeArgumentRecipes = [
           for (var typeArgument in currentType.typeArguments)
-            typeArgument.accept(_recipeVisitor)
+            _futureOrNormalizer.normalize(typeArgument).accept(_recipeVisitor)
         ];
         supertypeEntries[recipe] = typeArgumentRecipes;
         visited.add(currentType);
@@ -132,7 +151,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   /// Part of the state that should be set before visiting a type.
   /// These types can be used later to produce runtime type hierarchy rules for
   /// all of the visited interface types.
-  bool _recordInterfaceTypes = true;
+  bool _addLiveInterfaceTypes = true;
 
   /// All of the [InterfaceType]s visited.
   final _visitedInterfaceTypes = <InterfaceType>{};
@@ -145,10 +164,11 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   /// Generally this should be called before visiting a type, but the visitor
   /// does not modify the state so if many types need to be evaluated in the
   /// same state it can be set once before visiting all of them.
-  void setState({DDCTypeEnvironment? environment, bool? recordInterfaceTypes}) {
+  void setState(
+      {DDCTypeEnvironment? environment, bool? addLiveInterfaceTypes}) {
     if (environment != null) _typeEnvironment = environment;
-    if (recordInterfaceTypes != null) {
-      _recordInterfaceTypes = recordInterfaceTypes;
+    if (addLiveInterfaceTypes != null) {
+      _addLiveInterfaceTypes = addLiveInterfaceTypes;
     }
   }
 
@@ -168,7 +188,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
 
   @override
   String visitInterfaceType(InterfaceType node) {
-    if (_recordInterfaceTypes) _visitedInterfaceTypes.add(node);
+    addLiveType(node);
     // Generate the interface type recipe.
     var recipeBuffer = StringBuffer(interfaceTypeRecipe(node.classNode));
     // Generate the recipes for all type arguments.
@@ -347,6 +367,33 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
         return '';
       case Nullability.legacy:
         return Recipe.wrapStarString;
+    }
+  }
+
+  /// Manually record [type] as being "live" without generating a recipe.
+  ///
+  /// "Live" types here refer to the interface types that could potentially flow
+  /// into a type operation; meaning the type of the value appearing on the LHS
+  /// and the type appearing on the RHS. Those operations require a type
+  /// hierarchy rule gets encoded for use at runtime.
+  ///
+  /// All interface types are automatically marked as "live" when a type recipe
+  /// is generated for them. Manually adding a "live" type allows a way to
+  /// guarantee the hierarchy rules will be encoded for the type even if a
+  /// recipe was never compiled.
+  ///
+  /// For example, if an instance of class `C` was constructed but `C` was never
+  /// used as a _type_ in the compilation, a recipe hasn't been generated and
+  /// the type will not be automatically recorded as "live". The type should be
+  /// manually added in case an instance of `C` appears in a type test like
+  /// `myCInstance is SomeTypeNotC` where the type hierarchy rule for `C` will
+  /// be needed.
+  void addLiveType(InterfaceType type) {
+    if (_addLiveInterfaceTypes) {
+      var cls = type.classNode;
+      var typeWithoutNullability =
+          cls.getThisType(_coreTypes, Nullability.nonNullable);
+      _visitedInterfaceTypes.add(typeWithoutNullability);
     }
   }
 }

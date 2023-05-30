@@ -1,0 +1,13 @@
+void main() {
+var (int x, (int, )? y) = switch (foo) {
+_ => (42, null),
+};
+}
+
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] ([BeginToken]int[StringToken] x[StringToken],[SimpleToken] ([BeginToken]int[StringToken],[SimpleToken] )[SimpleToken]?[SimpleToken] y[StringToken])[SimpleToken] =[SimpleToken] switch[KeywordToken] ([BeginToken]foo[StringToken])[SimpleToken] {[BeginToken]
+_[StringToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] null[KeywordToken])[SimpleToken],[SimpleToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

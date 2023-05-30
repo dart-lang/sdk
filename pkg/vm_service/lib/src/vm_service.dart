@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.7.0';
+const String vmServiceVersion = '4.8.0';
 
 /// @optional
 const String optional = 'optional';
@@ -216,6 +216,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getInstancesAsList': const ['InstanceRef'],
   'getIsolate': const ['Isolate'],
   'getIsolateGroup': const ['IsolateGroup'],
+  'getIsolatePauseEvent': const ['Event'],
   'getMemoryUsage': const ['MemoryUsage'],
   'getIsolateGroupMemoryUsage': const ['MemoryUsage'],
   'getScripts': const ['ScriptList'],
@@ -718,6 +719,18 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<IsolateGroup> getIsolateGroup(String isolateGroupId);
+
+  /// The `getIsolatePauseEvent` RPC is used to lookup an isolate's pause event
+  /// by its `id`.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// See [Isolate].
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Event> getIsolatePauseEvent(String isolateId);
 
   /// The `getMemoryUsage` RPC is used to lookup an isolate's memory usage
   /// statistics by its `id`.
@@ -1609,6 +1622,11 @@ class VmServerConnection {
             params!['isolateGroupId'],
           );
           break;
+        case 'getIsolatePauseEvent':
+          response = await _serviceImplementation.getIsolatePauseEvent(
+            params!['isolateId'],
+          );
+          break;
         case 'getMemoryUsage':
           response = await _serviceImplementation.getMemoryUsage(
             params!['isolateId'],
@@ -2180,6 +2198,10 @@ class VmService implements VmServiceInterface {
   @override
   Future<IsolateGroup> getIsolateGroup(String isolateGroupId) =>
       _call('getIsolateGroup', {'isolateGroupId': isolateGroupId});
+
+  @override
+  Future<Event> getIsolatePauseEvent(String isolateId) =>
+      _call('getIsolatePauseEvent', {'isolateId': isolateId});
 
   @override
   Future<MemoryUsage> getMemoryUsage(String isolateId) =>

@@ -2937,24 +2937,40 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endRecordLiteral(Token token, int count, Token? constKeyword) {
+  void endRecordLiteral(Token leftParenthesis, int count, Token? constKeyword) {
     debugEvent("RecordLiteral");
 
-    if (!enableRecords) {
+    var fields = popTypedList<ExpressionImpl>(count) ?? const [];
+    var rightParenthesis = leftParenthesis.endGroup!;
+
+    if (enableRecords) {
+      push(
+        RecordLiteralImpl(
+          constKeyword: constKeyword,
+          leftParenthesis: leftParenthesis,
+          fields: fields,
+          rightParenthesis: rightParenthesis,
+        ),
+      );
+    } else {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.records,
-        startToken: token,
+        startToken: leftParenthesis,
+      );
+
+      var expression = fields.firstOrNull;
+      expression ??= SimpleIdentifierImpl(
+        parser.rewriter.insertSyntheticIdentifier(leftParenthesis),
+      );
+
+      push(
+        ParenthesizedExpressionImpl(
+          leftParenthesis: leftParenthesis,
+          expression: expression,
+          rightParenthesis: rightParenthesis,
+        ),
       );
     }
-
-    var fields = popTypedList<ExpressionImpl>(count) ?? const [];
-
-    push(RecordLiteralImpl(
-      constKeyword: constKeyword,
-      leftParenthesis: token,
-      fields: fields,
-      rightParenthesis: token.endGroup!,
-    ));
   }
 
   @override
@@ -2962,12 +2978,6 @@ class AstBuilder extends StackListener {
       Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
     debugEvent("RecordType");
 
-    if (!enableRecords) {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.records,
-        startToken: leftBracket,
-      );
-    }
     RecordTypeAnnotationNamedFieldsImpl? namedFields;
     var elements = popTypedList<Object>(count) ?? const [];
     var last = elements.lastOrNull;
@@ -2979,13 +2989,32 @@ class AstBuilder extends StackListener {
     for (var elem in elements) {
       positionalFields.add(elem as RecordTypeAnnotationPositionalFieldImpl);
     }
-    push(RecordTypeAnnotationImpl(
-      leftParenthesis: leftBracket,
-      positionalFields: positionalFields,
-      namedFields: namedFields,
-      rightParenthesis: leftBracket.endGroup!,
-      question: questionMark,
-    ));
+
+    if (enableRecords) {
+      push(
+        RecordTypeAnnotationImpl(
+          leftParenthesis: leftBracket,
+          positionalFields: positionalFields,
+          namedFields: namedFields,
+          rightParenthesis: leftBracket.endGroup!,
+          question: questionMark,
+        ),
+      );
+    } else {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.records,
+        startToken: leftBracket,
+      );
+
+      push(
+        NamedTypeImpl(
+          importPrefix: null,
+          name2: parser.rewriter.insertSyntheticIdentifier(leftBracket),
+          typeArguments: null,
+          question: questionMark,
+        ),
+      );
+    }
   }
 
   @override

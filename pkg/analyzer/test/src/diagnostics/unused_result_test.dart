@@ -1014,9 +1014,9 @@ void f(A a) {
 ''');
   }
 
-  test_method_result_switchCondition_language218() async {
+  test_method_result_switchCondition_language219() async {
     await assertNoErrorsInCode('''
-// @dart = 2.18
+// @dart = 2.19
 import 'package:meta/meta.dart';
 
 class A {

@@ -10,8 +10,6 @@ class A {}
 main() {
   var a = A();
   if (a is "A") return 0;
-  // [error line 12, column 12, length 0]
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_UNDEFINED_NAME
   //       ^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME

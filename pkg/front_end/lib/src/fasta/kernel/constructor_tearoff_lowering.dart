@@ -122,9 +122,11 @@ Procedure? createFactoryTearOffProcedure(
     SourceLibraryBuilder compilationUnit,
     Uri fileUri,
     int fileOffset,
-    Reference? reference) {
-  if (compilationUnit
-      .loader.target.backendTarget.isFactoryTearOffLoweringEnabled) {
+    Reference? reference,
+    {bool forceCreateLowering = false}) {
+  if (forceCreateLowering ||
+      compilationUnit
+          .loader.target.backendTarget.isFactoryTearOffLoweringEnabled) {
     return _createTearOffProcedure(compilationUnit,
         constructorTearOffName(name), fileUri, fileOffset, reference);
   }

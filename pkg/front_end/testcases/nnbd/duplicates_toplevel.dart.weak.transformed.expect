@@ -58,12 +58,6 @@ library /*isNonNullableByDefault*/;
 // void set topLevelDuplicateFieldAndDuplicateSetter(int value) {
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart: Error: 'topLevelSetter' is exported from both 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart' and 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart'.
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart: Error: 'topLevelFieldAndDuplicateSetter' is exported from both 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart' and 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart'.
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart: Error: 'topLevelDuplicateFieldAndDuplicateSetter' is exported from both 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart' and 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart'.
-//
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:27:10: Error: Conflicts with the implicit setter of the field 'topLevelFieldAndSetter1'.
 // void set topLevelFieldAndSetter1(int value) {
 //          ^
@@ -243,7 +237,6 @@ static final field core::int topLevelDuplicateFieldAndDuplicateSetter = 1;
 static field invalid-type field = invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:13: Error: Can't use 'topLevelMethod' because it is declared more than once.
 var field = topLevelMethod;
             ^";
-static const field dynamic _exports# = #C1 /*isLegacy*/;
 static method topLevelMethod() → core::int
   return 1;
 static get topLevelGetter() → core::int
@@ -387,8 +380,4 @@ static method throws(() → dynamic f) → dynamic {
     return;
   }
   throw "Expected exception.";
-}
-
-constants  {
-  #C1 = "{\"topLevelSetter\":\"'topLevelSetter' is exported from both 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart' and 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart'.\",\"topLevelFieldAndDuplicateSetter\":\"'topLevelFieldAndDuplicateSetter' is exported from both 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart' and 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart'.\",\"topLevelDuplicateFieldAndDuplicateSetter\":\"'topLevelDuplicateFieldAndDuplicateSetter' is exported from both 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart' and 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart'.\"}"
 }

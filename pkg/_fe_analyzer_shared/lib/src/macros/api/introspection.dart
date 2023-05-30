@@ -128,10 +128,10 @@ abstract class ParameterizedTypeDeclaration implements TypeDeclaration {
 ///
 /// All type declarations which can have members will have a variant which
 /// implements this type.
-abstract class IntrospectableType implements TypeDeclaration {}
+mixin IntrospectableType implements TypeDeclaration {}
 
 /// A marker interface for the enum declarations which are introspectable.
-abstract class IntrospectableEnum implements IntrospectableType {}
+abstract mixin class IntrospectableEnum implements IntrospectableType {}
 
 /// Class introspection information.
 ///

@@ -20,6 +20,7 @@
 #if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_TARGET_OS_LINUX)
 #include "vm/elf.h"
 #endif
+#include "vm/ffi_callback_metadata.h"
 #include "vm/flags.h"
 #include "vm/handles.h"
 #include "vm/heap/become.h"
@@ -341,6 +342,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   StoreBuffer::Init();
   MarkingStack::Init();
   TargetCPUFeatures::Init();
+  FfiCallbackMetadata::Init();
 
 #if defined(USING_SIMULATOR)
   Simulator::Init();
@@ -764,6 +766,7 @@ char* Dart::Cleanup() {
   SubtypeTestCache::Cleanup();
   ArgumentsDescriptor::Cleanup();
   OffsetsTable::Cleanup();
+  FfiCallbackMetadata::Cleanup();
   TargetCPUFeatures::Cleanup();
   MarkingStack::Cleanup();
   StoreBuffer::Cleanup();

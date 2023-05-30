@@ -46,6 +46,19 @@
 
 ### Tools
 
+## 3.0.3
+
+### Libraries
+
+#### `dart:async`
+
+- **Breaking change** [#52334][]:
+  - Added `interface` modifier to purely abstract classes:
+    `MultiStreamController`, `StreamConsumer`, `StreamIterator` and
+    `StreamTransformer`.
+
+[#52334]: https://dartbug.com/52334
+
 ## 3.0.1
 
 ### Tools

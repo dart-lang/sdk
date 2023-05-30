@@ -1904,9 +1904,7 @@ LintCode.avoid_init_to_null:
 LintCode.avoid_js_rounded_ints:
   status: noFix
 LintCode.avoid_multiple_declarations_per_line:
-  status: needsFix
-  notes: |-
-    The fix is to split the declaration into multiple lines.
+  status: hasFix
 LintCode.avoid_null_checks_in_equality_operators:
   status: hasFix
 LintCode.avoid_positional_boolean_parameters:
@@ -2141,6 +2139,8 @@ LintCode.no_logic_in_create_state:
   status: noFix
 LintCode.no_runtimeType_toString:
   status: noFix
+LintCode.no_self_assignments:
+  status: needsEvaluation
 LintCode.non_constant_identifier_names:
   status: hasFix
 LintCode.noop_primitive_operations:
@@ -2426,10 +2426,7 @@ LintCode.use_string_buffers:
   notes: |-
     It isn't clear that this occurs often enough to justify the cost.
 LintCode.use_string_in_part_of_directives:
-  status: needsFix
-  notes: |-
-    There should be a fix to replace the library name with the URI of the
-    library.
+  status: hasFix
 LintCode.use_super_parameters:
   status: hasFix
 LintCode.use_test_throws_matchers:

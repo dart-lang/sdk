@@ -188,35 +188,13 @@ abstract class AbstractDartSdk implements DartSdk {
       }
     }
 
-    List<SdkLibrary> libraries = libraryMap.sdkLibraries;
-    int length = libraries.length;
     String? filePath = getRelativePathFromFile(file);
     if (filePath == null) {
       return null;
     }
-    List<String> paths = <String>[];
-    for (int i = 0; i < length; i++) {
-      SdkLibrary library = libraries[i];
-      String libraryPath = library.path.replaceAll('/', separator);
-      if (filePath == libraryPath) {
-        return library.shortName;
-      }
-      paths.add(libraryPath);
-    }
-    for (int i = 0; i < length; i++) {
-      SdkLibrary library = libraries[i];
-      String libraryPath = paths[i];
-      int index = libraryPath.lastIndexOf(separator);
-      if (index >= 0) {
-        String prefix = libraryPath.substring(0, index + 1);
-        if (filePath.startsWith(prefix)) {
-          String relPath =
-              filePath.substring(prefix.length).replaceAll(separator, '/');
-          return '${library.shortName}/$relPath';
-        }
-      }
-    }
-    return null;
+
+    return getImportUriIfMatchesRelativeSdkPath(
+        libraryMap.sdkLibraries, filePath, separator);
   }
 }
 

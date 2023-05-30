@@ -364,7 +364,6 @@ class TimelineEvent {
   void DurationBegin(
       const char* label,
       int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
-  void DurationEnd(int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void Instant(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
@@ -373,7 +372,6 @@ class TimelineEvent {
 
   void Begin(const char* label,
              int64_t id,
-             int64_t flow_id,
              int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void End(const char* label,
@@ -384,13 +382,10 @@ class TimelineEvent {
                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void FlowBegin(const char* label,
-                 int64_t async_id,
                  int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
   void FlowStep(const char* label,
-                int64_t async_id,
                 int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
   void FlowEnd(const char* label,
-               int64_t async_id,
                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void Metadata(const char* label,
@@ -423,26 +418,34 @@ class TimelineEvent {
 
   TimelineStream* stream() const { return stream_; }
 
-  bool IsFinishedDuration() const {
-    return (event_type() == kDuration) && (timestamp1_ > timestamp0_);
-  }
-
   int64_t TimeOrigin() const { return timestamp0_; }
   int64_t Id() const {
-    ASSERT(event_type() != kDuration);
-    return timestamp1_;
+    ASSERT(event_type() == kBegin || event_type() == kEnd ||
+           event_type() == kAsyncBegin || event_type() == kAsyncEnd ||
+           event_type() == kAsyncInstant);
+    return timestamp1_or_id_;
   }
   int64_t TimeDuration() const;
+  void SetTimeEnd(int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline()) {
+    ASSERT(event_type() == kDuration);
+    ASSERT(timestamp1_or_id_ == 0);
+    set_timestamp1_or_id(micros);
+  }
   int64_t TimeEnd() const {
     ASSERT(IsFinishedDuration());
-    return timestamp1_;
+    return timestamp1_or_id_;
   }
 
   int64_t timestamp0() const { return timestamp0_; }
-  int64_t timestamp1() const { return timestamp1_; }
+  int64_t timestamp1_or_id() const { return timestamp1_or_id_; }
 
-  bool HasFlowId() const;
-  int64_t flow_id() const { return flow_id_; }
+  void SetFlowIds(intptr_t flow_id_count,
+                  std::unique_ptr<const int64_t[]>& flow_ids) {
+    flow_id_count_ = flow_id_count;
+    flow_ids_.swap(flow_ids);
+  }
+  intptr_t flow_id_count() const { return flow_id_count_; }
+  const int64_t* FlowIds() const { return flow_ids_.get(); }
 
   bool HasIsolateId() const;
   bool HasIsolateGroupId() const;
@@ -473,6 +476,10 @@ class TimelineEvent {
   Dart_Port isolate_id() const { return isolate_id_; }
 
   uint64_t isolate_group_id() const { return isolate_group_id_; }
+
+  void* isolate_data() const { return isolate_data_; }
+
+  void* isolate_group_data() const { return isolate_group_data_; }
 
   const char* label() const { return label_; }
 
@@ -554,14 +561,13 @@ class TimelineEvent {
     ASSERT(timestamp0_ == 0);
     timestamp0_ = value;
   }
-  void set_timestamp1(int64_t value) {
-    ASSERT(timestamp1_ == 0);
-    timestamp1_ = value;
+  void set_timestamp1_or_id(int64_t value) {
+    ASSERT(timestamp1_or_id_ == 0);
+    timestamp1_or_id_ = value;
   }
 
-  void set_flow_id(int64_t flow_id) {
-    ASSERT(flow_id_ == TimelineEvent::kNoFlowId);
-    flow_id_ = flow_id;
+  bool IsFinishedDuration() const {
+    return (event_type() == kDuration) && (timestamp1_or_id_ > timestamp0_);
   }
 
   void set_pre_serialized_args(bool pre_serialized_args) {
@@ -583,13 +589,17 @@ class TimelineEvent {
   class OwnsLabelBit : public BitField<uword, bool, kOwnsLabelBit, 1> {};
 
   int64_t timestamp0_;
-  int64_t timestamp1_;
+  // For an event of type |kDuration|, this is the end time. For an event of
+  // type |kBegin| or |kEnd|, this is the event ID (which is only referenced by
+  // the MacOS recorder). For an async event, this is the async ID.
+  int64_t timestamp1_or_id_;
+  intptr_t flow_id_count_;
   // This field is only used by the Perfetto recorders, because Perfetto's trace
   // format handles flow events by processing flow IDs attached to
   // |TimelineEvent::kBegin| events. Other recorders handle flow events by
   // processing events of type TimelineEvent::kFlowBegin|,
   // |TimelineEvent::kFlowStep|, and |TimelineEvent::kFlowEnd|.
-  int64_t flow_id_;
+  std::unique_ptr<const int64_t[]> flow_ids_;
   TimelineEventArguments arguments_;
   uword state_;
   const char* label_;
@@ -597,6 +607,8 @@ class TimelineEvent {
   ThreadId thread_;
   Dart_Port isolate_id_;
   uint64_t isolate_group_id_;
+  void* isolate_data_;
+  void* isolate_group_data_;
   TimelineEvent* next_;
 
   friend class TimelineEventRecorder;
@@ -1285,9 +1297,15 @@ class TimelineEventPerfettoFileRecorder : public TimelineEventFileRecorderBase {
 
 class DartTimelineEventHelpers : public AllStatic {
  public:
+  // When reporting an event of type |kAsyncBegin|, |kAsyncEnd|, or
+  // |kAsyncInstant|, the async ID associated with the event should be passed
+  // through |id|. When reporting an event of type |kBegin| or |kEnd|, the event
+  // ID associated with the event should be passed through |id|. Note that this
+  // event ID will only be used by the MacOS recorder.
   static void ReportTaskEvent(TimelineEvent* event,
                               int64_t id,
-                              int64_t flow_id,
+                              intptr_t flow_id_count,
+                              std::unique_ptr<const int64_t[]>& flow_ids,
                               intptr_t type,
                               char* name,
                               char* args);

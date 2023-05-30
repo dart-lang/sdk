@@ -29,17 +29,17 @@ inline class B /* declaredRepresentationType = self::A */ {
   set setter = self::B|set#setter;
   static set staticSetter = set self::B|staticSetter;
   constructor • = self::B|;
-  tearoff • = self::B|get#;
+  tearoff • = self::B|_#new#tearOff;
   constructor named = self::B|named;
-  tearoff named = self::B|get#named;
+  tearoff named = self::B|_#named#tearOff;
 }
 static method B|(self::A a) → self::B
   return js_2::_callConstructorUnchecked1<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), a);
-static method B|get#(self::A a) → self::B
+static method B|_#new#tearOff(self::A a) → self::B
   return self::B|(a);
 static method B|named(core::int i) → self::B
   return js_2::_callConstructorUnchecked1<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), i);
-static method B|get#named(core::int i) → self::B
+static method B|_#named#tearOff(core::int i) → self::B
   return self::B|named(i);
 static method B|get#field(self::A #this) → self::A
   return js_2::getProperty<self::A>(#this, "field");

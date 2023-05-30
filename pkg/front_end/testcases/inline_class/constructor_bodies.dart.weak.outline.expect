@@ -4,68 +4,89 @@ import "dart:core" as core;
 
 inline class Class1 /* declaredRepresentationType = core::int */ {
   constructor • = self::Class1|;
-  tearoff • = self::Class1|get#;
+  tearoff • = self::Class1|_#new#tearOff;
   constructor named1 = self::Class1|named1;
-  tearoff named1 = self::Class1|get#named1;
+  tearoff named1 = self::Class1|_#named1#tearOff;
   constructor named2 = self::Class1|named2;
-  tearoff named2 = self::Class1|get#named2;
+  tearoff named2 = self::Class1|_#named2#tearOff;
   constructor named3 = self::Class1|named3;
-  tearoff named3 = self::Class1|get#named3;
+  tearoff named3 = self::Class1|_#named3#tearOff;
   constructor named4 = self::Class1|named4;
-  tearoff named4 = self::Class1|get#named4;
+  tearoff named4 = self::Class1|_#named4#tearOff;
   constructor named5 = self::Class1|named5;
-  tearoff named5 = self::Class1|get#named5;
+  tearoff named5 = self::Class1|_#named5#tearOff;
   constructor named6 = self::Class1|named6;
-  tearoff named6 = self::Class1|get#named6;
+  tearoff named6 = self::Class1|_#named6#tearOff;
 }
 inline class Class2<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
   constructor • = self::Class2|;
+  tearoff • = self::Class2|_#new#tearOff;
   constructor named1 = self::Class2|named1;
+  tearoff named1 = self::Class2|_#named1#tearOff;
   constructor named2 = self::Class2|named2;
+  tearoff named2 = self::Class2|_#named2#tearOff;
   constructor named3 = self::Class2|named3;
+  tearoff named3 = self::Class2|_#named3#tearOff;
   constructor named4 = self::Class2|named4;
+  tearoff named4 = self::Class2|_#named4#tearOff;
   constructor named5 = self::Class2|named5;
+  tearoff named5 = self::Class2|_#named5#tearOff;
   constructor named6 = self::Class2|named6;
+  tearoff named6 = self::Class2|_#named6#tearOff;
 }
 static method Class1|(core::int it) → self::Class1
   ;
-static method Class1|get#(core::int it) → self::Class1
+static method Class1|_#new#tearOff(core::int it) → self::Class1
   return self::Class1|(it);
 static method Class1|named1(core::int it, core::int additional) → self::Class1
   ;
-static method Class1|get#named1(core::int it, core::int additional) → self::Class1
+static method Class1|_#named1#tearOff(core::int it, core::int additional) → self::Class1
   return self::Class1|named1(it, additional);
 static method Class1|named2(core::int it, core::int additional) → self::Class1
   ;
-static method Class1|get#named2(core::int it, core::int additional) → self::Class1
+static method Class1|_#named2#tearOff(core::int it, core::int additional) → self::Class1
   return self::Class1|named2(it, additional);
 static method Class1|named3(core::int it) → self::Class1
   ;
-static method Class1|get#named3(core::int it) → self::Class1
+static method Class1|_#named3#tearOff(core::int it) → self::Class1
   return self::Class1|named3(it);
 static method Class1|named4(core::int additional, core::int it) → self::Class1
   ;
-static method Class1|get#named4(core::int additional, core::int it) → self::Class1
+static method Class1|_#named4#tearOff(core::int additional, core::int it) → self::Class1
   return self::Class1|named4(additional, it);
 static method Class1|named5(core::int additional, core::int it) → self::Class1
   ;
-static method Class1|get#named5(core::int additional, core::int it) → self::Class1
+static method Class1|_#named5#tearOff(core::int additional, core::int it) → self::Class1
   return self::Class1|named5(additional, it);
 static method Class1|named6(core::String text) → self::Class1
   ;
-static method Class1|get#named6(core::String text) → self::Class1
+static method Class1|_#named6#tearOff(core::String text) → self::Class1
   return self::Class1|named6(text);
 static method Class2|<T extends core::Object? = dynamic>(self::Class2|::T% it) → self::Class2<self::Class2|::T%>
   ;
+static method Class2|_#new#tearOff<T extends core::Object? = dynamic>(self::Class2|_#new#tearOff::T% it) → self::Class2<self::Class2|_#new#tearOff::T%>
+  return self::Class2|<self::Class2|_#new#tearOff::T%>(it);
 static method Class2|named1<T extends core::Object? = dynamic>(self::Class2|named1::T% it, core::int additional) → self::Class2<self::Class2|named1::T%>
   ;
+static method Class2|_#named1#tearOff<T extends core::Object? = dynamic>(self::Class2|_#named1#tearOff::T% it, core::int additional) → self::Class2<self::Class2|_#named1#tearOff::T%>
+  return self::Class2|named1<self::Class2|_#named1#tearOff::T%>(it, additional);
 static method Class2|named2<T extends core::Object? = dynamic>(self::Class2|named2::T% it, core::int additional) → self::Class2<self::Class2|named2::T%>
   ;
+static method Class2|_#named2#tearOff<T extends core::Object? = dynamic>(self::Class2|_#named2#tearOff::T% it, core::int additional) → self::Class2<self::Class2|_#named2#tearOff::T%>
+  return self::Class2|named2<self::Class2|_#named2#tearOff::T%>(it, additional);
 static method Class2|named3<T extends core::Object? = dynamic>(self::Class2|named3::T% it) → self::Class2<self::Class2|named3::T%>
   ;
+static method Class2|_#named3#tearOff<T extends core::Object? = dynamic>(self::Class2|_#named3#tearOff::T% it) → self::Class2<self::Class2|_#named3#tearOff::T%>
+  return self::Class2|named3<self::Class2|_#named3#tearOff::T%>(it);
 static method Class2|named4<T extends core::Object? = dynamic>(core::int additional, self::Class2|named4::T% it) → self::Class2<self::Class2|named4::T%>
   ;
+static method Class2|_#named4#tearOff<T extends core::Object? = dynamic>(core::int additional, self::Class2|_#named4#tearOff::T% it) → self::Class2<self::Class2|_#named4#tearOff::T%>
+  return self::Class2|named4<self::Class2|_#named4#tearOff::T%>(additional, it);
 static method Class2|named5<T extends core::Object? = dynamic>(core::int additional, self::Class2|named5::T% it) → self::Class2<self::Class2|named5::T%>
   ;
+static method Class2|_#named5#tearOff<T extends core::Object? = dynamic>(core::int additional, self::Class2|_#named5#tearOff::T% it) → self::Class2<self::Class2|_#named5#tearOff::T%>
+  return self::Class2|named5<self::Class2|_#named5#tearOff::T%>(additional, it);
 static method Class2|named6<T extends core::Object? = dynamic>(core::List<self::Class2|named6::T%> list) → self::Class2<self::Class2|named6::T%>
   ;
+static method Class2|_#named6#tearOff<T extends core::Object? = dynamic>(core::List<self::Class2|_#named6#tearOff::T%> list) → self::Class2<self::Class2|_#named6#tearOff::T%>
+  return self::Class2|named6<self::Class2|_#named6#tearOff::T%>(list);

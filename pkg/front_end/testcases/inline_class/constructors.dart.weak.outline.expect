@@ -4,17 +4,17 @@ import "dart:core" as core;
 
 inline class Class1 /* declaredRepresentationType = core::int */ {
   constructor • = self::Class1|;
-  tearoff • = self::Class1|get#;
+  tearoff • = self::Class1|_#new#tearOff;
 }
 inline class Class2 /* declaredRepresentationType = core::int */ {
   constructor • = self::Class2|;
-  tearoff • = self::Class2|get#;
+  tearoff • = self::Class2|_#new#tearOff;
 }
 static method Class1|(core::int field) → self::Class1
   ;
-static method Class1|get#(core::int field) → self::Class1
+static method Class1|_#new#tearOff(core::int field) → self::Class1
   return self::Class1|(field);
 static method Class2|(core::int field) → self::Class2
   ;
-static method Class2|get#(core::int field) → self::Class2
+static method Class2|_#new#tearOff(core::int field) → self::Class2
   return self::Class2|(field);

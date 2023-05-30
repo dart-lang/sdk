@@ -467,6 +467,10 @@ abstract interface class File implements FileSystemEntity {
   ///  specified using [encoding] will be used. The returned [IOSink]
   ///  has an `encoding` property which can be changed after the
   ///  [IOSink] has been created.
+  ///
+  /// The returned [IOSink] does not transform newline characters (`"\n"`) to
+  /// the platform's conventional line ending (e.g. `"\r\n"` on Windows). Write
+  /// a [Platform.lineTerminator] if a platform-specific line ending is needed.
   IOSink openWrite({FileMode mode = FileMode.write, Encoding encoding = utf8});
 
   /// Reads the entire file contents as a list of bytes.
@@ -549,6 +553,10 @@ abstract interface class File implements FileSystemEntity {
   /// If the argument [flush] is set to `true`, the data written will be
   /// flushed to the file system before the returned future completes.
   ///
+  /// This method does not transform newline characters (`"\n"`) to the
+  /// platform conventional line ending (e.g. `"\r\n"` on Windows). Use
+  /// [Platform.lineTerminator] to separate lines in [contents] if platform
+  /// contentional line endings are needed.
   Future<File> writeAsString(String contents,
       {FileMode mode = FileMode.write,
       Encoding encoding = utf8,
@@ -564,8 +572,13 @@ abstract interface class File implements FileSystemEntity {
   /// to an existing file, pass [FileMode.append] as the optional mode
   /// parameter.
   ///
-  /// If the [flush] argument is set to `true` data written will be
+  /// If the [flush] argument is set to `true`, data written will be
   /// flushed to the file system before returning.
+  ///
+  /// This method does not transform newline characters (`"\n"`) to the
+  /// platform conventional line ending (e.g. `"\r\n"` on Windows). Use
+  /// [Platform.lineTerminator] to separate lines in [contents] if platform
+  /// contentional line endings are needed.
   ///
   /// Throws a [FileSystemException] if the operation fails.
   void writeAsStringSync(String contents,

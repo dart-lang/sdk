@@ -108,6 +108,8 @@ class CompletionResponsePrinter {
         return 'library';
       } else if (elementKind == ElementKind.LOCAL_VARIABLE) {
         return 'localVariable';
+      } else if (elementKind == ElementKind.METHOD) {
+        return 'method';
       } else if (elementKind == ElementKind.MIXIN) {
         return 'mixin';
       } else if (elementKind == ElementKind.PARAMETER) {
@@ -118,6 +120,8 @@ class CompletionResponsePrinter {
         return 'topLevelVariable';
       } else if (elementKind == ElementKind.TYPE_ALIAS) {
         return 'typeAlias';
+      } else if (elementKind == ElementKind.TYPE_PARAMETER) {
+        return 'typeParameter';
       }
       throw UnimplementedError('elementKind: $elementKind');
     } else if (kind == CompletionSuggestionKind.INVOCATION) {
@@ -235,6 +239,21 @@ class CompletionResponsePrinter {
     buffer.writeln(line);
   }
 
+  void _writeParameterNames(CompletionSuggestion suggestion) {
+    if (configuration.withParameterNames) {
+      var parameterNames = suggestion.parameterNames?.join(',') ?? '';
+      if (parameterNames.isNotEmpty) {
+        parameterNames = ' $parameterNames';
+      }
+      _writelnWithIndent('parameterNames:$parameterNames');
+      var parameterTypes = suggestion.parameterTypes?.join(',') ?? '';
+      if (parameterTypes.isNotEmpty) {
+        parameterTypes = ' $parameterTypes';
+      }
+      _writelnWithIndent('parameterTypes:$parameterTypes');
+    }
+  }
+
   void _writeRelevance(CompletionSuggestion suggestion) {
     if (configuration.withRelevance) {
       _writelnWithIndent('relevance: ${suggestion.relevance}');
@@ -296,6 +315,7 @@ class CompletionResponsePrinter {
       _writeElement(suggestion);
       _writeIsNotImported(suggestion);
       _writeLibraryUri(suggestion);
+      _writeParameterNames(suggestion);
       _writeRelevance(suggestion);
       _writeReturnType(suggestion);
       _writeSelection(suggestion);
@@ -335,6 +355,7 @@ class Configuration {
   bool withIsNotImported;
   bool withKind;
   bool withLibraryUri;
+  bool withParameterNames;
   bool withRelevance;
   bool withReplacement;
   bool withReturnType;
@@ -351,6 +372,7 @@ class Configuration {
     this.withIsNotImported = false,
     this.withKind = true,
     this.withLibraryUri = false,
+    this.withParameterNames = false,
     this.withReplacement = true,
     this.withRelevance = false,
     this.withReturnType = false,

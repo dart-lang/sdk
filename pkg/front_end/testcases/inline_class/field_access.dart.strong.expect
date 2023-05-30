@@ -304,42 +304,44 @@ inline class InlineClass /* declaredRepresentationType = core::int */ {
   method test = self::InlineClass|test;
   tearoff test = self::InlineClass|get#test;
   constructor • = self::InlineClass|;
-  tearoff • = self::InlineClass|get#;
+  tearoff • = self::InlineClass|_#new#tearOff;
 }
 inline class GenericInlineClass<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
   method test = self::GenericInlineClass|test;
   tearoff test = self::GenericInlineClass|get#test;
   constructor • = self::GenericInlineClass|;
+  tearoff • = self::GenericInlineClass|_#new#tearOff;
 }
 inline class FunctionInlineClass<T extends core::Object? = dynamic> /* declaredRepresentationType = () → T% */ {
   method test = self::FunctionInlineClass|test;
   tearoff test = self::FunctionInlineClass|get#test;
   constructor • = self::FunctionInlineClass|;
+  tearoff • = self::FunctionInlineClass|_#new#tearOff;
 }
 inline class GenericFunctionInlineClass /* declaredRepresentationType = <T extends core::Object? = dynamic>() → T% */ {
   method test = self::GenericFunctionInlineClass|test;
   tearoff test = self::GenericFunctionInlineClass|get#test;
   constructor • = self::GenericFunctionInlineClass|;
-  tearoff • = self::GenericFunctionInlineClass|get#;
+  tearoff • = self::GenericFunctionInlineClass|_#new#tearOff;
 }
 inline class DynamicInlineClass /* declaredRepresentationType = dynamic */ {
   method test = self::DynamicInlineClass|test;
   tearoff test = self::DynamicInlineClass|get#test;
   constructor • = self::DynamicInlineClass|;
-  tearoff • = self::DynamicInlineClass|get#;
+  tearoff • = self::DynamicInlineClass|_#new#tearOff;
 }
 inline class ErroneousInlineClass /* declaredRepresentationType = core::int */ {
   method test = self::ErroneousInlineClass|test;
   tearoff test = self::ErroneousInlineClass|get#test;
   constructor • = self::ErroneousInlineClass|;
-  tearoff • = self::ErroneousInlineClass|get#;
+  tearoff • = self::ErroneousInlineClass|_#new#tearOff;
 }
 static method _extension#0|set#it(lowered final dynamic #this, dynamic value) → void {}
 static method InlineClass|(core::int it) → self::InlineClass {
   final self::InlineClass #this = it;
   return #this;
 }
-static method InlineClass|get#(core::int it) → self::InlineClass
+static method InlineClass|_#new#tearOff(core::int it) → self::InlineClass
   return self::InlineClass|(it);
 static method InlineClass|test(lowered final self::InlineClass #this) → void {
   core::int a1 = #this as{ForNonNullableByDefault} core::int;
@@ -367,6 +369,8 @@ static method GenericInlineClass|<T extends core::Object? = dynamic>(self::Gener
   final self::GenericInlineClass<self::GenericInlineClass|::T%> #this = it;
   return #this;
 }
+static method GenericInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|_#new#tearOff::T%>
+  return self::GenericInlineClass|<self::GenericInlineClass|_#new#tearOff::T%>(it);
 static method GenericInlineClass|test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|test::T%> #this, self::GenericInlineClass|test::T% t) → void {
   self::GenericInlineClass|test::T% a1 = #this as{ForNonNullableByDefault} self::GenericInlineClass|test::T%;
   self::GenericInlineClass|test::T% a2 = #this as{ForNonNullableByDefault} self::GenericInlineClass|test::T%;
@@ -393,6 +397,8 @@ static method FunctionInlineClass|<T extends core::Object? = dynamic>(() → sel
   final self::FunctionInlineClass<self::FunctionInlineClass|::T%> #this = it;
   return #this;
 }
+static method FunctionInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|_#new#tearOff::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|_#new#tearOff::T%>
+  return self::FunctionInlineClass|<self::FunctionInlineClass|_#new#tearOff::T%>(it);
 static method FunctionInlineClass|test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|test::T%> #this, () → self::FunctionInlineClass|test::T% t) → void {
   () → self::FunctionInlineClass|test::T% a1 = #this as{ForNonNullableByDefault} () → self::FunctionInlineClass|test::T%;
   () → self::FunctionInlineClass|test::T% a2 = #this as{ForNonNullableByDefault} () → self::FunctionInlineClass|test::T%;
@@ -423,7 +429,7 @@ static method GenericFunctionInlineClass|(<T extends core::Object? = dynamic>() 
   final self::GenericFunctionInlineClass #this = it;
   return #this;
 }
-static method GenericFunctionInlineClass|get#(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass
+static method GenericFunctionInlineClass|_#new#tearOff(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass
   return self::GenericFunctionInlineClass|(it);
 static method GenericFunctionInlineClass|test(lowered final self::GenericFunctionInlineClass #this) → void {
   <T extends core::Object? = dynamic>() → T% a1 = #this as{ForNonNullableByDefault} <T extends core::Object? = dynamic>() → T%;
@@ -459,7 +465,7 @@ static method DynamicInlineClass|(dynamic it) → self::DynamicInlineClass {
   final self::DynamicInlineClass #this = it;
   return #this;
 }
-static method DynamicInlineClass|get#(dynamic it) → self::DynamicInlineClass
+static method DynamicInlineClass|_#new#tearOff(dynamic it) → self::DynamicInlineClass
   return self::DynamicInlineClass|(it);
 static method DynamicInlineClass|test(lowered final self::DynamicInlineClass #this) → void {
   dynamic a1 = #this as{ForNonNullableByDefault} dynamic;
@@ -491,7 +497,7 @@ static method ErroneousInlineClass|(core::int a, core::String b) → self::Erron
   final self::ErroneousInlineClass #this = b;
   return #this;
 }
-static method ErroneousInlineClass|get#(core::int a, core::String b) → self::ErroneousInlineClass
+static method ErroneousInlineClass|_#new#tearOff(core::int a, core::String b) → self::ErroneousInlineClass
   return self::ErroneousInlineClass|(a, b);
 static method ErroneousInlineClass|test(lowered final self::ErroneousInlineClass #this) → void {
   core::int a1 = #this as{ForNonNullableByDefault} core::int;
@@ -686,13 +692,13 @@ inline class PrivateInlineClass /* declaredRepresentationType = core::int */ {
   method test = self2::PrivateInlineClass|test;
   tearoff test = self2::PrivateInlineClass|get#test;
   constructor • = self2::PrivateInlineClass|;
-  tearoff • = self2::PrivateInlineClass|get#;
+  tearoff • = self2::PrivateInlineClass|_#new#tearOff;
 }
 static method PrivateInlineClass|(core::int _it) → self2::PrivateInlineClass {
   final self2::PrivateInlineClass #this = _it;
   return #this;
 }
-static method PrivateInlineClass|get#(core::int _it) → self2::PrivateInlineClass
+static method PrivateInlineClass|_#new#tearOff(core::int _it) → self2::PrivateInlineClass
   return self2::PrivateInlineClass|(_it);
 static method PrivateInlineClass|test(lowered final self2::PrivateInlineClass #this) → void {
   core::int a1 = #this as{ForNonNullableByDefault} core::int;
