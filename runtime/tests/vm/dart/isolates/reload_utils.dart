@@ -187,8 +187,8 @@ class Reloader {
     return reloadResult;
   }
 
-  Future<Stream> getDebugStream() async {
-    return await _remoteVm.getEventStream('Debug');
+  Stream getDebugStream() {
+    return _remoteVm.getEventStream('Debug');
   }
 
   Future<String> getIsolateId(String name) async {
