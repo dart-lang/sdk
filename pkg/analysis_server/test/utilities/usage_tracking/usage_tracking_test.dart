@@ -14,17 +14,18 @@ void main() {
       expect(config.directorySizeLimitMb, 10000);
       expect(config.minDelayBetweenSnapshots, Duration(seconds: 20));
     });
+
     test('returns null for no config', () {
       final config = parseAutoSnapshottingConfig(_argsNoSnapshotting);
       expect(config, null);
     });
+
     test('throws for wrong config', () {
-      final wrongAutosnapshottingArg =
-          '--autosnapshotting--wrong-configuration';
+      final wrongAutosnapshottingArg = 'autosnapshotting--wrong-configuration';
       expect(
         () => parseAutoSnapshottingConfig(
             [wrongAutosnapshottingArg, 'some other arg']),
-        throwsA(isA<Object>()),
+        throwsA(isA<ArgumentError>()),
       );
     });
   });
@@ -39,6 +40,7 @@ const _argsWithSnapshotting = [
   '--sdk=C:/b/s/w/ir/x/w/sdk/sdk/',
   '--train-using=C:/b/s/w/ir/x/w/sdk/pkg/compiler/lib'
 ];
+
 // This constant is referenced in README.md for auto-snapshotting.
 const _autosnapshottingArg =
-    '--autosnapshotting=thresholdMb=200,increaseMb=100,dir=/Users/polinach/Downloads/analyzer_snapshots,dirLimitMb=10000,delaySec=20';
+    'autosnapshotting-thresholdMb-200,increaseMb-100,dir-/Users/polinach/Downloads/analyzer_snapshots,dirLimitMb-10000,delaySec-20';

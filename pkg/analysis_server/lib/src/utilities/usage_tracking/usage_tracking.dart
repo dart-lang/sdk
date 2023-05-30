@@ -30,13 +30,20 @@ void configureMemoryUsageTracking(
 /// In case of error throws exception.
 AutoSnapshottingConfig? parseAutoSnapshottingConfig(List<String> args) {
   const argName = 'autosnapshotting';
-  final arg = args.firstWhereOrNull((a) => a.contains('--$argName'));
+  var arg = args.firstWhereOrNull((a) => a.startsWith('$argName-'));
+
   if (arg == null) return null;
+
+  arg = arg.replaceAll('-', '=');
+  arg = '--$arg';
+
   var parser = ArgParser()..addMultiOption(argName, splitCommas: true);
   final parsedArgs = parser.parse([arg]);
   assert(parsedArgs.options.contains(argName));
   final values = parsedArgs[argName] as List<String>;
+
   if (values.isEmpty) return null;
+
   final items = Map.fromEntries(values.map((e) {
     final keyValue = e.split('=');
     if (keyValue.length != 2) {
@@ -48,6 +55,7 @@ AutoSnapshottingConfig? parseAutoSnapshottingConfig(List<String> args) {
     final keyString = keyValue[0];
     try {
       final key = _Keys.values.byName(keyString);
+
       return MapEntry(key, keyValue[1]);
     } on ArgumentError {
       throw ArgumentError('Invalid auto-snapshotting key: $keyString".');
