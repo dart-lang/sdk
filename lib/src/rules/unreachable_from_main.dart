@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
 
@@ -53,7 +54,7 @@ class UnreachableFromMain extends LintRule {
           description: _desc,
           details: _details,
           group: Group.style,
-          state: State.experimental(),
+          state: State.stable(since: Version(3, 1, 0)),
         );
 
   @override
