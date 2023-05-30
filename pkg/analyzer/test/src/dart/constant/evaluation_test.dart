@@ -2404,7 +2404,8 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
       isNonNullableByDefault: false,
     );
 
-    var result = expression.accept(
+    // TODO(kallentu): Remove unwrapping of Constant.
+    var expressionConstant = expression.accept(
       ConstantVisitor(
         ConstantEvaluationEngine(
           declaredVariables: DeclaredVariables.fromMap(declaredVariables),
@@ -2417,6 +2418,8 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
         lexicalEnvironment: lexicalEnvironment,
       ),
     );
+    var result =
+        expressionConstant is DartObjectImpl ? expressionConstant : null;
     if (errorCodes == null) {
       errorListener.assertNoErrors();
     } else {

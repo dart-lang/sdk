@@ -668,7 +668,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     var result = expression.accept(
         ConstantVisitor(_evaluationEngine, _currentLibrary, subErrorReporter));
     _reportErrors(errorListener.errors, errorCode);
-    return result;
+    // TODO(kallentu): Evaluate whether we want to change the return type.
+    return result is DartObjectImpl ? result : null;
   }
 
   /// Validate that if the passed arguments are constant expressions.
