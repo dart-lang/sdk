@@ -5,6 +5,8 @@
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:test/test.dart';
 
+import 'util/test_utils.dart';
+
 void main() {
   const keywords = [
     'GOOD',
@@ -16,6 +18,8 @@ void main() {
   ];
 
   group('rule doc format', () {
+    setUp(setUpSharedTestEnvironment);
+
     var rules = Registry.ruleRegistry.rules;
     test('(setup)', () {
       expect(rules, isNotEmpty,

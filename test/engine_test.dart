@@ -19,6 +19,7 @@ import 'package:test/test.dart';
 
 import 'mocks.dart';
 import 'test_constants.dart';
+import 'util/test_utils.dart';
 
 void main() {
   defineLinterEngineTests();
@@ -27,6 +28,7 @@ void main() {
 /// Linter engine tests
 void defineLinterEngineTests() {
   group('engine', () {
+    setUp(setUpSharedTestEnvironment);
     group('reporter', () {
       void doTest(
           String label, String expected, Function(PrintingReporter r) report) {

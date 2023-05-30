@@ -5,9 +5,11 @@
 import 'package:test/test.dart';
 
 import '../tool/doc.dart';
+import 'util/test_utils.dart';
 
 void main() {
   group('doc generation', () {
+    setUp(setUpSharedTestEnvironment);
     test('fixStatus (sanity)', () async {
       var fixStatusMap = await fetchFixStatusMap();
       // Doc generation reads the fix status map to associate fix status

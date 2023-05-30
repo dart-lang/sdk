@@ -33,10 +33,13 @@ import 'util/annotation_matcher.dart';
 import 'util/test_utils.dart';
 
 void main() {
-  defineSanityTests();
-  defineRuleTests();
-  experiment_tests.main();
-  defineRuleUnitTests();
+  group('rule tests', () {
+    setUp(setUpSharedTestEnvironment);
+    defineSanityTests();
+    defineRuleTests();
+    experiment_tests.main();
+    defineRuleUnitTests();
+  });
 }
 
 /// Rule tests
