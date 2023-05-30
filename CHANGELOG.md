@@ -4,8 +4,12 @@ This is a patch release that:
 - Fixes an AOT compiler crash when generating an implicit getter returning an unboxed record (issue [#52449]).
 - Fixes a situation in which variables appearing in multiple branches of an
   or-pattern might be erroneously reported as being mismatched (issue [#52373]).
+- Adds missing `interface` modifiers on the purely abstract classes
+  `MultiStreamController`, `StreamConsumer`, `StreamIterator` and
+  `StreamTransformer` ([#52334]).
 
 [#52373]: https://github.com/dart-lang/sdk/issues/52373
+[#52334]: https://dartbug.com/52334
 
 ## 3.0.2
 
