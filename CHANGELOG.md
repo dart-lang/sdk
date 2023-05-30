@@ -59,6 +59,12 @@
 
 [#52334]: https://dartbug.com/52334
 
+### Tools
+
+#### Formatter
+
+- Correctly handle nullable empty record types (`()?`).
+
 ## 3.0.1
 
 ### Tools
