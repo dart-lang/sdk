@@ -150,6 +150,189 @@ void f(String s) {
 ''');
   }
 
+  Future<void> test_ifElement_alwaysFalse_hasElse() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    if (x == null) 1 else -1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    -1,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysFalse_hasElse_withComments() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    // C1
+    if (x == null)
+      // C2
+      1
+    else
+      // C3
+      -1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    // C1
+    // C3
+    -1,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysFalse_noElse_insideList() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    if (x == null) 1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void>
+      test_ifElement_alwaysFalse_noElse_insideList_withComments() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    // C1
+    if (x == null)
+      // C2
+      1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysFalse_noElse_insideSet() async {
+    await resolveTestCode('''
+Object f(int x) {
+  return {
+    0,
+    if (x == null) 1,
+    2,
+  };
+}
+''');
+    await assertHasFix('''
+Object f(int x) {
+  return {
+    0,
+    2,
+  };
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysTrue() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    if (x != null)
+      1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    1,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysTrue_hasElse() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    if (x != null) 1 else -1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    1,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysTrue_withComments() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    // C1
+    if (x != null)
+      // C2
+      1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    // C1
+    // C2
+    1,
+    2,
+  ];
+}
+''');
+  }
+
   Future<void> test_ifStatement_thenBlock() async {
     await resolveTestCode('''
 void f(String s) {
