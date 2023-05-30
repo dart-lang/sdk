@@ -21,7 +21,7 @@ class UnrelatedTypeEqualityChecksTest extends LintRuleTest {
     await assertDiagnostics(r'''
 bool f((int, int) a, String b) => a == b;
 ''', [
-      lint(34, 6),
+      lint(36, 2),
     ]);
   }
 
@@ -35,7 +35,7 @@ bool f((int, int) a, (num, num) b) => a == b;
     await assertDiagnostics(r'''
 bool f((int, int) a, (String, String) b) => a == b;
 ''', [
-      lint(44, 6),
+      lint(46, 2),
     ]);
   }
 
@@ -49,7 +49,7 @@ bool f(({int one, int two}) a, ({num two, num one}) b) => a == b;
     await assertDiagnostics(r'''
 bool f(({int one, int two}) a, ({String one, String two}) b) => a == b;
 ''', [
-      lint(64, 6),
+      lint(66, 2),
     ]);
   }
 
@@ -63,7 +63,7 @@ bool f((int, {int two}) a, (num one, {num two}) b) => a == b;
     await assertDiagnostics(r'''
 bool f((int, {int two}) a, (String one, {String two}) b) => a == b;
 ''', [
-      lint(60, 6),
+      lint(62, 2),
     ]);
   }
 

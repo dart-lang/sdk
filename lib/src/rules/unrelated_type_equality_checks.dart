@@ -5,12 +5,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
@@ -132,40 +130,19 @@ class DerivedClass2 extends ClassBase with Mixin {}
 
 ''';
 
-bool _hasNonComparableOperands(TypeSystem typeSystem, BinaryExpression node) {
-  var left = node.leftOperand;
-  var leftType = left.staticType;
-  var right = node.rightOperand;
-  var rightType = right.staticType;
-  if (leftType == null || rightType == null) {
-    return false;
-  }
-  return !left.isNullLiteral &&
-      !right.isNullLiteral &&
-      _nonComparable(typeSystem, leftType, rightType);
-}
-
-bool _isCoreInt(DartType? type) => type != null && type.isDartCoreInt;
-
-bool _isFixNumIntX(DartType type) {
-  // todo(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
-  // See: https://github.com/dart-lang/linter/issues/3868
-  if (type is! InterfaceType) return false;
-  InterfaceElement element = type.element;
-  if (element.name != 'Int32' && element.name != 'Int64') return false;
-  var uri = element.library.source.uri;
-  if (!uri.isScheme('package')) return false;
-  return uri.pathSegments.firstOrNull == 'fixnum';
-}
-
-bool _nonComparable(
-        TypeSystem typeSystem, DartType leftType, DartType? rightType) =>
-    typesAreUnrelated(typeSystem, leftType, rightType) &&
-    !(_isFixNumIntX(leftType) && _isCoreInt(rightType));
-
 class UnrelatedTypeEqualityChecks extends LintRule {
-  static const LintCode code = LintCode('unrelated_type_equality_checks',
-      "Neither type of the operands of '==' is a subtype of the other.",
+  static const LintCode expressionCode = LintCode(
+      'unrelated_type_equality_checks',
+      uniqueName: 'LintCode.unrelated_type_equality_checks_expression',
+      "The type of the right operand ('{0}') isn't a subtype or a supertype of "
+          "the left operand ('{1}').",
+      correctionMessage: 'Try changing one or both of the operands.');
+
+  static const LintCode patternCode = LintCode(
+      'unrelated_type_equality_checks',
+      uniqueName: 'LintCode.unrelated_type_equality_checks_pattern',
+      "The type of the operand ('{0}') isn't a subtype or a supertype of the "
+          "value being matched ('{1}').",
       correctionMessage: 'Try changing one or both of the operands.');
 
   UnrelatedTypeEqualityChecks()
@@ -176,7 +153,7 @@ class UnrelatedTypeEqualityChecks extends LintRule {
             group: Group.errors);
 
   @override
-  LintCode get lintCode => code;
+  List<LintCode> get lintCodes => [expressionCode, patternCode];
 
   @override
   void registerNodeProcessors(
@@ -196,12 +173,28 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     var isDartCoreBoolean = node.staticType?.isDartCoreBool ?? false;
-    if (!isDartCoreBoolean || !_isEqualityTest(node.operator)) {
+    if (!isDartCoreBoolean || !node.operator.isEqualityTest) {
       return;
     }
 
-    if (_hasNonComparableOperands(typeSystem, node)) {
-      rule.reportLint(node);
+    var leftOperand = node.leftOperand;
+    if (leftOperand is NullLiteral) return;
+    var rightOperand = node.rightOperand;
+    if (rightOperand is NullLiteral) return;
+    var leftType = leftOperand.staticType;
+    if (leftType == null) return;
+    var rightType = rightOperand.staticType;
+    if (rightType == null) return;
+
+    if (_nonComparable(leftType, rightType)) {
+      rule.reportLintForToken(
+        node.operator,
+        errorCode: UnrelatedTypeEqualityChecks.expressionCode,
+        arguments: [
+          rightType.getDisplayString(withNullability: true),
+          leftType.getDisplayString(withNullability: true),
+        ],
+      );
     }
   }
 
@@ -209,13 +202,43 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitRelationalPattern(RelationalPattern node) {
     var valueType = node.matchedValueType;
     if (valueType == null) return;
-    if (!_isEqualityTest(node.operator)) return;
+    if (!node.operator.isEqualityTest) return;
     var operandType = node.operand.staticType;
-    if (_nonComparable(typeSystem, valueType, operandType)) {
-      rule.reportLint(node);
+    if (operandType == null) return;
+    if (_nonComparable(valueType, operandType)) {
+      rule.reportLint(
+        node,
+        errorCode: UnrelatedTypeEqualityChecks.patternCode,
+        arguments: [
+          operandType.getDisplayString(withNullability: true),
+          valueType.getDisplayString(withNullability: true),
+        ],
+      );
     }
   }
 
-  bool _isEqualityTest(Token operator) =>
-      operator.type == TokenType.EQ_EQ || operator.type == TokenType.BANG_EQ;
+  bool _nonComparable(DartType leftType, DartType rightType) =>
+      typesAreUnrelated(typeSystem, leftType, rightType) &&
+      !(leftType.isFixnumIntX && rightType.isCoreInt);
+}
+
+extension on DartType? {
+  bool get isCoreInt => this != null && this!.isDartCoreInt;
+
+  bool get isFixnumIntX {
+    var self = this;
+    // todo(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
+    // See: https://github.com/dart-lang/linter/issues/3868
+    if (self is! InterfaceType) return false;
+    var element = self.element;
+    if (element.name != 'Int32' && element.name != 'Int64') return false;
+    var uri = element.library.source.uri;
+    if (!uri.isScheme('package')) return false;
+    return uri.pathSegments.firstOrNull == 'fixnum';
+  }
+}
+
+extension on Token {
+  bool get isEqualityTest =>
+      type == TokenType.EQ_EQ || type == TokenType.BANG_EQ;
 }
