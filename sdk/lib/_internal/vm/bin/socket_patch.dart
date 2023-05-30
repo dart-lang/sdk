@@ -213,7 +213,7 @@ class _InternetAddress implements InternetAddress {
   _InternetAddress(this.type, this.address, this._host, this._in_addr,
       [this._scope_id = 0]);
 
-  factory _InternetAddress.fromString(String address,
+  static Object _parseAddressString(String address,
       {InternetAddressType? type}) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(address, 'address');
@@ -231,14 +231,14 @@ class _InternetAddress implements InternetAddress {
       }
       var inAddr = _parse(address);
       if (inAddr == null) {
-        throw ArgumentError('Invalid internet address $address');
+        return ArgumentError('Invalid internet address $address');
       }
       InternetAddressType type = inAddr.length == _IPv4AddrLength
           ? InternetAddressType.IPv4
           : InternetAddressType.IPv6;
       if (scopeID != null && scopeID.length > 0) {
         if (type != InternetAddressType.IPv6) {
-          throw ArgumentError.value(
+          return ArgumentError.value(
               address, 'address', 'IPv4 addresses cannot have a scope ID');
         }
 
@@ -248,11 +248,33 @@ class _InternetAddress implements InternetAddress {
           return _InternetAddress(
               InternetAddressType.IPv6, originalAddress, null, inAddr, scopeID);
         } else {
-          throw ArgumentError.value(
+          return ArgumentError.value(
               address, 'address', 'Invalid IPv6 address with scope ID');
         }
       }
       return _InternetAddress(type, originalAddress, null, inAddr, 0);
+    }
+  }
+
+  factory _InternetAddress.fromString(String address,
+      {InternetAddressType? type}) {
+    final parsedAddress = _parseAddressString(address, type: type);
+    if (parsedAddress is _InternetAddress) {
+      return parsedAddress;
+    } else {
+      assert(parsedAddress is ArgumentError);
+      throw parsedAddress;
+    }
+  }
+
+  static _InternetAddress? tryParse(String address) {
+    checkNotNullable(address, "address");
+    final parsedAddress = _parseAddressString(address);
+    if (parsedAddress is _InternetAddress) {
+      return parsedAddress;
+    } else {
+      assert(parsedAddress is ArgumentError);
+      return null;
     }
   }
 
@@ -276,15 +298,6 @@ class _InternetAddress implements InternetAddress {
       var address = _rawAddrToString(rawAddress);
       return _InternetAddress(
           InternetAddressType._from(type), address, null, rawAddress);
-    }
-  }
-
-  static _InternetAddress? tryParse(String address) {
-    checkNotNullable(address, "address");
-    try {
-      return _InternetAddress.fromString(address);
-    } on ArgumentError catch (_) {
-      return null;
     }
   }
 
