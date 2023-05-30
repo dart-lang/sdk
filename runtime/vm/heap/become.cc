@@ -249,32 +249,26 @@ static bool IsDummyObject(ObjectPtr object) {
   return GetForwardedObject(object) == object;
 }
 
-static void CrashDump(ObjectPtr before_obj, ObjectPtr after_obj) {
-  OS::PrintErr("DETECTED FATAL ISSUE IN BECOME MAPPINGS\n");
-
-  OS::PrintErr("BEFORE ADDRESS: %#" Px "\n", static_cast<uword>(before_obj));
-  OS::PrintErr("BEFORE IS HEAP OBJECT: %s\n",
-               before_obj->IsHeapObject() ? "YES" : "NO");
-  OS::PrintErr("BEFORE IN VMISOLATE HEAP OBJECT: %s\n",
-               before_obj->untag()->InVMIsolateHeap() ? "YES" : "NO");
-
-  OS::PrintErr("AFTER ADDRESS: %#" Px "\n", static_cast<uword>(after_obj));
-  OS::PrintErr("AFTER IS HEAP OBJECT: %s\n",
-               after_obj->IsHeapObject() ? "YES" : "NO");
-  OS::PrintErr("AFTER IN VMISOLATE HEAP OBJECT: %s\n",
-               after_obj->untag()->InVMIsolateHeap() ? "YES" : "NO");
-
-  if (before_obj->IsHeapObject()) {
-    OS::PrintErr("BEFORE OBJECT CLASS ID=%" Pd "\n", before_obj->GetClassId());
-    const Object& obj = Object::Handle(before_obj);
-    OS::PrintErr("BEFORE OBJECT AS STRING=%s\n", obj.ToCString());
-  }
-
-  if (after_obj->IsHeapObject()) {
-    OS::PrintErr("AFTER OBJECT CLASS ID=%" Pd "\n", after_obj->GetClassId());
-    const Object& obj = Object::Handle(after_obj);
-    OS::PrintErr("AFTER OBJECT AS STRING=%s\n", obj.ToCString());
-  }
+DART_NOINLINE
+DART_NORETURN
+static void InvalidForwarding(ObjectPtr before,
+                              ObjectPtr after,
+                              const char* message) {
+  // Separate prints so we can at least get partial information if header
+  // dereference or ToCString crashes.
+  OS::PrintErr("become: %s\n", message);
+  OS::PrintErr("before: %" Px "\n", static_cast<uword>(before));
+  OS::PrintErr("after: %" Px "\n", static_cast<uword>(after));
+  OS::PrintErr("before header: %" Px "\n",
+               before->IsHeapObject() ? before->untag()->tags() : 0);
+  OS::PrintErr("after header: %" Px "\n",
+               after->IsHeapObject() ? after->untag()->tags() : 0);
+  // Create both handles before either ToCString.
+  Object& before_handle = Object::Handle(before);
+  Object& after_handle = Object::Handle(after);
+  OS::PrintErr("before: %s\n", before_handle.ToCString());
+  OS::PrintErr("after: %s\n", after_handle.ToCString());
+  FATAL("become: %s", message);
 }
 
 void Become::Forward() {
@@ -286,38 +280,35 @@ void Become::Forward() {
 
   // Setup forwarding pointers.
   for (intptr_t i = 0; i < pointers_.length(); i += 2) {
-    ObjectPtr before_obj = pointers_[i];
-    ObjectPtr after_obj = pointers_[i + 1];
+    ObjectPtr before = pointers_[i];
+    ObjectPtr after = pointers_[i + 1];
 
-    if (before_obj == after_obj) {
-      FATAL("become: Cannot self-forward");
+    if (before == after) {
+      InvalidForwarding(before, after, "Cannot self-forward");
     }
-    if (!before_obj->IsHeapObject()) {
-      CrashDump(before_obj, after_obj);
-      FATAL("become: Cannot forward immediates");
+    if (!before->IsHeapObject()) {
+      InvalidForwarding(before, after, "Cannot forward immediates");
     }
-    if (!after_obj->IsHeapObject()) {
-      CrashDump(before_obj, after_obj);
-      FATAL("become: Cannot become immediates");
+    if (!after->IsHeapObject()) {
+      InvalidForwarding(before, after, "Cannot target immediates");
     }
-    if (before_obj->untag()->InVMIsolateHeap()) {
-      CrashDump(before_obj, after_obj);
-      FATAL("become: Cannot forward VM heap objects");
+    if (before->untag()->InVMIsolateHeap()) {
+      InvalidForwarding(before, after, "Cannot forward VM heap objects");
     }
-    if (before_obj->IsForwardingCorpse() && !IsDummyObject(before_obj)) {
-      FATAL("become: Cannot forward to multiple targets");
+    if (before->IsForwardingCorpse() && !IsDummyObject(before)) {
+      InvalidForwarding(before, after, "Cannot forward to multiple targets");
     }
-    if (after_obj->IsForwardingCorpse()) {
+    if (after->IsForwardingCorpse()) {
       // The Smalltalk become does allow this, and for very special cases
       // it is important (shape changes to Class or Mixin), but as these
       // cases do not arise in Dart, better to prohibit it.
-      FATAL("become: No indirect chains of forwarding");
+      InvalidForwarding(before, after, "No indirect chains of forwarding");
     }
 
-    ForwardObjectTo(before_obj, after_obj);
-    heap->ForwardWeakEntries(before_obj, after_obj);
+    ForwardObjectTo(before, after);
+    heap->ForwardWeakEntries(before, after);
 #if defined(HASH_IN_OBJECT_HEADER)
-    Object::SetCachedHashIfNotSet(after_obj, Object::GetCachedHash(before_obj));
+    Object::SetCachedHashIfNotSet(after, Object::GetCachedHash(before));
 #endif
   }
 
