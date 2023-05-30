@@ -176,6 +176,8 @@ dart.try_builder(
     # TODO(https://github.com/flutter/flutter/issues/127691): Remove filtering of host_class.
     no_host_class = True,
     pool = "luci.flutter.staging",
+    # no such package: infra_internal/goma/client/windows-arm64
+    goma = False,
 )
 
 # vm|appjit
