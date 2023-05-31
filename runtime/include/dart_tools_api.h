@@ -359,17 +359,8 @@ typedef enum {
  * \param label The name of the event. Its lifetime must extend at least until
  *     Dart_Cleanup.
  * \param timestamp0 The first timestamp of the event.
- * \param timestamp1_or_id When reporting an event of type
- *     |Dart_Timeline_Event_Duration|, the second (end) timestamp of the event
- *     should be passed through |timestamp1_or_id|. When reporting an event of
- *     type |Dart_Timeline_Event_Async_Begin|, |Dart_Timeline_Event_Async_End|,
- *     or |Dart_Timeline_Event_Async_Instant|, the async ID associated with the
- *     event should be passed through |timestamp1_or_id|. When reporting an
- *     event of type |Dart_Timeline_Event_Begin| or |Dart_Timeline_Event_End|,
- *     the event ID associated with the event should be passed through
- *     |timestamp1_or_id|. Note that this event ID will only be used by the
- *     MacOS recorder. The argument to |timestamp1_or_id| will not be used when
- *     reporting events of other types.
+ * \param timestamp1_or_async_id The second timestamp of the event or
+ *     the async id.
  * \param argument_count The number of argument names and values.
  * \param argument_names An array of names of the arguments. The lifetime of the
  *     names must extend at least until Dart_Cleanup. The array may be reclaimed
@@ -379,7 +370,7 @@ typedef enum {
  */
 DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     int64_t timestamp0,
-                                    int64_t timestamp1_or_id,
+                                    int64_t timestamp1_or_async_id,
                                     Dart_Timeline_Event_Type type,
                                     intptr_t argument_count,
                                     const char** argument_names,
@@ -412,12 +403,9 @@ typedef struct {
    */
   int64_t timestamp0;
 
-  /**
-   * For a duration event, this is the end time. For an async event, this is the
-   * async ID. For a begin or end event, this is the event ID (which is only
-   * referenced by the MacOS recorder).
-   */
-  int64_t timestamp1_or_id;
+  /* For a duration event, this is the end time. For an async event, this is the
+   * async id. */
+  int64_t timestamp1_or_async_id;
 
   /* The current isolate of the event, as if by Dart_GetMainPortId, or
    * ILLEGAL_PORT if the event had no current isolate. */

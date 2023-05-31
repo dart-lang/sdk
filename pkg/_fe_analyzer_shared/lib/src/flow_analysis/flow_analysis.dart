@@ -114,7 +114,7 @@ class ExpressionPropertyTarget<Expression extends Object>
 /// or top level variable to be analyzed, and call the appropriate methods
 /// while visiting the code for type inference.
 abstract class FlowAnalysis<Node extends Object, Statement extends Node,
-    Expression extends Object, Variable extends Object, Type extends Object> {
+    Expression extends Node, Variable extends Object, Type extends Object> {
   factory FlowAnalysis(Operations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
       {required bool respectImplicitlyTypedVarInitializers}) {
@@ -125,7 +125,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   factory FlowAnalysis.legacy(Operations<Variable, Type> operations,
           AssignedVariables<Node, Variable> assignedVariables) =
-      _LegacyTypePromotion;
+      _LegacyTypePromotion<Node, Statement, Expression, Variable, Type>;
 
   /// Return `true` if the current state is reachable.
   bool get isReachable;
@@ -1056,7 +1056,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 /// Alternate implementation of [FlowAnalysis] that prints out inputs and output
 /// at the API boundary, for assistance in debugging.
 class FlowAnalysisDebug<Node extends Object, Statement extends Node,
-        Expression extends Object, Variable extends Object, Type extends Object>
+        Expression extends Node, Variable extends Object, Type extends Object>
     implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
   static int _nextCallbackId = 0;
 
@@ -3658,7 +3658,7 @@ abstract class _EqualityCheckResult {
 }
 
 class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
-        Expression extends Object, Variable extends Object, Type extends Object>
+        Expression extends Node, Variable extends Object, Type extends Object>
     implements
         FlowAnalysis<Node, Statement, Expression, Variable, Type>,
         FlowModelHelper<Type> {
@@ -5488,7 +5488,7 @@ class _LegacyExpressionInfo<Type> {
 /// Implementation of [FlowAnalysis] that performs legacy (pre-null-safety) type
 /// promotion.
 class _LegacyTypePromotion<Node extends Object, Statement extends Node,
-        Expression extends Object, Variable extends Object, Type extends Object>
+        Expression extends Node, Variable extends Object, Type extends Object>
     implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
   /// The [Operations], used to access types, check subtyping, and query
   /// variable types.

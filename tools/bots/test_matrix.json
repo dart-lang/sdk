@@ -551,11 +551,10 @@
         "timeout": 240
       }
     },
-    "dart2wasm-hostasserts-linux-x64-d8": {
+    "dart2wasm-hostasserts-linux-x64-(d8|chrome)": {
       "options": {
         "host-checked": true,
-        "timeout": 240,
-        "builder-tag": "dart2wasm"
+        "timeout": 240
       }
     },
     "vm-aot-android-(debug|product|release)-arm_x64": {
@@ -2687,10 +2686,11 @@
     },
     {
       "builders": [
+        "dart2wasm-linux-x64-chrome",
         "dart2wasm-linux-x64-d8"
       ],
       "meta": {
-        "description": "dart2wasm tests."
+        "description": "dart2wasm tests"
       },
       "steps": [
         {
@@ -2702,9 +2702,9 @@
           ]
         },
         {
-          "name": "dart2wasm d8 tests",
+          "name": "dart2wasm tests",
           "arguments": [
-            "-ndart2wasm-hostasserts-linux-x64-d8",
+            "-ndart2wasm-hostasserts-linux-x64-${runtime}",
             "co19",
             "corelib",
             "language",
