@@ -19,6 +19,7 @@ class FeatureSetProvider {
   final FeatureSet _packageDefaultFeatureSet;
   final Version _nonPackageDefaultLanguageVersion;
   final FeatureSet _nonPackageDefaultFeatureSet;
+  final Map<String, FeatureSet> _cachedFeatureSets = {};
 
   FeatureSetProvider._({
     required Version sdkLanguageVersion,
@@ -37,7 +38,8 @@ class FeatureSetProvider {
         _nonPackageDefaultFeatureSet = nonPackageDefaultFeatureSet;
 
   FeatureSet featureSetForExperiments(List<String> experiments) {
-    return FeatureSet.fromEnableFlags2(
+    String key = experiments.join("|");
+    return _cachedFeatureSets[key] ??= FeatureSet.fromEnableFlags2(
       sdkLanguageVersion: _sdkLanguageVersion,
       flags: experiments,
     );
