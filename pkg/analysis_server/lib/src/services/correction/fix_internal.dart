@@ -499,6 +499,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.combinators_ordering: [
       SortCombinators.new,
     ],
+    LintNames.constant_identifier_names: [
+      RenameToCamelCase.new,
+    ],
     LintNames.curly_braces_in_flow_control_structures: [
       UseCurlyBraces.new,
     ],

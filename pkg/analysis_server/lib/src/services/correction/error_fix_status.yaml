@@ -2005,9 +2005,10 @@ LintCode.conditional_uri_does_not_exist:
     The fix is to create the file, but typically that means running a generator,
     which is outside the scope of fixes.
 LintCode.constant_identifier_names:
-  status: noFix
+  status: hasFix
   notes: |-
-    The fix is to rename the constant, but that's a refactoring.
+    Supported for local variables.
+    Not supported for fields and top-level variables, has to be a refactoring.
 LintCode.control_flow_in_finally:
   status: noFix
 LintCode.curly_braces_in_flow_control_structures:
@@ -2143,6 +2144,9 @@ LintCode.no_self_assignments:
   status: needsEvaluation
 LintCode.non_constant_identifier_names:
   status: hasFix
+  notes: |-
+    Supported for local variables.
+    Not supported for fields and top-level variables, has to be a refactoring.
 LintCode.noop_primitive_operations:
   status: hasFix
 LintCode.null_check_on_nullable_type_parameter:
