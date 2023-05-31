@@ -129,18 +129,33 @@ abstract class TypeEnvironment extends Types {
       DartType bound = t.right;
       DartType? futureType = _futureTypeOf(bound);
       if (futureType != null) {
-        return _withDeclaredNullability(flatten(futureType), t.nullability);
+        DartType flattenedFutureType = flatten(futureType);
+        return _withDeclaredNullability(flattenedFutureType,
+            uniteNullabilities(t.nullability, flattenedFutureType.nullability));
       } else {
-        return _withDeclaredNullability(flatten(t.left), t.nullability);
+        DartType flattenedFutureType = flatten(t.left);
+        return _withDeclaredNullability(flattenedFutureType,
+            uniteNullabilities(t.nullability, flattenedFutureType.nullability));
       }
     } else {
       DartType? futureType = _futureTypeOf(t);
       if (futureType is InterfaceType) {
         assert(futureType.classNode == coreTypes.futureClass);
+        DartType typeArgument = futureType.typeArguments.single;
         return _withDeclaredNullability(
-            futureType.typeArguments.single, t.nullability);
+            typeArgument,
+            uniteNullabilities(
+                t.nullability,
+                uniteNullabilities(
+                    futureType.nullability, typeArgument.nullability)));
       } else if (futureType is FutureOrType) {
-        return _withDeclaredNullability(futureType.typeArgument, t.nullability);
+        DartType typeArgument = futureType.typeArgument;
+        return _withDeclaredNullability(
+            typeArgument,
+            uniteNullabilities(
+                t.nullability,
+                uniteNullabilities(
+                    futureType.nullability, typeArgument.nullability)));
       } else {
         return t;
       }

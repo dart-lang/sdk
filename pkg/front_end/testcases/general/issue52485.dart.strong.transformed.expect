@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+static method h1<X extends asy::Future<self::A>?>(self::h1::X% x) → asy::Future<void> async /* futureValueType= void */ {
+  self::A? x2 = await x /* runtimeCheckType= asy::Future<self::A?> */ ;
+  core::print(core::_GrowableList::_literal1<self::A?>(x2).{core::Object::runtimeType}{core::Type});
+  core::print(x2);
+}
+static method main() → void async /* futureValueType= void */ 
+  return await self::h1<Null>(null);
