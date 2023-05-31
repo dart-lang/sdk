@@ -5,8 +5,8 @@ library from "org-dartlang-test:///main.dart" as main {
     get field = main::E|get#field;
     set field = main::E|set#field;
   }
-  external static method E|get#field(dart.core::String #this) → dart.core::int;
-  external static method E|set#field(dart.core::String #this, dart.core::int #externalFieldValue) → void;
+  external static method E|get#field(lowered dart.core::String #this) → dart.core::int;
+  external static method E|set#field(lowered dart.core::String #this, dart.core::int #externalFieldValue) → void;
   static method main() → dynamic {
     main::E|set#field("foo", main::E|get#field("bar"));
   }

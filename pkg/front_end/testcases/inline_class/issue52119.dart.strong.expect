@@ -38,27 +38,27 @@ inline class Bar<T extends core::Object? = dynamic> /* declaredRepresentationTyp
   tearoff _ = self::Bar|_#_#tearOff;
 }
 static method Foo|(core::int i) → self::Foo {
-  final self::Foo #this;
+  lowered final self::Foo #this;
   #this = self::Foo|_(i.{core::num::+}(2){(core::num) → core::int});
   return #this;
 }
 static method Foo|_#new#tearOff(core::int i) → self::Foo
   return self::Foo|(i);
 static method Foo|_(core::int i) → self::Foo {
-  final self::Foo #this = i;
+  lowered final self::Foo #this = i;
   return #this;
 }
 static method Foo|_#_#tearOff(core::int i) → self::Foo
   return self::Foo|_(i);
 static method Foo|redirectNamed1(core::int a, core::int b) → self::Foo {
-  final self::Foo #this;
+  lowered final self::Foo #this;
   #this = self::Foo|named(a, subtract: b);
   return #this;
 }
 static method Foo|_#redirectNamed1#tearOff(core::int a, core::int b) → self::Foo
   return self::Foo|redirectNamed1(a, b);
 static method Foo|redirectNamed2(core::int a, core::int b) → self::Foo {
-  final self::Foo #this;
+  lowered final self::Foo #this;
   final core::int #t1 = b;
   #this = self::Foo|named(a, subtract: #t1);
   return #this;
@@ -66,13 +66,13 @@ static method Foo|redirectNamed2(core::int a, core::int b) → self::Foo {
 static method Foo|_#redirectNamed2#tearOff(core::int a, core::int b) → self::Foo
   return self::Foo|redirectNamed2(a, b);
 static method Foo|named(core::int value, {required core::int subtract = #C1}) → self::Foo {
-  final self::Foo #this = value.{core::num::-}(subtract){(core::num) → core::int};
+  lowered final self::Foo #this = value.{core::num::-}(subtract){(core::num) → core::int};
   return #this;
 }
 static method Foo|_#named#tearOff(core::int value, {required core::int subtract}) → self::Foo
   return self::Foo|named(value, subtract: subtract);
 static method Foo|erroneous() → self::Foo {
-  final self::Foo #this;
+  lowered final self::Foo #this;
   final dynamic #t2 = invalid-expression "pkg/front_end/testcases/inline_class/issue52119.dart:15:26: Error: Couldn't find constructor 'Foo.unresolved'.
   Foo.erroneous() : this.unresolved();
                          ^^^^^^^^^^";
@@ -81,14 +81,14 @@ static method Foo|erroneous() → self::Foo {
 static method Foo|_#erroneous#tearOff() → self::Foo
   return self::Foo|erroneous();
 static method Bar|<T extends core::Object? = dynamic>(self::Bar|::T% i) → self::Bar<self::Bar|::T%> {
-  final self::Bar<self::Bar|::T%> #this;
+  lowered final self::Bar<self::Bar|::T%> #this;
   #this = self::Bar|_<self::Bar|::T%>(i);
   return #this;
 }
 static method Bar|_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|_#new#tearOff::T% i) → self::Bar<self::Bar|_#new#tearOff::T%>
   return self::Bar|<self::Bar|_#new#tearOff::T%>(i);
 static method Bar|_<T extends core::Object? = dynamic>(self::Bar|_::T% i) → self::Bar<self::Bar|_::T%> {
-  final self::Bar<self::Bar|_::T%> #this = i;
+  lowered final self::Bar<self::Bar|_::T%> #this = i;
   return #this;
 }
 static method Bar|_#_#tearOff<T extends core::Object? = dynamic>(self::Bar|_#_#tearOff::T% i) → self::Bar<self::Bar|_#_#tearOff::T%>

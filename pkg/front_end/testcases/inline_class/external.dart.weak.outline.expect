@@ -32,8 +32,8 @@ static method B|_#new#tearOff(self::A a) → self::B
 external static method B|named(core::int i) → self::B;
 static method B|_#named#tearOff(core::int i) → self::B
   return self::B|named(i);
-external static method B|get#field(self::A #this) → self::A;
-external static method B|set#field(self::A #this, self::A #externalFieldValue) → void;
+external static method B|get#field(lowered self::A #this) → self::A;
+external static method B|set#field(lowered self::A #this, self::A #externalFieldValue) → void;
 external static method B|method(lowered final self::B #this) → self::A;
 static method B|get#method(lowered final self::B #this) → () → self::A
   return () → self::A => self::B|method(#this);

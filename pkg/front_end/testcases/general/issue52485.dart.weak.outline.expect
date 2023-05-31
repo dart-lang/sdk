@@ -11,3 +11,5 @@ static method h1<X extends asy::Future<self::A>?>(self::h1::X% x) → asy::Futur
   ;
 static method main() → void async 
   ;
+static method expectEquals(dynamic a, dynamic b) → dynamic
+  ;

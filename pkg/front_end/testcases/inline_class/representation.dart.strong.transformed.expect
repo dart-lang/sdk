@@ -43,19 +43,19 @@ inline class Duplicate /* declaredRepresentationType = core::bool */ {
 }
 static field core::int Static|staticField = 42;
 static method Static|(core::bool instanceField) → self::Static {
-  final self::Static #this = instanceField;
+  lowered final self::Static #this = instanceField;
   return #this;
 }
 static method Static|_#new#tearOff(core::bool instanceField) → self::Static
   return self::Static|(instanceField);
 static method Multiple|(core::bool instanceField1) → self::Multiple {
-  final self::Multiple #this = instanceField1;
+  lowered final self::Multiple #this = instanceField1;
   return #this;
 }
 static method Multiple|_#new#tearOff(core::bool instanceField1) → self::Multiple
   return self::Multiple|(instanceField1);
 static method Duplicate|(core::int instanceField) → self::Duplicate {
-  final self::Duplicate #this;
+  lowered final self::Duplicate #this;
   final dynamic #t1 = invalid-expression "pkg/front_end/testcases/inline_class/representation.dart:25:18: Error: Can't use 'instanceField' because it is declared more than once.
   Duplicate(this.instanceField);
                  ^^^^^^^^^^^^^";

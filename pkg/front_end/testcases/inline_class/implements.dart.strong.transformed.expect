@@ -231,7 +231,7 @@ inline class D1 /* declaredRepresentationType = core::int */ implements self::C1
   tearoff • = self::D1|_#new#tearOff;
 }
 static method A|(core::int it) → self::A {
-  final self::A #this = it;
+  lowered final self::A #this = it;
   return #this;
 }
 static method A|_#new#tearOff(core::int it) → self::A
@@ -241,7 +241,7 @@ static method A|methodA(lowered final self::A #this) → core::int
 static method A|get#methodA(lowered final self::A #this) → () → core::int
   return () → core::int => self::A|methodA(#this);
 static method B|<T extends core::Object? = dynamic>(self::B|::T% it) → self::B<self::B|::T%> {
-  final self::B<self::B|::T%> #this = it;
+  lowered final self::B<self::B|::T%> #this = it;
   return #this;
 }
 static method B|_#new#tearOff<T extends core::Object? = dynamic>(self::B|_#new#tearOff::T% it) → self::B<self::B|_#new#tearOff::T%>
@@ -251,7 +251,7 @@ static method B|methodB<T extends core::Object? = dynamic>(lowered final self::B
 static method B|get#methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#methodB::T%> #this) → () → self::B|get#methodB::T%
   return () → self::B|get#methodB::T% => self::B|methodB<self::B|get#methodB::T%>(#this);
 static method C1|(core::int it) → self::C1 {
-  final self::C1 #this = it;
+  lowered final self::C1 #this = it;
   return #this;
 }
 static method C1|_#new#tearOff(core::int it) → self::C1
@@ -261,7 +261,7 @@ static method C1|methodC1(lowered final self::C1 #this) → core::int
 static method C1|get#methodC1(lowered final self::C1 #this) → () → core::int
   return () → core::int => self::C1|methodC1(#this);
 static method C2|(core::int it) → self::C2 {
-  final self::C2 #this = it;
+  lowered final self::C2 #this = it;
   return #this;
 }
 static method C2|_#new#tearOff(core::int it) → self::C2
@@ -271,7 +271,7 @@ static method C2|methodC2(lowered final self::C2 #this) → core::int
 static method C2|get#methodC2(lowered final self::C2 #this) → () → core::int
   return () → core::int => self::C2|methodC2(#this);
 static method D1|(core::int it) → self::D1 {
-  final self::D1 #this = it;
+  lowered final self::D1 #this = it;
   return #this;
 }
 static method D1|_#new#tearOff(core::int it) → self::D1

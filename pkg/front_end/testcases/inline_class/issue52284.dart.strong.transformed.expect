@@ -15,7 +15,7 @@ inline class Id /* declaredRepresentationType = core::int */ {
   tearoff • = self::Id|_#new#tearOff;
 }
 static method Id|(core::int id) → self::Id {
-  final self::Id #this = id;
+  lowered final self::Id #this = id;
   return #this;
 }
 static method Id|_#new#tearOff(core::int id) → self::Id

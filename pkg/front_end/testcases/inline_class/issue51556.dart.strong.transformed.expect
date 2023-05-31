@@ -32,31 +32,31 @@ inline class JSNumber /* declaredRepresentationType = core::double */ implements
   tearoff • = self::JSNumber|_#new#tearOff;
 }
 static method JSAny|(core::Object value) → self::JSAny {
-  final self::JSAny #this = value;
+  lowered final self::JSAny #this = value;
   return #this;
 }
 static method JSAny|_#new#tearOff(core::Object value) → self::JSAny
   return self::JSAny|(value);
 static method JSObject|(core::Object value) → self::JSObject {
-  final self::JSObject #this = value;
+  lowered final self::JSObject #this = value;
   return #this;
 }
 static method JSObject|_#new#tearOff(core::Object value) → self::JSObject
   return self::JSObject|(value);
 static method JSArray|(core::List<self::JSAny?> value) → self::JSArray {
-  final self::JSArray #this = value;
+  lowered final self::JSArray #this = value;
   return #this;
 }
 static method JSArray|_#new#tearOff(core::List<self::JSAny?> value) → self::JSArray
   return self::JSArray|(value);
 static method JSExportedDartObject|(core::Object value) → self::JSExportedDartObject {
-  final self::JSExportedDartObject #this = value;
+  lowered final self::JSExportedDartObject #this = value;
   return #this;
 }
 static method JSExportedDartObject|_#new#tearOff(core::Object value) → self::JSExportedDartObject
   return self::JSExportedDartObject|(value);
 static method JSNumber|(core::double value) → self::JSNumber {
-  final self::JSNumber #this = value;
+  lowered final self::JSNumber #this = value;
   return #this;
 }
 static method JSNumber|_#new#tearOff(core::double value) → self::JSNumber

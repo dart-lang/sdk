@@ -99,20 +99,20 @@ external static get untypedTopLevelField() → dynamic;
 external static set untypedTopLevelField(dynamic #externalFieldValue) → void;
 external static get untypedFinalTopLevelField() → dynamic;
 @self::Annotation::•()
-external static method Extension|get#extensionInstanceField(self::A #this) → core::int;
+external static method Extension|get#extensionInstanceField(lowered self::A #this) → core::int;
 @self::Annotation::•()
-external static method Extension|set#extensionInstanceField(self::A #this, core::int #externalFieldValue) → void;
+external static method Extension|set#extensionInstanceField(lowered self::A #this, core::int #externalFieldValue) → void;
 @self::Annotation::•()
-external static method Extension|get#finalExtensionInstanceField(self::A #this) → core::int;
+external static method Extension|get#finalExtensionInstanceField(lowered self::A #this) → core::int;
 @self::Annotation::•()
 external static get Extension|extensionStaticField() → core::int;
 @self::Annotation::•()
 external static set Extension|extensionStaticField(core::int #externalFieldValue) → void;
 @self::Annotation::•()
 external static get Extension|finalExtensionStaticField() → core::int;
-external static method Extension|get#untypedExtensionInstanceField(self::A #this) → dynamic;
-external static method Extension|set#untypedExtensionInstanceField(self::A #this, dynamic #externalFieldValue) → void;
-external static method Extension|get#untypedFinalExtensionInstanceField(self::A #this) → dynamic;
+external static method Extension|get#untypedExtensionInstanceField(lowered self::A #this) → dynamic;
+external static method Extension|set#untypedExtensionInstanceField(lowered self::A #this, dynamic #externalFieldValue) → void;
+external static method Extension|get#untypedFinalExtensionInstanceField(lowered self::A #this) → dynamic;
 external static get Extension|untypedExtensionStaticField() → dynamic;
 external static set Extension|untypedExtensionStaticField(dynamic #externalFieldValue) → void;
 external static get Extension|untypedFinalExtensionStaticField() → dynamic;

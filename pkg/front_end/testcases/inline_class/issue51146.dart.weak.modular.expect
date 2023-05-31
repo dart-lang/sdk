@@ -7,7 +7,7 @@ inline class I<X extends core::Object? = dynamic, Y extends core::Object? = dyna
   tearoff • = self::I|_#new#tearOff;
 }
 static method I|<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|::X% value) → self::I<self::I|::X%, self::I|::Y%> {
-  final self::I<self::I|::X%, self::I|::Y%> #this = value;
+  lowered final self::I<self::I|::X%, self::I|::Y%> #this = value;
   return #this;
 }
 static method I|_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|_#new#tearOff::X% value) → self::I<self::I|_#new#tearOff::X%, self::I|_#new#tearOff::Y%>
