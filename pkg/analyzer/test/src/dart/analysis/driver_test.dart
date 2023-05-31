@@ -911,6 +911,16 @@ part of 'a.dart';
       expect(testView.numOfAnalyzedLibraries, isZero);
       expect(allResults, isEmpty);
     }
+
+    // Ask for resolved library.
+    final libraryResult = await driver.getResolvedLibrary(a);
+    libraryResult as ResolvedLibraryResult;
+    expect(libraryResult.unitWithPath(a), same(aResult1));
+    expect(libraryResult.unitWithPath(b), same(bResult1));
+
+    // No new analysis, no results into the stream.
+    expect(testView.numOfAnalyzedLibraries, isZero);
+    expect(allResults, isEmpty);
   }
 
   test_cachedPriorityResults_wholeLibrary_priorityLibrary_askPart() async {
@@ -955,6 +965,16 @@ part of 'a.dart';
       expect(testView.numOfAnalyzedLibraries, isZero);
       expect(allResults, isEmpty);
     }
+
+    // Ask for resolved library.
+    final libraryResult = await driver.getResolvedLibrary(a);
+    libraryResult as ResolvedLibraryResult;
+    expect(libraryResult.unitWithPath(a), same(aResult1));
+    expect(libraryResult.unitWithPath(b), same(bResult1));
+
+    // No new analysis, no results into the stream.
+    expect(testView.numOfAnalyzedLibraries, isZero);
+    expect(allResults, isEmpty);
   }
 
   test_cachedPriorityResults_wholeLibrary_priorityPart_askPart() async {
@@ -999,6 +1019,16 @@ part of 'a.dart';
       expect(testView.numOfAnalyzedLibraries, isZero);
       expect(allResults, isEmpty);
     }
+
+    // Ask for resolved library.
+    final libraryResult = await driver.getResolvedLibrary(a);
+    libraryResult as ResolvedLibraryResult;
+    expect(libraryResult.unitWithPath(a), same(aResult1));
+    expect(libraryResult.unitWithPath(b), same(bResult1));
+
+    // No new analysis, no results into the stream.
+    expect(testView.numOfAnalyzedLibraries, isZero);
+    expect(allResults, isEmpty);
   }
 
   test_changeFile_implicitlyAnalyzed() async {
@@ -1958,7 +1988,13 @@ class B {}
   }
 
   test_getResolvedLibrary_cachePriority() async {
-    final a = newFile('/test/lib/a.dart', '');
+    final a = newFile('/test/lib/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('/test/lib/b.dart', r'''
+part of 'a.dart';
+''');
 
     driver.priorityFiles = [a.path];
 
@@ -1966,6 +2002,13 @@ class B {}
     result1 as ResolvedLibraryResult;
 
     final testView = driver.testView!;
+
+    // Resolving the library caches individual unit results.
+    final cache = testView.priorityResults;
+    expect(cache.keys, containsAll([a.path, b.path]));
+    final aResult1 = cache[a.path] as ResolvedUnitResult;
+    final bResult1 = cache[b.path] as ResolvedUnitResult;
+
     await waitForIdleWithoutExceptions();
     testView.numOfAnalyzedLibraries = 0;
     allResults.clear();
@@ -1977,6 +2020,22 @@ class B {}
     // No new analysis, no results into the stream.
     expect(testView.numOfAnalyzedLibraries, isZero);
     expect(allResults, isEmpty);
+
+    // Get the (cached) result, not reported to the stream: a
+    {
+      final aResult2 = await driver.getResultValid(a.path);
+      expect(aResult2, same(aResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+
+    // Get the (cached) result, not reported to the stream: b
+    {
+      final bResult2 = await driver.getResultValid(b.path);
+      expect(bResult2, same(bResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
   }
 
   test_getResolvedLibrary_invalidPath_notAbsolute() async {
