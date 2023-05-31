@@ -416,7 +416,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         _thisVariable = new VariableDeclarationImpl(syntheticThisName,
             isFinal: true,
             type: new InlineType(inlineClassBuilder.inlineClass,
-                libraryBuilder.nonNullable, typeArguments));
+                libraryBuilder.nonNullable, typeArguments))
+          ..fileOffset = charOffset
+          ..isLowered = true;
       } else {
         _thisVariable = function.positionalParameters.first;
       }

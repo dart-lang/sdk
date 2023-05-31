@@ -338,7 +338,7 @@ inline class ErroneousInlineClass /* declaredRepresentationType = core::int */ {
 }
 static method _extension#0|set#it(lowered final dynamic #this, dynamic value) → void {}
 static method InlineClass|(core::int it) → self::InlineClass {
-  final self::InlineClass #this = it;
+  lowered final self::InlineClass #this = it;
   return #this;
 }
 static method InlineClass|_#new#tearOff(core::int it) → self::InlineClass
@@ -366,7 +366,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 static method InlineClass|get#test(lowered final self::InlineClass #this) → () → void
   return () → void => self::InlineClass|test(#this);
 static method GenericInlineClass|<T extends core::Object? = dynamic>(self::GenericInlineClass|::T% it) → self::GenericInlineClass<self::GenericInlineClass|::T%> {
-  final self::GenericInlineClass<self::GenericInlineClass|::T%> #this = it;
+  lowered final self::GenericInlineClass<self::GenericInlineClass|::T%> #this = it;
   return #this;
 }
 static method GenericInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|_#new#tearOff::T%>
@@ -394,7 +394,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 static method GenericInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|get#test::T%> #this) → (self::GenericInlineClass|get#test::T%) → void
   return (self::GenericInlineClass|get#test::T% t) → void => self::GenericInlineClass|test<self::GenericInlineClass|get#test::T%>(#this, t);
 static method FunctionInlineClass|<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|::T%> {
-  final self::FunctionInlineClass<self::FunctionInlineClass|::T%> #this = it;
+  lowered final self::FunctionInlineClass<self::FunctionInlineClass|::T%> #this = it;
   return #this;
 }
 static method FunctionInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|_#new#tearOff::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|_#new#tearOff::T%>
@@ -426,7 +426,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 static method FunctionInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|get#test::T%> #this) → (() → self::FunctionInlineClass|get#test::T%) → void
   return (() → self::FunctionInlineClass|get#test::T% t) → void => self::FunctionInlineClass|test<self::FunctionInlineClass|get#test::T%>(#this, t);
 static method GenericFunctionInlineClass|(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass {
-  final self::GenericFunctionInlineClass #this = it;
+  lowered final self::GenericFunctionInlineClass #this = it;
   return #this;
 }
 static method GenericFunctionInlineClass|_#new#tearOff(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass
@@ -462,7 +462,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
 static method GenericFunctionInlineClass|get#test(lowered final self::GenericFunctionInlineClass #this) → () → void
   return () → void => self::GenericFunctionInlineClass|test(#this);
 static method DynamicInlineClass|(dynamic it) → self::DynamicInlineClass {
-  final self::DynamicInlineClass #this = it;
+  lowered final self::DynamicInlineClass #this = it;
   return #this;
 }
 static method DynamicInlineClass|_#new#tearOff(dynamic it) → self::DynamicInlineClass
@@ -494,7 +494,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 static method DynamicInlineClass|get#test(lowered final self::DynamicInlineClass #this) → () → void
   return () → void => self::DynamicInlineClass|test(#this);
 static method ErroneousInlineClass|(core::int a, core::String b) → self::ErroneousInlineClass {
-  final self::ErroneousInlineClass #this = b;
+  lowered final self::ErroneousInlineClass #this = b;
   return #this;
 }
 static method ErroneousInlineClass|_#new#tearOff(core::int a, core::String b) → self::ErroneousInlineClass
@@ -695,7 +695,7 @@ inline class PrivateInlineClass /* declaredRepresentationType = core::int */ {
   tearoff • = self2::PrivateInlineClass|_#new#tearOff;
 }
 static method PrivateInlineClass|(core::int _it) → self2::PrivateInlineClass {
-  final self2::PrivateInlineClass #this = _it;
+  lowered final self2::PrivateInlineClass #this = _it;
   return #this;
 }
 static method PrivateInlineClass|_#new#tearOff(core::int _it) → self2::PrivateInlineClass

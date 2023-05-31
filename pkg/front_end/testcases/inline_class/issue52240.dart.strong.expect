@@ -9,13 +9,13 @@ inline class X /* declaredRepresentationType = core::int */ {
   tearoff named = self::X|_#named#tearOff;
 }
 static method X|() → self::X {
-  final self::X #this = 0;
+  lowered final self::X #this = 0;
   return #this;
 }
 static method X|_#new#tearOff() → self::X
   return self::X|();
 static method X|named() → self::X {
-  final self::X #this = 0;
+  lowered final self::X #this = 0;
   return #this;
 }
 static method X|_#named#tearOff() → self::X

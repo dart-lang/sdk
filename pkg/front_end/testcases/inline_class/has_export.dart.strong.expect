@@ -17,7 +17,7 @@ inline class C /* declaredRepresentationType = core::int */ { // from org-dartla
   tearoff • = has::_#new#tearOff;
 }
 static method /* from org-dartlang-testcase:///has_part_of_lib.dart */ C|(core::int i) → has::C {
-  final has::C #this = i;
+  lowered final has::C #this = i;
   return #this;
 }
 static method /* from org-dartlang-testcase:///has_part_of_lib.dart */ _#new#tearOff(core::int i) → has::C

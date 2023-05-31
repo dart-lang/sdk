@@ -11,7 +11,7 @@ inline class A /* declaredRepresentationType = core::int */ {
 }
 @#C2
 static method A|(core::int i) → self::A {
-  final self::A #this = i;
+  lowered final self::A #this = i;
   return #this;
 }
 static method A|_#new#tearOff(core::int i) → self::A

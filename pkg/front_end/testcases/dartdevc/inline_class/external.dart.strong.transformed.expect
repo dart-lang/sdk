@@ -41,9 +41,9 @@ static method B|named(core::int i) → self::B
   return js_2::_callConstructorUnchecked1<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), i);
 static method B|_#named#tearOff(core::int i) → self::B
   return self::B|named(i);
-static method B|get#field(self::A #this) → self::A
+static method B|get#field(lowered self::A #this) → self::A
   return js_2::getProperty<self::A>(#this, "field");
-static method B|set#field(self::A #this, self::A #externalFieldValue) → void
+static method B|set#field(lowered self::A #this, self::A #externalFieldValue) → void
   return js_2::_setPropertyUnchecked<self::A>(#this, "field", #externalFieldValue);
 static method B|method(lowered final self::B #this) → self::A
   return js_2::_callMethodUnchecked0<self::A>(#this, "method");

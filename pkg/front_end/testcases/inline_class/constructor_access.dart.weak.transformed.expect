@@ -13,19 +13,19 @@ inline class GenericClass<T extends core::Object? = dynamic> /* declaredRepresen
   tearoff • = self::GenericClass|_#new#tearOff;
 }
 static method Class|(core::int it) → self::Class {
-  final self::Class #this = it;
+  lowered final self::Class #this = it;
   return #this;
 }
 static method Class|_#new#tearOff(core::int it) → self::Class
   return self::Class|(it);
 static method Class|named(core::int it) → self::Class {
-  final self::Class #this = it.{core::num::+}(1){(core::num) → core::int};
+  lowered final self::Class #this = it.{core::num::+}(1){(core::num) → core::int};
   return #this;
 }
 static method Class|_#named#tearOff(core::int it) → self::Class
   return self::Class|named(it);
 static method GenericClass|<T extends core::Object? = dynamic>(self::GenericClass|::T% it) → self::GenericClass<self::GenericClass|::T%> {
-  final self::GenericClass<self::GenericClass|::T%> #this = it;
+  lowered final self::GenericClass<self::GenericClass|::T%> #this = it;
   return #this;
 }
 static method GenericClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|_#new#tearOff::T%>

@@ -11,13 +11,13 @@ inline class Class2 /* declaredRepresentationType = core::int */ {
   tearoff • = self::Class2|_#new#tearOff;
 }
 static method Class1|(core::int field) → self::Class1 {
-  final self::Class1 #this = field;
+  lowered final self::Class1 #this = field;
   return #this;
 }
 static method Class1|_#new#tearOff(core::int field) → self::Class1
   return self::Class1|(field);
 static method Class2|(core::int field) → self::Class2 {
-  final self::Class2 #this = field;
+  lowered final self::Class2 #this = field;
   return #this;
 }
 static method Class2|_#new#tearOff(core::int field) → self::Class2
