@@ -1153,6 +1153,7 @@ class Elf extends DwarfContainer {
 
   /// Returns an iterable of the symbols in the static symbol table(s).
   /// The ordering of the symbols is not guaranteed.
+  @override
   Iterable<Symbol> get staticSymbols sync* {
     for (final section in namedSections('.symtab')) {
       final symtab = section as SymbolTable;
