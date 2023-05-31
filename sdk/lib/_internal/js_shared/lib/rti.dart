@@ -1015,14 +1015,7 @@ _Type _createRuntimeType(Rti rti) {
 Rti evaluateRtiForRecord(String recordRecipe, List valuesList) {
   JSArray values = JS('', '#', valuesList);
   final length = values.length;
-  if (length == 0) {
-    // TODO(50081): Remove this when DDC can handle `TYPE_REF<()>`.
-    if (JS_GET_FLAG('DEV_COMPILER')) {
-      throw UnimplementedError('evaluateRtiForRecord not supported for DDC');
-    } else {
-      return TYPE_REF<()>();
-    }
-  }
+  if (length == 0) return TYPE_REF<()>();
 
   Rti bindings = _rtiEval(
       _structuralTypeOf(values[0]),

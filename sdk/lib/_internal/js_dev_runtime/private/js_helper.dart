@@ -892,7 +892,7 @@ Object? createRecordTypePredicate(String partialShapeTag, JSArray fieldRtis) {
 
 /// Returns the Rti for the provided [record].
 ///
-/// Only called from the `dart:_rti` library but requires specific knowledge of
+/// Is called from the `dart:_rti` library but requires specific knowledge of
 /// the record representation in DDC. There is a duplicate version of this
 /// method in the dart2js version of this library.
 ///
