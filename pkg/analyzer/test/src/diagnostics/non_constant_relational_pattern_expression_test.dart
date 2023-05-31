@@ -16,6 +16,22 @@ main() {
 @reflectiveTest
 class NonConstantRelationalPatternExpressionTest
     extends PubPackageResolutionTest {
+  /// https://github.com/dart-lang/sdk/issues/52453
+  /// Dependencies of relational patterns should be considered.
+  test_const_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const int a = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart';
+
+void f(int x) {
+  if (x case > a) {}
+}
+''');
+  }
+
   test_const_integerLiteral() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
