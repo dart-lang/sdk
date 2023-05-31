@@ -844,6 +844,10 @@ static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
   ASSERT(flags->version == DART_FLAGS_CURRENT_VERSION);
   ASSERT(package_root == nullptr);
 
+  if (error != nullptr) {
+    *error = nullptr;
+  }
+
   bool dontneed_safe = true;
 #if defined(DART_HOST_OS_LINUX)
   // This would also be true in Linux, except that Google3 overrides the default
