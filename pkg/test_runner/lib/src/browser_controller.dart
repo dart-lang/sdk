@@ -407,6 +407,7 @@ class Chrome extends Browser {
         "--no-first-run",
         "--use-mock-keychain",
         "--user-data-dir=${userDir.path}",
+        "--js-flags=--experimental-wasm-gc",
         url,
       ];
 
