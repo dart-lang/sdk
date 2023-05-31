@@ -88,7 +88,7 @@ class InferrerEngine {
   /// Note: Due to the encoding to track refine count for a given node this
   /// value must be less than 2^(64-N) where N is the number of values in the
   /// TypeInformation flags enum.
-  static const int _MAX_CHANGE_COUNT = 12;
+  static const int _MAX_CHANGE_COUNT = 1000;
 
   int _overallRefineCount = 0;
   int _addedInGraph = 0;
