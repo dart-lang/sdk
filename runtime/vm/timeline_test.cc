@@ -133,7 +133,7 @@ TEST_CASE(TimelineEventDuration) {
   event.DurationBegin("apple");
   // Measure the duration.
   int64_t current_duration = event.TimeDuration();
-  event.SetTimeEnd();
+  event.DurationEnd();
   // Verify that duration is larger.
   EXPECT_GE(event.TimeDuration(), current_duration);
 }
@@ -161,7 +161,7 @@ TEST_CASE(TimelineEventDurationPrintJSON) {
     // Check that dur key is present.
     EXPECT_SUBSTRING("\"dur\":", js.ToCString());
   }
-  event.SetTimeEnd();
+  event.DurationEnd();
 }
 
 #if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
@@ -229,7 +229,7 @@ TEST_CASE(TimelineEventArguments) {
   event.SetNumArguments(2);
   event.CopyArgument(0, "arg1", "value1");
   event.CopyArgument(1, "arg2", "value2");
-  event.SetTimeEnd();
+  event.DurationEnd();
 }
 
 TEST_CASE(TimelineEventArgumentsPrintJSON) {
@@ -244,7 +244,7 @@ TEST_CASE(TimelineEventArgumentsPrintJSON) {
   event.SetNumArguments(2);
   event.CopyArgument(0, "arg1", "value1");
   event.CopyArgument(1, "arg2", "value2");
-  event.SetTimeEnd();
+  event.DurationEnd();
 
   {
     // Test printing to JSON.
@@ -303,7 +303,7 @@ TEST_CASE(TimelineEventCallbackRecorderBasic) {
   EXPECT_EQ(0, override.recorder()->CountFor(TimelineEvent::kDuration));
   event->DurationBegin("cabbage");
   EXPECT_EQ(0, override.recorder()->CountFor(TimelineEvent::kDuration));
-  event->SetTimeEnd();
+  event->DurationEnd();
   EXPECT_EQ(0, override.recorder()->CountFor(TimelineEvent::kDuration));
   event->Complete();
   EXPECT_EQ(1, override.recorder()->CountFor(TimelineEvent::kDuration));
