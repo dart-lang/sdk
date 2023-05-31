@@ -238,6 +238,22 @@ f() {
 ''');
   }
 
+  test_extension_instance_getter_fromObjectPattern() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on int {
+  bool get foo => true;
+}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+void f(Object? x) {
+  if (x case int(foo: true)) {}
+}
+''');
+  }
+
   test_extension_instance_indexRead() async {
     newFile('$testPackageLibPath/a.dart', r'''
 extension E on int {
