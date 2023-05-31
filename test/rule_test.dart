@@ -23,6 +23,7 @@ import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/test_utilities/annotation.dart';
 import 'package:linter/src/test_utilities/test_resource_provider.dart';
+import 'package:linter/src/utils.dart';
 import 'package:linter/src/version.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -325,7 +326,7 @@ void _validateExpectedLints(File file, Iterable<AnalysisErrorInfo> errorInfos,
       var features = optionsImpl.contextFeatures;
 
       FileSpelunker(file.absolute.path, featureSet: features).spelunk();
-      print('');
+      printToConsole('');
       // Lints.
       ResultReporter(errorInfos).write();
     }

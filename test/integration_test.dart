@@ -9,6 +9,7 @@ import 'package:analyzer/src/lint/state.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/cli.dart' as cli;
 import 'package:linter/src/rules.dart';
+import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -133,7 +134,7 @@ void coreTests() {
 
         for (var l in configuredLints) {
           if (!registered.contains(l)) {
-            print(l);
+            printToConsole(l);
           }
         }
 

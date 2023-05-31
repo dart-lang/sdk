@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/lint/io.dart'; // ignore: implementation_imports
+
 import 'ast.dart';
 import 'util/ascii_utils.dart';
 
@@ -91,6 +93,12 @@ bool isValidPackageName(String id) =>
     _lowerCaseUnderScoreWithLeadingUnderscores.hasMatch(id) &&
     isIdentifier(id) &&
     !isReservedWord(id);
+
+/// Write the given [object] to the console.
+/// Uses the shared [outSink] for redirecting in tests.
+void printToConsole(Object? object) {
+  outSink.writeln(object);
+}
 
 class CamelCaseString {
   static final _camelCaseMatcher = RegExp(r'[A-Z][a-z]*');

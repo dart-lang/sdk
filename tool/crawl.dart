@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/util/score_utils.dart' as score_utils;
+import 'package:linter/src/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
@@ -205,17 +206,18 @@ Future<List<String>> _fetchRepoTags(String org, String repo,
   var github = GitHub(auth: auth);
   var slug = RepositorySlug(org, repo);
 
-  print('list repository tags: $slug');
-  print('authentication:  ${auth != null ? "(token)" : "(anonymous)"}');
+  printToConsole('list repository tags: $slug');
+  printToConsole(
+      'authentication:  ${auth != null ? "(token)" : "(anonymous)"}');
 
   var tags = await github.repositories
       .listTags(slug)
       .map((t) => t.name)
       .toList()
       .catchError((e) {
-    print('exception caught fetching $repo tags');
-    print(e);
-    print('(using cached $repo values)');
+    printToConsole('exception caught fetching $repo tags');
+    printToConsole(e);
+    printToConsole('(using cached $repo values)');
     return Future.value(<String>[]);
   });
 

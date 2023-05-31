@@ -6,27 +6,29 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:linter/src/utils.dart';
 
 void main() async {
-  print('Getting latest linter package info from pub...');
+  printToConsole('Getting latest linter package info from pub...');
   var packageInfo =
       jsonDecode(await getBody('https://pub.dev/api/packages/linter'));
   var latestVersion = packageInfo['latest']['pubspec']['version'];
-  print('Found: $latestVersion.');
-  print('Checking for a git release tag corresponding to $latestVersion...');
+  printToConsole('Found: $latestVersion.');
+  printToConsole(
+      'Checking for a git release tag corresponding to $latestVersion...');
 
   var client = http.Client();
   var req = await client.get(Uri.parse(
       'https://github.com/dart-lang/linter/releases/tag/$latestVersion'));
 
   if (req.statusCode == 404) {
-    print(
+    printToConsole(
         'No tagged release for $latestVersion found; this will cause problems when included in SDK DEPS.');
-    print(
+    printToConsole(
         'Be sure a $latestVersion release is tagged in https://github.com/dart-lang/linter/releases and re-run.');
     exit(1);
   } else {
-    print('Tag found 👍.');
+    printToConsole('Tag found 👍.');
   }
 }
 

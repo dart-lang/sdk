@@ -15,6 +15,7 @@ import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
+import 'package:linter/src/utils.dart';
 
 import '../parse.dart';
 
@@ -33,7 +34,7 @@ void main() async {
     return s1.name.compareTo(s2.name) + base;
   }
 
-  print(scorecard.asMarkdown(details, sorter: sorter));
+  printToConsole(scorecard.asMarkdown(details, sorter: sorter));
 
   // var footer = buildFooter(scorecard, details);
   // print(footer);
@@ -458,7 +459,7 @@ class _LintNameCollector extends GeneralizingAstVisitor<void> {
   void addLint(String name) {
     lintNames.add(name);
     if (!registeredLintNames.contains(name)) {
-      print('WARNING: unrecognized lint in fixes: $name');
+      printToConsole('WARNING: unrecognized lint in fixes: $name');
     }
   }
 }

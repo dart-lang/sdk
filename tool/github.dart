@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:github/github.dart';
+import 'package:linter/src/utils.dart';
 
 Future<List<IssueLabel>> getLabels(
     {required String owner, required String name, Authentication? auth}) async {
@@ -11,9 +12,9 @@ Future<List<IssueLabel>> getLabels(
   try {
     return github.issues.listLabels(slug).toList();
   } on Exception catch (e) {
-    print('exception caught fetching GitHub labels');
-    print(e);
-    print('(defaulting to an empty list)');
+    printToConsole('exception caught fetching GitHub labels');
+    printToConsole(e);
+    printToConsole('(defaulting to an empty list)');
     return Future.value(<IssueLabel>[]);
   }
 }
@@ -24,9 +25,9 @@ Future<List<Issue>> getLinterIssues({Authentication? auth}) async {
   try {
     return github.issues.listByRepo(slug).toList();
   } on Exception catch (e) {
-    print('exception caught fetching GitHub issues');
-    print(e);
-    print('(defaulting to an empty list)');
+    printToConsole('exception caught fetching GitHub issues');
+    printToConsole(e);
+    printToConsole('(defaulting to an empty list)');
     return Future.value(<Issue>[]);
   }
 }

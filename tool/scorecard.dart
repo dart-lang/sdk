@@ -11,6 +11,7 @@ import 'package:analyzer/src/lint/state.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
+import 'package:linter/src/utils.dart';
 
 import 'crawl.dart';
 import 'github.dart';
@@ -30,9 +31,9 @@ void main() async {
     Detail.bugs,
   ];
 
-  print(scorecard.asMarkdown(details));
+  printToConsole(scorecard.asMarkdown(details));
   var footer = buildFooter(scorecard, details);
-  print(footer);
+  printToConsole(footer);
 }
 
 const bulb = '💡';
@@ -292,7 +293,7 @@ class _AssistCollector extends GeneralizingAstVisitor<void> {
             element.toString().substring(1, element.toString().length - 1);
         lintNames.add(name);
         if (!registeredLintNames.contains(name)) {
-          print('WARNING: unrecognized lint in assists: $name');
+          printToConsole('WARNING: unrecognized lint in assists: $name');
         }
       }
     }
@@ -308,7 +309,7 @@ class _FixCollector extends GeneralizingAstVisitor<void> {
       var name = v.name.lexeme;
       lintNames.add(name);
       if (!registeredLintNames.contains(name)) {
-        print('WARNING: unrecognized lint in fixes: $name');
+        printToConsole('WARNING: unrecognized lint in fixes: $name');
       }
     }
   }

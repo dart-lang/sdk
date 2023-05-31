@@ -13,6 +13,7 @@ import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
+import 'package:linter/src/utils.dart';
 import 'package:markdown/markdown.dart';
 import 'package:yaml/yaml.dart';
 
@@ -129,7 +130,7 @@ Future<void> fetchBadgeInfo() async {
 
 Future<LintConfig?> fetchConfig(String url) async {
   var client = http.Client();
-  print('loading $url...');
+  printToConsole('loading $url...');
   var req = await client.get(Uri.parse(url));
   return processAnalysisOptionsFile(req.body);
 }
@@ -139,7 +140,7 @@ Future<Map<String, String>> fetchFixStatusMap() async {
   var url =
       'https://raw.githubusercontent.com/dart-lang/sdk/main/pkg/analysis_server/lib/src/services/correction/error_fix_status.yaml';
   var client = http.Client();
-  print('loading $url...');
+  printToConsole('loading $url...');
   var req = await client.get(Uri.parse(url));
   var yaml = loadYamlNode(req.body) as YamlMap;
   for (var entry in yaml.entries) {
@@ -168,7 +169,7 @@ Future<void> generateDocs(String? dir,
     }
 
     if (!d.existsSync()) {
-      print("Directory '${d.path}' does not exist");
+      printToConsole("Directory '${d.path}' does not exist");
       return;
     }
 
@@ -318,10 +319,10 @@ class HtmlIndexer {
     var generated = _generate();
     if (filePath != null) {
       var outPath = '$filePath/index.html';
-      print('Writing to $outPath');
+      printToConsole('Writing to $outPath');
       File(outPath).writeAsStringSync(generated);
     } else {
-      print(generated);
+      printToConsole(generated);
     }
   }
 
@@ -398,10 +399,10 @@ class MachineSummaryGenerator {
         fixStatusMap: fixStatusMap, sinceInfo: sinceInfo);
     if (filePath != null) {
       var outPath = '$filePath/machine/rules.json';
-      print('Writing to $outPath');
+      printToConsole('Writing to $outPath');
       File(outPath).writeAsStringSync(generated);
     } else {
-      print(generated);
+      printToConsole(generated);
     }
   }
 }
@@ -483,7 +484,7 @@ class MarkdownIndexer {
     }
 
     if (filePath == null) {
-      print(buffer);
+      printToConsole(buffer);
     } else {
       File('$filePath/index.md').writeAsStringSync(buffer.toString());
     }
@@ -499,10 +500,10 @@ class OptionsSample {
     var generated = _generate();
     if (filePath != null) {
       var outPath = '$filePath/options/options.html';
-      print('Writing to $outPath');
+      printToConsole('Writing to $outPath');
       File(outPath).writeAsStringSync(generated);
     } else {
-      print(generated);
+      printToConsole(generated);
     }
   }
 
@@ -669,10 +670,10 @@ class RuleHtmlGenerator extends RuleGenerator {
     var generated = _generate();
     if (filePath != null) {
       var outPath = '$filePath/$name.html';
-      print('Writing to $outPath');
+      printToConsole('Writing to $outPath');
       File(outPath).writeAsStringSync(generated);
     } else {
-      print(generated);
+      printToConsole(generated);
     }
   }
 
@@ -788,7 +789,7 @@ class RuleMarkdownGenerator extends RuleGenerator {
     buffer.write(usageMarkdown);
 
     if (filePath == null) {
-      print(buffer);
+      printToConsole(buffer);
     } else {
       File('$filePath/$name.md').writeAsStringSync(buffer.toString());
     }

@@ -22,6 +22,7 @@ linter:
 #    - avoid_implementing_value_types
 #    - avoid_js_rounded_ints # under review (see #1068)
     - avoid_positional_boolean_parameters
+    - avoid_print
 #    - avoid_private_typedef_functions # under review (see #1068)
     - avoid_redundant_argument_values
 #    - avoid_renaming_method_parameters # under review (see #1068)

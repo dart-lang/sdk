@@ -8,6 +8,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
+import 'package:linter/src/utils.dart';
 
 import 'doc.dart';
 import 'since.dart';
@@ -28,7 +29,7 @@ void main(List<String> args) async {
   var fixStatusMap = await fetchFixStatusMap();
   var json = getMachineListing(Registry.ruleRegistry,
       fixStatusMap: fixStatusMap, pretty: options['pretty'] == true);
-  print(json);
+  printToConsole(json);
 }
 
 String getMachineListing(Iterable<LintRule> ruleRegistry,

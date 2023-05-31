@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
+import 'package:linter/src/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
@@ -35,7 +36,7 @@ void main(List<String> args) async {
   try {
     options = parser.parse(args);
   } on FormatException {
-    print(parser.usage);
+    printToConsole(parser.usage);
     return;
   }
 
@@ -43,7 +44,7 @@ void main(List<String> args) async {
   var printSdk = options['sdk'] == true;
 
   if (!printLinter && !printSdk) {
-    print('Either --linter or --sdk must be specified!');
+    printToConsole('Either --linter or --sdk must be specified!');
     return;
   }
 
@@ -56,12 +57,12 @@ void main(List<String> args) async {
     for (var MapEntry(key: lintName, value: sinceInfo) in sinceInfo.entries) {
       var sinceLinter = sinceInfo.sinceLinter;
       if (sinceLinter != null) {
-        print('$lintName: $sinceLinter');
+        printToConsole('$lintName: $sinceLinter');
       }
     }
 
     if (printSdk) {
-      print('\n================\n');
+      printToConsole('\n================\n');
     }
   }
 
@@ -71,7 +72,7 @@ void main(List<String> args) async {
     for (var MapEntry(key: sdkVersion, value: linterVersion) in sinceSdk.entries
         .sorted(
             (a, b) => Version.parse(b.key).compareTo(Version.parse(a.key)))) {
-      print('$sdkVersion: $linterVersion');
+      printToConsole('$sdkVersion: $linterVersion');
     }
   }
 }
@@ -95,9 +96,9 @@ Future<Map<String, String>> getDartSdkMap([Authentication? auth]) async {
         var linterVersion = await linterForDartSdk(sdk);
         if (linterVersion != null) {
           dartSdkMap[sdk] = linterVersion;
-          print('fetched...');
-          print('$sdk : $linterVersion');
-          print('(consider caching in tool/since/dart_sdk.yaml)');
+          printToConsole('fetched...');
+          printToConsole('$sdk : $linterVersion');
+          printToConsole('(consider caching in tool/since/dart_sdk.yaml)');
         }
       }
     }
@@ -120,9 +121,9 @@ Future<Map<String, SinceInfo>> _getSinceInfo(Authentication? auth) async {
     if (linterVersion == null) {
       linterVersion = await findSinceLinter(lint, auth);
       if (linterVersion != null) {
-        print('fetched...');
-        print('$lint : $linterVersion');
-        print('(consider caching in tool/since/linter.yaml)');
+        printToConsole('fetched...');
+        printToConsole('$lint : $linterVersion');
+        printToConsole('(consider caching in tool/since/linter.yaml)');
       }
     }
     sinceMap[lint] = SinceInfo(

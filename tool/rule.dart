@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:linter/src/utils.dart';
 import 'package:path/path.dart' as path;
 
 import '../test/test_constants.dart';
@@ -32,7 +33,7 @@ void main(List<String> args) {
   var outDir = options['out'] ?? '.';
   var d = Directory(outDir as String);
   if (!d.existsSync()) {
-    print("Directory '${d.path}' does not exist");
+    printToConsole("Directory '${d.path}' does not exist");
     return;
   }
 
@@ -62,8 +63,8 @@ void generateRule(String ruleName, {String? outDir}) {
   // Update rule registry.
   updateRuleRegistry(ruleName);
 
-  print('A unit test has been stubbed out in:');
-  print('  $ruleTestDir/${ruleName}_test.dart');
+  printToConsole('A unit test has been stubbed out in:');
+  printToConsole('  $ruleTestDir/${ruleName}_test.dart');
 }
 
 void generateStub(String ruleName, String stubPath, Generator generator,
@@ -73,13 +74,13 @@ void generateStub(String ruleName, String stubPath, Generator generator,
     var outPath = path.join(outDir, stubPath, file);
     var outFile = File(outPath);
     if (outFile.existsSync()) {
-      print('Warning: stub already exists at $outPath; skipping');
+      printToConsole('Warning: stub already exists at $outPath; skipping');
       return;
     }
-    print('Writing to $outPath');
+    printToConsole('Writing to $outPath');
     outFile.writeAsStringSync(contents);
   } else {
-    print(contents);
+    printToConsole(contents);
   }
 }
 
@@ -96,9 +97,9 @@ String toClassName(String ruleName) =>
     ruleName.split('_').map(capitalize).join();
 
 void updateRuleRegistry(String ruleName) {
-  print("Don't forget to update lib/src/rules.dart with a line like:");
-  print('  ..register(${toClassName(ruleName)}())');
-  print('and add your rule to `example/all.yaml`.');
+  printToConsole("Don't forget to update lib/src/rules.dart with a line like:");
+  printToConsole('  ..register(${toClassName(ruleName)}())');
+  printToConsole('and add your rule to `example/all.yaml`.');
 }
 
 GeneratedFile _generateClass(String ruleName, String className) => (

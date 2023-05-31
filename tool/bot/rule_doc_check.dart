@@ -5,22 +5,23 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
 
 import '../crawl.dart';
 
 void main() async {
-  print('Getting latest linter package info from pub...');
+  printToConsole('Getting latest linter package info from pub...');
 
   var packageInfo =
       jsonDecode(await getBody('https://pub.dev/api/packages/linter'));
   var latestVersion = packageInfo['latest']['pubspec']['version'];
-  print('Found: $latestVersion.');
+  printToConsole('Found: $latestVersion.');
   if (latestVersion is String) {
     var minor = latestVersion.split('.').last;
     var latestRules = await fetchRulesForVersion('0.1.$minor');
-    print('Checking to ensure rules have published docs...');
-    print('');
+    printToConsole('Checking to ensure rules have published docs...');
+    printToConsole('');
 
     group('validate url:', () {
       for (var rule in latestRules) {

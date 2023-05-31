@@ -4,6 +4,7 @@
 
 import 'package:args/args.dart';
 import 'package:github/github.dart';
+import 'package:linter/src/utils.dart';
 
 import '../github.dart';
 
@@ -39,13 +40,13 @@ Future<void> main(List<String> args) async {
   var auth = token is String ? Authentication.withToken(token) : null;
   var labels = await getLabels(owner: owner, name: name, auth: auth);
   for (var label in labels) {
-    print(label.name);
+    printToConsole(label.name);
   }
 }
 
 void printUsage(ArgParser parser, [String? error]) {
   var message = error ?? 'Get labels for a given GitHub repo.';
-  print('''$message
+  printToConsole('''$message
 Usage: get_labels.dart rule_name
 ${parser.usage}
 ''');

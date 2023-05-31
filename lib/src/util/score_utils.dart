@@ -5,6 +5,8 @@
 import 'package:analyzer/src/lint/config.dart'; // ignore: implementation_imports
 import 'package:http/http.dart' as http;
 
+import '../utils.dart';
+
 Future<List<String>> _readCoreLints() async => _fetchLints(
     'https://raw.githubusercontent.com/dart-lang/lints/main/lib/core.yaml');
 
@@ -46,7 +48,7 @@ Future<List<String>> get flutterRules async =>
 Future<List<String>> fetchRules(Uri optionsUrl) async {
   var config = await _fetchConfig(optionsUrl);
   if (config == null) {
-    print('no config found for: $optionsUrl (SKIPPED)');
+    printToConsole('no config found for: $optionsUrl (SKIPPED)');
     return <String>[];
   }
   var rules = <String>[];
@@ -60,7 +62,7 @@ Future<List<String>> fetchRules(Uri optionsUrl) async {
 }
 
 Future<LintConfig?> _fetchConfig(Uri url) async {
-  print('loading $url...');
+  printToConsole('loading $url...');
   var req = await http.get(url);
   return processAnalysisOptionsFile(req.body);
 }

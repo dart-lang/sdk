@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:args/args.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
+import 'package:linter/src/utils.dart';
 
 import '../github.dart';
 
@@ -42,7 +43,7 @@ Future<void> main(List<String> args) async {
         var sets = rule.value;
         for (var set in sets) {
           if (!issue.labels.any((label) => label.name.startsWith('set-'))) {
-            print('${issue.htmlUrl} => set-$set');
+            printToConsole('${issue.htmlUrl} => set-$set');
           }
         }
       }
@@ -54,7 +55,7 @@ void printUsage(ArgParser parser, [String? error]) {
   var message = error ??
       'Query lint rules for containing rule sets and relevant GH issues.';
 
-  print('''$message
+  printToConsole('''$message
 Usage: query.dart rule_name
 ${parser.usage}
 ''');
