@@ -233,9 +233,134 @@ struct ImageWriterCommand {
   };
 };
 
+#if defined(DART_PRECOMPILER)
+template <typename T>
+class Trie : public ZoneAllocated {
+ public:
+  // Returns whether [key] is a valid trie key (that is, a C string that
+  // contains only characters for which charIndex returns a non-negative value).
+  static bool IsValidKey(const char* key) {
+    for (intptr_t i = 0; key[i] != '\0'; i++) {
+      if (ChildIndex(key[i]) < 0) return false;
+    }
+    return true;
+  }
+
+  // Adds a binding of [key] to [value] in [trie]. Assumes that the string in
+  // [key] is a valid trie key and does not already have a value in [trie].
+  //
+  // If [trie] is nullptr, then a new trie is created and a pointer to the new
+  // trie is returned. Otherwise, [trie] will be returned.
+  static Trie<T>* AddString(Zone* zone,
+                            Trie<T>* trie,
+                            const char* key,
+                            const T* value);
+
+  // Adds a binding of [key] to [value]. Assumes that the string in [key] is a
+  // valid trie key and does not already have a value in this trie.
+  void AddString(Zone* zone, const char* key, const T* value) {
+    AddString(zone, this, key, value);
+  }
+
+  // Looks up the value stored for [key] in [trie]. If one is not found, then
+  // nullptr is returned.
+  //
+  // If [end] is not nullptr, then the longest prefix of [key] that is a valid
+  // trie key prefix will be used for the lookup and the value pointed to by
+  // [end] is set to the index after that prefix. Otherwise, the whole [key]
+  // is used.
+  static const T* Lookup(const Trie<T>* trie,
+                         const char* key,
+                         intptr_t* end = nullptr);
+
+  // Looks up the value stored for [key]. If one is not found, then nullptr is
+  // returned.
+  //
+  // If [end] is not nullptr, then the longest prefix of [key] that is a valid
+  // trie key prefix will be used for the lookup and the value pointed to by
+  // [end] is set to the index after that prefix. Otherwise, the whole [key]
+  // is used.
+  const T* Lookup(const char* key, intptr_t* end = nullptr) const {
+    return Lookup(this, key, end);
+  }
+
+ private:
+  // Currently, only the following characters can appear in obfuscated names:
+  // '_', '@', '0-9', 'a-z', 'A-Z'
+  static constexpr intptr_t kNumValidChars = 64;
+
+  Trie() {
+    for (intptr_t i = 0; i < kNumValidChars; i++) {
+      children_[i] = nullptr;
+    }
+  }
+
+  static intptr_t ChildIndex(char c) {
+    if (c == '_') return 0;
+    if (c == '@') return 1;
+    if (c >= '0' && c <= '9') return ('9' - c) + 2;
+    if (c >= 'a' && c <= 'z') return ('z' - c) + 12;
+    if (c >= 'A' && c <= 'Z') return ('Z' - c) + 38;
+    return -1;
+  }
+
+  const T* value_ = nullptr;
+  Trie<T>* children_[kNumValidChars];
+};
+
+template <typename T>
+Trie<T>* Trie<T>::AddString(Zone* zone,
+                            Trie<T>* trie,
+                            const char* key,
+                            const T* value) {
+  ASSERT(key != nullptr);
+  if (trie == nullptr) {
+    trie = new (zone) Trie<T>();
+  }
+  if (*key == '\0') {
+    ASSERT(trie->value_ == nullptr);
+    trie->value_ = value;
+  } else {
+    auto const index = ChildIndex(*key);
+    ASSERT(index >= 0 && index < kNumValidChars);
+    trie->children_[index] =
+        AddString(zone, trie->children_[index], key + 1, value);
+  }
+
+  return trie;
+}
+
+template <typename T>
+const T* Trie<T>::Lookup(const Trie<T>* trie, const char* key, intptr_t* end) {
+  intptr_t i = 0;
+  for (; key[i] != '\0'; i++) {
+    auto const index = ChildIndex(key[i]);
+    ASSERT(index < kNumValidChars);
+    if (index < 0) {
+      if (end == nullptr) return nullptr;
+      break;
+    }
+    // Still find the longest valid trie prefix when no stored value.
+    if (trie == nullptr) continue;
+    trie = trie->children_[index];
+  }
+  if (end != nullptr) {
+    *end = i;
+  }
+  if (trie == nullptr) return nullptr;
+  return trie->value_;
+}
+#endif
+
 class ImageWriter : public ValueObject {
  public:
-  explicit ImageWriter(Thread* thread, bool generates_assembly);
+#if defined(DART_PRECOMPILER)
+  ImageWriter(Thread* thread,
+              bool generates_assembly,
+              const Trie<const char>* deobfuscation_trie = nullptr);
+#else
+  ImageWriter(Thread* thread, bool generates_assembly);
+#endif
   virtual ~ImageWriter() {}
 
   // Alignment constants used in writing ELF or assembly snapshots.
@@ -328,6 +453,11 @@ class ImageWriter : public ValueObject {
     // The initial 1 is to ensure the result is positive.
     return 1 + 2 * static_cast<int>(section) + ((shared || vm) ? 0 : 1);
   }
+
+  static Trie<const char>* CreateReverseObfuscationTrie(Thread* thread);
+  static const char* Deobfuscate(Zone* zone,
+                                 const Trie<const char>* trie,
+                                 const char* str);
 #endif
 
  protected:
@@ -514,8 +644,11 @@ class ImageWriter : public ValueObject {
 #if defined(DART_PRECOMPILER)
   class SnapshotTextObjectNamer : ValueObject {
    public:
-    explicit SnapshotTextObjectNamer(Zone* zone, bool for_assembly)
+    explicit SnapshotTextObjectNamer(Zone* zone,
+                                     const Trie<const char>* deobfuscation_trie,
+                                     bool for_assembly)
         : zone_(ASSERT_NOTNULL(zone)),
+          deobfuscation_trie_(deobfuscation_trie),
           lib_(Library::Handle(zone)),
           cls_(Class::Handle(zone)),
           parent_(Function::Handle(zone)),
@@ -548,6 +681,7 @@ class ImageWriter : public ValueObject {
     void ModifyForAssembly(BaseTextBuffer* buffer);
 
     Zone* const zone_;
+    const Trie<const char>* const deobfuscation_trie_;
     Library& lib_;
     Class& cls_;
     Function& parent_;
@@ -643,6 +777,7 @@ class AssemblyImageWriter : public ImageWriter {
  public:
   AssemblyImageWriter(Thread* thread,
                       BaseWriteStream* stream,
+                      const Trie<const char>* deobfuscation_trie = nullptr,
                       bool strip = false,
                       Elf* debug_elf = nullptr);
   void Finalize();
@@ -699,11 +834,20 @@ class AssemblyImageWriter : public ImageWriter {
 
 class BlobImageWriter : public ImageWriter {
  public:
+#if defined(DART_PRECOMPILER)
+  BlobImageWriter(Thread* thread,
+                  NonStreamingWriteStream* vm_instructions,
+                  NonStreamingWriteStream* isolate_instructions,
+                  const Trie<const char>* deobfuscation_trie = nullptr,
+                  Elf* debug_elf = nullptr,
+                  Elf* elf = nullptr);
+#else
   BlobImageWriter(Thread* thread,
                   NonStreamingWriteStream* vm_instructions,
                   NonStreamingWriteStream* isolate_instructions,
                   Elf* debug_elf = nullptr,
                   Elf* elf = nullptr);
+#endif
 
  private:
   virtual void WriteBss(bool vm);
