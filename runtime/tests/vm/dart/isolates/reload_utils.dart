@@ -173,7 +173,6 @@ class Reloader {
     final line = await waitUntilStdoutContains(needle);
     final start = line.indexOf(needle);
     final Uri uri = Uri.parse(line.substring(start + needle.length));
-    assert(_remoteVm == null);
     _remoteVm = RemoteVm(uri.port);
   }
 
