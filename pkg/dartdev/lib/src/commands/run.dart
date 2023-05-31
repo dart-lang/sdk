@@ -16,6 +16,7 @@ import 'package:pub/pub.dart';
 import '../core.dart';
 import '../experiments.dart';
 import '../generate_kernel.dart';
+import '../native_assets.dart';
 import '../resident_frontend_constants.dart';
 import '../resident_frontend_utils.dart';
 import '../sdk.dart';
@@ -42,8 +43,12 @@ class RunCommand extends DartdevCommand {
     );
   }
 
-  RunCommand({bool verbose = false})
-      : super(
+  final bool nativeAssetsExperimentEnabled;
+
+  RunCommand({
+    bool verbose = false,
+    this.nativeAssetsExperimentEnabled = false,
+  }) : super(
           cmdName,
           'Run a Dart program.',
           verbose,
@@ -295,6 +300,18 @@ class RunCommand extends DartdevCommand {
       }
     }
 
+    String? nativeAssets;
+    if (nativeAssetsExperimentEnabled) {
+      try {
+        nativeAssets = (await compileNativeAssetsJitYamlFile())?.toFilePath();
+      } on Exception catch (e, stacktrace) {
+        log.stderr('Error: Compiling native assets failed.');
+        log.stderr(e.toString());
+        log.stderr(stacktrace.toString());
+        return errorExitCode;
+      }
+    }
+
     final hasServerInfoOption = args.wasParsed(serverInfoOption);
     final useResidentServer =
         args.wasParsed(residentOption) || hasServerInfoOption;
@@ -304,6 +321,7 @@ class RunCommand extends DartdevCommand {
       executable = await getExecutableForCommand(
         mainCommand,
         allowSnapshot: !(useResidentServer || hasExperiments),
+        nativeAssets: nativeAssets,
       );
     } on CommandResolutionFailedException catch (e) {
       log.stderr(e.message);

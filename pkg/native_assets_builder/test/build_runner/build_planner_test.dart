@@ -21,7 +21,7 @@ void main() async {
       await runPubGet(workingDirectory: nativeAddUri, logger: logger);
 
       final result = await runProcess(
-        executable: Platform.resolvedExecutable,
+        executable: Uri.file(Platform.resolvedExecutable),
         arguments: [
           'pub',
           'deps',

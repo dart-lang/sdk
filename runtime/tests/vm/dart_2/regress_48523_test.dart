@@ -23,7 +23,7 @@ main() async {
     final helperIsolateId = await reloader.getIsolateId('helper-isolate');
 
     // Set breakpoint.
-    final debugEvents = StreamIterator(await reloader.getDebugStream());
+    final debugEvents = StreamIterator(reloader.getDebugStream());
     await reloader.addBreakpoint(7, isolateId: helperIsolateId);
 
     // Reload 1

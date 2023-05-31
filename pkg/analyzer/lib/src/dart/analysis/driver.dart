@@ -223,6 +223,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Cached results for [_priorityFiles].
   final Map<String, ResolvedUnitResult> _priorityResults = {};
 
+  /// Cached results of [getResolvedLibrary].
+  final Map<LibraryFileKind, ResolvedLibraryResultImpl> _resolvedLibraryCache =
+      {};
+
   /// The controller for the [exceptions] stream.
   final StreamController<ExceptionResult> _exceptionController =
       StreamController<ExceptionResult>();
@@ -484,6 +488,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _priorityResults.clear();
+      _resolvedLibraryCache.clear();
       _pendingFileChanges.add(
         _FileChange(path, _FileChangeKind.add),
       );
@@ -575,6 +580,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _priorityResults.clear();
+      _resolvedLibraryCache.clear();
       _pendingFileChanges.add(
         _FileChange(path, _FileChangeKind.change),
       );
@@ -1219,6 +1225,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _lastProducedSignatures.remove(path);
       _priorityResults.clear();
+      _resolvedLibraryCache.clear();
       _pendingFileChanges.add(
         _FileChange(path, _FileChangeKind.remove),
       );
@@ -1438,6 +1445,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<ResolvedLibraryResultImpl> _computeResolvedLibrary(
     LibraryFileKind library,
   ) async {
+    final cached = _resolvedLibraryCache[library];
+    if (cached != null) {
+      return cached;
+    }
+
     final path = library.file.path;
     return _logger.runAsync('Compute resolved library $path', () async {
       testView?.numOfAnalyzedLibraries++;
@@ -1466,11 +1478,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         );
       }
 
-      return ResolvedLibraryResultImpl(
+      final result = ResolvedLibraryResultImpl(
         session: currentSession,
         element: resolvedUnits.first.libraryElement,
         units: resolvedUnits,
       );
+
+      if (_isLibraryWithPriorityFile(library)) {
+        _resolvedLibraryCache[library] = result;
+      }
+
+      return result;
     });
   }
 

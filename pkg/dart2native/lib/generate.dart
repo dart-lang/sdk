@@ -33,6 +33,7 @@ Future<void> generateNative({
   bool verbose = false,
   String verbosity = 'all',
   List<String> extraOptions = const [],
+  String? nativeAssets,
 }) async {
   final Directory tempDir = Directory.systemTemp.createTempSync();
   try {
@@ -62,15 +63,23 @@ Future<void> generateNative({
     }
 
     final String kernelFile = path.join(tempDir.path, 'kernel.dill');
-    final kernelResult = await generateAotKernel(Platform.executable, genKernel,
-        productPlatformDill, sourcePath, kernelFile, packages, defines,
-        enableExperiment: enableExperiment,
-        targetOS: targetOS,
-        extraGenKernelOptions: [
-          '--invocation-modes=compile',
-          '--verbosity=$verbosity',
-          '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
-        ]);
+    final kernelResult = await generateAotKernel(
+      Platform.executable,
+      genKernel,
+      productPlatformDill,
+      sourcePath,
+      kernelFile,
+      packages,
+      defines,
+      enableExperiment: enableExperiment,
+      targetOS: targetOS,
+      extraGenKernelOptions: [
+        '--invocation-modes=compile',
+        '--verbosity=$verbosity',
+        '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
+      ],
+      nativeAssets: nativeAssets,
+    );
     await _forwardOutput(kernelResult);
     if (kernelResult.exitCode != 0) {
       throw 'Generating AOT kernel dill failed!';

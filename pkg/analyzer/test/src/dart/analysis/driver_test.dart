@@ -1957,6 +1957,28 @@ class B {}
     expect(result.units[0].errors, isEmpty);
   }
 
+  test_getResolvedLibrary_cachePriority() async {
+    final a = newFile('/test/lib/a.dart', '');
+
+    driver.priorityFiles = [a.path];
+
+    final result1 = await driver.getResolvedLibrary(a.path);
+    result1 as ResolvedLibraryResult;
+
+    final testView = driver.testView!;
+    await waitForIdleWithoutExceptions();
+    testView.numOfAnalyzedLibraries = 0;
+    allResults.clear();
+
+    // Ask again, the same cache instance should be returned.
+    final result2 = await driver.getResolvedLibrary(a.path);
+    expect(result2, same(result1));
+
+    // No new analysis, no results into the stream.
+    expect(testView.numOfAnalyzedLibraries, isZero);
+    expect(allResults, isEmpty);
+  }
+
   test_getResolvedLibrary_invalidPath_notAbsolute() async {
     var result = await driver.getResolvedLibrary('not_absolute.dart');
     expect(result, isA<InvalidPathResult>());

@@ -17,7 +17,7 @@ Future<void> runPubGet({
   required Logger logger,
 }) async {
   final result = await runProcess(
-    executable: Platform.resolvedExecutable,
+    executable: Uri.file(Platform.resolvedExecutable),
     arguments: ['pub', 'get'],
     workingDirectory: workingDirectory,
     logger: logger,
@@ -78,7 +78,7 @@ Future<void> expectSymbols({
   if (Platform.isLinux) {
     final assetUri = (asset.path as AssetAbsolutePath).uri;
     final nmResult = await runProcess(
-      executable: 'nm',
+      executable: Uri(path: 'nm'),
       arguments: [
         '-D',
         assetUri.toFilePath(),

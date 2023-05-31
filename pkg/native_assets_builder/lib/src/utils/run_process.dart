@@ -8,17 +8,22 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 
-/// Runs a process async and captures the exit code and standard out.
+/// Runs a [Process].
 ///
-/// Supports streaming output using a [Logger].
+/// If [logger] is provided, stream stdout and stderr to it.
+///
+/// If [captureOutput], captures stdout and stderr.
+// TODO(dacoharkes): Share between package:c_compiler and here.
 Future<RunProcessResult> runProcess({
-  required String executable,
-  required List<String> arguments,
+  required Uri executable,
+  List<String> arguments = const [],
   Uri? workingDirectory,
   Map<String, String>? environment,
   bool includeParentEnvironment = true,
-  bool throwOnFailure = true,
-  required Logger logger,
+  required Logger? logger,
+  bool captureOutput = true,
+  int expectedExitCode = 0,
+  bool throwOnUnexpectedExitCode = false,
 }) async {
   if (Platform.isWindows && !includeParentEnvironment) {
     const winEnvKeys = [
@@ -39,18 +44,18 @@ Future<RunProcessResult> runProcess({
   final commandString = [
     if (printWorkingDir) '(cd ${workingDirectory.toFilePath()};',
     ...?environment?.entries.map((entry) => '${entry.key}=${entry.value}'),
-    executable,
+    executable.toFilePath(),
     ...arguments.map((a) => a.contains(' ') ? "'$a'" : a),
     if (printWorkingDir) ')',
   ].join(' ');
-  logger.info('Running `$commandString`.');
+  logger?.info('Running `$commandString`.');
 
-  final stdoutBuffer = <String>[];
-  final stderrBuffer = <String>[];
+  final stdoutBuffer = StringBuffer();
+  final stderrBuffer = StringBuffer();
   final stdoutCompleter = Completer<Object?>();
   final stderrCompleter = Completer<Object?>();
-  final Process process = await Process.start(
-    executable,
+  final process = await Process.start(
+    executable.toFilePath(),
     arguments,
     workingDirectory: workingDirectory?.toFilePath(),
     environment: environment,
@@ -60,82 +65,64 @@ Future<RunProcessResult> runProcess({
 
   process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen(
     (s) {
-      logger.fine(s);
-      stdoutBuffer.add(s);
+      logger?.fine(s);
+      if (captureOutput) stdoutBuffer.writeln(s);
     },
     onDone: stdoutCompleter.complete,
   );
   process.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen(
     (s) {
-      logger.severe(s);
-      stderrBuffer.add(s);
+      logger?.severe(s);
+      if (captureOutput) stderrBuffer.writeln(s);
     },
     onDone: stderrCompleter.complete,
   );
 
-  final int exitCode = await process.exitCode;
+  final exitCode = await process.exitCode;
   await stdoutCompleter.future;
-  final String stdout = stdoutBuffer.join();
   await stderrCompleter.future;
-  final String stderr = stderrBuffer.join();
   final result = RunProcessResult(
     pid: process.pid,
-    command: '$executable ${arguments.join(' ')}',
+    command: commandString,
     exitCode: exitCode,
-    stdout: stdout,
-    stderr: stderr,
+    stdout: stdoutBuffer.toString(),
+    stderr: stderrBuffer.toString(),
   );
-  if (throwOnFailure && result.exitCode != 0) {
-    throw ProcessInvocationException(result);
+  if (throwOnUnexpectedExitCode && expectedExitCode != exitCode) {
+    throw ProcessException(
+      executable.toFilePath(),
+      arguments,
+      "Full command string: '$commandString'.\n"
+      "Exit code: '$exitCode'.\n"
+      'For the output of the process check the logger output.',
+    );
   }
   return result;
 }
 
-class RunProcessResult extends ProcessResult {
+/// Drop in replacement of [ProcessResult].
+class RunProcessResult {
+  final int pid;
+
   final String command;
 
-  final int _exitCode;
+  final int exitCode;
 
-  // For some reason super.exitCode returns 0.
-  @override
-  int get exitCode => _exitCode;
+  final String stderr;
 
-  final String _stderrString;
-
-  @override
-  String get stderr => _stderrString;
-
-  final String _stdoutString;
-
-  @override
-  String get stdout => _stdoutString;
+  final String stdout;
 
   RunProcessResult({
-    required int pid,
+    required this.pid,
     required this.command,
-    required int exitCode,
-    required String stderr,
-    required String stdout,
-  })  : _exitCode = exitCode,
-        _stderrString = stderr,
-        _stdoutString = stdout,
-        super(pid, exitCode, stdout, stderr);
+    required this.exitCode,
+    required this.stderr,
+    required this.stdout,
+  });
 
   @override
   String toString() => '''command: $command
 exitCode: $exitCode
 stdout: $stdout
 stderr: $stderr''';
-}
-
-class ProcessInvocationException implements Exception {
-  final RunProcessResult runProcessResult;
-
-  ProcessInvocationException(this.runProcessResult);
-
-  String get message => '''A process run failed.
-$runProcessResult''';
-
-  @override
-  String toString() => message;
 }

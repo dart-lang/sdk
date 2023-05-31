@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:native_assets_builder/src/utils/run_process.dart'
+    as run_process;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -36,106 +37,33 @@ Future<void> inTempDir(
   }
 }
 
-/// Runs a process async and captures the exit code and standard out.
-Future<RunProcessResult> runProcess({
-  required String executable,
-  required List<String> arguments,
+/// Runs a [Process].
+///
+/// If [logger] is provided, stream stdout and stderr to it.
+///
+/// If [captureOutput], captures stdout and stderr.
+Future<run_process.RunProcessResult> runProcess({
+  required Uri executable,
+  List<String> arguments = const [],
   Uri? workingDirectory,
   Map<String, String>? environment,
-  bool throwOnFailure = true,
-  required Logger logger,
-}) async {
-  final printWorkingDir =
-      workingDirectory != null && workingDirectory != Directory.current.uri;
-  final commandString = [
-    if (printWorkingDir) '(cd ${workingDirectory.toFilePath()};',
-    ...?environment?.entries.map((entry) => '${entry.key}=${entry.value}'),
-    executable,
-    ...arguments.map((a) => a.contains(' ') ? "'$a'" : a),
-    if (printWorkingDir) ')',
-  ].join(' ');
-
-  logger.info('Running `$commandString`.');
-
-  final stdoutBuffer = <String>[];
-  final stderrBuffer = <String>[];
-  final stdoutCompleter = Completer<Object?>();
-  final stderrCompleter = Completer<Object?>();
-  final Process process = await Process.start(
-    executable,
-    arguments,
-    workingDirectory: workingDirectory?.toFilePath(),
-    environment: environment,
-  );
-
-  process.stdout.transform(utf8.decoder).listen(
-    (s) {
-      logger.fine('  $s');
-      stdoutBuffer.add(s);
-    },
-    onDone: stdoutCompleter.complete,
-  );
-  process.stderr.transform(utf8.decoder).listen(
-    (s) {
-      logger.shout('  $s');
-      stderrBuffer.add(s);
-    },
-    onDone: stderrCompleter.complete,
-  );
-
-  final int exitCode = await process.exitCode;
-  await stdoutCompleter.future;
-  final String stdout = stdoutBuffer.join();
-  await stderrCompleter.future;
-  final String stderr = stderrBuffer.join();
-  final result = RunProcessResult(
-    pid: process.pid,
-    command: '$executable ${arguments.join(' ')}',
-    exitCode: exitCode,
-    stdout: stdout,
-    stderr: stderr,
-  );
-  if (throwOnFailure && result.exitCode != 0) {
-    throw result;
-  }
-  return result;
-}
-
-class RunProcessResult extends ProcessResult {
-  final String command;
-
-  final int _exitCode;
-
-  @override
-  int get exitCode => _exitCode;
-
-  final String _stderrString;
-
-  @override
-  String get stderr => _stderrString;
-
-  final String _stdoutString;
-
-  @override
-  String get stdout => _stdoutString;
-
-  RunProcessResult({
-    required int pid,
-    required this.command,
-    required int exitCode,
-    required String stderr,
-    required String stdout,
-  })  : _exitCode = exitCode,
-        _stderrString = stderr,
-        _stdoutString = stdout,
-        super(pid, exitCode, stdout, stderr);
-
-  @override
-  String toString() => '''command: $command
-exitCode: $exitCode
-stdout: $stdout
-stderr: $stderr''';
-}
+  bool includeParentEnvironment = true,
+  required Logger? logger,
+  bool captureOutput = true,
+  int expectedExitCode = 0,
+  bool throwOnUnexpectedExitCode = false,
+}) =>
+    run_process.runProcess(
+      executable: executable,
+      arguments: arguments,
+      workingDirectory: workingDirectory,
+      environment: environment,
+      includeParentEnvironment: includeParentEnvironment,
+      logger: logger,
+      captureOutput: captureOutput,
+      expectedExitCode: expectedExitCode,
+      throwOnUnexpectedExitCode: throwOnUnexpectedExitCode,
+    );
 
 final pkgNativeAssetsBuilderUri = Platform.script.resolve('../../');
 final testProjectsUri =

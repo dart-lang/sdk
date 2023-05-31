@@ -41,6 +41,7 @@ class NativeAssetsBuildRunner {
     required Uri workingDirectory,
     CCompilerConfig? cCompilerConfig,
     IOSSdk? targetIOSSdk,
+    int? targetAndroidNdkApi,
     required bool includeParentEnvironment,
   }) async {
     assert(_metadata.isEmpty);
@@ -70,6 +71,7 @@ class NativeAssetsBuildRunner {
         dependencyMetadata: dependencyMetadata,
         cCompilerConfig: cCompilerConfig,
         targetIOSSdk: targetIOSSdk,
+        targetAndroidNdkApi: targetAndroidNdkApi,
       );
       final assets = await _buildPackageCached(
         config,
@@ -137,7 +139,7 @@ class NativeAssetsBuildRunner {
     }
     await runProcess(
       workingDirectory: workingDirectory,
-      executable: dartExecutable.toFilePath(),
+      executable: dartExecutable,
       arguments: [
         '--packages=${packageConfigUri.toFilePath()}',
         buildDotDart.toFilePath(),
@@ -145,6 +147,8 @@ class NativeAssetsBuildRunner {
       ],
       logger: logger,
       includeParentEnvironment: includeParentEnvironment,
+      expectedExitCode: 0,
+      throwOnUnexpectedExitCode: true,
     );
     final buildOutput = await BuildOutput.readFromFile(outDir: outDir);
     setMetadata(config.target, config.packageName, buildOutput?.metadata);
@@ -164,6 +168,7 @@ class NativeAssetsBuildRunner {
     required Uri packageRoot,
     required Target target,
     IOSSdk? targetIOSSdk,
+    int? targetAndroidNdkApi,
     required LinkModePreference linkMode,
     required Uri buildParentDir,
     CCompilerConfig? cCompilerConfig,
@@ -176,6 +181,7 @@ class NativeAssetsBuildRunner {
       targetIOSSdk: targetIOSSdk,
       cCompiler: cCompilerConfig,
       dependencyMetadata: dependencyMetadata,
+      targetAndroidNdkApi: targetAndroidNdkApi,
     );
     final outDirUri = buildParentDir.resolve('$buildDirName/');
     final outDir = Directory.fromUri(outDirUri);

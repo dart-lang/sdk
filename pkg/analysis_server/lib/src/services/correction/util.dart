@@ -876,8 +876,17 @@ class CorrectionUtils {
   }
 
   /// Returns the text of the given [AstNode] in the unit.
-  String getNodeText(AstNode node) {
-    return getText(node.offset, node.length);
+  String getNodeText(
+    AstNode node, {
+    bool withLeadingComments = false,
+  }) {
+    final firstToken = withLeadingComments
+        ? node.beginToken.precedingComments ?? node.beginToken
+        : node.beginToken;
+    final offset = firstToken.offset;
+    final end = node.endToken.end;
+    final length = end - offset;
+    return getText(offset, length);
   }
 
   /// Returns the line prefix consisting of spaces and tabs on the left from the
@@ -973,6 +982,28 @@ class CorrectionUtils {
     }
 
     throw UnimplementedError('(${type.runtimeType}) $type');
+  }
+
+  /// Splits [text] into lines, and removes one level of indent from each line.
+  /// Lines that don't start with indentation are left as is.
+  String indentLeft(String text) {
+    final buffer = StringBuffer();
+    final indent = getIndent(1);
+    final eol = endOfLine;
+    final lines = text.split(eol);
+    for (final line in lines) {
+      if (buffer.isNotEmpty) {
+        buffer.write(eol);
+      }
+      final String updatedLine;
+      if (line.startsWith(indent)) {
+        updatedLine = line.substring(indent.length);
+      } else {
+        updatedLine = line;
+      }
+      buffer.write(updatedLine);
+    }
+    return buffer.toString();
   }
 
   /// Indents given source left or right.

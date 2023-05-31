@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 
@@ -121,7 +122,7 @@ class ConstantEvaluator {
     if (errors.isNotEmpty) {
       return EvaluationResult.forErrors(errors);
     }
-    if (result != null) {
+    if (result is DartObjectImpl) {
       return EvaluationResult.forValue(result);
     }
     // We should not get here. Either there should be a valid value or there

@@ -5787,6 +5787,9 @@ bool Class::IsSubtypeOf(const Class& cls,
                         const AbstractType& other,
                         Heap::Space space,
                         FunctionTypeMapping* function_type_equivalence) {
+  TRACE_TYPE_CHECKS_VERBOSE("  Class::IsSubtypeOf(%s %s, %s)\n",
+                            cls.ToCString(), type_arguments.ToCString(),
+                            other.ToCString());
   // This function does not support Null, Never, dynamic, or void as type T0.
   classid_t this_cid = cls.id();
   ASSERT(this_cid != kNullCid && this_cid != kNeverCid &&
@@ -5797,20 +5800,26 @@ bool Class::IsSubtypeOf(const Class& cls,
   ASSERT(other.HasTypeClass());
   const classid_t other_cid = other.type_class_id();
   if (other_cid == kDynamicCid || other_cid == kVoidCid) {
+    TRACE_TYPE_CHECKS_VERBOSE("   - result: true (right is top)\n");
     return true;
   }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-  // Nullability of left and right hand sides is verified in strong mode only.
-  const bool verified_nullability =
-      !isolate_group->use_strict_null_safety_checks() ||
-      nullability != Nullability::kNullable || !other.IsNonNullable();
+  // Left nullable:
+  //   if T0 is S0? then:
+  //     T0 <: T1 iff S0 <: T1 and Null <: T1
+  if ((nullability == Nullability::kNullable) &&
+      !Instance::NullIsAssignableTo(other)) {
+    TRACE_TYPE_CHECKS_VERBOSE("   - result: false (nullability)\n");
+    return false;
+  }
 
   // Right Object.
   if (other_cid == kObjectCid) {
-    return verified_nullability;
+    TRACE_TYPE_CHECKS_VERBOSE("   - result: true (right is Object)\n");
+    return true;
   }
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const Class& other_class = Class::Handle(zone, other.type_class());
   const TypeArguments& other_type_arguments =
       TypeArguments::Handle(zone, other.arguments());
@@ -5838,7 +5847,8 @@ bool Class::IsSubtypeOf(const Class& cls,
         const AbstractType& type_arg =
             AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
         if (type_arg.IsSubtypeOf(other, space, function_type_equivalence)) {
-          return verified_nullability;
+          TRACE_TYPE_CHECKS_VERBOSE("   - result: true (left is FutureOr)\n");
+          return true;
         }
       }
     }
@@ -5854,6 +5864,8 @@ bool Class::IsSubtypeOf(const Class& cls,
           AbstractType::Handle(zone, other_type_arguments.TypeAtNullSafe(0));
       // Check if S1 is a top type.
       if (other_type_arg.IsTopTypeForSubtyping()) {
+        TRACE_TYPE_CHECKS_VERBOSE(
+            "   - result: true (right is FutureOr top)\n");
         return true;
       }
       // Check T0 <: Future<S1> when T0 is Future<S0>.
@@ -5863,11 +5875,9 @@ bool Class::IsSubtypeOf(const Class& cls,
         // If T0 is Future<S0>, then T0 <: Future<S1>, iff S0 <: S1.
         if (type_arg.IsSubtypeOf(other_type_arg, space,
                                  function_type_equivalence)) {
-          // verified_nullability doesn't take into account the nullability of
-          // S1, just of the FutureOr type.
-          if (verified_nullability || !other_type_arg.IsNonNullable()) {
-            return true;
-          }
+          TRACE_TYPE_CHECKS_VERBOSE(
+              "   - result: true (left is Future, right is FutureOr)\n");
+          return true;
         }
       }
       // Check T0 <: Future<S1> when T0 is FutureOr<S0> is already done.
@@ -5876,25 +5886,24 @@ bool Class::IsSubtypeOf(const Class& cls,
           Class::IsSubtypeOf(this_class, type_arguments, nullability,
                              other_type_arg, space,
                              function_type_equivalence)) {
+        TRACE_TYPE_CHECKS_VERBOSE(
+            "   - result: true (right is FutureOr, subtype of arg)\n");
         return true;
       }
-    }
-
-    // Left nullable:
-    //   if T0 is S0? then:
-    //     T0 <: T1 iff S0 <: T1 and Null <: T1
-    if (!verified_nullability) {
-      return false;
     }
 
     // Check for reflexivity.
     if (this_class.ptr() == other_class.ptr()) {
       const intptr_t num_type_params = this_class.NumTypeParameters();
       if (num_type_params == 0) {
+        TRACE_TYPE_CHECKS_VERBOSE(
+            "   - result: true (same non-generic class)\n");
         return true;
       }
       // Check for covariance.
       if (other_type_arguments.IsNull()) {
+        TRACE_TYPE_CHECKS_VERBOSE(
+            "   - result: true (same class, dynamic type args)\n");
         return true;
       }
       const intptr_t num_type_args = this_class.NumTypeArguments();
@@ -5907,14 +5916,20 @@ bool Class::IsSubtypeOf(const Class& cls,
         other_type = other_type_arguments.TypeAt(i);
         ASSERT(!type.IsNull() && !other_type.IsNull());
         if (!type.IsSubtypeOf(other_type, space, function_type_equivalence)) {
+          TRACE_TYPE_CHECKS_VERBOSE(
+              "   - result: false (same class, type args mismatch)\n");
           return false;
         }
       }
+      TRACE_TYPE_CHECKS_VERBOSE(
+          "   - result: true (same class, matching type args)\n");
       return true;
     }
 
     // _Closure <: Function
     if (this_class.IsClosureClass() && other_class.IsDartFunctionClass()) {
+      TRACE_TYPE_CHECKS_VERBOSE(
+          "   - result: true (left is closure, right is Function)\n");
       return true;
     }
 
@@ -5951,12 +5966,14 @@ bool Class::IsSubtypeOf(const Class& cls,
       if (Class::IsSubtypeOf(interface_class, interface_args,
                              Nullability::kNonNullable, other, space,
                              function_type_equivalence)) {
+        TRACE_TYPE_CHECKS_VERBOSE("   - result: true (interface found)\n");
         return true;
       }
     }
     // "Recurse" up the class hierarchy until we have reached the top.
     this_class = this_class.SuperClass();
     if (this_class.IsNull()) {
+      TRACE_TYPE_CHECKS_VERBOSE("   - result: false (supertype not found)\n");
       return false;
     }
     this_cid = this_class.id();
@@ -21447,14 +21464,18 @@ bool AbstractType::IsSubtypeOf(
     const AbstractType& other,
     Heap::Space space,
     FunctionTypeMapping* function_type_equivalence) const {
+  TRACE_TYPE_CHECKS_VERBOSE("  AbstractType::IsSubtypeOf(%s, %s)\n",
+                            ToCString(), other.ToCString());
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
   // Reflexivity.
   if (ptr() == other.ptr()) {
+    TRACE_TYPE_CHECKS_VERBOSE("   - result: true (same types)\n");
     return true;
   }
   // Right top type.
   if (other.IsTopTypeForSubtyping()) {
+    TRACE_TYPE_CHECKS_VERBOSE("   - result: true (right is top)\n");
     return true;
   }
   // Left bottom type.
@@ -21464,15 +21485,20 @@ bool AbstractType::IsSubtypeOf(
   // Note that we cannot encounter Never?, as it is normalized to Null.
   if (IsNeverType()) {
     ASSERT(!IsNullable());
+    TRACE_TYPE_CHECKS_VERBOSE("   - result: true (left is Never)\n");
     return true;
   }
   // Left top type.
   if (IsDynamicType() || IsVoidType()) {
+    TRACE_TYPE_CHECKS_VERBOSE("   - result: false (left is top)\n");
     return false;
   }
   // Left Null type.
   if (IsNullType()) {
-    return Instance::NullIsAssignableTo(other);
+    const bool result = Instance::NullIsAssignableTo(other);
+    TRACE_TYPE_CHECKS_VERBOSE("   - result: %s (left is Null)\n",
+                              (result ? "true" : "false"));
+    return result;
   }
   Thread* thread = Thread::Current();
   auto isolate_group = thread->isolate_group();
@@ -21496,21 +21522,30 @@ bool AbstractType::IsSubtypeOf(
       if (type_param.IsEquivalent(other_type_param,
                                   TypeEquality::kInSubtypeTest,
                                   function_type_equivalence)) {
+        TRACE_TYPE_CHECKS_VERBOSE(
+            "   - result: true (equivalent type parameters)\n");
         return true;
       }
     }
     const AbstractType& bound = AbstractType::Handle(zone, type_param.bound());
     ASSERT(bound.IsFinalized());
     if (bound.IsSubtypeOf(other, space, function_type_equivalence)) {
+      TRACE_TYPE_CHECKS_VERBOSE("   - result: true (bound is a subtype)\n");
       return true;
     }
     // Apply additional subtyping rules if 'other' is 'FutureOr'.
     if (IsSubtypeOfFutureOr(zone, other, space, function_type_equivalence)) {
+      TRACE_TYPE_CHECKS_VERBOSE(
+          "   - result: true (type parameter is a subtype of FutureOr)\n");
       return true;
     }
+    TRACE_TYPE_CHECKS_VERBOSE(
+        "   - result: false (left is a type parameter)\n");
     return false;
   }
   if (other.IsTypeParameter()) {
+    TRACE_TYPE_CHECKS_VERBOSE(
+        "   - result: false (right is a type parameter)\n");
     return false;
   }
   // Function types cannot be handled by Class::IsSubtypeOf().
@@ -21518,62 +21553,89 @@ bool AbstractType::IsSubtypeOf(
     // Any type that can be the type of a closure is a subtype of Function or
     // non-nullable Object.
     if (other.IsObjectType() || other.IsDartFunctionType()) {
-      return !isolate_group->use_strict_null_safety_checks() || !IsNullable() ||
-             !other.IsNonNullable();
+      const bool result = !isolate_group->use_strict_null_safety_checks() ||
+                          !IsNullable() || !other.IsNonNullable();
+      TRACE_TYPE_CHECKS_VERBOSE("   - result: %s (function vs non-function)\n",
+                                (result ? "true" : "false"));
+      return result;
     }
     if (other.IsFunctionType()) {
       // Check for two function types.
       if (isolate_group->use_strict_null_safety_checks() && IsNullable() &&
           other.IsNonNullable()) {
+        TRACE_TYPE_CHECKS_VERBOSE(
+            "   - result: false (function nullability)\n");
         return false;
       }
-      return FunctionType::Cast(*this).IsSubtypeOf(
+      const bool result = FunctionType::Cast(*this).IsSubtypeOf(
           FunctionType::Cast(other), space, function_type_equivalence);
+      TRACE_TYPE_CHECKS_VERBOSE("   - result: %s (function types)\n",
+                                (result ? "true" : "false"));
+      return result;
     }
     // Apply additional subtyping rules if 'other' is 'FutureOr'.
     if (IsSubtypeOfFutureOr(zone, other, space, function_type_equivalence)) {
+      TRACE_TYPE_CHECKS_VERBOSE(
+          "   - result: true (function type is a subtype of FutureOr)\n");
       return true;
     }
     // All possible supertypes for FunctionType have been checked.
+    TRACE_TYPE_CHECKS_VERBOSE("   - result: false (function type)\n");
     return false;
   } else if (other.IsFunctionType()) {
     // FunctionTypes can only be subtyped by other FunctionTypes, so don't
     // fall through to class-based type tests.
+    TRACE_TYPE_CHECKS_VERBOSE(
+        "   - result: false (right is a function type)\n");
     return false;
   }
   // Record types cannot be handled by Class::IsSubtypeOf().
   if (IsRecordType()) {
     if (other.IsObjectType() || other.IsDartRecordType()) {
-      return !isolate_group->use_strict_null_safety_checks() || !IsNullable() ||
-             !other.IsNonNullable();
+      const bool result = !isolate_group->use_strict_null_safety_checks() ||
+                          !IsNullable() || !other.IsNonNullable();
+      TRACE_TYPE_CHECKS_VERBOSE("   - result: %s (record vs non-record)\n",
+                                (result ? "true" : "false"));
+      return result;
     }
     if (other.IsRecordType()) {
       // Check for two record types.
       if (isolate_group->use_strict_null_safety_checks() && IsNullable() &&
           other.IsNonNullable()) {
+        TRACE_TYPE_CHECKS_VERBOSE("   - result: false (record nullability)\n");
         return false;
       }
-      return RecordType::Cast(*this).IsSubtypeOf(RecordType::Cast(other), space,
-                                                 function_type_equivalence);
+      const bool result = RecordType::Cast(*this).IsSubtypeOf(
+          RecordType::Cast(other), space, function_type_equivalence);
+      TRACE_TYPE_CHECKS_VERBOSE("   - result: %s (record types)\n",
+                                (result ? "true" : "false"));
+      return result;
     }
     // Apply additional subtyping rules if 'other' is 'FutureOr'.
     if (IsSubtypeOfFutureOr(zone, other, space, function_type_equivalence)) {
+      TRACE_TYPE_CHECKS_VERBOSE(
+          "   - result: true (record type is a subtype of FutureOr)\n");
       return true;
     }
     // All possible supertypes for record type have been checked.
+    TRACE_TYPE_CHECKS_VERBOSE("   - result: false (record type)\n");
     return false;
   } else if (other.IsRecordType()) {
     // RecordTypes can only be subtyped by other RecordTypes, so don't
     // fall through to class-based type tests.
+    TRACE_TYPE_CHECKS_VERBOSE("   - result: false (right is a record type)\n");
     return false;
   }
   ASSERT(IsType());
   const Class& type_cls = Class::Handle(zone, type_class());
-  return Class::IsSubtypeOf(
+  const bool result = Class::IsSubtypeOf(
       type_cls,
       TypeArguments::Handle(zone, Type::Cast(*this).GetInstanceTypeArguments(
                                       thread, /*canonicalize=*/false)),
       nullability(), other, space, function_type_equivalence);
+  TRACE_TYPE_CHECKS_VERBOSE("   - result: %s (class type check)\n",
+                            (result ? "true" : "false"));
+  return result;
 }
 
 bool AbstractType::IsSubtypeOfFutureOr(

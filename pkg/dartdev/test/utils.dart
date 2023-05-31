@@ -223,7 +223,7 @@ Future<void> deleteDirectory(Directory dir) async {
 ///
 /// Many of this package tests rely on having the SDK folder layout.
 void ensureRunFromSdkBinDart() {
-  final uri = Uri(path: Platform.resolvedExecutable);
+  final uri = Uri.file(Platform.resolvedExecutable);
   final pathReversed = uri.pathSegments.reversed.toList();
   if (!pathReversed[0].startsWith('dart')) {
     throw StateError('Main executable is not Dart: ${uri.toFilePath()}.');
