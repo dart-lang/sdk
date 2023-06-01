@@ -2089,9 +2089,12 @@ class ConstantsTransformer extends RemovingTransformer {
       return evaluateAndTransformWithContext(node, node);
     } else {
       // A record literal is a compile-time constant expression if and only
-      // if all its field expressions are compile-time constant expressions.
+      // if all its field expressions are compile-time constant expressions. If
+      // any of its field expressions are unevaluated constants then the entire
+      // record is an unevaluated constant.
 
       bool allConstant = true;
+      bool hasUnevaluated = false;
 
       List<Constant> positional = [];
 
@@ -2100,6 +2103,9 @@ class ConstantsTransformer extends RemovingTransformer {
         node.positional[i] = result..parent = node;
         if (allConstant && result is ConstantExpression) {
           positional.add(result.constant);
+          if (result.constant is UnevaluatedConstant) {
+            hasUnevaluated = true;
+          }
         } else {
           allConstant = false;
         }
@@ -2111,15 +2117,22 @@ class ConstantsTransformer extends RemovingTransformer {
         expression.value = result..parent = expression;
         if (allConstant && result is ConstantExpression) {
           named[expression.name] = result.constant;
+          if (result.constant is UnevaluatedConstant) {
+            hasUnevaluated = true;
+          }
         } else {
           allConstant = false;
         }
       }
 
       if (allConstant) {
-        Constant constant = constantEvaluator.canonicalize(
-            new RecordConstant(positional, named, node.recordType));
-        return makeConstantExpression(constant, node);
+        if (hasUnevaluated) {
+          return makeConstantExpression(new UnevaluatedConstant(node), node);
+        } else {
+          Constant constant = constantEvaluator.canonicalize(
+              new RecordConstant(positional, named, node.recordType));
+          return makeConstantExpression(constant, node);
+        }
       }
       return node;
     }
