@@ -5225,7 +5225,7 @@ class EquivalenceStrategy {
     if (other is! InterfaceType) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkInterfaceType_className(visitor, node, other)) {
+    if (!checkInterfaceType_classReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkInterfaceType_declaredNullability(visitor, node, other)) {
@@ -9393,10 +9393,10 @@ class EquivalenceStrategy {
         other.declaredNullability, 'declaredNullability');
   }
 
-  bool checkInterfaceType_className(
+  bool checkInterfaceType_classReference(
       EquivalenceVisitor visitor, InterfaceType node, InterfaceType other) {
     return visitor.checkReferences(
-        node.className, other.className, 'className');
+        node.classReference, other.classReference, 'classReference');
   }
 
   bool checkInterfaceType_declaredNullability(

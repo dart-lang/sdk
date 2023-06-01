@@ -2451,11 +2451,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
       writeByte(node.nullability.index);
-      writeNonNullReference(node.className);
+      writeNonNullReference(node.classReference);
     } else {
       writeByte(Tag.InterfaceType);
       writeByte(node.nullability.index);
-      writeNonNullReference(node.className);
+      writeNonNullReference(node.classReference);
       writeNodeList(node.typeArguments);
     }
   }

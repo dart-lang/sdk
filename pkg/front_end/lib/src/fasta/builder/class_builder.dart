@@ -345,13 +345,13 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     } else {
       if (aliasedTypeWithBuiltArgumentsCacheNonNullable != null &&
           nullability == Nullability.nonNullable) {
-        assert(aliasedTypeWithBuiltArgumentsCacheNonNullable!.className ==
+        assert(aliasedTypeWithBuiltArgumentsCacheNonNullable!.classReference ==
             cls.reference);
         assert(arguments.isEmpty);
         return aliasedTypeWithBuiltArgumentsCacheNonNullable!;
       } else if (aliasedTypeWithBuiltArgumentsCacheNullable != null &&
           nullability == Nullability.nullable) {
-        assert(aliasedTypeWithBuiltArgumentsCacheNullable!.className ==
+        assert(aliasedTypeWithBuiltArgumentsCacheNullable!.classReference ==
             cls.reference);
         assert(arguments.isEmpty);
         return aliasedTypeWithBuiltArgumentsCacheNullable!;

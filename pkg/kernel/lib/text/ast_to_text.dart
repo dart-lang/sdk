@@ -2771,7 +2771,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitInterfaceType(InterfaceType node) {
-    writeClassReferenceFromReference(node.className);
+    writeClassReferenceFromReference(node.classReference);
     if (node.typeArguments.isNotEmpty) {
       writeSymbol('<');
       writeList(node.typeArguments, writeType);

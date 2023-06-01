@@ -114,7 +114,7 @@ class ClassHierarchyBuilder
   @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
-    if (type.className == superclass.reference) return type.typeArguments;
+    if (type.classReference == superclass.reference) return type.typeArguments;
     return asSupertypeOf(type, superclass)?.typeArguments;
   }
 
