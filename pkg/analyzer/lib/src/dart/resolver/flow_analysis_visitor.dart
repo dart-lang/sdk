@@ -396,6 +396,9 @@ class TypeSystemOperations
   TypeSystemOperations(this.typeSystem);
 
   @override
+  DartType get boolType => typeSystem.typeProvider.boolType;
+
+  @override
   bool areStructurallyEqual(DartType type1, DartType type2) {
     return type1 == type2;
   }

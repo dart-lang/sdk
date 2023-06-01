@@ -2182,11 +2182,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     Expression elseExpression = node.elseExpression;
 
     if (flow != null) {
-      flow.conditional_elseBegin(node.thenExpression);
+      flow.conditional_elseBegin(
+          node.thenExpression, node.thenExpression.typeOrThrow);
       checkUnreachableNode(elseExpression);
       analyzeExpression(elseExpression, contextType);
-      flow.conditional_end(node, elseExpression);
-      nullSafetyDeadCodeVerifier.flowEnd(elseExpression);
     } else {
       analyzeExpression(elseExpression, contextType);
     }
@@ -2194,6 +2193,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     typeAnalyzer.visitConditionalExpression(node as ConditionalExpressionImpl,
         contextType: contextType);
+    if (flow != null) {
+      flow.conditional_end(
+          node, node.typeOrThrow, elseExpression, elseExpression.typeOrThrow);
+      nullSafetyDeadCodeVerifier.flowEnd(elseExpression);
+    }
     _insertImplicitCallReference(node, contextType: contextType);
   }
 
@@ -3088,11 +3092,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitNullLiteral(NullLiteral node, {DartType? contextType}) {
-    flowAnalysis.flow?.nullLiteral(node);
-    checkUnreachableNode(node);
     node.visitChildren(this);
     typeAnalyzer.visitNullLiteral(node as NullLiteralImpl,
         contextType: contextType);
+    flowAnalysis.flow?.nullLiteral(node, node.typeOrThrow);
+    checkUnreachableNode(node);
   }
 
   @override

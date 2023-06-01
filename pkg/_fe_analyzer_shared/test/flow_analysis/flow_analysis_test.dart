@@ -1393,17 +1393,16 @@ main() {
     test('initialize() stores expressionInfo when not late', () {
       var x = Var('x');
       var y = Var('y');
-      late ExpressionInfo<Type> writtenValueInfo;
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
-        declare(x,
-            type: 'Object',
-            initializer: y.expr.eq(nullLiteral).getExpressionInfo((info) {
-              expect(info, isNotNull);
-              writtenValueInfo = info!;
-            })),
+        declare(x, type: 'Object', initializer: y.expr.eq(nullLiteral)),
         getSsaNodes((nodes) {
-          expect(nodes[x]!.expressionInfo, same(writtenValueInfo));
+          var info = nodes[x]!.expressionInfo!;
+          var key = h.promotionKeyStore.keyForVariable(y);
+          expect(info.after.variableInfo[key]!.promotedTypes, null);
+          expect(info.ifTrue.variableInfo[key]!.promotedTypes, null);
+          expect(info.ifFalse.variableInfo[key]!.promotedTypes!.single.type,
+              'int');
         }),
       ]);
     });
@@ -9846,11 +9845,12 @@ extension on FlowModel<Type> {
   int _varRef(FlowAnalysisTestHarness h, Var variable) =>
       h.promotionKeyStore.keyForVariable(variable);
 
-  ReferenceWithType<Type> _varRefWithType(
+  TrivialVariableReference<Type> _varRefWithType(
           FlowAnalysisTestHarness h, Var variable) =>
-      new ReferenceWithType<Type>(
-          _varRef(h, variable),
-          variableInfo[h.promotionKeyStore.keyForVariable(variable)]
+      new TrivialVariableReference<Type>(
+          promotionKey: _varRef(h, variable),
+          after: this,
+          type: variableInfo[h.promotionKeyStore.keyForVariable(variable)]
                   ?.promotedTypes
                   ?.last ??
               variable.type,

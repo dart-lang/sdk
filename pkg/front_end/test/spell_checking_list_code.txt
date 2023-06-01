@@ -891,6 +891,7 @@ maintaining
 malbounded
 manage
 mangled
+manipulating
 manipulation
 manipulations
 manner
@@ -1208,6 +1209,7 @@ rebuilt
 recalculating
 recalculation
 recall
+recalls
 received
 receivers
 recheck
@@ -1240,6 +1242,7 @@ reflectee
 reflective
 refutable
 reg
+regard
 regenerations
 regis
 registering
