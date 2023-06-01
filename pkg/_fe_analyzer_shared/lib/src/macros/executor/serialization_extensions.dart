@@ -386,7 +386,7 @@ extension DeserializerExtensions on Deserializer {
 
     switch (kind) {
       case CodeKind.raw:
-        return new Code.fromParts(_readParts()) as T;
+        return new RawCode.fromParts(_readParts()) as T;
       case CodeKind.comment:
         return new CommentCode.fromParts(_readParts()) as T;
       case CodeKind.declaration:
