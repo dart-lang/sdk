@@ -71,24 +71,20 @@ to indicate that they are under review.
 
 ## Mechanics
 
-Lints live in the [lib/src/rules] directory. Corresponding tests live in
-[test_data/rules]. 
+Lints live in the [lib/src/rules] directory. Corresponding unit tests live in
+[test/rules]. 
 
-Rule stubs can be generated with the [rule.dart] helper script and documentation
-gets generated with [doc.dart].  Helper scripts can be invoked via `dart` or
-grinder (`dart run grinder docs --dir=doc_location` and
-`dart run grinder rule --name=my_new_rule` respectively).  Using grinder, for
-example
+Rule stubs can be generated with the [rule.dart] helper script:
 
-    $ dart run grinder rule --name=my_new_lint
+    $ dart tool/rule.dart -n my_new_lint
     
-generates lint and test stubs in `lib/src/rules` and `test_data/rules`.
+generates lint and test stubs in `lib/src/rules` and `test/rules`.
 
 ### Analyzer APIs
 
 The linter has a close relationship with the `analyzer` package and at times
 reaches into non-public APIs.  For the most part, we have isolated these
-references in an [analyzer.dart utility library].  *Whereever possible please
+references in an [analyzer.dart utility library].  *Wherever possible please
 use this library to access analyzer internals.*  
 
   * If `analyzer.dart` is missing something please consider opening an issue
