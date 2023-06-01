@@ -133,7 +133,7 @@ class BoolState extends InstanceState {
 /// [DartObjectImpl] represents a valid result. Note that the [DartObjectImpl]
 /// could have an unknown state and still be a valid constant.
 /// [InvalidConstant] represents an invalid result with error information.
-abstract class Constant {}
+sealed class Constant {}
 
 /// Information about a const constructor invocation.
 class ConstructorInvocation {
@@ -2356,6 +2356,8 @@ class InvalidConstant implements Constant {
   /// information if the error occurs within a constructor.
   final List<DiagnosticMessage> contextMessages;
 
+  InvalidConstant(this.node, this.errorCode) : contextMessages = [];
+
   InvalidConstant.withContextMessages(
       this.node, this.errorCode, this.contextMessages);
 }
@@ -2779,7 +2781,7 @@ class SetState extends InstanceState {
 
 /// The state of an object representing a string.
 class StringState extends InstanceState {
-  /// A state that can be used to represent a double whose value is not known.
+  /// A state that can be used to represent a string whose value is not known.
   static StringState UNKNOWN_VALUE = StringState(null);
 
   /// The value of this instance.

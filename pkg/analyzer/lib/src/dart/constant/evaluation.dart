@@ -574,20 +574,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   TypeProvider get _typeProvider => _library.typeProvider;
 
   @override
-  Constant? visitAdjacentStrings(AdjacentStrings node) {
-    DartObjectImpl? result;
-    for (StringLiteral string in node.strings) {
-      // TODO(kallentu): Remove unwrapping when concatenate handles Constant.
-      var stringConstant = string.accept(this);
-      var stringResult =
-          stringConstant is DartObjectImpl ? stringConstant : null;
-      if (result == null) {
-        result = stringResult;
-      } else {
-        result = _dartObjectComputer.concatenate(node, result, stringResult);
-      }
-    }
-    return result;
+  Constant visitAdjacentStrings(AdjacentStrings node) {
+    return _concatenateNodes(node, node.strings);
   }
 
   @override
@@ -1218,22 +1206,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitStringInterpolation(StringInterpolation node) {
-    DartObjectImpl? result;
-    bool first = true;
-    for (InterpolationElement element in node.elements) {
-      // TODO(kallentu): Remove unwrapping when concatenate handles Constant.
-      var elementConstant = element.accept(this);
-      var elementResult =
-          elementConstant is DartObjectImpl ? elementConstant : null;
-      if (first) {
-        result = elementResult;
-        first = false;
-      } else {
-        result = _dartObjectComputer.concatenate(node, result, elementResult);
-      }
-    }
-    return result;
+  Constant visitStringInterpolation(StringInterpolation node) {
+    return _concatenateNodes(node, node.elements);
   }
 
   @override
@@ -1381,6 +1355,42 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     }
     // This error should have been reported elsewhere.
     return true;
+  }
+
+  /// Returns the result of concatenating [astNodes].
+  ///
+  /// If there's an [InvalidConstant] found, it will return early.
+  Constant _concatenateNodes(Expression node, List<AstNode> astNodes) {
+    Constant? result;
+    for (AstNode astNode in astNodes) {
+      var constant = astNode.accept(this);
+      switch (constant) {
+        case null:
+          // Should never reach this.
+          return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
+        case InvalidConstant():
+          return constant;
+        case DartObjectImpl dartObject:
+          if (result == null) {
+            result = constant;
+          } else if (result is DartObjectImpl) {
+            result = _dartObjectComputer.concatenate(node, result, dartObject);
+            if (result is InvalidConstant) {
+              return result;
+            }
+          }
+      }
+    }
+
+    if (result == null) {
+      // No errors have been detected, but we did not concatenate any nodes.
+      return DartObjectImpl(
+        typeSystem,
+        _typeProvider.stringType,
+        StringState.UNKNOWN_VALUE,
+      );
+    }
+    return result;
   }
 
   /// Create an error associated with the given [node]. The error will have the
@@ -1745,16 +1755,15 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl? concatenate(Expression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.concatenate(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant concatenate(Expression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.concatenate(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      // TODO(kallentu): Don't report error here.
+      _errorReporter.reportErrorForNode(exception.errorCode, node);
+      return InvalidConstant(node, exception.errorCode);
     }
-    return null;
   }
 
   DartObjectImpl? divide(BinaryExpression node, DartObjectImpl? leftOperand,
