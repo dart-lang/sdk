@@ -1646,10 +1646,11 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Pop(vm_tag_reg);
 
-  // The trampoline that called us will enter the safepoint on our behalf.
-  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg,
-                                 old_exit_through_ffi_reg, tmp,
-                                 /*enter_safepoint=*/false);
+  // If we were called by a trampoline, it will enter the safepoint on our
+  // behalf.
+  __ TransitionGeneratedToNative(
+      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg, tmp,
+      /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   __ PopNativeCalleeSavedRegisters();
 
@@ -1696,6 +1697,24 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ PushNativeCalleeSavedRegisters();
 
+  // Load the thread object. If we were called by a JIT trampoline, the thread
+  // is already loaded.
+  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
+  if (!NativeCallbackTrampolines::Enabled()) {
+    compiler->LoadBSSEntry(BSS::Relocation::DRT_GetThreadForNativeCallback, R1,
+                           R0);
+    // Create another frame to align the frame before continuing in "native"
+    // code.
+    __ EnterFrame(1 << FP, 0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ LoadImmediate(R0, callback_id);
+    __ blx(R1);
+    __ mov(THR, compiler::Operand(R0));
+
+    __ LeaveFrame(1 << FP);
+  }
+
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R0, THR, compiler::target::Thread::vm_tag_offset());
   __ Push(R0);
@@ -1720,7 +1739,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ EmitEntryFrameVerification(R0);
 
-  // The callback trampoline (caller) has already left the safepoint for us.
+  // Either DLRT_GetThreadForNativeCallback or the callback trampoline (caller)
+  // will leave the safepoint for us.
   __ TransitionNativeToGenerated(/*scratch0=*/R0, /*scratch1=*/R1,
                                  /*exit_safepoint=*/false);
 
@@ -1728,8 +1748,6 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // handles.
 
   // Load the code object.
-  const Function& target_function = marshaller_.dart_signature();
-  const intptr_t callback_id = target_function.FfiCallbackId();
   __ LoadFromOffset(R0, THR, compiler::target::Thread::isolate_group_offset());
   __ LoadFromOffset(R0, R0,
                     compiler::target::IsolateGroup::object_store_offset());

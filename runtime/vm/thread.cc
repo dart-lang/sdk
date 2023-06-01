@@ -27,6 +27,10 @@
 #include "vm/timeline.h"
 #include "vm/zone.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/ffi_callback_trampolines.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 #if !defined(PRODUCT)

@@ -37,6 +37,10 @@
 #include "vm/token_position.h"
 #include "vm/virtual_memory.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/ffi_callback_trampolines.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 // Forward declarations.
@@ -415,6 +419,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Random* random() { return &random_; }
 
   bool is_system_isolate_group() const { return is_system_isolate_group_; }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  NativeCallbackTrampolines* native_callback_trampolines() {
+    return &native_callback_trampolines_;
+  }
+#endif
 
   // IsolateGroup-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
@@ -826,6 +836,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   int64_t start_time_micros_;
   bool is_system_isolate_group_;
   Random random_;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  NativeCallbackTrampolines native_callback_trampolines_;
+#endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t last_reload_timestamp_;
@@ -1242,11 +1256,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     deopt_context_ = value;
   }
 
-  void* CreateSyncFfiCallback(Zone* zone, const Function& function);
-
-  // Visible for testing.
-  void* ffi_callback_sync_list_head() { return ffi_callback_sync_list_head_; }
-
   intptr_t BlockClassFinalization() {
     ASSERT(defer_finalization_count_ >= 0);
     return defer_finalization_count_++;
@@ -1637,7 +1646,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   MessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
   DeoptContext* deopt_context_ = nullptr;
-  void* ffi_callback_sync_list_head_ = nullptr;
 
   GrowableObjectArrayPtr tag_table_;
 

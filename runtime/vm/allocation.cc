@@ -44,6 +44,7 @@ void StackResource::Init(ThreadState* thread) {
   // We can only have longjumps and exceptions when there is a current
   // thread and isolate.  If there is no current thread, we don't need to
   // protect this case.
+  // TODO(23807): Eliminate this special case.
   if (thread != nullptr) {
     ASSERT(Thread::Current() == thread);
     thread_ = thread;

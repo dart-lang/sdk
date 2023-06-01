@@ -197,6 +197,7 @@
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(ObjectStore, type_type_offset)                                         \
   FIELD(ObjectStore, ffi_callback_code_offset)                                 \
+  FIELD(ObjectStore, ffi_callback_stack_return_offset)                         \
   FIELD(ObjectStore, suspend_state_await_offset)                               \
   FIELD(ObjectStore, suspend_state_await_with_type_check_offset)               \
   FIELD(ObjectStore, suspend_state_handle_exception_offset)                    \

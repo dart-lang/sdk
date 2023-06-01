@@ -1192,7 +1192,7 @@ void Elf::CreateBSS() {
       label = kVmBssLabel;
     } else if (strcmp(portion.symbol_name,
                       kIsolateSnapshotInstructionsAsmSymbol) == 0) {
-      size = BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
+      size = BSS::kIsolateEntryCount * compiler::target::kWordSize;
       symbol_name = kIsolateSnapshotBssAsmSymbol;
       label = kIsolateBssLabel;
     } else {
