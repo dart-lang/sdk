@@ -128,21 +128,9 @@ int _compareRuleSets(List<String> s1, List<String> s2) {
   return 0;
 }
 
-List<String?> _getUnfixableLints() {
-  // todo(pq): consider moving this data elsewhere
-  var excludes = File('tool/canonical/fix_excludes.json');
-  var contents = excludes.readAsStringSync();
-  var json = jsonDecode(contents) as Iterable;
-  var skipped = <String?>[];
-  for (var entry in json) {
-    var name = entry['lint'];
-    var notes = entry['notes'];
-    if (notes != 'TODO') {
-      skipped.add(name as String?);
-    }
-  }
-  return skipped;
-}
+List<String?> _getUnfixableLints() =>
+    // todo(pq): update with data extracted from error_fix_status.yaml
+    [];
 
 //bool _isBug(Issue issue) => issue.labels.map((l) => l.name).contains('bug');
 
