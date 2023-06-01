@@ -63,6 +63,11 @@ enum Dart2JSStage {
 
   bool get shouldOnlyComputeDill =>
       this == Dart2JSStage.cfe || this == Dart2JSStage.cfeFromDill;
+  bool get shouldReadPlatformBinaries =>
+      this == Dart2JSStage.cfe ||
+      this == Dart2JSStage.cfeFromDill ||
+      this == Dart2JSStage.all ||
+      this == Dart2JSStage.allFromDill;
   bool get shouldLoadFromDill => this.index >= Dart2JSStage.allFromDill.index;
   bool get shouldComputeModularAnalysis =>
       this == Dart2JSStage.modularAnalysis ||

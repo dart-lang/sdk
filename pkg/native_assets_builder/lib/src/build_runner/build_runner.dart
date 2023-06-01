@@ -197,6 +197,7 @@ class NativeAssetsBuildRunner {
       targetIOSSdk: targetIOSSdk,
       cCompiler: cCompilerConfig,
       dependencyMetadata: dependencyMetadata,
+      targetAndroidNdkApi: targetAndroidNdkApi,
     );
   }
 

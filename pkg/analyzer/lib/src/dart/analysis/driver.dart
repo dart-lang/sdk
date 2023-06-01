@@ -1372,6 +1372,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         final isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
 
         late AnalysisResult result;
+        final resolvedUnits = <ResolvedUnitResultImpl>[];
         for (var unitResult in results) {
           var unitFile = unitResult.file;
 
@@ -1390,6 +1391,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             file: unitFile,
             unitResult: unitResult,
           );
+          resolvedUnits.add(resolvedUnit);
 
           if (isLibraryWithPriorityFile) {
             _priorityResults[unitFile.path] = resolvedUnit;
@@ -1415,6 +1417,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               );
             }
           }
+        }
+
+        if (isLibraryWithPriorityFile) {
+          final libraryResult = ResolvedLibraryResultImpl(
+            session: currentSession,
+            element: resolvedUnits.first.libraryElement,
+            units: resolvedUnits,
+          );
+          _resolvedLibraryCache[library] = libraryResult;
         }
 
         // Return the result, full or partial.
@@ -1468,14 +1479,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           .analyze();
       var resolvedUnits = <ResolvedUnitResult>[];
 
-      for (var unitResult in unitResults) {
-        var unitFile = unitResult.file;
-        resolvedUnits.add(
-          _createResolvedUnitImpl(
-            file: unitFile,
-            unitResult: unitResult,
-          ),
+      final isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
+      for (final unitResult in unitResults) {
+        final unitFile = unitResult.file;
+        final resolvedUnit = _createResolvedUnitImpl(
+          file: unitFile,
+          unitResult: unitResult,
         );
+        resolvedUnits.add(resolvedUnit);
+        if (isLibraryWithPriorityFile) {
+          _priorityResults[unitFile.path] = resolvedUnit;
+        }
       }
 
       final result = ResolvedLibraryResultImpl(
@@ -1484,7 +1498,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         units: resolvedUnits,
       );
 
-      if (_isLibraryWithPriorityFile(library)) {
+      if (isLibraryWithPriorityFile) {
         _resolvedLibraryCache[library] = result;
       }
 
