@@ -842,7 +842,7 @@ class ClosedWorldClassHierarchy
   @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
-    if (type.className == superclass.reference) {
+    if (type.classReference == superclass.reference) {
       // TODO(johnniwinther): This is necessary because [getClassAsInstanceOf]
       // returns a [Supertype] whose type arguments are type parameter types
       // whose nullability is set to the default nullability of the

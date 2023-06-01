@@ -305,7 +305,7 @@ class AstPrinter {
 
         bool isTopObject(DartType type) {
           if (type is InterfaceType &&
-              type.className.node != null &&
+              type.classReference.node != null &&
               type.classNode.name == 'Object') {
             Uri uri = type.classNode.enclosingLibrary.importUri;
             return uri.isScheme('dart') &&

@@ -240,7 +240,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // other way.
     DartType bound = parameter.bound;
     return bound is InterfaceType &&
-        identical(bound.className, coreTypes.objectClass.reference) &&
+        identical(bound.classReference, coreTypes.objectClass.reference) &&
         parameter.defaultType is DynamicType;
   }
 

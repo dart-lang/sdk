@@ -3724,7 +3724,7 @@ class BinaryBuilder {
         "In serialized form supertypes should have Nullability.legacy if they "
         "are in a library that is opted out of the NNBD feature.  If they are "
         "in an opted-in library, they should have Nullability.nonNullable.");
-    return new Supertype.byReference(type.className, type.typeArguments);
+    return new Supertype.byReference(type.classReference, type.typeArguments);
   }
 
   Supertype? readSupertypeOption() {
@@ -4356,7 +4356,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
     InterfaceType type =
         super.readDartType(forSupertype: true) as InterfaceType;
     return _associateMetadata(
-        new Supertype.byReference(type.className, type.typeArguments),
+        new Supertype.byReference(type.classReference, type.typeArguments),
         nodeOffset);
   }
 
