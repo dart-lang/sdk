@@ -9,7 +9,7 @@ import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
 group("kernel-service") {
-  if (create_kernel_service_snapshot) {
+  if (dart_snapshot_kind == "app-jit") {
     deps = [ ":copy_kernel-service_snapshot" ]
   } else {
     deps = [ ":kernel_service_dill" ]
