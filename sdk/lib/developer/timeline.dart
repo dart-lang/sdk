@@ -371,7 +371,7 @@ final class _SyncBlock {
       _reportTaskEvent(tempFlow.id, /*flowId=*/ _noFlowId, tempFlow._type,
           "${tempFlow.id}", _argumentsAsJson(null));
     }
-    _reportTaskEvent(taskId, flow?.id ?? _noFlowId, _end, name, _jsonArguments);
+    _reportTaskEvent(taskId, /*flowId=*/ _noFlowId, _end, name, _jsonArguments);
   }
 }
 
