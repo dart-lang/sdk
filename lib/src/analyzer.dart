@@ -17,8 +17,6 @@ import 'package:analyzer/src/lint/util.dart' as util;
 import 'package:analyzer/src/services/lint.dart' as lint_service;
 import 'package:pub_semver/pub_semver.dart';
 
-import 'version.dart';
-
 export 'package:analyzer/dart/element/type_system.dart';
 export 'package:analyzer/src/dart/ast/token.dart';
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart'
@@ -94,7 +92,8 @@ class Analyzer {
 
   /// Cache linter version; used in summary signatures.
   void cacheLinterVersion() {
-    lint_service.linterVersion = version;
+    // todo(pq): remove (https://github.com/dart-lang/linter/issues/4418)
+    lint_service.linterVersion = '1.35.0';
   }
 
   /// Create a library name prefix based on [libraryPath], [projectRoot] and

@@ -12,7 +12,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/services/lint.dart' as lint_service;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/analyzer.dart';
@@ -24,7 +23,6 @@ import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/test_utilities/annotation.dart';
 import 'package:linter/src/test_utilities/test_resource_provider.dart';
 import 'package:linter/src/utils.dart';
-import 'package:linter/src/version.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -36,7 +34,6 @@ import 'util/test_utils.dart';
 void main() {
   group('rule tests', () {
     setUp(setUpSharedTestEnvironment);
-    defineSanityTests();
     defineRuleTests();
     experiment_tests.main();
     defineRuleUnitTests();
@@ -179,13 +176,6 @@ void defineRuleUnitTests() {
       ];
       testEach(bad, isGoodPrefix, isFalse);
     });
-  });
-}
-
-/// Test framework sanity.
-void defineSanityTests() {
-  test('linter version caching', () {
-    expect(lint_service.linterVersion, version);
   });
 }
 

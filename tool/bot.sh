@@ -7,6 +7,7 @@
 # Fast fail the script on failures.
 set -e
 
+
 if [ "$LINTER_BOT" = "benchmark" ]; then
   echo "Running the linter benchmark..."
 
