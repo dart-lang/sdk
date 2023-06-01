@@ -404,7 +404,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // `respectImplicitlyTypedVarInitializers`.
       _flowAnalysis = FlowAnalysis<AstNode, Statement, Expression,
               PromotableElement, DecoratedType>(
-          DecoratedTypeOperations(_typeSystem, _variables, _graph),
+          DecoratedTypeOperations(
+              _typeSystem, typeProvider, _variables, _graph),
           _assignedVariables!,
           respectImplicitlyTypedVarInitializers: true);
     }
@@ -775,8 +776,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           ConditionalDiscard(trueGuard, falseGuard, _conditionInfo!.isPure));
     }
 
-    DecoratedType? thenType;
-    DecoratedType? elseType;
+    late DecoratedType thenType;
+    late DecoratedType elseType;
 
     // Post-dominators diverge as we branch in the conditional.
     // Note: we don't have to create a scope for each branch because they can't
@@ -787,36 +788,37 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _guards.add(trueGuard);
       }
       try {
-        thenType = _dispatch(node.thenExpression);
+        thenType = _dispatch(node.thenExpression)!;
         if (trueGuard != null) {
-          thenType = thenType!.withNode(
-              _nullabilityNodeForGLB(node, thenType!.node, trueGuard));
+          thenType = thenType
+              .withNode(_nullabilityNodeForGLB(node, thenType.node, trueGuard));
         }
       } finally {
         if (trueGuard != null) {
           _guards.removeLast();
         }
       }
-      _flowAnalysis!.conditional_elseBegin(node.thenExpression);
+      _flowAnalysis!.conditional_elseBegin(node.thenExpression, thenType);
       if (falseGuard != null) {
         _guards.add(falseGuard);
       }
       try {
-        elseType = _dispatch(node.elseExpression);
+        elseType = _dispatch(node.elseExpression)!;
         if (falseGuard != null) {
-          elseType = elseType!.withNode(
-              _nullabilityNodeForGLB(node, elseType!.node, falseGuard));
+          elseType = elseType.withNode(
+              _nullabilityNodeForGLB(node, elseType.node, falseGuard));
         }
       } finally {
         if (falseGuard != null) {
           _guards.removeLast();
         }
       }
-      _flowAnalysis!.conditional_end(node, node.elseExpression);
     });
 
     var overallType = _decorateUpperOrLowerBound(
-        node, node.staticType, thenType!, elseType!, true);
+        node, node.staticType, thenType, elseType, true);
+    _flowAnalysis!
+        .conditional_end(node, overallType, node.elseExpression, elseType);
     _variables.recordDecoratedExpressionType(node, overallType);
     return overallType;
   }
@@ -1589,10 +1591,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitNullLiteral(NullLiteral node) {
-    _flowAnalysis!.nullLiteral(node);
     var target = NullabilityNodeTarget.text('null literal').withCodeRef(node);
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, node.staticType, _graph, target);
+    _flowAnalysis!.nullLiteral(node, decoratedType);
     _graph.makeNullable(decoratedType.node, LiteralOrigin(source, node));
     return decoratedType;
   }
@@ -2218,7 +2220,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // `respectImplicitlyTypedVarInitializers`.
     _flowAnalysis = FlowAnalysis<AstNode, Statement, Expression,
             PromotableElement, DecoratedType>(
-        DecoratedTypeOperations(_typeSystem, _variables, _graph),
+        DecoratedTypeOperations(_typeSystem, typeProvider, _variables, _graph),
         _assignedVariables!,
         respectImplicitlyTypedVarInitializers: true);
     if (parameters != null) {

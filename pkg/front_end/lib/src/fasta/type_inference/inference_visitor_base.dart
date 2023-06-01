@@ -1908,7 +1908,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               : legacyErasure(inferredFormalType));
     }
 
-    List<EqualityInfo<DartType>?>? identicalInfo =
+    List<ExpressionInfo<DartType>?>? identicalInfo =
         isIdentical && arguments.positional.length == 2 ? [] : null;
     int positionalIndex = 0;
     int namedIndex = 0;

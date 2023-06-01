@@ -224,27 +224,29 @@ Future<void> checkTraces(
 
 void checkStaticSymbolTables(TestCase expected, List<TestCase> cases) {
   final expectedSymbolNames =
-      expected.container.staticSymbols.map((o) => o.name);
+      expected.container.staticSymbols.map((o) => o.name).toSet();
 
   if (expected.debuggingInfoContainer != null) {
-    expectSimilarStaticSymbols(expectedSymbolNames,
-        expected.debuggingInfoContainer!.staticSymbols.map((o) => o.name));
+    expectSimilarStaticSymbols(
+        expectedSymbolNames,
+        expected.debuggingInfoContainer!.staticSymbols
+            .map((o) => o.name)
+            .toSet());
   }
 
   for (final got in cases) {
-    expectSimilarStaticSymbols(
-        expectedSymbolNames, got.container.staticSymbols.map((o) => o.name));
+    expectSimilarStaticSymbols(expectedSymbolNames,
+        got.container.staticSymbols.map((o) => o.name).toSet());
     if (got.debuggingInfoContainer != null) {
       expectSimilarStaticSymbols(expectedSymbolNames,
-          got.debuggingInfoContainer!.staticSymbols.map((o) => o.name));
+          got.debuggingInfoContainer!.staticSymbols.map((o) => o.name).toSet());
     }
   }
 }
 
 const kMaxPercentAllowedDifferences = 0.01;
 
-void expectSimilarStaticSymbols(
-    Iterable<String> expected, Iterable<String> got) {
+void expectSimilarStaticSymbols(Set<String> expected, Set<String> got) {
   final allowedDifferences =
       (expected.length * kMaxPercentAllowedDifferences).floor();
   // There are cases where we cannot assume that we have the exact same symbols

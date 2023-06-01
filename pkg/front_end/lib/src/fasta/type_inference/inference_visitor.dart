@@ -974,17 +974,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferExpression(node.then, typeContext, isVoidAllowed: true);
     node.then = thenResult.expression..parent = node;
     registerIfUnreachableForTesting(node.then, isReachable: isThenReachable);
-    flowAnalysis.conditional_elseBegin(node.then);
+    flowAnalysis.conditional_elseBegin(node.then, thenResult.inferredType);
     bool isOtherwiseReachable = flowAnalysis.isReachable;
     ExpressionInferenceResult otherwiseResult =
         inferExpression(node.otherwise, typeContext, isVoidAllowed: true);
     node.otherwise = otherwiseResult.expression..parent = node;
     registerIfUnreachableForTesting(node.otherwise,
         isReachable: isOtherwiseReachable);
-    flowAnalysis.conditional_end(node, node.otherwise);
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
         thenResult.inferredType, otherwiseResult.inferredType,
         isNonNullableByDefault: isNonNullableByDefault);
+    flowAnalysis.conditional_end(
+        node, inferredType, node.otherwise, otherwiseResult.inferredType);
     node.staticType = inferredType;
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -6026,7 +6027,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       {required bool isNot}) {
     // ignore: unnecessary_null_comparison
     assert(isNot != null);
-    EqualityInfo<DartType>? equalityInfo =
+    ExpressionInfo<DartType>? equalityInfo =
         flowAnalysis.equalityOperand_end(left, leftType);
 
     Expression? equals;
@@ -7491,8 +7492,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitNullLiteral(
       NullLiteral node, DartType typeContext) {
-    flowAnalysis.nullLiteral(node);
-    return new ExpressionInferenceResult(const NullType(), node);
+    const NullType nullType = const NullType();
+    flowAnalysis.nullLiteral(node, nullType);
+    return new ExpressionInferenceResult(nullType, node);
   }
 
   @override

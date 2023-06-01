@@ -8,7 +8,7 @@
 /// analysis testing.
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
     show
-        EqualityInfo,
+        ExpressionInfo,
         ExpressionPropertyTarget,
         FlowAnalysis,
         Operations,
@@ -2375,6 +2375,9 @@ class MiniAstOperations
 
   final TypeSystem _typeSystem = TypeSystem();
 
+  @override
+  final Type boolType = Type('bool');
+
   bool get legacy => _legacy ?? false;
 
   set legacy(bool value) {
@@ -4486,7 +4489,7 @@ class _MiniAstTypeAnalyzer
       flow.logicalBinaryOp_begin();
     }
     var leftType = analyzeExpression(lhs, unknownType);
-    EqualityInfo<Type>? leftInfo;
+    ExpressionInfo<Type>? leftInfo;
     if (isEquals) {
       leftInfo = flow.equalityOperand_end(lhs, leftType);
     } else if (isLogical) {
@@ -4524,11 +4527,11 @@ class _MiniAstTypeAnalyzer
     analyzeExpression(condition, unknownType);
     flow.conditional_thenBegin(condition, node);
     var ifTrueType = analyzeExpression(ifTrue, unknownType);
-    flow.conditional_elseBegin(ifTrue);
+    flow.conditional_elseBegin(ifTrue, ifTrueType);
     var ifFalseType = analyzeExpression(ifFalse, unknownType);
-    flow.conditional_end(node, ifFalse);
-    return new SimpleTypeAnalysisResult<Type>(
-        type: leastUpperBound(ifTrueType, ifFalseType));
+    var lubType = leastUpperBound(ifTrueType, ifFalseType);
+    flow.conditional_end(node, lubType, ifFalse, ifFalseType);
+    return new SimpleTypeAnalysisResult<Type>(type: lubType);
   }
 
   void analyzeContinueStatement(Statement? target) {
@@ -4580,7 +4583,7 @@ class _MiniAstTypeAnalyzer
   }
 
   SimpleTypeAnalysisResult<Type> analyzeNullLiteral(Expression node) {
-    flow.nullLiteral(node);
+    flow.nullLiteral(node, nullType);
     return new SimpleTypeAnalysisResult<Type>(type: nullType);
   }
 

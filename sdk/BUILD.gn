@@ -15,8 +15,8 @@
 
 import("../build/dart/copy_tree.gni")
 import("../build/executable_suffix.gni")
-import("../runtime/runtime_args.gni")
 import("../sdk_args.gni")
+import("../utils/application_snapshot.gni")
 
 declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
@@ -120,7 +120,7 @@ _platform_sdk_snapshots = [
     "../utils/kernel-service:frontend_server",
   ],
 ]
-if (create_kernel_service_snapshot) {
+if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
         "kernel-service",
         "../utils/kernel-service:kernel-service_snapshot",
