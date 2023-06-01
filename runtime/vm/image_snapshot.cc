@@ -1361,8 +1361,7 @@ const char* ImageWriter::Deobfuscate(Zone* zone,
 
 void AssemblyImageWriter::WriteBss(bool vm) {
   EnterSection(ProgramSection::Bss, vm, ImageWriter::kBssAlignment);
-  auto const entry_count =
-      vm ? BSS::kVmEntryCount : BSS::kIsolateGroupEntryCount;
+  auto const entry_count = vm ? BSS::kVmEntryCount : BSS::kIsolateEntryCount;
   for (intptr_t i = 0; i < entry_count; i++) {
     // All bytes in the .bss section must be zero.
     WriteTargetWord(0);

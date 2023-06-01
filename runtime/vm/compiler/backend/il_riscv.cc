@@ -1693,11 +1693,13 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ StoreToOffset(tmp, THR, compiler::target::Thread::top_resource_offset());
 
   // Reset the exit frame info to old_exit_frame_reg *before* entering the
-  // safepoint. The trampoline that called us will enter the safepoint on our
+  // safepoint.
+  //
+  // If we were called by a trampoline, it will enter the safepoint on our
   // behalf.
-  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg,
-                                 old_exit_through_ffi_reg,
-                                 /*enter_safepoint=*/false);
+  __ TransitionGeneratedToNative(
+      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg,
+      /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   __ PopNativeCalleeSavedRegisters();
 
@@ -1736,6 +1738,34 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ PushNativeCalleeSavedRegisters();
 
+  // Load the thread object. If we were called by a trampoline, the thread is
+  // already loaded.
+  if (FLAG_precompiled_mode) {
+    compiler->LoadBSSEntry(BSS::Relocation::DRT_GetThreadForNativeCallback, A1,
+                           A0);
+  } else if (!NativeCallbackTrampolines::Enabled()) {
+    // In JIT mode, we can just paste the address of the runtime entry into the
+    // generated code directly. This is not a problem since we don't save
+    // callbacks into JIT snapshots.
+    __ LoadImmediate(
+        A1, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
+  }
+
+  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
+
+  if (!NativeCallbackTrampolines::Enabled()) {
+    // Create another frame to align the frame before continuing in "native"
+    // code.
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ LoadImmediate(A0, callback_id);
+    __ jalr(A1);
+    __ mv(THR, A0);
+
+    __ LeaveFrame();
+  }
+
 #if defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -1765,15 +1795,14 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // correct offset from FP.
   __ EmitEntryFrameVerification();
 
-  // The callback trampoline (caller) has already left the safepoint for us.
+  // Either DLRT_GetThreadForNativeCallback or the callback trampoline (caller)
+  // will leave the safepoint for us.
   __ TransitionNativeToGenerated(A0, /*exit_safepoint=*/false);
 
   // Now that the safepoint has ended, we can touch Dart objects without
   // handles.
 
   // Load the code object.
-  const Function& target_function = marshaller_.dart_signature();
-  const intptr_t callback_id = target_function.FfiCallbackId();
   __ LoadFromOffset(A0, THR, compiler::target::Thread::isolate_group_offset());
   __ LoadFromOffset(A0, A0,
                     compiler::target::IsolateGroup::object_store_offset());

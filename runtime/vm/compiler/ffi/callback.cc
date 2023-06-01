@@ -116,13 +116,52 @@ static void EnsureFfiCallbackMetadata(Thread* thread, intptr_t callback_id) {
         GrowableObjectArray::New(kInitialCallbackIdsReserved, Heap::kOld);
     object_store->set_ffi_callback_code(code_array);
   }
+#if defined(TARGET_ARCH_IA32)
+  auto& stack_array =
+      TypedData::Handle(zone, object_store->ffi_callback_stack_return());
+  if (stack_array.IsNull()) {
+    stack_array = TypedData::New(kTypedDataInt8ArrayCid,
+                                 kInitialCallbackIdsReserved, Heap::kOld);
+    object_store->set_ffi_callback_stack_return(stack_array);
+  }
+  ASSERT(code_array.Length() <= stack_array.Length());
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
+  auto* const tramps = thread->isolate_group()->native_callback_trampolines();
+  ASSERT(code_array.Length() == tramps->next_callback_id());
+#endif
+
   if (code_array.Length() <= callback_id) {
     // Ensure we've enough space in the arrays.
     while (!(callback_id < code_array.Length())) {
       code_array.Add(Code::null_object());
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
+      tramps->AllocateTrampoline();
+#endif
     }
+
+#if defined(TARGET_ARCH_IA32)
+    if (callback_id >= stack_array.Length()) {
+      const int32_t capacity = stack_array.Length();
+      if (callback_id >= capacity) {
+        // Ensure both that we grow enough and an exponential growth strategy.
+        const int32_t new_capacity =
+            Utils::Maximum(callback_id + 1, capacity * 2);
+        stack_array = TypedData::Grow(stack_array, new_capacity);
+        object_store->set_ffi_callback_stack_return(stack_array);
+      }
+    }
+#endif  // defined(TARGET_ARCH_IA32)
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
+  // Verify invariants of the 3 arrays (still) hold.
+  ASSERT(code_array.Length() == tramps->next_callback_id());
+#if defined(TARGET_ARCH_IA32)
+  ASSERT(code_array.Length() <= stack_array.Length());
+#endif
+#endif
   ASSERT(callback_id < code_array.Length());
 }
 
@@ -138,6 +177,19 @@ void SetFfiCallbackCode(Thread* thread,
   const auto& code_array =
       GrowableObjectArray::Handle(zone, object_store->ffi_callback_code());
   code_array.SetAt(callback_id, code);
+
+#if defined(TARGET_ARCH_IA32)
+  // On ia32, store the stack delta that we need to use when returning.
+  const intptr_t stack_return_delta =
+      ffi_trampoline.FfiCSignatureReturnsStruct() &&
+              CallingConventions::kUsesRet4
+          ? compiler::target::kWordSize
+          : 0;
+
+  const auto& stack_delta_array =
+      TypedData::Handle(zone, object_store->ffi_callback_stack_return());
+  stack_delta_array.SetUint8(callback_id, stack_return_delta);
+#endif  // defined(TARGET_ARCH_IA32)
 }
 
 }  // namespace ffi

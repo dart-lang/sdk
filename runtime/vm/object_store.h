@@ -206,6 +206,7 @@ class ObjectPointerVisitor;
   RW(Array, unique_dynamic_targets)                                            \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(GrowableObjectArray, ffi_callback_code)                                   \
+  RW(TypedData, ffi_callback_stack_return)                                     \
   RW(Code, build_generic_method_extractor_code)                                \
   RW(Code, build_nongeneric_method_extractor_code)                             \
   RW(Code, dispatch_table_null_error_stub)                                     \

@@ -158,9 +158,8 @@ RUNTIME_ENTRY_LIST(DECLARE_RUNTIME_ENTRY)
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 
 // Expected to be called inside a safepoint.
-extern "C" Thread* DLRT_GetFfiCallbackMetadata(void* trampoline,
-                                               uword* out_entry_point,
-                                               uword* out_callback_kind);
+extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id);
+extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(uword callback_id);
 
 // For creating scoped handles in FFI trampolines.
 extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread);

@@ -17,7 +17,6 @@
 #include "vm/debugger.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
-#include "vm/ffi_callback_metadata.h"
 #include "vm/flags.h"
 #include "vm/heap/verifier.h"
 #include "vm/instructions.h"
@@ -3845,31 +3844,44 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepointIgnoreUnwindInProgress,
                               false,
                               &DFLRT_ExitSafepointIgnoreUnwindInProgress);
 
-#if defined(DART_HOST_OS_WINDOWS)
-#pragma intrinsic(_ReturnAddress)
-#endif
+// Ensure that 'callback_id' refers to a valid callback.
+//
+// If "entry != 0", additionally checks that entry is inside the instructions
+// of this callback.
+//
+// Aborts if any of these conditions fails.
+static void VerifyCallbackIdMetadata(Thread* thread,
+                                     int32_t callback_id,
+                                     uword entry) {
+  NoSafepointScope _;
 
-// This is called by a native callback trampoline
-// (see StubCodeCompiler::GenerateFfiCallbackTrampolineStub). Not registered as
-// a runtime entry because we can't use Thread to look it up.
-extern "C" Thread* DLRT_GetFfiCallbackMetadata(void* trampoline,
-                                               uword* out_entry_point,
-                                               uword* out_trampoline_type) {
-  CHECK_STACK_ALIGNMENT;
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p", trampoline);
-
-  auto metadata =
-      FfiCallbackMetadata::Instance()->LookupMetadataForTrampoline(trampoline);
-  if (!metadata.IsLive()) {
-    FATAL("Callback invoked after it has been deleted.");
+  const GrowableObjectArrayPtr array =
+      thread->isolate_group()->object_store()->ffi_callback_code();
+  if (array == GrowableObjectArray::null()) {
+    FATAL("Cannot invoke callback on incorrect isolate.");
   }
 
-  Isolate* target_isolate = metadata.target_isolate();
-  ASSERT(out_entry_point != nullptr);
-  *out_entry_point = metadata.target_entry_point();
-  ASSERT(out_trampoline_type != nullptr);
-  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
+  const SmiPtr length_smi = GrowableObjectArray::NoSafepointLength(array);
+  const intptr_t length = Smi::Value(length_smi);
 
+  if (callback_id < 0 || callback_id >= length) {
+    FATAL("Cannot invoke callback on incorrect isolate.");
+  }
+
+  if (entry != 0) {
+    CompressedObjectPtr* const code_array =
+        Array::DataOf(GrowableObjectArray::NoSafepointData(array));
+    const CodePtr code =
+        Code::RawCast(code_array[callback_id].Decompress(array.heap_base()));
+    if (!Code::ContainsInstructionAt(code, entry)) {
+      FATAL("Cannot invoke callback on incorrect isolate.");
+    }
+  }
+}
+
+// Not registered as a runtime entry because we can't use Thread to look it up.
+static Thread* GetThreadForNativeCallback(uword callback_id,
+                                          uword return_address) {
   Thread* const thread = Thread::Current();
   if (thread == nullptr) {
     FATAL("Cannot invoke native callback outside an isolate.");
@@ -3883,9 +3895,6 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(void* trampoline,
   if (!thread->IsDartMutatorThread()) {
     FATAL("Native callbacks must be invoked on the mutator thread.");
   }
-  if (thread->isolate() != target_isolate) {
-    FATAL("Cannot invoke native callback from a different isolate.");
-  }
 
   // Set the execution state to VM while waiting for the safepoint to end.
   // This isn't strictly necessary but enables tests to check that we're not
@@ -3893,13 +3902,42 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(void* trampoline,
   thread->set_execution_state(Thread::kThreadInVM);
 
   thread->ExitSafepoint();
+  VerifyCallbackIdMetadata(thread, callback_id, return_address);
 
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", thread);
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata entry_point %p",
-                     (void*)*out_entry_point);
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata trampoline_type %p",
-                     (void*)*out_trampoline_type);
   return thread;
+}
+
+#if defined(DART_HOST_OS_WINDOWS)
+#pragma intrinsic(_ReturnAddress)
+#endif
+
+// This is called directly by NativeEntryInstr. At the moment we enter this
+// routine, the caller is generated code in the Isolate heap. Therefore we check
+// that the return address (caller) corresponds to the declared callback ID's
+// code within this Isolate.
+extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id) {
+  CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("GetThreadForNativeCallback %" Pd, callback_id);
+#if defined(DART_HOST_OS_WINDOWS)
+  void* return_address = _ReturnAddress();
+#else
+  void* return_address = __builtin_return_address(0);
+#endif
+  Thread* return_value = GetThreadForNativeCallback(
+      callback_id, reinterpret_cast<uword>(return_address));
+  TRACE_RUNTIME_CALL("GetThreadForNativeCallback returning %p", return_value);
+  return return_value;
+}
+
+// This is called by a native callback trampoline
+// (see StubCodeCompiler::GenerateJITCallbackTrampolines). There is no need to
+// check the return address because the trampoline will use the callback ID to
+// look up the generated code. We still check that the callback ID is valid for
+// this isolate.
+extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(
+    uword callback_id) {
+  CHECK_STACK_ALIGNMENT;
+  return GetThreadForNativeCallback(callback_id, 0);
 }
 
 extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread) {

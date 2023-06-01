@@ -6470,6 +6470,21 @@ class ProgramDeserializationRoots : public DeserializationRoots {
       unit.set_base_objects(refs);
     }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // The JIT trampolines are allocated at runtime and not part of the
+    // snapshot. So if the snapshot contains ffi-callback-trampolines we'll
+    // have to allocate corresponding JIT trampolines.
+    auto* const tramps = isolate_group->native_callback_trampolines();
+    const auto& ffi_callback_code =
+        GrowableObjectArray::Handle(object_store->ffi_callback_code());
+    if (!ffi_callback_code.IsNull()) {
+      const intptr_t len = ffi_callback_code.Length();
+      while (tramps->next_callback_id() < len) {
+        tramps->AllocateTrampoline();
+      }
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
     // Setup native resolver for bootstrap impl.
     Bootstrap::SetupNativeResolver();
   }

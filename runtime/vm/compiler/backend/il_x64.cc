@@ -482,10 +482,11 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ popq(vm_tag_reg);
 
-  // The trampoline that called us will enter the safepoint on our behalf.
-  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg,
-                                 old_exit_through_ffi_reg,
-                                 /*enter_safepoint=*/false);
+  // If we were called by a trampoline, it will enter the safepoint on our
+  // behalf.
+  __ TransitionGeneratedToNative(
+      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg,
+      /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(kCalleeSaveRegistersSet);
@@ -1491,6 +1492,23 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save ABI callee-saved registers.
   __ PushRegisters(kCalleeSaveRegistersSet);
 
+  // Load the thread object. If we were called by a JIT trampoline, the thread
+  // is already loaded.
+  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
+  if (!NativeCallbackTrampolines::Enabled()) {
+    compiler->LoadBSSEntry(BSS::Relocation::DRT_GetThreadForNativeCallback, RAX,
+                           RCX);
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
+    __ movq(CallingConventions::kArg1Reg, compiler::Immediate(callback_id));
+    __ CallCFunction(RAX);
+    __ movq(THR, RAX);
+
+    __ LeaveFrame();
+  }
+
   // Save the current VMTag on the stack.
   __ movq(RAX, compiler::Assembler::VMTagAddress());
   __ pushq(RAX);
@@ -1513,12 +1531,11 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // correct offset from FP.
   __ EmitEntryFrameVerification();
 
-  // The callback trampoline (caller) has already left the safepoint for us.
+  // Either DLRT_GetThreadForNativeCallback or the callback trampoline (caller)
+  // will leave the safepoint for us.
   __ TransitionNativeToGenerated(/*exit_safepoint=*/false);
 
   // Load the code object.
-  const Function& target_function = marshaller_.dart_signature();
-  const intptr_t callback_id = target_function.FfiCallbackId();
   __ movq(RAX, compiler::Address(
                    THR, compiler::target::Thread::isolate_group_offset()));
   __ movq(RAX, compiler::Address(
