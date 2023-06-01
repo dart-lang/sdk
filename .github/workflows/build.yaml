@@ -26,7 +26,6 @@ jobs:
         linter-bot:
           - main
           - coverage
-          - release
           - benchmark
 
     steps:
