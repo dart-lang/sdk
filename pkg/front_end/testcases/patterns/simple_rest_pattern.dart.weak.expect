@@ -6,7 +6,7 @@ static method test1(dynamic x) → dynamic {
   {
     hoisted core::int y;
     final synthesized dynamic #0#0 = x;
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = y = #0#6{core::int} in true))) {
       return y;
     }
@@ -19,7 +19,7 @@ static method test2(dynamic x) → dynamic {
   {
     hoisted core::int y;
     final synthesized dynamic #0#0 = x;
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = y = #0#6{core::int} in true))) {
       return y;
     }
@@ -32,8 +32,8 @@ static method test3(dynamic x) → dynamic {
   {
     hoisted core::int y;
     final synthesized dynamic #0#0 = x;
-    late final synthesized core::int #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(#0#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
+    late final synthesized core::int #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(#0#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = y = #0#6{core::int} in true))) {
       return y;
     }

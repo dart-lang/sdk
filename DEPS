@@ -48,7 +48,8 @@ vars = {
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure,
   # which is automatically built on the release commits.
-  "sdk_tag": "git_revision:7a6514d1377175decd3a886fe4190fbbebddac3a", # 3.0.0
+  # Use a dev commit because Windows ARM64 is not built on beta or stable.
+  "sdk_tag": "version:3.1.0-155.0.dev",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
@@ -547,7 +548,7 @@ deps = {
         "version": "version:" + Var("chrome_tag"),
       }
     ],
-    "condition": "host_cpu == 'x64'",
+    "condition": "download_chrome",
     "dep_type": "cipd",
   },
 
@@ -558,6 +559,17 @@ deps = {
               "version": Var("gn_version"),
           },
       ],
+      "condition": "host_os != 'win'",
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/buildtools/win": {
+      "packages": [
+          {
+              "package": "gn/gn/windows-amd64",
+              "version": Var("gn_version"),
+          },
+      ],
+      "condition": "host_os == 'win'",
       "dep_type": "cipd",
   },
 

@@ -24,7 +24,7 @@ static method test2(dynamic x) → dynamic {
       core::int #t5;
       final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       function ##0#6#initializer() → dynamic
-        return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+        return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
       if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && ((let final core::int #t6 = #t4 = #0#6 as{ForNonNullableByDefault} core::int in true) && (let final core::int #t7 = #t5 = #0#6{core::int} in true))))
         throw new core::StateError::•("Pattern matching error");

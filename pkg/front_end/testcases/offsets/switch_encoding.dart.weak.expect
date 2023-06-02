@@ -37,7 +37,7 @@ import "dart:_internal" as _in;
 [622]  #L1:
 [622]  {
 [630]    [630] final synthesized dynamic #0#0 = [630] [630] o;
-[-1]    [-1] late final synthesized core::int #0#2 = [644] [644] [630] [630] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]    [-1] late final synthesized core::int #0#2 = [644] [644] [630]([630] [630] [630] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]    [-1] dynamic #t1;
 [639]    {
 [649]      [649] lowered hoisted dynamic a#case#0;
@@ -64,7 +64,7 @@ import "dart:_internal" as _in;
 [788]  #L2:
 [788]  {
 [796]    [796] final synthesized dynamic #0#0 = [796] [796] o;
-[-1]    [-1] late final synthesized core::int #0#2 = [810] [810] [796] [796] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]    [-1] late final synthesized core::int #0#2 = [810] [810] [796]([796] [796] [796] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]    [-1] dynamic #t7;
 [805]    {
 [815]      [815] lowered hoisted dynamic a#case#0;
@@ -100,7 +100,7 @@ import "dart:_internal" as _in;
 [996]  {
 [996]    [996] core::int #t13 = [996] [996] [996] [996] 1.{core::int::unary-}[996](){() → core::int};
 [1004]    [1004] final synthesized dynamic #0#0 = [1004] [1004] o;
-[-1]    [-1] late final synthesized core::int #0#2 = [1018] [1018] [1004] [1004] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]    [-1] late final synthesized core::int #0#2 = [1018] [1018] [1004]([1004] [1004] [1004] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]    [-1] dynamic #t14;
 [996]    #L4:
 [996]    {
@@ -190,7 +190,7 @@ import "dart:_internal" as _in;
 [1421]            {
 [1421]              [1421] core::int #t23 = [1421] [1421] [1421] [1421] 1.{core::int::unary-}[1421](){() → core::int};
 [1429]              [1429] final synthesized dynamic #0#0 = [1429] [1429] o2;
-[-1]              [-1] late final synthesized core::int #0#2 = [1448] [1448] [1429] [1429] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]              [-1] late final synthesized core::int #0#2 = [1448] [1448] [1429]([1429] [1429] [1429] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]              [-1] dynamic #t24;
 [1421]              #L10:
 [1421]              {
@@ -300,7 +300,7 @@ import "dart:_internal" as _in;
 [1973]            {
 [1973]              [1973] core::int #t30 = [1973] [1973] [1973] [1973] 1.{core::int::unary-}[1973](){() → core::int};
 [1981]              [1981] final synthesized dynamic #1#0 = [1981] [1981] o2;
-[-1]              [-1] late final synthesized core::int #1#2 = [2000] [2000] [1981] [1981] #1#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]              [-1] late final synthesized core::int #1#2 = [2000] [2000] [1981]([1981] [1981] [1981] #1#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]              [-1] dynamic #t31;
 [1973]              #L16:
 [1973]              {

@@ -138,7 +138,7 @@ static method method2(dynamic o) → dynamic {
   {
     final synthesized dynamic #5#0 = o;
     function ##5#2#initializer() → core::int
-      return #5#0{core::List<dynamic>}.{core::List::length}{core::int};
+      return (#5#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #5#2 = ##5#2#initializer(){() → core::int};
     {
       hoisted core::List<dynamic> a;

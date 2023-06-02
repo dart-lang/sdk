@@ -15,7 +15,7 @@ static method test(dynamic x) → dynamic {
   {
     hoisted core::String y;
     final synthesized dynamic #0#0 = x;
-    late final synthesized core::Object? #0#5 = #0#0{self::A}.{self::A::bar}{core::Object?};
+    late final synthesized core::Object? #0#5 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::A).{self::A::bar}{core::Object?};
     if(#0#0 is{ForNonNullableByDefault} self::A && #C1 =={core::String::==}{(core::Object) → core::bool} #0#0{self::A}.{self::A::foo}{core::String} && (let final dynamic #t1 = #0#5 as{ForNonNullableByDefault} core::String in (#0#5 as{ForNonNullableByDefault} core::String) is{ForNonNullableByDefault} core::String && (let final dynamic #t2 = y = #0#5 as{ForNonNullableByDefault} core::String in true))) {
       return y;
     }

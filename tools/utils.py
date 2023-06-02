@@ -250,15 +250,21 @@ def HostArchitectures():
         if m == 'x86_64':
             # X64 Macs no longer support IA32.
             return ['x64']
-    else:
-        if m in ['aarch64', 'arm64', 'arm64e', 'ARM64']:
-            return ['arm64']
-        if m in ['armv7l', 'armv8l']:
-            return ['arm']
-        if m in ['i386', 'i686', 'ia32', 'x86']:
-            return ['x86', 'ia32']
-        if m in ['x64', 'x86-64', 'x86_64', 'amd64', 'AMD64']:
-            return ['x64', 'x86', 'ia32']
+    # Icky use of CIPD_ARCHITECTURE should be effectively dead whenever the
+    # Python on bots becomes native ARM64.
+    if ((platform.system() == 'Windows') and
+        (os.environ.get("CIPD_ARCHITECTURE") == "arm64")):
+        # ARM64 Windows also can emulate X64.
+        return ['arm64', 'x64']
+
+    if m in ['aarch64', 'arm64', 'arm64e', 'ARM64']:
+        return ['arm64']
+    if m in ['armv7l', 'armv8l']:
+        return ['arm']
+    if m in ['i386', 'i686', 'ia32', 'x86']:
+        return ['x86', 'ia32']
+    if m in ['x64', 'x86-64', 'x86_64', 'amd64', 'AMD64']:
+        return ['x64', 'x86', 'ia32']
     raise Exception('Failed to determine host architectures for %s %s',
                     platform.machine(), platform.system())
 

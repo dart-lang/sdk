@@ -135,7 +135,7 @@ static method method2(dynamic o) → dynamic {
   #L12:
   {
     final synthesized dynamic #5#0 = o;
-    late final synthesized core::int #5#2 = #5#0{core::List<dynamic>}.{core::List::length}{core::int};
+    late final synthesized core::int #5#2 = (#5#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     {
       hoisted core::List<dynamic> a;
       if(#5#0 is{ForNonNullableByDefault} core::List<dynamic> && #5#2.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t6 = a = #5#0{core::List<dynamic>}.{core::List::sublist}(0, #5#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {

@@ -33,7 +33,7 @@ static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     function ##0#4#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
     late final synthesized dynamic #0#4 = ##0#4#initializer(){() → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#4) {
       return 0;
@@ -42,10 +42,10 @@ static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #1#0 = x;
     function ##1#4#initializer() → dynamic
-      return #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+      return (#1#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
     late final synthesized dynamic #1#4 = ##1#4#initializer(){() → dynamic};
     function ##1#8#initializer() → dynamic
-      return #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+      return (#1#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
     late final synthesized dynamic #1#8 = ##1#8#initializer(){() → dynamic};
     if(#1#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#1#4 == null) || null is{ForNonNullableByDefault} dynamic && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #1#4 && (!(#1#8 == null) || null is{ForNonNullableByDefault} dynamic && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} #1#8) {
       return 1;
@@ -54,10 +54,10 @@ static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #2#0 = x;
     function ##2#4#initializer() → dynamic
-      return #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+      return (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
     late final synthesized dynamic #2#4 = ##2#4#initializer(){() → dynamic};
     function ##2#8#initializer() → dynamic
-      return #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+      return (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
     late final synthesized dynamic #2#8 = ##2#8#initializer(){() → dynamic};
     if(#2#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#2#4 == null) || null is{ForNonNullableByDefault} dynamic && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #2#4 && (!(#2#8 == null) || null is{ForNonNullableByDefault} dynamic && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} #2#8) {
       return 2;
@@ -77,4 +77,4 @@ Evaluated: IsExpression @ org-dartlang-testcase:///rest_pattern_in_map_pattern_e
 Evaluated: IsExpression @ org-dartlang-testcase:///rest_pattern_in_map_pattern_errors.dart:9:32 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///rest_pattern_in_map_pattern_errors.dart:12:16 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///rest_pattern_in_map_pattern_errors.dart:12:27 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 84, effectively constant: 5
+Extra constant evaluation: evaluated: 89, effectively constant: 5

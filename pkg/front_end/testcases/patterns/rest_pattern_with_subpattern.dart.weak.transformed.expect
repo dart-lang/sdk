@@ -7,7 +7,7 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     function ##0#4#initializer() → core::bool
       return #0#2.{core::num::>=}(#C2){(core::num) → core::bool};
@@ -16,16 +16,16 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
       return #C3 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized core::bool #0#8 = ##0#8#initializer(){() → core::bool};
     function ##0#9#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized dynamic #0#9 = ##0#9#initializer(){() → dynamic};
     function ##0#12#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(#0#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(#0#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
     late final synthesized dynamic #0#12 = ##0#12#initializer(){() → dynamic};
     function ##0#19#initializer() → core::bool
       return #0#2.{core::num::>=}(#C4){(core::num) → core::bool};
     late final synthesized core::bool #0#19 = ##0#19#initializer(){() → core::bool};
     function ##0#22#initializer() → core::List<dynamic>
-      return #0#0{core::List<dynamic>}.{core::List::sublist}(2, #0#2.{core::num::-}(2){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::sublist}(2, #0#2.{core::num::-}(2){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
     late final synthesized core::List<dynamic> #0#22 = ##0#22#initializer(){() → core::List<dynamic>};
     function ##0#24#initializer() → core::bool
       return #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<dynamic>}.{core::List::[]}(#0#2.{core::num::-}(2){(core::num) → core::int}){(core::int) → dynamic};

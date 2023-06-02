@@ -18,7 +18,7 @@ static method test() → dynamic {
     hoisted core::int x;
     {
       final synthesized dynamic #0#0 = #t1;
-      late final synthesized invalid-type #0#6 = #0#0{invalid-type}.{core::List::[]}(0){(core::int) → invalid-type};
+      late final synthesized invalid-type #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type).{core::List::[]}(0){(core::int) → invalid-type};
       if(!(#0#0{invalid-type} is{ForNonNullableByDefault} core::List<invalid-type> && #0#0{invalid-type}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = x = #0#6 in true))))
         throw new core::StateError::•("Pattern matching error");
     }

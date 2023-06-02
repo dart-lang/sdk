@@ -21,7 +21,7 @@ static method foo(core::Object o, core::num value) → void {
   {
     final synthesized core::Object #0#0 = o;
     function ##0#2#initializer() → (core::int) → void
-      return #0#0{self::B}.{self::B::g}{(core::int) → void};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} self::B).{self::B::g}{(core::int) → void};
     late final synthesized (core::int) → void #0#2 = ##0#2#initializer(){() → (core::int) → void};
     {
       hoisted (core::num) → void f;

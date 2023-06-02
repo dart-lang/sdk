@@ -113,6 +113,14 @@ class DartDevelopmentServiceClient {
       return RPCResponses.success;
     });
 
+    _clientPeer.registerMethod('postEvent', (parameters) async {
+      final eventKind = parameters['eventKind'].asString;
+      final eventData = parameters['eventData'].asMap;
+      final stream = parameters['stream'].asString;
+      dds.streamManager.postEvent(stream, eventKind, eventData);
+      return RPCResponses.success;
+    });
+
     _clientPeer.registerMethod('streamCpuSamplesWithUserTag',
         (parameters) async {
       final userTags = parameters['userTags'].asList.cast<String>();

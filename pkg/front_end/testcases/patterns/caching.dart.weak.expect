@@ -22,7 +22,7 @@ static method ifCase(dynamic o) → core::int {
   }
   {
     final synthesized dynamic #1#0 = o;
-    late final synthesized core::Object? #1#2 = #1#0{({f: core::Object?})}.f{core::Object?};
+    late final synthesized core::Object? #1#2 = (#1#0 as{ForNonNullableByDefault,Unchecked} ({f: core::Object?})).f{core::Object?};
     if(#1#0 is{ForNonNullableByDefault} ({f: core::Object?}) && ((let final dynamic #t1 = #1#2 as{ForNonNullableByDefault} core::int in (#1#2 as{ForNonNullableByDefault} core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final dynamic #t2 = #1#2 as{ForNonNullableByDefault} core::int in (#1#2 as{ForNonNullableByDefault} core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
       return 2;
     }
@@ -35,7 +35,7 @@ static method ifCase(dynamic o) → core::int {
   }
   {
     final synthesized dynamic #3#0 = o;
-    late final synthesized core::Object? #3#2 = #3#0{({g: core::Object?})}.g{core::Object?};
+    late final synthesized core::Object? #3#2 = (#3#0 as{ForNonNullableByDefault,Unchecked} ({g: core::Object?})).g{core::Object?};
     if(#3#0 is{ForNonNullableByDefault} ({g: core::Object?}) && (let final dynamic #t3 = #3#2 as{ForNonNullableByDefault} core::int in #C6 =={core::num::==}{(core::Object) → core::bool} #3#2 as{ForNonNullableByDefault} core::int)) {
       return 4;
     }
@@ -66,14 +66,14 @@ static method ifCase(dynamic o) → core::int {
   }
   {
     final synthesized dynamic #8#0 = o;
-    late final synthesized core::int #8#2 = #8#0{core::List<dynamic>}.{core::List::length}{core::int};
+    late final synthesized core::int #8#2 = (#8#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     if(#8#0 is{ForNonNullableByDefault} core::List<dynamic> && #8#2.{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C8 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(#8#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
       return 9;
     }
   }
   {
     final synthesized dynamic #9#0 = o;
-    late final synthesized core::List<dynamic> #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
+    late final synthesized core::List<dynamic> #9#12 = (#9#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
     late final synthesized dynamic #9#15 = #9#12.{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #9#19 = #9#12.{core::List::[]}(1){(core::int) → dynamic};
     if(#9#0 is{ForNonNullableByDefault} core::List<dynamic> && #9#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C7){(core::num) → core::bool} && #C8 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && (#9#12.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t5 = #9#15 as{ForNonNullableByDefault} core::int in (#9#15 as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final dynamic #t6 = #9#19 as{ForNonNullableByDefault} core::int in (#9#19 as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
@@ -82,8 +82,8 @@ static method ifCase(dynamic o) → core::int {
   }
   {
     final synthesized dynamic #10#0 = o;
-    late final synthesized core::int #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int};
-    late final synthesized core::List<dynamic> #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, #10#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
+    late final synthesized core::int #10#2 = (#10#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized core::List<dynamic> #10#12 = (#10#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::sublist}(2, #10#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
     late final synthesized dynamic #10#16 = #10#12.{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #10#20 = #10#12.{core::List::[]}(1){(core::int) → dynamic};
     if(#10#0 is{ForNonNullableByDefault} core::List<dynamic> && #10#2.{core::num::>=}(#C2){(core::num) → core::bool} && #C3 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C4 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && (#10#12.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t7 = #10#16 as{ForNonNullableByDefault} core::int in (#10#16 as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final dynamic #t8 = #10#20 as{ForNonNullableByDefault} core::int in (#10#20 as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(#10#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
@@ -128,7 +128,7 @@ static method ifCase(dynamic o) → core::int {
   }
   {
     final synthesized dynamic #17#0 = o;
-    if(#17#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
+    if(#17#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{ForNonNullableByDefault,Unchecked} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
       return 18;
     }
   }
@@ -172,7 +172,7 @@ static method ifCase(dynamic o) → core::int {
   {
     hoisted core::int b;
     final synthesized dynamic #24#0 = o;
-    late final synthesized dynamic #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+    late final synthesized dynamic #24#4 = (#24#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
     if(#24#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #24#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (#24#4 is{ForNonNullableByDefault} core::int && (let final dynamic #t10 = b = #24#4{core::int} in true))) {
       return 25;
     }
@@ -208,7 +208,7 @@ static method ifCaseElse(dynamic o) → core::int {
     }
     else {
       final synthesized dynamic #1#0 = o;
-      late final synthesized core::Object? #1#2 = #1#0{({f: core::Object?})}.f{core::Object?};
+      late final synthesized core::Object? #1#2 = (#1#0 as{ForNonNullableByDefault,Unchecked} ({f: core::Object?})).f{core::Object?};
       if(#1#0 is{ForNonNullableByDefault} ({f: core::Object?}) && ((let final dynamic #t13 = #1#2 as{ForNonNullableByDefault} core::int in (#1#2 as{ForNonNullableByDefault} core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final dynamic #t14 = #1#2 as{ForNonNullableByDefault} core::int in (#1#2 as{ForNonNullableByDefault} core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
         return 2;
       }
@@ -219,7 +219,7 @@ static method ifCaseElse(dynamic o) → core::int {
         }
         else {
           final synthesized dynamic #3#0 = o;
-          late final synthesized core::Object? #3#2 = #3#0{({g: core::Object?})}.g{core::Object?};
+          late final synthesized core::Object? #3#2 = (#3#0 as{ForNonNullableByDefault,Unchecked} ({g: core::Object?})).g{core::Object?};
           if(#3#0 is{ForNonNullableByDefault} ({g: core::Object?}) && (let final dynamic #t15 = #3#2 as{ForNonNullableByDefault} core::int in #C6 =={core::num::==}{(core::Object) → core::bool} #3#2 as{ForNonNullableByDefault} core::int)) {
             return 4;
           }
@@ -245,13 +245,13 @@ static method ifCaseElse(dynamic o) → core::int {
                   }
                   else {
                     final synthesized dynamic #8#0 = o;
-                    late final synthesized core::int #8#2 = #8#0{core::List<dynamic>}.{core::List::length}{core::int};
+                    late final synthesized core::int #8#2 = (#8#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
                     if(#8#0 is{ForNonNullableByDefault} core::List<dynamic> && #8#2.{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C8 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(#8#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
                       return 9;
                     }
                     else {
                       final synthesized dynamic #9#0 = o;
-                      late final synthesized core::List<dynamic> #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
+                      late final synthesized core::List<dynamic> #9#12 = (#9#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
                       late final synthesized dynamic #9#15 = #9#12.{core::List::[]}(0){(core::int) → dynamic};
                       late final synthesized dynamic #9#19 = #9#12.{core::List::[]}(1){(core::int) → dynamic};
                       if(#9#0 is{ForNonNullableByDefault} core::List<dynamic> && #9#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C7){(core::num) → core::bool} && #C8 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && (#9#12.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t17 = #9#15 as{ForNonNullableByDefault} core::int in (#9#15 as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final dynamic #t18 = #9#19 as{ForNonNullableByDefault} core::int in (#9#19 as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
@@ -259,8 +259,8 @@ static method ifCaseElse(dynamic o) → core::int {
                       }
                       else {
                         final synthesized dynamic #10#0 = o;
-                        late final synthesized core::int #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int};
-                        late final synthesized core::List<dynamic> #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, #10#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
+                        late final synthesized core::int #10#2 = (#10#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+                        late final synthesized core::List<dynamic> #10#12 = (#10#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::sublist}(2, #10#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
                         late final synthesized dynamic #10#16 = #10#12.{core::List::[]}(0){(core::int) → dynamic};
                         late final synthesized dynamic #10#20 = #10#12.{core::List::[]}(1){(core::int) → dynamic};
                         if(#10#0 is{ForNonNullableByDefault} core::List<dynamic> && #10#2.{core::num::>=}(#C2){(core::num) → core::bool} && #C3 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C4 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && (#10#12.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t19 = #10#16 as{ForNonNullableByDefault} core::int in (#10#16 as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final dynamic #t20 = #10#20 as{ForNonNullableByDefault} core::int in (#10#20 as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(#10#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
@@ -298,7 +298,7 @@ static method ifCaseElse(dynamic o) → core::int {
                                     }
                                     else {
                                       final synthesized dynamic #17#0 = o;
-                                      if(#17#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
+                                      if(#17#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{ForNonNullableByDefault,Unchecked} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
                                         return 18;
                                       }
                                       else {
@@ -335,7 +335,7 @@ static method ifCaseElse(dynamic o) → core::int {
                                                   else {
                                                     hoisted core::int b;
                                                     final synthesized dynamic #24#0 = o;
-                                                    late final synthesized dynamic #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+                                                    late final synthesized dynamic #24#4 = (#24#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
                                                     if(#24#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #24#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (#24#4 is{ForNonNullableByDefault} core::int && (let final dynamic #t22 = b = #24#4{core::int} in true))) {
                                                       return 25;
                                                     }
@@ -393,26 +393,26 @@ static method switchStatement(dynamic o) → core::int {
   #L1:
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized core::Object? #0#4 = #0#0{({f: core::Object?})}.f{core::Object?};
-    late final synthesized core::Object? #0#15 = #0#0{({g: core::Object?})}.g{core::Object?};
+    late final synthesized core::Object? #0#4 = (#0#0 as{ForNonNullableByDefault,Unchecked} ({f: core::Object?})).f{core::Object?};
+    late final synthesized core::Object? #0#15 = (#0#0 as{ForNonNullableByDefault,Unchecked} ({g: core::Object?})).g{core::Object?};
     synthesized core::Object? #0#20;
     synthesized core::bool #0#20#isSet = false;
     synthesized core::Object? #0#23;
     synthesized core::bool #0#23#isSet = false;
-    late final synthesized core::int #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-    late final synthesized dynamic #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    late final synthesized core::int #0#26 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized dynamic #0#30 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#32 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized core::bool #0#34 = #0#26.{core::num::>=}(#C7){(core::num) → core::bool};
     late final synthesized core::bool #0#38 = #0#26.{core::num::>=}(#C2){(core::num) → core::bool};
-    late final synthesized dynamic #0#43 = #0#0{core::List<dynamic>}.{core::List::[]}(#0#26.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
-    late final synthesized core::List<dynamic> #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
+    late final synthesized dynamic #0#43 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(#0#26.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
+    late final synthesized core::List<dynamic> #0#47 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
     late final synthesized dynamic #0#50 = #0#47.{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#53 = #0#47.{core::List::[]}(1){(core::int) → dynamic};
-    late final synthesized core::List<dynamic> #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, #0#26.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
+    late final synthesized core::List<dynamic> #0#58 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::sublist}(2, #0#26.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
     late final synthesized dynamic #0#61 = #0#58.{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#64 = #0#58.{core::List::[]}(1){(core::int) → dynamic};
-    late final synthesized core::int #0#69 = #0#0{self::Class}.{self::Class::field}{core::int};
-    late final synthesized dynamic #0#98 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+    late final synthesized core::int #0#69 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field}{core::int};
+    late final synthesized dynamic #0#98 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
     {
       if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
         {
@@ -533,7 +533,7 @@ static method switchStatement(dynamic o) → core::int {
       }
     }
     {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{ForNonNullableByDefault,Unchecked} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
         {
           return 18;
         }
@@ -627,26 +627,26 @@ static method switchExpression(dynamic o) → core::int {
   return block {
     core::int #t41;
     final synthesized dynamic #0#0 = o;
-    late final synthesized core::Object? #0#4 = #0#0{({f: core::Object?})}.f{core::Object?};
-    late final synthesized core::Object? #0#15 = #0#0{({g: core::Object?})}.g{core::Object?};
+    late final synthesized core::Object? #0#4 = (#0#0 as{ForNonNullableByDefault,Unchecked} ({f: core::Object?})).f{core::Object?};
+    late final synthesized core::Object? #0#15 = (#0#0 as{ForNonNullableByDefault,Unchecked} ({g: core::Object?})).g{core::Object?};
     synthesized core::Object? #0#20;
     synthesized core::bool #0#20#isSet = false;
     synthesized core::Object? #0#23;
     synthesized core::bool #0#23#isSet = false;
-    late final synthesized core::int #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-    late final synthesized dynamic #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    late final synthesized core::int #0#26 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized dynamic #0#30 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#32 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized core::bool #0#34 = #0#26.{core::num::>=}(#C7){(core::num) → core::bool};
     late final synthesized core::bool #0#38 = #0#26.{core::num::>=}(#C2){(core::num) → core::bool};
-    late final synthesized dynamic #0#43 = #0#0{core::List<dynamic>}.{core::List::[]}(#0#26.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
-    late final synthesized core::List<dynamic> #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
+    late final synthesized dynamic #0#43 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(#0#26.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
+    late final synthesized core::List<dynamic> #0#47 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
     late final synthesized dynamic #0#50 = #0#47.{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#53 = #0#47.{core::List::[]}(1){(core::int) → dynamic};
-    late final synthesized core::List<dynamic> #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, #0#26.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
+    late final synthesized core::List<dynamic> #0#58 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::sublist}(2, #0#26.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
     late final synthesized dynamic #0#61 = #0#58.{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#64 = #0#58.{core::List::[]}(1){(core::int) → dynamic};
-    late final synthesized core::int #0#69 = #0#0{self::Class}.{self::Class::field}{core::int};
-    late final synthesized dynamic #0#98 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+    late final synthesized core::int #0#69 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field}{core::int};
+    late final synthesized dynamic #0#98 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
     #L2:
     {
       {
@@ -752,7 +752,7 @@ static method switchExpression(dynamic o) → core::int {
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
+        if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{ForNonNullableByDefault,Unchecked} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
           #t41 = 18;
           break #L2;
         }

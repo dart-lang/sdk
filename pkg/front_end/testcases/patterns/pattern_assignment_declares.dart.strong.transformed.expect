@@ -62,13 +62,13 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
     dynamic #t5;
     final synthesized dynamic #2#0 = z as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class;
     function ##2#3#initializer() → dynamic
-      return #2#0{self::Class}.{self::Class::field2}{dynamic};
+      return (#2#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field2}{dynamic};
     late final synthesized dynamic #2#3 = ##2#3#initializer(){() → dynamic};
     function ##2#9#initializer() → dynamic
-      return #2#3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      return (#2#3 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #2#9 = ##2#9#initializer(){() → dynamic};
     function ##2#16#initializer() → dynamic
-      return #2#3{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+      return (#2#3 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized dynamic #2#16 = ##2#16#initializer(){() → dynamic};
     if(!(#2#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t6 = #t5 = #2#0{self::Class}.{self::Class::field1}{dynamic} in true) && (#2#3 is{ForNonNullableByDefault} core::List<dynamic> && #2#3{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9 is{ForNonNullableByDefault} core::List<dynamic> && #2#9{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "declared variable pattern in assignment") && (#2#16 is{ForNonNullableByDefault} core::List<dynamic> && #2#16{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:14:42: Error: Refutable patterns can't be used in an irrefutable context.
 Try using an if-case, a 'switch' statement, or a 'switch' expression instead.

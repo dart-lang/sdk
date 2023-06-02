@@ -6,7 +6,7 @@ static method test(dynamic x) → dynamic {
   {
     hoisted core::int a;
     final synthesized dynamic #0#0 = x;
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = a = #0#6{core::int} in true)) && a.{core::num::>}(0){(core::num) → core::bool}) {
       return a;
     }

@@ -1892,6 +1892,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (node.isForNonNullableByDefault) {
       flags.add('ForNonNullableByDefault');
     }
+    if (node.isUnchecked) {
+      flags.add('Unchecked');
+    }
     writeSpaced(flags.isNotEmpty ? 'as{${flags.join(',')}}' : 'as');
     writeType(node.type);
   }

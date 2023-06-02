@@ -94,14 +94,14 @@ static method Bar|_<T extends core::Object? = dynamic>(self::Bar|_::T% i) → se
 static method Bar|_#_#tearOff<T extends core::Object? = dynamic>(self::Bar|_#_#tearOff::T% i) → self::Bar<self::Bar|_#_#tearOff::T%>
   return self::Bar|_<self::Bar|_#_#tearOff::T%>(i);
 static method main() → dynamic {
-  self::expect(44, self::Foo|(42) as{ForNonNullableByDefault} core::int);
-  self::expect(42, self::Foo|_(42) as{ForNonNullableByDefault} core::int);
-  self::expect(3, self::Foo|redirectNamed1(5, 2) as{ForNonNullableByDefault} core::int);
-  self::expect(5, self::Foo|redirectNamed2(7, 2) as{ForNonNullableByDefault} core::int);
-  self::expect(5, self::Bar|<core::int>(5) as{ForNonNullableByDefault} core::int);
-  self::expect("foo", self::Bar|<core::String>("foo") as{ForNonNullableByDefault} core::String);
-  self::expect(5, self::Bar|_<core::int>(5) as{ForNonNullableByDefault} core::int);
-  self::expect("foo", self::Bar|_<core::String>("foo") as{ForNonNullableByDefault} core::String);
+  self::expect(44, self::Foo|(42) as{ForNonNullableByDefault,Unchecked} core::int);
+  self::expect(42, self::Foo|_(42) as{ForNonNullableByDefault,Unchecked} core::int);
+  self::expect(3, self::Foo|redirectNamed1(5, 2) as{ForNonNullableByDefault,Unchecked} core::int);
+  self::expect(5, self::Foo|redirectNamed2(7, 2) as{ForNonNullableByDefault,Unchecked} core::int);
+  self::expect(5, self::Bar|<core::int>(5) as{ForNonNullableByDefault,Unchecked} core::int);
+  self::expect("foo", self::Bar|<core::String>("foo") as{ForNonNullableByDefault,Unchecked} core::String);
+  self::expect(5, self::Bar|_<core::int>(5) as{ForNonNullableByDefault,Unchecked} core::int);
+  self::expect("foo", self::Bar|_<core::String>("foo") as{ForNonNullableByDefault,Unchecked} core::String);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

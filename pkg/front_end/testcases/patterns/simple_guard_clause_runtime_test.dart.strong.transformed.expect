@@ -7,7 +7,7 @@ static method test(dynamic x) → dynamic {
     hoisted core::int a;
     final synthesized dynamic #0#0 = x;
     function ##0#6#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = a = #0#6{core::int} in true)) && a.{core::num::>}(0){(core::num) → core::bool}) {
       return a;
@@ -32,4 +32,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_guard_clause_runtime_test.dart:15:25 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 39, effectively constant: 1
+Extra constant evaluation: evaluated: 40, effectively constant: 1

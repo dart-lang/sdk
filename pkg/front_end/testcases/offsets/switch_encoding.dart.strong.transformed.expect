@@ -37,10 +37,10 @@ import "dart:core" as core;
 [622]  {
 [630]    [630] final synthesized dynamic #0#0 = [630] [630] o;
 [-1]    function ##0#2#initializer() → core::int
-[-1]      return [644] [644] [630] [630] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]      return [644] [644] [630]([630] [630] [630] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]    [-1] late final synthesized core::int #0#2 = [-1] [-1] ##0#2#initializer [-1](){() → core::int};
 [-1]    function ##0#13#initializer() → dynamic
-[-1]      return [723] [723] [630] [630] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[723]([644] #C4){(core::Object?) → dynamic};
+[-1]      return [723] [723] [630]([630] [630] [630] #0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[723]([644] #C4){(core::Object?) → dynamic};
 [-1]    [-1] late final synthesized dynamic #0#13 = [-1] [-1] ##0#13#initializer [-1](){() → dynamic};
 [-1]    [-1] dynamic #t1;
 [639]    {
@@ -69,10 +69,10 @@ import "dart:core" as core;
 [788]  {
 [796]    [796] final synthesized dynamic #0#0 = [796] [796] o;
 [-1]    function ##0#2#initializer() → core::int
-[-1]      return [810] [810] [796] [796] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]      return [810] [810] [796]([796] [796] [796] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]    [-1] late final synthesized core::int #0#2 = [-1] [-1] ##0#2#initializer [-1](){() → core::int};
 [-1]    function ##0#13#initializer() → dynamic
-[-1]      return [889] [889] [796] [796] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[889]([810] #C4){(core::Object?) → dynamic};
+[-1]      return [889] [889] [796]([796] [796] [796] #0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[889]([810] #C4){(core::Object?) → dynamic};
 [-1]    [-1] late final synthesized dynamic #0#13 = [-1] [-1] ##0#13#initializer [-1](){() → dynamic};
 [-1]    [-1] dynamic #t7;
 [805]    {
@@ -110,10 +110,10 @@ import "dart:core" as core;
 [996]    [996] core::int #t13 = [996] [996] [996] [996] 1.{core::int::unary-}[996](){() → core::int};
 [1004]    [1004] final synthesized dynamic #0#0 = [1004] [1004] o;
 [-1]    function ##0#2#initializer() → core::int
-[-1]      return [1018] [1018] [1004] [1004] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]      return [1018] [1018] [1004]([1004] [1004] [1004] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]    [-1] late final synthesized core::int #0#2 = [-1] [-1] ##0#2#initializer [-1](){() → core::int};
 [-1]    function ##0#13#initializer() → dynamic
-[-1]      return [1097] [1097] [1004] [1004] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1097]([1018] #C4){(core::Object?) → dynamic};
+[-1]      return [1097] [1097] [1004]([1004] [1004] [1004] #0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[1097]([1018] #C4){(core::Object?) → dynamic};
 [-1]    [-1] late final synthesized dynamic #0#13 = [-1] [-1] ##0#13#initializer [-1](){() → dynamic};
 [-1]    [-1] dynamic #t14;
 [996]    #L4:
@@ -185,7 +185,7 @@ import "dart:core" as core;
 [1330]    [1330] core::int #t20 = [1330] [1330] [1330] [1330] 1.{core::int::unary-}[1330](){() → core::int};
 [1338]    [1338] final synthesized dynamic #2#0 = [1338] [1338] o1;
 [-1]    function ##2#9#initializer() → dynamic
-[-1]      return [1389] [1389] [1338] [1338] #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1389]([1353] #C4){(core::Object?) → dynamic};
+[-1]      return [1389] [1389] [1338]([1338] [1338] [1338] #2#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[1389]([1353] #C4){(core::Object?) → dynamic};
 [-1]    [-1] late final synthesized dynamic #2#9 = [-1] [-1] ##2#9#initializer [-1](){() → dynamic};
 [1330]    #L8:
 [1330]    {
@@ -208,10 +208,10 @@ import "dart:core" as core;
 [1421]              [1421] core::int #t23 = [1421] [1421] [1421] [1421] 1.{core::int::unary-}[1421](){() → core::int};
 [1429]              [1429] final synthesized dynamic #0#0 = [1429] [1429] o2;
 [-1]              function ##0#2#initializer() → core::int
-[-1]                return [1448] [1448] [1429] [1429] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]                return [1448] [1448] [1429]([1429] [1429] [1429] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]              [-1] late final synthesized core::int #0#2 = [-1] [-1] ##0#2#initializer [-1](){() → core::int};
 [-1]              function ##0#13#initializer() → dynamic
-[-1]                return [1539] [1539] [1429] [1429] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1539]([1448] #C4){(core::Object?) → dynamic};
+[-1]                return [1539] [1539] [1429]([1429] [1429] [1429] #0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[1539]([1448] #C4){(core::Object?) → dynamic};
 [-1]              [-1] late final synthesized dynamic #0#13 = [-1] [-1] ##0#13#initializer [-1](){() → dynamic};
 [-1]              [-1] dynamic #t24;
 [1421]              #L10:
@@ -323,10 +323,10 @@ import "dart:core" as core;
 [1973]              [1973] core::int #t30 = [1973] [1973] [1973] [1973] 1.{core::int::unary-}[1973](){() → core::int};
 [1981]              [1981] final synthesized dynamic #1#0 = [1981] [1981] o2;
 [-1]              function ##1#2#initializer() → core::int
-[-1]                return [2000] [2000] [1981] [1981] #1#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]                return [2000] [2000] [1981]([1981] [1981] [1981] #1#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]              [-1] late final synthesized core::int #1#2 = [-1] [-1] ##1#2#initializer [-1](){() → core::int};
 [-1]              function ##1#13#initializer() → dynamic
-[-1]                return [2091] [2091] [1981] [1981] #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[2091]([2000] #C4){(core::Object?) → dynamic};
+[-1]                return [2091] [2091] [1981]([1981] [1981] [1981] #1#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[2091]([2000] #C4){(core::Object?) → dynamic};
 [-1]              [-1] late final synthesized dynamic #1#13 = [-1] [-1] ##1#13#initializer [-1](){() → dynamic};
 [-1]              [-1] dynamic #t31;
 [1973]              #L16:
@@ -531,7 +531,7 @@ import "dart:core" as core;
 [-1]    [-1] dynamic #t37;
 [3448]    [3448] final synthesized dynamic #0#0 = [3448] [3448] o;
 [-1]    function ##0#9#initializer() → dynamic
-[-1]      return [3477] [3477] [3448] [3448] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([3457] #C4){(core::Object?) → dynamic};
+[-1]      return [3477] [3477] [3448]([3448] [3448] [3448] #0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[3477]([3457] #C4){(core::Object?) → dynamic};
 [-1]    [-1] late final synthesized dynamic #0#9 = [-1] [-1] ##0#9#initializer [-1](){() → dynamic};
 [3440]    #L36:
 [3440]    {
@@ -751,7 +751,7 @@ Evaluated: IsExpression @ org-dartlang-testcase:///switch_encoding.dart:79:16 ->
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:103:7 -> IntConstant(-1)
 Evaluated: IsExpression @ org-dartlang-testcase:///switch_encoding.dart:107:16 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///switch_encoding.dart:194:7 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 558, effectively constant: 11
+Extra constant evaluation: evaluated: 570, effectively constant: 11
 
 
 Constructor coverage from constants:

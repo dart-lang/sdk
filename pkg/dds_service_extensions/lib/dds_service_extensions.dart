@@ -56,6 +56,31 @@ extension DdsExtension on VmService {
         });
   }
 
+  /// Send an event to the [stream].
+  ///
+  /// [stream] must be a registered custom stream (i.e., not a stream specified
+  /// as part of the VM service protocol).
+  ///
+  /// If [stream] is not a registered custom stream, an [RPCError] with code
+  /// [kCustomStreamDoesNotExist] will be thrown.
+  ///
+  /// If [stream] is a core stream, an [RPCError] with code
+  /// [kCoreStreamNotAllowed] will be thrown.
+  Future<void> postEvent(
+    String stream,
+    String eventKind,
+    Map<String, Object?> eventData,
+  ) async {
+    if (!(await _versionCheck(1, 6))) {
+      throw UnimplementedError('postEvent requires DDS version 1.6');
+    }
+    return _callHelper<void>('postEvent', args: {
+      'eventKind': eventKind,
+      'eventData': eventData,
+      'stream': stream,
+    });
+  }
+
   /// The [getAvailableCachedCpuSamples] RPC is used to determine which caches of CPU samples
   /// are available. Caches are associated with individual [UserTag] names and are specified
   /// when DDS is started via the `cachedUserTags` parameter.
