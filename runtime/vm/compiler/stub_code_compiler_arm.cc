@@ -1711,16 +1711,23 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     __ cmp(TMP, Operand(0));
     __ b(&remember_card_slow, EQ);
 
-    // Dirty the card.
+    // Dirty the card. Not atomic: we assume mutable arrays are not shared
+    // between threads
+    __ PushList((1 << R0) | (1 << R1));
     __ AndImmediate(TMP, R1, target::kPageMask);     // Page.
     __ sub(R9, R9, Operand(TMP));                    // Offset in page.
+    __ Lsr(R9, R9, Operand(target::Page::kBytesPerCardLog2));  // Card index.
+    __ AndImmediate(R1, R9, target::kBitsPerWord - 1);  // Lsl is not mod 32.
+    __ LoadImmediate(R0, 1);                            // Bit offset.
+    __ Lsl(R0, R0, R1);                                 // Bit mask.
     __ ldr(TMP,
            Address(TMP, target::Page::card_table_offset()));  // Card table.
-    __ add(TMP, TMP,
-           Operand(R9, LSR,
-                   target::Page::kBytesPerCardLog2));  // Card address.
-    __ strb(R1,
-            Address(TMP, 0));  // Low byte of R0 is non-zero from object tag.
+    __ Lsr(R9, R9, Operand(target::kBitsPerWordLog2));        // Word index.
+    __ add(TMP, TMP, Operand(R9, LSL, target::kWordSizeLog2));  // Word address.
+    __ ldr(R1, Address(TMP, 0));
+    __ orr(R1, R1, Operand(R0));
+    __ str(R1, Address(TMP, 0));
+    __ PopList((1 << R0) | (1 << R1));
     __ Ret();
 
     // Card table not yet allocated.
