@@ -657,8 +657,11 @@ abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
   }
 }
 
+/// TODO: remove this https://github.com/dart-lang/language/issues/3120
+mixin _IntrospectableType implements IntrospectableType {}
+
 class IntrospectableClassDeclarationImpl = ClassDeclarationImpl
-    with IntrospectableType
+    with _IntrospectableType
     implements IntrospectableClassDeclaration;
 
 class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
@@ -745,8 +748,11 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
   }
 }
 
+/// TODO: remove this https://github.com/dart-lang/language/issues/3120
+mixin _IntrospectableEnum implements IntrospectableEnum {}
+
 class IntrospectableEnumDeclarationImpl = EnumDeclarationImpl
-    with IntrospectableEnum
+    with _IntrospectableEnum
     implements IntrospectableEnumDeclaration;
 
 class EnumDeclarationImpl extends ParameterizedTypeDeclarationImpl
@@ -818,7 +824,7 @@ class EnumValueDeclarationImpl extends DeclarationImpl
 }
 
 class IntrospectableMixinDeclarationImpl = MixinDeclarationImpl
-    with IntrospectableType
+    with _IntrospectableType
     implements IntrospectableMixinDeclaration;
 
 class MixinDeclarationImpl extends ParameterizedTypeDeclarationImpl

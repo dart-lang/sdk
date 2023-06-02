@@ -237,7 +237,7 @@ class Arguments implements Serializable {
 
 /// A resolved [Identifier], this is used when creating augmentation libraries
 /// to qualify identifiers where needed.
-class ResolvedIdentifier extends Identifier {
+class ResolvedIdentifier implements Identifier {
   /// The import URI for the library that defines the member that is referenced
   /// by this identifier.
   ///
