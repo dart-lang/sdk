@@ -551,7 +551,7 @@
         "timeout": 240
       }
     },
-    "dart2wasm-hostasserts-linux-x64-(d8|chrome)": {
+    "dart2wasm-(linux|mac|win)-(d8|chrome)": {
       "options": {
         "host-checked": true,
         "timeout": 240
@@ -2714,8 +2714,8 @@
     },
     {
       "builders": [
-        "dart2wasm-linux-x64-chrome",
-        "dart2wasm-linux-x64-d8"
+        "dart2wasm-linux-chrome",
+        "dart2wasm-linux-d8"
       ],
       "meta": {
         "description": "dart2wasm tests"
@@ -2732,7 +2732,7 @@
         {
           "name": "dart2wasm tests",
           "arguments": [
-            "-ndart2wasm-hostasserts-linux-x64-${runtime}",
+            "-ndart2wasm-linux-${runtime}",
             "co19",
             "corelib",
             "language",
