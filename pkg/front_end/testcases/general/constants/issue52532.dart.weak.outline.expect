@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::bool b = true;
+static const field core::double d = 3.5;
+static const field core::int i = 42;
+static const field Null n = null;
+static const field core::String s = "foo";
+static const field core::String e = const core::String::fromEnvironment("foo", defaultValue: "bar");
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue52532.dart:10:24 -> StringConstant("bar")
+Extra constant evaluation: evaluated: 1, effectively constant: 1

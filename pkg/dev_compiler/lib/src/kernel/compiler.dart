@@ -6327,7 +6327,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var code = args[1];
     List<Expression> templateArgs;
     String source;
-    if (code is StringConcatenation) {
+    if (code is ConstantExpression) {
+      templateArgs = args.skip(2).toList();
+      source = (code.constant as StringConstant).value;
+    } else if (code is StringConcatenation) {
       if (code.expressions.every((e) => e is StringLiteral)) {
         templateArgs = args.skip(2).toList();
         source = code.expressions.map((e) => (e as StringLiteral).value).join();

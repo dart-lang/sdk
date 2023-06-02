@@ -13,7 +13,12 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/rasta/issue_000045.dart:6:1: Error: Unexpected token ''.
 //
 import self as self;
+import "dart:core" as core;
 
 static method main() → dynamic
-  return "${1}
-\"\"\"";
+  return #C1;
+
+constants  {
+  #C1 = "1
+\"\"\""
+}

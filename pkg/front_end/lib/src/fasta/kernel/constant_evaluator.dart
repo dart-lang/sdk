@@ -2139,6 +2139,42 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitStringConcatenation(
+      StringConcatenation node, TreeNode? removalSentinel) {
+    bool allConstant = true;
+    for (int index = 0; index < node.expressions.length; index++) {
+      Expression expression = node.expressions[index];
+      Expression result = transform(expression);
+      node.expressions[index] = result..parent = node;
+      if (allConstant) {
+        if (result is ConstantExpression) {
+          DartType staticType = result.type;
+          if (staticType is NullType ||
+              staticType is InterfaceType &&
+                  (staticType.classReference ==
+                          typeEnvironment.coreTypes.boolClass.reference ||
+                      staticType.classReference ==
+                          typeEnvironment.coreTypes.intClass.reference ||
+                      staticType.classReference ==
+                          typeEnvironment.coreTypes.doubleClass.reference ||
+                      staticType.classReference ==
+                          typeEnvironment.coreTypes.stringClass.reference)) {
+            // Ok
+          } else {
+            allConstant = false;
+          }
+        } else if (result is! BasicLiteral) {
+          allConstant = false;
+        }
+      }
+    }
+    if (allConstant) {
+      return evaluateAndTransformWithContext(node, node);
+    }
+    return node;
+  }
+
+  @override
   TreeNode visitListConcatenation(
       ListConcatenation node, TreeNode? removalSentinel) {
     return evaluateAndTransformWithContext(node, node);

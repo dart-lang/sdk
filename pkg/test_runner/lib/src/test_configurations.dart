@@ -175,8 +175,8 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
 
     if (configuration.system == System.fuchsia) {
-      await FuchsiaEmulator.publishPackage(
-          configuration.buildDirectory, configuration.mode.name);
+      await FuchsiaEmulator.publishPackage(configuration.buildDirectory,
+          configuration.mode.name, configuration.architecture.name);
     }
   }
 

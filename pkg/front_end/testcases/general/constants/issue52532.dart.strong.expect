@@ -1,0 +1,43 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::bool b = #C1;
+static const field core::double d = #C2;
+static const field core::int i = #C3;
+static const field Null n = #C4;
+static const field core::String s = #C5;
+static const field core::String e = #C6;
+static method main() → dynamic {
+  self::expect("<true>", #C7);
+  self::expect("<3.5>", #C8);
+  self::expect("<42>", #C9);
+  self::expect("<null>", #C10);
+  self::expect("<foo>", #C11);
+  self::expect("<bar>", #C12);
+  self::expect("<true>", #C7);
+  self::expect("<3.5>", #C8);
+  self::expect("<42>", #C9);
+  self::expect("<null>", #C10);
+  self::expect("<foo>", #C11);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!core::identical(expected, actual)) {
+    throw "Expected ${expected} to identical to ${actual}";
+  }
+}
+
+constants  {
+  #C1 = true
+  #C2 = 3.5
+  #C3 = 42
+  #C4 = null
+  #C5 = "foo"
+  #C6 = "bar"
+  #C7 = "<true>"
+  #C8 = "<3.5>"
+  #C9 = "<42>"
+  #C10 = "<null>"
+  #C11 = "<foo>"
+  #C12 = "<bar>"
+}

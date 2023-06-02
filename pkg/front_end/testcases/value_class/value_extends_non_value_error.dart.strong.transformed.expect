@@ -32,7 +32,7 @@ class Cat extends self::Animal {
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
-    return "Cat()";
+    return #C1;
   method /*isLegacy*/ copyWith() → dynamic
     return new self::Cat::•();
 }
@@ -51,7 +51,7 @@ class Cat2 extends self::Animal2 {
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat2".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
-    return "Cat2()";
+    return #C2;
   method /*isLegacy*/ copyWith() → dynamic
     return new self::Cat2::•();
 }
@@ -76,13 +76,10 @@ class JenkinsSmiHash extends core::Object {
     return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash){(core::int) → core::int}.{core::int::<<}(15){(core::int) → core::int}){(core::num) → core::int}){(core::int) → core::int};
   }
 }
-static const field core::String valueClass = #C1;
+static const field core::String valueClass = #C3;
 
 constants  {
-  #C1 = "valueClass"
+  #C1 = "Cat()"
+  #C2 = "Cat2()"
+  #C3 = "valueClass"
 }
-
-Extra constant evaluation status:
-Evaluated: StringConcatenation @ org-dartlang-testcase:///value_extends_non_value_error.dart:12:7 -> StringConstant("Cat()")
-Evaluated: StringConcatenation @ org-dartlang-testcase:///value_extends_non_value_error.dart:19:7 -> StringConstant("Cat2()")
-Extra constant evaluation: evaluated: 46, effectively constant: 2

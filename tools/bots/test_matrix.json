@@ -551,7 +551,7 @@
         "timeout": 240
       }
     },
-    "dart2wasm-hostasserts-linux-x64-(d8|chrome)": {
+    "dart2wasm-(linux|mac|win)-(d8|chrome)": {
       "options": {
         "host-checked": true,
         "timeout": 240
@@ -1698,8 +1698,36 @@
     },
     {
       "builders": [
-        "vm-fuchsia-release-arm64",
         "vm-fuchsia-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the VM fuchsia builder."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=fuchsia",
+            "runtime",
+            "create_sdk",
+            "fuchsia_test_package",
+            "fuchsia_ffi_test_package"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}",
+            "-j4",
+            "ffi"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-fuchsia-release-arm64"
       ],
       "meta": {
         "description": "This configuration is for the VM fuchsia builder."
@@ -2686,8 +2714,8 @@
     },
     {
       "builders": [
-        "dart2wasm-linux-x64-chrome",
-        "dart2wasm-linux-x64-d8"
+        "dart2wasm-linux-chrome",
+        "dart2wasm-linux-d8"
       ],
       "meta": {
         "description": "dart2wasm tests"
@@ -2704,7 +2732,7 @@
         {
           "name": "dart2wasm tests",
           "arguments": [
-            "-ndart2wasm-hostasserts-linux-x64-${runtime}",
+            "-ndart2wasm-linux-${runtime}",
             "co19",
             "corelib",
             "language",

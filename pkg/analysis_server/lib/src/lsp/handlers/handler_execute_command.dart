@@ -70,10 +70,9 @@ class ExecuteCommandHandler
     // must allow them to convert a `List` to a `Map`.
     final arguments = params.arguments ?? const [];
     Map<String, Object?> commandParams;
-    if (arguments.length == 1 && arguments[0] is Map<String, Object?>) {
-      commandParams = arguments.single as Map<String, Object?>;
-    } else if (handler is PositionalArgCommandHandler) {
-      final argHandler = handler as PositionalArgCommandHandler;
+    if (arguments case [Map<String, Object?> singleArgument]) {
+      commandParams = singleArgument;
+    } else if (handler case PositionalArgCommandHandler argHandler) {
       commandParams = argHandler.parseArgList(arguments);
     } else {
       return ErrorOr.error(ResponseError(

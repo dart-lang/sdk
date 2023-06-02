@@ -729,6 +729,7 @@ inequivalences
 inequivalent
 inferable
 influence
+influences
 informative
 infos
 inhabit
