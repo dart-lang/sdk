@@ -6,7 +6,7 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     {
       hoisted core::int y;
       if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = y = #0#0{core::int} in true)) {

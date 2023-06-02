@@ -28,10 +28,10 @@ static method test2(dynamic x) → dynamic {
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
     late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#6#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     function ##0#7#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final invalid-type #t1 = y = #0#6{invalid-type} in true)) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::String && (let final invalid-type #t2 = y = #0#7{invalid-type} in true))) {
       return y;
@@ -60,10 +60,10 @@ static method test4(dynamic x) → dynamic {
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3;
     late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#6#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     function ##0#7#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final invalid-type #t3 = y = #0#6{invalid-type} in true)) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::String && (let final invalid-type #t4 = y = #0#7{invalid-type} in true)) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::bool && (let final invalid-type #t5 = y = #0#7{invalid-type} in true))) {
       return y;

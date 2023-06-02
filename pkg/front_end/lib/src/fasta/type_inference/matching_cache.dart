@@ -870,15 +870,16 @@ class PromotedCacheableExpression implements CacheableExpression {
 
   @override
   Expression createExpression(TypeEnvironment typeEnvironment,
-      [List<Expression>? effects]) {
-    Expression result = _expression.createExpression(typeEnvironment, effects);
+      {List<Expression>? effects, required bool inCacheInitializer}) {
+    Expression result = _expression.createExpression(typeEnvironment,
+        effects: effects, inCacheInitializer: inCacheInitializer);
     if (!typeEnvironment
             .performNullabilityAwareSubtypeCheck(
                 _expression.getType(typeEnvironment), _promotedType)
             .isSubtypeWhenUsingNullabilities() ||
         (_promotedType is! DynamicType &&
             _expression.getType(typeEnvironment) is DynamicType)) {
-      if (result is VariableGet) {
+      if (result is VariableGet && !inCacheInitializer) {
         result.promotedType = _promotedType;
       } else {
         result = createAsExpression(result, _promotedType,
@@ -932,8 +933,9 @@ class CovariantCheckCacheableExpression implements CacheableExpression {
 
   @override
   Expression createExpression(TypeEnvironment typeEnvironment,
-      [List<Expression>? effects]) {
-    Expression result = _expression.createExpression(typeEnvironment, effects);
+      {List<Expression>? effects, required bool inCacheInitializer}) {
+    Expression result = _expression.createExpression(typeEnvironment,
+        effects: effects, inCacheInitializer: inCacheInitializer);
     return createAsExpression(result, _checkedType,
         forNonNullableByDefault: true,
         fileOffset: fileOffset,
@@ -977,7 +979,7 @@ class CacheExpression implements CacheableExpression {
 
   @override
   Expression createExpression(TypeEnvironment typeEnvironment,
-      [List<Expression>? effects]) {
+      {List<Expression>? effects, required bool inCacheInitializer}) {
     return _cache.createExpression(typeEnvironment, accessKey, this);
   }
 
@@ -1116,7 +1118,8 @@ class Cache {
     }
     Expression result;
     if (!createCache) {
-      result = cacheExpression.expression.createExpression(typeEnvironment);
+      result = cacheExpression.expression
+          .createExpression(typeEnvironment, inCacheInitializer: false);
     } else {
       CacheExpression cacheableExpression = _accesses[accessKey]!;
       if (_accesses.length == 1) {
@@ -1162,8 +1165,9 @@ class Cache {
                           fileOffset: _fileOffset)),
                       createExpressionStatement(createVariableSet(
                           variable,
-                          cacheableExpression.expression
-                              .createExpression(typeEnvironment),
+                          cacheableExpression.expression.createExpression(
+                              typeEnvironment,
+                              inCacheInitializer: true),
                           fileOffset: _fileOffset)),
                     ], fileOffset: _fileOffset),
                     fileOffset: _fileOffset),
@@ -1192,8 +1196,9 @@ class Cache {
                               fileOffset: _fileOffset),
                           result: createVariableSet(
                               variable,
-                              cacheableExpression.expression
-                                  .createExpression(typeEnvironment),
+                              cacheableExpression.expression.createExpression(
+                                  typeEnvironment,
+                                  inCacheInitializer: true),
                               fileOffset: _fileOffset)),
                       staticType: type,
                       fileOffset: _fileOffset),
@@ -1209,8 +1214,8 @@ class Cache {
             _matchingCache.registerDeclaration(functionDeclaration);
           } else {
             variable = _variable = createVariableCache(
-                cacheableExpression.expression
-                    .createExpression(typeEnvironment),
+                cacheableExpression.expression.createExpression(typeEnvironment,
+                    inCacheInitializer: true),
                 cacheableExpression.getType(typeEnvironment))
               ..isConst = _isConst
               ..isLate = _isLate
@@ -1274,8 +1279,9 @@ class Cache {
                     fileOffset: _fileOffset),
                 result: createVariableSet(
                     variable,
-                    cacheableExpression.expression
-                        .createExpression(typeEnvironment),
+                    cacheableExpression.expression.createExpression(
+                        typeEnvironment,
+                        inCacheInitializer: false),
                     fileOffset: _fileOffset)),
             staticType: cacheableExpression.getType(typeEnvironment),
             fileOffset: _fileOffset);

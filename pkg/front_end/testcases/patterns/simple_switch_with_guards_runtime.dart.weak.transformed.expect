@@ -7,7 +7,7 @@ static method test1(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     function ##0#6#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     {
       hoisted core::int a;
@@ -34,10 +34,10 @@ static method test2(dynamic x) → dynamic {
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
     late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#6#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     function ##0#7#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
     dynamic #t2;
     {
@@ -82,4 +82,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_switch_with_guards_runtime.dart:27:29 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 110, effectively constant: 1
+Extra constant evaluation: evaluated: 113, effectively constant: 1

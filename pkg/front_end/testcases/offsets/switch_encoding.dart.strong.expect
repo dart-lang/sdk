@@ -36,8 +36,8 @@ import "dart:core" as core;
 [622]  #L1:
 [622]  {
 [630]    [630] final synthesized dynamic #0#0 = [630] [630] o;
-[-1]    [-1] late final synthesized core::int #0#2 = [644] [644] [630] [630] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-[-1]    [-1] late final synthesized dynamic #0#13 = [723] [723] [630] [630] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[723]([644] #C4){(core::Object?) → dynamic};
+[-1]    [-1] late final synthesized core::int #0#2 = [644] [644] [630]([630] [630] [630] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+[-1]    [-1] late final synthesized dynamic #0#13 = [723] [723] [630]([630] [630] [630] #0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[723]([644] #C4){(core::Object?) → dynamic};
 [-1]    [-1] dynamic #t1;
 [639]    {
 [649]      [649] lowered hoisted dynamic a#case#0;
@@ -64,8 +64,8 @@ import "dart:core" as core;
 [788]  #L2:
 [788]  {
 [796]    [796] final synthesized dynamic #0#0 = [796] [796] o;
-[-1]    [-1] late final synthesized core::int #0#2 = [810] [810] [796] [796] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-[-1]    [-1] late final synthesized dynamic #0#13 = [889] [889] [796] [796] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[889]([810] #C4){(core::Object?) → dynamic};
+[-1]    [-1] late final synthesized core::int #0#2 = [810] [810] [796]([796] [796] [796] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+[-1]    [-1] late final synthesized dynamic #0#13 = [889] [889] [796]([796] [796] [796] #0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[889]([810] #C4){(core::Object?) → dynamic};
 [-1]    [-1] dynamic #t7;
 [805]    {
 [815]      [815] lowered hoisted dynamic a#case#0;
@@ -101,8 +101,8 @@ import "dart:core" as core;
 [996]  {
 [996]    [996] core::int #t13 = [996] [996] [996] [996] 1.{core::int::unary-}[996](){() → core::int};
 [1004]    [1004] final synthesized dynamic #0#0 = [1004] [1004] o;
-[-1]    [-1] late final synthesized core::int #0#2 = [1018] [1018] [1004] [1004] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-[-1]    [-1] late final synthesized dynamic #0#13 = [1097] [1097] [1004] [1004] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1097]([1018] #C4){(core::Object?) → dynamic};
+[-1]    [-1] late final synthesized core::int #0#2 = [1018] [1018] [1004]([1004] [1004] [1004] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+[-1]    [-1] late final synthesized dynamic #0#13 = [1097] [1097] [1004]([1004] [1004] [1004] #0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[1097]([1018] #C4){(core::Object?) → dynamic};
 [-1]    [-1] dynamic #t14;
 [996]    #L4:
 [996]    {
@@ -172,7 +172,7 @@ import "dart:core" as core;
 [1330]  {
 [1330]    [1330] core::int #t20 = [1330] [1330] [1330] [1330] 1.{core::int::unary-}[1330](){() → core::int};
 [1338]    [1338] final synthesized dynamic #2#0 = [1338] [1338] o1;
-[-1]    [-1] late final synthesized dynamic #2#9 = [1389] [1389] [1338] [1338] #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1389]([1353] #C4){(core::Object?) → dynamic};
+[-1]    [-1] late final synthesized dynamic #2#9 = [1389] [1389] [1338]([1338] [1338] [1338] #2#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[1389]([1353] #C4){(core::Object?) → dynamic};
 [1330]    #L8:
 [1330]    {
 [1348]      {
@@ -193,8 +193,8 @@ import "dart:core" as core;
 [1421]            {
 [1421]              [1421] core::int #t23 = [1421] [1421] [1421] [1421] 1.{core::int::unary-}[1421](){() → core::int};
 [1429]              [1429] final synthesized dynamic #0#0 = [1429] [1429] o2;
-[-1]              [-1] late final synthesized core::int #0#2 = [1448] [1448] [1429] [1429] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-[-1]              [-1] late final synthesized dynamic #0#13 = [1539] [1539] [1429] [1429] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1539]([1448] #C4){(core::Object?) → dynamic};
+[-1]              [-1] late final synthesized core::int #0#2 = [1448] [1448] [1429]([1429] [1429] [1429] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+[-1]              [-1] late final synthesized dynamic #0#13 = [1539] [1539] [1429]([1429] [1429] [1429] #0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[1539]([1448] #C4){(core::Object?) → dynamic};
 [-1]              [-1] dynamic #t24;
 [1421]              #L10:
 [1421]              {
@@ -304,8 +304,8 @@ import "dart:core" as core;
 [1973]            {
 [1973]              [1973] core::int #t30 = [1973] [1973] [1973] [1973] 1.{core::int::unary-}[1973](){() → core::int};
 [1981]              [1981] final synthesized dynamic #1#0 = [1981] [1981] o2;
-[-1]              [-1] late final synthesized core::int #1#2 = [2000] [2000] [1981] [1981] #1#0{core::List<dynamic>}.{core::List::length}{core::int};
-[-1]              [-1] late final synthesized dynamic #1#13 = [2091] [2091] [1981] [1981] #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[2091]([2000] #C4){(core::Object?) → dynamic};
+[-1]              [-1] late final synthesized core::int #1#2 = [2000] [2000] [1981]([1981] [1981] [1981] #1#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+[-1]              [-1] late final synthesized dynamic #1#13 = [2091] [2091] [1981]([1981] [1981] [1981] #1#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[2091]([2000] #C4){(core::Object?) → dynamic};
 [-1]              [-1] dynamic #t31;
 [1973]              #L16:
 [1973]              {
@@ -508,7 +508,7 @@ import "dart:core" as core;
 [3433]  return [3440] [3440] block {
 [-1]    [-1] dynamic #t37;
 [3448]    [3448] final synthesized dynamic #0#0 = [3448] [3448] o;
-[-1]    [-1] late final synthesized dynamic #0#9 = [3477] [3477] [3448] [3448] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([3457] #C4){(core::Object?) → dynamic};
+[-1]    [-1] late final synthesized dynamic #0#9 = [3477] [3477] [3448]([3448] [3448] [3448] #0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}[3477]([3457] #C4){(core::Object?) → dynamic};
 [3440]    #L36:
 [3440]    {
 [3465]      {

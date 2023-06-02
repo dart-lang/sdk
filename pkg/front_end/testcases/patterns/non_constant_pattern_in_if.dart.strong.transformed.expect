@@ -53,7 +53,7 @@ static method test(dynamic value, core::bool expected) → void {
   {
     final synthesized dynamic #2#0 = value;
     function ##2#4#initializer() → dynamic
-      return #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+      return (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
     late final synthesized dynamic #2#4 = ##2#4#initializer(){() → dynamic};
     if(#2#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#2#4 == null) || null is{ForNonNullableByDefault} dynamic && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C4 =={core::String::==}{(core::Object) → core::bool} #2#4) {
       matched = true;
@@ -62,7 +62,7 @@ static method test(dynamic value, core::bool expected) → void {
   {
     final synthesized dynamic #3#0 = value;
     function ##3#4#initializer() → core::Object?
-      return #3#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?};
+      return (#3#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::num, core::Object>).{core::Map::[]}(#C1){(core::Object?) → core::Object?};
     late final synthesized core::Object? #3#4 = ##3#4#initializer(){() → core::Object?};
     if(#3#0 is{ForNonNullableByDefault} core::Map<core::num, core::Object> && (!(#3#4 == null) || null is{ForNonNullableByDefault} core::Object && #3#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C4 =={core::String::==}{(core::Object) → core::bool} #3#4{core::Object}) {
       matched = true;
@@ -100,7 +100,7 @@ constants  {
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///non_constant_pattern_in_if.dart:37:21 -> BoolConstant(true)
 Evaluated: LogicalExpression @ org-dartlang-testcase:///non_constant_pattern_in_if.dart:40:34 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 96, effectively constant: 2
+Extra constant evaluation: evaluated: 98, effectively constant: 2
 
 
 Constructor coverage from constants:

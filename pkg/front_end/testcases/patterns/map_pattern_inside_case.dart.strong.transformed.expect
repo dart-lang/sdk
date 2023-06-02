@@ -7,10 +7,10 @@ static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     function ##0#4#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
     late final synthesized dynamic #0#4 = ##0#4#initializer(){() → dynamic};
     function ##0#9#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
     late final synthesized dynamic #0#9 = ##0#9#initializer(){() → dynamic};
     {
       if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#4 && (!(#0#9 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && #C4 =={core::num::==}{(core::Object) → core::bool} #0#9) {
@@ -32,4 +32,4 @@ constants  {
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///map_pattern_inside_case.dart:7:14 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///map_pattern_inside_case.dart:7:22 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 33, effectively constant: 2
+Extra constant evaluation: evaluated: 35, effectively constant: 2

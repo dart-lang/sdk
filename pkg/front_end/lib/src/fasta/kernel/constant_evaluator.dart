@@ -1252,7 +1252,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
       // Forcefully create the matched expression so it is included even when
       // no cases read it.
-      matchedExpression.createExpression(typeEnvironment);
+      matchedExpression.createExpression(typeEnvironment,
+          inCacheInitializer: false);
 
       // TODO(johnniwinther): Remove this when an error is reported in case of
       // variables and labels on the same switch case.
@@ -1311,8 +1312,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
           DelayedExpression matchingExpression =
               matchingExpressions[caseIndex][headIndex];
-          Expression headCondition =
-              matchingExpression.createExpression(typeEnvironment);
+          Expression headCondition = matchingExpression
+              .createExpression(typeEnvironment, inCacheInitializer: false);
           if (guard != null) {
             headCondition = createAndExpression(headCondition, guard,
                 fileOffset: guard.fileOffset);
@@ -1656,9 +1657,11 @@ class ConstantsTransformer extends RemovingTransformer {
 
     // Forcefully create the matched expression so it is included even when
     // matching expression doesn't read it.
-    matchedExpression.createExpression(typeEnvironment);
+    matchedExpression.createExpression(typeEnvironment,
+        inCacheInitializer: false);
 
-    Expression condition = matchingExpression.createExpression(typeEnvironment);
+    Expression condition = matchingExpression.createExpression(typeEnvironment,
+        inCacheInitializer: false);
     Expression? guard = node.patternGuard.guard;
     if (guard != null) {
       condition =
@@ -1708,10 +1711,11 @@ class ConstantsTransformer extends RemovingTransformer {
 
     // Forcefully create the matched expression so it is included even when
     // the matching expression doesn't read it.
-    matchedExpression.createExpression(typeEnvironment);
+    matchedExpression.createExpression(typeEnvironment,
+        inCacheInitializer: false);
 
-    Expression readMatchingExpression =
-        matchingExpression.createExpression(typeEnvironment);
+    Expression readMatchingExpression = matchingExpression
+        .createExpression(typeEnvironment, inCacheInitializer: false);
 
     List<Statement> replacementStatements = [
       ...matchingCache.declarations,
@@ -1768,11 +1772,13 @@ class ConstantsTransformer extends RemovingTransformer {
     matchedExpression.registerUse();
     matchingExpression.registerUse();
 
-    Expression readMatchedExpression =
-        matchedExpression.createExpression(typeEnvironment);
+    Expression readMatchedExpression = matchedExpression
+        .createExpression(typeEnvironment, inCacheInitializer: false);
     List<Expression> effects = [];
-    Expression readMatchingExpression =
-        matchingExpression.createExpression(typeEnvironment, effects);
+    Expression readMatchingExpression = matchingExpression.createExpression(
+        typeEnvironment,
+        effects: effects,
+        inCacheInitializer: false);
 
     List<Statement> replacementStatements = [
       ...node.pattern.declaredVariables,
@@ -1984,7 +1990,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
       // Forcefully create the matched expression so it is included even when
       // no cases read it.
-      matchedExpression.createExpression(typeEnvironment);
+      matchedExpression.createExpression(typeEnvironment,
+          inCacheInitializer: false);
 
       for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
         SwitchExpressionCase switchCase = node.cases[caseIndex];
@@ -1995,8 +2002,8 @@ class ConstantsTransformer extends RemovingTransformer {
         Expression? guard = patternGuard.guard;
 
         DelayedExpression matchingExpression = matchingExpressions[caseIndex];
-        Expression caseCondition =
-            matchingExpression.createExpression(typeEnvironment);
+        Expression caseCondition = matchingExpression
+            .createExpression(typeEnvironment, inCacheInitializer: false);
         if (guard != null) {
           caseCondition = createAndExpression(caseCondition, guard,
               fileOffset: guard.fileOffset);

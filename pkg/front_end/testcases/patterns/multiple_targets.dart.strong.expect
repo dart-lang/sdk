@@ -72,7 +72,7 @@ static method test(dynamic o) → dynamic {
       }
     }
     {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (!((#0#22#isSet ?{core::int?} #0#22{core::int?} : let final dynamic #t16 = #0#22#isSet = true in #0#22 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?}) == null) || null is{ForNonNullableByDefault} core::int && (#0#21#isSet ?{core::bool} #0#21{core::bool} : let final dynamic #t17 = #0#21#isSet = true in #0#21 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool})) && #C8 =={core::num::==}{(core::Object) → core::bool} (#0#22#isSet ?{core::int?} #0#22{core::int?} : let final dynamic #t18 = #0#22#isSet = true in #0#22 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?}) as{ForNonNullableByDefault} core::int) {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (!((#0#22#isSet ?{core::int?} #0#22{core::int?} : let final dynamic #t16 = #0#22#isSet = true in #0#22 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?}) == null) || null is{ForNonNullableByDefault} core::int && (#0#21#isSet ?{core::bool} #0#21{core::bool} : let final dynamic #t17 = #0#21#isSet = true in #0#21 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool})) && #C8 =={core::num::==}{(core::Object) → core::bool} (#0#22#isSet ?{core::int?} #0#22{core::int?} : let final dynamic #t18 = #0#22#isSet = true in #0#22 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?}) as{ForNonNullableByDefault,Unchecked} core::int) {
         {
           return 5;
         }

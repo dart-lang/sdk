@@ -50,9 +50,9 @@ static method test5(dynamic x) → dynamic {
     hoisted core::String y2;
     final synthesized dynamic #0#0 = x;
     function ##0#7#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C12){(core::Object?) → dynamic};
     late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C11){(core::Object?) → core::bool} && (let final dynamic #t1 = y1 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C11){(core::Object?) → dynamic} in true) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool} && (let final dynamic #t2 = #0#7! in #0#7! is{ForNonNullableByDefault} core::String && (let final core::String #t3 = y2 = #0#7! as{ForNonNullableByDefault} core::String in true))) {
+    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C11){(core::Object?) → core::bool} && (let final dynamic #t1 = y1 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C11){(core::Object?) → dynamic} in true) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool} && (let final dynamic #t2 = #0#7! in #0#7! is{ForNonNullableByDefault} core::String && (let final core::String #t3 = y2 = #0#7! as{ForNonNullableByDefault,Unchecked} core::String in true))) {
       return 0;
     }
     else {

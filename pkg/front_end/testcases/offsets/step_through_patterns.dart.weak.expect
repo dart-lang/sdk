@@ -26,8 +26,8 @@ import "dart:_internal" as _in;
 [470]  return [470] [470] block {
 [-1]    [-1] core::double #t1;
 [478]    [478] final synthesized self::Shape #0#0 = [478] [478] shape;
-[-1]    [-1] late final synthesized core::double #0#2 = [506] [506] [478] [478] #0#0{self::Square}.{self::Square::length}{core::double};
-[-1]    [-1] late final synthesized core::double #0#4 = [556] [556] [478] [478] #0#0{self::Circle}.{self::Circle::radius}{core::double};
+[-1]    [-1] late final synthesized core::double #0#2 = [506] [506] [478]([478] [478] [478] #0#0 as{ForNonNullableByDefault,Unchecked} self::Square).{self::Square::length}{core::double};
+[-1]    [-1] late final synthesized core::double #0#4 = [556] [556] [478]([478] [478] [478] #0#0 as{ForNonNullableByDefault,Unchecked} self::Circle).{self::Circle::radius}{core::double};
 [470]    #L1:
 [470]    {
 [527]      {

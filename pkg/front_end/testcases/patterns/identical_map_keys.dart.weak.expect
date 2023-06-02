@@ -359,8 +359,8 @@ static method test() → dynamic {
   hoisted has-declared-initializer core::int b;
   {
     final synthesized dynamic #0#0 = <self::C, core::int>{#C1: 1};
-    late final synthesized core::bool #0#2 = #0#0{core::Map<self::C, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    late final synthesized core::int? #0#3 = #0#0{core::Map<self::C, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    late final synthesized core::bool #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized core::int? #0#3 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
     if(!(#0#2 && (let final dynamic #t20 = a = #0#3{core::int} in true) && #0#2 && (let final dynamic #t21 = b = #0#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
@@ -368,8 +368,8 @@ static method test() → dynamic {
   hoisted has-declared-initializer core::int d;
   {
     final synthesized dynamic #1#0 = <core::int, core::int>{1: 2};
-    late final synthesized core::bool #1#2 = #1#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
-    late final synthesized core::int? #1#3 = #1#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C2){(core::Object?) → core::int?};
+    late final synthesized core::bool #1#2 = (#1#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::int, core::int>).{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
+    late final synthesized core::int? #1#3 = (#1#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C2){(core::Object?) → core::int?};
     if(!(#1#2 && (let final dynamic #t22 = c = #1#3{core::int} in true) && #1#2 && (let final dynamic #t23 = d = #1#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
@@ -377,8 +377,8 @@ static method test() → dynamic {
   final hoisted has-declared-initializer core::int b1;
   {
     final synthesized dynamic #2#0 = <self::C, core::int>{#C1: 2};
-    late final synthesized core::bool #2#2 = #2#0{core::Map<self::C, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    late final synthesized core::int? #2#3 = #2#0{core::Map<self::C, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    late final synthesized core::bool #2#2 = (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized core::int? #2#3 = (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
     if(!(#2#2 && (let final dynamic #t24 = a1 = #2#3{core::int} in true) && #2#2 && (let final dynamic #t25 = b1 = #2#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
@@ -386,8 +386,8 @@ static method test() → dynamic {
   final hoisted has-declared-initializer core::int b2;
   {
     final synthesized dynamic #3#0 = <core::double, core::int>{3.14: 1};
-    late final synthesized core::bool #3#2 = #3#0{core::Map<core::double, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
-    late final synthesized core::int? #3#3 = #3#0{core::Map<core::double, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?};
+    late final synthesized core::bool #3#2 = (#3#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::double, core::int>).{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized core::int? #3#3 = (#3#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::double, core::int>).{core::Map::[]}(#C3){(core::Object?) → core::int?};
     if(!(#3#2 && (let final dynamic #t26 = a2 = #3#3{core::int} in true) && #3#2 && (let final dynamic #t27 = b2 = #3#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
@@ -395,8 +395,8 @@ static method test() → dynamic {
   final hoisted has-declared-initializer core::int b3;
   {
     final synthesized dynamic #4#0 = <core::String, core::int>{"x": 1};
-    late final synthesized core::bool #4#2 = #4#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
-    late final synthesized core::int? #4#3 = #4#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C4){(core::Object?) → core::int?};
+    late final synthesized core::bool #4#2 = (#4#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+    late final synthesized core::int? #4#3 = (#4#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C4){(core::Object?) → core::int?};
     if(!(#4#2 && (let final dynamic #t28 = a3 = #4#3{core::int} in true) && #4#2 && (let final dynamic #t29 = b3 = #4#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }

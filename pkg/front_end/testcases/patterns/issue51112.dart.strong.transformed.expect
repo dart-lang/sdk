@@ -26,16 +26,16 @@ static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     function ##0#2#initializer() → core::int
-      return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     function ##0#4#initializer() → core::bool
       return #0#2 =={core::num::==}{(core::Object) → core::bool} #C1;
     late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#6#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     function ##0#7#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
     dynamic #t1;
     {

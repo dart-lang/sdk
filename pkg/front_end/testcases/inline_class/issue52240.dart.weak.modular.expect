@@ -21,8 +21,8 @@ static method X|named() → self::X {
 static method X|_#named#tearOff() → self::X
   return self::X|named();
 static method main() → void {
-  core::print(#C1(){() → self::X} as{ForNonNullableByDefault} core::int);
-  core::print(#C2(){() → self::X} as{ForNonNullableByDefault} core::int);
+  core::print(#C1(){() → self::X} as{ForNonNullableByDefault,Unchecked} core::int);
+  core::print(#C2(){() → self::X} as{ForNonNullableByDefault,Unchecked} core::int);
 }
 
 constants  {

@@ -10,8 +10,8 @@ static method test1() → dynamic {
     hoisted core::List<core::int> c2;
     {
       final synthesized dynamic #0#0 = #t1;
-      late final synthesized core::int #0#4 = #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int};
-      late final synthesized core::List<core::int> #0#6 = #0#0{core::List<core::int>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>};
+      late final synthesized core::int #0#4 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<core::int>).{core::List::[]}(0){(core::int) → core::int};
+      late final synthesized core::List<core::int> #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<core::int>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>};
       if(!(#0#0{core::List<core::int>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#4 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = a2 = #0#4 in true)) && (let final dynamic #t3 = b2 = #0#0{core::List<core::int>}.{core::List::[]}(1){(core::int) → core::int} in true) && (#0#6 is{ForNonNullableByDefault} core::List<core::int> && (let final dynamic #t4 = c2 = #0#6 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
@@ -27,8 +27,8 @@ static method test2() → dynamic {
       hoisted core::List<core::int> c2;
       {
         final synthesized dynamic #0#0 = #t6;
-        late final synthesized core::int #0#4 = #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int};
-        late final synthesized core::List<core::int> #0#6 = #0#0{core::List<core::int>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>};
+        late final synthesized core::int #0#4 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<core::int>).{core::List::[]}(0){(core::int) → core::int};
+        late final synthesized core::List<core::int> #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<core::int>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>};
         if(!(#0#0{core::List<core::int>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#4 is{ForNonNullableByDefault} core::int && (let final dynamic #t7 = a2 = #0#4 in true)) && (let final dynamic #t8 = b2 = #0#0{core::List<core::int>}.{core::List::[]}(1){(core::int) → core::int} in true) && (#0#6 is{ForNonNullableByDefault} core::List<core::int> && (let final dynamic #t9 = c2 = #0#6 in true))))
           throw new core::StateError::•("Pattern matching error");
       }
@@ -45,8 +45,8 @@ static method test3() → core::Iterable<core::bool> {
       hoisted core::List<core::int> c2;
       {
         final synthesized dynamic #0#0 = #t11;
-        late final synthesized core::int #0#4 = #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int};
-        late final synthesized core::List<core::int> #0#6 = #0#0{core::List<core::int>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>};
+        late final synthesized core::int #0#4 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<core::int>).{core::List::[]}(0){(core::int) → core::int};
+        late final synthesized core::List<core::int> #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<core::int>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>};
         if(!(#0#0{core::List<core::int>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#4 is{ForNonNullableByDefault} core::int && (let final dynamic #t12 = a2 = #0#4 in true)) && (let final dynamic #t13 = b2 = #0#0{core::List<core::int>}.{core::List::[]}(1){(core::int) → core::int} in true) && (#0#6 is{ForNonNullableByDefault} core::List<core::int> && (let final dynamic #t14 = c2 = #0#6 in true))))
           throw new core::StateError::•("Pattern matching error");
       }
@@ -63,8 +63,8 @@ static method test4() → dynamic {
       hoisted core::List<core::int> c2;
       {
         final synthesized dynamic #0#0 = #t16;
-        late final synthesized core::int #0#4 = #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int};
-        late final synthesized core::List<core::int> #0#6 = #0#0{core::List<core::int>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>};
+        late final synthesized core::int #0#4 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<core::int>).{core::List::[]}(0){(core::int) → core::int};
+        late final synthesized core::List<core::int> #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<core::int>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>};
         if(!(#0#0{core::List<core::int>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#4 is{ForNonNullableByDefault} core::int && (let final dynamic #t17 = a2 = #0#4 in true)) && (let final dynamic #t18 = b2 = #0#0{core::List<core::int>}.{core::List::[]}(1){(core::int) → core::int} in true) && (#0#6 is{ForNonNullableByDefault} core::List<core::int> && (let final dynamic #t19 = c2 = #0#6 in true))))
           throw new core::StateError::•("Pattern matching error");
       }

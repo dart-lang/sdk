@@ -8,7 +8,7 @@ static method test(dynamic x) → dynamic {
     final synthesized dynamic #0#0 = x;
     {
       final hoisted core::int y;
-      if(let final dynamic #t1 = #0#0 as{ForNonNullableByDefault} core::Object in (#0#0 as{ForNonNullableByDefault} core::Object) is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = y = (#0#0 as{ForNonNullableByDefault} core::Object) as{ForNonNullableByDefault} core::int in true)) {
+      if(let final dynamic #t1 = #0#0 as{ForNonNullableByDefault} core::Object in (#0#0 as{ForNonNullableByDefault} core::Object) is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = y = (#0#0 as{ForNonNullableByDefault} core::Object) as{ForNonNullableByDefault,Unchecked} core::int in true)) {
         {
           break #L1;
         }

@@ -38,7 +38,7 @@ static method switchStatement(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     dynamic #t1;
     {
@@ -67,7 +67,7 @@ static method switchStatementWithLabel(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     dynamic #t7;
     {
@@ -105,7 +105,7 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
     core::int #t13 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     dynamic #t14;
     #L4:
@@ -197,7 +197,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
               core::int #t23 = 1.{core::int::unary-}(){() → core::int};
               final synthesized dynamic #0#0 = o2;
               function ##0#2#initializer() → core::int
-                return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+                return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
               late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
               dynamic #t24;
               #L10:
@@ -309,7 +309,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
               core::int #t30 = 1.{core::int::unary-}(){() → core::int};
               final synthesized dynamic #1#0 = o2;
               function ##1#2#initializer() → core::int
-                return #1#0{core::List<dynamic>}.{core::List::length}{core::int};
+                return (#1#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
               late final synthesized core::int #1#2 = ##1#2#initializer(){() → core::int};
               dynamic #t31;
               #L16:
@@ -746,7 +746,7 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:50
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:70:3 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:75:7 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:103:7 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 522, effectively constant: 4
+Extra constant evaluation: evaluated: 527, effectively constant: 4
 
 
 Constructor coverage from constants:

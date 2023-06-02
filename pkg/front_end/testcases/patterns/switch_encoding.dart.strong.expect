@@ -36,8 +36,8 @@ static method switchStatement(dynamic o) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized core::int #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-    late final synthesized dynamic #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    late final synthesized core::int #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized dynamic #0#13 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     dynamic #t1;
     {
       lowered hoisted dynamic a#case#0;
@@ -64,8 +64,8 @@ static method switchStatementWithLabel(dynamic o) → dynamic {
   #L2:
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized core::int #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-    late final synthesized dynamic #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    late final synthesized core::int #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized dynamic #0#13 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     dynamic #t7;
     {
       lowered hoisted dynamic a#case#0;
@@ -101,8 +101,8 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
   {
     core::int #t13 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #0#0 = o;
-    late final synthesized core::int #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-    late final synthesized dynamic #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    late final synthesized core::int #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized dynamic #0#13 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     dynamic #t14;
     #L4:
     {
@@ -172,7 +172,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
   {
     core::int #t20 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #2#0 = o1;
-    late final synthesized dynamic #2#9 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    late final synthesized dynamic #2#9 = (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     #L8:
     {
       {
@@ -193,8 +193,8 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
             {
               core::int #t23 = 1.{core::int::unary-}(){() → core::int};
               final synthesized dynamic #0#0 = o2;
-              late final synthesized core::int #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int};
-              late final synthesized dynamic #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+              late final synthesized core::int #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+              late final synthesized dynamic #0#13 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
               dynamic #t24;
               #L10:
               {
@@ -304,8 +304,8 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
             {
               core::int #t30 = 1.{core::int::unary-}(){() → core::int};
               final synthesized dynamic #1#0 = o2;
-              late final synthesized core::int #1#2 = #1#0{core::List<dynamic>}.{core::List::length}{core::int};
-              late final synthesized dynamic #1#13 = #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+              late final synthesized core::int #1#2 = (#1#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+              late final synthesized dynamic #1#13 = (#1#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
               dynamic #t31;
               #L16:
               {
@@ -508,7 +508,7 @@ static method switchExpression(dynamic o) → dynamic {
   return block {
     dynamic #t37;
     final synthesized dynamic #0#0 = o;
-    late final synthesized dynamic #0#9 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    late final synthesized dynamic #0#9 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     #L36:
     {
       {

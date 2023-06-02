@@ -26,7 +26,7 @@ static method method(invalid-type o) → dynamic {
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
     function ##0#14#initializer() → core::Object?
-      return #0#0{core::Map<core::Object?, core::Object?>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?};
+      return #0#0.{core::Map::[]}(#C1){(core::Object?) → core::Object?};
     late final synthesized core::Object? #0#14 = ##0#14#initializer(){() → core::Object?};
     {
       lowered hoisted core::List<invalid-type> a#case#0;

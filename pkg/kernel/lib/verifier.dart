@@ -1371,6 +1371,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     enterTreeNode(node);
     super.visitAsExpression(node);
     if (node.fileOffset == TreeNode.noOffset &&
+        !node.isUnchecked &&
         !target.verification.allowNoFileOffset(stage, node)) {
       TreeNode? parent = node.parent;
       while (parent != null) {

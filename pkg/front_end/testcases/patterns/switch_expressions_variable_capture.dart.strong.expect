@@ -50,8 +50,8 @@ static method test2(dynamic x) → dynamic
     dynamic #t3;
     final synthesized dynamic #0#0 = x;
     late final synthesized core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#7 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     #L2:
     {
       {
@@ -87,8 +87,8 @@ static method test3(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     late final synthesized core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#7 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     {
       hoisted core::int a;
       hoisted core::int b;

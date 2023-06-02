@@ -241,7 +241,7 @@ static method testUnresolved(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
-      return #0#0{invalid-type}{<invalid>}.field;
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t1 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
@@ -298,7 +298,7 @@ static method testNonType(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
-      return #0#0{invalid-type}{<invalid>}.field;
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t7 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
@@ -355,7 +355,7 @@ static method testExtension(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
-      return #0#0{invalid-type}{<invalid>}.field;
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t13 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
@@ -412,7 +412,7 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
-      return #0#0{invalid-type}{<invalid>}.field;
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t19 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
@@ -469,7 +469,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
-      return #0#0{invalid-type}{<invalid>}.field;
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t25 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
@@ -526,7 +526,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
-      return #0#0{invalid-type}{<invalid>}.field;
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t31 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
@@ -583,7 +583,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
-      return #0#0{invalid-type}{<invalid>}.field;
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t37 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
@@ -640,7 +640,7 @@ static method testMemberAccess(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
-      return #0#0{invalid-type}{<invalid>}.field;
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
     late final synthesized invalid-type #0#2 = ##0#2#initializer(){() → invalid-type};
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final invalid-type #t43 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");

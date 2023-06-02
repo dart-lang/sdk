@@ -45,10 +45,10 @@ static method test(dynamic o) → dynamic {
     hoisted core::int? field2;
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int?
-      return #0#0{self::Class}.{self::Class::field1}{core::int?};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field1}{core::int?};
     late final synthesized core::int? #0#2 = ##0#2#initializer(){() → core::int?};
     function ##0#3#initializer() → core::int?
-      return #0#0{self::Class}.{self::Class::field2}{core::int?};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field2}{core::int?};
     late final synthesized core::int? #0#3 = ##0#3#initializer(){() → core::int?};
     {
       hoisted core::int? s1;

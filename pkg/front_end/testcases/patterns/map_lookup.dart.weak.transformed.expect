@@ -60,16 +60,16 @@ static method test1(core::Object o) → core::String {
   {
     final synthesized core::Object #0#0 = o;
     function ##0#3#initializer() → core::bool
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
     late final synthesized core::bool #0#3 = ##0#3#initializer(){() → core::bool};
     function ##0#6#initializer() → core::bool
       return #C6 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?};
     late final synthesized core::bool #0#6 = ##0#6#initializer(){() → core::bool};
     function ##0#8#initializer() → core::bool
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C7){(core::Object?) → core::bool};
     late final synthesized core::bool #0#8 = ##0#8#initializer(){() → core::bool};
     function ##0#9#initializer() → core::int?
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C7){(core::Object?) → core::int?};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C7){(core::Object?) → core::int?};
     late final synthesized core::int? #0#9 = ##0#9#initializer(){() → core::int?};
     {
       if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && #0#3 && #0#6 && #0#8 && #C8 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
@@ -99,16 +99,16 @@ static method test2(core::Object o) → core::String
     core::String #t1;
     final synthesized core::Object #0#0 = o;
     function ##0#3#initializer() → core::bool
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
     late final synthesized core::bool #0#3 = ##0#3#initializer(){() → core::bool};
     function ##0#6#initializer() → core::bool
       return #C6 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?};
     late final synthesized core::bool #0#6 = ##0#6#initializer(){() → core::bool};
     function ##0#8#initializer() → core::bool
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C7){(core::Object?) → core::bool};
     late final synthesized core::bool #0#8 = ##0#8#initializer(){() → core::bool};
     function ##0#9#initializer() → core::int?
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C7){(core::Object?) → core::int?};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C7){(core::Object?) → core::int?};
     late final synthesized core::int? #0#9 = ##0#9#initializer(){() → core::int?};
     #L2:
     {
@@ -178,4 +178,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///map_lookup.dart:9:49 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 241, effectively constant: 1
+Extra constant evaluation: evaluated: 247, effectively constant: 1
