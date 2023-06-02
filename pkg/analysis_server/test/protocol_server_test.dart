@@ -186,7 +186,7 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message',
       CODE: 'my_lint',
-      URL: 'https://dart-lang.github.io/linter/lints/my_lint.html',
+      URL: 'https://dart.dev/lints/my_lint',
       HAS_FIX: false
     });
   }
