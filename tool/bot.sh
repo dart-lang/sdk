@@ -70,5 +70,5 @@ else
   # Run tests.
   dart --enable-asserts \
     --disable-analytics \
-    test/all.dart
+    test
 fi
