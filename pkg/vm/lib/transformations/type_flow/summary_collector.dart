@@ -10,7 +10,7 @@ import 'package:front_end/src/api_prototype/static_weak_references.dart'
     show StaticWeakReferences;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
-import 'package:kernel/ast.dart' as ast show Statement, StatementVisitor;
+import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -254,94 +254,6 @@ class _SummaryNormalizer implements StatementVisitor {
   }
 }
 
-/// Detects whether the control flow can pass through the function body and
-/// reach its end. Returns 'false' if it can prove that control never reaches
-/// the end. Otherwise, conservatively returns 'true'.
-class _FallthroughDetector extends ast.StatementVisitor<bool> {
-  // This fallthrough detector does not build control flow graph nor detect if
-  // a function has unreachable code. For simplicity, it assumes that all
-  // statements are reachable, so it just inspects the last statements of a
-  // function and checks if control can fall through them or not.
-
-  bool controlCanFallThrough(FunctionNode function) {
-    return function.body!.accept(this);
-  }
-
-  @override
-  bool defaultStatement(ast.Statement node) =>
-      throw "Unexpected statement of type ${node.runtimeType}";
-
-  @override
-  bool visitExpressionStatement(ExpressionStatement node) =>
-      (node.expression is! Throw) && (node.expression is! Rethrow);
-
-  @override
-  bool visitBlock(Block node) =>
-      node.statements.isEmpty || node.statements.last.accept(this);
-
-  @override
-  bool visitAssertBlock(AssertBlock node) =>
-      node.statements.isEmpty || node.statements.last.accept(this);
-
-  @override
-  bool visitEmptyStatement(EmptyStatement node) => true;
-
-  @override
-  bool visitAssertStatement(AssertStatement node) => true;
-
-  @override
-  bool visitLabeledStatement(LabeledStatement node) => true;
-
-  @override
-  bool visitBreakStatement(BreakStatement node) => false;
-
-  @override
-  bool visitWhileStatement(WhileStatement node) => true;
-
-  @override
-  bool visitDoStatement(DoStatement node) => true;
-
-  @override
-  bool visitForStatement(ForStatement node) => true;
-
-  @override
-  bool visitForInStatement(ForInStatement node) => true;
-
-  @override
-  bool visitSwitchStatement(SwitchStatement node) => true;
-
-  @override
-  bool visitContinueSwitchStatement(ContinueSwitchStatement node) => false;
-
-  @override
-  bool visitIfStatement(IfStatement node) {
-    final otherwise = node.otherwise;
-    if (otherwise == null) return true;
-    return node.then.accept(this) || otherwise.accept(this);
-  }
-
-  @override
-  bool visitReturnStatement(ReturnStatement node) => false;
-
-  @override
-  bool visitTryCatch(TryCatch node) =>
-      node.body.accept(this) ||
-      node.catches.any((Catch catch_) => catch_.body.accept(this));
-
-  @override
-  bool visitTryFinally(TryFinally node) =>
-      node.body.accept(this) && node.finalizer.accept(this);
-
-  @override
-  bool visitYieldStatement(YieldStatement node) => true;
-
-  @override
-  bool visitVariableDeclaration(VariableDeclaration node) => true;
-
-  @override
-  bool visitFunctionDeclaration(FunctionDeclaration node) => true;
-}
-
 /// Collects sets of captured variables, as well as variables
 /// modified in loops and try blocks.
 class _VariablesInfoCollector extends RecursiveVisitor {
@@ -560,7 +472,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       <AsExpression, TypeCheck>{};
   final Map<IsExpression, TypeCheck> isTests = <IsExpression, TypeCheck>{};
   final Map<TreeNode, NarrowNotNull> nullTests = <TreeNode, NarrowNotNull>{};
-  final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
   final Set<Name> _nullMethodsAndGetters = <Name>{};
   final Set<Name> _nullSetters = <Name>{};
 
@@ -787,8 +698,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       } else {
         _visitWithoutResult(function.body!);
 
-        if (_currentCondition is! EmptyType &&
-            _fallthroughDetector.controlCanFallThrough(function)) {
+        if (_currentCondition is! EmptyType) {
           _returnValue!.values.add(_nullType);
         }
       }
