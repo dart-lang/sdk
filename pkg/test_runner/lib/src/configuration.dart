@@ -307,10 +307,12 @@ class TestConfiguration {
       const targetFolderName = {
         Abi.windowsX64: 'x64',
         Abi.windowsIA32: 'ia32',
+        Abi.windowsArm64: 'arm64',
       };
       const envScriptArgument = {
         Abi.windowsX64: '/x64',
         Abi.windowsIA32: '/x86',
+        Abi.windowsArm64: '/arm64',
       };
       final binDir =
           msvcPath.resolve('bin/Hostx64/${targetFolderName[Abi.current()]!}/');

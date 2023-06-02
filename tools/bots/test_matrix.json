@@ -1811,13 +1811,14 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--no-goma",
             "runtime"
           ]
         },
         {
           "name": "vm tests",
           "arguments": [
-              "-nvm-${system}-${mode}-${arch}"
+            "-nvm-${system}-${mode}-${arch}"
           ]
         }
       ]
@@ -1835,13 +1836,14 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--no-goma",
             "runtime"
           ]
         },
         {
           "name": "vm tests",
           "arguments": [
-              "-nvm-aot-${system}-${mode}-${arch}"
+            "-nvm-aot-${system}-${mode}-${arch}"
           ]
         }
       ]
