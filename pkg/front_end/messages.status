@@ -588,6 +588,8 @@ JsInteropExportNoExportableMembers/analyzerCode: Fail # Web compiler specific
 JsInteropExportNoExportableMembers/example: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
+JsInteropExternalExtensionMemberWithStaticDisallowed/analyzerCode: Fail # Web compiler specific
+JsInteropExternalExtensionMemberWithStaticDisallowed/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
 JsInteropInlineClassUsedWithWrongJsAnnotation/analyzerCode: Fail # Web compiler specific

@@ -7937,6 +7937,18 @@ const MessageCode messageJsInteropExternalExtensionMemberOnTypeInvalid =
             r"""Try adding a JS interop annotation to the on type class of the extension.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropExternalExtensionMemberWithStaticDisallowed =
+    messageJsInteropExternalExtensionMemberWithStaticDisallowed;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropExternalExtensionMemberWithStaticDisallowed =
+    const MessageCode("JsInteropExternalExtensionMemberWithStaticDisallowed",
+        problemMessage:
+            r"""External extension members with the keyword 'static' on JS interop and @Native types are disallowed.""",
+        correctionMessage:
+            r"""Try putting the member in the on-type instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropExternalMemberNotJSAnnotated =
     messageJsInteropExternalMemberNotJSAnnotated;
 

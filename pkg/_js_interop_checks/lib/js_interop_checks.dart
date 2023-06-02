@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropEnclosingClassJSAnnotation,
         messageJsInteropEnclosingClassJSAnnotationContext,
         messageJsInteropExternalExtensionMemberOnTypeInvalid,
+        messageJsInteropExternalExtensionMemberWithStaticDisallowed,
         messageJsInteropExternalMemberNotJSAnnotated,
         messageJsInteropInlineClassUsedWithWrongJsAnnotation,
         messageJsInteropInvalidStaticClassMemberName,
@@ -345,13 +346,19 @@ class JsInteropChecks extends RecursiveVisitor {
         }
       }
 
-      // If a @staticInterop member, check that it uses no type parameters.
       if (node.isExtensionMember) {
         final annotatable = _inlineExtensionIndex.getExtensionAnnotatable(node);
-        if (annotatable != null &&
-            hasStaticInteropAnnotation(annotatable) &&
-            !_isAllowedCustomStaticInteropImplementation(node)) {
-          _checkStaticInteropMemberUsesNoTypeParameters(node);
+        if (annotatable != null) {
+          // If a @staticInterop member, check that it uses no type parameters.
+          if (hasStaticInteropAnnotation(annotatable) &&
+              !_isAllowedCustomStaticInteropImplementation(node)) {
+            _checkStaticInteropMemberUsesNoTypeParameters(node);
+          }
+          // We do not support external extension members with the 'static'
+          // keyword currently.
+          if (_inlineExtensionIndex.getExtensionDescriptor(node)!.isStatic) {
+            report(messageJsInteropExternalExtensionMemberWithStaticDisallowed);
+          }
         }
       }
     }
