@@ -86,13 +86,21 @@ luci.bucket(
     ],
 )
 luci.bucket(
-    name = "ci.roll",
+    name = "ci.shadow",
+    shadows = "ci",
     acls = [
-        acl.entry(acl.BUILDBUCKET_TRIGGERER, **ROLL_TRIGGERERS),
+        acl.entry(acl.BUILDBUCKET_TRIGGERER, users = [accounts.ci_builder]),
     ],
 )
 luci.bucket(
     name = "ci.sandbox",
+    acls = [
+        acl.entry(acl.BUILDBUCKET_TRIGGERER, users = CI_SANDBOX_TRIGGERERS),
+    ],
+)
+luci.bucket(
+    name = "ci.sandbox.shadow",
+    shadows = "ci.sandbox",
     acls = [
         acl.entry(acl.BUILDBUCKET_TRIGGERER, users = CI_SANDBOX_TRIGGERERS),
     ],
@@ -119,6 +127,13 @@ luci.bucket(
     ],
 )
 
+# Shadow bucket for try.
+luci.bucket(
+    name = "try.shadow",
+    shadows = "try",
+    acls = TRY_ACLS,
+)
+
 # Tryjobs specific to the monorepo repo.
 # These should only be triggered by the monorepo coordinator flutter-linux-try.
 luci.bucket(
@@ -135,8 +150,25 @@ luci.bucket(
     ],
 )
 
+# Shadow bucket for try.monorepo.
+luci.bucket(
+    name = "try.monorepo.shadow",
+    shadows = "try.monorepo",
+    acls = TRY_ACLS + [
+        acl.entry(
+            acl.BUILDBUCKET_TRIGGERER,
+            users = [
+                # Monorepo builds use a coordinator build to add try builds.
+                # It runs with the try_builder account.
+                accounts.try_builder,
+            ],
+        ),
+    ],
+)
+
 # Tryjobs for all repos.
 luci.bucket(name = "try.shared", acls = TRY_ACLS)
+luci.bucket(name = "try.shared.shadow", shadows = "try.shared", acls = TRY_ACLS)
 
 # Swarming permissions in realms.cfg.
 
@@ -186,7 +218,7 @@ led_users(
     pool_realms = ["pools/try"],
     builder_realm = "try",
     users = [
-        "dart-luci-try-builder@dart-ci.iam.gserviceaccount.com",
+        accounts.try_builder,
     ],
 )
 
