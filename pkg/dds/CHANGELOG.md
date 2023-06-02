@@ -1,3 +1,7 @@
+# 2.9.0
+- Updated DDS protocol to version 1.6.
+- Add `postEvent RPC.
+
 # 2.8.3
 - Pass-through expression evaluation types, method and class information.
 
