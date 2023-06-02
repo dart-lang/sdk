@@ -23,7 +23,7 @@ static method main() → dynamic {
   core::print(" '${i}' ");
   core::print(" '${i}' '${i}'");
   core::print(" '${i}' '${i}'");
-  core::print("foobar");
+  core::print(#C2);
   core::print(" '${i}' '${i}' '${i}' '${i}'");
   try {
     throw "fisk";
@@ -48,7 +48,7 @@ static method main() → dynamic {
   core::print(let final core::int #t1 = i in let final core::int #t2 = i = #t1.{core::num::-}(1){(core::num) → core::int} in #t1);
   core::print(let final core::int #t3 = i in let final core::int #t4 = i = #t3.{core::num::+}(1){(core::num) → core::int} in #t3);
   core::print(new core::Object::•());
-  core::print(#C2);
+  core::print(#C3);
   core::print(core::List::filled<core::String>(2, "").{core::Object::runtimeType}{core::Type});
   self::foo(fisk: "Blorp gulp");
   function f() → Null {
@@ -72,9 +72,9 @@ static method main() → dynamic {
   self::caller(({dynamic x = #C1}) → Null {
     core::print("<anon> was called with ${x}");
   });
-  core::print(#C3.{core::Type::toString}(){() → core::String});
-  core::print(#C3);
-  core::print(let final core::Type #t5 = #C3 in block {
+  core::print(#C4.{core::Type::toString}(){() → core::String});
+  core::print(#C4);
+  core::print(let final core::Type #t5 = #C4 in block {
     #t5.{core::Type::toString}(){() → core::String};
   } =>#t5);
   try {
@@ -91,8 +91,9 @@ static method main() → dynamic {
 
 constants  {
   #C1 = null
-  #C2 = core::Object {}
-  #C3 = TypeLiteralConstant(core::int)
+  #C2 = "foobar"
+  #C3 = core::Object {}
+  #C4 = TypeLiteralConstant(core::int)
 }
 
 

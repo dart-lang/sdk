@@ -14,7 +14,7 @@ class A extends core::Object {
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_mixin_error.dartA".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
-    return "A()";
+    return #C1;
   method /*isLegacy*/ copyWith() → dynamic
     return new self::A::•();
 }
@@ -32,7 +32,7 @@ abstract class _C&B&A extends self::B implements self::A /*isAnonymousMixin,isEl
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_mixin_error.dartA".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
-    return "A()";
+    return #C1;
   method /*isLegacy*/ copyWith() → dynamic
     return new self::A::•();
 }
@@ -72,13 +72,9 @@ class JenkinsSmiHash extends core::Object {
     return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash){(core::int) → core::int}.{core::int::<<}(15){(core::int) → core::int}){(core::num) → core::int}){(core::int) → core::int};
   }
 }
-static const field core::String valueClass = #C1;
+static const field core::String valueClass = #C2;
 
 constants  {
-  #C1 = "valueClass"
+  #C1 = "A()"
+  #C2 = "valueClass"
 }
-
-Extra constant evaluation status:
-Evaluated: StringConcatenation @ org-dartlang-testcase:///value_mixin_error.dart:10:7 -> StringConstant("A()")
-Evaluated: StringConcatenation @ org-dartlang-testcase:///value_mixin_error.dart:10:7 -> StringConstant("A()")
-Extra constant evaluation: evaluated: 46, effectively constant: 2

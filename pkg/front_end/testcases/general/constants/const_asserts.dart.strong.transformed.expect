@@ -131,10 +131,10 @@ import "dart:core" as core;
 class Foo extends core::Object /*hasConstConstructor*/  {
   final field core::int* x;
   const constructor •(core::int* x) → self::Foo*
-    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, "x is not positive"), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, ""), assert(#C1 =={core::Object::==}{(core::Object*) →* core::bool*} false, "foo was ${#C1}"), assert(#C1 =={core::Object::==}{(core::Object*) →* core::bool*} false), super core::Object::•()
+    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, "x is not positive"), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, ""), assert(#C1 =={core::Object::==}{(core::Object*) →* core::bool*} false, #C2), assert(#C1 =={core::Object::==}{(core::Object*) →* core::bool*} false), super core::Object::•()
     ;
   const constructor withMessage(core::int* x) → self::Foo*
-    : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num*) →* core::bool*}, "btw foo was ${#C1}"), super core::Object::•()
+    : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num*) →* core::bool*}, #C3), super core::Object::•()
     ;
   const constructor withInvalidMessage(core::int* x) → self::Foo*
     : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num*) →* core::bool*}, x), super core::Object::•()
@@ -145,10 +145,10 @@ class Foo extends core::Object /*hasConstConstructor*/  {
                                                   ^" in x as{TypeError} core::bool*), super core::Object::•()
     ;
   const constructor withNullConditionFromEnv1(core::int* x) → self::Foo*
-    : self::Foo::x = x, assert(#C2), super core::Object::•()
+    : self::Foo::x = x, assert(#C4), super core::Object::•()
     ;
   const constructor withNullConditionFromEnv2(core::int* x) → self::Foo*
-    : self::Foo::x = x, assert(#C2), super core::Object::•()
+    : self::Foo::x = x, assert(#C4), super core::Object::•()
     ;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -183,7 +183,7 @@ class Bar extends core::Object /*hasConstConstructor*/  {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static const field self::Foo* foo1 = #C4;
+static const field self::Foo* foo1 = #C6;
 static const field self::Foo* foo2 = invalid-expression "This assertion failed with message: x is not positive";
 static const field self::Foo* foo3 = invalid-expression "This assertion failed with message: btw foo was false";
 static const field self::Foo* foo4 = invalid-expression "This assertion failed with a non-String message.";
@@ -199,22 +199,22 @@ static const field self::Bar* bar4 = invalid-expression "This assertion failed."
 static const field self::Bar* bar5 = invalid-expression "This assertion failed.";
 static const field self::Bar* bar6 = invalid-expression "This assertion failed.";
 static method main() → dynamic {
-  core::print(#C4);
+  core::print(#C6);
 }
 
 constants  {
   #C1 = false
-  #C2 = null
-  #C3 = 1
-  #C4 = self::Foo {x:#C3}
+  #C2 = "foo was false"
+  #C3 = "btw foo was false"
+  #C4 = null
+  #C5 = 1
+  #C6 = self::Foo {x:#C5}
 }
 
 Extra constant evaluation status:
 Evaluated: EqualsCall @ org-dartlang-testcase:///const_asserts.dart:13:50 -> BoolConstant(true)
-Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:14:59 -> StringConstant("foo was false")
 Evaluated: EqualsCall @ org-dartlang-testcase:///const_asserts.dart:15:50 -> BoolConstant(true)
-Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:17:73 -> StringConstant("btw foo was false")
-Extra constant evaluation: evaluated: 31, effectively constant: 4
+Extra constant evaluation: evaluated: 29, effectively constant: 2
 
 
 Constructor coverage from constants:
