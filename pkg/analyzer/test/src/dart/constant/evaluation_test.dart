@@ -1056,6 +1056,14 @@ const g = f;
     _assertTypeArguments(result, null);
   }
 
+  test_visitInterpolationExpression_list() async {
+    await assertErrorsInCode(r'''
+const x = '${const [2]}';
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 11, 12),
+    ]);
+  }
+
   test_visitIsExpression_is_null() async {
     await resolveTestCode('''
 const a = null;
