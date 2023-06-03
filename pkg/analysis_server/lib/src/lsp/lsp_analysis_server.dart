@@ -9,7 +9,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
-import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
@@ -22,7 +21,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/notification_manager.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
-import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -53,7 +51,6 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-import 'package:watcher/watcher.dart';
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
 /// that listens on a [CommunicationChannel] for LSP messages and processes
@@ -1122,108 +1119,28 @@ class LspInitializationOptions {
         allowOpenUri = options['allowOpenUri'] == true;
 }
 
-class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
-  // TODO(dantup): Lots of copy/paste from the Analysis Server one here.
-
+class LspServerContextManagerCallbacks
+    extends CommonServerContextManagerCallbacks {
+  @override
   final LspAnalysisServer analysisServer;
 
-  /// The [ResourceProvider] by which paths are converted into [Resource]s.
-  final ResourceProvider resourceProvider;
-
-  /// The set of files for which notifications were sent.
-  final Set<String> filesToFlush = {};
-
-  LspServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
+  LspServerContextManagerCallbacks(this.analysisServer, super.resourceProvider);
 
   @override
   void afterContextsCreated() {
-    analysisServer.afterContextsCreated();
+    super.afterContextsCreated();
     analysisServer.contextBuilds++;
   }
 
   @override
-  void afterContextsDestroyed() {
-    for (var file in filesToFlush) {
+  void flushResults(List<String> files) {
+    for (final file in files) {
       analysisServer.publishDiagnostics(file, []);
     }
-    filesToFlush.clear();
   }
 
   @override
-  void afterWatchEvent(WatchEvent event) {
-    // TODO: implement afterWatchEvent
-  }
-
-  @override
-  void applyFileRemoved(String file) {
-    analysisServer.publishDiagnostics(file, []);
-    filesToFlush.remove(file);
-  }
-
-  @override
-  void broadcastWatchEvent(WatchEvent event) {
-    analysisServer.notifyDeclarationsTracker(event.path);
-    analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    if (AnalysisServer.supportsPlugins) {
-      analysisServer.pluginManager.broadcastWatchEvent(event);
-    }
-  }
-
-  @override
-  void listenAnalysisDriver(analysis.AnalysisDriver driver) {
-    // TODO(dantup): Is this required, or covered by
-    // addContextsToDeclarationsTracker? The original server does not appear to
-    // have an equivalent call.
-    final analysisContext = driver.analysisContext;
-    if (analysisContext != null) {
-      analysisServer.declarationsTracker?.addContext(analysisContext);
-    }
-
-    driver.results.listen((result) {
-      if (result is FileResult) {
-        _handleFileResult(result);
-      }
-    });
-    driver.exceptions.listen(analysisServer.logExceptionResult);
-    driver.priorityFiles = analysisServer.priorityFiles.toList();
-  }
-
-  @override
-  void pubspecChanged(String path) {
-    analysisServer.pubPackageService
-        .fetchPackageVersionsViaPubOutdated(path, pubspecWasModified: true);
-  }
-
-  @override
-  void pubspecRemoved(String path) {
-    analysisServer.pubPackageService.flushPackageCaches(path);
-  }
-
-  @override
-  void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors) {
-    final errorsToSend = errors.where(_shouldSendError).toList();
-    filesToFlush.add(path);
-    analysisServer.notificationManager
-        .recordAnalysisErrors(NotificationManager.serverId, path, errorsToSend);
-  }
-
-  void _handleFileResult(FileResult result) {
-    var path = result.path;
-    filesToFlush.add(path);
-
-    if (result is AnalysisResultWithErrors) {
-      if (analysisServer.isAnalyzed(path)) {
-        final serverErrors = protocol.doAnalysisError_listFromEngine(result);
-        recordAnalysisErrors(path, serverErrors);
-      }
-    }
-
-    if (result is ResolvedUnitResult) {
-      _handleResolvedUnitResult(result);
-    }
-  }
-
-  void _handleResolvedUnitResult(ResolvedUnitResult result) {
+  void handleResolvedUnitResult(ResolvedUnitResult result) {
     var path = result.path;
 
     final unit = result.unit;
@@ -1248,6 +1165,24 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       final lspOutline = toFlutterOutline(result.lineInfo, outline);
       analysisServer.publishFlutterOutline(path, lspOutline);
     }
+  }
+
+  @override
+  void listenAnalysisDriver(analysis.AnalysisDriver driver) {
+    // TODO(dantup): Is this required, or covered by
+    // addContextsToDeclarationsTracker? The original server does not appear to
+    // have an equivalent call.
+    final analysisContext = driver.analysisContext;
+    if (analysisContext != null) {
+      analysisServer.declarationsTracker?.addContext(analysisContext);
+    }
+
+    super.listenAnalysisDriver(driver);
+  }
+
+  @override
+  void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors) {
+    super.recordAnalysisErrors(path, errors.where(_shouldSendError).toList());
   }
 
   bool _shouldSendError(protocol.AnalysisError error) {

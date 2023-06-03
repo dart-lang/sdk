@@ -14,7 +14,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
-import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
@@ -100,9 +99,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -947,33 +944,20 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 }
 
-class ServerContextManagerCallbacks extends ContextManagerCallbacks {
+class ServerContextManagerCallbacks
+    extends CommonServerContextManagerCallbacks {
+  @override
   final LegacyAnalysisServer analysisServer;
 
-  /// The [ResourceProvider] by which paths are converted into [Resource]s.
-  final OverlayResourceProvider resourceProvider;
-
-  /// The set of files for which notifications were sent.
-  final Set<String> filesToFlush = {};
-
-  ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
+  ServerContextManagerCallbacks(this.analysisServer, super.resourceProvider);
 
   AbstractNotificationManager get _notificationManager =>
       analysisServer.notificationManager;
 
   @override
   void afterContextsCreated() {
-    analysisServer.afterContextsCreated();
+    super.afterContextsCreated();
     analysisServer._sendSubscriptions(analysis: true, flutter: true);
-  }
-
-  @override
-  void afterContextsDestroyed() {
-    sendAnalysisNotificationFlushResults(
-      analysisServer,
-      filesToFlush.toList(),
-    );
-    filesToFlush.clear();
   }
 
   @override
@@ -982,86 +966,12 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void applyFileRemoved(String file) {
-    if (filesToFlush.remove(file)) {
-      sendAnalysisNotificationFlushResults(analysisServer, [file]);
-    }
+  void flushResults(List<String> files) {
+    sendAnalysisNotificationFlushResults(analysisServer, files);
   }
 
   @override
-  void broadcastWatchEvent(WatchEvent event) {
-    analysisServer.notifyDeclarationsTracker(event.path);
-    analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    if (AnalysisServer.supportsPlugins) {
-      analysisServer.pluginManager.broadcastWatchEvent(event);
-    }
-  }
-
-  @override
-  void listenAnalysisDriver(analysis.AnalysisDriver driver) {
-    driver.results.listen((result) {
-      if (result is FileResult) {
-        _handleFileResult(result);
-      }
-    });
-    driver.exceptions.listen(analysisServer.logExceptionResult);
-    driver.priorityFiles = analysisServer.priorityFiles.toList();
-  }
-
-  @override
-  void pubspecChanged(String path) {
-    analysisServer.pubPackageService
-        .fetchPackageVersionsViaPubOutdated(path, pubspecWasModified: true);
-  }
-
-  @override
-  void pubspecRemoved(String path) {
-    analysisServer.pubPackageService.flushPackageCaches(path);
-  }
-
-  @override
-  void recordAnalysisErrors(String path, List<AnalysisError> errors) {
-    filesToFlush.add(path);
-    _notificationManager.recordAnalysisErrors(
-        NotificationManager.serverId, path, errors);
-  }
-
-  List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
-    return DartUnitHighlightsComputer(unit).compute();
-  }
-
-  server.AnalysisNavigationParams _computeNavigationParams(
-      String path, CompilationUnit unit) {
-    var collector = NavigationCollectorImpl();
-    computeDartNavigation(resourceProvider, collector, unit, null, null);
-    collector.createRegions();
-    return server.AnalysisNavigationParams(
-        path, collector.regions, collector.targets, collector.files);
-  }
-
-  List<Occurrences> _computeOccurrences(CompilationUnit unit) {
-    var collector = OccurrencesCollectorImpl();
-    addDartOccurrences(collector, unit);
-    return collector.allOccurrences;
-  }
-
-  void _handleFileResult(FileResult result) {
-    var path = result.path;
-    filesToFlush.add(path);
-
-    if (result is AnalysisResultWithErrors) {
-      if (analysisServer.isAnalyzed(path)) {
-        _notificationManager.recordAnalysisErrors(NotificationManager.serverId,
-            path, server.doAnalysisError_listFromEngine(result));
-      }
-    }
-
-    if (result is ResolvedUnitResult) {
-      _handleResolvedUnitResult(result);
-    }
-  }
-
-  void _handleResolvedUnitResult(ResolvedUnitResult result) {
+  void handleResolvedUnitResult(ResolvedUnitResult result) {
     var path = result.path;
 
     var unit = result.unit;
@@ -1129,6 +1039,25 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         sendFlutterNotificationOutline(analysisServer, result);
       });
     }
+  }
+
+  List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
+    return DartUnitHighlightsComputer(unit).compute();
+  }
+
+  server.AnalysisNavigationParams _computeNavigationParams(
+      String path, CompilationUnit unit) {
+    var collector = NavigationCollectorImpl();
+    computeDartNavigation(resourceProvider, collector, unit, null, null);
+    collector.createRegions();
+    return server.AnalysisNavigationParams(
+        path, collector.regions, collector.targets, collector.files);
+  }
+
+  List<Occurrences> _computeOccurrences(CompilationUnit unit) {
+    var collector = OccurrencesCollectorImpl();
+    addDartOccurrences(collector, unit);
+    return collector.allOccurrences;
   }
 
   /// Run [f] in a new [Future].
