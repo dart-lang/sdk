@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropEnclosingClassJSAnnotation,
         messageJsInteropEnclosingClassJSAnnotationContext,
         messageJsInteropExternalExtensionMemberOnTypeInvalid,
+        messageJsInteropExternalExtensionMemberWithStaticDisallowed,
         messageJsInteropExternalMemberNotJSAnnotated,
         messageJsInteropInlineClassUsedWithWrongJsAnnotation,
         messageJsInteropInvalidStaticClassMemberName,
@@ -101,6 +102,7 @@ class JsInteropChecks extends RecursiveVisitor {
   /// types.
   static const Iterable<String> _customStaticInteropImplementations = [
     'js_interop',
+    'js_interop_unsafe',
   ];
 
   /// Libraries that cannot be used when [_nonStrictModeIsAllowed] is false.
@@ -142,6 +144,14 @@ class JsInteropChecks extends RecursiveVisitor {
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
         _staticTypeContext = StatefulStaticTypeContext.stacked(
             TypeEnvironment(_coreTypes, hierarchy));
+
+  /// Verifies given [member] is an external extension member on a static
+  /// interop type that needs custom behavior.
+  static bool isAllowedCustomStaticInteropImplementation(Member member) {
+    Uri uri = member.enclosingLibrary.importUri;
+    return uri.isScheme('dart') &&
+        _customStaticInteropImplementations.contains(uri.path);
+  }
 
   /// Extract all native class names from the [component].
   ///
@@ -345,13 +355,19 @@ class JsInteropChecks extends RecursiveVisitor {
         }
       }
 
-      // If a @staticInterop member, check that it uses no type parameters.
       if (node.isExtensionMember) {
         final annotatable = _inlineExtensionIndex.getExtensionAnnotatable(node);
-        if (annotatable != null &&
-            hasStaticInteropAnnotation(annotatable) &&
-            !_isAllowedCustomStaticInteropImplementation(node)) {
-          _checkStaticInteropMemberUsesNoTypeParameters(node);
+        if (annotatable != null) {
+          // If a @staticInterop member, check that it uses no type parameters.
+          if (hasStaticInteropAnnotation(annotatable) &&
+              !isAllowedCustomStaticInteropImplementation(node)) {
+            _checkStaticInteropMemberUsesNoTypeParameters(node);
+          }
+          // We do not support external extension members with the 'static'
+          // keyword currently.
+          if (_inlineExtensionIndex.getExtensionDescriptor(node)!.isStatic) {
+            report(messageJsInteropExternalExtensionMemberWithStaticDisallowed);
+          }
         }
       }
     }
@@ -571,15 +587,6 @@ class JsInteropChecks extends RecursiveVisitor {
   }
 
   // JS interop member checks
-
-  /// Verifies given [member] is an external extension member on a static
-  /// interop type that needs custom behavior.
-  bool _isAllowedCustomStaticInteropImplementation(Member member) {
-    Uri uri = member.enclosingLibrary.importUri;
-    return uri.isScheme('dart') &&
-            _customStaticInteropImplementations.contains(uri.path) ||
-        _allowedNativeTestPatterns.any((pattern) => uri.path.contains(pattern));
-  }
 
   /// Verifies given [member] is one of the allowed usages of external:
   /// a dart low level library, a foreign helper, a native test,

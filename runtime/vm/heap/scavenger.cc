@@ -338,17 +338,6 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   void ProcessOldFinalizerEntry(FinalizerEntryPtr entry);
 
  private:
-  void UpdateStoreBuffer(ObjectPtr obj) {
-    ASSERT(obj->IsHeapObject());
-    // If the newly written object is not a new object, drop it immediately.
-    if (!obj->IsNewObject()) {
-      return;
-    }
-    if (visiting_old_object_->untag()->TryAcquireRememberedBit()) {
-      thread_->StoreBufferAddObjectGC(visiting_old_object_);
-    }
-  }
-
   DART_FORCE_INLINE
   void ScavengePointer(ObjectPtr* p) {
     // ScavengePointer cannot be called recursively.
@@ -361,11 +350,21 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     ObjectPtr new_obj = ScavengeObject(raw_obj);
 
     // Update the reference.
-    *p = new_obj;
-
-    // Update the store buffer as needed.
-    if (visiting_old_object_ != nullptr) {
-      UpdateStoreBuffer(new_obj);
+    if (!new_obj->IsNewObject()) {
+      // Setting the mark bit above must not be ordered after a publishing store
+      // of this object. Note this could be a publishing store even if the
+      // object was promoted by an early invocation of ScavengePointer. Compare
+      // Object::Allocate.
+      reinterpret_cast<std::atomic<ObjectPtr>*>(p)->store(
+          static_cast<ObjectPtr>(new_obj), std::memory_order_release);
+    } else {
+      *p = new_obj;
+      // Update the store buffer as needed.
+      ObjectPtr visiting_object = visiting_old_object_;
+      if (visiting_object != nullptr &&
+          visiting_object->untag()->TryAcquireRememberedBit()) {
+        thread_->StoreBufferAddObjectGC(visiting_object);
+      }
     }
   }
 
@@ -390,11 +389,12 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
           static_cast<CompressedObjectPtr>(new_obj), std::memory_order_release);
     } else {
       *p = new_obj;
-    }
-
-    // Update the store buffer as needed.
-    if (visiting_old_object_ != nullptr) {
-      UpdateStoreBuffer(new_obj);
+      // Update the store buffer as needed.
+      ObjectPtr visiting_object = visiting_old_object_;
+      if (visiting_object != nullptr &&
+          visiting_object->untag()->TryAcquireRememberedBit()) {
+        thread_->StoreBufferAddObjectGC(visiting_object);
+      }
     }
   }
 

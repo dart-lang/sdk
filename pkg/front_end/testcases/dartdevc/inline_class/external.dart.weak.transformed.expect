@@ -33,57 +33,43 @@ inline class B /* declaredRepresentationType = self::A */ {
   constructor named = self::B|named;
   tearoff named = self::B|_#named#tearOff;
 }
-static method B|(self::A a) → self::B
-  return js_2::_callConstructorUnchecked1<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), a);
+external static method B|(self::A a) → self::B;
 static method B|_#new#tearOff(self::A a) → self::B
-  return self::B|(a);
-static method B|named(core::int i) → self::B
-  return js_2::_callConstructorUnchecked1<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), i);
+  return js_2::_callConstructorUnchecked1<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), a);
+external static method B|named(core::int i) → self::B;
 static method B|_#named#tearOff(core::int i) → self::B
-  return self::B|named(i);
-static method B|get#field(lowered self::A #this) → self::A
-  return js_2::getProperty<self::A>(#this, "field");
-static method B|set#field(lowered self::A #this, self::A #externalFieldValue) → void
-  return js_2::_setPropertyUnchecked<self::A>(#this, "field", #externalFieldValue);
-static method B|method(lowered final self::B #this) → self::A
-  return js_2::_callMethodUnchecked0<self::A>(#this, "method");
+  return js_2::_callConstructorUnchecked1<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), i);
+external static method B|get#field(lowered self::A #this) → self::A;
+external static method B|set#field(lowered self::A #this, self::A #externalFieldValue) → void;
+external static method B|method(lowered final self::B #this) → self::A;
 static method B|get#method(lowered final self::B #this) → () → self::A
-  return () → self::A => self::B|method(#this);
-static method B|genericMethod<T extends core::Object? = dynamic>(lowered final self::B #this, self::B|genericMethod::T% t) → self::B|genericMethod::T%
-  return js_2::callMethod<self::B|genericMethod::T%>(#this, "genericMethod", <dynamic>[t]);
+  return () → self::A => js_2::_callMethodUnchecked0<self::A>(#this, "method");
+external static method B|genericMethod<T extends core::Object? = dynamic>(lowered final self::B #this, self::B|genericMethod::T% t) → self::B|genericMethod::T%;
 static method B|get#genericMethod(lowered final self::B #this) → <T extends core::Object? = dynamic>(T%) → T%
-  return <T extends core::Object? = dynamic>(T% t) → T% => self::B|genericMethod<T%>(#this, t);
-static method B|get#getter(lowered final self::B #this) → self::B
-  return js_2::getProperty<self::B>(#this, "getter");
-static method B|set#setter(lowered final self::B #this, self::B b) → void
-  return js_2::setProperty<self::B>(#this, "setter", b);
-static get B|staticField() → self::A
-  return js_2::getProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticField");
-static set B|staticField(self::A #externalFieldValue) → void
-  return js_2::_setPropertyUnchecked<self::A>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticField", #externalFieldValue);
-static method B|staticMethod() → self::A
-  return js_2::_callMethodUnchecked0<self::A>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticMethod");
-static method B|staticGenericMethod<T extends core::Object? = dynamic>(self::B|staticGenericMethod::T% t) → self::B|staticGenericMethod::T%
-  return js_2::callMethod<self::B|staticGenericMethod::T%>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticGenericMethod", <dynamic>[t]);
-static get B|staticGetter() → self::B
-  return js_2::getProperty<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticGetter");
-static set B|staticSetter(self::B b) → void
-  return js_2::setProperty<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticSetter", b);
+  return <T extends core::Object? = dynamic>(T% t) → T% => js_2::callMethod<T%>(#this, "genericMethod", <dynamic>[t]);
+external static method B|get#getter(lowered final self::B #this) → self::B;
+external static method B|set#setter(lowered final self::B #this, self::B b) → void;
+external static get B|staticField() → self::A;
+external static set B|staticField(self::A #externalFieldValue) → void;
+external static method B|staticMethod() → self::A;
+external static method B|staticGenericMethod<T extends core::Object? = dynamic>(self::B|staticGenericMethod::T% t) → self::B|staticGenericMethod::T%;
+external static get B|staticGetter() → self::B;
+external static set B|staticSetter(self::B b) → void;
 static method method(self::A a) → void {
-  self::B b1 = self::B|(a);
-  self::B b2 = self::B|named(0);
-  a = self::B|get#field(b1);
-  self::B|set#field(b1, a);
-  a = self::B|method(b1);
-  b2 = self::B|genericMethod<self::B>(b2, b2);
-  b1 = self::B|get#getter(b2);
-  self::B|set#setter(b1, b2);
-  a = self::B|staticField;
-  self::B|staticField = a;
-  a = self::B|staticMethod();
-  b2 = self::B|staticGenericMethod<self::B>(b2);
-  b1 = self::B|staticGetter;
-  self::B|staticSetter = b2;
+  self::B b1 = js_2::_callConstructorUnchecked1<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), a);
+  self::B b2 = js_2::_callConstructorUnchecked1<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), 0);
+  a = js_2::getProperty<self::A>(b1, "field");
+  js_2::setProperty<self::A>(b1, "field", a);
+  a = js_2::_callMethodUnchecked0<self::A>(b1, "method");
+  b2 = js_2::callMethod<self::B>(b2, "genericMethod", <dynamic>[b2]);
+  b1 = js_2::getProperty<self::B>(b2, "getter");
+  js_2::setProperty<self::B>(b1, "setter", b2);
+  a = js_2::getProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticField");
+  js_2::setProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticField", a);
+  a = js_2::_callMethodUnchecked0<self::A>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticMethod");
+  b2 = js_2::callMethod<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticGenericMethod", <dynamic>[b2]);
+  b1 = js_2::getProperty<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticGetter");
+  js_2::setProperty<self::B>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticSetter", b2);
 }
 
 constants  {

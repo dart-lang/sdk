@@ -745,9 +745,6 @@ cast(obj, type) {
 ///
 /// Will produce a warning/error (if enabled) when the subtype passes but would
 /// fail in sound null safety.
-///
-/// Currently only called from _checkAndCall to test type arguments applied to
-/// dynamic method calls.
 // TODO(48585) Revise argument types after removing old type representation.
 @notNull
 bool _isSubtypeWithWarning(@notNull t1, @notNull t2) {

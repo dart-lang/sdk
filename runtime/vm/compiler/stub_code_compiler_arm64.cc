@@ -2024,20 +2024,21 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     // Get card table.
     __ Bind(&remember_card);
     __ AndImmediate(TMP, R1, target::kPageMask);  // Page.
-    __ ldr(TMP,
+    __ ldr(TMP2,
            Address(TMP, target::Page::card_table_offset()));  // Card table.
-    __ cbz(&remember_card_slow, TMP);
+    __ cbz(&remember_card_slow, TMP2);
 
-    // Dirty the card.
-    __ AndImmediate(TMP, R1, target::kPageMask);     // Page.
-    __ sub(R25, R25, Operand(TMP));                  // Offset in page.
-    __ ldr(TMP,
-           Address(TMP, target::Page::card_table_offset()));  // Card table.
-    __ add(TMP, TMP,
-           Operand(R25, LSR,
-                   target::Page::kBytesPerCardLog2));  // Card address.
-    __ str(R1, Address(TMP, 0),
-           kUnsignedByte);  // Low byte of R1 is non-zero from object tag.
+    // Dirty the card. Not atomic: we assume mutable arrays are not shared
+    // between threads.
+    __ sub(R25, R25, Operand(TMP));  // Offset in page.
+    __ LsrImmediate(R25, R25, target::Page::kBytesPerCardLog2);  // Index.
+    __ LoadImmediate(TMP, 1);
+    __ lslv(TMP, TMP, R25);  // Bit mask. (Shift amount is mod 64.)
+    __ LsrImmediate(R25, R25, target::kBitsPerWordLog2);  // Word index.
+    __ add(TMP2, TMP2, Operand(R25, LSL, target::kWordSizeLog2));  // Word addr.
+    __ ldr(R25, Address(TMP2, 0));
+    __ orr(R25, R25, Operand(TMP));
+    __ str(R25, Address(TMP2, 0));
     __ ret();
 
     // Card table not yet allocated.
