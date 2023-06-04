@@ -64,6 +64,7 @@ class BaseTest {
     List<String> args = const <String>[],
   }) async {
     options = _posixToPlatformPath(options);
+    sources = sources.map(_posixToPlatformPath).cast<String>().toList();
 
     driver = Driver();
     var cmd = <String>[];

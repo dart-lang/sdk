@@ -11,31 +11,12 @@ class PromotionKeyStore<Variable extends Object> {
   /// Special promotion key to represent `this`.
   late final int thisPromotionKey = _makeNewKey();
 
-  /// Special promotion key to represent `super`. Fields accessed through
-  /// `super` are promoted independently from those accessed through `this` to
-  /// avoid soundness holes in the case where a field in `this` overrides a
-  /// field in `super`.
-  late final int shadowedSuperPromotionKey = _makeNewKey();
-
   final Map<Variable, int> _variableKeys = new Map<Variable, int>.identity();
 
-  final List<_PromotionKeyInfo<Variable>> _keyToInfo = [];
-
-  /// Gets the key of the next promotable entity whose [_rootVariableKey] is the
-  /// same as [key].  Keys with the same root are linked together in a loop (so
-  /// to iterate through them, continue walking the chain until you reach your
-  /// starting point).
-  int getNextKeyWithSameRoot(int key) => _keyToInfo[key].nextKeyWithSameRoot;
-
-  int getProperty(int targetKey, String propertyName) =>
-      (_keyToInfo[targetKey].properties ??= {})[propertyName] ??=
-          _makeNewKey(targetKey: targetKey);
-
-  /// Gets the variable key for the variable that forms the root of the property
-  /// accesses that led to [promotionKey].  For example, the root variable key
-  /// for a property access `a.b.c` is the promotion key for `a`.
-  int getRootVariableKey(int promotionKey) =>
-      _keyToInfo[promotionKey].rootVariableKey;
+  /// List whose `i`th entry is the [Variable] corresponding to promotion key
+  /// `i`, or `null`, if promotion key `i` does not correspond to a specific
+  /// [Variable].
+  final List<Variable?> _keyToVariable = [];
 
   int keyForVariable(Variable variable) =>
       _variableKeys[variable] ??= _makeNewKey(variable: variable);
@@ -43,63 +24,19 @@ class PromotionKeyStore<Variable extends Object> {
   /// Creates a fresh promotion key that hasn't been used before (and won't be
   /// reused again).  This is used by flow analysis to model the synthetic
   /// variables used during pattern matching to cache the values that the
-  /// pattern, and its subpatterns, are being matched against.
+  /// pattern, and its subpatterns, are being matched against. It is also used
+  /// to track the values returned by property gets.
   int makeTemporaryKey() => _makeNewKey();
 
-  Variable? variableForKey(int variableKey) => _keyToInfo[variableKey].variable;
+  /// Gets the [Variable] corresponding to [variableKey], or `null` if
+  /// [variableKey] does not correspond to a specific [Variable].
+  Variable? variableForKey(int variableKey) => _keyToVariable[variableKey];
 
-  int _makeNewKey({Variable? variable, int? targetKey}) {
-    int key = _keyToInfo.length;
-    int rootVariableKey;
-    int nextKeyWithSameRoot;
-    if (targetKey == null) {
-      rootVariableKey = key;
-      // This key does not represent a property, so its nextKeyWithSameRoot
-      // pointer should point to itself.
-      nextKeyWithSameRoot = key;
-    } else {
-      _PromotionKeyInfo<Variable> targetInfo = _keyToInfo[targetKey];
-      rootVariableKey = targetInfo.rootVariableKey;
-      // This key represents a property of [targetKey], so its
-      // nextKeyWithSameRoot should be linked into whatever chain [targetKey]
-      // is in.
-      nextKeyWithSameRoot = targetInfo.nextKeyWithSameRoot;
-      targetInfo.nextKeyWithSameRoot = key;
-    }
-    _keyToInfo.add(new _PromotionKeyInfo(
-        variable: variable,
-        nextKeyWithSameRoot: nextKeyWithSameRoot,
-        rootVariableKey: rootVariableKey));
+  /// Creates a fresh promotion key. If a [variable] is provided, it is stored
+  /// for later retrieval by [variableForKey].
+  int _makeNewKey({Variable? variable}) {
+    int key = _keyToVariable.length;
+    _keyToVariable.add(variable);
     return key;
   }
-}
-
-/// Class storing detailed information about a single promotion key.
-class _PromotionKeyInfo<Variable extends Object> {
-  /// The variable associated with the key, if any.
-  final Variable? variable;
-
-  /// Map indicating the set of properties of this promotable entity being
-  /// tracked by flow analysis.  The map is indexed by the property name.
-  ///
-  /// Null is considered equivalent to an empty map (this allows us to save
-  /// memory due to the fact that most promotion keys won't be subject to any
-  /// property access).
-  Map<String, int>? properties;
-
-  /// The key of the next promotable entity whose [_rootVariableKey] is the same
-  /// as this one.  Keys with the same root are linked together in a loop (so to
-  /// iterate through them, continue walking the chain until you reach your
-  /// starting point).
-  int nextKeyWithSameRoot;
-
-  /// The variable key for the variable that forms the root of the property
-  /// accesses that led to this variable key.  For example, the entry for a
-  /// property access `a.b.c` points to the promotion key for `a`.
-  final int rootVariableKey;
-
-  _PromotionKeyInfo(
-      {required this.variable,
-      required this.nextKeyWithSameRoot,
-      required this.rootVariableKey});
 }
