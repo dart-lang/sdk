@@ -9821,7 +9821,7 @@ class _MockNonPromotionReason extends NonPromotionReason {
 extension on FlowModel<Type> {
   FlowModel<Type> _conservativeJoin(FlowAnalysisTestHarness h,
           Iterable<Var> writtenVariables, Iterable<Var> capturedVariables) =>
-      conservativeJoin(h, [
+      conservativeJoin([
         for (Var v in writtenVariables) h.promotionKeyStore.keyForVariable(v)
       ], [
         for (Var v in capturedVariables) h.promotionKeyStore.keyForVariable(v)
@@ -9855,7 +9855,8 @@ extension on FlowModel<Type> {
                   ?.last ??
               variable.type,
           isPromotable: true,
-          isThisOrSuper: false);
+          isThisOrSuper: false,
+          ssaNode: SsaNode(null));
 
   FlowModel<Type> _write(
           FlowAnalysisTestHarness h,

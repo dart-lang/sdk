@@ -3251,6 +3251,9 @@ class Property extends PromotableLValue {
   }
 
   @override
+  String toString() => '$target.$propertyName';
+
+  @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     return h.typeAnalyzer.analyzePropertyGet(this, target, propertyName);
   }
@@ -4649,7 +4652,7 @@ class _MiniAstTypeAnalyzer
 
   SimpleTypeAnalysisResult<Type> analyzeThis(Expression node) {
     var thisType = this.thisType;
-    flow.thisOrSuper(node, thisType);
+    flow.thisOrSuper(node, thisType, isSuper: false);
     return new SimpleTypeAnalysisResult<Type>(type: thisType);
   }
 

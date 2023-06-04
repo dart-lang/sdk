@@ -246,7 +246,8 @@ class StaticTypeAnalyzer {
   void visitSuperExpression(covariant SuperExpressionImpl node,
       {required DartType? contextType}) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.flow?.thisOrSuper(node, thisType ?? _dynamicType);
+    _resolver.flowAnalysis.flow
+        ?.thisOrSuper(node, thisType ?? _dynamicType, isSuper: true);
     if (thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
@@ -270,7 +271,8 @@ class StaticTypeAnalyzer {
   void visitThisExpression(covariant ThisExpressionImpl node,
       {required DartType? contextType}) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.flow?.thisOrSuper(node, thisType ?? _dynamicType);
+    _resolver.flowAnalysis.flow
+        ?.thisOrSuper(node, thisType ?? _dynamicType, isSuper: false);
     if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.

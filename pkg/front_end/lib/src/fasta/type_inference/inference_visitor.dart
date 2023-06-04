@@ -8497,7 +8497,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitThisExpression(
       ThisExpression node, DartType typeContext) {
-    flowAnalysis.thisOrSuper(node, thisType!);
+    flowAnalysis.thisOrSuper(node, thisType!, isSuper: false);
     return new ExpressionInferenceResult(thisType!, node);
   }
 
@@ -8908,7 +8908,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType? promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     if (isExtensionThis(variable)) {
-      flowAnalysis.thisOrSuper(node, variable.type);
+      flowAnalysis.thisOrSuper(node, variable.type, isSuper: true);
     } else if (isNonNullableByDefault && node.forNullGuardedAccess) {
       DartType nonNullableType = variable.type.toNonNull();
       if (nonNullableType != variable.type) {

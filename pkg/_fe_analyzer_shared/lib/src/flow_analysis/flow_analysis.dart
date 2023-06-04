@@ -895,7 +895,11 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// `super.x` as a property get whose target is `super`).  [expression] should
   /// be the `this` or `super` expression.  [staticType] should be the static
   /// type of `this`.
-  void thisOrSuper(Expression expression, Type staticType);
+  ///
+  /// [isSuper] indicates whether the expression that was visited was the
+  /// pseudo-expression `super`.
+  void thisOrSuper(Expression expression, Type staticType,
+      {required bool isSuper});
 
   /// Call this method just before visiting the body of a "try/catch" statement.
   ///
@@ -1748,9 +1752,10 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void thisOrSuper(Expression expression, Type staticType) {
-    return _wrap('thisOrSuper($expression, $staticType)',
-        () => _wrapped.thisOrSuper(expression, staticType));
+  void thisOrSuper(Expression expression, Type staticType,
+      {required bool isSuper}) {
+    return _wrap('thisOrSuper($expression, $staticType, isSuper: $isSuper)',
+        () => _wrapped.thisOrSuper(expression, staticType, isSuper: isSuper));
   }
 
   @override
@@ -2080,7 +2085,7 @@ class FlowModel<Type extends Object> {
   /// and only remove promotions if it can be shown that they aren't restored
   /// later in the loop body.  If we switch to a fixed point analysis, we should
   /// be able to remove this method.
-  FlowModel<Type> conservativeJoin(FlowModelHelper<Type> helper,
+  FlowModel<Type> conservativeJoin(
       Iterable<int> writtenVariables, Iterable<int> capturedVariables) {
     FlowModel<Type>? newModel;
 
@@ -2092,8 +2097,6 @@ class FlowModel<Type extends Object> {
       if (!identical(info, newInfo)) {
         (newModel ??= _clone()).variableInfo[variableKey] = newInfo;
       }
-      newModel =
-          _discardDependentPropertyPromotions(helper, newModel, variableKey);
     }
 
     for (int variableKey in capturedVariables) {
@@ -2418,8 +2421,6 @@ class FlowModel<Type extends Object> {
         newModel = _updateVariableInfo(variableKey, newInfoForVar);
       }
     }
-    newModel =
-        _discardDependentPropertyPromotions(helper, newModel, variableKey);
 
     return newModel ?? this;
   }
@@ -2429,24 +2430,6 @@ class FlowModel<Type extends Object> {
   FlowModel<Type> _clone({Reachability? reachable}) {
     return new FlowModel<Type>.withInfo(reachable ?? this.reachable,
         new Map<int, VariableModel<Type>>.of(variableInfo));
-  }
-
-  /// Discards promotions on any property (or property of a property) of
-  /// the variable indicated by [variableKey].
-  FlowModel<Type>? _discardDependentPropertyPromotions(
-      FlowModelHelper<Type> helper,
-      FlowModel<Type>? newModel,
-      int variableKey) {
-    for (int key = variableKey;
-        (key = helper.promotionKeyStore.getNextKeyWithSameRoot(key)) !=
-            variableKey;) {
-      VariableModel<Type>? info = variableInfo[key];
-      if (info != null && info.promotedTypes != null) {
-        (newModel ??= _clone()).variableInfo[key] =
-            info.discardPromotionsAndMarkNotUnassigned();
-      }
-    }
-    return newModel;
   }
 
   /// Common algorithm for [tryMarkNonNullable], [tryPromoteForTypeCast],
@@ -2944,7 +2927,27 @@ class SsaNode<Type extends Object> {
   @visibleForTesting
   final ExpressionInfo<Type>? expressionInfo;
 
+  /// Map containing the set of properties of the value tracked by this SSA node
+  /// for the purpose of type promotion. Keys are the names of the properties.
+  ///
+  /// Note that all property accesses are tracked, regardless of whether they
+  /// are promotable, so that if an error occurs due to the absence of type
+  /// promotion, it will be possible to generate a message explaining to the
+  /// user why type promotion failed.
+  final Map<String, _PropertySsaNode<Type>> _properties = {};
+
   SsaNode(this.expressionInfo);
+
+  /// Gets an SSA node representing the property named [propertyName] of the
+  /// value represented by `this`, creating it if necessary.
+  ///
+  /// If a new SSA node is created, it is allocated a fresh promotion key using
+  /// [promotionKeyStore], so that type promotions for it can be tracked
+  /// separately from other type promotions.
+  _PropertySsaNode<Type> getProperty(
+          String propertyName, PromotionKeyStore<Object> promotionKeyStore) =>
+      _properties[propertyName] ??=
+          new _PropertySsaNode(promotionKeyStore.makeTemporaryKey());
 
   @override
   String toString() {
@@ -3000,7 +3003,8 @@ class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
       required super.after,
       required super.promotionKey,
       required super.isPromotable,
-      required super.isThisOrSuper})
+      required super.isThisOrSuper,
+      required super.ssaNode})
       : super.trivial();
 
   /// Produces an updated version of `this` reflecting the [ifTrue] and
@@ -3033,7 +3037,8 @@ class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
           ifTrue: previousExpressionInfo.ifTrue
               .rebaseForward(typeOperations, current),
           ifFalse: previousExpressionInfo.ifFalse
-              .rebaseForward(typeOperations, current));
+              .rebaseForward(typeOperations, current),
+          ssaNode: ssaNode);
     } else {
       // [previousExpression] didn't contain any non-trivial flow analysis
       // information, so nothing needs to be updated.
@@ -3791,6 +3796,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// [declare] so far.  This is used to detect unnecessary calls to [declare].
   final Set<Variable> _debugDeclaredVariables = {};
 
+  /// SSA node representing the implicit variable `this`.
+  late final SsaNode<Type> _superSsaNode = new SsaNode<Type>(null);
+
+  /// SSA node representing the implicit pseudo-variable `super`. Although
+  /// `super` and `this` represent the same object, flow analysis considers them
+  /// distinct so that if the class being compiled both inherits *and* overrides
+  /// a field `_f`, type promotions for `this._f` and `super._f` will be tracked
+  /// separately.
+  late final SsaNode<Type> _thisSsaNode = new SsaNode<Type>(null);
+
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
       {required this.respectImplicitlyTypedVarInitializers})
       : promotionKeyStore = _assignedVariables.promotionKeyStore {
@@ -3983,8 +3998,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _BranchTargetContext<Type> context =
         new _BranchTargetContext<Type>(_current.reachable);
     _stack.add(context);
-    _current =
-        _current.conservativeJoin(this, info.written, info.captured).split();
+    _current = _current.conservativeJoin(info.written, info.captured).split();
     _statementToContext[doStatement] = context;
   }
 
@@ -4092,8 +4106,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void for_conditionBegin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current =
-        _current.conservativeJoin(this, info.written, info.captured).split();
+    _current = _current.conservativeJoin(info.written, info.captured).split();
   }
 
   @override
@@ -4116,8 +4129,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void forEach_bodyBegin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current =
-        _current.conservativeJoin(this, info.written, info.captured).split();
+    _current = _current.conservativeJoin(info.written, info.captured).split();
     _SimpleStatementContext<Type> context =
         new _SimpleStatementContext<Type>(_current.reachable.parent!, _current);
     _stack.add(context);
@@ -4138,11 +4150,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current = _current.conservativeJoin(this, const [], info.written);
+    _current = _current.conservativeJoin(const [], info.written);
     _stack.add(new _FunctionExpressionContext(_current));
-    _current = _current.conservativeJoin(
-        this,
-        _assignedVariables.anywhere.written,
+    _current = _current.conservativeJoin(_assignedVariables.anywhere.written,
         _assignedVariables.anywhere.captured);
   }
 
@@ -4761,8 +4771,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         _stack.last as _SwitchStatementContext<Type>;
     if (hasLabels) {
       AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node!);
-      _current = switchContext._previous
-          .conservativeJoin(this, info.written, info.captured);
+      _current =
+          switchContext._previous.conservativeJoin(info.written, info.captured);
     } else {
       _current = alternativesContext._combinedModel ?? switchContext._unmatched;
     }
@@ -4788,9 +4798,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void thisOrSuper(Expression expression, Type staticType) {
+  void thisOrSuper(Expression expression, Type staticType,
+      {required bool isSuper}) {
     TrivialVariableReference<Type> reference =
-        _thisOrSuperReference(staticType);
+        _thisOrSuperReference(staticType, isSuper: isSuper);
     _storeExpressionInfo(expression, reference);
     _storeExpressionReference(expression, reference);
   }
@@ -4810,7 +4821,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(body);
     FlowModel<Type> beforeCatch =
-        beforeBody.conservativeJoin(this, info.written, info.captured);
+        beforeBody.conservativeJoin(info.written, info.captured);
 
     context._beforeCatch = beforeCatch;
     context._afterBodyAndCatches = afterBody;
@@ -4865,7 +4876,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _TryFinallyContext<Type> context = _stack.last as _TryFinallyContext<Type>;
     context._afterBodyAndCatches = _current;
     _current = _join(_current,
-        context._previous.conservativeJoin(this, info.written, info.captured));
+        context._previous.conservativeJoin(info.written, info.captured));
     context._beforeFinally = _current;
   }
 
@@ -4897,7 +4908,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void whileStatement_conditionBegin(Node node) {
     _current = _current.split();
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current = _current.conservativeJoin(this, info.written, info.captured);
+    _current = _current.conservativeJoin(info.written, info.captured);
   }
 
   @override
@@ -4932,7 +4943,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       return () => {};
     }
     return _getNonPromotionReasons(
-        _thisOrSuperReference(staticType), currentThisInfo);
+        _thisOrSuperReference(staticType, isSuper: false), currentThisInfo);
   }
 
   @override
@@ -5190,41 +5201,37 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       String propertyName,
       Object? propertyMember,
       Type staticType) {
-    int targetKey;
+    SsaNode<Type>? targetSsaNode;
     bool isPromotable = propertyMember != null &&
         operations.isPropertyPromotable(propertyMember);
     switch (target) {
       case SuperPropertyTarget():
-        targetKey = promotionKeyStore.shadowedSuperPromotionKey;
+        targetSsaNode = _superSsaNode;
       case ThisPropertyTarget():
-        targetKey = promotionKeyStore.thisPromotionKey;
+        targetSsaNode = _thisSsaNode;
       case ExpressionPropertyTarget(:var expression):
         _Reference<Type>? targetReference = _getExpressionReference(expression);
         if (targetReference == null) return null;
-        targetKey = targetReference.promotionKey;
+        targetSsaNode = targetReference.ssaNode;
         if (!targetReference.isPromotable && !targetReference.isThisOrSuper) {
           isPromotable = false;
         }
     }
+    _PropertySsaNode<Type> propertySsaNode =
+        targetSsaNode.getProperty(propertyName, promotionKeyStore);
     _PropertyReference<Type> propertyReference = new _PropertyReference<Type>(
         propertyName: propertyName,
         propertyMember: propertyMember,
-        promotionKey: promotionKeyStore.getProperty(targetKey, propertyName),
+        promotionKey: propertySsaNode.promotionKey,
         after: _current,
         type: staticType,
-        isPromotable: isPromotable);
+        isPromotable: isPromotable,
+        ssaNode: propertySsaNode);
     if (wholeExpression != null) {
       _storeExpressionInfo(wholeExpression, propertyReference);
       _storeExpressionReference(wholeExpression, propertyReference);
     }
     if (!propertyReference.isPromotable) {
-      return null;
-    }
-    if (_current
-        .infoFor(promotionKeyStore.getRootVariableKey(targetKey))
-        .writeCaptured) {
-      // The variable that was used to reach this property has been write
-      // captured, so the property can't be promoted.
       return null;
     }
     Type? promotedType =
@@ -5278,7 +5285,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// matching to cache the values that the pattern, and its subpatterns, are
   /// being matched against.
   TrivialVariableReference<Type> _makeTemporaryReference(
-      SsaNode<Type>? ssaNode, Type type) {
+      SsaNode<Type> ssaNode, Type type) {
     int promotionKey = promotionKeyStore.makeTemporaryKey();
     _current = _current._updateVariableInfo(
         promotionKey,
@@ -5293,7 +5300,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         after: _current,
         type: type,
         isPromotable: true,
-        isThisOrSuper: false);
+        isThisOrSuper: false,
+        ssaNode: ssaNode);
   }
 
   FlowModel<Type> _merge(FlowModel<Type> first, FlowModel<Type>? second) =>
@@ -5381,13 +5389,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         scrutineeInfo is _Reference<Type> ? scrutineeInfo : null;
     _scrutineeReference = scrutineeReference;
     SsaNode<Type>? scrutineeSsaNode;
-    if (!allowScrutineePromotion || scrutineeReference == null) {
-      scrutineeSsaNode = new SsaNode<Type>(null);
-    } else {
+    if (allowScrutineePromotion && scrutineeReference != null) {
       scrutineeSsaNode =
           _current.infoFor(scrutineeReference.promotionKey).ssaNode;
     }
-    return _makeTemporaryReference(scrutineeSsaNode, scrutineeType)
+    return _makeTemporaryReference(
+            scrutineeSsaNode ?? new SsaNode<Type>(null), scrutineeType)
         .addPreviousInfo(scrutineeInfo, typeOperations, _current);
   }
 
@@ -5409,23 +5416,27 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _expressionReference = expressionReference;
   }
 
-  TrivialVariableReference<Type> _thisOrSuperReference(Type staticType) =>
+  TrivialVariableReference<Type> _thisOrSuperReference(Type staticType,
+          {required bool isSuper}) =>
       new TrivialVariableReference<Type>(
           promotionKey: promotionKeyStore.thisPromotionKey,
           after: _current,
           type: staticType,
           isPromotable: false,
-          isThisOrSuper: true);
+          isThisOrSuper: true,
+          ssaNode: isSuper ? _superSsaNode : _thisSsaNode);
 
   TrivialVariableReference<Type> _variableReference(
-          int variableKey, Type unpromotedType) =>
-      new TrivialVariableReference<Type>(
-          promotionKey: variableKey,
-          after: _current,
-          type: _current.infoFor(variableKey).promotedTypes?.last ??
-              unpromotedType,
-          isPromotable: true,
-          isThisOrSuper: false);
+      int variableKey, Type unpromotedType) {
+    VariableModel<Type> info = _current.infoFor(variableKey);
+    return new TrivialVariableReference<Type>(
+        promotionKey: variableKey,
+        after: _current,
+        type: info.promotedTypes?.last ?? unpromotedType,
+        isPromotable: true,
+        isThisOrSuper: false,
+        ssaNode: info.ssaNode ?? new SsaNode<Type>(null));
+  }
 
   /// Common logic for handling writes to variables, whether they occur as part
   /// of an ordinary assignment or a pattern assignment.
@@ -6084,7 +6095,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void thisOrSuper(Expression expression, Type staticType) {}
+  void thisOrSuper(Expression expression, Type staticType,
+      {required bool isSuper}) {}
 
   @override
   void tryCatchStatement_bodyBegin() {}
@@ -6308,7 +6320,8 @@ class _PatternContext<Type extends Object> extends _FlowContext {
           after: current,
           type: matchedType,
           isPromotable: true,
-          isThisOrSuper: false);
+          isThisOrSuper: false,
+          ssaNode: new SsaNode<Type>(null));
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
@@ -6327,7 +6340,8 @@ class _PropertyReference<Type extends Object> extends _Reference<Type> {
       required this.propertyName,
       required this.propertyMember,
       required super.promotionKey,
-      required super.isPromotable})
+      required super.isPromotable,
+      required super.ssaNode})
       : super.trivial(isThisOrSuper: false);
 
   @override
@@ -6335,6 +6349,16 @@ class _PropertyReference<Type extends Object> extends _Reference<Type> {
       'type: $_type, after: $after, propertyName: $propertyName, '
       'propertyMember: $propertyMember, promotionKey: $promotionKey, '
       'isPromotable: $isPromotable)';
+}
+
+/// Data structure representing a unique value returned by the invocation of a
+/// property getter during execution of the code being analyzed.
+class _PropertySsaNode<Type extends Object> extends SsaNode<Type> {
+  /// The promotion key associated with this value. This allows for field
+  /// promotion.
+  final int promotionKey;
+
+  _PropertySsaNode(this.promotionKey) : super(null);
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
@@ -6351,6 +6375,11 @@ class _Reference<Type extends Object> extends ExpressionInfo<Type> {
   /// pseudo-expression `super`).
   final bool isThisOrSuper;
 
+  /// The SSA node representing the value of this expression, if it is being
+  /// tracked by flow analysis for type promotion, or `null` if the value is not
+  /// being tracked by flow analysis.
+  final SsaNode<Type> ssaNode;
+
   _Reference(
       {required super.type,
       required super.after,
@@ -6358,20 +6387,23 @@ class _Reference<Type extends Object> extends ExpressionInfo<Type> {
       required super.ifFalse,
       required this.promotionKey,
       required this.isPromotable,
-      required this.isThisOrSuper});
+      required this.isThisOrSuper,
+      required this.ssaNode});
 
   _Reference.trivial(
       {required super.type,
       required super.after,
       required this.promotionKey,
       required this.isPromotable,
-      required this.isThisOrSuper})
+      required this.isThisOrSuper,
+      required this.ssaNode})
       : super.trivial();
 
   @override
   String toString() => '_Reference(type: $_type, after: $after, '
       'ifTrue: $ifTrue, ifFalse: $ifFalse, promotionKey: $promotionKey, '
-      'isPromotable: $isPromotable, isThisOrSuper: $isThisOrSuper)';
+      'isPromotable: $isPromotable, isThisOrSuper: $isThisOrSuper, '
+      'ssaNode: $ssaNode)';
 }
 
 /// [_FlowContext] representing a construct that can contain one or more
