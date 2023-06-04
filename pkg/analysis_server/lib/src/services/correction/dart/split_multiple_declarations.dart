@@ -55,6 +55,7 @@ class SplitMultipleDeclarations extends CorrectionProducer {
     final spacesBefore = utils.getLinePrefix(variableList.offset);
 
     await builder.addDartFileEdit(file, (builder) {
+      final endOfLine = utils.endOfLine;
       for (var i = 1; i < variables.length; i++) {
         final variable = variables[i];
         final prev = variables[i - 1];
@@ -62,7 +63,7 @@ class SplitMultipleDeclarations extends CorrectionProducer {
         final sourceRange =
             range.startStart(prev.endToken.next!, variable.beginToken);
 
-        final replacement = ';\n$spacesBefore$keywordsAndType ';
+        final replacement = ';$endOfLine$spacesBefore$keywordsAndType ';
 
         builder.addSimpleReplacement(sourceRange, replacement);
       }
