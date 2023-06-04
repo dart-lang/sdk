@@ -3145,10 +3145,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitPatternVariableDeclaration(
     covariant PatternVariableDeclarationImpl node,
   ) {
-    // TODO(scheglov) Support for `late` was removed.
     final patternSchema = analyzePatternVariableDeclaration(
         node, node.pattern, node.expression,
-        isFinal: node.keyword.keyword == Keyword.FINAL, isLate: false);
+        isFinal: node.keyword.keyword == Keyword.FINAL);
     node.patternTypeSchema = patternSchema;
     popRewrite(); // expression
   }

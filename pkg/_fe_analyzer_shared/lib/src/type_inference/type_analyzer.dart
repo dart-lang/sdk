@@ -538,7 +538,7 @@ mixin TypeAnalyzer<
             matchedType: matchedType,
             staticType: staticType,
             isFinal: context.isFinal || isVariableFinal(variable),
-            isLate: context.isLate,
+            isLate: false,
             isImplicitlyTyped: isImplicitlyTyped);
     setVariableType(variable, staticType);
     (context.componentVariables[variableName] ??= []).add(variable);
@@ -1445,20 +1445,11 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression, Pattern).
   Type analyzePatternVariableDeclaration(
       Node node, Pattern pattern, Expression initializer,
-      {required bool isFinal, required bool isLate}) {
+      {required bool isFinal}) {
     // Stack: ()
-    if (isLate && !isVariablePattern(pattern)) {
-      errors.patternDoesNotAllowLate(pattern: pattern);
-    }
-    if (isLate) {
-      flow.lateInitializer_begin(node);
-    }
     Type patternSchema = dispatchPatternSchema(pattern);
     Type initializerType = analyzeExpression(initializer, patternSchema);
     // Stack: (Expression)
-    if (isLate) {
-      flow.lateInitializer_end();
-    }
     flow.patternVariableDeclaration_afterInitializer(
         initializer, initializerType);
     Map<String, List<Variable>> componentVariables = {};
@@ -1466,7 +1457,6 @@ mixin TypeAnalyzer<
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: isFinal,
-        isLate: isLate,
         irrefutableContext: node,
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,
@@ -1939,7 +1929,7 @@ mixin TypeAnalyzer<
   /// Returns the inferred type of the variable.
   Type analyzeUninitializedVariableDeclaration(
       Node node, Variable variable, Type? declaredType,
-      {required bool isFinal, required bool isLate}) {
+      {required bool isFinal}) {
     Type inferredType = declaredType ?? dynamicType;
     setVariableType(variable, inferredType);
     flow.declare(variable, inferredType, initialized: false);
@@ -2579,14 +2569,6 @@ abstract class TypeAnalyzerErrors<
 
   /// Called if the static type of a condition is not assignable to `bool`.
   Error nonBooleanCondition({required Expression node});
-
-  /// Called if a pattern is illegally used in a variable declaration statement
-  /// that is marked `late`, and that pattern is not allowed in such a
-  /// declaration.  The only kind of pattern that may be used in a late variable
-  /// declaration is a variable pattern.
-  ///
-  /// [pattern] is the AST node of the illegal pattern.
-  void patternDoesNotAllowLate({required Node pattern});
 
   /// Called if in a pattern `for-in` statement or element, the [expression]
   /// that should be an `Iterable` (or dynamic) is actually not.

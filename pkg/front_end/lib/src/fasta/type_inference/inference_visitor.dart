@@ -2353,8 +2353,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           patternVariableDeclaration,
           patternVariableDeclaration.pattern,
           patternVariableDeclaration.initializer,
-          isFinal: patternVariableDeclaration.isFinal,
-          isLate: false);
+          isFinal: patternVariableDeclaration.isFinal);
 
       assert(checkStack(element, stackBase, [
         /* pattern = */ ValueKinds.Pattern,
@@ -4273,8 +4272,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           patternVariableDeclaration,
           patternVariableDeclaration.pattern,
           patternVariableDeclaration.initializer,
-          isFinal: patternVariableDeclaration.isFinal,
-          isLate: false);
+          isFinal: patternVariableDeclaration.isFinal);
 
       assert(checkStack(entry, stackBase, [
         /* pattern = */ ValueKinds.Pattern,
@@ -8873,9 +8871,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    // TODO(cstefantsova): Support late variables.
     analyzePatternVariableDeclaration(node, node.pattern, node.initializer,
-        isFinal: node.isFinal, isLate: false);
+        isFinal: node.isFinal);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,

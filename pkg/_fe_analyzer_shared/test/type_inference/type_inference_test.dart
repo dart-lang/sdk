@@ -1613,20 +1613,9 @@ main() {
       test('legal late pattern', () {
         var x = Var('x');
         h.run([
-          match(x.pattern(), intLiteral(0), isLate: true)
-              .checkIr('match_late(0, varPattern(x, matchedType: int, '
-                  'staticType: int))'),
+          match(x.pattern(), intLiteral(0), isLate: true).checkIr(
+              'declare_late(x, 0, initializerType: int, staticType: int)'),
         ]);
-      });
-
-      test('illegal late pattern', () {
-        h.run([
-          match(
-              listPattern([wildcard()])..errorId = 'PATTERN', expr('List<int>'),
-              isLate: true),
-        ], expectedErrors: {
-          'patternDoesNotAllowLate(pattern: PATTERN)'
-        });
       });
 
       test('illegal refutable pattern', () {
