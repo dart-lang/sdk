@@ -40,14 +40,14 @@ f(String s) { ... }
 
 ''';
 
-class LibraryPrivateTypesInPublicAPI extends LintRule {
+class LibraryPrivateTypesInPublicApi extends LintRule {
   static const LintCode code = LintCode('library_private_types_in_public_api',
       'Invalid use of a private type in a public API.',
       correctionMessage:
           'Try making the private type public, or making the API that uses the '
           'private type also be private.');
 
-  LibraryPrivateTypesInPublicAPI()
+  LibraryPrivateTypesInPublicApi()
       : super(
             name: 'library_private_types_in_public_api',
             description: _desc,

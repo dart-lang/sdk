@@ -66,14 +66,14 @@ class Absorber extends Widget {
 ```
 ''';
 
-class DiagnosticsDescribeAllProperties extends LintRule {
+class DiagnosticDescribeAllProperties extends LintRule {
   static const LintCode code = LintCode(
       'diagnostic_describe_all_properties',
       "The public property isn't described by either 'debugFillProperties' or "
           "'debugDescribeChildren'.",
       correctionMessage: 'Try describing the property.');
 
-  DiagnosticsDescribeAllProperties()
+  DiagnosticDescribeAllProperties()
       : super(
           name: 'diagnostic_describe_all_properties',
           description: _desc,

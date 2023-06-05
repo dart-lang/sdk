@@ -28,12 +28,12 @@ bool isOdd = 13.isOdd;
 
 ''';
 
-class UseIsEvenRatherThanModuloCheck extends LintRule {
+class UseIsEvenRatherThanModulo extends LintRule {
   static const LintCode code = LintCode(
       'use_is_even_rather_than_modulo', "Use '{0}' rather than '% 2'.",
       correctionMessage: "Try using '{0}'.");
 
-  UseIsEvenRatherThanModuloCheck()
+  UseIsEvenRatherThanModulo()
       : super(
             name: 'use_is_even_rather_than_modulo',
             description: _desc,

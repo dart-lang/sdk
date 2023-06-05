@@ -32,7 +32,7 @@ if (!lunchBox.contains('sandwich')) return 'so hungry...';
 
 ''';
 
-class PreferContainsOverIndexOf extends LintRule {
+class PreferContains extends LintRule {
   // TODO(brianwilkerson) Both `alwaysFalse` and `alwaysTrue` should be warnings
   //  rather than lints because they represent a bug rather than a style
   //  preference.
@@ -46,7 +46,7 @@ class PreferContainsOverIndexOf extends LintRule {
       "Unnecessary use of 'indexOf' to test for containment.",
       correctionMessage: "Try using 'contains'.");
 
-  PreferContainsOverIndexOf()
+  PreferContains()
       : super(
             name: 'prefer_contains',
             description: _desc,
@@ -65,7 +65,7 @@ class PreferContainsOverIndexOf extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final PreferContainsOverIndexOf rule;
+  final PreferContains rule;
 
   final LinterContext context;
 
@@ -105,23 +105,19 @@ class _Visitor extends SimpleAstVisitor<void> {
           type == TokenType.BANG_EQ ||
           type == TokenType.LT_EQ ||
           type == TokenType.GT) {
-        rule.reportLint(expression,
-            errorCode: PreferContainsOverIndexOf.useContains);
+        rule.reportLint(expression, errorCode: PreferContains.useContains);
       } else if (type == TokenType.LT) {
         // indexOf < -1 is always false
-        rule.reportLint(expression,
-            errorCode: PreferContainsOverIndexOf.alwaysFalse);
+        rule.reportLint(expression, errorCode: PreferContains.alwaysFalse);
       } else if (type == TokenType.GT_EQ) {
         // indexOf >= -1 is always true
-        rule.reportLint(expression,
-            errorCode: PreferContainsOverIndexOf.alwaysTrue);
+        rule.reportLint(expression, errorCode: PreferContains.alwaysTrue);
       }
     } else if (value == 0) {
       // 'indexOf >= 0' is same as 'contains',
       // and 'indexOf < 0' is same as '!contains'
       if (type == TokenType.GT_EQ || type == TokenType.LT) {
-        rule.reportLint(expression,
-            errorCode: PreferContainsOverIndexOf.useContains);
+        rule.reportLint(expression, errorCode: PreferContains.useContains);
       }
     } else if (value < -1) {
       // 'indexOf' is always >= -1, so comparing with lesser values makes
@@ -129,13 +125,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (type == TokenType.EQ_EQ ||
           type == TokenType.LT_EQ ||
           type == TokenType.LT) {
-        rule.reportLint(expression,
-            errorCode: PreferContainsOverIndexOf.alwaysFalse);
+        rule.reportLint(expression, errorCode: PreferContains.alwaysFalse);
       } else if (type == TokenType.BANG_EQ ||
           type == TokenType.GT_EQ ||
           type == TokenType.GT) {
-        rule.reportLint(expression,
-            errorCode: PreferContainsOverIndexOf.alwaysTrue);
+        rule.reportLint(expression, errorCode: PreferContains.alwaysTrue);
       }
     }
   }

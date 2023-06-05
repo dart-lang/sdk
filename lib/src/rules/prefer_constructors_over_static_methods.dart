@@ -44,13 +44,18 @@ class Point {
 bool _hasNewInvocation(DartType returnType, FunctionBody body) =>
     _BodyVisitor(returnType).containsInstanceCreation(body);
 
-class PreferConstructorsInsteadOfStaticMethods extends LintRule {
+// todo(pq): temporary; remove after renamed class is in the SDK
+// ignore: non_constant_identifier_names
+LintRule PreferConstructorsInsteadOfStaticMethods() =>
+    PreferConstructorsOverStaticMethods();
+
+class PreferConstructorsOverStaticMethods extends LintRule {
   static const LintCode code = LintCode(
       'prefer_constructors_over_static_methods',
       'Static method should be a constructor.',
       correctionMessage: 'Try converting the method into a constructor.');
 
-  PreferConstructorsInsteadOfStaticMethods()
+  PreferConstructorsOverStaticMethods()
       : super(
             name: 'prefer_constructors_over_static_methods',
             description: _desc,

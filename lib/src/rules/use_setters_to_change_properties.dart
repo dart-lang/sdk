@@ -31,12 +31,16 @@ button.visible = false;
 
 ''';
 
-class UseSettersToChangeAProperty extends LintRule {
+// todo(pq): temporary; remove after renamed class is in the SDK
+// ignore: non_constant_identifier_names
+UseSettersToChangeAProperty() => UseSettersToChangeProperties();
+
+class UseSettersToChangeProperties extends LintRule {
   static const LintCode code = LintCode('use_setters_to_change_properties',
       'The method is used to change a property.',
       correctionMessage: 'Try converting the method to a setter.');
 
-  UseSettersToChangeAProperty()
+  UseSettersToChangeProperties()
       : super(
             name: 'use_setters_to_change_properties',
             description: _desc,

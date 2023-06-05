@@ -28,12 +28,12 @@ print(RegExp(r'\(').hasMatch('foo()'));
 
 ''';
 
-class ValidRegExps extends LintRule {
+class ValidRegexps extends LintRule {
   static const LintCode code = LintCode(
       'valid_regexps', 'Invalid regular expression syntax.',
       correctionMessage: 'Try correcting the regular expression.');
 
-  ValidRegExps()
+  ValidRegexps()
       : super(
             name: 'valid_regexps',
             description: _desc,

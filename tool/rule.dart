@@ -4,13 +4,17 @@
 
 import 'dart:io';
 
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:args/args.dart';
+import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 import 'package:path/path.dart' as path;
 
 import '../test/test_constants.dart';
 
-/// Generates rule and rule test stub files (into `src/rules` and `test_data/rules`
+/// Generates rule and rule test stub files (into `src/rules` and `test/rules`
 /// respectively), as well as the rule index (`rules.dart`).
 void main(List<String> args) {
   var parser = ArgParser()
@@ -44,44 +48,58 @@ void main(List<String> args) {
     return;
   }
 
-  // Generate rule stub.
+  // Generate rule stub and update supporting files.
   generateRule(ruleName as String, outDir: outDir);
 }
+
+var _supportsTestMode = ['use_build_context_synchronously'];
 
 String get _thisYear => DateTime.now().year.toString();
 
 String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
 
-void generateRule(String ruleName, {String? outDir}) {
-  // Generate rule stub.
-  generateStub(ruleName, path.join('lib', 'src', 'rules'), _generateClass,
-      outDir: outDir);
-
-  // Generate test stub.
-  generateStub(ruleName, ruleTestDir, _generateTest, outDir: outDir);
-
-  // Update rule registry.
-  updateRuleRegistry(ruleName);
-
-  printToConsole('A unit test has been stubbed out in:');
-  printToConsole('  $ruleTestDir/${ruleName}_test.dart');
-}
-
-void generateStub(String ruleName, String stubPath, Generator generator,
-    {String? outDir}) {
+void generateFile(String ruleName, String stubPath, Generator generator,
+    {String? outDir, bool overwrite = false, bool format = false}) {
   var (:file, :contents) = generator(ruleName, toClassName(ruleName));
   if (outDir != null) {
     var outPath = path.join(outDir, stubPath, file);
     var outFile = File(outPath);
-    if (outFile.existsSync()) {
+    if (!overwrite && outFile.existsSync()) {
       printToConsole('Warning: stub already exists at $outPath; skipping');
       return;
     }
     printToConsole('Writing to $outPath');
     outFile.writeAsStringSync(contents);
+    if (format) {
+      Process.runSync('dart', ['format', '-o', 'write', outPath]);
+    }
   } else {
     printToConsole(contents);
   }
+}
+
+void generateRule(String ruleName, {String? outDir}) {
+  // Generate rule stub.
+  generateFile(ruleName, path.join('lib', 'src', 'rules'), _generateClass,
+      outDir: outDir);
+
+  // Generate unit test stub.
+  generateFile(ruleName, ruleTestDir, _generateTest, outDir: outDir);
+
+  // Generate test `all.dart` helper.
+  generateFile(ruleName, ruleTestDir, _generateAllTestsFile,
+      outDir: outDir, overwrite: true, format: true);
+
+  // Generate an example `all.yaml`
+  generateFile(ruleName, 'example', _generateAllYaml,
+      outDir: outDir, overwrite: true);
+
+  // Update rule registry.
+  generateFile(ruleName, path.join('lib', 'src'), _generateRulesFile,
+      outDir: outDir, overwrite: true);
+
+  printToConsole('A unit test has been stubbed out in:');
+  printToConsole('  $ruleTestDir/${ruleName}_test.dart');
 }
 
 void printUsage(ArgParser parser, [String? error]) {
@@ -96,10 +114,60 @@ ${parser.usage}
 String toClassName(String ruleName) =>
     ruleName.split('_').map(capitalize).join();
 
-void updateRuleRegistry(String ruleName) {
-  printToConsole("Don't forget to update lib/src/rules.dart with a line like:");
-  printToConsole('  ..register(${toClassName(ruleName)}())');
-  printToConsole('and add your rule to `example/all.yaml`.');
+GeneratedFile _generateAllTestsFile(String libName, String className) {
+  registerLintRules();
+  var sb = StringBuffer();
+  sb.write('''
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+''');
+
+  var paths = Directory(ruleTestDir).listSync().map((f) => f.path).toList()
+    ..sort();
+
+  var testNames = <String>[];
+  for (var file in paths) {
+    if (!file.endsWith('_test.dart')) continue;
+    var filePath = path.relative(file, from: path.join('test', 'rules'));
+    var testName = path.split(filePath).last.split('_test').first;
+    testNames.add(testName);
+    sb.writeln("import '$filePath' as $testName;");
+  }
+
+  sb.write(r'''
+
+void main() {
+''');
+  for (var testName in testNames) {
+    sb.writeln('  $testName.main();');
+  }
+  sb.writeln('}');
+  return (file: 'all.dart', contents: sb.toString());
+}
+
+GeneratedFile _generateAllYaml(String libName, String className) {
+  registerLintRules();
+  var sb = StringBuffer();
+  sb.write('''
+# Auto-generated options enabling all lints.
+# Add these to your `analysis_options.yaml` file and tailor to fit!
+linter:
+  rules:
+''');
+
+  var names = Registry.ruleRegistry.rules
+      .where((r) => !r.state.isDeprecated && !r.state.isRemoved)
+      .map((r) => r.name)
+      .toList();
+  names.add(libName);
+  names.sort();
+
+  for (var rule in names) {
+    sb.writeln('    - $rule');
+  }
+  return (file: 'all.yaml', contents: sb.toString());
 }
 
 GeneratedFile _generateClass(String ruleName, String className) => (
@@ -165,6 +233,51 @@ class _Visitor extends SimpleAstVisitor {
 }
 """
     );
+
+GeneratedFile _generateRulesFile(String libName, String className) {
+  registerLintRules();
+  var sb = StringBuffer();
+  sb.write('''
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'analyzer.dart';
+''');
+
+  var names = Registry.ruleRegistry.rules.map((r) => r.name).toList();
+  names.add(libName);
+  names.sort();
+
+  var imports = <String>[];
+  for (var name in names) {
+    var pathPrefix = Registry.ruleRegistry.getRule(name)?.group == Group.pub
+        ? path.join('rules', 'pub')
+        : 'rules';
+    imports.add("import '$pathPrefix/$name.dart';");
+  }
+
+  //ignore: prefer_foreach
+  for (var import in imports..sort()) {
+    sb.writeln(import);
+  }
+
+  sb.write('''
+
+void registerLintRules({bool inTestMode = false}) {
+  Analyzer.facade.cacheLinterVersion();
+  Analyzer.facade
+''');
+
+  for (var (i, name) in names.indexed) {
+    var className = toClassName(name);
+    var args = _supportsTestMode.contains(name) ? 'inTestMode: inTestMode' : '';
+    var suffix = i == names.length - 1 ? ';' : '';
+    sb.writeln('    ..register($className($args))$suffix');
+  }
+  sb.writeln('}');
+  return (file: 'rules.dart', contents: sb.toString());
+}
 
 GeneratedFile _generateTest(String libName, String className) => (
       file: '${libName}_test.dart',

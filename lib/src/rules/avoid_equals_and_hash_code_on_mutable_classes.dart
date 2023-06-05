@@ -74,14 +74,14 @@ bool _isImmutable(Element? element) =>
     element.name == _immutableVarName &&
     element.library.name == _metaLibName;
 
-class AvoidOperatorEqualsOnMutableClasses extends LintRule {
+class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
   static const LintCode code = LintCode(
       'avoid_equals_and_hash_code_on_mutable_classes',
-      "The method '{0}' should not be overriden in classes not annotated with '@immutable'.",
+      "The method '{0}' should not be overridden in classes not annotated with '@immutable'.",
       correctionMessage:
           "Try removing the override or annotating the class with '@immutable'.");
 
-  AvoidOperatorEqualsOnMutableClasses()
+  AvoidEqualsAndHashCodeOnMutableClasses()
       : super(
             name: 'avoid_equals_and_hash_code_on_mutable_classes',
             description: _desc,

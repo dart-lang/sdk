@@ -72,7 +72,7 @@ import 'no_leading_underscores_for_local_identifiers_test.dart'
     as no_leading_underscores_for_local_identifiers;
 import 'no_self_assignments_test.dart' as no_self_assignments;
 import 'no_wildcard_variable_uses_test.dart' as no_wildcard_variable_uses;
-import 'non_adjacent_strings_in_list_test.dart' as no_adjacent_strings_in_list;
+import 'non_adjacent_strings_in_list_test.dart' as non_adjacent_strings_in_list;
 import 'non_constant_identifier_names_test.dart'
     as non_constant_identifier_names;
 import 'null_check_on_nullable_type_parameter_test.dart'
@@ -159,8 +159,8 @@ void main() {
   avoid_annotating_with_dynamic.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_escaping_inner_quotes.main();
-  avoid_function_literals_in_foreach_calls.main();
   avoid_final_parameters.main();
+  avoid_function_literals_in_foreach_calls.main();
   avoid_init_to_null.main();
   avoid_private_typedef_functions.main();
   avoid_redundant_argument_values.main();
@@ -199,11 +199,11 @@ void main() {
   literal_only_boolean_expressions.main();
   matching_super_parameters.main();
   missing_whitespace_between_adjacent_strings.main();
-  no_adjacent_strings_in_list.main();
   no_duplicate_case_values.main();
   no_leading_underscores_for_local_identifiers.main();
   no_self_assignments.main();
   no_wildcard_variable_uses.main();
+  non_adjacent_strings_in_list.main();
   non_constant_identifier_names.main();
   null_check_on_nullable_type_parameter.main();
   null_closures.main();
@@ -214,8 +214,8 @@ void main() {
   parameter_assignments.main();
   prefer_asserts_in_initializer_lists.main();
   prefer_collection_literals.main();
-  prefer_const_constructors.main();
   prefer_const_constructors_in_immutables.main();
+  prefer_const_constructors.main();
   prefer_const_declarations.main();
   prefer_const_literals_to_create_immutables.main();
   prefer_constructors_over_static_methods.main();
@@ -226,11 +226,11 @@ void main() {
   prefer_final_locals.main();
   prefer_final_parameters.main();
   prefer_generic_function_type_aliases.main();
+  prefer_mixin.main();
   prefer_relative_imports.main();
   prefer_spread_collections.main();
-  public_member_api_docs.main();
-  prefer_mixin.main();
   prefer_void_to_null.main();
+  public_member_api_docs.main();
   recursive_getters.main();
   secure_pubspec_urls.main();
   sort_constructors_first.main();
@@ -246,8 +246,8 @@ void main() {
   unnecessary_final.main();
   unnecessary_lambdas.main();
   unnecessary_library_directive.main();
-  unnecessary_nullable_for_final_variable_declarations.main();
   unnecessary_null_checks.main();
+  unnecessary_nullable_for_final_variable_declarations.main();
   unnecessary_overrides.main();
   unnecessary_parenthesis.main();
   unnecessary_statements.main();

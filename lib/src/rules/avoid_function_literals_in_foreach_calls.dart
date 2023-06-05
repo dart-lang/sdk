@@ -58,13 +58,13 @@ bool _isInsideCascade(AstNode node) =>
 bool _isIterable(DartType? type) =>
     type != null && type.implementsInterface('Iterable', 'dart.core');
 
-class AvoidFunctionLiteralInForeachMethod extends LintRule {
+class AvoidFunctionLiteralsInForeachCalls extends LintRule {
   static const LintCode code = LintCode(
       'avoid_function_literals_in_foreach_calls',
       "Function literals shouldn't be passed to 'forEach'.",
       correctionMessage: "Try using a 'for' loop.");
 
-  AvoidFunctionLiteralInForeachMethod()
+  AvoidFunctionLiteralsInForeachCalls()
       : super(
             name: 'avoid_function_literals_in_foreach_calls',
             description: _desc,

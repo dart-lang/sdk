@@ -19,13 +19,13 @@ with digits and isn't a reserved word.
 
 ''';
 
-class PubPackageNames extends LintRule {
+class PackageNames extends LintRule {
   static const LintCode code = LintCode(
       'package_names', "The package name '{0}' isn't a snake_case identifier.",
       correctionMessage:
           'Try changing the name to follow the snake_case style.');
 
-  PubPackageNames()
+  PackageNames()
       : super(
             name: 'package_names',
             description: _desc,
