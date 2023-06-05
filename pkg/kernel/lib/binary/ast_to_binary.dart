@@ -2477,38 +2477,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitFutureOrType(FutureOrType node) {
-    // TODO(cstefantsova): Remove special treatment of FutureOr when the VM
-    // supports the new encoding: just write the tag.
-    assert(_knownCanonicalNameNonRootTops.isNotEmpty);
-    CanonicalName root = _knownCanonicalNameNonRootTops.first;
-    while (!root.isRoot) {
-      root = root.parent!;
-    }
-    CanonicalName canonicalNameOfFutureOr =
-        root.getChild("dart:async").getChild("FutureOr");
-    writeByte(Tag.InterfaceType);
+    writeByte(Tag.FutureOrType);
     writeByte(node.declaredNullability.index);
-    checkCanonicalName(canonicalNameOfFutureOr);
-    writeUInt30(canonicalNameOfFutureOr.index + 1);
-    writeUInt30(1); // Type argument count.
     writeNode(node.typeArgument);
   }
 
   @override
   void visitNullType(NullType node) {
-    // TODO(cstefantsova): Remove special treatment of Null when the VM
-    // supports the new encoding: just write the tag.
-    assert(_knownCanonicalNameNonRootTops.isNotEmpty);
-    CanonicalName root = _knownCanonicalNameNonRootTops.first;
-    while (!root.isRoot) {
-      root = root.parent!;
-    }
-    CanonicalName canonicalNameOfNull =
-        root.getChild("dart:core").getChild("Null");
-    writeByte(Tag.SimpleInterfaceType);
-    writeByte(node.declaredNullability.index);
-    checkCanonicalName(canonicalNameOfNull);
-    writeUInt30(canonicalNameOfNull.index + 1);
+    writeByte(Tag.NullType);
   }
 
   @override

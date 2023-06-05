@@ -3817,6 +3817,8 @@ class BinaryBuilder {
         return _readInvalidType();
       case Tag.NeverType:
         return _readNeverType();
+      case Tag.NullType:
+        return _readNullType();
       case Tag.InlineType:
         return _readInlineType();
       case Tag.FunctionType:
@@ -3825,6 +3827,8 @@ class BinaryBuilder {
         return _readIntersectionType();
       case Tag.RecordType:
         return _readRecordType();
+      case Tag.FutureOrType:
+        return _readFutureOrType();
       default:
         throw fail('unexpected dart type tag: $tag');
     }
@@ -3853,19 +3857,14 @@ class BinaryBuilder {
     return NeverType.fromNullability(Nullability.values[nullabilityIndex]);
   }
 
+  DartType _readNullType() {
+    return const NullType();
+  }
+
   DartType _readInterfaceType() {
     int nullabilityIndex = readByte();
     Reference reference = readNonNullClassReference();
     List<DartType> typeArguments = readDartTypeList();
-    CanonicalName? canonicalName = reference.canonicalName;
-    if (canonicalName != null &&
-        canonicalName.name == "FutureOr" &&
-        canonicalName.parent!.name == "dart:async" &&
-        canonicalName.parent!.parent != null &&
-        canonicalName.parent!.parent!.isRoot) {
-      return new FutureOrType(
-          typeArguments.single, Nullability.values[nullabilityIndex]);
-    }
     return new InterfaceType.byReference(
         reference, Nullability.values[nullabilityIndex], typeArguments);
   }
@@ -3877,15 +3876,6 @@ class BinaryBuilder {
         getNullableCanonicalNameReferenceFromInt(classReferenceIndex);
     if (canonicalName == null) {
       throw 'Expected a class reference to be valid but was `null`.';
-    }
-
-    // We check this before the cache to not return a wrong cached value for
-    // this special case.
-    if (!forSupertype &&
-        canonicalName.name == "Null" &&
-        canonicalName.parent!.name == "dart:core" &&
-        canonicalName.parent!.parent!.isRoot) {
-      return const NullType();
     }
 
     // Check cache.
@@ -3903,6 +3893,12 @@ class BinaryBuilder {
         Nullability.values[nullabilityIndex], const <DartType>[]);
     _cachedSimpleInterfaceTypes[cacheIndex] = result;
     return result;
+  }
+
+  DartType _readFutureOrType() {
+    int nullabilityIndex = readByte();
+    DartType typeArgument = readDartType();
+    return new FutureOrType(typeArgument, Nullability.values[nullabilityIndex]);
   }
 
   DartType _readInlineType() {

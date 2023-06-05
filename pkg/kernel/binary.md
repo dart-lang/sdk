@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 102;
+  UInt32 formatVersion = 103;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1540,6 +1540,10 @@ type VoidType extends DartType {
   Byte tag = 92;
 }
 
+type NullType extends DartType {
+  Byte tag = 152;
+}
+
 type InterfaceType extends DartType {
   Byte tag = 93;
   Byte nullability; // Index into the Nullability enum above.
@@ -1631,6 +1635,12 @@ type TypedefType {
   Byte nullability; // Index into the Nullability enum above.
   TypedefReference typedefReference;
   List<DartType> typeArguments;
+}
+
+type FutureOrType extends DartType {
+  Byte tag = 107;
+  Byte nullability; // Index into the Nullability enum above.
+  DartType typeArgument;
 }
 
 type TypeParameter {

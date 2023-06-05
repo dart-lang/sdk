@@ -1576,6 +1576,7 @@ class TypeTranslator {
   void BuildTypeParameterType();
   void BuildIntersectionType();
   void BuildInlineType();
+  void BuildFutureOrType();
 
   class TypeParameterScope {
    public:
