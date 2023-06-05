@@ -50,12 +50,19 @@ In general removal is preceded by a period of deprecation.
 
 ## State Transitions
 
+### Implementation
+
+Once a lint proposal is accepted, it is safe to implement. A change that lands a new lint should
+have a corresponding `CHANGELOG` entry.
+
 ### Deprecation
 
 Implemented lints can be deprecated.
 
 Deprecating lints that are in common lint sets (e.g., in [package:lints](https://github.com/dart-lang/lints)
 can be impactful so should be done with care.
+
+(**NOTE**: A change that deprecates an existing lint should have a corresponding `CHANGELOG` entry.)
 
 ### Marking Stable
 
@@ -64,3 +71,9 @@ Experimental lints should aspire to be stable. An experimental lint is a candida
 * complete semantics
 * complete implementation (with no false-positives)
 * established long-term value (e.g., inclusion in a recommended lint set)
+
+### Removal
+
+Deprecated or experimental lints can be removed. A stable lint should be deprecated before removal.
+
+(**NOTE**: A change that removes an existing lint should have a corresponding `CHANGELOG` entry.)

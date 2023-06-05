@@ -63,6 +63,14 @@ To send us a pull request:
 
 Please make sure all your checkins have detailed commit messages explaining the patch and if a PR is *not* ready to land, consider making it clear in the description and/or prefixing the title with "WIP".
 
+Please note that a few kinds of changes require a `CHANGELOG` entry. Notably, any change that:
+
+1. adds a new lint
+2. removes or deprecates a lint or
+3. fundamentally changes the semantics of an existing lint
+
+should have a short entry in the `CHANGELOG`. Feel free to bring up any questions in your PR.
+
 Once you've gotten an LGTM from a project maintainer, submit your changes to the
 `main` branch using one of the following methods:
 
