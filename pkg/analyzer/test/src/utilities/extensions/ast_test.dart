@@ -57,6 +57,14 @@ class A {}
     node as CompilationUnit;
   }
 
+  Future<void> test_atCommentEnd() async {
+    var node = await coveringNode('''
+/// ^
+class A {}
+''');
+    node as Comment;
+  }
+
   Future<void> test_atEOF() async {
     var node = await coveringNode('''
 library myLib;
