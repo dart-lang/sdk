@@ -633,7 +633,7 @@ callMethod(obj, name, typeArgs, args, named, displayName) {
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
     if (ftype != null && rti.isGenericFunctionType(ftype) && typeArgs == null) {
       // No type arguments were provided, use the default values in this call.
-      typeArgs = getMethodDefaultTypeArgs(type, name);
+      typeArgs = getMethodDefaultTypeArgs(type, symbol);
     }
   }
   // No such method if dart object and ftype is missing.
