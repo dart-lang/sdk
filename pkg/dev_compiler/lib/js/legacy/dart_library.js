@@ -303,7 +303,7 @@ if (!self.dart_library) {
       _libraries.forEach(function(value, key, map) {
         debuggerLibraries.push(value.load(_firstStartedAppName));
       });
-      debuggerLibraries.__proto__ = null;
+      Object.setPrototypeOf(debuggerLibraries, null);
       return debuggerLibraries;
     };
 
@@ -714,7 +714,7 @@ if (!self.deferred_loader) {
       let module = stack.pop();
       if (seen.has(module)) continue;
       seen.add(module);
-      stack = stack.concat(self.deferred_loader.moduleGraph.get(moduleId));
+      stack = stack.concat(self.deferred_loader.moduleGraph.get(module));
     }
     let dependencies = [];
     seen.forEach(module => {
@@ -833,4 +833,3 @@ if (!self.deferred_loader) {
     self.deferred_loader.loadIds = new Set();
   };
 }
-

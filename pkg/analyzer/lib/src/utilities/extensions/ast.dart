@@ -26,7 +26,7 @@ extension AstNodeExtension on AstNode {
         if (offset == node.offset && offset == node.beginToken.previous?.end) {
           return false;
         }
-        if (offset == node.end && offset == node.endToken.next!.offset) {
+        if (offset == node.end && offset == node.endToken.next?.offset) {
           return false;
         }
       }
