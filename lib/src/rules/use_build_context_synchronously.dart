@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -442,53 +441,41 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
     } else {
       // `reference` is a statement that comes after `node`, or an ancestor of
       // `node`, in a NodeList.
-      switch (conditionMountedCheck) {
-        case null:
-          var thenMountedCheck = node.thenStatement.accept(this);
-          var elseMountedCheck = node.elseStatement?.accept(this);
-          if (thenMountedCheck == _AsyncState.asynchronous &&
-              !node.thenStatement.terminatesControl) {
-            return _AsyncState.asynchronous;
-          } else if (elseMountedCheck == _AsyncState.asynchronous &&
-              node.elseStatement?.terminatesControl == false) {
-            return _AsyncState.asynchronous;
-          } else {
-            return thenMountedCheck == elseMountedCheck
-                ? thenMountedCheck
-                : null;
-          }
+      var thenAsyncState = node.thenStatement.accept(this);
+      var elseAsyncState = node.elseStatement?.accept(this);
+      var thenTerminates = node.thenStatement.terminatesControl;
+      var elseTerminates = node.elseStatement?.terminatesControl ?? false;
 
-        case _AsyncState.asynchronous:
-          if (node.thenStatement.accept(this) == _AsyncState.notMountedCheck &&
-              node.elseStatement?.accept(this) == _AsyncState.notMountedCheck) {
-            // Mounted checks in both the then- and else-statements guard
-            // against the asynchronous code in the condition.
-            return _AsyncState.notMountedCheck;
-          } else {
-            return _AsyncState.asynchronous;
-          }
-
-        case _AsyncState.mountedCheck:
-          var elseStatement = node.elseStatement;
-          if (elseStatement == null) {
-            // The mounted check in the if-condition does not guard `reference`.
-            return null;
-          }
-
-          return elseStatement.terminatesControl
-              ? _AsyncState.mountedCheck
-              : null;
-
-        case _AsyncState.notMountedCheck:
-          // `reference` is a statement that comes after `node` in a NodeList.
-
-          // TODO(srawlins): If `elseStatement` has an `await`, then we don't
-          // have a valid mounted check, unless the `await` is followed by
-          // another mounted check...
-          return node.thenStatement.terminatesControl
-              ? _AsyncState.notMountedCheck
-              : null;
+      if (thenAsyncState == _AsyncState.notMountedCheck) {
+        if (elseAsyncState == _AsyncState.notMountedCheck || elseTerminates) {
+          return _AsyncState.notMountedCheck;
+        }
       }
+      if (elseAsyncState == _AsyncState.notMountedCheck && thenTerminates) {
+        return _AsyncState.notMountedCheck;
+      }
+
+      if (thenAsyncState == _AsyncState.asynchronous && !thenTerminates) {
+        return _AsyncState.asynchronous;
+      }
+      if (elseAsyncState == _AsyncState.asynchronous && !elseTerminates) {
+        return _AsyncState.asynchronous;
+      }
+
+      if (conditionMountedCheck == _AsyncState.asynchronous) {
+        return _AsyncState.asynchronous;
+      }
+
+      if (conditionMountedCheck == _AsyncState.mountedCheck && elseTerminates) {
+        return _AsyncState.notMountedCheck;
+      }
+
+      if (conditionMountedCheck == _AsyncState.notMountedCheck &&
+          thenTerminates) {
+        return _AsyncState.notMountedCheck;
+      }
+
+      return null;
     }
   }
 
@@ -918,7 +905,6 @@ extension on Statement {
   bool get terminatesControl {
     var self = this;
     if (self is Block) {
-      // TODO(scheglov) Stop using package:collection when SDK 3.0.0
       var last = self.statements.lastOrNull;
       return last != null && last.terminatesControl;
     }

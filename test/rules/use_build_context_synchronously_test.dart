@@ -118,6 +118,24 @@ void foo(
 ''');
   }
 
+  test_awaitAndExitInIfElse_beforeReferenceToContext() async {
+    // Await-and-exit in an if-else, then use of BuildContext, is REPORTED.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  if (1 == 2) {
+    ;
+  } else {
+    await c();
+    return;
+  }
+  Navigator.of(context);
+}
+Future<bool> c() async => true;
+''');
+  }
+
   test_awaitBeforeConditional_mountedGuard() async {
     // Await, then an "if mounted" guard in a conditional expression, and use of
     // BuildContext in the conditional-then, is OK.
@@ -364,6 +382,28 @@ bool mounted = false;
 Future<void> f() async {}
 ''', [
       lint(166, 21),
+    ]);
+  }
+
+  test_awaitBeforeIf_mountedExitGuardInIf_beforeReferenceToContext7() async {
+    // Await, then a proper "exit if not mounted" guard in an if-condition,
+    // then more await in else-statement, then use of BuildContext, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+  if (!context.mounted) {
+    return;
+  } else {
+    await f();
+  }
+  Navigator.of(context);
+}
+
+Future<void> f() async {}
+''', [
+      lint(162, 21),
     ]);
   }
 
@@ -964,9 +1004,7 @@ Future<bool> c() async => true;
   }
 
   test_awaitInIfThen_beforeReferenceToContext() async {
-    // Await in an if-body, then use of BuildContext, is OK.
-    // TODO(srawlins): I think this should report a lint, since an `await` is
-    // encountered in the if-body.
+    // Await in an if-body, then definite exit, then use of BuildContext, is OK.
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -1001,8 +1039,8 @@ Future<bool> c() async => true;
   }
 
   test_awaitInIfThenAndExitInElse_beforeReferenceToContext() async {
-    // Await in an if-body and await in the associated else, then use of
-    // BuildContext, is REPORTED.
+    // Await in an if-body and await-and-exit in the associated else, then use
+    // of BuildContext, is REPORTED.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
