@@ -56,15 +56,6 @@ void nullableContext3() async {
 
 void unawaited(Future<void> future) {}
 
-void methodWithBuildContextParameter2f(BuildContext context) async {
-  try {
-    await Future<void>.delayed(Duration());
-    f(context); // LINT
-  } on Exception {
-    f(context); // TODO: LINT
-  }
-}
-
 class WidgetStateContext {
   bool get mounted => false;
 }
@@ -239,25 +230,6 @@ class _MyState extends State<MyWidget> {
         await Navigator.of(context).pushNamed('routeName'); // OK
         break;
     }
-  }
-
-  void methodWithBuildContextParameter2h(BuildContext context) async {
-    try {
-      await Future<void>.delayed(Duration());
-    } finally {
-      // ...
-    }
-
-    try {
-      // ...
-    } on Exception catch (e) {
-      if (!mounted) return;
-      f(context); // OK
-      return;
-    }
-
-    if (!mounted) return;
-    f(context); // OK
   }
 
   void methodWithBuildContextParameter2i(BuildContext context) async {

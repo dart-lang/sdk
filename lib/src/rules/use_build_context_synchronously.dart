@@ -85,222 +85,626 @@ class UseBuildContextSynchronously extends LintRule {
   }
 }
 
-class _AwaitVisitor extends RecursiveAstVisitor {
-  bool hasAwait = false;
-
-  @override
-  void visitAwaitExpression(AwaitExpression node) {
-    hasAwait = true;
-  }
-
-  @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {
-    // Stop visiting when we arrive at a function body.
-    // Awaits inside it don't matter.
-  }
-
-  @override
-  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    // Stop visiting when we arrive at a function body.
-    // Awaits inside it don't matter.
-  }
-}
-
-/// An enum of two values which describe the presence of a "mounted check."
+/// An enum whose values describe the state of asynchrony that a certain node
+/// has in the syntax tree, with respect to another node.
 ///
 /// A mounted check is a check of whether a bool-typed identifier, 'mounted',
 /// is checked to be `true` or `false`, in a position which affects control
 /// flow.
-enum _MountedCheck {
-  positive,
-  negative;
+enum _AsyncState {
+  /// A value indicating that a node contains an "asynchronous gap" which is
+  /// not definitely guarded with a mounted check.
+  asynchronous,
 
-  _MountedCheck get negate => switch (this) {
-        _MountedCheck.positive => _MountedCheck.negative,
-        _MountedCheck.negative => _MountedCheck.positive,
-      };
+  /// A value indicating that a node contains a positive mounted check that can
+  /// guard a certain other node.
+  mountedCheck,
+
+  /// A value indicating that a node contains a negative mounted check that can
+  /// guard a certain other node.
+  notMountedCheck;
+
+  _AsyncState? get asynchronousOrNull =>
+      this == asynchronous ? asynchronous : null;
 }
 
-/// A visitor whose `visit*` methods return whether a "mounted check" is found
-/// which properly guards [child].
+/// A visitor whose `visit*` methods return the async state between a given node
+/// and [reference].
 ///
-/// The entrypoint for this visitor is [AstNodeExtension.isMountedCheckFor].
+/// The entrypoint for this visitor is [_AstNodeExtension.asyncStateFor].
 ///
-/// A mounted check "guards" [child] if control flow can only reach [child] if
-/// 'mounted' is `true`. Such checks can take many forms:
+/// Each `visit*` method can return one of three values:
+/// * `null` means there is no interesting asynchrony between node and
+///   [reference].
+/// * [_AsyncState.asynchronous] means the node contains an asynchronous gap
+///   which is not guarded with a mounted check.
+/// * [_AsyncState.mountedCheck] means the node guards [reference] with a
+///   positive mounted check.
+/// * [_AsyncState.notMountedCheck] means the node guards [reference] with a
+///   negative mounted check.
+///
+/// (For all `visit*` methods except the entrypoint call, the value is
+/// intermediate, and is only used in calculating the value for parent nodes.)
+///
+/// A node that contains a mounted check "guards" [reference] if control flow
+/// can only reach [reference] if 'mounted' is `true`. Such checks can take many
+/// forms:
 ///
 /// * A mounted check in an if-condition can be a simple guard for nodes in the
 ///   if's then-statement or the if's else-statement, depending on the polarity
-///   of the check. So `if (mounted) { child; }` has a proper mounted check and
-///   `if (!mounted) {} else { child; }` has a proper mounted check.
+///   of the check. So `if (mounted) { reference; }` has a proper mounted check
+///   and `if (!mounted) {} else { reference; }` has a proper mounted check.
 /// * A statement in a series of statements containing a mounted check can guard
 ///   the later statements if control flow definitely exits in the case of a
-///   `false` value for 'mounted'. So `if (mounted) { return; } child;` has a
-///   proper mounted check.
+///   `false` value for 'mounted'. So `if (!mounted) { return; } reference;` has
+///   a proper mounted check.
 /// * A mounted check in a try-statement can only guard later statements if it
 ///   is found in the `finally` section, as no statements found in the `try`
 ///   section or any `catch` sections are not guaranteed to have run before the
 ///   later statements.
 /// * etc.
 ///
-/// Each `visit*` method can return one of three values:
-/// * `null` means the node does not guard [child] with a mounted check.
-/// * [_MountedCheck.positive] means the node guards [child] with a positive
-///   mounted check.
-/// * [_MountedCheck.negative] means the node guards [child] with a negative
-///   mounted check.
-class _MountedCheckVisitor extends SimpleAstVisitor<_MountedCheck> {
+/// The `visit*` methods generally fall into three categories:
+///
+/// * A node may affect control flow, such that a contained mounted check may
+///   properly guard [reference]. See [visitIfStatement] for one of the most
+///   complicated examples.
+/// * A node may be one component of a mounted check. An associated `visit*`
+///   method builds up such a mounted check from inner expressions. For example,
+///   given `!(context.mounted)`, the  notion of a mounted check is built from
+///   the PrefixedIdentifier, the ParenthesizedExpression, and the
+///   PrefixExpression (from inside to outside).
+/// * Otherwise, a node may just contain an asynchronous gap. The vast majority
+///   of node types fall into this category. Most of these `visit*` methods
+///   use [_AsyncState.asynchronousOrNull] or [_asynchronousIfAnyIsAsync].
+class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
   static const mountedName = 'mounted';
 
-  final AstNode child;
+  final AstNode reference;
 
-  _MountedCheckVisitor({required this.child});
+  _AsyncStateVisitor({required this.reference});
 
   @override
-  _MountedCheck? visitBinaryExpression(BinaryExpression node) {
-    // TODO(srawlins): Currently this method doesn't take `child` into account;
-    // it assumes `child` is part of a statement that follows this expression.
-    // We need to account for `child` being an actual descendent of `node` in
-    // order to properly handle code like
-    // * `if (mounted || child)`,
-    // * `if (!mounted && child)`,
-    // * `if (mounted || (condition && child))`,
-    // * `if ((mounted || condition) && child)`, etc.
-    if (node.isAnd) {
-      return node.leftOperand.accept(this) ?? node.rightOperand.accept(this);
-    } else if (node.isOr) {
-      return node.leftOperand.accept(this) ?? node.rightOperand.accept(this);
-    } else {
-      // TODO(srawlins): What about `??`?
+  _AsyncState? visitAdjacentStrings(AdjacentStrings node) =>
+      _asynchronousIfAnyIsAsync(node.strings);
+
+  @override
+  _AsyncState? visitAsExpression(AsExpression node) =>
+      node.expression.accept(this)?.asynchronousOrNull;
+
+  @override
+  _AsyncState? visitAssignmentExpression(AssignmentExpression node) =>
+      _inOrderAsyncState([
+        (node: node.leftHandSide, mountedCanGuard: false),
+        (node: node.rightHandSide, mountedCanGuard: true),
+      ]);
+
+  @override
+  _AsyncState? visitAwaitExpression(AwaitExpression node) =>
+      // An expression _inside_ an await is executed before the await, and so is
+      // safe; otherwise asynchronous.
+      reference == node.expression ? null : _AsyncState.asynchronous;
+
+  @override
+  _AsyncState? visitBinaryExpression(BinaryExpression node) {
+    if (node.leftOperand == reference) {
       return null;
+    } else if (node.rightOperand == reference) {
+      var leftGuardState = node.leftOperand.accept(this);
+      return switch (leftGuardState) {
+        _AsyncState.asynchronous => _AsyncState.asynchronous,
+        _AsyncState.mountedCheck when node.isAnd => _AsyncState.mountedCheck,
+        _AsyncState.notMountedCheck when node.isOr =>
+          _AsyncState.notMountedCheck,
+        _ => null,
+      };
+    }
+
+    // `reference` follows `node`, or an ancestor of `node`.
+
+    if (node.isAnd) {
+      var leftGuardState = node.leftOperand.accept(this);
+      var rightGuardState = node.rightOperand.accept(this);
+      return switch ((leftGuardState, rightGuardState)) {
+        // If the left is uninteresting, just return the state of the right.
+        (null, _) => rightGuardState,
+        // If the right is uninteresting, just return the state of the left.
+        (_, null) => leftGuardState,
+        // Anything on the left followed by async on the right is async.
+        (_, _AsyncState.asynchronous) => _AsyncState.asynchronous,
+        // An async state on the left is superceded by the state on the right.
+        (_AsyncState.asynchronous, _) => rightGuardState,
+        // Otherwise just use the state on the left.
+        (_AsyncState.mountedCheck, _) => _AsyncState.mountedCheck,
+        (_AsyncState.notMountedCheck, _) => _AsyncState.notMountedCheck,
+      };
+    } else if (node.isOr) {
+      var leftGuardState = node.leftOperand.accept(this);
+      var rightGuardState = node.rightOperand.accept(this);
+      return switch ((leftGuardState, rightGuardState)) {
+        // Anything on the left followed by async on the right is async.
+        (_, _AsyncState.asynchronous) => _AsyncState.asynchronous,
+        // Async on the left followed by anything on the right is async.
+        (_AsyncState.asynchronous, _) => _AsyncState.asynchronous,
+        // A mounted guard only applies if both sides are guarded.
+        (_AsyncState.mountedCheck, _AsyncState.mountedCheck) =>
+          _AsyncState.mountedCheck,
+        (_AsyncState.notMountedCheck, _AsyncState.notMountedCheck) =>
+          _AsyncState.notMountedCheck,
+        // Otherwise it's just uninteresting.
+        (_, _) => null,
+      };
+    } else {
+      // Outside of a binary logical operation, a mounted check cannot guard a
+      // later expression, so only check for asynchronous code.
+      return node.leftOperand.accept(this)?.asynchronousOrNull ??
+          node.rightOperand.accept(this)?.asynchronousOrNull;
     }
   }
 
   @override
-  _MountedCheck? visitBlock(Block node) {
-    for (var statement in node.statements) {
-      var mountedCheck = statement.accept(this);
-      if (mountedCheck != null) {
-        return mountedCheck;
+  _AsyncState? visitBlock(Block node) {
+    for (var i = node.statements.length - 1; i >= 0; i--) {
+      var statement = node.statements[i];
+      var asyncState = statement.accept(this);
+      if (asyncState != null) {
+        // Walking from the last statement to the first, as soon as we encounter
+        // asynchronous code or a mounted check (positive or negative), that's
+        // the state of the block.
+        return asyncState;
       }
     }
     return null;
   }
 
   @override
-  _MountedCheck? visitConditionalExpression(ConditionalExpression node) {
-    if (child == node.condition) return null;
+  _AsyncState? visitBlockFunctionBody(BlockFunctionBody node) =>
+      // Stop visiting when we arrive at a function body.
+      // Awaits and mounted checks inside it don't matter.
+      null;
+
+  @override
+  _AsyncState? visitCascadeExpression(CascadeExpression node) =>
+      _asynchronousIfAnyIsAsync([node.target, ...node.cascadeSections]);
+
+  @override
+  _AsyncState? visitConditionalExpression(ConditionalExpression node) {
+    if (reference == node.condition) return null;
 
     var conditionMountedCheck = node.condition.accept(this);
     if (conditionMountedCheck == null) return null;
 
-    if (child == node.thenExpression) {
-      return conditionMountedCheck == _MountedCheck.positive
-          ? _MountedCheck.positive
+    if (reference == node.thenExpression) {
+      return conditionMountedCheck == _AsyncState.mountedCheck
+          ? _AsyncState.mountedCheck
           : null;
-    } else if (child == node.elseExpression) {
-      return conditionMountedCheck == _MountedCheck.negative
-          ? _MountedCheck.positive
+    } else if (reference == node.elseExpression) {
+      return conditionMountedCheck == _AsyncState.notMountedCheck
+          ? _AsyncState.mountedCheck
           : null;
     } else {
-      // `child` is (or is a child of) a statement that comes after `node`
-      // in a NodeList.
+      // `reference` is a statement that comes after `node` in a NodeList.
 
       // TODO(srawlins): What if `thenExpression` has an `await`?
-      if (conditionMountedCheck == _MountedCheck.negative &&
+      if (conditionMountedCheck == _AsyncState.notMountedCheck &&
           node.thenExpression.terminatesControl) {
-        return _MountedCheck.positive;
-      } else if (conditionMountedCheck == _MountedCheck.positive &&
+        return _AsyncState.mountedCheck;
+      } else if (conditionMountedCheck == _AsyncState.mountedCheck &&
           node.elseExpression.terminatesControl) {
-        return _MountedCheck.positive;
+        return _AsyncState.mountedCheck;
       }
       return null;
     }
   }
 
   @override
-  _MountedCheck? visitIfStatement(IfStatement node) {
-    if (child == node.expression) {
-      // In this situation, any possible mounted check would be a _descendent_
-      // of `child`; it would not be a valid mounted check for `child`.
+  _AsyncState? visitDoStatement(DoStatement node) {
+    if (node.body == reference) {
+      // After one loop, an `await` in the condition can affect the body.
+      return node.condition.accept(this)?.asynchronousOrNull;
+    } else if (node.condition == reference) {
+      // TODO(srawlins): The repetition gets tricky. In this code:
+      // `do print('hi') while (await f(context));`, the `await` is not unsafe
+      // for `f(context)` when just looking at the condition without looking at
+      // the context of the do-statement. However, as the code can loop, the
+      // `await` _is_ unsafe. It can unwrap to
+      // `print('hi'); await f(context); print('hi'); await f(context);`.
+      return node.body.accept(this)?.asynchronousOrNull;
+    } else {
+      return node.condition.accept(this)?.asynchronousOrNull ??
+          node.body.accept(this)?.asynchronousOrNull;
+    }
+  }
+
+  @override
+  _AsyncState? visitExpressionFunctionBody(ExpressionFunctionBody node) =>
+      // Stop visiting when we arrive at a function body.
+      // Awaits and mounted checks inside it don't matter.
+      null;
+
+  @override
+  _AsyncState? visitExpressionStatement(ExpressionStatement node) =>
+      node.expression.accept(this)?.asynchronousOrNull;
+
+  @override
+  _AsyncState? visitExtensionOverride(ExtensionOverride node) =>
+      // TODO(srawlins): The target? Like `E(await foo).m()`.
+      _asynchronousIfAnyIsAsync(node.argumentList.arguments);
+
+  @override
+  _AsyncState? visitForElement(ForElement node) {
+    var forLoopParts = node.forLoopParts;
+    var referenceIsBody = node.body == reference;
+    return switch (forLoopParts) {
+      ForPartsWithDeclarations() => _inOrderAsyncState([
+          for (var declaration in forLoopParts.variables.variables)
+            (node: declaration, mountedCanGuard: false),
+          (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
+          for (var updater in forLoopParts.updaters)
+            (node: updater, mountedCanGuard: false),
+          (node: node.body, mountedCanGuard: false),
+        ]),
+      ForPartsWithExpression() => _inOrderAsyncState([
+          (node: forLoopParts.initialization, mountedCanGuard: false),
+          (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
+          for (var updater in forLoopParts.updaters)
+            (node: updater, mountedCanGuard: false),
+          (node: node.body, mountedCanGuard: false),
+        ]),
+      ForEachParts() => _inOrderAsyncState([
+          (node: forLoopParts.iterable, mountedCanGuard: false),
+          (node: node.body, mountedCanGuard: false),
+        ]),
+      _ => null,
+    };
+  }
+
+  @override
+  _AsyncState? visitForStatement(ForStatement node) {
+    var forLoopParts = node.forLoopParts;
+    var referenceIsBody = node.body == reference;
+    return switch (forLoopParts) {
+      ForPartsWithDeclarations() => _inOrderAsyncState([
+          for (var declaration in forLoopParts.variables.variables)
+            (node: declaration, mountedCanGuard: false),
+          // The body can be guarded by the condition.
+          (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
+          for (var updater in forLoopParts.updaters)
+            (node: updater, mountedCanGuard: false),
+          (node: node.body, mountedCanGuard: false),
+        ]),
+      ForPartsWithExpression() => _inOrderAsyncState([
+          (node: forLoopParts.initialization, mountedCanGuard: false),
+          // The body can be guarded by the condition.
+          (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
+          for (var updater in forLoopParts.updaters)
+            (node: updater, mountedCanGuard: false),
+          (node: node.body, mountedCanGuard: false),
+        ]),
+      ForEachParts() => _inOrderAsyncState([
+          (node: forLoopParts.iterable, mountedCanGuard: false),
+          (node: node.body, mountedCanGuard: false),
+        ]),
+      _ => null,
+    };
+  }
+
+  @override
+  _AsyncState? visitFunctionExpressionInvocation(
+          FunctionExpressionInvocation node) =>
+      _asynchronousIfAnyIsAsync(
+          [node.function, ...node.argumentList.arguments]);
+
+  @override
+  _AsyncState? visitIfElement(IfElement node) {
+    if (reference == node.expression) {
+      return null;
+    }
+    var conditionMountedCheck = node.expression.accept(this);
+    if (reference == node.thenElement) {
+      return switch (conditionMountedCheck) {
+        _AsyncState.asynchronous => _AsyncState.asynchronous,
+        _AsyncState.mountedCheck => _AsyncState.mountedCheck,
+        _ => null,
+      };
+    } else if (reference == node.elseElement) {
+      return switch (conditionMountedCheck) {
+        _AsyncState.asynchronous => _AsyncState.asynchronous,
+        _AsyncState.notMountedCheck => _AsyncState.mountedCheck,
+        _ => null,
+      };
+    } else {
+      return conditionMountedCheck?.asynchronousOrNull ??
+          node.thenElement.accept(this)?.asynchronousOrNull ??
+          node.elseElement?.accept(this)?.asynchronousOrNull;
+    }
+  }
+
+  @override
+  _AsyncState? visitIfStatement(IfStatement node) {
+    if (reference == node.expression) {
       return null;
     }
     var conditionMountedCheck = node.expression.accept(this);
 
-    if (child == node.thenStatement) {
-      return conditionMountedCheck == _MountedCheck.positive
-          ? _MountedCheck.positive
-          : null;
-    } else if (child == node.elseStatement) {
-      return conditionMountedCheck == _MountedCheck.negative
-          ? _MountedCheck.positive
-          : null;
+    if (reference == node.thenStatement) {
+      return switch (conditionMountedCheck) {
+        _AsyncState.asynchronous => _AsyncState.asynchronous,
+        _AsyncState.mountedCheck => _AsyncState.mountedCheck,
+        _ => null,
+      };
+    } else if (reference == node.elseStatement) {
+      return switch (conditionMountedCheck) {
+        _AsyncState.asynchronous => _AsyncState.asynchronous,
+        _AsyncState.notMountedCheck => _AsyncState.mountedCheck,
+        _ => null,
+      };
     } else {
-      // `child` is (or is a child of) a statement that comes after `node`
-      // in a NodeList.
-      if (conditionMountedCheck == null) {
-        var thenMountedCheck = node.thenStatement.accept(this);
-        var elseMountedCheck = node.elseStatement?.accept(this);
-        // [node] is a positive mounted check if each of its branches is, is a
-        // negative mounted check if each of its branches is, and otherwise is
-        // not a mounted check.
-        return thenMountedCheck == elseMountedCheck ? thenMountedCheck : null;
-      }
+      // `reference` is a statement that comes after `node`, or an ancestor of
+      // `node`, in a NodeList.
+      switch (conditionMountedCheck) {
+        case null:
+          var thenMountedCheck = node.thenStatement.accept(this);
+          var elseMountedCheck = node.elseStatement?.accept(this);
+          if (thenMountedCheck == _AsyncState.asynchronous &&
+              !node.thenStatement.terminatesControl) {
+            return _AsyncState.asynchronous;
+          } else if (elseMountedCheck == _AsyncState.asynchronous &&
+              node.elseStatement?.terminatesControl == false) {
+            return _AsyncState.asynchronous;
+          } else {
+            return thenMountedCheck == elseMountedCheck
+                ? thenMountedCheck
+                : null;
+          }
 
-      if (conditionMountedCheck == _MountedCheck.positive) {
-        var elseStatement = node.elseStatement;
-        if (elseStatement == null) {
-          // The mounted check in the if-condition does not guard `child`.
-          return null;
-        }
+        case _AsyncState.asynchronous:
+          if (node.thenStatement.accept(this) == _AsyncState.notMountedCheck &&
+              node.elseStatement?.accept(this) == _AsyncState.notMountedCheck) {
+            // Mounted checks in both the then- and else-statements guard
+            // against the asynchronous code in the condition.
+            return _AsyncState.notMountedCheck;
+          } else {
+            return _AsyncState.asynchronous;
+          }
 
-        // TODO(srawlins): If `thenStatement` has an `await`, then we don't
-        // have a valid mounted check, unless the `await` is followed by
-        // another mounted check...
-        return elseStatement.terminatesControl ? _MountedCheck.positive : null;
-      } else {
-        // `child` is (or is a child of) a statement that comes after `node`
-        // in a NodeList.
+        case _AsyncState.mountedCheck:
+          var elseStatement = node.elseStatement;
+          if (elseStatement == null) {
+            // The mounted check in the if-condition does not guard `reference`.
+            return null;
+          }
 
-        // TODO(srawlins): If `elseStatement` has an `await`, then we don't
-        // have a valid mounted check, unless the `await` is followed by
-        // another mounted check...
-        return node.thenStatement.terminatesControl
-            ? _MountedCheck.negative
-            : null;
+          return elseStatement.terminatesControl
+              ? _AsyncState.mountedCheck
+              : null;
+
+        case _AsyncState.notMountedCheck:
+          // `reference` is a statement that comes after `node` in a NodeList.
+
+          // TODO(srawlins): If `elseStatement` has an `await`, then we don't
+          // have a valid mounted check, unless the `await` is followed by
+          // another mounted check...
+          return node.thenStatement.terminatesControl
+              ? _AsyncState.notMountedCheck
+              : null;
       }
     }
   }
 
   @override
-  _MountedCheck? visitPrefixedIdentifier(PrefixedIdentifier node) =>
-      node.identifier.name == mountedName ? _MountedCheck.positive : null;
+  _AsyncState? visitIndexExpression(IndexExpression node) =>
+      _asynchronousIfAnyIsAsync([node.target, node.index]);
 
   @override
-  _MountedCheck? visitPrefixExpression(PrefixExpression node) {
+  _AsyncState? visitInstanceCreationExpression(
+          InstanceCreationExpression node) =>
+      _asynchronousIfAnyIsAsync(node.argumentList.arguments);
+
+  @override
+  _AsyncState? visitInterpolationExpression(InterpolationExpression node) =>
+      node.expression.accept(this)?.asynchronousOrNull;
+
+  @override
+  _AsyncState? visitIsExpression(IsExpression node) =>
+      node.expression.accept(this)?.asynchronousOrNull;
+
+  @override
+  _AsyncState? visitLabeledStatement(LabeledStatement node) =>
+      node.statement.accept(this);
+
+  @override
+  _AsyncState? visitListLiteral(ListLiteral node) =>
+      _asynchronousIfAnyIsAsync(node.elements);
+
+  @override
+  _AsyncState? visitMapLiteralEntry(MapLiteralEntry node) =>
+      _asynchronousIfAnyIsAsync([node.key, node.value]);
+
+  @override
+  _AsyncState? visitMethodInvocation(MethodInvocation node) =>
+      _asynchronousIfAnyIsAsync([node.target, ...node.argumentList.arguments]);
+
+  @override
+  _AsyncState? visitNamedExpression(NamedExpression node) =>
+      node.expression.accept(this)?.asynchronousOrNull;
+
+  @override
+  _AsyncState? visitParenthesizedExpression(ParenthesizedExpression node) =>
+      node.expression.accept(this);
+
+  @override
+  _AsyncState? visitPostfixExpression(PostfixExpression node) =>
+      node.operand.accept(this)?.asynchronousOrNull;
+
+  @override
+  _AsyncState? visitPrefixedIdentifier(PrefixedIdentifier node) =>
+      node.identifier.name == mountedName ? _AsyncState.mountedCheck : null;
+
+  @override
+  _AsyncState? visitPrefixExpression(PrefixExpression node) {
     if (node.isNot) {
-      var mountedCheck = node.operand.accept(this);
-      return mountedCheck?.negate;
+      var guardState = node.operand.accept(this);
+      return switch (guardState) {
+        _AsyncState.mountedCheck => _AsyncState.notMountedCheck,
+        _AsyncState.notMountedCheck => _AsyncState.mountedCheck,
+        _ => guardState,
+      };
     } else {
       return null;
     }
   }
 
   @override
-  _MountedCheck? visitSimpleIdentifier(SimpleIdentifier node) =>
-      node.name == mountedName ? _MountedCheck.positive : null;
+  _AsyncState? visitPropertyAccess(PropertyAccess node) =>
+      node.target?.accept(this)?.asynchronousOrNull;
 
   @override
-  _MountedCheck? visitTryStatement(TryStatement node) {
+  _AsyncState? visitRecordLiteral(RecordLiteral node) =>
+      _asynchronousIfAnyIsAsync(node.fields);
+
+  @override
+  _AsyncState? visitSetOrMapLiteral(SetOrMapLiteral node) =>
+      _asynchronousIfAnyIsAsync(node.elements);
+
+  @override
+  _AsyncState? visitSimpleIdentifier(SimpleIdentifier node) =>
+      node.name == mountedName ? _AsyncState.mountedCheck : null;
+
+  @override
+  _AsyncState? visitSpreadElement(SpreadElement node) =>
+      node.expression.accept(this)?.asynchronousOrNull;
+
+  @override
+  _AsyncState? visitStringInterpolation(StringInterpolation node) =>
+      _asynchronousIfAnyIsAsync(node.elements);
+
+  @override
+  _AsyncState? visitSwitchCase(SwitchCase node) =>
+      _asynchronousIfAnyIsAsync([node.expression, ...node.statements]);
+
+  @override
+  _AsyncState? visitSwitchPatternCase(SwitchPatternCase node) =>
+      _asynchronousIfAnyIsAsync(
+          [node.guardedPattern.whenClause, ...node.statements]);
+
+  @override
+  _AsyncState? visitSwitchDefault(SwitchDefault node) =>
+      _asynchronousIfAnyIsAsync(node.statements);
+
+  @override
+  _AsyncState? visitSwitchExpression(SwitchExpression node) =>
+      // TODO(srawlins): Support mounted guard checks in case patterns.
+      _asynchronousIfAnyIsAsync([node.expression, ...node.cases]);
+
+  @override
+  _AsyncState? visitSwitchExpressionCase(SwitchExpressionCase node) =>
+      node.expression.accept(this)?.asynchronousOrNull;
+
+  @override
+  _AsyncState? visitSwitchStatement(SwitchStatement node) =>
+      // TODO(srawlins): Check for definite exits and mounted checks in the
+      // members.
+      node.expression.accept(this)?.asynchronousOrNull ??
+      _asynchronousIfAnyIsAsync(node.members);
+
+  @override
+  _AsyncState? visitTryStatement(TryStatement node) {
+    if (node.body == reference) {
+      return null;
+    } else if (node.catchClauses.any((clause) => clause == reference)) {
+      return node.body.accept(this)?.asynchronousOrNull;
+    } else if (node.finallyBlock == reference) {
+      return node.body.accept(this);
+    }
+
     // Only statements in the `finally` section of a try-statement can
     // sufficiently guard statements following the try-statement.
-    var statements = node.finallyBlock?.statements;
-    if (statements == null) {
-      return null;
+    return node.finallyBlock?.accept(this) ?? node.body.accept(this);
+  }
+
+  @override
+  _AsyncState? visitVariableDeclaration(VariableDeclaration node) =>
+      node.initializer?.accept(this)?.asynchronousOrNull;
+
+  @override
+  _AsyncState? visitVariableDeclarationStatement(
+          VariableDeclarationStatement node) =>
+      _asynchronousIfAnyIsAsync([
+        for (var variable in node.variables.variables) variable.initializer,
+      ]);
+
+  @override
+  _AsyncState? visitWhenClause(WhenClause node) =>
+      // TODO: Support mounted guard checks in when clause.
+      node.expression.accept(this)?.asynchronousOrNull;
+
+  @override
+  _AsyncState? visitWhileStatement(WhileStatement node) =>
+      // TODO(srawlins): if the condition is a mounted guard and `reference` is
+      // the body or follows the while.
+      // A while-statement's body is not guaranteed to execute, so no mounted
+      // checks properly guard.
+      node.condition.accept(this)?.asynchronousOrNull ??
+      node.body.accept(this)?.asynchronousOrNull;
+
+  @override
+  _AsyncState? visitYieldStatement(YieldStatement node) =>
+      node.expression.accept(this)?.asynchronousOrNull;
+
+  /// Returns [_AsyncState.asynchronous] if visiting any of [nodes] returns
+  /// [_AsyncState.asynchronous], otherwise `null`.
+  ///
+  /// This function does not take mounted checks into account, so it cannot be
+  /// used when [nodes] can affect control flow.
+  _AsyncState? _asynchronousIfAnyIsAsync(List<AstNode?> nodes) {
+    var index = nodes.indexOf(reference);
+    if (index < 0) {
+      return nodes.any((node) => node?.accept(this) == _AsyncState.asynchronous)
+          ? _AsyncState.asynchronous
+          : null;
+    } else {
+      return nodes
+              .take(index)
+              .any((node) => node?.accept(this) == _AsyncState.asynchronous)
+          ? _AsyncState.asynchronous
+          : null;
     }
-    for (var statement in statements) {
-      var mountedCheck = statement.accept(this);
-      if (mountedCheck == _MountedCheck.negative) return _MountedCheck.negative;
+  }
+
+  /// Walks backwards through [nodes] looking for "interesting" async states,
+  /// determining the async state of [nodes], with respect to [reference].
+  ///
+  /// [nodes] is a list of records, each with an [AstNode] and a field
+  /// representing whether a mounted check in the node can guard [reference].
+  ///
+  /// [nodes] must be in expected execution order. [reference] can be one of
+  /// [nodes], or can follow [nodes], or can follow an ancestor of [nodes].
+  ///
+  /// If [reference] is one of the [nodes], this traversal starts at the node
+  /// that precedes it, rather than at the end of the list.
+  _AsyncState? _inOrderAsyncState(
+      List<({AstNode? node, bool mountedCanGuard})> nodes) {
+    if (nodes.isEmpty) return null;
+    if (nodes.first.node == reference) return null;
+    var referenceIndex =
+        nodes.indexWhere((element) => element.node == reference);
+    var startingIndex =
+        referenceIndex > 0 ? referenceIndex - 1 : nodes.length - 1;
+
+    for (var i = startingIndex; i >= 0; i--) {
+      var (:node, :mountedCanGuard) = nodes[i];
+      if (node == null) continue;
+      var asyncState = node.accept(this);
+      if (!mountedCanGuard && asyncState == _AsyncState.asynchronous) {
+        return _AsyncState.asynchronous;
+      }
+      if (mountedCanGuard && asyncState != null) {
+        // Walking from the last node to the first, as soon as we encounter a
+        // mounted check (positive or negative) or asynchronous code, that's
+        // the state of the whole series.
+        return asyncState;
+      }
     }
     return null;
   }
@@ -328,11 +732,12 @@ class _Visitor extends SimpleAstVisitor {
       var index = statements.indexOf(child);
       for (var i = index - 1; i >= 0; i--) {
         var s = statements[i];
-        if (s.isMountedCheckFor(child)) {
-          return false;
-        } else if (s.isAsync) {
+        var asyncState = s.asyncStateFor(child);
+        if (asyncState == _AsyncState.asynchronous) {
           rule.reportLint(node);
           return true;
+        } else if (asyncState.isGuarded) {
+          return false;
         }
       }
       return true;
@@ -360,25 +765,28 @@ class _Visitor extends SimpleAstVisitor {
         if (!keepChecking) {
           return;
         }
-      } else if (parent is ConditionalExpression) {
-        if (child != parent.condition && parent.condition.hasAwait) {
+      } else if (parent is CollectionElement) {
+        // mounted ? ... : ...
+        var asyncState = parent.asyncStateFor(child);
+        if (asyncState == _AsyncState.asynchronous) {
           rule.reportLint(node);
           return;
+        } else if (asyncState.isGuarded) {
+          return;
         }
-
-        // mounted ? ... : ...
-        if (parent.isMountedCheckFor(child)) {
+      } else if (parent is TryStatement) {
+        var asyncState = parent.asyncStateFor(child);
+        if (asyncState == _AsyncState.asynchronous) {
+          rule.reportLint(node);
           return;
         }
       } else if (parent is IfStatement) {
-        // Only check the actual statement(s), not the if condition.
-        if (child is Statement && parent.expression.hasAwait) {
+        // if (mounted) { ... }
+        var asyncState = parent.asyncStateFor(child);
+        if (asyncState == _AsyncState.asynchronous) {
           rule.reportLint(node);
           return;
-        }
-
-        // if (mounted) { ... }
-        if (parent.isMountedCheckFor(child)) {
+        } else if (asyncState.isGuarded) {
           return;
         }
       }
@@ -410,7 +818,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node.identifier.name == mountedName) {
       // Accessing `context.mounted` does not count as a "use" of a
       // `BuildContext` which needs to be guarded by a mounted check.
@@ -425,7 +833,12 @@ class _Visitor extends SimpleAstVisitor {
   }
 }
 
-extension AstNodeExtension on AstNode {
+extension on _AsyncState? {
+  bool get isGuarded =>
+      this == _AsyncState.mountedCheck || this == _AsyncState.notMountedCheck;
+}
+
+extension _AstNodeExtension on AstNode {
   bool get terminatesControl {
     var self = this;
     if (self is Block) {
@@ -442,13 +855,12 @@ extension AstNodeExtension on AstNode {
     return accept(ExitDetector()) ?? false;
   }
 
-  /// Returns whether `this` is a node which guards [child] with a **mounted
-  /// check**.
+  /// Returns the asynchronous state that exists between `this` and [reference].
   ///
-  /// [child] must be a direct child of `this`, or a sibling of `this`
-  /// in a List of [Statement]s.
-  bool isMountedCheckFor(AstNode child) =>
-      accept(_MountedCheckVisitor(child: child)) != null;
+  /// [reference] must be a direct child of `this`, or a sibling of `this`
+  /// in a List of [AstNode]s.
+  _AsyncState? asyncStateFor(AstNode reference) =>
+      accept(_AsyncStateVisitor(reference: reference));
 }
 
 extension on PrefixExpression {
@@ -497,36 +909,9 @@ extension on Expression {
     }
     return false;
   }
-
-  /// Whether this has an [AwaitExpression] inside.
-  bool get hasAwait {
-    var visitor = _AwaitVisitor();
-    accept(visitor);
-    return visitor.hasAwait;
-  }
 }
 
 extension on Statement {
-  /// Whether this statement has an [AwaitExpression] inside.
-  bool get isAsync {
-    var self = this;
-    if (self is IfStatement) {
-      if (self.expression.hasAwait) return true;
-      // If the then-statement definitely exits, and if there is no
-      // else-statement or the else-statement also definitely exits, then any
-      // `await`s inside do not count.
-      if (self.thenStatement.terminatesControl) {
-        var elseStatement = self.elseStatement;
-        if (elseStatement == null || elseStatement.terminatesControl) {
-          return false;
-        }
-      }
-    }
-    var visitor = _AwaitVisitor();
-    accept(visitor);
-    return visitor.hasAwait;
-  }
-
   /// Whether this statement terminates control, via a [BreakStatement], a
   /// [ContinueStatement], or other definite exits, as determined by
   /// [ExitDetector].
