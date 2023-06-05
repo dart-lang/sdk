@@ -58,11 +58,12 @@ class RefactoringContext {
     required this.includeExperimental,
   });
 
+  /// The most deeply nested node whose range completely includes the range of
+  /// characters described by [selectionOffset] and [selectionLength].
+  AstNode? get coveringNode => selection?.coveringNode;
+
   /// Return the search engine used to search outside the resolved library.
   SearchEngine get searchEngine => server.searchEngine;
-
-  /// The node that was selected, or `null` if the selection is not valid.
-  AstNode? get selectedNode => selection?.coveringNode;
 
   /// Return the analysis session in which additional resolution can occur.
   AnalysisSession get session => resolvedUnitResult.session;
