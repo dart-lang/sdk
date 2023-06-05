@@ -24,24 +24,52 @@ const int _LOWER_CASE_Z = 0x7A;
 
 const String _hexDigits = "0123456789ABCDEF";
 
-/// A parsed URI, such as a URL.
+/// A parsed URI, such as a URL. URI is Uniform Resource Identifier. URL is
+/// Uniform Resource Locator, a.k.a. a web address.
 ///
-/// To create a URI with specific components, use [new Uri]:
+/// Use this class to represent web addresses (`https://...`), local file
+/// locations (`C:\file` on Windows or `/file` on Unixes), or local folder
+/// locations (`C:\folder\` or `/folder/`).
+///
+/// You can create web URIs either by specifying the scheme (protocol) as a 
+/// parameter (`Uri(scheme: 'https', ...)`) or using the optional [Uri.https]
+/// or [Uri.http] constructor.
+///
+/// To create a URI, use [new Uri]:
 /// ```dart
-/// var httpsUri = Uri(
+/// // Use a final if the Uri contents never change
+/// final dartLibTour = Uri(
 ///     scheme: 'https',
 ///     host: 'dart.dev',
 ///     path: '/guides/libraries/library-tour',
 ///     fragment: 'numbers');
-/// print(httpsUri); // https://dart.dev/guides/libraries/library-tour#numbers
+/// print(dartLibTour); // https://dart.dev/guides/libraries/library-tour#numbers
+/// ```
 ///
-/// httpsUri = Uri(
+/// The optional parts of the URL at the end come in two flavors: they can
+/// be fragments or query parameters. For convenience, the query Params
+/// can be provided in the form of a query string, or piecemeal in the form
+/// of a map of query parameter names and their values.
+///
+/// For example, using `queryParameters` instead of the `query` `String?`:
+///
+/// ```dart
+/// // Use a var if you want to change the Uri later
+/// var exampleUri = Uri(scheme: 'https', host: 'dart.dev');
+/// print(exampleUri); // https://dart.dev
+/// // uh oh, that's not what we wanted...let's change it:
+/// // https://en.wikipedia.org/w/index.php?title=Uniform_Resource_Identifier&action=history
+/// exampleUri = Uri(
 ///     scheme: 'https',
-///     host: 'example.com',
-///     path: '/page/',
-///     queryParameters: {'search': 'blue', 'limit': '10'});
-/// print(httpsUri); // https://example.com/page/?search=blue&limit=10
+///     host: 'wikipedia.org',
+///     path: '/w/index.php',
+///     queryParameters: {'title': 'Uniform_Resource_Identifier', 'action':'history'});
+/// print(exampleUri); // https://en.wikipedia.org/w/index.php?title=Uniform_Resource_Identifier&action=history
+/// ```
 ///
+/// Make a mailto link to email someone in the user's default Mail application:
+/// 
+/// ```dart
 /// final mailtoUri = Uri(
 ///     scheme: 'mailto',
 ///     path: 'John.Doe@example.com',
@@ -50,14 +78,22 @@ const String _hexDigits = "0123456789ABCDEF";
 /// ```
 ///
 /// ## HTTP and HTTPS URI
-/// To create a URI with https scheme, use [Uri.https] or [Uri.http]:
+/// As mentioned before, these are special constructors that do the same thing
+/// as the standard constructor, but with less typing involved.
+/// To create a URI with https scheme, use [Uri.https]:
 /// ```dart
 /// final httpsUri = Uri.https('example.com', 'api/fetch', {'limit': '10'});
 /// print(httpsUri); // https://example.com/api/fetch?limit=10
 /// ```
+/// 
+/// For the old http scheme, use [Uri.http]:
+/// 
 /// ## File URI
-/// To create a URI from file path, use [Uri.file]:
+/// To create a URI for a file path, use [Uri.file]:
 /// ```dart
+/// // for your convenience, use r before the string to deactivate
+/// // the Dart interpreter within the string. The r means it's
+/// // a "raw" string.
 /// final fileUriUnix =
 ///     Uri.file(r'/home/myself/images/image.png', windows: false);
 /// print(fileUriUnix); // file:///home/myself/images/image.png
@@ -95,7 +131,11 @@ const String _hexDigits = "0123456789ABCDEF";
 /// print(uri.fragment); // utility-classes
 /// print(uri.hasQuery); // false
 /// print(uri.data); // null
-/// ```
+/// ``` 
+/// 
+/// Please note that this performs the parsing at runtime, which slows
+/// down your application, as opposed to the explicit declaration
+/// using one of the other constructors.
 ///
 /// **See also:**
 /// * [URIs][uris] in the [library tour][libtour]
@@ -213,7 +253,7 @@ abstract interface class Uri {
       Map<String, dynamic /*String?|Iterable<String>*/ >? queryParameters,
       String? fragment}) = _Uri;
 
-  /// Creates a new `http` URI from authority, path and query.
+  /// Creates a new `http` URI from authority (hostname), path and query.
   ///
   /// Example:
   /// ```dart
@@ -250,7 +290,7 @@ abstract interface class Uri {
     Map<String, dynamic /*String?|Iterable<String>*/ >? queryParameters,
   ]) = _Uri.http;
 
-  /// Creates a new `https` URI from authority, path and query.
+  /// Creates a new `https` URI from authority (hostname), path and query.
   ///
   /// This constructor is the same as [Uri.http] except for the scheme
   /// which is set to `https`.
@@ -289,7 +329,7 @@ abstract interface class Uri {
   /// only backslash (`\`) separates path segments in [path].
   ///
   /// If the path starts with a path separator, an absolute URI (with the
-  /// `file` scheme and an empty authority) is created.
+  /// `file` scheme and an empty authority (hostname)) is created.
   /// Otherwise a relative URI reference with no scheme or authority is created.
   /// One exception to this rule is that when Windows semantics is used
   /// and the path starts with a drive letter followed by a colon (":") and a
@@ -459,21 +499,23 @@ abstract interface class Uri {
   /// The returned scheme is canonicalized to lowercase letters.
   String get scheme;
 
-  /// The authority component.
+  /// The authority (hostname) component.
   ///
-  /// The authority is formatted from the [userInfo], [host] and [port]
-  /// parts.
+  /// The authority is the [hostname] + [port]. Optionally includes
+  /// user credential ([userInfo]) used to login to the machine.
+  /// It is formatted as [userInfo]@[hostname]:[port]
+  /// Example: leetHaxor@google.com:1337
   ///
-  /// The value is the empty string if there is no authority component.
+  /// If there is no authority component, it is an empty string.
   String get authority;
 
-  /// The user info part of the authority component.
+  /// The user info part of the [authority] (hostname) component.
   ///
   /// The value is the empty string if there is no user info in the
   /// authority component.
   String get userInfo;
 
-  /// The host part of the authority component.
+  /// The host part of the [authority] (hostname) component.
   ///
   /// The value is the empty string if there is no authority component and
   /// hence no host.
@@ -486,7 +528,7 @@ abstract interface class Uri {
   /// with upper-case percent-escapes.
   String get host;
 
-  /// The port part of the authority component.
+  /// The port part of the [authority] component.
   ///
   /// The value is the default port if there is no port number in the authority
   /// component. That's 80 for http, 443 for https, and 0 for everything else.
@@ -512,13 +554,30 @@ abstract interface class Uri {
 
   /// The fragment identifier component.
   ///
+  /// A fragment identifier is a string after URI, after the hash, which
+  /// identifies something specific as a function of the document. For
+  /// a user interface Web document such as HTML page, it traditionally
+  /// identifies a section or part of the page. In modern pages, it can
+  /// indicate a particular view of the page.
+  ///
   /// The value is the empty string if there is no fragment identifier
   /// component.
   String get fragment;
 
-  /// The URI path split into its segments.
+  /// Same as the URI [path], but split into its segments.
   ///
-  /// Each of the segments in the list has been decoded.
+  /// This is an alternative way to access the [path] component and
+  /// is useful for when a program needs to access components of a URI
+  /// such as the immediate parent folder of the current file.
+  /// This kind of field is valuable for extracting folder names
+  /// for display in a GUI's breadcrumb navigation component.
+  ///
+  /// For example, if iterating through files in several local folders 
+  /// that have a similar folder and file naming scheme, you could modify
+  /// `pathSegments` to hit every file that matches a pattern within every
+  /// folder that matches a pattern.
+  ///
+  /// Each of the segments in the list is already decoded.
   /// If the path is empty, the empty list will
   /// be returned. A leading slash `/` does not affect the segments returned.
   ///
@@ -526,7 +585,7 @@ abstract interface class Uri {
   /// calls that would mutate it.
   List<String> get pathSegments;
 
-  /// The URI query split into a map according to the rules
+  /// The URI [query] split into a map according to the rules
   /// specified for FORM post in the [HTML 4.01 specification section
   /// 17.13.4](https://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4
   /// "HTML 4.01 section 17.13.4").
@@ -552,7 +611,7 @@ abstract interface class Uri {
   /// The map is unmodifiable.
   Map<String, String> get queryParameters;
 
-  /// Returns the URI query split into a map according to the rules
+  /// Returns the URI [query] split into a map according to the rules
   /// specified for FORM post in the [HTML 4.01 specification section
   /// 17.13.4](https://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4
   /// "HTML 4.01 section 17.13.4").
@@ -576,17 +635,17 @@ abstract interface class Uri {
 
   /// Whether the URI is absolute.
   ///
-  /// A URI is an absolute URI in the sense of RFC 3986 if it has a scheme
-  /// and no fragment.
+  /// A URI is an absolute URI in the sense of RFC 3986 if it has a [scheme]
+  /// and no [fragment].
   bool get isAbsolute;
 
   /// Whether the URI has a [scheme] component.
   bool get hasScheme => scheme.isNotEmpty;
 
-  /// Whether the URI has an [authority] component.
+  /// Whether the URI has an [authority] (hostname) component.
   bool get hasAuthority;
 
-  /// Whether the URI has an explicit port.
+  /// Whether the URI has an explicit [port].
   ///
   /// If the port number is the default port number
   /// (zero for unrecognized schemes, with http (80) and https (443) being
@@ -594,20 +653,20 @@ abstract interface class Uri {
   /// then the port is made implicit and omitted from the URI.
   bool get hasPort;
 
-  /// Whether the URI has a query part.
+  /// Whether the URI has a [query] part.
   bool get hasQuery;
 
-  /// Whether the URI has a fragment part.
+  /// Whether the URI has a [fragment] part.
   bool get hasFragment;
 
-  /// Whether the URI has an empty path.
+  /// Whether the URI has an empty [path].
   bool get hasEmptyPath;
 
-  /// Whether the URI has an absolute path (starting with '/').
+  /// Whether the URI has an absolute [path] (starting with '/').
   bool get hasAbsolutePath;
 
   /// Returns the origin of the URI in the form scheme://host:port for the
-  /// schemes http and https.
+  /// [scheme]s http and https.
   ///
   /// It is an error if the scheme is not "http" or "https", or if the host name
   /// is missing or empty.
@@ -633,7 +692,7 @@ abstract interface class Uri {
   /// (one where [hasScheme] returns false).
   bool isScheme(String scheme);
 
-  /// Creates a file path from a file URI.
+  /// Creates a file [path] from a file URI.
   ///
   /// The returned path has either Windows or non-Windows
   /// semantics.
