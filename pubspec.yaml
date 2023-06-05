@@ -1,8 +1,6 @@
 name: linter
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
-# TODO (pq): remove (https://github.com/dart-lang/linter/issues/4389)
-version: 1.35.0
 
 description: >-
   The implementation of the lint rules supported by the analyzer framework.

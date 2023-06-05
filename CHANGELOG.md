@@ -1,4 +1,10 @@
-1.35.0
+# 3.1.0-wip
+
+- new lint: `no_wildcard_variable_uses`
+
+---
+
+# 1.35.0
 
 - add new lints: 
   - `implicit_reopen`
