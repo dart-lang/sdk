@@ -6187,10 +6187,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     if (target.isExternal &&
         target.isInlineClassMember &&
-        hasObjectLiteralAnnotation(target)) {
-      // Only JS interop inline class object literal constructors have the
-      // `@ObjectLiteral(...)` annotation.
-      assert(node.arguments.positional.isEmpty);
+        target.function.namedParameters.isNotEmpty) {
+      // JS interop checks assert that only external inline class factories have
+      // named parameters. We could do a more robust check by visiting all
+      // inline classes and recording descriptors, but that's expensive.
+      assert(target.function.positionalParameters.isEmpty);
       return _emitObjectLiteral(
           Arguments(node.arguments.positional,
               types: node.arguments.types, named: node.arguments.named),

@@ -16,7 +16,6 @@ import '../js_interop.dart'
         hasDartJSInteropAnnotation,
         hasJSInteropAnnotation,
         hasNativeAnnotation,
-        hasObjectLiteralAnnotation,
         hasStaticInteropAnnotation,
         hasTrustTypesAnnotation;
 
@@ -162,7 +161,7 @@ class JsUtilOptimizer extends Transformer {
           } else if (_inlineExtensionIndex.isMethod(node)) {
             return _getExternalMethodInvocationBuilder(
                 node, shouldTrustType, receiver);
-          } else if (_isNonLiteralConstructor(node)) {
+          } else if (_inlineExtensionIndex.isNonLiteralConstructor(node)) {
             // Get the constructor object using the class name.
             return _getExternalConstructorInvocationBuilder(
                 node, _getObjectOffGlobalThis(node, dottedPrefix.split('.')));
@@ -171,19 +170,6 @@ class JsUtilOptimizer extends Transformer {
       }
     }
     return null;
-  }
-
-  bool _isNonLiteralConstructor(Procedure node) {
-    if (node.isInlineClassMember) {
-      var kind = _inlineExtensionIndex.getInlineDescriptor(node)?.kind;
-      return (kind == InlineClassMemberKind.Constructor ||
-              kind == InlineClassMemberKind.Factory) &&
-          !hasObjectLiteralAnnotation(node);
-    } else {
-      return node.kind == ProcedureKind.Factory &&
-          node.enclosingClass != null &&
-          !hasAnonymousAnnotation(node.enclosingClass!);
-    }
   }
 
   /// Returns the prefixed JS name for the given [node] using the enclosing
@@ -898,4 +884,33 @@ class InlineExtensionIndex {
       InlineClassMemberKind.Operator,
       ExtensionMemberKind.Operator,
       ProcedureKind.Operator);
+
+  /// Return whether [node] is an external static interop constructor/factory.
+  ///
+  /// If [literal] is true, we check if [node] is an object literal constructor,
+  /// and if not, we check that it's a non-literal constructor.
+  bool _isStaticInteropConstructor(Procedure node, {required bool literal}) {
+    if (!node.isExternal) return false;
+    if (node.isInlineClassMember) {
+      final kind = getInlineDescriptor(node)?.kind;
+      final namedParams = node.function.namedParameters;
+      return (kind == InlineClassMemberKind.Constructor ||
+                  kind == InlineClassMemberKind.Factory) &&
+              literal
+          ? namedParams.isNotEmpty
+          : namedParams.isEmpty;
+    } else if (node.kind == ProcedureKind.Factory &&
+        node.enclosingClass != null &&
+        hasJSInteropAnnotation(node.enclosingClass!)) {
+      final isAnonymous = hasAnonymousAnnotation(node.enclosingClass!);
+      return literal ? isAnonymous : !isAnonymous;
+    }
+    return false;
+  }
+
+  bool isLiteralConstructor(Procedure node) =>
+      _isStaticInteropConstructor(node, literal: true);
+
+  bool isNonLiteralConstructor(Procedure node) =>
+      _isStaticInteropConstructor(node, literal: false);
 }

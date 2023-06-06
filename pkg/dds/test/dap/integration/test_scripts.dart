@@ -196,7 +196,7 @@ const simpleCaughtErrorProgram = r'''
 ''';
 
 /// A simple package:test script that has a single group named 'group' with
-/// tests named 'passing' and 'failing' respectively.
+/// tests named 'passing', 'failing' and 'skipped' respectively.
 ///
 /// The 'passing' test contains a [breakpointMarker].
 const simpleTestProgram = '''
@@ -210,6 +210,9 @@ const simpleTestProgram = '''
       test('failing test', () {
         expect(1, equals(2));
       });
+      test('skipped test', () {
+        expect(1, equals(2));
+      }, skip: true);
     });
   }
 ''';
@@ -225,6 +228,7 @@ final simpleTestProgramExpectedOutput = [
   allOf(startsWith('package:matcher'), endsWith('expect')),
   endsWith('main.<fn>.<fn>'),
   '✖ group 1 failing test',
+  '! group 1 skipped test',
   // Exit
   '',
   'Exited (1).',

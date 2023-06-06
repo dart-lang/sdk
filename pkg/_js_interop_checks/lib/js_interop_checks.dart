@@ -326,8 +326,12 @@ class JsInteropChecks extends RecursiveVisitor {
       // Check JS Interop positional and named parameters. Literal constructors
       // can only have named parameters, and every other interop member can only
       // have positional parameters.
-      final isObjectLiteralConstructor =
-          node.isInlineClassMember && hasObjectLiteralAnnotation(node);
+      final isObjectLiteralConstructor = node.isInlineClassMember &&
+          (_inlineExtensionIndex.getInlineDescriptor(node)!.kind ==
+                  InlineClassMemberKind.Constructor ||
+              _inlineExtensionIndex.getInlineDescriptor(node)!.kind ==
+                  InlineClassMemberKind.Factory) &&
+          node.function.namedParameters.isNotEmpty;
       final isAnonymousFactory = _classHasAnonymousAnnotation && node.isFactory;
       if (isObjectLiteralConstructor || isAnonymousFactory) {
         _checkLiteralConstructorHasNoPositionalParams(node,
