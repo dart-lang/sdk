@@ -932,6 +932,52 @@ const void Function(int p) h = b ? g : g;
     _assertTypeArguments(result, ['int']);
   }
 
+  test_visitConditionalExpression_unknownCondition() async {
+    await assertNoErrorsInCode('''
+const bool kIsWeb = identical(0, 0.0);
+const x = kIsWeb ? 0 : 1;
+''');
+    _assertValue('x', r'''
+int <unknown>
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitConditionalExpression_unknownCondition_errorInConstructor() async {
+    await assertErrorsInCode(r'''
+const bool kIsWeb = identical(0, 0.0);
+
+var a = 2;
+const x = A(kIsWeb ? 0 : a);
+
+class A {
+  const A(int _);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 63, 14),
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 76, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 76,
+          1),
+    ]);
+    _assertValue('x', r'''
+A
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitConditionalExpression_unknownCondition_undefinedIdentifier() async {
+    await assertErrorsInCode(r'''
+const bool kIsWeb = identical(0, 0.0);
+const x = kIsWeb ? a : b;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 58, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 58,
+          1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 1),
+    ]);
+    _assertNull('x');
+  }
+
   test_visitFunctionReference_explicitTypeArgs_complexExpression() async {
     await resolveTestCode('''
 const b = true;
@@ -1297,6 +1343,24 @@ const void Function(int a) h = g;
     final featureSet = result.libraryElement.featureSet;
     final has = value.hasPrimitiveEquality(featureSet);
     expect(has, isTrue);
+  }
+
+  void _assertNull(String variableName) {
+    final variable = findElement.topVar(variableName) as ConstVariableElement;
+    final evaluationResult = variable.evaluationResult;
+    if (evaluationResult == null) {
+      fail('Not evaluated: $this');
+    }
+    expect(evaluationResult.value, isNull);
+  }
+
+  void _assertValue(String variableName, String expectedText) {
+    final variable = findElement.topVar(variableName) as ConstVariableElement;
+    final evaluationResult = variable.evaluationResult;
+    if (evaluationResult == null) {
+      fail('Not evaluated: $this');
+    }
+    assertDartObjectText(evaluationResult.value, expectedText);
   }
 }
 

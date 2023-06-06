@@ -690,36 +690,42 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitConditionalExpression(ConditionalExpression node) {
+  Constant visitConditionalExpression(ConditionalExpression node) {
     var condition = node.condition;
-    // TODO(kallentu): Remove this unwrapping when helpers can handle Constant.
-    var conditionConstant = condition.accept(this);
-    var conditionResult =
-        conditionConstant is DartObjectImpl ? conditionConstant : null;
+    var conditionConstant = _getConstant(condition);
+    if (conditionConstant is! DartObjectImpl) {
+      return conditionConstant;
+    }
 
-    if (conditionResult == null) {
-      return conditionResult;
-    } else if (!conditionResult.isBool) {
+    if (!conditionConstant.isBool) {
+      // TODO(kallentu): Don't report error here.
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, condition);
-      return null;
+      return InvalidConstant(
+          condition, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     }
-    conditionResult =
-        _dartObjectComputer.applyBooleanConversion(condition, conditionResult);
-    if (conditionResult == null) {
-      return conditionResult;
+    conditionConstant = _dartObjectComputer.applyBooleanConversion(
+        condition, conditionConstant);
+    if (conditionConstant is! DartObjectImpl) {
+      return conditionConstant;
     }
 
-    var conditionResultBool = conditionResult.toBoolValue();
+    var conditionResultBool = conditionConstant.toBoolValue();
     if (conditionResultBool == true) {
       _reportNotPotentialConstants(node.elseExpression);
-      return node.thenExpression.accept(this);
+      return _getConstant(node.thenExpression);
     } else if (conditionResultBool == false) {
       _reportNotPotentialConstants(node.thenExpression);
-      return node.elseExpression.accept(this);
+      return _getConstant(node.elseExpression);
     } else {
-      node.thenExpression.accept(this);
-      node.elseExpression.accept(this);
+      var thenConstant = _getConstant(node.thenExpression);
+      if (thenConstant is InvalidConstant) {
+        return thenConstant;
+      }
+      var elseConstant = _getConstant(node.elseExpression);
+      if (elseConstant is InvalidConstant) {
+        return elseConstant;
+      }
       return DartObjectImpl.validWithUnknownValue(
         typeSystem,
         node.typeOrThrow,
@@ -1738,16 +1744,15 @@ class DartObjectComputer {
   /// Return the result of applying boolean conversion to the
   /// [evaluationResult]. The [node] is the node against which errors should be
   /// reported.
-  DartObjectImpl? applyBooleanConversion(
-      AstNode node, DartObjectImpl? evaluationResult) {
-    if (evaluationResult != null) {
-      try {
-        return evaluationResult.convertToBool(_typeSystem);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant applyBooleanConversion(
+      AstNode node, DartObjectImpl evaluationResult) {
+    try {
+      return evaluationResult.convertToBool(_typeSystem);
+    } on EvaluationException catch (exception) {
+      // TODO(kallentu): Don't report error here.
+      _errorReporter.reportErrorForNode(exception.errorCode, node);
+      return InvalidConstant(node, exception.errorCode);
     }
-    return null;
   }
 
   DartObjectImpl? bitNot(Expression node, DartObjectImpl? evaluationResult) {

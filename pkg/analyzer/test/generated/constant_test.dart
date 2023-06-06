@@ -66,26 +66,6 @@ bool <unknown>
 ''');
   }
 
-  test_conditionalExpression_unknownCondition_dynamic() async {
-    await assertErrorsInCode('''
-const bool kIsWeb = identical(0, 0.0);
-const x = kIsWeb ? a : b;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 58,
-          1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 58, 1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 62,
-          1),
-    ]);
-
-    var result = findElement.topVar('x').evaluationResult;
-    assertDartObjectText(result.value, r'''
-InvalidType <unknown>
-  variable: self::@variable::x
-''');
-  }
-
   test_constructorInvocation_fieldInitializer() async {
     var result = await _getExpressionValue("const C(2)", context: '''
 class C {
