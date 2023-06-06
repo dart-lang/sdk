@@ -2122,6 +2122,152 @@ void functionAfter() {
     expect(cache[futureOrElement], resolvedFakeUnit.libraryElement);
   }
 
+  /// Test that importing elements where the library is already imported
+  /// (without a show/hide cmobinator) produces no additional edits.
+  Future<void> test_importElementLibrary_useShow_existingImport() async {
+    var content = '''
+import 'package:test/a.dart';
+''';
+    var otherContent = '''
+class A {}
+class B {}
+class C {}
+''';
+    var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
+    var unit = await resolveContent('/home/test/lib/test.dart', content);
+
+    final edits = await _getClassImportEdits(
+      destinationUnit: unit,
+      importedUnit: otherUnit,
+      classNames: {'A', 'B'},
+      useShow: true,
+    );
+    expect(edits, isEmpty);
+  }
+
+  /// Test that importing elements where the library is already imported but
+  /// hides the element causes the element to be shown.
+  Future<void>
+      test_importElementLibrary_useShow_existingImport_hidesElement() async {
+    var content = '''
+import 'package:test/a.dart' hide A;
+''';
+    var otherContent = '''
+class A {}
+class B {}
+class C {}
+''';
+    var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
+    var unit = await resolveContent('/home/test/lib/test.dart', content);
+
+    final edits = await _getClassImportEdits(
+      destinationUnit: unit,
+      importedUnit: otherUnit,
+      classNames: {'A', 'B'},
+      useShow: true,
+    );
+    final resultContent = SourceEdit.applySequence(content, edits);
+    // TODO(dantup): Currently we can only add new imports and not update
+    //  existing ones.
+    expect(
+        resultContent,
+        equals(
+          '''
+import 'package:test/a.dart' hide A;
+import 'package:test/a.dart' show A;
+''',
+        ));
+  }
+
+  /// Test that importing elements where the library is already imported and
+  /// already shows the elements produces no edits.
+  Future<void>
+      test_importElementLibrary_useShow_existingImport_showsElement() async {
+    var content = '''
+import 'package:test/a.dart' show A, B, C;
+''';
+    var otherContent = '''
+class A {}
+class B {}
+class C {}
+''';
+    var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
+    var unit = await resolveContent('/home/test/lib/test.dart', content);
+
+    final edits = await _getClassImportEdits(
+      destinationUnit: unit,
+      importedUnit: otherUnit,
+      classNames: {'A', 'B'},
+      useShow: true,
+    );
+    expect(edits, isEmpty);
+  }
+
+  /// Test that importing elements where the library is already imported but it
+  /// only shows other elements results in the element being shown.
+  Future<void>
+      test_importElementLibrary_useShow_existingImport_showsOthers() async {
+    var content = '''
+import 'package:test/a.dart' show C;
+''';
+    var otherContent = '''
+class A {}
+class B {}
+class C {}
+''';
+    var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
+    var unit = await resolveContent('/home/test/lib/test.dart', content);
+
+    final edits = await _getClassImportEdits(
+      destinationUnit: unit,
+      importedUnit: otherUnit,
+      classNames: {'A', 'B'},
+      useShow: true,
+    );
+    final resultContent = SourceEdit.applySequence(content, edits);
+    // TODO(dantup): Currently we can only add new imports and not update
+    //  existing ones (such as to add to 'show' or remove 'hide'). Updating
+    //  existing imports requires some changes to how prefixes are currently
+    //  handles so we can separate prefixes from the shown elements.
+    expect(
+        resultContent,
+        equals(
+          '''
+import 'package:test/a.dart' show C;
+import 'package:test/a.dart' show A, B;
+''',
+        ));
+  }
+
+  /// Test that that we can add a new import elements using 'show'.
+  Future<void> test_importElementLibrary_useShow_newImport() async {
+    var otherUnit = await resolveContent(
+      '/home/test/lib/a.dart',
+      '''
+class A {}
+class B {}
+''',
+    );
+    var unit = await resolveContent(
+      '/home/test/lib/test.dart',
+      '',
+    );
+
+    final edits = await _getClassImportEdits(
+      destinationUnit: unit,
+      importedUnit: otherUnit,
+      classNames: {'A', 'B'},
+      useShow: true,
+    );
+    expect(edits, hasLength(1));
+    expect(
+        edits[0].replacement,
+        equals(
+          '''import 'package:test/a.dart' show A, B;
+''',
+        ));
+  }
+
   Future<void> test_multipleEdits_concurrently() async {
     var initialCode = '00';
     var path = convertPath('/home/test/lib/test.dart');
@@ -2173,6 +2319,30 @@ void functionAfter() {
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
     expect(edits[0].replacement, equalsIgnoringWhitespace('Future<String>'));
+  }
+
+  /// Computes edits to import the class [className] from [importedUnit] into
+  /// [destinationUnit].
+  ///
+  /// If [useShow] is set, will try to add a show combinator for this class.
+  Future<List<SourceEdit>> _getClassImportEdits({
+    required ResolvedUnitResult destinationUnit,
+    required ResolvedUnitResult importedUnit,
+    required Set<String> classNames,
+    bool useShow = false,
+  }) async {
+    var findNode = FindNode(importedUnit.content, importedUnit.unit);
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(destinationUnit.path, (builder) async {
+      var builderImpl = builder as DartFileEditBuilderImpl;
+      for (var className in classNames) {
+        var classElement =
+            findNode.classDeclaration(className).declaredElement!;
+        await builderImpl.importElementLibrary(classElement, useShow: useShow);
+      }
+    });
+
+    return getEdits(builder);
   }
 }
 
