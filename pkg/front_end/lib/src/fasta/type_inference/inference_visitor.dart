@@ -8709,16 +8709,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         initialized: node.hasDeclaredInitializer);
     if (initializerResult != null) {
       DartType initializerType = initializerResult.inferredType;
-      // TODO(paulberry): `initializerType` is sometimes `null` during top
-      // level inference.  Figure out how to prevent this.
-      // ignore: unnecessary_null_comparison
-      if (initializerType != null) {
-        flowAnalysis.initialize(
-            node, initializerType, initializerResult.expression,
-            isFinal: node.isFinal,
-            isLate: node.isLate,
-            isImplicitlyTyped: node.isImplicitlyTyped);
-      }
+      flowAnalysis.initialize(
+          node, initializerType, initializerResult.expression,
+          isFinal: node.isFinal,
+          isLate: node.isLate,
+          isImplicitlyTyped: node.isImplicitlyTyped);
       initializerResult = ensureAssignableResult(node.type, initializerResult,
           fileOffset: node.fileOffset, isVoidAllowed: node.type is VoidType);
       Expression initializer = initializerResult.expression;
