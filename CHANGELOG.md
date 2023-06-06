@@ -1,3 +1,11 @@
+## 3.0.4
+
+This is a patch release that:
+
+- Handles formatting nullable record types with no fields (dart_style issue [#1224]).
+
+[#1224]: https://github.com/dart-lang/dart_style/issues/1224
+
 ## 3.0.3
 
 This is a patch release that:
