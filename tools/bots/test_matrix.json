@@ -2748,26 +2748,6 @@
     },
     {
       "builders": [
-        "debianpackage-linux"
-      ],
-      "meta": {
-        "description": "This configuration is used by the debianpackage-builder."
-      },
-      "steps": [
-        {
-          "name": "build debian package",
-          "script": "tools/linux_dist_support/run_debian_build.sh",
-          "arguments": []
-        },
-        {
-          "name": "upload debian packages",
-          "script": "tools/linux_dist_support/upload_debian_packages.py",
-          "arguments": []
-        }
-      ]
-    },
-    {
-      "builders": [
         "analyzer-linux-release",
         "analyzer-mac-release"
       ],
