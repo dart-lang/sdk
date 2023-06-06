@@ -274,13 +274,6 @@ class Heap {
 
   void UpdateGlobalMaxUsed();
 
-  static bool IsAllocatableInNewSpace(intptr_t size) {
-    return size <= kNewAllocatableSize;
-  }
-  static bool IsAllocatableViaFreeLists(intptr_t size) {
-    return size < kAllocatablePageSize;
-  }
-
 #ifndef PRODUCT
   void PrintToJSONObject(Space space, JSONObject* object) const;
 
@@ -304,9 +297,6 @@ class Heap {
   void SetupImagePage(void* pointer, uword size, bool is_executable) {
     old_space_.SetupImagePage(pointer, size, is_executable);
   }
-
-  static constexpr intptr_t kNewAllocatableSize = 256 * KB;
-  static constexpr intptr_t kAllocatablePageSize = 64 * KB;
 
   Space SpaceForExternal(intptr_t size) const;
 

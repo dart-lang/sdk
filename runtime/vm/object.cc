@@ -2719,8 +2719,8 @@ void Object::InitializeObject(uword address,
       // If the size is greater than both kNewAllocatableSize and
       // kAllocatablePageSize, the object must have been allocated to a new
       // large page, which must already have been zero initialized by the OS.
-      needs_init = Heap::IsAllocatableInNewSpace(size) ||
-                   Heap::IsAllocatableViaFreeLists(size);
+      needs_init =
+          IsAllocatableInNewSpace(size) || IsAllocatableViaFreeLists(size);
     } else {
       initial_value = static_cast<uword>(null_);
 #if defined(DART_COMPRESSED_POINTERS)
@@ -2736,8 +2736,8 @@ void Object::InitializeObject(uword address,
         // Zero is a GC-safe value. The caller will initialize the fields to
         // null with safepoint checks to avoid blocking for the full duration of
         // initializing this array.
-        needs_init = Heap::IsAllocatableInNewSpace(size) ||
-                     Heap::IsAllocatableViaFreeLists(size);
+        needs_init =
+            IsAllocatableInNewSpace(size) || IsAllocatableViaFreeLists(size);
         if (!needs_init) {
           initial_value = 0;  // For ASSERT below.
         }

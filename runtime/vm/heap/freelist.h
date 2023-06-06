@@ -115,16 +115,18 @@ class FreeList {
     return 0;
   }
 
-  uword TryAllocateBumpLocked(intptr_t size) {
+  DART_FORCE_INLINE
+  bool TryAllocateBumpLocked(intptr_t size, uword* result) {
     ASSERT(mutex_.IsOwnedByCurrentThread());
-    uword result = top_;
-    uword new_top = result + size;
+    uword top = top_;
+    uword new_top = top + size;
     if (new_top <= end_) {
       top_ = new_top;
       unaccounted_size_ += size;
-      return result;
+      *result = top;
+      return true;
     }
-    return 0;
+    return false;
   }
   intptr_t TakeUnaccountedSizeLocked() {
     ASSERT(mutex_.IsOwnedByCurrentThread());

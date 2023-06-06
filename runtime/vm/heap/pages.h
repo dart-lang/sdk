@@ -147,6 +147,26 @@ class PageSpace {
         size, &freelists_[is_executable ? kExecutableFreelist : kDataFreelist],
         is_executable, growth_policy, is_protected, is_locked);
   }
+  DART_FORCE_INLINE
+  uword TryAllocatePromoLocked(FreeList* freelist, intptr_t size) {
+    if (LIKELY(IsAllocatableViaFreeLists(size))) {
+      uword result;
+      if (freelist->TryAllocateBumpLocked(size, &result)) {
+        return result;
+      }
+    }
+    return TryAllocatePromoLockedSlow(freelist, size);
+  }
+  DART_FORCE_INLINE
+  uword AllocateSnapshotLocked(FreeList* freelist, intptr_t size) {
+    if (LIKELY(IsAllocatableViaFreeLists(size))) {
+      uword result;
+      if (freelist->TryAllocateBumpLocked(size, &result)) {
+        return result;
+      }
+    }
+    return AllocateSnapshotLockedSlow(freelist, size);
+  }
 
   void TryReleaseReservation();
   bool MarkReservation();
@@ -278,16 +298,6 @@ class PageSpace {
   void AcquireLock(FreeList* freelist);
   void ReleaseLock(FreeList* freelist);
 
-  uword TryAllocateDataLocked(FreeList* freelist,
-                              intptr_t size,
-                              GrowthPolicy growth_policy) {
-    bool is_executable = false;
-    bool is_protected = false;
-    bool is_locked = true;
-    return TryAllocateInternal(size, freelist, is_executable, growth_policy,
-                               is_protected, is_locked);
-  }
-
   Monitor* tasks_lock() const { return &tasks_lock_; }
   intptr_t tasks() const { return tasks_; }
   void set_tasks(intptr_t val) {
@@ -301,22 +311,6 @@ class PageSpace {
   }
   Phase phase() const { return phase_; }
   void set_phase(Phase val) { phase_ = val; }
-
-  // Attempt to allocate from bump block rather than normal freelist.
-  uword TryAllocateDataBumpLocked(intptr_t size) {
-    return TryAllocateDataBumpLocked(&freelists_[kDataFreelist], size);
-  }
-  uword TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size);
-  DART_FORCE_INLINE
-  uword TryAllocatePromoLocked(FreeList* freelist, intptr_t size) {
-    uword result = freelist->TryAllocateBumpLocked(size);
-    if (result != 0) {
-      return result;
-    }
-    return TryAllocatePromoLockedSlow(freelist, size);
-  }
-  uword TryAllocatePromoLockedSlow(FreeList* freelist, intptr_t size);
-  ObjectPtr AllocateSnapshot(intptr_t size);
 
   void SetupImagePage(void* pointer, uword size, bool is_executable);
 
@@ -344,6 +338,15 @@ class PageSpace {
     kSweepLargePages = 5,
   };
 
+  uword TryAllocateDataLocked(FreeList* freelist,
+                              intptr_t size,
+                              GrowthPolicy growth_policy) {
+    bool is_executable = false;
+    bool is_protected = false;
+    bool is_locked = true;
+    return TryAllocateInternal(size, freelist, is_executable, growth_policy,
+                               is_protected, is_locked);
+  }
   uword TryAllocateInternal(intptr_t size,
                             FreeList* freelist,
                             bool is_executable,
@@ -358,6 +361,11 @@ class PageSpace {
   uword TryAllocateInFreshLargePage(intptr_t size,
                                     bool is_executable,
                                     GrowthPolicy growth_policy);
+
+  // Attempt to allocate from bump block rather than normal freelist.
+  uword TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size);
+  uword TryAllocatePromoLockedSlow(FreeList* freelist, intptr_t size);
+  uword AllocateSnapshotLockedSlow(FreeList* freelist, intptr_t size);
 
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
