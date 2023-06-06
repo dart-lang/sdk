@@ -28,15 +28,18 @@ void main(List<String> args) async {
         logger: logger,
       );
 
-      final exeUri = dartAppUri.resolve('bin/dart_app/dart_app.exe');
-      expect(await File.fromUri(exeUri).exists(), true);
-      final result = await runProcess(
-        executable: exeUri,
-        arguments: [],
-        workingDirectory: dartAppUri,
-        logger: logger,
-      );
-      expectDartAppStdout(result.stdout);
+      final relativeExeUri = Uri.file('./bin/dart_app/dart_app.exe');
+      final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+      expect(await File.fromUri(absoluteExeUri).exists(), true);
+      for (final exeUri in [absoluteExeUri, relativeExeUri]) {
+        final result = await runProcess(
+          executable: exeUri,
+          arguments: [],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+        expectDartAppStdout(result.stdout);
+      }
     });
   });
 }
