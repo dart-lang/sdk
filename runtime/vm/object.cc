@@ -2123,6 +2123,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls.set_num_type_arguments_unsafe(1);
     RegisterClass(cls, Symbols::FutureOr(), lib);
     pending_classes.Add(cls);
+    object_store->set_future_or_class(cls);
 
     cls = Class::New<SuspendState, RTN::SuspendState>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_SuspendState(), lib);
@@ -2674,6 +2675,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
     cls = Class::New<UserTag, RTN::UserTag>(isolate_group);
     cls = Class::New<FutureOr, RTN::FutureOr>(isolate_group);
+    object_store->set_future_or_class(cls);
     cls = Class::New<TransferableTypedData, RTN::TransferableTypedData>(
         isolate_group);
   }

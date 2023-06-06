@@ -1006,6 +1006,21 @@ class CorrectionUtils {
     return buffer.toString();
   }
 
+  /// Splits [text] into lines, and adds [level] indents to each line.
+  String indentRight(String text, {int level = 1}) {
+    final buffer = StringBuffer();
+    final indent = getIndent(level);
+    final eol = endOfLine;
+    final lines = text.split(eol);
+    for (final line in lines) {
+      if (buffer.isNotEmpty) {
+        buffer.write(eol);
+      }
+      buffer.write('$indent$line');
+    }
+    return buffer.toString();
+  }
+
   /// Indents given source left or right.
   String indentSourceLeftRight(String source, {bool indentLeft = true}) {
     var sb = StringBuffer();

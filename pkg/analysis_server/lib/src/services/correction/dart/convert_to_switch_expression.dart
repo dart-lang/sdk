@@ -4,10 +4,12 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -26,18 +28,25 @@ class ConvertToSwitchExpression extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is! SwitchStatement) return;
+    final switchStatement = node;
+    if (switchStatement is! SwitchStatement) return;
 
-    var expression = node.expression;
-    if (!isEffectivelyExhaustive(expression.staticType, node)) return;
+    ThrowStatement? followingThrow;
+    final expression = switchStatement.expression;
+    if (!isEffectivelyExhaustive(switchStatement, expression.typeOrThrow)) {
+      followingThrow = switchStatement.followingThrow;
+      if (followingThrow == null) {
+        return;
+      }
+    }
 
-    if (isReturnSwitch(node)) {
-      await convertReturnSwitchExpression(builder, node);
-    } else if (isAssignmentSwitch(node)) {
-      await convertAssignmentSwitchExpression(builder, node);
-    } else if (isArgumentSwitch(node)) {
-      await convertArgumentSwitchExpression(builder, node);
+    if (isReturnSwitch(switchStatement)) {
+      await convertReturnSwitchExpression(
+          builder, switchStatement, followingThrow);
+    } else if (isAssignmentSwitch(switchStatement)) {
+      await convertAssignmentSwitchExpression(builder, switchStatement);
+    } else if (isArgumentSwitch(switchStatement)) {
+      await convertArgumentSwitchExpression(builder, switchStatement);
     }
   }
 
@@ -173,7 +182,10 @@ class ConvertToSwitchExpression extends CorrectionProducer {
   }
 
   Future<void> convertReturnSwitchExpression(
-      ChangeBuilder builder, SwitchStatement node) async {
+    ChangeBuilder builder,
+    SwitchStatement node,
+    ThrowStatement? followingThrow,
+  ) async {
     void convertReturnStatement(DartFileEditBuilder builder,
         Statement statement, SourceRange colonRange,
         {String endToken = ''}) {
@@ -219,9 +231,20 @@ class ConvertToSwitchExpression extends CorrectionProducer {
         builder.addSimpleReplacement(colonRange, ' =>');
 
         var statement = patternCase.statements.first;
-        var endToken = i < memberCount - 1 ? ',' : '';
+        var endToken = i < memberCount - 1 || followingThrow != null ? ',' : '';
         convertReturnStatement(builder, statement, colonRange,
             endToken: endToken);
+      }
+
+      if (followingThrow != null) {
+        final throwText = utils.getNodeText(followingThrow.expression);
+        _insertLinesBefore(
+          builder: builder,
+          nextLineOffset: node.rightBracket.offset,
+          text: '_ => $throwText,',
+          indentation: _IndentationFullFirstRightAll(level: 1),
+        );
+        _deleteStatements(builder, [followingThrow.statement]);
       }
     });
   }
@@ -306,9 +329,11 @@ class ConvertToSwitchExpression extends CorrectionProducer {
     return writeElement != null;
   }
 
-  bool isEffectivelyExhaustive(DartType? type, SwitchStatement node) {
-    if (type == null) return false;
-    if ((typeSystem as TypeSystemImpl).isAlwaysExhaustive(type)) return true;
+  bool isEffectivelyExhaustive(SwitchStatement node, DartType? expressionType) {
+    if (expressionType == null) return false;
+    if ((typeSystem as TypeSystemImpl).isAlwaysExhaustive(expressionType)) {
+      return true;
+    }
     var last = node.members.lastOrNull;
     if (last is SwitchPatternCase) {
       var pattern = last.guardedPattern.pattern;
@@ -333,6 +358,51 @@ class ConvertToSwitchExpression extends CorrectionProducer {
     }
     return true;
   }
+
+  void _deleteStatements(
+    DartFileEditBuilder builder,
+    List<Statement> statements,
+  ) {
+    final range = utils.getLinesRangeStatements(statements);
+    builder.addDeletion(range);
+  }
+
+  /// Given [nextLineOffset] that is an offset on the next line (the line
+  /// before which we want to insert), inserts potentially multi-line [text]
+  /// as separate full lines. Always adds EOL after [text].
+  void _insertLinesBefore({
+    required DartFileEditBuilder builder,
+    required int nextLineOffset,
+    required String text,
+    required _Indentation indentation,
+  }) {
+    final insertOffset = utils.getLineContentStart(nextLineOffset);
+    final nextLinePrefix = utils.getLinePrefix(nextLineOffset);
+
+    switch (indentation) {
+      case _IndentationFullFirstRightAll():
+        final indentedText = utils.indentRight(
+          nextLinePrefix + text,
+          level: indentation.level,
+        );
+        final withEol = '$indentedText$eol';
+        builder.addSimpleInsertion(insertOffset, withEol);
+    }
+  }
+}
+
+/// Superclass for all indentation strategies.
+sealed class _Indentation {}
+
+/// The first line should be indented with the full line indentation of the
+/// following (target) line, and all lines (including the first) should be
+/// indented [level] positions to the right.
+final class _IndentationFullFirstRightAll extends _Indentation {
+  final int level;
+
+  _IndentationFullFirstRightAll({
+    required this.level,
+  });
 }
 
 extension on Statement {

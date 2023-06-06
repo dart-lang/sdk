@@ -1375,6 +1375,7 @@ void ScopeBuilder::VisitDartType() {
     case kInvalidType:
     case kDynamicType:
     case kVoidType:
+    case kNullType:
       // those contain nothing.
       return;
     case kNeverType:
@@ -1403,6 +1404,9 @@ void ScopeBuilder::VisitDartType() {
       return;
     case kInlineType:
       VisitInlineType();
+      return;
+    case kFutureOrType:
+      VisitFutureOrType();
       return;
     default:
       ReportUnexpectedTag("type", tag);
@@ -1523,6 +1527,11 @@ void ScopeBuilder::VisitInlineType() {
   helper_.SkipCanonicalNameReference();  // read index for canonical name.
   helper_.SkipListOfDartTypes();         // read type arguments
   VisitDartType();  // read instantiated representation type.
+}
+
+void ScopeBuilder::VisitFutureOrType() {
+  helper_.ReadNullability();
+  VisitDartType();  // read type argument.
 }
 
 void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {

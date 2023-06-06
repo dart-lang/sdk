@@ -7448,7 +7448,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return js_ast.Property(symbol, constant);
     }
 
-    var type = node.getType(_staticTypeContext);
+    // Non-nullable is forced here because the type of an instance constant
+    // should never appear as legacy "*" at runtime but the library where the
+    // constant is defined can cause those types to appear here.
+    var type = node
+        .getType(_staticTypeContext)
+        .withDeclaredNullability(Nullability.nonNullable);
     var classRef =
         _emitInterfaceType(type as InterfaceType, emitNullability: false);
     var prototype = js.call('#.prototype', [classRef]);

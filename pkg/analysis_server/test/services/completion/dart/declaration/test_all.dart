@@ -10,6 +10,7 @@ import 'closure_test.dart' as closure;
 import 'constructor_test.dart' as constructor_;
 import 'enum_test.dart' as enum_;
 import 'extension_member_test.dart' as extension_member;
+import 'imported_reference_test.dart' as imported_reference;
 import 'label_test.dart' as label;
 import 'library_member_test.dart' as library_member;
 import 'library_prefix_test.dart' as library_prefix;
@@ -31,6 +32,7 @@ void main() {
     constructor_.main();
     enum_.main();
     extension_member.main();
+    imported_reference.main();
     label.main();
     library_member.main();
     library_prefix.main();

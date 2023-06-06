@@ -233,6 +233,7 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
     case kInvalidType:
     case kDynamicType:
     case kVoidType:
+    case kNullType:
       // those contain nothing.
       break;
     case kNeverType:
@@ -280,6 +281,10 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       CalculateDartTypeFingerprint();  // read instantiated representation type.
       break;
     }
+    case kFutureOrType:
+      BuildHash(static_cast<uint32_t>(ReadNullability()));
+      CalculateDartTypeFingerprint();  // read type argument.
+      break;
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();

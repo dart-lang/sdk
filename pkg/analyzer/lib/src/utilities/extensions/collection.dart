@@ -19,6 +19,15 @@ extension ListExtension<E> on List<E> {
       add(element);
     }
   }
+
+  E? nextOrNull(E element) {
+    final index = indexOf(element);
+    if (index >= 0 && index < length - 1) {
+      return this[index + 1];
+    } else {
+      return null;
+    }
+  }
 }
 
 extension SetExtension<E> on Set<E> {
