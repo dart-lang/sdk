@@ -51,21 +51,6 @@ class JS {
   const JS([this.name]);
 }
 
-/// The annotation for object literal constructors.
-///
-/// Use this on an external constructor for an interop inline class that only
-/// has named args in order to create object literals performantly. The
-/// resulting object literal will use the parameter names as keys and the
-/// provided arguments as the values.
-///
-/// Note that object literal constructors ignore the default values of
-/// parameters and only include the arguments you provide in the invocation of
-/// the constructor. This is similar to the `@anonymous` annotation in
-/// `package:js`.
-class ObjectLiteral {
-  const ObjectLiteral();
-}
-
 /// The JS types users should use to write their external APIs.
 ///
 /// These are meant to separate the Dart and JS type hierarchies statically.

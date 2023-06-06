@@ -14,12 +14,10 @@ inline class Inline {
   final JSObject obj;
   external Inline();
   external Inline.named();
-  @ObjectLiteral()
   external Inline.literal({JSNumber? a});
   Inline.nonExternal(this.obj);
   // TODO(srujzs): Once we have inline class factories, test these.
   // external factory Inline.fact();
-  // @ObjectLiteral()
   // external factory Inline.literalFact({JSNumber? a});
   // factory Inline.nonExternalFact() => Inline();
 

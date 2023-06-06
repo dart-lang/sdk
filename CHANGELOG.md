@@ -27,6 +27,15 @@
 [#51486]: https://github.com/dart-lang/sdk/issues/51486
 [#52027]: https://github.com/dart-lang/sdk/issues/52027
 
+#### `dart:js_interop`
+
+- **Object literal constructors**:
+  `ObjectLiteral` is removed from `dart:js_interop`. It's no longer needed in
+  order to declare an object literal constructor with inline classes. As long as
+  an external constructor has at least one named parameter, it'll be treated as
+  an object literal constructor. If you want to create an object literal with no
+  named members, use `{}.jsify()`.
+
 ### Other libraries
 
 #### `package:js`

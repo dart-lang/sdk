@@ -120,18 +120,6 @@ bool isStaticInteropType(Class namedClass) {
 bool isUndefinedAnnotation(Expression value) =>
     isBuiltinAnnotation(value, '_js_helper', '_Undefined');
 
-bool isObjectLiteralAnnotation(Expression value) {
-  final c = getAnnotationClass(value);
-  return c != null &&
-      c.name == 'ObjectLiteral' &&
-      _isLibrary(c.enclosingLibrary, ['dart:js_interop']);
-}
-
-/// Returns whether [a] is annotated with the `@ObjectLiteral(...)` annotation
-/// from `dart:js_interop`.
-bool hasObjectLiteralAnnotation(Annotatable a) =>
-    a.annotations.any(isObjectLiteralAnnotation);
-
 /// Returns true iff the class has an `@JS(...)` annotation from
 /// `package:js`, `dart:_js_annotations`, or `dart:js_interop`.
 ///
