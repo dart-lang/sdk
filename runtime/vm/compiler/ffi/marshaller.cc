@@ -12,6 +12,7 @@
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
 #include "vm/exceptions.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/raw_object.h"
@@ -637,13 +638,11 @@ class CallbackArgumentTranslator : public ValueObject {
       // shadow space if present (factored into
       // kCallbackSlotsBeforeSavedArguments).
       //
-      // Finally, if we are using NativeCallbackTrampolines, factor in the extra
-      // stack space corresponding to those trampolines' frames (above the entry
-      // frame).
-      intptr_t stack_delta = kCallbackSlotsBeforeSavedArguments;
-      if (NativeCallbackTrampolines::Enabled()) {
-        stack_delta += StubCodeCompiler::kNativeCallbackTrampolineStackDelta;
-      }
+      // Finally, for NativeCallbackTrampolines, factor in the extra stack space
+      // corresponding to those trampolines' frames (above the entry frame).
+      const intptr_t stack_delta =
+          kCallbackSlotsBeforeSavedArguments +
+          FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta;
       FrameRebase rebase(
           zone,
           /*old_base=*/SPREG, /*new_base=*/SPREG,

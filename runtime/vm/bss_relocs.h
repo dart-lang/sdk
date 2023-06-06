@@ -17,16 +17,18 @@ class BSS : public AllStatic {
   // stored at the index.
   enum class Relocation : intptr_t {
     InstructionsRelocatedAddress,
-    // End of shared entries.
-    DRT_GetThreadForNativeCallback,
-    // End of isolate-only entries.
+    DRT_GetFfiCallbackMetadata,  // TODO(52579): Remove.
+    EndOfVmEntries,
+
+    // We don't have any isolate group specific entries at the moment.
+    EndOfIsolateGroupEntries = EndOfVmEntries,
   };
 
   static constexpr intptr_t kVmEntryCount =
-      static_cast<intptr_t>(Relocation::InstructionsRelocatedAddress) + 1;
+      static_cast<intptr_t>(Relocation::EndOfVmEntries);
 
-  static constexpr intptr_t kIsolateEntryCount =
-      static_cast<intptr_t>(Relocation::DRT_GetThreadForNativeCallback) + 1;
+  static constexpr intptr_t kIsolateGroupEntryCount =
+      static_cast<intptr_t>(Relocation::EndOfIsolateGroupEntries);
 
   static constexpr intptr_t RelocationIndex(Relocation reloc) {
     return static_cast<intptr_t>(reloc);

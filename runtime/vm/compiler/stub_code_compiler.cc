@@ -13,6 +13,7 @@
 
 #include "vm/compiler/stub_code_compiler.h"
 
+#include "vm/code_descriptors.h"
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
@@ -2543,6 +2544,17 @@ void StubCodeCompiler::GenerateCloneSuspendStateStub() {
   __ PopRegister(CallingConventions::kReturnReg);  // Get result.
   __ LeaveStubFrame();
   __ Ret();
+}
+
+void StubCodeCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
+  ASSERT(pc_descriptors_list_ != nullptr);
+  const intptr_t pc_offset = assembler->InsertAlignedRelocation(reloc);
+  pc_descriptors_list_->AddDescriptor(
+      UntaggedPcDescriptors::kBSSRelocation, pc_offset,
+      /*deopt_id=*/DeoptId::kNone,
+      /*root_pos=*/TokenPosition::kNoSource,
+      /*try_index=*/-1,
+      /*yield_index=*/UntaggedPcDescriptors::kInvalidYieldIndex);
 }
 
 }  // namespace compiler
