@@ -89,4 +89,41 @@ VM_UNIT_TEST_CASE(FreeVirtualMemory) {
   }
 }
 
+#if !defined(DART_TARGET_OS_FUCHSIA)
+// TODO(https://dartbug.com/52579): Reenable on Fuchsia.
+
+static int testFunction(int x) {
+  return x * 2;
+}
+
+NO_SANITIZE_UNDEFINED("function")  // See https://dartbug.com/52440
+VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
+  const uword page_size = VirtualMemory::PageSize();
+  const uword pointer = reinterpret_cast<uword>(&testFunction);
+  const uword page_start = Utils::RoundDown(pointer, page_size);
+  const uword offset = pointer - page_start;
+
+  // Grab 2 * page_size, in case testFunction happens to land near the end of
+  // the page.
+  VirtualMemory* vm = VirtualMemory::ForImagePage(
+      reinterpret_cast<void*>(page_start), 2 * page_size);
+  EXPECT_NE(nullptr, vm);
+
+  VirtualMemory* vm2 = VirtualMemory::AllocateAligned(
+      vm->size(), kPageSize, /*is_executable=*/false,
+      /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
+  bool ok = vm->DuplicateRX(vm2);
+  EXPECT_EQ(true, ok);
+
+  auto testFunction2 = reinterpret_cast<int (*)(int)>(vm2->start() + offset);
+  EXPECT_NE(&testFunction, testFunction2);
+
+  EXPECT_EQ(246, testFunction2(123));
+
+  delete vm;
+  delete vm2;
+}
+
+#endif  // !defined(DART_TARGET_OS_FUCHSIA)
+
 }  // namespace dart

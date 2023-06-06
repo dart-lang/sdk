@@ -63,6 +63,17 @@ class VirtualMemory {
                                         bool is_compressed,
                                         const char* name);
 
+  // Duplicates `this` memory into the `target` memory. This is designed to work
+  // on all platforms, including iOS, which doesn't allow creating new
+  // executable memory.
+  //
+  // Assumes
+  //   * `this` has RX protection.
+  //   * `target` has RW protection, and is at least as large as `this`.
+#if !defined(DART_TARGET_OS_FUCHSIA)
+  bool DuplicateRX(VirtualMemory* target);
+#endif  // !defined(DART_TARGET_OS_FUCHSIA)
+
   // Returns the cached page size. Use only if Init() has been called.
   static intptr_t PageSize() {
     ASSERT(page_size_ != 0);
