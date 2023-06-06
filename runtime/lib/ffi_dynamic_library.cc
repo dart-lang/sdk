@@ -255,6 +255,9 @@ static void ReplaceBackSlashes(char* cstr) {
 }
 #endif
 
+const char* file_schema = "file://";
+const int file_schema_length = 7;
+
 // Get a file path with only forward slashes from the script path.
 static StringPtr GetPlatformScriptPath(Thread* thread) {
   IsolateGroupSource* const source = thread->isolate_group()->source();
@@ -262,10 +265,13 @@ static StringPtr GetPlatformScriptPath(Thread* thread) {
 #if defined(DART_TARGET_OS_WINDOWS)
   // Isolate.spawnUri sets a `source` including the file schema.
   // And on Windows we get an extra forward slash in that case.
+  const char* file_schema_slash = "file:///";
+  const int file_schema_slash_length = 8;
   const char* path = source->script_uri;
-  if (strlen(source->script_uri) > 8 &&
-      strncmp(source->script_uri, "file:///", 8) == 0) {
-    path = (source->script_uri + 8);
+  if (strlen(source->script_uri) > file_schema_slash_length &&
+      strncmp(source->script_uri, file_schema_slash,
+              file_schema_slash_length) == 0) {
+    path = (source->script_uri + file_schema_slash_length);
   }
 
   // Replace backward slashes with forward slashes.
@@ -278,9 +284,9 @@ static StringPtr GetPlatformScriptPath(Thread* thread) {
   return result.ptr();
 #else
   // Isolate.spawnUri sets a `source` including the file schema.
-  if (strlen(source->script_uri) > 7 &&
-      strncmp(source->script_uri, "file://", 7) == 0) {
-    const char* path = (source->script_uri + 7);
+  if (strlen(source->script_uri) > file_schema_length &&
+      strncmp(source->script_uri, file_schema, file_schema_length) == 0) {
+    const char* path = (source->script_uri + file_schema_length);
     return String::New(path);
   }
   return String::New(source->script_uri);
@@ -329,22 +335,26 @@ static void* FfiResolveAsset(Thread* const thread,
   if (asset_type.Equals(Symbols::absolute())) {
     handle = LoadDynamicLibrary(path.ToCString(), error);
   } else if (asset_type.Equals(Symbols::relative())) {
-    const auto& platform_script_path =
-        String::Handle(zone, GetPlatformScriptPath(thread));
+    const auto& platform_script_uri = String::Handle(
+        zone,
+        String::NewFormatted(
+            "%s%s", file_schema,
+            String::Handle(zone, GetPlatformScriptPath(thread)).ToCString()));
     const char* target_uri = nullptr;
     char* path_cstr = path.ToMallocCString();
 #if defined(DART_TARGET_OS_WINDOWS)
     ReplaceBackSlashes(path_cstr);
 #endif
     const bool resolved =
-        ResolveUri(path_cstr, platform_script_path.ToCString(), &target_uri);
+        ResolveUri(path_cstr, platform_script_uri.ToCString(), &target_uri);
     free(path_cstr);
     if (!resolved) {
       *error = OS::SCreate(/*use malloc*/ nullptr,
                            "Failed to resolve '%s' relative to '%s'.",
-                           path.ToCString(), platform_script_path.ToCString());
+                           path.ToCString(), platform_script_uri.ToCString());
     } else {
-      handle = LoadDynamicLibrary(target_uri, error);
+      const char* target_path = target_uri + file_schema_length;
+      handle = LoadDynamicLibrary(target_path, error);
     }
   } else if (asset_type.Equals(Symbols::system())) {
     handle = LoadDynamicLibrary(path.ToCString(), error);
