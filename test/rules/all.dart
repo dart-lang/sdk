@@ -103,6 +103,8 @@ import 'prefer_final_locals_test.dart' as prefer_final_locals;
 import 'prefer_final_parameters_test.dart' as prefer_final_parameters;
 import 'prefer_generic_function_type_aliases_test.dart'
     as prefer_generic_function_type_aliases;
+import 'prefer_interpolation_to_compose_strings_test.dart'
+    as prefer_interpolation_to_compose_strings;
 import 'prefer_mixin_test.dart' as prefer_mixin;
 import 'prefer_relative_imports_test.dart' as prefer_relative_imports;
 import 'prefer_spread_collections_test.dart' as prefer_spread_collections;
@@ -226,6 +228,7 @@ void main() {
   prefer_final_locals.main();
   prefer_final_parameters.main();
   prefer_generic_function_type_aliases.main();
+  prefer_interpolation_to_compose_strings.main();
   prefer_mixin.main();
   prefer_relative_imports.main();
   prefer_spread_collections.main();

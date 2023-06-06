@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../ast.dart';
 
 const _desc = r'Use interpolation to compose strings and values.';
 
@@ -91,6 +92,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       // OK: `'foo' + 'bar'`
       if (leftOperand is StringLiteral && rightOperand is StringLiteral) {
+        return;
+      }
+      // OK(https://github.com/dart-lang/sdk/issues/52610):
+      // `a.toString(x: 0) + 'foo'`
+      // `'foo' + a.toString(x: 0)`
+      if (leftOperand.isToStringInvocationWithArguments ||
+          rightOperand.isToStringInvocationWithArguments) {
         return;
       }
       if (leftOperand.staticType?.isDartCoreString ?? false) {

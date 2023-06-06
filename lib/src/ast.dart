@@ -445,6 +445,15 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
   }
 }
 
+extension AstNodeExtension on AstNode {
+  bool get isToStringInvocationWithArguments {
+    var self = this;
+    return self is MethodInvocation &&
+        self.methodName.name == 'toString' &&
+        self.argumentList.arguments.isNotEmpty;
+  }
+}
+
 extension ElementExtension on Element? {
   // TODO(srawlins): Move to extensions.dart.
   bool get isDartCorePrint {
