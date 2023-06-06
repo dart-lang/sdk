@@ -126,6 +126,9 @@ class Rti {
     rti._precomputed1 = precomputed;
   }
 
+  static Rti _unstar(Rti rti) =>
+      _getKind(rti) == kindStar ? _getStarArgument(rti) : rti;
+
   static Rti _getQuestionFromStar(Object? universe, Rti rti) {
     assert(_getKind(rti) == kindStar);
     Rti? question = _Utils.asRtiOrNull(_getPrecomputed1(rti));
@@ -1086,9 +1089,7 @@ bool _installSpecializedIsTest(Object? object) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isNever));
   }
 
-  Rti unstarred = Rti._getKind(testRti) == Rti.kindStar
-      ? Rti._getStarArgument(testRti)
-      : testRti;
+  Rti unstarred = Rti._unstar(testRti);
 
   if (Rti._getKind(unstarred) == Rti.kindFutureOr) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isFutureOr));
@@ -1347,8 +1348,10 @@ class _TypeError extends _Error implements TypeError {
 /// Called from generated code via Rti `_is` method.
 bool _isFutureOr(Object? object) {
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  return Rti._isCheck(Rti._getFutureOrArgument(testRti), object) ||
-      Rti._isCheck(Rti._getFutureFromFutureOr(_theUniverse(), testRti), object);
+  Rti unstarred = Rti._unstar(testRti);
+  return Rti._isCheck(Rti._getFutureOrArgument(unstarred), object) ||
+      Rti._isCheck(
+          Rti._getFutureFromFutureOr(_theUniverse(), unstarred), object);
 }
 
 /// Specialization for 'is Object'.
