@@ -452,7 +452,8 @@ transforms:
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as ChangeParameterType;
-    expect(modification.name, 'p');
+    var reference = modification.reference as NamedParameterReference;
+    expect(reference.name, 'p');
     var components = modification.argumentValue!.components;
     expect(components, hasLength(1));
     var value = (components[0] as TemplateText).text;
@@ -525,7 +526,8 @@ transforms:
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as ChangeParameterType;
-    expect(modification.index, 0);
+    var reference = modification.reference as PositionalParameterReference;
+    expect(reference.index, 0);
     var components = modification.argumentValue!.components;
     expect(components, hasLength(1));
     var value = (components[0] as TemplateText).text;

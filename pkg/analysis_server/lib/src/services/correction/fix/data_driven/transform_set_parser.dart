@@ -20,7 +20,6 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
-import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:collection/collection.dart';
@@ -525,32 +524,34 @@ class TransformSetParser {
       _nullabilityKey
     });
 
-    var parameterSpecKey = _singleKey(
+    var reference = _singleKey(
       map: node,
       translators: {
         const {_indexKey}: (key, value) {
-          return _translateInteger(
+          final index = _translateInteger(
             value,
             ErrorContext(key: _indexKey, parentNode: node),
           );
+          if (index != null) {
+            return PositionalParameterReference(index);
+          }
         },
         const {_nameKey}: (key, value) {
-          return _translateString(
+          final name = _translateString(
             value,
             ErrorContext(key: _nameKey, parentNode: node),
           );
+          if (name != null) {
+            return NamedParameterReference(name);
+          }
         },
       },
       errorNode: node,
     );
-    if (parameterSpecKey == null) {
+    if (reference == null) {
       // The error has already been reported.
       return;
     }
-
-    // TODO(scheglov) Create location object instead.
-    int? index = parameterSpecKey.ifTypeOrNull();
-    String? name = parameterSpecKey.ifTypeOrNull();
 
     var nullabilityNode = node.valueAt(_nullabilityKey);
     var nullability = _translateString(
@@ -570,9 +571,13 @@ class TransformSetParser {
     var argumentValue = _translateCodeTemplate(argumentValueNode,
         ErrorContext(key: _argumentValueKey, parentNode: node),
         canBeConditionallyRequired: false);
-    _parameterModifications ??= [];
-    _parameterModifications!
-        .add(ChangeParameterType(name, index, nullability, argumentValue));
+    (_parameterModifications ??= []).add(
+      ChangeParameterType(
+        reference: reference,
+        nullability: nullability,
+        argumentValue: argumentValue,
+      ),
+    );
   }
 
   /// Translate the [node] into a value generator. Return the resulting
