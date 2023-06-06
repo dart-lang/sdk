@@ -152,6 +152,12 @@ static void RelocateCodeObjects(
 
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
+DART_FORCE_INLINE
+ObjectPtr Deserializer::Allocate(intptr_t size) {
+  return UntaggedObject::FromAddr(
+      old_space_->AllocateSnapshotLocked(freelist_, size));
+}
+
 void Deserializer::InitializeHeader(ObjectPtr raw,
                                     intptr_t class_id,
                                     intptr_t size,
@@ -210,10 +216,9 @@ DART_NOINLINE
 void DeserializationCluster::ReadAllocFixedSize(Deserializer* d,
                                                 intptr_t instance_size) {
   start_index_ = d->next_index();
-  PageSpace* old_space = d->heap()->old_space();
   intptr_t count = d->ReadUnsigned();
   for (intptr_t i = 0; i < count; i++) {
-    d->AssignRef(old_space->AllocateSnapshot(instance_size));
+    d->AssignRef(d->Allocate(instance_size));
   }
   stop_index_ = d->next_index();
 }
@@ -372,7 +377,6 @@ class ClassDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     predefined_start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     intptr_t count = d->ReadUnsigned();
     ClassTable* table = d->isolate_group()->class_table();
     for (intptr_t i = 0; i < count; i++) {
@@ -387,7 +391,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
     start_index_ = d->next_index();
     count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(old_space->AllocateSnapshot(Class::InstanceSize()));
+      d->AssignRef(d->Allocate(Class::InstanceSize()));
     }
     stop_index_ = d->next_index();
   }
@@ -696,8 +700,8 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
                                                     intptr_t length,
                                                     intptr_t count) {
     const intptr_t instance_size = SetType::ArrayHandle::InstanceSize(length);
-    typename SetType::ArrayPtr table = static_cast<typename SetType::ArrayPtr>(
-        d->heap()->old_space()->AllocateSnapshot(instance_size));
+    typename SetType::ArrayPtr table =
+        static_cast<typename SetType::ArrayPtr>(d->Allocate(instance_size));
     Deserializer::InitializeHeader(table, SetType::Storage::ArrayCid,
                                    instance_size);
     InitTypeArgsOrNext(table);
@@ -853,12 +857,10 @@ class TypeArgumentsDeserializationCluster
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(
-          old_space->AllocateSnapshot(TypeArguments::InstanceSize(length)));
+      d->AssignRef(d->Allocate(TypeArguments::InstanceSize(length)));
     }
     stop_index_ = d->next_index();
     BuildCanonicalSetFromLayout(d);
@@ -2297,28 +2299,26 @@ class CodeDeserializationCluster : public DeserializationCluster {
   ~CodeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
-    PageSpace* old_space = d->heap()->old_space();
     start_index_ = d->next_index();
     d->set_code_start_index(start_index_);
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      ReadAllocOneCode(d, old_space);
+      ReadAllocOneCode(d);
     }
     stop_index_ = d->next_index();
     d->set_code_stop_index(stop_index_);
     deferred_start_index_ = d->next_index();
     const intptr_t deferred_count = d->ReadUnsigned();
     for (intptr_t i = 0; i < deferred_count; i++) {
-      ReadAllocOneCode(d, old_space);
+      ReadAllocOneCode(d);
     }
     deferred_stop_index_ = d->next_index();
   }
 
-  void ReadAllocOneCode(Deserializer* d, PageSpace* old_space) {
+  void ReadAllocOneCode(Deserializer* d) {
     const int32_t state_bits = d->Read<int32_t>();
     ASSERT(!Code::DiscardedBit::decode(state_bits));
-    auto code = static_cast<CodePtr>(
-        old_space->AllocateSnapshot(Code::InstanceSize(0)));
+    auto code = static_cast<CodePtr>(d->Allocate(Code::InstanceSize(0)));
     d->AssignRef(code);
     code->untag()->state_bits_ = state_bits;
   }
@@ -2555,12 +2555,10 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(
-          old_space->AllocateSnapshot(ObjectPool::InstanceSize(length)));
+      d->AssignRef(d->Allocate(ObjectPool::InstanceSize(length)));
     }
     stop_index_ = d->next_index();
   }
@@ -2773,12 +2771,10 @@ class PcDescriptorsDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(
-          old_space->AllocateSnapshot(PcDescriptors::InstanceSize(length)));
+      d->AssignRef(d->Allocate(PcDescriptors::InstanceSize(length)));
     }
     stop_index_ = d->next_index();
   }
@@ -2850,12 +2846,10 @@ class CodeSourceMapDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(
-          old_space->AllocateSnapshot(CodeSourceMap::InstanceSize(length)));
+      d->AssignRef(d->Allocate(CodeSourceMap::InstanceSize(length)));
     }
     stop_index_ = d->next_index();
   }
@@ -2930,12 +2924,10 @@ class CompressedStackMapsDeserializationCluster
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(old_space->AllocateSnapshot(
-          CompressedStackMaps::InstanceSize(length)));
+      d->AssignRef(d->Allocate(CompressedStackMaps::InstanceSize(length)));
     }
     stop_index_ = d->next_index();
   }
@@ -3147,12 +3139,10 @@ class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(
-          old_space->AllocateSnapshot(ExceptionHandlers::InstanceSize(length)));
+      d->AssignRef(d->Allocate(ExceptionHandlers::InstanceSize(length)));
     }
     stop_index_ = d->next_index();
   }
@@ -3241,11 +3231,10 @@ class ContextDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(old_space->AllocateSnapshot(Context::InstanceSize(length)));
+      d->AssignRef(d->Allocate(Context::InstanceSize(length)));
     }
     stop_index_ = d->next_index();
   }
@@ -3322,12 +3311,10 @@ class ContextScopeDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(
-          old_space->AllocateSnapshot(ContextScope::InstanceSize(length)));
+      d->AssignRef(d->Allocate(ContextScope::InstanceSize(length)));
     }
     stop_index_ = d->next_index();
   }
@@ -3937,14 +3924,13 @@ class InstanceDeserializationCluster
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     next_field_offset_in_words_ = d->Read<int32_t>();
     instance_size_in_words_ = d->Read<int32_t>();
     intptr_t instance_size = Object::RoundedAllocationSize(
         instance_size_in_words_ * kCompressedWordSize);
     for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(old_space->AllocateSnapshot(instance_size));
+      d->AssignRef(d->Allocate(instance_size));
     }
     stop_index_ = d->next_index();
   }
@@ -4687,8 +4673,6 @@ class MintDeserializationCluster
   ~MintDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
-    PageSpace* old_space = d->heap()->old_space();
-
     start_index_ = d->next_index();
     const intptr_t count = d->ReadUnsigned();
     const bool mark_canonical = is_canonical();
@@ -4697,8 +4681,7 @@ class MintDeserializationCluster
       if (Smi::IsValid(value)) {
         d->AssignRef(Smi::New(value));
       } else {
-        MintPtr mint = static_cast<MintPtr>(
-            old_space->AllocateSnapshot(Mint::InstanceSize()));
+        MintPtr mint = static_cast<MintPtr>(d->Allocate(Mint::InstanceSize()));
         Deserializer::InitializeHeader(mint, kMintCid, Mint::InstanceSize(),
                                        mark_canonical);
         mint->untag()->value_ = value;
@@ -4893,12 +4876,10 @@ class RecordDeserializationCluster
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t num_fields = d->ReadUnsigned();
-      d->AssignRef(
-          old_space->AllocateSnapshot(Record::InstanceSize(num_fields)));
+      d->AssignRef(d->Allocate(Record::InstanceSize(num_fields)));
     }
     stop_index_ = d->next_index();
   }
@@ -4975,13 +4956,11 @@ class TypedDataDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     intptr_t element_size = TypedData::ElementSizeInBytes(cid_);
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(old_space->AllocateSnapshot(
-          TypedData::InstanceSize(length * element_size)));
+      d->AssignRef(d->Allocate(TypedData::InstanceSize(length * element_size)));
     }
     stop_index_ = d->next_index();
   }
@@ -5232,12 +5211,10 @@ class DeltaEncodedTypedDataDeserializationCluster
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length_in_bytes = d->ReadUnsigned();
-      d->AssignRef(old_space->AllocateSnapshot(
-          TypedData::InstanceSize(length_in_bytes)));
+      d->AssignRef(d->Allocate(TypedData::InstanceSize(length_in_bytes)));
     }
     stop_index_ = d->next_index();
   }
@@ -5739,11 +5716,10 @@ class ArrayDeserializationCluster
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(old_space->AllocateSnapshot(Array::InstanceSize(length)));
+      d->AssignRef(d->Allocate(Array::InstanceSize(length)));
     }
     stop_index_ = d->next_index();
   }
@@ -5830,12 +5806,10 @@ class WeakArrayDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(
-          old_space->AllocateSnapshot(WeakArray::InstanceSize(length)));
+      d->AssignRef(d->Allocate(WeakArray::InstanceSize(length)));
     }
     stop_index_ = d->next_index();
   }
@@ -5949,13 +5923,12 @@ class StringDeserializationCluster
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t encoded = d->ReadUnsigned();
       intptr_t cid = 0;
       const intptr_t length = DecodeLengthAndCid(encoded, &cid);
-      d->AssignRef(old_space->AllocateSnapshot(InstanceSize(length, cid)));
+      d->AssignRef(d->Allocate(InstanceSize(length, cid)));
     }
     stop_index_ = d->next_index();
     BuildCanonicalSetFromLayout(d);
@@ -8184,6 +8157,8 @@ Deserializer::Deserializer(Thread* thread,
                            intptr_t offset)
     : ThreadStackResource(thread),
       heap_(thread->isolate_group()->heap()),
+      old_space_(heap_->old_space()),
+      freelist_(old_space_->DataFreeList()),
       zone_(thread->zone()),
       kind_(kind),
       stream_(buffer, size),

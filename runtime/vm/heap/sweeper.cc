@@ -42,6 +42,8 @@ bool GCSweeper::SweepPage(Page* page, FreeList* freelist) {
       // Found marked object. Clear the mark bit and update swept bytes.
       raw_obj->untag()->ClearMarkBit();
       used_in_bytes += obj_size;
+      // Large objects should never appear on regular pages.
+      ASSERT(IsAllocatableViaFreeLists(obj_size) || page->is_large());
     } else {
       uword free_end = current + obj_size;
       while (free_end < end) {

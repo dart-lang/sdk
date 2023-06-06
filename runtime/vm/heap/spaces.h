@@ -51,6 +51,16 @@ enum class GCReason {
   kCatchUp,      // End of ForceGrowthScope or Dart_PerformanceMode_Latency.
 };
 
+static constexpr intptr_t kNewAllocatableSize = 256 * KB;
+static constexpr intptr_t kAllocatablePageSize = 64 * KB;
+
+inline bool IsAllocatableInNewSpace(intptr_t size) {
+  return size <= kNewAllocatableSize;
+}
+inline bool IsAllocatableViaFreeLists(intptr_t size) {
+  return size < kAllocatablePageSize;
+}
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_HEAP_SPACES_H_

@@ -3941,14 +3941,16 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   if (p != nullptr) *p = position;
 
   const uint8_t flags = ReadFlags();  // read flags.
+  const bool is_unchecked_cast = (flags & kAsExpressionFlagUnchecked) != 0;
   const bool is_type_error = (flags & kAsExpressionFlagTypeError) != 0;
 
   Fragment instructions = BuildExpression();  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
-  if (type.IsInstantiated() && type.IsTopTypeForSubtyping()) {
+  if (is_unchecked_cast ||
+      (type.IsInstantiated() && type.IsTopTypeForSubtyping())) {
     // We already evaluated the operand on the left and just leave it there as
-    // the result of the `obj as dynamic` expression.
+    // the result of unchecked cast or `obj as dynamic` expression.
   } else {
     // We do not care whether the 'as' cast as implicitly added by the frontend
     // or explicitly written by the user, in both cases we use an assert
