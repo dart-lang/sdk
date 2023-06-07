@@ -74,9 +74,10 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _libraryHasDartJSInteropAnnotation = false;
   bool _libraryHasJSAnnotation = false;
   bool _libraryIsGlobalNamespace = false;
-  // TODO(joshualitt): Remove allow list and deprecate non-strict mode on
-  // Dart2Wasm.
-  bool _nonStrictModeIsAllowed = false;
+
+  // TODO(joshualitt): Today strict mode is just for testing, but we should find
+  // a way to expose this to users who want strict mode guarantees.
+  bool _enforceStrictMode = false;
 
   /// If [enableStrictMode] is true, then static interop methods must use JS
   /// types.
@@ -107,7 +108,7 @@ class JsInteropChecks extends RecursiveVisitor {
     'js_interop_unsafe',
   ];
 
-  /// Libraries that cannot be used when [_nonStrictModeIsAllowed] is false.
+  /// Libraries that cannot be used when [_enforceStrictMode] is true.
   static const _disallowedLibrariesInStrictMode = [
     'package:js/js.dart',
     'package:js/js_util.dart',
@@ -290,9 +291,9 @@ class JsInteropChecks extends RecursiveVisitor {
     _libraryHasJSAnnotation =
         _libraryHasDartJSInteropAnnotation || hasJSInteropAnnotation(node);
     _libraryIsGlobalNamespace = _isLibraryGlobalNamespace(node);
-    _nonStrictModeIsAllowed = _canLibraryUseNonStrictMode(node);
+    _enforceStrictMode = _shouldEnforceStrictMode(node);
 
-    if (!_nonStrictModeIsAllowed && !node.importUri.isScheme('dart')) {
+    if (_enforceStrictMode && !node.importUri.isScheme('dart')) {
       _checkDisallowedLibrariesInStrictMode(node);
     }
 
@@ -511,26 +512,11 @@ class JsInteropChecks extends RecursiveVisitor {
 
   // JS interop library checks
 
-  /// Determine if [node] is part of an allowlist that can opt out of strict
-  /// mode.
-  ///
-  /// This is currently needed to allow some targets to work on dart2wasm.
-  bool _canLibraryUseNonStrictMode(Library node) {
-    // Allow only Flutter and package:test to opt out.
-    final isSDKLibrary = node.importUri.isScheme('dart');
-    final importUriString = node.importUri.toString();
-    return !enableStrictMode ||
-        isSDKLibrary ||
-        importUriString.startsWith('package:ui') ||
-        importUriString.startsWith('package:js') ||
-        importUriString.startsWith('package:flutter') ||
-        importUriString.startsWith('package:flute') ||
-        importUriString.startsWith('package:engine') ||
-        importUriString.startsWith('package:test') ||
-        importUriString.contains('/test/') ||
-        (node.fileUri.toString().contains(RegExp(r'(?<!generated_)tests/')) &&
-            !node.fileUri.toString().contains(RegExp(
-                r'(?<!generated_)tests/lib/js/static_interop_test/strict_mode_test.dart')));
+  /// Determine if [node] enforces strict mode checking. This is currently only
+  /// enabled for testing.
+  bool _shouldEnforceStrictMode(Library node) {
+    return node.fileUri.toString().contains(RegExp(
+        r'(?<!generated_)tests/lib/js/static_interop_test/strict_mode_test.dart'));
   }
 
   void _checkDisallowedLibrariesInStrictMode(Library node) {
@@ -921,11 +907,13 @@ class JsInteropChecks extends RecursiveVisitor {
     // said, for completeness, we may restrict these two types someday, and
     // provide JS types equivalents, but likely only if we have implicit
     // conversions between Dart types and JS types.
-    if (!(_nonStrictModeIsAllowed ||
-        type is VoidType ||
-        type is NullType ||
-        (type is InterfaceType && hasStaticInteropAnnotation(type.classNode)) ||
-        (type is InlineType && hasDartJSInteropAnnotation(type.inlineClass)))) {
+    if (_enforceStrictMode &&
+        !(type is VoidType ||
+            type is NullType ||
+            (type is InterfaceType &&
+                hasStaticInteropAnnotation(type.classNode)) ||
+            (type is InlineType &&
+                hasDartJSInteropAnnotation(type.inlineClass)))) {
       _reporter.report(
           templateJsInteropStrictModeViolation.withArguments(type, true),
           node.fileOffset,
