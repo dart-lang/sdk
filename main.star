@@ -16,7 +16,6 @@ load("//lib/cron.star", "cron")
 load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
-    "bionic",
     "experimental",
     "focal",
     "js_engines",
@@ -148,20 +147,11 @@ dart.ci_sandbox_builder("gclient", recipe = "dart/gclient", category = "misc|g")
 
 # Builders that test the dev Linux images. When the image autoroller detects
 # successful builds of these builders with a dev images, that dev image becomes
-# the new prod image. Newly created bots will than use the updated image. The
-# `vm-ffi-qemu-linux-release-arm` and the `pkg-linux-release`
-# are used because qemu is the main difference on focal, they don't trigger
-# shards and run a few different builds. See also https://crbug.com/1207358.
+# the new prod image. Newly created bots will than use the updated image.
 cron.image_builder(
     "vm-ffi-qemu-linux-release-arm-experimental",
     channels = [],
     dimensions = [experimental, focal],
-    notifies = "infra",
-)
-cron.image_builder(
-    "pkg-linux-release-experimental",
-    channels = [],
-    dimensions = [experimental, bionic],
     notifies = "infra",
 )
 

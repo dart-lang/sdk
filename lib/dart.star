@@ -8,7 +8,6 @@ Defines rules that can be used to define dart builders.
 load("//lib/accounts.star", "accounts")
 load(
     "//lib/defaults.star",
-    "bionic",
     "defaults",
     "focal",
     "linux",
@@ -75,7 +74,7 @@ def _with_goma(goma, dimensions, properties):
         goma_properties = {}
         goma_properties.update(_GOMA_RBE)
 
-        enable_ats = dimensions["os"] in (bionic["os"], focal["os"], linux["os"])
+        enable_ats = dimensions["os"] in (focal["os"], linux["os"])
 
         goma_properties["enable_ats"] = enable_ats
         updated_properties.setdefault("$build/goma", goma_properties)
@@ -216,7 +215,7 @@ def _builder(
             fail("builder %s should be a %s builder but was %s" % (name, expected_os, os))
 
     expect_os("-win", [windows["os"], windows11["os"]])
-    expect_os("-linux", [linux["os"], bionic["os"], focal["os"]])
+    expect_os("-linux", [linux["os"], focal["os"]])
     expect_os("-mac", mac["os"])
 
     cq_branches = ["main"] + [branch for branch in channels if branch != "try"]

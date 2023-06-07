@@ -24,7 +24,6 @@ _SLOW_SHARDS = {"shard_timeout": (90 * time.minute) // time.second}
 
 _ARM64 = {"cpu": "arm64"}
 _MAC = {"os": "Mac"}
-_BIONIC = {"os": "Ubuntu-18"}
 _FOCAL = {"os": "Ubuntu-20"}
 _WINDOWS10 = {"os": "Windows-10"}
 _WINDOWS11 = {"os": "Windows-11"}
@@ -71,7 +70,6 @@ defaults = struct(
 
 arm64 = _ARM64
 experimental = _EXPERIMENTAL
-bionic = _BIONIC
 focal = _FOCAL
 linux = _FOCAL
 mac = _MAC
