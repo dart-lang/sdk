@@ -121,6 +121,11 @@ bool SocketBase::AvailableDatagram(intptr_t fd,
   return client_socket->DataReady();
 }
 
+bool SocketBase::HasPendingWrite(intptr_t fd) {
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  return handle->HasPendingWrite();
+}
+
 intptr_t SocketBase::Write(intptr_t fd,
                            const void* buffer,
                            intptr_t num_bytes,

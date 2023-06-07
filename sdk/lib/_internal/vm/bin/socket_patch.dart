@@ -1183,6 +1183,20 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
 
   static int _fixOffset(int? offset) => offset ?? 0;
 
+  // This code issues a native write operation.
+  //
+  // On POSIX systems the data will be written using `write` syscall.
+  // When `write` returns a positive value this means that this number
+  // of bytes have been transferred from [buffer] into the OS buffer.
+  // At this point if the underlying descriptor is closed the OS will
+  // still attempt to deliver already written bytes to the destination.
+  //
+  // On Windows we use overlapped IO instead: `write` returning a positive
+  // value simply means that we have initiated an asynchronous IO operation
+  // for this many bytes. Closing the underlying handle will simply cancel the
+  // operation midway. Consequently you can only assume that bytes left userland
+  // when asynchronous write operation completes and this socket receives
+  // a [writeEvent].
   int write(List<int> buffer, int offset, int? bytes) {
     // TODO(40614): Remove once non-nullability is sound.
     offset = _fixOffset(offset);
@@ -1213,7 +1227,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       // The result may be negative, if we forced a short write for testing
       // purpose. In such case, don't mark writeAvailable as false, as we don't
       // know if we'll receive an event. It's better to just retry.
-      if (result >= 0 && result < bytes) {
+      if ((result >= 0 && result < bytes) || hasPendingWrite()) {
         writeAvailable = false;
       }
       // Negate the result, as stated above.
@@ -1420,7 +1434,15 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
             }
             break;
           case writeEvent:
-            writeAvailable = true;
+            // On Windows there are two sources of write events: when pending
+            // write completes and when we subscribe to write events via
+            // setEventMaskCommand. Furthermore we don't always wait for a
+            // write event to issue a write. This means when event triggered by
+            // setEventMaskCommand arrives we might have already initiated a
+            // write. This means we should check [hasPendingWrite] here to
+            // be absolutely certain that the pending write operation has
+            // completed.
+            writeAvailable = !hasPendingWrite();
             issueWriteEvent(delayed: false);
             continue;
           case errorEvent:
@@ -1690,6 +1712,10 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
         interfaceAddr?._in_addr, interfaceIndex);
   }
 
+  bool hasPendingWrite() {
+    return Platform.isWindows && nativeHasPendingWrite();
+  }
+
   @pragma("vm:external-name", "Socket_SetSocketId")
   external void nativeSetSocketId(int id, int typeFlags);
   @pragma("vm:external-name", "Socket_Available")
@@ -1704,6 +1730,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   external List<dynamic> nativeReceiveMessage(int len);
   @pragma("vm:external-name", "Socket_WriteList")
   external int nativeWrite(List<int> buffer, int offset, int bytes);
+  @pragma("vm:external-name", "Socket_HasPendingWrite")
+  external bool nativeHasPendingWrite();
   @pragma("vm:external-name", "Socket_SendTo")
   external int nativeSendTo(
       List<int> buffer, int offset, int bytes, Uint8List address, int port);
@@ -1962,6 +1990,7 @@ class _RawSocket extends Stream<RawSocketEvent>
     return _socket.readMessage(count);
   }
 
+  /// See [_NativeSocket.write] for some implementation notes.
   int write(List<int> buffer, [int offset = 0, int? count]) =>
       _socket.write(buffer, offset, count);
 
@@ -2129,6 +2158,9 @@ class _SocketStreamConsumer implements StreamConsumer<List<int>> {
         try {
           write();
         } catch (e) {
+          buffer = null;
+          offset = 0;
+
           socket.destroy();
           stop();
           done(e);
@@ -2137,6 +2169,10 @@ class _SocketStreamConsumer implements StreamConsumer<List<int>> {
         socket.destroy();
         done(error, stackTrace);
       }, onDone: () {
+        // Note: stream only delivers done event if subscription is not paused.
+        // so it is crucial to keep subscription paused while writes are
+        // in flight.
+        assert(buffer == null);
         done();
       }, cancelOnError: true);
     }
@@ -2148,19 +2184,40 @@ class _SocketStreamConsumer implements StreamConsumer<List<int>> {
     return new Future.value(socket);
   }
 
+  bool get _previousWriteHasCompleted {
+    final rawSocket = socket._raw;
+    if (rawSocket is _RawSocket) {
+      return rawSocket._socket.writeAvailable;
+    }
+    assert(rawSocket is _RawSecureSocket);
+    // _RawSecureSocket has an internal buffering mechanism and it is going
+    // to flush its buffer before it shutsdown.
+    return true;
+  }
+
   void write() {
     final sub = subscription;
     if (sub == null) return;
-    // Write as much as possible.
-    offset =
-        offset! + socket._write(buffer!, offset!, buffer!.length - offset!);
+
+    // We have something to write out.
     if (offset! < buffer!.length) {
+      offset =
+          offset! + socket._write(buffer!, offset!, buffer!.length - offset!);
+    }
+
+    if (offset! < buffer!.length || !_previousWriteHasCompleted) {
+      // On Windows we might have written the whole buffer out but we are
+      // still waiting for the write to complete. We should not resume the
+      // subscription until the pending write finishes and we receive a
+      // writeEvent signaling that we can write the next chunk or that we
+      // can consider all data flushed from our side into kernel buffers.
       if (!paused) {
         paused = true;
         sub.pause();
       }
       socket._enableWriteEvent();
     } else {
+      // Write fully completed.
       buffer = null;
       if (paused) {
         paused = false;

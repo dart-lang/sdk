@@ -262,6 +262,10 @@ class SocketBase : public AllStatic {
                              const RawAddr& interface,
                              int interfaceIndex);
 
+#if defined(DART_HOST_OS_WINDOWS)
+  static bool HasPendingWrite(intptr_t fd);
+#endif
+
   // Perform a hostname lookup. Returns a AddressList of SocketAddress's.
   static AddressList<SocketAddress>* LookupAddress(const char* host,
                                                    int type,
