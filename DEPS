@@ -143,7 +143,7 @@ vars = {
   "file_rev": "5d9a6027756b5846e8f5380f983390f61f564a75",
   "fixnum_rev": "d9b9a2a288d5eb467fb1597e80beb063b05cd4f6",
   "glob_rev": "109121d9993c1ef8d078e185160a9d477c82defd",
-  "html_rev": "92eacabadf40aa24c8f4289682ef2822c5d7e414",
+  "html_rev": "b3b820bc36ed17673268360d8b569bdc66c22123",
   "http_rev": "5312366ce3b5dc2abc19f3a649332ad21ad77892",
   "http_multi_server_rev": "a209cd59d99b52ff08b32ba37bdc9fc1a79bc9f2",
   "http_parser_rev": "1ef3e56ebc5e505dbf375f2e27faa40956eb0da1",
