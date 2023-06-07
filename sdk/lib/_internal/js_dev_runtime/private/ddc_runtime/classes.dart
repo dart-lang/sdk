@@ -484,8 +484,10 @@ void _installPropertiesForGlobalObject(jsProto) {
 
 final _extensionMap = JS('', 'new Map()');
 
+/// Adds Dart properties to native JS types.
 void _applyExtension(jsType, dartExtType) {
-  // TODO(vsm): Not all registered js types are real.
+  // Exit early when encountering a JS type without a prototype (such as
+  // structs).
   if (jsType == null) return;
   var jsProto = JS<Object?>('', '#.prototype', jsType);
   if (jsProto == null) return;
@@ -509,7 +511,11 @@ void _applyExtension(jsType, dartExtType) {
   if (JS('!', '# !== #', dartExtType, JS_CLASS_REF(JSFunction))) {
     JS('', '#[#] = #', jsProto, _extensionType, dartExtType);
   }
+
+  // Attach member signature tags.
   JS('', '#[#] = #[#]', jsType, _methodSig, dartExtType, _methodSig);
+  JS('', '#[#] = #[#]', jsType, _methodsDefaultTypeArgSig, dartExtType,
+      _methodsDefaultTypeArgSig);
   JS('', '#[#] = #[#]', jsType, _fieldSig, dartExtType, _fieldSig);
   JS('', '#[#] = #[#]', jsType, _getterSig, dartExtType, _getterSig);
   JS('', '#[#] = #[#]', jsType, _setterSig, dartExtType, _setterSig);
