@@ -1108,7 +1108,7 @@ class CorrectionUtils {
     return null;
   }
 
-  InsertionLocation? prepareEnumNewConstructorLocation(
+  InsertionLocation prepareEnumNewConstructorLocation(
     EnumDeclaration enumDeclaration,
   ) {
     var indent = getIndent(1);
