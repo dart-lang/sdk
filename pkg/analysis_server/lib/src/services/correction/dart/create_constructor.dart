@@ -132,9 +132,6 @@ class CreateConstructor extends CorrectionProducer {
     // prepare location
     var targetLocation = CorrectionUtils(targetUnit)
         .prepareEnumNewConstructorLocation(targetNode);
-    if (targetLocation == null) {
-      return;
-    }
 
     var arguments = parent.arguments;
     _constructorName =

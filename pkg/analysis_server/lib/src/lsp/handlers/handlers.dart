@@ -30,7 +30,7 @@ Iterable<T> convert<T, E>(Iterable<E> items, T? Function(E) converter) {
   return items.map(converter).where((item) => item != null).cast<T>();
 }
 
-abstract class CommandHandler<P, R> with Handler<P, R> {
+abstract class CommandHandler<P, R> with Handler<R>, HandlerHelperMixin {
   @override
   final LspAnalysisServer server;
 
@@ -43,17 +43,27 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
   /// can record a more specific command name.
   bool get recordsOwnAnalytics => false;
 
-  Future<ErrorOr<Object?>> handle(Map<String, Object?> parameters,
-      ProgressReporter progress, CancellationToken cancellationToken);
+  Future<ErrorOr<Object?>> handle(
+    MessageInfo message,
+    Map<String, Object?> parameters,
+    ProgressReporter progress,
+    CancellationToken cancellationToken,
+  );
 }
 
-mixin Handler<P, R> {
-  final fileModifiedError = error<R>(ErrorCodes.ContentModified,
+mixin Handler<T> {
+  // TODO(dantup): Merge this into HandlerHelperMixin by converting to methods
+  //  so T can be inferred.
+  final fileModifiedError = error<T>(ErrorCodes.ContentModified,
       'Document was modified before operation completed', null);
 
-  final serverNotInitializedError = error<R>(ErrorCodes.ServerNotInitialized,
+  final serverNotInitializedError = error<T>(ErrorCodes.ServerNotInitialized,
       'Request not valid before server is initialized');
+}
 
+/// Providers some helpers for request handlers to produce common errors or
+/// obtain resolved results after waiting for in-progress analysis.
+mixin HandlerHelperMixin {
   LspAnalysisServer get server;
 
   ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
@@ -181,7 +191,10 @@ mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MessageHandler<P, R>
-    with Handler<P, R>, RequestHandlerMixin<LspAnalysisServer> {
+    with
+        Handler<R>,
+        HandlerHelperMixin,
+        RequestHandlerMixin<LspAnalysisServer> {
   @override
   final LspAnalysisServer server;
 

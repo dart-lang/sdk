@@ -81,6 +81,6 @@ class ExecuteCommandHandler
       ));
     }
 
-    return handler.handle(commandParams, progress, token);
+    return handler.handle(message, commandParams, progress, token);
   }
 }

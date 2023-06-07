@@ -24,8 +24,12 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
   RefactorCommandHandler(super.server, this.commandName, this.generator);
 
   @override
-  Future<ErrorOr<void>> handle(Map<String, Object?> parameters,
-      ProgressReporter progress, CancellationToken cancellationToken) async {
+  Future<ErrorOr<void>> handle(
+    MessageInfo message,
+    Map<String, Object?> parameters,
+    ProgressReporter progress,
+    CancellationToken cancellationToken,
+  ) async {
     var filePath = parameters['filePath'];
     var offset = parameters['selectionOffset'];
     var length = parameters['selectionLength'];
