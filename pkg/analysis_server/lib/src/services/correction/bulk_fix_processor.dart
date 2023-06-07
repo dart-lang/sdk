@@ -25,8 +25,11 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    show SourceFileEdit;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
@@ -211,12 +214,16 @@ class BulkFixProcessor {
 
   /// Return a change builder that has been used to create fixes for the
   /// diagnostics in [file] in the given [context].
-  Future<ChangeBuilder> fixErrorsForFile(AnalysisContext context, String path,
+  Future<ChangeBuilder> fixErrorsForFile(OperationPerformanceImpl performance,
+      AnalysisContext context, String path,
       {bool removeUnusedImports = true}) async {
     var pathContext = context.contextRoot.resourceProvider.pathContext;
 
     if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
-      var library = await context.currentSession.getResolvedLibrary(path);
+      var library = await performance.runAsync(
+        'getResolvedLibrary',
+        (_) => context.currentSession.getResolvedLibrary(path),
+      );
       if (!isCancelled && library is ResolvedLibraryResult) {
         await _fixErrorsInLibrary(library,
             removeUnusedImports: removeUnusedImports);
@@ -555,6 +562,98 @@ class ChangeMap {
   void add(String libraryPath, String code) {
     var changes = libraryMap.putIfAbsent(libraryPath, () => {});
     changes.update(code, (value) => value + 1, ifAbsent: () => 1);
+  }
+}
+
+/// Calls [BulkFixProcessor] iteratively to apply multiple rounds of changes.
+///
+/// Temporarily modifies overlays in [resourceProvider] while computing fixes
+/// so the caller must ensure that no other requests are modifying them.
+class IterativeBulkFixProcessor {
+  /// The maximum number of passes to make.
+  ///
+  /// This should match what "dart fix" does (`FixCommand.maxPasses` in
+  /// `pkg/dartdev/lib/src/commands/fix.dart`).
+  static const maxPasses = 4;
+
+  final InstrumentationService instrumentationService;
+  final AnalysisContext context;
+
+  final void Function(SourceFileEdit) applyTemporaryOverlayEdits;
+  final Future<void> Function() applyOverlays;
+
+  int _passesWithEdits = 0;
+
+  /// A token used to signal that the caller is no longer interested in the
+  /// results and processing can end early (in which case any results may be
+  /// invalid).
+  final CancellationToken? cancellationToken;
+
+  IterativeBulkFixProcessor({
+    required this.instrumentationService,
+    required this.context,
+    required this.applyTemporaryOverlayEdits,
+    required this.applyOverlays,
+    this.cancellationToken,
+  });
+
+  bool get isCancelled => cancellationToken?.isCancellationRequested ?? false;
+
+  /// The number of passes that produced edits.
+  int get passesWithEdits => _passesWithEdits;
+
+  Future<List<SourceFileEdit>> fixErrorsForFile(
+    OperationPerformanceImpl performance,
+    String path, {
+    bool removeUnusedImports = true,
+  }) async {
+    return performance.runAsync('IterativeBulkFixProcessor.fixErrorsForFile',
+        (performance) async {
+      final changes = <SourceFileEdit>[];
+      _passesWithEdits = 0;
+
+      for (var i = 0; i < maxPasses; i++) {
+        var workspace = DartChangeWorkspace([context.currentSession]);
+        var processor = BulkFixProcessor(instrumentationService, workspace,
+            cancellationToken: cancellationToken);
+
+        var builder = await performance.runAsync(
+          'BulkFixProcessor.fixErrorsForFile pass $i',
+          (performance) => processor.fixErrorsForFile(
+              performance, context, path,
+              removeUnusedImports: removeUnusedImports),
+        );
+
+        if (isCancelled) {
+          return [];
+        }
+
+        var change = builder.sourceChange;
+        // If this pass made no changes, we don't need to do anything more.
+        if (change.edits.isEmpty) {
+          break;
+        }
+
+        // Record these changes in the results.
+        changes.addAll(change.edits);
+        _passesWithEdits++;
+
+        // Also apply them to the overlay provider so the next iteration can
+        // use them.
+        await performance.runAsync('Apply edits from pass $i', (_) async {
+          for (final fileEdit in change.edits) {
+            applyTemporaryOverlayEdits(fileEdit);
+          }
+          await applyOverlays();
+        });
+
+        if (isCancelled) {
+          return [];
+        }
+      }
+
+      return changes;
+    });
   }
 }
 

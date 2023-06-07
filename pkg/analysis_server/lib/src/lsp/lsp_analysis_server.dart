@@ -132,6 +132,13 @@ class LspAnalysisServer extends AnalysisServer {
   /// `sendStatusNotification` was invoked.
   bool wasAnalyzing = false;
 
+  /// Whether notifications caused by analysis should be suppressed.
+  ///
+  /// This is used when an operation is temporarily modifying overlays and does
+  /// not want the client to be notified of any analysis happening on the
+  /// temporary content.
+  bool suppressAnalysisResults = false;
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -517,7 +524,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// cancellation requests will also be blocked for the duration of this
   /// operation, handles should generally check the cancellation flag
   /// immediately after this function returns.
-  FutureOr<T> lockRequestsWhile<T>(FutureOr<T> Function() operation) async {
+  Future<T> lockRequestsWhile<T>(FutureOr<T> Function() operation) async {
     final completer = Completer<void>();
 
     // Pause handling incoming messages until `operation` completes.
@@ -1137,6 +1144,14 @@ class LspServerContextManagerCallbacks
     for (final file in files) {
       analysisServer.publishDiagnostics(file, []);
     }
+  }
+
+  @override
+  void handleFileResult(FileResult result) {
+    if (analysisServer.suppressAnalysisResults) {
+      return;
+    }
+    super.handleFileResult(result);
   }
 
   @override
