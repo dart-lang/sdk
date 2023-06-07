@@ -1,5 +1,5 @@
 name: dds
-version: 2.9.0
+version: 2.9.1
 description: >-
   A library used to spawn the Dart Developer Service, used to communicate with
   a Dart VM Service instance.
