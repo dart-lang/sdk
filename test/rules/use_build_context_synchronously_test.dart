@@ -503,6 +503,44 @@ Future<bool> c() async => true;
     ]);
   }
 
+  test_awaitBeforeMountedCheckInTryBody_beforeReferenceToContext() async {
+    // Await, then try-statement with mounted check in the try-body, then use of
+    // BuildContext, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await c();
+  try {
+    if (!context.mounted) return;
+  } on Exception {
+  }
+  Navigator.of(context);
+}
+Future<void> c() async {}
+''', [
+      lint(159, 21),
+    ]);
+  }
+
+  test_awaitBeforeMountedCheckInTryFinally_beforeReferenceToContext() async {
+    // Await, then try-statement with mounted check in the try-finally, then use
+    // of BuildContext, is OK.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await c();
+  try {
+  } finally {
+    if (!context.mounted) return;
+  }
+  Navigator.of(context);
+}
+Future<void> c() async {}
+''');
+  }
+
   test_awaitBeforeReferenceToContext_inClosure() async {
     // Await, then use of BuildContext in a closure, is REPORTED.
     // todo (pq): what about closures?
@@ -1333,8 +1371,7 @@ Future<int> c() async => 1;
   }
 
   test_awaitInTryBody_beforeReferenceToContext() async {
-    // Await in a try-body, then use of BuildContext in try-catch clause,
-    // is REPORTED.
+    // Await in a try-body, then use of BuildContext, is REPORTED.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 

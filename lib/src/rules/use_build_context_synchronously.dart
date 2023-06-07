@@ -602,12 +602,19 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
     } else if (node.catchClauses.any((clause) => clause == reference)) {
       return node.body.accept(this)?.asynchronousOrNull;
     } else if (node.finallyBlock == reference) {
-      return node.body.accept(this);
+      return node.body.accept(this)?.asynchronousOrNull;
     }
 
+    var finallyAsyncState = node.finallyBlock?.accept(this);
+    if (finallyAsyncState == _AsyncState.asynchronous) {
+      return _AsyncState.asynchronous;
+    }
+    if (finallyAsyncState == _AsyncState.notMountedCheck) {
+      return _AsyncState.notMountedCheck;
+    }
     // Only statements in the `finally` section of a try-statement can
     // sufficiently guard statements following the try-statement.
-    return node.finallyBlock?.accept(this) ?? node.body.accept(this);
+    return node.body.accept(this)?.asynchronousOrNull;
   }
 
   @override
