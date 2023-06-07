@@ -5,77 +5,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:args/args.dart';
-import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:linter/src/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'crawl.dart';
-
-void main(List<String> args) async {
-  var parser = ArgParser()
-    ..addOption(
-      'token',
-      abbr: 't',
-      help: 'Specifies a GitHub auth token.',
-    )
-    ..addFlag(
-      'linter',
-      abbr: 'l',
-      help: 'Prints out latest linter rule to linter release information.',
-    )
-    ..addFlag(
-      'sdk',
-      abbr: 's',
-      help: 'Prints out latest SDK release to linter release information.',
-    );
-
-  ArgResults options;
-  try {
-    options = parser.parse(args);
-  } on FormatException {
-    printToConsole(parser.usage);
-    return;
-  }
-
-  var printLinter = options['linter'] == true;
-  var printSdk = options['sdk'] == true;
-
-  if (!printLinter && !printSdk) {
-    printToConsole('Either --linter or --sdk must be specified!');
-    return;
-  }
-
-  var token = options['token'];
-  var auth = token is String ? Authentication.withToken(token) : null;
-
-  if (printLinter) {
-    var sinceInfo = await getSinceMap(auth);
-
-    for (var MapEntry(key: lintName, value: sinceInfo) in sinceInfo.entries) {
-      var sinceLinter = sinceInfo.sinceLinter;
-      if (sinceLinter != null) {
-        printToConsole('$lintName: $sinceLinter');
-      }
-    }
-
-    if (printSdk) {
-      printToConsole('\n================\n');
-    }
-  }
-
-  if (printSdk) {
-    var sinceSdk = await getDartSdkMap(auth);
-
-    for (var MapEntry(key: sdkVersion, value: linterVersion) in sinceSdk.entries
-        .sorted(
-            (a, b) => Version.parse(b.key).compareTo(Version.parse(a.key)))) {
-      printToConsole('$sdkVersion: $linterVersion');
-    }
-  }
-}
 
 final Version earliestLinterInDart2 = Version.parse('0.1.58');
 

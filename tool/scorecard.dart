@@ -22,7 +22,6 @@ void main() async {
   var scorecard = await ScoreCard.calculate();
   var details = <Detail>[
     Detail.rule,
-    Detail.linter,
     Detail.sdk,
     Detail.fix,
     Detail.flutterUser,
@@ -103,10 +102,7 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
 
 class Detail {
   static const Detail rule = Detail('name', header: Header.left);
-  static const Detail linter = Detail('linter', header: Header.left);
-
   static const Detail sdk = Detail('dart sdk', header: Header.left);
-
   static const Detail fix = Detail('fix');
   static const Detail flutterUser = Detail('flutter user');
   static const Detail flutterRepo = Detail('flutter repo');
@@ -152,8 +148,6 @@ class LintScore {
         case Detail.rule:
           sb.write(
               ' [$name](https://dart-lang.github.io/linter/lints/$name.html) |');
-        case Detail.linter:
-          sb.write(' ${since!.sinceLinter} |');
         case Detail.sdk:
           sb.write(' ${since!.sinceDartSdk} |');
         case Detail.fix:

@@ -647,10 +647,7 @@ class RuleHtmlGenerator extends RuleGenerator {
     var sdkVersion = info.sinceDartSdk != null
         ? '>= ${info.sinceDartSdk}'
         : '<strong>Unreleased</strong>';
-    var linterVersion = info.sinceLinter != null
-        ? 'v${info.sinceLinter}'
-        : '<strong>Unreleased</strong>';
-    return 'Dart SDK: $sdkVersion • <small>(Linter $linterVersion)</small>';
+    return 'Dart SDK: $sdkVersion';
   }
 
   String get stateString {
@@ -731,9 +728,7 @@ class RuleMarkdownGenerator extends RuleGenerator {
     var sdkVersion = info.sinceDartSdk != null
         ? '>= ${info.sinceDartSdk}'
         : '**Unreleased**';
-    var linterVersion =
-        info.sinceLinter != null ? 'v${info.sinceLinter}' : '**Unreleased**';
-    return 'Dart SDK: $sdkVersion • _(Linter $linterVersion)_';
+    return 'Dart SDK: $sdkVersion';
   }
 
   String get stateString => describeState(rule);

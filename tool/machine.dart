@@ -45,8 +45,6 @@ String getMachineListing(Iterable<LintRule> ruleRegistry,
         'name': rule.name,
         'description': rule.description,
         'group': rule.group.name,
-        // todo(pq): here for backwards compatibility -- should be removed.
-        'maturity': rule.state.label,
         'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
         'sets': [
@@ -58,8 +56,6 @@ String getMachineListing(Iterable<LintRule> ruleRegistry,
         'details': rule.details,
         if (sinceInfo != null)
           'sinceDartSdk': sinceInfo[rule.name]?.sinceDartSdk ?? 'Unreleased',
-        if (sinceInfo != null)
-          'sinceLinter': sinceInfo[rule.name]?.sinceLinter ?? 'Unreleased',
       }
   ]);
   return json;
