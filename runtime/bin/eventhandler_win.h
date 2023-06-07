@@ -12,9 +12,12 @@
 #include <mswsock.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <memory>
+#include <utility>
 
 #include "bin/builtin.h"
 #include "bin/reference_counting.h"
+#include "bin/socket_base.h"
 #include "bin/thread.h"
 
 namespace dart {
@@ -387,6 +390,7 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
   explicit ListenSocket(intptr_t s)
       : DescriptorInfoMultipleMixin(s, true),
         AcceptEx_(nullptr),
+        GetAcceptExSockaddrs_(nullptr),
         pending_accept_count_(0),
         accepted_head_(nullptr),
         accepted_tail_(nullptr),
@@ -418,8 +422,10 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 
  private:
   bool LoadAcceptEx();
+  bool LoadGetAcceptExSockaddrs();
 
   LPFN_ACCEPTEX AcceptEx_;
+  LPFN_GETACCEPTEXSOCKADDRS GetAcceptExSockaddrs_;
 
   // The number of asynchronous `IssueAccept` operations which haven't completed
   // yet.
@@ -440,12 +446,14 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 // Information on connected sockets.
 class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  public:
-  explicit ClientSocket(intptr_t s)
+  explicit ClientSocket(intptr_t s,
+                        std::unique_ptr<RawAddr> remote_addr = nullptr)
       : DescriptorInfoSingleMixin(s, true),
         DisconnectEx_(nullptr),
         next_(nullptr),
         connected_(false),
-        closed_(false) {
+        closed_(false),
+        remote_addr_(std::move(remote_addr)) {
     LoadDisconnectEx();
     type_ = kClientSocket;
   }
@@ -465,12 +473,16 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   virtual bool IssueWrite();
   void IssueDisconnect();
   void DisconnectComplete(OverlappedBuffer* buffer);
-
   void ConnectComplete(OverlappedBuffer* buffer);
 
   virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual void DoClose();
   virtual bool IsClosed();
+
+  // If `ClientSocket` was constructed with a `remote_addr`, populate `addr`
+  // with that value and return `true`. Otherwise leave `addr` untouched and
+  // return `false`.
+  bool PopulateRemoteAddr(RawAddr& addr);
 
   ClientSocket* next() { return next_; }
   void set_next(ClientSocket* next) { next_ = next; }
@@ -491,6 +503,7 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   ClientSocket* next_;
   bool connected_;
   bool closed_;
+  std::unique_ptr<RawAddr> remote_addr_;
 
 #if defined(DEBUG)
   static intptr_t disconnecting_;
