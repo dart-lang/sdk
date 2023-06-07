@@ -438,6 +438,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           nameOffset: nameOffset,
           parameterKind: node.kind,
         )..constantInitializer = node.defaultValue;
+      } else if (node.parameter is SuperFormalParameter) {
+        // Only for recovery, this should not happen in valid code.
+        element = DefaultSuperFormalParameterElementImpl(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: node.kind,
+        )..constantInitializer = node.defaultValue;
       } else {
         element = DefaultParameterElementImpl(
           name: name,
