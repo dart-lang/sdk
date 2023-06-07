@@ -5140,6 +5140,25 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (mode == SubtypeCheckMode.ignoringNullabilities) {
       constantType = rawLegacyErasure(constantType) ?? constantType;
     }
+    if (type is RecordType && constant is RecordConstant) {
+      if (type.positional.length != constant.positional.length ||
+          type.named.length != constant.named.length ||
+          !type.named.every(
+              (namedType) => constant.named.containsKey(namedType.name))) {
+        return false;
+      }
+      for (int i = 0; i < type.positional.length; i++) {
+        final DartType fieldType = type.positional[i];
+        final Constant fieldValue = constant.positional[i];
+        if (!isSubtype(fieldValue, fieldType, mode)) return false;
+      }
+      for (int i = 0; i < type.named.length; i++) {
+        final NamedType namedFieldType = type.named[i];
+        final Constant fieldValue = constant.named[namedFieldType.name]!;
+        if (!isSubtype(fieldValue, namedFieldType.type, mode)) return false;
+      }
+      return true;
+    }
     bool result = typeEnvironment.isSubtypeOf(constantType, type, mode);
     if (targetingJavaScript && !result) {
       if (constantType is InterfaceType &&
