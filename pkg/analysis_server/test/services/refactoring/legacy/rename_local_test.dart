@@ -531,7 +531,7 @@ void f() {
 ''');
     await analyzeTestPackageFiles();
 
-    testFile = a;
+    testFilePath = a;
     await resolveTestFile();
 
     createRenameRefactoringAtString('test});');

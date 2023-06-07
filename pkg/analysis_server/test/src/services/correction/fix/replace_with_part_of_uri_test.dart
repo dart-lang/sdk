@@ -48,7 +48,7 @@ library my.lib;
 part 'nested/test.dart';
 ''');
 
-    testFile = getFile('$testPackageLibPath/nested/test.dart').path;
+    testFilePath = getFile('$testPackageLibPath/nested/test.dart').path;
 
     await resolveTestCode('''
 part of my.lib;
@@ -88,7 +88,7 @@ library my.lib;
 part '../second/test.dart';
 ''');
 
-    testFile = getFile('$testPackageLibPath/second/test.dart').path;
+    testFilePath = getFile('$testPackageLibPath/second/test.dart').path;
 
     await resolveTestCode('''
 part of my.lib;

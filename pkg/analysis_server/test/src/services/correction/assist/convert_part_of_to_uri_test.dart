@@ -25,7 +25,7 @@ library foo;
 part 'src/bar.dart';
 ''');
 
-    testFile = convertPath('$testPackageLibPath/src/bar.dart');
+    testFilePath = convertPath('$testPackageLibPath/src/bar.dart');
     addTestSource('''
 part of foo;
 ''');
@@ -43,7 +43,7 @@ library foo;
 part 'bar.dart';
 ''');
 
-    testFile = convertPath('$testPackageLibPath/bar.dart');
+    testFilePath = convertPath('$testPackageLibPath/bar.dart');
     addTestSource('''
 part of foo;
 ''');

@@ -56,7 +56,7 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
 
   Future<TypeHierarchyItem?> findTarget() async {
     expect(code, isNotNull, reason: 'addTestSource should be called first');
-    final result = await getResolvedUnit(testFile);
+    final result = await getResolvedUnit(testFile.path);
     return DartLazyTypeHierarchyComputer(result)
         .findTarget(code.position.offset);
   }
@@ -120,7 +120,7 @@ class My^Class1<T1, T2> {}
     expect(subtypes, [
       _isRelatedItem(
         'MyClass2<T1>',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -140,7 +140,7 @@ class ^MyClass1 {}
     expect(subtypes, [
       _isRelatedItem(
         'MyClass2',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -161,14 +161,14 @@ mixin MyMi^xin1 {}
     expect(subtypes, [
       _isRelatedItem(
         'MyClass1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
       _isRelatedItem(
         'MyClass2',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
         codeRange: code.ranges[2].sourceRange,
         nameRange: code.ranges[3].sourceRange,
@@ -188,7 +188,7 @@ class ^MyClass1 {}
     expect(subtypes, [
       _isRelatedItem(
         'MyClass2',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.extends_,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -210,7 +210,7 @@ class MyCla^ss1 {}
     expect(subtypes, [
       _isRelatedItem(
         'MyEnum1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -232,7 +232,7 @@ mixin MyMi^xin1 {}
     expect(subtypes, [
       _isRelatedItem(
         'MyEnum1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -252,7 +252,7 @@ class MyCl^ass1 {}
     expect(subtypes, [
       _isRelatedItem(
         'MyMixin1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -272,7 +272,7 @@ class MyCl^ass1 {}
     expect(subtypes, [
       _isRelatedItem(
         'MyMixin1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.constrainedTo,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -310,7 +310,7 @@ class ^MyClass2 extends MyClass1 {}
     expect(supertypes, [
       _isRelatedItem(
         'MyClass1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.extends_,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -331,7 +331,7 @@ class ^MyClass2<T1> implements MyClass1<T1, String> {}
       _isObject,
       _isRelatedItem(
         'MyClass1<T1, String>',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -385,7 +385,7 @@ class ^MyClass2 implements MyClass1 {}
       _isObject,
       _isRelatedItem(
         'MyClass1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -407,14 +407,14 @@ class ^MyClass1 with MyMixin1, MyMixin2 {}
       _isObject,
       _isRelatedItem(
         'MyMixin1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
       _isRelatedItem(
         'MyMixin2',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
         codeRange: code.ranges[2].sourceRange,
         nameRange: code.ranges[3].sourceRange,
@@ -434,7 +434,7 @@ class ^MyClass2 extends MyClass1 {}
     expect(supertypes, [
       _isRelatedItem(
         'MyClass1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.extends_,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -455,7 +455,7 @@ enum MyEn^um1 implements MyClass1 { one }
       _isEnum,
       _isRelatedItem(
         'MyClass1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -476,7 +476,7 @@ enum MyEn^um1 with MyMixin1 { one }
       _isEnum,
       _isRelatedItem(
         'MyMixin1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -497,7 +497,7 @@ mixin MyMix^in2 implements MyClass1 {}
       _isObject,
       _isRelatedItem(
         'MyClass1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -517,7 +517,7 @@ mixin MyMix^in2 on MyClass1 {}
     expect(supertypes, [
       _isRelatedItem(
         'MyClass1',
-        testFile,
+        testFile.path,
         relationship: TypeHierarchyItemRelationship.constrainedTo,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
@@ -548,7 +548,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
     await expectTarget(
       _isItem(
         'MyClass1',
-        testFile,
+        testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -564,7 +564,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
     await expectTarget(
       _isItem(
         'MyClass1<T1, T2>',
-        testFile,
+        testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -581,7 +581,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
     await expectTarget(
       _isItem(
         'MyClass1',
-        testFile,
+        testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -598,7 +598,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
     await expectTarget(
       _isItem(
         'MyClass1',
-        testFile,
+        testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -616,7 +616,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
     await expectTarget(
       _isItem(
         'MyEnum1',
-        testFile,
+        testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -633,7 +633,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
     await expectTarget(
       _isItem(
         'MyEnum1',
-        testFile,
+        testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -650,7 +650,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
     await expectTarget(
       _isItem(
         'MyEnum1',
-        testFile,
+        testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -688,7 +688,7 @@ int? b;
     await expectTarget(
       _isItem(
         'MyMixin1',
-        testFile,
+        testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -705,7 +705,7 @@ int? b;
     await expectTarget(
       _isItem(
         'MyMixin1',
-        testFile,
+        testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -722,7 +722,7 @@ int? b;
     await expectTarget(
       _isItem(
         'MyMixin1',
-        testFile,
+        testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -740,7 +740,7 @@ MyCl^ass1<String, String>? a;
     await expectTarget(
       _isItem(
         'MyClass1<String, String>',
-        testFile,
+        testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),

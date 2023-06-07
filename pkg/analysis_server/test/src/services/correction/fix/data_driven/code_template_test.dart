@@ -80,7 +80,7 @@ void g(int x, int y) {}
     var template = CodeTemplate(CodeTemplateKind.expression, components, null);
     var builder = ChangeBuilder(session: await session);
     var context = TemplateContext(node, CorrectionUtils(testAnalysisResult));
-    await builder.addDartFileEdit(testFile, (builder) {
+    await builder.addDartFileEdit(testFile.path, (builder) {
       builder.addInsertion(0, (builder) {
         template.writeOn(builder, context);
       });

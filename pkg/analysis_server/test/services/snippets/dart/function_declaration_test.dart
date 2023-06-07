@@ -45,26 +45,26 @@ class A {
     
   }
 }''');
-    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 36);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          {'file': testFile, 'offset': 12},
+          {'file': testFile.path, 'offset': 12},
         ],
         'length': 4,
         'suggestions': []
       },
       {
         'positions': [
-          {'file': testFile, 'offset': 17},
+          {'file': testFile.path, 'offset': 17},
         ],
         'length': 4,
         'suggestions': []
       },
       {
         'positions': [
-          {'file': testFile, 'offset': 22},
+          {'file': testFile.path, 'offset': 22},
         ],
         'length': 6,
         'suggestions': []
@@ -91,26 +91,26 @@ void a() {
     
   }
 }''');
-    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 37);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          {'file': testFile, 'offset': 13},
+          {'file': testFile.path, 'offset': 13},
         ],
         'length': 4,
         'suggestions': []
       },
       {
         'positions': [
-          {'file': testFile, 'offset': 18},
+          {'file': testFile.path, 'offset': 18},
         ],
         'length': 4,
         'suggestions': []
       },
       {
         'positions': [
-          {'file': testFile, 'offset': 23},
+          {'file': testFile.path, 'offset': 23},
         ],
         'length': 6,
         'suggestions': []
@@ -141,26 +141,26 @@ void name(params) {
 }
 
 class B {}''');
-    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 36);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          {'file': testFile, 'offset': 14},
+          {'file': testFile.path, 'offset': 14},
         ],
         'length': 4,
         'suggestions': []
       },
       {
         'positions': [
-          {'file': testFile, 'offset': 19},
+          {'file': testFile.path, 'offset': 19},
         ],
         'length': 4,
         'suggestions': []
       },
       {
         'positions': [
-          {'file': testFile, 'offset': 24},
+          {'file': testFile.path, 'offset': 24},
         ],
         'length': 6,
         'suggestions': []

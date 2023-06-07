@@ -73,7 +73,7 @@ abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
     expect(marker, greaterThanOrEqualTo(0));
     addTestSource(withoutMarkers(code));
 
-    final result = await getResolvedUnit(testFile);
+    final result = await getResolvedUnit(testFile.path);
 
     return DartCallHierarchyComputer(result).findTarget(marker);
   }
@@ -151,7 +151,7 @@ class Foo {
       _isItem(
         CallHierarchyKind.constructor,
         'Foo',
-        testFile,
+        testFile.path,
         containerName: 'Foo',
         nameRange: rangeAtSearch('Foo(', contents, 'Foo'),
         codeRange: rangeNumbered(1, contents),
@@ -199,7 +199,7 @@ extension StringExtension on String {
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
-          testFile,
+          testFile.path,
           containerName: 'StringExtension',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
@@ -244,7 +244,7 @@ extension StringExtension on String {
         _isItem(
           CallHierarchyKind.function,
           'myFunction',
-          testFile,
+          testFile.path,
           containerName: 'test.dart',
           nameRange: rangeAtSearch('myFunction', contents),
           codeRange: rangeNumbered(1, contents),
@@ -261,7 +261,7 @@ extension StringExtension on String {
         _isItem(
           CallHierarchyKind.function,
           'myFunction',
-          testFile,
+          testFile.path,
           containerName: 'test.dart',
           nameRange: rangeAtSearch('myFunction', contents),
           codeRange: rangeNumbered(1, contents),
@@ -278,7 +278,7 @@ extension StringExtension on String {
         _isItem(
           CallHierarchyKind.function,
           'myFunction',
-          testFile,
+          testFile.path,
           containerName: 'test.dart',
           nameRange: rangeAtSearch('myFunction', contents),
           codeRange: rangeNumbered(1, contents),
@@ -323,7 +323,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.property,
           'get foo',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('foo', contents),
           codeRange: rangeNumbered(1, contents),
@@ -397,7 +397,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
@@ -416,7 +416,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
@@ -435,7 +435,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
@@ -482,7 +482,7 @@ mixin Bar {
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
-          testFile,
+          testFile.path,
           containerName: 'Bar',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
@@ -531,7 +531,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.constructor,
           'Foo.Bar',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('Bar', contents),
           codeRange: rangeNumbered(1, contents),
@@ -607,7 +607,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.property,
           'set foo',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('foo', contents),
           codeRange: rangeNumbered(1, contents),
@@ -974,7 +974,7 @@ final foo2 = Foo();
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', testFile,
+        _isResult(CallHierarchyKind.function, 'f', testFile.path,
             containerName: 'test.dart',
             nameRange: rangeAtSearch('f() {', contents, 'f'),
             codeRange: rangeNumbered(1, contents),
@@ -1313,7 +1313,7 @@ void fo^o() {
               rangeAtSearch('f(); // 1', contents, 'f'),
               rangeAfterPrefix('tearoff = ', contents, 'f'),
             ]),
-        _isResult(CallHierarchyKind.function, 'nested', testFile,
+        _isResult(CallHierarchyKind.function, 'nested', testFile.path,
             containerName: 'foo',
             nameRange: rangeAtSearch('nested() {', contents, 'nested'),
             codeRange: rangeNumbered(1, contents),

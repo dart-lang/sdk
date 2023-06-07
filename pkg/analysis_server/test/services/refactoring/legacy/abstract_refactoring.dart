@@ -122,7 +122,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   void assertTestChangeResult(String expectedCode) {
     expectedCode = normalizeSource(expectedCode);
     // prepare FileEdit
-    var fileEdit = refactoringChange.getFileEdit(testFile);
+    var fileEdit = refactoringChange.getFileEdit(testFile.path);
     if (fileEdit == null) {
       fail('No file edit for $testFile');
     }

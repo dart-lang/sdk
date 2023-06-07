@@ -47,7 +47,7 @@ class MainFunctionTest extends DartSnippetProducerTest {
       );
 
   Future<void> test_typedPrefix() => testInFile(
-        testFile,
+        testFile.path,
         code: '$prefix^',
         expectArgsParameter: true,
       );
@@ -57,7 +57,7 @@ class MainFunctionTest extends DartSnippetProducerTest {
     String code = '^',
     required bool expectArgsParameter,
   }) async {
-    testFile = file;
+    testFilePath = file;
     final snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);

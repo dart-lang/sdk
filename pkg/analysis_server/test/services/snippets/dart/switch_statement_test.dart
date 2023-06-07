@@ -48,13 +48,13 @@ void f() {
     default:
   }
 }''');
-    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 57);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       // expression
       {
         'positions': [
-          {'file': testFile, 'offset': 21},
+          {'file': testFile.path, 'offset': 21},
         ],
         'length': 10,
         'suggestions': []
@@ -62,7 +62,7 @@ void f() {
       // value
       {
         'positions': [
-          {'file': testFile, 'offset': 44},
+          {'file': testFile.path, 'offset': 44},
         ],
         'length': 5,
         'suggestions': []
@@ -96,13 +96,13 @@ void f() {
     }
   }
 }''');
-    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 77);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       // expression
       {
         'positions': [
-          {'file': testFile, 'offset': 37},
+          {'file': testFile.path, 'offset': 37},
         ],
         'length': 10,
         'suggestions': []
@@ -110,7 +110,7 @@ void f() {
       // value
       {
         'positions': [
-          {'file': testFile, 'offset': 62},
+          {'file': testFile.path, 'offset': 62},
         ],
         'length': 5,
         'suggestions': []
