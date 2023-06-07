@@ -869,6 +869,168 @@ part 'part.dart';
     expect(result2, isNot(same(result1)));
   }
 
+  test_cachedPriorityResults_wholeLibrary_priorityLibrary_askLibrary() async {
+    final a = newFile('/test/lib/a.dart', r'''
+part 'b.dart';
+''').path;
+
+    final b = newFile('/test/lib/b.dart', r'''
+part of 'a.dart';
+''').path;
+
+    driver.priorityFiles = [a];
+
+    // Ask the result for `a`, should cache for both `a` and `b`.
+    final aResult1 = await driver.getResultValid(a);
+
+    final testView = driver.testView!;
+    final cache = testView.priorityResults;
+    final bResult1 = cache[b];
+    expect(bResult1, isNotNull);
+
+    expect(cache, containsPair(a, aResult1));
+    expect(cache, containsPair(b, bResult1));
+    expect(cache.keys, containsAll([a, b]));
+
+    await waitForIdleWithoutExceptions();
+    testView.numOfAnalyzedLibraries = 0;
+    allResults.clear();
+
+    // Get the (cached) result, not reported to the stream: a
+    {
+      final aResult2 = await driver.getResultValid(a);
+      expect(aResult2, same(aResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+
+    // Get the (cached) result, not reported to the stream: b
+    {
+      final bResult2 = await driver.getResultValid(b);
+      expect(bResult2, same(bResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+
+    // Ask for resolved library.
+    final libraryResult = await driver.getResolvedLibrary(a);
+    libraryResult as ResolvedLibraryResult;
+    expect(libraryResult.unitWithPath(a), same(aResult1));
+    expect(libraryResult.unitWithPath(b), same(bResult1));
+
+    // No new analysis, no results into the stream.
+    expect(testView.numOfAnalyzedLibraries, isZero);
+    expect(allResults, isEmpty);
+  }
+
+  test_cachedPriorityResults_wholeLibrary_priorityLibrary_askPart() async {
+    final a = newFile('/test/lib/a.dart', r'''
+part 'b.dart';
+''').path;
+
+    final b = newFile('/test/lib/b.dart', r'''
+part of 'a.dart';
+''').path;
+
+    driver.priorityFiles = [a];
+
+    // Ask the result for `b`, should cache for both `a` and `b`.
+    final bResult1 = await driver.getResultValid(b);
+
+    final testView = driver.testView!;
+    final cache = testView.priorityResults;
+    final aResult1 = cache[a];
+    expect(bResult1, isNotNull);
+
+    expect(cache, containsPair(a, aResult1));
+    expect(cache, containsPair(b, bResult1));
+    expect(cache.keys, containsAll([a, b]));
+
+    await waitForIdleWithoutExceptions();
+    testView.numOfAnalyzedLibraries = 0;
+    allResults.clear();
+
+    // Get the (cached) result, not reported to the stream: a
+    {
+      final aResult2 = await driver.getResultValid(a);
+      expect(aResult2, same(aResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+
+    // Get the (cached) result, not reported to the stream: b
+    {
+      final bResult2 = await driver.getResultValid(b);
+      expect(bResult2, same(bResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+
+    // Ask for resolved library.
+    final libraryResult = await driver.getResolvedLibrary(a);
+    libraryResult as ResolvedLibraryResult;
+    expect(libraryResult.unitWithPath(a), same(aResult1));
+    expect(libraryResult.unitWithPath(b), same(bResult1));
+
+    // No new analysis, no results into the stream.
+    expect(testView.numOfAnalyzedLibraries, isZero);
+    expect(allResults, isEmpty);
+  }
+
+  test_cachedPriorityResults_wholeLibrary_priorityPart_askPart() async {
+    final a = newFile('/test/lib/a.dart', r'''
+part 'b.dart';
+''').path;
+
+    final b = newFile('/test/lib/b.dart', r'''
+part of 'a.dart';
+''').path;
+
+    driver.priorityFiles = [b];
+
+    // Ask the result for `b`, should cache for both `a` and `b`.
+    final bResult1 = await driver.getResultValid(b);
+
+    final testView = driver.testView!;
+    final cache = testView.priorityResults;
+    final aResult1 = cache[a];
+    expect(bResult1, isNotNull);
+
+    expect(cache, containsPair(a, aResult1));
+    expect(cache, containsPair(b, bResult1));
+    expect(cache.keys, containsAll([a, b]));
+
+    await waitForIdleWithoutExceptions();
+    testView.numOfAnalyzedLibraries = 0;
+    allResults.clear();
+
+    // Get the (cached) result, not reported to the stream: a
+    {
+      final aResult2 = await driver.getResultValid(a);
+      expect(aResult2, same(aResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+
+    // Get the (cached) result, not reported to the stream: b
+    {
+      final bResult2 = await driver.getResultValid(b);
+      expect(bResult2, same(bResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+
+    // Ask for resolved library.
+    final libraryResult = await driver.getResolvedLibrary(a);
+    libraryResult as ResolvedLibraryResult;
+    expect(libraryResult.unitWithPath(a), same(aResult1));
+    expect(libraryResult.unitWithPath(b), same(bResult1));
+
+    // No new analysis, no results into the stream.
+    expect(testView.numOfAnalyzedLibraries, isZero);
+    expect(allResults, isEmpty);
+  }
+
   test_changeFile_implicitlyAnalyzed() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -1823,6 +1985,57 @@ class B {}
     expect(result.units[0].content, content);
     expect(result.units[0].unit, isNotNull);
     expect(result.units[0].errors, isEmpty);
+  }
+
+  test_getResolvedLibrary_cachePriority() async {
+    final a = newFile('/test/lib/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('/test/lib/b.dart', r'''
+part of 'a.dart';
+''');
+
+    driver.priorityFiles = [a.path];
+
+    final result1 = await driver.getResolvedLibrary(a.path);
+    result1 as ResolvedLibraryResult;
+
+    final testView = driver.testView!;
+
+    // Resolving the library caches individual unit results.
+    final cache = testView.priorityResults;
+    expect(cache.keys, containsAll([a.path, b.path]));
+    final aResult1 = cache[a.path] as ResolvedUnitResult;
+    final bResult1 = cache[b.path] as ResolvedUnitResult;
+
+    await waitForIdleWithoutExceptions();
+    testView.numOfAnalyzedLibraries = 0;
+    allResults.clear();
+
+    // Ask again, the same cache instance should be returned.
+    final result2 = await driver.getResolvedLibrary(a.path);
+    expect(result2, same(result1));
+
+    // No new analysis, no results into the stream.
+    expect(testView.numOfAnalyzedLibraries, isZero);
+    expect(allResults, isEmpty);
+
+    // Get the (cached) result, not reported to the stream: a
+    {
+      final aResult2 = await driver.getResultValid(a.path);
+      expect(aResult2, same(aResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
+
+    // Get the (cached) result, not reported to the stream: b
+    {
+      final bResult2 = await driver.getResultValid(b.path);
+      expect(bResult2, same(bResult1));
+      expect(testView.numOfAnalyzedLibraries, isZero);
+      expect(allResults, isEmpty);
+    }
   }
 
   test_getResolvedLibrary_invalidPath_notAbsolute() async {
@@ -2987,10 +3200,10 @@ var b = new B();
       var partUnit = result.element;
 
       expect(partUnit.topLevelVariables[0].name, 'a');
-      assertType(partUnit.topLevelVariables[0].type, 'dynamic');
+      assertType(partUnit.topLevelVariables[0].type, 'InvalidType');
 
       expect(partUnit.topLevelVariables[1].name, 'b');
-      assertType(partUnit.topLevelVariables[1].type, 'dynamic');
+      assertType(partUnit.topLevelVariables[1].type, 'InvalidType');
     }
   }
 

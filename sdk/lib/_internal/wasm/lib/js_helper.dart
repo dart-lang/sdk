@@ -87,6 +87,8 @@ extension JSAnyToExtern on JSAny {
 bool isDartNull(WasmExternRef? ref) => ref.isNull || isJSUndefined(ref);
 
 // Extensions for [JSArray] and [JSObject].
+// TODO(joshualitt): These should be shared across backends and exposed to
+// users.
 extension JSArrayExtension on JSArray {
   external JSAny? pop();
   external JSAny? operator [](JSNumber index);
@@ -224,6 +226,11 @@ bool toDartBool(WasmExternRef? o) => JS<bool>("o => o", o);
 WasmExternRef? toJSBoolean(bool b) => JS<WasmExternRef?>("b => !!b", b);
 
 double objectLength(WasmExternRef? o) => JS<double>("o => o.length", o);
+
+double byteLength(WasmExternRef? o) => JS<double>("o => o.byteLength", o);
+
+double dataViewGetUint8(WasmExternRef? o, double i) =>
+    JS<double>("(o, i) => o.getUint8(i)", o, i);
 
 WasmExternRef? objectReadIndex(WasmExternRef? o, double index) =>
     JS<WasmExternRef?>("(o, i) => o[i]", o, index);
@@ -460,15 +467,10 @@ ByteBuffer toDartByteBuffer(WasmExternRef? ref) =>
         .buffer;
 
 ByteData toDartByteData(WasmExternRef? ref) {
-  int length =
-      toDartNumber(getPropertyRaw(ref, 'byteLength'.toExternRef)).toInt();
+  int length = byteLength(ref).toInt();
   ByteData data = ByteData(length);
   for (int i = 0; i < length; i++) {
-    data.setUint8(
-        i,
-        toDartNumber(callMethodVarArgsRaw(
-                ref, 'getUint8'.toExternRef, [i].toExternRef))
-            .toInt());
+    data.setUint8(i, dataViewGetUint8(ref, i.toDouble()).toInt());
   }
   return data;
 }

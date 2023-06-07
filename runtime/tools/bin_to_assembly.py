@@ -108,7 +108,7 @@ def Main():
 
             is64bit = 0
             if options.target_arch:
-                if options.target_arch in ["arm64", "x64"]:
+                if options.target_arch in ["arm64", "x64", "riscv64"]:
                     is64bit = 1
 
             if options.target_os in ["win"]:

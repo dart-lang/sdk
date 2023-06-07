@@ -32,47 +32,10 @@
 
 namespace dart {
 
-// The remainder of this file implements the dart:ffi native methods.
-
-DEFINE_NATIVE_ENTRY(Ffi_fromAddress, 1, 1) {
-  UNREACHABLE();
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_address, 0, 1) {
-  UNREACHABLE();
-}
-
-#define DEFINE_NATIVE_ENTRY_LOAD(type)                                         \
-  DEFINE_NATIVE_ENTRY(Ffi_load##type, 0, 2) { UNREACHABLE(); }
-CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_LOAD)
-#undef DEFINE_NATIVE_ENTRY_LOAD
-
-DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
-  UNREACHABLE();
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
-  UNREACHABLE();
-}
-
-#define DEFINE_NATIVE_ENTRY_STORE(type)                                        \
-  DEFINE_NATIVE_ENTRY(Ffi_store##type, 0, 3) { UNREACHABLE(); }
-CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_STORE)
-#undef DEFINE_NATIVE_ENTRY_STORE
-
-DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
-  UNREACHABLE();
-}
-
 // Static invocations to this method are translated directly in streaming FGB.
 DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
   UNREACHABLE();
 }
-
-#define DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA(type)                       \
-  DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData##type, 0, 2) { UNREACHABLE(); }
-CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA)
-#undef DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA
 
 DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   const auto& function = Function::CheckedHandle(zone, arguments->NativeArg0());
@@ -80,17 +43,6 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
       Code::Handle(zone, FLAG_precompiled_mode ? function.CurrentCode()
                                                : function.EnsureHasCode());
   ASSERT(!code.IsNull());
-
-#if defined(TARGET_ARCH_IA32)
-  // On ia32, store the stack delta that we need to use when returning.
-  const intptr_t stack_return_delta =
-      function.FfiCSignatureReturnsStruct() && CallingConventions::kUsesRet4
-          ? compiler::target::kWordSize
-          : 0;
-#else
-  const intptr_t stack_return_delta = 0;
-#endif
-  thread->SetFfiCallbackCode(function, code, stack_return_delta);
 
   uword entry_point = code.EntryPoint();
 
@@ -105,8 +57,9 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   // is why we use the jit trampoline).
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (NativeCallbackTrampolines::Enabled()) {
-    entry_point = isolate->native_callback_trampolines()->TrampolineForId(
-        function.FfiCallbackId());
+    entry_point =
+        isolate->group()->native_callback_trampolines()->TrampolineForId(
+            function.FfiCallbackId());
   }
 #endif
 
@@ -187,6 +140,32 @@ DEFINE_FFI_NATIVE_ENTRY(FinalizerEntry_SetExternalSize,
   } else {
     thread->isolate_group()->heap()->FreedExternal(-external_size_diff, space);
   }
+};
+
+namespace {
+struct AsTypedListFinalizerData {
+  void (*callback)(void*);
+  void* token;
+};
+}  // namespace
+
+DEFINE_FFI_NATIVE_ENTRY(Pointer_asTypedListFinalizerAllocateData, void*, ()) {
+  auto* result = malloc(sizeof(AsTypedListFinalizerData));
+  // Initialized with FFI stores.
+  MSAN_UNPOISON(result, sizeof(AsTypedListFinalizerData));
+  return result;
+};
+
+void AsTypedListFinalizerCallback(void* peer) {
+  const auto* data = reinterpret_cast<AsTypedListFinalizerData*>(peer);
+  data->callback(data->token);
+  free(peer);
+}
+
+DEFINE_FFI_NATIVE_ENTRY(Pointer_asTypedListFinalizerCallbackPointer,
+                        void*,
+                        ()) {
+  return reinterpret_cast<void*>(&AsTypedListFinalizerCallback);
 };
 
 }  // namespace dart

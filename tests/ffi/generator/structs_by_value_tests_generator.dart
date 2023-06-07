@@ -59,9 +59,12 @@ extension on CType {
         return "<< $variableName";
 
       case StructType:
-      case UnionType:
-        final this_ = this as CompositeType;
+        final this_ = this as StructType;
         return this_.members.coutExpression("$variableName.");
+
+      case UnionType:
+        final this_ = this as UnionType;
+        return this_.members.take(1).toList().coutExpression("$variableName.");
 
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;

@@ -109,7 +109,6 @@ extension E {
 }
 ''', [
       error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 12, 0),
       error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
       error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 1),
     ]);
@@ -122,7 +121,6 @@ extension E {
 }
 ''', [
       error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 12, 0),
       error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
       error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 7),
     ]);
@@ -4155,7 +4153,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@extension::E2::@getter::foo
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -4174,7 +4172,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@extension::E2::@getter::foo
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int*
 ''');
@@ -4818,14 +4816,14 @@ extension E2 on int {
 SimpleIdentifier
   token: foo
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     }
   }

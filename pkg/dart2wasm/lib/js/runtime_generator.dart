@@ -71,6 +71,8 @@ RuntimeFinalizer createRuntimeFinalizer(
         component, Uri.parse("dart:_js_annotations")),
     ...?calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("dart:_js_helper")),
+    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+        component, Uri.parse("dart:js_interop")),
   };
   Map<Procedure, String> jsInteropMethods = {};
   jsInteropMethods = _performJSInteropTransformations(

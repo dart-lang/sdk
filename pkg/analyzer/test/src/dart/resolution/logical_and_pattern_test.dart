@@ -16,13 +16,11 @@ main() {
 @reflectiveTest
 class LogicalAndPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f(x) {
   if (x case int _ && double _) {}
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 34, 6),
-    ]);
+''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalAndPattern
@@ -46,16 +44,14 @@ LogicalAndPattern
   }
 
   test_switchCase() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
     case int _ && double _:
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 45, 6),
-    ]);
+''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalAndPattern

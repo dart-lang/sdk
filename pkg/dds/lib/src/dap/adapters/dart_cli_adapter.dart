@@ -7,11 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:dap/dap.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../logging.dart';
-import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 import 'dart.dart';
 import 'mixins.dart';
@@ -202,9 +202,8 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     final vmServiceInfoFile = args.vmServiceInfoFile;
 
     if ((vmServiceUri == null) == (vmServiceInfoFile == null)) {
-      sendOutput(
-        'console',
-        '\nTo attach, provide exactly one of vmServiceUri/vmServiceInfoFile',
+      sendConsoleOutput(
+        'To attach, provide exactly one of vmServiceUri/vmServiceInfoFile',
       );
       handleSessionTerminate();
       return;
@@ -253,7 +252,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       );
     } catch (e) {
       logger?.call('Client failed to spawn process $e');
-      sendOutput('console', '\nFailed to spawn process: $e');
+      sendConsoleOutput('Failed to spawn process: $e');
       handleSessionTerminate();
     }
 

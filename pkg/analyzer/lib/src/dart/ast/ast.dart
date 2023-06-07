@@ -4807,8 +4807,18 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 ///        [Identifier] [TypeArgumentList]? [ArgumentList]
 class ExtensionOverrideImpl extends ExpressionImpl
     implements ExtensionOverride {
-  /// The name of the extension being selected.
-  IdentifierImpl _extensionName;
+  /// Cache results of `name` invocation. There is existing code that uses it,
+  /// and relies on the fact that the same result is returned every time.
+  static final _nameCache = Expando<IdentifierImpl>();
+
+  @override
+  final ImportPrefixReferenceImpl? importPrefix;
+
+  @override
+  final Token name;
+
+  @override
+  final ExtensionElement element;
 
   /// The type arguments to be applied to the extension, or `null` if no type
   /// arguments were provided.
@@ -4825,13 +4835,14 @@ class ExtensionOverrideImpl extends ExpressionImpl
   DartType? extendedType;
 
   ExtensionOverrideImpl({
-    required IdentifierImpl extensionName,
+    required this.importPrefix,
+    required this.name,
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
-  })  : _extensionName = extensionName,
-        _typeArguments = typeArguments,
+    required this.element,
+  })  : _typeArguments = typeArguments,
         _argumentList = argumentList {
-    _becomeParentOf(_extensionName);
+    _becomeParentOf(importPrefix);
     _becomeParentOf(_typeArguments);
     _becomeParentOf(_argumentList);
   }
@@ -4844,16 +4855,35 @@ class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @override
-  Token get beginToken => _extensionName.beginToken;
+  Token get beginToken => importPrefix?.name ?? name;
 
   @override
   Token get endToken => _argumentList.endToken;
 
+  @Deprecated('Use importPrefix, extensionName2, staticElement instead')
   @override
-  IdentifierImpl get extensionName => _extensionName;
+  IdentifierImpl get extensionName {
+    var result = _nameCache[this];
+    if (result != null) {
+      return result;
+    }
 
-  set extensionName(IdentifierImpl extensionName) {
-    _extensionName = _becomeParentOf(extensionName);
+    final importPrefix = this.importPrefix;
+    if (importPrefix != null) {
+      result = PrefixedIdentifierImpl(
+        prefix: SimpleIdentifierImpl(importPrefix.name)
+          ..staticElement = importPrefix.element,
+        period: importPrefix.period,
+        identifier: SimpleIdentifierImpl(name)..staticElement = staticElement,
+      ).._parent = this;
+    } else {
+      result = SimpleIdentifierImpl(name)
+        .._parent = this
+        ..staticElement = staticElement;
+    }
+
+    _nameCache[this] = result;
+    return result;
   }
 
   @override
@@ -4866,10 +4896,9 @@ class ExtensionOverrideImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.postfix;
 
+  @Deprecated('Use element instead')
   @override
-  ExtensionElement? get staticElement {
-    return extensionName.staticElement as ExtensionElement?;
-  }
+  ExtensionElement get staticElement => element;
 
   @override
   TypeArgumentListImpl? get typeArguments => _typeArguments;
@@ -4880,7 +4909,8 @@ class ExtensionOverrideImpl extends ExpressionImpl
 
   @override
   ChildEntities get _childEntities => ChildEntities()
-    ..addNode('extensionName', extensionName)
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name)
     ..addNode('typeArguments', typeArguments)
     ..addNode('argumentList', argumentList);
 
@@ -4896,7 +4926,10 @@ class ExtensionOverrideImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _extensionName.accept(visitor);
+    importPrefix?.accept(visitor);
+    // TODO(scheglov) Remove when removing `extensionName`.
+    // ignore: deprecated_member_use_from_same_package
+    extensionName.accept(visitor);
     _typeArguments?.accept(visitor);
     _argumentList.accept(visitor);
   }
@@ -7193,7 +7226,8 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @override
-  LibraryImportElement? get element => super.element as LibraryImportElement?;
+  LibraryImportElementImpl? get element =>
+      super.element as LibraryImportElementImpl?;
 
   @Deprecated('Use element instead')
   @override

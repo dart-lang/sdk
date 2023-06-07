@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:dap/dap.dart';
 import 'package:json_rpc_2/error_code.dart' as json_rpc_errors;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -15,13 +16,10 @@ import 'package:vm_service/vm_service.dart' as vm;
 import '../../../dds.dart';
 import '../../rpc_error_codes.dart';
 import '../base_debug_adapter.dart';
-import '../exceptions.dart';
 import '../isolate_manager.dart';
 import '../logging.dart';
 import '../progress_reporter.dart';
-import '../protocol_common.dart';
 import '../protocol_converter.dart';
-import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 import '../utils.dart';
 import '../variables.dart';
@@ -631,7 +629,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
 
     logger?.call('Connecting to debugger at $uri');
-    sendConsoleOutput('Connecting to VM Service at $uri\n');
+    sendConsoleOutput('Connecting to VM Service at $uri');
     final vmService = await _vmServiceConnectUri(uri.toString());
     logger?.call('Connected to debugger at $uri!');
 
@@ -1065,10 +1063,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     _hasSentTerminatedEvent = true;
 
     // Always add a leading newline since the last written text might not have
-    // had one. Send directly via sendEvent and not sendOutput to ensure no
-    // async since we're about to terminate.
+    // had one.
     final reason = isDetaching ? 'Detached' : 'Exited';
-    sendEvent(OutputEventBody(output: '\n$reason$exitSuffix.'));
+    sendConsoleOutput('\n$reason$exitSuffix.');
     sendEvent(TerminatedEventBody());
   }
 
@@ -1272,9 +1269,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     sendResponse(ScopesResponseBody(scopes: scopes));
   }
 
-  /// Sends an OutputEvent with a newline to the console.
-  void sendConsoleOutput(String message) {
-    sendOutput('console', '\n$message');
+  /// Sends an OutputEvent with a trailing newline to the console.
+  ///
+  /// This method sends output directly and does not go through [sendOutput]
+  /// because that method is async and queues output. Console output is for
+  /// adapter-level output that does not require this and we want to ensure
+  /// it's sent immediately (for example during shutdown/exit).
+  void sendConsoleOutput(String? message) {
+    sendEvent(OutputEventBody(output: '$message\n'));
   }
 
   /// Sends an OutputEvent (without a newline, since calls to this method
@@ -2421,17 +2423,29 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     try {
       return await func();
     } on vm.RPCError catch (e) {
-      // If we've been asked to shut down while this request was occurring,
-      // it's normal to get some types of errors from in-flight VM Service
-      // requests and we should handle them silently.
-      if (isTerminating) {
-        // kServiceDisappeared is thrown sometimes when services disappear.
-        if (e.code == RpcErrorCodes.kServiceDisappeared) {
+      // kServiceDisappeared is thrown sometimes when the VM Service is
+      // shutting down. Usually this is because we're shutting down (and
+      // `isTerminating` is true), but it can also happen if the app is closed
+      // outside of the DAP (eg. closing the simulator) so it's possible our
+      // requests will fail in this way before we've handled any event to set
+      // `isTerminating`.
+      if (e.code == RpcErrorCodes.kServiceDisappeared) {
+        return null;
+      }
+
+      // For any other kind of server error, ignore it if we're shutting down
+      // (because lots of requests can generate all sorts of errors if the VM
+      // and Isolates are shutting down), or if it's a "client closed with
+      // pending request" error (which also indicates a shutdown, but as above,
+      // we might not have set `isTerminating` yet).
+      if (e.code == json_rpc_errors.SERVER_ERROR) {
+        // Ignore all server errors during shutdown.
+        if (isTerminating) {
           return null;
         }
-        // SERVER_ERROR can occur when DDS completes any outstanding requests
-        // with "The client closed with pending request".
-        if (e.code == json_rpc_errors.SERVER_ERROR) {
+
+        // Always ignore "closed with pending request" errors.
+        if (e.message.contains("The client closed with pending request")) {
           return null;
         }
       }

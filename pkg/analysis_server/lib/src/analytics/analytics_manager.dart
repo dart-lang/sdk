@@ -20,6 +20,8 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:collection/collection.dart';
+import 'package:leak_tracker/src/usage_tracking/model.dart';
+import 'package:meta/meta.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 /// An interface for managing and reporting analytics.
@@ -122,7 +124,7 @@ class AnalyticsManager {
   void changedWorkspaceFolders(
       {required List<String> added, required List<String> removed}) {
     var requestData =
-        _getRequestData(Method.workspace_didChangeWorkspaceFolders.toString());
+        getRequestData(Method.workspace_didChangeWorkspaceFolders.toString());
     requestData.addValue('added', added.length);
     requestData.addValue('removed', removed.length);
   }
@@ -146,8 +148,14 @@ class AnalyticsManager {
   /// Record that the given [command] was executed.
   void executedCommand(String command) {
     var requestData =
-        _getRequestData(Method.workspace_executeCommand.toString());
+        getRequestData(Method.workspace_executeCommand.toString());
     requestData.addEnumValue('command', command);
+  }
+
+  /// Return the request data for requests that have the given [method].
+  @visibleForTesting
+  RequestData getRequestData(String method) {
+    return _completedRequests.putIfAbsent(method, () => RequestData(method));
   }
 
   /// Record that the given [notification] was received and has been handled.
@@ -186,8 +194,30 @@ class AnalyticsManager {
 
   /// Record the number of [openWorkspacePaths].
   void initialized({required List<String> openWorkspacePaths}) {
-    var requestData = _getRequestData(Method.initialized.toString());
+    var requestData = getRequestData(Method.initialized.toString());
     requestData.addValue('openWorkspacePaths', openWorkspacePaths.length);
+  }
+
+  Future<void> sendMemoryUsage(MemoryUsageEvent event) async {
+    final delta = event.delta;
+    var seconds = event.period?.inSeconds;
+
+    assert((event.delta == null) == (event.period == null));
+
+    if (delta == null || seconds == null) {
+      await analytics.sendEvent(eventName: DashEvent.memoryInfo, eventData: {
+        'rss': event.rss,
+      });
+      return;
+    }
+
+    if (seconds == 0) seconds = 1;
+
+    await analytics.sendEvent(eventName: DashEvent.memoryInfo, eventData: {
+      'rss': event.rss,
+      'periodSec': seconds,
+      'mbPerSec': delta / seconds,
+    });
   }
 
   /// Record that the given [response] was sent to the client.
@@ -223,7 +253,7 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedGetRefactoring(EditGetRefactoringParams params) {
-    var requestData = _getRequestData(EDIT_REQUEST_GET_REFACTORING);
+    var requestData = getRequestData(EDIT_REQUEST_GET_REFACTORING);
     requestData.addEnumValue(
         EDIT_REQUEST_GET_REFACTORING_KIND, params.kind.name);
   }
@@ -246,7 +276,7 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedSetAnalysisRoots(AnalysisSetAnalysisRootsParams params) {
-    var requestData = _getRequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS);
+    var requestData = getRequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS);
     requestData.addValue(
         ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED, params.included.length);
     requestData.addValue(
@@ -255,7 +285,7 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedSetPriorityFiles(AnalysisSetPriorityFilesParams params) {
-    var requestData = _getRequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES);
+    var requestData = getRequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES);
     requestData.addValue(
         ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES, params.files.length);
   }
@@ -398,11 +428,6 @@ class AnalyticsManager {
     return buffer.toString();
   }
 
-  /// Return the request data for requests that have the given [method].
-  RequestData _getRequestData(String method) {
-    return _completedRequests.putIfAbsent(method, () => RequestData(method));
-  }
-
   /// Record that the request with the given [id] was responded to at the given
   /// [sendTime].
   void _recordResponseData(String id, DateTime sendTime) {
@@ -415,7 +440,7 @@ class AnalyticsManager {
     var clientRequestTime = data.clientRequestTime;
     var startTime = data.startTime.millisecondsSinceEpoch;
 
-    var requestData = _getRequestData(method);
+    var requestData = getRequestData(method);
 
     if (clientRequestTime != null) {
       var latencyTime = startTime - clientRequestTime;
@@ -453,18 +478,21 @@ class AnalyticsManager {
   /// analysis options file.
   Future<void> _sendLintUsageCounts() async {
     if (_lintUsageCounts.isNotEmpty) {
+      var lintUsageCounts = json.encode(_lintUsageCounts);
+      _lintUsageCounts.clear();
       await analytics
           .sendEvent(eventName: DashEvent.lintUsageCounts, eventData: {
-        'usageCounts': json.encode(_lintUsageCounts),
+        'usageCounts': lintUsageCounts,
       });
-      _lintUsageCounts.clear();
     }
   }
 
   /// Send information about the notifications handled by the server.
   Future<void> _sendNotificationHandlingTimes() async {
     if (_completedNotifications.isNotEmpty) {
-      for (var data in _completedNotifications.values) {
+      var completedNotifications = _completedNotifications.values.toList();
+      _completedNotifications.clear();
+      for (var data in completedNotifications) {
         await analytics
             .sendEvent(eventName: DashEvent.clientNotification, eventData: {
           'latency': data.latencyTimes.toAnalyticsString(),
@@ -472,7 +500,6 @@ class AnalyticsManager {
           'duration': data.handlingTimes.toAnalyticsString(),
         });
       }
-      _completedNotifications.clear();
     }
   }
 
@@ -490,7 +517,9 @@ class AnalyticsManager {
   Future<void> _sendPluginResponseTimes() async {
     var responseTimes = PluginManager.pluginResponseTimes;
     if (responseTimes.isNotEmpty) {
-      for (var pluginEntry in responseTimes.entries) {
+      var entries = responseTimes.entries.toList();
+      responseTimes.clear();
+      for (var pluginEntry in entries) {
         for (var responseEntry in pluginEntry.value.entries) {
           await analytics
               .sendEvent(eventName: DashEvent.pluginRequest, eventData: {
@@ -500,14 +529,15 @@ class AnalyticsManager {
           });
         }
       }
-      PluginManager.pluginResponseTimes.clear();
     }
   }
 
   /// Send information about the response times of server.
   Future<void> _sendServerResponseTimes() async {
     if (_completedRequests.isNotEmpty) {
-      for (var data in _completedRequests.values) {
+      var completedRequests = _completedRequests.values.toList();
+      _completedRequests.clear();
+      for (var data in completedRequests) {
         await analytics
             .sendEvent(eventName: DashEvent.clientRequest, eventData: {
           'latency': data.latencyTimes.toAnalyticsString(),
@@ -519,7 +549,6 @@ class AnalyticsManager {
             field.key: json.encode(field.value),
         });
       }
-      _completedRequests.clear();
     }
   }
 
@@ -541,11 +570,12 @@ class AnalyticsManager {
   /// diagnostic is changed in an analysis options file.
   Future<void> _sendSeverityAdjustments() async {
     if (_severityAdjustments.isNotEmpty) {
+      var severityAdjustments = json.encode(_severityAdjustments);
+      _severityAdjustments.clear();
       await analytics
           .sendEvent(eventName: DashEvent.severityAdjustments, eventData: {
-        'adjustmentCounts': json.encode(_severityAdjustments),
+        'adjustmentCounts': severityAdjustments,
       });
-      _severityAdjustments.clear();
     }
   }
 }

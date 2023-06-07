@@ -160,7 +160,7 @@ import "dart:core" as core;
         }
       }
     }
-[996]    switch([996] [996] #t13) {
+[996]    switch([996] [996] #t13) /* dynamic */ {
 [996]      #L5:
       case [996] [996] #C1:
 [996]        {
@@ -259,7 +259,7 @@ import "dart:core" as core;
                   }
                 }
               }
-[1421]              switch([1421] [1421] #t23) {
+[1421]              switch([1421] [1421] #t23) /* dynamic */ {
 [1421]                #L11:
                 case [1421] [1421] #C1:
 [1421]                  {
@@ -304,7 +304,7 @@ import "dart:core" as core;
         }
       }
     }
-[1330]    switch([1330] [1330] #t20) {
+[1330]    switch([1330] [1330] #t20) /* dynamic */ {
 [1330]      #L13:
       case [1330] [1330] #C1:
 [1330]        {
@@ -373,7 +373,7 @@ import "dart:core" as core;
                   }
                 }
               }
-[1973]              switch([1973] [1973] #t30) {
+[1973]              switch([1973] [1973] #t30) /* dynamic */ {
 [1973]                #L17:
                 case [1973] [1973] #C1:
 [1973]                  {
@@ -399,7 +399,7 @@ import "dart:core" as core;
 }
 [2391]static method switchStatementEnum([2413] self::E o) → dynamic {
 [2420]  #L19:
-[2420]  switch([2428] [2428] o) /*isExplicitlyExhaustive*/ {
+[2420]  switch([2428] [2428] o) /* isExplicitlyExhaustive, self::E */ {
 [2437]    #L20:
     case [2444] [2444] #C3:
 [2437]      {
@@ -447,7 +447,7 @@ import "dart:core" as core;
 }
 [2680]static method switchStatementEnumWithLabel([2711] self::E o) → dynamic {
 [2718]  #L24:
-[2718]  switch([2726] [2726] o) /*isExplicitlyExhaustive*/ {
+[2718]  switch([2726] [2726] o) /* isExplicitlyExhaustive, self::E */ {
 [2735]    #L25:
     case [2742] [2742] #C3:
 [2735]      {
@@ -469,7 +469,7 @@ import "dart:core" as core;
 }
 [2845]static method switchStatementEnumWithContinue([2879] self::E o) → dynamic {
 [2886]  #L28:
-[2886]  switch([2894] [2894] o) /*isExplicitlyExhaustive*/ {
+[2886]  switch([2894] [2894] o) /* isExplicitlyExhaustive, self::E */ {
 [2903]    #L29:
     case [2910] [2910] #C3:
 [2903]      {
@@ -491,7 +491,7 @@ import "dart:core" as core;
 }
 [3072]static method switchStatementPrimitiveEquals([3103] dynamic o) → dynamic {
 [3110]  #L32:
-[3110]  switch([3118] [3118] o) {
+[3110]  switch([3118] [3118] o) /* dynamic */ {
 [3127]    #L33:
     case [3138] [3138] #C11:
 [3127]      {
@@ -562,7 +562,7 @@ import "dart:core" as core;
 [3545]  return [3552] [3552] block {
 [-1]    [-1] core::int #t40;
 [3552]    #L37:
-[3552]    switch([3560] [3560] o) /*isExplicitlyExhaustive*/ {
+[3552]    switch([3560] [3560] o) /* isExplicitlyExhaustive, self::E */ {
 [3573]      #L38:
       case [3571] [3571] #C3:
 [3573]        {

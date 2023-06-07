@@ -264,6 +264,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
 
     // * if S is a top type then S
     check(dynamicType, dynamicType);
+    check(invalidType, invalidType);
     check(voidNone, voidNone);
     check(objectQuestion, objectQuestion);
 

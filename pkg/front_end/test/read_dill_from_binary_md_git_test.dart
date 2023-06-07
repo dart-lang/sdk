@@ -17,7 +17,7 @@ Future<void> main() async {
 }
 
 Future<void> testDart2jsCompile() async {
-  final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/bin/dart2js.dart");
+  final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/lib/src/dart2js.dart");
   Stopwatch stopwatch = new Stopwatch()..start();
   List<int> bytes = await normalCompileToBytes(dart2jsUrl,
       options: getOptions(target: new NoneTarget(new TargetFlags())));

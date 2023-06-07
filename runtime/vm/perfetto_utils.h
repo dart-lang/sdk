@@ -33,6 +33,18 @@ inline void SetTrustedPacketSequenceId(
   packet->set_trusted_packet_sequence_id(1);
 }
 
+inline void SetTimestampAndMonotonicClockId(
+    perfetto::protos::pbzero::TracePacket* packet,
+    intptr_t timestamp_micros) {
+  ASSERT(packet != nullptr);
+  // TODO(derekx): We should be able to set the unit_multiplier_ns field in a
+  // ClockSnapshot to avoid manually converting from microseconds to
+  // nanoseconds, but I haven't been able to get it to work.
+  packet->set_timestamp(timestamp_micros * 1000);
+  packet->set_timestamp_clock_id(
+      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
+}
+
 inline void PopulateClockSnapshotPacket(
     perfetto::protos::pbzero::TracePacket* packet) {
   SetTrustedPacketSequenceId(packet);

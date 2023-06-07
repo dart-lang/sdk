@@ -2509,7 +2509,9 @@ class ExpressionParserTest extends FastaParserTestCase {
   void test_parseUnaryExpression_not_super() {
     PrefixExpression expression = parseUnaryExpression('!super');
     expect(expression, isNotNull);
-    assertNoErrors();
+    assertErrors(errors: [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 1, 5),
+    ]);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.BANG);
     expect(expression.operand, isNotNull);

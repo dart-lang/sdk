@@ -430,6 +430,9 @@ class TypeSystemOperations
   bool isDynamic(DartType type) => type is DynamicType;
 
   @override
+  bool isError(DartType type) => type is InvalidType;
+
+  @override
   bool isNever(DartType type) {
     return typeSystem.isBottom(type);
   }

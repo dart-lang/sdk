@@ -1145,7 +1145,7 @@ ConstructorReference
       staticElement: <null>
       staticType: null
     staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1184,7 +1184,7 @@ ConstructorReference
       staticElement: <null>
       staticType: null
     staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1585,7 +1585,7 @@ ConstructorReference
       staticElement: <null>
       staticType: null
     staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 

@@ -79,12 +79,12 @@ MethodInvocation
         token: <empty> <synthetic>
         parameter: self::@function::g::@parameter::a
         staticElement: <null>
-        staticType: dynamic
+        staticType: InvalidType
       SimpleIdentifier
         token: <empty> <synthetic>
         parameter: self::@function::g::@parameter::b
         staticElement: <null>
-        staticType: dynamic
+        staticType: InvalidType
     rightParenthesis: )
   staticInvokeType: void Function(int, int)
   staticType: void
@@ -592,12 +592,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -628,12 +628,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -767,7 +767,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -776,8 +776,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1074,8 +1074,8 @@ FunctionExpressionInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1250,8 +1250,8 @@ FunctionExpressionInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1934,7 +1934,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1943,8 +1943,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -3729,10 +3729,7 @@ f(int a, int b, int c) {
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -3742,6 +3739,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int
     staticType: null
   operator: .
@@ -3770,10 +3768,7 @@ MethodInvocation
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -3783,6 +3778,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: int*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int*
     staticType: null
   operator: .
@@ -4011,7 +4007,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: clamp
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -4026,8 +4022,8 @@ MethodInvocation
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -4254,10 +4250,7 @@ f(A a, int b, int c) {
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -4267,6 +4260,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -4295,10 +4289,7 @@ MethodInvocation
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -4308,6 +4299,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
   operator: .
@@ -4686,8 +4678,8 @@ FunctionExpressionInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -4700,8 +4692,8 @@ FunctionExpressionInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -4989,8 +4981,8 @@ FunctionExpressionInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5003,8 +4995,8 @@ FunctionExpressionInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5080,8 +5072,8 @@ FunctionExpressionInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5101,8 +5093,8 @@ FunctionExpressionInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5132,8 +5124,8 @@ FunctionExpressionInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5146,8 +5138,8 @@ FunctionExpressionInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5185,8 +5177,8 @@ FunctionExpressionInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5205,8 +5197,8 @@ FunctionExpressionInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5338,12 +5330,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: self::@prefix::foo
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5351,12 +5343,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: self::@prefix::foo
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5377,7 +5369,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5386,8 +5378,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5395,7 +5387,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5404,8 +5396,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5433,7 +5425,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5442,8 +5434,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5456,7 +5448,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5465,8 +5457,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5487,12 +5479,12 @@ MethodInvocation
   target: SimpleIdentifier
     token: bar
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: .
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5501,8 +5493,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5510,12 +5502,12 @@ MethodInvocation
   target: SimpleIdentifier
     token: bar
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: .
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5524,8 +5516,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5552,7 +5544,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5561,8 +5553,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5575,7 +5567,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5584,8 +5576,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5614,7 +5606,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5624,8 +5616,8 @@ MethodInvocation
         staticElement: self::@getter::x
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5638,7 +5630,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5648,8 +5640,8 @@ MethodInvocation
         staticElement: self::@getter::x
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5681,7 +5673,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5690,8 +5682,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5704,7 +5696,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5713,8 +5705,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5742,7 +5734,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -5754,8 +5746,8 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
   typeArgumentTypes
     int
 ''');
@@ -5770,7 +5762,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -5782,8 +5774,8 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
   typeArgumentTypes
     int*
 ''');
@@ -5811,12 +5803,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: T
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5829,12 +5821,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: T
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5859,7 +5851,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5868,8 +5860,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5881,7 +5873,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5890,8 +5882,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5918,7 +5910,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5927,8 +5919,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5941,7 +5933,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5950,8 +5942,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -5974,7 +5966,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -5983,8 +5975,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -5992,7 +5984,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -6001,8 +5993,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -6030,12 +6022,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -6047,12 +6039,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -6092,7 +6084,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: _foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -6101,8 +6093,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -6110,7 +6102,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: _foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -6119,8 +6111,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -6242,7 +6234,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -6251,8 +6243,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -6265,7 +6257,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -6274,8 +6266,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -6302,7 +6294,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -6311,8 +6303,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -6320,7 +6312,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -6329,8 +6321,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -6547,12 +6539,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: toString
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -6565,12 +6557,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: toString
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -6593,12 +6585,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: toString
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -6607,12 +6599,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: toString
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -6639,12 +6631,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: toString
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -6657,12 +6649,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: toString
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -8413,17 +8405,17 @@ MethodInvocation
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -8431,17 +8423,17 @@ MethodInvocation
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -8458,17 +8450,17 @@ MethodInvocation
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -8476,17 +8468,17 @@ MethodInvocation
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -8781,12 +8773,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: math
     staticElement: self::@prefix::math
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -8794,12 +8786,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: math
     staticElement: self::@prefix::math
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -10078,7 +10070,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -10087,8 +10079,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -10100,7 +10092,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -10109,8 +10101,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -10139,7 +10131,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -10148,8 +10140,8 @@ MethodInvocation
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -10161,7 +10153,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -10170,8 +10162,8 @@ MethodInvocation
         parameter: <null>
         staticType: int*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -10196,7 +10188,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: <empty> <synthetic>
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -10223,8 +10215,8 @@ MethodInvocation
         parameter: <null>
         staticType: List<int>
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -10232,7 +10224,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: <empty> <synthetic>
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -10261,8 +10253,8 @@ MethodInvocation
         parameter: <null>
         staticType: List<int*>*
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
     }
 

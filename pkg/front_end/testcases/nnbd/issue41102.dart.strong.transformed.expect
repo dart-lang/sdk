@@ -75,7 +75,7 @@ final s3 = new List<int>.filled(2, null);
                                    ^" in let Null #t2 = null in #t2 == null ?{core::int} #t2 as{TypeError,ForNonNullableByDefault} core::int : #t2{core::int});
 static final field dynamic s4 = (() → Null {
   core::int e = 0;
-  switch(e) {
+  switch(e) /* core::int */ {
     #L1:
     case #C1:
       {

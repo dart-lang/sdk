@@ -22,7 +22,8 @@ abstract class TypeSystemStrategy {
   ParameterTypeInformation createParameterTypeInformation(
       AbstractValueDomain abstractValueDomain,
       Local parameter,
-      TypeSystem types);
+      TypeSystem types,
+      {required bool isVirtual});
 
   /// Calls [f] for each parameter in [function].
   void forEachParameter(FunctionEntity function, void f(Local parameter));
@@ -322,13 +323,14 @@ class TypeSystem {
   }
 
   ParameterTypeInformation getInferredTypeOfParameter(Local parameter,
-      {bool virtual = false}) {
-    final typeInformations =
-        virtual ? virtualParameterTypeInformations : parameterTypeInformations;
+      {bool isVirtual = false}) {
+    final typeInformations = isVirtual
+        ? virtualParameterTypeInformations
+        : parameterTypeInformations;
     return typeInformations.putIfAbsent(parameter, () {
-      ParameterTypeInformation typeInformation =
-          strategy.createParameterTypeInformation(
-              _abstractValueDomain, parameter, this);
+      ParameterTypeInformation typeInformation = strategy
+          .createParameterTypeInformation(_abstractValueDomain, parameter, this,
+              isVirtual: isVirtual);
       _orderedTypeInformations.add(typeInformation);
       return typeInformation;
     });
@@ -537,9 +539,10 @@ class TypeSystem {
       allocatedTypes.add(getterType);
     }
 
-    final record = RecordTypeInformation(currentMember,
-        _abstractValueDomain.recordType, recordType.shape, fieldTypes);
+    final record = RecordTypeInformation(_abstractValueDomain.uncomputedType,
+        currentMember, recordType.shape, fieldTypes);
     allocatedRecords[node] = record;
+    allocatedTypes.add(record);
     return record;
   }
 

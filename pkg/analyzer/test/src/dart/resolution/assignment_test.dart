@@ -206,6 +206,113 @@ SimpleIdentifier
 ''');
   }
 
+  test_dynamicIdentifier_compound() async {
+    await assertNoErrorsInCode(r'''
+void f(dynamic a) {
+  a += 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: self::@function::f::@parameter::a
+  readType: dynamic
+  writeElement: self::@function::f::@parameter::a
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
+  test_dynamicIdentifier_identifier_compound() async {
+    await assertNoErrorsInCode(r'''
+void f(dynamic a) {
+  a.foo += 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: dynamic
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
+  test_dynamicIdentifier_identifier_identifier_compound() async {
+    await assertNoErrorsInCode(r'''
+void f(dynamic a) {
+  a.foo.bar += 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+        staticElement: self::@function::f::@parameter::a
+        staticType: dynamic
+      period: .
+      identifier: SimpleIdentifier
+        token: foo
+        staticElement: <null>
+        staticType: dynamic
+      staticElement: <null>
+      staticType: dynamic
+    operator: .
+    propertyName: SimpleIdentifier
+      token: bar
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
   test_importPrefix_deferred_topLevelVariable_simple() async {
     newFile('$testPackageLibPath/a.dart', '''
 var v = 0;
@@ -285,6 +392,43 @@ AssignmentExpression
   writeType: num
   staticElement: dart:core::@class::num::@method::+
   staticType: int
+''');
+  }
+
+  test_indexExpression_dynamicTarget_compound() async {
+    await assertNoErrorsInCode(r'''
+void f(dynamic a) {
+  a[0] += 1;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: dynamic
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: <null>
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
 ''');
   }
 
@@ -563,13 +707,13 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     leftBracket: [
     index: SimpleIdentifier
       token: b
       parameter: <null>
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     rightBracket: ]
     staticElement: <null>
     staticType: null
@@ -582,7 +726,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -612,7 +756,7 @@ AssignmentExpression
       token: b
       parameter: <null>
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     rightBracket: ]
     staticElement: <null>
     staticType: null
@@ -625,7 +769,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -658,7 +802,7 @@ AssignmentExpression
       token: b
       parameter: self::@class::A::@method::[]=::@parameter::index
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     rightBracket: ]
     staticElement: <null>
     staticType: null
@@ -674,6 +818,45 @@ AssignmentExpression
   writeType: num
   staticElement: <null>
   staticType: int
+''');
+  }
+
+  test_indexExpression_unresolvedTarget_compound() async {
+    await assertErrorsInCode(r'''
+void f() {
+  a[0] += 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
+    ]);
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: InvalidType
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: <null>
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  staticElement: <null>
+  staticType: InvalidType
 ''');
   }
 
@@ -703,7 +886,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -744,11 +927,11 @@ AssignmentExpression
     staticElement: self::@function::f::@parameter::c
     staticType: double
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -791,11 +974,11 @@ AssignmentExpression
     staticElement: self::@function::f::@parameter::c
     staticType: double
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -871,7 +1054,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: double
 ''');
@@ -910,11 +1093,11 @@ AssignmentExpression
     staticElement: self::@function::f::@parameter::y
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -951,11 +1134,11 @@ AssignmentExpression
     staticElement: self::@function::f::@parameter::y
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -994,7 +1177,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -1033,11 +1216,11 @@ AssignmentExpression
     staticElement: self::@function::f::@parameter::y
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1074,11 +1257,11 @@ AssignmentExpression
     staticElement: self::@function::f::@parameter::y
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1117,7 +1300,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -1152,7 +1335,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -1185,7 +1368,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@class::C
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -1391,7 +1574,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@class::A::@getter::x
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -1475,7 +1658,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@class::A::@getter::x
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -1585,7 +1768,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: a
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     period: .
     identifier: SimpleIdentifier
       token: b
@@ -1602,7 +1785,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -1641,11 +1824,11 @@ AssignmentExpression
     staticElement: self::@function::f::@parameter::c
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1958,11 +2141,11 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -2001,7 +2184,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -2044,11 +2227,11 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: self::@extension::E::@setter::foo
-  readType: dynamic
+  readType: InvalidType
   writeElement: self::@extension::E::@setter::foo
   writeType: int
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -2134,7 +2317,7 @@ AssignmentExpression
   readElement: self::@extension::E::@getter::foo
   readType: int
   writeElement: self::@extension::E::@getter::foo
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: dart:core::@class::num::@method::+
   staticType: int
 ''');
@@ -2179,7 +2362,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@extension::E::@getter::foo
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -2308,7 +2491,7 @@ AssignmentExpression
   readElement: <null>
   readType: int
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: dart:core::@class::num::@method::+
   staticType: int
 ''');
@@ -2349,7 +2532,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -2394,7 +2577,7 @@ AssignmentExpression
   readElement: <null>
   readType: int
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: dart:core::@class::num::@method::+
   staticType: int
 ''');
@@ -2439,7 +2622,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -2484,7 +2667,7 @@ AssignmentExpression
   readElement: <null>
   readType: int
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: dart:core::@class::num::@method::+
   staticType: int
 ''');
@@ -2529,7 +2712,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -2575,7 +2758,7 @@ AssignmentExpression
   readElement: <null>
   readType: int
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: dart:core::@class::num::@method::+
   staticType: int
 ''');
@@ -2621,7 +2804,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -2661,11 +2844,11 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -2704,7 +2887,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -2749,7 +2932,7 @@ AssignmentExpression
   readElement: self::@extension::E::@getter::$3
   readType: int
   writeElement: self::@extension::E::@getter::$3
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: dart:core::@class::num::@method::+
   staticType: int
 ''');
@@ -2794,7 +2977,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@extension::E::@getter::$3
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -2835,7 +3018,7 @@ AssignmentExpression
   readElement: <null>
   readType: int
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: dart:core::@class::num::@method::+
   staticType: int
 ''');
@@ -2876,7 +3059,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -2921,7 +3104,7 @@ AssignmentExpression
   readElement: <null>
   readType: int
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: dart:core::@class::num::@method::+
   staticType: int
 ''');
@@ -2966,7 +3149,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -3076,9 +3259,9 @@ AssignmentExpression
       expression: SimpleIdentifier
         token: a
         staticElement: <null>
-        staticType: dynamic
+        staticType: InvalidType
       rightParenthesis: )
-      staticType: dynamic
+      staticType: InvalidType
     operator: .
     propertyName: SimpleIdentifier
       token: b
@@ -3094,7 +3277,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -3137,7 +3320,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -3269,7 +3452,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@class::C::@getter::x
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -3304,7 +3487,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@class::C::@getter::x
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -3337,7 +3520,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@getter::x
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -3376,7 +3559,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@prefix::x
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -3409,7 +3592,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@prefix::x
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -3840,7 +4023,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@class::B::@getter::x
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -3880,7 +4063,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@class::B::@method::x
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -3947,7 +4130,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -4133,7 +4316,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@getter::x
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -4342,7 +4525,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: self::@getter::x
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -4371,11 +4554,11 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: dart:core::@class::int
-  readType: dynamic
+  readType: InvalidType
   writeElement: dart:core::@class::int
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -4404,7 +4587,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: dart:core::@class::int
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -4433,11 +4616,11 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -4467,7 +4650,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');

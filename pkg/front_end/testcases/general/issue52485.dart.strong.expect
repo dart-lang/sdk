@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+static method h1<X extends asy::Future<self::A>?>(self::h1::X% x) → asy::Future<void> async /* futureValueType= void */ {
+  self::A? x2 = await x /* runtimeCheckType= asy::Future<self::A?> */ ;
+  self::expectEquals(x2, null);
+  self::expectEquals(<self::A?>[x2].{core::Object::runtimeType}{core::Type}, #C1);
+  x2 = null;
+  x2 = new self::A::•();
+}
+static method main() → void async /* futureValueType= void */ 
+  return await self::h1<Null>(null);
+static method expectEquals(dynamic a, dynamic b) → dynamic {
+  if(!(a =={core::Object::==}{(core::Object) → core::bool} b)) {
+    throw "Expected '${a}' to be equal to '${b}'.";
+  }
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(core::List<self::A?>)
+}

@@ -734,7 +734,7 @@ InstanceCreationExpression
     type: NamedType
       name: prefix
       element: self::@prefix::prefix
-      type: dynamic
+      type: InvalidType
     staticElement: <null>
   argumentList: ArgumentList
     leftParenthesis: (
@@ -744,7 +744,7 @@ InstanceCreationExpression
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1019,7 +1019,7 @@ InstanceCreationExpression
         element: self::@prefix::prefix
       name: Foo
       element: <null>
-      type: dynamic
+      type: InvalidType
     period: .
     name: SimpleIdentifier
       token: bar
@@ -1034,7 +1034,7 @@ InstanceCreationExpression
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1526,7 +1526,7 @@ InstanceCreationExpression
     type: NamedType
       name: Unresolved
       element: <null>
-      type: dynamic
+      type: InvalidType
     staticElement: <null>
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1536,7 +1536,7 @@ InstanceCreationExpression
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1562,7 +1562,7 @@ InstanceCreationExpression
         element: <null>
       name: named
       element: <null>
-      type: dynamic
+      type: InvalidType
     staticElement: <null>
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1572,7 +1572,7 @@ InstanceCreationExpression
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1598,7 +1598,7 @@ InstanceCreationExpression
         element: <null>
       name: Foo
       element: <null>
-      type: dynamic
+      type: InvalidType
     period: .
     name: SimpleIdentifier
       token: bar
@@ -1613,7 +1613,7 @@ InstanceCreationExpression
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 }

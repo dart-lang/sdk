@@ -368,34 +368,6 @@ Message _withArgumentsBaseClassImplementedOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
-    templateBaseClassImplementedOutsideOfLibraryCause =
-    const Template<Message Function(String name, String name2)>(
-        problemMessageTemplate:
-            r"""The type '#name' is a subtype of '#name2', and '#name2' is defined here.""",
-        withArguments: _withArgumentsBaseClassImplementedOutsideOfLibraryCause);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)>
-    codeBaseClassImplementedOutsideOfLibraryCause =
-    const Code<Message Function(String name, String name2)>(
-        "BaseClassImplementedOutsideOfLibraryCause",
-        severity: Severity.context);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBaseClassImplementedOutsideOfLibraryCause(
-    String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  return new Message(codeBaseClassImplementedOutsideOfLibraryCause,
-      problemMessage:
-          """The type '${name}' is a subtype of '${name2}', and '${name2}' is defined here.""",
-      arguments: {'name': name, 'name2': name2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeBaseEnum = messageBaseEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -429,6 +401,35 @@ Message _withArgumentsBaseMixinImplementedOutsideOfLibrary(String name) {
       problemMessage:
           """The mixin '${name}' can't be implemented outside of its library because it's a base mixin.""",
       arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateBaseOrFinalClassImplementedOutsideOfLibraryCause =
+    const Template<Message Function(String name, String name2)>(
+        problemMessageTemplate:
+            r"""The type '#name' is a subtype of '#name2', and '#name2' is defined here.""",
+        withArguments:
+            _withArgumentsBaseOrFinalClassImplementedOutsideOfLibraryCause);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeBaseOrFinalClassImplementedOutsideOfLibraryCause =
+    const Code<Message Function(String name, String name2)>(
+        "BaseOrFinalClassImplementedOutsideOfLibraryCause",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBaseOrFinalClassImplementedOutsideOfLibraryCause(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeBaseOrFinalClassImplementedOutsideOfLibraryCause,
+      problemMessage:
+          """The type '${name}' is a subtype of '${name2}', and '${name2}' is defined here.""",
+      arguments: {'name': name, 'name2': name2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1190,16 +1191,6 @@ Message _withArgumentsCombinedMemberSignatureFailed(String name, String name2) {
       correctionMessage: """Try adding a declaration of '${name2}' to '${name}'.""",
       arguments: {'name': name, 'name2': name2});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCompilingWithSoundNullSafety =
-    messageCompilingWithSoundNullSafety;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCompilingWithSoundNullSafety = const MessageCode(
-    "CompilingWithSoundNullSafety",
-    severity: Severity.info,
-    problemMessage: r"""Compiling with sound null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCompilingWithoutSoundNullSafety =
@@ -5712,6 +5703,84 @@ Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Token
+            token)> templateIllegalPatternAssignmentVariableName = const Template<
+        Message Function(Token token)>(
+    problemMessageTemplate:
+        r"""A variable assigned by a pattern assignment can't be named '#lexeme'.""",
+    correctionMessageTemplate: r"""Choose a different name.""",
+    withArguments: _withArgumentsIllegalPatternAssignmentVariableName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)>
+    codeIllegalPatternAssignmentVariableName =
+    const Code<Message Function(Token token)>(
+        "IllegalPatternAssignmentVariableName",
+        index: 160);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIllegalPatternAssignmentVariableName(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeIllegalPatternAssignmentVariableName,
+      problemMessage:
+          """A variable assigned by a pattern assignment can't be named '${lexeme}'.""",
+      correctionMessage: """Choose a different name.""",
+      arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)>
+    templateIllegalPatternIdentifierName =
+    const Template<Message Function(Token token)>(
+        problemMessageTemplate:
+            r"""A pattern can't refer to an identifier named '#lexeme'.""",
+        correctionMessageTemplate: r"""Match the identifier using '==""",
+        withArguments: _withArgumentsIllegalPatternIdentifierName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeIllegalPatternIdentifierName =
+    const Code<Message Function(Token token)>("IllegalPatternIdentifierName",
+        index: 161);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIllegalPatternIdentifierName(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeIllegalPatternIdentifierName,
+      problemMessage:
+          """A pattern can't refer to an identifier named '${lexeme}'.""",
+      correctionMessage: """Match the identifier using '==""",
+      arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Token
+            token)> templateIllegalPatternVariableName = const Template<
+        Message Function(Token token)>(
+    problemMessageTemplate:
+        r"""The variable declared by a variable pattern can't be named '#lexeme'.""",
+    correctionMessageTemplate: r"""Choose a different name.""",
+    withArguments: _withArgumentsIllegalPatternVariableName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeIllegalPatternVariableName =
+    const Code<Message Function(Token token)>("IllegalPatternVariableName",
+        index: 159);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIllegalPatternVariableName(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeIllegalPatternVariableName,
+      problemMessage:
+          """The variable declared by a variable pattern can't be named '${lexeme}'.""",
+      correctionMessage: """Choose a different name.""",
+      arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeIllegalSyncGeneratorReturnType =
     messageIllegalSyncGeneratorReturnType;
 
@@ -7638,18 +7707,6 @@ Message _withArgumentsJointPatternVariablesMismatch(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropAnonymousFactoryPositionalParameters =
-    messageJsInteropAnonymousFactoryPositionalParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropAnonymousFactoryPositionalParameters =
-    const MessageCode("JsInteropAnonymousFactoryPositionalParameters",
-        problemMessage:
-            r"""Factory constructors for @anonymous JS interop classes should not contain any positional parameters.""",
-        correctionMessage:
-            r"""Try replacing them with named parameters instead.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
@@ -7954,7 +8011,7 @@ const Code<Null> codeJsInteropNamedParameters = messageJsInteropNamedParameters;
 const MessageCode messageJsInteropNamedParameters = const MessageCode(
     "JsInteropNamedParameters",
     problemMessage:
-        r"""Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.""",
+        r"""Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.""",
     correctionMessage:
         r"""Try replacing them with normal or optional parameters.""");
 
@@ -8050,26 +8107,57 @@ Message _withArgumentsJsInteropNonStaticWithStaticInteropSupertype(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateJsInteropObjectLiteralConstructorPositionalParameters =
+    const Template<Message Function(String string)>(
+        problemMessageTemplate:
+            r"""#string should not contain any positional parameters.""",
+        correctionMessageTemplate:
+            r"""Try replacing them with named parameters instead.""",
+        withArguments:
+            _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeJsInteropObjectLiteralConstructorPositionalParameters =
+    const Code<Message Function(String string)>(
+  "JsInteropObjectLiteralConstructorPositionalParameters",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters(
+    String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropObjectLiteralConstructorPositionalParameters,
+      problemMessage:
+          """${string} should not contain any positional parameters.""",
+      correctionMessage:
+          """Try replacing them with named parameters instead.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropOperatorCannotBeRenamed =
+    messageJsInteropOperatorCannotBeRenamed;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropOperatorCannotBeRenamed = const MessageCode(
+    "JsInteropOperatorCannotBeRenamed",
+    problemMessage:
+        r"""JS interop operator methods cannot be renamed using the '@JS' annotation.""",
+    correctionMessage:
+        r"""Remove the annotation or remove the value inside the annotation.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropOperatorsNotSupported =
     messageJsInteropOperatorsNotSupported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     "JsInteropOperatorsNotSupported",
-    problemMessage: r"""JS interop classes do not support operator methods.""",
+    problemMessage:
+        r"""JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.""",
     correctionMessage: r"""Try replacing this with a normal method.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropStaticInteropAnonymousFactoryTearoff =
-    messageJsInteropStaticInteropAnonymousFactoryTearoff;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropStaticInteropAnonymousFactoryTearoff =
-    const MessageCode("JsInteropStaticInteropAnonymousFactoryTearoff",
-        problemMessage:
-            r"""Factories of `@anonymous` `@staticInterop` classes can not be torn off.""",
-        correctionMessage:
-            r"""Declare a closure that forwards to this factory instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null>
@@ -8223,6 +8311,37 @@ const MessageCode messageJsInteropStaticInteropSyntheticConstructor = const Mess
         r"""Synthetic constructors on `@staticInterop` classes can not be used.""",
     correctionMessage:
         r"""Declare an external factory constructor for this `@staticInterop` class and use that instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String name)>
+    templateJsInteropStaticInteropTearOffsDisallowed =
+    const Template<Message Function(String string, String name)>(
+        problemMessageTemplate:
+            r"""Tear-offs of external #string '#name' are disallowed.""",
+        correctionMessageTemplate:
+            r"""Declare a closure that calls this member instead.""",
+        withArguments: _withArgumentsJsInteropStaticInteropTearOffsDisallowed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String name)>
+    codeJsInteropStaticInteropTearOffsDisallowed =
+    const Code<Message Function(String string, String name)>(
+  "JsInteropStaticInteropTearOffsDisallowed",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropTearOffsDisallowed(
+    String string, String name) {
+  if (string.isEmpty) throw 'No string provided';
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropStaticInteropTearOffsDisallowed,
+      problemMessage:
+          """Tear-offs of external ${string} '${name}' are disallowed.""",
+      correctionMessage:
+          """Declare a closure that calls this member instead.""",
+      arguments: {'string': string, 'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>

@@ -445,7 +445,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForConflictingClassMembers();
       _constructorFieldsVerifier.enterClass(node, element);
       _checkForFinalNotInitializedInClass(members);
-      _checkForBadFunctionUse(node);
+      _checkForBadFunctionUse(
+        superclass: node.extendsClause?.superclass,
+        withClause: node.withClause,
+        implementsClause: node.implementsClause,
+      );
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
@@ -479,6 +483,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMixinClassErrorCodes(
           node, List.empty(), node.superclass, node.withClause);
+      _checkForBadFunctionUse(
+        superclass: node.superclass,
+        withClause: node.withClause,
+        implementsClause: node.implementsClause,
+      );
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
     } finally {
       _enclosingClass = outerClassElement;
@@ -880,6 +889,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _checkForReferenceBeforeDeclaration(
+      nameToken: node.name,
+      element: node.element,
+    );
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     if (node.isNullAware) {
       _checkForUnnecessaryNullAware(
@@ -1020,6 +1037,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitNamedType(NamedType node) {
+    _checkForAmbiguousImport(
+      name: node.name2,
+      element: node.element,
+    );
+    _checkForTypeParameterReferencedByStatic(
+      name: node.name2,
+      element: node.element,
+    );
     _typeArgumentsVerifier.checkNamedType(node);
     super.visitNamedType(node);
   }
@@ -1163,10 +1188,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _checkForAmbiguousImport(node);
-    _checkForReferenceBeforeDeclaration(node);
+    _checkForAmbiguousImport(
+      name: node.token,
+      element: node.writeOrReadElement,
+    );
+    _checkForReferenceBeforeDeclaration(
+      nameToken: node.token,
+      element: node.staticElement,
+    );
     _checkForInvalidInstanceMemberAccess(node);
-    _checkForTypeParameterReferencedByStatic(node);
+    _checkForTypeParameterReferencedByStatic(
+      name: node.token,
+      element: node.staticElement,
+    );
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
     }
@@ -1535,7 +1569,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // REDIRECT_TO_MISSING_CONSTRUCTOR case
       NamedType constructorNamedType = redirectedConstructor.type;
       DartType redirectedType = constructorNamedType.typeOrThrow;
-      if (redirectedType is! DynamicType) {
+      if (!(redirectedType is DynamicType || redirectedType is InvalidType)) {
         // Prepare the constructor name
         String constructorStrName = constructorNamedType.qualifiedName;
         if (redirectedConstructor.name != null) {
@@ -1605,15 +1639,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check the given node to see whether it was ambiguous because the name was
   /// imported from two or more imports.
-  void _checkForAmbiguousImport(SimpleIdentifier node) {
-    var element = node.writeOrReadElement;
+  void _checkForAmbiguousImport({
+    required Token name,
+    required Element? element,
+  }) {
     if (element is MultiplyDefinedElementImpl) {
       var conflictingMembers = element.conflictingElements;
       var libraryNames =
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
       libraryNames.sort();
-      errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_IMPORT,
-          node, [node.name, libraryNames.quotedAndCommaSeparatedWithAnd]);
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+        name,
+        [name.lexeme, libraryNames.quotedAndCommaSeparatedWithAnd],
+      );
     }
   }
 
@@ -1699,23 +1738,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Verifies that the class is not named `Function` and that it doesn't
-  /// extends/implements/mixes in `Function`.
-  void _checkForBadFunctionUse(ClassDeclaration node) {
+  /// Verifies that the nodes don't reference `Function` from `dart:core`.
+  void _checkForBadFunctionUse({
+    required NamedType? superclass,
+    required ImplementsClause? implementsClause,
+    required WithClause? withClause,
+  }) {
     // With the `class_modifiers` feature `Function` is final.
     if (_featureSet!.isEnabled(Feature.class_modifiers)) {
       return;
     }
 
-    var extendsClause = node.extendsClause;
-    var implementsClause = node.implementsClause;
-    var withClause = node.withClause;
-
-    if (extendsClause != null) {
-      var superElement = extendsClause.superclass.element;
-      if (superElement != null && superElement.name == "Function") {
+    if (superclass != null) {
+      var type = superclass.type;
+      if (type != null && type.isDartCoreFunction) {
         errorReporter.reportErrorForNode(
-            WarningCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
+          WarningCode.DEPRECATED_EXTENDS_FUNCTION,
+          superclass,
+        );
       }
     }
 
@@ -1733,11 +1773,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (withClause != null) {
-      for (NamedType type in withClause.mixinTypes) {
-        var mixinElement = type.element;
-        if (mixinElement != null && mixinElement.name == "Function") {
+      for (NamedType mixin in withClause.mixinTypes) {
+        final type = mixin.type;
+        if (type != null && type.isDartCoreFunction) {
           errorReporter.reportErrorForNode(
-              WarningCode.DEPRECATED_MIXIN_FUNCTION, type);
+            WarningCode.DEPRECATED_MIXIN_FUNCTION,
+            mixin,
+          );
         }
       }
     }
@@ -2375,13 +2417,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (constructorName.staticElement != null) {
       return;
     }
-    DartType type = namedType.typeOrThrow;
-    if (type is InterfaceType) {
-      if (type.element is EnumElement) {
-        // We have already reported the error.
-        return;
-      }
-    }
     // report as named or default constructor absence
     var name = constructorName.name;
     if (name != null) {
@@ -2876,10 +2911,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.
   /// FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY].
   void _checkForFinalSupertypeOutsideOfLibrary(
-      NamedType? superclass,
-      WithClause? withClause,
-      ImplementsClause? implementsClause,
-      OnClause? onClause) {
+    NamedType? superclass,
+    WithClause? withClause,
+    ImplementsClause? implementsClause,
+    OnClause? onClause,
+  ) {
     if (superclass != null) {
       final type = superclass.type;
       if (type is InterfaceType) {
@@ -2900,16 +2936,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType namedType in implementsClause.interfaces) {
         final type = namedType.type;
         if (type is InterfaceType) {
-          final element = type.element;
-          if (element is ClassElement &&
-              element.isFinal &&
-              !element.isSealed &&
-              element.library != _currentLibrary &&
-              !_mayIgnoreClassModifiers(element.library)) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                namedType,
-                [element.name]);
+          final implementedInterfaces = [
+            type,
+            ...type.element.allSupertypes,
+          ].map((e) => e.element).toList();
+          for (final element in implementedInterfaces) {
+            if (element is ClassElement &&
+                element.isFinal &&
+                !element.isSealed &&
+                element.library != _currentLibrary &&
+                !_mayIgnoreClassModifiers(element.library)) {
+              // If the final interface is an indirect interface and is in a
+              // different library that has class modifiers enabled, there is a
+              // nearer declaration that would emit an error, if any.
+              if (element != type.element &&
+                  type.element.library.featureSet
+                      .isEnabled(Feature.class_modifiers)) {
+                continue;
+              }
+
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode
+                      .FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                  namedType,
+                  [element.name]);
+              break;
+            }
           }
         }
       }
@@ -4351,17 +4403,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForReferenceBeforeDeclaration(SimpleIdentifier node) {
-    var element = node.staticElement;
-    if (!node.inDeclarationContext() &&
-        element != null &&
+  void _checkForReferenceBeforeDeclaration({
+    required Token nameToken,
+    required Element? element,
+  }) {
+    if (element != null &&
         _hiddenElements != null &&
-        _hiddenElements!.contains(element) &&
-        node.parent is! CommentReference) {
+        _hiddenElements!.contains(element)) {
       errorReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,
-          nameToken: node.token,
+          nameToken: nameToken,
           element: element,
         ),
       );
@@ -4609,17 +4661,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForTypeParameterReferencedByStatic(SimpleIdentifier identifier) {
+  void _checkForTypeParameterReferencedByStatic({
+    required Token name,
+    required Element? element,
+  }) {
     if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
-      var element = identifier.staticElement;
       if (element is TypeParameterElement &&
           element.enclosingElement is InterfaceElement) {
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
-            identifier);
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
+          name,
+        );
       }
     }
   }
@@ -5355,7 +5410,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               final parameterName = _parameterName(parameter);
               final errorTarget = parameterName ?? parameter;
 
-              List<Object>? arguments;
+              List<Object> arguments = const [];
               ErrorCode errorCode;
               if (parameterElement.hasRequired) {
                 errorCode = CompileTimeErrorCode

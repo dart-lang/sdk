@@ -3871,7 +3871,7 @@ class PcDescriptor {
     }
     this.script = script;
     var scriptLine = script.getLine(line);
-    formattedLine = scriptLine!.text;
+    formattedLine = scriptLine?.text;
   }
 }
 

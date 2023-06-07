@@ -1,8 +1,9 @@
 ## 0.6.9-dev
 
 - Remove dependency on `dart:js`.
-- Update SDK lower constraint to 3.0.0-217.0.dev.
+- Update SDK lower constraint to 3.1.0-66.0.dev.
 - Update SDK upper constraint to 4.0.0.
+- Moved annotations to single location in `dart:_js_annotations`.
 
 ## 0.6.7
 

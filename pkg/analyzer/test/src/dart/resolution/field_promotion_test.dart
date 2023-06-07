@@ -568,9 +568,9 @@ PrefixedIdentifier
 ''');
   }
 
-  test_language218() async {
+  test_language219() async {
     await assertNoErrorsInCode('''
-// @dart=2.18
+// @dart = 2.19
 class C {
   final int? _foo;
   C(this._foo);
@@ -599,6 +599,366 @@ PropertyAccess
     staticElement: self::@class::C::@getter::_foo
     staticType: int?
   staticType: int?
+''');
+  }
+
+  test_super_get() async {
+    await assertNoErrorsInCode('''
+class B {
+  final int? _i;
+  B(this._i);
+}
+class C extends B {
+  final int? _i;
+  C(this._i, int? superI) : super(superI);
+
+  void f() {
+    if (_i != null) { // A
+      _i;
+      super._i;
+    }
+    if (super._i != null) { // B
+      _i;
+      super._i;
+    }
+  }
+}
+''');
+    var blockA = findNode.block('// A');
+    assertResolvedNodeText(blockA, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: SimpleIdentifier
+        token: _i
+        staticElement: self::@class::C::@getter::_i
+        staticType: int
+      semicolon: ;
+    ExpressionStatement
+      expression: PropertyAccess
+        target: SuperExpression
+          superKeyword: super
+          staticType: C
+        operator: .
+        propertyName: SimpleIdentifier
+          token: _i
+          staticElement: self::@class::B::@getter::_i
+          staticType: int?
+        staticType: int?
+      semicolon: ;
+  rightBracket: }
+''');
+    var blockB = findNode.block('// B');
+    assertResolvedNodeText(blockB, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: SimpleIdentifier
+        token: _i
+        staticElement: self::@class::C::@getter::_i
+        staticType: int?
+      semicolon: ;
+    ExpressionStatement
+      expression: PropertyAccess
+        target: SuperExpression
+          superKeyword: super
+          staticType: C
+        operator: .
+        propertyName: SimpleIdentifier
+          token: _i
+          staticElement: self::@class::B::@getter::_i
+          staticType: int
+        staticType: int
+      semicolon: ;
+  rightBracket: }
+''');
+  }
+
+  test_super_get_inGenericClass() async {
+    await assertNoErrorsInCode('''
+class B<T extends Object> {
+  final T? _t;
+  B(this._t);
+}
+class C<T extends Object> extends B<T> {
+  final T? _t;
+  C(this._t, T? superT) : super(superT);
+
+  void f() {
+    if (_t != null) { // A
+      _t;
+      super._t;
+    }
+    if (super._t != null) { // B
+      _t;
+      super._t;
+    }
+  }
+}
+''');
+    var blockA = findNode.block('// A');
+    assertResolvedNodeText(blockA, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: SimpleIdentifier
+        token: _t
+        staticElement: self::@class::C::@getter::_t
+        staticType: T
+      semicolon: ;
+    ExpressionStatement
+      expression: PropertyAccess
+        target: SuperExpression
+          superKeyword: super
+          staticType: C<T>
+        operator: .
+        propertyName: SimpleIdentifier
+          token: _t
+          staticElement: PropertyAccessorMember
+            base: self::@class::B::@getter::_t
+            substitution: {T: T}
+          staticType: T?
+        staticType: T?
+      semicolon: ;
+  rightBracket: }
+''');
+    var blockB = findNode.block('// B');
+    assertResolvedNodeText(blockB, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: SimpleIdentifier
+        token: _t
+        staticElement: self::@class::C::@getter::_t
+        staticType: T?
+      semicolon: ;
+    ExpressionStatement
+      expression: PropertyAccess
+        target: SuperExpression
+          superKeyword: super
+          staticType: C<T>
+        operator: .
+        propertyName: SimpleIdentifier
+          token: _t
+          staticElement: PropertyAccessorMember
+            base: self::@class::B::@getter::_t
+            substitution: {T: T}
+          staticType: T
+        staticType: T
+      semicolon: ;
+  rightBracket: }
+''');
+  }
+
+  test_super_getAndInvoke() async {
+    await assertNoErrorsInCode('''
+class B {
+  final int? Function() _f;
+  B(this._f);
+}
+class C extends B {
+  final int? Function() _f;
+  C(this._f, int? Function() superF) : super(superF);
+
+  void f() {
+    if (_f is int Function()) { // A
+      _f();
+      super._f();
+    }
+    if (super._f is int Function()) { // B
+      _f();
+      super._f();
+    }
+  }
+}
+''');
+    var blockA = findNode.block('// A');
+    assertResolvedNodeText(blockA, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
+        function: SimpleIdentifier
+          token: _f
+          staticElement: self::@class::C::@getter::_f
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: int Function()
+        staticType: int
+      semicolon: ;
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
+        function: PropertyAccess
+          target: SuperExpression
+            superKeyword: super
+            staticType: C
+          operator: .
+          propertyName: SimpleIdentifier
+            token: _f
+            staticElement: self::@class::B::@getter::_f
+            staticType: int? Function()
+          staticType: int? Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: int? Function()
+        staticType: int?
+      semicolon: ;
+  rightBracket: }
+''');
+    var blockB = findNode.block('// B');
+    assertResolvedNodeText(blockB, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
+        function: SimpleIdentifier
+          token: _f
+          staticElement: self::@class::C::@getter::_f
+          staticType: int? Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: int? Function()
+        staticType: int?
+      semicolon: ;
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
+        function: PropertyAccess
+          target: SuperExpression
+            superKeyword: super
+            staticType: C
+          operator: .
+          propertyName: SimpleIdentifier
+            token: _f
+            staticElement: self::@class::B::@getter::_f
+            staticType: int Function()
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: int Function()
+        staticType: int
+      semicolon: ;
+  rightBracket: }
+''');
+  }
+
+  test_super_getAndInvoke_inGenericClass() async {
+    await assertNoErrorsInCode('''
+class B<T extends Object> {
+  final T? Function() _f;
+  B(this._f);
+}
+class C<T extends Object> extends B<T> {
+  final T? Function() _f;
+  C(this._f, T? Function() superF) : super(superF);
+
+  void f() {
+    if (_f is T Function()) { // A
+      _f();
+      super._f();
+    }
+    if (super._f is T Function()) { // B
+      _f();
+      super._f();
+    }
+  }
+}
+''');
+    var blockA = findNode.block('// A');
+    assertResolvedNodeText(blockA, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
+        function: SimpleIdentifier
+          token: _f
+          staticElement: self::@class::C::@getter::_f
+          staticType: T Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: T Function()
+        staticType: T
+      semicolon: ;
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
+        function: PropertyAccess
+          target: SuperExpression
+            superKeyword: super
+            staticType: C<T>
+          operator: .
+          propertyName: SimpleIdentifier
+            token: _f
+            staticElement: PropertyAccessorMember
+              base: self::@class::B::@getter::_f
+              substitution: {T: T}
+            staticType: T? Function()
+          staticType: T? Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: T? Function()
+        staticType: T?
+      semicolon: ;
+  rightBracket: }
+''');
+    var blockB = findNode.block('// B');
+    assertResolvedNodeText(blockB, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
+        function: SimpleIdentifier
+          token: _f
+          staticElement: self::@class::C::@getter::_f
+          staticType: T? Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: T? Function()
+        staticType: T?
+      semicolon: ;
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
+        function: PropertyAccess
+          target: SuperExpression
+            superKeyword: super
+            staticType: C<T>
+          operator: .
+          propertyName: SimpleIdentifier
+            token: _f
+            staticElement: PropertyAccessorMember
+              base: self::@class::B::@getter::_f
+              substitution: {T: T}
+            staticType: T Function()
+          staticType: T Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: T Function()
+        staticType: T
+      semicolon: ;
+  rightBracket: }
 ''');
   }
 }

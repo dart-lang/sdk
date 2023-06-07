@@ -10,7 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
-    defineReflectiveTests(DeadCodeTest_Language218);
+    defineReflectiveTests(DeadCodeTest_Language219);
     defineReflectiveTests(DeadCodeWithoutNullSafetyTest);
   });
 }
@@ -137,12 +137,26 @@ void f(int a) {
       error(WarningCode.DEAD_CODE, 30, 7),
     ]);
   }
+
+  test_objectPattern_neverTypedGetter() async {
+    await assertErrorsInCode(r'''
+class A {
+  Never get foo => throw 0;
+}
+
+void f(Object x) {
+  if (x case A(foo: _)) {}
+}
+''', [
+      error(WarningCode.DEAD_CODE, 84, 2),
+    ]);
+  }
 }
 
 @reflectiveTest
-class DeadCodeTest_Language218 extends PubPackageResolutionTest
+class DeadCodeTest_Language219 extends PubPackageResolutionTest
     with
-        WithLanguage218Mixin,
+        WithLanguage219Mixin,
         DeadCodeTestCases,
         DeadCodeTestCases_Language212 {}
 

@@ -1597,7 +1597,7 @@ f(int a, double a) {}
 
   test_switchCase_localVariable_localVariable() async {
     await assertErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 void f() {
   switch (0) {
     case 0:

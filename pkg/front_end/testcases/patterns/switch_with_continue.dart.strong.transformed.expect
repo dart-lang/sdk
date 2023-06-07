@@ -60,7 +60,7 @@ static method test(dynamic o) → core::int {
         }
       }
     }
-    switch(#t1) {
+    switch(#t1) /* dynamic */ {
       #L3:
       case #C2:
         {

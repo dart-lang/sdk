@@ -15,11 +15,11 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 
 // int open(const char *path, int oflag, ...);
-@Native<Int32 Function(Pointer<Utf8>, Int32)>(symbol: "open")
+@Native<Int Function(Pointer<Utf8>, Int)>(symbol: "open")
 external int open(Pointer<Utf8> filename, int flags);
 
 // int close(int fd);
-@Native<Int32 Function(Int32)>(symbol: "close")
+@Native<Int Function(Int)>(symbol: "close")
 external int close(int fd);
 
 // void* mmap(void* addr, size_t length,
@@ -27,12 +27,12 @@ external int close(int fd);
 //            int fd, off_t offset)
 @FfiNative<
     Pointer<Uint8> Function(
-        Pointer<Uint8>, IntPtr, Int32, Int32, Int32, IntPtr)>("mmap")
+        Pointer<Uint8>, Size, Int, Int, Int, IntPtr)>("mmap")
 external Pointer<Uint8> mmap(
     Pointer<Uint8> address, int len, int prot, int flags, int fd, int offset);
 
 // int munmap(void *addr, size_t length)
-@Native<IntPtr Function(Pointer<Uint8> address, IntPtr len)>(symbol: "munmap")
+@Native<IntPtr Function(Pointer<Uint8> address, Size len)>(symbol: "munmap")
 external int munmap(Pointer<Uint8> address, int len);
 
 final DynamicLibrary processSymbols = DynamicLibrary.process();
@@ -41,7 +41,7 @@ final closeNative = processSymbols.lookup<Void>('close');
 final freeNative = processSymbols.lookup<Void>('free');
 
 // int mprotect(void *addr, size_t len, int prot)
-@Native<Int32 Function(Pointer<Uint8>, IntPtr, Int32)>(symbol: "mprotect")
+@Native<Int Function(Pointer<Uint8>, Size, Int)>(symbol: "mprotect")
 external int mprotect(Pointer<Uint8> addr, int len, int prot);
 
 // DART_EXPORT Dart_Handle
@@ -52,7 +52,7 @@ external int mprotect(Pointer<Uint8> addr, int len, int prot);
 //                                       intptr_t external_allocation_size,
 //                                       Dart_HandleFinalizer callback)
 typedef Dart_NewExternalTypedDataWithFinalizerNative = Handle Function(
-    Int32, Pointer<Void>, IntPtr, Pointer<Void>, IntPtr, Pointer<Void>);
+    Int, Pointer<Void>, IntPtr, Pointer<Void>, IntPtr, Pointer<Void>);
 typedef Dart_NewExternalTypedDataWithFinalizerDart = Object Function(
     int, Pointer<Void>, int, Pointer<Void>, int, Pointer<Void>);
 final Dart_NewExternalTypedDataWithFinalizer = processSymbols.lookupFunction<
@@ -68,38 +68,74 @@ const int kMapPrivate = 2;
 const int kMapAnon = 0x20;
 const int kMapFailed = -1;
 
-// We need to attach the finalizer which calls close() and
+//  #include <cstddef>
+//  #include <cstdint>
+//
+//  struct PeerData {
+//    int (*close)(int);
+//    int (*munmap)(void*, size_t);
+//    int (*free)(void*);
+//    void* mapping;
+//    intptr_t size;
+//    intptr_t fd;
+//  };
+//
+//  extern "C" void finalizer(void* callback_data, void* peer) {
+//    auto data = static_cast<PeerData*>(peer);
+//    data->munmap(data->mapping, data->size);
+//    data->close(data->fd);
+//    data->free(peer);
+//  }
+//
+//  riscv64-linux-gnu-g++ -O2 -c -o a.o a.cc
+//  riscv64-linux-gnu-objcopy -O binary --only-section=.text a.o a.bin
+//  xxd -i a.bin
+const finalizerCode = <Abi, List<int>>{
+  Abi.linuxX64: [
+    0x53, 0x48, 0x89, 0xf3, 0x48, 0x8b, 0x76, 0x20, 0x48, 0x8b, 0x7b, 0x18, //
+    0xff, 0x53, 0x08, 0x8b, 0x7b, 0x28, 0xff, 0x13, 0x48, 0x8b, 0x43, 0x10, //
+    0x48, 0x89, 0xdf, 0x5b, 0xff, 0xe0, //
+  ],
+  Abi.linuxIA32: [
+    0x53, 0x83, 0xec, 0x10, 0x8b, 0x5c, 0x24, 0x1c, 0xff, 0x73, 0x10, 0xff, //
+    0x73, 0x0c, 0xff, 0x53, 0x04, 0x58, 0xff, 0x73, 0x14, 0xff, 0x13, 0x89, //
+    0x5c, 0x24, 0x20, 0x8b, 0x43, 0x08, 0x83, 0xc4, 0x18, 0x5b, 0xff, 0xe0, //
+  ],
+  Abi.linuxArm64: [
+    0xfd, 0x7b, 0xbe, 0xa9, 0xfd, 0x03, 0x00, 0x91, 0x22, 0x04, 0x40, 0xf9, //
+    0xf3, 0x0b, 0x00, 0xf9, 0xf3, 0x03, 0x01, 0xaa, 0x20, 0x84, 0x41, 0xa9, //
+    0x40, 0x00, 0x3f, 0xd6, 0x61, 0x02, 0x40, 0xf9, 0x60, 0x2a, 0x40, 0xb9, //
+    0x20, 0x00, 0x3f, 0xd6, 0x61, 0x0a, 0x40, 0xf9, 0xe0, 0x03, 0x13, 0xaa, //
+    0xf3, 0x0b, 0x40, 0xf9, 0xf0, 0x03, 0x01, 0xaa, 0xfd, 0x7b, 0xc2, 0xa8, //
+    0x00, 0x02, 0x1f, 0xd6, //
+  ],
+  Abi.linuxArm: [
+    0x10, 0x40, 0x2d, 0xe9, 0x01, 0x40, 0xa0, 0xe1, 0x10, 0x10, 0x91, 0xe5, //
+    0x04, 0x30, 0x94, 0xe5, 0x0c, 0x00, 0x94, 0xe5, 0x33, 0xff, 0x2f, 0xe1, //
+    0x00, 0x30, 0x94, 0xe5, 0x14, 0x00, 0x94, 0xe5, 0x33, 0xff, 0x2f, 0xe1, //
+    0x08, 0x30, 0x94, 0xe5, 0x04, 0x00, 0xa0, 0xe1, 0x10, 0x40, 0xbd, 0xe8, //
+    0x13, 0xff, 0x2f, 0xe1, //
+  ],
+  Abi.linuxRiscv64: [
+    0x41, 0x11, 0x22, 0xe0, 0x2e, 0x84, 0x1c, 0x64, 0x8c, 0x71, 0x08, 0x6c, //
+    0x06, 0xe4, 0x82, 0x97, 0x1c, 0x60, 0x08, 0x54, 0x82, 0x97, 0x1c, 0x68, //
+    0x22, 0x85, 0x02, 0x64, 0xa2, 0x60, 0x41, 0x01, 0x82, 0x87, //
+  ],
+  Abi.linuxRiscv32: [
+    0x41, 0x11, 0x22, 0xc4, 0x2e, 0x84, 0x5c, 0x40, 0x8c, 0x49, 0x48, 0x44, //
+    0x06, 0xc6, 0x82, 0x97, 0x1c, 0x40, 0x48, 0x48, 0x82, 0x97, 0x1c, 0x44, //
+    0x22, 0x85, 0x22, 0x44, 0xb2, 0x40, 0x41, 0x01, 0x82, 0x87, //
+  ],
+};
 
+// We need to attach the finalizer which calls close() and munmap().
 final finalizerAddress = () {
   final Pointer<Uint8> finalizerStub = mmap(nullptr, kPageSize,
       kProtRead | kProtWrite, kMapPrivate | kMapAnon, -1, 0);
-  finalizerStub.cast<Uint8>().asTypedList(kPageSize).setAll(0, <int>[
-// Regenerate by running dart mmap.dart gen
-// ASM_START
-//    #include <cstddef>
-//    #include <cstdint>
-//
-//    struct PeerData {
-//        int (*close)(int);
-//        int (*munmap)(void*, size_t);
-//        int (*free)(void*);
-//        void* mapping;
-//        intptr_t size;
-//        intptr_t fd;
-//    };
-//
-//    extern "C" void finalizer(void* callback_data, void* peer) {
-//        auto data = static_cast<PeerData*>(peer);
-//        data->munmap(data->mapping, data->size);
-//        data->close(data->fd);
-//        data->free(peer);
-//    }
-//
-    0x55, 0x48, 0x89, 0xf5, 0x48, 0x8b, 0x76, 0x20, 0x48, 0x8b, 0x7d, 0x18, //
-    0xff, 0x55, 0x08, 0x8b, 0x7d, 0x28, 0xff, 0x55, 0x00, 0x48, 0x8b, 0x45, //
-    0x10, 0x48, 0x89, 0xef, 0x5d, 0xff, 0xe0, //
-// ASM_END
-  ]);
+  finalizerStub
+      .cast<Uint8>()
+      .asTypedList(kPageSize)
+      .setAll(0, finalizerCode[Abi.current()]!);
   if (mprotect(finalizerStub, kPageSize, kProtRead | kProtExec) != 0) {
     throw 'Failed to write executable code to the memory.';
   }

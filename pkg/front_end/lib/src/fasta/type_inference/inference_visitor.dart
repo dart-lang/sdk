@@ -108,7 +108,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Class? mapEntryClass;
 
   @override
-  final Operations<VariableDeclaration, DartType> operations;
+  final OperationsCfe operations;
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
@@ -4912,7 +4912,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     reportNonNullableInNullAwareWarningIfNeeded(
         operandType, "!", node.operand.fileOffset);
     flowAnalysis.nonNullAssert_end(node.operand);
-    DartType nonNullableResultType = operandType.toNonNull();
+    DartType nonNullableResultType = operations.promoteToNonNull(operandType);
     return createNullAwareExpressionInferenceResult(
         nonNullableResultType, node, nullAwareGuards);
   }
@@ -6068,8 +6068,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           new InstrumentationValueForMember(equalsTarget.member!));
     }
     DartType rightType = equalsTarget.getBinaryOperandType(this);
-    rightResult = ensureAssignableResult(
-        rightType.withDeclaredNullability(libraryBuilder.nullable), rightResult,
+    if (libraryBuilder.isNonNullableByDefault) {
+      rightType = operations.getNullableType(rightType);
+    } else {
+      rightType = operations.getLegacyType(rightType);
+    }
+    DartType contextType =
+        rightType.withDeclaredNullability(libraryBuilder.nullable);
+    rightResult = ensureAssignableResult(contextType, rightResult,
         errorTemplate: templateArgumentTypeNotAssignable,
         nullabilityErrorTemplate: templateArgumentTypeNotAssignableNullability,
         nullabilityPartErrorTemplate:
@@ -6698,8 +6704,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
     DartType readType = readTarget.getGetterType(this);
-    readType = flowAnalysis.propertyGet(propertyGetNode, receiver,
-            propertyName.text, readTarget.member, readType) ??
+    readType = flowAnalysis.propertyGet(
+            propertyGetNode,
+            new ExpressionPropertyTarget(receiver),
+            propertyName.text,
+            readTarget.member,
+            readType) ??
         readType;
     return createPropertyGet(
         fileOffset: fileOffset,
@@ -7711,8 +7721,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // TODO(johnniwinther,paulberry): Should the we pass the resulting node
     // as the "whole-expression" instead of [node] ? (We do this for field
     // invocation).
-    flowAnalysis.propertyGet(node, node.receiver, node.name.text,
-        propertyGetInferenceResult.member, readResult.inferredType);
+    flowAnalysis.propertyGet(
+        node,
+        new ExpressionPropertyTarget(node.receiver),
+        node.name.text,
+        propertyGetInferenceResult.member,
+        readResult.inferredType);
     ExpressionInferenceResult expressionInferenceResult =
         createNullAwareExpressionInferenceResult(
             readResult.inferredType, readResult.expression, nullAwareGuards);
@@ -7847,6 +7861,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         (int i) => new TypeParameterType.withDefaultNullabilityForLibrary(
             classTypeParameters[i], libraryBuilder.library),
         growable: false);
+    // The redirecting initializer syntax doesn't include type arguments passed
+    // to the target constructor but we need to add them to the arguments before
+    // calling [inferInvocation]. These are removed again afterwards.
     ArgumentsImpl.setNonInferrableArgumentTypes(
         node.arguments as ArgumentsImpl, typeArguments);
     FunctionType functionType = replaceReturnType(
@@ -7864,6 +7881,39 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         staticTarget: node.target);
     ArgumentsImpl.removeNonInferrableArgumentTypes(
         node.arguments as ArgumentsImpl);
+    return new InitializerInferenceResult.fromInvocationInferenceResult(
+        inferenceResult);
+  }
+
+  InitializerInferenceResult visitInlineClassRedirectingInitializer(
+      InlineClassRedirectingInitializer node) {
+    ensureMemberType(node.target);
+    List<TypeParameter> constructorTypeParameters =
+        constructorDeclaration!.function.typeParameters;
+    List<DartType> typeArguments = new List<DartType>.generate(
+        constructorTypeParameters.length,
+        (int i) => new TypeParameterType.withDefaultNullabilityForLibrary(
+            constructorTypeParameters[i], libraryBuilder.library),
+        growable: false);
+    // The redirecting initializer syntax doesn't include type arguments passed
+    // to the target constructor but we need to add them to the arguments before
+    // calling [inferInvocation].
+    //
+    // Unlike in [visitRedirectingInitializer] we leave in the type arguments
+    // for the call to the target, since these are needed for the static
+    // invocation of the lowering.
+    ArgumentsImpl.setNonInferrableArgumentTypes(
+        node.arguments as ArgumentsImpl, typeArguments);
+    FunctionType functionType = node.target.function
+        .computeThisFunctionType(libraryBuilder.nonNullable);
+    InvocationInferenceResult inferenceResult = inferInvocation(
+        this,
+        const UnknownType(),
+        node.fileOffset,
+        functionType,
+        node.arguments as ArgumentsImpl,
+        skipTypeArgumentInference: true,
+        staticTarget: node.target);
     return new InitializerInferenceResult.fromInvocationInferenceResult(
         inferenceResult);
   }
@@ -8252,6 +8302,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SwitchStatementTypeAnalysisResult<DartType, InvalidExpression>
         analysisResult =
         analyzeSwitchStatement(node, expression, node.cases.length);
+
+    node.expressionType = analysisResult.scrutineeType;
 
     assert(checkStack(node, stackBase, [
       /* cases = */ ...repeatedKind(ValueKinds.SwitchCase, node.cases.length),
@@ -9403,6 +9455,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     pushRewrite(expressionResult.expression);
+
+    // The shared analysis logic uses the convention that the expressions passed
+    // to flow analysis are the original (pre-lowered) expressions, whereas the
+    // expressions passed to flow analysis by the CFE are the lowered
+    // expressions. Since the caller of `dispatchExpression` is the shared
+    // analysis logic, we need to use `flow.forwardExpression` let flow analysis
+    // know that in future, we'll be referring to the expression using `node`
+    // (its pre-lowered form) rather than `expressionResult.expression` (its
+    // post-lowered form).
+    //
+    // TODO(paulberry): eliminate the need for this--see
+    // https://github.com/dart-lang/sdk/issues/52189.
+    flow.forwardExpression(node, expressionResult.expression);
     return new SimpleTypeAnalysisResult(type: expressionResult.inferredType);
   }
 
@@ -9653,14 +9718,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  CaseHeadOrDefaultInfo<TreeNode, Expression, VariableDeclaration>
-      handleCaseHead(
-          covariant /* SwitchStatement | SwitchExpression */ Object node,
-          CaseHeadOrDefaultInfo<TreeNode, Expression, VariableDeclaration> head,
-          {required int caseIndex,
-          required int subIndex}) {
-    CaseHeadOrDefaultInfo<TreeNode, Expression, VariableDeclaration> result =
-        head;
+  void handleCaseHead(
+      covariant /* SwitchStatement | SwitchExpression */ Object node,
+      {required int caseIndex,
+      required int subIndex}) {
     int? stackBase;
     assert(checkStackBase(node as TreeNode, stackBase = stackHeight - 2));
 
@@ -9710,12 +9771,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             !identical(guardRewrite, patternGuard.guard)) {
           patternGuard.guard = (guardRewrite as Expression)
             ..parent = patternGuard;
-
-          result = new CaseHeadOrDefaultInfo(
-            pattern: head.pattern,
-            guard: patternGuard.guard,
-            variables: head.variables,
-          );
         }
         Object? rewrite = popRewrite();
         if (!identical(rewrite, patternGuard.pattern)) {
@@ -9763,8 +9818,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
       }
     }
-
-    return result;
   }
 
   @override
@@ -10466,6 +10519,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.never:
           field.accessKind = ObjectAccessKind.Dynamic;
           break;
+      }
+      if (fieldTarget.isInstanceMember || fieldTarget.isObjectMember) {
+        Member interfaceMember = fieldTarget.member!;
+        if (interfaceMember is Procedure) {
+          DartType typeToCheck = isNonNullableByDefault
+              ? interfaceMember.function
+                  .computeFunctionType(libraryBuilder.nonNullable)
+              : interfaceMember.function.returnType;
+          field.checkReturn =
+              InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
+                  interfaceMember.enclosingClass!, typeToCheck);
+        } else if (interfaceMember is Field) {
+          field.checkReturn =
+              InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
+                  interfaceMember.enclosingClass!, interfaceMember.type);
+        }
       }
     }
 

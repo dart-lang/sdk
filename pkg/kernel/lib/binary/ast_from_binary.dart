@@ -3399,7 +3399,7 @@ class BinaryBuilder {
     }
     switchCaseStack.length -= count;
     return new PatternSwitchStatement(expression, cases)
-      ..expressionType = expressionType
+      ..expressionTypeInternal = expressionType
       ..fileOffset = fileOffset;
   }
 
@@ -3589,6 +3589,7 @@ class BinaryBuilder {
     int offset = readOffset();
     bool isExplicitlyExhaustive = readByte() == 1;
     Expression expression = readExpression();
+    DartType? expressionType = readDartTypeOption();
     int count = readUInt30();
     List<SwitchCase> cases;
     if (!useGrowableLists && count == 0) {
@@ -3609,6 +3610,7 @@ class BinaryBuilder {
     switchCaseStack.length -= count;
     return new SwitchStatement(expression, cases,
         isExplicitlyExhaustive: isExplicitlyExhaustive)
+      ..expressionTypeInternal = expressionType
       ..fileOffset = offset;
   }
 
@@ -3722,7 +3724,7 @@ class BinaryBuilder {
         "In serialized form supertypes should have Nullability.legacy if they "
         "are in a library that is opted out of the NNBD feature.  If they are "
         "in an opted-in library, they should have Nullability.nonNullable.");
-    return new Supertype.byReference(type.className, type.typeArguments);
+    return new Supertype.byReference(type.classReference, type.typeArguments);
   }
 
   Supertype? readSupertypeOption() {
@@ -4354,7 +4356,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
     InterfaceType type =
         super.readDartType(forSupertype: true) as InterfaceType;
     return _associateMetadata(
-        new Supertype.byReference(type.className, type.typeArguments),
+        new Supertype.byReference(type.classReference, type.typeArguments),
         nodeOffset);
   }
 

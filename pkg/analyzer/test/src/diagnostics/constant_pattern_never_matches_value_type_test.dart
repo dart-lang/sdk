@@ -391,4 +391,38 @@ void f(int? x) {
 }
 ''');
   }
+
+  test_Null_typeParameterType_notNullableBound() async {
+    await assertErrorsInCode('''
+void f<T extends Object>(T x) {
+  if (x case null) {}
+}
+''', [
+      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 45, 4),
+    ]);
+  }
+
+  test_Null_typeParameterType_notNullableBound_question() async {
+    await assertNoErrorsInCode('''
+void f<T extends Object>(T? x) {
+  if (x case null) {}
+}
+''');
+  }
+
+  test_Null_typeParameterType_nullableBound() async {
+    await assertNoErrorsInCode('''
+void f<T>(T x) {
+  if (x case null) {}
+}
+''');
+  }
+
+  test_Null_typeParameterType_nullableBound_question() async {
+    await assertNoErrorsInCode('''
+void f<T>(T? x) {
+  if (x case null) {}
+}
+''');
+  }
 }

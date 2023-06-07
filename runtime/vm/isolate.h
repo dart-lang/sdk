@@ -420,6 +420,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   bool is_system_isolate_group() const { return is_system_isolate_group_; }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  NativeCallbackTrampolines* native_callback_trampolines() {
+    return &native_callback_trampolines_;
+  }
+#endif
+
   // IsolateGroup-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
   void FlagsCopyTo(Dart_IsolateFlags* api_flags);
@@ -831,6 +837,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   bool is_system_isolate_group_;
   Random random_;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  NativeCallbackTrampolines native_callback_trampolines_;
+#endif
+
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t last_reload_timestamp_;
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
@@ -1059,12 +1069,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, finalizers_);
   }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  NativeCallbackTrampolines* native_callback_trampolines() {
-    return &native_callback_trampolines_;
-  }
-#endif
-
   Dart_EnvironmentCallback environment_callback() const {
     return environment_callback_;
   }
@@ -1273,6 +1277,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Creates an object with the total heap memory usage statistics for this
   // isolate.
   void PrintMemoryUsageJSON(JSONStream* stream);
+
+  void PrintPauseEventJSON(JSONStream* stream);
 #endif
 
 #if !defined(PRODUCT)
@@ -1542,10 +1548,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   IsolateGroup* isolate_group_;
   IdleTimeHandler idle_time_handler_;
   std::unique_ptr<IsolateObjectStore> isolate_object_store_;
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  NativeCallbackTrampolines native_callback_trampolines_;
-#endif
 
 #define ISOLATE_FLAG_BITS(V)                                                   \
   V(ErrorsFatal)                                                               \

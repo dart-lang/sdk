@@ -1635,7 +1635,11 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // handles.
 
   // Load the code object.
-  __ LoadFromOffset(R0, THR, compiler::target::Thread::callback_code_offset());
+  __ LoadFromOffset(R0, THR, compiler::target::Thread::isolate_group_offset());
+  __ LoadFromOffset(R0, R0,
+                    compiler::target::IsolateGroup::object_store_offset());
+  __ LoadFromOffset(R0, R0,
+                    compiler::target::ObjectStore::ffi_callback_code_offset());
   __ LoadCompressedFieldFromOffset(
       R0, R0, compiler::target::GrowableObjectArray::data_offset());
   __ LoadCompressedFieldFromOffset(

@@ -182,9 +182,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
-  /// [isAssignable].
-  Operations<VariableDeclaration, DartType> get operations =>
-      _inferrer.operations;
+  /// [isAssignable] and for caching types.
+  OperationsCfe get cfeOperations => _inferrer.operations;
 
   TypeSchemaEnvironment get typeSchemaEnvironment =>
       _inferrer.typeSchemaEnvironment;
@@ -195,6 +194,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   CoreTypes get coreTypes => engine.coreTypes;
 
+  @pragma("vm:prefer-inline")
   SourceLibraryBuilder get libraryBuilder => _inferrer.libraryBuilder;
 
   bool get isInferenceUpdate1Enabled =>
@@ -228,7 +228,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (type is NullType || type is NeverType) {
       return const NullType();
     }
-    return type.withDeclaredNullability(libraryBuilder.nullable);
+    if (libraryBuilder.isNonNullableByDefault) {
+      return cfeOperations.getNullableType(type);
+    } else {
+      return cfeOperations.getLegacyType(type);
+    }
   }
 
   Expression createReachabilityError(
@@ -389,11 +393,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeContext = type.typeArgument;
     }
     return typeContext is InterfaceType &&
-        typeContext.classNode == coreTypes.doubleClass;
+        typeContext.classReference == coreTypes.doubleClass.reference;
   }
 
   bool isAssignable(DartType contextType, DartType expressionType) =>
-      operations.isAssignableTo(expressionType, contextType);
+      cfeOperations.isAssignableTo(expressionType, contextType);
 
   /// Ensures that [expressionType] is assignable to [contextType].
   ///
@@ -849,7 +853,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // should tear off `.call`.
     // TODO(paulberry): use resolveTypeParameter.  See findInterfaceMember.
     bool needsTearoff = false;
-    if (coerceExpression && expressionType is InterfaceType) {
+    if (coerceExpression &&
+        expressionType is InterfaceType &&
+        _shouldMaybeTearOffCall(contextType)) {
       Class classNode = expressionType.classNode;
       Member? callMember =
           membersBuilder.getInterfaceMember(classNode, callName);
@@ -996,21 +1002,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// Returns inline class member declared immediately for [inlineType].
-  ///
-  /// If none is found, [defaultTarget] is returned.
-  ObjectAccessTarget _findDirectInlineTypeMember(
-      DartType receiverType, InlineType inlineType, Name name, int fileOffset,
-      {required ObjectAccessTarget defaultTarget,
-      required bool isSetter,
-      required bool isReceiverTypePotentiallyNullable}) {
-    ObjectAccessTarget? target = _findDirectInlineTypeMemberInternal(
-        receiverType, inlineType, name, fileOffset,
-        isSetter: isSetter,
-        isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
-    return target ?? defaultTarget;
-  }
-
-  ObjectAccessTarget? _findDirectInlineTypeMemberInternal(
+  ObjectAccessTarget? _findDirectInlineTypeMember(
       DartType receiverType, InlineType inlineType, Name name, int fileOffset,
       {required bool isSetter,
       required bool isReceiverTypePotentiallyNullable}) {
@@ -1082,7 +1074,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         InlineType supertype = hierarchyBuilder.getInlineTypeAsInstanceOf(
             inlineType, implement.inlineClass,
             isNonNullableByDefault: isNonNullableByDefault)!;
-        ObjectAccessTarget? target = _findDirectInlineTypeMemberInternal(
+        ObjectAccessTarget? target = _findDirectInlineTypeMember(
             receiverType, supertype, name, fileOffset,
             isSetter: isSetter,
             isReceiverTypePotentiallyNullable:
@@ -3189,8 +3181,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         kind, receiver, originalName,
         resultType: calleeType, interfaceTarget: originalTarget)
       ..fileOffset = fileOffset;
-    calleeType = flowAnalysis.propertyGet(originalPropertyGet, originalReceiver,
-            originalName.text, originalTarget, calleeType) ??
+    calleeType = flowAnalysis.propertyGet(
+            originalPropertyGet,
+            new ExpressionPropertyTarget(originalReceiver),
+            originalName.text,
+            originalTarget,
+            calleeType) ??
         calleeType;
     originalPropertyGet.resultType = calleeType;
     Expression propertyGet = originalPropertyGet;
@@ -3671,8 +3667,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
-    inferredType = flowAnalysis.thisOrSuperPropertyGet(
-            expression, name.text, member, inferredType) ??
+    inferredType = flowAnalysis.propertyGet(expression,
+            SuperPropertyTarget.singleton, name.text, member, inferredType) ??
         inferredType;
     return new ExpressionInferenceResult(inferredType, expression);
   }
@@ -3843,7 +3839,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// If the given [type] is a [TypeParameterType], resolve it to its bound.
+  @pragma("vm:prefer-inline")
   DartType resolveTypeParameter(DartType type) {
+    if (type is InterfaceType || type is FunctionType) return type;
+    return _resolveTypeParameterImpl(type);
+  }
+
+  /// If the given [type] is a [TypeParameterType], resolve it to its bound.
+  DartType _resolveTypeParameterImpl(DartType type) {
     DartType? resolveOneStep(DartType type) {
       if (type is TypeParameterType) {
         return type.bound;
@@ -3996,11 +3999,25 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     if (contextType is FunctionType) return true;
     if (contextType is InterfaceType &&
-        contextType.classNode == typeSchemaEnvironment.functionClass) {
+        contextType.classReference ==
+            typeSchemaEnvironment.functionClass.reference) {
       if (!typeSchemaEnvironment.isSubtypeOf(expressionType, contextType,
           SubtypeCheckMode.ignoringNullabilities)) {
         return true;
       }
+    }
+    return false;
+  }
+
+  bool _shouldMaybeTearOffCall(DartType contextType) {
+    if (contextType is FutureOrType) {
+      contextType = contextType.typeArgument;
+    }
+    if (contextType is FunctionType) return true;
+    if (contextType is InterfaceType &&
+        contextType.classReference ==
+            typeSchemaEnvironment.functionClass.reference) {
+      return true;
     }
     return false;
   }
@@ -4251,13 +4268,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             !isThisReceiver) {
           Member interfaceMember = readTarget.member!;
           if (interfaceMember is Procedure) {
-            DartType typeToCheck = isNonNullableByDefault
-                ? interfaceMember.function
-                    .computeFunctionType(libraryBuilder.nonNullable)
-                : interfaceMember.function.returnType;
-            checkReturn =
-                InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
-                    interfaceMember.enclosingClass!, typeToCheck);
+            Class enclosingClass = interfaceMember.enclosingClass!;
+            if (enclosingClass.typeParameters.isEmpty) {
+              checkReturn = false;
+            } else {
+              DartType typeToCheck = isNonNullableByDefault
+                  ? interfaceMember.function
+                      .computeFunctionType(libraryBuilder.nonNullable)
+                  : interfaceMember.function.returnType;
+              checkReturn = InferenceVisitorBase
+                  .returnedTypeParametersOccurNonCovariantly(
+                      enclosingClass, typeToCheck);
+            }
           } else if (interfaceMember is Field) {
             checkReturn =
                 InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
@@ -4748,7 +4770,9 @@ class _ObjectAccessDescriptor {
     bool isSetter = callSiteAccessKind == CallSiteAccessKind.setterInvocation;
     final DartType receiverBound = this.receiverBound;
 
-    if (receiverBound is FunctionType && name == callName && !isSetter) {
+    if (receiverBound is InterfaceType) {
+      // This is what happens most often: Skip the other `if`s.
+    } else if (receiverBound is FunctionType && name == callName && !isSetter) {
       return isReceiverTypePotentiallyNullable
           ? new ObjectAccessTarget.nullableCallFunction(receiverType)
           : new ObjectAccessTarget.callFunction(receiverType);
@@ -4791,11 +4815,13 @@ class _ObjectAccessDescriptor {
         }
       }
     } else if (receiverBound is InlineType) {
-      return visitor._findDirectInlineTypeMember(
+      ObjectAccessTarget? target = visitor._findDirectInlineTypeMember(
           receiverType, receiverBound, name, fileOffset,
-          defaultTarget: const ObjectAccessTarget.missing(),
           isSetter: isSetter,
           isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
+      if (target != null) {
+        return target;
+      }
     }
 
     ObjectAccessTarget? target;

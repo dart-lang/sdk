@@ -6,14 +6,15 @@
 
 import 'dart:developer';
 import 'package:observatory_2/service_io.dart';
+import 'package:observatory_2/models.dart' as M;
 import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_C = 21;
-const LINE_A = 27;
-const LINE_B = 33;
-const LINE_D = 28;
+const LINE_C = 22;
+const LINE_A = 28;
+const LINE_B = 34;
+const LINE_D = 29;
 
 foobar() async {
   await null;
@@ -38,8 +39,8 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_B),
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
-    // No awaiter frames because we are in a completely synchronous stack.
-    expect(stack['awaiterFrames'], isNull);
+    // No asynchronous frames because we are in a completely synchronous stack.
+    expect(stack['asyncCausalFrames'], isNull);
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
@@ -50,15 +51,16 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     // Verify awaiter stack trace is the current frame + the awaiter.
     ServiceMap stack = await isolate.getStack();
-    expect(stack['awaiterFrames'], isNotNull);
-    List awaiterFrames = stack['awaiterFrames'];
-    expect(awaiterFrames.length, greaterThanOrEqualTo(2));
-    // Awaiter frame.
-    expect(await awaiterFrames[0].toUserString(),
+    expect(stack['asyncCausalFrames'], isNotNull);
+    List<Frame> asyncCausalFrames = (stack['asyncCausalFrames'] as List).cast();
+
+    expect(asyncCausalFrames.length, greaterThanOrEqualTo(4));
+    expect(await asyncCausalFrames[0].toUserString(),
         stringContainsInOrder(['foobar', '.dart:$LINE_C']));
-    // Awaiter frame.
-    expect(await awaiterFrames[1].toUserString(),
+    expect(asyncCausalFrames[1].kind, M.FrameKind.asyncSuspensionMarker);
+    expect(await asyncCausalFrames[2].toUserString(),
         stringContainsInOrder(['helper', '.dart:$LINE_D']));
+    expect(asyncCausalFrames[3].kind, M.FrameKind.asyncSuspensionMarker);
     // "helper" is not await'ed.
   },
 ];

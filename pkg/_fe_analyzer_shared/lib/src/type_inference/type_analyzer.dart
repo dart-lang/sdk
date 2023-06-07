@@ -362,6 +362,7 @@ mixin TypeAnalyzer<
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
         !operations.isDynamic(matchedType) &&
+        !operations.isError(matchedType) &&
         !operations.isSubtypeOf(matchedType, variableDeclaredType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
@@ -516,6 +517,7 @@ mixin TypeAnalyzer<
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
         !operations.isDynamic(matchedType) &&
+        !operations.isError(matchedType) &&
         !operations.isSubtypeOf(matchedType, staticType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
@@ -792,6 +794,8 @@ mixin TypeAnalyzer<
         valueType = listElementType;
       } else if (operations.isDynamic(matchedType)) {
         valueType = dynamicType;
+      } else if (operations.isError(matchedType)) {
+        valueType = errorType;
       } else {
         valueType = objectQuestionType;
       }
@@ -1053,6 +1057,10 @@ mixin TypeAnalyzer<
         keyType = dynamicType;
         valueType = dynamicType;
         keyContext = unknownType;
+      } else if (operations.isError(matchedType)) {
+        keyType = errorType;
+        valueType = errorType;
+        keyContext = unknownType;
       } else {
         keyType = objectQuestionType;
         valueType = objectQuestionType;
@@ -1259,6 +1267,7 @@ mixin TypeAnalyzer<
     // treated as having the same type.
     Type? overridePropertyGetType;
     if (operations.isDynamic(requiredType) ||
+        operations.isError(requiredType) ||
         operations.isNever(requiredType)) {
       overridePropertyGetType = requiredType;
     }
@@ -1284,6 +1293,9 @@ mixin TypeAnalyzer<
             receiverType: requiredType,
             field: field,
           );
+      if (operations.isNever(propertyType)) {
+        flow.handleExit();
+      }
       flow.pushSubpattern(propertyType);
       dispatchPattern(
         context.withUnnecessaryWildcardKind(null),
@@ -1379,6 +1391,8 @@ mixin TypeAnalyzer<
     if (elementType == null) {
       if (operations.isDynamic(expressionType)) {
         elementType = dynamicType;
+      } else if (operations.isError(expressionType)) {
+        elementType = errorType;
       } else {
         patternForInExpressionIsNotIterableError =
             errors.patternForInExpressionIsNotIterable(
@@ -1386,7 +1400,7 @@ mixin TypeAnalyzer<
           expression: expression,
           expressionType: expressionType,
         );
-        elementType = dynamicType;
+        elementType = errorType;
       }
     }
     flow.patternForIn_afterExpression(elementType);
@@ -1548,6 +1562,8 @@ mixin TypeAnalyzer<
       }
     } else if (operations.isDynamic(matchedType)) {
       dispatchFields(dynamicType);
+    } else if (operations.isError(matchedType)) {
+      dispatchFields(errorType);
     } else {
       dispatchFields(objectQuestionType);
     }
@@ -1747,7 +1763,7 @@ mixin TypeAnalyzer<
           handleNoGuard(node, i);
           // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
         }
-        handleCaseHead(node, memberInfo.head, caseIndex: i, subIndex: 0);
+        handleCaseHead(node, caseIndex: i, subIndex: 0);
       } else {
         handleDefault(node, caseIndex: i, subIndex: 0);
       }
@@ -1841,9 +1857,7 @@ mixin TypeAnalyzer<
           } else {
             handleNoGuard(node, caseIndex);
           }
-          head = handleCaseHead(node, head,
-              caseIndex: caseIndex, subIndex: headIndex);
-          guard = head.guard;
+          handleCaseHead(node, caseIndex: caseIndex, subIndex: headIndex);
         } else {
           hasDefault = true;
           handleDefault(node, caseIndex: caseIndex, subIndex: headIndex);
@@ -2129,14 +2143,11 @@ mixin TypeAnalyzer<
   /// an optional guard.
   ///
   /// [node] is the enclosing switch statement or switch expression,
-  /// [head] is the head to be handled, and
-  /// [caseIndex] is the index of the `case` clause.
-  ///
-  /// Returns the updated case head.
+  /// [caseIndex] is the index of the `case` clause, and [subIndex] is the index
+  /// of the case head.
   ///
   /// Stack effect: pops (Pattern, Expression) and pushes (CaseHead).
-  CaseHeadOrDefaultInfo<Node, Expression, Variable> handleCaseHead(
-      Node node, CaseHeadOrDefaultInfo<Node, Expression, Variable> head,
+  void handleCaseHead(Node node,
       {required int caseIndex, required int subIndex});
 
   /// Called after visiting a `default` clause.

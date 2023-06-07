@@ -24,9 +24,10 @@ class CreateClass extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var targetNode = node;
     Element? prefixElement;
-    SimpleIdentifier nameNode;
     ArgumentList? arguments;
 
+    String? className;
+    bool requiresConstConstructor = false;
     if (targetNode is Annotation) {
       var name = targetNode.name;
       arguments = targetNode.arguments;
@@ -36,20 +37,31 @@ class CreateClass extends CorrectionProducer {
         return;
       }
       targetNode = name;
+      requiresConstConstructor = true;
     }
-    if (targetNode is SimpleIdentifier) {
-      nameNode = targetNode;
+    if (targetNode is NamedType) {
+      final importPrefix = targetNode.importPrefix;
+      if (importPrefix != null) {
+        prefixElement = importPrefix.element;
+        if (prefixElement == null) {
+          return;
+        }
+      }
+      className = targetNode.name2.lexeme;
+      requiresConstConstructor |= _requiresConstConstructor(targetNode);
+    } else if (targetNode is SimpleIdentifier) {
+      className = nameOfType(targetNode);
+      requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode is PrefixedIdentifier) {
       prefixElement = targetNode.prefix.staticElement;
       if (prefixElement == null) {
         return;
       }
-      nameNode = targetNode.identifier;
+      className = nameOfType(targetNode.identifier);
     } else {
       return;
     }
 
-    final className = nameOfType(nameNode);
     if (className == null) {
       return;
     }
@@ -96,19 +108,23 @@ class CreateClass extends CorrectionProducer {
     if (filePath == null || offset < 0) {
       return;
     }
+
+    final className2 = className;
     await builder.addDartFileEdit(filePath, (builder) {
       builder.addInsertion(offset, (builder) {
         builder.write(prefix);
-        if (arguments == null) {
-          builder.writeClassDeclaration(className, nameGroupName: 'NAME');
+        if (arguments == null && !requiresConstConstructor) {
+          builder.writeClassDeclaration(className2, nameGroupName: 'NAME');
         } else {
-          builder.writeClassDeclaration(className, nameGroupName: 'NAME',
+          builder.writeClassDeclaration(className2, nameGroupName: 'NAME',
               membersWriter: () {
             builder.write('  ');
-            builder.writeConstructorDeclaration(className,
-                argumentList: arguments,
-                classNameGroupName: 'NAME',
-                isConst: true);
+            builder.writeConstructorDeclaration(
+              className2,
+              argumentList: arguments,
+              classNameGroupName: 'NAME',
+              isConst: requiresConstConstructor,
+            );
             builder.writeln();
           });
         }
@@ -118,5 +134,23 @@ class CreateClass extends CorrectionProducer {
         builder.addLinkedPosition(range.node(targetNode), 'NAME');
       }
     });
+  }
+
+  static bool _requiresConstConstructor(AstNode node) {
+    final parent = node.parent;
+    // TODO(scheglov) remove after NamedType refactoring.
+    if (node is SimpleIdentifier && parent is NamedType) {
+      return _requiresConstConstructor(parent);
+    }
+    if (node is SimpleIdentifier && parent is MethodInvocation) {
+      return parent.inConstantContext;
+    }
+    if (node is NamedType && parent is ConstructorName) {
+      return _requiresConstConstructor(parent);
+    }
+    if (node is ConstructorName && parent is InstanceCreationExpression) {
+      return parent.isConst;
+    }
+    return false;
   }
 }

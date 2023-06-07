@@ -126,8 +126,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -206,8 +206,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -613,13 +613,13 @@ PropertyAccess
 ''');
   }
 
-  test_ofRecordType_namedField_language218() async {
+  test_ofRecordType_namedField_language219() async {
     newFile('$testPackageLibPath/a.dart', r'''
 final r = (foo: 42);
 ''');
 
     await assertNoErrorsInCode('''
-// @dart = 2.18
+// @dart = 2.19
 import 'a.dart';
 void f() {
   r.foo;
@@ -831,8 +831,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: $3
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -856,8 +856,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: $0a
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -881,18 +881,18 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: $zero
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
-  test_ofRecordType_positionalField_language218() async {
+  test_ofRecordType_positionalField_language219() async {
     newFile('$testPackageLibPath/a.dart', r'''
 final r = (0, 'bar');
 ''');
 
     await assertNoErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 import 'a.dart';
 void f() {
   r.$1;
@@ -935,8 +935,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: a$0
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -983,8 +983,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: bar
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1010,8 +1010,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1056,6 +1056,35 @@ PropertyAccess
   staticType: bool
 ''');
   }
+
+  test_unresolved_identifier() async {
+    await assertErrorsInCode('''
+void f() {
+  (a).foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 14, 1),
+    ]);
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: InvalidType
+    rightParenthesis: )
+    staticType: InvalidType
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
 }
 
 @reflectiveTest
@@ -1082,10 +1111,7 @@ void f(A a) {
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1095,6 +1121,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -1108,10 +1135,7 @@ PropertyAccess
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1121,6 +1145,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
   operator: .
@@ -1153,10 +1178,7 @@ void f(A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1166,6 +1188,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1191,10 +1214,7 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1204,6 +1224,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A*
       staticType: null
     operator: .
@@ -1250,10 +1271,7 @@ void f(A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1263,6 +1281,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1288,10 +1307,7 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1301,6 +1317,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A*
       staticType: null
     operator: .
@@ -1606,13 +1623,13 @@ PropertyAccess
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -1620,13 +1637,13 @@ PropertyAccess
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -1643,13 +1660,13 @@ PropertyAccess
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -1657,13 +1674,13 @@ PropertyAccess
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }
@@ -1686,16 +1703,16 @@ DefaultFormalParameter
     target: SimpleIdentifier
       token: b
       staticElement: <null>
-      staticType: dynamic
+      staticType: InvalidType
     cascadeSections
       PropertyAccess
         operator: ?..
         propertyName: SimpleIdentifier
           token: foo
           staticElement: <null>
-          staticType: dynamic
-        staticType: dynamic
-    staticType: dynamic
+          staticType: InvalidType
+        staticType: InvalidType
+    staticType: InvalidType
   declaredElement: self::@function::f::@parameter::a
     type: dynamic
 ''');
@@ -1712,19 +1729,19 @@ DefaultFormalParameter
       target: SimpleIdentifier
         token: b
         staticElement: <null>
-        staticType: dynamic
+        staticType: InvalidType
       operator: ?.
       propertyName: SimpleIdentifier
         token: <empty> <synthetic>
         staticElement: <null>
-        staticType: dynamic
-      staticType: dynamic
+        staticType: InvalidType
+      staticType: InvalidType
     operator: .
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
-      staticType: dynamic
-    staticType: dynamic
+      staticType: InvalidType
+    staticType: InvalidType
   declaredElement: self::@function::f::@parameter::a
     type: dynamic
 ''');
@@ -2419,8 +2436,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -2437,8 +2454,8 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    staticType: dynamic
-  staticType: dynamic
+    staticType: InvalidType
+  staticType: InvalidType
 ''');
     }
   }

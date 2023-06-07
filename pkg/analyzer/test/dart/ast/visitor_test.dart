@@ -18,6 +18,10 @@ main() {
 
 @reflectiveTest
 class BreadthFirstVisitorTest extends ParserTestCase {
+  @FailingTest(
+    reason: 'This test should start passing after landing '
+        'https://dart-review.googlesource.com/c/sdk/+/303280',
+  )
   void test_it() {
     String source = r'''
 class A {
@@ -43,12 +47,12 @@ A f(var p) {
     _BreadthFirstVisitorTestHelper visitor =
         _BreadthFirstVisitorTestHelper(nodes);
     visitor.visitAllNodes(unit);
-    expect(nodes, hasLength(52));
+    expect(nodes, hasLength(47));
     expect(nodes[0], isCompilationUnit);
     expect(nodes[2], isClassDeclaration);
     expect(nodes[3], isFunctionDeclaration);
-    expect(nodes[22], isFunctionDeclarationStatement);
-    expect(nodes[51], isIntegerLiteral); // 3
+    expect(nodes[19], isFunctionDeclarationStatement);
+    expect(nodes[46], isIntegerLiteral); // 3
   }
 }
 

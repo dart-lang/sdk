@@ -6,14 +6,15 @@
 /// interop with JS. The JS type hierarchy is modeled after the actual type
 /// hierarchy in JS, and not the Dart type hierarchy.
 ///
-/// Note: The exact semantics of JS types currently depend on their backend
-/// implementation. JS backends currently support conflating Dart types and JS
-/// types, whereas Wasm backends do not. Over time we will try and unify backend
-/// semantics as much as possible.
+/// Note: The JS types that are exposed through this library are currently
+/// wrapper types that are erased to their runtime types. The runtime types will
+/// differ based on the backend. In general, stick to using conversion functions
+/// that are exposed as extension methods e.g. 'toJS'.
 ///
 /// **WARNING**:
-/// The following types will be sealed in the near future. Do *not* subtype
-/// the types in this library as the subtypes will be broken.
+/// This library is still a work in progress. As such, JS types, allowed syntax,
+/// semantics, and functionality may all change, so avoid using this library in
+/// production.
 ///
 /// {@category Web}
 library dart.js_interop;
@@ -21,12 +22,34 @@ library dart.js_interop;
 import 'dart:_js_types' as js_types;
 import 'dart:typed_data';
 
-/// Export the `dart:_js_annotations` version of the `@JS` annotation. This is
-/// mostly identical to the `package:js` version, except this is meant to be
-/// used for sound top-level external members and inline classes instead of the
-/// `package:js` classes. Also allow use of `@staticInterop` classes with JS
-/// types as well as export functionality.
-export 'dart:_js_annotations' show JS, staticInterop, anonymous, JSExport;
+/// Allow use of `@staticInterop` classes with JS types as well as export
+/// functionality.
+export 'dart:_js_annotations' show staticInterop, anonymous, JSExport;
+
+/// The annotation for JS interop members.
+///
+/// This is meant to signify that a given library, top-level external member, or
+/// inline class is a JS interop declaration.
+///
+/// Specifying [name] customizes the JavaScript name to use. This can be used in
+/// the following scenarios:
+///
+/// - Namespacing all the external top-level members, static members, and
+/// constructors of a library by annotating the library with a custom name.
+/// - Namespacing all the external static members and constructors of an inline
+/// class by annotating the inline class with a custom name.
+/// - Renaming external members by annotating the member with a custom name.
+///
+/// In the case where [name] is not specified, we default to the Dart name for
+/// inline classes and external members.
+///
+/// Note: `package:js` exports an `@JS` annotation as well. Unlike that
+/// annotation, this is meant for inline classes, and will result in more
+/// type-checking for external top-level members.
+class JS {
+  final String? name;
+  const JS([this.name]);
+}
 
 /// The annotation for object literal constructors.
 ///

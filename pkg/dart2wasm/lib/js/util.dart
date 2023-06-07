@@ -162,7 +162,7 @@ extension DartTypeExtension on DartType {
   bool get isStaticInteropType {
     final type = this;
     return (type is InterfaceType &&
-            hasStaticInteropAnnotation(type.className.asClass)) ||
+            hasStaticInteropAnnotation(type.classReference.asClass)) ||
         (type is InlineType && hasJSInteropAnnotation(type.inlineClass));
   }
 }

@@ -7,12 +7,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:dap/dap.dart' as dap;
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../dap.dart';
 import 'isolate_manager.dart';
-import 'protocol_generated.dart' as dap;
 import 'variables.dart';
 
 /// A helper that handlers converting to/from DAP and VM Service types and to
@@ -398,7 +398,7 @@ class ProtocolConverter {
         format: format,
       );
     } else {
-      return Variable(
+      return dap.Variable(
         name: fieldRef.name ?? '<unnamed field>',
         value: '<unavailable>',
         variablesReference: 0,

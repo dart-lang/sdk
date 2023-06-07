@@ -22,6 +22,7 @@ mixin StringTypes on AbstractTypeSystemTest {
 
   void defineStringTypes() {
     _defineType('dynamic', dynamicType);
+    _defineType('InvalidType', invalidType);
     _defineType('void', voidNone);
 
     _defineType('Never', neverNone);
@@ -581,6 +582,9 @@ class _TypeParameterCollector extends TypeVisitor<void> {
       typeArgument.accept(this);
     }
   }
+
+  @override
+  void visitInvalidType(InvalidType type) {}
 
   @override
   void visitNeverType(NeverType type) {}

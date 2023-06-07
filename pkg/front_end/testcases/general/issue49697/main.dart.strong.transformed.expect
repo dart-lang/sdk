@@ -27,7 +27,7 @@ class B extends core::_Enum /*isEnum*/  {
     return "B.${this.{core::_Enum::_name}{core::String}}";
 }
 static method a1(self::A? a) → core::int? {
-  switch(a) {
+  switch(a) /* self::A? */ {
     #L1:
     case #C3:
       {
@@ -36,7 +36,7 @@ static method a1(self::A? a) → core::int? {
   }
 }
 static method a2(self::A? a) → core::int? {
-  switch(a) {
+  switch(a) /* self::A? */ {
     #L2:
     case #C11:
       {
@@ -50,7 +50,7 @@ static method a2(self::A? a) → core::int? {
   }
 }
 static method b1(self::B b) → core::int {
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, self::B */ {
     #L4:
     case #C8:
       {
@@ -64,7 +64,7 @@ static method b1(self::B b) → core::int {
   }
 }
 static method b2(self::B? b) → core::int? {
-  switch(b) {
+  switch(b) /* self::B? */ {
     #L6:
     case #C11:
       {
@@ -78,7 +78,7 @@ static method b2(self::B? b) → core::int? {
   }
 }
 static method c1(mai::C? c) → core::int? {
-  switch(c) {
+  switch(c) /* mai::C? */ {
     #L8:
     case #C12:
       {
@@ -87,7 +87,7 @@ static method c1(mai::C? c) → core::int? {
   }
 }
 static method c2(mai::C? c) → core::int? {
-  switch(c) {
+  switch(c) /* mai::C? */ {
     #L9:
     case #C11:
       {
@@ -101,7 +101,7 @@ static method c2(mai::C? c) → core::int? {
   }
 }
 static method d1(mai::D d) → core::int {
-  switch(d) /*isExplicitlyExhaustive*/ {
+  switch(d) /* isExplicitlyExhaustive, mai::D */ {
     #L11:
     case #C13:
       {
@@ -115,7 +115,7 @@ static method d1(mai::D d) → core::int {
   }
 }
 static method d2(mai::D? d) → core::int? {
-  switch(d) {
+  switch(d) /* mai::D? */ {
     #L13:
     case #C11:
       {

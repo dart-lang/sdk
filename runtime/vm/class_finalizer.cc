@@ -1076,10 +1076,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 //
 // Caching of the canonical hash codes happens for:
 //
-//    * UntaggedType::hash_
-//    * UntaggedFunctionType::hash_
-//    * UntaggedRecordType::hash_
-//    * UntaggedTypeParameter::hash_
+//    * UntaggedAbstractType::hash_
 //    * UntaggedTypeArguments::hash_
 //    * InstancePtr (weak table)
 //    * ArrayPtr (weak table)
@@ -1096,25 +1093,14 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 class ClearTypeHashVisitor : public ObjectVisitor {
  public:
   explicit ClearTypeHashVisitor(Zone* zone)
-      : type_param_(TypeParameter::Handle(zone)),
-        type_(Type::Handle(zone)),
-        function_type_(FunctionType::Handle(zone)),
-        record_type_(RecordType::Handle(zone)),
+      : type_(AbstractType::Handle(zone)),
         type_args_(TypeArguments::Handle(zone)) {}
 
   void VisitObject(ObjectPtr obj) override {
-    if (obj->IsTypeParameter()) {
-      type_param_ ^= obj;
-      type_param_.SetHash(0);
-    } else if (obj->IsType()) {
+    if (obj->IsType() || obj->IsTypeParameter() || obj->IsFunctionType() ||
+        obj->IsRecordType()) {
       type_ ^= obj;
       type_.SetHash(0);
-    } else if (obj->IsFunctionType()) {
-      function_type_ ^= obj;
-      function_type_.SetHash(0);
-    } else if (obj->IsRecordType()) {
-      record_type_ ^= obj;
-      record_type_.SetHash(0);
     } else if (obj->IsTypeArguments()) {
       type_args_ ^= obj;
       type_args_.SetHash(0);
@@ -1122,10 +1108,7 @@ class ClearTypeHashVisitor : public ObjectVisitor {
   }
 
  private:
-  TypeParameter& type_param_;
-  Type& type_;
-  FunctionType& function_type_;
-  RecordType& record_type_;
+  AbstractType& type_;
   TypeArguments& type_args_;
 };
 

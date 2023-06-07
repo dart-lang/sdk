@@ -812,12 +812,11 @@ class StandardTestSuite extends TestSuite {
     var commands = <Command>[];
     var compilerConfiguration = configuration.compilerConfiguration;
 
+    var environment = {...environmentOverrides, ...testFile.environment};
     var compileTimeArguments = <String>[];
     String tempDir;
     CommandArtifact? compilationArtifact;
     if (compilerConfiguration.hasCompiler) {
-      compileTimeArguments = compilerConfiguration.computeCompilerArguments(
-          testFile, vmOptions, args);
       // Avoid doing this for analyzer.
       var path = testFile.path;
       if (vmOptionsVariant != 0) {
@@ -825,6 +824,15 @@ class StandardTestSuite extends TestSuite {
         path = path.join(Path(vmOptionsVariant.toString()));
       }
       tempDir = createCompilationOutputDirectory(path);
+
+      vmOptions = [
+        for (var opt in vmOptions)
+          opt.replaceAll(r'$TEST_COMPILATION_DIR', tempDir)
+      ];
+      environment['TEST_COMPILATION_DIR'] = tempDir;
+
+      compileTimeArguments = compilerConfiguration.computeCompilerArguments(
+          testFile, vmOptions, args);
 
       for (var name in testFile.otherResources) {
         var namePath = Path(name);
@@ -845,10 +853,10 @@ class StandardTestSuite extends TestSuite {
       return commands;
     }
 
-    vmOptions = vmOptions
-        .map((s) =>
-            s.replaceAll("__RANDOM__", "${Random().nextInt(0x7fffffff)}"))
-        .toList();
+    vmOptions = [
+      for (var opt in vmOptions)
+        opt.replaceAll("__RANDOM__", "${Random().nextInt(0x7fffffff)}")
+    ];
 
     var runtimeArguments = compilerConfiguration.computeRuntimeArguments(
         configuration.runtimeConfiguration,
@@ -856,8 +864,6 @@ class StandardTestSuite extends TestSuite {
         vmOptions,
         args,
         compilationArtifact);
-
-    var environment = {...environmentOverrides, ...testFile.environment};
 
     return commands
       ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(
@@ -943,6 +949,14 @@ class StandardTestSuite extends TestSuite {
         var scriptPath =
             _createUrlPathFromFile(Path('$compilationTempDir/$nameNoExt.js'));
         content = dart2jsHtml(testFile.path.toNativePath(), scriptPath);
+      } else if (configuration.compiler == Compiler.dart2wasm) {
+        outputDir = tempDir;
+        final wasmPath =
+            _createUrlPathFromFile(Path('$outputDir/$nameNoExt.wasm'));
+        final mjsPath =
+            _createUrlPathFromFile(Path('$outputDir/$nameNoExt.mjs'));
+        content =
+            dart2wasmHtml(testFile.path.toNativePath(), wasmPath, mjsPath);
       } else {
         var nameFromModuleRoot = testFile.path.relativeTo(Repository.dir);
         var nameFromModuleRootNoExt =

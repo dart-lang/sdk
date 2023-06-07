@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,6 +13,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveNonNullAssertionBulkTest);
     defineReflectiveTests(RemoveNonNullAssertionTest);
+    defineReflectiveTests(UnnecessaryNullChecksTest);
   });
 }
 
@@ -85,6 +87,32 @@ void f() {
   var (x, y!) = p;
   print(x);
   print(y);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class UnnecessaryNullChecksTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_NON_NULL_ASSERTION;
+
+  @override
+  String get lintCode => LintNames.unnecessary_null_checks;
+
+  Future<void> test_nullCheck() async {
+    await resolveTestCode('''
+f(int? i) {}
+m() {
+  int? j;
+  f(j!);
+}
+''');
+    await assertHasFix('''
+f(int? i) {}
+m() {
+  int? j;
+  f(j);
 }
 ''');
   }

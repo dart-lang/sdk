@@ -207,14 +207,14 @@ The list of fixes is computed by a `FixProcessor`. For each diagnostic passed
 to it, it will look up the diagnostic in a table to get a list of the correction
 producers it can use to produce fixes. There are three tables:
 
-- The `lintProducerMap` is used for fixes related to lint rules. The table is
-  keyed by the name of the lint to which the fix applies.
+- The [`lintProducerMap`][lintmap] is used for fixes related to lint rules. The
+  table is keyed by the name of the lint to which the fix applies.
 
-- The `nonLintProducerMap` is used for all other fixes. The table is keyed by
-  the `ErrorCode` associated with the diagnostic.
+- The [`nonLintProducerMap`][nonlintmap] is used for all other fixes. The table
+  is keyed by the `ErrorCode` associated with the diagnostic.
 
-- The `nonLintMultiProducerMap` is used for multi-producers, which are
-  described below in "Multi-fix producers".
+- The [`nonLintMultiProducerMap`][multimap] is used for multi-producers, which
+  are described below in "Multi-fix producers".
 
 Actually, the tables contain lists of functions used to create the producers. We
 do that so that producers can't accidentally carry state over from one use to
@@ -226,7 +226,7 @@ you're adding a fix for a lint, then you'd add an entry like
 
 ```dart
 LintNames.could_be_final: [
-  AddFinal.newInstance,
+  AddFinal.new,
 ],
 ```
 
@@ -562,3 +562,7 @@ will be identical in nature to those written to test the fix-in-file use case,
 but will be in a subclass of `BulkFixProcessorTest`. They should also be added
 to the test file you created earlier for the single-site and fix-in-file fixes
 (`analysis_server/test/src/services/correction/fix/add_final_test.dart`).
+
+[lintmap]: https://github.com/dart-lang/sdk/blob/cc461910af5f138bb54025e33f539835262b02bc/pkg/analysis_server/lib/src/services/correction/fix_internal.dart#L394
+[nonlintmap]: https://github.com/dart-lang/sdk/blob/cc461910af5f138bb54025e33f539835262b02bc/pkg/analysis_server/lib/src/services/correction/fix_internal.dart#L959
+[multimap]: https://github.com/dart-lang/sdk/blob/cc461910af5f138bb54025e33f539835262b02bc/pkg/analysis_server/lib/src/services/correction/fix_internal.dart#L791

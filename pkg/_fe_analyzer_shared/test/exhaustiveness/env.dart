@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 
 class TestEnvironment implements ObjectPropertyLookup {
@@ -88,6 +88,9 @@ class TestEnvironment implements ObjectPropertyLookup {
     if (fields.isNotEmpty) {
       Map<Key, _Type> fieldMap = _fields[cls] ??= {};
       for (MapEntry<String, StaticType> entry in fields.entries) {
+        // TODO(srawlins): Look into fixing this code. Right now we get:
+        // "The argument type 'String' isn't related to 'Key'."
+        // ignore: collection_methods_unrelated_type
         assert(!fieldMap.containsKey(entry.key),
             "Duplicate field '${entry.key}' in $cls.");
         fieldMap[new NameKey(entry.key)] = _typeFromStaticType(entry.value);

@@ -532,6 +532,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ExtensionOverride');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
       _writeType('extendedType', node.extendedType);
       _writeType('staticType', node.staticType);
       _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);

@@ -7,7 +7,7 @@ library dart._js_helper;
 import 'dart:async' show Zone;
 import 'dart:collection';
 
-import 'dart:_foreign_helper' show JS, JSExportName;
+import 'dart:_foreign_helper' show JS, JS_CLASS_REF, JS_GET_FLAG, JSExportName;
 
 import 'dart:_interceptors';
 import 'dart:_internal'
@@ -19,6 +19,7 @@ import 'dart:_internal'
         patch;
 
 import 'dart:_native_typed_data';
+import 'dart:_rti' as rti show pairwiseIsTest, evaluateRtiForRecord, Rti;
 import 'dart:_runtime' as dart;
 
 part 'annotations.dart';
@@ -863,15 +864,116 @@ void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
   return Zone.current.bindUnaryCallbackGuarded(callback);
 }
 
-/// [createRecordTypePredicate] is currently unused by DDC.
-Object? createRecordTypePredicate(Object? partialShapeTag, Object? fieldRtis) {
-  throw UnimplementedError('createRecordTypePredicate');
+/// Returns a JavaScript predicate that tests if the argument is a record with
+/// the given shape and fields types.
+///
+/// Only called from the `dart:_rti` library but requires specific knowledge of
+/// the record representation in DDC. There is a duplicate version of this
+/// method in the dart2js version of this library.
+///
+/// The shape is determined by the number of fields and the [partialShapeTag].
+/// [fieldRtis] contains the Rti type objects for each field in order of
+/// positionals followed by the sorted named elements.
+Object? createRecordTypePredicate(String partialShapeTag, JSArray fieldRtis) {
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    var shapeKey =
+        JS<String>('!', '#.length + ";" + #', fieldRtis, partialShapeTag);
+    return (obj) {
+      return JS<bool>(
+              '!', '# instanceof #', obj, JS_CLASS_REF(dart.RecordImpl)) &&
+          JS<dart.RecordImpl>('!', '#', obj).shape ==
+              JS<dart.Shape?>('', '#.get(#)', dart.shapes, shapeKey) &&
+          rti.pairwiseIsTest(fieldRtis, JS<JSArray>('!', '#.values', obj));
+    };
+  } else {
+    dart.throwUnimplementedInOldRti();
+  }
 }
 
-/// Entrypoint for rti library. Calls rti.evaluateRtiForRecord with components
-/// of the record.
+/// Returns the Rti for the provided [record].
 ///
-/// [getRtiForRecord] is currently unused by DDC.
-Never getRtiForRecord(Object? record) {
-  throw UnimplementedError('getRtiForRecord');
+/// Is called from the `dart:_rti` library but requires specific knowledge of
+/// the record representation in DDC. There is a duplicate version of this
+/// method in the dart2js version of this library.
+///
+/// Calls [rti.evaluateRtiForRecord] with components of the [record].
+rti.Rti getRtiForRecord(Object? record) {
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    var recordObj = JS<dart.RecordImpl>('!', '#', record);
+    var recipeBuffer = StringBuffer('+');
+    var named = recordObj.shape.named;
+    if (named != null) recipeBuffer.writeAll(named, ',');
+    recipeBuffer.write('(');
+    var elementCount = recordObj.values.length;
+    recipeBuffer.writeAll([for (var i = 1; i <= elementCount; i++) i], ',');
+    recipeBuffer.write(')');
+
+    return rti.evaluateRtiForRecord(recipeBuffer.toString(), recordObj.values);
+  } else {
+    dart.throwUnimplementedInOldRti();
+  }
 }
+
+/// A marker interface for classes with 'trustworthy' implementations of `get
+/// runtimeType`.
+///
+/// Generally, overrides of `get runtimeType` are not used in displaying the
+/// types of irritants in TypeErrors or computing the structural `runtimeType`
+/// of records. Instead the Rti (aka 'true') type is used.
+///
+/// The 'true' type is sometimes confusing because it shows implementation
+/// details, e.g. the true type of `42` is `JSInt` and `2.1` is `JSNumNotInt`.
+///
+/// For a limited number of implementation classes we tell a 'white lie' that
+/// the value is of another type, e.g. that `42` is an `int` and `2.1` is
+/// `double`. This is achieved by overriding `get runtimeType` to return the
+/// desired type, and marking the implementation class type with `implements
+/// [TrustedGetRuntimeType]`.
+///
+/// [TrustedGetRuntimeType] is not exposed outside the `dart:` libraries so
+/// users cannot tell lies.
+///
+/// The `Type` returned by a trusted `get runtimeType` must be an instance of
+/// the system `Type`, which is guaranteed by using a type literal. Type
+/// literals can be generic and dependent on type variables, e.g. `List<E>`.
+///
+/// Care needs to taken to ensure that the runtime does not get caught telling
+/// lies. Generally, a class's `runtimeType` lies by returning an abstract
+/// supertype of the class.  Since both the the marker interface and `get
+/// runtimeType` are inherited, there should be no way in which a user can
+/// extend the class or implement interface of the class.
+// TODO(48585): Move this class back to the dart:_rti library when old DDC
+// runtime type system has been removed.
+abstract class TrustedGetRuntimeType {}
+
+/// Wraps the JavaScript `Object.getPrototypeOf()` method returning the
+/// `__proto__` of [obj].
+///
+/// This method is equivalent to:
+///
+///    JS<Object?>('', 'Object.getPrototypeOf(#)', obj);
+///
+/// but the code is generated by the compiler directly (a low-tech way of
+/// inlining).
+///
+/// This helper should always be used in place of `JS('', '#.__proto__', obj)`
+/// to avoid prototype pollution issues.
+/// See: https://github.com/tc39/proposal-symbol-proto
+external Object? jsObjectGetPrototypeOf(@notNull Object obj);
+
+/// Wraps the JavaScript `Object.setPrototypeOf()` method setting the
+/// `__proto__` of [obj] to [prototype] and returning [obj].
+///
+/// This method is equivalent to:
+///
+///    JS<Object>('!', 'Object.setPrototypeOf(#, #)', obj, prototype);
+///
+/// but the code is generated by the compiler directly (a low-tech way of
+/// inlining).
+///
+/// This helper should always be used in place of
+/// `JS('', '#.__proto__ = #', obj, prototype)` to avoid prototype
+/// pollution issues.
+/// See: https://github.com/tc39/proposal-symbol-proto
+@notNull
+external Object jsObjectSetPrototypeOf(@notNull Object obj, Object? prototype);

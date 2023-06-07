@@ -298,9 +298,12 @@ Object /*String|TemporaryId*/ identifierKey(Identifier node) =>
 /// Also handles invalid variable names in strict mode, like "arguments".
 bool invalidVariableName(String keyword, {bool strictMode = true}) {
   switch (keyword) {
-    // http://www.ecma-international.org/ecma-262/6.0/#sec-future-reserved-words
+    // https: //262.ecma-international.org/6.0/#sec-reserved-words
+    case 'true':
+    case 'false':
+    case 'null':
+    // https://262.ecma-international.org/6.0/#sec-keywords
     case 'await':
-
     case 'break':
     case 'case':
     case 'catch':

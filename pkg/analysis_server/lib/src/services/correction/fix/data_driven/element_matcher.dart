@@ -161,10 +161,15 @@ class _MatcherBuilder {
       _buildFromBinaryExpression(node);
     } else if (node is ConstructorName) {
       _buildFromConstructorName(node);
+    } else if (node is ExtensionOverride) {
+      _buildFromExtensionOverride(node);
     } else if (node is FunctionDeclaration) {
       _addMatcher(components: [node.name.lexeme], kinds: []);
     } else if (node is Literal) {
       var parent = node.parent;
+      if (parent is NamedExpression) {
+        parent = parent.parent;
+      }
       if (parent is ArgumentList) {
         _buildFromArgumentList(parent);
       }
@@ -254,7 +259,7 @@ class _MatcherBuilder {
   /// Build a matcher for the extension.
   void _buildFromExtensionOverride(ExtensionOverride node) {
     _addMatcher(
-      components: [node.extensionName.name],
+      components: [node.name.lexeme],
       kinds: [ElementKind.extensionKind],
     );
   }

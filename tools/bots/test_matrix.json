@@ -213,7 +213,7 @@
       "sdk/",
       ".dart_tool/package_config.json"
     ],
-    "vm-kernel": [
+    "vm": [
       "benchmarks/",
       "out/",
       "xcodebuild/",
@@ -276,6 +276,7 @@
       "pkg/kernel/",
       "pkg/meta/",
       "pkg/native_stack_traces/",
+      "pkg/native_assets_builder/",
       "pkg/pkg.status",
       "pkg/smith/",
       "pkg/status_file/",
@@ -370,136 +371,110 @@
     },
     "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "nnbd": "strong"
       }
     },
     "vm-checked-(linux|mac|win|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "nnbd": "strong",
         "enable-asserts": true
       }
     },
     "vm-aot-(linux|mac)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
-        "nnbd": "strong"
       }
     },
     "vm-aot-win-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
-        "nnbd": "strong",
         "use-elf": true
       }
     },
     "vm-aot-(linux|mac|win)-(debug|product|release)-(simarm|simarm_x64|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "nnbd": "strong",
         "use-elf": true
       }
     },
     "vm-asan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "asan",
-        "timeout": 240,
-        "nnbd": "strong"
+        "timeout": 240
       }
     },
     "vm-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "lsan",
-        "timeout": 240,
-        "nnbd": "strong"
+        "timeout": 240
       }
     },
     "vm-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "msan",
-        "timeout": 240,
-        "nnbd": "strong"
+        "timeout": 240
       }
     },
     "vm-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "tsan",
-        "timeout": 240,
-        "nnbd": "strong"
+        "timeout": 240
       }
     },
     "vm-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "ubsan",
-        "timeout": 240,
-        "nnbd": "strong"
+        "timeout": 240
       }
     },
     "vm-aot-asan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "builder-tag": "asan",
-        "timeout": 240,
-        "nnbd": "strong",
-        "compiler": "dartkp"
+        "builder-tag": "asan"
       }
     },
     "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "lsan",
-        "timeout": 240,
-        "nnbd": "strong",
-        "compiler": "dartkp"
+        "timeout": 240
       }
     },
     "vm-aot-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "msan",
-        "timeout": 240,
-        "nnbd": "strong",
-        "compiler": "dartkp"
+        "timeout": 240
       }
     },
     "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "tsan",
-        "timeout": 240,
-        "nnbd": "strong",
-        "compiler": "dartkp"
+        "timeout": 240
       }
     },
     "vm-aot-ubsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "ubsan",
-        "timeout": 240,
-        "nnbd": "strong",
-        "compiler": "dartkp"
+        "timeout": 240
       }
     },
     "dart2js-(linux|win)-chrome": {
       "options": {
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "dart2js-(linux|win)-firefox": {
       "options": {
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "dart2js-win-ie11": {
       "options": {
         "babel": "{\"presets\":[\"es2015\"]}",
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "dart2js-win-edge": {
       "options": {
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "dart2js-mac-(chrome|safari)": {
       "options": {
         "architecture": "arm64",
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -507,14 +482,12 @@
       "options": {
         "csp": true,
         "minified": true,
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "dart2js-minified-linux-d8": {
       "options": {
         "minified": true,
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -524,7 +497,6 @@
         "dart2js-options": [
           "-O3"
         ],
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -534,7 +506,6 @@
         "dart2js-options": [
           "-O0"
         ],
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -545,14 +516,12 @@
           "--canary"
         ],
         "host-checked": true,
-        "nnbd": "strong",
         "timeout": 240
       }
     },
     "dart2js-hostasserts-linux-d8": {
       "options": {
         "host-checked": true,
-        "nnbd": "strong",
         "timeout": 240
       }
     },
@@ -579,39 +548,24 @@
           "--simple-load-ids"
         ],
         "host-checked": true,
-        "nnbd": "strong",
         "timeout": 240
       }
     },
-    "dart2wasm-hostasserts-linux-x64-d8": {
+    "dart2wasm-hostasserts-linux-x64-(d8|chrome)": {
       "options": {
         "host-checked": true,
-        "timeout": 240,
-        "builder-tag": "dart2wasm"
+        "timeout": 240
       }
     },
     "vm-aot-android-(debug|product|release)-arm_x64": {
       "options": {
         "builder-tag": "crossword",
-        "use-elf": true,
-        "nnbd": "strong"
+        "use-elf": true
       }
     },
     "vm-aot-android-(debug|product|release)-(arm|arm64|arm64c)": {
       "options": {
-        "use-elf": true,
-        "nnbd": "strong"
-      }
-    },
-    "dartkp-(linux|win|mac)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
-      "options": {
-        "use-elf": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ]
+        "use-elf": true
       }
     },
     "vm-aot-dwarf-linux-(debug|release|product)-x64": {
@@ -620,12 +574,12 @@
         "vm-options": [
           "--dwarf_stack_traces"
         ],
-        "nnbd": "strong",
         "use-elf": true
       }
     },
-    "dartkp-(linux|mac)-(debug|release|product)-(x64|x64c)": {
+    "dartkp-linux-(debug|release)-x64": {
       "options": {
+        "nnbd": "legacy",
         "vm-options": [
           "--no-sound-null-safety"
         ],
@@ -637,62 +591,29 @@
     "vm-aot-obfuscate-linux-(debug|release|product)-x64": {
       "options": {
         "builder-tag": "obfuscated",
-        "nnbd": "strong",
         "vm-options": [
           "--obfuscate"
         ]
       }
     },
-    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
+    "dartk-linux-(debug|release)-x64": {
       "options": {
+        "nnbd": "legacy",
         "vm-options": [
           "--no-sound-null-safety"
         ]
       }
     },
-    "dartk-linux-debug-(ia32|x64)-canary": {
-      "options": {
-        "builder-tag": "canary",
-        "vm-options": [
-          "--no-sound-null-safety"
-        ]
-      }
-    },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(arm64|x64|x64c)": {
+    "dartkp-weak-asserts-linux-(debug|release)-x64": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
-      "options": {
-        "enable-asserts": true,
-        "use-elf": true,
-        "builder-tag": "vm_nnbd"
-      }
-    },
-    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|x64|x64c|simriscv32|simriscv64)": {
+    "dartk-weak-asserts-linux-(debug|release)-x64": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
-      }
-    },
-    "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
-      "options": {
-        "enable-asserts": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ]
-      }
-    },
-    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
-      "options": {
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ]
       }
     },
     "vm-eager-optimization-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
@@ -701,44 +622,37 @@
         "vm-options": [
           "--optimization-counter-threshold=5",
           "--random-seed=__RANDOM__"
-        ],
-        "nnbd": "strong"
+        ]
       }
     },
     "vm-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
       "options": {
-        "hot-reload": true,
-        "nnbd": "strong"
+        "hot-reload": true
       }
     },
     "vm-reload-rollback-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
       "options": {
-        "hot-reload-rollback": true,
-        "nnbd": "strong"
+        "hot-reload-rollback": true
       }
     },
     "vm-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
-        "use-qemu": true,
-        "nnbd": "strong"
+        "use-qemu": true
       }
     },
     "vm-aot-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
-        "use-qemu": true,
-        "nnbd": "strong"
+        "use-qemu": true
       }
     },
     "vm-appjit-(linux|mac|win)-(debug|product|release)-(x64|arm64)": {
       "options": {
-        "compiler": "app_jitk",
-        "nnbd": "strong"
+        "compiler": "app_jitk"
       }
     },
     "ddc-(linux|win)-chrome": {
       "options": {
         "checked": true,
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -746,14 +660,12 @@
       "options": {
         "architecture": "arm64",
         "checked": true,
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
     "ddc-linux-firefox": {
       "options": {
         "checked": true,
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -779,7 +691,6 @@
         "ddc-options": [
           "--canary"
         ],
-        "nnbd": "strong",
         "use-sdk": true
       }
     },
@@ -796,6 +707,7 @@
     },
     "cfe-(linux|mac|win)": {
       "options": {
+        "nnbd": "legacy",
         "compiler": "fasta"
       }
     },
@@ -811,12 +723,14 @@
     },
     "analyzer-(linux|mac|win)": {
       "options": {
+        "nnbd": "legacy",
         "compiler": "dart2analyzer",
         "use-sdk": true
       }
     },
     "analyzer-asserts-(linux|mac|win)": {
       "options": {
+        "nnbd": "legacy",
         "compiler": "dart2analyzer",
         "enable-asserts": true,
         "use-sdk": true
@@ -989,7 +903,7 @@
             "-nvm-aot-android-${mode}-${arch}",
             "-j2"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 15
         }
       ]
@@ -1021,7 +935,7 @@
             "-nvm-android-${mode}-${arch}",
             "ffi"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 1
         }
       ]
@@ -1075,6 +989,13 @@
           ]
         },
         {
+          "name": "vm jit ffi tests",
+          "arguments": [
+            "-nvm-linux-${mode}-arm-qemu",
+            "ffi"
+          ]
+        },
+        {
           "name": "vm aot ffi tests",
           "arguments": [
             "-nvm-aot-linux-${mode}-arm-qemu",
@@ -1118,6 +1039,13 @@
           ]
         },
         {
+          "name": "vm jit ffi tests",
+          "arguments": [
+            "-nvm-linux-${mode}-riscv64-qemu",
+            "ffi"
+          ]
+        },
+        {
           "name": "vm aot ffi tests",
           "arguments": [
             "-nvm-aot-linux-${mode}-riscv64-qemu",
@@ -1147,7 +1075,7 @@
           "arguments": [
             "-ndartkp-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 6
         },
         {
@@ -1156,7 +1084,7 @@
             "-ndartkp-${system}-${mode}-${arch}",
             "co19_2"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         },
         {
@@ -1164,7 +1092,7 @@
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 6
         },
         {
@@ -1173,7 +1101,7 @@
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
             "co19"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 15
         }
       ]
@@ -1213,7 +1141,7 @@
           "arguments": [
             "-nvm-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         },
         {
@@ -1222,7 +1150,7 @@
             "-nvm-${system}-${mode}-${arch}",
             "co19"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         }
       ]
@@ -1235,7 +1163,6 @@
         "vm-aot-linux-product-x64",
         "vm-aot-linux-release-simarm64",
         "vm-aot-linux-release-x64",
-        "vm-aot-mac-release-simarm64",
         "vm-aot-win-debug-x64c",
         "vm-aot-win-product-x64",
         "vm-aot-win-release-x64"
@@ -1257,7 +1184,7 @@
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         },
         {
@@ -1266,7 +1193,7 @@
             "-nvm-aot-${system}-${mode}-${arch}",
             "co19"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 12
         }
       ]
@@ -1301,7 +1228,7 @@
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         }
       ]
@@ -1309,7 +1236,6 @@
     {
       "builders": [
         "vm-aot-mac-product-arm64",
-        "vm-aot-mac-product-x64",
         "vm-aot-mac-release-arm64",
         "vm-aot-mac-release-x64"
       ],
@@ -1335,8 +1261,7 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-linux-debug-x64",
-        "vm-kernel-precomp-linux-release-simarm"
+        "vm-kernel-precomp-linux-debug-x64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp debug builders. It uses 15 shards for testing to avoid 1 hour shard timeouts."
@@ -1355,7 +1280,7 @@
           "arguments": [
             "-ndartkp-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 15
         }
       ]
@@ -1381,7 +1306,7 @@
           "arguments": [
             "-nvm-aot-dwarf-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         }
       ]
@@ -1407,7 +1332,7 @@
           "arguments": [
             "-nvm-aot-obfuscate-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         }
       ]
@@ -1442,7 +1367,7 @@
             "utils",
             "vm"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 4
         }
       ]
@@ -1469,7 +1394,7 @@
             "vm",
             "standalone"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         }
       ]
@@ -1499,7 +1424,7 @@
             "vm",
             "standalone"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 4
         }
       ]
@@ -1527,7 +1452,7 @@
             "vm",
             "standalone"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
         }
       ]
@@ -1696,31 +1621,6 @@
     },
     {
       "builders": [
-        "vm-kernel-win-debug-ia32"
-      ],
-      "meta": {
-        "description": "This configuration is for the kernel builder group."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartk-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
-        }
-      ]
-    },
-    {
-      "builders": [
         "vm-kernel-linux-release-x64",
         "vm-kernel-linux-debug-x64"
       ],
@@ -1740,7 +1640,7 @@
           "arguments": [
             "-ndartk-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         },
         {
@@ -1749,7 +1649,7 @@
             "-ndartk-${system}-${mode}-${arch}",
             "co19_2"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         },
         {
@@ -1757,7 +1657,7 @@
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 6
         },
         {
@@ -1766,33 +1666,8 @@
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
             "co19"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 8
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-checked-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is for the kernel builder group in checked mode."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartk-checked-linux-release-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
         }
       ]
     },
@@ -1816,7 +1691,7 @@
           "arguments": [
             "-nvm-checked-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 4
         }
       ]
@@ -1863,7 +1738,7 @@
           "arguments": [
             "-nvm-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 1
         }
       ]
@@ -1890,8 +1765,56 @@
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 1
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-win-debug-arm64",
+        "vm-win-release-arm64"
+      ],
+      "meta": {
+          "description": "This configuration is for the ARM64 JIT builders, no shards."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+              "-nvm-${system}-${mode}-${arch}"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-win-debug-arm64",
+        "vm-aot-win-release-arm64"
+      ],
+      "meta": {
+          "description": "This configuration is for the ARM64 AOT builders, no shards."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+              "-nvm-aot-${system}-${mode}-${arch}"
+          ]
         }
       ]
     },
@@ -1918,7 +1841,7 @@
             "-nvm-appjit-${system}-${mode}-${arch}"
           ],
           "shards": 6,
-          "fileset": "vm-kernel"
+          "fileset": "vm"
         }
       ]
     },
@@ -2304,7 +2227,7 @@
             "utils",
             "vm"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         }
       ]
@@ -2338,7 +2261,7 @@
             "utils",
             "vm"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         }
       ]
@@ -2372,7 +2295,7 @@
             "utils",
             "vm"
           ],
-          "fileset": "vm-kernel",
+          "fileset": "vm",
           "shards": 10
         }
       ]
@@ -2763,10 +2686,11 @@
     },
     {
       "builders": [
+        "dart2wasm-linux-x64-chrome",
         "dart2wasm-linux-x64-d8"
       ],
       "meta": {
-        "description": "dart2wasm tests."
+        "description": "dart2wasm tests"
       },
       "steps": [
         {
@@ -2778,9 +2702,9 @@
           ]
         },
         {
-          "name": "dart2wasm d8 tests",
+          "name": "dart2wasm tests",
           "arguments": [
-            "-ndart2wasm-hostasserts-linux-x64-d8",
+            "-ndart2wasm-hostasserts-linux-x64-${runtime}",
             "co19",
             "corelib",
             "language",
@@ -3610,7 +3534,7 @@
             "--copy-coredumps"
           ],
           "shards": 10,
-          "fileset": "vm-kernel"
+          "fileset": "vm"
         }
       ]
     }

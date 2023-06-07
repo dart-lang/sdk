@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -28,7 +27,6 @@ import 'package:analyzer/src/generated/scope_helpers.dart';
 class NamedTypeResolver with ScopeHelpers {
   final LibraryElementImpl _libraryElement;
   final TypeSystemImpl typeSystem;
-  final DartType dynamicType;
   final bool isNonNullableByDefault;
 
   @override
@@ -61,10 +59,9 @@ class NamedTypeResolver with ScopeHelpers {
   /// If [resolve] reported an error, this flag is set to `true`.
   bool hasErrorReported = false;
 
-  NamedTypeResolver(this._libraryElement, TypeProvider typeProvider,
-      this.isNonNullableByDefault, this.errorReporter)
-      : typeSystem = _libraryElement.typeSystem,
-        dynamicType = typeProvider.dynamicType;
+  NamedTypeResolver(
+      this._libraryElement, this.isNonNullableByDefault, this.errorReporter)
+      : typeSystem = _libraryElement.typeSystem;
 
   bool get _genericMetadataIsEnabled =>
       enclosingClass!.library.featureSet.isEnabled(Feature.generic_metadata);
@@ -118,7 +115,7 @@ class NamedTypeResolver with ScopeHelpers {
         prefixToken,
         [prefixName],
       );
-      node.type = dynamicType;
+      node.type = InvalidTypeImpl.instance;
     } else {
       if (node.name2.lexeme == 'void') {
         node.type = VoidTypeImpl.instance;
@@ -142,7 +139,7 @@ class NamedTypeResolver with ScopeHelpers {
         node,
         [node.name2.lexeme, parameterCount, argumentCount],
       );
-      return List.filled(parameterCount, DynamicTypeImpl.instance,
+      return List.filled(parameterCount, InvalidTypeImpl.instance,
           growable: false);
     }
 
@@ -222,7 +219,7 @@ class NamedTypeResolver with ScopeHelpers {
         return _verifyTypeAliasForContext(node, element, type);
       } else if (_isInstanceCreation(node)) {
         _ErrorHelper(errorReporter).reportNewWithNonType(node);
-        return dynamicType;
+        return InvalidTypeImpl.instance;
       } else if (element is DynamicElementImpl) {
         _buildTypeArguments(node, argumentList, 0);
         return DynamicTypeImpl.instance;
@@ -236,7 +233,7 @@ class NamedTypeResolver with ScopeHelpers {
         );
       } else {
         _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, element);
-        return dynamicType;
+        return InvalidTypeImpl.instance;
       }
     }
 
@@ -265,7 +262,7 @@ class NamedTypeResolver with ScopeHelpers {
       return _verifyTypeAliasForContext(node, element, type);
     } else if (_isInstanceCreation(node)) {
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
-      return dynamicType;
+      return InvalidTypeImpl.instance;
     } else if (element is DynamicElementImpl) {
       return DynamicTypeImpl.instance;
     } else if (element is NeverElementImpl) {
@@ -276,7 +273,7 @@ class NamedTypeResolver with ScopeHelpers {
       );
     } else {
       _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, element);
-      return dynamicType;
+      return InvalidTypeImpl.instance;
     }
   }
 
@@ -301,7 +298,7 @@ class NamedTypeResolver with ScopeHelpers {
     node.element = element;
 
     if (element == null) {
-      node.type = dynamicType;
+      node.type = InvalidTypeImpl.instance;
       if (!_libraryElement.shouldIgnoreUndefinedNamedType(node)) {
         _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, null);
       }
@@ -309,7 +306,7 @@ class NamedTypeResolver with ScopeHelpers {
     }
 
     if (element is MultiplyDefinedElement) {
-      node.type = dynamicType;
+      node.type = InvalidTypeImpl.instance;
       return;
     }
 
@@ -362,10 +359,10 @@ class NamedTypeResolver with ScopeHelpers {
     }
 
     if (_isInstanceCreation(node)) {
-      node.type = dynamicType;
+      node.type = InvalidTypeImpl.instance;
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
     } else {
-      node.type = dynamicType;
+      node.type = InvalidTypeImpl.instance;
       errorReporter.reportErrorForOffset(
         CompileTimeErrorCode.NOT_A_TYPE,
         importPrefix.offset,
@@ -440,7 +437,7 @@ class NamedTypeResolver with ScopeHelpers {
         } else {
           throw UnimplementedError('${constructorUsage.runtimeType}');
         }
-        return dynamicType;
+        return InvalidTypeImpl.instance;
       }
 
       // Report if this type is used as a class in hierarchy.
@@ -466,12 +463,12 @@ class NamedTypeResolver with ScopeHelpers {
           errorRange.length,
         );
         hasErrorReported = true;
-        return dynamicType;
+        return InvalidTypeImpl.instance;
       }
     }
     if (type is! InterfaceType && _isInstanceCreation(node)) {
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
-      return dynamicType;
+      return InvalidTypeImpl.instance;
     }
     return type;
   }
@@ -510,6 +507,10 @@ class _ErrorHelper {
   }
 
   void reportNullOrNonTypeElement(NamedType node, Element? element) {
+    if (node.name2.isSynthetic) {
+      return;
+    }
+
     if (node.name2.lexeme == 'boolean') {
       final errorRange = _getErrorRange(node, skipImportPrefix: true);
       errorReporter.reportErrorForOffset(

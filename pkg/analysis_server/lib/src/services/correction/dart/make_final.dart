@@ -72,6 +72,19 @@ class MakeFinal extends CorrectionProducer {
       return;
     }
 
+    if (node is DartPattern) {
+      var parent = node.parent;
+      if (parent is ForEachPartsWithPattern) {
+        await builder.addDartFileEdit(file, (builder) {
+          var keyword = parent.keyword;
+          if (keyword.keyword == Keyword.VAR) {
+            builder.addSimpleReplacement(range.token(keyword), 'final');
+          }
+        });
+        return;
+      }
+    }
+
     if (node is DeclaredVariablePattern) {
       var keyword = node.keyword;
       if (keyword == null) {
@@ -109,6 +122,10 @@ class MakeFinal extends CorrectionProducer {
 
     final parent = node.parent;
     if (node is VariableDeclaration && parent is VariableDeclarationList) {
+      return parent;
+    }
+
+    if (node is NamedType && parent is VariableDeclarationList) {
       return parent;
     }
 

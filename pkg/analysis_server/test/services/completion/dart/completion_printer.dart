@@ -88,6 +88,8 @@ class CompletionResponsePrinter {
         return 'identifier';
       } else if (elementKind == ElementKind.CLASS) {
         return 'class';
+      } else if (elementKind == ElementKind.CONSTRUCTOR) {
+        return 'constructorInvocation';
       } else if (elementKind == ElementKind.ENUM) {
         return 'enum';
       } else if (elementKind == ElementKind.ENUM_CONSTANT) {
@@ -100,10 +102,14 @@ class CompletionResponsePrinter {
         return 'function';
       } else if (elementKind == ElementKind.GETTER) {
         return 'getter';
+      } else if (elementKind == ElementKind.LABEL) {
+        return 'label';
       } else if (elementKind == ElementKind.LIBRARY) {
         return 'library';
       } else if (elementKind == ElementKind.LOCAL_VARIABLE) {
         return 'localVariable';
+      } else if (elementKind == ElementKind.METHOD) {
+        return 'method';
       } else if (elementKind == ElementKind.MIXIN) {
         return 'mixin';
       } else if (elementKind == ElementKind.PARAMETER) {
@@ -114,6 +120,8 @@ class CompletionResponsePrinter {
         return 'topLevelVariable';
       } else if (elementKind == ElementKind.TYPE_ALIAS) {
         return 'typeAlias';
+      } else if (elementKind == ElementKind.TYPE_PARAMETER) {
+        return 'typeParameter';
       }
       throw UnimplementedError('elementKind: $elementKind');
     } else if (kind == CompletionSuggestionKind.INVOCATION) {
@@ -154,6 +162,27 @@ class CompletionResponsePrinter {
       _writelnWithIndent('|$completion|');
     } else {
       _writelnWithIndent(completion);
+    }
+  }
+
+  void _writeDeclaringType(CompletionSuggestion suggestion) {
+    if (configuration.withDeclaringType) {
+      _writelnWithIndent('declaringType: ${suggestion.declaringType}');
+    }
+  }
+
+  void _writeDefaultArgumentList(CompletionSuggestion suggestion) {
+    if (configuration.withDefaultArgumentList) {
+      _writelnWithIndent(
+          'defaultArgumentList: ${suggestion.defaultArgumentListString}');
+      _writelnWithIndent(
+          'defaultArgumentListRanges: ${suggestion.defaultArgumentListTextRanges}');
+    }
+  }
+
+  void _writeDeprecated(CompletionSuggestion suggestion) {
+    if (suggestion.isDeprecated) {
+      _writelnWithIndent('deprecated: true');
     }
   }
 
@@ -210,6 +239,21 @@ class CompletionResponsePrinter {
     buffer.writeln(line);
   }
 
+  void _writeParameterNames(CompletionSuggestion suggestion) {
+    if (configuration.withParameterNames) {
+      var parameterNames = suggestion.parameterNames?.join(',') ?? '';
+      if (parameterNames.isNotEmpty) {
+        parameterNames = ' $parameterNames';
+      }
+      _writelnWithIndent('parameterNames:$parameterNames');
+      var parameterTypes = suggestion.parameterTypes?.join(',') ?? '';
+      if (parameterTypes.isNotEmpty) {
+        parameterTypes = ' $parameterTypes';
+      }
+      _writelnWithIndent('parameterTypes:$parameterTypes');
+    }
+  }
+
   void _writeRelevance(CompletionSuggestion suggestion) {
     if (configuration.withRelevance) {
       _writelnWithIndent('relevance: ${suggestion.relevance}');
@@ -263,11 +307,15 @@ class CompletionResponsePrinter {
     _writeCompletion(suggestion);
     _withIndent(() {
       _writeSuggestionKind(suggestion);
+      _writeDeclaringType(suggestion);
+      _writeDeprecated(suggestion);
+      _writeDefaultArgumentList(suggestion);
       _writeDisplayText(suggestion);
       _writeDocumentation(suggestion);
       _writeElement(suggestion);
       _writeIsNotImported(suggestion);
       _writeLibraryUri(suggestion);
+      _writeParameterNames(suggestion);
       _writeRelevance(suggestion);
       _writeReturnType(suggestion);
       _writeSelection(suggestion);
@@ -299,12 +347,15 @@ class CompletionResponsePrinter {
 
 class Configuration {
   Sorting sorting;
+  bool withDeclaringType;
+  bool withDefaultArgumentList;
   bool withDisplayText;
   bool withDocumentation;
   bool withElement;
   bool withIsNotImported;
   bool withKind;
   bool withLibraryUri;
+  bool withParameterNames;
   bool withRelevance;
   bool withReplacement;
   bool withReturnType;
@@ -313,12 +364,15 @@ class Configuration {
 
   Configuration({
     this.sorting = Sorting.completionThenKind,
+    this.withDeclaringType = false,
+    this.withDefaultArgumentList = false,
     this.withDisplayText = false,
     this.withDocumentation = false,
     this.withElement = false,
     this.withIsNotImported = false,
     this.withKind = true,
     this.withLibraryUri = false,
+    this.withParameterNames = false,
     this.withReplacement = true,
     this.withRelevance = false,
     this.withReturnType = false,

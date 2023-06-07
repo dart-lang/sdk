@@ -29,6 +29,7 @@ abstract class DwarfContainer {
 
   String? get buildId;
 
+  Iterable<DwarfContainerSymbol> get staticSymbols;
   DwarfContainerStringTable? get debugStringTable;
   DwarfContainerStringTable? get debugLineStringTable;
 

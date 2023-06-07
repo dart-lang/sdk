@@ -24,8 +24,9 @@ import 'package:collection/collection.dart';
 /// different file. The destination file can either be a new file or an existing
 /// file.
 class MoveTopLevelToFile extends RefactoringProducer {
-  /// Return the name used for this command when communicating with the client.
-  static const String commandName = 'move_top_level_to_file';
+  /// Return the name used for this command when communicating with the client
+  /// (and for analytics).
+  static const String commandName = 'dart.refactor.move_top_level_to_file';
 
   @override
   late String title;
@@ -182,12 +183,17 @@ class MoveTopLevelToFile extends RefactoringProducer {
   void _addImportsForMovingDeclarations(
       DartFileEditBuilder builder, ImportAnalyzer analyzer) {
     for (var entry in analyzer.movingReferences.entries) {
-      var library = entry.key.library;
-      if (library != null && !library.isDartCore) {
-        var uri = library.source.uri;
-        for (var prefix in entry.value) {
-          builder.importLibrary(uri, prefix: prefix.isEmpty ? null : prefix);
+      var imports = entry.value;
+      for (var import in imports) {
+        var library = import.importedLibrary;
+        if (library == null || library.isDartCore) {
+          continue;
         }
+        // TODO(dantup): This does not support show/hide. We should be able to
+        //  pass them in (and have them merge with any existing imports or
+        //  pending imports).
+        builder.importLibrary(library.source.uri,
+            prefix: import.prefix?.element.name);
       }
     }
   }

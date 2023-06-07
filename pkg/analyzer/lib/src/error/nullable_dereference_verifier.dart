@@ -10,7 +10,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -71,7 +70,8 @@ class NullableDereferenceVerifier {
     AstNode errorNode,
     DartType receiverType,
   ) {
-    if (identical(receiverType, DynamicTypeImpl.instance) ||
+    if (receiverType is DynamicType ||
+        receiverType is InvalidType ||
         !_typeSystem.isPotentiallyNullable(receiverType)) {
       return false;
     }

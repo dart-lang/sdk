@@ -50,8 +50,16 @@ abstract class AbstractCompletionDriverTest
   late printer.Configuration printerConfiguration;
 
   /// A set of identifiers that will be included in the printed version of the
-  /// selections. Individual tests can replace the default set.
+  /// suggestions. Individual tests can replace the default set.
   Set<String> allowedIdentifiers = const {};
+
+  /// A set of completion kinds that should be included in the printed version
+  /// of the suggestions. Individual tests can replace the default set.
+  Set<CompletionSuggestionKind> allowedKinds = {};
+
+  /// Return `true` if closures (suggestions starting with a left paren) should
+  /// be included in the text to be compared.
+  bool get includeClosures => false;
 
   /// Return `true` if keywords should be included in the text to be compared.
   bool get includeKeywords => true;
@@ -72,10 +80,15 @@ abstract class AbstractCompletionDriverTest
   Future<List<CompletionSuggestion>> addTestFile(String content,
       {int? offset}) async {
     driver.addTestFile(content, offset: offset);
-    await getSuggestions();
+
+    // Wait after adding the test file, this might affect diagnostics.
+    await pumpEventQueue(times: 1000);
+
     // For sanity, ensure that there are no errors recorded for project files
     // since that may lead to unexpected results.
     _assertNoErrorsInProjectFiles();
+
+    await getSuggestions();
     return suggestions;
   }
 
@@ -207,10 +220,19 @@ name: test
         if (kind == CompletionSuggestionKind.IDENTIFIER ||
             kind == CompletionSuggestionKind.INVOCATION) {
           var completion = suggestion.completion;
+          if (includeClosures && completion.startsWith('(')) {
+            return true;
+          }
+          var periodIndex = completion.indexOf('.');
+          if (periodIndex > 0) {
+            completion = completion.substring(0, periodIndex);
+          }
           return RegExp(r'^_?[a-zA-Z][0-9]+$').hasMatch(completion) ||
               allowedIdentifiers.contains(completion);
         } else if (kind == CompletionSuggestionKind.KEYWORD) {
           return includeKeywords;
+        } else if (allowedKinds.contains(kind)) {
+          return true;
         }
         return true;
       },

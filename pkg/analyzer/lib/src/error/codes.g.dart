@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
@@ -1896,7 +1896,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode ILLEGAL_ASYNC_RETURN_TYPE =
       CompileTimeErrorCode(
     'ILLEGAL_ASYNC_RETURN_TYPE',
-    "Functions marked 'async' must have a return type assignable to 'Future'.",
+    "Functions marked 'async' must have a return type which is a supertype of "
+        "'Future'.",
     correctionMessage:
         "Try fixing the return type of the function, or removing the modifier "
         "'async' from the function body.",

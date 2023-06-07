@@ -57,6 +57,18 @@ library /*isNonNullableByDefault*/;
 // augment void set orphanedSetter(_) {
 //                  ^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/macros/library_members.dart:26:3: Error: Method not found: 'orphanedMethod'.
+//   orphanedMethod();
+//   ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/library_members.dart:27:3: Error: Setter not found: 'orphanedSetter'.
+//   orphanedSetter = 0;
+//   ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/library_members.dart:28:7: Error: Couldn't find constructor 'OrphanedClass'.
+//   new OrphanedClass();
+//       ^^^^^^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -111,9 +123,15 @@ static set /* from org-dartlang-testcase:///library_members_lib.dart */ augmente
 }
 static method ExistingClass2() → void {}
 static method test() → dynamic {
-  self::orphanedMethod();
-  self::orphanedSetter = 0;
-  new self::OrphanedClass::•();
+  invalid-expression "pkg/front_end/testcases/macros/library_members.dart:26:3: Error: Method not found: 'orphanedMethod'.
+  orphanedMethod();
+  ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/macros/library_members.dart:27:3: Error: Setter not found: 'orphanedSetter'.
+  orphanedSetter = 0;
+  ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/macros/library_members.dart:28:7: Error: Couldn't find constructor 'OrphanedClass'.
+  new OrphanedClass();
+      ^^^^^^^^^^^^^";
 }
 static method main() → dynamic {
   self::augmentedMethod();

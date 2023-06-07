@@ -475,6 +475,11 @@ class MatchingExpressionVisitor
               staticTarget: staticTarget,
               typeArguments: typeArguments,
               fileOffset: field.fileOffset);
+      if (field.checkReturn) {
+        objectExpression = new CovariantCheckCacheableExpression(
+            objectExpression, field.resultType!,
+            fileOffset: field.fileOffset);
+      }
 
       DelayedExpression subExpression =
           visitPattern(field.pattern, objectExpression);

@@ -7,10 +7,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:dap/dap.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
-import '../exceptions.dart';
-import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 import 'dart.dart';
 import 'mixins.dart';
@@ -105,7 +104,7 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     terminatePids(ProcessSignal.sigterm);
   }
 
-  Future<Response> handleMessage(String message) async {
+  void handleMessage(String message, void Function(Response) responseWriter) {
     final potentialException =
         DebugAdapterException('Message does not conform to DAP spec: $message');
 
@@ -113,10 +112,11 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       final Map<String, Object?> json = jsonDecode(message);
       final type = json['type'] as String;
       if (type == 'request') {
-        return handleIncomingRequest(Request.fromJson(json));
+        handleIncomingRequest(Request.fromJson(json), responseWriter);
         // TODO(helin24): Handle event and response?
+      } else {
+        throw potentialException;
       }
-      throw potentialException;
     } catch (e) {
       throw potentialException;
     }

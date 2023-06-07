@@ -96,7 +96,7 @@ class AddTypeParameter extends Change<_Data> {
       if (_isInvalidIndex(node.arguments)) {
         return null;
       }
-      return _TypeArgumentData(node, parent.extensionName.end);
+      return _TypeArgumentData(node, parent.name.end);
     }
     return null;
   }

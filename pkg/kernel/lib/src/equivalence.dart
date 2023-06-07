@@ -4110,6 +4110,9 @@ class EquivalenceStrategy {
     if (!checkSwitchStatement_isExplicitlyExhaustive(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkSwitchStatement_expressionTypeInternal(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkSwitchStatement_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -4308,7 +4311,8 @@ class EquivalenceStrategy {
     if (!checkPatternSwitchStatement_cases(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkPatternSwitchStatement_expressionType(visitor, node, other)) {
+    if (!checkPatternSwitchStatement_expressionTypeInternal(
+        visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkPatternSwitchStatement_lastCaseTerminates(visitor, node, other)) {
@@ -4913,6 +4917,9 @@ class EquivalenceStrategy {
     if (!checkNamedPattern_resultType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkNamedPattern_checkReturn(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkNamedPattern_recordType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -5218,7 +5225,7 @@ class EquivalenceStrategy {
     if (other is! InterfaceType) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkInterfaceType_className(visitor, node, other)) {
+    if (!checkInterfaceType_classReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkInterfaceType_declaredNullability(visitor, node, other)) {
@@ -8270,6 +8277,12 @@ class EquivalenceStrategy {
         other.isExplicitlyExhaustive, 'isExplicitlyExhaustive');
   }
 
+  bool checkSwitchStatement_expressionTypeInternal(
+      EquivalenceVisitor visitor, SwitchStatement node, SwitchStatement other) {
+    return visitor.checkNodes(node.expressionTypeInternal,
+        other.expressionTypeInternal, 'expressionTypeInternal');
+  }
+
   bool checkSwitchStatement_fileOffset(
       EquivalenceVisitor visitor, SwitchStatement node, SwitchStatement other) {
     return checkStatement_fileOffset(visitor, node, other);
@@ -8437,10 +8450,12 @@ class EquivalenceStrategy {
         node.cases, other.cases, visitor.checkNodes, 'cases');
   }
 
-  bool checkPatternSwitchStatement_expressionType(EquivalenceVisitor visitor,
-      PatternSwitchStatement node, PatternSwitchStatement other) {
-    return visitor.checkNodes(
-        node.expressionType, other.expressionType, 'expressionType');
+  bool checkPatternSwitchStatement_expressionTypeInternal(
+      EquivalenceVisitor visitor,
+      PatternSwitchStatement node,
+      PatternSwitchStatement other) {
+    return visitor.checkNodes(node.expressionTypeInternal,
+        other.expressionTypeInternal, 'expressionTypeInternal');
   }
 
   bool checkPatternSwitchStatement_lastCaseTerminates(
@@ -9137,6 +9152,12 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.resultType, other.resultType, 'resultType');
   }
 
+  bool checkNamedPattern_checkReturn(
+      EquivalenceVisitor visitor, NamedPattern node, NamedPattern other) {
+    return visitor.checkValues(
+        node.checkReturn, other.checkReturn, 'checkReturn');
+  }
+
   bool checkNamedPattern_recordType(
       EquivalenceVisitor visitor, NamedPattern node, NamedPattern other) {
     return visitor.checkNodes(node.recordType, other.recordType, 'recordType');
@@ -9372,10 +9393,10 @@ class EquivalenceStrategy {
         other.declaredNullability, 'declaredNullability');
   }
 
-  bool checkInterfaceType_className(
+  bool checkInterfaceType_classReference(
       EquivalenceVisitor visitor, InterfaceType node, InterfaceType other) {
     return visitor.checkReferences(
-        node.className, other.className, 'className');
+        node.classReference, other.classReference, 'classReference');
   }
 
   bool checkInterfaceType_declaredNullability(

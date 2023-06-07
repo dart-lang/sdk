@@ -34,7 +34,6 @@ const Unresolved x = null;
     await assertErrorsInCode('''
 const int x = 'foo';
 ''', [
-      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 14, 5),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 5),
     ]);
   }

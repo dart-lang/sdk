@@ -22,6 +22,7 @@
 #include "vm/compiler/cha.h"
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
@@ -341,6 +342,11 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
   if (!optimized() && function.unoptimized_code() != Code::null()) {
     return function.unoptimized_code();
   }
+  // If another thread compiled and installed optimized code for the
+  // force-optimized function, skip installation.
+  if (optimized() && function.ForceOptimize() && function.HasOptimizedCode()) {
+    return function.CurrentCode();
+  }
   Zone* const zone = thread()->zone();
 
   // CreateDeoptInfo uses the object pool and needs to be done before
@@ -469,6 +475,12 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
       function.SetUsageCounter(0);
     }
   }
+
+  if (function.IsFfiTrampoline() &&
+      function.FfiCallbackTarget() != Function::null()) {
+    compiler::ffi::SetFfiCallbackCode(thread(), function, code);
+  }
+
   return code.ptr();
 }
 

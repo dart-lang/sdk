@@ -4,13 +4,13 @@
 
 # Run
 #
-#     dart run --no-pub pkg/front_end/tool/_fasta/generate_messages.dart
+#     dart run pkg/front_end/tool/_fasta/generate_messages.dart
 #
 # to regenerate messages after having edited this file.
 #
 # If entries with 'analyzerCode' and 'index' have been changed, run
 #
-#     dart run --no-pub pkg/analyzer/tool/messages/generate.dart
+#     dart run pkg/analyzer/tool/messages/generate.dart
 #
 # to regenerate analyzer messages.
 
@@ -5439,10 +5439,6 @@ NullableInterfaceError:
 NullableMixinError:
   problemMessage: "Can't mix '#name' in because it's marked with '?'."
 
-JsInteropAnonymousFactoryPositionalParameters:
-  problemMessage: "Factory constructors for @anonymous JS interop classes should not contain any positional parameters."
-  correctionMessage: "Try replacing them with named parameters instead."
-
 JsInteropDartClassExtendsJSClass:
   problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."
   correctionMessage: "Try adding the JS interop annotation or removing it from the parent class."
@@ -5508,7 +5504,7 @@ JsInteropJSClassExtendsDartClass:
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
 
 JsInteropNamedParameters:
-  problemMessage: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."
+  problemMessage: "Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories."
   correctionMessage: "Try replacing them with normal or optional parameters."
 
 JsInteropNativeClassInAnnotation:
@@ -5523,17 +5519,21 @@ JsInteropNonExternalMember:
   problemMessage: "This JS interop member must be annotated with `external`. Only factories and static methods can be non-external."
   correctionMessage: "Try annotating the member with `external`."
 
+JsInteropObjectLiteralConstructorPositionalParameters:
+  problemMessage: "#string should not contain any positional parameters."
+  correctionMessage: "Try replacing them with named parameters instead."
+
+JsInteropOperatorCannotBeRenamed:
+  problemMessage: "JS interop operator methods cannot be renamed using the '@JS' annotation."
+  correctionMessage: "Remove the annotation or remove the value inside the annotation."
+
 JsInteropOperatorsNotSupported:
-  problemMessage: "JS interop classes do not support operator methods."
+  problemMessage: "JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop."
   correctionMessage: "Try replacing this with a normal method."
 
 JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
-
-JsInteropStaticInteropAnonymousFactoryTearoff:
-  problemMessage: "Factories of `@anonymous` `@staticInterop` classes can not be torn off."
-  correctionMessage: "Declare a closure that forwards to this factory instead."
 
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
   problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
@@ -5563,13 +5563,9 @@ JsInteropStaticInteropSyntheticConstructor:
   problemMessage: "Synthetic constructors on `@staticInterop` classes can not be used."
   correctionMessage: "Declare an external factory constructor for this `@staticInterop` class and use that instead."
 
-JsInteropStaticInteropWithInstanceMembers:
-  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
-  correctionMessage: "Try moving the instance member to a static extension."
-
-JsInteropStaticInteropWithNonStaticSupertype:
-  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
-  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
+JsInteropStaticInteropTearOffsDisallowed:
+  problemMessage: "Tear-offs of external #string '#name' are disallowed."
+  correctionMessage: "Declare a closure that calls this member instead."
 
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:
   problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation."
@@ -5579,6 +5575,14 @@ JsInteropStaticInteropTrustTypesUsageNotAllowed:
   problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
   correctionMessage: "Try removing the `@trustTypes` annotation."
 
+JsInteropStaticInteropWithInstanceMembers:
+  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
+  correctionMessage: "Try moving the instance member to a static extension."
+
+JsInteropStaticInteropWithNonStaticSupertype:
+  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
+  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
+
 JsInteropStrictModeViolation:
   problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."
   correctionMessage: "Use a JS type instead."
@@ -5586,6 +5590,10 @@ JsInteropStrictModeViolation:
 JsInteropStrictModeForbiddenLibrary:
   problemMessage: "Library '#name' is forbidden when strict mode is enabled."
   correctionMessage: "Remove the import of a forbidden library."
+
+JsInteropFunctionToJSRequiresStaticType:
+  problemMessage: "`Function.toJS` requires a statically known function type, but Type '#type' is not a function type, e.g., `void Function()`."
+  correctionMessage: "Insert an explicit cast to the expected function type."
 
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
@@ -5836,13 +5844,6 @@ UnexpectedModifierInNonNnbd:
   script: |
     // @dart=2.9
     late int x;
-
-CompilingWithSoundNullSafety:
-  problemMessage: "Compiling with sound null safety."
-  configuration: nnbd-strong,compile
-  severity: INFO
-  script: |
-    main() {}
 
 CompilingWithoutSoundNullSafety:
   problemMessage: "Compiling without sound null safety!\nDart 3 will only support sound null safety, see https://dart.dev/null-safety"
@@ -6358,7 +6359,7 @@ BaseClassImplementedOutsideOfLibrary:
     lib.dart:
       base class A {}
 
-BaseClassImplementedOutsideOfLibraryCause:
+BaseOrFinalClassImplementedOutsideOfLibraryCause:
   problemMessage: "The type '#name' is a subtype of '#name2', and '#name2' is defined here."
   severity: CONTEXT
 
@@ -6777,6 +6778,54 @@ VariablePatternKeywordInDeclarationContext:
       print(x + y);
     }
     ```
+
+IllegalPatternVariableName:
+  problemMessage: The variable declared by a variable pattern can't be named '#lexeme'.
+  correctionMessage: Choose a different name.
+  analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME
+  index: 159
+  experiments: patterns
+  comment: |-
+    Parameters:
+    0: the illegal name
+  script: |
+    void f(x) {
+      switch (x) {
+        case var when:
+      }
+    }
+
+IllegalPatternAssignmentVariableName:
+  problemMessage: A variable assigned by a pattern assignment can't be named '#lexeme'.
+  correctionMessage: Choose a different name.
+  analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME
+  index: 160
+  experiments: patterns
+  comment: |-
+    Parameters:
+    0: the illegal name
+  script: |
+    void f(x) {
+      dynamic when;
+      (when) = x;
+    }
+
+IllegalPatternIdentifierName:
+  problemMessage: A pattern can't refer to an identifier named '#lexeme'.
+  correctionMessage: Match the identifier using '== #lexeme'.
+  analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME
+  index: 161
+  experiments: patterns
+  comment: |-
+    Parameters:
+    0: the illegal name
+  script: |
+    void f(x) {
+      const when = 0;
+      switch (x) {
+        case when:
+      }
+    }
 
 InvalidInsideUnaryPattern:
   problemMessage: This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.

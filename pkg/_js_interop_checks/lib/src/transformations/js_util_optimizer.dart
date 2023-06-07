@@ -11,7 +11,7 @@ import '../js_interop.dart'
     show
         getJSName,
         hasAnonymousAnnotation,
-        hasJSAnnotationsJSAnnotation,
+        hasDartJSInteropAnnotation,
         hasJSInteropAnnotation,
         hasNativeAnnotation,
         hasObjectLiteralAnnotation,
@@ -68,11 +68,6 @@ class JsUtilOptimizer extends Transformer {
   final StatefulStaticTypeContext _staticTypeContext;
 
   final InlineExtensionIndex _inlineExtensionIndex = InlineExtensionIndex();
-
-  static const Set<String> _existingJsAnnotationsUsers = {
-    'dart:_engine',
-    'dart:ui'
-  };
 
   JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
       : _callMethodTarget =
@@ -230,17 +225,8 @@ class JsUtilOptimizer extends Transformer {
 
     if (!node.isInlineClassMember &&
         node.enclosingClass == null &&
-        ((hasJSAnnotationsJSAnnotation(node) ||
-                hasJSAnnotationsJSAnnotation(node.enclosingLibrary)) &&
-            !_existingJsAnnotationsUsers
-                .contains(node.enclosingLibrary.importUri.toString()))) {
-      // Top-level external member. We only lower top-levels if we're using the
-      // `dart:_js_annotations`' `@JS` annotation to avoid a breaking change for
-      // `package:js` users. There are some internal libraries that already use
-      // this library, so we exclude them here.
-      // TODO(srujzs): When they're ready to migrate to sound semantics, we
-      // should remove this exception.
-
+        (hasDartJSInteropAnnotation(node) ||
+            hasDartJSInteropAnnotation(node.enclosingLibrary))) {
       // If the `@JS` value of the node has any '.'s, we take the entries
       // before the last '.' to determine the dotted prefix name.
       var jsName = getJSName(node);
@@ -421,17 +407,16 @@ class JsUtilOptimizer extends Transformer {
   /// Returns a new function body for the given [node] external operator.
   ReturnStatement? _getExternalOperatorBody(
       Procedure node, bool shouldTrustTypes) {
-    switch (_inlineExtensionIndex.operatorName(node)) {
+    final operator =
+        _inlineExtensionIndex.getInlineDescriptor(node)?.name.text ??
+            _inlineExtensionIndex.getExtensionDescriptor(node)?.name.text;
+    switch (operator) {
       case '[]':
         return _getExternalGetterBody(node, shouldTrustTypes);
       case '[]=':
         return _getExternalSetterBody(node);
       default:
-        // TODO(joshualitt): Unfortunately, our current behavior is to allow
-        // operators on extension methods to `@JS` classes, but the runtime
-        // behavior is undefined. We should really convert this to an error, but
-        // it would also technically be a breaking change.
-        return null;
+        throw 'External operator $operator is unsupported for static interop.';
     }
   }
 
@@ -714,13 +699,16 @@ class JsUtilOptimizer extends Transformer {
 /// Lazily-initialized indexes for extension and inline class interop members.
 ///
 /// As the query APIs are called, we process the enclosing libraries of the
-/// member in question if needed.
+/// member in question if needed. We only process JS interop inline classes and
+/// extensions on either JS interop or @Native classes.
 class InlineExtensionIndex {
   final Map<Reference, Annotatable> _extensionAnnotatableIndex = {};
   final Map<Reference, Extension> _extensionIndex = {};
   final Map<Reference, ExtensionMemberDescriptor> _extensionMemberIndex = {};
+  final Map<Reference, Reference> _extensionTearOffIndex = {};
   final Map<Reference, InlineClass> _inlineClassIndex = {};
   final Map<Reference, InlineClassMemberDescriptor> _inlineMemberIndex = {};
+  final Map<Reference, Reference> _inlineTearOffIndex = {};
   final Set<Library> _processedExtensionLibraries = {};
   final Set<Library> _processedInlineLibraries = {};
   final Set<Reference> _shouldTrustType = {};
@@ -733,9 +721,14 @@ class InlineExtensionIndex {
   /// - Maps the member to its descriptor in `_extensionMemberIndex`.
   /// - Adds the member to `_shouldTrustTypes` if the on-type has a
   /// `@trustTypes` annotation.
+  /// - Maps the tear-off member to the member it tears off in
+  /// `extensionTearOffIndex`.
   void _indexExtensions(Library library) {
     if (_processedExtensionLibraries.contains(library)) return;
     for (var extension in library.extensions) {
+      // Descriptors of tear-offs have the same name as the member they tear
+      // off. This is used to find the tear-offs and their associated member.
+      final descriptorNames = <String, ExtensionMemberDescriptor>{};
       for (var descriptor in extension.members) {
         var reference = descriptor.member;
         var onType = extension.onType;
@@ -755,6 +748,20 @@ class InlineExtensionIndex {
           _extensionMemberIndex[reference] = descriptor;
           _extensionAnnotatableIndex[reference] = cls;
           _extensionIndex[reference] = extension;
+        }
+        if (descriptor.kind == ExtensionMemberKind.Method ||
+            descriptor.kind == ExtensionMemberKind.TearOff) {
+          final descriptorName = descriptor.name.text;
+          if (descriptorNames.containsKey(descriptorName)) {
+            final previousDesc = descriptorNames[descriptorName]!;
+            if (previousDesc.kind == ExtensionMemberKind.TearOff) {
+              _extensionTearOffIndex[previousDesc.member] = descriptor.member;
+            } else {
+              _extensionTearOffIndex[descriptor.member] = previousDesc.member;
+            }
+          } else {
+            descriptorNames[descriptorName] = descriptor;
+          }
         }
       }
     }
@@ -785,19 +792,43 @@ class InlineExtensionIndex {
     return _shouldTrustType.contains(member.reference);
   }
 
+  Reference? getExtensionMemberForTearOff(Member member) {
+    if (!member.isExtensionMember) return null;
+    _indexExtensions(member.enclosingLibrary);
+    return _extensionTearOffIndex[member.reference];
+  }
+
   /// If unprocessed, for all inline class members in [library] whose inline
   /// class has a `@JS` annotation, does the following:
   ///
   /// - Maps the member to its inline class in `_inlineClassIndex`.
   /// - Maps the member to its descriptor in `_inlineMemberIndex`.
+  /// - Maps the tear-off member to the member it tears off in
+  /// `inlineTearOffIndex`.
   void _indexInlineClasses(Library library) {
     if (_processedInlineLibraries.contains(library)) return;
+    final descriptorNames = <String, InlineClassMemberDescriptor>{};
     for (var inlineClass in library.inlineClasses) {
       if (hasJSInteropAnnotation(inlineClass)) {
         for (var descriptor in inlineClass.members) {
-          var reference = descriptor.member;
+          final reference = descriptor.member;
           _inlineMemberIndex[reference] = descriptor;
           _inlineClassIndex[reference] = inlineClass;
+          if (descriptor.kind == InlineClassMemberKind.Method ||
+              descriptor.kind == InlineClassMemberKind.Constructor ||
+              descriptor.kind == InlineClassMemberKind.TearOff) {
+            final descriptorName = descriptor.name.text;
+            if (descriptorNames.containsKey(descriptorName)) {
+              final previousDesc = descriptorNames[descriptorName]!;
+              if (previousDesc.kind == InlineClassMemberKind.TearOff) {
+                _inlineTearOffIndex[previousDesc.member] = descriptor.member;
+              } else {
+                _inlineTearOffIndex[descriptor.member] = previousDesc.member;
+              }
+            } else {
+              descriptorNames[descriptorName] = descriptor;
+            }
+          }
         }
       }
     }
@@ -814,6 +845,13 @@ class InlineExtensionIndex {
     if (!member.isInlineClassMember) return null;
     _indexInlineClasses(member.enclosingLibrary);
     return _inlineClassIndex[member.reference];
+  }
+
+  Reference? getInlineMemberForTearOff(Member member) {
+    // Constructor tear-offs are not marked as inline members, so we don't check
+    // if [member] is an inline class member.
+    _indexInlineClasses(member.enclosingLibrary);
+    return _inlineTearOffIndex[member.reference];
   }
 
   /// Return whether [node] is either an extension member that's declared as
@@ -868,22 +906,6 @@ class InlineExtensionIndex {
       ExtensionMemberKind.Operator,
       ProcedureKind.Operator);
 
-  String operatorName(Procedure node) {
-    if (getJSName(node).isNotEmpty) {
-      throw Exception('Operators cannot have `@JS` annotations.');
-    }
-    final String name;
-    if (node.isInlineClassMember) {
-      name = getInlineDescriptor(node)!.name.text;
-    } else if (node.isExtensionMember) {
-      name = getExtensionDescriptor(node)!.name.text;
-    } else {
-      throw Exception(
-          'Operators are only allowed on extensions / inline classes');
-    }
-    return name;
-  }
-
   /// Check if [node] is an interop member that can be lowered using
   /// invocation-level semantics.
   ///
@@ -891,31 +913,20 @@ class InlineExtensionIndex {
   /// member but rather lower directly to the interop procedure at the
   /// call-site. This is needed in order to support cases where omitted
   /// optional parameters shouldn't be passed.
-  ///
-  /// **Note that we only do this for users using `dart:js_interop`'s `@JS`
-  /// annotation. This means `@staticInterop` will behave slightly differently
-  /// depending on the import. This is to avoid a breaking change in the
-  /// existing semantics of `@staticInterop`.**
   bool canBeInvocationLevelLowered(Procedure node) {
-    if (hasJSAnnotationsJSAnnotation(node) ||
-        hasJSAnnotationsJSAnnotation(node.enclosingLibrary) ||
+    if (hasJSInteropAnnotation(node) ||
+        hasJSInteropAnnotation(node.enclosingLibrary) ||
         (node.enclosingClass != null &&
-            hasJSAnnotationsJSAnnotation(node.enclosingClass!))) {
+            hasJSInteropAnnotation(node.enclosingClass!))) {
       return true;
     }
 
     if (node.isExtensionMember) {
-      final annotatable = getExtensionAnnotatable(node);
-      if (annotatable != null) {
-        return hasJSAnnotationsJSAnnotation(annotatable);
-      }
+      return getExtensionAnnotatable(node) != null;
     }
 
     if (node.isInlineClassMember) {
-      final cls = getInlineClass(node);
-      if (cls != null) {
-        return hasJSAnnotationsJSAnnotation(cls);
-      }
+      return getInlineClass(node) != null;
     }
 
     return false;

@@ -505,7 +505,8 @@ TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
       timestamp1_(0),
-      flow_id_(TimelineEvent::kNoFlowId),
+      flow_id_count_(0),
+      flow_ids_(),
       state_(0),
       label_(nullptr),
       stream_(nullptr),
@@ -585,14 +586,12 @@ void TimelineEvent::Duration(const char* label,
 
 void TimelineEvent::Begin(const char* label,
                           int64_t id,
-                          int64_t flow_id,
                           int64_t micros) {
   Init(kBegin, label);
   set_timestamp0(micros);
   // Overload timestamp1_ with the task id. This is required for the MacOS
   // recorder to work.
   set_timestamp1(id);
-  set_flow_id(flow_id);
 }
 
 void TimelineEvent::End(const char* label, int64_t id, int64_t micros) {
@@ -670,7 +669,8 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   state_ = 0;
   timestamp0_ = 0;
   timestamp1_ = 0;
-  flow_id_ = TimelineEvent::kNoFlowId;
+  flow_id_count_ = 0;
+  flow_ids_.reset();
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != nullptr);
   thread_ = os_thread->trace_id();
@@ -679,6 +679,10 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   auto isolate_group = thread != nullptr ? thread->isolate_group() : nullptr;
   isolate_id_ = (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT;
   isolate_group_id_ = (isolate_group != nullptr) ? isolate_group->id() : 0;
+  isolate_data_ =
+      (isolate != nullptr) ? isolate->init_callback_data() : nullptr;
+  isolate_group_data_ =
+      (isolate_group != nullptr) ? isolate_group->embedder_data() : nullptr;
   label_ = label;
   arguments_.Free();
   set_event_type(event_type);
@@ -772,7 +776,7 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
       UNIMPLEMENTED();
   }
 
-  if (pre_serialized_args()) {
+  if (ArgsArePreSerialized()) {
     ASSERT(arguments_.length() == 1);
     writer->AppendSerializedObject("args", arguments_[0].value);
     if (HasIsolateId()) {
@@ -837,12 +841,12 @@ inline void AddBeginEventFields(
   AddBeginAndInstantEventCommonFields(track_event, event);
   track_event->set_type(
       perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_BEGIN);
-  if (event.HasFlowId()) {
+  for (intptr_t i = 0; i < event.flow_id_count(); ++i) {
     // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that we
     // aren't able to populate right now because we aren't keeping track of
     // terminating flow IDs in |TimelineEvent|. I'm not even sure if using that
     // field will provide any benefit though.
-    track_event->add_flow_ids(event.flow_id());
+    track_event->add_flow_ids(event.FlowIds()[i]);
   }
 }
 
@@ -860,17 +864,65 @@ inline void AddEndEventFields(
       perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_END);
 }
 
+inline void AddDebugAnnotations(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  if (event.GetNumArguments() > 0) {
+    if (event.ArgsArePreSerialized()) {
+      ASSERT(event.GetNumArguments() == 1);
+      perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+          *track_event->add_debug_annotations();
+      debug_annotation.set_name(event.arguments()[0].name);
+      debug_annotation.set_legacy_json_value(event.arguments()[0].value);
+    } else {
+      for (intptr_t i = 0; i < event.GetNumArguments(); ++i) {
+        perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+            *track_event->add_debug_annotations();
+        debug_annotation.set_name(event.arguments()[i].name);
+        debug_annotation.set_string_value(event.arguments()[i].value);
+      }
+    }
+  }
+  if (event.HasIsolateId()) {
+    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+        *track_event->add_debug_annotations();
+    debug_annotation.set_name("isolateId");
+    std::unique_ptr<const char[]> formatted_isolate_id =
+        event.GetFormattedIsolateId();
+    debug_annotation.set_string_value(formatted_isolate_id.get());
+  }
+  if (event.HasIsolateGroupId()) {
+    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+        *track_event->add_debug_annotations();
+    debug_annotation.set_name("isolateGroupId");
+    std::unique_ptr<const char[]> formatted_isolate_group =
+        event.GetFormattedIsolateGroupId();
+    debug_annotation.set_string_value(formatted_isolate_group.get());
+  }
+}
+
+bool TimelineEvent::CanBeRepresentedByPerfettoTracePacket() const {
+  switch (event_type()) {
+    case TimelineEvent::kBegin:
+    case TimelineEvent::kEnd:
+    case TimelineEvent::kDuration:
+    case TimelineEvent::kInstant:
+    case TimelineEvent::kAsyncBegin:
+    case TimelineEvent::kAsyncEnd:
+    case TimelineEvent::kAsyncInstant:
+      return true;
+    default:
+      return false;
+  }
+}
+
 void TimelineEvent::PopulateTracePacket(
     perfetto::protos::pbzero::TracePacket* packet) const {
   ASSERT(packet != nullptr);
+  ASSERT(CanBeRepresentedByPerfettoTracePacket());
 
   perfetto_utils::SetTrustedPacketSequenceId(packet);
-  // TODO(derekx): We should be able to set the unit_multiplier_ns field in a
-  // ClockSnapshot to avoid manually converting from microseconds to
-  // nanoseconds, but I haven't been able to get it to work.
-  packet->set_timestamp(TimeOrigin() * 1000);
-  packet->set_timestamp_clock_id(
-      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
+  perfetto_utils::SetTimestampAndMonotonicClockId(packet, TimeOrigin());
   perfetto::protos::pbzero::TrackEvent* track_event = packet->set_track_event();
   track_event->add_categories(stream()->name());
 
@@ -909,38 +961,7 @@ void TimelineEvent::PopulateTracePacket(
     default:
       break;
   }
-  if (GetNumArguments() > 0) {
-    if (pre_serialized_args()) {
-      ASSERT(GetNumArguments() == 1);
-      perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-          *track_event->add_debug_annotations();
-      debug_annotation.set_name(arguments()[0].name);
-      debug_annotation.set_legacy_json_value(arguments()[0].value);
-    } else {
-      for (intptr_t i = 0; i < GetNumArguments(); ++i) {
-        perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-            *track_event->add_debug_annotations();
-        debug_annotation.set_name(arguments()[i].name);
-        debug_annotation.set_string_value(arguments()[i].value);
-      }
-    }
-  }
-  if (HasIsolateId()) {
-    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-        *track_event->add_debug_annotations();
-    debug_annotation.set_name("isolateId");
-    char* formatted_isolate_id = GetFormattedIsolateId();
-    debug_annotation.set_string_value(formatted_isolate_id);
-    free(formatted_isolate_id);
-  }
-  if (HasIsolateGroupId()) {
-    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-        *track_event->add_debug_annotations();
-    debug_annotation.set_name("isolateGroupId");
-    char* formatted_isolate_group = GetFormattedIsolateGroupId();
-    debug_annotation.set_string_value(formatted_isolate_group);
-    free(formatted_isolate_group);
-  }
+  AddDebugAnnotations(track_event, event);
 }
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
@@ -964,10 +985,6 @@ int64_t TimelineEvent::TimeDuration() const {
   return timestamp1_ - timestamp0_;
 }
 
-bool TimelineEvent::HasFlowId() const {
-  return flow_id_ != TimelineEvent::kNoFlowId;
-}
-
 bool TimelineEvent::HasIsolateId() const {
   return isolate_id_ != ILLEGAL_ISOLATE_ID;
 }
@@ -976,24 +993,30 @@ bool TimelineEvent::HasIsolateGroupId() const {
   return isolate_group_id_ != ILLEGAL_ISOLATE_GROUP_ID;
 }
 
-char* TimelineEvent::GetFormattedIsolateId() const {
+std::unique_ptr<const char[]> TimelineEvent::GetFormattedIsolateId() const {
   ASSERT(HasIsolateId());
-  intptr_t formatted_isolate_id_len =
-      Utils::SNPrint(nullptr, 0, ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id_);
-  char* formatted_isolate_id =
-      reinterpret_cast<char*>(malloc(formatted_isolate_id_len + 1));
-  Utils::SNPrint(formatted_isolate_id, formatted_isolate_id_len + 1,
+  intptr_t formatted_isolate_id_buffer_size =
+      Utils::SNPrint(nullptr, 0, ISOLATE_SERVICE_ID_FORMAT_STRING,
+                     isolate_id_) +
+      1;
+  auto formatted_isolate_id =
+      std::make_unique<char[]>(formatted_isolate_id_buffer_size);
+  Utils::SNPrint(formatted_isolate_id.get(), formatted_isolate_id_buffer_size,
                  ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id_);
   return formatted_isolate_id;
 }
 
-char* TimelineEvent::GetFormattedIsolateGroupId() const {
+std::unique_ptr<const char[]> TimelineEvent::GetFormattedIsolateGroupId()
+    const {
   ASSERT(HasIsolateGroupId());
-  intptr_t formatted_isolate_group_id_len = Utils::SNPrint(
-      nullptr, 0, ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id_);
-  char* formatted_isolate_group_id =
-      reinterpret_cast<char*>(malloc(formatted_isolate_group_id_len + 1));
-  Utils::SNPrint(formatted_isolate_group_id, formatted_isolate_group_id_len + 1,
+  intptr_t formatted_isolate_group_id_buffer_size =
+      Utils::SNPrint(nullptr, 0, ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
+                     isolate_group_id_) +
+      1;
+  auto formatted_isolate_group_id =
+      std::make_unique<char[]>(formatted_isolate_group_id_buffer_size);
+  Utils::SNPrint(formatted_isolate_group_id.get(),
+                 formatted_isolate_group_id_buffer_size,
                  ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id_);
   return formatted_isolate_group_id;
 }
@@ -1213,7 +1236,7 @@ void TimelineBeginEndScope::EmitBegin() {
   }
   ASSERT(event != nullptr);
   // Emit a begin event.
-  event->Begin(label(), id(), /*flow_id=*/TimelineEvent::kNoFlowId);
+  event->Begin(label(), id());
   event->Complete();
 }
 
@@ -1232,6 +1255,25 @@ void TimelineBeginEndScope::EmitEnd() {
   event->End(label(), id());
   StealArguments(event);
   event->Complete();
+}
+
+bool TimelineEventBlock::InUseLocked() const {
+  ASSERT(Timeline::recorder()->lock_.IsOwnedByCurrentThread());
+  return in_use_;
+}
+
+bool TimelineEventBlock::ContainsEventsThatCanBeSerializedLocked() const {
+  ASSERT(Timeline::recorder()->lock_.IsOwnedByCurrentThread());
+  // Check that the block is not in use and not empty. |!block->in_use()| must
+  // be checked first because we are only holding |lock_|. Holding |lock_|
+  // makes it safe to call |in_use()| on any block, but only makes it safe to
+  // call |IsEmpty()| on blocks that are not in use.
+  return !InUseLocked() && !IsEmpty();
+}
+
+ThreadId TimelineEventBlock::ThreadIdLocked() const {
+  ASSERT(Timeline::recorder()->lock_.IsOwnedByCurrentThread());
+  return thread_id_;
 }
 
 TimelineEventFilter::TimelineEventFilter(int64_t time_origin_micros,
@@ -1587,11 +1629,11 @@ intptr_t TimelineEventFixedBufferRecorder::Size() {
 #ifndef PRODUCT
 void TimelineEventFixedBufferRecorder::PrintEventsCommon(
     const TimelineEventFilter& filter,
-    std::function<void(const TimelineEvent&)> print_impl) {
+    std::function<void(const TimelineEvent&)>&& print_impl) {
   Timeline::ReclaimCachedBlocksFromThreads();
   MutexLocker ml(&lock_);
   ResetTimeTracking();
-  intptr_t block_offset = FindOldestBlockIndex();
+  intptr_t block_offset = FindOldestBlockIndexLocked();
   if (block_offset == -1) {
     // All blocks are in use or empty.
     return;
@@ -1599,7 +1641,7 @@ void TimelineEventFixedBufferRecorder::PrintEventsCommon(
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block =
         &blocks_[(block_idx + block_offset) % num_blocks_];
-    if (!filter.IncludeBlock(block)) {
+    if (!block->ContainsEventsThatCanBeSerializedLocked()) {
       continue;
     }
     for (intptr_t event_idx = 0; event_idx < block->length(); event_idx++) {
@@ -1624,15 +1666,73 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
 }
 
 #if defined(SUPPORT_PERFETTO)
+// Populates the fields of |heap_buffered_packet| with the data in |event|, and
+// then calls |print_callback| with the populated |heap_buffered_packet| as the
+// only argument. This function resets |heap_buffered_packet| right before
+// returning.
+inline void PrintPerfettoEventCallbackBody(
+    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*
+        heap_buffered_packet,
+    const TimelineEvent& event,
+    const std::function<
+        void(protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*)>&&
+        print_callback) {
+  ASSERT(heap_buffered_packet != nullptr);
+  if (!event.CanBeRepresentedByPerfettoTracePacket()) {
+    return;
+  }
+  if (event.IsDuration()) {
+    // Duration events must be converted to pairs of begin and end events to
+    // be serialized in Perfetto's format.
+    perfetto::protos::pbzero::TracePacket& packet =
+        *heap_buffered_packet->get();
+    {
+      perfetto_utils::SetTrustedPacketSequenceId(&packet);
+      perfetto_utils::SetTimestampAndMonotonicClockId(&packet,
+                                                      event.TimeOrigin());
+
+      perfetto::protos::pbzero::TrackEvent* track_event =
+          packet.set_track_event();
+      track_event->add_categories(event.stream()->name());
+      AddSyncEventFields(track_event, event);
+      AddBeginEventFields(track_event, event);
+      AddDebugAnnotations(track_event, event);
+    }
+    print_callback(heap_buffered_packet);
+    heap_buffered_packet->Reset();
+
+    {
+      perfetto_utils::SetTrustedPacketSequenceId(&packet);
+      perfetto_utils::SetTimestampAndMonotonicClockId(&packet, event.TimeEnd());
+
+      perfetto::protos::pbzero::TrackEvent* track_event =
+          packet.set_track_event();
+      track_event->add_categories(event.stream()->name());
+      AddSyncEventFields(track_event, event);
+      AddEndEventFields(track_event);
+      AddDebugAnnotations(track_event, event);
+    }
+  } else {
+    event.PopulateTracePacket(heap_buffered_packet->get());
+  }
+  print_callback(heap_buffered_packet);
+  heap_buffered_packet->Reset();
+}
+
 void TimelineEventFixedBufferRecorder::PrintPerfettoEvents(
     JSONBase64String* jsonBase64String,
     const TimelineEventFilter& filter) {
-  PrintEventsCommon(filter, [this,
-                             &jsonBase64String](const TimelineEvent& event) {
-    event.PopulateTracePacket(packet().get());
-    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet());
-    packet().Reset();
-  });
+  PrintEventsCommon(
+      filter, [this, &jsonBase64String](const TimelineEvent& event) {
+        PrintPerfettoEventCallbackBody(
+            &packet(), event,
+            [&jsonBase64String](
+                protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*
+                    packet) {
+              perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
+                                                             packet);
+            });
+      });
 }
 #endif  // defined(SUPPORT_PERFETTO)
 
@@ -1693,16 +1793,14 @@ void TimelineEventFixedBufferRecorder::Clear() {
   }
 }
 
-intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndex() const {
+intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndexLocked() const {
+  ASSERT(lock_.IsOwnedByCurrentThread());
   int64_t earliest_time = kMaxInt64;
   intptr_t earliest_index = -1;
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block = &blocks_[block_idx];
-    if (block->in_use() || block->IsEmpty()) {
-      // Skip in use and empty blocks. |block->in_use()| must be checked first
-      // because we are only holding |lock_|. Holding |lock_| makes it safe to
-      // call |in_use()| on any block, but only makes it safe to call
-      // |IsEmpty()| on blocks that are not in use.
+    if (!block->ContainsEventsThatCanBeSerializedLocked()) {
+      // Skip in use and empty blocks.
       continue;
     }
     if (block->LowerTimeBound() < earliest_time) {
@@ -1831,6 +1929,8 @@ void TimelineEventEmbedderCallbackRecorder::OnEvent(TimelineEvent* event) {
   recorder_event.timestamp1_or_async_id = event->timestamp1();
   recorder_event.isolate = event->isolate_id();
   recorder_event.isolate_group = event->isolate_group_id();
+  recorder_event.isolate_data = event->isolate_data();
+  recorder_event.isolate_group_data = event->isolate_group_data();
   recorder_event.label = event->label();
   recorder_event.stream = event->stream()->name();
   recorder_event.argument_count = event->GetNumArguments();
@@ -2096,9 +2196,11 @@ void TimelineEventPerfettoFileRecorder::WritePacket(
 }
 
 void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
-  event.PopulateTracePacket(packet().get());
-  WritePacket(&packet());
-  packet().Reset();
+  PrintPerfettoEventCallbackBody(
+      &packet(), event,
+      [this](protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*
+                 packet) { WritePacket(packet); });
+
   if (event.event_type() == TimelineEvent::kAsyncBegin ||
       event.event_type() == TimelineEvent::kAsyncInstant) {
     AddAsyncTrackMetadataBasedOnEvent(event);
@@ -2114,13 +2216,13 @@ TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {}
 #ifndef PRODUCT
 void TimelineEventEndlessRecorder::PrintEventsCommon(
     const TimelineEventFilter& filter,
-    std::function<void(const TimelineEvent&)> print_impl) {
+    std::function<void(const TimelineEvent&)>&& print_impl) {
   Timeline::ReclaimCachedBlocksFromThreads();
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   for (TimelineEventBlock* current = head_; current != nullptr;
        current = current->next()) {
-    if (!filter.IncludeBlock(current)) {
+    if (!current->ContainsEventsThatCanBeSerializedLocked()) {
       continue;
     }
     intptr_t length = current->length();
@@ -2149,12 +2251,17 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
 void TimelineEventEndlessRecorder::PrintPerfettoEvents(
     JSONBase64String* jsonBase64String,
     const TimelineEventFilter& filter) {
-  PrintEventsCommon(filter, [this,
-                             &jsonBase64String](const TimelineEvent& event) {
-    event.PopulateTracePacket(packet().get());
-    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet());
-    packet().Reset();
-  });
+  PrintEventsCommon(
+      filter, [this, &jsonBase64String](const TimelineEvent& event) {
+        PrintPerfettoEventCallbackBody(
+            &packet(), event,
+            [&jsonBase64String](
+                protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*
+                    packet) {
+              perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
+                                                             packet);
+            });
+      });
 }
 #endif  // defined(SUPPORT_PERFETTO)
 
@@ -2244,7 +2351,7 @@ TimelineEventBlock::~TimelineEventBlock() {
 
 #ifndef PRODUCT
 void TimelineEventBlock::PrintJSON(JSONStream* js) const {
-  ASSERT(!in_use());
+  ASSERT(!InUseLocked());
   JSONArray events(js);
   for (intptr_t i = 0; i < length(); i++) {
     const TimelineEvent* event = At(i);
@@ -2272,29 +2379,6 @@ int64_t TimelineEventBlock::LowerTimeBound() const {
   }
   ASSERT(length_ > 0);
   return events_[0].TimeOrigin();
-}
-
-bool TimelineEventBlock::CheckBlock() {
-  if (length() == 0) {
-    return true;
-  }
-
-  for (intptr_t i = 0; i < length(); i++) {
-    if (At(i)->thread() != thread_id()) {
-      return false;
-    }
-  }
-
-  // - events have monotonically increasing timestamps.
-  int64_t last_time = LowerTimeBound();
-  for (intptr_t i = 0; i < length(); i++) {
-    if (last_time > At(i)->TimeOrigin()) {
-      return false;
-    }
-    last_time = At(i)->TimeOrigin();
-  }
-
-  return true;
 }
 
 void TimelineEventBlock::Reset() {
@@ -2328,12 +2412,14 @@ void TimelineEventBlock::Finish() {
 #endif
 }
 
-void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
-                                               int64_t id,
-                                               int64_t flow_id,
-                                               intptr_t type,
-                                               char* name,
-                                               char* args) {
+void DartTimelineEventHelpers::ReportTaskEvent(
+    TimelineEvent* event,
+    int64_t id,
+    intptr_t flow_id_count,
+    std::unique_ptr<const int64_t[]>& flow_ids,
+    intptr_t type,
+    char* name,
+    char* args) {
   const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
   switch (static_cast<TimelineEvent::EventType>(type)) {
     case TimelineEvent::kAsyncInstant:
@@ -2346,7 +2432,7 @@ void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
       event->AsyncEnd(name, id, start);
       break;
     case TimelineEvent::kBegin:
-      event->Begin(name, id, flow_id, start);
+      event->Begin(name, id, start);
       break;
     case TimelineEvent::kEnd:
       event->End(name, id, start);
@@ -2365,6 +2451,14 @@ void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
       break;
     default:
       UNREACHABLE();
+  }
+  if (flow_id_count > 0) {
+    ASSERT(type == Dart_Timeline_Event_Begin ||
+           type == Dart_Timeline_Event_Instant ||
+           type == Dart_Timeline_Event_Async_Begin ||
+           type == Dart_Timeline_Event_Async_Instant);
+
+    event->SetFlowIds(flow_id_count, flow_ids);
   }
   event->set_owns_label(true);
   event->CompleteWithPreSerializedArgs(args);

@@ -1,0 +1,20 @@
+# Run with `flutter pub run ffigen --config ffigen.yaml`.
+name: NativeAddBindings
+description: |
+  Bindings for `src/native_subtract.h`.
+
+  Regenerate bindings with `flutter pub run ffigen --config ffigen.yaml`.
+output: "lib/src/native_subtract_bindings_generated.dart"
+headers:
+  entry-points:
+    - "src/native_subtract.h"
+  include-directives:
+    - "src/native_subtract.h"
+preamble: |
+  // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+  // for details. All rights reserved. Use of this source code is governed by a
+  // BSD-style license that can be found in the LICENSE file.
+comments:
+  style: any
+  length: full
+ffi-native:

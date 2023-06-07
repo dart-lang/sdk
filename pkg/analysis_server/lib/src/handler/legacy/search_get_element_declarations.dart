@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart' as protocol;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
@@ -22,18 +21,6 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
   Future<void> handle() async {
     var params =
         protocol.SearchGetElementDeclarationsParams.fromRequest(request);
-
-    RegExp? regExp;
-    var pattern = params.pattern;
-    if (pattern != null) {
-      try {
-        regExp = RegExp(pattern);
-      } on FormatException catch (exception) {
-        server.sendResponse(protocol.Response.invalidParameter(
-            request, 'pattern', exception.message));
-        return;
-      }
-    }
 
     protocol.ElementKind getElementKind(search.DeclarationKind kind) {
       return switch (kind) {
@@ -68,9 +55,14 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
     var workspaceSymbols = search.WorkspaceSymbols();
     var analysisDrivers = server.driverMap.values.toList();
     await search.FindDeclarations(
-            analysisDrivers, workspaceSymbols, regExp, params.maxResults,
-            onlyForFile: params.file)
-        .compute();
+      analysisDrivers,
+      workspaceSymbols,
+      params.pattern ?? '',
+      params.maxResults,
+      onlyForFile: params.file,
+      ownedFiles: server.ownedFiles,
+      performance: performance,
+    ).compute();
 
     var declarations = workspaceSymbols.declarations;
     var elementDeclarations = declarations.map((declaration) {

@@ -91,24 +91,28 @@ class ForResolver {
   /// a type for the elements being iterated over.  Inference is based
   /// on the type of the iterator or stream over which the foreach loop
   /// is defined.
-  DartType? _computeForEachElementType(Expression iterable, bool isAsync) {
+  DartType _computeForEachElementType(Expression iterable, bool isAsync) {
     var iterableType = iterable.staticType;
-    if (iterableType == null) return null;
+    if (iterableType == null) {
+      return InvalidTypeImpl.instance;
+    }
+
     iterableType = _typeSystem.resolveToBound(iterableType);
+    if (iterableType is DynamicType) {
+      return DynamicTypeImpl.instance;
+    }
 
     ClassElement iteratedElement = isAsync
         ? _resolver.typeProvider.streamElement
         : _resolver.typeProvider.iterableElement;
 
     var iteratedType = iterableType.asInstanceOf(iteratedElement);
-
-    if (iteratedType != null) {
-      var elementType = iteratedType.typeArguments.single;
-      elementType = _resolver.toLegacyTypeIfOptOut(elementType);
-      return elementType;
-    } else {
-      return null;
+    if (iteratedType == null) {
+      return InvalidTypeImpl.instance;
     }
+
+    var elementType = iteratedType.typeArguments.single;
+    return _resolver.toLegacyTypeIfOptOut(elementType);
   }
 
   void _forEachParts(AstNode node, bool isAsync, ForEachParts forEachParts,
@@ -162,9 +166,7 @@ class ForResolver {
 
     loopVariable?.accept(_resolver);
     var elementType = _computeForEachElementType(iterable, isAsync);
-    if (loopVariable != null &&
-        elementType != null &&
-        loopVariable.type == null) {
+    if (loopVariable != null && loopVariable.type == null) {
       var loopVariableElement =
           loopVariable.declaredElement as LocalVariableElementImpl;
       loopVariableElement.type = elementType;
@@ -179,8 +181,8 @@ class ForResolver {
     _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);
     if (identifierElement is PromotableElement &&
         forEachParts is ForEachPartsWithIdentifier) {
-      _resolver.flowAnalysis.flow?.write(forEachParts, identifierElement,
-          elementType ?? DynamicTypeImpl.instance, null);
+      _resolver.flowAnalysis.flow
+          ?.write(forEachParts, identifierElement, elementType, null);
     }
 
     visitBody();

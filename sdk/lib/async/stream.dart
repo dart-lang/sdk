@@ -2205,7 +2205,7 @@ class StreamView<T> extends Stream<T> {
 /// The [Stream.pipe] accepts a `StreamConsumer` and will pass the stream
 /// to the consumer's [addStream] method. When that completes, it will
 /// call [close] and then complete its own returned future.
-abstract class StreamConsumer<S> {
+abstract interface class StreamConsumer<S> {
   /// Consumes the elements of [stream].
   ///
   /// Listens on [stream] and does something for each event.
@@ -2303,7 +2303,7 @@ abstract interface class StreamSink<S>
 /// [Stream.where] or [Stream.expand] can be implemented using
 /// [Stream.transform]. A [StreamTransformer] is thus very powerful but often
 /// also a bit more complicated to use.
-abstract class StreamTransformer<S, T> {
+abstract interface class StreamTransformer<S, T> {
   /// Creates a [StreamTransformer] based on the given [onListen] callback.
   ///
   /// The returned stream transformer uses the provided [onListen] callback
@@ -2512,7 +2512,7 @@ abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {
 ///
 /// The [current] value must only be used after a future returned by [moveNext]
 /// has completed with `true`, and only until [moveNext] is called again.
-abstract class StreamIterator<T> {
+abstract interface class StreamIterator<T> {
   /// Create a [StreamIterator] on [stream].
   factory StreamIterator(Stream<T> stream) =>
       // TODO(lrn): use redirecting factory constructor when type
@@ -2601,7 +2601,8 @@ class _ControllerEventSinkWrapper<T> implements EventSink<T> {
 /// asynchronous events, because that is a time when an asynchronous event could
 /// happen.
 @Since("2.9")
-abstract class MultiStreamController<T> implements StreamController<T> {
+abstract interface class MultiStreamController<T>
+    implements StreamController<T> {
   /// Adds and delivers an event.
   ///
   /// Adds an event like [add] and attempts to deliver it immediately.

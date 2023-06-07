@@ -477,6 +477,8 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node.name;
     } else if (node is ExtensionDeclaration) {
       nameNode = node.name;
+    } else if (node is ExtensionOverride) {
+      nameNode = node.name;
     } else if (node is FieldFormalParameter) {
       nameNode = node.name;
     } else if (node is ImportDirective) {
@@ -489,6 +491,8 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node.name;
     } else if (node is NamedCompilationUnitMember) {
       nameNode = node.name;
+    } else if (node is NamedType) {
+      nameNode = node.name2;
     } else if (node is SimpleFormalParameter) {
       nameNode = node.name;
     } else if (node is SimpleIdentifier) {

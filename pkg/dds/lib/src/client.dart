@@ -235,6 +235,11 @@ class DartDevelopmentServiceClient {
       dds.isolateManager.getCachedCpuSamples,
     );
 
+    _clientPeer.registerMethod(
+      'getPerfettoVMTimelineWithCpuSamples',
+      dds.isolateManager.getPerfettoVMTimelineWithCpuSamples,
+    );
+
     // `evaluate` and `evaluateInFrame` actually consist of multiple RPC
     // invocations, including a call to `compileExpression` which can be
     // overridden by clients which provide their own implementation (e.g.,
@@ -254,8 +259,8 @@ class DartDevelopmentServiceClient {
     );
 
     _clientPeer.registerMethod(
-      'handleDap',
-      (parameters) => dds.dapHandler.handle(adapter, parameters),
+      'sendDapRequest',
+      (parameters) => dds.dapHandler.sendRequest(adapter, parameters),
     );
 
     // When invoked within a fallback, the next fallback will start executing.

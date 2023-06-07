@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -250,7 +251,7 @@ class StaticTypeAnalyzer {
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
-      _inferenceHelper.recordStaticType(node, _dynamicType,
+      _inferenceHelper.recordStaticType(node, InvalidTypeImpl.instance,
           contextType: contextType);
     } else {
       _inferenceHelper.recordStaticType(node, thisType,

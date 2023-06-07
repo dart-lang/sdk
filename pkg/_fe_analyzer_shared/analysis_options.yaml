@@ -7,14 +7,13 @@ include: analysis_options_no_lints.yaml
 linter:
   rules:
     - annotate_overrides
+    - collection_methods_unrelated_type
     - curly_braces_in_flow_control_structures
     - prefer_adjacent_string_concatenation
     - unawaited_futures
     - recursive_getters
     - avoid_empty_else
     - empty_statements
-    - list_remove_unrelated_type
-    - iterable_contains_unrelated_type
     - valid_regexps
     - package_api_docs
     - lines_longer_than_80_chars

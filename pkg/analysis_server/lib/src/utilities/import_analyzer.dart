@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -25,12 +26,12 @@ class ImportAnalyzer {
   final Set<Element> stayingDeclarations = {};
 
   /// A map from the elements referenced by the declarations to be moved to the
-  /// set of prefixes used to reference those declarations.
-  final Map<Element, Set<String>> movingReferences = {};
+  /// set of imports used to reference those declarations.
+  final Map<Element, Set<LibraryImportElement>> movingReferences = {};
 
   /// A map from the elements referenced by the declarations that are staying to
-  /// the set of prefixes used to reference those declarations.
-  final Map<Element, Set<String>> stayingReferences = {};
+  /// the set of imports used to reference those declarations.
+  final Map<Element, Set<LibraryImportElement>> stayingReferences = {};
 
   /// Analyze the given library [result] to find the declarations and references
   /// being moved and that are staying. The declarations being moved are in the
@@ -38,7 +39,7 @@ class ImportAnalyzer {
   ImportAnalyzer(this.result, String path, List<SourceRange> ranges) {
     for (var unit in result.units) {
       var finder = _ReferenceFinder(
-          _ElementRecorder(this, path == unit.path ? ranges : []));
+          unit, _ElementRecorder(this, path == unit.path ? ranges : []));
       unit.unit.accept(finder);
     }
     // Remove references that will be within the same file.
@@ -102,23 +103,27 @@ class _ElementRecorder {
     }
   }
 
-  /// Record that the [element] is referenced in the library at the
-  /// [referenceOffset]. The [prefix] is the prefix used to reference the
-  /// element, or an empty string if no prefix was used.
-  void recordReference(
-      Element referencedElement, int referenceOffset, String prefix) {
+  /// Record that [referencedElement] is referenced in the library at the
+  /// [referenceOffset]. [import] is the specific import used to reference the
+  /// including any prefix, show, hide.
+  void recordReference(Element referencedElement, int referenceOffset,
+      LibraryImportElement? import) {
     if (referencedElement is PropertyAccessorElement &&
         referencedElement.isSynthetic) {
       referencedElement = referencedElement.variable;
     }
     if (_isBeingMoved(referenceOffset)) {
-      var prefixes =
+      var imports =
           analyzer.movingReferences.putIfAbsent(referencedElement, () => {});
-      prefixes.add(prefix);
+      if (import != null) {
+        imports.add(import);
+      }
     } else {
-      var prefixes =
+      var imports =
           analyzer.stayingReferences.putIfAbsent(referencedElement, () => {});
-      prefixes.add(prefix);
+      if (import != null) {
+        imports.add(import);
+      }
     }
   }
 
@@ -139,17 +144,36 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   /// sent.
   final _ElementRecorder recorder;
 
+  /// The unit being searched for references.
+  final ResolvedUnitResult unit;
+
+  /// A mapping of prefixes to the imports with those prefixes. An
+  /// empty string is used for unprefixed imports.
+  ///
+  /// Library imports are ordered the same as they appear in the source file
+  /// (since this is a [LinkedHashSet]).
+  final _importsByPrefix = <String, Set<LibraryImportElement>>{};
+
   /// Initialize a newly created finder to send information to the [recorder].
-  _ReferenceFinder(this.recorder);
+  _ReferenceFinder(this.unit, this.recorder) {
+    for (var import in unit.libraryElement.libraryImports) {
+      _importsByPrefix
+          .putIfAbsent(import.prefix?.element.name ?? '', () => {})
+          .add(import);
+    }
+  }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    var writeElement = node.writeElement;
-    if (writeElement != null) {
-      recorder.recordReference(writeElement, node.offset,
-          _getPrefixFromExpression(node.leftHandSide));
-    }
+    _recordReference(node.writeElement, node, node.leftHandSide);
+    _recordReference(node.readElement, node, node.leftHandSide);
     super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitBinaryExpression(BinaryExpression node) {
+    _recordReference(node.staticElement, node, node.parent);
+    super.visitBinaryExpression(node);
   }
 
   @override
@@ -219,17 +243,28 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _recordReference(node.element, node, node);
+    super.visitNamedType(node);
+  }
+
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
+    _recordReference(node.writeElement, node, node.operand);
+    _recordReference(node.readElement, node, node.operand);
+    super.visitPostfixExpression(node);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    _recordReference(node.writeElement, node, node.operand);
+    _recordReference(node.readElement, node, node.operand);
+    super.visitPrefixExpression(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
-    if (element is ExecutableElement &&
-        element.enclosingElement is ExtensionElement &&
-        !element.isStatic) {
-      element = element.enclosingElement;
-    }
-    if (element != null && element.isInterestingReference) {
-      recorder.recordReference(
-          element, node.offset, _getPrefixForIdentifier(node));
-    }
+    _recordReference(node.staticElement, node, node.parent);
     super.visitSimpleIdentifier(node);
   }
 
@@ -241,27 +276,90 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
     super.visitTopLevelVariableDeclaration(node);
   }
 
-  /// Return the prefix used to reference the [node].
-  String _getPrefixForIdentifier(SimpleIdentifier node) {
-    return _getPrefixFromExpression(node.parent);
+  /// Finds the [LibraryImportElement] that is used to import [element] for use
+  /// in [node].
+  LibraryImportElement? _getImportForElement(AstNode? node, Element element) {
+    var prefix = _getPrefixFromExpression(node)?.name;
+    var elementName = element.name;
+    // We cannot locate imports for unnamed elements.
+    if (elementName == null) {
+      return null;
+    }
+
+    var import = _importsByPrefix[prefix ?? '']?.where((import) {
+      // Check if this import is providing our element with the correct
+      // prefix/name.
+      var exportedElement = prefix != null
+          ? import.namespace.getPrefixed(prefix, elementName)
+          : import.namespace.get(elementName);
+      return exportedElement == element;
+    }).firstOrNull;
+
+    // Extensions can be used without a prefix, so we can use any import that
+    // brings in the extension.
+    if (import == null && prefix == null && element is ExtensionElement) {
+      import = _importsByPrefix.values
+          .expand((imports) => imports)
+          .where((import) =>
+              // Because we don't know what prefix we're looking for (any is
+              // allowed), use the imports own prefix when checking for the
+              // element.
+              import.namespace.getPrefixed(
+                  import.prefix?.element.name ?? '', elementName) ==
+              element)
+          .firstOrNull;
+    }
+
+    return import;
   }
 
-  /// Return the prefix used to reference the [node].
-  String _getPrefixFromExpression(AstNode? node) {
+  /// Return the prefix used in [node].
+  PrefixElement? _getPrefixFromExpression(AstNode? node) {
     if (node is PrefixedIdentifier) {
       var prefix = node.prefix;
-      if (prefix.staticElement is PrefixElement) {
-        return prefix.name;
+      var element = prefix.staticElement;
+      if (element is PrefixElement) {
+        return element;
       }
     } else if (node is PropertyAccess) {
-      // TODO(brianwilkerson) Remove this branch after all prefixes are
-      //  rewritten as a `PrefixedIdentifier`.
-      var propertyName = node.propertyName;
-      if (propertyName.staticElement is PrefixElement) {
-        return propertyName.name;
+      var target = node.target;
+      if (target is PrefixedIdentifier) {
+        var element = target.prefix.staticElement;
+        if (element is PrefixElement) {
+          return element;
+        }
       }
+    } else if (node is MethodInvocation) {
+      var target = node.target;
+      if (target is SimpleIdentifier) {
+        var element = target.staticElement;
+        if (element is PrefixElement) {
+          return element;
+        }
+      }
+    } else if (node is NamedType) {
+      return node.importPrefix?.element.ifTypeOrNull();
     }
-    return '';
+    return null;
+  }
+
+  /// Records a reference to [element] (if not null) at the offset of [node],
+  /// extracting any prefix from [prefixNode].
+  void _recordReference(Element? element, AstNode node, AstNode? prefixNode) {
+    if (element == null) {
+      return;
+    }
+    if (element is ExecutableElement &&
+        element.enclosingElement is ExtensionElement &&
+        !element.isStatic) {
+      element = element.enclosingElement;
+    }
+    if (!element.isInterestingReference) {
+      return;
+    }
+
+    var import = _getImportForElement(prefixNode, element);
+    recorder.recordReference(element, node.offset, import);
   }
 }
 

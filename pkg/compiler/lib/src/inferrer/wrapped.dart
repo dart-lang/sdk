@@ -639,6 +639,13 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
           MemberHierarchyBuilder memberHierarchyBuilder) =>
       _abstractValueDomain.findRootsOfTargets(
           receiver._abstractValue, selector, memberHierarchyBuilder);
+
+  @override
+  bool isValidRefinement(covariant WrappedAbstractValue before,
+      covariant WrappedAbstractValue after) {
+    return _abstractValueDomain.isValidRefinement(
+        before._abstractValue, after._abstractValue);
+  }
 }
 
 class WrappedAbstractValueStrategy implements AbstractValueStrategy {

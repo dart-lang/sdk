@@ -176,6 +176,28 @@ class TypeSystemImpl implements TypeSystem {
       final leftElement = left.element;
       final rightElement = right.element;
 
+      // Can happen in JavaScript.
+      if (left.isDartCoreInt && right.isDartCoreDouble ||
+          left.isDartCoreDouble && right.isDartCoreInt) {
+        return true;
+      }
+
+      // FutureOr<T> = T || Future<T>
+      // So, we attempt to match both to the right.
+      if (left.isDartAsyncFutureOr) {
+        final base = futureOrBase(left);
+        final future = typeProvider.futureType(base);
+        return canBeSubtypeOf(base, right) || canBeSubtypeOf(future, right);
+      }
+
+      // FutureOr<T> = T || Future<T>
+      // So, we attempt to match both to the left.
+      if (right.isDartAsyncFutureOr) {
+        final base = futureOrBase(right);
+        final future = typeProvider.futureType(base);
+        return canBeSubtypeOf(left, base) || canBeSubtypeOf(left, future);
+      }
+
       bool canBeSubtypeOfInterfaces(InterfaceType left, InterfaceType right) {
         assert(left.element == right.element);
         final leftArguments = left.typeArguments;
@@ -895,6 +917,11 @@ class TypeSystemImpl implements TypeSystem {
       return true;
     }
 
+    // Accept the invalid type, we have already reported an error for it.
+    if (fromType is InvalidType) {
+      return true;
+    }
+
     // A 'call' method tearoff.
     if (fromType is InterfaceType &&
         !isNullable(fromType) &&
@@ -1038,6 +1065,27 @@ class TypeSystemImpl implements TypeSystem {
     return false;
   }
 
+  /// Either [InvalidType] itself, or an intersection with it.
+  bool isInvalidBounded(DartType type) {
+    if (identical(type, InvalidTypeImpl.instance)) {
+      return true;
+    }
+
+    if (type is TypeParameterTypeImpl) {
+      var bound = type.element.bound;
+      if (bound != null && isInvalidBounded(bound)) {
+        return true;
+      }
+
+      var promotedBound = type.promotedBound;
+      if (promotedBound != null && isInvalidBounded(promotedBound)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /// Defines an (almost) total order on bottom and `Null` types. This does not
   /// currently consistently order two different type variables with the same
   /// bound.
@@ -1171,12 +1219,14 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // MORETOP(dynamic, S) = true
-    if (identical(T, DynamicTypeImpl.instance)) {
+    if (identical(T, DynamicTypeImpl.instance) ||
+        identical(T, InvalidTypeImpl.instance)) {
       return true;
     }
 
     // MORETOP(T, dynamic) = false
-    if (identical(S, DynamicTypeImpl.instance)) {
+    if (identical(S, DynamicTypeImpl.instance) ||
+        identical(S, InvalidTypeImpl.instance)) {
       return false;
     }
 
@@ -1244,6 +1294,7 @@ class TypeSystemImpl implements TypeSystem {
   @override
   bool isNonNullable(DartType type) {
     if (type is DynamicType ||
+        type is InvalidType ||
         type is UnknownInferredType ||
         type is VoidType ||
         type.isDartCoreNull) {
@@ -1288,6 +1339,7 @@ class TypeSystemImpl implements TypeSystem {
   @override
   bool isNullable(DartType type) {
     if (type is DynamicType ||
+        type is InvalidType ||
         type is UnknownInferredType ||
         type is VoidType ||
         type.isDartCoreNull) {
@@ -1333,6 +1385,7 @@ class TypeSystemImpl implements TypeSystem {
   @override
   bool isStrictlyNonNullable(DartType type) {
     if (type is DynamicType ||
+        type is InvalidType ||
         type is UnknownInferredType ||
         type is VoidType ||
         type.isDartCoreNull) {
@@ -1365,7 +1418,8 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // TOP(dynamic) is true
-    if (identical(type, DynamicTypeImpl.instance)) {
+    if (identical(type, DynamicTypeImpl.instance) ||
+        identical(type, InvalidTypeImpl.instance)) {
       return true;
     }
 

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 static method test(core::int x, () → void f) → void {
   #L1:
-  switch(x) {
+  switch(x) /* core::int */ {
     #L2:
     case #C1:
       {

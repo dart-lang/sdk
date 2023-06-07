@@ -19,6 +19,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -875,8 +876,17 @@ class CorrectionUtils {
   }
 
   /// Returns the text of the given [AstNode] in the unit.
-  String getNodeText(AstNode node) {
-    return getText(node.offset, node.length);
+  String getNodeText(
+    AstNode node, {
+    bool withLeadingComments = false,
+  }) {
+    final firstToken = withLeadingComments
+        ? node.beginToken.precedingComments ?? node.beginToken
+        : node.beginToken;
+    final offset = firstToken.offset;
+    final end = node.endToken.end;
+    final length = end - offset;
+    return getText(offset, length);
   }
 
   /// Returns the line prefix consisting of spaces and tabs on the left from the
@@ -943,6 +953,10 @@ class CorrectionUtils {
       );
     }
 
+    if (type is InvalidType) {
+      return 'dynamic';
+    }
+
     if (type is NeverType) {
       return 'Never';
     }
@@ -968,6 +982,28 @@ class CorrectionUtils {
     }
 
     throw UnimplementedError('(${type.runtimeType}) $type');
+  }
+
+  /// Splits [text] into lines, and removes one level of indent from each line.
+  /// Lines that don't start with indentation are left as is.
+  String indentLeft(String text) {
+    final buffer = StringBuffer();
+    final indent = getIndent(1);
+    final eol = endOfLine;
+    final lines = text.split(eol);
+    for (final line in lines) {
+      if (buffer.isNotEmpty) {
+        buffer.write(eol);
+      }
+      final String updatedLine;
+      if (line.startsWith(indent)) {
+        updatedLine = line.substring(indent.length);
+      } else {
+        updatedLine = line;
+      }
+      buffer.write(updatedLine);
+    }
+    return buffer.toString();
   }
 
   /// Indents given source left or right.
@@ -1581,6 +1617,15 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor<void> {
   final Set<String> names = <String>{};
 
   @override
+  void visitNamedType(NamedType node) {
+    if (node.importPrefix == null) {
+      names.add(node.name2.lexeme);
+    }
+
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (!_isPrefixed(node)) {
       names.add(node.name);
@@ -1623,6 +1668,13 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   final List<SimpleIdentifier> references = [];
 
   _ElementReferenceCollector(this.element);
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    if (node.element == element) {
+      references.add(SimpleIdentifierImpl(node.name));
+    }
+  }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

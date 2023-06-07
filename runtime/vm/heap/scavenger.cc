@@ -1244,7 +1244,7 @@ void ScavengerVisitorBase<parallel>::ProcessToSpace() {
 template <bool parallel>
 void ScavengerVisitorBase<parallel>::ProcessPromotedList() {
   ObjectPtr raw_object;
-  while ((raw_object = promoted_list_.Pop()) != nullptr) {
+  while (promoted_list_.Pop(&raw_object)) {
     // Resolve or copy all objects referred to by the current object. This
     // can potentially push more objects on this stack as well as add more
     // objects to be resolved in the to space.

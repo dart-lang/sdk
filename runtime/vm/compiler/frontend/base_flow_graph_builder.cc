@@ -30,6 +30,8 @@ static bool SupportsCoverage() {
 }
 
 Fragment& Fragment::operator+=(const Fragment& other) {
+  ASSERT(is_valid());
+  ASSERT(other.is_valid());
   if (entry == nullptr) {
     entry = other.entry;
     current = other.current;
@@ -46,6 +48,7 @@ Fragment& Fragment::operator+=(const Fragment& other) {
 }
 
 Fragment& Fragment::operator<<=(Instruction* next) {
+  ASSERT(is_valid());
   if (entry == nullptr) {
     entry = current = next;
   } else if (current != nullptr) {
@@ -56,6 +59,7 @@ Fragment& Fragment::operator<<=(Instruction* next) {
 }
 
 void Fragment::Prepend(Instruction* start) {
+  ASSERT(is_valid());
   if (entry == nullptr) {
     entry = current = start;
   } else {

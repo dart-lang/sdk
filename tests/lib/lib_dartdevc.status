@@ -43,7 +43,11 @@ async/catch_errors5_test: Skip # Issue 50666
 async/catch_errors7_test: Skip # Issue 50666
 async/catch_errors8_test: Skip # Issue 50666
 async/stream_iterator_test: Skip # Issue 50666
+async/stream_periodic5_test: Skip # Issue 50666
 async/stream_zones_test: Skip # Issue 50666
+convert/streamed_conversion_utf8_decode_test: Skip # Issue 50666
+convert/streamed_conversion_utf8_encode_test: Skip # Issue 50666
+html/canvasrendering/draw_image_video_element_test: Skip # Issue 50666
 
 [ $compiler == ddc && $runtime == chrome ]
 html/js_dispatch_property_test: Skip # Timeout Issue 31030

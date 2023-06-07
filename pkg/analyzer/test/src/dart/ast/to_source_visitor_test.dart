@@ -3390,7 +3390,7 @@ class A {
   void test_visitSwitchCase_multipleLabels() {
     final code = 'l1: l2: case a: {}';
     final findNode = _parseStringToFindNode('''
-// @dart=2.18
+// @dart = 2.19
 void f() {
   switch (x) {
     $code
@@ -3403,7 +3403,7 @@ void f() {
   void test_visitSwitchCase_multipleStatements() {
     final code = 'case a: foo(); bar();';
     final findNode = _parseStringToFindNode('''
-// @dart=2.18
+// @dart = 2.19
 void f() {
   switch (x) {
     $code
@@ -3416,7 +3416,7 @@ void f() {
   void test_visitSwitchCase_noLabels() {
     final code = 'case a: {}';
     final findNode = _parseStringToFindNode('''
-// @dart=2.18
+// @dart = 2.19
 void f() {
   switch (x) {
     $code
@@ -3429,7 +3429,7 @@ void f() {
   void test_visitSwitchCase_singleLabel() {
     final code = 'l1: case a: {}';
     final findNode = _parseStringToFindNode('''
-// @dart=2.18
+// @dart = 2.19
 void f() {
   switch (x) {
     $code

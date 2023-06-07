@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
@@ -177,6 +177,9 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.FINAL_ENUM,
   ParserErrorCode.INTERFACE_ENUM,
   ParserErrorCode.SEALED_ENUM,
+  ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME,
+  ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME,
+  ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -910,6 +913,32 @@ class ParserErrorCode extends ErrorCode {
       ParserErrorCode(
     'ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
     "Illegal assignment to non-assignable expression.",
+  );
+
+  ///  Parameters:
+  ///  0: the illegal name
+  static const ParserErrorCode ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME =
+      ParserErrorCode(
+    'ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME',
+    "A variable assigned by a pattern assignment can't be named '{0}'.",
+    correctionMessage: "Choose a different name.",
+  );
+
+  ///  Parameters:
+  ///  0: the illegal name
+  static const ParserErrorCode ILLEGAL_PATTERN_IDENTIFIER_NAME =
+      ParserErrorCode(
+    'ILLEGAL_PATTERN_IDENTIFIER_NAME',
+    "A pattern can't refer to an identifier named '{0}'.",
+    correctionMessage: "Match the identifier using '==",
+  );
+
+  ///  Parameters:
+  ///  0: the illegal name
+  static const ParserErrorCode ILLEGAL_PATTERN_VARIABLE_NAME = ParserErrorCode(
+    'ILLEGAL_PATTERN_VARIABLE_NAME',
+    "The variable declared by a variable pattern can't be named '{0}'.",
+    correctionMessage: "Choose a different name.",
   );
 
   static const ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS = ParserErrorCode(

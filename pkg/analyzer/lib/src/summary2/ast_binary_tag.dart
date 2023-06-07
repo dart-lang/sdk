@@ -124,14 +124,15 @@ class Tag {
   static const int NullType = 2;
   static const int DynamicType = 3;
   static const int FunctionType = 4;
-  static const int NeverType = 5;
-  static const int InterfaceType = 6;
-  static const int InterfaceType_noTypeArguments_none = 7;
-  static const int InterfaceType_noTypeArguments_question = 8;
-  static const int InterfaceType_noTypeArguments_star = 9;
-  static const int RecordType = 10;
-  static const int TypeParameterType = 11;
-  static const int VoidType = 12;
+  static const int InvalidType = 5;
+  static const int NeverType = 6;
+  static const int InterfaceType = 7;
+  static const int InterfaceType_noTypeArguments_none = 8;
+  static const int InterfaceType_noTypeArguments_question = 9;
+  static const int InterfaceType_noTypeArguments_star = 10;
+  static const int RecordType = 11;
+  static const int TypeParameterType = 12;
+  static const int VoidType = 13;
 }
 
 enum TypeParameterVarianceTag {

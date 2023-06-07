@@ -21,64 +21,34 @@ class AddSwitchCaseBreakMultiTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_SWITCH_CASE_BREAK_MULTI;
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
+  @override
+  String? get testPackageLanguageVersion => '2.19';
+
   Future<void> test_singleFile() async {
     await resolveTestCode('''
-void f(int i) {
-  switch(i) {
+void f(Object? x) {
+  switch (x) {
     case 0:
-      i++;
+      0;
     case 1:
-      i++;
+      1;
     case 2:
-      i++;
+      2;
   }
 }
 ''');
     await assertHasFixAllFix(
         CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY, '''
-void f(int i) {
-  switch(i) {
+void f(Object? x) {
+  switch (x) {
     case 0:
-      i++;
+      0;
       break;
     case 1:
-      i++;
+      1;
       break;
     case 2:
-      i++;
-  }
-}
-''');
-  }
-
-  Future<void> test_singleFile_language219() async {
-    await resolveTestCode('''
-// @dart=2.19
-void f(int i) {
-  switch(i) {
-    case 0:
-      i++;
-    case 1:
-      i++;
-    case 2:
-      i++;
-  }
-}
-''');
-    await assertHasFixAllFix(
-        CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY, '''
-// @dart=2.19
-void f(int i) {
-  switch(i) {
-    case 0:
-      i++;
-      break;
-    case 1:
-      i++;
-      break;
-    case 2:
-      i++;
+      2;
   }
 }
 ''');
@@ -90,52 +60,30 @@ class AddSwitchCaseBreakTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_SWITCH_CASE_BREAK;
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
-  Future<void> test_indentation() async {
-    await resolveTestCode('''
-void f(int i) {
-    switch(i) {
-        case 0:
-            i++;
-        case 1:
-            i++;
-  }
-}
-''');
-    await assertHasFix('''
-void f(int i) {
-    switch(i) {
-        case 0:
-            i++;
-            break;
-        case 1:
-            i++;
-  }
-}
-''');
-  }
+  @override
+  String? get testPackageLanguageVersion => '2.19';
 
-  Future<void> test_indentation_language219() async {
+  Future<void> test_sharedCaseBody() async {
     await resolveTestCode('''
-// @dart=2.19
-void f(int i) {
-    switch(i) {
-        case 0:
-            i++;
-        case 1:
-            i++;
+void f(Object? x) {
+  switch (x) {
+    case 0:
+    case 1:
+      0;
+    case 2:
+      2;
   }
 }
 ''');
     await assertHasFix('''
-// @dart=2.19
-void f(int i) {
-    switch(i) {
-        case 0:
-            i++;
-            break;
-        case 1:
-            i++;
+void f(Object? x) {
+  switch (x) {
+    case 0:
+    case 1:
+      0;
+      break;
+    case 2:
+      2;
   }
 }
 ''');

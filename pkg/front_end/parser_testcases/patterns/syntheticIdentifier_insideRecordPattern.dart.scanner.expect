@@ -1,0 +1,13 @@
+void f(Object? x) {
+switch (x) {
+case (_, if):
+};
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]Object[StringToken]?[SimpleToken] x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] ([BeginToken]_[StringToken],[SimpleToken] if[KeywordToken])[SimpleToken]:[SimpleToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

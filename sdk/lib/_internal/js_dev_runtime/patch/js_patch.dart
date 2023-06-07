@@ -312,7 +312,7 @@ bool _isBrowserType(Object o) => JS(
         '# instanceof Node || '
         '(window.DataView && # instanceof DataView) || '
         // Int8Array.__proto__ is TypedArray.
-        '(window.Int8Array && # instanceof Int8Array.__proto__) || '
+        '(window.Int8Array && # instanceof Object.getPrototypeOf(Int8Array)) || '
         '# instanceof Window)',
     o,
     o,

@@ -230,10 +230,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitExtensionOverride(ExtensionOverride node) {
     _writeByte(Tag.ExtensionOverride);
 
-    _writeNode(node.extensionName);
+    _writeOptionalNode(node.importPrefix);
+    _writeStringReference(node.name.lexeme);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
 
+    _sink.writeElement(node.element);
     _sink.writeType(node.extendedType);
 
     // TODO(scheglov) typeArgumentTypes?

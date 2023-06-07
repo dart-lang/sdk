@@ -165,8 +165,8 @@ class BlockWorkList : public ValueObject {
     ASSERT(stack_ == nullptr);
   }
 
-  // Returns nullptr if no more work was found.
-  ObjectPtr Pop() {
+  // Returns false if no more work was found.
+  bool Pop(ObjectPtr* object) {
     ASSERT(local_input_ != nullptr);
     if (UNLIKELY(local_input_->IsEmpty())) {
       if (!local_output_->IsEmpty()) {
@@ -176,7 +176,7 @@ class BlockWorkList : public ValueObject {
       } else {
         Block* new_work = stack_->PopNonEmptyBlock();
         if (new_work == nullptr) {
-          return nullptr;
+          return false;
         }
         stack_->PushBlock(local_input_);
         local_input_ = new_work;
@@ -184,7 +184,8 @@ class BlockWorkList : public ValueObject {
         MSAN_UNPOISON(local_input_, sizeof(*local_input_));
       }
     }
-    return local_input_->Pop();
+    *object = local_input_->Pop();
+    return true;
   }
 
   void Push(ObjectPtr raw_obj) {

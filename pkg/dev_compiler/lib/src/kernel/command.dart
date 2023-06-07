@@ -434,6 +434,29 @@ Future<CompilerResult> _compile(List<String> args,
     }
   }
 
+  // Add main component libraries to import-to-module resolution.
+  //
+  // This is only required for non-SDK modules, as SDK modules are all bundled
+  // in the same module and are never deferred.
+  // `result.component` contains all the compiled libraries as well as libraries
+  // already seen in `additionalDills`.
+  if (!compileSdk) {
+    for (var l in result.component.libraries) {
+      // Don't override libraries already recorded in `additionalDills`.
+      if (importToSummary.containsKey(l)) {
+        continue;
+      }
+      final isDartLibrary = l.importUri.isScheme('dart');
+      final resolvedModuleName =
+          isDartLibrary ? js_ast.dartSdkModule : options.moduleName;
+      final resolvedComponent =
+          isDartLibrary ? result.sdkSummary! : result.component;
+
+      importToSummary[l] = resolvedComponent;
+      summaryToModule.putIfAbsent(resolvedComponent, () => resolvedModuleName);
+    }
+  }
+
   var compiler = ProgramCompiler(component, result.classHierarchy, options,
       importToSummary, summaryToModule);
 

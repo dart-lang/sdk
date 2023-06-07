@@ -6443,8 +6443,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
         // TODO(derekx): Dart_TimelineEvent() needs to be updated so that arrows
         // corresponding to flow events reported by embedders get included in
         // Perfetto traces.
-        event->Begin(label, timestamp1_or_async_id,
-                     /*flow_id=*/TimelineEvent::kNoFlowId, timestamp0);
+        event->Begin(label, timestamp1_or_async_id, timestamp0);
         break;
       case Dart_Timeline_Event_End:
         event->End(label, timestamp1_or_async_id, timestamp0);
@@ -6578,22 +6577,26 @@ static void CreateAppAOTSnapshot(
 
   const bool generate_debug = debug_callback_data != nullptr;
 
+  auto* const deobfuscation_trie =
+      strip ? nullptr : ImageWriter::CreateReverseObfuscationTrie(T);
+
   if (as_elf) {
     StreamingWriteStream elf_stream(kInitialSize, callback, callback_data);
     StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
                                       callback, debug_callback_data);
 
-    auto const dwarf = strip ? nullptr : new (Z) Dwarf(Z);
+    auto const dwarf = strip ? nullptr : new (Z) Dwarf(Z, deobfuscation_trie);
     auto const elf = new (Z) Elf(Z, &elf_stream, Elf::Type::Snapshot, dwarf);
     // Re-use the same DWARF object if the snapshot is unstripped.
     auto const debug_elf =
-        generate_debug ? new (Z) Elf(Z, &debug_stream, Elf::Type::DebugInfo,
-                                     strip ? new (Z) Dwarf(Z) : dwarf)
-                       : nullptr;
+        generate_debug
+            ? new (Z) Elf(Z, &debug_stream, Elf::Type::DebugInfo,
+                          strip ? new (Z) Dwarf(Z, deobfuscation_trie) : dwarf)
+            : nullptr;
 
     BlobImageWriter image_writer(T, &vm_snapshot_instructions,
-                                 &isolate_snapshot_instructions, debug_elf,
-                                 elf);
+                                 &isolate_snapshot_instructions,
+                                 deobfuscation_trie, debug_elf, elf);
     FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data,
                               &isolate_snapshot_data, &image_writer,
                               &image_writer);
@@ -6616,10 +6619,11 @@ static void CreateAppAOTSnapshot(
 
     auto const elf = generate_debug
                          ? new (Z) Elf(Z, &debug_stream, Elf::Type::DebugInfo,
-                                       new (Z) Dwarf(Z))
+                                       new (Z) Dwarf(Z, deobfuscation_trie))
                          : nullptr;
 
-    AssemblyImageWriter image_writer(T, &assembly_stream, strip, elf);
+    AssemblyImageWriter image_writer(T, &assembly_stream, deobfuscation_trie,
+                                     strip, elf);
     FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data,
                               &isolate_snapshot_data, &image_writer,
                               &image_writer);

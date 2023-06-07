@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/since_sdk_version.dart';
@@ -1981,8 +1982,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// The name of the class used to JS annotate an element.
   static const String _jsClassName = 'JS';
 
-  /// The name of `js` library, used to define JS annotations.
-  static const String _jsLibName = 'js';
+  /// The name of `_js_annotations` library, used to define JS annotations.
+  static const String _jsLibName = '_js_annotations';
 
   /// The name of `meta` library, used to define analysis annotations.
   static const String _metaLibName = 'meta';
@@ -4049,6 +4050,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   LibraryElementLinkedData? linkedData;
 
+  /// The union of names for all searchable elements in this library.
+  ElementNameUnion nameUnion = ElementNameUnion.empty();
+
   @override
   final FeatureSet featureSet;
 
@@ -4334,6 +4338,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitLibraryElement(this);
 
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeLibraryElement(this);
+  }
+
   /// Create the [FunctionElement] to be returned by [loadLibraryFunction].
   /// The [typeProvider] must be already set.
   void createLoadLibraryFunction() {
@@ -4363,6 +4372,20 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
       }
     }
     return null;
+  }
+
+  /// Return `true` if [reference] comes only from deprecated exports.
+  bool isFromDeprecatedExport(ExportedReference reference) {
+    if (reference is ExportedReferenceExported) {
+      for (final location in reference.locations) {
+        final export = location.exportOf(this);
+        if (!export.hasDeprecated) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   /// Indicates whether it is unnecessary to report an undefined identifier

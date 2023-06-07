@@ -84,14 +84,24 @@ class CollectingReporter extends ErrorReporter {
   }
 
   @override
-  void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+  void reportErrorForNode(
+    ErrorCode errorCode,
+    AstNode node, [
+    List<Object?>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  ]) {
     code = errorCode;
   }
 
   @override
-  void reportErrorForToken(ErrorCode errorCode, Token token,
-      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+  void reportErrorForToken(
+    ErrorCode errorCode,
+    Token token, [
+    List<Object?>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  ]) {
     code = errorCode;
   }
 }

@@ -9,7 +9,6 @@ import 'dart:js_util';
 import 'dart:typed_data';
 
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart';
 
 @JS()
 external void eval(String code);

@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::Foo::T% a;
+  const constructor •(self::Foo::T% a) → self::Foo<self::Foo::T%>
+    : self::Foo::a = a, super core::Object::•()
+    ;
+}
+class Generic<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field (self::Generic::T%, self::Generic::T%) record;
+  const constructor •(self::Generic::T% a) → self::Generic<self::Generic::T%>
+    : self::Generic::record = (a, a), super core::Object::•()
+    ;
+}
+class NotGeneric extends core::Object /*hasConstConstructor*/  {
+  final field (core::int, core::int) record;
+  const constructor •(core::int a) → self::NotGeneric
+    : self::NotGeneric::record = (a, a), super core::Object::•()
+    ;
+}
+static method main() → void
+  ;

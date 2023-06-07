@@ -120,7 +120,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     _currentLibrary = value;
   }
 
-  bool completes(ir.DartType? type) => type != const DoesNotCompleteType();
+  bool completes(ir.DartType? type) => type != const ir.NeverType.nonNullable();
 
   Set<ir.VariableDeclaration>? _currentVariables;
   final Set<ir.VariableDeclaration> _invalidatedVariables = {};
@@ -754,7 +754,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (node.name.text == 'call') {
       if (receiverType is ir.FunctionType) {
         if (receiverType.typeParameters.length != node.arguments.types.length) {
-          return const DoesNotCompleteType();
+          return const ir.NeverType.nonNullable();
         }
         return ir.Substitution.fromPairs(
                 receiverType.typeParameters, node.arguments.types)
@@ -1228,13 +1228,13 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       return null;
     } else {
       typeMap = afterThen.join(afterOtherwise);
-      return const DoesNotCompleteType();
+      return const ir.NeverType.nonNullable();
     }
   }
 
   @override
   ir.DartType visitConditionalExpression(ir.ConditionalExpression node) {
-    // TODO(johnniwinther): Should we return `const DoesNotCompleteType()` if
+    // TODO(johnniwinther): Should we return `const ir.NeverType.nonNullable()` if
     // both branches are failing?
     _handleConditional(node.condition, node.then, node.otherwise);
     return super.visitConditionalExpression(node);
@@ -1297,7 +1297,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType? type;
     for (ir.Statement statement in node.statements) {
       if (!completes(visitNode(statement))) {
-        type = const DoesNotCompleteType();
+        type = const ir.NeverType.nonNullable();
       }
     }
     assert(_pendingRuntimeTypeUseData.isEmpty,
@@ -1310,7 +1310,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (completes(visitNode(node.expression))) {
       return const ir.VoidType();
     } else {
-      return const DoesNotCompleteType();
+      return const ir.NeverType.nonNullable();
     }
   }
 
@@ -1488,7 +1488,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
-    return const DoesNotCompleteType();
+    return const ir.NeverType.nonNullable();
   }
 
   @override
@@ -1499,7 +1499,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitBreakStatement(ir.BreakStatement node) {
-    return const DoesNotCompleteType();
+    return const ir.NeverType.nonNullable();
   }
 
   @override
@@ -1659,7 +1659,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   ir.DartType visitReturnStatement(ir.ReturnStatement node) {
     visitNodeOrNull(node.expression);
-    return const DoesNotCompleteType();
+    return const ir.NeverType.nonNullable();
   }
 
   @override

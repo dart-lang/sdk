@@ -387,6 +387,8 @@ extension DeserializerExtensions on Deserializer {
     switch (kind) {
       case CodeKind.raw:
         return new Code.fromParts(_readParts()) as T;
+      case CodeKind.comment:
+        return new CommentCode.fromParts(_readParts()) as T;
       case CodeKind.declaration:
         return new DeclarationCode.fromParts(_readParts()) as T;
       case CodeKind.expression:
@@ -538,6 +540,7 @@ extension SerializeCode on Code {
         self.bound.serializeNullable(serializer);
         serializer.addString(self.name);
         return;
+      case CodeKind.comment:
       case CodeKind.declaration:
       case CodeKind.expression:
       case CodeKind.raw:

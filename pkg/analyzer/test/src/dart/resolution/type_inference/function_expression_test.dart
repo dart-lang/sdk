@@ -1072,14 +1072,14 @@ main() {
     _assertReturnType('(p.E e) {', 'int');
   }
 
-  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported_language218() async {
+  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported_language219() async {
     newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.18
+// @dart = 2.19
 enum E { a, b }
 ''');
 
     await assertNoErrorsInCode('''
-// @dart = 2.18
+// @dart = 2.19
 import 'a.dart' as p;
 
 main() {
@@ -1096,9 +1096,9 @@ main() {
     _assertReturnType('(p.E e) {', 'int');
   }
 
-  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_language218() async {
+  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_language219() async {
     await assertNoErrorsInCode('''
-// @dart = 2.18
+// @dart = 2.19
 enum E { a, b }
 
 main() {
@@ -1160,9 +1160,9 @@ main() {
     );
   }
 
-  test_noContext_returnType_sync_blockBody_nullable_switch_language218() async {
+  test_noContext_returnType_sync_blockBody_nullable_switch_language219() async {
     await assertNoErrorsInCode('''
-// @dart = 2.18
+// @dart = 2.19
 main() {
   (int a) {
     switch (a) {

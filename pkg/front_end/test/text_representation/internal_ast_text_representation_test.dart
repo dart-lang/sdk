@@ -42,7 +42,17 @@ void testExpression(Expression node, String normal,
       "Unexpected limited strategy text for ${node.runtimeType}");
 }
 
-void testMatcher(Pattern node, String normal,
+void testPattern(Pattern node, String normal,
+    {String? verbose, String? limited}) {
+  Expect.stringEquals(normal, node.toText(normalStrategy),
+      "Unexpected normal strategy text for ${node.runtimeType}");
+  Expect.stringEquals(verbose ?? normal, node.toText(verboseStrategy),
+      "Unexpected verbose strategy text for ${node.runtimeType}");
+  Expect.stringEquals(limited ?? normal, node.toText(limitedStrategy),
+      "Unexpected limited strategy text for ${node.runtimeType}");
+}
+
+void testInitializer(Initializer node, String normal,
     {String? verbose, String? limited}) {
   Expect.stringEquals(normal, node.toText(normalStrategy),
       "Unexpected normal strategy text for ${node.runtimeType}");
@@ -130,6 +140,7 @@ void main() {
     _testPatternSwitchStatement();
     _testSwitchExpression();
     _testPatternVariableDeclaration();
+    _testInlineClassRedirectingInitializer();
   });
 }
 
@@ -1167,21 +1178,21 @@ void _testForMapEntry() {}
 void _testForInMapEntry() {}
 
 void _testExpressionMatcher() {
-  testMatcher(new ConstantPattern(new IntLiteral(0)), '''
+  testPattern(new ConstantPattern(new IntLiteral(0)), '''
 0''');
 
-  testMatcher(new ConstantPattern(new BoolLiteral(true)), '''
+  testPattern(new ConstantPattern(new BoolLiteral(true)), '''
 true''');
 }
 
 void _testBinaryMatcher() {
-  testMatcher(
+  testPattern(
       new AndPattern(new ConstantPattern(new IntLiteral(0)),
           new ConstantPattern(new IntLiteral(1))),
       '''
 0 && 1''');
 
-  testMatcher(
+  testPattern(
       new OrPattern(new ConstantPattern(new IntLiteral(0)),
           new ConstantPattern(new IntLiteral(1)),
           orPatternJointVariables: []),
@@ -1190,7 +1201,7 @@ void _testBinaryMatcher() {
 }
 
 void _testCastMatcher() {
-  testMatcher(
+  testPattern(
       new CastPattern(
           new ConstantPattern(new IntLiteral(0)), const DynamicType()),
       '''
@@ -1198,17 +1209,17 @@ void _testCastMatcher() {
 }
 
 void _testNullAssertMatcher() {
-  testMatcher(new NullAssertPattern(new ConstantPattern(new IntLiteral(0))), '''
+  testPattern(new NullAssertPattern(new ConstantPattern(new IntLiteral(0))), '''
 0!''');
 }
 
 void _testNullCheckMatcher() {
-  testMatcher(new NullCheckPattern(new ConstantPattern(new IntLiteral(0))), '''
+  testPattern(new NullCheckPattern(new ConstantPattern(new IntLiteral(0))), '''
 0?''');
 }
 
 void _testListMatcher() {
-  testMatcher(
+  testPattern(
       new ListPattern(const DynamicType(), [
         new ConstantPattern(new IntLiteral(0)),
         new ConstantPattern(new IntLiteral(1)),
@@ -1218,33 +1229,33 @@ void _testListMatcher() {
 }
 
 void _testRelationalMatcher() {
-  testMatcher(
+  testPattern(
       new RelationalPattern(RelationalPatternKind.equals, new IntLiteral(0)),
       '''
 == 0''');
-  testMatcher(
+  testPattern(
       new RelationalPattern(RelationalPatternKind.notEquals, new IntLiteral(1)),
       '''
 != 1''');
-  testMatcher(
+  testPattern(
       new RelationalPattern(RelationalPatternKind.lessThan, new IntLiteral(2)),
       '''
 < 2''');
 }
 
 void _testMapMatcher() {
-  testMatcher(new MapPattern(null, null, []), '''
+  testPattern(new MapPattern(null, null, []), '''
 {}''');
-  testMatcher(new MapPattern(const DynamicType(), const DynamicType(), []), '''
+  testPattern(new MapPattern(const DynamicType(), const DynamicType(), []), '''
 <dynamic, dynamic>{}''');
-  testMatcher(
+  testPattern(
       new MapPattern(null, null, [
         new MapPatternEntry(
             new IntLiteral(0), new ConstantPattern(new IntLiteral(1))),
       ]),
       '''
 {0: 1}''');
-  testMatcher(
+  testPattern(
       new MapPattern(null, null, [
         new MapPatternEntry(
             new IntLiteral(0), new ConstantPattern(new IntLiteral(1))),
@@ -1307,4 +1318,25 @@ var 0 = 1;''');
           isFinal: true),
       '''
 final 0 = 1;''');
+}
+
+void _testInlineClassRedirectingInitializer() {
+  Procedure unnamedTarget = new Procedure(
+      new Name(""), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+
+  Procedure namedTarget = new Procedure(
+      new Name("named"), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+
+  testInitializer(
+      new InlineClassRedirectingInitializer(unnamedTarget, new Arguments([])),
+      '''
+this()''');
+
+  testInitializer(
+      new InlineClassRedirectingInitializer(
+          namedTarget, new Arguments([new IntLiteral(0)])),
+      '''
+this.named(0)''');
 }

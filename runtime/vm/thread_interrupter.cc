@@ -20,14 +20,16 @@ namespace dart {
 // interrupted, the thread's interrupt callback is invoked. Callbacks cannot
 // rely on being executed on the interrupted thread.
 //
-// There are two mechanisms used to interrupt a thread. The first, used on OSs
-// with pthreads (Android, Linux, and Mac), is thread specific signal delivery.
-// The second, used on Windows, is explicit suspend and resume thread system
-// calls. Signal delivery forbids taking locks and allocating memory (which
-// takes a lock). Explicit suspend and resume means that the interrupt callback
-// will not be executing on the interrupted thread, making it meaningless to
-// access TLS from within the thread interrupt callback. Combining these
-// limitations, thread interrupt callbacks are forbidden from:
+// There are two mechanisms used to interrupt a thread. The first, used on Linux
+// and Android, is SIGPROF. The second, used on Windows, Fuchsia, Mac and iOS,
+// is explicit suspend and resume thread system calls. (Although Mac supports
+// SIGPROF, when the process is attached to lldb, it becomes unusably slow, and
+// signal masking is unreliable across fork-exec.) Signal delivery forbids
+// taking locks and allocating memory (which takes a lock). Explicit suspend and
+// resume means that the interrupt callback will not be executing on the
+// interrupted thread, making it meaningless to access TLS from within the
+// thread interrupt callback. Combining these limitations, thread interrupt
+// callbacks are forbidden from:
 //
 //   * Accessing TLS.
 //   * Allocating memory.

@@ -9,6 +9,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/summary2/combinator.dart';
 
 /// A visitor that visits ASTs and fills [UsedImportedElements].
 class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
@@ -57,6 +58,18 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _recordPrefixedElement(node.importPrefix, node.element);
+    super.visitNamedType(node);
+  }
+
+  @override
+  void visitPatternField(PatternField node) {
+    _recordIfExtensionMember(node.element);
+    super.visitPatternField(node);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     _recordAssignmentTarget(node, node.operand);
     return super.visitPostfixExpression(node);
@@ -78,7 +91,10 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
     CompoundAssignmentExpression node,
     Expression target,
   ) {
-    if (target is PrefixedIdentifier) {
+    if (target is IndexExpression) {
+      _recordIfExtensionMember(node.readElement);
+      _recordIfExtensionMember(node.writeElement);
+    } else if (target is PrefixedIdentifier) {
       _visitIdentifier(target.identifier, node.readElement);
       _visitIdentifier(target.identifier, node.writeElement);
     } else if (target is PropertyAccess) {
@@ -96,6 +112,36 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
       if (enclosingElement is ExtensionElement) {
         _recordUsedExtension(enclosingElement);
       }
+    }
+  }
+
+  void _recordPrefixedElement(
+    ImportPrefixReference? importPrefix,
+    Element? element,
+  ) {
+    if (element is MultiplyDefinedElement) {
+      for (final component in element.conflictingElements) {
+        _recordPrefixedElement(importPrefix, component);
+        return;
+      }
+    }
+
+    // Invalid code can use `importPrefix` as a named type;
+    if (element is PrefixElement) {
+      usedElements.prefixMap[element] ??= [];
+      return;
+    }
+
+    if (importPrefix != null) {
+      final prefixElement = importPrefix.element;
+      if (prefixElement is PrefixElement) {
+        final map = usedElements.prefixMap[prefixElement] ??= [];
+        if (element != null) {
+          map.add(element);
+        }
+      }
+    } else if (element != null) {
+      _recordUsedElement(element);
     }
   }
 
@@ -197,7 +243,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
 /// future.
 class ImportsVerifier {
   /// All [ImportDirective]s of the current library.
-  final List<ImportDirective> _allImports = [];
+  final List<ImportDirectiveImpl> _allImports = [];
 
   /// A list of [ImportDirective]s that the current library imports, but does
   /// not use.
@@ -255,7 +301,7 @@ class ImportsVerifier {
     final importsWithLibraries = <_NamespaceDirective>[];
     final exportsWithLibraries = <_NamespaceDirective>[];
     for (var directive in node.directives) {
-      if (directive is ImportDirective) {
+      if (directive is ImportDirectiveImpl) {
         var libraryElement = directive.element?.importedLibrary;
         if (libraryElement == null) {
           continue;
@@ -373,9 +419,8 @@ class ImportsVerifier {
       List<UsedImportedElements> usedImportedElementsList) {
     var usedImports = {..._allImports}..removeAll(_unusedImports);
 
-    var verifier = _UnnecessaryImportsVerifier(_namespaceMap, usedImports);
-    verifier.processUsedElements(
-        usedImportedElementsList, _prefixElementMap, _allImports);
+    var verifier = _UnnecessaryImportsVerifier(usedImports);
+    verifier.processUsedElements(usedImportedElementsList);
     verifier.reportImports(errorReporter);
   }
 
@@ -562,7 +607,7 @@ class ImportsVerifier {
   void _addShownNames(ImportDirective importDirective) {
     List<SimpleIdentifier> identifiers = <SimpleIdentifier>[];
     _unusedShownNamesMap[importDirective] = identifiers;
-    for (Combinator combinator in importDirective.combinators) {
+    for (final combinator in importDirective.combinators) {
       if (combinator is ShowCombinator) {
         for (SimpleIdentifier name in combinator.shownNames) {
           if (name.staticElement != null) {
@@ -680,31 +725,51 @@ class _NamespaceDirective {
 /// import directive, and a "used elements" set which is a proper superset of
 /// the aforementioned import directive's "used elements" set.
 class _UnnecessaryImportsVerifier {
-  /// The cache of [Namespace]s for [ImportDirective]s.
-  final Map<ImportDirective, Namespace> _namespaceMap;
-
   /// The set of imports which provide at least one element used in the library.
-  final Set<ImportDirective> _usedImports;
+  final Set<ImportDirectiveImpl> _usedImports;
 
   /// The mapping of each import to its "used elements" set.
   ///
   /// This is computed in [processUsedElements].
   final Map<ImportDirective, Set<Element>> _usedElementSets = {};
 
-  _UnnecessaryImportsVerifier(this._namespaceMap, this._usedImports);
+  _UnnecessaryImportsVerifier(this._usedImports);
 
   /// Determines the "used elements" set for each import directive in
-  /// [allImports].
+  /// [_usedImports].
   void processUsedElements(
     List<UsedImportedElements> usedImportedElementsList,
-    Map<PrefixElement, List<ImportDirective>> prefixElementMap,
-    List<ImportDirective> allImports,
   ) {
     assert(_usedElementSets.isEmpty);
-    for (var usedElements in usedImportedElementsList) {
-      _processPrefixedElements(usedElements, prefixElementMap);
-      _processUnprefixedElements(usedElements);
-      _processExtensionElements(usedElements, allImports);
+
+    final allUsedElements = <Element>{};
+    for (final usedElements in usedImportedElementsList) {
+      allUsedElements.addAll(usedElements.elements);
+      allUsedElements.addAll(usedElements.usedExtensions);
+      for (final elements in usedElements.prefixMap.values) {
+        allUsedElements.addAll(elements);
+      }
+    }
+
+    for (final importDirective in _usedImports) {
+      final importElement = importDirective.element;
+      if (importElement == null) continue;
+
+      final importedLibrary = importElement.importedLibrary;
+      if (importedLibrary == null) continue;
+
+      final combinators = importElement.combinators.build();
+      for (final exportedReference in importedLibrary.exportedReferences) {
+        final reference = exportedReference.reference;
+        final element = reference.element;
+        if (combinators.allows(reference.name) && element != null) {
+          if (allUsedElements.contains(element)) {
+            if (!importedLibrary.isFromDeprecatedExport(exportedReference)) {
+              (_usedElementSets[importDirective] ??= {}).add(element);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -732,76 +797,6 @@ class _UnnecessaryImportsVerifier {
             // UNNECESSARY_IMPORT on [importDirective] multiple times.
             break;
           }
-        }
-      }
-    }
-  }
-
-  void _processExtensionElements(
-      UsedImportedElements usedElements, List<ImportDirective> allImports) {
-    for (ExtensionElement extensionElement in usedElements.usedExtensions) {
-      var elementName = extensionElement.name;
-      if (elementName == null) break;
-      // Find import directives using namespaces.
-      for (ImportDirective importDirective in allImports) {
-        var namespace = _namespaceMap.computeNamespace(importDirective);
-        if (namespace == null) {
-          continue;
-        }
-        var prefix = importDirective.prefix?.name;
-        if (prefix == null) {
-          if (namespace.get(elementName) == extensionElement) {
-            _usedElementSets
-                .putIfAbsent(importDirective, () => {})
-                .add(extensionElement);
-          }
-        } else {
-          // An extension might be used solely because one or more instance
-          // members are referenced, which does not require explicit use of
-          // the prefix. We still indicate that the import directive is used.
-          if (namespace.getPrefixed(prefix, elementName) == extensionElement) {
-            _usedElementSets
-                .putIfAbsent(importDirective, () => {})
-                .add(extensionElement);
-          }
-        }
-      }
-    }
-  }
-
-  void _processPrefixedElements(UsedImportedElements usedElements,
-      Map<PrefixElement, List<ImportDirective>> prefixElementMap) {
-    usedElements.prefixMap
-        .forEach((PrefixElement prefix, List<Element> elements) {
-      var importsForPrefix = prefixElementMap[prefix];
-      if (importsForPrefix == null) {
-        return;
-      }
-      for (var importDirective in importsForPrefix) {
-        var namespace = _namespaceMap.computeNamespace(importDirective);
-        if (namespace == null) {
-          continue;
-        }
-        for (var element in elements) {
-          if (namespace.providesPrefixed(prefix.name, element)) {
-            _usedElementSets
-                .putIfAbsent(importDirective, () => {})
-                .add(element);
-          }
-        }
-      }
-    });
-  }
-
-  void _processUnprefixedElements(UsedImportedElements usedElements) {
-    for (var element in usedElements.elements) {
-      for (var importDirective in _usedImports) {
-        var namespace = _namespaceMap.computeNamespace(importDirective);
-        if (namespace == null) {
-          continue;
-        }
-        if (namespace.provides(element)) {
-          _usedElementSets.putIfAbsent(importDirective, () => {}).add(element);
         }
       }
     }

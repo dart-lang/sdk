@@ -2940,6 +2940,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .withSourceInformation(node.sourceInformation));
   }
 
+  @override
+  void visitCharCodeAt(HCharCodeAt node) {
+    use(node.receiver);
+    js.Expression receiver = pop();
+    use(node.index);
+    push(js.js('#.charCodeAt(#)', [receiver, pop()]).withSourceInformation(
+        node.sourceInformation));
+  }
+
   void checkTypeOf(HInstruction input, String cmp, String typeName,
       SourceInformation? sourceInformation) {
     use(input);

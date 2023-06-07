@@ -492,7 +492,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
   }
 
   Supertype toSupertype(InterfaceType type) {
-    return new Supertype.byReference(type.className, type.typeArguments);
+    return new Supertype.byReference(type.classReference, type.typeArguments);
   }
 
   ParameterEnvironment computeTypeParameterEnvironment(

@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:benchmark_harness/benchmark_harness.dart';
+
 import 'sound_splay_tree.dart';
 
 List<int> sieve(List<int> initialCandidates) {
@@ -85,7 +86,7 @@ void busyWork() {
   exercise(M2.values);
 }
 
-main() {
+void main() {
   final benchmarks = [
     Base(sieve, 'CollectionSieves-SplayTreeSet-removeLoop'),
     Base(sieveSound, 'CollectionSieves-SoundSplayTreeSet-removeLoop'),
@@ -105,6 +106,7 @@ class Base extends BenchmarkBase {
   final algorithm;
   Base(this.algorithm, String name) : super(name);
   static final input = range(2, 5000);
+  @override
   void run() {
     final primes = algorithm(input);
     if (primes.length != 669) throw 'Wrong result for $name: ${primes.length}';

@@ -35,6 +35,7 @@ animated
 annoying
 anon
 aoo
+aotruntime
 applier
 approval
 approximation
@@ -109,6 +110,8 @@ cafebabe
 calloc
 camel
 capitalized
+caption
+captions
 carefully
 categorization
 causal
@@ -123,6 +126,7 @@ characteristics
 charset
 checkme
 checkout
+chromes
 chunked
 cipd
 circular
@@ -159,9 +163,11 @@ conversions
 coo
 corge
 corners
+costing
 cov
 coverages
 cp
+cpu
 csi
 ct
 ctrl
@@ -176,6 +182,7 @@ daemon
 dart$doc$test$tester
 dart\$doc\$test\$tester
 dartanalyzer
+dartaotruntime
 dartdocs
 dartdoctest
 dartdoctestrun
@@ -223,6 +230,7 @@ discrepancies
 dispatcher
 dispose
 dist
+diterations
 div
 divergent
 doctest
@@ -431,6 +439,7 @@ measurement
 mf
 mfs
 micro
+migrations
 minimize
 minimizer
 minimizing
@@ -455,6 +464,7 @@ moo
 mouse
 mstat
 mul
+mv
 mx
 mxn
 mysdk
@@ -606,6 +616,7 @@ sdkroot
 sdks
 secondary
 secondtest
+seemingly
 segment
 selection
 selects
@@ -647,6 +658,7 @@ sssp
 stacks
 stashed
 stat
+statistics
 stats
 stay
 std
@@ -678,6 +690,7 @@ t\b\f\u
 t\u
 ta
 tails
+taskset
 templates
 theoretically
 thereby

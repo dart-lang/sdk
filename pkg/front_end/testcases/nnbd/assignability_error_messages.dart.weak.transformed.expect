@@ -260,7 +260,7 @@ Try changing the type of the variable.
     }
   }
   #L1:
-  switch(x) {
+  switch(x) /* self::B? */ {
     #L2:
     case #C1:
       {

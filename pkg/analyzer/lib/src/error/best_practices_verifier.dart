@@ -35,7 +35,6 @@ import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 
@@ -350,6 +349,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    _deprecatedVerifier.extensionOverride(node);
+    super.visitExtensionOverride(node);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
 
@@ -623,6 +628,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    _deprecatedVerifier.namedType(node);
+    _invalidAccessVerifier.verifyNamedType(node);
     var question = node.question;
     if (question != null) {
       var type = node.typeOrThrow;
@@ -740,6 +747,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// [WarningCode.UNNECESSARY_TYPE_CHECK_FALSE].
   bool _checkAllTypeChecks(IsExpression node) {
     var leftNode = node.expression;
+    var leftType = leftNode.typeOrThrow;
+
     var rightNode = node.type;
     var rightType = rightNode.type as TypeImpl;
 
@@ -752,13 +761,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       );
     }
 
+    // `cannotResolve is X` or `cannotResolve is! X`
+    if (leftType is InvalidType) {
+      return false;
+    }
+
     // `is dynamic` or `is! dynamic`
     if (rightType is DynamicType) {
-      var rightTypeStr = rightNode.ifTypeOrNull<NamedType>()?.qualifiedName;
-      if (rightTypeStr == Keyword.DYNAMIC.lexeme) {
-        report();
-        return true;
-      }
+      report();
+      return true;
+    }
+
+    // `is CannotResolveType` or `is! CannotResolveType`
+    if (rightType is InvalidType) {
       return false;
     }
 
@@ -778,7 +793,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (_isNonNullableByDefault) {
-      var leftType = leftNode.typeOrThrow;
       if (_typeSystem.isSubtypeOf(leftType, rightType)) {
         report();
         return true;
@@ -1605,8 +1619,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    // `x as Unresolved` is already reported as an error.
+    // `cannotResolve is SomeType` is already reported.
+    if (leftType is InvalidType) {
+      return false;
+    }
+
+    // `x as dynamic` is a valid use case.
     if (rightType is DynamicType) {
+      return false;
+    }
+
+    // `x as Unresolved` is already reported as an error.
+    if (rightType is InvalidType) {
       return false;
     }
 
@@ -1733,7 +1757,12 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    _checkForInvalidInternalAccess(identifier, element);
+    _checkForInvalidInternalAccess(
+      parent: identifier.parent,
+      nameToken: identifier.token,
+      element: element,
+    );
+
     _checkForOtherInvalidAccess(identifier, element);
   }
 
@@ -1769,6 +1798,27 @@ class _InvalidAccessVerifier {
           node,
           [node.uri.stringValue!]);
     }
+  }
+
+  void verifyNamedType(NamedType node) {
+    var element = node.element;
+
+    final parent = node.parent;
+    if (parent is ConstructorName) {
+      element = parent.staticElement;
+    }
+
+    if (element == null || _inCurrentLibrary(element)) {
+      return;
+    }
+
+    _checkForInvalidInternalAccess(
+      parent: node,
+      nameToken: node.name2,
+      element: element,
+    );
+
+    _checkForOtherInvalidAccess(node, element);
   }
 
   void verifyPatternField(PatternFieldImpl node) {
@@ -1808,24 +1858,32 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void _checkForInvalidInternalAccess(Identifier identifier, Element element) {
+  void _checkForInvalidInternalAccess({
+    required AstNode? parent,
+    required Token nameToken,
+    required Element element,
+  }) {
     if (_hasInternal(element) &&
         !_isLibraryInWorkspacePackage(element.library)) {
       String name;
-      AstNode node;
+      SyntacticEntity node;
 
-      var grandparent = identifier.parent?.parent;
+      var grandparent = parent?.parent;
 
       if (grandparent is ConstructorName) {
         name = grandparent.toSource();
         node = grandparent;
       } else {
-        name = identifier.name;
-        node = identifier;
+        name = nameToken.lexeme;
+        node = nameToken;
       }
 
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, node, [name]);
+      _errorReporter.reportErrorForOffset(
+        WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+        node.offset,
+        node.length,
+        [name],
+      );
     }
   }
 
@@ -1861,13 +1919,21 @@ class _InvalidAccessVerifier {
     String name;
     SyntacticEntity errorEntity = node;
 
-    var grandparent = node.parent?.parent;
+    var parent = node.parent;
+    var grandparent = parent?.parent;
     if (node is Identifier) {
       if (grandparent is ConstructorName) {
         name = grandparent.toSource();
         errorEntity = grandparent;
       } else {
         name = node.name;
+      }
+    } else if (node is NamedType) {
+      if (parent is ConstructorName) {
+        name = parent.toSource();
+        errorEntity = parent;
+      } else {
+        name = node.name2.lexeme;
       }
     } else if (node is PatternFieldImpl) {
       name = element.displayName;

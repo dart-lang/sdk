@@ -2298,6 +2298,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeByte(node.isExplicitlyExhaustive ? 1 : 0);
     writeNode(node.expression);
+    writeOptionalNode(node.expressionTypeInternal);
     writeSwitchCaseNodeList(node.cases);
     switchCaseIndexer.exit(node);
   }
@@ -2450,11 +2451,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
       writeByte(node.nullability.index);
-      writeNonNullReference(node.className);
+      writeNonNullReference(node.classReference);
     } else {
       writeByte(Tag.InterfaceType);
       writeByte(node.nullability.index);
-      writeNonNullReference(node.className);
+      writeNonNullReference(node.classReference);
       writeNodeList(node.typeArguments);
     }
   }
@@ -2881,7 +2882,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.PatternSwitchStatement);
     writeOffset(node.fileOffset);
     writeNode(node.expression);
-    writeOptionalNode(node.expressionType);
+    writeOptionalNode(node.expressionTypeInternal);
     writeSwitchCaseNodeList(node.cases);
     switchCaseIndexer.exit(node);
   }

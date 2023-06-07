@@ -43,6 +43,18 @@ void main() {
       expect(body, contains('test-error'));
     });
 
+    test('hits pii filters', () async {
+      CrashReportSender sender = CrashReportSender.prod(
+          analytics.trackingId, shouldSend,
+          httpClient: mockClient);
+
+      await sender.sendReport('filter this: filename.exe', StackTrace.current);
+
+      String body = utf8.decode(request.bodyBytes);
+      expect(body, contains('String')); // error.runtimeType
+      expect(body, contains('filter this: <filename>'));
+    });
+
     test('reportsSent', () async {
       CrashReportSender sender = CrashReportSender.prod(
           analytics.trackingId, shouldSend,

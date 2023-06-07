@@ -275,7 +275,7 @@ compact, color, line, verbose, silent, status, buildbot''')
         aliases: ['use_sdk'], help: 'Use compiler or runtime from the SDK.')
     ..addOption('nnbd',
         allowed: NnbdMode.names,
-        defaultsTo: NnbdMode.legacy.name,
+        defaultsTo: NnbdMode.strong.name,
         help: '''Which set of non-nullable type features to use.
 
 Allowed values are: legacy, weak, strong''')
@@ -918,6 +918,9 @@ class OptionParseException implements Exception {
   final String message;
 
   OptionParseException(this.message);
+
+  @override
+  String toString() => "OptionParseException: $message";
 }
 
 /// Prints the names of the configurations in the test matrix that match the

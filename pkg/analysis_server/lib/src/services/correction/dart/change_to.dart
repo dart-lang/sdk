@@ -101,18 +101,23 @@ class ChangeTo extends CorrectionProducer {
   Future<void> _proposeClassOrMixin(ChangeBuilder builder, AstNode node) async {
     // Prepare the optional import prefix name.
     String? prefixName;
-    if (node is PrefixedIdentifier &&
+    Token? nameToken;
+    if (node is NamedType) {
+      prefixName = node.importPrefix?.name.lexeme;
+      nameToken = node.name2;
+    } else if (node is PrefixedIdentifier &&
         node.parent is NamedType &&
         node.prefix.staticElement is PrefixElement) {
       prefixName = node.prefix.name;
-      node = node.identifier;
+      nameToken = node.identifier.token;
+    } else if (node is SimpleIdentifier) {
+      nameToken = node.token;
     }
     // Process if looks like a type.
-    var name = nameOfType(node);
-    if (name != null) {
+    if (nameToken != null) {
       // Prepare for selecting the closest element.
       var finder = _ClosestElementFinder(
-          name, (Element element) => element is InterfaceElement);
+          nameToken.lexeme, (Element element) => element is InterfaceElement);
       // Check elements of this library.
       if (prefixName == null) {
         for (var unit in resolvedResult.libraryElement.units) {
@@ -127,7 +132,7 @@ class ChangeTo extends CorrectionProducer {
         }
       }
       // If we have a close enough element, suggest to use it.
-      await _suggest(builder, node, finder._element?.name);
+      await _suggest(builder, nameToken, finder._element?.name);
     }
   }
 
@@ -144,7 +149,7 @@ class ChangeTo extends CorrectionProducer {
         _updateFinderWithClassMembers(finder, interfaceElement);
       }
     } else if (target is ExtensionOverride) {
-      _updateFinderWithExtensionMembers(finder, target.staticElement);
+      _updateFinderWithExtensionMembers(finder, target.element);
     } else if (targetIdentifierElement is ExtensionElement) {
       _updateFinderWithExtensionMembers(finder, targetIdentifierElement);
     } else {

@@ -45,6 +45,33 @@ class B extends A {}
     ]);
   }
 
+  test_class_extends_outside_viaLanguage219AndCore() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart=2.19
+import 'dart:core';
+class A implements MapEntry<int, int> {
+  int get key => 0;
+  int get value => 1;
+}
+''');
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+class B extends A {
+  int get key => 0;
+  int get value => 1;
+}
+''', [
+      error(CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          23, 1,
+          text:
+              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'."),
+    ]);
+  }
+
   test_class_implements() async {
     await assertErrorsInCode(r'''
 final class A {}
@@ -66,6 +93,50 @@ mixin B implements A {}
           23, 1,
           text:
               "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'."),
+    ]);
+  }
+
+  test_class_implements_outside() async {
+    // No [SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED] reported outside of
+    // library.
+    newFile('$testPackageLibPath/a.dart', r'''
+final class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+class B implements A {}
+''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 36,
+          1),
+    ]);
+  }
+
+  test_class_implements_outside_viaLanguage219AndCore() async {
+    // No [SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED] reported outside of
+    // library to avoid over-reporting when we have a
+    // [FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY] error.
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart=2.19
+import 'dart:core';
+class A implements MapEntry<int, int> {
+  int get key => 0;
+  int get value => 1;
+}
+''');
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+class B implements A {
+  int get key => 0;
+  int get value => 1;
+}
+''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 36,
+          1),
     ]);
   }
 

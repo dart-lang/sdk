@@ -359,9 +359,12 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         if (user is RecordFieldAccessTypeInformation) {
           final getterIndex =
               record.recordShape.indexOfGetterName(user.getterName);
-          if (user.receiver != flow ||
-              record.fieldTypes.indexOf(currentUser!) != getterIndex) return;
-          addNewEscapeInformation(user);
+          if (user.receiver == flow &&
+              getterIndex >= 0 &&
+              getterIndex < record.fieldTypes.length &&
+              record.fieldTypes[getterIndex] == currentUser) {
+            addNewEscapeInformation(user);
+          }
         }
       });
     });

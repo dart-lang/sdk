@@ -4,9 +4,78 @@
 
 ### Libraries
 
+#### `dart:core`
+
+- `Uri.base` on native platforms now respectes `IOOverrides` overriding
+   current directory ([#39796][]).
+
+[#39796]: https://darbug.com/39796
+
+#### `dart:io`
+
+- **Breaking change** [#51486][]:
+  - Added `sameSite` to the `Cookie` class.
+  - Added class `SameSite`.
+- **Breaking change** [#52027][]: `FileSystemEvent` is
+  [`sealed`](https://dart.dev/language/class-modifiers#sealed). This means
+  that `FileSystemEvent` cannot be extended or implemented.
+- Added a deprecation warning when `Platform` is instantiated.
+- Added `Platform.lineTerminator` which exposes the character or characters
+  that the operating system uses to separate lines of text, e.g.,
+  `"\r\n"` on Windows.
+
+[#51486]: https://github.com/dart-lang/sdk/issues/51486
+[#52027]: https://github.com/dart-lang/sdk/issues/52027
+
+### Other libraries
+
+#### `package:js`
+
+- **Breaking change to `@staticInterop` and `external` extension members**:
+  `external` `@staticInterop` members and `external` extension members can no
+  longer be used as tear-offs. Declare a closure or a non-`external` method that
+  calls these members, and use that instead.
+- **Breaking change to `@staticInterop` and `external` extension members**:
+  `external` `@staticInterop` members and `external` extension members will
+  generate slightly different JS code for methods that have optional parameters.
+  Whereas before, the JS code passed in the default value for missing optionals,
+  it will now pass in only the provided members. This aligns with how JS
+  parameters work, where omitted parameters are actually omitted. For example,
+  calling `external void foo([int a, int b])` as `foo(0)` will now result in
+  `foo(0)`, and not `foo(0, null)`.
+
 ### Tools
 
-## 3.0.0
+## 3.0.3
+
+### Libraries
+
+#### `dart:async`
+
+- **Breaking change** [#52334][]:
+  - Added `interface` modifier to purely abstract classes:
+    `MultiStreamController`, `StreamConsumer`, `StreamIterator` and
+    `StreamTransformer`.
+
+[#52334]: https://dartbug.com/52334
+
+### Tools
+
+#### Formatter
+
+- Correctly handle nullable empty record types (`()?`).
+
+## 3.0.1
+
+### Tools
+
+#### Formatter
+
+- Don't indent parameters with metadata annotations.
+- Don't split before `.` following a record literal.
+- Don't split unnecessarily in switch expression cases following comments.
+
+## 3.0.0 - 2023-05-10
 
 ### Language
 
@@ -107,9 +176,9 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 
   String lastName(Amigo amigo) =>
       switch (amigo) {
-        case Lucky _ => 'Day';
-        case Ned _   => 'Nederlander';
-      }
+        Lucky _ => 'Day',
+        Ned _   => 'Nederlander',
+      };
   ```
 
   In this last example, the compiler reports an error that the switch doesn't
@@ -425,7 +494,7 @@ information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
 Updates the Linter to `1.35.0`, which includes changes that
 
 - add new lints:
-  - `explicit_reopen`
+  - `implicit_reopen`
   - `unnecessary_breaks`
   - `type_literal_in_constant_pattern`
   - `invalid_case_patterns`
@@ -493,6 +562,11 @@ using Dart version 2.19, before upgrading to Dart version 3.0.
 - `dart pub get` and related commands will now by default also update the
   dependencies in the `example` folder (if it exists). Use `--no-example` to
   avoid this.
+- On Windows the `PUB_CACHE` has moved to `%LOCALAPPDATA%`, since Dart 2.8 the
+  `PUB_CACHE` has been created in `%LOCALAPPDATA%` when one wasn't present.
+  Hence, this only affects users with a `PUB_CACHE` created by Dart 2.7 or
+  earlier. If you have `path/to/.pub-cache/bin` in `PATH` you may need to
+  update your `PATH`.
 
 ## 2.19.6 - 2023-03-29
 

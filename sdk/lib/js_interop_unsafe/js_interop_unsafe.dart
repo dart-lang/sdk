@@ -2,15 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Typed utility methods to manipulate JS objects in cases where the name to
-/// call is not known at runtime.
+/// Utility methods to manipulate JS objects dynamically.
 ///
-/// Safe usage of these methods cannot necessarily be verified statically.
+/// This library is meant to be used when the names of properties or methods are
+/// not known statically. This library is similar to 'dart:js_util', except
+/// the methods here are extension methods that use JS types. This enables
+/// support with dart2wasm.
+///
+/// In general, we expect people to use 'dart:js_interop' and that this library
+/// will be rarely used. Prefer to write JS interop interfaces and external
+/// static interop members using 'dart:js_interop'. The APIs in this library are
+/// meant to work around issues and help with migration from older JS interop
+/// libraries like 'dart:js'.
+///
+/// As the name suggests, usage of this library is considered unsafe. This means
+/// that safe usage of these methods cannot necessarily be verified statically.
 /// Therefore, they should be used cautiously and only when the same effect
 /// cannot be achieved with static interop.
 ///
 /// {@category Web}
-library dart.js_util_typed;
+library dart.js_interop_unsafe;
 
 import 'dart:js_interop';
 

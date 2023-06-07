@@ -137,9 +137,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   InterfaceType rawType(Nullability nullability);
 
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
-
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder>? arguments);
 
@@ -318,6 +315,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
   }
 
+  InterfaceType? aliasedTypeWithBuiltArgumentsCacheNonNullable;
+  InterfaceType? aliasedTypeWithBuiltArgumentsCacheNullable;
+
   @override
   DartType buildAliasedTypeWithBuiltArguments(
       LibraryBuilder library,
@@ -339,9 +339,35 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         return new FutureOrType(arguments!.single, nullability);
       }
     }
-    DartType type = arguments == null
-        ? rawType(nullability)
-        : new InterfaceType(cls, nullability, arguments);
+    DartType type;
+    if (arguments == null) {
+      type = rawType(nullability);
+    } else {
+      if (aliasedTypeWithBuiltArgumentsCacheNonNullable != null &&
+          nullability == Nullability.nonNullable) {
+        assert(aliasedTypeWithBuiltArgumentsCacheNonNullable!.classReference ==
+            cls.reference);
+        assert(arguments.isEmpty);
+        return aliasedTypeWithBuiltArgumentsCacheNonNullable!;
+      } else if (aliasedTypeWithBuiltArgumentsCacheNullable != null &&
+          nullability == Nullability.nullable) {
+        assert(aliasedTypeWithBuiltArgumentsCacheNullable!.classReference ==
+            cls.reference);
+        assert(arguments.isEmpty);
+        return aliasedTypeWithBuiltArgumentsCacheNullable!;
+      }
+      InterfaceType cacheable =
+          type = new InterfaceType(cls, nullability, arguments);
+      if (arguments.isEmpty) {
+        assert(typeVariablesCount == 0);
+        if (nullability == Nullability.nonNullable) {
+          aliasedTypeWithBuiltArgumentsCacheNonNullable = cacheable;
+        } else if (nullability == Nullability.nullable) {
+          aliasedTypeWithBuiltArgumentsCacheNullable = cacheable;
+        }
+      }
+    }
+
     if (typeVariablesCount != 0 && library is SourceLibraryBuilder) {
       library.registerBoundsCheck(type, fileUri, charOffset, typeUse,
           inferred: !hasExplicitTypeArguments);

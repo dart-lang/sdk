@@ -1,0 +1,20 @@
+import "main_lib.dart";
+import 'dart:collection';
+
+abstract base class LegacyImplementBase<E extends LinkedListEntry<E>>
+    implements LegacyImplementBaseCore<E> {}
+
+abstract class LegacyImplementBaseNoModifier<E extends LinkedListEntry<E>>
+    implements LegacyImplementBaseCore<E> {}
+
+class LegacyImplementFinalNoModifier implements LegacyImplementFinalCore {
+  String toString() => "Bad";
+  int get key => 0;
+  int get value => 1;
+}
+
+final class LegacyImplementFinal implements LegacyImplementFinalCore {
+  String toString() => "Bad";
+  int get key => 0;
+  int get value => 1;
+}

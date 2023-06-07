@@ -1,3 +1,7 @@
+## 1.4.0
+
+- Added `DdsExtension.getPerfettoVMTimelineWithCpuSamples`.
+
 ## 1.3.3
 
 - Updated `vm_service` version to ^11.0.0.

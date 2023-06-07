@@ -45,11 +45,11 @@ PostfixExpression
     staticType: int
   operator: ++
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -81,6 +81,30 @@ PostfixExpression
 ''');
   }
 
+  test_inc_dynamicIdentifier() async {
+    await assertNoErrorsInCode(r'''
+void f(dynamic x) {
+  x++;
+}
+''');
+
+    final node = findNode.singlePostfixExpression;
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: null
+  operator: ++
+  readElement: self::@function::f::@parameter::x
+  readType: dynamic
+  writeElement: self::@function::f::@parameter::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
   test_inc_formalParameter_inc() async {
     await assertErrorsInCode(r'''
 void f(int x) {
@@ -107,11 +131,11 @@ PrefixExpression
     staticElement: dart:core::@class::num::@method::+
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -200,11 +224,11 @@ PostfixExpression
     staticType: A
   operator: ++
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -245,11 +269,37 @@ PostfixExpression
     staticType: int
   operator: ++
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
+''');
+  }
+
+  test_inc_unresolvedIdentifier() async {
+    await assertErrorsInCode(r'''
+void f() {
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
+    ]);
+
+    final node = findNode.singlePostfixExpression;
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  staticElement: <null>
+  staticType: InvalidType
 ''');
   }
 
@@ -510,32 +560,6 @@ PostfixExpression
   operator: !
   staticElement: <null>
   staticType: T & num
-''');
-  }
-
-  test_unresolvedIdentifier_inc() async {
-    await assertErrorsInCode(r'''
-void f() {
-  x++;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
-    ]);
-
-    final node = findNode.postfix('++;');
-    assertResolvedNodeText(node, r'''
-PostfixExpression
-  operand: SimpleIdentifier
-    token: x
-    staticElement: <null>
-    staticType: null
-  operator: ++
-  readElement: <null>
-  readType: dynamic
-  writeElement: <null>
-  writeType: dynamic
-  staticElement: <null>
-  staticType: dynamic
 ''');
   }
 }
@@ -807,11 +831,11 @@ PostfixExpression
     staticType: int
   operator: ++
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -825,11 +849,11 @@ PostfixExpression
     staticType: int*
   operator: ++
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     }
   }
@@ -853,11 +877,11 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: dart:core::@class::int
-  readType: dynamic
+  readType: InvalidType
   writeElement: dart:core::@class::int
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -868,11 +892,11 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: dart:core::@class::int
-  readType: dynamic
+  readType: InvalidType
   writeElement: dart:core::@class::int
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     }
   }
@@ -896,11 +920,11 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: T@7
-  readType: dynamic
+  readType: InvalidType
   writeElement: T@7
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -911,11 +935,11 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: T@7
-  readType: dynamic
+  readType: InvalidType
   writeElement: T@7
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     }
   }

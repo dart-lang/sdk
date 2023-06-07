@@ -1606,19 +1606,9 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   /// Compute the kind of foreign helper function called by [node], if any.
-
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
-      switch (node.target.name.text) {
-        case Identifiers.JS:
-          return ForeignKind.JS;
-        case Identifiers.JS_BUILTIN:
-          return ForeignKind.JS_BUILTIN;
-        case Identifiers.JS_EMBEDDED_GLOBAL:
-          return ForeignKind.JS_EMBEDDED_GLOBAL;
-        case Identifiers.JS_INTERCEPTOR_CONSTANT:
-          return ForeignKind.JS_INTERCEPTOR_CONSTANT;
-      }
+      return getForeignKindFromName(node.target.name.text);
     }
     return ForeignKind.NONE;
   }
@@ -2208,4 +2198,19 @@ void reportLocatedMessage(DiagnosticReporter reporter,
     infos.add(_createDiagnosticMessage(reporter, message));
   }
   reporter.reportError(diagnosticMessage, infos);
+}
+
+ForeignKind getForeignKindFromName(String name) {
+  switch (name) {
+    case Identifiers.JS:
+      return ForeignKind.JS;
+    case Identifiers.JS_BUILTIN:
+      return ForeignKind.JS_BUILTIN;
+    case Identifiers.JS_EMBEDDED_GLOBAL:
+      return ForeignKind.JS_EMBEDDED_GLOBAL;
+    case Identifiers.JS_INTERCEPTOR_CONSTANT:
+      return ForeignKind.JS_INTERCEPTOR_CONSTANT;
+    default:
+      return ForeignKind.NONE;
+  }
 }

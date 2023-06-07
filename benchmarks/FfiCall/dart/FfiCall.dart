@@ -82,7 +82,7 @@ class Int64Mintx01 extends FfiBenchmarkBase {
 // Main driver.
 //
 
-void main() {
+void main(List<String> args) {
   // Force loading the dylib with RLTD_GLOBAL so that the
   // Native benchmarks below can do process lookup.
   dlopenGlobalPlatformSpecific('native_functions',
@@ -147,7 +147,12 @@ void main() {
     Handlex20.new,
     Handlex20Native.new,
   ];
-  for (var benchmark in benchmarks) {
-    benchmark().report();
+
+  final filter = args.firstOrNull;
+  for (var constructor in benchmarks) {
+    final benchmark = constructor();
+    if (filter == null || benchmark.name.contains(filter)) {
+      benchmark.report();
+    }
   }
 }

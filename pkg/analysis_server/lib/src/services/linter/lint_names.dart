@@ -23,6 +23,8 @@ class LintNames {
   static const String avoid_function_literals_in_foreach_calls =
       'avoid_function_literals_in_foreach_calls';
   static const String avoid_init_to_null = 'avoid_init_to_null';
+  static const String avoid_multiple_declarations_per_line =
+      'avoid_multiple_declarations_per_line';
   static const String avoid_null_checks_in_equality_operators =
       'avoid_null_checks_in_equality_operators';
   static const String avoid_print = 'avoid_print';
@@ -52,7 +54,10 @@ class LintNames {
   static const String avoid_void_async = 'avoid_void_async';
   static const String await_only_futures = 'await_only_futures';
   static const String cascade_invocations = 'cascade_invocations';
+  static const String cast_nullable_to_non_nullable =
+      'cast_nullable_to_non_nullable';
   static const String combinators_ordering = 'combinators_ordering';
+  static const String constant_identifier_names = 'constant_identifier_names';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
   static const String dangling_library_doc_comments =
@@ -72,10 +77,13 @@ class LintNames {
   static const String exhaustive_cases = 'exhaustive_cases';
   static const String hash_and_equals = 'hash_and_equals';
   static const String implicit_call_tearoffs = 'implicit_call_tearoffs';
+  static const String implicit_reopen = 'implicit_reopen';
   static const String invalid_case_patterns = 'invalid_case_patterns';
   static const String leading_newlines_in_multiline_strings =
       'leading_newlines_in_multiline_strings';
   static const String library_annotations = 'library_annotations';
+  static const String no_literal_bool_comparisons =
+      'no_literal_bool_comparisons';
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
   static const String no_leading_underscores_for_library_prefixes =
       'no_leading_underscores_for_library_prefixes';
@@ -162,6 +170,7 @@ class LintNames {
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_null_aware_assignments =
       'unnecessary_null_aware_assignments';
+  static const String unnecessary_null_checks = 'unnecessary_null_checks';
   static const String unnecessary_null_in_if_null_operators =
       'unnecessary_null_in_if_null_operators';
   static const String unnecessary_nullable_for_final_variable_declarations =
@@ -172,6 +181,8 @@ class LintNames {
   static const String unnecessary_string_escapes = 'unnecessary_string_escapes';
   static const String unnecessary_string_interpolations =
       'unnecessary_string_interpolations';
+  static const String unnecessary_to_list_in_spreads =
+      'unnecessary_to_list_in_spreads';
   static const String unnecessary_this = 'unnecessary_this';
   static const String use_decorated_box = 'use_decorated_box';
   static const String use_enums = 'use_enums';
@@ -183,5 +194,7 @@ class LintNames {
       'use_key_in_widget_constructors';
   static const String use_raw_strings = 'use_raw_strings';
   static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
+  static const String use_string_in_part_of_directives =
+      'use_string_in_part_of_directives';
   static const String use_super_parameters = 'use_super_parameters';
 }

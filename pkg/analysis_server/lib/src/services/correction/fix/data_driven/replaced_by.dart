@@ -12,14 +12,29 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+import 'code_template.dart';
+
 /// The data related to an element that has been replaced by another element.
 class ReplacedBy extends Change<_Data> {
   /// The replacing element.
   final ElementDescriptor newElement;
 
+  /// Specifies whether the target also needs to be replaced.
+  final bool replaceTarget;
+
+  /// The argument list to be used if replaced by a method with arguments.
+  final List<CodeTemplate> arguments = [];
+
   /// Initialize a newly created transform to describe a replacement of an old
   /// element by a [newElement].
-  ReplacedBy({required this.newElement});
+  ReplacedBy(
+      {required this.newElement,
+      required this.replaceTarget,
+      List<CodeTemplate>? argumentList}) {
+    if (argumentList != null) {
+      arguments.addAll(argumentList);
+    }
+  }
 
   @override
   // The private type of the [data] parameter is dictated by the signature of
@@ -27,8 +42,28 @@ class ReplacedBy extends Change<_Data> {
   // ignore: library_private_types_in_public_api
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     var referenceRange = data.referenceRange;
-    builder.addSimpleReplacement(
-        referenceRange, data.replacement ?? _referenceTo(newElement));
+    builder.addReplacement(referenceRange, (builder) {
+      if (data.replacement != null) {
+        builder.write(data.replacement!);
+      } else {
+        var templateContext = TemplateContext(fix.node, fix.utils);
+        var components = newElement.components;
+        if (components[0].isEmpty) {
+          builder.write(components[1]);
+        } else {
+          builder.write(components.reversed.join('.'));
+        }
+        if (arguments.isNotEmpty) {
+          builder.write('(');
+          arguments.first.writeOn(builder, templateContext);
+          for (int i = 1; i < arguments.length; i++) {
+            builder.write(',');
+            arguments[i].writeOn(builder, templateContext);
+          }
+          builder.write(')');
+        }
+      }
+    });
     var libraryUris = newElement.libraryUris;
     if (libraryUris.isEmpty) return;
     if (!libraryUris.any((uri) => builder.importsLibrary(uri))) {
@@ -42,6 +77,27 @@ class ReplacedBy extends Change<_Data> {
   // ignore: library_private_types_in_public_api
   _Data? validate(DataDrivenFix fix) {
     var node = fix.node;
+    if (replaceTarget) {
+      // This does not work if the element to be replaced is cascaded.
+      var parent = node.parent;
+      if (parent != null) {
+        var target = switch (parent) {
+          MethodInvocation() => parent.target,
+          PropertyAccess() => parent.target,
+          PrefixedIdentifier() => parent,
+          _ => null,
+        };
+        if (target == null ||
+            // replacing method with getter is not allowed
+            (parent is MethodInvocation &&
+                newElement.kind == ElementKind.getterKind)) {
+          return null;
+        }
+        return _Data(range.startEnd(target, node));
+      } else {
+        return null;
+      }
+    }
     if (node is SimpleIdentifier) {
       var staticElement = node.staticElement;
       if (staticElement is ExecutableElement && !staticElement.isStatic) {
@@ -125,6 +181,31 @@ class ReplacedBy extends Change<_Data> {
           return _Data(range.node(identifier));
         }
       }
+    } else if (node is NamedType) {
+      var identifier = node.name2;
+      var components = fix.element.components;
+      if (components.length > 1 &&
+          components[0].isEmpty &&
+          components[1] == identifier.lexeme) {
+        // We have a '<prefix>.<className>' pattern, so we replace only the
+        // class name.
+        return _Data(range.token(identifier));
+      }
+      final parent = node.parent;
+      if (parent is ConstructorName) {
+        var classNameToken = parent.type.name2;
+        var constructorNameNode = parent.name;
+        var constructorName = constructorNameNode?.name ?? '';
+        var components = fix.element.components;
+        if (components.length == 2 &&
+            constructorName == components[0] &&
+            classNameToken.lexeme == components[1]) {
+          if (constructorNameNode != null) {
+            return _Data(range.startEnd(classNameToken, constructorNameNode));
+          }
+          return _Data(range.token(classNameToken));
+        }
+      }
     } else if (node is ConstructorName) {
       var classNameToken = node.type.name2;
       var constructorNameNode = node.name;
@@ -168,14 +249,6 @@ class ReplacedBy extends Change<_Data> {
       referenceRange,
       replacement: '${newComponents[0]}$suffix',
     );
-  }
-
-  String _referenceTo(ElementDescriptor element) {
-    var components = element.components;
-    if (components[0].isEmpty) {
-      return components[1];
-    }
-    return components.reversed.join('.');
   }
 }
 

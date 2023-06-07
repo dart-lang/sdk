@@ -14,7 +14,7 @@ import 'dds_impl.dart';
 class DapHandler {
   DapHandler(this.dds);
 
-  Future<Map<String, dynamic>> handle(
+  Future<Map<String, dynamic>> sendRequest(
     DdsHostedAdapter adapter,
     json_rpc.Parameters parameters,
   ) async {
@@ -26,11 +26,18 @@ class DapHandler {
     // overlapping sequence numbers with startup requests.
     final message = parameters['message'].asString;
 
-    final result = await adapter.handleMessage(message);
+    // TODO(dantup): If/when DAP needs to care about ordering (eg. it handles
+    //  both requests and events), this will need to be changed to have the
+    //  caller provide a "responseWriter" function so the the result can be
+    //  written directly to the stream synchronously, to avoid future events
+    //  being able to be inserted before the response (eg. initializedEvent).
+    final responseCompleter = Completer<Response>();
+    adapter.handleMessage(message, responseCompleter.complete);
+    final result = await responseCompleter.future;
 
     return <String, dynamic>{
       'type': 'DapResponse',
-      'message': result.toJson(),
+      'dapResponse': result,
     };
   }
 

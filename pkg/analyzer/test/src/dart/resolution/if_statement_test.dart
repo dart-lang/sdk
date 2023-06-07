@@ -343,7 +343,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@37, a@50]
-            staticType: dynamic
+            staticType: InvalidType
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
@@ -351,7 +351,7 @@ IfStatement
             staticType: int
           staticElement: <null>
           staticInvokeType: null
-          staticType: dynamic
+          staticType: InvalidType
   rightParenthesis: )
   thenStatement: Block
     leftBracket: {
@@ -360,7 +360,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: notConsistent a[a@37, a@50]
-          staticType: dynamic
+          staticType: InvalidType
         semicolon: ;
     rightBracket: }
 ''');
@@ -958,8 +958,6 @@ void f(Object? x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 56, 1),
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          56, 1),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 56, 1),
     ]);
 
@@ -990,7 +988,7 @@ IfStatement
           expression: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@51]
-            staticType: dynamic
+            staticType: InvalidType
           matchedValueType: Object?
         matchedValueType: Object?
       whenClause: WhenClause
@@ -1092,7 +1090,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: <null>
-          staticType: dynamic
+          staticType: InvalidType
         semicolon: ;
     rightBracket: }
 ''');

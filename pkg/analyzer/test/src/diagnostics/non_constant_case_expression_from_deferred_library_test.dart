@@ -12,7 +12,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantCaseExpressionFromDeferredLibraryTest);
     defineReflectiveTests(
-        NonConstantCaseExpressionFromDeferredLibraryTest_Language218);
+        NonConstantCaseExpressionFromDeferredLibraryTest_Language219);
   });
 }
 
@@ -44,10 +44,10 @@ void f(int e) {
 }
 
 @reflectiveTest
-class NonConstantCaseExpressionFromDeferredLibraryTest_Language218
+class NonConstantCaseExpressionFromDeferredLibraryTest_Language219
     extends PubPackageResolutionTest
     with
-        WithLanguage218Mixin,
+        WithLanguage219Mixin,
         NonConstantCaseExpressionFromDeferredLibraryTestCases {
   @override
   _Variant get _variant => _Variant.nullSafe;

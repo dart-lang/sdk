@@ -133,9 +133,9 @@ AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES:
   status: noFix
   notes: |-
     There are either no valid options to suggest, or there are too many to
-    provide a fix for every one of them. For some cases it migiht be possible to
+    provide a fix for every one of them. For some cases it might be possible to
     suggest similarly spelled valid options, but we'd probably want to split
-    this code into an `UNDUPPORTED_OPTION_WITH_SIMILAR_VALUES` code to handle
+    this code into an `UNSUPPORTED_OPTION_WITH_SIMILAR_VALUES` code to handle
     those cases.
 AnalysisOptionsWarningCode.UNSUPPORTED_VALUE:
   status: needsFix
@@ -282,7 +282,7 @@ CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER:
   notes: |-
     Theoretically we could look for static members whose name is similar in
     spelling and suggest them (and remove the type arguments), but it's probably
-    not valuable often enough to warrent the cost.
+    not valuable often enough to warrant the cost.
   since: in 2.15
 CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
   status: noFix
@@ -1881,7 +1881,7 @@ LintCode.avoid_equals_and_hash_code_on_mutable_classes:
   status: noFix
   notes: |-
     Theoretically we could remove the methods, but the fix is probably
-    apporpriate so seldom that it isn't worth offering it.
+    appropriate so seldom that it isn't worth offering it.
 LintCode.avoid_escaping_inner_quotes:
   status: hasFix
 LintCode.avoid_field_initializers_in_const_classes:
@@ -1904,9 +1904,7 @@ LintCode.avoid_init_to_null:
 LintCode.avoid_js_rounded_ints:
   status: noFix
 LintCode.avoid_multiple_declarations_per_line:
-  status: needsFix
-  notes: |-
-    The fix is to split the declaration into multiple lines.
+  status: hasFix
 LintCode.avoid_null_checks_in_equality_operators:
   status: hasFix
 LintCode.avoid_positional_boolean_parameters:
@@ -1955,7 +1953,7 @@ LintCode.avoid_single_cascade_in_expression_statements:
 LintCode.avoid_slow_async_io:
   status: needsFix
   notes: |-
-    The fix is to use the corresponding synch method and to remove the `await`,
+    The fix is to use the corresponding sync method and to remove the `await`,
     but it's probably very seldom needed, so it's low priority.
 LintCode.avoid_type_to_string:
   status: noFix
@@ -1989,9 +1987,7 @@ LintCode.cancel_subscriptions:
 LintCode.cascade_invocations:
   status: hasFix
 LintCode.cast_nullable_to_non_nullable:
-  status: needsFix
-  notes: |-
-    The fix is to add an explicit null check (`!`).
+  status: hasFix
 LintCode.close_sinks:
   status: noFix
 LintCode.collection_methods_unrelated_type:
@@ -2009,9 +2005,10 @@ LintCode.conditional_uri_does_not_exist:
     The fix is to create the file, but typically that means running a generator,
     which is outside the scope of fixes.
 LintCode.constant_identifier_names:
-  status: noFix
+  status: hasFix
   notes: |-
-    The fix is to rename the constant, but that's a refactoring.
+    Supported for local variables.
+    Not supported for fields and top-level variables, has to be a refactoring.
 LintCode.control_flow_in_finally:
   status: noFix
 LintCode.curly_braces_in_flow_control_structures:
@@ -2061,7 +2058,7 @@ LintCode.file_names:
 LintCode.flutter_style_todos:
   status: noFix
   notes: |-
-    The fix would be to convert the existing TODO to the approriate style, but
+    The fix would be to convert the existing TODO to the appropriate style, but
     that can't reliably be done.
 LintCode.hash_and_equals:
   status: hasFix
@@ -2074,9 +2071,7 @@ LintCode.implementation_imports:
 LintCode.implicit_call_tearoffs:
   status: hasFix
 LintCode.implicit_reopen:
-  status: needsFix
-  notes: |-
-    The correction is to add `@reopen`.
+  status: hasFix
 LintCode.invalid_case_patterns:
   status: hasFix
 LintCode.invariant_booleans:
@@ -2122,7 +2117,7 @@ LintCode.matching_super_parameters:
 LintCode.missing_whitespace_between_adjacent_strings:
   status: needsFix
   notes: |-
-    The fix is to add the whitepace. Might require a preference to know which
+    The fix is to add the whitespace. Might require a preference to know which
     string to add it to.
 LintCode.no_adjacent_strings_in_list:
   status: needsFix
@@ -2140,14 +2135,18 @@ LintCode.no_leading_underscores_for_library_prefixes:
 LintCode.no_leading_underscores_for_local_identifiers:
   status: hasFix
 LintCode.no_literal_bool_comparisons:
-  status: needsFix
-  notes: The fix is to remove `== true` etc.
+  status: hasFix
 LintCode.no_logic_in_create_state:
   status: noFix
 LintCode.no_runtimeType_toString:
   status: noFix
+LintCode.no_self_assignments:
+  status: needsEvaluation
 LintCode.non_constant_identifier_names:
   status: hasFix
+  notes: |-
+    Supported for local variables.
+    Not supported for fields and top-level variables, has to be a refactoring.
 LintCode.noop_primitive_operations:
   status: hasFix
 LintCode.null_check_on_nullable_type_parameter:
@@ -2185,7 +2184,7 @@ LintCode.package_prefixed_library_names:
 LintCode.parameter_assignments:
   status: noFix
   notes: |-
-    Theoratically we could assign the parameter to a local variable and replace
+    Theoretically we could assign the parameter to a local variable and replace
     all references to the parameter with a reference to the variable, but that
     would require choosing a name for the local variable.
 LintCode.prefer_adjacent_string_concatenation:
@@ -2361,10 +2360,7 @@ LintCode.unnecessary_null_aware_assignments:
 LintCode.unnecessary_null_aware_operator_on_extension_on_nullable:
   status: needsFix
 LintCode.unnecessary_null_checks:
-  status: needsFix
-  notes: |-
-    The fix is to remove the null check. Note that 'unnecessary' isn't right
-    here; the check isn't unnecessary, it's dangerous.
+  status: hasFix
 LintCode.unnecessary_null_in_if_null_operators:
   status: hasFix
 LintCode.unnecessary_nullable_for_final_variable_declarations:
@@ -2384,7 +2380,7 @@ LintCode.unnecessary_string_interpolations:
 LintCode.unnecessary_this:
   status: hasFix
 LintCode.unnecessary_to_list_in_spreads:
-  status: needsFix
+  status: hasFix
 LintCode.unreachable_from_main:
   status: noFix
   notes: |-
@@ -2434,10 +2430,7 @@ LintCode.use_string_buffers:
   notes: |-
     It isn't clear that this occurs often enough to justify the cost.
 LintCode.use_string_in_part_of_directives:
-  status: needsFix
-  notes: |-
-    There should be a fix to replace the library name with the URI of the
-    library.
+  status: hasFix
 LintCode.use_super_parameters:
   status: hasFix
 LintCode.use_test_throws_matchers:
@@ -2839,6 +2832,12 @@ ParserErrorCode.GETTER_WITH_PARAMETERS:
   status: hasFix
 ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE:
   status: noFix
+ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME:
+  status: needsEvaluation
+ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME:
+  status: needsEvaluation
+ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME:
+  status: needsEvaluation
 ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS:
   status: needsFix
   notes: |-
@@ -3091,7 +3090,7 @@ ParserErrorCode.NAMED_FUNCTION_TYPE:
 ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP:
   status: needsFix
   notes: |-
-    Move it inside a group, creating the group if it doesn't alreay exist.
+    Move it inside a group, creating the group if it doesn't already exist.
 ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE:
   status: needsFix
   notes: |-
@@ -3226,7 +3225,7 @@ ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR:
 ParserErrorCode.TYPEDEF_IN_CLASS:
   status: needsFix
   notes: |-
-    Move the typdef to the top level.
+    Move the typedef to the top level.
 ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
   status: needsFix
   notes: |-

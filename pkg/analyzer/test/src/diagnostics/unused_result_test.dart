@@ -1014,9 +1014,9 @@ void f(A a) {
 ''');
   }
 
-  test_method_result_switchCondition_language218() async {
+  test_method_result_switchCondition_language219() async {
     await assertNoErrorsInCode('''
-// @dart = 2.18
+// @dart = 2.19
 import 'package:meta/meta.dart';
 
 class A {
@@ -1219,6 +1219,40 @@ import 'c.dart' as c;
 
 /// [c.A.b].
 const a = 'a';
+''');
+  }
+
+  test_recordLiteral() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  (bool, bool) m() {
+    return (true, methodWithAnnotation());
+  }
+
+  @useResult
+  bool methodWithAnnotation() => true;
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/52314
+  test_switchExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  bool m(Object o) {
+    return switch (o) {
+      String() => methodWithAnnotation(),
+      _ => false,
+    };
+  }
+
+  @useResult
+  bool methodWithAnnotation() => true;
+}
 ''');
   }
 
@@ -1539,5 +1573,20 @@ void main() {
 ''', [
       error(WarningCode.UNUSED_RESULT, 75, 3),
     ]);
+  }
+
+  test_whenClause() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  void m(Object o) {
+    if (o case String() when methodWithAnnotation()) print(o);
+  }
+
+  @useResult
+  bool methodWithAnnotation() => true;
+}
+''');
   }
 }

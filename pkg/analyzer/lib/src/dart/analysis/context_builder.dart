@@ -15,7 +15,11 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
     show ByteStore, MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriver, AnalysisDriverScheduler, AnalysisDriverTestView;
+    show
+        AnalysisDriver,
+        AnalysisDriverScheduler,
+        AnalysisDriverTestView,
+        OwnedFiles;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
@@ -61,17 +65,17 @@ class ContextBuilderImpl implements ContextBuilder {
     String? sdkPath,
     String? sdkSummaryPath,
     @Deprecated('Use updateAnalysisOptions2')
-        void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required ContextRoot contextRoot,
       required DartSdk sdk,
-    })?
-        updateAnalysisOptions2,
+    })? updateAnalysisOptions2,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     MacroKernelBuilder? macroKernelBuilder,
     macro.MultiMacroExecutor? macroExecutor,
+    OwnedFiles? ownedFiles,
   }) {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
@@ -149,6 +153,7 @@ class ContextBuilderImpl implements ContextBuilder {
       macroExecutor: macroExecutor,
       declaredVariables: declaredVariables,
       testView: retainDataForTesting ? AnalysisDriverTestView() : null,
+      ownedFiles: ownedFiles,
     );
 
     // AnalysisDriver reports results into streams.

@@ -53,7 +53,7 @@ import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
 import 'kernel/kernel_world.dart';
 import 'null_compiler_output.dart' show NullCompilerOutput;
-import 'options.dart' show CompilerOptions;
+import 'options.dart' show CompilerOptions, Dart2JSStage;
 import 'phase/load_kernel.dart' as load_kernel;
 import 'phase/modular_analysis.dart' as modular_analysis;
 import 'resolution/enqueuer.dart';
@@ -126,11 +126,13 @@ class Compiler {
 
   Progress progress = const Progress();
 
-  static const int PHASE_SCANNING = 0;
-  static const int PHASE_RESOLVING = 1;
-  static const int PHASE_DONE_RESOLVING = 2;
-  static const int PHASE_COMPILING = 3;
-  int? phase;
+  static const int RESOLUTION_STATUS_SCANNING = 0;
+  static const int RESOLUTION_STATUS_RESOLVING = 1;
+  static const int RESOLUTION_STATUS_DONE_RESOLVING = 2;
+  static const int RESOLUTION_STATUS_COMPILING = 3;
+  int? resolutionStatus;
+
+  Dart2JSStage get stage => options.stage;
 
   bool compilationFailed = false;
 
@@ -294,7 +296,6 @@ class Compiler {
   Future runInternal() async {
     clearState();
     var compilationTarget = options.compilationTarget;
-    assert(compilationTarget != null);
     reporter.log('Compiling $compilationTarget (${options.buildId})');
 
     if (options.readProgramSplit != null) {
@@ -358,7 +359,7 @@ class Compiler {
     // this until after the resolution queue is processed.
     deferredLoadTask.beforeResolution(rootLibraryUri, libraries);
 
-    phase = PHASE_RESOLVING;
+    resolutionStatus = RESOLUTION_STATUS_RESOLVING;
     resolutionEnqueuer.applyImpact(mainImpact);
     if (options.showInternalProgress) reporter.log('Computing closed world');
 
@@ -390,7 +391,7 @@ class Compiler {
   }
 
   Future<load_kernel.Output?> produceKernel() async {
-    if (shouldComputeClosedWorld) {
+    if (!stage.shouldReadClosedWorld) {
       load_kernel.Output? output = await loadKernel();
       if (output == null || compilationFailed) return null;
       ir.Component component = output.component;
@@ -400,7 +401,7 @@ class Compiler {
       if (options.features.newDumpInfo.isEnabled && options.dumpInfo) {
         untrimmedComponentForDumpInfo = component;
       }
-      if (options.cfeOnly) {
+      if (stage.shouldOnlyComputeDill) {
         // [ModuleData] must be deserialized with the full component, i.e.
         // before trimming.
         ModuleData? moduleData;
@@ -409,7 +410,7 @@ class Compiler {
         }
 
         Set<Uri> includedLibraries = output.libraries!.toSet();
-        if (options.fromDill) {
+        if (stage.shouldLoadFromDill) {
           if (options.dumpUnusedLibraries) {
             dumpUnusedLibraries(component, includedLibraries);
           }
@@ -439,7 +440,7 @@ class Compiler {
   }
 
   bool shouldStopAfterLoadKernel(load_kernel.Output? output) =>
-      output == null || compilationFailed || options.cfeOnly;
+      output == null || compilationFailed || stage.shouldOnlyComputeDill;
 
   void simplifyConstConditionals(ir.Component component) {
     void reportMessage(
@@ -470,7 +471,7 @@ class Compiler {
   }
 
   bool get usingModularAnalysis =>
-      options.modularMode || options.hasModularAnalysisInputs;
+      stage.shouldComputeModularAnalysis || options.hasModularAnalysisInputs;
 
   Future<ModuleData> runModularAnalysis(
       load_kernel.Output output, Set<Uri> moduleLibraries) async {
@@ -484,10 +485,10 @@ class Compiler {
 
   Future<ModuleData> produceModuleData(load_kernel.Output output) async {
     ir.Component component = output.component;
-    if (options.modularMode) {
+    if (stage.shouldComputeModularAnalysis) {
       Set<Uri> moduleLibraries = output.moduleLibraries!.toSet();
       ModuleData moduleData = await runModularAnalysis(output, moduleLibraries);
-      if (options.writeModularAnalysisUri != null && !compilationFailed) {
+      if (!compilationFailed) {
         serializationTask.testModuleSerialization(moduleData, component);
         serializationTask.serializeModuleData(
             moduleData, component, moduleLibraries);
@@ -499,7 +500,7 @@ class Compiler {
   }
 
   bool get shouldStopAfterModularAnalysis =>
-      compilationFailed || options.writeModularAnalysisUri != null;
+      compilationFailed || stage.shouldComputeModularAnalysis;
 
   GlobalTypeInferenceResults performGlobalTypeInference(
       JClosedWorld closedWorld) {
@@ -581,13 +582,11 @@ class Compiler {
         globalTypeInferenceResultsData);
   }
 
-  bool get shouldComputeClosedWorld => options.readClosedWorldUri == null;
-
   Future<DataAndIndices<JClosedWorld>?> produceClosedWorld(
       load_kernel.Output output, ModuleData? moduleData) async {
     ir.Component component = output.component;
     DataAndIndices<JClosedWorld> closedWorldAndIndices;
-    if (shouldComputeClosedWorld) {
+    if (!stage.shouldReadClosedWorld) {
       if (!usingModularAnalysis) {
         // If we're deserializing the closed world, the input .dill already
         // contains the modified AST, so the transformer only needs to run if
@@ -608,7 +607,7 @@ class Compiler {
       final closedWorld =
           computeClosedWorld(component, moduleData, rootLibraryUri, libraries);
       closedWorldAndIndices = DataAndIndices<JClosedWorld>(closedWorld, null);
-      if (options.writeClosedWorldUri != null) {
+      if (stage == Dart2JSStage.closedWorld) {
         serializationTask.serializeComponent(
             closedWorld!.elementMap.programEnv.mainComponent,
             includeSourceBytes: false);
@@ -628,26 +627,22 @@ class Compiler {
     return closedWorldAndIndices;
   }
 
-  bool get shouldStopAfterClosedWorldFromFlags =>
-      stopAfterClosedWorldForTesting ||
-      options.stopAfterProgramSplit ||
-      options.writeClosedWorldUri != null;
-
   bool shouldStopAfterClosedWorld(
           DataAndIndices<JClosedWorld>? closedWorldAndIndices) =>
       closedWorldAndIndices == null ||
       closedWorldAndIndices.data == null ||
-      shouldStopAfterClosedWorldFromFlags;
+      stage == Dart2JSStage.closedWorld ||
+      stopAfterClosedWorldForTesting;
 
   Future<DataAndIndices<GlobalTypeInferenceResults>>
       produceGlobalTypeInferenceResults(
           DataAndIndices<JClosedWorld> closedWorldAndIndices) async {
     JClosedWorld closedWorld = closedWorldAndIndices.data!;
     DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults;
-    if (options.readDataUri == null) {
+    if (!stage.shouldReadGlobalInference) {
       globalTypeInferenceResults =
           DataAndIndices(performGlobalTypeInference(closedWorld), null);
-      if (options.writeDataUri != null) {
+      if (stage == Dart2JSStage.globalInference) {
         serializationTask.serializeGlobalTypeInference(
             globalTypeInferenceResults.data!, closedWorldAndIndices.indices!);
       } else if (options.testMode) {
@@ -667,13 +662,14 @@ class Compiler {
   }
 
   bool get shouldStopAfterGlobalTypeInference =>
-      options.writeDataUri != null || stopAfterGlobalTypeInferenceForTesting;
+      stage == Dart2JSStage.globalInference ||
+      stopAfterGlobalTypeInferenceForTesting;
 
   CodegenInputs initializeCodegen(
       GlobalTypeInferenceResults globalTypeInferenceResults) {
     backendStrategy
         .registerJClosedWorld(globalTypeInferenceResults.closedWorld);
-    phase = PHASE_COMPILING;
+    resolutionStatus = RESOLUTION_STATUS_COMPILING;
     return backendStrategy.onCodegenStart(globalTypeInferenceResults);
   }
 
@@ -683,10 +679,10 @@ class Compiler {
     final globalTypeInferenceData = globalTypeInferenceResults.data!;
     CodegenInputs codegenInputs = initializeCodegen(globalTypeInferenceData);
     CodegenResults codegenResults;
-    if (options.readCodegenUri == null) {
+    if (!stage.shouldReadCodegenShards) {
       codegenResults = OnDemandCodegenResults(globalTypeInferenceData,
           codegenInputs, backendStrategy.functionCompiler);
-      if (options.writeCodegenUri != null) {
+      if (stage == Dart2JSStage.codegenSharded) {
         serializationTask.serializeCodegen(backendStrategy, codegenResults,
             globalTypeInferenceResults.indices!);
       }
@@ -702,17 +698,13 @@ class Compiler {
     return codegenResults;
   }
 
-  bool get shouldStopAfterCodegen => options.writeCodegenUri != null;
+  bool get shouldStopAfterCodegen => stage == Dart2JSStage.codegenSharded;
 
   // Only use deferred reads for linker phase where we are not creating an info
   // dump. Creating an info dump ends up hitting all the deferred entities
   // anyway.
   bool get useDeferredSourceReads =>
-      !shouldStopAfterClosedWorldFromFlags &&
-      !shouldStopAfterGlobalTypeInference &&
-      !shouldStopAfterCodegen &&
-      !shouldStopAfterModularAnalysis &&
-      !options.dumpInfo;
+      stage == Dart2JSStage.jsEmitter && !options.dumpInfo;
 
   Future<void> runSequentialPhases() async {
     // Load kernel.
@@ -778,7 +770,7 @@ class Compiler {
   /// Perform the steps needed to fully end the resolution phase.
   JClosedWorld closeResolution(FunctionEntity mainFunction,
       ResolutionWorldBuilder resolutionWorldBuilder) {
-    phase = PHASE_DONE_RESOLVING;
+    resolutionStatus = RESOLUTION_STATUS_DONE_RESOLVING;
 
     KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);
     OutputUnitData result = deferredLoadTask.run(mainFunction, kClosedWorld);
@@ -834,7 +826,8 @@ class Compiler {
   }
 
   void showResolutionProgress(Enqueuer enqueuer) {
-    assert(phase == PHASE_RESOLVING, 'Unexpected phase: $phase');
+    assert(resolutionStatus == RESOLUTION_STATUS_RESOLVING,
+        'Unexpected phase: $resolutionStatus');
     progress.showProgress(
         'Resolved ', enqueuer.processedEntities.length, ' elements.');
   }
@@ -919,7 +912,7 @@ class Compiler {
   /// context.
   SourceSpan spanFromSpannable(Spannable spannable, Entity? currentElement) {
     SourceSpan span;
-    if (phase == Compiler.PHASE_COMPILING) {
+    if (resolutionStatus == Compiler.RESOLUTION_STATUS_COMPILING) {
       span = backendStrategy.spanFromSpannable(spannable, currentElement);
     } else {
       span = frontendStrategy.spanFromSpannable(spannable, currentElement);

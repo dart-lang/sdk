@@ -410,20 +410,20 @@ library;
 //   var map60 = {for (; "not bool";) "bar": 42, "baz": null};
 //                       ^
 //
-// pkg/front_end/testcases/general/control_flow_collection_inference.dart:257:26: Error: The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
+// pkg/front_end/testcases/general/control_flow_collection_inference.dart:257:9: Error: The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
 // Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.
 //   <int>[await for (int i in stream) i];
-//                          ^^
+//         ^^^^^
 //
-// pkg/front_end/testcases/general/control_flow_collection_inference.dart:258:26: Error: The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
+// pkg/front_end/testcases/general/control_flow_collection_inference.dart:258:9: Error: The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
 // Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.
 //   <int>{await for (int i in stream) i};
-//                          ^^
+//         ^^^^^
 //
-// pkg/front_end/testcases/general/control_flow_collection_inference.dart:259:34: Error: The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
+// pkg/front_end/testcases/general/control_flow_collection_inference.dart:259:17: Error: The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
 // Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.
 //   <String, int>{await for (int i in stream) "bar": i};
-//                                  ^^
+//                 ^^^^^
 //
 import self as self;
 import "dart:core" as core;

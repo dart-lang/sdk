@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
@@ -725,6 +725,9 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.GETTER_IN_FUNCTION,
   ParserErrorCode.GETTER_WITH_PARAMETERS,
   ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE,
+  ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME,
+  ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME,
+  ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME,
   ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS,
   ParserErrorCode.IMPLEMENTS_BEFORE_ON,
   ParserErrorCode.IMPLEMENTS_BEFORE_WITH,

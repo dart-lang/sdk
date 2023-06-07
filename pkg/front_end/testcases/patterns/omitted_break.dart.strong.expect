@@ -15,7 +15,7 @@ class Enum extends core::_Enum /*isEnum*/  {
 }
 static method method(dynamic e) → dynamic {
   #L1:
-  switch(e) {
+  switch(e) /* dynamic */ {
     #L2:
     case #C1:
       {
@@ -64,7 +64,7 @@ static method method(dynamic e) → dynamic {
 }
 static method method2(self::Enum e) → dynamic {
   #L6:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum */ {
     #L7:
     case #C3:
       {

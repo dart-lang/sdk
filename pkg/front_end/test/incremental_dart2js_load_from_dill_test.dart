@@ -32,7 +32,7 @@ Future<void> main() async {
 }
 
 Future<void> testDart2jsCompile() async {
-  final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/bin/dart2js.dart");
+  final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/lib/src/dart2js.dart");
   final Uri invalidateUri =
       Uri.parse("package:_fe_analyzer_shared/src/util/filenames.dart");
   Uri normalDill = outDir.uri.resolve("dart2js.full.dill");

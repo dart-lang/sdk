@@ -16,6 +16,7 @@ analyzer:
     omit_local_variable_types: ignore
     # There are currently 20 violations.
     unawaited_futures: ignore
+    todo: ignore
 
   language:
     strict-casts: true

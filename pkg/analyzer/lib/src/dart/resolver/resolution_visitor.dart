@@ -122,7 +122,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var namedTypeResolver = NamedTypeResolver(
       libraryElement,
-      typeProvider,
       isNonNullableByDefault,
       errorReporter,
     );
@@ -408,7 +407,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _elementHolder.enclose(element);
     _define(element);
     element.hasImplicitType = node.type == null;
-    element.type = node.type?.type ?? _dynamicType;
+    element.type = node.type?.type ?? InvalidTypeImpl.instance;
     node.declaredElement = element;
 
     var patternContext = node.patternContext;
@@ -1754,7 +1753,7 @@ class _VariableBinder
       ),
     )
       ..enclosingElement = first.enclosingElement
-      ..type = typeProvider.dynamicType;
+      ..type = InvalidTypeImpl.instance;
   }
 }
 

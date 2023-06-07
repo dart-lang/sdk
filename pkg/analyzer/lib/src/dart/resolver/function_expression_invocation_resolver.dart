@@ -88,8 +88,10 @@ class FunctionExpressionInvocationResolver {
           function,
         );
       }
-      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
-          contextType: contextType);
+      final type = result.isGetterInvalid
+          ? InvalidTypeImpl.instance
+          : DynamicTypeImpl.instance;
+      _unresolved(node, type, whyNotPromotedList, contextType: contextType);
       return;
     }
 
@@ -98,7 +100,7 @@ class FunctionExpressionInvocationResolver {
         CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
         function,
       );
-      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
+      _unresolved(node, InvalidTypeImpl.instance, whyNotPromotedList,
           contextType: contextType);
       return;
     }
@@ -161,7 +163,7 @@ class FunctionExpressionInvocationResolver {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
         function,
-        [function.extensionName.name],
+        [function.name.lexeme],
       );
       return _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
           contextType: contextType);
@@ -189,7 +191,7 @@ class FunctionExpressionInvocationResolver {
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList)
         .resolveInvocation(rawType: null);
-    node.staticInvokeType = DynamicTypeImpl.instance;
+    node.staticInvokeType = type;
     node.staticType = type;
   }
 

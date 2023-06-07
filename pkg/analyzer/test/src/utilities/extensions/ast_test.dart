@@ -42,6 +42,21 @@ library myLib;
     node as CompilationUnit;
   }
 
+  Future<void> test_atBOF_atClass() async {
+    var node = await coveringNode('''
+^class A {}
+''');
+    node as ClassDeclaration;
+  }
+
+  Future<void> test_atBOF_atComment() async {
+    var node = await coveringNode('''
+^// comment
+class A {}
+''');
+    node as CompilationUnit;
+  }
+
   Future<void> test_atEOF() async {
     var node = await coveringNode('''
 library myLib;

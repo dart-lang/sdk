@@ -99,6 +99,14 @@ final class B {}
     ]);
   }
 
+  test_interfaceType2_matchedDouble_requiredInt() async {
+    await assertNoErrorsInCode('''
+void f(double x) {
+  if (x case int _) {}
+}
+''');
+  }
+
   test_interfaceType2_matchedFinal_hasSubtypes_noneImplementsRequired() async {
     await assertErrorsInCode('''
 void f(A x) {
@@ -209,6 +217,33 @@ mixin class R {}
 ''');
   }
 
+  test_interfaceType2_matchedFinal_requiredFutureOrIt() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+final class A {}
+
+void f(A x) {
+  if (x case FutureOr<A> _) {}
+}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_requiredFutureOrOther() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+
+final class A {}
+class B {}
+
+void f(A x) {
+  if (x case FutureOr<B> _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 78, 11),
+    ]);
+  }
+
   test_interfaceType2_matchedFinal_requiredUnrelated() async {
     await assertErrorsInCode('''
 void f(A x) {
@@ -220,6 +255,77 @@ class R {}
 ''', [
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
     ]);
+  }
+
+  test_interfaceType2_matchedFutureFinal_requiredFutureOrIt() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+final class A {}
+
+void f(Future<A> x) {
+  if (x case FutureOr<A> _) {}
+}
+''');
+  }
+
+  test_interfaceType2_matchedFutureOrFinal_requiredFutureIt() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+final class A {}
+
+void f(FutureOr<A> x) {
+  if (x case Future<A> _) {}
+}
+''');
+  }
+
+  test_interfaceType2_matchedFutureOrFinal_requiredFutureOrIt() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+final class A {}
+
+void f(FutureOr<A> x) {
+  if (x case FutureOr<A> _) {}
+}
+''');
+  }
+
+  test_interfaceType2_matchedFutureOrFinal_requiredIt() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+final class A {}
+
+void f(FutureOr<A> x) {
+  if (x case A _) {}
+}
+''');
+  }
+
+  /// `Future` is an interface, so there can be a class that implements both
+  /// `B` and `Future<A>`.
+  test_interfaceType2_matchedFutureOrFinal_requiredOther() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+final class A {}
+class B {}
+
+void f(FutureOr<A> x) {
+  if (x case B _) {}
+}
+''');
+  }
+
+  test_interfaceType2_matchedInt_requiredDouble() async {
+    await assertNoErrorsInCode('''
+void f(int x) {
+  if (x case double _) {}
+}
+''');
   }
 
   test_interfaceType2_matchedObject_requiredClass() async {

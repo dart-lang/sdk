@@ -240,8 +240,6 @@ def Main():
     options = parser.parse_args()
 
     targets = options.build_targets
-    if len(targets) == 0:
-        targets = ['all']
 
     if not gn_py.ProcessOptions(options):
         parser.print_help()
@@ -252,6 +250,19 @@ def Main():
     # effect.
     env = dict(os.environ)
     env.update(SanitizerEnvironmentVariables())
+
+    # macOS's python sets CPATH, LIBRARY_PATH, SDKROOT implicitly.
+    #
+    # See:
+    #
+    #   * https://openradar.appspot.com/radar?id=5608755232243712
+    #   * https://github.com/dart-lang/sdk/issues/52411
+    #
+    # Remove these environment variables to avoid affecting clang's behaviors.
+    if sys.platform == 'darwin':
+        env.pop('CPATH', None)
+        env.pop('LIBRARY_PATH', None)
+        env.pop('SDKROOT', None)
 
     # Always run GN before building.
     gn_py.RunGnOnConfiguredConfigurations(options)

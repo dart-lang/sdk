@@ -17,6 +17,7 @@ class Bar {
   Foo foo = Foo();
 }
 
+@pragma('vm:entry-point') // prevent obfuscation
 base class NativeClass extends NativeFieldWrapperClass1 {}
 
 class MockNativeClass implements NativeFieldWrapperClass1 {}
@@ -27,6 +28,7 @@ class Baz {
   Baz();
 }
 
+@pragma('vm:entry-point') // prevent obfuscation
 class Fu {
   String label;
   Bar bar = Bar();
@@ -38,11 +40,14 @@ class Fu {
   }
 }
 
+@pragma('vm:entry-point') // prevent obfuscation
 @pragma("vm:isolate-unsendable")
 class Locked {}
 
+@pragma('vm:entry-point') // prevent obfuscation
 class ExtendsLocked extends Locked {}
 
+@pragma('vm:entry-point') // prevent obfuscation
 class ImplementsLocked implements Locked {}
 
 Future<T> sendAndReceive<T>(T object) async {
@@ -107,7 +112,7 @@ main() async {
     Expect.throws(() {
       final z = Zone.current;
       rp.sendPort.send(Zone.current);
-    }, (e) => checkForRetainingPath(e, <String>['Zone']));
+    }, (e) => e is ArgumentError);
   }, zoneValues: {0: 1});
 
   rp.close();

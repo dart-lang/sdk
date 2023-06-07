@@ -139,6 +139,46 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  Future<void> test_class_withSuper_first() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final int field;
+  MyWidget() : super(), field = 0;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final int field;
+  MyWidget({super.key}) : field = 0;
+}
+''', errorFilter: lintNameFilter(LintNames.use_key_in_widget_constructors));
+  }
+
+  Future<void> test_class_withSuper_middle() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final int field1;
+  final int field2;
+  MyWidget() : field1 = 1, super(), field2 = 2;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final int field1;
+  final int field2;
+  MyWidget({super.key}) : field1 = 1, field2 = 2;
+}
+''', errorFilter: lintNameFilter(LintNames.use_key_in_widget_constructors));
+  }
+
   Future<void> test_constructor_namedParameters_withoutSuper() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';

@@ -253,7 +253,7 @@ def HostArchitectures():
     else:
         if m in ['aarch64', 'arm64', 'arm64e', 'ARM64']:
             return ['arm64']
-        if m in ['armv7l']:
+        if m in ['armv7l', 'armv8l']:
             return ['arm']
         if m in ['i386', 'i686', 'ia32', 'x86']:
             return ['x86', 'ia32']

@@ -2210,6 +2210,9 @@ abstract class ExtensionOverride implements Expression {
   /// contain a single argument, which evaluates to the object being extended.
   ArgumentList get argumentList;
 
+  /// The forced extension element.
+  ExtensionElement get element;
+
   /// Return the actual type extended by this override, produced by applying
   /// [typeArgumentTypes] to the generic type extended by the extension.
   ///
@@ -2217,14 +2220,22 @@ abstract class ExtensionOverride implements Expression {
   DartType? get extendedType;
 
   /// Return the name of the extension being selected.
+  @Deprecated('Use importPrefix, name, and element instead')
   Identifier get extensionName;
+
+  /// The optional import prefix before [name].
+  ImportPrefixReference? get importPrefix;
 
   /// Whether this override is null aware (as opposed to non-null).
   bool get isNullAware;
 
+  /// The name of the extension being selected.
+  Token get name;
+
   /// Return the forced extension element.
   ///
   /// Return `null` if the AST structure has not been resolved.
+  @Deprecated('Use element instead')
   ExtensionElement? get staticElement;
 
   /// Return the type arguments to be applied to the extension, or `null` if no

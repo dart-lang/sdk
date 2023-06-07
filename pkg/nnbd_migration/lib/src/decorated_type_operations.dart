@@ -81,8 +81,12 @@ class DecoratedTypeOperations
 
   @override
   bool isDynamic(DecoratedType type) {
-    // TODO: implement isDynamic
-    throw UnimplementedError();
+    return type is DynamicType;
+  }
+
+  @override
+  bool isError(DecoratedType type) {
+    return type is InvalidType;
   }
 
   @override

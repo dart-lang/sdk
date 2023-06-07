@@ -298,11 +298,9 @@ class _WasmTransformer extends Transformer {
       VariableDeclaration completer, int fileOffset) {
     Procedure completerFuture =
         coreTypes.index.getProcedure('dart:async', 'Completer', 'get:future');
-    FunctionType completerFutureType =
-        Substitution.fromInterfaceType(completerBoolType).substituteType(
-                completerFuture.function
-                    .computeThisFunctionType(Nullability.nonNullable))
-            as FunctionType;
+    // Future<bool>
+    DartType completerFutureType = InterfaceType(coreTypes.futureClass,
+        Nullability.nonNullable, [coreTypes.boolNonNullableRawType]);
     return AwaitExpression(InstanceGet(
         InstanceAccessKind.Instance, VariableGet(completer), Name('future'),
         interfaceTarget: completerFuture, resultType: completerFutureType)
@@ -332,21 +330,26 @@ class _WasmTransformer extends Transformer {
     //     Future<void> Function() #body = () async {
     //       Completer<bool> #completer = Completer<bool>();
     //       #controller.add(#completer);
-    //       await #completer.future;
-    //       ...
-    //       #controller.add(i);
-    //       #completer = Completer<bool>();
-    //       #controller.add(#completer)
-    //       await #completer.future;
-    //       ...
-    //       await for (var i in bar) {
+    //       try {
+    //         await #completer.future;
+    //         ...
     //         #controller.add(i);
     //         #completer = Completer<bool>();
     //         #controller.add(#completer)
     //         await #completer.future;
+    //         ...
+    //         await for (var i in bar) {
+    //           #controller.add(i);
+    //           #completer = Completer<bool>();
+    //           #controller.add(#completer)
+    //           await #completer.future;
+    //         }
+    //         ...
+    //       } catch (e) {
+    //         #controller.addError(e);
+    //       } finally {
+    //         #controller.close();
     //       }
-    //       ...
-    //       #controller.close();
     //     };
     //     bool isEven = false;
     //     bool isFirst = true;
@@ -413,15 +416,45 @@ class _WasmTransformer extends Transformer {
         functionNode.body?.accept<TreeNode>(this) as Statement?;
     _asyncStarFrames.removeLast();
 
+    // Try-catch-finally around the body to call `controller.addError` and
+    // `controller.close`.
+    final exceptionVar = VariableDeclaration(null, isSynthesized: true);
+    final Procedure controllerAddErrorProc = coreTypes.index
+        .getProcedure('dart:async', 'StreamController', 'addError');
+    final FunctionType controllerAddErrorType =
+        Substitution.fromInterfaceType(controllerNullableObjectType)
+                .substituteType(controllerAddErrorProc.function
+                    .computeThisFunctionType(Nullability.nonNullable))
+            as FunctionType;
+    final tryCatch = TryCatch(
+      Block([
+        ExpressionStatement(_awaitCompleterFuture(completer, fileOffset)),
+        if (transformedBody != null) transformedBody,
+      ]),
+      [
+        Catch(
+          exceptionVar,
+          ExpressionStatement(InstanceInvocation(
+            InstanceAccessKind.Instance,
+            VariableGet(controller),
+            Name('addError'),
+            Arguments([VariableGet(exceptionVar)]),
+            interfaceTarget: controllerAddErrorProc,
+            functionType: controllerAddErrorType,
+          )),
+        )
+      ],
+    );
+    final tryFinally =
+        TryFinally(tryCatch, ExpressionStatement(callControllerClose));
+
     // Locally declare body function.
     final bodyFunction = FunctionNode(
         Block([
           completer,
           ExpressionStatement(
               _addCompleterToController(controller, completer, fileOffset)),
-          ExpressionStatement(_awaitCompleterFuture(completer, fileOffset)),
-          if (transformedBody != null) transformedBody,
-          ExpressionStatement(callControllerClose),
+          tryFinally,
         ]),
         futureValueType: const VoidType(),
         returnType: InterfaceType(
@@ -489,7 +522,7 @@ class _WasmTransformer extends Transformer {
             ]),
             null),
         IfStatement(
-            IsExpression(VariableGet(completerPrePassArg), completerBoolType),
+            Not(VariableGet(isEven)),
             ExpressionStatement(InstanceInvocation(
                 InstanceAccessKind.Instance,
                 VariableGet(completerPrePassArg),
@@ -617,7 +650,7 @@ class _WasmTransformer extends Transformer {
     if (isYieldStar) {
       DartType awaitVarType = const DynamicType();
       if (yieldExpressionType is InterfaceType) {
-        Class cls = yieldExpressionType.className.asClass;
+        Class cls = yieldExpressionType.classReference.asClass;
         if (cls == coreTypes.streamClass) {
           awaitVarType = yieldExpressionType.typeArguments.single;
         }

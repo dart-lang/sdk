@@ -105,6 +105,7 @@ class NormalizeHelper {
 
     // NORM(T) = T if T is primitive
     if (identical(T, DynamicTypeImpl.instance) ||
+        identical(T, InvalidTypeImpl.instance) ||
         identical(T, NeverTypeImpl.instance) ||
         identical(T, VoidTypeImpl.instance) ||
         T_nullability == NullabilitySuffix.none &&

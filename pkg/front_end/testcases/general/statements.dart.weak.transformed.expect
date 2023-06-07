@@ -102,7 +102,7 @@ static method main() → dynamic {
     core::print(e);
   }
   #L1:
-  switch(1) {
+  switch(1) /* core::int */ {
     #L2:
     case #C1:
     case #C2:
@@ -117,7 +117,7 @@ static method main() → dynamic {
       }
   }
   #L4:
-  switch(4) {
+  switch(4) /* core::int */ {
     #L5:
     case #C2:
       {
@@ -149,7 +149,7 @@ static method main() → dynamic {
       }
   }
   #L10:
-  switch(4) {
+  switch(4) /* core::int */ {
     #L11:
     case #C1:
       {

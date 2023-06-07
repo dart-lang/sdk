@@ -426,6 +426,112 @@ transforms:
     expect(_changes(transform), isEmpty);
   }
 
+  void test_changeParameterType_named_nullability() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Change parameter type'
+  date: 2023-05-02
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'changeParameterType'
+      name: 'p'
+      nullability: 'non_null'
+      argumentValue:
+        expression: "'newValue'"
+''');
+    var transforms = _transforms('f');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Change parameter type');
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
+    var modifications = change.modifications;
+    expect(modifications, hasLength(1));
+    var modification = modifications[0] as ChangeParameterType;
+    expect(modification.name, 'p');
+    var components = modification.argumentValue!.components;
+    expect(components, hasLength(1));
+    var value = (components[0] as TemplateText).text;
+    expect(value, "'newValue'");
+  }
+
+  void test_changeParameterType_nullabilityKey_absent() {
+    assertErrors('''
+version: 1
+transforms:
+- title: 'Change parameter type'
+  date: 2023-05-02
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'changeParameterType'
+      name: 'p'
+      argumentValue:
+        expression: "'newValue'"
+''', [
+      error(TransformSetErrorCode.missingKey, 145, 98),
+    ]);
+  }
+
+  void test_changeParameterType_oneOf_named_index_keys() {
+    assertErrors('''
+version: 1
+transforms:
+- title: 'Change parameter type'
+  date: 2023-05-02
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'changeParameterType'
+      name: 'p'
+      index: 0
+      nullability: 'non_null'
+      argumentValue:
+        expression: "'newValue'"
+''', [
+      error(TransformSetErrorCode.conflictingKey, 195, 5),
+    ]);
+  }
+
+  void test_changeParameterType_positional_nullability() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Change parameter type'
+  date: 2023-05-02
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'changeParameterType'
+      index: 0
+      nullability: 'non_null'
+      argumentValue:
+        expression: "'newValue'"
+''');
+    var transforms = _transforms('f');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Change parameter type');
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
+    var modifications = change.modifications;
+    expect(modifications, hasLength(1));
+    var modification = modifications[0] as ChangeParameterType;
+    expect(modification.index, 0);
+    var components = modification.argumentValue!.components;
+    expect(components, hasLength(1));
+    var value = (components[0] as TemplateText).text;
+    expect(value, "'newValue'");
+  }
+
   void test_correctOffsetForPlainStrings() {
     assertErrors('''
 version: 1
@@ -727,6 +833,41 @@ transforms:
     var newElement = change.newElement;
     expect(newElement.kind, ElementKind.methodKind);
     expect(newElement.components, ['m', 'C']);
+  }
+
+  void test_replacedBy_target() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Replace'
+  date: 2021-11-30
+  element:
+    uris: ['test.dart']
+    getter: 'f'
+    inClass: 'foo'
+  changes:
+    - kind: 'replacedBy'
+      replaceTarget: true
+      newElement:
+        uris: ['test.dart']
+        method: 'm'
+        inClass: 'C'
+      arguments: [
+        expression : 'context'
+      ]
+''');
+    var transforms = _transforms('f');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Replace');
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ReplacedBy;
+    var newElement = change.newElement;
+    expect(newElement.kind, ElementKind.methodKind);
+    expect(newElement.components, ['m', 'C']);
+    expect(change.replaceTarget, true);
+    expect(change.arguments, hasLength(1));
   }
 
   void test_requiredIf() {

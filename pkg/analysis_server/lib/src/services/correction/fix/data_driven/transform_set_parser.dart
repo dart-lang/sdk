@@ -40,6 +40,7 @@ class ErrorContext {
 
 /// A parser used to read a transform set from a file.
 class TransformSetParser {
+  static const String _arguments = 'arguments';
   static const String _argumentValueKey = 'argumentValue';
   static const String _bulkApplyKey = 'bulkApply';
   static const String _changesKey = 'changes';
@@ -67,8 +68,10 @@ class TransformSetParser {
   static const String _nameKey = 'name';
   static const String _newElementKey = 'newElement';
   static const String _newNameKey = 'newName';
+  static const String _nullabilityKey = 'nullability';
   static const String _oldNameKey = 'oldName';
   static const String _oneOfKey = 'oneOf';
+  static const String _replaceTarget = 'replaceTarget';
   static const String _requiredIfKey = 'requiredIf';
   static const String _setterKey = 'setter';
   static const String _staticKey = 'static';
@@ -95,6 +98,7 @@ class TransformSetParser {
 
   static const String _addParameterKind = 'addParameter';
   static const String _addTypeParameterKind = 'addTypeParameter';
+  static const String _changeParameterTypeKind = 'changeParameterType';
   static const String _fragmentKind = 'fragment';
   static const String _importKind = 'import';
   static const String _removeParameterKind = 'removeParameter';
@@ -109,6 +113,9 @@ class TransformSetParser {
     'required_named',
     'required_positional'
   ];
+
+  /// The valid values for the [_nullabilityKey] in a [_changeParameterTypeKind] change.
+  static const List<String> validNullabilityChanges = ['non_null'];
 
   /// A table mapping the kinds of elements that can be replaced by a different
   /// element to a set of the kinds of elements with which they can be replaced.
@@ -251,7 +258,7 @@ class TransformSetParser {
   /// [node]. A list of [arguments] should be provided if the diagnostic message
   /// has parameters.
   void _reportError(TransformSetErrorCode code, YamlNode node,
-      [List<String>? arguments]) {
+      [List<String> arguments = const []]) {
     var span = node.span;
     errorReporter.reportErrorForOffset(
         code, span.start.offset, span.length, arguments);
@@ -458,6 +465,9 @@ class TransformSetParser {
       } else if (kind == _removeParameterKind) {
         _translateRemoveParameterChange(node);
         return null;
+      } else if (kind == _changeParameterTypeKind) {
+        _translateChangeParameterTypeChange(node);
+        return null;
       } else if (kind == _renameKind) {
         return _translateRenameChange(node);
       } else if (kind == _renameParameterKind) {
@@ -476,6 +486,62 @@ class TransformSetParser {
     } else {
       return _reportInvalidValue(node, context, 'Map');
     }
+  }
+
+  void _translateChangeParameterTypeChange(YamlMap node) {
+    _reportUnsupportedKeys(node, const {
+      _argumentValueKey,
+      _indexKey,
+      _kindKey,
+      _nameKey,
+      _nullabilityKey
+    });
+
+    var parameterSpecKey = _singleKey(node, const [_nameKey, _indexKey], node);
+    if (parameterSpecKey == null) {
+      // The error has already been reported.
+      return;
+    }
+
+    int? index;
+    String? name;
+    if (parameterSpecKey == _indexKey) {
+      index = _translateInteger(node.valueAt(_indexKey),
+          ErrorContext(key: _indexKey, parentNode: node));
+      if (index == null) {
+        // The error has already been reported.
+        return;
+      }
+    } else {
+      name = _translateString(node.valueAt(_nameKey),
+          ErrorContext(key: _nameKey, parentNode: node));
+      if (name == null) {
+        // The error has already been reported.
+        return;
+      }
+    }
+
+    var nullabilityNode = node.valueAt(_nullabilityKey);
+    var nullability = _translateString(
+        nullabilityNode, ErrorContext(key: _nullabilityKey, parentNode: node));
+    if (nullability == null) {
+      // The error has already been reported.
+      return;
+    }
+    if (!validNullabilityChanges.contains(nullability)) {
+      var nullabilityChangeList =
+          validNullabilityChanges.map((value) => value).join(', ');
+      _reportError(TransformSetErrorCode.invalidValueOneOf, nullabilityNode!,
+          [_nullabilityKey, nullabilityChangeList]);
+      return;
+    }
+    var argumentValueNode = node.valueAt(_argumentValueKey);
+    var argumentValue = _translateCodeTemplate(argumentValueNode,
+        ErrorContext(key: _argumentValueKey, parentNode: node),
+        canBeConditionallyRequired: false);
+    _parameterModifications ??= [];
+    _parameterModifications!
+        .add(ChangeParameterType(name, index, nullability, argumentValue));
   }
 
   /// Translate the [node] into a value generator. Return the resulting
@@ -861,7 +927,8 @@ class TransformSetParser {
   /// change, or `null` if the [node] does not represent a valid replaced_by
   /// change.
   ReplacedBy? _translateReplacedByChange(YamlMap node) {
-    _reportUnsupportedKeys(node, const {_kindKey, _newElementKey});
+    _reportUnsupportedKeys(
+        node, const {_arguments, _kindKey, _newElementKey, _replaceTarget});
     var newElement = _translateElement(node.valueAt(_newElementKey),
         ErrorContext(key: _newElementKey, parentNode: node));
     if (newElement == null) {
@@ -885,7 +952,24 @@ class TransformSetParser {
         return null;
       }
     }
-    return ReplacedBy(newElement: newElement);
+    bool? replaceTarget;
+    var replaceTargetNode = node.valueAt(_replaceTarget);
+    replaceTarget = replaceTargetNode == null
+        ? false
+        : _translateBool(replaceTargetNode,
+                ErrorContext(key: _replaceTarget, parentNode: node)) ??
+            false;
+    var argumentsNode = node.valueAt(_arguments);
+    var argumentList = argumentsNode == null
+        ? null
+        : _translateList(
+            argumentsNode,
+            ErrorContext(key: _arguments, parentNode: node),
+            _translateCodeTemplate);
+    return ReplacedBy(
+        newElement: newElement,
+        replaceTarget: replaceTarget,
+        argumentList: argumentList);
   }
 
   /// Translate the [node] into a string. Return the resulting string, or `null`

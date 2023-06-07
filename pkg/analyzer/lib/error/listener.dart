@@ -97,16 +97,27 @@ class ErrorReporter {
 
   /// Report an error with the given [errorCode] and [arguments].
   /// The [node] is used to compute the location of the error.
-  void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
+  void reportErrorForNode(
+    ErrorCode errorCode,
+    AstNode node, [
+    List<Object>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  ]) {
     reportErrorForOffset(
-        errorCode, node.offset, node.length, arguments, messages);
+        errorCode, node.offset, node.length, arguments, messages, data);
   }
 
   /// Report an error with the given [errorCode] and [arguments]. The location
   /// of the error is specified by the given [offset] and [length].
-  void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
-      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
+  void reportErrorForOffset(
+    ErrorCode errorCode,
+    int offset,
+    int length, [
+    List<Object>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  ]) {
     if (lockLevel != 0) {
       return;
     }
@@ -115,7 +126,16 @@ class ErrorReporter {
     messages ??= [];
     messages.addAll(_convertTypeNames(arguments));
     _errorListener.onError(
-        AnalysisError(_source, offset, length, errorCode, arguments, messages));
+      AnalysisError.tmp(
+        source: _source,
+        offset: offset,
+        length: length,
+        errorCode: errorCode,
+        arguments: arguments ?? const [],
+        contextMessages: messages,
+        data: data,
+      ),
+    );
   }
 
   /// Report an error with the given [errorCode] and [arguments]. The location
@@ -127,10 +147,15 @@ class ErrorReporter {
 
   /// Report an error with the given [errorCode] and [arguments]. The [token] is
   /// used to compute the location of the error.
-  void reportErrorForToken(ErrorCode errorCode, Token token,
-      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
+  void reportErrorForToken(
+    ErrorCode errorCode,
+    Token token, [
+    List<Object>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  ]) {
     reportErrorForOffset(
-        errorCode, token.offset, token.length, arguments, messages);
+        errorCode, token.offset, token.length, arguments, messages, data);
   }
 
   /// Report an error with the given [errorCode] and [arguments]. The [node] is

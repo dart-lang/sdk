@@ -78,6 +78,32 @@ void AssemblerBase::StoreToSlotNoBarrier(Register src,
   return StoreIntoObjectNoBarrier(base, address, src);
 }
 
+void AssemblerBase::LoadTypeClassId(Register dst, Register src) {
+  if (dst != src) {
+    EnsureHasClassIdInDEBUG(kTypeCid, src, dst);
+  } else {
+#if !defined(TARGET_ARCH_IA32)
+    EnsureHasClassIdInDEBUG(kTypeCid, src, TMP);
+#else
+    // Skip check on IA32 since we don't have TMP.
+#endif
+  }
+  LoadFromSlot(dst, src, Slot::AbstractType_flags());
+  LsrImmediate(dst, compiler::target::UntaggedType::kTypeClassIdShift);
+}
+
+void AssemblerBase::LoadAbstractTypeNullability(Register dst, Register type) {
+  LoadFromSlot(dst, type, Slot::AbstractType_flags());
+  AndImmediate(dst, compiler::target::UntaggedAbstractType::kNullabilityMask);
+}
+
+void AssemblerBase::CompareAbstractTypeNullabilityWith(Register type,
+                                                       int8_t value,
+                                                       Register scratch) {
+  LoadAbstractTypeNullability(scratch, type);
+  CompareImmediate(scratch, value);
+}
+
 intptr_t AssemblerBase::InsertAlignedRelocation(BSS::Relocation reloc) {
   // We cannot put a relocation at the very start (it's not a valid
   // instruction)!

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dds/src/dap/protocol_generated.dart';
+import 'package:dap/dap.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';

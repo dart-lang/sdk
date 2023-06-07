@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    ;
+  abstract get g() → (self::A::X%) → void;
+}
+class B extends core::Object implements self::A<core::int> {
+  synthetic constructor •() → self::B
+    ;
+  get g() → (core::int) → void
+    ;
+}
+static field core::int callCount;
+static method foo(core::Object o, core::num value) → void
+  ;
+static method main() → void
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → void f) → dynamic
+  ;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -151,7 +152,7 @@ class MethodInvocationResolver with ScopeHelpers {
     DartType receiverType = receiver.typeOrThrow;
 
     if (_typeSystem.isDynamicBounded(receiverType)) {
-      _resolveReceiverDynamicBounded(node, whyNotPromotedList,
+      _resolveReceiverDynamicBounded(node, receiverType, whyNotPromotedList,
           contextType: contextType);
       return;
     }
@@ -184,7 +185,7 @@ class MethodInvocationResolver with ScopeHelpers {
         nameNode,
         [name, receiver.type.qualifiedName],
       );
-      _setDynamicResolution(node,
+      _setInvalidTypeResolution(node,
           whyNotPromotedList: whyNotPromotedList, contextType: contextType);
       return;
     }
@@ -258,7 +259,7 @@ class MethodInvocationResolver with ScopeHelpers {
   void _reportInvocationOfNonFunction(
       MethodInvocationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
-    _setDynamicResolution(node,
+    _setInvalidTypeResolution(node,
         setNameTypeToDynamic: false,
         whyNotPromotedList: whyNotPromotedList,
         contextType: contextType);
@@ -295,7 +296,7 @@ class MethodInvocationResolver with ScopeHelpers {
     required List<WhyNotPromotedGetter> whyNotPromotedList,
     required DartType? contextType,
   }) {
-    _setDynamicResolution(node,
+    _setInvalidTypeResolution(node,
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
 
     if (_definingLibrary.shouldIgnoreUndefined(prefix: prefix, name: name)) {
@@ -312,7 +313,7 @@ class MethodInvocationResolver with ScopeHelpers {
   void _reportUseOfVoidType(MethodInvocationImpl node, AstNode errorNode,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
-    _setDynamicResolution(node,
+    _setInvalidTypeResolution(node,
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
     _resolver.errorReporter.reportErrorForNode(
       CompileTimeErrorCode.USE_OF_VOID_RESULT,
@@ -381,7 +382,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
-    _setDynamicResolution(node,
+    _setInvalidTypeResolution(node,
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
     // This method is only called for named extensions, so we know that
     // `extension.name` is non-`null`.
@@ -403,14 +404,14 @@ class MethodInvocationResolver with ScopeHelpers {
     var member = _resolver.toLegacyElement(result.getter);
 
     if (member == null) {
-      _setDynamicResolution(node,
+      _setInvalidTypeResolution(node,
           whyNotPromotedList: whyNotPromotedList, contextType: contextType);
       // Extension overrides always refer to named extensions, so we can safely
       // assume `override.staticElement!.name` is non-`null`.
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
         nameNode,
-        [name, override.staticElement!.name!],
+        [name, override.element.name!],
       );
       return;
     }
@@ -424,9 +425,9 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (node.isCascaded) {
       // Report this error and recover by treating it like a non-cascade.
-      _resolver.errorReporter.reportErrorForNode(
+      _resolver.errorReporter.reportErrorForToken(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
-        override.extensionName,
+        override.name,
       );
     }
 
@@ -441,8 +442,8 @@ class MethodInvocationResolver with ScopeHelpers {
         contextType: contextType);
   }
 
-  void _resolveReceiverDynamicBounded(
-      MethodInvocationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList,
+  void _resolveReceiverDynamicBounded(MethodInvocationImpl node,
+      DartType receiverType, List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
     var nameNode = node.methodName;
 
@@ -463,11 +464,6 @@ class MethodInvocationResolver with ScopeHelpers {
       }
     }
 
-    if (rawType == null) {
-      nameNode.staticType = DynamicTypeImpl.instance;
-      node.staticType = DynamicTypeImpl.instance;
-    }
-
     _setExplicitTypeArgumentTypes();
     MethodInvocationInferrer(
             resolver: _resolver,
@@ -476,6 +472,16 @@ class MethodInvocationResolver with ScopeHelpers {
             whyNotPromotedList: whyNotPromotedList,
             contextType: contextType)
         .resolveInvocation(rawType: rawType);
+
+    if (receiverType is InvalidType) {
+      nameNode.staticType = InvalidTypeImpl.instance;
+      node.staticInvokeType = InvalidTypeImpl.instance;
+      node.staticType = InvalidTypeImpl.instance;
+    } else if (rawType == null) {
+      nameNode.staticType = DynamicTypeImpl.instance;
+      node.staticInvokeType = DynamicTypeImpl.instance;
+      node.staticType = DynamicTypeImpl.instance;
+    }
   }
 
   void _resolveReceiverNever(MethodInvocationImpl node, Expression receiver,
@@ -497,7 +503,7 @@ class MethodInvocationResolver with ScopeHelpers {
           contextType: contextType,
         );
       } else {
-        _setDynamicResolution(node,
+        _setInvalidTypeResolution(node,
             whyNotPromotedList: whyNotPromotedList, contextType: contextType);
         _resolver.nullableDereferenceVerifier.report(
           CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
@@ -509,10 +515,6 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     if (receiverType == NeverTypeImpl.instance) {
-      node.methodName.staticType = _dynamicType;
-      node.staticInvokeType = _dynamicType;
-      node.staticType = NeverTypeImpl.instance;
-
       MethodInvocationInferrer(
               resolver: _resolver,
               node: node,
@@ -525,14 +527,14 @@ class MethodInvocationResolver with ScopeHelpers {
         WarningCode.RECEIVER_OF_TYPE_NEVER,
         receiver,
       );
+
+      node.methodName.staticType = _dynamicType;
+      node.staticInvokeType = _dynamicType;
+      node.staticType = NeverTypeImpl.instance;
       return;
     }
 
     if (receiverType == NeverTypeImpl.instanceLegacy) {
-      node.methodName.staticType = _dynamicType;
-      node.staticInvokeType = _dynamicType;
-      node.staticType = _dynamicType;
-
       MethodInvocationInferrer(
               resolver: _resolver,
               node: node,
@@ -540,6 +542,9 @@ class MethodInvocationResolver with ScopeHelpers {
               contextType: contextType,
               whyNotPromotedList: whyNotPromotedList)
           .resolveInvocation(rawType: null);
+      node.methodName.staticType = _dynamicType;
+      node.staticInvokeType = _dynamicType;
+      node.staticType = _dynamicType;
       return;
     }
   }
@@ -581,7 +586,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
       // TODO(scheglov) This is a questionable distinction.
       if (element is PrefixElement) {
-        _setDynamicResolution(node,
+        _setInvalidTypeResolution(node,
             whyNotPromotedList: whyNotPromotedList, contextType: contextType);
         return _reportPrefixIdentifierNotFollowedByDot(nameNode);
       }
@@ -684,7 +689,7 @@ class MethodInvocationResolver with ScopeHelpers {
       {required DartType? contextType}) {
     var enclosingClass = _resolver.enclosingClass;
     if (SuperContext.of(receiver) != SuperContext.valid) {
-      _setDynamicResolution(node,
+      _setInvalidTypeResolution(node,
           whyNotPromotedList: whyNotPromotedList, contextType: contextType);
       return;
     }
@@ -701,7 +706,7 @@ class MethodInvocationResolver with ScopeHelpers {
       nameNode.staticElement = target;
       if (target is PropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(node, target.returnType,
-            contextType: contextType);
+            contextType: contextType, isSuperAccess: true);
       }
       _setResolution(node, target.type, whyNotPromotedList,
           contextType: contextType);
@@ -725,7 +730,7 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     // Nothing help, there is no target at all.
-    _setDynamicResolution(node,
+    _setInvalidTypeResolution(node,
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
     _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_SUPER_METHOD,
@@ -763,6 +768,17 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
+    if (receiverType.isDartCoreFunction &&
+        name == FunctionElement.CALL_METHOD_NAME) {
+      _setResolution(node, DynamicTypeImpl.instance, whyNotPromotedList,
+          contextType: contextType);
+      nameNode.staticElement = null;
+      nameNode.staticType = DynamicTypeImpl.instance;
+      node.staticInvokeType = DynamicTypeImpl.instance;
+      node.staticType = DynamicTypeImpl.instance;
+      return;
+    }
+
     final recordField = result.recordField;
     if (recordField != null) {
       return _rewriteAsFunctionExpressionInvocation(node, recordField.type,
@@ -789,7 +805,7 @@ class MethodInvocationResolver with ScopeHelpers {
           contextType: contextType);
     }
 
-    _setDynamicResolution(node,
+    _setInvalidTypeResolution(node,
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
 
     if (!result.needsGetterError) {
@@ -842,7 +858,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
-    _setDynamicResolution(node,
+    _setInvalidTypeResolution(node,
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
     if (nameNode.name == 'new') {
       // Attempting to invoke the unnamed constructor via `C.new(`.
@@ -872,15 +888,16 @@ class MethodInvocationResolver with ScopeHelpers {
   /// [FunctionExpressionInvocation].
   void _rewriteAsFunctionExpressionInvocation(
       MethodInvocationImpl node, DartType getterReturnType,
-      {required DartType? contextType}) {
+      {required DartType? contextType, bool isSuperAccess = false}) {
     var targetType = _typeSystem.resolveToBound(getterReturnType);
 
     ExpressionImpl functionExpression;
     var target = node.target;
     if (target == null) {
       functionExpression = node.methodName;
-      targetType = _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(
+      targetType = _resolver.flowAnalysis.flow?.propertyGet(
               functionExpression,
+              ThisPropertyTarget.singleton,
               node.methodName.name,
               node.methodName.staticElement,
               getterReturnType) ??
@@ -900,13 +917,23 @@ class MethodInvocationResolver with ScopeHelpers {
           propertyName: node.methodName,
         );
       }
-      targetType = _resolver.flowAnalysis.flow?.propertyGet(
-              functionExpression,
-              target,
-              node.methodName.name,
-              node.methodName.staticElement,
-              getterReturnType) ??
-          targetType;
+      if (target is SuperExpressionImpl) {
+        targetType = _resolver.flowAnalysis.flow?.propertyGet(
+                functionExpression,
+                SuperPropertyTarget.singleton,
+                node.methodName.name,
+                node.methodName.staticElement,
+                getterReturnType) ??
+            targetType;
+      } else {
+        targetType = _resolver.flowAnalysis.flow?.propertyGet(
+                functionExpression,
+                ExpressionPropertyTarget(target),
+                node.methodName.name,
+                node.methodName.staticElement,
+                getterReturnType) ??
+            targetType;
+      }
       functionExpression.staticType = targetType;
     }
     _inferenceHelper.recordStaticType(node.methodName, targetType,
@@ -922,7 +949,7 @@ class MethodInvocationResolver with ScopeHelpers {
     _resolver.flowAnalysis.transferTestData(node, invocation);
   }
 
-  void _setDynamicResolution(MethodInvocationImpl node,
+  void _setDynamicTypeResolution(MethodInvocationImpl node,
       {bool setNameTypeToDynamic = true,
       required List<WhyNotPromotedGetter> whyNotPromotedList,
       required DartType? contextType}) {
@@ -952,6 +979,20 @@ class MethodInvocationResolver with ScopeHelpers {
     }
   }
 
+  void _setInvalidTypeResolution(MethodInvocationImpl node,
+      {bool setNameTypeToDynamic = true,
+      required List<WhyNotPromotedGetter> whyNotPromotedList,
+      required DartType? contextType}) {
+    if (setNameTypeToDynamic) {
+      node.methodName.staticType = InvalidTypeImpl.instance;
+    }
+    _setExplicitTypeArgumentTypes();
+    _resolveArguments_finishInference(node, whyNotPromotedList,
+        contextType: contextType);
+    node.staticInvokeType = InvalidTypeImpl.instance;
+    node.staticType = InvalidTypeImpl.instance;
+  }
+
   void _setResolution(MethodInvocationImpl node, DartType type,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
@@ -960,7 +1001,7 @@ class MethodInvocationResolver with ScopeHelpers {
     node.methodName.staticType = type;
 
     if (type == _dynamicType || _isCoreFunction(type)) {
-      _setDynamicResolution(node,
+      _setDynamicTypeResolution(node,
           setNameTypeToDynamic: false,
           whyNotPromotedList: whyNotPromotedList,
           contextType: contextType);

@@ -132,6 +132,7 @@ class AstRewriter {
     }
 
     var target = node.target;
+    var operator = node.operator;
     if (target == null) {
       // Possible cases: C() or C<>()
       if (node.realTarget != null) {
@@ -146,7 +147,9 @@ class AstRewriter {
         );
       } else if (element is ExtensionElement) {
         var extensionOverride = ExtensionOverrideImpl(
-          extensionName: methodName,
+          importPrefix: null,
+          name: methodName.token,
+          element: element,
           typeArguments: node.typeArguments,
           argumentList: node.argumentList,
         );
@@ -159,7 +162,7 @@ class AstRewriter {
           typeIdentifier: methodName,
         );
       }
-    } else if (target is SimpleIdentifierImpl) {
+    } else if (target is SimpleIdentifierImpl && operator != null) {
       // Possible cases: C.n(), p.C() or p.C<>()
       if (node.isNullAware) {
         // This isn't a constructor invocation because a null aware operator is
@@ -185,13 +188,13 @@ class AstRewriter {
             typeIdentifier: methodName,
           );
         } else if (prefixedElement is ExtensionElement) {
-          var extensionName = PrefixedIdentifierImpl(
-            prefix: target,
-            period: node.operator!,
-            identifier: methodName,
-          );
           var extensionOverride = ExtensionOverrideImpl(
-            extensionName: extensionName,
+            importPrefix: ImportPrefixReferenceImpl(
+              name: target.token,
+              period: operator,
+            )..element = element,
+            name: node.methodName.token,
+            element: prefixedElement,
             typeArguments: node.typeArguments,
             argumentList: node.argumentList,
           );

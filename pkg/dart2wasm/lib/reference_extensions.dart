@@ -32,22 +32,14 @@ extension GetterSetterReference on Reference {
 // implementation for that procedure. This enables a Reference to refer to any
 // implementation relating to a member, including its tear-off, which it can't
 // do in plain kernel.
-// Also add an asyncInnerReference that refers to the inner, suspendable
-// body of an async function, which returns the value to be put into a future.
-// This can be called directly from other async functions if the result is
-// directly awaited.
 
 // Use Expandos to avoid keeping the procedure alive.
 final Expando<Reference> _tearOffReference = Expando();
-final Expando<Reference> _asyncInnerReference = Expando();
 final Expando<Reference> _typeCheckerReference = Expando();
 
 extension CustomReference on Member {
   Reference get tearOffReference =>
       _tearOffReference[this] ??= Reference()..node = this;
-
-  Reference get asyncInnerReference =>
-      _asyncInnerReference[this] ??= Reference()..node = this;
 
   Reference get typeCheckerReference =>
       _typeCheckerReference[this] ??= Reference()..node = this;
@@ -55,8 +47,6 @@ extension CustomReference on Member {
 
 extension IsCustomReference on Reference {
   bool get isTearOffReference => _tearOffReference[asMember] == this;
-
-  bool get isAsyncInnerReference => _asyncInnerReference[asMember] == this;
 
   bool get isTypeCheckerReference => _typeCheckerReference[asMember] == this;
 }

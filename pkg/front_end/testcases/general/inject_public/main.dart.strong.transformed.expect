@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:test" as test;
+
+import "dart:test";
+
+static method test() → dynamic {
+  test::injectedMethod();
+  new test::InjectedClass::•();
+  new test::Class::•().{test::Class::injectedMethod}(){() → dynamic};
+}
+static method main() → dynamic {
+  new test::Class::•();
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/inject_public/patch_lib.dart:8:7: Error: Can't inject public 'InjectedClass' into 'dart:test'.
+// Make 'InjectedClass' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
+// class InjectedClass {}
+//       ^
+//
+// pkg/front_end/testcases/general/inject_public/patch_lib.dart:10:1: Error: Can't inject public 'injectedMethod' into 'dart:test'.
+// Make 'injectedMethod' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
+// injectedMethod() {}
+// ^
+//
+import self as test;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+import "dart:_internal";
+
+class InjectedClass extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
+  synthetic constructor •() → test::InjectedClass
+    : super core::Object::•()
+    ;
+}
+@#C1
+class Class extends core::Object {
+  synthetic constructor •() → test::Class
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///patch_lib.dart */ injectedMethod() → dynamic {}
+}
+static method /* from org-dartlang-testcase:///patch_lib.dart */ injectedMethod() → dynamic {}
+
+constants  {
+  #C1 = _in::_Patch {}
+}

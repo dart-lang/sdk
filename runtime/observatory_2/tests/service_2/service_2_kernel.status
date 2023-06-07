@@ -125,11 +125,11 @@ issue_27238_test: SkipByDesign # Debugger is disabled in AOT mode.
 issue_27287_test: SkipByDesign # Debugger is disabled in AOT mode.
 issue_30555_test: SkipByDesign # Debugger is disabled in AOT mode.
 kill_paused_test: SkipByDesign # Debugger is disabled in AOT mode.
-library_dependency_test: CompileTimeError
+library_dependency_test: SkipByDesign # Uses 'dart:mirrors' library.
 local_variable_declaration_test: SkipByDesign # Debugger is disabled in AOT mode.
 local_variable_in_awaiter_async_frame_test: SkipByDesign # Debugger is disabled in AOT mode.
 logging_test: SkipByDesign # Debugger is disabled in AOT mode.
-mirror_references_test: CompileTimeError
+mirror_references_test: SkipByDesign # Uses 'dart:mirrors' library.
 mixin_break_test: SkipByDesign # Debugger is disabled in AOT mode.
 network_profiling_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_assign_call_test: SkipByDesign # Debugger is disabled in AOT mode.

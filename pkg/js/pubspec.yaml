@@ -3,11 +3,13 @@ version: 0.6.9-dev
 description: Annotations to create static Dart interfaces for JavaScript APIs.
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/js
 
-environment:
-  sdk: ">=3.0.0-217.0.dev <4.0.0"
+# We export `dart:_js_annotations` in this library.
+analyzer:
+  errors:
+    export_internal_library: ignore
 
-dependencies:
-  meta: ^1.7.0
+environment:
+  sdk: ">=3.1.0-66.0.dev <4.0.0"
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the

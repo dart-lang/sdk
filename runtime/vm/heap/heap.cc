@@ -86,9 +86,16 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
     return addr;
   }
   if (!assume_scavenge_will_fail_ && !thread->force_growth()) {
-    // This call to CollectGarbage might end up "reusing" a collection spawned
-    // from a different thread and will be racing to allocate the requested
-    // memory with other threads being released after the collection.
+    GcSafepointOperationScope safepoint_operation(thread);
+
+    // Another thread may have won the race to the safepoint and performed a GC
+    // before this thread acquired the safepoint. Retry the allocation under the
+    // safepoint to avoid back-to-back GC.
+    addr = new_space_.TryAllocate(thread, size);
+    if (addr != 0) {
+      return addr;
+    }
+
     CollectGarbage(thread, GCType::kScavenge, GCReason::kNewSpace);
 
     addr = new_space_.TryAllocate(thread, size);
@@ -123,6 +130,14 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
     if (addr != 0) {
       return addr;
     }
+    GcSafepointOperationScope safepoint_operation(thread);
+    // Another thread may have won the race to the safepoint and performed a GC
+    // before this thread acquired the safepoint. Retry the allocation under the
+    // safepoint to avoid back-to-back GC.
+    addr = old_space_.TryAllocate(size, is_exec);
+    if (addr != 0) {
+      return addr;
+    }
     // All GC tasks finished without allocating successfully. Collect both
     // generations.
     CollectMostGarbage(GCReason::kOldSpace, /*compact=*/false);
@@ -131,7 +146,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
       return addr;
     }
     // Wait for all of the concurrent tasks to finish before giving up.
-    WaitForSweeperTasks(thread);
+    WaitForSweeperTasksAtSafepoint(thread);
     addr = old_space_.TryAllocate(size, is_exec);
     if (addr != 0) {
       return addr;
@@ -143,7 +158,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
     }
     // Before throwing an out-of-memory error try a synchronous GC.
     CollectAllGarbage(GCReason::kOldSpace, /*compact=*/true);
-    WaitForSweeperTasks(thread);
+    WaitForSweeperTasksAtSafepoint(thread);
   }
   uword addr = old_space_.TryAllocate(size, is_exec, PageSpace::kForceGrowth);
   if (addr != 0) {
@@ -573,7 +588,6 @@ void Heap::CollectAllGarbage(GCReason reason, bool compact) {
   }
   CollectOldSpaceGarbage(
       thread, compact ? GCType::kMarkCompact : GCType::kMarkSweep, reason);
-  WaitForSweeperTasks(thread);
 }
 
 void Heap::CheckCatchUp(Thread* thread) {

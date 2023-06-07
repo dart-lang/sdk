@@ -80,7 +80,8 @@ class TypePropertyResolver {
       return _toResult();
     }
 
-    if (_typeSystem.isDynamicBounded(receiverType)) {
+    if (_typeSystem.isDynamicBounded(receiverType) ||
+        _typeSystem.isInvalidBounded(receiverType)) {
       _lookupInterfaceType(
         _typeProvider.objectType,
         recoverWithStatic: false,
@@ -325,6 +326,7 @@ class TypePropertyResolver {
       // reported as an undefined getter.
       needsGetterError:
           _needsGetterError && _name.isNotEmpty && !_reportedGetterError,
+      isGetterInvalid: _needsGetterError || _reportedGetterError,
       setter: setter,
       needsSetterError: _needsSetterError && !_reportedSetterError,
     );

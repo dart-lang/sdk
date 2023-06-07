@@ -218,6 +218,8 @@ abstract class LinkedHashSet<E> implements Set<E> {
   }
 }
 
+abstract base mixin class LinkedListEntry<E extends LinkedListEntry<E>> { }
+
 abstract mixin class ListMixin<E> implements List<E> { }
 
 abstract mixin class MapMixin<K, V> implements Map<K, V> { }
@@ -288,7 +290,7 @@ class ArgumentError extends Error {
   ArgumentError([message]);
 
   @Since("2.1")
-  static T checkNotNull<T>(T argument, [String, name]) => argument;
+  static T checkNotNull<@Since("2.8") T>(T? argument, [String? name]) => argument!;
 }
 
 abstract final class BigInt implements Comparable<BigInt> {
@@ -539,7 +541,7 @@ final class Null extends Object {
   }
 }
 
-class MapEntry<K, V> {
+final class MapEntry<K, V> {
   final K key;
   final V value;
   const factory MapEntry(K key, V value) = MapEntry<K, V>._;
@@ -1280,7 +1282,7 @@ abstract class Socket {
 
 final MockSdkLibrary _LIB_ISOLATE = MockSdkLibrary('isolate', [
   MockSdkLibraryUnit(
-    'isolate.dart',
+    'isolate/isolate.dart',
     '''
 library dart.isolate;
 

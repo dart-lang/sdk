@@ -571,8 +571,8 @@ main() {
         h.thisType = 'C';
         h.addMember('C', 'f', 'Object?');
         h.run([
-          if_(thisOrSuperProperty('f').is_('Null'), [
-            if_(thisOrSuperProperty('f').eq(nullLiteral), [
+          if_(thisProperty('f').is_('Null'), [
+            if_(thisProperty('f').eq(nullLiteral), [
               checkReachable(true),
             ], [
               checkReachable(true),
@@ -1624,7 +1624,7 @@ main() {
         h.thisType = 'C';
         h.addMember('C', 'f', 'Object?');
         h.run([
-          if_(thisOrSuperProperty('f').is_('Never'), [
+          if_(thisProperty('f').is_('Never'), [
             checkReachable(false),
           ], [
             checkReachable(true),
@@ -3628,7 +3628,8 @@ main() {
 
         var s = FlowModel<Type>(Reachability.initial)._write(
             h, null, objectQVar, Type('Object?'), new SsaNode<Type>(null));
-        expect(s.variableInfo[objectQVar], isNull);
+        expect(s.variableInfo[h.promotionKeyStore.keyForVariable(objectQVar)],
+            isNull);
       });
 
       test('unchanged', () {
@@ -4613,7 +4614,6 @@ main() {
     var intType = Type('int');
     var intQType = Type('int?');
     var stringType = Type('String');
-    const emptyMap = const <int, VariableModel<Type>>{};
 
     setUp(() {
       x = h.promotionKeyStore.keyForVariable(Var('x')..type = Type('Object?'));
@@ -4641,7 +4641,7 @@ main() {
           x: model(null),
           y: model([intType])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap), {
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), {
           x: _matchVariableModel(chain: null, ofInterest: ['int']),
           y: _matchVariableModel(chain: null, ofInterest: ['int'])
         });
@@ -4653,8 +4653,7 @@ main() {
           x: model([intType]),
           y: model([stringType])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p, p, emptyMap),
-            same(p));
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p, p), same(p));
       });
 
       test('one input empty', () {
@@ -4663,10 +4662,11 @@ main() {
           y: model([stringType])
         };
         var p2 = <int, VariableModel<Type>>{};
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
-            same(emptyMap));
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
-            same(emptyMap));
+        const expected = const <int, VariableModel<Never>>{};
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2),
+            same(expected));
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1),
+            same(expected));
       });
 
       test('promoted with unpromoted', () {
@@ -4677,10 +4677,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['int'])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
-            expected);
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
-            expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), expected);
       });
 
       test('related type chains', () {
@@ -4693,10 +4691,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
-            expected);
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
-            expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), expected);
       });
 
       test('unrelated type chains', () {
@@ -4709,10 +4705,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['String', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
-            expected);
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
-            expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), expected);
       });
 
       test('sub-map', () {
@@ -4722,10 +4716,8 @@ main() {
           y: model([stringType])
         };
         var p2 = {x: xModel};
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
-            same(p2));
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
-            same(p2));
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), same(p2));
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), same(p2));
       });
 
       test('sub-map with matched subtype', () {
@@ -4739,10 +4731,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
-            expected);
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
-            expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), expected);
       });
 
       test('sub-map with mismatched subtype', () {
@@ -4756,10 +4746,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
-            expected);
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
-            expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), expected);
       });
 
       test('assigned', () {
@@ -4767,8 +4755,7 @@ main() {
         var assigned = model(null, assigned: true);
         var p1 = {x: assigned, y: assigned, z: unassigned, w: unassigned};
         var p2 = {x: assigned, y: unassigned, z: assigned, w: unassigned};
-        var joined =
-            FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap);
+        var joined = FlowModel.joinVariableInfo(h.typeOperations, p1, p2);
         expect(joined, {
           x: same(assigned),
           y: _matchVariableModel(
@@ -4794,8 +4781,7 @@ main() {
           z: writeCapturedModel,
           w: intQModel
         };
-        var joined =
-            FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap);
+        var joined = FlowModel.joinVariableInfo(h.typeOperations, p1, p2);
         expect(joined, {
           x: same(writeCapturedModel),
           y: same(writeCapturedModel),
@@ -4827,7 +4813,7 @@ main() {
 
     test('first is null', () {
       var s1 = FlowModel.withInfo(Reachability.initial.split(), emptyMap);
-      var result = FlowModel.merge(h.typeOperations, null, s1, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, null, s1);
       expect(result.reachable, same(Reachability.initial));
     });
 
@@ -4835,7 +4821,7 @@ main() {
       var splitPoint = Reachability.initial.split();
       var afterSplit = splitPoint.split();
       var s1 = FlowModel.withInfo(afterSplit, emptyMap);
-      var result = FlowModel.merge(h.typeOperations, s1, null, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, s1, null);
       expect(result.reachable, same(splitPoint));
     });
 
@@ -4848,7 +4834,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit, {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h.typeOperations, s1, s2, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, s1, s2);
       expect(result.reachable, same(splitPoint));
       expect(result.variableInfo[x]!.promotedTypes, isNull);
     });
@@ -4862,7 +4848,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit, {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h.typeOperations, s1, s2, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, s1, s2);
       expect(result.reachable, same(splitPoint));
       expect(result.variableInfo, same(s2.variableInfo));
     });
@@ -4876,7 +4862,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit.setUnreachable(), {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h.typeOperations, s1, s2, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, s1, s2);
       expect(result.reachable, same(splitPoint));
       expect(result.variableInfo, same(s1.variableInfo));
     });
@@ -4890,7 +4876,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit.setUnreachable(), {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h.typeOperations, s1, s2, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, s1, s2);
       expect(result.reachable.locallyReachable, false);
       expect(result.reachable.parent, same(splitPoint.parent));
       expect(result.variableInfo[x]!.promotedTypes, isNull);
@@ -5911,10 +5897,10 @@ main() {
         h.thisType = 'C';
         h.addMember('C', 'field', 'Object?');
         h.run([
-          if_(thisOrSuperProperty('field').eq(nullLiteral), [
+          if_(thisProperty('field').eq(nullLiteral), [
             return_(),
           ]),
-          thisOrSuperProperty('field').whyNotPromoted((reasons) {
+          thisProperty('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason = reasons.values.single;
             expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
@@ -5992,11 +5978,11 @@ main() {
       h.thisType = 'C';
       h.addMember('C', '_field', 'Object?', promotable: true);
       h.run([
-        if_(thisOrSuperProperty('_field').eq(nullLiteral), [
+        if_(thisProperty('_field').eq(nullLiteral), [
           return_(),
         ]),
-        checkPromoted(thisOrSuperProperty('_field'), 'Object'),
-        thisOrSuperProperty('_field').checkType('Object').stmt,
+        checkPromoted(thisProperty('_field'), 'Object'),
+        thisProperty('_field').checkType('Object').stmt,
       ]);
     });
 
@@ -6017,11 +6003,11 @@ main() {
       h.thisType = 'C';
       h.addMember('C', '_field', 'Object?', promotable: false);
       h.run([
-        if_(thisOrSuperProperty('_field').eq(nullLiteral), [
+        if_(thisProperty('_field').eq(nullLiteral), [
           return_(),
         ]),
-        checkNotPromoted(thisOrSuperProperty('_field')),
-        thisOrSuperProperty('_field').checkType('Object?').stmt,
+        checkNotPromoted(thisProperty('_field')),
+        thisProperty('_field').checkType('Object?').stmt,
       ]);
     });
 
@@ -6045,14 +6031,14 @@ main() {
       h.thisType = 'C';
       h.addMember('C', '_field', 'Object?', promotable: true);
       h.run([
-        if_(thisOrSuperProperty('_field').eq(nullLiteral), [
+        if_(thisProperty('_field').eq(nullLiteral), [
           return_(),
         ]),
-        if_(thisOrSuperProperty('_field').isNot('int'), [
+        if_(thisProperty('_field').isNot('int'), [
           return_(),
         ]),
-        checkPromoted(thisOrSuperProperty('_field'), 'int'),
-        thisOrSuperProperty('_field').checkType('int').stmt,
+        checkPromoted(thisProperty('_field'), 'int'),
+        thisProperty('_field').checkType('int').stmt,
       ]);
     });
 
@@ -6149,7 +6135,7 @@ main() {
       h.run([
         declare(x, type: 'C', initializer: expr('C')),
         declare(y, type: 'C', initializer: expr('C')),
-        if_(thisOrSuperProperty('_field1').isNot('String'), [
+        if_(thisProperty('_field1').isNot('String'), [
           return_(),
         ]),
         if_(this_.property('_field2').isNot('String?'), [
@@ -6161,12 +6147,12 @@ main() {
         if_(y.expr.property('_field1').isNot('double'), [
           return_(),
         ]),
-        checkPromoted(thisOrSuperProperty('_field1'), 'String'),
-        thisOrSuperProperty('_field1').checkType('String').stmt,
+        checkPromoted(thisProperty('_field1'), 'String'),
+        thisProperty('_field1').checkType('String').stmt,
         checkPromoted(this_.property('_field1'), 'String'),
         this_.property('_field1').checkType('String').stmt,
-        checkPromoted(thisOrSuperProperty('_field2'), 'String?'),
-        thisOrSuperProperty('_field2').checkType('String?').stmt,
+        checkPromoted(thisProperty('_field2'), 'String?'),
+        thisProperty('_field2').checkType('String?').stmt,
         checkPromoted(this_.property('_field2'), 'String?'),
         this_.property('_field2').checkType('String?').stmt,
         checkPromoted(x.expr.property('_field1'), 'int'),
@@ -6349,16 +6335,32 @@ main() {
       h.addMember('C', '_field1', 'D', promotable: false);
       h.addMember('D', '_field2', 'Object?', promotable: true);
       h.run([
-        if_(
-            thisOrSuperProperty('_field1').property('_field2').isNot('String'),
-            [
-              return_(),
-            ]),
-        checkNotPromoted(thisOrSuperProperty('_field1').property('_field2')),
-        thisOrSuperProperty('_field1')
-            .property('_field2')
-            .checkType('Object?')
-            .stmt,
+        if_(thisProperty('_field1').property('_field2').isNot('String'), [
+          return_(),
+        ]),
+        checkNotPromoted(thisProperty('_field1').property('_field2')),
+        thisProperty('_field1').property('_field2').checkType('Object?').stmt,
+      ]);
+    });
+
+    test('super tracked separately', () {
+      // This test verifies that promotion of `this._field` and promotion of
+      // `super._field` are tracked separately. This is necessary in case
+      // `this._field` overrides `super._field` (and hence the two accesses
+      // refer to different underlying fields).
+      h.thisType = 'C';
+      h.addMember('C', '_field', 'int?', promotable: true);
+      h.run([
+        if_(thisProperty('_field').notEq(nullLiteral), [
+          checkPromoted(thisProperty('_field'), 'int'),
+          this_.property('_field').checkType('int').stmt,
+          checkNotPromoted(superProperty('_field')),
+        ]),
+        if_(superProperty('_field').notEq(nullLiteral), [
+          checkPromoted(superProperty('_field'), 'int'),
+          checkNotPromoted(thisProperty('_field')),
+          this_.property('_field').checkType('int?').stmt,
+        ]),
       ]);
     });
   });
@@ -6704,6 +6706,12 @@ main() {
             ]),
           ]);
         });
+      });
+
+      test('Error type does not trigger unnecessary cast warning', () {
+        h.run([
+          ifCase(expr('int'), wildcard().as_('error'), []),
+        ]);
       });
     });
 
@@ -8081,6 +8089,22 @@ main() {
           ]);
         });
       });
+
+      test('Read of Never typed getter makes unreachable', () {
+        h.addDownwardInfer(name: 'A', context: 'Object', result: 'A');
+        h.addMember('A', 'foo', 'Never');
+        h.run([
+          ifCase(
+            expr('Object'),
+            objectPattern(requiredType: 'A', fields: [
+              Var('foo').pattern().recordField('foo'),
+            ]),
+            [
+              checkReachable(false),
+            ],
+          ),
+        ]);
+      });
     });
 
     group('Pattern assignment:', () {
@@ -8254,6 +8278,25 @@ main() {
                 ]),
           ]);
         });
+      });
+
+      test('Error type does not alter previous reachability conclusions', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('(Null, Object?)')),
+          ifCase(
+              x.expr,
+              recordPattern([
+                relationalPattern('!=', nullLiteral).recordField(),
+                wildcard(type: 'error').recordField()
+              ]),
+              [
+                checkReachable(false),
+              ],
+              [
+                checkReachable(true),
+              ]),
+        ]);
       });
     });
 
@@ -8675,6 +8718,21 @@ main() {
           checkReachable(false),
         ]);
       });
+
+      test('error type does not make following cases unreachable', () {
+        // We don't know the correct type, so recover by expecting that the
+        // following cases still will be useful once the error is fixed.
+        h.run([
+          switchExpr(expr('num'), [
+            wildcard(type: 'error').thenExpr(block([
+              checkReachable(true),
+            ]).thenExpr(intLiteral(0))),
+            wildcard().thenExpr(block([
+              checkReachable(true),
+            ]).thenExpr(intLiteral(1))),
+          ]).stmt,
+        ]);
+      });
     });
 
     group('Switch statement:', () {
@@ -8979,6 +9037,21 @@ main() {
               'case(heads(head(wildcardPattern(matchedType: Object), true, '
               'variables()), variables()), '
               'block(stmt(1), synthetic-break())))'),
+        ]);
+      });
+
+      test('error type does not make following cases unreachable', () {
+        // We don't know the correct type, so recover by expecting that the
+        // following cases still will be useful once the error is fixed.
+        h.run([
+          switch_(expr('num'), [
+            wildcard(type: 'error').then([
+              checkReachable(true),
+            ]),
+            wildcard().then([
+              checkReachable(true),
+            ]),
+          ]),
         ]);
       });
 
@@ -9653,6 +9726,13 @@ main() {
               checkReachable(true),
               checkPromoted(x, 'Future<int>'),
             ]),
+      ]);
+    });
+
+    test('Error type does not trigger unnecessary wildcard warning', () {
+      h.run([
+        ifCase(expr('num'), wildcard(type: 'int').and(wildcard(type: 'error')),
+            []),
       ]);
     });
   });

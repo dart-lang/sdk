@@ -41,6 +41,7 @@ import '../builder/void_type_declaration_builder.dart';
 import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
 import '../identifiers.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
@@ -360,6 +361,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     return false;
   }
 
+  BodyBuilderContext get bodyBuilderContext =>
+      new ClassBodyBuilderContext(this);
+
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
@@ -371,11 +375,15 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     MetadataBuilder.buildAnnotations(isPatch ? origin.cls : cls, metadata,
-        libraryBuilder, this, null, fileUri, libraryBuilder.scope);
+        bodyBuilderContext, libraryBuilder, fileUri, libraryBuilder.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
-        typeVariables![i].buildOutlineExpressions(libraryBuilder, this, null,
-            classHierarchy, delayedActionPerformers, scope.parent!);
+        typeVariables![i].buildOutlineExpressions(
+            libraryBuilder,
+            bodyBuilderContext,
+            classHierarchy,
+            delayedActionPerformers,
+            scope.parent!);
       }
     }
 
@@ -419,62 +427,34 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
-  ///
-  /// If [isSuper] is `true`, constructors in the superclass are searched.
-  Constructor? lookupConstructor(Name name, {bool isSuper = false}) {
+  SourceConstructorBuilder? lookupConstructor(Name name) {
     if (name.text == "new") {
       name = new Name("", name.library);
     }
 
-    Class? instanceClass = cls;
-    if (isSuper) {
-      instanceClass = instanceClass.superclass;
+    Builder? builder = constructorScope.lookupLocalMember(name.text);
+    if (builder is SourceConstructorBuilder) {
+      return builder;
     }
-    if (instanceClass != null) {
-      for (Constructor constructor in instanceClass.constructors) {
+    return null;
+  }
+
+  /// Looks up the super constructor by [name] on the superclass of the class
+  /// built by this class builder.
+  Constructor? lookupSuperConstructor(Name name) {
+    if (name.text == "new") {
+      name = new Name("", name.library);
+    }
+
+    Class? superclass = cls.superclass;
+    if (superclass != null) {
+      for (Constructor constructor in superclass.constructors) {
         if (constructor.name == name) {
           return constructor;
         }
       }
     }
-
-    /// Performs a similar lookup to [lookupConstructor], but using a slower
-    /// implementation.
-    Constructor? lookupConstructorWithPatches(Name name, bool isSuper) {
-      ClassBuilder? builder = this.origin;
-
-      ClassBuilder? getSuperclass(ClassBuilder builder) {
-        // This way of computing the superclass is slower than using the kernel
-        // objects directly.
-        TypeBuilder? supertype = builder.supertypeBuilder;
-        if (supertype is NamedTypeBuilder) {
-          TypeDeclarationBuilder? builder = supertype.declaration;
-          if (builder is ClassBuilder) return builder;
-          if (builder is TypeAliasBuilder) {
-            TypeDeclarationBuilder? declarationBuilder =
-                builder.unaliasDeclaration(supertype.arguments,
-                    isUsedAsClass: true,
-                    usedAsClassCharOffset: supertype.charOffset,
-                    usedAsClassFileUri: supertype.fileUri);
-            if (declarationBuilder is ClassBuilder) return declarationBuilder;
-          }
-        }
-        return null;
-      }
-
-      if (isSuper) {
-        builder = getSuperclass(builder)?.origin;
-      }
-      if (builder != null) {
-        Class cls = builder.cls;
-        for (Constructor constructor in cls.constructors) {
-          if (constructor.name == name) return constructor;
-        }
-      }
-      return null;
-    }
-
-    return lookupConstructorWithPatches(name, isSuper);
+    return null;
   }
 
   @override
@@ -499,9 +479,6 @@ class SourceClassBuilder extends ClassBuilderImpl
               .buildAliased(
                   libraryBuilder, TypeUse.defaultTypeAsTypeArgument, hierarchy),
           growable: true);
-      if (library is SourceLibraryBuilder) {
-        library.inferredTypes.addAll(result);
-      }
       return result;
     }
 
@@ -2267,8 +2244,10 @@ class SourceClassBuilder extends ClassBuilderImpl
         declaredMember,
         interfaceMember,
         interfaceMemberOrigin,
-        /* declaredFunction = */ null,
-        /* interfaceFunction = */ null,
+        /* declaredFunction = */
+        null,
+        /* interfaceFunction = */
+        null,
         isInterfaceCheck,
         declaredNeedsLegacyErasure);
     Substitution? declaredSubstitution =
@@ -2284,8 +2263,10 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceMemberOrigin,
         declaredType,
         interfaceType,
-        /* isCovariantByDeclaration = */ false,
-        /* declaredParameter = */ null,
+        /* isCovariantByDeclaration = */
+        false,
+        /* declaredParameter = */
+        null,
         isInterfaceCheck,
         declaredNeedsLegacyErasure);
   }
@@ -2310,8 +2291,10 @@ class SourceClassBuilder extends ClassBuilderImpl
         declaredMember,
         interfaceMember,
         interfaceMemberOrigin,
-        /* declaredFunction = */ null,
-        /* interfaceFunction = */ null,
+        /* declaredFunction = */
+        null,
+        /* interfaceFunction = */
+        null,
         isInterfaceCheck,
         declaredNeedsLegacyErasure);
     Substitution? declaredSubstitution =

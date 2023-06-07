@@ -29,14 +29,15 @@ import 'package:front_end/src/api_prototype/constant_evaluator.dart'
 import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;
 
+import 'package:dart2wasm/await_transformer.dart' as awaitTrans;
 import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
-import 'package:dart2wasm/transformers.dart' as wasmTrans;
 import 'package:dart2wasm/records.dart' show RecordShape;
+import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 class WasmTarget extends Target {
-  WasmTarget({this.constantBranchPruning = true});
+  WasmTarget({this.removeAsserts = true});
 
-  bool constantBranchPruning;
+  bool removeAsserts;
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmDefaultMap;
@@ -92,7 +93,8 @@ class WasmTarget extends Target {
 
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      importer.path.contains('tests/web/wasm');
+      importer.path.contains('tests/web/wasm') ||
+      importer.isScheme('package') && importer.path == 'js/js.dart';
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
@@ -117,19 +119,17 @@ class WasmTarget extends Target {
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    final jsInteropReporter = JsInteropDiagnosticReporter(
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
     final jsInteropChecks = JsInteropChecks(
-        coreTypes,
-        hierarchy,
-        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-        _nativeClasses!,
-        enableDisallowedExternalCheck: false,
-        enableStrictMode: true);
+        coreTypes, hierarchy, jsInteropReporter, _nativeClasses!,
+        isDart2Wasm: true, enableStrictMode: true);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
     }
     final exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
-        diagnosticReporter, jsInteropChecks.exportChecker);
+        jsInteropReporter, jsInteropChecks.exportChecker);
     for (Library library in interopDependentLibraries) {
       exportCreator.visitLibrary(library);
     }
@@ -161,7 +161,9 @@ class WasmTarget extends Target {
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
           component, Uri.parse("package:js/js.dart")),
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component, Uri.parse("dart:_js_annotations"))
+          component, Uri.parse("dart:_js_annotations")),
+      ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
+          component, Uri.parse("dart:js_interop")),
     };
     if (transitiveImportingJSInterop.isEmpty) {
       logger?.call("Skipped JS interop transformations");
@@ -171,30 +173,30 @@ class WasmTarget extends Target {
       logger?.call("Transformed JS interop classes");
     }
 
-    if (constantBranchPruning) {
-      final reportError =
-          (LocatedMessage message, [List<LocatedMessage>? context]) {
-        diagnosticReporter.report(message.messageObject, message.charOffset,
-            message.length, message.uri);
-        if (context != null) {
-          for (final m in context) {
-            diagnosticReporter.report(
-                m.messageObject, m.charOffset, m.length, m.uri);
-          }
+    final reportError =
+        (LocatedMessage message, [List<LocatedMessage>? context]) {
+      diagnosticReporter.report(message.messageObject, message.charOffset,
+          message.length, message.uri);
+      if (context != null) {
+        for (final m in context) {
+          diagnosticReporter.report(
+              m.messageObject, m.charOffset, m.length, m.uri);
         }
-      };
+      }
+    };
 
-      ConstConditionalSimplifier(
-        dartLibrarySupport,
-        constantsBackend,
-        component,
-        reportError,
-        environmentDefines: environmentDefines ?? {},
-        evaluationMode: constantEvaluator.EvaluationMode.strong,
-        coreTypes: coreTypes,
-        classHierarchy: hierarchy,
-      ).run();
-    }
+    ConstConditionalSimplifier(
+      dartLibrarySupport,
+      constantsBackend,
+      component,
+      reportError,
+      environmentDefines: environmentDefines ?? {},
+      evaluationMode: constantEvaluator.EvaluationMode.strong,
+      coreTypes: coreTypes,
+      classHierarchy: hierarchy,
+      removeAsserts: removeAsserts,
+    ).run();
+
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
@@ -221,6 +223,8 @@ class WasmTarget extends Target {
 
     wasmTrans.transformLibraries(
         libraries, coreTypes, hierarchy, diagnosticReporter);
+
+    awaitTrans.transformLibraries(libraries, hierarchy, coreTypes);
   }
 
   @override

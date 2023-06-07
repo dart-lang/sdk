@@ -87,20 +87,22 @@ class StringBuffer implements StringSink {
   /// operation.
   bool get isNotEmpty => !isEmpty;
 
-  /// Adds the string representation of [object] to the buffer.
   external void write(Object? object);
 
-  /// Adds the string representation of [charCode] to the buffer.
-  ///
-  /// Equivalent to `write(String.fromCharCode(charCode))`.
   external void writeCharCode(int charCode);
 
-  /// Writes all [objects] separated by [separator].
-  ///
-  /// Writes each individual object in [objects] in iteration order,
-  /// and writes [separator] between any two objects.
   external void writeAll(Iterable<dynamic> objects, [String separator = ""]);
 
+  /// Writes the string representation of [object] followed by a newline.
+  ///
+  /// Equivalent to `buffer.write(object)` followed by `buffer.write("\n")`.
+  ///
+  /// The newline is always represented as `"\n"`, and does not use a platform
+  /// specific line ending, e.g., `"\r\n"` on Windows.
+  ///
+  /// Notice that calling `buffer.writeln(null)` will write the `"null"` string
+  /// before the newline. Omitting the argument, or explicitly passing an empty
+  /// string, is the recommended way to emit just the newline.
   external void writeln([Object? obj = ""]);
 
   /// Clears the string buffer.

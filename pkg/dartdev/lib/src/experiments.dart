@@ -76,3 +76,25 @@ extension ArgResultsExtensions on ArgResults {
     return enabledExperiments;
   }
 }
+
+List<String> parseVmEnabledExperiments(List<String> vmArgs) {
+  var experiments = <String>[];
+  var itr = vmArgs.iterator;
+  while (itr.moveNext()) {
+    var arg = itr.current;
+    if (arg == '--$experimentFlagName') {
+      if (!itr.moveNext()) break;
+      experiments.add(itr.current);
+    } else if (arg.startsWith('--$experimentFlagName=')) {
+      var parts = arg.split('=');
+      if (parts.length == 2) {
+        experiments.addAll(parts[1].split(','));
+      }
+    }
+  }
+  return experiments;
+}
+
+bool nativeAssetsEnabled(List<String> vmEnabledExperiments) =>
+    vmEnabledExperiments
+        .contains(ExperimentalFeatures.native_assets.enableString);

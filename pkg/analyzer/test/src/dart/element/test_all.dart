@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'always_exhaustive_test.dart' as always_exhaustive;
+import 'assignable_test.dart' as assignable;
 import 'class_element_test.dart' as class_element;
 import 'class_hierarchy_test.dart' as class_hierarchy;
 import 'display_string_test.dart' as display_string;
@@ -19,6 +20,7 @@ import 'inheritance_manager3_test.dart' as inheritance_manager3;
 import 'is_known_test.dart' as is_known_test;
 import 'least_greatest_closure_test.dart' as least_greatest_closure_test;
 import 'least_upper_bound_helper_test.dart' as least_upper_bound_helper;
+import 'name_union_test.dart' as name_union;
 import 'normalize_type_test.dart' as normalize_type;
 import 'nullability_eliminator_test.dart' as nullability_eliminator;
 import 'nullable_test.dart' as nullable;
@@ -39,6 +41,7 @@ import 'upper_lower_bound_test.dart' as upper_bound;
 main() {
   defineReflectiveSuite(() {
     always_exhaustive.main();
+    assignable.main();
     class_element.main();
     class_hierarchy.main();
     display_string.main();
@@ -53,6 +56,7 @@ main() {
     is_known_test.main();
     least_greatest_closure_test.main();
     least_upper_bound_helper.main();
+    name_union.main();
     normalize_type.main();
     nullability_eliminator.main();
     nullable.main();

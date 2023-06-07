@@ -47,6 +47,19 @@ Object f(bool x) {
       error(WarningCode.UNREACHABLE_SWITCH_CASE, 78, 2),
     ]);
   }
+
+  test_unresolved_wildcard() async {
+    await assertErrorsInCode(r'''
+int f(Object? x) {
+  return switch (x) {
+    Unresolved() => 0,
+    _ => -1,
+  };
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 45, 10),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -64,6 +77,40 @@ void f(bool x) {
 }
 ''', [
       error(WarningCode.UNREACHABLE_SWITCH_CASE, 67, 4),
+    ]);
+  }
+
+  test_const_unresolvedIdentifier_const() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case 0:
+      break;
+    case unresolved:
+      break;
+    case 2:
+      break;
+  };
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 69, 10),
+    ]);
+  }
+
+  test_const_unresolvedObject_const() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case 0:
+      break;
+    case Unresolved():
+      break;
+    case 2:
+      break;
+  };
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 69, 10),
     ]);
   }
 

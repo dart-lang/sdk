@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -496,6 +497,11 @@ class LibraryReader {
     _reader.offset = _offset;
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/51855
+    // This should not be needed.
+    // But I have a suspicion that we attempt to read the library twice.
+    _classMembersLengthsIndex = 0;
+
     var name = _reader.readStringReference();
     var featureSet = _readFeatureSet();
 
@@ -522,6 +528,10 @@ class LibraryReader {
 
     libraryElement.exportedReferences = _reader.readTypedList(
       _readExportedReference,
+    );
+
+    libraryElement.nameUnion = ElementNameUnion.read(
+      _reader.readUInt30List(),
     );
 
     libraryElement.linkedData = LibraryElementLinkedData(
@@ -616,6 +626,15 @@ class LibraryReader {
         _reader.offset = membersOffset;
         _readClassElementMembers(unitElement, element, reference);
       };
+      if (_classMembersLengthsIndex >= _classMembersLengths.length) {
+        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/51855
+        throw StateError(
+          '[libraryReference: $_reference]'
+          '[classReference: $reference]'
+          '[_classMembersLengthsIndex: $_classMembersLengthsIndex]'
+          '[_classMembersLengths: $_classMembersLengths]',
+        );
+      }
       _reader.offset += _classMembersLengths[_classMembersLengthsIndex++];
     }
 
@@ -1720,6 +1739,9 @@ class ResolutionReader {
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.star,
       );
+      return _readAliasElementArguments(type);
+    } else if (tag == Tag.InvalidType) {
+      var type = InvalidTypeImpl.instance;
       return _readAliasElementArguments(type);
     } else if (tag == Tag.NeverType) {
       var nullability = _readNullability();

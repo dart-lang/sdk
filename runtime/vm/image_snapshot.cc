@@ -172,7 +172,13 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
+ImageWriter::ImageWriter(Thread* t,
+                         bool generates_assembly,
+                         const Trie<const char>* deobfuscation_trie)
+#else
 ImageWriter::ImageWriter(Thread* t, bool generates_assembly)
+#endif
     : thread_(ASSERT_NOTNULL(t)),
       zone_(t->zone()),
       next_data_offset_(0),
@@ -180,7 +186,9 @@ ImageWriter::ImageWriter(Thread* t, bool generates_assembly)
       objects_(),
       instructions_(),
 #if defined(DART_PRECOMPILER)
-      namer_(t->zone(), /*for_assembly=*/generates_assembly),
+      namer_(t->zone(),
+             deobfuscation_trie,
+             /*for_assembly=*/generates_assembly),
 #endif
       image_type_(TagObjectTypeAsReadOnly(zone_, "Image")),
       instructions_section_type_(
@@ -657,8 +665,8 @@ const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
 //   Abc:
 //   .cfi_startproc
 //   .cfi_def_cfa x29, 16
-//   .cfi_offset x29, -16
 //   .cfi_offset x30, -8
+//   .cfi_offset x29, -16
 //   ;; ...
 //   Xyz:
 //   ;; ...
@@ -674,9 +682,9 @@ const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
 // __eh_frame. This means that emitting CFI directives for each function would
 // balloon the size of __eh_frame.
 //
-// Hence to work around the problem of incorrect __unwind_info without ballooning
-// snapshot size when __eh_frame is generated we choose to emit CFI directives
-// per function specifically on ARM64 Mac OS X and iOS.
+// Hence to work around the problem of incorrect __unwind_info without
+// ballooning snapshot size when __eh_frame is generated we choose to emit CFI
+// directives per function specifically on ARM64 Mac OS X and iOS.
 //
 // See also |useCompactUnwind| method in LLVM (https://github.com/llvm/llvm-project/blob/b27430f9f46b88bcd54d992debc8d72e131e1bd0/llvm/lib/MC/MCObjectFileInfo.cpp#L28-L50)
 #define EMIT_UNWIND_DIRECTIVES_PER_FUNCTION 1
@@ -1099,25 +1107,32 @@ class DwarfAssemblyStream : public DwarfWriteStream {
   DISALLOW_COPY_AND_ASSIGN(DwarfAssemblyStream);
 };
 
-static inline Dwarf* AddDwarfIfUnstripped(Zone* zone, bool strip, Elf* elf) {
+static inline Dwarf* AddDwarfIfUnstripped(
+    Zone* zone,
+    bool strip,
+    Elf* elf,
+    const Trie<const char>* deobfuscation_trie) {
   if (!strip) {
     if (elf != nullptr) {
       // Reuse the existing DWARF object.
       ASSERT(elf->dwarf() != nullptr);
       return elf->dwarf();
     }
-    return new (zone) Dwarf(zone);
+    return new (zone) Dwarf(zone, deobfuscation_trie);
   }
   return nullptr;
 }
 
-AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
-                                         BaseWriteStream* stream,
-                                         bool strip,
-                                         Elf* debug_elf)
-    : ImageWriter(thread, /*generates_assembly=*/true),
+AssemblyImageWriter::AssemblyImageWriter(
+    Thread* thread,
+    BaseWriteStream* stream,
+    const Trie<const char>* deobfuscation_trie,
+    bool strip,
+    Elf* debug_elf)
+    : ImageWriter(thread, /*generates_assembly=*/true, deobfuscation_trie),
       assembly_stream_(stream),
-      assembly_dwarf_(AddDwarfIfUnstripped(zone_, strip, debug_elf)),
+      assembly_dwarf_(
+          AddDwarfIfUnstripped(zone_, strip, debug_elf, deobfuscation_trie)),
       debug_elf_(debug_elf),
       label_to_symbol_name_(zone_) {
   // Set up the label mappings for the section symbols for use in relocations.
@@ -1185,13 +1200,37 @@ void ImageWriter::SnapshotTextObjectNamer::AddNonUniqueNameFor(
     }
   } else if (object.IsClass()) {
     const char* name = Class::Cast(object).UserVisibleNameCString();
-    buffer->AddString(name);
+    const char* deobfuscated_name =
+        ImageWriter::Deobfuscate(zone_, deobfuscation_trie_, name);
+    buffer->AddString(deobfuscated_name);
   } else if (object.IsAbstractType()) {
-    AbstractType::Cast(object).PrintName(Object::kUserVisibleName, buffer);
+    const AbstractType& type = AbstractType::Cast(object);
+    if (deobfuscation_trie_ == nullptr) {
+      // Print directly to the output buffer.
+      type.PrintName(Object::kUserVisibleName, buffer);
+    } else {
+      // Use an intermediate buffer for deobfuscation purposes.
+      ZoneTextBuffer temp_buffer(zone_);
+      type.PrintName(Object::kUserVisibleName, &temp_buffer);
+      const char* deobfuscated_name = ImageWriter::Deobfuscate(
+          zone_, deobfuscation_trie_, temp_buffer.buffer());
+      buffer->AddString(deobfuscated_name);
+    }
   } else if (object.IsFunction()) {
     const Function& func = Function::Cast(object);
-    func.PrintName({Object::kUserVisibleName, Object::NameDisambiguation::kNo},
-                   buffer);
+    NameFormattingParams params(
+        {Object::kUserVisibleName, Object::NameDisambiguation::kNo});
+    if (deobfuscation_trie_ == nullptr) {
+      // Print directly to the output buffer.
+      func.PrintName(params, buffer);
+    } else {
+      // Use an intermediate buffer for deobfuscation purposes.
+      ZoneTextBuffer temp_buffer(zone_);
+      func.PrintName(params, &temp_buffer);
+      const char* deobfuscated_name = ImageWriter::Deobfuscate(
+          zone_, deobfuscation_trie_, temp_buffer.buffer());
+      buffer->AddString(deobfuscated_name);
+    }
   } else if (object.IsCompressedStackMaps()) {
     buffer->AddString("CompressedStackMaps");
   } else if (object.IsPcDescriptors()) {
@@ -1272,6 +1311,52 @@ const char* ImageWriter::SnapshotTextObjectNamer::SnapshotNameFor(
     ModifyForAssembly(&printer);
   }
   return printer.buffer();
+}
+
+Trie<const char>* ImageWriter::CreateReverseObfuscationTrie(Thread* thread) {
+  auto* const zone = thread->zone();
+  auto* const map_array = thread->isolate_group()->obfuscation_map();
+  if (map_array == nullptr) return nullptr;
+
+  Trie<const char>* trie = nullptr;
+  for (intptr_t i = 0; map_array[i] != nullptr; i += 2) {
+    auto const key = map_array[i];
+    auto const value = map_array[i + 1];
+    ASSERT(value != nullptr);
+    // Don't include identity mappings.
+    if (strcmp(key, value) == 0) continue;
+    // Otherwise, any value in the obfuscation map should be a valid key.
+    ASSERT(Trie<const char>::IsValidKey(value));
+    trie = Trie<const char>::AddString(zone, trie, value, key);
+  }
+  return trie;
+}
+
+const char* ImageWriter::Deobfuscate(Zone* zone,
+                                     const Trie<const char>* trie,
+                                     const char* cstr) {
+  if (trie == nullptr) return cstr;
+  TextBuffer buffer(256);
+  // Used to avoid Zone-allocating strings if no deobfuscation was performed.
+  bool changed = false;
+  intptr_t i = 0;
+  while (cstr[i] != '\0') {
+    intptr_t offset;
+    auto const value = trie->Lookup(cstr + i, &offset);
+    if (offset == 0) {
+      // The first character was an invalid key element (that isn't the null
+      // terminator due to the while condition), copy it and skip to the next.
+      buffer.AddChar(cstr[i++]);
+    } else if (value != nullptr) {
+      changed = true;
+      buffer.AddString(value);
+    } else {
+      buffer.AddRaw(reinterpret_cast<const uint8_t*>(cstr + i), offset);
+    }
+    i += offset;
+  }
+  if (!changed) return cstr;
+  return OS::SCreate(zone, "%s", buffer.buffer());
 }
 
 void AssemblyImageWriter::WriteBss(bool vm) {
@@ -1537,29 +1622,43 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // tells unwinder that caller's value of register R is stored at address
   // CFA+offs.
 
+  // In the code below we emit .cfi_offset directive in the specific order:
+  // PC first then FP. This should not actually matter, but we discovered
+  // that LLVM code responsible for emitting compact unwind information
+  // expects this specific ordering of CFI directives. If we don't
+  // follow the order then LLVM fails to emit compact unwind info and emits
+  // __eh_frame instead which is very large.
+  // See also https://github.com/llvm/llvm-project/issues/62574 and
+  // https://github.com/flutter/flutter/issues/126004.
+
 #if defined(TARGET_ARCH_IA32)
   UNREACHABLE();
 #elif defined(TARGET_ARCH_X64)
   assembly_stream_->WriteString(".cfi_def_cfa rbp, 16\n");
-  assembly_stream_->WriteString(".cfi_offset rbp, -16\n");
   assembly_stream_->WriteString(".cfi_offset rip, -8\n");
+  assembly_stream_->WriteString(".cfi_offset rbp, -16\n");
 #elif defined(TARGET_ARCH_ARM64)
   COMPILE_ASSERT(R29 == FP);
   COMPILE_ASSERT(R30 == LINK_REGISTER);
   assembly_stream_->WriteString(".cfi_def_cfa x29, 16\n");
-  assembly_stream_->WriteString(".cfi_offset x29, -16\n");
   assembly_stream_->WriteString(".cfi_offset x30, -8\n");
+  assembly_stream_->WriteString(".cfi_offset x29, -16\n");
 #elif defined(TARGET_ARCH_ARM)
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R7);
   assembly_stream_->WriteString(".cfi_def_cfa r7, 8\n");
-  assembly_stream_->WriteString(".cfi_offset r7, -8\n");
 #else
   COMPILE_ASSERT(FP == R11);
   assembly_stream_->WriteString(".cfi_def_cfa r11, 8\n");
-  assembly_stream_->WriteString(".cfi_offset r11, -8\n");
 #endif
   assembly_stream_->WriteString(".cfi_offset lr, -4\n");
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+  COMPILE_ASSERT(FP == R7);
+  assembly_stream_->WriteString(".cfi_offset r7, -8\n");
+#else
+  COMPILE_ASSERT(FP == R11);
+  assembly_stream_->WriteString(".cfi_offset r11, -8\n");
+#endif
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
 #if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R11);
@@ -1569,12 +1668,12 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
 #endif
 #elif defined(TARGET_ARCH_RISCV32)
   assembly_stream_->WriteString(".cfi_def_cfa fp, 0\n");
-  assembly_stream_->WriteString(".cfi_offset fp, -8\n");
   assembly_stream_->WriteString(".cfi_offset ra, -4\n");
+  assembly_stream_->WriteString(".cfi_offset fp, -8\n");
 #elif defined(TARGET_ARCH_RISCV64)
   assembly_stream_->WriteString(".cfi_def_cfa fp, 0\n");
-  assembly_stream_->WriteString(".cfi_offset fp, -16\n");
   assembly_stream_->WriteString(".cfi_offset ra, -8\n");
+  assembly_stream_->WriteString(".cfi_offset fp, -16\n");
 #else
 #error Unexpected architecture.
 #endif
@@ -1621,12 +1720,22 @@ intptr_t AssemblyImageWriter::Align(intptr_t alignment,
 }
 #endif  // defined(DART_PRECOMPILER)
 
+#if defined(DART_PRECOMPILER)
+BlobImageWriter::BlobImageWriter(Thread* thread,
+                                 NonStreamingWriteStream* vm_instructions,
+                                 NonStreamingWriteStream* isolate_instructions,
+                                 const Trie<const char>* deobfuscation_trie,
+                                 Elf* debug_elf,
+                                 Elf* elf)
+    : ImageWriter(thread, /*generates_assembly=*/false, deobfuscation_trie),
+#else
 BlobImageWriter::BlobImageWriter(Thread* thread,
                                  NonStreamingWriteStream* vm_instructions,
                                  NonStreamingWriteStream* isolate_instructions,
                                  Elf* debug_elf,
                                  Elf* elf)
     : ImageWriter(thread, /*generates_assembly=*/false),
+#endif
       vm_instructions_(vm_instructions),
       isolate_instructions_(isolate_instructions),
       elf_(elf),

@@ -334,7 +334,9 @@ String? _getJsInteropName(ir.Constant constant) {
       constant.classNode.name == 'JS' &&
       (constant.classNode.enclosingLibrary.importUri == Uris.package_js ||
           constant.classNode.enclosingLibrary.importUri ==
-              Uris.dart__js_annotations)) {
+              Uris.dart__js_annotations ||
+          constant.classNode.enclosingLibrary.importUri ==
+              Uris.dart__js_interop)) {
     assert(constant.fieldValues.length == 1);
     ir.Constant fieldValue = constant.fieldValues.values.single;
     if (fieldValue is ir.NullConstant) {

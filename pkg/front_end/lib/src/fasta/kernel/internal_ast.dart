@@ -28,6 +28,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import '../builder/type_alias_builder.dart';
 import '../names.dart';
 import '../problems.dart' show unsupported;
+import '../source/source_constructor_builder.dart';
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
@@ -414,6 +415,47 @@ abstract class InternalExpression extends Expression {
   void toTextInternal(AstPrinter printer) {
     // TODO(johnniwinther): Implement this.
   }
+}
+
+/// Common base class for internal initializers.
+abstract class InternalInitializer extends Initializer {
+  @override
+  void replaceChild(TreeNode child, TreeNode replacement) {
+    // Do nothing. The node should not be part of the resulting AST, anyway.
+  }
+
+  @override
+  R accept<R>(InitializerVisitor<R> visitor) {
+    if (visitor is InferenceVisitorImpl) {
+      return acceptInference(visitor as InferenceVisitorImpl) as R;
+    }
+    if (visitor is Printer ||
+        visitor is InlineClassInitializerToStatementConverter) {
+      return visitor.defaultInitializer(this);
+    }
+    return unsupported(
+        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  R accept1<R, A>(InitializerVisitor1<R, A> visitor, A arg) {
+    return unsupported(
+        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) =>
+      unsupported("${runtimeType}.visitChildren", -1, null);
+
+  @override
+  void transformChildren(Transformer v) =>
+      unsupported("${runtimeType}.transformChildren", -1, null);
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) =>
+      unsupported("${runtimeType}.transformOrRemoveChildren", -1, null);
+
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor);
 }
 
 /// Front end specific implementation of [Argument].
@@ -3697,4 +3739,46 @@ class ObjectPatternInternal extends ObjectPattern {
 
   ObjectPatternInternal(super.requiredType, super.fields, this.typedef,
       {required this.hasExplicitTypeArguments});
+}
+
+class InlineClassRedirectingInitializer extends InternalInitializer {
+  Reference targetReference;
+  Arguments arguments;
+
+  InlineClassRedirectingInitializer(Procedure target, Arguments arguments)
+      : this.byReference(
+            // Getter vs setter doesn't matter for procedures.
+            getNonNullableMemberReferenceGetter(target),
+            arguments);
+
+  InlineClassRedirectingInitializer.byReference(
+      this.targetReference, this.arguments) {
+    arguments.parent = this;
+  }
+
+  Procedure get target => targetReference.asProcedure;
+
+  void set target(Procedure target) {
+    // Getter vs setter doesn't matter for procedures.
+    targetReference = getNonNullableMemberReferenceGetter(target);
+  }
+
+  @override
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInlineClassRedirectingInitializer(this);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('this');
+    if (target.name.text.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.text);
+    }
+    printer.writeArguments(arguments, includeTypeArguments: false);
+  }
+
+  @override
+  String toString() =>
+      'InlineClassRedirectingInitializer(${toStringInternal()})';
 }

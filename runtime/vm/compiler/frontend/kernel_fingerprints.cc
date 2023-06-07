@@ -760,10 +760,11 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateStatementFingerprint();            // read body.
       return;
     case kSwitchStatement: {
-      ReadPosition();                     // read position.
-      ReadBool();                         // read exhaustive flag.
-      CalculateExpressionFingerprint();   // read condition.
-      int case_count = ReadListLength();  // read number of cases.
+      ReadPosition();                          // read position.
+      ReadBool();                              // read exhaustive flag.
+      CalculateExpressionFingerprint();        // read condition.
+      CalculateOptionalDartTypeFingerprint();  // read expression type
+      int case_count = ReadListLength();       // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
         int expression_count = ReadListLength();  // read number of expressions.
         for (intptr_t j = 0; j < expression_count; ++j) {

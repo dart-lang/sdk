@@ -161,6 +161,15 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
+  void writeInvalidType() {
+    _write('InvalidType');
+  }
+
+  void writeLibraryElement(LibraryElementImpl element) {
+    _write('library ');
+    _write('${element.source.uri}');
+  }
+
   void writeMixinElement(MixinElementImpl element) {
     if (element.isBase) {
       _write('base ');

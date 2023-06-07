@@ -1150,6 +1150,9 @@ class FileSystemState {
   /// of a file that is generated.
   final bool Function(String path) isGenerated;
 
+  /// The function that is invoked when a new file is created.
+  final void Function(FileState file) onNewFile;
+
   late final FileSystemStateTestView _testView;
 
   final FileSystemTestData? testData;
@@ -1169,6 +1172,7 @@ class FileSystemState {
     required this.unlinkedUnitStore,
     required this.prefetchFiles,
     required this.isGenerated,
+    required this.onNewFile,
     required this.testData,
   }) {
     _testView = FileSystemStateTestView(this);
@@ -1463,6 +1467,7 @@ class FileSystemState {
     knownFiles.add(file);
     fileStamp++;
     file.refresh();
+    onNewFile(file);
     return file;
   }
 }

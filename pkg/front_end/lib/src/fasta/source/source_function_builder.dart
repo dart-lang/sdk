@@ -416,7 +416,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         _thisVariable = new VariableDeclarationImpl(syntheticThisName,
             isFinal: true,
             type: new InlineType(inlineClassBuilder.inlineClass,
-                libraryBuilder.nonNullable, typeArguments));
+                libraryBuilder.nonNullable, typeArguments))
+          ..fileOffset = charOffset
+          ..isLowered = true;
       } else {
         _thisVariable = function.positionalParameters.first;
       }
@@ -475,14 +477,13 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
               : null;
       Scope parentScope =
           classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
-      MetadataBuilder.buildAnnotations(member, metadata, libraryBuilder,
-          classOrExtensionBuilder, this, fileUri, parentScope);
+      MetadataBuilder.buildAnnotations(member, metadata, bodyBuilderContext,
+          libraryBuilder, fileUri, parentScope);
       if (typeVariables != null) {
         for (int i = 0; i < typeVariables!.length; i++) {
           typeVariables![i].buildOutlineExpressions(
               libraryBuilder,
-              classOrExtensionBuilder,
-              this,
+              bodyBuilderContext,
               classHierarchy,
               delayedActionPerformers,
               computeTypeParameterScope(parentScope));

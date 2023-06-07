@@ -130,7 +130,7 @@ constexpr bool FLAG_support_il_printer = false;
   P(huge_method_cutoff_in_ast_nodes, int, 10000,                               \
     "Huge method cutoff in AST nodes: Disables optimizations for huge "        \
     "methods.")                                                                \
-  P(idle_timeout_micros, int, 1000 * kMicrosecondsPerMillisecond,              \
+  P(idle_timeout_micros, int, 61 * kMicrosecondsPerSecond,                     \
     "Consider thread pool isolates for idle tasks after this long.")           \
   P(idle_duration_micros, int, kMaxInt32,                                      \
     "Allow idle tasks to run for this long.")                                  \

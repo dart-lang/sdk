@@ -190,6 +190,8 @@ Compiler compilerFor(
     outputProvider = const NullCompilerOutput();
   }
 
+  options.add('${Flags.entryUri}=$entryPoint');
+
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       librariesSpecificationUri: librariesSpecificationUri,
       // Unsound platform dill files are no longer packaged in the SDK and must
@@ -197,9 +199,10 @@ Compiler compilerFor(
       platformBinaries: options.contains(Flags.noSoundNullSafety)
           ? buildPlatformBinariesUri
           : null)
-    ..entryUri = entryPoint
     ..environment = {}
     ..packageConfig = packageConfig;
+
+  compilerOptions.setDefaultOutputUriForTesting();
   compilerOptions.kernelInitializedCompilerState =
       kernelInitializedCompilerState;
   var compiler =

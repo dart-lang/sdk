@@ -29,6 +29,7 @@ import 'package:analysis_server/src/services/correction/dart/add_missing_switch_
 import 'package:analysis_server/src/services/correction/dart/add_ne_null.dart';
 import 'package:analysis_server/src/services/correction/dart/add_null_check.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
+import 'package:analysis_server/src/services/correction/dart/add_reopen.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_null.dart';
@@ -55,7 +56,9 @@ import 'package:analysis_server/src/services/correction/dart/convert_into_block_
 import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_boolean_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_constant_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_function_declaration.dart';
@@ -153,6 +156,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_required.dar
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_to_list.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
@@ -203,6 +207,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_is_emp
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_part_of_uri.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
@@ -211,6 +216,7 @@ import 'package:analysis_server/src/services/correction/dart/sort_child_property
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
+import 'package:analysis_server/src/services/correction/dart/split_multiple_declarations.dart';
 import 'package:analysis_server/src/services/correction/dart/surround_with_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
@@ -308,6 +314,7 @@ class FixInFileProcessor {
           var sourceChange = fixState.builder.sourceChange;
           if (sourceChange.edits.isNotEmpty && fixState.fixCount > 1) {
             var fixKind = fixState.fixKind;
+            sourceChange.id = fixKind.id;
             sourceChange.message = fixKind.message;
             fixes.add(Fix(fixKind, sourceChange));
           }
@@ -426,6 +433,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_init_to_null: [
       RemoveInitializer.bulkFixable,
     ],
+    LintNames.avoid_multiple_declarations_per_line: [
+      SplitMultipleDeclarations.new,
+    ],
     LintNames.avoid_null_checks_in_equality_operators: [
       RemoveComparison.new,
     ],
@@ -483,8 +493,14 @@ class FixProcessor extends BaseProcessor {
     LintNames.cascade_invocations: [
       ConvertToCascade.new,
     ],
+    LintNames.cast_nullable_to_non_nullable: [
+      AddNullCheck.withoutAssignabilityCheck,
+    ],
     LintNames.combinators_ordering: [
       SortCombinators.new,
+    ],
+    LintNames.constant_identifier_names: [
+      RenameToCamelCase.new,
     ],
     LintNames.curly_braces_in_flow_control_structures: [
       UseCurlyBraces.new,
@@ -524,6 +540,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.implicit_call_tearoffs: [
       AddExplicitCall.new,
     ],
+    LintNames.implicit_reopen: [
+      AddReopen.new,
+    ],
     LintNames.invalid_case_patterns: [
       AddConst.new,
     ],
@@ -538,6 +557,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.no_leading_underscores_for_library_prefixes: [
       RemoveLeadingUnderscore.new,
+    ],
+    LintNames.no_literal_bool_comparisons: [
+      ConvertToBooleanExpression.new,
     ],
     LintNames.no_leading_underscores_for_local_identifiers: [
       RemoveLeadingUnderscore.new,
@@ -684,6 +706,7 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.other,
     ],
     LintNames.type_literal_in_constant_pattern: [
+      ConvertToConstantPattern.new,
       ConvertToWildcardPattern.new,
     ],
     LintNames.unawaited_futures: [
@@ -723,6 +746,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_null_aware_assignments: [
       RemoveAssignment.new,
     ],
+    LintNames.unnecessary_null_checks: [
+      RemoveNonNullAssertion.new,
+    ],
     LintNames.unnecessary_null_in_if_null_operators: [
       RemoveIfNullOperator.new,
     ],
@@ -743,6 +769,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_string_interpolations: [
       RemoveUnnecessaryStringInterpolation.new,
+    ],
+    LintNames.unnecessary_to_list_in_spreads: [
+      RemoveToList.new,
     ],
     LintNames.unnecessary_this: [
       RemoveThisExpression.new,
@@ -768,6 +797,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.use_rethrow_when_possible: [
       UseRethrow.new,
     ],
+    LintNames.use_string_in_part_of_directives: [
+      ReplaceWithPartOrUriEmpty.new,
+    ],
     LintNames.use_super_parameters: [
       ConvertToSuperParameters.new,
     ],
@@ -780,6 +812,9 @@ class FixProcessor extends BaseProcessor {
       nonLintMultiProducerMap = {
     CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS: [
       AddExtensionOverride.new,
+    ],
+    CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
+      DataDriven.new,
     ],
     CompileTimeErrorCode.CAST_TO_NON_TYPE: [
       ImportLibrary.forType,
@@ -997,6 +1032,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
+      CreateClass.new,
     ],
     CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION: [
       AddConst.new,
@@ -1134,6 +1170,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
+      CreateClass.new,
     ],
     CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR: [
       CreateConstructor.new,

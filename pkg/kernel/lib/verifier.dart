@@ -925,7 +925,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     enterTreeNode(node);
     checkTargetedInvocation(node.target, node);
     if (node.target.enclosingClass.isAbstract) {
-      problem(node, "ConstructorInvocation of abstract class.");
+      problem(node, "$node of abstract class ${node.target.enclosingClass}.");
     }
     if (node.isConst && !node.target.isConst) {
       problem(
@@ -1568,6 +1568,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       RedirectingFactoryTearOffConstant node) {
     _checkRedirectingFactoryTearOff(node);
     super.visitRedirectingFactoryTearOffConstant(node);
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    if (node.expressionTypeInternal == null) {
+      problem(node, 'SwitchStatement.expressionType has not been set.');
+    }
+    super.visitSwitchStatement(node);
   }
 }
 

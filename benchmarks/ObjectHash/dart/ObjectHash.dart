@@ -7,6 +7,7 @@
 // Benchmark for `Object.hash` and `Object.hashAll`.
 
 import 'dart:math';
+
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 int get nextHash => Random().nextInt(0x20000000);
@@ -134,11 +135,11 @@ void main() {
   generalUses();
 
   final benchmarks = [
-    () => BenchmarkNode5Hash(),
-    () => BenchmarkNode5Manual(),
-    () => BenchmarkNode5List(),
-    () => BenchmarkNode5HashHashAll(),
-    () => BenchmarkNode5ManualHashAll(),
+    BenchmarkNode5Hash.new,
+    BenchmarkNode5Manual.new,
+    BenchmarkNode5List.new,
+    BenchmarkNode5HashHashAll.new,
+    BenchmarkNode5ManualHashAll.new,
   ];
 
   // Warmup all benchmarks so that JIT compilers see full polymorphism before

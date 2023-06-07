@@ -116,7 +116,7 @@ class CreateMethod extends CorrectionProducer {
     var target = invocation.realTarget;
     var utilsForTargetNode = utils;
     if (target is ExtensionOverride) {
-      targetElement = target.staticElement;
+      targetElement = target.element;
       if (targetElement is ExtensionElement) {
         targetNode = await getExtensionDeclaration(targetElement);
         if (targetNode == null) {

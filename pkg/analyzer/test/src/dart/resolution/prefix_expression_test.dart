@@ -51,6 +51,30 @@ PrefixExpression
 ''');
   }
 
+  test_bang_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    !super;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
+      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 28, 5),
+    ]);
+
+    final node = findNode.singlePrefixExpression;
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: !
+  operand: SuperExpression
+    superKeyword: super
+    staticType: A
+  staticElement: <null>
+  staticType: bool
+''');
+  }
+
   test_formalParameter_inc_inc() async {
     await assertErrorsInCode(r'''
 void f(int x) {
@@ -77,11 +101,11 @@ PrefixExpression
     staticElement: dart:core::@class::num::@method::+
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -108,6 +132,52 @@ PrefixExpression
   readType: A
   writeElement: self::@function::f::@parameter::a
   writeType: A
+  staticElement: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_inc_unresolvedIdentifier() async {
+    await assertErrorsInCode(r'''
+void f() {
+  ++x;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
+    ]);
+
+    final node = findNode.prefix('++x');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  staticElement: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_minus_dynamicIdentifier() async {
+    await assertNoErrorsInCode(r'''
+void f(dynamic a) {
+  -a;
+}
+''');
+
+    final node = findNode.singlePrefixExpression;
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: dynamic
   staticElement: <null>
   staticType: dynamic
 ''');
@@ -228,11 +298,11 @@ PrefixExpression
     superKeyword: super
     staticType: A
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -273,11 +343,11 @@ PrefixExpression
     rightBracket: }
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -311,32 +381,6 @@ PrefixExpression
     staticType: int?
   staticElement: dart:core::@class::int::@method::~
   staticType: int
-''');
-  }
-
-  test_unresolvedIdentifier_inc() async {
-    await assertErrorsInCode(r'''
-void f() {
-  ++x;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
-    ]);
-
-    final node = findNode.prefix('++x');
-    assertResolvedNodeText(node, r'''
-PrefixExpression
-  operator: ++
-  operand: SimpleIdentifier
-    token: x
-    staticElement: <null>
-    staticType: null
-  readElement: <null>
-  readType: dynamic
-  writeElement: <null>
-  writeType: dynamic
-  staticElement: <null>
-  staticType: dynamic
 ''');
   }
 }
@@ -714,10 +758,7 @@ void f(C c) {
 PrefixExpression
   operator: ++
   operand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: Ext
-      staticElement: self::@extension::Ext
-      staticType: null
+    name: Ext
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -727,24 +768,22 @@ PrefixExpression
           staticElement: self::@function::f::@parameter::c
           staticType: C
       rightParenthesis: )
+    element: self::@extension::Ext
     extendedType: C
     staticType: null
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: self::@extension::Ext::@method::+
-  staticType: int
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: Ext
-      staticElement: self::@extension::Ext
-      staticType: null
+    name: Ext
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -754,14 +793,15 @@ PrefixExpression
           staticElement: self::@function::f::@parameter::c
           staticType: C*
       rightParenthesis: )
+    element: self::@extension::Ext
     extendedType: C*
     staticType: null
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: self::@extension::Ext::@method::+
-  staticType: int*
+  staticType: InvalidType
 ''');
     }
   }
@@ -785,11 +825,11 @@ PrefixExpression
     staticElement: <null>
     staticType: null
   readElement: dart:core::@class::int
-  readType: dynamic
+  readType: InvalidType
   writeElement: dart:core::@class::int
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
@@ -800,11 +840,11 @@ PrefixExpression
     staticElement: <null>
     staticType: null
   readElement: dart:core::@class::int
-  readType: dynamic
+  readType: InvalidType
   writeElement: dart:core::@class::int
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     }
   }

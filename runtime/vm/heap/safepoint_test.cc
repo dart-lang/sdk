@@ -465,13 +465,13 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
       wait_for_sync(1);  // Wait for threads to exit safepoint
       { DeoptSafepointOperationScope safepoint_operation(thread); }
       wait_for_sync(2);  // Wait for threads to exit safepoint
-      { ReloadOperationScope reload(thread); }
+      { RELOAD_OPERATION_SCOPE(thread); }
       wait_for_sync(3);  // Wait for threads to exit safepoint
       { GcSafepointOperationScope safepoint_operation(thread); }
       wait_for_sync(4);  // Wait for threads to exit safepoint
       { DeoptSafepointOperationScope safepoint_operation(thread); }
       wait_for_sync(5);  // Wait for threads to exit safepoint
-      { ReloadOperationScope reload(thread); }
+      { RELOAD_OPERATION_SCOPE(thread); }
     }
     for (intptr_t i = 0; i < kTaskCount; i++) {
       threads[i]->MarkAndNotify(CheckinTask::kPleaseExit);
@@ -698,9 +698,7 @@ class ReloadTask : public StateMachineTask {
   explicit ReloadTask(std::shared_ptr<Data> data) : StateMachineTask(data) {}
 
  protected:
-  virtual void RunInternal() {
-    ReloadOperationScope reload_operation_scope(thread_);
-  }
+  virtual void RunInternal() { RELOAD_OPERATION_SCOPE(thread_); }
 };
 
 ISOLATE_UNIT_TEST_CASE(Reload_AtReloadSafepoint) {
@@ -757,15 +755,23 @@ ISOLATE_UNIT_TEST_CASE(Reload_NotAtSafepoint) {
 
   std::shared_ptr<ReloadTask::Data> task(
       new ReloadTask::Data(isolate->group()));
-  pool.Run<ReloadTask>(task);
-  task->WaitUntil(ReloadTask::kEntered);
 
-  // We are not at a safepoint. The [ReloadTask] will trigger a reload
-  // safepoint operation, sees that we are not at reload safepoint and instead
-  // sends us an OOB.
-  ASSERT(!thread->IsAtSafepoint());
-  while (!messages->HasOOBMessages()) {
-    OS::Sleep(1000);
+  {
+    // Even if we are not running with an active isolate (e.g. due to being in
+    // GC / Compiler) the reload safepoint operation should still send us an OOB
+    // message (it should know this thread belongs to an isolate).
+    NoActiveIsolateScope no_active_isolate(thread);
+
+    pool.Run<ReloadTask>(task);
+    task->WaitUntil(ReloadTask::kEntered);
+
+    // We are not at a safepoint. The [ReloadTask] will trigger a reload
+    // safepoint operation, sees that we are not at reload safepoint and instead
+    // sends us an OOB.
+    ASSERT(!thread->IsAtSafepoint());
+    while (!messages->HasOOBMessages()) {
+      OS::Sleep(1000);
+    }
   }
 
   // Examine the OOB message for it's content.

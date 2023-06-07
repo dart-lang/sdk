@@ -1,3 +1,19 @@
+## 11.7.0
+- Add a dependency on `package:fixnum ^1.0.0`.
+- Add a dependency on `package:protobuf >=2.0.0 <=3.0.0-dev`.
+- Add code for working with Perfetto protos, which can be imported from
+  `'package:vm_service/vm_service_protos.dart'`.
+
+## 11.6.0
+- Update to version `4.7` of the spec.
+- Add deprecation notice to `Stack.awaiterFrames`.
+- Add deprecation notice to `FrameKind.kAsyncActivation`.
+
+## 11.5.0
+- Update to version `4.6` of the spec.
+- Add `getPerfettoCpuSamples` RPC.
+- Add deprecation notice to `InstanceKind.TypeRef`.
+
 ## 11.4.0
 - Update to version `4.5` of the spec.
 - Add `getPerfettoVMTimeline` RPC.

@@ -517,7 +517,11 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   COMPILE_ASSERT(!IsCalleeSavedRegister(R10) && !IsArgumentRegister(R10));
 
   // Load the code object.
-  __ LoadFromOffset(R10, THR, compiler::target::Thread::callback_code_offset());
+  __ LoadFromOffset(R10, THR, compiler::target::Thread::isolate_group_offset());
+  __ LoadFromOffset(R10, R10,
+                    compiler::target::IsolateGroup::object_store_offset());
+  __ LoadFromOffset(R10, R10,
+                    compiler::target::ObjectStore::ffi_callback_code_offset());
 #if defined(DART_COMPRESSED_POINTERS)
   // Partially setup HEAP_BITS for LoadCompressed[FieldFromOffset].
   ASSERT(IsAbiPreservedRegister(HEAP_BITS));  // Need to save and restore.

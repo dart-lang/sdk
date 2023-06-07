@@ -17,6 +17,7 @@ import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/inline_class_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -201,7 +202,7 @@ abstract class Generator {
       int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false});
 
-  Expression_Generator buildSelectorAccess(
+  Expression_Generator_Initializer buildSelectorAccess(
       Selector selector, int operatorOffset, bool isNullAware) {
     selector.reportNewAsSelector();
     if (selector is InvocationSelector) {
@@ -265,7 +266,7 @@ abstract class Generator {
         message.withLocation(_uri, fileOffset, lengthForToken(token)));
   }
 
-  /* Expression | Generator */ Object qualifiedLookup(Token name) {
+  Expression_Generator qualifiedLookup(Token name) {
     return new UnexpectedQualifiedUseGenerator(_helper, name, this, false);
   }
 
@@ -3167,8 +3168,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           usedAsClassFileUri: _uri);
 
       bool isConstructorTearOff = send is PropertySelector &&
-          _helper.libraryFeatures.constructorTearoffs.isEnabled &&
-          declarationBuilder is ClassBuilder;
+              _helper.libraryFeatures.constructorTearoffs.isEnabled &&
+              declarationBuilder is ClassBuilder ||
+          declarationBuilder is InlineClassBuilder;
       List<TypeBuilder>? aliasedTypeArguments = typeArguments
           ?.map((unknownType) => _helper.validateTypeVariableUse(unknownType,
               allowPotentiallyConstantType: isConstructorTearOff))
@@ -3232,19 +3234,21 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               "an IncompletePropertyAccessGenerator object: "
               "'${send.typeArguments.runtimeType}'.");
           if (_helper.libraryFeatures.constructorTearoffs.isEnabled &&
-              declarationBuilder is ClassBuilder) {
+                  declarationBuilder is ClassBuilder ||
+              declarationBuilder is InlineClassBuilder) {
             MemberBuilder? constructor =
                 declarationBuilder.findConstructorOrFactory(
                     name.text, nameOffset, _uri, _helper.libraryBuilder);
             Member? tearOff = constructor?.readTarget;
             Expression? tearOffExpression;
             if (tearOff is Constructor) {
-              if (declarationBuilder.isAbstract) {
+              if (declarationBuilder is ClassBuilder &&
+                  declarationBuilder.isAbstract) {
                 return _helper.buildProblem(
                     messageAbstractClassConstructorTearOff,
                     nameOffset,
                     name.text.length);
-              } else if (declarationBuilder.cls.isEnum) {
+              } else if (declarationBuilder.isEnum) {
                 return _helper.buildProblem(messageEnumConstructorTearoff,
                     nameOffset, name.text.length);
               }
@@ -3278,9 +3282,17 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                   // fallback, as the error is reported during a check on the
                   // typedef.
                   builtTypeArguments = <DartType>[];
-                  for (TypeParameter typeParameter
-                      in declarationBuilder.cls.typeParameters) {
-                    builtTypeArguments.add(typeParameter.defaultType);
+                  if (declarationBuilder is ClassBuilder) {
+                    for (TypeParameter typeParameter
+                        in declarationBuilder.cls.typeParameters) {
+                      builtTypeArguments.add(typeParameter.defaultType);
+                    }
+                  } else {
+                    declarationBuilder as InlineClassBuilder;
+                    for (TypeParameter typeParameter
+                        in declarationBuilder.inlineClass.typeParameters) {
+                      builtTypeArguments.add(typeParameter.defaultType);
+                    }
                   }
                 } else {
                   builtTypeArguments = unaliasTypes(
@@ -4486,7 +4498,7 @@ class ThisAccessGenerator extends Generator {
   }
 
   @override
-  Expression_Generator buildSelectorAccess(
+  Expression_Generator_Initializer buildSelectorAccess(
       Selector selector, int operatorOffset, bool isNullAware) {
     Name name = selector.name;
     Arguments? arguments = selector.arguments;
@@ -4595,36 +4607,30 @@ class ThisAccessGenerator extends Generator {
     return super.buildUnaryOperation(token, unaryName);
   }
 
-  Initializer buildConstructorInitializer(
+  Expression_Initializer buildConstructorInitializer(
       int offset, Name name, Arguments arguments) {
-    Constructor? constructor =
-        _helper.lookupConstructor(name, isSuper: isSuper);
-    if (constructor == null) {
-      String fullName = isSuper
-          ? _helper.superConstructorNameForDiagnostics(name.text)
-          : _helper.constructorNameForDiagnostics(name.text);
-      LocatedMessage message = (isSuper
-              ? templateSuperclassHasNoConstructor
-              : templateConstructorNotFound)
-          .withArguments(fullName)
-          .withLocation(_uri, fileOffset, lengthForToken(token));
-      return _helper.buildInvalidInitializer(
-          _helper.buildUnresolvedError(
-              isSuper
-                  ? _helper.superConstructorNameForDiagnostics(name.text)
-                  : _helper.constructorNameForDiagnostics(name.text),
-              offset,
-              arguments: arguments,
-              isSuper: isSuper,
-              message: message,
-              kind: UnresolvedKind.Constructor),
-          offset);
-    } else if (isSuper) {
-      return _helper.buildSuperInitializer(
-          false, constructor, arguments, offset);
+    if (isSuper) {
+      Constructor? constructor = _helper.lookupSuperConstructor(name);
+      if (constructor == null) {
+        String fullName = _helper.superConstructorNameForDiagnostics(name.text);
+        LocatedMessage message = templateSuperclassHasNoConstructor
+            .withArguments(fullName)
+            .withLocation(_uri, fileOffset, lengthForToken(token));
+        return _helper.buildInvalidInitializer(
+            _helper.buildUnresolvedError(
+                _helper.superConstructorNameForDiagnostics(name.text), offset,
+                arguments: arguments,
+                isSuper: true,
+                message: message,
+                kind: UnresolvedKind.Constructor),
+            offset);
+      } else {
+        return _helper.buildSuperInitializer(
+            false, constructor, arguments, offset);
+      }
     } else {
-      return _helper.buildRedirectingInitializer(
-          constructor, arguments, offset);
+      return _helper.buildRedirectingInitializer(name, arguments,
+          fileOffset: offset);
     }
   }
 
@@ -4973,10 +4979,10 @@ class PropertySelector extends Selector {
 }
 
 class AugmentSuperAccessGenerator extends Generator {
-  final SourceMemberBuilder augmentation;
+  final AugmentSuperTarget augmentSuperTarget;
 
   AugmentSuperAccessGenerator(
-      ExpressionGeneratorHelper helper, Token token, this.augmentation)
+      ExpressionGeneratorHelper helper, Token token, this.augmentSuperTarget)
       : super(helper, token);
 
   @override
@@ -4988,7 +4994,7 @@ class AugmentSuperAccessGenerator extends Generator {
   }
 
   Expression _createRead() {
-    Member? readTarget = augmentation.augmentSuperTarget?.readTarget;
+    Member? readTarget = augmentSuperTarget.readTarget;
     if (readTarget != null) {
       return new AugmentSuperGet(readTarget, fileOffset: fileOffset);
     } else {
@@ -5004,7 +5010,7 @@ class AugmentSuperAccessGenerator extends Generator {
 
   Expression _createWrite(int offset, Expression value,
       {required bool forEffect}) {
-    Member? writeTarget = augmentation.augmentSuperTarget?.writeTarget;
+    Member? writeTarget = augmentSuperTarget.writeTarget;
     if (writeTarget != null) {
       return new AugmentSuperSet(writeTarget, value,
           forEffect: forEffect, fileOffset: fileOffset);
@@ -5082,7 +5088,7 @@ class AugmentSuperAccessGenerator extends Generator {
   Expression_Generator_Initializer doInvocation(
       int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false}) {
-    Member? invokeTarget = augmentation.augmentSuperTarget?.invokeTarget;
+    Member? invokeTarget = augmentSuperTarget.invokeTarget;
     if (invokeTarget != null) {
       return new AugmentSuperInvocation(invokeTarget, arguments,
           fileOffset: fileOffset);
@@ -5094,7 +5100,7 @@ class AugmentSuperAccessGenerator extends Generator {
 
   @override
   void printOn(StringSink sink) {
-    sink.write(", augmentation: ");
-    sink.write(augmentation);
+    sink.write(", augmentSuperTarget: ");
+    sink.write(augmentSuperTarget);
   }
 }

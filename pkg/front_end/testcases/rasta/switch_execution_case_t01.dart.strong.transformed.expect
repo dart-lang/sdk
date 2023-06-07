@@ -24,7 +24,7 @@ import "dart:core" as core;
 static method test(dynamic value) → dynamic {
   dynamic result;
   #L1:
-  switch(value) {
+  switch(value) /* dynamic */ {
     #L2:
     case #C1:
       {
@@ -54,7 +54,7 @@ static method test(dynamic value) → dynamic {
 static method testEmptyCases(dynamic value) → dynamic {
   dynamic result;
   #L6:
-  switch(value) {
+  switch(value) /* dynamic */ {
     #L7:
     case #C1:
     case #C2:

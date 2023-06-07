@@ -110,8 +110,44 @@ void testValidatePath() {
   }, (e) => e.toString().contains('Invalid character'));
 }
 
+void testCookieSameSite() {
+  Cookie cookie1 = Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; Secure; "
+          "HttpOnly; Path=/; SameSite=None");
+  Expect.equals(cookie1.sameSite, SameSite.none);
+  Cookie cookie2 = Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; SameSite=Lax");
+  Expect.equals(cookie2.sameSite, SameSite.lax);
+  Cookie cookie3 = Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; SameSite=LAX");
+  Expect.equals(cookie3.sameSite, SameSite.lax);
+  Cookie cookie4 = Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; SameSite= Lax");
+  Expect.equals(cookie4.sameSite, SameSite.lax);
+  Cookie cookie5 = Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; sAmEsItE= nOnE");
+  Expect.equals(cookie5.sameSite, SameSite.none);
+  Expect.throws<HttpException>(() => Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; SameSite=Relax"),
+      (e) => e.message == "SameSite value should be one of Lax, Strict or None.");
+  Expect.throws<HttpException>(() => Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; SameSite="),
+      (e) => e.message == "SameSite value should be one of Lax, Strict or None.");
+  Expect.throws<HttpException>(() => Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; SameSite=无"),
+      (e) => e.message == "SameSite value should be one of Lax, Strict or None.");
+}
+
 void main() {
   testCookies();
   testValidateCookieWithDoubleQuotes();
   testValidatePath();
+  testCookieSameSite();
 }

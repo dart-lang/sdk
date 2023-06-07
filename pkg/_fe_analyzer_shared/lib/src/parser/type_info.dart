@@ -433,6 +433,11 @@ TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
       : noTypeParamOrArg;
 }
 
+/// The set of identifiers that are illegal to use as the name of a variable in
+/// a variable pattern, or as the name of an identifier in an identifier
+/// pattern.
+const Set<String> illegalPatternIdentifiers = {'when', 'as'};
+
 /// Indicates whether the given [token] is allowed to follow a list of type
 /// arguments used as a selector after an expression.
 ///

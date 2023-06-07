@@ -21,31 +21,31 @@ if (is_linux) {
       target_sysroot =
           rebase_path("//build/linux/alpine-linux-x86-sysroot", root_build_dir)
     } else if (current_cpu == "x64") {
-      target_sysroot =
-          rebase_path("//build/linux/alpine-linux-x86_64-sysroot", root_build_dir)
+      target_sysroot = rebase_path("//build/linux/alpine-linux-x86_64-sysroot",
+                                   root_build_dir)
     } else if (current_cpu == "arm") {
-      target_sysroot =
-          rebase_path("//build/linux/alpine-linux-armv7-sysroot", root_build_dir)
+      target_sysroot = rebase_path("//build/linux/alpine-linux-armv7-sysroot",
+                                   root_build_dir)
     } else if (current_cpu == "arm64") {
-      target_sysroot =
-          rebase_path("//build/linux/alpine-linux-aarch64-sysroot", root_build_dir)
+      target_sysroot = rebase_path("//build/linux/alpine-linux-aarch64-sysroot",
+                                   root_build_dir)
     } else {
       print("There is no $dart_sysroot sysroot present for $current_cpu")
       assert(false)
     }
   } else if (dart_sysroot == "debian") {
     if (current_cpu == "x86") {
-      target_sysroot =
-          rebase_path("//build/linux/debian_stretch_i386-sysroot", root_build_dir)
+      target_sysroot = rebase_path("//build/linux/debian_stretch_i386-sysroot",
+                                   root_build_dir)
     } else if (current_cpu == "x64") {
-      target_sysroot =
-          rebase_path("//build/linux/debian_stretch_amd64-sysroot", root_build_dir)
+      target_sysroot = rebase_path("//build/linux/debian_stretch_amd64-sysroot",
+                                   root_build_dir)
     } else if (current_cpu == "arm") {
-      target_sysroot =
-          rebase_path("//build/linux/debian_stretch_arm-sysroot", root_build_dir)
+      target_sysroot = rebase_path("//build/linux/debian_stretch_arm-sysroot",
+                                   root_build_dir)
     } else if (current_cpu == "arm64") {
-      target_sysroot =
-          rebase_path("//build/linux/debian_stretch_arm64-sysroot", root_build_dir)
+      target_sysroot = rebase_path("//build/linux/debian_stretch_arm64-sysroot",
+                                   root_build_dir)
     } else {
       print("There is no $dart_sysroot sysroot present for $current_cpu")
       assert(false)
@@ -61,7 +61,7 @@ if ((current_toolchain == host_toolchain ||
   sysroot = target_sysroot
 } else if (is_android) {
   import("//build/config/android/config.gni")
-  sysroot = rebase_path("$android_ndk_root/sysroot")
+  sysroot = rebase_path("$llvm_android_toolchain_root/sysroot")
 } else if (is_mac) {
   import("//build/config/mac/mac_sdk.gni")
   sysroot = mac_sdk_path

@@ -34,7 +34,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///main_lib1.dart";
 
 static method method(self2::EnumLike e) → dynamic {
-  switch(e) {
+  switch(e) /* self2::EnumLike */ {
     #L1:
     case #C2:
       {

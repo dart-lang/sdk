@@ -12,7 +12,8 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameToCamelCaseBulkTest);
-    defineReflectiveTests(RenameToCamelCaseTest);
+    defineReflectiveTests(RenameToCamelCaseTest_constantIdentifiedNames);
+    defineReflectiveTests(RenameToCamelCaseTest_notConstantIdentifiedNames);
   });
 }
 
@@ -48,28 +49,76 @@ void f() {
 }
 
 @reflectiveTest
-class RenameToCamelCaseTest extends FixProcessorLintTest {
+class RenameToCamelCaseTest_constantIdentifiedNames
+    extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.RENAME_TO_CAMEL_CASE;
+
+  @override
+  String get lintCode => LintNames.constant_identifier_names;
+
+  Future<void> test_localVariable_const() async {
+    await resolveTestCode('''
+void f() {
+  const my_integer_variable = 0;
+  my_integer_variable;
+}
+''');
+    await assertHasFix('''
+void f() {
+  const myIntegerVariable = 0;
+  myIntegerVariable;
+}
+''');
+  }
+
+  Future<void> test_topVariable_const() async {
+    await resolveTestCode('''
+const my_integer_variable = 0;
+
+void f() {
+  my_integer_variable;
+}
+''');
+    await assertNoFix();
+  }
+}
+
+@reflectiveTest
+class RenameToCamelCaseTest_notConstantIdentifiedNames
+    extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.RENAME_TO_CAMEL_CASE;
 
   @override
   String get lintCode => LintNames.non_constant_identifier_names;
 
-  Future<void> test_localVariable() async {
+  Future<void> test_localVariable_final() async {
     await resolveTestCode('''
 void f() {
-  int my_integer_variable = 42;
-  int foo = 0;
-  print(my_integer_variable);
-  print(foo);
+  final my_integer_variable = 0;
+  my_integer_variable;
 }
 ''');
     await assertHasFix('''
 void f() {
-  int myIntegerVariable = 42;
-  int foo = 0;
-  print(myIntegerVariable);
-  print(foo);
+  final myIntegerVariable = 0;
+  myIntegerVariable;
+}
+''');
+  }
+
+  Future<void> test_localVariable_typed() async {
+    await resolveTestCode('''
+void f() {
+  int my_integer_variable = 0;
+  my_integer_variable;
+}
+''');
+    await assertHasFix('''
+void f() {
+  int myIntegerVariable = 0;
+  myIntegerVariable;
 }
 ''');
   }

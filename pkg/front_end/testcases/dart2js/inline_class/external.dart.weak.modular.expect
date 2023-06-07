@@ -1,7 +1,7 @@
 @#C2
 library static_interop /*isNonNullableByDefault*/;
 import self as self;
-import "dart:_js_annotations" as _js;
+import "dart:js_interop" as js_;
 import "dart:core" as core;
 
 import "dart:js_interop";
@@ -28,18 +28,18 @@ inline class B /* declaredRepresentationType = self::A */ {
   set setter = self::B|set#setter;
   static set staticSetter = set self::B|staticSetter;
   constructor • = self::B|;
-  tearoff • = self::B|get#;
+  tearoff • = self::B|_#new#tearOff;
   constructor named = self::B|named;
-  tearoff named = self::B|get#named;
+  tearoff named = self::B|_#named#tearOff;
 }
 external static method B|(self::A a) → self::B;
-static method B|get#(self::A a) → self::B
+static method B|_#new#tearOff(self::A a) → self::B
   return self::B|(a);
 external static method B|named(core::int i) → self::B;
-static method B|get#named(core::int i) → self::B
+static method B|_#named#tearOff(core::int i) → self::B
   return self::B|named(i);
-external static method B|get#field(self::A #this) → self::A;
-external static method B|set#field(self::A #this, self::A #externalFieldValue) → void;
+external static method B|get#field(lowered self::A #this) → self::A;
+external static method B|set#field(lowered self::A #this, self::A #externalFieldValue) → void;
 external static method B|method(lowered final self::B #this) → self::A;
 static method B|get#method(lowered final self::B #this) → () → self::A
   return () → self::A => self::B|method(#this);
@@ -60,33 +60,24 @@ static method method(self::A a) → void {
   a = self::B|get#field(b1);
   self::B|set#field(b1, a);
   a = self::B|method(b1);
-  () → self::A f1 = self::B|get#method(b1);
   b2 = self::B|genericMethod<self::B>(b2, b2);
-  <T extends core::Object? = dynamic>(T%) → T% f2 = self::B|get#genericMethod(b2);
-  (core::int) → core::int f3 = self::B|get#genericMethod(b2)<core::int>;
   b1 = self::B|get#getter(b2);
   self::B|set#setter(b1, b2);
   a = self::B|staticField;
   self::B|staticField = a;
   a = self::B|staticMethod();
-  () → self::A f4 = #C3;
   b2 = self::B|staticGenericMethod<self::B>(b2);
-  <T extends core::Object? = dynamic>(T%) → T% f5 = #C4;
-  (core::String) → core::String f6 = #C5;
   b1 = self::B|staticGetter;
   self::B|staticSetter = b2;
 }
 
 constants  {
   #C1 = null
-  #C2 = _js::JS {name:#C1}
-  #C3 = static-tearoff self::B|staticMethod
-  #C4 = static-tearoff self::B|staticGenericMethod
-  #C5 = instantiation #C4 <core::String*>
+  #C2 = js_::JS {name:#C1}
 }
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///external.dart:
-- JS. (from org-dartlang-sdk:///lib/js/_js_annotations.dart)
+- JS. (from org-dartlang-sdk:///lib/js_interop/js_interop.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)

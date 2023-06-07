@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+static method h1<X extends asy::Future<self::A>?>(self::h1::X% x) → asy::Future<void> async 
+  ;
+static method main() → void async 
+  ;
+static method expectEquals(dynamic a, dynamic b) → dynamic
+  ;

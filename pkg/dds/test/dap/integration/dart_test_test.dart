@@ -157,6 +157,7 @@ main() {
       final output = outputEvents.output.map((e) => e.output).join();
       expectLines(output, [
         'Attach is not supported for test runs',
+        '',
         'Exited.',
       ]);
     });

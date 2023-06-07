@@ -32,6 +32,7 @@ class FixAllCommandHandler extends SimpleEditCommandHandler {
     // modified since.
     final path = parameters['path'] as String;
     final docIdentifier = server.getVersionedDocumentIdentifier(path);
+    final autoTriggered = parameters['autoTriggered'] == true;
 
     final result = await requireResolvedUnit(path);
 
@@ -52,7 +53,8 @@ class FixAllCommandHandler extends SimpleEditCommandHandler {
         return success(null);
       }
 
-      final changeBuilder = await processor.fixErrorsForFile(context, path);
+      final changeBuilder = await processor.fixErrorsForFile(context, path,
+          removeUnusedImports: !autoTriggered);
       final change = changeBuilder.sourceChange;
       if (change.edits.isEmpty) {
         return success(null);

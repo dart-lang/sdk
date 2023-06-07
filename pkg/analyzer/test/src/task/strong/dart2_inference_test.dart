@@ -431,9 +431,9 @@ void test(C<int> x) {
     assertType(node, 'C<int>');
   }
 
-  test_switchExpression_asContext_forCases_language218() async {
+  test_switchExpression_asContext_forCases_language219() async {
     var code = r'''
-// @dart = 2.18
+// @dart = 2.19
 class C<T> {
   const C();
 }

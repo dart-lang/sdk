@@ -298,21 +298,6 @@ class C {
     assertInContext("C()}", true);
   }
 
-  test_inConstantContext_instanceCreation_switch_false() {
-    parse('''
-f(v) {
-  switch (v) {
-  case C():
-    break;
-  }
-}
-class C {
-  const C();
-}
-''');
-    assertInContext("C()", false);
-  }
-
   test_inConstantContext_instanceCreation_switch_true() {
     parse('''
 f(v) {
@@ -329,11 +314,11 @@ class C {
   }
 
   @failingTest
-  test_inConstantContext_instanceCreation_switch_true_language218() {
+  test_inConstantContext_instanceCreation_switch_true_language219() {
     // Expected: true
     //   Actual: <false>
     parse('''
-// @dart=2.18
+// @dart = 2.19
 f(v) {
   switch (v) {
   case C():
@@ -506,12 +491,12 @@ f(v) {
   }
 
   @failingTest
-  test_inConstantContext_listLiteral_switch_true_language218() {
+  test_inConstantContext_listLiteral_switch_true_language219() {
     // Expected: <Instance of 'ExpressionImpl'>
     //   Actual: ListPatternImpl:<[]>
     //    Which: is not an instance of 'ExpressionImpl'
     parse('''
-// @dart=2.18
+// @dart = 2.19
 f(v) {
   switch (v) {
   case []:
@@ -633,12 +618,12 @@ f(v) {
   }
 
   @failingTest
-  test_inConstantContext_mapLiteral_switch_true_language218() {
+  test_inConstantContext_mapLiteral_switch_true_language219() {
     // Expected: <Instance of 'ExpressionImpl'>
     //   Actual: MapPatternImpl:<{}>
     //    Which: is not an instance of 'ExpressionImpl'
     parse('''
-// @dart=2.18
+// @dart = 2.19
 f(v) {
   switch (v) {
   case {}:

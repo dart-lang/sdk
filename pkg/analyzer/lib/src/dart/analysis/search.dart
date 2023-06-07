@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -11,11 +12,14 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:collection/collection.dart';
 
 Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
@@ -140,33 +144,49 @@ class FindDeclarations {
   final List<AnalysisDriver> drivers;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final RegExp? regExp;
+  final String pattern;
+  final FuzzyMatcher matcher;
   final String? onlyForFile;
   final bool onlyAnalyzed;
+  final OwnedFiles ownedFiles;
+  final OperationPerformanceImpl performance;
 
-  FindDeclarations(this.drivers, this.result, this.regExp, this.maxResults,
-      {this.onlyForFile, this.onlyAnalyzed = false});
+  FindDeclarations(
+    this.drivers,
+    this.result,
+    this.pattern,
+    this.maxResults, {
+    this.onlyForFile,
+    this.onlyAnalyzed = false,
+    required this.ownedFiles,
+    required this.performance,
+  }) : matcher = FuzzyMatcher(pattern);
 
   Future<void> compute([CancellationToken? cancellationToken]) async {
-    var searchedFiles = SearchedFiles();
-    // Add analyzed files first, so priority is given to drivers that analyze
-    // files over those that just reference them.
-    for (var driver in drivers) {
-      searchedFiles.ownAnalyzed(driver.search);
-    }
     if (!onlyAnalyzed) {
-      await Future.wait(
-        drivers.map((driver) => driver.discoverAvailableFiles()),
-      );
-
-      for (var driver in drivers) {
-        searchedFiles.ownKnown(driver.search);
-      }
+      await performance.runAsync('discoverAvailableFiles', (performance) async {
+        await Future.wait(
+          drivers.map((driver) => driver.discoverAvailableFiles()),
+        );
+      });
     }
 
-    await _FindDeclarations(searchedFiles, result, regExp, maxResults,
-            onlyForFile: onlyForFile)
-        .compute(cancellationToken);
+    final entries = [
+      ...ownedFiles.addedFiles.entries,
+      if (!onlyAnalyzed) ...ownedFiles.knownFiles.entries,
+    ];
+
+    await performance.runAsync('findDeclarations', (performance) async {
+      await _FindDeclarations(
+        entries,
+        result,
+        pattern,
+        matcher,
+        maxResults,
+        onlyForFile: onlyForFile,
+        performance: performance,
+      ).compute(cancellationToken);
+    });
   }
 }
 
@@ -190,6 +210,29 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {}
+
+  @override
+  void visitNamedType(NamedType node) {
+    if (importedElements.contains(node.element)) {
+      final importElementPrefix = importElement.prefix;
+      final importPrefix = node.importPrefix;
+      if (importElementPrefix == null) {
+        if (importPrefix == null) {
+          _addResult(node.offset, 0);
+        }
+      } else {
+        if (importPrefix != null &&
+            importPrefix.element == importElementPrefix.element) {
+          final offset = importPrefix.offset;
+          final end = importPrefix.period.end;
+          _addResult(offset, end - offset);
+        }
+      }
+    }
+
+    node.importPrefix?.accept(this);
+    node.typeArguments?.accept(this);
+  }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -961,7 +1004,7 @@ class _FindCompilationUnitDeclarations {
   final LineInfo lineInfo;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final RegExp? regExp;
+  final FuzzyMatcher matcher;
   final void Function(Declaration) collect;
 
   _FindCompilationUnitDeclarations(
@@ -969,7 +1012,7 @@ class _FindCompilationUnitDeclarations {
     this.filePath,
     this.result,
     this.maxResults,
-    this.regExp,
+    this.matcher,
     this.collect,
   ) : lineInfo = unit.lineInfo;
 
@@ -1022,7 +1065,7 @@ class _FindCompilationUnitDeclarations {
       throw const _MaxNumberOfDeclarationsError();
     }
 
-    if (regExp != null && !regExp!.hasMatch(name)) {
+    if (matcher.score(name) < 0) {
       return;
     }
 
@@ -1129,14 +1172,23 @@ class _FindCompilationUnitDeclarations {
 
 /// Searches through [files] for declarations.
 class _FindDeclarations {
-  final SearchedFiles files;
+  final List<MapEntry<Uri, AnalysisDriver>> fileEntries;
   final WorkspaceSymbols result;
   final int? maxResults;
-  final RegExp? regExp;
+  final String pattern;
+  final FuzzyMatcher matcher;
   final String? onlyForFile;
+  final OperationPerformanceImpl performance;
 
-  _FindDeclarations(this.files, this.result, this.regExp, this.maxResults,
-      {this.onlyForFile});
+  _FindDeclarations(
+    this.fileEntries,
+    this.result,
+    this.pattern,
+    this.matcher,
+    this.maxResults, {
+    this.onlyForFile,
+    required this.performance,
+  });
 
   /// Add matching declarations to the [result].
   Future<void> compute(CancellationToken? cancellationToken) async {
@@ -1152,28 +1204,46 @@ class _FindDeclarations {
 
     var filesProcessed = 0;
     try {
-      for (var entry in files.uriOwners.entries) {
+      for (var entry in fileEntries) {
         var uri = entry.key;
-        var search = entry.value;
-        var elementResult =
-            await search._driver.getLibraryByUri(uri.toString());
-        if (elementResult is LibraryElementResult) {
-          var units = elementResult.element.units;
+        var analysisDriver = entry.value;
+
+        final libraryElement = await performance.runAsync(
+          'getLibraryByUri',
+          (performance) async {
+            final result = await analysisDriver.getLibraryByUri('$uri');
+            if (result is LibraryElementResultImpl) {
+              return result.element as LibraryElementImpl;
+            }
+            return null;
+          },
+        );
+
+        if (libraryElement != null) {
+          // Check if there is any name that could match the pattern.
+          var match = libraryElement.nameUnion.contains(pattern);
+          if (!match) {
+            continue;
+          }
+
+          var units = libraryElement.units;
           for (var i = 0; i < units.length; i++) {
             var unit = units[i];
             var filePath = unit.source.fullName;
             if (onlyForFile != null && filePath != onlyForFile) {
               continue;
             }
-            var finder = _FindCompilationUnitDeclarations(
-              unit,
-              filePath,
-              result,
-              maxResults,
-              regExp,
-              result.declarations.add,
-            );
-            finder.compute(cancellationToken);
+            performance.run('unitDeclarations', (performance) {
+              var finder = _FindCompilationUnitDeclarations(
+                unit,
+                filePath,
+                result,
+                maxResults,
+                matcher,
+                result.declarations.add,
+              );
+              finder.compute(cancellationToken);
+            });
           }
         }
 
@@ -1214,7 +1284,10 @@ class _IndexRequest {
       return;
     }
 
-    for (; index.supertypes[superIndex] == superId; superIndex++) {
+    for (;
+        superIndex < index.supertypes.length &&
+            index.supertypes[superIndex] == superId;
+        superIndex++) {
       var subtype = index.subtypes[superIndex];
       var name = index.strings[subtype.name];
       var subId = '${library.file.uriStr};${file.uriStr};$name';
@@ -1431,6 +1504,32 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    node.importPrefix?.accept(this);
+    node.typeArguments?.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    final element = node.element;
+    if (elements.contains(element)) {
+      _addResult(node.name, SearchResultKind.REFERENCE);
+    }
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    final element = node.element;
+    if (elements.contains(element)) {
+      _addResult(node.name2, SearchResultKind.REFERENCE);
+    }
+
+    node.importPrefix?.accept(this);
+    node.typeArguments?.accept(this);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
@@ -1462,12 +1561,12 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _addResult(AstNode node, SearchResultKind kind) {
-    bool isQualified = node.parent is Label;
+  void _addResult(SyntacticEntity entity, SearchResultKind kind) {
+    bool isQualified = entity is AstNode ? entity.parent is Label : false;
     Element enclosingElement =
-        _getEnclosingElement(enclosingUnitElement, node.offset);
-    results.add(SearchResult._(
-        enclosingElement, kind, node.offset, node.length, true, isQualified));
+        _getEnclosingElement(enclosingUnitElement, entity.offset);
+    results.add(SearchResult._(enclosingElement, kind, entity.offset,
+        entity.length, true, isQualified));
   }
 }
 

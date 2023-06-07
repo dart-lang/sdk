@@ -327,7 +327,7 @@ class CodeViewElement extends CustomElement implements Renderable {
   Future _refreshTicks() async {
     S.Code code = _code as S.Code;
     final isolate = code.isolate!;
-    var response = await isolate.invokeRpc('_getCpuProfile', {'tags': 'None'});
+    var response = await isolate.invokeRpc('getCpuSamples', {'_code': true});
     final cpuProfile = new SampleProfile();
     await cpuProfile.load(isolate, response as S.ServiceMap);
     _r.dirty();

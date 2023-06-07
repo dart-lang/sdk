@@ -17,6 +17,7 @@ class Error {
   @patch
   StackTrace? get stackTrace => _stackTrace;
 
+  @pragma("wasm:entry-point")
   StackTrace? _stackTrace;
 }
 

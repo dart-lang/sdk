@@ -261,7 +261,7 @@ var a = [x];
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 9, 1),
     ]);
-    assertType(findNode.listLiteral('['), 'List<dynamic>');
+    assertType(findNode.listLiteral('['), 'List<InvalidType>');
   }
 
   test_noContext_noTypeArgs_expressions_unresolved_multiple() async {
@@ -270,7 +270,7 @@ var a = [0, x, 2];
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 12, 1),
     ]);
-    assertType(findNode.listLiteral('['), 'List<dynamic>');
+    assertType(findNode.listLiteral('['), 'List<InvalidType>');
   }
 
   test_noContext_noTypeArgs_forEachWithDeclaration() async {

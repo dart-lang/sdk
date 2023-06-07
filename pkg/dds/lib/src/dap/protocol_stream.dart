@@ -5,9 +5,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'exceptions.dart';
+import 'package:dap/dap.dart';
+
 import 'logging.dart';
-import 'protocol_generated.dart';
 import 'protocol_stream_transformers.dart';
 
 // TODO(dantup): This class should mostly be shareable with the LSP version,

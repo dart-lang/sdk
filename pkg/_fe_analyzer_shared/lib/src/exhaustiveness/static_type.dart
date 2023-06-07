@@ -412,9 +412,38 @@ class WrappedStaticType extends _BaseStaticType {
   bool get isImplicitlyNullable => wrappedType.isImplicitlyNullable;
 
   @override
-  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => wrappedType
-      .getSubtypes(keysOfInterest)
-      .map((e) => new WrappedStaticType(e, impliedType));
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) {
+    StaticType wrappedType = this.wrappedType;
+    StaticType impliedType = this.impliedType;
+    if (wrappedType is NullableStaticType &&
+        impliedType is NullableStaticType) {
+      // With nullable types we need to avoid carrying the nullable implied type
+      // into the non-nullable subtype since it otherwise wouldn't allow for
+      // matching the non-nullable aspect of the wrapped type with the
+      // non-nullable implied type.
+      //
+      // For instance
+      //
+      //     method<O>(O? object) => switch (object) {
+      //         O object => 0,
+      //         null => 1,
+      //       };
+      //
+      // Here the static type of `O?` is `WrappedStaticType(Object?, O?)` which
+      // allows for matching both by the bound `Object?` and the exact type
+      // variable type `O?`. If we split this into the subtypes
+      // `WrappedStaticType(Object, O?)` and `WrappedStaticType(null, O?)` then
+      // we miss that `O object` covers the non-nullable aspect, since `O` is
+      // neither a super type of `Object` nor `O?`.
+      return [
+        new WrappedStaticType(wrappedType.underlying, impliedType.underlying),
+        StaticType.nullType
+      ];
+    }
+    return wrappedType
+        .getSubtypes(keysOfInterest)
+        .map((e) => new WrappedStaticType(e, impliedType));
+  }
 
   @override
   bool isSubtypeOf(StaticType other) {

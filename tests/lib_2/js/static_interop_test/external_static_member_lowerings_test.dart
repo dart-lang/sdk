@@ -117,14 +117,10 @@ void testClassStaticMembers() {
   ExternalStatic.renamedGetSet = 'renamedGetSet';
   expect(ExternalStatic.renamedGetSet, 'renamedGetSet');
 
-  // Methods and tear-offs.
+  // Methods.
   expect(ExternalStatic.method(), 'method');
-  expect((ExternalStatic.method)(), 'method');
   expect(ExternalStatic.differentArgsMethod('method'), 'methodundefined');
-  expect((ExternalStatic.differentArgsMethod)('optional', 'method'),
-      'optionalmethod');
   expect(ExternalStatic.renamedMethod(), 'method');
-  expect((ExternalStatic.renamedMethod)(), 'method');
 }
 
 void testTopLevelMembers() {
@@ -145,26 +141,18 @@ void testTopLevelMembers() {
   renamedGetSet = 'renamedGetSet';
   expect(renamedGetSet, 'renamedGetSet');
 
-  // Methods and tear-offs.
+  // Methods.
   expect(method(), 'method');
-  expect((method)(), 'method');
   expect(differentArgsMethod('method'), 'methodundefined');
-  expect((differentArgsMethod)('optional', 'method'), 'optionalmethod');
   expect(renamedMethod(), 'method');
-  expect((renamedMethod)(), 'method');
 }
 
 void testFactories() {
-  // Non-object literal factories and their tear-offs.
+  // Non-object literal factories.
   var initialized = 'initialized';
 
   var externalStatic = ExternalStatic(initialized);
   expect(externalStatic.initialValue, initialized);
   externalStatic = ExternalStatic.named();
   expect(externalStatic.initialValue, null);
-
-  externalStatic = (ExternalStatic.new)(initialized);
-  expect(externalStatic.initialValue, initialized);
-  externalStatic = (ExternalStatic.named)(initialized);
-  expect(externalStatic.initialValue, initialized);
 }

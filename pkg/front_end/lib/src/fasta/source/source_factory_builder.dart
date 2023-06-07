@@ -17,6 +17,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../dill/dill_member_builder.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/kernel_helper.dart';
@@ -79,18 +80,30 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       : super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
     _procedureInternal = new Procedure(
-        dummyName, ProcedureKind.Factory, new FunctionNode(null),
-        fileUri: libraryBuilder.fileUri, reference: procedureReference)
+        dummyName,
+        nameScheme.isInlineClassMember
+            ? ProcedureKind.Method
+            : ProcedureKind.Factory,
+        new FunctionNode(null),
+        fileUri: libraryBuilder.fileUri,
+        reference: procedureReference)
       ..fileStartOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault
+      ..isInlineClassMember = nameScheme.isInlineClassMember;
     nameScheme
         .getProcedureMemberName(ProcedureKind.Factory, name)
         .attachMember(_procedureInternal);
     _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
-        libraryBuilder.fileUri, charOffset, tearOffReference);
-    // TODO(johnniwinther): Use [NameScheme] for constructor tear-off names.
+        libraryBuilder.fileUri, charOffset, tearOffReference,
+        forceCreateLowering: nameScheme.isInlineClassMember);
+    if (_factoryTearOff != null) {
+      _factoryTearOff!..isInlineClassMember = nameScheme.isInlineClassMember;
+      nameScheme
+          .getConstructorMemberName(name, isTearOff: true)
+          .attachMember(_factoryTearOff!);
+    }
     this.asyncModifier = asyncModifier;
   }
 
@@ -146,9 +159,17 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
     _build();
-    f(_procedureInternal, BuiltMemberKind.Method);
+    f(
+        _procedureInternal,
+        isInlineClassMember
+            ? BuiltMemberKind.InlineClassFactory
+            : BuiltMemberKind.Factory);
     if (_factoryTearOff != null) {
-      f(_factoryTearOff!, BuiltMemberKind.Method);
+      f(
+          _factoryTearOff!,
+          isInlineClassMember
+              ? BuiltMemberKind.InlineClassTearOff
+              : BuiltMemberKind.Method);
     }
   }
 
@@ -282,6 +303,10 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   /// Checks this factory builder if it is for a redirecting factory.
   void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {}
+
+  @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new FactoryBodyBuilderContext(this);
 }
 
 class RedirectingFactoryBuilder extends SourceFactoryBuilder {
@@ -422,7 +447,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
               fileUri, classBuilder.thisType, libraryBuilder, null);
       InferenceHelper helper = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder, classBuilder, this, classBuilder.scope, fileUri);
+              libraryBuilder, bodyBuilderContext, classBuilder.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
@@ -738,4 +763,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       }
     }
   }
+
+  @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new RedirectingFactoryBodyBuilderContext(this);
 }

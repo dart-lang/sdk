@@ -21,7 +21,6 @@ import 'dart:_foreign_helper'
         spread;
 import 'dart:_interceptors'
     show
-        JavaScriptObject,
         JSArray,
         JSInt,
         jsNull,
@@ -37,27 +36,34 @@ import 'dart:_js_helper'
         BooleanConversionAssertionError,
         DartIterator,
         DeferredNotLoadedError,
-        TypeErrorImpl,
-        JsLinkedHashMap,
+        getRtiForRecord,
         ImmutableMap,
+        JsLinkedHashMap,
+        jsObjectGetPrototypeOf,
+        jsObjectSetPrototypeOf,
+        NoReifyGeneric,
+        notNull,
         Primitives,
         PrivateSymbol,
         ReifyFunctionTypes,
-        NoReifyGeneric,
-        notNull,
+        TypeErrorImpl,
         undefined;
 import 'dart:_js_shared_embedded_names';
 import 'dart:_rti' as rti
     show
+        bindingRtiFromList,
         createRuntimeType,
         constructorRtiCachePropertyName,
         findType,
         getFunctionParametersForDynamicChecks,
+        getGenericFunctionBounds,
         instanceType,
+        instantiatedGenericFunctionType,
         interfaceTypeRecipePropertyName,
         isGenericFunctionType,
         isSubtype,
         Rti,
+        substitute,
         rtiToString;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
@@ -101,18 +107,18 @@ bool polyfill(window) => JS('', '''(() => {
       $window.PannerNode = audioContext.createPanner().constructor;
     }
     if (typeof $window.AudioSourceNode == "undefined") {
-      $window.AudioSourceNode = MediaElementAudioSourceNode.__proto__;
+      $window.AudioSourceNode = Object.getPrototypeOf(MediaElementAudioSourceNode);
     }
     if (typeof $window.FontFaceSet == "undefined") {
       // CSS Font Loading is not supported on Edge.
       if (typeof $window.document.fonts != "undefined") {
-        $window.FontFaceSet = $window.document.fonts.__proto__.constructor;
+        $window.FontFaceSet = Object.getPrototypeOf($window.document.fonts).constructor;
       }
     }
     if (typeof $window.MemoryInfo == "undefined") {
       if (typeof $window.performance.memory != "undefined") {
         $window.MemoryInfo = function () {};
-        $window.MemoryInfo.prototype = $window.performance.memory.__proto__;
+        $window.MemoryInfo.prototype = Object.getPrototypeOf($window.performance.memory);
       }
     }
     if (typeof $window.Geolocation == "undefined") {
@@ -238,7 +244,7 @@ void hotRestart() {
   _cacheMaps.clear();
   JS('', '#.clear()', _nullComparisonSet);
   JS('', '#.clear()', constantMaps);
-  if (!_realDeferredLoading) {
+  if (!_ddcDeferredLoading) {
     JS('', '#.clear()', deferredImports);
   }
 }

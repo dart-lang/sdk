@@ -2448,9 +2448,12 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('(');
     writeExpression(node.expression);
     writeSymbol(')');
+    writeWord(" /*");
     if (node.isExplicitlyExhaustive) {
-      writeWord(" /*isExplicitlyExhaustive*/");
+      writeWord("isExplicitlyExhaustive,");
     }
+    writeNode(node.expressionTypeInternal);
+    writeWord("*/");
     endLine(' {');
     ++indentation;
     node.cases.forEach(writeNode);
@@ -2768,7 +2771,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitInterfaceType(InterfaceType node) {
-    writeClassReferenceFromReference(node.className);
+    writeClassReferenceFromReference(node.classReference);
     if (node.typeArguments.isNotEmpty) {
       writeSymbol('<');
       writeList(node.typeArguments, writeType);

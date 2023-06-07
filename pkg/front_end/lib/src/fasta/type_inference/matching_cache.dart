@@ -462,11 +462,15 @@ class MatchingCache {
     if (staticTarget != null) {
       assert(typeArguments != null,
           "No type arguments provided for static target $staticTarget.");
-      cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
-          typeArguments!, propertyName, [new IntegerKey(tailSize)]);
+      cacheKey = new StaticAccessKey(
+          receiver.cacheKey,
+          staticTarget,
+          typeArguments!,
+          propertyName,
+          [new IntegerKey(headSize), new IntegerKey(tailSize)]);
     } else {
-      cacheKey = new DynamicAccessKey(
-          receiver.cacheKey, propertyName, [new IntegerKey(tailSize)]);
+      cacheKey = new DynamicAccessKey(receiver.cacheKey, propertyName,
+          [new IntegerKey(headSize), new IntegerKey(tailSize)]);
     }
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
@@ -904,6 +908,56 @@ class PromotedCacheableExpression implements CacheableExpression {
   @override
   CacheableExpression promote(DartType type) {
     if (type == _promotedType) return this;
+    return new PromotedCacheableExpression(_expression, type);
+  }
+}
+
+/// A cacheable expression that performs a covariant check on the resulting
+/// value.
+class CovariantCheckCacheableExpression implements CacheableExpression {
+  final CacheableExpression _expression;
+
+  final DartType _checkedType;
+
+  final int fileOffset;
+
+  CovariantCheckCacheableExpression(this._expression, this._checkedType,
+      {required this.fileOffset});
+
+  @override
+  CacheKey get cacheKey => _expression.cacheKey;
+
+  @override
+  AccessKey get accessKey => _expression.accessKey;
+
+  @override
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    Expression result = _expression.createExpression(typeEnvironment, effects);
+    return createAsExpression(result, _checkedType,
+        forNonNullableByDefault: true,
+        fileOffset: fileOffset,
+        isCovarianceCheck: true);
+  }
+
+  @override
+  DartType getType(TypeEnvironment typeEnvironment) {
+    return _checkedType;
+  }
+
+  @override
+  void registerUse() {
+    _expression.registerUse();
+  }
+
+  @override
+  bool uses(DelayedExpression expression) {
+    return identical(this, expression) || _expression.uses(expression);
+  }
+
+  @override
+  CacheableExpression promote(DartType type) {
+    if (type == _checkedType) return this;
     return new PromotedCacheableExpression(_expression, type);
   }
 }

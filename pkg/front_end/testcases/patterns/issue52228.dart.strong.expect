@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/issue52228.dart:6:3: Error: The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
+// Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.
+//   await for (var [v1] in Stream.fromIterable([[1], [2], [3]])) { // Error.
+//   ^^^^^
+//
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  await for (final dynamic #t1 in asy::Stream::fromIterable<dynamic>(<core::List<core::int>>[<core::int>[1], <core::int>[2], <core::int>[3]])) {
+    hoisted core::int v1;
+    {
+      final synthesized dynamic #0#0 = #t1;
+      if(!(#0#0{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = v1 = #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} in true)))
+        throw new core::StateError::•("Pattern matching error");
+    }
+    core::print(v1);
+  }
+}
+
+constants  {
+  #C1 = 1
+}

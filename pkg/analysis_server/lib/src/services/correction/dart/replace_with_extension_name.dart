@@ -25,11 +25,14 @@ class ReplaceWithExtensionName extends CorrectionProducer {
     }
     var target = _getTarget(node.parent);
     if (target is ExtensionOverride) {
+      final importPrefix = target.importPrefix;
+      final prefixedName = importPrefix != null
+          ? '${importPrefix.name.lexeme}.${target.name.lexeme}'
+          : target.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-            range.node(target), utils.getNodeText(target.extensionName));
+        builder.addSimpleReplacement(range.node(target), prefixedName);
       });
-      _extensionName = target.extensionName.name;
+      _extensionName = prefixedName;
     }
   }
 

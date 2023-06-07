@@ -96,9 +96,18 @@ final class RecordImpl implements Record {
 
 /// Cache used to canonicalize all Record shapes in the program.
 ///
-/// These are keyed by a distinct shape recipe String, which consists of an
-/// integer followed by space-separated named labels.
-final _shapes = JS('!', 'new Map()');
+/// [Shape]s are keyed by a distinct shape key [String], that consists of the
+/// total number of elements followed by semicolon and then a comma-separated
+/// list of the named element names in sorted order.
+///
+/// Shape key examples:
+///
+///   | Record                              | Shape Key     |
+///   -------------------------------------------------------
+///   | (false, "hello")                    | "2;"          |
+///   | (name: "Fosse", legs: 4)            | "2;legs,name" |
+///   | ("hello", name: "Cello", legs: 4)   | "3;legs,name" |
+final shapes = JS('!', 'new Map()');
 
 /// Cache used to canonicalize all Record representation classes in the program.
 ///
@@ -107,27 +116,30 @@ final _shapes = JS('!', 'new Map()');
 final _records = JS('!', 'new Map()');
 
 /// Returns a canonicalized shape for the provided number of [positionals] and
-/// [named] elements as described by the [shapeRecipe].
-Shape registerShape(@notNull String shapeRecipe, @notNull int positionals,
-    List<String>? named) {
-  var cached = JS<Shape?>('', '#.get(#)', _shapes, shapeRecipe);
+/// [named] elements.
+///
+/// The [shapeKey] must agree with the number of [positionals] and the [named]
+/// elements list. See [shapes] for a description of the shape key format.
+Shape registerShape(
+    @notNull String shapeKey, @notNull int positionals, List<String>? named) {
+  var cached = JS<Shape?>('', '#.get(#)', shapes, shapeKey);
   if (cached != null) {
     return cached;
   }
 
   var shape = Shape(positionals, named);
-  JS('', '#.set(#, #)', _shapes, shapeRecipe, shape);
+  JS('', '#.set(#, #)', shapes, shapeKey, shape);
   return shape;
 }
 
 /// Returns a canonicalized Record class with the provided number of
 /// [positionals] and [named] elements.
 ///
-/// The class can be used to construct record values of the shape described by
-/// the [shapeRecipe].
-Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
-    List<String>? named) {
-  var cached = JS('', '#.get(#)', _records, shapeRecipe);
+/// The [shapeKey] must agree with the number of [positionals] and the [named]
+/// elements list. See [shapes] for a description of the shape key format.
+Object registerRecord(
+    @notNull String shapeKey, @notNull int positionals, List<String>? named) {
+  var cached = JS('', '#.get(#)', _records, shapeKey);
   if (cached != null) {
     return cached;
   }
@@ -140,7 +152,7 @@ Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
       '!',
       '''
     #.new = function (shape, values) {
-      #.__proto__.new.call(this, shape, values);
+      Object.getPrototypeOf(#).new.call(this, shape, values);
     }
   ''',
       recordClass,
@@ -168,19 +180,19 @@ Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
     }
   }
 
-  JS('', '#.set(#, #)', _records, shapeRecipe, newRecord);
+  JS('', '#.set(#, #)', _records, shapeKey, newRecord);
   return newRecord;
 }
 
-/// Creates a shape and binds it to [values].
+/// Creates a record consisting of [values] with the shape described by the
+/// number of [positionals] and [named] elements.
 ///
-/// [shapeRecipe] consists of a space-separated list of elements, where the
-/// first element is the number of positional elements, followed by every
-/// named element in sorted order.
-Object recordLiteral(@notNull String shapeRecipe, @notNull int positionals,
+/// The [shapeKey] must agree with the number of [positionals] and the [named]
+/// elements list. See [shapes] for a description of the shape key format.
+Object recordLiteral(@notNull String shapeKey, @notNull int positionals,
     List<String>? named, @notNull List values) {
-  var shape = registerShape(shapeRecipe, positionals, named);
-  var record = registerRecord(shapeRecipe, positionals, named);
+  var shape = registerShape(shapeKey, positionals, named);
+  var record = registerRecord(shapeKey, positionals, named);
   return JS('!', 'new #(#, #)', record, shape, values);
 }
 

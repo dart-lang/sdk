@@ -4287,6 +4287,39 @@ Fragment FlowGraphBuilder::IntToBool() {
   return body;
 }
 
+Fragment FlowGraphBuilder::IntRelationalOp(TokenPosition position,
+                                           Token::Kind kind) {
+  if (CompilerState::Current().is_aot()) {
+    Value* right = Pop();
+    Value* left = Pop();
+    RelationalOpInstr* instr = new (Z) RelationalOpInstr(
+        InstructionSource(position), kind, left, right, kMintCid,
+        GetNextDeoptId(), Instruction::SpeculativeMode::kNotSpeculative);
+    Push(instr);
+    return Fragment(instr);
+  }
+  const String* name = nullptr;
+  switch (kind) {
+    case Token::kLT:
+      name = &Symbols::LAngleBracket();
+      break;
+    case Token::kGT:
+      name = &Symbols::RAngleBracket();
+      break;
+    case Token::kLTE:
+      name = &Symbols::LessEqualOperator();
+      break;
+    case Token::kGTE:
+      name = &Symbols::GreaterEqualOperator();
+      break;
+    default:
+      UNREACHABLE();
+  }
+  return InstanceCall(
+      position, *name, kind, /*type_args_len=*/0, /*argument_count=*/2,
+      /*argument_names=*/Array::null_array(), /*checked_argument_count=*/2);
+}
+
 Fragment FlowGraphBuilder::NativeReturn(
     const compiler::ffi::CallbackMarshaller& marshaller) {
   auto* instr = new (Z)
@@ -5119,6 +5152,36 @@ Fragment FlowGraphBuilder::BuildDoubleHashCode() {
   return body;
 }
 
+SwitchHelper::SwitchHelper(Zone* zone,
+                           TokenPosition position,
+                           bool is_exhaustive,
+                           const AbstractType& expression_type,
+                           SwitchBlock* switch_block,
+                           intptr_t case_count)
+    : zone_(zone),
+      position_(position),
+      is_exhaustive_(is_exhaustive),
+      expression_type_(expression_type),
+      switch_block_(switch_block),
+      case_count_(case_count),
+      case_bodies_(case_count),
+      case_expression_counts_(case_count),
+      expressions_(case_count),
+      sorted_expressions_(case_count) {
+  case_expression_counts_.FillWith(0, 0, case_count);
+
+  if (expression_type.nullability() == Nullability::kNonNullable) {
+    if (expression_type.IsIntType() || expression_type.IsSmiType()) {
+      is_optimizable_ = true;
+    } else if (expression_type.HasTypeClass() &&
+               Class::Handle(zone_, expression_type.type_class())
+                   .is_enum_class()) {
+      is_optimizable_ = true;
+      is_enum_switch_ = true;
+    }
+  }
+}
+
 int64_t SwitchHelper::ExpressionRange() const {
   const int64_t min = expression_min().AsInt64Value();
   const int64_t max = expression_max().AsInt64Value();
@@ -5162,7 +5225,7 @@ SwitchDispatch SwitchHelper::SelectDispatchStrategy() {
   // binary search to avoid code size explosion.
   const double kJumpTableMaxHolesRatio = 1.0;
 
-  if (!is_optimizable()) {
+  if (!is_optimizable() || expressions().is_empty()) {
     // The switch is not optimizable, so we can only use linear scan.
     return kSwitchDispatchLinearScan;
   }
@@ -5306,15 +5369,10 @@ void SwitchHelper::AddExpression(intptr_t case_index,
 
   expressions_.Add(SwitchExpression(case_index, position, value));
 
-  if (is_optimizable_ || expression_class_ == nullptr) {
-    // Check the type of the expression for use in an optimized switch.
-    const Class& value_class = Class::ZoneHandle(zone_, value.clazz());
-    if (expression_class_ == nullptr) {
-      expression_class_ = &value_class;
-      // Only integer and enum expressions can be used in an optimized switch.
-      is_optimizable_ = value.IsInteger() || value_class.is_enum_class();
-    } else if (value_class.ptr() != expression_class_->ptr()) {
-      // At least one expression has a different type than the others.
+  if (is_optimizable_) {
+    // Check the type of the case expression for use in an optimized switch.
+    if (!value.IsInstanceOf(expression_type_, Object::null_type_arguments(),
+                            Object::null_type_arguments())) {
       is_optimizable_ = false;
     }
   }

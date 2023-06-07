@@ -104,6 +104,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitExtensionOverride(ExtensionOverride node) {
+    return node.element;
+  }
+
+  @override
   Element? visitFormalParameter(FormalParameter node) {
     return node.declaredElement;
   }
@@ -194,6 +199,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitMixinDeclaration(MixinDeclaration node) {
     return node.declaredElement;
+  }
+
+  @override
+  Element? visitNamedType(NamedType node) {
+    return node.element;
   }
 
   @override

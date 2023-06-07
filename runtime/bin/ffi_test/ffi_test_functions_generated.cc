@@ -4414,12 +4414,9 @@ DART_EXPORT double PassUnion4BytesMixedx10(Union4BytesMixed a0,
                                            Union4BytesMixed a8,
                                            Union4BytesMixed a9) {
   std::cout << "PassUnion4BytesMixedx10"
-            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << ", "
-            << a1.a1 << "), (" << a2.a0 << ", " << a2.a1 << "), (" << a3.a0
-            << ", " << a3.a1 << "), (" << a4.a0 << ", " << a4.a1 << "), ("
-            << a5.a0 << ", " << a5.a1 << "), (" << a6.a0 << ", " << a6.a1
-            << "), (" << a7.a0 << ", " << a7.a1 << "), (" << a8.a0 << ", "
-            << a8.a1 << "), (" << a9.a0 << ", " << a9.a1 << "))"
+            << "((" << a0.a0 << "), (" << a1.a0 << "), (" << a2.a0 << "), ("
+            << a3.a0 << "), (" << a4.a0 << "), (" << a5.a0 << "), (" << a6.a0
+            << "), (" << a7.a0 << "), (" << a8.a0 << "), (" << a9.a0 << "))"
             << "\n";
 
   double result = 0;
@@ -4453,16 +4450,9 @@ DART_EXPORT double PassUnion8BytesNestedFloatx10(Union8BytesNestedFloat a0,
                                                  Union8BytesNestedFloat a8,
                                                  Union8BytesNestedFloat a9) {
   std::cout << "PassUnion8BytesNestedFloatx10"
-            << "((" << a0.a0 << ", (" << a0.a1.a0 << ", " << a0.a1.a1 << ")), ("
-            << a1.a0 << ", (" << a1.a1.a0 << ", " << a1.a1.a1 << ")), ("
-            << a2.a0 << ", (" << a2.a1.a0 << ", " << a2.a1.a1 << ")), ("
-            << a3.a0 << ", (" << a3.a1.a0 << ", " << a3.a1.a1 << ")), ("
-            << a4.a0 << ", (" << a4.a1.a0 << ", " << a4.a1.a1 << ")), ("
-            << a5.a0 << ", (" << a5.a1.a0 << ", " << a5.a1.a1 << ")), ("
-            << a6.a0 << ", (" << a6.a1.a0 << ", " << a6.a1.a1 << ")), ("
-            << a7.a0 << ", (" << a7.a1.a0 << ", " << a7.a1.a1 << ")), ("
-            << a8.a0 << ", (" << a8.a1.a0 << ", " << a8.a1.a1 << ")), ("
-            << a9.a0 << ", (" << a9.a1.a0 << ", " << a9.a1.a1 << ")))"
+            << "((" << a0.a0 << "), (" << a1.a0 << "), (" << a2.a0 << "), ("
+            << a3.a0 << "), (" << a4.a0 << "), (" << a5.a0 << "), (" << a6.a0
+            << "), (" << a7.a0 << "), (" << a8.a0 << "), (" << a9.a0 << "))"
             << "\n";
 
   double result = 0;
@@ -4497,75 +4487,15 @@ DART_EXPORT double PassUnion9BytesNestedIntx10(Union9BytesNestedInt a0,
                                                Union9BytesNestedInt a9) {
   std::cout << "PassUnion9BytesNestedIntx10"
             << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << ", " << a0.a0.a2
-            << "), (" << static_cast<int>(a0.a1.a0) << ", "
-            << static_cast<int>(a0.a1.a1) << ", " << static_cast<int>(a0.a1.a2)
-            << ", " << static_cast<int>(a0.a1.a3) << ", "
-            << static_cast<int>(a0.a1.a4) << ", " << static_cast<int>(a0.a1.a5)
-            << ", " << static_cast<int>(a0.a1.a6) << ", "
-            << static_cast<int>(a0.a1.a7) << ", " << static_cast<int>(a0.a1.a8)
             << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << ", " << a1.a0.a2
-            << "), (" << static_cast<int>(a1.a1.a0) << ", "
-            << static_cast<int>(a1.a1.a1) << ", " << static_cast<int>(a1.a1.a2)
-            << ", " << static_cast<int>(a1.a1.a3) << ", "
-            << static_cast<int>(a1.a1.a4) << ", " << static_cast<int>(a1.a1.a5)
-            << ", " << static_cast<int>(a1.a1.a6) << ", "
-            << static_cast<int>(a1.a1.a7) << ", " << static_cast<int>(a1.a1.a8)
             << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << ", " << a2.a0.a2
-            << "), (" << static_cast<int>(a2.a1.a0) << ", "
-            << static_cast<int>(a2.a1.a1) << ", " << static_cast<int>(a2.a1.a2)
-            << ", " << static_cast<int>(a2.a1.a3) << ", "
-            << static_cast<int>(a2.a1.a4) << ", " << static_cast<int>(a2.a1.a5)
-            << ", " << static_cast<int>(a2.a1.a6) << ", "
-            << static_cast<int>(a2.a1.a7) << ", " << static_cast<int>(a2.a1.a8)
             << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << ", " << a3.a0.a2
-            << "), (" << static_cast<int>(a3.a1.a0) << ", "
-            << static_cast<int>(a3.a1.a1) << ", " << static_cast<int>(a3.a1.a2)
-            << ", " << static_cast<int>(a3.a1.a3) << ", "
-            << static_cast<int>(a3.a1.a4) << ", " << static_cast<int>(a3.a1.a5)
-            << ", " << static_cast<int>(a3.a1.a6) << ", "
-            << static_cast<int>(a3.a1.a7) << ", " << static_cast<int>(a3.a1.a8)
             << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << ", " << a4.a0.a2
-            << "), (" << static_cast<int>(a4.a1.a0) << ", "
-            << static_cast<int>(a4.a1.a1) << ", " << static_cast<int>(a4.a1.a2)
-            << ", " << static_cast<int>(a4.a1.a3) << ", "
-            << static_cast<int>(a4.a1.a4) << ", " << static_cast<int>(a4.a1.a5)
-            << ", " << static_cast<int>(a4.a1.a6) << ", "
-            << static_cast<int>(a4.a1.a7) << ", " << static_cast<int>(a4.a1.a8)
             << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << ", " << a5.a0.a2
-            << "), (" << static_cast<int>(a5.a1.a0) << ", "
-            << static_cast<int>(a5.a1.a1) << ", " << static_cast<int>(a5.a1.a2)
-            << ", " << static_cast<int>(a5.a1.a3) << ", "
-            << static_cast<int>(a5.a1.a4) << ", " << static_cast<int>(a5.a1.a5)
-            << ", " << static_cast<int>(a5.a1.a6) << ", "
-            << static_cast<int>(a5.a1.a7) << ", " << static_cast<int>(a5.a1.a8)
             << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << ", " << a6.a0.a2
-            << "), (" << static_cast<int>(a6.a1.a0) << ", "
-            << static_cast<int>(a6.a1.a1) << ", " << static_cast<int>(a6.a1.a2)
-            << ", " << static_cast<int>(a6.a1.a3) << ", "
-            << static_cast<int>(a6.a1.a4) << ", " << static_cast<int>(a6.a1.a5)
-            << ", " << static_cast<int>(a6.a1.a6) << ", "
-            << static_cast<int>(a6.a1.a7) << ", " << static_cast<int>(a6.a1.a8)
             << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << ", " << a7.a0.a2
-            << "), (" << static_cast<int>(a7.a1.a0) << ", "
-            << static_cast<int>(a7.a1.a1) << ", " << static_cast<int>(a7.a1.a2)
-            << ", " << static_cast<int>(a7.a1.a3) << ", "
-            << static_cast<int>(a7.a1.a4) << ", " << static_cast<int>(a7.a1.a5)
-            << ", " << static_cast<int>(a7.a1.a6) << ", "
-            << static_cast<int>(a7.a1.a7) << ", " << static_cast<int>(a7.a1.a8)
             << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << ", " << a8.a0.a2
-            << "), (" << static_cast<int>(a8.a1.a0) << ", "
-            << static_cast<int>(a8.a1.a1) << ", " << static_cast<int>(a8.a1.a2)
-            << ", " << static_cast<int>(a8.a1.a3) << ", "
-            << static_cast<int>(a8.a1.a4) << ", " << static_cast<int>(a8.a1.a5)
-            << ", " << static_cast<int>(a8.a1.a6) << ", "
-            << static_cast<int>(a8.a1.a7) << ", " << static_cast<int>(a8.a1.a8)
             << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << ", " << a9.a0.a2
-            << "), (" << static_cast<int>(a9.a1.a0) << ", "
-            << static_cast<int>(a9.a1.a1) << ", " << static_cast<int>(a9.a1.a2)
-            << ", " << static_cast<int>(a9.a1.a3) << ", "
-            << static_cast<int>(a9.a1.a4) << ", " << static_cast<int>(a9.a1.a5)
-            << ", " << static_cast<int>(a9.a1.a6) << ", "
-            << static_cast<int>(a9.a1.a7) << ", " << static_cast<int>(a9.a1.a8)
             << ")))"
             << "\n";
 
@@ -4622,32 +4552,19 @@ DART_EXPORT double PassUnion16BytesNestedInlineArrayFloatx10(
     Union16BytesNestedInlineArrayFloat a9) {
   std::cout << "PassUnion16BytesNestedInlineArrayFloatx10"
             << "(([" << a0.a0[0] << ", " << a0.a0[1] << ", " << a0.a0[2] << ", "
-            << a0.a0[3] << "], (" << a0.a1.a0 << ", " << a0.a1.a1 << ", "
-            << a0.a1.a2 << ", " << a0.a1.a3 << ")), ([" << a1.a0[0] << ", "
-            << a1.a0[1] << ", " << a1.a0[2] << ", " << a1.a0[3] << "], ("
-            << a1.a1.a0 << ", " << a1.a1.a1 << ", " << a1.a1.a2 << ", "
-            << a1.a1.a3 << ")), ([" << a2.a0[0] << ", " << a2.a0[1] << ", "
-            << a2.a0[2] << ", " << a2.a0[3] << "], (" << a2.a1.a0 << ", "
-            << a2.a1.a1 << ", " << a2.a1.a2 << ", " << a2.a1.a3 << ")), (["
+            << a0.a0[3] << "]), ([" << a1.a0[0] << ", " << a1.a0[1] << ", "
+            << a1.a0[2] << ", " << a1.a0[3] << "]), ([" << a2.a0[0] << ", "
+            << a2.a0[1] << ", " << a2.a0[2] << ", " << a2.a0[3] << "]), (["
             << a3.a0[0] << ", " << a3.a0[1] << ", " << a3.a0[2] << ", "
-            << a3.a0[3] << "], (" << a3.a1.a0 << ", " << a3.a1.a1 << ", "
-            << a3.a1.a2 << ", " << a3.a1.a3 << ")), ([" << a4.a0[0] << ", "
-            << a4.a0[1] << ", " << a4.a0[2] << ", " << a4.a0[3] << "], ("
-            << a4.a1.a0 << ", " << a4.a1.a1 << ", " << a4.a1.a2 << ", "
-            << a4.a1.a3 << ")), ([" << a5.a0[0] << ", " << a5.a0[1] << ", "
-            << a5.a0[2] << ", " << a5.a0[3] << "], (" << a5.a1.a0 << ", "
-            << a5.a1.a1 << ", " << a5.a1.a2 << ", " << a5.a1.a3 << ")), (["
+            << a3.a0[3] << "]), ([" << a4.a0[0] << ", " << a4.a0[1] << ", "
+            << a4.a0[2] << ", " << a4.a0[3] << "]), ([" << a5.a0[0] << ", "
+            << a5.a0[1] << ", " << a5.a0[2] << ", " << a5.a0[3] << "]), (["
             << a6.a0[0] << ", " << a6.a0[1] << ", " << a6.a0[2] << ", "
-            << a6.a0[3] << "], (" << a6.a1.a0 << ", " << a6.a1.a1 << ", "
-            << a6.a1.a2 << ", " << a6.a1.a3 << ")), ([" << a7.a0[0] << ", "
-            << a7.a0[1] << ", " << a7.a0[2] << ", " << a7.a0[3] << "], ("
-            << a7.a1.a0 << ", " << a7.a1.a1 << ", " << a7.a1.a2 << ", "
-            << a7.a1.a3 << ")), ([" << a8.a0[0] << ", " << a8.a0[1] << ", "
-            << a8.a0[2] << ", " << a8.a0[3] << "], (" << a8.a1.a0 << ", "
-            << a8.a1.a1 << ", " << a8.a1.a2 << ", " << a8.a1.a3 << ")), (["
+            << a6.a0[3] << "]), ([" << a7.a0[0] << ", " << a7.a0[1] << ", "
+            << a7.a0[2] << ", " << a7.a0[3] << "]), ([" << a8.a0[0] << ", "
+            << a8.a0[1] << ", " << a8.a0[2] << ", " << a8.a0[3] << "]), (["
             << a9.a0[0] << ", " << a9.a0[1] << ", " << a9.a0[2] << ", "
-            << a9.a0[3] << "], (" << a9.a1.a0 << ", " << a9.a1.a1 << ", "
-            << a9.a1.a2 << ", " << a9.a1.a3 << ")))"
+            << a9.a0[3] << "]))"
             << "\n";
 
   double result = 0;
@@ -4711,36 +4628,13 @@ DART_EXPORT double PassUnion16BytesNestedFloatx10(Union16BytesNestedFloat a0,
                                                   Union16BytesNestedFloat a8,
                                                   Union16BytesNestedFloat a9) {
   std::cout << "PassUnion16BytesNestedFloatx10"
-            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
-            << ", " << a0.a1.a1 << ", " << a0.a1.a2 << "), (" << a0.a2.a0
-            << ", " << a0.a2.a1 << ", " << a0.a2.a2 << ", " << a0.a2.a3
-            << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << "), (" << a1.a1.a0
-            << ", " << a1.a1.a1 << ", " << a1.a1.a2 << "), (" << a1.a2.a0
-            << ", " << a1.a2.a1 << ", " << a1.a2.a2 << ", " << a1.a2.a3
-            << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << "), (" << a2.a1.a0
-            << ", " << a2.a1.a1 << ", " << a2.a1.a2 << "), (" << a2.a2.a0
-            << ", " << a2.a2.a1 << ", " << a2.a2.a2 << ", " << a2.a2.a3
-            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << "), (" << a3.a1.a0
-            << ", " << a3.a1.a1 << ", " << a3.a1.a2 << "), (" << a3.a2.a0
-            << ", " << a3.a2.a1 << ", " << a3.a2.a2 << ", " << a3.a2.a3
-            << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << "), (" << a4.a1.a0
-            << ", " << a4.a1.a1 << ", " << a4.a1.a2 << "), (" << a4.a2.a0
-            << ", " << a4.a2.a1 << ", " << a4.a2.a2 << ", " << a4.a2.a3
-            << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << "), (" << a5.a1.a0
-            << ", " << a5.a1.a1 << ", " << a5.a1.a2 << "), (" << a5.a2.a0
-            << ", " << a5.a2.a1 << ", " << a5.a2.a2 << ", " << a5.a2.a3
-            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << "), (" << a6.a1.a0
-            << ", " << a6.a1.a1 << ", " << a6.a1.a2 << "), (" << a6.a2.a0
-            << ", " << a6.a2.a1 << ", " << a6.a2.a2 << ", " << a6.a2.a3
-            << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << "), (" << a7.a1.a0
-            << ", " << a7.a1.a1 << ", " << a7.a1.a2 << "), (" << a7.a2.a0
-            << ", " << a7.a2.a1 << ", " << a7.a2.a2 << ", " << a7.a2.a3
-            << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << "), (" << a8.a1.a0
-            << ", " << a8.a1.a1 << ", " << a8.a1.a2 << "), (" << a8.a2.a0
-            << ", " << a8.a2.a1 << ", " << a8.a2.a2 << ", " << a8.a2.a3
-            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << "), (" << a9.a1.a0
-            << ", " << a9.a1.a1 << ", " << a9.a1.a2 << "), (" << a9.a2.a0
-            << ", " << a9.a2.a1 << ", " << a9.a2.a2 << ", " << a9.a2.a3 << ")))"
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << ")), ((" << a1.a0.a0
+            << ", " << a1.a0.a1 << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << ")), ((" << a4.a0.a0
+            << ", " << a4.a0.a1 << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << ")), ((" << a7.a0.a0
+            << ", " << a7.a0.a1 << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << ")))"
             << "\n";
 
   double result = 0;
@@ -5959,7 +5853,7 @@ DART_EXPORT Union4BytesMixed ReturnUnion4BytesMixed(uint32_t a0) {
   result.a0 = a0;
 
   std::cout << "result = "
-            << "(" << result.a0 << ", " << result.a1 << ")"
+            << "(" << result.a0 << ")"
             << "\n";
 
   return result;
@@ -5977,8 +5871,7 @@ DART_EXPORT Union8BytesNestedFloat ReturnUnion8BytesNestedFloat(double a0) {
   result.a0 = a0;
 
   std::cout << "result = "
-            << "(" << result.a0 << ", (" << result.a1.a0 << ", " << result.a1.a1
-            << "))"
+            << "(" << result.a0 << ")"
             << "\n";
 
   return result;
@@ -6000,15 +5893,7 @@ ReturnUnion9BytesNestedInt(Struct8BytesInt a0) {
 
   std::cout << "result = "
             << "((" << result.a0.a0 << ", " << result.a0.a1 << ", "
-            << result.a0.a2 << "), (" << static_cast<int>(result.a1.a0) << ", "
-            << static_cast<int>(result.a1.a1) << ", "
-            << static_cast<int>(result.a1.a2) << ", "
-            << static_cast<int>(result.a1.a3) << ", "
-            << static_cast<int>(result.a1.a4) << ", "
-            << static_cast<int>(result.a1.a5) << ", "
-            << static_cast<int>(result.a1.a6) << ", "
-            << static_cast<int>(result.a1.a7) << ", "
-            << static_cast<int>(result.a1.a8) << "))"
+            << result.a0.a2 << "))"
             << "\n";
 
   return result;
@@ -6028,10 +5913,7 @@ ReturnUnion16BytesNestedFloat(Struct8BytesHomogeneousFloat a0) {
   result.a0.a1 = a0.a1;
 
   std::cout << "result = "
-            << "((" << result.a0.a0 << ", " << result.a0.a1 << "), ("
-            << result.a1.a0 << ", " << result.a1.a1 << ", " << result.a1.a2
-            << "), (" << result.a2.a0 << ", " << result.a2.a1 << ", "
-            << result.a2.a2 << ", " << result.a2.a3 << "))"
+            << "((" << result.a0.a0 << ", " << result.a0.a1 << "))"
             << "\n";
 
   return result;
@@ -11977,12 +11859,9 @@ DART_EXPORT intptr_t TestPassUnion4BytesMixedx10(
   a9.a0 = 10;
 
   std::cout << "Calling TestPassUnion4BytesMixedx10("
-            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << ", "
-            << a1.a1 << "), (" << a2.a0 << ", " << a2.a1 << "), (" << a3.a0
-            << ", " << a3.a1 << "), (" << a4.a0 << ", " << a4.a1 << "), ("
-            << a5.a0 << ", " << a5.a1 << "), (" << a6.a0 << ", " << a6.a1
-            << "), (" << a7.a0 << ", " << a7.a1 << "), (" << a8.a0 << ", "
-            << a8.a1 << "), (" << a9.a0 << ", " << a9.a1 << "))"
+            << "((" << a0.a0 << "), (" << a1.a0 << "), (" << a2.a0 << "), ("
+            << a3.a0 << "), (" << a4.a0 << "), (" << a5.a0 << "), (" << a6.a0
+            << "), (" << a7.a0 << "), (" << a8.a0 << "), (" << a9.a0 << "))"
             << ")\n";
 
   double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
@@ -12045,16 +11924,9 @@ DART_EXPORT intptr_t TestPassUnion8BytesNestedFloatx10(
   a9.a0 = 10.0;
 
   std::cout << "Calling TestPassUnion8BytesNestedFloatx10("
-            << "((" << a0.a0 << ", (" << a0.a1.a0 << ", " << a0.a1.a1 << ")), ("
-            << a1.a0 << ", (" << a1.a1.a0 << ", " << a1.a1.a1 << ")), ("
-            << a2.a0 << ", (" << a2.a1.a0 << ", " << a2.a1.a1 << ")), ("
-            << a3.a0 << ", (" << a3.a1.a0 << ", " << a3.a1.a1 << ")), ("
-            << a4.a0 << ", (" << a4.a1.a0 << ", " << a4.a1.a1 << ")), ("
-            << a5.a0 << ", (" << a5.a1.a0 << ", " << a5.a1.a1 << ")), ("
-            << a6.a0 << ", (" << a6.a1.a0 << ", " << a6.a1.a1 << ")), ("
-            << a7.a0 << ", (" << a7.a1.a0 << ", " << a7.a1.a1 << ")), ("
-            << a8.a0 << ", (" << a8.a1.a0 << ", " << a8.a1.a1 << ")), ("
-            << a9.a0 << ", (" << a9.a1.a0 << ", " << a9.a1.a1 << ")))"
+            << "((" << a0.a0 << "), (" << a1.a0 << "), (" << a2.a0 << "), ("
+            << a3.a0 << "), (" << a4.a0 << "), (" << a5.a0 << "), (" << a6.a0
+            << "), (" << a7.a0 << "), (" << a8.a0 << "), (" << a9.a0 << "))"
             << ")\n";
 
   double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
@@ -12138,75 +12010,15 @@ DART_EXPORT intptr_t TestPassUnion9BytesNestedIntx10(
 
   std::cout << "Calling TestPassUnion9BytesNestedIntx10("
             << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << ", " << a0.a0.a2
-            << "), (" << static_cast<int>(a0.a1.a0) << ", "
-            << static_cast<int>(a0.a1.a1) << ", " << static_cast<int>(a0.a1.a2)
-            << ", " << static_cast<int>(a0.a1.a3) << ", "
-            << static_cast<int>(a0.a1.a4) << ", " << static_cast<int>(a0.a1.a5)
-            << ", " << static_cast<int>(a0.a1.a6) << ", "
-            << static_cast<int>(a0.a1.a7) << ", " << static_cast<int>(a0.a1.a8)
             << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << ", " << a1.a0.a2
-            << "), (" << static_cast<int>(a1.a1.a0) << ", "
-            << static_cast<int>(a1.a1.a1) << ", " << static_cast<int>(a1.a1.a2)
-            << ", " << static_cast<int>(a1.a1.a3) << ", "
-            << static_cast<int>(a1.a1.a4) << ", " << static_cast<int>(a1.a1.a5)
-            << ", " << static_cast<int>(a1.a1.a6) << ", "
-            << static_cast<int>(a1.a1.a7) << ", " << static_cast<int>(a1.a1.a8)
             << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << ", " << a2.a0.a2
-            << "), (" << static_cast<int>(a2.a1.a0) << ", "
-            << static_cast<int>(a2.a1.a1) << ", " << static_cast<int>(a2.a1.a2)
-            << ", " << static_cast<int>(a2.a1.a3) << ", "
-            << static_cast<int>(a2.a1.a4) << ", " << static_cast<int>(a2.a1.a5)
-            << ", " << static_cast<int>(a2.a1.a6) << ", "
-            << static_cast<int>(a2.a1.a7) << ", " << static_cast<int>(a2.a1.a8)
             << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << ", " << a3.a0.a2
-            << "), (" << static_cast<int>(a3.a1.a0) << ", "
-            << static_cast<int>(a3.a1.a1) << ", " << static_cast<int>(a3.a1.a2)
-            << ", " << static_cast<int>(a3.a1.a3) << ", "
-            << static_cast<int>(a3.a1.a4) << ", " << static_cast<int>(a3.a1.a5)
-            << ", " << static_cast<int>(a3.a1.a6) << ", "
-            << static_cast<int>(a3.a1.a7) << ", " << static_cast<int>(a3.a1.a8)
             << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << ", " << a4.a0.a2
-            << "), (" << static_cast<int>(a4.a1.a0) << ", "
-            << static_cast<int>(a4.a1.a1) << ", " << static_cast<int>(a4.a1.a2)
-            << ", " << static_cast<int>(a4.a1.a3) << ", "
-            << static_cast<int>(a4.a1.a4) << ", " << static_cast<int>(a4.a1.a5)
-            << ", " << static_cast<int>(a4.a1.a6) << ", "
-            << static_cast<int>(a4.a1.a7) << ", " << static_cast<int>(a4.a1.a8)
             << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << ", " << a5.a0.a2
-            << "), (" << static_cast<int>(a5.a1.a0) << ", "
-            << static_cast<int>(a5.a1.a1) << ", " << static_cast<int>(a5.a1.a2)
-            << ", " << static_cast<int>(a5.a1.a3) << ", "
-            << static_cast<int>(a5.a1.a4) << ", " << static_cast<int>(a5.a1.a5)
-            << ", " << static_cast<int>(a5.a1.a6) << ", "
-            << static_cast<int>(a5.a1.a7) << ", " << static_cast<int>(a5.a1.a8)
             << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << ", " << a6.a0.a2
-            << "), (" << static_cast<int>(a6.a1.a0) << ", "
-            << static_cast<int>(a6.a1.a1) << ", " << static_cast<int>(a6.a1.a2)
-            << ", " << static_cast<int>(a6.a1.a3) << ", "
-            << static_cast<int>(a6.a1.a4) << ", " << static_cast<int>(a6.a1.a5)
-            << ", " << static_cast<int>(a6.a1.a6) << ", "
-            << static_cast<int>(a6.a1.a7) << ", " << static_cast<int>(a6.a1.a8)
             << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << ", " << a7.a0.a2
-            << "), (" << static_cast<int>(a7.a1.a0) << ", "
-            << static_cast<int>(a7.a1.a1) << ", " << static_cast<int>(a7.a1.a2)
-            << ", " << static_cast<int>(a7.a1.a3) << ", "
-            << static_cast<int>(a7.a1.a4) << ", " << static_cast<int>(a7.a1.a5)
-            << ", " << static_cast<int>(a7.a1.a6) << ", "
-            << static_cast<int>(a7.a1.a7) << ", " << static_cast<int>(a7.a1.a8)
             << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << ", " << a8.a0.a2
-            << "), (" << static_cast<int>(a8.a1.a0) << ", "
-            << static_cast<int>(a8.a1.a1) << ", " << static_cast<int>(a8.a1.a2)
-            << ", " << static_cast<int>(a8.a1.a3) << ", "
-            << static_cast<int>(a8.a1.a4) << ", " << static_cast<int>(a8.a1.a5)
-            << ", " << static_cast<int>(a8.a1.a6) << ", "
-            << static_cast<int>(a8.a1.a7) << ", " << static_cast<int>(a8.a1.a8)
             << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << ", " << a9.a0.a2
-            << "), (" << static_cast<int>(a9.a1.a0) << ", "
-            << static_cast<int>(a9.a1.a1) << ", " << static_cast<int>(a9.a1.a2)
-            << ", " << static_cast<int>(a9.a1.a3) << ", "
-            << static_cast<int>(a9.a1.a4) << ", " << static_cast<int>(a9.a1.a5)
-            << ", " << static_cast<int>(a9.a1.a6) << ", "
-            << static_cast<int>(a9.a1.a7) << ", " << static_cast<int>(a9.a1.a8)
             << ")))"
             << ")\n";
 
@@ -12301,32 +12113,19 @@ DART_EXPORT intptr_t TestPassUnion16BytesNestedInlineArrayFloatx10(
 
   std::cout << "Calling TestPassUnion16BytesNestedInlineArrayFloatx10("
             << "(([" << a0.a0[0] << ", " << a0.a0[1] << ", " << a0.a0[2] << ", "
-            << a0.a0[3] << "], (" << a0.a1.a0 << ", " << a0.a1.a1 << ", "
-            << a0.a1.a2 << ", " << a0.a1.a3 << ")), ([" << a1.a0[0] << ", "
-            << a1.a0[1] << ", " << a1.a0[2] << ", " << a1.a0[3] << "], ("
-            << a1.a1.a0 << ", " << a1.a1.a1 << ", " << a1.a1.a2 << ", "
-            << a1.a1.a3 << ")), ([" << a2.a0[0] << ", " << a2.a0[1] << ", "
-            << a2.a0[2] << ", " << a2.a0[3] << "], (" << a2.a1.a0 << ", "
-            << a2.a1.a1 << ", " << a2.a1.a2 << ", " << a2.a1.a3 << ")), (["
+            << a0.a0[3] << "]), ([" << a1.a0[0] << ", " << a1.a0[1] << ", "
+            << a1.a0[2] << ", " << a1.a0[3] << "]), ([" << a2.a0[0] << ", "
+            << a2.a0[1] << ", " << a2.a0[2] << ", " << a2.a0[3] << "]), (["
             << a3.a0[0] << ", " << a3.a0[1] << ", " << a3.a0[2] << ", "
-            << a3.a0[3] << "], (" << a3.a1.a0 << ", " << a3.a1.a1 << ", "
-            << a3.a1.a2 << ", " << a3.a1.a3 << ")), ([" << a4.a0[0] << ", "
-            << a4.a0[1] << ", " << a4.a0[2] << ", " << a4.a0[3] << "], ("
-            << a4.a1.a0 << ", " << a4.a1.a1 << ", " << a4.a1.a2 << ", "
-            << a4.a1.a3 << ")), ([" << a5.a0[0] << ", " << a5.a0[1] << ", "
-            << a5.a0[2] << ", " << a5.a0[3] << "], (" << a5.a1.a0 << ", "
-            << a5.a1.a1 << ", " << a5.a1.a2 << ", " << a5.a1.a3 << ")), (["
+            << a3.a0[3] << "]), ([" << a4.a0[0] << ", " << a4.a0[1] << ", "
+            << a4.a0[2] << ", " << a4.a0[3] << "]), ([" << a5.a0[0] << ", "
+            << a5.a0[1] << ", " << a5.a0[2] << ", " << a5.a0[3] << "]), (["
             << a6.a0[0] << ", " << a6.a0[1] << ", " << a6.a0[2] << ", "
-            << a6.a0[3] << "], (" << a6.a1.a0 << ", " << a6.a1.a1 << ", "
-            << a6.a1.a2 << ", " << a6.a1.a3 << ")), ([" << a7.a0[0] << ", "
-            << a7.a0[1] << ", " << a7.a0[2] << ", " << a7.a0[3] << "], ("
-            << a7.a1.a0 << ", " << a7.a1.a1 << ", " << a7.a1.a2 << ", "
-            << a7.a1.a3 << ")), ([" << a8.a0[0] << ", " << a8.a0[1] << ", "
-            << a8.a0[2] << ", " << a8.a0[3] << "], (" << a8.a1.a0 << ", "
-            << a8.a1.a1 << ", " << a8.a1.a2 << ", " << a8.a1.a3 << ")), (["
+            << a6.a0[3] << "]), ([" << a7.a0[0] << ", " << a7.a0[1] << ", "
+            << a7.a0[2] << ", " << a7.a0[3] << "]), ([" << a8.a0[0] << ", "
+            << a8.a0[1] << ", " << a8.a0[2] << ", " << a8.a0[3] << "]), (["
             << a9.a0[0] << ", " << a9.a0[1] << ", " << a9.a0[2] << ", "
-            << a9.a0[3] << "], (" << a9.a1.a0 << ", " << a9.a1.a1 << ", "
-            << a9.a1.a2 << ", " << a9.a1.a3 << ")))"
+            << a9.a0[3] << "]))"
             << ")\n";
 
   double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
@@ -12399,36 +12198,13 @@ DART_EXPORT intptr_t TestPassUnion16BytesNestedFloatx10(
   a9.a0.a1 = 20.0;
 
   std::cout << "Calling TestPassUnion16BytesNestedFloatx10("
-            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
-            << ", " << a0.a1.a1 << ", " << a0.a1.a2 << "), (" << a0.a2.a0
-            << ", " << a0.a2.a1 << ", " << a0.a2.a2 << ", " << a0.a2.a3
-            << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << "), (" << a1.a1.a0
-            << ", " << a1.a1.a1 << ", " << a1.a1.a2 << "), (" << a1.a2.a0
-            << ", " << a1.a2.a1 << ", " << a1.a2.a2 << ", " << a1.a2.a3
-            << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << "), (" << a2.a1.a0
-            << ", " << a2.a1.a1 << ", " << a2.a1.a2 << "), (" << a2.a2.a0
-            << ", " << a2.a2.a1 << ", " << a2.a2.a2 << ", " << a2.a2.a3
-            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << "), (" << a3.a1.a0
-            << ", " << a3.a1.a1 << ", " << a3.a1.a2 << "), (" << a3.a2.a0
-            << ", " << a3.a2.a1 << ", " << a3.a2.a2 << ", " << a3.a2.a3
-            << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << "), (" << a4.a1.a0
-            << ", " << a4.a1.a1 << ", " << a4.a1.a2 << "), (" << a4.a2.a0
-            << ", " << a4.a2.a1 << ", " << a4.a2.a2 << ", " << a4.a2.a3
-            << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << "), (" << a5.a1.a0
-            << ", " << a5.a1.a1 << ", " << a5.a1.a2 << "), (" << a5.a2.a0
-            << ", " << a5.a2.a1 << ", " << a5.a2.a2 << ", " << a5.a2.a3
-            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << "), (" << a6.a1.a0
-            << ", " << a6.a1.a1 << ", " << a6.a1.a2 << "), (" << a6.a2.a0
-            << ", " << a6.a2.a1 << ", " << a6.a2.a2 << ", " << a6.a2.a3
-            << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << "), (" << a7.a1.a0
-            << ", " << a7.a1.a1 << ", " << a7.a1.a2 << "), (" << a7.a2.a0
-            << ", " << a7.a2.a1 << ", " << a7.a2.a2 << ", " << a7.a2.a3
-            << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << "), (" << a8.a1.a0
-            << ", " << a8.a1.a1 << ", " << a8.a1.a2 << "), (" << a8.a2.a0
-            << ", " << a8.a2.a1 << ", " << a8.a2.a2 << ", " << a8.a2.a3
-            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << "), (" << a9.a1.a0
-            << ", " << a9.a1.a1 << ", " << a9.a1.a2 << "), (" << a9.a2.a0
-            << ", " << a9.a2.a1 << ", " << a9.a2.a2 << ", " << a9.a2.a3 << ")))"
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << ")), ((" << a1.a0.a0
+            << ", " << a1.a0.a1 << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << ")), ((" << a4.a0.a0
+            << ", " << a4.a0.a1 << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << ")), ((" << a7.a0.a0
+            << ", " << a7.a0.a1 << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << ")))"
             << ")\n";
 
   double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
@@ -15054,7 +14830,7 @@ DART_EXPORT intptr_t TestReturnUnion4BytesMixed(
   Union4BytesMixed result = f(a0);
 
   std::cout << "result = "
-            << "(" << result.a0 << ", " << result.a1 << ")"
+            << "(" << result.a0 << ")"
             << "\n";
 
   CHECK_EQ(a0, result.a0);
@@ -15092,8 +14868,7 @@ DART_EXPORT intptr_t TestReturnUnion8BytesNestedFloat(
   Union8BytesNestedFloat result = f(a0);
 
   std::cout << "result = "
-            << "(" << result.a0 << ", (" << result.a1.a0 << ", " << result.a1.a1
-            << "))"
+            << "(" << result.a0 << ")"
             << "\n";
 
   CHECK_APPROX(a0, result.a0);
@@ -15134,15 +14909,7 @@ DART_EXPORT intptr_t TestReturnUnion9BytesNestedInt(
 
   std::cout << "result = "
             << "((" << result.a0.a0 << ", " << result.a0.a1 << ", "
-            << result.a0.a2 << "), (" << static_cast<int>(result.a1.a0) << ", "
-            << static_cast<int>(result.a1.a1) << ", "
-            << static_cast<int>(result.a1.a2) << ", "
-            << static_cast<int>(result.a1.a3) << ", "
-            << static_cast<int>(result.a1.a4) << ", "
-            << static_cast<int>(result.a1.a5) << ", "
-            << static_cast<int>(result.a1.a6) << ", "
-            << static_cast<int>(result.a1.a7) << ", "
-            << static_cast<int>(result.a1.a8) << "))"
+            << result.a0.a2 << "))"
             << "\n";
 
   CHECK_EQ(a0.a0, result.a0.a0);
@@ -15187,10 +14954,7 @@ DART_EXPORT intptr_t TestReturnUnion16BytesNestedFloat(
   Union16BytesNestedFloat result = f(a0);
 
   std::cout << "result = "
-            << "((" << result.a0.a0 << ", " << result.a0.a1 << "), ("
-            << result.a1.a0 << ", " << result.a1.a1 << ", " << result.a1.a2
-            << "), (" << result.a2.a0 << ", " << result.a2.a1 << ", "
-            << result.a2.a2 << ", " << result.a2.a3 << "))"
+            << "((" << result.a0.a0 << ", " << result.a0.a1 << "))"
             << "\n";
 
   CHECK_APPROX(a0.a0, result.a0.a0);

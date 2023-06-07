@@ -543,8 +543,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record that [element] has a relation of the given [kind] at the location
   /// of the given [token].
   void recordRelationToken(
-      Element? element, IndexRelationKind kind, Token token) {
-    recordRelationOffset(element, kind, token.offset, token.length, true);
+    Element? element,
+    IndexRelationKind kind,
+    Token token, {
+    bool isQualified = true,
+  }) {
+    recordRelationOffset(
+        element, kind, token.offset, token.length, isQualified);
   }
 
   /// Record a relation between a super [namedType] and its [Element].
@@ -756,6 +761,18 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitExtensionOverride(ExtensionOverride node) {
+    _recordImportPrefixedElement(
+      importPrefix: node.importPrefix,
+      name: node.name,
+      element: node.element,
+    );
+
+    node.typeArguments?.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
   visitFieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredElement;
     if (element is FieldFormalParameterElement) {
@@ -820,6 +837,17 @@ class _IndexContributor extends GeneralizingAstVisitor {
     _addSubtypeForMixinDeclaration(node);
     recordIsAncestorOf(node.declaredElement!);
     super.visitMixinDeclaration(node);
+  }
+
+  @override
+  visitNamedType(NamedType node) {
+    _recordImportPrefixedElement(
+      importPrefix: node.importPrefix,
+      name: node.name2,
+      element: node.element,
+    );
+
+    node.typeArguments?.accept(this);
   }
 
   @override
@@ -1095,6 +1123,38 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     AstNode parent = node.parent!;
     return parent is Combinator || parent is Label;
+  }
+
+  void _recordImportPrefixedElement({
+    required ImportPrefixReference? importPrefix,
+    required Token name,
+    required Element? element,
+  }) {
+    if (element == null) {
+      return;
+    }
+
+    if (importPrefix != null) {
+      final prefixElement = importPrefix.element;
+      if (prefixElement is PrefixElement) {
+        recordRelationToken(
+          importPrefix.element,
+          IndexRelationKind.IS_REFERENCED_BY,
+          importPrefix.name,
+          isQualified: false,
+        );
+        assembler.addPrefixForElement(element, prefix: prefixElement);
+      }
+    } else {
+      assembler.addPrefixForElement(element, prefix: null);
+    }
+
+    recordRelationToken(
+      element,
+      IndexRelationKind.IS_REFERENCED_BY,
+      name,
+      isQualified: importPrefix != null,
+    );
   }
 
   void _recordIsAncestorOf(Element descendant, InterfaceElement ancestor,

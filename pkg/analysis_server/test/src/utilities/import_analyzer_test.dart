@@ -359,6 +359,35 @@ var x = 2.g;
     });
   }
 
+  Future<void> test_extension_operator_movingDeclaration() async {
+    await analyze('''
+class A {}
+var x = A() + A();
+[!
+extension X on A {
+  A operator +(A other) => A();
+}
+!]
+''', expectedStayingReferences: {
+      element<ExtensionElement>(name: 'X'): [''],
+    });
+  }
+
+  Future<void> test_extension_operator_movingReference() async {
+    await analyze('''
+class A {}
+extension X on A {
+  A operator +(A other) => A();
+}
+[!
+var x = A() + A();
+!]
+''', expectedMovingReferences: {
+      element<ExtensionElement>(name: 'X'): [''],
+      element<ClassElement>(name: 'A'): [''],
+    });
+  }
+
   Future<void> test_extension_override_movingDeclaration() async {
     await analyze('''
 var x = X(2).g;
@@ -547,6 +576,58 @@ void f() {
     });
   }
 
+  Future<void>
+      test_topLevelVariable_compoundAssignment_separateReadWriteElements_movingDeclaration() async {
+    await analyze('''
+void f() => v += 1;
+[!
+int get v => 0;
+set v(num _) {}
+!]
+''', expectedStayingReferences: {
+      element<PropertyAccessorElement>(name: 'v='): [''],
+      element<PropertyAccessorElement>(name: 'v'): [''],
+    });
+  }
+
+  Future<void>
+      test_topLevelVariable_compoundAssignment_separateReadWriteElements_movingReference() async {
+    await analyze('''
+int get v => 0;
+set v(num _) {}
+[!
+void f() => v += 1;
+!]
+''', expectedMovingReferences: {
+      element<PropertyAccessorElement>(name: 'v='): [''],
+      element<PropertyAccessorElement>(name: 'v'): [''],
+    });
+  }
+
+  Future<void>
+      test_topLevelVariable_compoundAssignment_singleReadWriteElement_movingDeclaration() async {
+    await analyze('''
+void f() => v += 1;
+[!
+int v = 0;
+!]
+''', expectedStayingReferences: {
+      element<TopLevelVariableElement>(name: 'v'): [''],
+    });
+  }
+
+  Future<void>
+      test_topLevelVariable_compoundAssignment_singleReadWriteElement_movingReference() async {
+    await analyze('''
+int v = 0;
+[!
+void f() => v += 1;
+!]
+''', expectedMovingReferences: {
+      element<TopLevelVariableElement>(name: 'v'): [''],
+    });
+  }
+
   Future<void> test_topLevelVariable_movingDeclaration() async {
     await analyze('''
 var x = v;
@@ -563,6 +644,110 @@ int v = 0;
 int v = 0;
 [!
 var x = v;
+!]
+''', expectedMovingReferences: {
+      element<TopLevelVariableElement>(name: 'v'): [''],
+    });
+  }
+
+  Future<void>
+      test_topLevelVariable_postfixIncrement_separateReadWriteElements_movingDeclaration() async {
+    await analyze('''
+void f() => v++;
+[!
+int get v => 0;
+set v(num _) {}
+!]
+''', expectedStayingReferences: {
+      element<PropertyAccessorElement>(name: 'v='): [''],
+      element<PropertyAccessorElement>(name: 'v'): [''],
+    });
+  }
+
+  Future<void>
+      test_topLevelVariable_postfixIncrement_separateReadWriteElements_movingReference() async {
+    await analyze('''
+int get v => 0;
+set v(num _) {}
+[!
+void f() => v++;
+!]
+''', expectedMovingReferences: {
+      element<PropertyAccessorElement>(name: 'v='): [''],
+      element<PropertyAccessorElement>(name: 'v'): [''],
+    });
+  }
+
+  Future<void>
+      test_topLevelVariable_postfixIncrement_singleReadWriteElement_movingDeclaration() async {
+    await analyze('''
+void f() => v++;
+[!
+int v = 0;
+!]
+''', expectedStayingReferences: {
+      element<TopLevelVariableElement>(name: 'v'): [''],
+    });
+  }
+
+  Future<void>
+      test_topLevelVariable_postfixIncrement_singleReadWriteElement_movingReference() async {
+    await analyze('''
+int v = 0;
+[!
+void f() => v++;
+!]
+''', expectedMovingReferences: {
+      element<TopLevelVariableElement>(name: 'v'): [''],
+    });
+  }
+
+  Future<void>
+      test_topLevelVariable_prefixIncrement_separateReadWriteElements_movingDeclaration() async {
+    await analyze('''
+void f() => ++v;
+[!
+int get v => 0;
+set v(num _) {}
+!]
+''', expectedStayingReferences: {
+      element<PropertyAccessorElement>(name: 'v='): [''],
+      element<PropertyAccessorElement>(name: 'v'): [''],
+    });
+  }
+
+  Future<void>
+      test_topLevelVariable_prefixIncrement_separateReadWriteElements_movingReference() async {
+    await analyze('''
+int get v => 0;
+set v(num _) {}
+[!
+void f() => ++v;
+!]
+''', expectedMovingReferences: {
+      element<PropertyAccessorElement>(name: 'v='): [''],
+      element<PropertyAccessorElement>(name: 'v'): [''],
+    });
+  }
+
+  Future<void>
+      test_topLevelVariable_prefixIncrement_singleReadWriteElement_movingDeclaration() async {
+    await analyze('''
+void f() => ++v;
+[!
+int v = 0;
+!]
+''', expectedStayingReferences: {
+      element<TopLevelVariableElement>(name: 'v'): [''],
+    });
+  }
+
+  Future<void>
+      test_topLevelVariable_prefixIncrement_singleReadWriteElement_movingReference() async {
+    await analyze('''
+int v = 0;
+[!
+void f() => ++v;
 !]
 ''', expectedMovingReferences: {
       element<TopLevelVariableElement>(name: 'v'): [''],

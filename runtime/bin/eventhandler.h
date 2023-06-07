@@ -104,10 +104,10 @@ class InterruptMessage {
   int64_t data;
 };
 
-static constexpr int kInterruptMessageSize = sizeof(InterruptMessage);
-static constexpr int kInfinityTimeout = -1;
-static constexpr int kTimerId = -1;
-static constexpr int kShutdownId = -2;
+static constexpr intptr_t kInterruptMessageSize = sizeof(InterruptMessage);
+static constexpr intptr_t kInfinityTimeout = -1;
+static constexpr intptr_t kTimerId = -1;
+static constexpr intptr_t kShutdownId = -2;
 
 template <typename T>
 class CircularLinkedList {

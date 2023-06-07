@@ -14,6 +14,22 @@ var (n: (x: int a9, int b9), (y: int c9, int d9))
 
 var (n: (int, {int x}) a10, (int z, {int y}) b10)
 = (n: (x: 42, -1), (y: 1, 0));
+
+var ((a1,)?,) = (null,);
+var (n: (x: a2)?) = (n: null);
+var (n: (x: a3, b3)?, (y: c3, d3)?) = (n: null, null);
+
+final ((a4,)?,) = (null,);
+final (n: (x: a5)?) = (n: null);
+final (n: (x: a6, b6)?, (y: c6, d6)?) = (n: null, null);
+
+var ((int a7,)?,) = (null,);
+var (n: (x: int a8)?) = (n: null);
+var (n: (x: int a9, int b9)?, (y: int c9, int d9)?)
+= (n: null, null);
+
+var (n: (int, {int x})? a10, (int z, {int y})? b10)
+= (n: null, null);
 }
 
 
@@ -33,5 +49,21 @@ var[KeywordToken] ([BeginToken]n[StringToken]:[SimpleToken] ([BeginToken]x[Strin
 
 var[KeywordToken] ([BeginToken]n[StringToken]:[SimpleToken] ([BeginToken]int[StringToken],[SimpleToken] {[BeginToken]int[StringToken] x[StringToken]}[SimpleToken])[SimpleToken] a10[StringToken],[SimpleToken] ([BeginToken]int[StringToken] z[StringToken],[SimpleToken] {[BeginToken]int[StringToken] y[StringToken]}[SimpleToken])[SimpleToken] b10[StringToken])[SimpleToken]
 =[SimpleToken] ([BeginToken]n[StringToken]:[SimpleToken] ([BeginToken]x[StringToken]:[SimpleToken] 42[StringToken],[SimpleToken] -[SimpleToken]1[StringToken])[SimpleToken],[SimpleToken] ([BeginToken]y[StringToken]:[SimpleToken] 1[StringToken],[SimpleToken] 0[StringToken])[SimpleToken])[SimpleToken];[SimpleToken]
+
+var[KeywordToken] ([BeginToken]([BeginToken]a1[StringToken],[SimpleToken])[SimpleToken]?[SimpleToken],[SimpleToken])[SimpleToken] =[SimpleToken] ([BeginToken]null[KeywordToken],[SimpleToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] ([BeginToken]n[StringToken]:[SimpleToken] ([BeginToken]x[StringToken]:[SimpleToken] a2[StringToken])[SimpleToken]?[SimpleToken])[SimpleToken] =[SimpleToken] ([BeginToken]n[StringToken]:[SimpleToken] null[KeywordToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] ([BeginToken]n[StringToken]:[SimpleToken] ([BeginToken]x[StringToken]:[SimpleToken] a3[StringToken],[SimpleToken] b3[StringToken])[SimpleToken]?[SimpleToken],[SimpleToken] ([BeginToken]y[StringToken]:[SimpleToken] c3[StringToken],[SimpleToken] d3[StringToken])[SimpleToken]?[SimpleToken])[SimpleToken] =[SimpleToken] ([BeginToken]n[StringToken]:[SimpleToken] null[KeywordToken],[SimpleToken] null[KeywordToken])[SimpleToken];[SimpleToken]
+
+final[KeywordToken] ([BeginToken]([BeginToken]a4[StringToken],[SimpleToken])[SimpleToken]?[SimpleToken],[SimpleToken])[SimpleToken] =[SimpleToken] ([BeginToken]null[KeywordToken],[SimpleToken])[SimpleToken];[SimpleToken]
+final[KeywordToken] ([BeginToken]n[StringToken]:[SimpleToken] ([BeginToken]x[StringToken]:[SimpleToken] a5[StringToken])[SimpleToken]?[SimpleToken])[SimpleToken] =[SimpleToken] ([BeginToken]n[StringToken]:[SimpleToken] null[KeywordToken])[SimpleToken];[SimpleToken]
+final[KeywordToken] ([BeginToken]n[StringToken]:[SimpleToken] ([BeginToken]x[StringToken]:[SimpleToken] a6[StringToken],[SimpleToken] b6[StringToken])[SimpleToken]?[SimpleToken],[SimpleToken] ([BeginToken]y[StringToken]:[SimpleToken] c6[StringToken],[SimpleToken] d6[StringToken])[SimpleToken]?[SimpleToken])[SimpleToken] =[SimpleToken] ([BeginToken]n[StringToken]:[SimpleToken] null[KeywordToken],[SimpleToken] null[KeywordToken])[SimpleToken];[SimpleToken]
+
+var[KeywordToken] ([BeginToken]([BeginToken]int[StringToken] a7[StringToken],[SimpleToken])[SimpleToken]?[SimpleToken],[SimpleToken])[SimpleToken] =[SimpleToken] ([BeginToken]null[KeywordToken],[SimpleToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] ([BeginToken]n[StringToken]:[SimpleToken] ([BeginToken]x[StringToken]:[SimpleToken] int[StringToken] a8[StringToken])[SimpleToken]?[SimpleToken])[SimpleToken] =[SimpleToken] ([BeginToken]n[StringToken]:[SimpleToken] null[KeywordToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] ([BeginToken]n[StringToken]:[SimpleToken] ([BeginToken]x[StringToken]:[SimpleToken] int[StringToken] a9[StringToken],[SimpleToken] int[StringToken] b9[StringToken])[SimpleToken]?[SimpleToken],[SimpleToken] ([BeginToken]y[StringToken]:[SimpleToken] int[StringToken] c9[StringToken],[SimpleToken] int[StringToken] d9[StringToken])[SimpleToken]?[SimpleToken])[SimpleToken]
+=[SimpleToken] ([BeginToken]n[StringToken]:[SimpleToken] null[KeywordToken],[SimpleToken] null[KeywordToken])[SimpleToken];[SimpleToken]
+
+var[KeywordToken] ([BeginToken]n[StringToken]:[SimpleToken] ([BeginToken]int[StringToken],[SimpleToken] {[BeginToken]int[StringToken] x[StringToken]}[SimpleToken])[SimpleToken]?[SimpleToken] a10[StringToken],[SimpleToken] ([BeginToken]int[StringToken] z[StringToken],[SimpleToken] {[BeginToken]int[StringToken] y[StringToken]}[SimpleToken])[SimpleToken]?[SimpleToken] b10[StringToken])[SimpleToken]
+=[SimpleToken] ([BeginToken]n[StringToken]:[SimpleToken] null[KeywordToken],[SimpleToken] null[KeywordToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]
 [SimpleToken]

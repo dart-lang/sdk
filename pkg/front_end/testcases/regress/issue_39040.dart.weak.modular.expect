@@ -7,7 +7,7 @@ static method main() → void {
   core::int outer = 1;
   core::int inner = 0;
   #L1:
-  switch(outer) {
+  switch(outer) /* core::int */ {
     #L2:
     case #C1:
       {
@@ -19,7 +19,7 @@ static method main() → void {
       {
         (() → Null {
           #L4:
-          switch(inner) {
+          switch(inner) /* core::int */ {
             #L5:
             case #C1:
               {

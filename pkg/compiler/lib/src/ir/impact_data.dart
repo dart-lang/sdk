@@ -8,6 +8,7 @@ import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../common/elements.dart';
+import '../common/names.dart' show Uris;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/scope.dart';
@@ -78,27 +79,27 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   @override
   void handleIntLiteral(ir.IntLiteral node) {
-    registerIntLiteral(node.value);
+    registerIntLiteral();
   }
 
   @override
   void handleDoubleLiteral(ir.DoubleLiteral node) {
-    registerDoubleLiteral(node.value);
+    registerDoubleLiteral();
   }
 
   @override
   void handleBoolLiteral(ir.BoolLiteral node) {
-    registerBoolLiteral(node.value);
+    registerBoolLiteral();
   }
 
   @override
   void handleStringLiteral(ir.StringLiteral node) {
-    registerStringLiteral(node.value);
+    registerStringLiteral();
   }
 
   @override
   void handleSymbolLiteral(ir.SymbolLiteral node) {
-    registerSymbolLiteral(node.value);
+    registerSymbolLiteral();
   }
 
   @override
@@ -318,7 +319,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   @override
   void handleConstructor(ir.Constructor node) {
-    registerConstructorNode(node);
+    if (node.isExternal) registerExternalConstructorNode(node);
   }
 
   @override
@@ -333,13 +334,15 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     } else {
       registerNullLiteral();
     }
+    // TODO(sigmund): only save relevant fields (e.g. those for jsinterop
+    // or native types).
     registerFieldNode(field);
   }
 
   @override
   void handleProcedure(ir.Procedure procedure) {
     handleAsyncMarker(procedure.function);
-    registerProcedureNode(procedure);
+    if (procedure.isExternal) registerExternalProcedureNode(procedure);
   }
 
   void _handleConstConstructorInvocation(ir.ConstructorInvocation node) {
@@ -417,7 +420,16 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       registerStaticInvocation(node.target, positionArguments, namedArguments,
           typeArguments, getDeferredImport(node));
     }
-    registerStaticInvocationNode(node);
+    // TODO(sigmund): consider using `_elementMap.getForeignKind` here. We
+    // currently don't use it because when this step is run modularly we try
+    // to keep most operations at the kernel level, otherwise it may triggers
+    // additional unnecessary work.
+    final name = node.target.name.text;
+    if (node.target.enclosingClass == null &&
+        node.target.enclosingLibrary.importUri == Uris.dart__foreign_helper &&
+        getForeignKindFromName(name) != ForeignKind.NONE) {
+      registerForeignStaticInvocationNode(node);
+    }
   }
 
   @override
@@ -944,28 +956,28 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerSymbolLiteral(String value) {
-    (_data._symbolLiterals ??= {}).add(value);
+  void registerSymbolLiteral() {
+    _registerFeature(_Feature.symbolLiteral);
   }
 
   @override
-  void registerStringLiteral(String value) {
-    (_data._stringLiterals ??= {}).add(value);
+  void registerStringLiteral() {
+    _registerFeature(_Feature.stringLiteral);
   }
 
   @override
-  void registerBoolLiteral(bool value) {
-    (_data._boolLiterals ??= {}).add(value);
+  void registerBoolLiteral() {
+    _registerFeature(_Feature.boolLiteral);
   }
 
   @override
-  void registerDoubleLiteral(double value) {
-    (_data._doubleLiterals ??= {}).add(value);
+  void registerDoubleLiteral() {
+    _registerFeature(_Feature.doubleLiteral);
   }
 
   @override
-  void registerIntLiteral(int value) {
-    (_data._intLiterals ??= {}).add(value);
+  void registerIntLiteral() {
+    _registerFeature(_Feature.intLiteral);
   }
 
   @override
@@ -976,8 +988,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerConstructorNode(ir.Constructor node) {
-    (_data._constructorNodes ??= []).add(node);
+  void registerExternalConstructorNode(ir.Constructor node) {
+    (_data._externalConstructorNodes ??= []).add(node);
   }
 
   @override
@@ -986,13 +998,13 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerProcedureNode(ir.Procedure node) {
-    (_data._procedureNodes ??= []).add(node);
+  void registerExternalProcedureNode(ir.Procedure node) {
+    (_data._externalProcedureNodes ??= []).add(node);
   }
 
   @override
-  void registerStaticInvocationNode(ir.StaticInvocation node) {
-    (_data._staticInvocationNodes ??= []).add(node);
+  void registerForeignStaticInvocationNode(ir.StaticInvocation node) {
+    (_data._foreignStaticInvocationNodes ??= []).add(node);
   }
 
   @override
@@ -1044,20 +1056,15 @@ class ImpactData {
   List<_ContainerLiteral>? _listLiterals;
   List<_ContainerLiteral>? _setLiterals;
   List<_RecordLiteral>? _recordLiterals;
-  Set<String>? _symbolLiterals;
-  Set<String>? _stringLiterals;
-  Set<bool>? _boolLiterals;
-  Set<double>? _doubleLiterals;
-  Set<int>? _intLiterals;
   List<_RuntimeTypeUse>? _runtimeTypeUses;
   List<_ForInData>? _forInData;
 
   // TODO(johnniwinther): Remove these when CFE provides constants.
-  List<ir.Constructor>? _constructorNodes;
+  List<ir.Constructor>? _externalConstructorNodes;
   List<ir.Field>? _fieldNodes;
-  List<ir.Procedure>? _procedureNodes;
+  List<ir.Procedure>? _externalProcedureNodes;
   List<ir.SwitchStatement>? _switchStatementNodes;
-  List<ir.StaticInvocation>? _staticInvocationNodes;
+  List<ir.StaticInvocation>? _foreignStaticInvocationNodes;
   bool _hasConstSymbolConstructorInvocation = false;
 
   ImpactData();
@@ -1118,23 +1125,17 @@ class ImpactData {
         source.readListOrNull(() => _ContainerLiteral.fromDataSource(source));
     _recordLiterals =
         source.readListOrNull(() => _RecordLiteral.fromDataSource(source));
-    _symbolLiterals = source.readStrings(emptyAsNull: true)?.toSet();
-    _stringLiterals = source.readStrings(emptyAsNull: true)?.toSet();
-    _boolLiterals = source.readListOrNull(() => source.readBool())?.toSet();
-    _doubleLiterals =
-        source.readListOrNull(() => source.readDoubleValue())?.toSet();
-    _intLiterals =
-        source.readListOrNull(() => source.readIntegerValue())?.toSet();
     _runtimeTypeUses =
         source.readListOrNull(() => _RuntimeTypeUse.fromDataSource(source));
     _forInData = source.readListOrNull(() => _ForInData.fromDataSource(source));
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
-    _constructorNodes = source.readMemberNodesOrNull<ir.Constructor>();
+    _externalConstructorNodes = source.readMemberNodesOrNull<ir.Constructor>();
     _fieldNodes = source.readMemberNodesOrNull<ir.Field>();
-    _procedureNodes = source.readMemberNodesOrNull<ir.Procedure>();
+    _externalProcedureNodes = source.readMemberNodesOrNull<ir.Procedure>();
     _switchStatementNodes = source.readTreeNodesOrNull<ir.SwitchStatement>();
-    _staticInvocationNodes = source.readTreeNodesOrNull<ir.StaticInvocation>();
+    _foreignStaticInvocationNodes =
+        source.readTreeNodesOrNull<ir.StaticInvocation>();
     _hasConstSymbolConstructorInvocation = source.readBool();
     source.end(tag);
   }
@@ -1207,21 +1208,16 @@ class ImpactData {
         allowNull: true);
     sink.writeList(_recordLiterals, (_RecordLiteral o) => o.toDataSink(sink),
         allowNull: true);
-    sink.writeStrings(_symbolLiterals, allowNull: true);
-    sink.writeStrings(_stringLiterals, allowNull: true);
-    sink.writeList(_boolLiterals, sink.writeBool, allowNull: true);
-    sink.writeList(_doubleLiterals, sink.writeDoubleValue, allowNull: true);
-    sink.writeList(_intLiterals, sink.writeIntegerValue, allowNull: true);
     sink.writeList(_runtimeTypeUses, (_RuntimeTypeUse o) => o.toDataSink(sink),
         allowNull: true);
     sink.writeList(_forInData, (_ForInData o) => o.toDataSink(sink),
         allowNull: true);
 
-    sink.writeMemberNodes(_constructorNodes, allowNull: true);
+    sink.writeMemberNodes(_externalConstructorNodes, allowNull: true);
     sink.writeMemberNodes(_fieldNodes, allowNull: true);
-    sink.writeMemberNodes(_procedureNodes, allowNull: true);
+    sink.writeMemberNodes(_externalProcedureNodes, allowNull: true);
     sink.writeTreeNodes(_switchStatementNodes, allowNull: true);
-    sink.writeTreeNodes(_staticInvocationNodes, allowNull: true);
+    sink.writeTreeNodes(_foreignStaticInvocationNodes, allowNull: true);
     sink.writeBool(_hasConstSymbolConstructorInvocation);
 
     sink.end(tag);
@@ -1384,6 +1380,21 @@ class ImpactData {
           case _Feature.nullLiteral:
             registry.registerNullLiteral();
             break;
+          case _Feature.symbolLiteral:
+            registry.registerSymbolLiteral();
+            break;
+          case _Feature.stringLiteral:
+            registry.registerStringLiteral();
+            break;
+          case _Feature.boolLiteral:
+            registry.registerBoolLiteral();
+            break;
+          case _Feature.doubleLiteral:
+            registry.registerDoubleLiteral();
+            break;
+          case _Feature.intLiteral:
+            registry.registerIntLiteral();
+            break;
         }
       }
     }
@@ -1500,31 +1511,6 @@ class ImpactData {
         registry.registerRecordLiteral(data.recordType, isConst: data.isConst);
       }
     }
-    if (_symbolLiterals != null) {
-      for (String data in _symbolLiterals!) {
-        registry.registerSymbolLiteral(data);
-      }
-    }
-    if (_stringLiterals != null) {
-      for (String data in _stringLiterals!) {
-        registry.registerStringLiteral(data);
-      }
-    }
-    if (_boolLiterals != null) {
-      for (bool data in _boolLiterals!) {
-        registry.registerBoolLiteral(data);
-      }
-    }
-    if (_doubleLiterals != null) {
-      for (double data in _doubleLiterals!) {
-        registry.registerDoubleLiteral(data);
-      }
-    }
-    if (_intLiterals != null) {
-      for (int data in _intLiterals!) {
-        registry.registerIntLiteral(data);
-      }
-    }
     if (_runtimeTypeUses != null) {
       for (_RuntimeTypeUse data in _runtimeTypeUses!) {
         registry.registerRuntimeTypeUse(
@@ -1544,9 +1530,9 @@ class ImpactData {
     }
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
-    if (_constructorNodes != null) {
-      for (ir.Constructor data in _constructorNodes!) {
-        registry.registerConstructorNode(data);
+    if (_externalConstructorNodes != null) {
+      for (ir.Constructor data in _externalConstructorNodes!) {
+        registry.registerExternalConstructorNode(data);
       }
     }
     if (_fieldNodes != null) {
@@ -1554,9 +1540,9 @@ class ImpactData {
         registry.registerFieldNode(data);
       }
     }
-    if (_procedureNodes != null) {
-      for (ir.Procedure data in _procedureNodes!) {
-        registry.registerProcedureNode(data);
+    if (_externalProcedureNodes != null) {
+      for (ir.Procedure data in _externalProcedureNodes!) {
+        registry.registerExternalProcedureNode(data);
       }
     }
     if (_switchStatementNodes != null) {
@@ -1564,9 +1550,9 @@ class ImpactData {
         registry.registerSwitchStatementNode(data);
       }
     }
-    if (_staticInvocationNodes != null) {
-      for (ir.StaticInvocation data in _staticInvocationNodes!) {
-        registry.registerStaticInvocationNode(data);
+    if (_foreignStaticInvocationNodes != null) {
+      for (ir.StaticInvocation data in _foreignStaticInvocationNodes!) {
+        registry.registerForeignStaticInvocationNode(data);
       }
     }
     if (_hasConstSymbolConstructorInvocation) {
@@ -1912,6 +1898,11 @@ enum _Feature {
   assertWithMessage,
   assertWithoutMessage,
   nullLiteral,
+  stringLiteral,
+  boolLiteral,
+  intLiteral,
+  symbolLiteral,
+  doubleLiteral,
 }
 
 class _TypeUse {

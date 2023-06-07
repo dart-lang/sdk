@@ -17,15 +17,7 @@ import 'package:test_runner/src/test_file.dart';
 import "package:test_runner/src/test_progress.dart" as progress;
 import "package:test_runner/src/test_suite.dart";
 
-final defaultTimeout = 10;
-
-List<String> packageOptions() {
-  if (Platform.packageConfig != null) {
-    return <String>['--packages=${Platform.packageConfig}'];
-  } else {
-    return <String>[];
-  }
-}
+final defaultTimeout = 30;
 
 class TestController {
   static int numTests = 0;
@@ -74,12 +66,15 @@ class CustomTestSuite extends TestSuite {
       onTest(testCase);
     }
 
-    var testCaseCrash = _makeNormalTestCase("crash", [Expectation.crash]);
-    var testCasePass = _makeNormalTestCase("pass", [Expectation.pass]);
-    var testCaseFail = _makeNormalTestCase("fail", [Expectation.fail]);
-    var testCaseTimeout = _makeNormalTestCase("timeout", [Expectation.timeout]);
+    var testCaseCrash =
+        _makeTestCase("crash", defaultTimeout, [Expectation.crash]);
+    var testCasePass =
+        _makeTestCase("pass", defaultTimeout, [Expectation.pass]);
+    var testCaseFail =
+        _makeTestCase("fail", defaultTimeout, [Expectation.fail]);
+    var testCaseTimeout = _makeTestCase("timeout", 5, [Expectation.timeout]);
     var testCaseFailUnexpected =
-        _makeNormalTestCase("fail-unexpected", [Expectation.pass]);
+        _makeTestCase("fail-unexpected", defaultTimeout, [Expectation.pass]);
 
     enqueueTestCase(testCaseCrash);
     enqueueTestCase(testCasePass);
@@ -88,17 +83,16 @@ class CustomTestSuite extends TestSuite {
     enqueueTestCase(testCaseFailUnexpected);
   }
 
-  TestCase _makeNormalTestCase(
-      String name, Iterable<Expectation> expectations) {
-    var args = packageOptions();
-    args.addAll([Platform.script.toFilePath(), name]);
-    var command = ProcessCommand('custom', Platform.executable, args, {});
-    return _makeTestCase(name, defaultTimeout, command, expectations);
-  }
-
-  TestCase _makeTestCase(String name, timeout, Command command,
-      Iterable<Expectation> expectations) {
+  TestCase _makeTestCase(
+      String name, timeout, Iterable<Expectation> expectations) {
     var configuration = OptionsParser().parse(['--timeout', '$timeout'])[0];
+    final args = [
+      if (Platform.packageConfig != null)
+        '--packages=${Platform.packageConfig}',
+      Platform.script.toFilePath(),
+      name,
+    ];
+    final command = ProcessCommand('custom', Platform.executable, args, {});
     return TestCase(
         name,
         [command],

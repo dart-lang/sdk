@@ -2224,6 +2224,10 @@ static const char* kLoadedScript =
 
           createAInt() => A<int>();
           createAString() => A<String>();
+
+          (int, int) createRecordIntInt() => (1, 2);
+          (String, int) createRecordStringInt() => ("foo", 2);
+          (int, String) createRecordIntString() => (1, "bar");
   )";
 
 static const char* kReloadedScript =
@@ -2235,15 +2239,28 @@ static const char* kReloadedScript =
           createAString() => A<String>();
           createA2Int() => A2<int>();
           createA2String() => A2<String>();
+
+          (int, int) createRecordIntInt() => (1, 2);
+          (String, int) createRecordStringInt() => ("foo", 2);
+          (int, String) createRecordIntString() => (1, "bar");
   )";
 
 ISOLATE_UNIT_TEST_CASE(TTS_Reload) {
+  auto* const zone = thread->zone();
+
   auto& root_library = Library::Handle(LoadTestScript(kLoadedScript));
   const auto& class_a = Class::Handle(GetClass(root_library, "A"));
   ClassFinalizer::FinalizeTypesInClass(class_a);
 
   const auto& aint = Object::Handle(Invoke(root_library, "createAInt"));
   const auto& astring = Object::Handle(Invoke(root_library, "createAString"));
+
+  const auto& record_int_int =
+      Instance::CheckedHandle(zone, Invoke(root_library, "createRecordIntInt"));
+  const auto& record_int_string = Instance::CheckedHandle(
+      zone, Invoke(root_library, "createRecordIntString"));
+  const auto& record_string_int = Instance::CheckedHandle(
+      zone, Invoke(root_library, "createRecordStringInt"));
 
   const auto& tav_null = Object::null_type_arguments();
   const auto& tav_int =
@@ -2255,9 +2272,27 @@ ISOLATE_UNIT_TEST_CASE(TTS_Reload) {
   auto& type_a_int = Type::Handle(Type::New(class_a, tav_int));
   FinalizeAndCanonicalize(&type_a_int);
 
+  auto& type_record_int_int =
+      AbstractType::Handle(record_int_int.GetType(Heap::kNew));
+  FinalizeAndCanonicalize(&type_record_int_int);
+
   TTSTestState state(thread, type_a_int);
   state.InvokeLazilySpecializedStub({aint, tav_null, tav_null});
   state.InvokeExistingStub(Failure({astring, tav_null, tav_null}));
+
+  TTSTestState record_state(thread, type_record_int_int);
+  record_state.InvokeLazilySpecializedStub(
+      {record_int_int, tav_null, tav_null});
+  record_state.InvokeExistingStub(
+      Failure({record_string_int, tav_null, tav_null}));
+  record_state.InvokeExistingStub(
+      Failure({record_int_string, tav_null, tav_null}));
+
+  // Make sure the stubs are specialized prior to reload.
+  EXPECT(type_a_int.type_test_stub() !=
+         TypeTestingStubGenerator::DefaultCodeForType(type_a_int));
+  EXPECT(type_record_int_int.type_test_stub() !=
+         TypeTestingStubGenerator::DefaultCodeForType(type_record_int_int));
 
   root_library = ReloadTestScript(kReloadedScript);
   const auto& a2int = Object::Handle(Invoke(root_library, "createA2Int"));
@@ -2267,15 +2302,27 @@ ISOLATE_UNIT_TEST_CASE(TTS_Reload) {
   // default stub for that type.
   EXPECT(type_a_int.type_test_stub() ==
          TypeTestingStubGenerator::DefaultCodeForType(type_a_int));
+  EXPECT(type_record_int_int.type_test_stub() ==
+         TypeTestingStubGenerator::DefaultCodeForType(type_record_int_int));
   // Reloading either removes or resets the type testing cache.
   EXPECT(state.current_stc() == SubtypeTestCache::null() ||
          (state.current_stc() == state.last_stc().ptr() &&
           state.last_stc().NumberOfChecks() == 0));
+  EXPECT(record_state.current_stc() == SubtypeTestCache::null() ||
+         (record_state.current_stc() == record_state.last_stc().ptr() &&
+          record_state.last_stc().NumberOfChecks() == 0));
 
   state.InvokeExistingStub(Respecialization({aint, tav_null, tav_null}));
   state.InvokeExistingStub(Failure({astring, tav_null, tav_null}));
   state.InvokeExistingStub({a2int, tav_null, tav_null});
   state.InvokeExistingStub(Failure({a2string, tav_null, tav_null}));
+
+  record_state.InvokeExistingStub(
+      Respecialization({record_int_int, tav_null, tav_null}));
+  record_state.InvokeExistingStub(
+      Failure({record_string_int, tav_null, tav_null}));
+  record_state.InvokeExistingStub(
+      Failure({record_int_string, tav_null, tav_null}));
 }
 
 ISOLATE_UNIT_TEST_CASE(TTS_Partial_Reload) {

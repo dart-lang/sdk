@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <csignal>
+#include <cstdlib>
+#include <cstring>
 
 #include "platform/globals.h"
 #include "platform/memory_sanitizer.h"
@@ -1314,6 +1316,44 @@ DART_EXPORT void Regress216834909_SetAtExit(int64_t install) {
 
 DART_EXPORT bool IsNull(Dart_Handle object) {
   return Dart_IsNull(object);
+}
+
+namespace {
+struct RefCountedResource {
+  void* resource;
+  intptr_t refcount;
+};
+}  // namespace
+
+// We only ever have one ref counted resource in our test, use global lock.
+std::mutex ref_counted_resource_mutex;
+
+DART_EXPORT RefCountedResource* AllocateRefcountedResource() {
+  auto peer =
+      static_cast<RefCountedResource*>(malloc(sizeof(RefCountedResource)));
+  auto resource = malloc(128);
+  memset(resource, 0, 128);
+  peer->resource = resource;
+  peer->refcount = 0;  // We're not going to count the reference here.
+  return peer;
+}
+
+DART_EXPORT void IncreaseRefcount(RefCountedResource* peer) {
+  ref_counted_resource_mutex.lock();
+  peer->refcount++;
+  ref_counted_resource_mutex.unlock();
+}
+
+// And delete if zero.
+DART_EXPORT void DecreaseRefcount(void* peer) {
+  auto* resource = static_cast<RefCountedResource*>(peer);
+  ref_counted_resource_mutex.lock();
+  resource->refcount--;
+  if (resource->refcount <= 0) {
+    free(resource->resource);
+    free(peer);
+  }
+  ref_counted_resource_mutex.unlock();
 }
 
 }  // namespace dart

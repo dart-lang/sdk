@@ -4868,19 +4868,25 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
   // We need the number of cases. So start by getting that, then go back.
   const intptr_t offset = ReaderOffset();
   SkipExpression();                        // temporarily skip condition
+  SkipOptionalDartType();                  // temporarily skip expression type
   intptr_t case_count = ReadListLength();  // read number of cases.
   SetOffset(offset);
 
   SwitchBlock block(flow_graph_builder_, case_count);
 
   Fragment instructions = BuildExpression();  // read condition.
+  const AbstractType* expression_type = &Object::dynamic_type();
+  if (ReadTag() == kSomething) {
+    expression_type = &T.BuildType();  // read expression type.
+  }
   instructions +=
       StoreLocal(TokenPosition::kNoSource, scopes()->switch_variable);
   instructions += Drop();
 
   case_count = ReadListLength();  // read number of cases.
 
-  SwitchHelper helper(Z, pos, is_exhaustive, &block, case_count);
+  SwitchHelper helper(Z, pos, is_exhaustive, *expression_type, &block,
+                      case_count);
 
   // Build the case bodies and collect the expressions into the helper
   // for the next step.
@@ -5066,31 +5072,23 @@ Fragment StreamingFlowGraphBuilder::BuildOptimizedSwitchPrelude(
     SwitchHelper* helper,
     JoinEntryInstr* join) {
   const TokenPosition pos = helper->position();
-
-  // We need to check that the switch variable is of the correct type.
-  // If it is not, we go to [join] which is either the default case or
-  // the exit of the switch statement.
-
-  TargetEntryInstr* then_entry;
-  TargetEntryInstr* otherwise_entry;
-
-  const AbstractType& expression_type =
-      AbstractType::ZoneHandle(Z, helper->expression_class().RareType());
-  ASSERT(dart::SimpleInstanceOfType(expression_type));
-
   Fragment instructions;
-  instructions += LoadLocal(scopes()->switch_variable);
-  instructions += Constant(expression_type);
-  instructions += InstanceCall(
-      pos, Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()),
-      Token::kIS, /*argument_count=*/2,
-      /*checked_argument_count=*/2);
-  instructions += BranchIfTrue(&then_entry, &otherwise_entry, /*negate=*/false);
 
-  Fragment otherwise_instructions(otherwise_entry);
-  otherwise_instructions += Goto(join);
+  if (!IG->null_safety()) {
+    // Without sound null safety we need to check that the switch variable is
+    // not null. If it is null, we go to [join] which is either the default
+    // case or the exit of the switch statement.
+    TargetEntryInstr* null_entry;
+    TargetEntryInstr* non_null_entry;
 
-  instructions = Fragment(instructions.entry, then_entry);
+    instructions += LoadLocal(scopes()->switch_variable);
+    instructions += BranchIfNull(&null_entry, &non_null_entry);
+
+    Fragment null_instructions(null_entry);
+    null_instructions += Goto(join);
+
+    instructions = Fragment(instructions.entry, non_null_entry);
+  }
 
   if (helper->is_enum_switch()) {
     // For an enum switch, we need to load the enum index from the switch
@@ -5219,10 +5217,7 @@ Fragment StreamingFlowGraphBuilder::BuildBinarySearchSwitch(
       branch_instructions += LoadLocal(scopes()->switch_variable);
       branch_instructions += Constant(middle_expression.integer());
       branch_instructions +=
-          InstanceCall(middle_expression.position(),
-                       Symbols::LessEqualOperator(), Token::kLTE,
-                       /*argument_count=*/2,
-                       /*checked_argument_count=*/2);
+          B->IntRelationalOp(middle_expression.position(), Token::kLTE);
       branch_instructions +=
           BranchIfTrue(&then_entry, &otherwise_entry, /*negate=*/false);
 
@@ -5237,10 +5232,7 @@ Fragment StreamingFlowGraphBuilder::BuildBinarySearchSwitch(
         upper_branch_instructions += LoadLocal(scopes()->switch_variable);
         upper_branch_instructions += Constant(next_expression.integer());
         upper_branch_instructions +=
-            InstanceCall(next_expression.position(),
-                         Symbols::GreaterEqualOperator(), Token::kGTE,
-                         /*argument_count=*/2,
-                         /*checked_argument_count=*/2);
+            B->IntRelationalOp(next_expression.position(), Token::kGTE);
         upper_branch_instructions +=
             BranchIfTrue(&then_entry, &otherwise_entry, /*negate=*/false);
 
@@ -5254,6 +5246,10 @@ Fragment StreamingFlowGraphBuilder::BuildBinarySearchSwitch(
           SwitchRange::Branch(next, range.max(), upper_branch_instructions));
       stack.Add(
           SwitchRange::Branch(range.min(), middle, lower_branch_instructions));
+    }
+
+    if (current_instructions.is_empty()) {
+      current_instructions = branch_instructions;
     }
   }
 
@@ -5297,9 +5293,7 @@ Fragment StreamingFlowGraphBuilder::BuildJumpTableSwitch(SwitchHelper* helper) {
   if (helper->RequiresLowerBoundCheck()) {
     current_instructions += LoadLocal(scopes()->switch_variable);
     current_instructions += Constant(expression_min);
-    current_instructions += InstanceCall(pos, Symbols::GreaterEqualOperator(),
-                                         Token::kGTE, /*argument_count=*/2,
-                                         /*checked_argument_count=*/2);
+    current_instructions += B->IntRelationalOp(pos, Token::kGTE);
     current_instructions += BranchIfTrue(&then_entry, &otherwise_entry,
                                          /*negate=*/false);
     Fragment otherwise_instructions(otherwise_entry);
@@ -5311,9 +5305,7 @@ Fragment StreamingFlowGraphBuilder::BuildJumpTableSwitch(SwitchHelper* helper) {
   if (helper->RequiresUpperBoundCheck()) {
     current_instructions += LoadLocal(scopes()->switch_variable);
     current_instructions += Constant(expression_max);
-    current_instructions += InstanceCall(pos, Symbols::LessEqualOperator(),
-                                         Token::kLTE, /*argument_count=*/2,
-                                         /*checked_argument_count=*/2);
+    current_instructions += B->IntRelationalOp(pos, Token::kLTE);
     current_instructions += BranchIfTrue(&then_entry, &otherwise_entry,
                                          /*negate=*/false);
     Fragment otherwise_instructions(otherwise_entry);

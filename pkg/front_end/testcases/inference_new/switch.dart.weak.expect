@@ -11,7 +11,7 @@ static method f<T extends core::Object? = dynamic>() → self::f::T%
   return throw "";
 static method test(self::C<core::int> x) → void {
   #L1:
-  switch(x) {
+  switch(x) /* self::C<core::int> */ {
     #L2:
     case #C1:
       {

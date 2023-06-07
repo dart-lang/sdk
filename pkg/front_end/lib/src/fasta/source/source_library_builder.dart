@@ -37,10 +37,12 @@ import '../builder/constructor_reference_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
+import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/inline_class_builder.dart';
+import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -53,6 +55,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -65,6 +68,7 @@ import '../export.dart' show Export;
 import '../fasta_codes.dart';
 import '../identifiers.dart' show QualifiedName, flattenName;
 import '../import.dart' show Import;
+import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
@@ -196,11 +200,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // built.
   final List<Procedure> forwardersOrigins = <Procedure>[];
 
-  // List of types inferred in the outline.  Errors in these should be reported
-  // differently than for specified types.
-  // TODO(cstefantsova):  Find a way to mark inferred types.
-  final Set<DartType> inferredTypes = new Set<DartType>.identity();
-
   // While the bounds of type parameters aren't compiled yet, we can't tell the
   // default nullability of the corresponding type-parameter types.  This list
   // is used to collect such type-parameter types in order to set the
@@ -211,6 +210,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // This allows code generated in one library to use the private namespace of
   // another, for example during expression compilation (debugging).
   Library get nameOrigin => _nameOrigin?.library ?? library;
+
   @override
   LibraryBuilder get nameOriginBuilder => _nameOrigin ?? this;
   final LibraryBuilder? _nameOrigin;
@@ -334,7 +334,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             fileUri,
             _libraryTypeParameterScopeBuilder.toScope(importScope,
                 omittedTypeDeclarationBuilders: omittedTypes),
-            new Scope.top(kind: ScopeKind.library)) {
+            origin?.exportScope ?? new Scope.top(kind: ScopeKind.library)) {
     assert(
         _packageUri == null ||
             !importUri.isScheme('package') ||
@@ -533,6 +533,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool? _isNonNullableByDefault;
 
   @override
+  @pragma("vm:prefer-inline")
   bool get isNonNullableByDefault {
     assert(
         _isNonNullableByDefault == null ||
@@ -540,7 +541,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         "Unstable isNonNullableByDefault property, changed "
         "from ${_isNonNullableByDefault} to "
         "${_computeIsNonNullableByDefault()}");
-    return _ensureIsNonNullableByDefault();
+    return _isNonNullableByDefault ?? _ensureIsNonNullableByDefault();
   }
 
   bool _ensureIsNonNullableByDefault() {
@@ -1382,14 +1383,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildInitialScopes() {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.buildInitialScopes();
-      }
-    }
-
-    NameIterator iterator = localMembersNameIterator;
+    NameIterator iterator = scope.filteredNameIterator(
+        includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {
       addToExportScope(iterator.name, iterator.current);
     }
@@ -1436,54 +1431,47 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {
       String name = iterator.name;
-      Builder member = iterator.current;
-      if (member.parent != this) {
-        if (member is DynamicTypeDeclarationBuilder) {
+      Builder builder = iterator.current;
+      if (builder.parent?.origin != origin) {
+        if (builder is DynamicTypeDeclarationBuilder) {
           assert(name == 'dynamic',
               "Unexpected export name for 'dynamic': '$name'");
           (unserializableExports ??= {})[name] = exportDynamicSentinel;
-        } else if (member is NeverTypeDeclarationBuilder) {
+        } else if (builder is NeverTypeDeclarationBuilder) {
           assert(
               name == 'Never', "Unexpected export name for 'Never': '$name'");
           (unserializableExports ??= {})[name] = exportNeverSentinel;
         } else {
-          if (member is InvalidTypeDeclarationBuilder) {
+          if (builder is InvalidTypeDeclarationBuilder) {
             (unserializableExports ??= {})[name] =
-                member.message.problemMessage;
+                builder.message.problemMessage;
           } else {
-            // Eventually (in #buildBuilder) members aren't added to the
-            // library if the have 'next' pointers, so don't add them as
-            // additionalExports either. Add the last one only (the one that
-            // will eventually be added to the library).
-            Builder memberLast = member;
-            while (memberLast.next != null) {
-              memberLast = memberLast.next!;
-            }
-            if (memberLast is ClassBuilder) {
-              library.additionalExports.add(memberLast.cls.reference);
-            } else if (memberLast is InlineClassBuilder) {
-              library.additionalExports.add(memberLast.inlineClass.reference);
-            } else if (memberLast is TypeAliasBuilder) {
-              library.additionalExports.add(memberLast.typedef.reference);
-            } else if (memberLast is ExtensionBuilder) {
-              library.additionalExports.add(memberLast.extension.reference);
-            } else if (memberLast is MemberBuilder) {
-              for (Member member in memberLast.exportedMembers) {
-                if (member is Field) {
+            if (builder is ClassBuilder) {
+              library.additionalExports.add(builder.cls.reference);
+            } else if (builder is InlineClassBuilder) {
+              library.additionalExports.add(builder.inlineClass.reference);
+            } else if (builder is TypeAliasBuilder) {
+              library.additionalExports.add(builder.typedef.reference);
+            } else if (builder is ExtensionBuilder) {
+              library.additionalExports.add(builder.extension.reference);
+            } else if (builder is MemberBuilder) {
+              for (Member exportedMember in builder.exportedMembers) {
+                if (exportedMember is Field) {
                   // For fields add both getter and setter references
                   // so replacing a field with a getter/setter pair still
                   // exports correctly.
-                  library.additionalExports.add(member.getterReference);
-                  if (member.hasSetter) {
-                    library.additionalExports.add(member.setterReference!);
+                  library.additionalExports.add(exportedMember.getterReference);
+                  if (exportedMember.hasSetter) {
+                    library.additionalExports
+                        .add(exportedMember.setterReference!);
                   }
                 } else {
-                  library.additionalExports.add(member.reference);
+                  library.additionalExports.add(exportedMember.reference);
                 }
               }
             } else {
-              unhandled('member', 'exportScope', memberLast.charOffset,
-                  memberLast.fileUri);
+              unhandled(
+                  'member', 'exportScope', builder.charOffset, builder.fileUri);
             }
           }
         }
@@ -2032,7 +2020,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       ProcedureBuilder setterBuilder, TypeEnvironment typeEnvironment) {
     DartType getterType;
     List<TypeParameter>? getterExtensionTypeParameters;
-    if (getterBuilder.isExtensionInstanceMember) {
+    if (getterBuilder.isExtensionInstanceMember ||
+        setterBuilder.isInlineClassInstanceMember) {
       // An extension instance getter
       //
       //     extension E<T> on A {
@@ -2043,6 +2032,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       //
       //   T# E#get#property<T#>(A #this) => ...
       //
+      // Similarly for inline class instance getters.
+      //
       Procedure procedure = getterBuilder.procedure;
       getterType = procedure.function.returnType;
       getterExtensionTypeParameters = procedure.function.typeParameters;
@@ -2050,7 +2041,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       getterType = getterBuilder.procedure.getterType;
     }
     DartType setterType;
-    if (setterBuilder.isExtensionInstanceMember) {
+    if (setterBuilder.isExtensionInstanceMember ||
+        setterBuilder.isInlineClassInstanceMember) {
       // An extension instance setter
       //
       //     extension E<T> on A {
@@ -2060,6 +2052,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // is encoded as a top level method
       //
       //   void E#set#property<T#>(A #this, T# value) { ... }
+      //
+      // Similarly for inline class instance setters.
       //
       Procedure procedure = setterBuilder.procedure;
       setterType = procedure.function.positionalParameters[1].type;
@@ -2428,6 +2422,42 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
           }
           return usesTypeVariables(type.returnType);
+        } else if (type is RecordTypeBuilder) {
+          if (type.positionalFields != null) {
+            for (RecordTypeFieldBuilder fieldBuilder
+                in type.positionalFields!) {
+              if (usesTypeVariables(fieldBuilder.type)) {
+                return true;
+              }
+            }
+          }
+          if (type.namedFields != null) {
+            for (RecordTypeFieldBuilder fieldBuilder in type.namedFields!) {
+              if (usesTypeVariables(fieldBuilder.type)) {
+                return true;
+              }
+            }
+          }
+        } else if (type is DependentTypeBuilder) {
+          return false;
+        } else if (type is FixedTypeBuilder) {
+          return false;
+        } else if (type is ImplicitTypeBuilder) {
+          return false;
+        } else if (type is InferableTypeBuilder) {
+          return false;
+        } else if (type is InvalidTypeBuilder) {
+          return false;
+        } else if (type is OmittedTypeBuilder) {
+          return false;
+        } else if (type == null) {
+          return false;
+        } else {
+          return unhandled(
+              "${type.runtimeType}",
+              "SourceLibraryBuilder._applyMixins.usesTypeVariables",
+              type.charOffset ?? TreeNode.noOffset,
+              type.fileUri ?? fileUri);
         }
         return false;
       }
@@ -2534,7 +2564,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 : isMixinDeclaration
                     ? [supertype!, mixin]
                     : null,
-            null, // No `on` clause types.
+            null,
+            // No `on` clause types.
             new Scope(
                 kind: ScopeKind.declaration,
                 local: <String, MemberBuilder>{},
@@ -3001,9 +3032,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     ContainerType containerType =
-        currentTypeParameterScopeBuilder.parent!.containerType;
+        currentTypeParameterScopeBuilder.containerType;
     ContainerName? containerName =
-        currentTypeParameterScopeBuilder.parent!.containerName;
+        currentTypeParameterScopeBuilder.containerName;
 
     NameScheme procedureNameScheme = new NameScheme(
         containerName: containerName,
@@ -3134,7 +3165,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             charOffset,
             charEndOffset,
             name,
-            /* isMixinDeclaration = */ false,
+            /* isMixinDeclaration = */
+            false,
             typeVariables: typeVariables,
             isMacro: false,
             isSealed: false,
@@ -3283,6 +3315,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return builder;
   }
 
+  BodyBuilderContext get bodyBuilderContext =>
+      new LibraryBodyBuilderContext(this);
+
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
@@ -3296,7 +3331,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     MetadataBuilder.buildAnnotations(
-        library, metadata, this, null, null, fileUri, scope);
+        library, metadata, bodyBuilderContext, this, fileUri, scope);
 
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
@@ -4246,9 +4281,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       TypeParameter? typeParameter = issue.typeParameter;
 
       Message message;
-      bool issueInferred = inferred ??
-          typeArgumentsInfo?.isInferred(issue.index) ??
-          inferredTypes.contains(argument);
+      bool issueInferred =
+          inferred ?? typeArgumentsInfo?.isInferred(issue.index) ?? false;
       offset =
           typeArgumentsInfo?.getOffsetForIndex(issue.index, offset) ?? offset;
       if (issue.isGenericTypeAsArgumentIssue) {
@@ -4700,7 +4734,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             "Unexpected declaration ${declaration.runtimeType}");
       }
     }
-    inferredTypes.clear();
     checkPendingBoundsChecks(typeEnvironment);
   }
 
@@ -5253,7 +5286,8 @@ class TypeParameterScopeBuilder {
             TypeParameterScopeKind.library,
             <String, Builder>{},
             <String, MemberBuilder>{},
-            null, // No support for constructors in library scopes.
+            null,
+            // No support for constructors in library scopes.
             <ExtensionBuilder>{},
             "<library>",
             -1,
@@ -5266,7 +5300,8 @@ class TypeParameterScopeBuilder {
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
-        null, // No support for extensions in nested scopes.
+        null,
+        // No support for extensions in nested scopes.
         name,
         -1,
         this);

@@ -991,7 +991,7 @@ ${newImport}var x = $prefixReference${newElement.reference}$invocation;
         element: oldElement,
         bulkApply: true,
         changesSelector: UnconditionalChangesSelector([
-          ReplacedBy(newElement: newElement),
+          ReplacedBy(newElement: newElement, replaceTarget: false),
         ]));
   }
 }

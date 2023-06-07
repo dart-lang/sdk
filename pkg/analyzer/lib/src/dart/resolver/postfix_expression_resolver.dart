@@ -56,8 +56,16 @@ class PostfixExpressionResolver {
     var writeElement = operandResolution.writeElement;
 
     var operand = node.operand;
-    _resolver.setReadElement(operand, readElement);
-    _resolver.setWriteElement(operand, writeElement);
+    _resolver.setReadElement(
+      operand,
+      readElement,
+      atDynamicTarget: operandResolution.atDynamicTarget,
+    );
+    _resolver.setWriteElement(
+      operand,
+      writeElement,
+      atDynamicTarget: operandResolution.atDynamicTarget,
+    );
     _resolver.migrationResolutionHooks
         ?.setCompoundAssignmentExpressionTypes(node);
 

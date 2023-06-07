@@ -629,6 +629,12 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
   }
 
   @override
+  bool isValidRefinement(covariant ComputableAbstractValue before,
+      covariant ComputableAbstractValue after) {
+    return _wrappedDomain.isValidRefinement(_unwrap(before), _unwrap(after));
+  }
+
+  @override
   String getCompactText(covariant ComputableAbstractValue value) =>
       _wrappedDomain.getCompactText(_unwrap(value));
 

@@ -334,8 +334,8 @@ FunctionExpressionInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -571,7 +571,7 @@ FunctionExpressionInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
+  staticInvokeType: Never
   staticType: Never
   typeArgumentTypes
     int
@@ -620,8 +620,8 @@ FunctionExpressionInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
   typeArgumentTypes
     int
 ''');

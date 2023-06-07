@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
@@ -131,6 +132,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     super.visitConstantPattern(node);
 
     var expression = node.expression.unParenthesized;
+    if (expression.typeOrThrow is InvalidType) {
+      return;
+    }
+
     DartObjectImpl? value = _validate(
       expression,
       CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
@@ -475,7 +480,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       } else if (valueType is TypeParameterTypeImpl) {
         final bound = valueType.promotedBound ?? valueType.element.bound;
         if (bound != null && !hasTypeParameterReference(bound)) {
-          return _canBeEqual(constantType, bound);
+          final lowestBound =
+              valueType.nullabilitySuffix == NullabilitySuffix.question
+                  ? _typeSystem.makeNullable(bound)
+                  : bound;
+          return _canBeEqual(constantType, lowestBound);
         }
       } else if (valueType is FunctionType) {
         if (constantType.isDartCoreNull) {
@@ -606,7 +615,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportError(data);
       } else if (errorCode != null) {
         _errorReporter.reportError(
-            AnalysisError(data.source, data.offset, data.length, errorCode));
+          AnalysisError.tmp(
+            source: data.source,
+            offset: data.offset,
+            length: data.length,
+            errorCode: errorCode,
+          ),
+        );
       }
     }
   }
@@ -658,7 +673,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     var result = expression.accept(
         ConstantVisitor(_evaluationEngine, _currentLibrary, subErrorReporter));
     _reportErrors(errorListener.errors, errorCode);
-    return result;
+    // TODO(kallentu): Evaluate whether we want to change the return type.
+    return result is DartObjectImpl ? result : null;
   }
 
   /// Validate that if the passed arguments are constant expressions.
@@ -712,6 +728,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             _typeProvider.nullType,
             NullState.NULL_STATE,
           );
+        } else if (defaultValue.typeOrThrow is InvalidType) {
+          // We have already reported an error.
         } else {
           result = _validate(
               defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
@@ -783,16 +801,20 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     final caseSpaces = <Space>[];
     var hasDefault = false;
 
-    // Build spaces for cases.
     final patternConverter = PatternConverter(
       featureSet: _currentLibrary.featureSet,
       cache: _exhaustivenessCache,
       mapPatternKeyValues: mapPatternKeyValues,
       constantPatternValues: constantPatternValues,
     );
+    patternConverter.hasInvalidType = scrutineeType is InvalidType;
+
+    // Build spaces for cases.
     for (final caseNode in caseNodes) {
       GuardedPattern? guardedPattern;
-      if (caseNode is SwitchDefault) {
+      if (caseNode is SwitchCase) {
+        // Should not happen, ignore.
+      } else if (caseNode is SwitchDefault) {
         hasDefault = true;
       } else if (caseNode is SwitchExpressionCase) {
         guardedPattern = caseNode.guardedPattern;
@@ -815,8 +837,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     final exhaustivenessDataForTesting = this.exhaustivenessDataForTesting;
 
     // Compute and report errors.
-    final errors =
-        reportErrors(_exhaustivenessCache, scrutineeTypeEx, caseSpaces);
+    final errors = patternConverter.hasInvalidType
+        ? const <ExhaustivenessError>[]
+        : reportErrors(_exhaustivenessCache, scrutineeTypeEx, caseSpaces);
+
     final reportNonExhaustive = mustBeExhaustive && !hasDefault;
     for (final error in errors) {
       if (error is UnreachableCaseError) {
@@ -834,19 +858,24 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           errorToken,
         );
       } else if (error is NonExhaustiveError && reportNonExhaustive) {
-        // TODO(paulberry): instead of using SimpleDartBuffer, use an
-        // analyzer-specific class that implements DartBuffer and captures the
-        // information needed for quick assists.
         var errorBuffer = SimpleDartBuffer();
         error.witness.toDart(errorBuffer, forCorrection: false);
-        var correctionBuffer = SimpleDartBuffer();
-        error.witness.toDart(correctionBuffer, forCorrection: true);
+        var correctionTextBuffer = SimpleDartBuffer();
+        var correctionDataBuffer = AnalyzerDartTemplateBuffer();
+        error.witness.toDart(correctionTextBuffer, forCorrection: true);
+        error.witness.toDart(correctionDataBuffer, forCorrection: true);
         _errorReporter.reportErrorForToken(
           isSwitchExpression
               ? CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION
               : CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
           switchKeyword,
-          [scrutineeType, errorBuffer.toString(), correctionBuffer.toString()],
+          [
+            scrutineeType,
+            errorBuffer.toString(),
+            correctionTextBuffer.toString(),
+          ],
+          [],
+          correctionDataBuffer.isComplete ? correctionDataBuffer.parts : null,
         );
       }
     }

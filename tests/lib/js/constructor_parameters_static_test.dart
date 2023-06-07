@@ -15,10 +15,10 @@ import 'package:expect/expect.dart';
 class Foo {
   external Foo({int? a});
   //                 ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
   external factory Foo.fooFactory({int? a});
   //                                    ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 }
 
 @JS()
@@ -26,21 +26,21 @@ class Foo {
 class Bar {
   external Bar({int? a});
   //                 ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 
   // Factories of an anonymous class can only contain named parameters.
   external factory Bar.barFactoryPositional(int? a);
   //                                             ^
-  // [web] Factory constructors for @anonymous JS interop classes should not contain any positional parameters.
+  // [web] @anonymous factories should not contain any positional parameters.
   external factory Bar.barFactoryOptional([int? a]);
   //                                            ^
-  // [web] Factory constructors for @anonymous JS interop classes should not contain any positional parameters.
+  // [web] @anonymous factories should not contain any positional parameters.
   external factory Bar.barFactoryMixedOptional(int? a, [int? b]);
   //                                                ^
-  // [web] Factory constructors for @anonymous JS interop classes should not contain any positional parameters.
+  // [web] @anonymous factories should not contain any positional parameters.
   external factory Bar.barFactoryMixedNamed(int? a, {int? b});
   //                                             ^
-  // [web] Factory constructors for @anonymous JS interop classes should not contain any positional parameters.
+  // [web] @anonymous factories should not contain any positional parameters.
 
   // Named parameters are okay only for factories of an anonymous class.
   external factory Bar.barFactoryNamed({int? a});
@@ -50,10 +50,10 @@ class Bar {
 abstract class Baz {
   external Baz({int? a});
   //                 ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
   external factory Baz.bazFactory({int? a});
   //                                    ^
-  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 }
 
 main() {}

@@ -7,12 +7,12 @@ inline class A /* declaredRepresentationType = core::int */ {
   method m = self::A|m;
   tearoff m = self::A|get#m;
   constructor • = self::A|;
-  tearoff • = self::A|get#;
+  tearoff • = self::A|_#new#tearOff;
 }
 @core::Deprecated::•("")
 static method A|(core::int i) → self::A
   ;
-static method A|get#(core::int i) → self::A
+static method A|_#new#tearOff(core::int i) → self::A
   return self::A|(i);
 @core::Deprecated::•("")
 static method A|m(lowered final self::A #this) → void

@@ -6,6 +6,7 @@
 #define RUNTIME_VM_TIMELINE_H_
 
 #include <functional>
+#include <memory>
 
 #include "include/dart_tools_api.h"
 
@@ -372,7 +373,6 @@ class TimelineEvent {
 
   void Begin(const char* label,
              int64_t id,
-             int64_t flow_id,
              int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void End(const char* label,
@@ -440,13 +440,18 @@ class TimelineEvent {
   int64_t timestamp0() const { return timestamp0_; }
   int64_t timestamp1() const { return timestamp1_; }
 
-  bool HasFlowId() const;
-  int64_t flow_id() const { return flow_id_; }
+  void SetFlowIds(intptr_t flow_id_count,
+                  std::unique_ptr<const int64_t[]>& flow_ids) {
+    flow_id_count_ = flow_id_count;
+    flow_ids_.swap(flow_ids);
+  }
+  intptr_t flow_id_count() const { return flow_id_count_; }
+  const int64_t* FlowIds() const { return flow_ids_.get(); }
 
   bool HasIsolateId() const;
   bool HasIsolateGroupId() const;
-  char* GetFormattedIsolateId() const;
-  char* GetFormattedIsolateGroupId() const;
+  std::unique_ptr<const char[]> GetFormattedIsolateId() const;
+  std::unique_ptr<const char[]> GetFormattedIsolateGroupId() const;
 
   // The lowest time value stored in this event.
   int64_t LowTime() const;
@@ -458,6 +463,7 @@ class TimelineEvent {
 #endif
   void PrintJSON(JSONWriter* writer) const;
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  bool CanBeRepresentedByPerfettoTracePacket() const;
   /*
    * Populates the fields of |packet| with this event's data.
    */
@@ -471,6 +477,10 @@ class TimelineEvent {
   Dart_Port isolate_id() const { return isolate_id_; }
 
   uint64_t isolate_group_id() const { return isolate_group_id_; }
+
+  void* isolate_data() const { return isolate_data_; }
+
+  void* isolate_group_data() const { return isolate_group_data_; }
 
   const char* label() const { return label_; }
 
@@ -527,6 +537,10 @@ class TimelineEvent {
 
   intptr_t arguments_length() const { return arguments_.length(); }
 
+  bool ArgsArePreSerialized() const {
+    return PreSerializedArgsBit::decode(state_);
+  }
+
   TimelineEvent* next() const {
     return next_;
   }
@@ -553,15 +567,6 @@ class TimelineEvent {
     timestamp1_ = value;
   }
 
-  void set_flow_id(int64_t flow_id) {
-    ASSERT(flow_id_ == TimelineEvent::kNoFlowId);
-    flow_id_ = flow_id;
-  }
-
-  bool pre_serialized_args() const {
-    return PreSerializedArgsBit::decode(state_);
-  }
-
   void set_pre_serialized_args(bool pre_serialized_args) {
     state_ = PreSerializedArgsBit::update(pre_serialized_args, state_);
   }
@@ -582,12 +587,13 @@ class TimelineEvent {
 
   int64_t timestamp0_;
   int64_t timestamp1_;
+  intptr_t flow_id_count_;
   // This field is only used by the Perfetto recorders, because Perfetto's trace
   // format handles flow events by processing flow IDs attached to
   // |TimelineEvent::kBegin| events. Other recorders handle flow events by
   // processing events of type TimelineEvent::kFlowBegin|,
   // |TimelineEvent::kFlowStep|, and |TimelineEvent::kFlowEnd|.
-  int64_t flow_id_;
+  std::unique_ptr<const int64_t[]> flow_ids_;
   TimelineEventArguments arguments_;
   uword state_;
   const char* label_;
@@ -595,6 +601,8 @@ class TimelineEvent {
   ThreadId thread_;
   Dart_Port isolate_id_;
   uint64_t isolate_group_id_;
+  void* isolate_data_;
+  void* isolate_group_data_;
   TimelineEvent* next_;
 
   friend class TimelineEventRecorder;
@@ -780,19 +788,17 @@ class TimelineEventBlock : public MallocAllocated {
   // Attempt to sniff the timestamp from the first event.
   int64_t LowerTimeBound() const;
 
-  // Returns false if |this| violates any of the following invariants:
-  // - events in the block come from one thread.
-  // - events have monotonically increasing timestamps.
-  bool CheckBlock();
-
   // Call Reset on all events and set length to 0.
   void Reset();
 
   // Only safe to access under the recorder's lock.
-  bool in_use() const { return in_use_; }
+  inline bool InUseLocked() const;
 
   // Only safe to access under the recorder's lock.
-  ThreadId thread_id() const { return thread_id_; }
+  inline bool ContainsEventsThatCanBeSerializedLocked() const;
+
+  // Only safe to access under the recorder's lock.
+  inline ThreadId ThreadIdLocked() const;
 
  protected:
 #ifndef PRODUCT
@@ -832,17 +838,6 @@ class TimelineEventFilter : public ValueObject {
                       int64_t time_extent_micros = -1);
 
   virtual ~TimelineEventFilter();
-
-  bool IncludeBlock(TimelineEventBlock* block) const {
-    if (block == nullptr) {
-      return false;
-    }
-    // Check that the block is not in use and not empty. |!block->in_use()| must
-    // be checked first because we are only holding |lock_|. Holding |lock_|
-    // makes it safe to call |in_use()| on any block, but only makes it safe to
-    // call |IsEmpty()| on blocks that are not in use.
-    return !block->in_use() && !block->IsEmpty();
-  }
 
   virtual bool IncludeEvent(TimelineEvent* event) const {
     if (event == nullptr) {
@@ -951,6 +946,7 @@ class TimelineEventRecorder : public MallocAllocated {
   int64_t time_high_micros_;
 
   friend class TimelineEvent;
+  friend class TimelineEventBlock;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   friend class Timeline;
@@ -994,7 +990,8 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
   TimelineEventBlock* GetHeadBlockLocked();
-  intptr_t FindOldestBlockIndex() const;
+  // Only safe to call when holding |lock_|.
+  intptr_t FindOldestBlockIndexLocked() const;
   void Clear();
 
 #ifndef PRODUCT
@@ -1016,7 +1013,7 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
 #if !defined(PRODUCT)
   inline void PrintEventsCommon(
       const TimelineEventFilter& filter,
-      std::function<void(const TimelineEvent&)> print_impl);
+      std::function<void(const TimelineEvent&)>&& print_impl);
 #endif  // !defined(PRODUCT)
 };
 
@@ -1145,7 +1142,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 #if !defined(PRODUCT)
   inline void PrintEventsCommon(
       const TimelineEventFilter& filter,
-      std::function<void(const TimelineEvent&)> print_impl);
+      std::function<void(const TimelineEvent&)>&& print_impl);
 #endif  // !defined(PRODUCT)
 
   friend class TimelineTestHelper;
@@ -1296,7 +1293,8 @@ class DartTimelineEventHelpers : public AllStatic {
  public:
   static void ReportTaskEvent(TimelineEvent* event,
                               int64_t id,
-                              int64_t flow_id,
+                              intptr_t flow_id_count,
+                              std::unique_ptr<const int64_t[]>& flow_ids,
                               intptr_t type,
                               char* name,
                               char* args);

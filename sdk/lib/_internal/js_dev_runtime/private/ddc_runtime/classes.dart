@@ -13,10 +13,10 @@
 part of dart._runtime;
 
 /// Returns a new type that mixes members from base and the mixin.
-void applyMixin(to, from) {
+void applyMixin(@notNull Object to, @notNull Object from) {
   JS('', '#[#] = #', to, _mixin, from);
-  var toProto = JS('', '#.prototype', to);
-  var fromProto = JS('', '#.prototype', from);
+  var toProto = JS<Object>('!', '#.prototype', to);
+  var fromProto = JS<Object>('!', '#.prototype', from);
   _copyMembers(toProto, fromProto);
   _mixinSignature(to, from, _methodSig);
   _mixinSignature(to, from, _fieldSig);
@@ -24,22 +24,23 @@ void applyMixin(to, from) {
   _mixinSignature(to, from, _setterSig);
   var mixinOnFn = JS('', '#[#]', from, mixinOn);
   if (mixinOnFn != null) {
-    var proto = JS('', '#(#.__proto__).prototype', mixinOnFn, to);
+    var proto = JS<Object>(
+        '!', '#(#).prototype', mixinOnFn, jsObjectGetPrototypeOf(to));
     _copyMembers(toProto, proto);
   }
 }
 
-void _copyMembers(to, from) {
+void _copyMembers(@notNull Object to, @notNull Object from) {
   var names = getOwnNamesAndSymbols(from);
   for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     String name = JS('', '#[#]', names, i);
     if (name == 'constructor') continue;
     _copyMember(to, from, name);
   }
-  return to;
 }
 
-void _copyMember(to, from, name) {
+void _copyMember(
+    @notNull Object to, @notNull Object from, @notNull Object name) {
   var desc = getOwnPropertyDescriptor(from, name);
   if (JS('!', '# == Symbol.iterator', name)) {
     // On native types, Symbol.iterator may already be present.
@@ -59,26 +60,16 @@ void _copyMember(to, from, name) {
   if (getter != null) {
     if (setter == null) {
       var obj = JS<Object>(
-          '!',
-          '#.set = { __proto__: #.__proto__, '
-              'set [#](x) { return super[#] = x; } }',
-          desc,
-          to,
-          name,
-          name);
+          '!', '{ set [#](x) { return super[#] = x; } }', name, name);
+      jsObjectSetPrototypeOf(obj, jsObjectGetPrototypeOf(to));
       JS<Object>(
           '!', '#.set = #.set', desc, getOwnPropertyDescriptor(obj, name));
     }
   } else if (setter != null) {
     if (getter == null) {
-      var obj = JS<Object>(
-          '!',
-          '#.get = { __proto__: #.__proto__, '
-              'get [#]() { return super[#]; } }',
-          desc,
-          to,
-          name,
-          name);
+      var obj =
+          JS<Object>('!', '{ get [#]() { return super[#]; } }', name, name);
+      jsObjectSetPrototypeOf(obj, jsObjectGetPrototypeOf(to));
       JS<Object>(
           '!', '#.get = #.get', desc, getOwnPropertyDescriptor(obj, name));
     }
@@ -86,12 +77,14 @@ void _copyMember(to, from, name) {
   defineProperty(to, name, desc);
 }
 
-void _mixinSignature(to, from, kind) {
+void _mixinSignature(@notNull Object to, @notNull Object from, kind) {
   JS('', '#[#] = #', to, kind, () {
-    var baseMembers = _getMembers(JS('', '#.__proto__', to), kind);
+    var baseMembers = _getMembers(jsObjectGetPrototypeOf(to), kind);
+    // Coerce undefined to null.
+    baseMembers = baseMembers == null ? null : baseMembers;
     var fromMembers = _getMembers(from, kind);
     if (fromMembers == null) return baseMembers;
-    var toSignature = JS('', '{ __proto__: # }', baseMembers);
+    var toSignature = JS('', 'Object.create(#)', baseMembers);
     copyProperties(toSignature, fromMembers);
     return toSignature;
   });
@@ -290,6 +283,7 @@ Object instantiateClass(Object genericClass, List<Object> typeArgs) {
 
 final _constructorSig = JS('', 'Symbol("sigCtor")');
 final _methodSig = JS('', 'Symbol("sigMethod")');
+final _methodsDefaultTypeArgSig = JS('', 'Symbol("sigMethodDefaultTypeArgs")');
 final _fieldSig = JS('', 'Symbol("sigField")');
 final _getterSig = JS('', 'Symbol("sigGetter")');
 final _setterSig = JS('', 'Symbol("sigSetter")');
@@ -302,6 +296,8 @@ final _libraryUri = JS('', 'Symbol("libraryUri")');
 
 getConstructors(value) => _getMembers(value, _constructorSig);
 getMethods(value) => _getMembers(value, _methodSig);
+getMethodsDefaultTypeArgs(value) =>
+    _getMembers(value, _methodsDefaultTypeArgSig);
 getFields(value) => _getMembers(value, _fieldSig);
 getGetters(value) => _getMembers(value, _getterSig);
 getSetters(value) => _getMembers(value, _setterSig);
@@ -351,6 +347,11 @@ getMethodType(type, name) {
   return m != null ? JS('', '#[#]', m, name) : null;
 }
 
+/// Returns the default type argument values for the instance method [name] on
+/// the class [type].
+JSArray<Object> getMethodDefaultTypeArgs(type, name) =>
+    JS('!', '#[#]', getMethodsDefaultTypeArgs(type), name);
+
 /// Gets the type of the corresponding setter (this includes writable fields).
 getSetterType(type, name) {
   var setters = getSetters(type);
@@ -394,6 +395,8 @@ classGetConstructorType(cls, name) {
 }
 
 void setMethodSignature(f, sigF) => JS('', '#[#] = #', f, _methodSig, sigF);
+void setMethodsDefaultTypeArgSignature(f, sigF) =>
+    JS('', '#[#] = #', f, _methodsDefaultTypeArgSig, sigF);
 void setFieldSignature(f, sigF) => JS('', '#[#] = #', f, _fieldSig, sigF);
 void setGetterSignature(f, sigF) => JS('', '#[#] = #', f, _getterSig, sigF);
 void setSetterSignature(f, sigF) => JS('', '#[#] = #', f, _setterSig, sigF);
@@ -417,6 +420,10 @@ void setStaticSetterSignature(f, sigF) =>
 
 _getMembers(type, kind) {
   var sig = JS('', '#[#]', type, kind);
+  // The results of these lookups are sometimes used as a proto for new
+  // signature storage objects in subclasses. Undefined is coerced to null so
+  // the value can be used in `Object.setPrototypeOf()`.
+  if (sig == null) return null;
   return JS<bool>('!', 'typeof # == "function"', sig)
       ? JS('', '#[#] = #()', type, kind, sig)
       : sig;
@@ -445,7 +452,7 @@ void _installProperties(jsProto, dartType, installedParent) {
   }
   // If the extension methods of the parent have been installed on the parent
   // of [jsProto], the methods will be available via prototype inheritance.
-  var dartSupertype = JS<Object>('!', '#.__proto__', dartType);
+  var dartSupertype = jsObjectGetPrototypeOf(JS<Object>('!', '#', dartType));
   if (JS('!', '# !== #', dartSupertype, installedParent)) {
     _installProperties(jsProto, dartSupertype, installedParent);
   }
@@ -479,7 +486,7 @@ final _extensionMap = JS('', 'new Map()');
 void _applyExtension(jsType, dartExtType) {
   // TODO(vsm): Not all registered js types are real.
   if (jsType == null) return;
-  var jsProto = JS('', '#.prototype', jsType);
+  var jsProto = JS<Object?>('', '#.prototype', jsType);
   if (jsProto == null) return;
 
   if (JS('!', '# === #', dartExtType, JS_CLASS_REF(Object))) {
@@ -583,8 +590,8 @@ void defineExtensionAccessors(type, Iterable memberNames) {
   for (var name in memberNames) {
     // Find the member. It should always exist (or we have a compiler bug).
     var member;
-    var p = proto;
-    for (;; p = JS<Object>('!', '#.__proto__', p)) {
+    Object? p = proto;
+    for (; p != null; p = jsObjectGetPrototypeOf(p)) {
       member = getOwnPropertyDescriptor(p, name);
       if (member != null) break;
     }
@@ -598,18 +605,19 @@ definePrimitiveHashCode(proto) {
 }
 
 /// Link the extension to the type it's extending as a base class.
-setBaseClass(derived, base) {
-  JS('', '#.prototype.__proto__ = #.prototype', derived, base);
+void setBaseClass(@notNull Object derived, @notNull Object base) {
+  jsObjectSetPrototypeOf(
+      JS('', '#.prototype', derived), JS('', '#.prototype', base));
   // We use __proto__ to track the superclass hierarchy (see isSubtypeOf).
-  JS('', '#.__proto__ = #', derived, base);
+  jsObjectSetPrototypeOf(derived, base);
 }
 
 /// Like [setBaseClass], but for generic extension types such as `JSArray<E>`.
-setExtensionBaseClass(dartType, jsType) {
+void setExtensionBaseClass(@notNull Object dartType, @notNull Object jsType) {
   // Mark the generic type as an extension type and link the prototype objects.
-  var dartProto = JS('', '#.prototype', dartType);
+  var dartProto = JS<Object>('!', '#.prototype', dartType);
   JS('', '#[#] = #', dartProto, _extensionType, dartType);
-  JS('', '#.__proto__ = #.prototype', dartProto, jsType);
+  jsObjectSetPrototypeOf(dartProto, JS('', '#.prototype', jsType));
 }
 
 /// Adds type test predicates to a class/interface type [ctor], using the

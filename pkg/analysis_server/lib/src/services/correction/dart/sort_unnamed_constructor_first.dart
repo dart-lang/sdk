@@ -26,30 +26,44 @@ class SortUnnamedConstructorFirst extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var clazz = coveredNode?.parent?.parent;
-    if (clazz is! ClassDeclaration) return;
+    if (clazz is! ClassDeclaration) {
+      return;
+    }
 
-    final firstConstructor = clazz.childEntities
-            .firstWhereOrNull((child) => child is ConstructorDeclaration)
-        as ConstructorDeclaration?;
-    if (firstConstructor == null ||
-        firstConstructor.name == null ||
-        firstConstructor.name?.lexeme == 'new') return;
+    final members = clazz.members;
+    final constructors = members.whereType<ConstructorDeclaration>().toList();
 
-    final unnamedConstructor = clazz.childEntities.firstWhereOrNull(
-            (child) => child is ConstructorDeclaration && child.name == null)
-        as ConstructorDeclaration?;
-    if (unnamedConstructor == null) return;
+    final firstConstructor = constructors.firstOrNull;
+    if (firstConstructor == null) {
+      return;
+    }
+
+    final unnamedConstructor = constructors.firstWhereOrNull((constructor) {
+      final name = constructor.name;
+      return name == null || name.lexeme == 'new';
+    });
+
+    // Should not happen, if this fix is invoked.
+    if (unnamedConstructor == null || unnamedConstructor == firstConstructor) {
+      return;
+    }
 
     await builder.addDartFileEdit(file, (builder) {
-      var deletionRange = range.endEnd(
-        unnamedConstructor.beginToken.previous!,
-        unnamedConstructor.endToken,
+      final unnamedIndex = members.indexOf(unnamedConstructor);
+      final moveRange = range.endEnd(
+        members[unnamedIndex - 1],
+        unnamedConstructor,
       );
 
-      builder.addDeletion(deletionRange);
+      builder.addDeletion(moveRange);
+
+      final firstIndex = members.indexOf(firstConstructor);
+      final tokenBeforeFirst = firstIndex != 0
+          ? members[firstIndex - 1].endToken
+          : clazz.leftBracket;
       builder.addSimpleInsertion(
-        firstConstructor.beginToken.previous!.end,
-        utils.getRangeText(deletionRange),
+        tokenBeforeFirst.end,
+        utils.getRangeText(moveRange),
       );
     });
   }

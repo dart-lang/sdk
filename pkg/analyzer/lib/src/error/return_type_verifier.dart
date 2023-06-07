@@ -338,17 +338,18 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `S` is not `void`,
       // and `S` is not assignable to `T`.
       if (S is! VoidType) {
-        if (T is RecordType) {
-          if (S is! RecordType && T.positionalFields.length == 1) {
-            var field = T.positionalFields.first;
-            if (_typeSystem.isAssignableTo(field.type, S)) {
-              _errorReporter.reportErrorForNode(
-                WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-                expression,
-                [],
-              );
-              return;
-            }
+        if (T is RecordType &&
+            T.positionalFields.length == 1 &&
+            S is! RecordType &&
+            expression is ParenthesizedExpression) {
+          var field = T.positionalFields.first;
+          if (_typeSystem.isAssignableTo(field.type, S)) {
+            _errorReporter.reportErrorForNode(
+              WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+              expression,
+              [],
+            );
+            return;
           }
         }
 
@@ -448,10 +449,13 @@ class ReturnTypeVerifier {
   }
 
   static bool _isVoidDynamic(DartType type) {
-    return type is VoidType || type is DynamicType;
+    return type is VoidType || type is DynamicType || type is InvalidType;
   }
 
   static bool _isVoidDynamicOrNull(DartType type) {
-    return type is VoidType || type is DynamicType || type.isDartCoreNull;
+    return type is VoidType ||
+        type is DynamicType ||
+        type is InvalidType ||
+        type.isDartCoreNull;
   }
 }

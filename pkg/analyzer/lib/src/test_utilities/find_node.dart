@@ -36,6 +36,8 @@ class FindNode {
 
   AssignmentExpression get singleAssignmentExpression => _single();
 
+  AwaitExpression get singleAwaitExpression => _single();
+
   BinaryExpression get singleBinaryExpression => _single();
 
   Block get singleBlock => _single();
@@ -56,6 +58,8 @@ class FindNode {
   FieldFormalParameter get singleFieldFormalParameter => _single();
 
   ForElement get singleForElement => _single();
+
+  FormalParameterList get singleFormalParameterList => _single();
 
   ForStatement get singleForStatement => _single();
 
@@ -81,6 +85,8 @@ class FindNode {
   IfStatement get singleIfStatement => _single();
 
   ImplementsClause get singleImplementsClause => _single();
+
+  ImplicitCallReference get singleImplicitCallReference => _single();
 
   ImportDirective get singleImportDirective => _single();
 
@@ -119,6 +125,8 @@ class FindNode {
 
   PropertyAccess get singlePropertyAccess => _single();
 
+  RecordLiteral get singleRecordLiteral => _single();
+
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
 
@@ -128,6 +136,8 @@ class FindNode {
 
   SuperConstructorInvocation get singleSuperConstructorInvocation => _single();
 
+  SwitchCase get singleSwitchCase => _single();
+
   SwitchExpression get singleSwitchExpression => _single();
 
   SwitchPatternCase get singleSwitchPatternCase => _single();
@@ -136,6 +146,8 @@ class FindNode {
       _single();
 
   TryStatement get singleTryStatement => _single();
+
+  VariableDeclaration get singleVariableDeclaration => _single();
 
   VariableDeclarationStatement get singleVariableDeclarationStatement =>
       _single();

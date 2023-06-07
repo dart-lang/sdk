@@ -7,7 +7,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'incremental_suite.dart' show TestIncrementalCompiler, getOptions;
 
 Future<void> main() async {
-  final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/bin/dart2js.dart");
+  final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/lib/src/dart2js.dart");
   CompilerOptions options = getOptions();
   options.sdkSummary = options.sdkSummary!.resolve("nonexisting.dill");
   options.librariesSpecificationUri = null;

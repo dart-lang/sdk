@@ -4,9 +4,10 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 
 class AddSwitchCaseBreak extends CorrectionProducer {
   @override
@@ -20,13 +21,28 @@ class AddSwitchCaseBreak extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is! SwitchCase) return;
+    final switchCase = node;
+    if (switchCase is! SwitchCaseImpl) {
+      return;
+    }
+
+    final switchStatement = switchCase.parent;
+    if (switchStatement is! SwitchStatementImpl) {
+      return;
+    }
+
+    final group = switchStatement.memberGroups.firstWhereOrNull(
+      (group) => group.members.contains(switchCase),
+    );
+    final lastStatement = group?.statements.lastOrNull;
+    if (lastStatement == null) {
+      return;
+    }
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(node.end, (builder) {
+      builder.addInsertion(lastStatement.end, (builder) {
         builder.write(eol);
-        builder.write(utils.getNodePrefix(node.statements.last));
+        builder.write(utils.getNodePrefix(lastStatement));
         builder.write('break;');
       });
     });

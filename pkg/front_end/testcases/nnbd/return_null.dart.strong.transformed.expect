@@ -108,7 +108,7 @@ static method yieldSync() → core::Iterable<dynamic> sync* {}
 static method yieldAsync() → asy::Stream<dynamic> async* {}
 static method caseReturn1(self::Enum e) → self::Enum {
   #L1:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum */ {
     #L2:
     case #C3:
       {
@@ -123,7 +123,7 @@ static method caseReturn1(self::Enum e) → self::Enum {
 }
 static method caseReturn2(self::Enum e) → self::Enum {
   #L4:
-  switch(e) {
+  switch(e) /* self::Enum */ {
     #L5:
     case #C3:
       {
@@ -179,7 +179,7 @@ static method localFunctions() → dynamic {
   function yieldAsync() → asy::Stream<dynamic> async* {}
   function caseReturn1(self::Enum e) → self::Enum {
     #L7:
-    switch(e) /*isExplicitlyExhaustive*/ {
+    switch(e) /* isExplicitlyExhaustive, self::Enum */ {
       #L8:
       case #C3:
         {
@@ -194,7 +194,7 @@ static method localFunctions() → dynamic {
   }
   function caseReturn2(self::Enum e) → self::Enum {
     #L10:
-    switch(e) {
+    switch(e) /* self::Enum */ {
       #L11:
       case #C3:
         {

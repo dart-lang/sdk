@@ -56,7 +56,7 @@ class A2 extends exh::A {
 }
 static method boolSwitchStatement(core::bool b) → core::bool {
   #L1:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, core::bool */ {
     #L2:
     case #C1:
       {
@@ -76,7 +76,7 @@ static method boolSwitchExpression(core::bool b) → core::bool
   return block {
     core::bool #t1;
     #L5:
-    switch(b) /*isExplicitlyExhaustive*/ {
+    switch(b) /* isExplicitlyExhaustive, core::bool */ {
       #L6:
       case #C1:
         {

@@ -49,9 +49,20 @@ f() {
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 98, 1),
     ]);
-    var access = findNode.propertyAccess('0.a');
-    assertElementNull(access);
-    assertTypeDynamic(access);
+
+    final node = findNode.propertyAccess('0.a');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_getter_method() async {
@@ -70,9 +81,20 @@ f() {
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 91, 1),
     ]);
-    var access = findNode.propertyAccess('0.a');
-    assertElementNull(access);
-    assertTypeDynamic(access);
+
+    final node = findNode.propertyAccess('0.a');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_getter_setter() async {
@@ -91,9 +113,20 @@ f() {
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 96, 1),
     ]);
-    var access = findNode.propertyAccess('0.a');
-    assertElementNull(access);
-    assertTypeDynamic(access);
+
+    final node = findNode.propertyAccess('0.a');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_method_conflict_conflict_notSpecific() async {
@@ -162,9 +195,24 @@ f() {
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 88, 1),
     ]);
-    var invocation = findNode.methodInvocation('0.a()');
-    assertElementNull(invocation);
-    assertTypeDynamic(invocation);
+
+    final node = findNode.methodInvocation('0.a()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_method_notSpecific_conflict_conflict() async {
@@ -363,7 +411,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');

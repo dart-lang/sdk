@@ -127,7 +127,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    if (type is DynamicType || type is VoidType) {
+    if (type is DynamicType || type is InvalidType || type is VoidType) {
       return;
     }
 
@@ -166,6 +166,11 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
   }
 
   static bool assertLegacyTypes(CompilationUnit compilationUnit) {
+    if (compilationUnit.languageVersionToken != null &&
+        compilationUnit.directives.whereType<PartOfDirective>().isNotEmpty) {
+      return true;
+    }
+
     LegacyTypeAsserter().visitCompilationUnit(compilationUnit);
     return true;
   }

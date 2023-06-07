@@ -75,6 +75,9 @@ client/tests/drt
 packages
 pubspec.lock
 
+# Files for native assets auto-generated per checkout.
+/.dart_tool/native_assets_builder/
+
 # The top level package file (this is auto-generated per checkout).
 /.dart_tool/package_config.json
 
@@ -104,8 +107,3 @@ tools/xcodebuild
 /pkg/front_end/testcases/old_dills/
 logs/logs.json
 logs/results.json
-/async_lazy_debug.so
-/dwarf.so
-/dwarf_obfuscate.so
-/il_tmp.txt
-

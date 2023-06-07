@@ -73,7 +73,7 @@ class PrefixedIdentifierResolver {
       return null;
     }
 
-    DartType type = DynamicTypeImpl.instance;
+    DartType type = InvalidTypeImpl.instance;
     if (result.readElementRequested == null &&
         result.readElementRecovery != null) {
       // Since the element came from error recovery logic, its type isn't
@@ -109,6 +109,8 @@ class PrefixedIdentifierResolver {
       type = element.type;
     } else if (result.functionTypeCallType != null) {
       type = result.functionTypeCallType!;
+    } else if (result.atDynamicTarget) {
+      type = DynamicTypeImpl.instance;
     }
 
     if (!_resolver.isConstructorTearoffsEnabled) {
@@ -163,7 +165,6 @@ class PrefixedIdentifierResolver {
     }
 
     if (parent is CommentReference ||
-        parent is ExtensionOverride && parent.extensionName == node ||
         parent is MethodInvocation && parent.target == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccess && parent.target == node) {

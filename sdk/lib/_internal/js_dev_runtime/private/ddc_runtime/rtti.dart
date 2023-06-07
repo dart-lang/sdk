@@ -56,6 +56,15 @@ fn(closure, type) {
   return closure;
 }
 
+/// Tag a generic [closure] with a [type] and the [defaultTypeArgs] values.
+///
+/// Only called from generated code when running with the new type system.
+gFn(Object closure, Object type, JSArray<Object> defaultTypeArgs) {
+  JS('', '#[#] = #', closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), type);
+  JS('', '#._defaultTypeArgs = #', closure, defaultTypeArgs);
+  return closure;
+}
+
 /// Tag a closure with a type that's computed lazily.
 ///
 /// `dart.fn(closure, type)` marks [closure] with a getter that uses
@@ -148,6 +157,7 @@ getReifiedType(obj) {
     switch (JS<String>('!', 'typeof #', obj)) {
       case "object":
         if (obj == null) return typeRep<Null>();
+        if (_jsInstanceOf(obj, RecordImpl)) return getRtiForRecord(obj);
         if (_jsInstanceOf(obj, Object) ||
             JS<bool>('!', 'Array.isArray(#)', obj)) {
           // The rti library can correctly extract the representation.

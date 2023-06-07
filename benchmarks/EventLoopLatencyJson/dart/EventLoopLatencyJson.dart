@@ -7,14 +7,14 @@ import 'dart:isolate';
 import 'json_benchmark.dart';
 import 'latency.dart';
 
-main() async {
+Future<void> main() async {
   // Start GC pressure from helper isolate.
   final exitPort = ReceivePort();
   final exitFuture = exitPort.first;
   final isolate = await Isolate.spawn(run, null, onExit: exitPort.sendPort);
 
   // Measure event loop latency.
-  const tickDuration = const Duration(milliseconds: 1);
+  const tickDuration = Duration(milliseconds: 1);
   const numberOfTicks = 8 * 1000; // min 8 seconds.
   final EventLoopLatencyStats stats =
       await measureEventLoopLatency(tickDuration, numberOfTicks);

@@ -69,7 +69,7 @@ NamedType
         type: int
     rightBracket: >
   element: self::@class::A
-  type: A<dynamic, dynamic>
+  type: A<InvalidType, InvalidType>
 ''');
   }
 
@@ -99,7 +99,7 @@ NamedType
         type: String
     rightBracket: >
   element: self::@class::A
-  type: A<dynamic>
+  type: A<InvalidType>
 ''');
   }
 
@@ -182,7 +182,7 @@ NamedType
         type: int
     rightBracket: >
   element: <null>
-  type: dynamic
+  type: InvalidType
 ''');
   }
 
@@ -223,6 +223,24 @@ NamedType
     await assertErrorsInCode(r'''
 import 'dart:math' as prefix;
 
+void f(prefix a) {}
+''', [
+      error(CompileTimeErrorCode.NOT_A_TYPE, 38, 6),
+    ]);
+
+    final node = findNode.namedType('prefix a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: prefix
+  element: self::@prefix::prefix
+  type: InvalidType
+''');
+  }
+
+  test_invalid_importPrefix_withTypeArguments() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as prefix;
+
 void f(prefix<int> a) {}
 ''', [
       error(CompileTimeErrorCode.NOT_A_TYPE, 38, 6),
@@ -241,11 +259,29 @@ NamedType
         type: int
     rightBracket: >
   element: self::@prefix::prefix
-  type: dynamic
+  type: InvalidType
 ''');
   }
 
   test_invalid_topLevelFunction() async {
+    await assertErrorsInCode(r'''
+void f(T a) {}
+
+void T() {}
+''', [
+      error(CompileTimeErrorCode.NOT_A_TYPE, 7, 1),
+    ]);
+
+    final node = findNode.namedType('T a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: T
+  element: self::@function::T
+  type: InvalidType
+''');
+  }
+
+  test_invalid_topLevelFunction_withTypeArguments() async {
     await assertErrorsInCode(r'''
 void f(T<int> a) {}
 
@@ -267,7 +303,7 @@ NamedType
         type: int
     rightBracket: >
   element: self::@function::T
-  type: dynamic
+  type: InvalidType
 ''');
   }
 
@@ -295,7 +331,7 @@ NamedType
         type: int
     rightBracket: >
   element: <null>
-  type: dynamic
+  type: InvalidType
 ''');
   }
 
@@ -1104,7 +1140,7 @@ NamedType
         type: int
     rightBracket: >
   element: <null>
-  type: dynamic
+  type: InvalidType
 ''');
   }
 
@@ -1132,7 +1168,7 @@ NamedType
         type: int
     rightBracket: >
   element: <null>
-  type: dynamic
+  type: InvalidType
 ''');
   }
 }
@@ -1308,7 +1344,7 @@ dynamic a;
 NamedType
   name: dynamic
   element: <null>
-  type: dynamic
+  type: InvalidType
 ''');
   }
 
@@ -1474,8 +1510,7 @@ main() {
     ]);
 
     final node = findNode.namedType('A();');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
     name: math
@@ -1483,20 +1518,8 @@ NamedType
     element: self::@prefix::math
   name: A
   element: <null>
-  type: dynamic
+  type: InvalidType
 ''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  importPrefix: ImportPrefixReference
-    name: math
-    period: .
-    element: self::@prefix::math
-  name: A
-  element: <null>
-  type: dynamic
-''');
-    }
   }
 
   test_instanceCreation_explicitNew_resolvedClass() async {
@@ -1536,21 +1559,12 @@ main() {
     ]);
 
     final node = findNode.namedType('A();');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 NamedType
   name: A
   element: <null>
-  type: dynamic
+  type: InvalidType
 ''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: <null>
-  type: dynamic
-''');
-    }
   }
 
   test_invalid_prefixedIdentifier_instanceCreation() async {
@@ -1563,8 +1577,7 @@ void f() {
     ]);
 
     final node = findNode.namedType('int.double');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
     name: int
@@ -1572,20 +1585,8 @@ NamedType
     element: dart:core::@class::int
   name: double
   element: <null>
-  type: dynamic
+  type: InvalidType
 ''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  importPrefix: ImportPrefixReference
-    name: int
-    period: .
-    element: dart:core::@class::int
-  name: double
-  element: <null>
-  type: dynamic
-''');
-    }
   }
 
   test_invalid_prefixedIdentifier_literal() async {
@@ -1598,8 +1599,7 @@ void f() {
     ]);
 
     final node = findNode.namedType('int.double');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
     name: int
@@ -1607,20 +1607,35 @@ NamedType
     element: dart:core::@class::int
   name: double
   element: <null>
-  type: dynamic
+  type: InvalidType
 ''');
-    } else {
-      assertResolvedNodeText(node, r'''
+  }
+
+  test_multiplyDefined() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+import 'b.dart';
+
+void f(A a) {}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 42, 1),
+    ]);
+
+    final node = findNode.namedType('A a');
+    assertResolvedNodeText(node, r'''
 NamedType
-  importPrefix: ImportPrefixReference
-    name: int
-    period: .
-    element: dart:core::@class::int
-  name: double
+  name: A
   element: <null>
-  type: dynamic
+  type: InvalidType
 ''');
-    }
   }
 
   test_never() async {

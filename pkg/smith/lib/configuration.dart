@@ -230,7 +230,7 @@ class Configuration {
     // Fill in any missing values using defaults when possible.
     architecture ??= Architecture.x64;
     system ??= System.host;
-    nnbdMode ??= NnbdMode.legacy;
+    nnbdMode ??= NnbdMode.strong;
     sanitizer ??= Sanitizer.none;
 
     // Infer from compiler from runtime or vice versa.
@@ -377,7 +377,7 @@ class Configuration {
       bool? useHotReloadRollback,
       bool? useSdk,
       bool? useQemu})
-      : nnbdMode = nnbdMode ?? NnbdMode.legacy,
+      : nnbdMode = nnbdMode ?? NnbdMode.strong,
         sanitizer = sanitizer ?? Sanitizer.none,
         babel = babel ?? "",
         builderTag = builderTag ?? "",
@@ -578,7 +578,7 @@ class Configuration {
     fields.add("runtime: $runtime");
     fields.add("system: $system");
 
-    if (nnbdMode != NnbdMode.legacy) fields.add("nnbd: $nnbdMode");
+    if (nnbdMode != NnbdMode.strong) fields.add("nnbd: $nnbdMode");
 
     stringListField(String name, List<String> field) {
       if (field.isEmpty) return;

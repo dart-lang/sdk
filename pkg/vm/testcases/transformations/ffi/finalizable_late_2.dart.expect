@@ -58,7 +58,7 @@ static method main() → void {
     _in::reachabilityFence(:foo7:finalizableValue);
   }
   #L1:
-  switch(new core::DateTime::now().{core::DateTime::millisecond}{core::int}) {
+  switch(new core::DateTime::now().{core::DateTime::millisecond}{core::int}) /* core::int */ {
     #L2:
     case #C1:
       {

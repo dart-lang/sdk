@@ -192,6 +192,7 @@ cardinality
 caret
 carets
 carriage
+carrying
 cascades
 casing
 cast
@@ -918,6 +919,7 @@ mime
 mimic
 min
 mini
+miss
 mistakes
 misuse
 mixers
@@ -1747,6 +1749,7 @@ walker
 walking
 wanting
 wants
+warned
 waste
 wasted
 watch
