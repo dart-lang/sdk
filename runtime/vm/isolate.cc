@@ -3519,7 +3519,9 @@ void Isolate::WaitForOutstandingSpawns() {
   }
 }
 
-void* Isolate::CreateSyncFfiCallback(Zone* zone, const Function& function) {
+FfiCallbackMetadata::Trampoline Isolate::CreateSyncFfiCallback(
+    Zone* zone,
+    const Function& function) {
   return FfiCallbackMetadata::Instance()->CreateSyncFfiCallback(
       this, zone, function, &ffi_callback_sync_list_head_);
 }

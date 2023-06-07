@@ -19,42 +19,18 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
     return;
   }
 
-  // Keep in sync with GenerateLoadFfiCallbackMetadataRuntimeFunction.
-
-  // The FfiCallbackTrampoline stub is designed to take up 1 page of memory. At
-  // the moment it's not aligned though, so we need to do some alignment math
-  // here. So when we duplicate it below, we're wasting some memory because the
-  // stub probably straddles 2 aligned pages. It would be better to align the
-  // stub inside the stub code compiler, but we don't have a way of doing that
-  // at the moment.
-  // TODO(https://dartbug.com/52498): Align the stub.
-
-  // |      page       |      page     |                pages               |
-  // [ alignment ][ stub ][ alignment ][ functions ][ metadata ][ alignment ]
   ASSERT_LESS_OR_EQUAL(VirtualMemory::PageSize(), kPageSize);
+
   const Code& trampoline_code = StubCode::FfiCallbackTrampoline();
-
   const uword code_start = trampoline_code.EntryPoint();
-  const uword page_start = Utils::RoundDown(code_start, kPageSize);
-  const uword code_end_aligned = page_start + 2 * kPageSize;
-  ASSERT_LESS_OR_EQUAL(code_start + trampoline_code.Size(), code_end_aligned);
+  const uword page_start = code_start & kPageMask;
+  offset_of_first_trampoline_in_page_ = code_start - page_start;
 
-  const uword functions_start = code_end_aligned;
-  const uword functions_size =
-      kNumRuntimeFunctions * compiler::target::kWordSize;
-
-  const uword metadata_start = functions_start + functions_size;
-  const uword metadata_size =
-      NumCallbackTrampolinesPerPage() * sizeof(Metadata);
-  const uword metadata_end = metadata_start + metadata_size;
-  const uword page_end = Utils::RoundUp(metadata_end, kPageSize);
+  ASSERT_LESS_OR_EQUAL((code_start - page_start) + trampoline_code.Size(),
+                       RXMappingSize());
 
   stub_page_ = VirtualMemory::ForImagePage(reinterpret_cast<void*>(page_start),
-                                           code_end_aligned - page_start);
-  offset_of_first_trampoline_in_page_ = code_start - page_start;
-  offset_of_first_runtime_function_in_page_ = functions_start - page_start;
-  offset_of_first_metadata_in_page_ = metadata_start - page_start;
-  size_of_trampoline_page_ = page_end - page_start;
+                                           RXMappingSize());
 
 #if defined(DART_TARGET_OS_FUCHSIA)
   // On Fuchsia we can't currently duplicate pages, so use the first page of
@@ -62,9 +38,13 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
   // page.
   // TODO(https://dartbug.com/52579): Remove.
   fuchsia_metadata_page_ = VirtualMemory::AllocateAligned(
-      size_of_trampoline_page_, kPageSize, /*is_executable=*/false,
+      MappingSize(), MappingAlignment(), /*is_executable=*/false,
       /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
-  AddAllTrampolinesToFreeListLocked(page_start);
+  Metadata* metadata = reinterpret_cast<Metadata*>(
+      fuchsia_metadata_page_->start() + MetadataOffset());
+  for (intptr_t i = 0; i < NumCallbackTrampolinesPerPage(); ++i) {
+    AddToFreeListLocked(&metadata[i]);
+  }
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 }
 
@@ -100,9 +80,8 @@ FfiCallbackMetadata* FfiCallbackMetadata::Instance() {
 void FfiCallbackMetadata::FillRuntimeFunction(VirtualMemory* page,
                                               uword index,
                                               void* function) {
-  uword offset = offset_of_first_runtime_function_in_page_ +
-                 index * compiler::target::kWordSize;
-  void** slot = reinterpret_cast<void**>(page->start() + offset);
+  void** slot =
+      reinterpret_cast<void**>(page->start() + RuntimeFunctionOffset(index));
   *slot = function;
 }
 
@@ -111,7 +90,7 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
   return nullptr;
 #else
   VirtualMemory* new_page = VirtualMemory::AllocateAligned(
-      size_of_trampoline_page_, kPageSize, /*is_executable=*/false,
+      MappingSize(), MappingAlignment(), /*is_executable=*/false,
       /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
   if (new_page == nullptr) {
     return nullptr;
@@ -124,17 +103,6 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
 
   return new_page;
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
-}
-
-void FfiCallbackMetadata::AddAllTrampolinesToFreeListLocked(uword page_start) {
-  // Assumes lock_ is already locked for writing.
-  const intptr_t trampolines_per_page = NumCallbackTrampolinesPerPage();
-  for (intptr_t i = 0; i < trampolines_per_page; ++i) {
-    const Trampoline trampoline = reinterpret_cast<Trampoline>(
-        page_start + offset_of_first_trampoline_in_page_ +
-        i * kNativeCallbackTrampolineSize);
-    AddToFreeListLocked(trampoline, LookupEntryLocked(trampoline));
-  }
 }
 
 void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
@@ -155,50 +123,49 @@ void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   FillRuntimeFunction(new_page, kGetFfiCallbackMetadata,
                       reinterpret_cast<void*>(DLRT_GetFfiCallbackMetadata));
 
-  AddAllTrampolinesToFreeListLocked(new_page->start());
+  // Add all the trampolines to the free list.
+  const intptr_t trampolines_per_page = NumCallbackTrampolinesPerPage();
+  Metadata* metadata =
+      reinterpret_cast<Metadata*>(new_page->start() + MetadataOffset());
+  for (intptr_t i = 0; i < trampolines_per_page; ++i) {
+    AddToFreeListLocked(&metadata[i]);
+  }
 }
 
-FfiCallbackMetadata::Trampoline
-FfiCallbackMetadata::AllocateTrampolineLocked() {
+FfiCallbackMetadata::Metadata* FfiCallbackMetadata::AllocateTrampolineLocked() {
   // Assumes lock_ is already locked for writing.
   EnsureFreeListNotEmptyLocked();
   ASSERT(free_list_head_ != nullptr);
-  const Trampoline trampoline = free_list_head_;
-  auto* entry = LookupEntryLocked(trampoline);
+  Metadata* entry = free_list_head_;
   free_list_head_ = entry->free_list_next_;
   if (free_list_head_ == nullptr) {
-    ASSERT(free_list_tail_ == trampoline);
+    ASSERT(free_list_tail_ == entry);
     free_list_tail_ = nullptr;
   }
-  return trampoline;
+  return entry;
 }
 
-void FfiCallbackMetadata::AddToFreeListLocked(Trampoline trampoline,
-                                              Metadata* entry) {
+void FfiCallbackMetadata::AddToFreeListLocked(Metadata* entry) {
   // Assumes lock_ is already locked for writing.
   if (free_list_tail_ == nullptr) {
     ASSERT(free_list_head_ == nullptr);
-    free_list_head_ = free_list_tail_ = trampoline;
+    free_list_head_ = free_list_tail_ = entry;
   } else {
-    ASSERT(free_list_head_ != nullptr);
-    auto* tail = LookupEntryLocked(free_list_tail_);
-    ASSERT(!tail->IsLive());
-    ASSERT(tail->free_list_next_ == nullptr);
-    tail->free_list_next_ = trampoline;
-    free_list_tail_ = trampoline;
+    ASSERT(free_list_head_ != nullptr && free_list_tail_ != nullptr);
+    ASSERT(!free_list_tail_->IsLive());
+    free_list_tail_->free_list_next_ = entry;
+    free_list_tail_ = entry;
   }
   entry->target_isolate_ = nullptr;
   entry->free_list_next_ = nullptr;
 }
 
-void FfiCallbackMetadata::DeleteSyncTrampolines(Trampoline* sync_list_head) {
+void FfiCallbackMetadata::DeleteSyncTrampolines(Metadata** sync_list_head) {
   WriteRwLocker locker(Thread::Current(), &lock_);
-  for (Trampoline trampoline = *sync_list_head; trampoline != nullptr;) {
-    auto* entry = LookupEntryLocked(trampoline);
-    ASSERT(entry != nullptr);
-    const Trampoline next_trampoline = entry->sync_list_next();
-    AddToFreeListLocked(trampoline, entry);
-    trampoline = next_trampoline;
+  for (Metadata* entry = *sync_list_head; entry != nullptr;) {
+    Metadata* next = entry->sync_list_next();
+    AddToFreeListLocked(entry);
+    entry = next;
   }
   *sync_list_head = nullptr;
 }
@@ -207,14 +174,13 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateFfiCallback(
     Isolate* isolate,
     Zone* zone,
     const Function& function,
-    Trampoline* sync_list_head) {
+    Metadata** sync_list_head) {
   const auto& code =
       Code::Handle(zone, FLAG_precompiled_mode ? function.CurrentCode()
                                                : function.EnsureHasCode());
   ASSERT(!code.IsNull());
 
   const uword target_entry_point = code.EntryPoint();
-  const Trampoline sync_list_next = *sync_list_head;
   TrampolineType trampoline_type = TrampolineType::kSync;
 
 #if defined(TARGET_ARCH_IA32)
@@ -230,50 +196,59 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateFfiCallback(
 #endif
 
   WriteRwLocker locker(Thread::Current(), &lock_);
-  const Trampoline trampoline = AllocateTrampolineLocked();
-  *sync_list_head = trampoline;
-  *LookupEntryLocked(trampoline) =
+  Metadata* entry = AllocateTrampolineLocked();
+  Metadata* sync_list_next = *sync_list_head;
+  *sync_list_head = entry;
+  *entry =
       Metadata(isolate, target_entry_point, sync_list_next, trampoline_type);
 
-  return trampoline;
+  return TrampolineOfMetadata(entry);
 }
 
 FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallback(
     Isolate* isolate,
     Zone* zone,
     const Function& function,
-    Trampoline* sync_list_head) {
+    Metadata** sync_list_head) {
   return CreateFfiCallback(isolate, zone, function, sync_list_head);
 }
 
-FfiCallbackMetadata::Metadata* FfiCallbackMetadata::LookupEntryLocked(
+FfiCallbackMetadata::Trampoline FfiCallbackMetadata::TrampolineOfMetadata(
+    Metadata* metadata) const {
+  const uword start = MappingStart(reinterpret_cast<uword>(metadata));
+  Metadata* metadatas = reinterpret_cast<Metadata*>(start + MetadataOffset());
+  const uword index = (metadata - metadatas);
+#if defined(DART_TARGET_OS_FUCHSIA)
+  return StubCode::FfiCallbackTrampoline().EntryPoint() +
+         index * kNativeCallbackTrampolineSize;
+#else
+  return start + offset_of_first_trampoline_in_page_ +
+         index * kNativeCallbackTrampolineSize;
+#endif
+}
+
+FfiCallbackMetadata::Metadata* FfiCallbackMetadata::MetadataOfTrampoline(
     Trampoline trampoline) const {
-  // Assumes lock_ is already locked for reading or writing.
-  const uword location = reinterpret_cast<uword>(trampoline);
-
-  // The location that the trampoline would be if the code page was aligned.
-  const uword aligned_location = location - offset_of_first_trampoline_in_page_;
-
-  // Since the code page isn't aligned, the trampoline may actually be in the
-  // following page. So round down the aligned_location, not the raw location.
-  const uword page_start = Utils::RoundDown(aligned_location, kPageSize);
-
-  const uword offset = aligned_location - page_start;
-  ASSERT_EQUAL(offset % kNativeCallbackTrampolineSize, 0);
-
-  const intptr_t index = offset / kNativeCallbackTrampolineSize;
-  ASSERT(index < NumCallbackTrampolinesPerPage());
-
 #if defined(DART_TARGET_OS_FUCHSIA)
   // On Fuchsia the metadata page is separate to the trampoline page.
   // TODO(https://dartbug.com/52579): Remove.
-  const uword metadata_table =
-      fuchsia_metadata_page_->start() + offset_of_first_metadata_in_page_;
+  const uword page_start = Utils::RoundDown(
+      trampoline - offset_of_first_trampoline_in_page_, kPageSize);
+  const uword index =
+      (trampoline - offset_of_first_trampoline_in_page_ - page_start) /
+      kNativeCallbackTrampolineSize;
+  ASSERT(index < NumCallbackTrampolinesPerPage());
+  Metadata* metadata_table = reinterpret_cast<Metadata*>(
+      fuchsia_metadata_page_->start() + MetadataOffset());
+  return metadata_table + index;
 #else
-  const uword metadata_table = page_start + offset_of_first_metadata_in_page_;
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-  return reinterpret_cast<Metadata*>(metadata_table) + index;
+  const uword start = MappingStart(trampoline);
+  Metadata* metadatas = reinterpret_cast<Metadata*>(start + MetadataOffset());
+  const uword index =
+      (trampoline - start - offset_of_first_trampoline_in_page_) /
+      kNativeCallbackTrampolineSize;
+  return &metadatas[index];
+#endif
 }
 
 FfiCallbackMetadata::Metadata FfiCallbackMetadata::LookupMetadataForTrampoline(
@@ -281,7 +256,7 @@ FfiCallbackMetadata::Metadata FfiCallbackMetadata::LookupMetadataForTrampoline(
   // Note: The locker's thread may be null because this method is explicitly
   // designed to be usable outside of a VM thread.
   ReadRwLocker locker(Thread::Current(), &lock_);
-  return *LookupEntryLocked(trampoline);
+  return *MetadataOfTrampoline(trampoline);
 }
 
 FfiCallbackMetadata* FfiCallbackMetadata::singleton_ = nullptr;

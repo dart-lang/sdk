@@ -3852,11 +3852,13 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepointIgnoreUnwindInProgress,
 // This is called by a native callback trampoline
 // (see StubCodeCompiler::GenerateFfiCallbackTrampolineStub). Not registered as
 // a runtime entry because we can't use Thread to look it up.
-extern "C" Thread* DLRT_GetFfiCallbackMetadata(void* trampoline,
-                                               uword* out_entry_point,
-                                               uword* out_trampoline_type) {
+extern "C" Thread* DLRT_GetFfiCallbackMetadata(
+    FfiCallbackMetadata::Trampoline trampoline,
+    uword* out_entry_point,
+    uword* out_trampoline_type) {
   CHECK_STACK_ALIGNMENT;
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p", trampoline);
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p",
+                     reinterpret_cast<void*>(trampoline));
 
   auto metadata =
       FfiCallbackMetadata::Instance()->LookupMetadataForTrampoline(trampoline);
