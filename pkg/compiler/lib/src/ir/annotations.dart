@@ -19,7 +19,6 @@ class IrAnnotationData {
   final Set<ir.Class> _anonymousJsInteropClasses = {};
   final Map<ir.Member, String> _jsInteropMemberNames = {};
   final Set<ir.Class> _staticInteropClasses = {};
-  final Set<ir.Member> _jsInteropObjectLiterals = {};
 
   final Map<ir.Member, List<PragmaAnnotationData>> _memberPragmaAnnotations =
       {};
@@ -58,10 +57,6 @@ class IrAnnotationData {
   bool isStaticInteropClass(ir.Class node) =>
       _staticInteropClasses.contains(node);
 
-  // Returns `true` if [node] is annotated with `@ObjectLiteral`.
-  bool isJsInteropObjectLiteral(ir.Member node) =>
-      _jsInteropObjectLiterals.contains(node);
-
   // Returns the text from the `@JS(<text>)` annotation of [node], if any.
   String? getJsInteropMemberName(ir.Member node) => _jsInteropMemberNames[node];
 
@@ -88,17 +83,11 @@ class IrAnnotationData {
     });
   }
 
-  void forEachJsInteropMember(
-      void Function(ir.Member, String?,
-              {required bool isJsInteropObjectLiteral})
-          f) {
+  void forEachJsInteropMember(void Function(ir.Member, String?) f) {
     _jsInteropLibraryNames.forEach((ir.Library library, _) {
       for (ir.Member member in library.members) {
-        // `@ObjectLiteral` constructors are processed below as they can exist
-        // with or without a library with a `@JS` annotation.
-        if (member.isExternal && !isJsInteropObjectLiteral(member)) {
-          f(member, _jsInteropMemberNames[member] ?? member.name.text,
-              isJsInteropObjectLiteral: false);
+        if (member.isExternal) {
+          f(member, _jsInteropMemberNames[member] ?? member.name.text);
         }
       }
     });
@@ -109,12 +98,8 @@ class IrAnnotationData {
         if (member.isExternal) {
           name ??= member.name.text;
         }
-        f(member, name, isJsInteropObjectLiteral: false);
+        f(member, name);
       }
-    });
-    _jsInteropObjectLiterals.forEach((ir.Member member) {
-      f(member, _jsInteropMemberNames[member] ?? member.name.text,
-          isJsInteropObjectLiteral: true);
     });
   }
 
@@ -164,13 +149,6 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
         String? jsName = _getJsInteropName(constant);
         if (jsName != null) {
           data._jsInteropMemberNames[member] = jsName;
-        }
-
-        bool isJsInteropObjectLiteralMember =
-            _isJsInteropObjectLiteral(constant);
-        if (isJsInteropObjectLiteralMember) {
-          data._jsInteropObjectLiterals.add(member);
-          data._jsInteropMemberNames[member] = member.name.text;
         }
 
         bool isNativeMember = _isNativeMember(constant);
@@ -362,12 +340,6 @@ bool _isStaticInterop(ir.Constant constant) {
       (constant.classNode.enclosingLibrary.importUri == Uris.package_js ||
           constant.classNode.enclosingLibrary.importUri ==
               Uris.dart__js_annotations);
-}
-
-bool _isJsInteropObjectLiteral(ir.Constant constant) {
-  return constant is ir.InstanceConstant &&
-      constant.classNode.name == 'ObjectLiteral' &&
-      constant.classNode.enclosingLibrary.importUri == Uris.dart__js_interop;
 }
 
 class PragmaAnnotationData {

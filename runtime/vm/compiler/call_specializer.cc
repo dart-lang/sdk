@@ -804,6 +804,9 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
   if (should_clone_fields_) {
     field = field.CloneFromOriginal();
   }
+  if (field.is_late() && field.is_final()) {
+    return false;
+  }
 
   switch (flow_graph()->CheckForInstanceCall(
       instr, UntaggedFunction::kImplicitSetter)) {

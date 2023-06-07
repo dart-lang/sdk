@@ -172,11 +172,6 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void patternDoesNotAllowLate({required AstNode pattern}) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
   void patternForInExpressionIsNotIterable({
     required AstNode node,
     required Expression expression,

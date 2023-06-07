@@ -61,7 +61,7 @@ static method _extension#0|get#setter(lowered final core::Object #this) → core
   return 42;
 static method _extension#0|set#getter(lowered final core::Object #this, core::int value) → void {}
 static method InlineClass|(core::int it) → self::InlineClass {
-  final self::InlineClass #this = it;
+  lowered final self::InlineClass #this = it;
   return #this;
 }
 static method InlineClass|_#new#tearOff(core::int it) → self::InlineClass

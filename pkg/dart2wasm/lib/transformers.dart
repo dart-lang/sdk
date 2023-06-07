@@ -650,7 +650,7 @@ class _WasmTransformer extends Transformer {
     if (isYieldStar) {
       DartType awaitVarType = const DynamicType();
       if (yieldExpressionType is InterfaceType) {
-        Class cls = yieldExpressionType.className.asClass;
+        Class cls = yieldExpressionType.classReference.asClass;
         if (cls == coreTypes.streamClass) {
           awaitVarType = yieldExpressionType.typeArguments.single;
         }

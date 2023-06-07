@@ -89,6 +89,146 @@ final b = <String>{};
     await verifyCodeActionEdits(codeAction, content, expectedContent);
   }
 
+  Future<void> test_multipleIterations_noOverlay() async {
+    const analysisOptionsContent = '''
+linter:
+  rules:
+    - prefer_final_locals
+    - prefer_const_declarations
+    ''';
+    const content = '''
+void f() {
+  var a = 'test';
+}
+''';
+    const expectedContent = '''
+void f() {
+  const a = 'test';
+}
+''';
+
+    registerLintRules();
+    newFile(analysisOptionsPath, analysisOptionsContent);
+    newFile(mainFilePath, content);
+
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    final codeActions = await getSourceCodeActions(mainFileUri);
+    final codeAction = findCommand(codeActions, Commands.fixAll)!;
+
+    await verifyCodeActionEdits(codeAction, content, expectedContent);
+  }
+
+  Future<void> test_multipleIterations_overlay() async {
+    const analysisOptionsContent = '''
+linter:
+  rules:
+    - prefer_final_locals
+    - prefer_const_declarations
+    ''';
+    const content = '''
+void f() {
+  var a = 'test';
+}
+''';
+    const expectedContent = '''
+void f() {
+  const a = 'test';
+}
+''';
+
+    registerLintRules();
+    newFile(analysisOptionsPath, analysisOptionsContent);
+
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    await openFile(mainFileUri, content);
+    final codeActions = await getSourceCodeActions(mainFileUri);
+    final codeAction = findCommand(codeActions, Commands.fixAll)!;
+
+    await verifyCodeActionEdits(codeAction, content, expectedContent);
+  }
+
+  Future<void> test_multipleIterations_withClientModification() async {
+    const analysisOptionsContent = '''
+linter:
+  rules:
+    - prefer_final_locals
+    - prefer_const_declarations
+    ''';
+    const content = '''
+void f() {
+  var a = 'test';
+}
+''';
+    registerLintRules();
+    newFile(analysisOptionsPath, analysisOptionsContent);
+    newFile(mainFilePath, content);
+
+    await initialize(
+        workspaceCapabilities: withApplyEditSupport(
+            withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
+    await openFile(mainFileUri, content);
+
+    // Find the "Fix All" action command.
+    final codeActions = await getSourceCodeActions(mainFileUri);
+    final codeAction = findCommand(codeActions, Commands.fixAll)!;
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command!,
+    );
+
+    // Execute the command with a modification and capture the edit that is
+    // sent back to us.
+    ApplyWorkspaceEditParams? editParams;
+    await handleExpectedRequest<Object?, ApplyWorkspaceEditParams,
+        ApplyWorkspaceEditResult>(
+      Method.workspace_applyEdit,
+      ApplyWorkspaceEditParams.fromJson,
+      () async {
+        // Apply the command and immediately modify a file afterwards.
+        final commandFuture = executeCommand(command);
+        await replaceFile(12345, mainFileUri, 'client-modified-content');
+        return commandFuture;
+      },
+      handler: (edit) {
+        // When the server sends the edit back, just keep a copy and say we
+        // applied successfully (we'll verify the actual edit below).
+        editParams = edit;
+        return ApplyWorkspaceEditResult(applied: true);
+      },
+    );
+
+    // Extract the text edit from the 'workspace/applyEdit' params the server
+    // sent us.
+    final change = editParams?.edit.documentChanges!.single;
+    final edit = change!.map(
+      (create) => throw 'Expected edit, got create',
+      (delete) => throw 'Expected edit, got delete',
+      (rename) => throw 'Expected edit, got rename',
+      (edit) => edit,
+    );
+    // Ensure the edit says that it was based on version 1 (the original
+    // version) and not the updated 12345 version we sent.
+    expect(edit.textDocument.version, 1);
+  }
+
+  Future<void> test_unavailable_outsideAnalysisRoot() async {
+    final otherFile = convertPath('/other/file.dart');
+    newFile(otherFile, '');
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    final codeActions = await getSourceCodeActions(Uri.file(otherFile));
+    final codeAction = findCommand(codeActions, Commands.fixAll);
+    expect(codeAction, isNull);
+  }
+
   Future<void> test_unusedUsings_notRemovedIfSave() async {
     const content = '''
 import 'dart:async';

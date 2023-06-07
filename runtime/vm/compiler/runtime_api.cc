@@ -34,12 +34,12 @@ bool IsSmi(int64_t v) {
 
 bool WillAllocateNewOrRememberedObject(intptr_t instance_size) {
   ASSERT(Utils::IsAligned(instance_size, ObjectAlignment::kObjectAlignment));
-  return dart::Heap::IsAllocatableInNewSpace(instance_size);
+  return dart::IsAllocatableInNewSpace(instance_size);
 }
 
 bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables) {
   if (!dart::Context::IsValidLength(num_context_variables)) return false;
-  return dart::Heap::IsAllocatableInNewSpace(
+  return dart::IsAllocatableInNewSpace(
       dart::Context::InstanceSize(num_context_variables));
 }
 
@@ -251,7 +251,7 @@ word TypedDataElementSizeInBytes(classid_t cid) {
 }
 
 word TypedDataMaxNewSpaceElements(classid_t cid) {
-  return (dart::Heap::kNewAllocatableSize - target::TypedData::HeaderSize()) /
+  return (dart::kNewAllocatableSize - target::TypedData::HeaderSize()) /
          TypedDataElementSizeInBytes(cid);
 }
 
@@ -1009,7 +1009,7 @@ const uint8_t Nullability::kLegacy =
     static_cast<uint8_t>(dart::Nullability::kLegacy);
 
 bool Heap::IsAllocatableInNewSpace(intptr_t instance_size) {
-  return dart::Heap::IsAllocatableInNewSpace(instance_size);
+  return dart::IsAllocatableInNewSpace(instance_size);
 }
 
 word Field::OffsetOf(const dart::Field& field) {

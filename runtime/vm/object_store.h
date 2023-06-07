@@ -114,6 +114,7 @@ class ObjectPointerVisitor;
   RW(Field, pragma_name)                                                       \
   RW(Field, pragma_options)                                                    \
   RW(Class, future_class)                                                      \
+  RW(Class, future_or_class)                                                   \
   RW(Class, completer_class)                                                   \
   RW(Class, one_byte_string_class)                                             \
   RW(Class, two_byte_string_class)                                             \

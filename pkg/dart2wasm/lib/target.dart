@@ -35,9 +35,9 @@ import 'package:dart2wasm/records.dart' show RecordShape;
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 class WasmTarget extends Target {
-  WasmTarget({this.constantBranchPruning = true});
+  WasmTarget({this.removeAsserts = true});
 
-  bool constantBranchPruning;
+  bool removeAsserts;
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmDefaultMap;
@@ -173,30 +173,30 @@ class WasmTarget extends Target {
       logger?.call("Transformed JS interop classes");
     }
 
-    if (constantBranchPruning) {
-      final reportError =
-          (LocatedMessage message, [List<LocatedMessage>? context]) {
-        diagnosticReporter.report(message.messageObject, message.charOffset,
-            message.length, message.uri);
-        if (context != null) {
-          for (final m in context) {
-            diagnosticReporter.report(
-                m.messageObject, m.charOffset, m.length, m.uri);
-          }
+    final reportError =
+        (LocatedMessage message, [List<LocatedMessage>? context]) {
+      diagnosticReporter.report(message.messageObject, message.charOffset,
+          message.length, message.uri);
+      if (context != null) {
+        for (final m in context) {
+          diagnosticReporter.report(
+              m.messageObject, m.charOffset, m.length, m.uri);
         }
-      };
+      }
+    };
 
-      ConstConditionalSimplifier(
-        dartLibrarySupport,
-        constantsBackend,
-        component,
-        reportError,
-        environmentDefines: environmentDefines ?? {},
-        evaluationMode: constantEvaluator.EvaluationMode.strong,
-        coreTypes: coreTypes,
-        classHierarchy: hierarchy,
-      ).run();
-    }
+    ConstConditionalSimplifier(
+      dartLibrarySupport,
+      constantsBackend,
+      component,
+      reportError,
+      environmentDefines: environmentDefines ?? {},
+      evaluationMode: constantEvaluator.EvaluationMode.strong,
+      coreTypes: coreTypes,
+      classHierarchy: hierarchy,
+      removeAsserts: removeAsserts,
+    ).run();
+
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");

@@ -158,6 +158,7 @@ class Tag {
   // 104 is occupied by [RecordLiteral] (expression).
   // 105 is occupied by [ConstRecordLiteral] (expression).
   // 106 is occupied by [ConstantExpression].
+  static const int FutureOrType = 107;
 
   // 108 is occupied by [RedirectingFactory] (member).
   // 109 is occupied by [SetLiteral] (expression).
@@ -206,6 +207,8 @@ class Tag {
   static const int PatternAssignment = 150;
   static const int PatternVariableDeclaration = 151;
 
+  static const int NullType = 152;
+
   static const int SpecializedTagHighBits = 0xE0; // 0b11100000
   static const int SpecializedTagMask = 0xF8; //    0b11111000
   static const int SpecializedPayloadMask = 0x7; // 0b00000111
@@ -222,7 +225,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 102;
+  static const int BinaryFormatVersion = 103;
 }
 
 abstract class ConstantTag {

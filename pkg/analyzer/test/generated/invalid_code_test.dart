@@ -415,6 +415,14 @@ extension on int {}
 ''');
   }
 
+  test_issue_52432() async {
+    await _assertCanBeAnalyzed(r'''
+void f() {
+  void g([super.foo]) {}
+}
+''');
+  }
+
   test_keywordInConstructorInitializer_assert() async {
     await _assertCanBeAnalyzed('''
 class C {

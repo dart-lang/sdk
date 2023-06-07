@@ -629,6 +629,7 @@ class Deserializer : public ThreadStackResource {
   // message otherwise.
   ApiErrorPtr VerifyImageAlignment();
 
+  ObjectPtr Allocate(intptr_t size);
   static void InitializeHeader(ObjectPtr raw,
                                intptr_t cid,
                                intptr_t size,
@@ -801,6 +802,8 @@ class Deserializer : public ThreadStackResource {
 
  private:
   Heap* heap_;
+  PageSpace* old_space_;
+  FreeList* freelist_;
   Zone* zone_;
   Snapshot::Kind kind_;
   ReadStream stream_;

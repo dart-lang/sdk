@@ -72,10 +72,10 @@ import "dart:core" as core;
 class Foo extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
   const constructor •(core::int x) → self::Foo
-    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}, "x is not positive"), assert(x.{core::num::>}(0){(core::num) → core::bool}), assert(#C2 =={core::Object::==}{(core::Object) → core::bool} false, "foo was ${#C3}"), assert(#C4 =={core::Object::==}{(core::Object) → core::bool} false), super core::Object::•()
+    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}, "x is not positive"), assert(x.{core::num::>}(0){(core::num) → core::bool}), assert(#C2 =={core::Object::==}{(core::Object) → core::bool} false, #C5), assert(#C6 =={core::Object::==}{(core::Object) → core::bool} false), super core::Object::•()
     ;
   const constructor withMessage(core::int x) → self::Foo
-    : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, "btw foo was ${#C5}"), super core::Object::•()
+    : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, #C9), super core::Object::•()
     ;
   const constructor withInvalidMessage(core::int x) → self::Foo
     : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, x), super core::Object::•()
@@ -95,7 +95,7 @@ class Bar extends core::Object /*hasConstConstructor*/  {
     : self::Bar::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}), super core::Object::•()
     ;
 }
-static const field self::Foo foo1 = #C12;
+static const field self::Foo foo1 = #C14;
 static const field self::Foo foo2 = invalid-expression "This assertion failed with message: x is not positive";
 static const field self::Foo foo3 = #C16;
 static const field self::Foo foo4 = invalid-expression "This assertion failed with a non-String message.";
@@ -107,40 +107,38 @@ static const field self::Bar bar2 = invalid-expression "This assertion failed wi
 static const field self::Bar bar3 = invalid-expression "This assertion failed.";
 static const field self::Bar bar4 = invalid-expression "This assertion failed.";
 static method main() → dynamic {
-  core::print(#C12);
+  core::print(#C14);
 }
 
 constants  {
   #C1 = "foo"
   #C2 = eval const core::bool::fromEnvironment(#C1)
-  #C3 = eval const core::bool::fromEnvironment(#C1)
+  #C3 = "foo was "
   #C4 = eval const core::bool::fromEnvironment(#C1)
-  #C5 = eval const core::bool::fromEnvironment(#C1)
-  #C6 = 1
-  #C7 = false
-  #C8 = eval #C2 =={core::Object::==}{(core::Object) → core::bool} #C7
-  #C9 = "foo was "
-  #C10 = eval "${#C9}${#C3}"
-  #C11 = eval #C4 =={core::Object::==}{(core::Object) → core::bool} #C7
-  #C12 = eval self::Foo{x:#C6, assert(#C8, #C10), assert(#C11)}
-  #C13 = 42
-  #C14 = "btw foo was "
-  #C15 = eval "${#C14}${#C5}"
-  #C16 = eval self::Foo{x:#C13, assert(#C7, #C15)}
+  #C5 = eval "${#C3}${#C4}"
+  #C6 = eval const core::bool::fromEnvironment(#C1)
+  #C7 = "btw foo was "
+  #C8 = eval const core::bool::fromEnvironment(#C1)
+  #C9 = eval "${#C7}${#C8}"
+  #C10 = 1
+  #C11 = false
+  #C12 = eval #C2 =={core::Object::==}{(core::Object) → core::bool} #C11
+  #C13 = eval #C6 =={core::Object::==}{(core::Object) → core::bool} #C11
+  #C14 = eval self::Foo{x:#C10, assert(#C12, #C5), assert(#C13)}
+  #C15 = 42
+  #C16 = eval self::Foo{x:#C15, assert(#C11, #C9)}
 }
 
 Extra constant evaluation status:
 Evaluated with empty environment: EqualsCall @ org-dartlang-testcase:///const_asserts.dart:10:50 -> BoolConstant(true)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:10:22 -> BoolConstant(false)
-Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:11:59 -> StringConstant("foo was false")
-Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:11:30 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:11:59 -> StringConstant("foo was false")
 Evaluated with empty environment: EqualsCall @ org-dartlang-testcase:///const_asserts.dart:12:50 -> BoolConstant(true)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:12:22 -> BoolConstant(false)
-Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:14:73 -> StringConstant("btw foo was false")
-Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:14:44 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:14:73 -> StringConstant("btw foo was false")
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:36:9 -> InstanceConstant(const Foo{Foo.x: 1})
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:25:24 -> InstanceConstant(const Foo{Foo.x: 1})
-Extra constant evaluation: evaluated: 31, effectively constant: 10
+Extra constant evaluation: evaluated: 29, effectively constant: 8
 
 
 Constructor coverage from constants:

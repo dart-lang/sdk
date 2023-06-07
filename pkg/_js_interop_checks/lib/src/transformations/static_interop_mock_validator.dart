@@ -238,7 +238,7 @@ class StaticInteropMockValidator {
       for (var extension in ExportChecker.libraryExtensionMap[library]!) {
         var onType = extension.onType as InterfaceType;
         staticInteropClassesWithExtensions
-            .putIfAbsent(onType.className, () => {})
+            .putIfAbsent(onType.classReference, () => {})
             .add(extension);
       }
     }

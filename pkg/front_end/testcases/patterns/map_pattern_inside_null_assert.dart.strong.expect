@@ -6,9 +6,9 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
-    late final synthesized dynamic #0#5 = (#0#0! as{ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    late final synthesized dynamic #0#5 = (#0#0! as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
     {
-      if(let final dynamic #t1 = #0#0! in #0#0! is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#5 == null) || null is{ForNonNullableByDefault} dynamic && (#0#0! as{ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#5) {
+      if(let final dynamic #t1 = #0#0! in #0#0! is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#5 == null) || null is{ForNonNullableByDefault} dynamic && (#0#0! as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#5) {
         {
           break #L1;
         }

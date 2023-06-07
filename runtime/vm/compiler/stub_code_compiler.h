@@ -22,6 +22,7 @@ namespace dart {
 
 // Forward declarations.
 class Code;
+class DescriptorList;
 
 namespace compiler {
 
@@ -50,7 +51,8 @@ using UnresolvedPcRelativeCalls = GrowableArray<UnresolvedPcRelativeCall*>;
 
 class StubCodeCompiler {
  public:
-  explicit StubCodeCompiler(Assembler* assembler_) : assembler(assembler_) {}
+  StubCodeCompiler(Assembler* assembler_, DescriptorList* pc_descriptors_list)
+      : assembler(assembler_), pc_descriptors_list_(pc_descriptors_list) {}
 
   Assembler* assembler;
 
@@ -162,8 +164,15 @@ class StubCodeCompiler {
                           intptr_t return_function_offset_in_object_store,
                           intptr_t return_stub_offset_in_thread);
 
+  void GenerateLoadBSSEntry(BSS::Relocation relocation,
+                            Register dst,
+                            Register tmp);
+  void InsertBSSRelocation(BSS::Relocation reloc);
+
   void GenerateLoadFfiCallbackMetadataRuntimeFunction(uword function_index,
                                                       Register dst);
+
+  DescriptorList* pc_descriptors_list_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(StubCodeCompiler);
 };

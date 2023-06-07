@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -393,7 +394,9 @@ class LinterContextImpl implements LinterContext {
       errorReporter,
     );
 
-    var value = node.accept(visitor);
+    // TODO(kallentu): Remove unwrapping of Constant
+    var constant = node.accept(visitor);
+    var value = constant is DartObjectImpl ? constant : null;
     return LinterConstantEvaluationResult(value, errorListener.errors);
   }
 
@@ -714,7 +717,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     var source = node.source;
     // Cache error and location info for creating AnalysisErrorInfos
     AnalysisError error = AnalysisError.tmp(
-     source:  source,
+      source: source,
       offset: node.span.start.offset,
       length: node.span.length,
       errorCode: errorCode ?? lintCode,
@@ -897,7 +900,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {
         case CompileTimeErrorCode
-            .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:

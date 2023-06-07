@@ -226,7 +226,7 @@ static method method4(dynamic o) → dynamic {
   #L20:
   {
     final synthesized dynamic #3#0 = o;
-    late final synthesized core::int #3#2 = #3#0{core::List<dynamic>}.{core::List::length}{core::int};
+    late final synthesized core::int #3#2 = (#3#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     {
       hoisted core::List<dynamic> a;
       if(#3#0 is{ForNonNullableByDefault} core::List<dynamic> && #3#2.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t4 = a = #3#0{core::List<dynamic>}.{core::List::sublist}(0, #3#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
@@ -250,7 +250,7 @@ static method method4(dynamic o) → dynamic {
   #L22:
   {
     final synthesized dynamic #5#0 = o;
-    late final synthesized core::int #5#2 = #5#0{core::List<dynamic>}.{core::List::length}{core::int};
+    late final synthesized core::int #5#2 = (#5#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     {
       if(#5#0 is{ForNonNullableByDefault} core::List<dynamic> && #5#2.{core::num::>=}(#C2){(core::num) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} #5#0{core::List<dynamic>}.{core::List::[]}(#5#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
         {
@@ -297,7 +297,7 @@ static method method5(dynamic o) → dynamic {
   #L26:
   {
     final synthesized dynamic #3#0 = o;
-    late final synthesized core::int #3#2 = #3#0{core::List<dynamic>}.{core::List::length}{core::int};
+    late final synthesized core::int #3#2 = (#3#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     {
       if(#3#0 is{ForNonNullableByDefault} core::List<dynamic> && #3#2.{core::num::>=}(#C1){(core::num) → core::bool} && #3#0{core::List<dynamic>}.{core::List::[]}(#3#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic} is{ForNonNullableByDefault} core::String) {
         {
@@ -309,7 +309,7 @@ static method method5(dynamic o) → dynamic {
   #L27:
   {
     final synthesized dynamic #4#0 = o;
-    late final synthesized core::int #4#2 = #4#0{core::List<dynamic>}.{core::List::length}{core::int};
+    late final synthesized core::int #4#2 = (#4#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     {
       if(#4#0 is{ForNonNullableByDefault} core::List<dynamic> && #4#2.{core::num::>=}(#C2){(core::num) → core::bool} && #4#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is{ForNonNullableByDefault} core::String && #4#0{core::List<dynamic>}.{core::List::[]}(#4#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic} is{ForNonNullableByDefault} core::int) {
         {

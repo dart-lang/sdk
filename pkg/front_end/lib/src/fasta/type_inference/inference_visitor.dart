@@ -974,17 +974,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferExpression(node.then, typeContext, isVoidAllowed: true);
     node.then = thenResult.expression..parent = node;
     registerIfUnreachableForTesting(node.then, isReachable: isThenReachable);
-    flowAnalysis.conditional_elseBegin(node.then);
+    flowAnalysis.conditional_elseBegin(node.then, thenResult.inferredType);
     bool isOtherwiseReachable = flowAnalysis.isReachable;
     ExpressionInferenceResult otherwiseResult =
         inferExpression(node.otherwise, typeContext, isVoidAllowed: true);
     node.otherwise = otherwiseResult.expression..parent = node;
     registerIfUnreachableForTesting(node.otherwise,
         isReachable: isOtherwiseReachable);
-    flowAnalysis.conditional_end(node, node.otherwise);
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
         thenResult.inferredType, otherwiseResult.inferredType,
         isNonNullableByDefault: isNonNullableByDefault);
+    flowAnalysis.conditional_end(
+        node, inferredType, node.otherwise, otherwiseResult.inferredType);
     node.staticType = inferredType;
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -2352,8 +2353,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           patternVariableDeclaration,
           patternVariableDeclaration.pattern,
           patternVariableDeclaration.initializer,
-          isFinal: patternVariableDeclaration.isFinal,
-          isLate: false);
+          isFinal: patternVariableDeclaration.isFinal);
 
       assert(checkStack(element, stackBase, [
         /* pattern = */ ValueKinds.Pattern,
@@ -4272,8 +4272,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           patternVariableDeclaration,
           patternVariableDeclaration.pattern,
           patternVariableDeclaration.initializer,
-          isFinal: patternVariableDeclaration.isFinal,
-          isLate: false);
+          isFinal: patternVariableDeclaration.isFinal);
 
       assert(checkStack(entry, stackBase, [
         /* pattern = */ ValueKinds.Pattern,
@@ -6026,7 +6025,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       {required bool isNot}) {
     // ignore: unnecessary_null_comparison
     assert(isNot != null);
-    EqualityInfo<DartType>? equalityInfo =
+    ExpressionInfo<DartType>? equalityInfo =
         flowAnalysis.equalityOperand_end(left, leftType);
 
     Expression? equals;
@@ -7491,8 +7490,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitNullLiteral(
       NullLiteral node, DartType typeContext) {
-    flowAnalysis.nullLiteral(node);
-    return new ExpressionInferenceResult(const NullType(), node);
+    const NullType nullType = const NullType();
+    flowAnalysis.nullLiteral(node, nullType);
+    return new ExpressionInferenceResult(nullType, node);
   }
 
   @override
@@ -8497,7 +8497,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitThisExpression(
       ThisExpression node, DartType typeContext) {
-    flowAnalysis.thisOrSuper(node, thisType!);
+    flowAnalysis.thisOrSuper(node, thisType!, isSuper: false);
     return new ExpressionInferenceResult(thisType!, node);
   }
 
@@ -8709,16 +8709,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         initialized: node.hasDeclaredInitializer);
     if (initializerResult != null) {
       DartType initializerType = initializerResult.inferredType;
-      // TODO(paulberry): `initializerType` is sometimes `null` during top
-      // level inference.  Figure out how to prevent this.
-      // ignore: unnecessary_null_comparison
-      if (initializerType != null) {
-        flowAnalysis.initialize(
-            node, initializerType, initializerResult.expression,
-            isFinal: node.isFinal,
-            isLate: node.isLate,
-            isImplicitlyTyped: node.isImplicitlyTyped);
-      }
+      flowAnalysis.initialize(
+          node, initializerType, initializerResult.expression,
+          isFinal: node.isFinal,
+          isLate: node.isLate,
+          isImplicitlyTyped: node.isImplicitlyTyped);
       initializerResult = ensureAssignableResult(node.type, initializerResult,
           fileOffset: node.fileOffset, isVoidAllowed: node.type is VoidType);
       Expression initializer = initializerResult.expression;
@@ -8871,9 +8866,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    // TODO(cstefantsova): Support late variables.
     analyzePatternVariableDeclaration(node, node.pattern, node.initializer,
-        isFinal: node.isFinal, isLate: false);
+        isFinal: node.isFinal);
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -8909,7 +8903,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType? promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     if (isExtensionThis(variable)) {
-      flowAnalysis.thisOrSuper(node, variable.type);
+      flowAnalysis.thisOrSuper(node, variable.type, isSuper: true);
     } else if (isNonNullableByDefault && node.forNullGuardedAccess) {
       DartType nonNullableType = variable.type.toNonNull();
       if (nonNullableType != variable.type) {

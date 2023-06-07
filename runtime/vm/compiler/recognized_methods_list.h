@@ -132,7 +132,7 @@ namespace dart {
     0xc40903ac)                                                                \
   V(_SuspendState, _clone, SuspendState_clone, 0xae1a40a0)                     \
   V(_SuspendState, _createAsyncCallbacks, SuspendState_createAsyncCallbacks,   \
-    0x5e84c091)                                                                \
+    0x86343257)                                                                \
   V(_SuspendState, _createAsyncStarCallback,                                   \
     SuspendState_createAsyncStarCallback, 0x98fb897c)                          \
   V(_SuspendState, _resume, SuspendState_resume, 0x5d7a8489)                   \
@@ -319,10 +319,10 @@ namespace dart {
   V(::, _getNativeField, GetNativeField, 0xa0139b85)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x730f2b7f)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb99d2ee1)                          \
-  V(_Future, timeout, FutureTimeout, 0xe21f0bf8)                               \
-  V(Future, wait, FutureWait, 0x22f98225)                                      \
+  V(_Future, timeout, FutureTimeout, 0xa0f743d4)                               \
+  V(Future, wait, FutureWait, 0x295fe957)                                      \
   V(_RootZone, runUnary, RootZoneRunUnary, 0x64397ecb)                         \
-  V(_FutureListener, handleValue, FutureListenerHandleValue, 0xbf5d3892)       \
+  V(_FutureListener, handleValue, FutureListenerHandleValue, 0xec25d1b2)       \
   V(::, has63BitSmis, Has63BitSmis, 0xf61b56f1)                                \
   V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfab46343)\
   V(_Smi, get:hashCode, Smi_hashCode, 0x75e0ccd2)                              \

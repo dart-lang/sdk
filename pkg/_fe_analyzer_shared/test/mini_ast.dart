@@ -8,7 +8,7 @@
 /// analysis testing.
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
     show
-        EqualityInfo,
+        ExpressionInfo,
         ExpressionPropertyTarget,
         FlowAnalysis,
         Operations,
@@ -1046,12 +1046,54 @@ class Declare extends Statement {
   void visit(Harness h) {
     String irName;
     List<Kind> argKinds;
+    List<String> names = const [];
     var initializer = this.initializer;
-    if (initializer == null) {
+    if (isLate) {
+      // Late declarations are not allowed using patterns, so interpret the
+      // declaration as an old-fashioned variable declaration.
+      var pattern = this.pattern as VariablePattern;
+      var variable = pattern.variable;
+      h.irBuilder.atom(variable.name, Kind.variable, location: location);
+      var declaredType = pattern.declaredType;
+      Type staticType;
+      if (initializer == null) {
+        // Use the shared logic for analyzing uninitialized variable
+        // declarations.
+        staticType = h.typeAnalyzer.analyzeUninitializedVariableDeclaration(
+            this, pattern.variable, pattern.declaredType,
+            isFinal: isFinal);
+        irName = 'declare';
+        argKinds = [Kind.variable];
+      } else {
+        // There's no shared logic for analyzing initialized late variable
+        // declarations, so analyze the declaration directly.
+        h.flow.lateInitializer_begin(this);
+        var initializerType =
+            h.typeAnalyzer.analyzeExpression(initializer, declaredType);
+        h.flow.lateInitializer_end();
+        staticType = variable.type = declaredType ?? initializerType;
+        h.flow.declare(variable, staticType, initialized: true);
+        h.flow.initialize(variable, initializerType, initializer,
+            isFinal: isFinal,
+            isLate: true,
+            isImplicitlyTyped: declaredType == null);
+        h.irBuilder.atom(initializerType.type, Kind.type, location: location);
+        h.irBuilder.atom(staticType.type, Kind.type, location: location);
+        irName = 'declare';
+        argKinds = [Kind.variable, Kind.expression, Kind.type, Kind.type];
+        names = (['initializerType', 'staticType']);
+      }
+      // Finally, double check the inferred variable type, if necessary for the
+      // test.
+      var expectInferredType = pattern.expectInferredType;
+      if (expectInferredType != null) {
+        expect(staticType, expectInferredType);
+      }
+    } else if (initializer == null) {
       var pattern = this.pattern as VariablePattern;
       var staticType = h.typeAnalyzer.analyzeUninitializedVariableDeclaration(
           this, pattern.variable, pattern.declaredType,
-          isFinal: isFinal, isLate: isLate);
+          isFinal: isFinal);
       h.typeAnalyzer.handleDeclaredVariablePattern(pattern,
           matchedType: staticType, staticType: staticType);
       irName = 'declare';
@@ -1059,7 +1101,7 @@ class Declare extends Statement {
     } else {
       h.typeAnalyzer.analyzePatternVariableDeclaration(
           this, pattern, initializer,
-          isFinal: isFinal, isLate: isLate);
+          isFinal: isFinal);
       irName = 'match';
       argKinds = [Kind.expression, Kind.pattern];
     }
@@ -1067,7 +1109,8 @@ class Declare extends Statement {
         [irName, if (isLate) 'late', if (isFinal) 'final'].join('_'),
         argKinds,
         Kind.statement,
-        location: location);
+        location: location,
+        names: names);
   }
 }
 
@@ -2375,6 +2418,9 @@ class MiniAstOperations
 
   final TypeSystem _typeSystem = TypeSystem();
 
+  @override
+  final Type boolType = Type('bool');
+
   bool get legacy => _legacy ?? false;
 
   set legacy(bool value) {
@@ -3203,6 +3249,9 @@ class Property extends PromotableLValue {
       {_LValueDisposition disposition = _LValueDisposition.read}) {
     target.preVisit(visitor);
   }
+
+  @override
+  String toString() => '$target.$propertyName';
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
@@ -4271,11 +4320,6 @@ class _MiniAstErrors
   }
 
   @override
-  void patternDoesNotAllowLate({required Node pattern}) {
-    _recordError('patternDoesNotAllowLate', {'pattern': pattern});
-  }
-
-  @override
   void patternForInExpressionIsNotIterable({
     required Node node,
     required Expression expression,
@@ -4486,7 +4530,7 @@ class _MiniAstTypeAnalyzer
       flow.logicalBinaryOp_begin();
     }
     var leftType = analyzeExpression(lhs, unknownType);
-    EqualityInfo<Type>? leftInfo;
+    ExpressionInfo<Type>? leftInfo;
     if (isEquals) {
       leftInfo = flow.equalityOperand_end(lhs, leftType);
     } else if (isLogical) {
@@ -4524,11 +4568,11 @@ class _MiniAstTypeAnalyzer
     analyzeExpression(condition, unknownType);
     flow.conditional_thenBegin(condition, node);
     var ifTrueType = analyzeExpression(ifTrue, unknownType);
-    flow.conditional_elseBegin(ifTrue);
+    flow.conditional_elseBegin(ifTrue, ifTrueType);
     var ifFalseType = analyzeExpression(ifFalse, unknownType);
-    flow.conditional_end(node, ifFalse);
-    return new SimpleTypeAnalysisResult<Type>(
-        type: leastUpperBound(ifTrueType, ifFalseType));
+    var lubType = leastUpperBound(ifTrueType, ifFalseType);
+    flow.conditional_end(node, lubType, ifFalse, ifFalseType);
+    return new SimpleTypeAnalysisResult<Type>(type: lubType);
   }
 
   void analyzeContinueStatement(Statement? target) {
@@ -4580,7 +4624,7 @@ class _MiniAstTypeAnalyzer
   }
 
   SimpleTypeAnalysisResult<Type> analyzeNullLiteral(Expression node) {
-    flow.nullLiteral(node);
+    flow.nullLiteral(node, nullType);
     return new SimpleTypeAnalysisResult<Type>(type: nullType);
   }
 
@@ -4608,7 +4652,7 @@ class _MiniAstTypeAnalyzer
 
   SimpleTypeAnalysisResult<Type> analyzeThis(Expression node) {
     var thisType = this.thisType;
-    flow.thisOrSuper(node, thisType);
+    flow.thisOrSuper(node, thisType, isSuper: false);
     return new SimpleTypeAnalysisResult<Type>(type: thisType);
   }
 

@@ -6,11 +6,11 @@ import "dart:core" as core;
 [231]  #L1:
 [231]  {
 [239]    [239] final synthesized dynamic #0#0 = [239] [239] o;
-[-1]    [-1] late final synthesized core::int #0#2 = [253] [253] [239] [239] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]    [-1] late final synthesized core::int #0#2 = [253] [253] [239]([239] [239] [239] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]    [-1] late final synthesized core::bool #0#4 = [253] [253] [-1] [-1] #0#2 =={core::num::==}{(core::Object) → core::bool} [253] [253] #C1;
-[-1]    [-1] late final synthesized dynamic #0#6 = [253] [253] [239] [239] #0#0{core::List<dynamic>}.{core::List::[]}[253]([253] 0){(core::int) → dynamic};
+[-1]    [-1] late final synthesized dynamic #0#6 = [253] [253] [239]([239] [239] [239] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}[253]([253] 0){(core::int) → dynamic};
 [-1]    [-1] late final synthesized core::bool #0#8 = [282] [282] [-1] [-1] #0#2 =={core::num::==}{(core::Object) → core::bool} [282] [282] #C2;
-[-1]    [-1] late final synthesized dynamic #0#10 = [282] [282] [239] [239] #0#0{core::List<dynamic>}.{core::List::[]}[282]([282] 1){(core::int) → dynamic};
+[-1]    [-1] late final synthesized dynamic #0#10 = [282] [282] [239]([239] [239] [239] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}[282]([282] 1){(core::int) → dynamic};
 [-1]    [-1] dynamic #t1;
 [248]    {
 [258]      [258] lowered hoisted dynamic a#case#0;

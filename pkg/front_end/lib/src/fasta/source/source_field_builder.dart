@@ -1612,7 +1612,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           dummyName,
           ProcedureKind.Method,
           new FunctionNode(null, positionalParameters: [
-            new VariableDeclaration(syntheticThisName)..fileOffset
+            new VariableDeclaration(syntheticThisName)
+              ..fileOffset = charOffset
+              ..isLowered = true
           ]),
           isAbstractFieldAccessor: isAbstract,
           fileUri: fileUri,
@@ -1633,7 +1635,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
             ProcedureKind.Method,
             new FunctionNode(null,
                 positionalParameters: [
-                  new VariableDeclaration(syntheticThisName)..fileOffset,
+                  new VariableDeclaration(syntheticThisName)
+                    ..fileOffset = charOffset
+                    ..isLowered = true,
                   parameter
                 ],
                 returnType: const VoidType())

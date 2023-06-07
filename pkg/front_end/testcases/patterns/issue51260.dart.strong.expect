@@ -6,8 +6,8 @@ static method foo(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#10 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#10 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
     dynamic #t1;
     {
       lowered hoisted core::int a#case#0;

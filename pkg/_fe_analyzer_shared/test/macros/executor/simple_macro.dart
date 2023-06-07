@@ -219,7 +219,7 @@ class SimpleMacro
           // TODO: Compare against actual `int` type.
           if (field.isFinal &&
               (field.type as NamedTypeAnnotation).identifier.name == 'int')
-            Code.fromParts([field.identifier, ' = ${myInt!}']),
+            RawCode.fromParts([field.identifier, ' = ${myInt!}']),
       ],
     );
   }

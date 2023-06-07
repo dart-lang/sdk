@@ -1892,6 +1892,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (node.isForNonNullableByDefault) {
       flags.add('ForNonNullableByDefault');
     }
+    if (node.isUnchecked) {
+      flags.add('Unchecked');
+    }
     writeSpaced(flags.isNotEmpty ? 'as{${flags.join(',')}}' : 'as');
     writeType(node.type);
   }
@@ -2771,7 +2774,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitInterfaceType(InterfaceType node) {
-    writeClassReferenceFromReference(node.className);
+    writeClassReferenceFromReference(node.classReference);
     if (node.typeArguments.isNotEmpty) {
       writeSymbol('<');
       writeList(node.typeArguments, writeType);

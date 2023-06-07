@@ -467,7 +467,7 @@ class _ArgumentEvaluation {
   }
 }
 
-class _IdentifierResolver extends macro.IdentifierResolver {
+class _IdentifierResolver implements macro.IdentifierResolver {
   final LinkedElementFactory elementFactory;
   final DeclarationBuilder declarationBuilder;
 
@@ -556,7 +556,7 @@ class _MacroTargetElementCollector extends GeneralizingElementVisitor<void> {
   }
 }
 
-class _StaticTypeImpl extends macro.StaticType {
+class _StaticTypeImpl implements macro.StaticType {
   final TypeSystemImpl typeSystem;
   final DartType type;
 

@@ -210,12 +210,21 @@ void Page::VisitRememberedCards(ObjectPointerVisitor* visitor) {
       obj->untag()->to(Smi::Value(obj->untag()->length()));
   uword heap_base = obj.heap_base();
 
-  const intptr_t size = card_table_size();
+  const size_t size_in_bits = card_table_size();
+  const size_t size_in_words =
+      Utils::RoundUp(size_in_bits, kBitsPerWord) >> kBitsPerWordLog2;
   for (;;) {
-    intptr_t i = progress_bar_.fetch_add(1);
-    if (i >= size) break;
+    const size_t word_offset = progress_bar_.fetch_add(1);
+    if (word_offset >= size_in_words) break;
 
-    if (card_table_[i] != 0) {
+    uword cell = card_table_[word_offset];
+    if (cell == 0) continue;
+
+    for (intptr_t bit_offset = 0; bit_offset < kBitsPerWord; bit_offset++) {
+      const uword bit_mask = static_cast<uword>(1) << bit_offset;
+      if ((cell & bit_mask) == 0) continue;
+      const intptr_t i = (word_offset << kBitsPerWordLog2) + bit_offset;
+
       CompressedObjectPtr* card_from =
           reinterpret_cast<CompressedObjectPtr*>(this) +
           (i << kSlotsPerCardLog2);
@@ -243,11 +252,11 @@ void Page::VisitRememberedCards(ObjectPointerVisitor* visitor) {
           break;
         }
       }
-
       if (!has_new_target) {
-        card_table_[i] = 0;
+        cell ^= bit_mask;
       }
     }
+    card_table_[word_offset] = cell;
   }
 }
 

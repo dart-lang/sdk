@@ -1252,7 +1252,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
       // Forcefully create the matched expression so it is included even when
       // no cases read it.
-      matchedExpression.createExpression(typeEnvironment);
+      matchedExpression.createExpression(typeEnvironment,
+          inCacheInitializer: false);
 
       // TODO(johnniwinther): Remove this when an error is reported in case of
       // variables and labels on the same switch case.
@@ -1311,8 +1312,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
           DelayedExpression matchingExpression =
               matchingExpressions[caseIndex][headIndex];
-          Expression headCondition =
-              matchingExpression.createExpression(typeEnvironment);
+          Expression headCondition = matchingExpression
+              .createExpression(typeEnvironment, inCacheInitializer: false);
           if (guard != null) {
             headCondition = createAndExpression(headCondition, guard,
                 fileOffset: guard.fileOffset);
@@ -1656,9 +1657,11 @@ class ConstantsTransformer extends RemovingTransformer {
 
     // Forcefully create the matched expression so it is included even when
     // matching expression doesn't read it.
-    matchedExpression.createExpression(typeEnvironment);
+    matchedExpression.createExpression(typeEnvironment,
+        inCacheInitializer: false);
 
-    Expression condition = matchingExpression.createExpression(typeEnvironment);
+    Expression condition = matchingExpression.createExpression(typeEnvironment,
+        inCacheInitializer: false);
     Expression? guard = node.patternGuard.guard;
     if (guard != null) {
       condition =
@@ -1708,10 +1711,11 @@ class ConstantsTransformer extends RemovingTransformer {
 
     // Forcefully create the matched expression so it is included even when
     // the matching expression doesn't read it.
-    matchedExpression.createExpression(typeEnvironment);
+    matchedExpression.createExpression(typeEnvironment,
+        inCacheInitializer: false);
 
-    Expression readMatchingExpression =
-        matchingExpression.createExpression(typeEnvironment);
+    Expression readMatchingExpression = matchingExpression
+        .createExpression(typeEnvironment, inCacheInitializer: false);
 
     List<Statement> replacementStatements = [
       ...matchingCache.declarations,
@@ -1768,11 +1772,13 @@ class ConstantsTransformer extends RemovingTransformer {
     matchedExpression.registerUse();
     matchingExpression.registerUse();
 
-    Expression readMatchedExpression =
-        matchedExpression.createExpression(typeEnvironment);
+    Expression readMatchedExpression = matchedExpression
+        .createExpression(typeEnvironment, inCacheInitializer: false);
     List<Expression> effects = [];
-    Expression readMatchingExpression =
-        matchingExpression.createExpression(typeEnvironment, effects);
+    Expression readMatchingExpression = matchingExpression.createExpression(
+        typeEnvironment,
+        effects: effects,
+        inCacheInitializer: false);
 
     List<Statement> replacementStatements = [
       ...node.pattern.declaredVariables,
@@ -1984,7 +1990,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
       // Forcefully create the matched expression so it is included even when
       // no cases read it.
-      matchedExpression.createExpression(typeEnvironment);
+      matchedExpression.createExpression(typeEnvironment,
+          inCacheInitializer: false);
 
       for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
         SwitchExpressionCase switchCase = node.cases[caseIndex];
@@ -1995,8 +2002,8 @@ class ConstantsTransformer extends RemovingTransformer {
         Expression? guard = patternGuard.guard;
 
         DelayedExpression matchingExpression = matchingExpressions[caseIndex];
-        Expression caseCondition =
-            matchingExpression.createExpression(typeEnvironment);
+        Expression caseCondition = matchingExpression
+            .createExpression(typeEnvironment, inCacheInitializer: false);
         if (guard != null) {
           caseCondition = createAndExpression(caseCondition, guard,
               fileOffset: guard.fileOffset);
@@ -2089,9 +2096,12 @@ class ConstantsTransformer extends RemovingTransformer {
       return evaluateAndTransformWithContext(node, node);
     } else {
       // A record literal is a compile-time constant expression if and only
-      // if all its field expressions are compile-time constant expressions.
+      // if all its field expressions are compile-time constant expressions. If
+      // any of its field expressions are unevaluated constants then the entire
+      // record is an unevaluated constant.
 
       bool allConstant = true;
+      bool hasUnevaluated = false;
 
       List<Constant> positional = [];
 
@@ -2100,6 +2110,9 @@ class ConstantsTransformer extends RemovingTransformer {
         node.positional[i] = result..parent = node;
         if (allConstant && result is ConstantExpression) {
           positional.add(result.constant);
+          if (result.constant is UnevaluatedConstant) {
+            hasUnevaluated = true;
+          }
         } else {
           allConstant = false;
         }
@@ -2111,18 +2124,61 @@ class ConstantsTransformer extends RemovingTransformer {
         expression.value = result..parent = expression;
         if (allConstant && result is ConstantExpression) {
           named[expression.name] = result.constant;
+          if (result.constant is UnevaluatedConstant) {
+            hasUnevaluated = true;
+          }
         } else {
           allConstant = false;
         }
       }
 
       if (allConstant) {
-        Constant constant = constantEvaluator.canonicalize(
-            new RecordConstant(positional, named, node.recordType));
-        return makeConstantExpression(constant, node);
+        if (hasUnevaluated) {
+          return makeConstantExpression(new UnevaluatedConstant(node), node);
+        } else {
+          Constant constant = constantEvaluator.canonicalize(
+              new RecordConstant(positional, named, node.recordType));
+          return makeConstantExpression(constant, node);
+        }
       }
       return node;
     }
+  }
+
+  @override
+  TreeNode visitStringConcatenation(
+      StringConcatenation node, TreeNode? removalSentinel) {
+    bool allConstant = true;
+    for (int index = 0; index < node.expressions.length; index++) {
+      Expression expression = node.expressions[index];
+      Expression result = transform(expression);
+      node.expressions[index] = result..parent = node;
+      if (allConstant) {
+        if (result is ConstantExpression) {
+          DartType staticType = result.type;
+          if (staticType is NullType ||
+              staticType is InterfaceType &&
+                  (staticType.classReference ==
+                          typeEnvironment.coreTypes.boolClass.reference ||
+                      staticType.classReference ==
+                          typeEnvironment.coreTypes.intClass.reference ||
+                      staticType.classReference ==
+                          typeEnvironment.coreTypes.doubleClass.reference ||
+                      staticType.classReference ==
+                          typeEnvironment.coreTypes.stringClass.reference)) {
+            // Ok
+          } else {
+            allConstant = false;
+          }
+        } else if (result is! BasicLiteral) {
+          allConstant = false;
+        }
+      }
+    }
+    if (allConstant) {
+      return evaluateAndTransformWithContext(node, node);
+    }
+    return node;
   }
 
   @override

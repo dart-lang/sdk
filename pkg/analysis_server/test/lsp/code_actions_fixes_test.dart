@@ -572,7 +572,7 @@ Future foo;''';
     final fixAction = findEditAction(
         codeActions,
         CodeActionKind('quickfix.ignore.file'),
-        "Ignore 'unused_import' for this file")!;
+        "Ignore 'unused_import' for the whole file")!;
 
     // Ensure applying the changes will give us the expected content.
     final contents = {

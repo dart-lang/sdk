@@ -19,6 +19,7 @@ void applyMixin(@notNull Object to, @notNull Object from) {
   var fromProto = JS<Object>('!', '#.prototype', from);
   _copyMembers(toProto, fromProto);
   _mixinSignature(to, from, _methodSig);
+  _mixinSignature(to, from, _methodsDefaultTypeArgSig);
   _mixinSignature(to, from, _fieldSig);
   _mixinSignature(to, from, _getterSig);
   _mixinSignature(to, from, _setterSig);

@@ -11012,7 +11012,7 @@ class Catch extends TreeNode {
         return true;
       }
       if (type is InterfaceType &&
-          type.className.node != null &&
+          type.classReference.node != null &&
           type.classNode.name == 'Object') {
         Uri uri = type.classNode.enclosingLibrary.importUri;
         return uri.isScheme('dart') &&
@@ -11591,7 +11591,7 @@ abstract class Name extends Node {
   final int hashCode;
 
   final String text;
-  Reference? get libraryName;
+  Reference? get libraryReference;
   Library? get library;
   bool get isPrivate;
 
@@ -11648,14 +11648,14 @@ abstract class Name extends Node {
 
 class _PrivateName extends Name {
   @override
-  final Reference libraryName;
+  final Reference libraryReference;
 
   @override
   bool get isPrivate => true;
 
-  _PrivateName(String text, Reference libraryName)
-      : this.libraryName = libraryName,
-        super._internal(_computeHashCode(text, libraryName), text);
+  _PrivateName(String text, Reference libraryReference)
+      : this.libraryReference = libraryReference,
+        super._internal(_computeHashCode(text, libraryReference), text);
 
   @override
   String toString() => toStringInternal();
@@ -11666,19 +11666,20 @@ class _PrivateName extends Name {
       library != null ? '$library::$text' : text;
 
   @override
-  Library get library => libraryName.asLibrary;
+  Library get library => libraryReference.asLibrary;
 
-  static int _computeHashCode(String name, Reference libraryName) {
-    // TODO(cstefantsova): Factor in [libraryName] in a non-deterministic way
-    // into the result.  Note, the previous code here was the following:
-    //     return 131 * name.hashCode + 17 * libraryName.asLibrary._libraryId;
+  static int _computeHashCode(String name, Reference libraryReference) {
+    // TODO(cstefantsova): Factor in [libraryReference] in a non-deterministic
+    // way into the result.  Note, the previous code here was the following:
+    //     return 131 * name.hashCode + 17 *
+    //         libraryReference.asLibrary._libraryId;
     return name.hashCode;
   }
 }
 
 class _PublicName extends Name {
   @override
-  Reference? get libraryName => null;
+  Reference? get libraryReference => null;
 
   @override
   Library? get library => null;
@@ -12102,7 +12103,7 @@ class NullType extends DartType {
 }
 
 class InterfaceType extends DartType {
-  final Reference className;
+  final Reference classReference;
 
   @override
   final Nullability declaredNullability;
@@ -12117,11 +12118,11 @@ class InterfaceType extends DartType {
             typeArguments ?? _defaultTypeArguments(classNode));
 
   InterfaceType.byReference(
-      this.className, this.declaredNullability, this.typeArguments)
+      this.classReference, this.declaredNullability, this.typeArguments)
       // ignore: unnecessary_null_comparison
       : assert(declaredNullability != null);
 
-  Class get classNode => className.asClass;
+  Class get classNode => classReference.asClass;
 
   @override
   Nullability get nullability => declaredNullability;
@@ -12160,7 +12161,7 @@ class InterfaceType extends DartType {
     if (identical(this, other)) return true;
     if (other is InterfaceType) {
       if (nullability != other.nullability) return false;
-      if (className != other.className) return false;
+      if (classReference != other.classReference) return false;
       if (typeArguments.length != other.typeArguments.length) return false;
       for (int i = 0; i < typeArguments.length; ++i) {
         if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {
@@ -12175,7 +12176,7 @@ class InterfaceType extends DartType {
 
   @override
   int get hashCode {
-    int hash = 0x3fffffff & className.hashCode;
+    int hash = 0x3fffffff & classReference.hashCode;
     for (int i = 0; i < typeArguments.length; ++i) {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
@@ -12189,7 +12190,7 @@ class InterfaceType extends DartType {
     return declaredNullability == this.declaredNullability
         ? this
         : new InterfaceType.byReference(
-            className, declaredNullability, typeArguments);
+            classReference, declaredNullability, typeArguments);
   }
 
   @override
@@ -12199,7 +12200,7 @@ class InterfaceType extends DartType {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeClassName(className, forType: true);
+    printer.writeClassName(classReference, forType: true);
     printer.writeTypeArguments(typeArguments);
     printer.writeNullability(declaredNullability);
   }
@@ -12643,8 +12644,8 @@ class ExtensionType extends DartType {
   }
 
   static DartType _computeOnType(
-      Reference extensionName, List<DartType> typeArguments) {
-    Extension extensionNode = extensionName.asExtension;
+      Reference extensionReference, List<DartType> typeArguments) {
+    Extension extensionNode = extensionReference.asExtension;
     if (extensionNode.typeParameters.isEmpty) {
       return extensionNode.onType;
     } else {

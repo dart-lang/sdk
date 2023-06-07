@@ -365,11 +365,15 @@ typedef enum {
  *     type |Dart_Timeline_Event_Async_Begin|, |Dart_Timeline_Event_Async_End|,
  *     or |Dart_Timeline_Event_Async_Instant|, the async ID associated with the
  *     event should be passed through |timestamp1_or_id|. When reporting an
- *     event of type |Dart_Timeline_Event_Begin| or |Dart_Timeline_Event_End|,
- *     the event ID associated with the event should be passed through
- *     |timestamp1_or_id|. Note that this event ID will only be used by the
- *     MacOS recorder. The argument to |timestamp1_or_id| will not be used when
- *     reporting events of other types.
+ *     event of type |Dart_Timeline_Event_Flow_Begin|,
+ *     |Dart_Timeline_Event_Flow_Step|, or |Dart_Timeline_Event_Flow_End|, the
+ *     flow ID associated with the event should be passed through
+ *     |timestamp1_or_id|. When reporting an event of type
+ *     |Dart_Timeline_Event_Begin| or |Dart_Timeline_Event_End|, the event ID
+ *     associated with the event should be passed through |timestamp1_or_id|.
+ *     Note that this event ID will only be used by the MacOS recorder. The
+ *     argument to |timestamp1_or_id| will not be used when reporting events of
+ *     other types.
  * \param argument_count The number of argument names and values.
  * \param argument_names An array of names of the arguments. The lifetime of the
  *     names must extend at least until Dart_Cleanup. The array may be reclaimed
@@ -414,8 +418,8 @@ typedef struct {
 
   /**
    * For a duration event, this is the end time. For an async event, this is the
-   * async ID. For a begin or end event, this is the event ID (which is only
-   * referenced by the MacOS recorder).
+   * async ID. For a flow event, this is the flow ID. For a begin or end event,
+   * this is the event ID (which is only referenced by the MacOS recorder).
    */
   int64_t timestamp1_or_id;
 

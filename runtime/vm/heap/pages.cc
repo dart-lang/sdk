@@ -320,7 +320,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
                                         bool is_exec,
                                         GrowthPolicy growth_policy,
                                         bool is_locked) {
-  ASSERT(Heap::IsAllocatableViaFreeLists(size));
+  ASSERT(IsAllocatableViaFreeLists(size));
 
   if (growth_policy != kForceGrowth) {
     ASSERT(!Thread::Current()->force_growth());
@@ -362,7 +362,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
 uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
                                              bool is_exec,
                                              GrowthPolicy growth_policy) {
-  ASSERT(!Heap::IsAllocatableViaFreeLists(size));
+  ASSERT(!IsAllocatableViaFreeLists(size));
 
   if (growth_policy != kForceGrowth) {
     ASSERT(!Thread::Current()->force_growth());
@@ -403,7 +403,7 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword result = 0;
-  if (Heap::IsAllocatableViaFreeLists(size)) {
+  if (IsAllocatableViaFreeLists(size)) {
     if (is_locked) {
       result = freelist->TryAllocateLocked(size, is_protected);
     } else {
@@ -1216,18 +1216,17 @@ uword PageSpace::TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 
+  if (!IsAllocatableViaFreeLists(size)) {
+    return TryAllocateDataLocked(freelist, size, kForceGrowth);
+  }
+
   intptr_t remaining = freelist->end() - freelist->top();
   if (UNLIKELY(remaining < size)) {
-    // Checking this first would be logical, but needlessly slow.
-    if (!Heap::IsAllocatableViaFreeLists(size)) {
-      return TryAllocateDataLocked(freelist, size, kForceGrowth);
-    }
     FreeListElement* block = freelist->TryAllocateLargeLocked(size);
     if (block == nullptr) {
       // Allocating from a new page (if growth policy allows) will have the
       // side-effect of populating the freelist with a large block. The next
       // bump allocation request will have a chance to consume that block.
-      // TODO(koda): Could take freelist lock just once instead of twice.
       return TryAllocateInFreshPage(size, freelist, false /* exec */,
                                     kForceGrowth, true /* is_locked*/);
     }
@@ -1265,13 +1264,12 @@ uword PageSpace::TryAllocatePromoLockedSlow(FreeList* freelist, intptr_t size) {
   return TryAllocateDataBumpLocked(freelist, size);
 }
 
-ObjectPtr PageSpace::AllocateSnapshot(intptr_t size) {
-  ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  uword address = TryAllocateDataBumpLocked(size);
-  if (address == 0) {
-    OUT_OF_MEMORY();
+uword PageSpace::AllocateSnapshotLockedSlow(FreeList* freelist, intptr_t size) {
+  uword result = TryAllocateDataBumpLocked(freelist, size);
+  if (result != 0) {
+    return result;
   }
-  return UntaggedObject::FromAddr(address);
+  OUT_OF_MEMORY();
 }
 
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {

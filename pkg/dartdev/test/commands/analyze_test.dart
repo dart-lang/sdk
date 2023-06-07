@@ -485,7 +485,7 @@ void f() {
   "packages": [
     {
       "name": "foo",
-      "rootUri": "file://${foo.dirPath}",
+      "rootUri": "${Uri.file(foo.dirPath)}",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     }

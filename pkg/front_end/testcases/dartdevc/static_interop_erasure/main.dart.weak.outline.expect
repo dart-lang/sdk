@@ -18,10 +18,9 @@ import "package:js/js.dart";
 @#C4
 @#C5
 class StaticJSClass extends core::Object {
-  static factory •() → self2::StaticJSClass
-    return js_::_callConstructorUnchecked0<self2::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(js_::globalThis, "JSClass"));
+  external static factory •() → self2::StaticJSClass;
   static method _#new#tearOff() → self2::StaticJSClass
-    return self2::StaticJSClass::•();
+    return js_::_callConstructorUnchecked0<self2::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(js_::globalThis, "JSClass"));
   static factory factory() → self2::StaticJSClass
     ;
   static method _#factory#tearOff() → self2::StaticJSClass

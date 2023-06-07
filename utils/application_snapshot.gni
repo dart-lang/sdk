@@ -11,10 +11,10 @@ _dart_root = get_path_info("..", "abspath")
 declare_args() {
   # Default to building app-jit snapshots. The simulator and cross builds
   # override this to script snapshots to cut down on build time.
-  if (target_cpu != host_cpu) {
-    dart_snapshot_kind = "kernel"
-  } else {
+  if (dart_target_arch == target_cpu && target_cpu == host_cpu) {
     dart_snapshot_kind = "app-jit"
+  } else {
+    dart_snapshot_kind = "kernel"
   }
 }
 

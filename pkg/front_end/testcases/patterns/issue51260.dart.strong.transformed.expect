@@ -7,10 +7,10 @@ static method foo(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     function ##0#6#initializer() → dynamic
-      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     function ##0#10#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
     late final synthesized dynamic #0#10 = ##0#10#initializer(){() → dynamic};
     dynamic #t1;
     {
@@ -40,4 +40,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///issue51260.dart:8:14 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 49, effectively constant: 1
+Extra constant evaluation: evaluated: 51, effectively constant: 1

@@ -13,35 +13,16 @@ external void topLevel({JSNumber named});
 
 @JS()
 inline class Inline {
-  external Inline({JSNumber named});
-  //                        ^
-  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
+  final JSObject obj;
   external Inline.positionalNamed(JSNumber positional, {JSNumber named});
-  //                                                             ^
-  // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
+  //                                       ^
+  // [web] Object literal constructors should not contain any positional parameters.
   external static void staticMethod({JSNumber named});
   //                                          ^
   // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
   external void method({JSNumber named});
   //                             ^
   // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
-  @ObjectLiteral()
-  external Inline.positionalLiteral(JSNumber positional);
-  //                                         ^
-  // [web] Object literal constructors should not contain any positional parameters.
-  @ObjectLiteral()
-  external Inline.optionalLiteral([JSNumber optional]);
-  //                                        ^
-  // [web] Object literal constructors should not contain any positional parameters.
-  @ObjectLiteral()
-  external Inline.positionalOptionalLiteral(JSNumber positional,
-      //                                             ^
-      // [web] Object literal constructors should not contain any positional parameters.
-      [JSNumber optional]);
-  @ObjectLiteral()
-  external Inline.positionalNamedLiteral(JSNumber positional, {JSNumber named});
-  //                                              ^
-  // [web] Object literal constructors should not contain any positional parameters.
 }
 
 extension on Inline {

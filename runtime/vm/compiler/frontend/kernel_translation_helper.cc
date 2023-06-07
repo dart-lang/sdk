@@ -2244,6 +2244,7 @@ void KernelReaderHelper::SkipDartType() {
     case kInvalidType:
     case kDynamicType:
     case kVoidType:
+    case kNullType:
       // those contain nothing.
       return;
     case kNeverType:
@@ -2292,6 +2293,10 @@ void KernelReaderHelper::SkipDartType() {
       SkipDartType();  // read left.
       SkipDartType();  // read right.
       return;
+    case kFutureOrType:
+      ReadNullability();
+      SkipDartType();  // read type argument.
+      break;
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();
@@ -3205,6 +3210,9 @@ void TypeTranslator::BuildTypeInternal() {
                     .ToNullability(nullability, Heap::kOld);
       break;
     }
+    case kNullType:
+      result_ = IG->object_store()->null_type();
+      break;
     case kInterfaceType:
       BuildInterfaceType(false);
       break;
@@ -3228,6 +3236,9 @@ void TypeTranslator::BuildTypeInternal() {
       break;
     case kInlineType:
       BuildInlineType();
+      break;
+    case kFutureOrType:
+      BuildFutureOrType();
       break;
     default:
       helper_->ReportUnexpectedTag("type", tag);
@@ -3268,6 +3279,27 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       helper_->ReadListLength();  // read type_arguments list length.
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
+  result_ = Type::New(klass, type_arguments, nullability);
+  result_ = result_.NormalizeFutureOrType(Heap::kOld);
+  if (finalize_) {
+    result_ = ClassFinalizer::FinalizeType(result_);
+  }
+}
+
+void TypeTranslator::BuildFutureOrType() {
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
+    nullability = Nullability::kLegacy;
+  }
+
+  const TypeArguments& type_arguments =
+      TypeArguments::Handle(Z, TypeArguments::New(1));
+  BuildTypeInternal();  // read type argument.
+  type_arguments.SetTypeAt(0, result_);
+
+  const Class& klass = Class::Handle(Z, IG->object_store()->future_or_class());
+  ASSERT(!klass.IsNull());
+
   result_ = Type::New(klass, type_arguments, nullability);
   result_ = result_.NormalizeFutureOrType(Heap::kOld);
   if (finalize_) {

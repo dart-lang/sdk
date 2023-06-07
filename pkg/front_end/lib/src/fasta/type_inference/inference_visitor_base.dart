@@ -393,7 +393,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeContext = type.typeArgument;
     }
     return typeContext is InterfaceType &&
-        typeContext.className == coreTypes.doubleClass.reference;
+        typeContext.classReference == coreTypes.doubleClass.reference;
   }
 
   bool isAssignable(DartType contextType, DartType expressionType) =>
@@ -1908,7 +1908,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               : legacyErasure(inferredFormalType));
     }
 
-    List<EqualityInfo<DartType>?>? identicalInfo =
+    List<ExpressionInfo<DartType>?>? identicalInfo =
         isIdentical && arguments.positional.length == 2 ? [] : null;
     int positionalIndex = 0;
     int namedIndex = 0;
@@ -3999,7 +3999,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     if (contextType is FunctionType) return true;
     if (contextType is InterfaceType &&
-        contextType.className ==
+        contextType.classReference ==
             typeSchemaEnvironment.functionClass.reference) {
       if (!typeSchemaEnvironment.isSubtypeOf(expressionType, contextType,
           SubtypeCheckMode.ignoringNullabilities)) {
@@ -4015,7 +4015,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     if (contextType is FunctionType) return true;
     if (contextType is InterfaceType &&
-        contextType.className ==
+        contextType.classReference ==
             typeSchemaEnvironment.functionClass.reference) {
       return true;
     }

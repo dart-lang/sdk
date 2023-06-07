@@ -70,7 +70,9 @@ class VirtualMemory {
   // Assumes
   //   * `this` has RX protection.
   //   * `target` has RW protection, and is at least as large as `this`.
+#if !defined(DART_TARGET_OS_FUCHSIA)
   bool DuplicateRX(VirtualMemory* target);
+#endif  // !defined(DART_TARGET_OS_FUCHSIA)
 
   // Returns the cached page size. Use only if Init() has been called.
   static intptr_t PageSize() {

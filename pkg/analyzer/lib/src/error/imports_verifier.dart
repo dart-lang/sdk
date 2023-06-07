@@ -64,6 +64,12 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    _recordIfExtensionMember(node.element);
+    super.visitPatternField(node);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     _recordAssignmentTarget(node, node.operand);
     return super.visitPostfixExpression(node);

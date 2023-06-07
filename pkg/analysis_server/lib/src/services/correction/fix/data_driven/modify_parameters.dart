@@ -44,11 +44,8 @@ class AddParameter extends ParameterModification {
 
 /// The type change of a parameter.
 class ChangeParameterType extends ParameterModification {
-  /// The name of the parameter that was changed, used with named parameters.
-  final String? name;
-
-  /// The index of the parameter to be changed, used with positional parameters.
-  final int? index;
+  /// The location of the changed parameter.
+  final ParameterReference reference;
 
   /// The nullability of the parameter.
   final String nullability;
@@ -60,8 +57,11 @@ class ChangeParameterType extends ParameterModification {
   /// preexisting optional positional parameters after the ones being added.
   final CodeTemplate? argumentValue;
 
-  ChangeParameterType(
-      this.name, this.index, this.nullability, this.argumentValue);
+  ChangeParameterType({
+    required this.reference,
+    required this.nullability,
+    required this.argumentValue,
+  });
 }
 
 /// The data related to an executable element whose parameters have been
@@ -119,9 +119,7 @@ class ModifyParameters extends Change<_Data> {
           remainingArguments.remove(index);
         }
       } else if (modification is ChangeParameterType) {
-        var reference = modification.name == null
-            ? PositionalParameterReference(modification.index!)
-            : NamedParameterReference(modification.name!);
+        var reference = modification.reference;
         var argument = reference.argumentFrom(argumentList);
         if (argument == null) {
           // If there is no argument corresponding to the parameter then we assume
@@ -168,9 +166,12 @@ class ModifyParameters extends Change<_Data> {
         DartEditBuilder builder, ChangeParameterType parameter) {
       var argumentValue = parameter.argumentValue;
       if (argumentValue != null) {
-        if (parameter.index == null) {
-          builder.write(parameter.name!);
-          builder.write(': ');
+        switch (parameter.reference) {
+          case NamedParameterReference(:final name):
+            builder.write(name);
+            builder.write(': ');
+          case PositionalParameterReference():
+          // Nothing.
         }
         argumentValue.writeOn(builder, templateContext);
       }

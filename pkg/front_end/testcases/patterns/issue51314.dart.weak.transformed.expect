@@ -15,7 +15,7 @@ static method test() → void {
   {
     final synthesized dynamic #0#0 = <core::Object, core::num?>{"one": 1, 2: 2};
     function ##0#3#initializer() → core::num?
-      return #0#0{core::Map<core::Object, core::num?>}.{core::Map::[]}(#C1){(core::Object?) → core::num?};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::Object, core::num?>).{core::Map::[]}(#C1){(core::Object?) → core::num?};
     late final synthesized core::num? #0#3 = ##0#3#initializer(){() → core::num?};
     if(!(#0#0{core::Map<core::Object, core::num?>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (#0#3 is{ForNonNullableByDefault} core::num? && (let final core::num? #t1 = v1 = #0#3 in true)) && #0#0{core::Map<core::Object, core::num?>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (let final core::num? #t2 = v2 = #0#0{core::Map<core::Object, core::num?>}.{core::Map::[]}(#C2){(core::Object?) → core::num?} in true)))
       throw new core::StateError::•("Pattern matching error");

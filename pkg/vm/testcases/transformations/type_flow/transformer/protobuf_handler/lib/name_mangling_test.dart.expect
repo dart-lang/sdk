@@ -20,38 +20,38 @@ import "dart:core" as $core;
 import "package:protobuf/protobuf.dart" as $pb;
 
 class AKeep extends pro::GeneratedMessage {
-[@vm.inferred-type.metadata=protobuf::BuilderInfo]  static final field pro::BuilderInfo _i = let final pro::BuilderInfo #t1 = new pro::BuilderInfo::•(#C1 ?{core::String} "" : "AKeep", #C2) in block {
-    [@vm.direct-call.metadata=protobuf::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pro::BuilderInfo::hasRequiredFields} = false;
+[@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo]  static final field pro::BuilderInfo _i = let final pro::BuilderInfo #t1 = new pro::BuilderInfo::•(#C1 ?{core::String} "" : "AKeep", #C2) in block {
+    [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pro::BuilderInfo::hasRequiredFields} = false;
   } =>#t1;
   constructor _() → self::AKeep
     : super pro::GeneratedMessage::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get info_() → pro::BuilderInfo
-    return [@vm.inferred-type.metadata=protobuf::BuilderInfo] self::AKeep::_i;
+    return [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo] self::AKeep::_i;
   @#C5
   static method create() → self::AKeep
     return new self::AKeep::_();
 }
 class NameManglingKeep extends pro::GeneratedMessage {
-[@vm.inferred-type.metadata=protobuf::BuilderInfo]  static final field pro::BuilderInfo _i = let final pro::BuilderInfo #t2 = new pro::BuilderInfo::•(#C1 ?{core::String} "" : "NameManglingKeep", #C6) in block {
-    let final core::String #t3 = #C1 ?{core::String} "" : "clone" in [@vm.direct-call.metadata=protobuf::BuilderInfo.aOM] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::aOM}<self::AKeep>(#C2){(core::int, core::String, {protoName: core::String?, required subBuilder: () → self::AKeep}) → void};
-    [@vm.direct-call.metadata=protobuf::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::hasRequiredFields} = false;
+[@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo]  static final field pro::BuilderInfo _i = let final pro::BuilderInfo #t2 = new pro::BuilderInfo::•(#C1 ?{core::String} "" : "NameManglingKeep", #C6) in block {
+    let final core::String #t3 = #C1 ?{core::String} "" : "clone" in [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::BuilderInfo.aOM] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::aOM}<self::AKeep>(#C2){(core::int, core::String, {protoName: core::String?, required subBuilder: () → self::AKeep}) → void};
+    [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::hasRequiredFields} = false;
   } =>#t2;
   constructor _() → self::NameManglingKeep
     : super pro::GeneratedMessage::•()
     ;
   static factory fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<core::int> i) → self::NameManglingKeep
     return let final self::NameManglingKeep #t4 = [@vm.inferred-type.metadata=name_mangling.pb.dart::NameManglingKeep] self::NameManglingKeep::create() in block {
-      [@vm.direct-call.metadata=protobuf::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=!? (skip check)] #t4.{pro::GeneratedMessage::mergeFromBuffer}(i){(core::List<core::int>, [pro::ExtensionRegistry]) → void};
+      [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=!? (skip check)] #t4.{pro::GeneratedMessage::mergeFromBuffer}(i){(core::List<core::int>, [pro::ExtensionRegistry]) → void};
     } =>#t4;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get info_() → pro::BuilderInfo
-    return [@vm.inferred-type.metadata=protobuf::BuilderInfo] self::NameManglingKeep::_i;
+    return [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo] self::NameManglingKeep::_i;
   @#C5
   static method create() → self::NameManglingKeep
     return new self::NameManglingKeep::_();
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  @#C8
   method hasClone_10() → core::bool
-    return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_has] [@vm.inferred-type.metadata=dart.core::bool (skip check)] this.{pro::GeneratedMessage::$_has}(){(core::int) → core::bool};
+    return [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_has] [@vm.inferred-type.metadata=dart.core::bool (skip check)] this.{pro::GeneratedMessage::$_has}(){(core::int) → core::bool};
 }
 constants  {
   #C1 = false

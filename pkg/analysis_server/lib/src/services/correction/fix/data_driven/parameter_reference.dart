@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 
 /// A reference to a named parameter.
-class NamedParameterReference extends ParameterReference {
+final class NamedParameterReference extends ParameterReference {
   /// The name of the named parameter.
   final String name;
 
@@ -28,7 +28,7 @@ class NamedParameterReference extends ParameterReference {
 }
 
 /// A reference to a formal parameter.
-abstract class ParameterReference {
+sealed class ParameterReference {
   /// Return the expression used to compute the value of the referenced
   /// parameter, or `null` if there is no argument corresponding to the
   /// parameter. Note that for named parameters this will be an expression whose
@@ -37,7 +37,7 @@ abstract class ParameterReference {
 }
 
 /// A reference to a positional parameter.
-class PositionalParameterReference extends ParameterReference {
+final class PositionalParameterReference extends ParameterReference {
   /// The index of the positional parameter.
   final int index;
 

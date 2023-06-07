@@ -7,7 +7,7 @@ static method test1() → dynamic {
   {
     final synthesized core::Map<dynamic, dynamic> #0#0 = x;
     function ##0#4#initializer() → core::int?
-      return #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
     late final synthesized core::int? #0#4 = ##0#4#initializer(){() → core::int?};
     if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#4{core::int}) {
       return 1;
@@ -22,7 +22,7 @@ static method test2() → dynamic {
   {
     final synthesized core::Map<dynamic, dynamic> #0#0 = x;
     function ##0#4#initializer() → core::int?
-      return #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
     late final synthesized core::int? #0#4 = ##0#4#initializer(){() → core::int?};
     if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#4{core::int}) {
       return 0;
@@ -49,4 +49,4 @@ constants  {
 Extra constant evaluation status:
 Evaluated: LogicalExpression @ org-dartlang-testcase:///issue50886.dart:7:26 -> BoolConstant(false)
 Evaluated: LogicalExpression @ org-dartlang-testcase:///issue50886.dart:16:26 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 44, effectively constant: 2
+Extra constant evaluation: evaluated: 46, effectively constant: 2

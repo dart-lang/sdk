@@ -778,7 +778,7 @@ class DartFixKind {
   static const IGNORE_ERROR_FILE = FixKind(
     'dart.fix.ignore.file',
     DartFixKindPriority.IGNORE - 1,
-    "Ignore '{0}' for this file",
+    "Ignore '{0}' for the whole file",
   );
   static const IMPORT_ASYNC = FixKind(
     'dart.fix.import.async',

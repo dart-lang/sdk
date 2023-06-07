@@ -373,6 +373,31 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ bx(R4);
 }
 
+void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
+                                            Register dst,
+                                            Register tmp) {
+  compiler::Label skip_reloc;
+  __ b(&skip_reloc);
+  InsertBSSRelocation(relocation);
+  __ Bind(&skip_reloc);
+
+  // For historical reasons, the PC on ARM points 8 bytes (two instructions)
+  // past the current instruction.
+  __ sub(tmp, PC,
+         compiler::Operand(Instr::kPCReadOffset + compiler::target::kWordSize));
+
+  // tmp holds the address of the relocation.
+  __ ldr(dst, compiler::Address(tmp));
+
+  // dst holds the relocation itself: tmp - bss_start.
+  // tmp = tmp + (bss_start - tmp) = bss_start
+  __ add(tmp, tmp, compiler::Operand(dst));
+
+  // tmp holds the start of the BSS section.
+  // Load the "get-thread" routine: *bss_start.
+  __ ldr(dst, compiler::Address(tmp));
+}
+
 void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
     uword function_index,
     Register dst) {
@@ -455,8 +480,22 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ EnterFrame(1 << FP, 0);
     __ ReserveAlignedFrameSpace(0);
 
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, R4,
+                           TMP);
+    } else {
+      Label call;
+      __ ldr(R4, Address(PC, 0));
+      __ b(&call);
+      __ Emit(reinterpret_cast<intptr_t>(&DLRT_GetFfiCallbackMetadata));
+      __ Bind(&call);
+    }
+#else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
 
     __ blx(R4);
     __ mov(THR, Operand(R0));
@@ -1716,16 +1755,23 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     __ cmp(TMP, Operand(0));
     __ b(&remember_card_slow, EQ);
 
-    // Dirty the card.
+    // Dirty the card. Not atomic: we assume mutable arrays are not shared
+    // between threads
+    __ PushList((1 << R0) | (1 << R1));
     __ AndImmediate(TMP, R1, target::kPageMask);     // Page.
     __ sub(R9, R9, Operand(TMP));                    // Offset in page.
+    __ Lsr(R9, R9, Operand(target::Page::kBytesPerCardLog2));  // Card index.
+    __ AndImmediate(R1, R9, target::kBitsPerWord - 1);  // Lsl is not mod 32.
+    __ LoadImmediate(R0, 1);                            // Bit offset.
+    __ Lsl(R0, R0, R1);                                 // Bit mask.
     __ ldr(TMP,
            Address(TMP, target::Page::card_table_offset()));  // Card table.
-    __ add(TMP, TMP,
-           Operand(R9, LSR,
-                   target::Page::kBytesPerCardLog2));  // Card address.
-    __ strb(R1,
-            Address(TMP, 0));  // Low byte of R0 is non-zero from object tag.
+    __ Lsr(R9, R9, Operand(target::kBitsPerWordLog2));        // Word index.
+    __ add(TMP, TMP, Operand(R9, LSL, target::kWordSizeLog2));  // Word address.
+    __ ldr(R1, Address(TMP, 0));
+    __ orr(R1, R1, Operand(R0));
+    __ str(R1, Address(TMP, 0));
+    __ PopList((1 << R0) | (1 << R1));
     __ Ret();
 
     // Card table not yet allocated.

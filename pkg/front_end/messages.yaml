@@ -5488,6 +5488,10 @@ JsInteropExternalExtensionMemberOnTypeInvalid:
   problemMessage: "JS interop or Native class required for 'external' extension members."
   correctionMessage: "Try adding a JS interop annotation to the on type class of the extension."
 
+JsInteropExternalExtensionMemberWithStaticDisallowed:
+  problemMessage: "External extension members with the keyword 'static' on JS interop and @Native types are disallowed."
+  correctionMessage: "Try putting the member in the on-type instead."
+
 JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."

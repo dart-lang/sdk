@@ -181,7 +181,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
       return null;
     } else {
       return new InterfaceType.byReference(
-          node.className,
+          node.classReference,
           newNullability ?? node.nullability,
           newTypeArguments ?? node.typeArguments);
     }

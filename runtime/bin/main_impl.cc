@@ -586,6 +586,16 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
   int64_t start = Dart_TimelineGetMicros();
 
   auto dartdev_path = DartDevIsolate::TryResolveDartDevSnapshotPath();
+  if (dartdev_path.get() == nullptr) {
+    Syslog::PrintErr(
+        "Failed to start the Dart CLI isolate. Could not resolve DartDev "
+        "snapshot or kernel.\n");
+    if (error != nullptr && *error != nullptr) {
+      free(*error);
+      *error = nullptr;
+    }
+    return nullptr;
+  }
 
   Dart_Isolate isolate = nullptr;
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
@@ -593,14 +603,9 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
       core_isolate_snapshot_instructions;
   IsolateGroupData* isolate_group_data = nullptr;
   IsolateData* isolate_data = nullptr;
-
-  if (error != nullptr) {
-    *error = nullptr;
-  }
   AppSnapshot* app_snapshot = nullptr;
   bool isolate_run_app_snapshot = true;
-  if (dartdev_path.get() != nullptr &&
-      (app_snapshot = Snapshot::TryReadAppSnapshot(
+  if ((app_snapshot = Snapshot::TryReadAppSnapshot(
            dartdev_path.get(), /*force_load_elf_from_memory=*/false,
            /*decode_uri=*/false)) != nullptr) {
     const uint8_t* isolate_snapshot_data = nullptr;
@@ -621,27 +626,16 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
   }
 
   if (isolate == nullptr) {
-    isolate_run_app_snapshot = false;
-    dartdev_path = DartDevIsolate::TryResolveDartDevKernelPath();
+    // dartdev_path was not an application snapshot, try it as a kernel file.
     // Clear error from app snapshot and retry from kernel.
     if (error != nullptr && *error != nullptr) {
       free(*error);
       *error = nullptr;
     }
-
+    isolate_run_app_snapshot = false;
     if (app_snapshot != nullptr) {
       delete app_snapshot;
     }
-
-    if (dartdev_path.get() == nullptr) {
-      Syslog::PrintErr(
-          "Failed to start the Dart CLI isolate. Could not resolve DartDev "
-          "snapshot or kernel.\n");
-      delete isolate_data;
-      delete isolate_group_data;
-      return nullptr;
-    }
-
     isolate_group_data =
         new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config, nullptr,
                              isolate_run_app_snapshot);
@@ -849,6 +843,10 @@ static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
   ASSERT(flags != nullptr);
   ASSERT(flags->version == DART_FLAGS_CURRENT_VERSION);
   ASSERT(package_root == nullptr);
+
+  if (error != nullptr) {
+    *error = nullptr;
+  }
 
   bool dontneed_safe = true;
 #if defined(DART_HOST_OS_LINUX)

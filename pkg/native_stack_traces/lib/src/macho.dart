@@ -426,7 +426,7 @@ class MachO extends DwarfContainer {
   final MachOHeader _header;
   final List<LoadCommand> _commands;
   final SymbolTable _symbolTable;
-  final SegmentCommand _dwarfSegment;
+  final SegmentCommand? _dwarfSegment;
   final StringTable? _debugStringTable;
   final StringTable? _debugLineStringTable;
 
@@ -456,23 +456,21 @@ class MachO extends DwarfContainer {
     final dwarfSegment = commands
         .whereType<SegmentCommand?>()
         .firstWhere((sc) => sc!.segname == '__DWARF', orElse: () => null);
-    if (dwarfSegment == null) {
-      return null;
-    }
-
-    final debugStringTableSection = dwarfSegment.sections['__debug_str'];
     StringTable? debugStringTable;
-    if (debugStringTableSection != null) {
-      debugStringTable =
-          StringTable.fromReader(debugStringTableSection.shrink(reader));
-    }
-
-    final debugLineStringTableSection =
-        dwarfSegment.sections['__debug_line_str'];
     StringTable? debugLineStringTable;
-    if (debugLineStringTableSection != null) {
-      debugLineStringTable =
-          StringTable.fromReader(debugLineStringTableSection.shrink(reader));
+    if (dwarfSegment != null) {
+      final debugStringTableSection = dwarfSegment.sections['__debug_str'];
+      if (debugStringTableSection != null) {
+        debugStringTable =
+            StringTable.fromReader(debugStringTableSection.shrink(reader));
+      }
+
+      final debugLineStringTableSection =
+          dwarfSegment.sections['__debug_line_str'];
+      if (debugLineStringTableSection != null) {
+        debugLineStringTable =
+            StringTable.fromReader(debugLineStringTableSection.shrink(reader));
+      }
     }
 
     // Set the wordSize and endian of the original reader before returning.
@@ -498,6 +496,7 @@ class MachO extends DwarfContainer {
       MachO.fromReader(Reader.fromFile(MachO.handleDSYM(fileName)));
 
   bool get isDSYM => _header.isDSYM;
+  bool get hasDwarf => _dwarfSegment != null;
 
   Reader applyWordSizeAndEndian(Reader reader) =>
       Reader.fromTypedData(reader.bdata,
@@ -508,13 +507,13 @@ class MachO extends DwarfContainer {
 
   @override
   Reader abbreviationsTableReader(Reader containerReader) =>
-      _dwarfSegment.sections['__debug_abbrev']!.shrink(containerReader);
+      _dwarfSegment!.sections['__debug_abbrev']!.shrink(containerReader);
   @override
   Reader lineNumberInfoReader(Reader containerReader) =>
-      _dwarfSegment.sections['__debug_line']!.shrink(containerReader);
+      _dwarfSegment!.sections['__debug_line']!.shrink(containerReader);
   @override
   Reader debugInfoReader(Reader containerReader) =>
-      _dwarfSegment.sections['__debug_info']!.shrink(containerReader);
+      _dwarfSegment!.sections['__debug_info']!.shrink(containerReader);
 
   @override
   int? get vmStartAddress => _symbolTable[constants.vmSymbolName]?.value;
@@ -544,6 +543,9 @@ class MachO extends DwarfContainer {
     }
     return bestSym;
   }
+
+  @override
+  Iterable<Symbol> get staticSymbols => _symbolTable.values;
 
   @override
   void writeToStringBuffer(StringBuffer buffer) {
@@ -748,11 +750,15 @@ class UniversalBinary {
               (macho.isolateStartAddress == null))) {
         continue;
       }
-      if (macho.isDSYM) {
+      if (!arches.containsKey(cpuType)) {
+        arches[cpuType] = arch;
+      } else if (macho.isDSYM) {
         // Always take a dSYM section above a non-dSYM section. If there are
         // multiple dSYM sections for some reason, the last one read is fine.
         arches[cpuType] = arch;
-      } else if (!arches.containsKey(cpuType)) {
+      } else if (!contents[arches[cpuType]!]!.hasDwarf) {
+        // If the old section didn't have DWARF information but the new one
+        // does, take it instead.
         arches[cpuType] = arch;
       }
       contents[arch] = macho;
@@ -794,7 +800,7 @@ class UniversalBinary {
         ..writeln('')
         ..writeln('')
         ..writeln('----------------------------------------------------------')
-        ..writeln('    DWARF-containing Mach-O Contents for $cpuType')
+        ..writeln('          Selected Mach-O Contents for $cpuType')
         ..writeln('----------------------------------------------------------')
         ..writeln('');
       _contents[_arches[cpuType]!]!.writeToStringBuffer(buffer);

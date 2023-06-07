@@ -8,7 +8,7 @@ static method f(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>;
     function ##0#4#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
     late final synthesized dynamic #0#4 = ##0#4#initializer(){() → dynamic};
     if(!(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final dynamic #t1 = a = #0#4 in true)))
       throw new core::StateError::•("Pattern matching error");
@@ -22,4 +22,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///patternVariableDeclarationStatement_withMetadata_final_map.dart:9:13 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 23, effectively constant: 1
+Extra constant evaluation: evaluated: 24, effectively constant: 1

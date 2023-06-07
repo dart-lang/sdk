@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,32 +18,50 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
 
+  FieldDeclaration? get _errorFieldDeclaration {
+    if (node is VariableDeclaration) {
+      final fieldDeclaration = node.parent?.parent;
+      return fieldDeclaration?.ifTypeOrNull();
+    }
+    return null;
+  }
+
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! VariableDeclaration) {
+    final fieldDeclaration = _errorFieldDeclaration;
+    if (fieldDeclaration == null) {
       return;
     }
 
-    var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
-    if (classDeclaration == null) {
-      return;
+    final containerDeclaration = fieldDeclaration.parent;
+    switch (containerDeclaration) {
+      case ClassDeclaration():
+        await _classDeclaration(
+          builder: builder,
+          classDeclaration: containerDeclaration,
+        );
+      case EnumDeclaration():
+        await _enumDeclaration(
+          builder: builder,
+          enumDeclaration: containerDeclaration,
+        );
     }
+  }
 
+  Future<void> _classDeclaration({
+    required ChangeBuilder builder,
+    required ClassDeclaration classDeclaration,
+  }) async {
     var className = classDeclaration.name.lexeme;
     var superType = classDeclaration.declaredElement?.supertype;
     if (superType == null) {
       return;
     }
 
-    var variableLists = <VariableDeclarationList>[];
-    for (var member in classDeclaration.members) {
-      if (member is FieldDeclaration) {
-        var variableList = member.fields;
-        if (variableList.isFinal && !variableList.isLate) {
-          variableLists.add(variableList);
-        }
-      }
-    }
+    final variableLists = _interestingVariableLists(
+      classDeclaration.members,
+    );
+
     // prepare location for a new constructor
     var targetLocation = utils.prepareNewConstructorLocation(
         resolvedResult.session, classDeclaration);
@@ -50,52 +69,101 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
       return;
     }
 
+    final fixContext = _FixContext(
+      builder: builder,
+      containerName: className,
+      location: targetLocation,
+      variableLists: variableLists,
+    );
+
     if (flutter.isExactlyStatelessWidgetType(superType) ||
         flutter.isExactlyStatefulWidgetType(superType)) {
-      // Specialize for Flutter widgets.
-      var keyClass = await sessionHelper.getClass(flutter.widgetsUri, 'Key');
-      if (keyClass == null) {
-        return;
-      }
-
-      if (unit.featureSet.isEnabled(Feature.super_parameters)) {
-        await _withSuperParameters(
-            builder, targetLocation, className, variableLists);
-      } else {
-        await _withoutSuperParameters(
-            builder, targetLocation, className, keyClass, variableLists);
-      }
+      await _forFlutterClass(fixContext);
     } else {
-      var fieldNames = <String>[];
-      for (var variableList in variableLists) {
-        fieldNames.addAll(variableList.variables
-            .where((v) => v.initializer == null)
-            .map((v) => v.name.lexeme));
-      }
-
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addInsertion(targetLocation.offset, (builder) {
-          builder.write(targetLocation.prefix);
-          builder.writeConstructorDeclaration(className,
-              fieldNames: fieldNames);
-          builder.write(targetLocation.suffix);
-        });
-      });
+      await _notFlutter(
+        fixContext: fixContext,
+        isConst: false,
+      );
     }
   }
 
-  Future<void> _withoutSuperParameters(
-      ChangeBuilder builder,
-      InsertionLocation targetLocation,
-      String className,
-      ClassElement keyClass,
-      List<VariableDeclarationList> variableLists) async {
+  Future<void> _enumDeclaration({
+    required ChangeBuilder builder,
+    required EnumDeclaration enumDeclaration,
+  }) async {
+    final enumName = enumDeclaration.name.lexeme;
+    final variableLists = _interestingVariableLists(
+      enumDeclaration.members,
+    );
+
+    final targetLocation =
+        utils.prepareEnumNewConstructorLocation(enumDeclaration);
+
+    await _notFlutter(
+      fixContext: _FixContext(
+        builder: builder,
+        containerName: enumName,
+        location: targetLocation,
+        variableLists: variableLists,
+      ),
+      isConst: true,
+    );
+  }
+
+  Future<void> _forFlutterClass(_FixContext fixContext) async {
+    // Specialize for Flutter widgets.
+    var keyClass = await sessionHelper.getClass(flutter.widgetsUri, 'Key');
+    if (keyClass == null) {
+      return;
+    }
+
+    if (unit.featureSet.isEnabled(Feature.super_parameters)) {
+      await _withSuperParameters(fixContext);
+    } else {
+      await _withoutSuperParameters(
+        fixContext: fixContext,
+        keyClass: keyClass,
+      );
+    }
+  }
+
+  Future<void> _notFlutter({
+    required _FixContext fixContext,
+    required bool isConst,
+  }) async {
+    final fieldNames = fixContext.variableLists
+        .expand((variableList) => variableList.variables)
+        .where((variable) => variable.initializer == null)
+        .map((variable) => variable.name.lexeme)
+        .toList();
+
+    final location = fixContext.location;
+    await fixContext.builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(location.offset, (builder) {
+        builder.write(location.prefix);
+        if (isConst) {
+          builder.write('const ');
+        }
+        builder.writeConstructorDeclaration(
+          fixContext.containerName,
+          fieldNames: fieldNames,
+        );
+        builder.write(location.suffix);
+      });
+    });
+  }
+
+  Future<void> _withoutSuperParameters({
+    required _FixContext fixContext,
+    required ClassElement keyClass,
+  }) async {
+    final location = fixContext.location;
     var isNonNullable = unit.featureSet.isEnabled(Feature.non_nullable);
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(targetLocation.offset, (builder) {
-        builder.write(targetLocation.prefix);
+    await fixContext.builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(location.offset, (builder) {
+        builder.write(location.prefix);
         builder.write('const ');
-        builder.write(className);
+        builder.write(fixContext.containerName);
         builder.write('({');
         builder.writeType(
           keyClass.instantiate(
@@ -107,37 +175,45 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
         );
         builder.write(' key');
 
-        _writeParameters(builder, variableLists, isNonNullable);
+        _writeParameters(
+          builder: builder,
+          variableLists: fixContext.variableLists,
+          isNonNullable: isNonNullable,
+        );
 
         builder.write('}) : super(key: key);');
-        builder.write(targetLocation.suffix);
+        builder.write(location.suffix);
       });
     });
   }
 
-  Future<void> _withSuperParameters(
-      ChangeBuilder builder,
-      InsertionLocation targetLocation,
-      String className,
-      List<VariableDeclarationList> variableLists) async {
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(targetLocation.offset, (builder) {
-        builder.write(targetLocation.prefix);
+  Future<void> _withSuperParameters(_FixContext fixContext) async {
+    await fixContext.builder.addDartFileEdit(file, (builder) {
+      final location = fixContext.location;
+      builder.addInsertion(location.offset, (builder) {
+        builder.write(location.prefix);
         builder.write('const ');
-        builder.write(className);
+        builder.write(fixContext.containerName);
         builder.write('({');
         builder.write('super.key');
 
-        _writeParameters(builder, variableLists, true);
+        _writeParameters(
+          builder: builder,
+          variableLists: fixContext.variableLists,
+          isNonNullable: true,
+        );
 
         builder.write('});');
-        builder.write(targetLocation.suffix);
+        builder.write(location.suffix);
       });
     });
   }
 
-  void _writeParameters(DartEditBuilder builder,
-      List<VariableDeclarationList> variableLists, bool isNonNullable) {
+  void _writeParameters({
+    required DartEditBuilder builder,
+    required List<VariableDeclarationList> variableLists,
+    required bool isNonNullable,
+  }) {
     var childrenFields = <String>[];
     var childrenNullables = <bool>[];
     for (var variableList in variableLists) {
@@ -145,17 +221,17 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
           .where((v) => v.initializer == null)
           .map((v) => v.name.lexeme);
 
+      final hasNullableType = variableList.type?.type?.nullabilitySuffix ==
+          NullabilitySuffix.question;
+
       for (var fieldName in fieldNames) {
         if (fieldName == 'child' || fieldName == 'children') {
           childrenFields.add(fieldName);
-          childrenNullables.add(variableList.type?.type?.nullabilitySuffix ==
-              NullabilitySuffix.question);
+          childrenNullables.add(hasNullableType);
           continue;
         }
         builder.write(', ');
-        if (isNonNullable &&
-            variableList.type?.type?.nullabilitySuffix !=
-                NullabilitySuffix.question) {
+        if (isNonNullable && !hasNullableType) {
           builder.write('required ');
         }
         builder.write('this.');
@@ -173,4 +249,28 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
       builder.write(fieldName);
     }
   }
+
+  static List<VariableDeclarationList> _interestingVariableLists(
+    List<ClassMember> members,
+  ) {
+    return members
+        .whereType<FieldDeclaration>()
+        .map((e) => e.fields)
+        .where((e) => e.isFinal && !e.isLate)
+        .toList();
+  }
+}
+
+class _FixContext {
+  final ChangeBuilder builder;
+  final String containerName;
+  final InsertionLocation location;
+  final List<VariableDeclarationList> variableLists;
+
+  _FixContext({
+    required this.builder,
+    required this.containerName,
+    required this.location,
+    required this.variableLists,
+  });
 }

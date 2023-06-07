@@ -14,7 +14,7 @@ inline class A /* declaredRepresentationType = core::int */ {
   tearoff name1 = self::A|_#name1#tearOff;
 }
 static method A|name1(core::int value) → self::A {
-  final self::A #this = value;
+  lowered final self::A #this = value;
   return #this;
 }
 static method A|_#name1#tearOff(core::int value) → self::A

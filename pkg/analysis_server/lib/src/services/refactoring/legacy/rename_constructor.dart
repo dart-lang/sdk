@@ -207,10 +207,6 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     } else if (node is EnumDeclaration) {
       var utils = CorrectionUtils(resolvedUnit);
       var location = utils.prepareEnumNewConstructorLocation(node);
-      if (location == null) {
-        return;
-      }
-
       var header = 'const ${classElement.name}.$newName();';
       doSourceChange_addElementEdit(
         change,

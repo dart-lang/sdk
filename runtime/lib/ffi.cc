@@ -40,8 +40,7 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
 
 DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   const auto& function = Function::CheckedHandle(zone, arguments->NativeArg0());
-  void* pointer = isolate->CreateSyncFfiCallback(zone, function);
-  return Pointer::New(reinterpret_cast<uword>(pointer));
+  return Pointer::New(isolate->CreateSyncFfiCallback(zone, function));
 }
 
 DEFINE_NATIVE_ENTRY(DartNativeApiFunctionPointer, 0, 1) {

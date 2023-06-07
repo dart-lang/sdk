@@ -709,30 +709,25 @@ SerializationMode get serializationMode {
 }
 
 /// Returns the current deserializer factory for the zone.
-Deserializer Function(Object?) get deserializerFactory {
-  switch (serializationMode) {
-    case SerializationMode.byteDataClient:
-    case SerializationMode.byteDataServer:
-      return (Object? message) => new ByteDataDeserializer(
-          new ByteData.sublistView(message as Uint8List));
-    case SerializationMode.jsonClient:
-    case SerializationMode.jsonServer:
-      return (Object? message) =>
-          new JsonDeserializer(message as Iterable<Object?>);
-  }
-}
+Deserializer Function(Object?) get deserializerFactory =>
+    switch (serializationMode) {
+      SerializationMode.byteDataClient ||
+      SerializationMode.byteDataServer =>
+        (Object? message) => new ByteDataDeserializer(
+            new ByteData.sublistView(message as Uint8List)),
+      SerializationMode.jsonClient ||
+      SerializationMode.jsonServer =>
+        (Object? message) => new JsonDeserializer(message as Iterable<Object?>),
+    };
 
 /// Returns the current serializer factory for the zone.
-Serializer Function() get serializerFactory {
-  switch (serializationMode) {
-    case SerializationMode.byteDataClient:
-    case SerializationMode.byteDataServer:
-      return () => new ByteDataSerializer();
-    case SerializationMode.jsonClient:
-    case SerializationMode.jsonServer:
-      return () => new JsonSerializer();
-  }
-}
+Serializer Function() get serializerFactory => switch (serializationMode) {
+      SerializationMode.byteDataClient ||
+      SerializationMode.byteDataServer =>
+        () => new ByteDataSerializer(),
+      SerializationMode.jsonClient || SerializationMode.jsonServer => () =>
+          new JsonSerializer(),
+    };
 
 /// Some objects are serialized differently on the client side versus the server
 /// side. This indicates the different modes, as well as the format used.
@@ -744,28 +739,20 @@ enum SerializationMode {
 }
 
 extension SerializationModeHelpers on SerializationMode {
-  bool get isClient {
-    switch (this) {
-      case SerializationMode.byteDataClient:
-      case SerializationMode.jsonClient:
-        return true;
-      case SerializationMode.byteDataServer:
-      case SerializationMode.jsonServer:
-        return false;
-    }
-  }
+  bool get isClient => switch (this) {
+        SerializationMode.byteDataClient ||
+        SerializationMode.jsonClient =>
+          true,
+        SerializationMode.byteDataServer ||
+        SerializationMode.jsonServer =>
+          false,
+      };
 
   /// A stable string to write in code.
-  String get asCode {
-    switch (this) {
-      case SerializationMode.byteDataClient:
-        return 'SerializationMode.byteDataClient';
-      case SerializationMode.byteDataServer:
-        return 'SerializationMode.byteDataServer';
-      case SerializationMode.jsonClient:
-        return 'SerializationMode.jsonClient';
-      case SerializationMode.jsonServer:
-        return 'SerializationMode.jsonServer';
-    }
-  }
+  String get asCode => switch (this) {
+        SerializationMode.byteDataClient => 'SerializationMode.byteDataClient',
+        SerializationMode.byteDataServer => 'SerializationMode.byteDataServer',
+        SerializationMode.jsonClient => 'SerializationMode.jsonClient',
+        SerializationMode.jsonServer => 'SerializationMode.jsonServer',
+      };
 }

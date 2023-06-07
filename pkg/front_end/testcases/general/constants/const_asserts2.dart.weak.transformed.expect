@@ -102,10 +102,10 @@ import "dart:core" as core;
 class Foo extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
   const constructor •(core::int x) → self::Foo
-    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}, "x is not positive"), assert(x.{core::num::>}(0){(core::num) → core::bool}), assert(x.{core::num::>}(0){(core::num) → core::bool}, ""), assert(#C1 =={core::Object::==}{(core::Object) → core::bool} false, "foo was ${#C1}"), assert(#C1 =={core::Object::==}{(core::Object) → core::bool} false), super core::Object::•()
+    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}, "x is not positive"), assert(x.{core::num::>}(0){(core::num) → core::bool}), assert(x.{core::num::>}(0){(core::num) → core::bool}, ""), assert(#C1 =={core::Object::==}{(core::Object) → core::bool} false, #C2), assert(#C1 =={core::Object::==}{(core::Object) → core::bool} false), super core::Object::•()
     ;
   const constructor withMessage(core::int x) → self::Foo
-    : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, "btw foo was ${#C1}"), super core::Object::•()
+    : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, #C3), super core::Object::•()
     ;
   const constructor withInvalidMessage(core::int x) → self::Foo
     : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, x), super core::Object::•()
@@ -128,7 +128,7 @@ class Bar extends core::Object /*hasConstConstructor*/  {
     : self::Bar::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}), super core::Object::•()
     ;
 }
-static const field self::Foo foo1 = #C3;
+static const field self::Foo foo1 = #C5;
 static const field self::Foo foo2 = invalid-expression "This assertion failed with message: x is not positive";
 static const field self::Foo foo3 = invalid-expression "This assertion failed with message: btw foo was false";
 static const field self::Foo foo4 = invalid-expression "This assertion failed with a non-String message.";
@@ -142,21 +142,21 @@ static const field self::Bar bar4 = invalid-expression "This assertion failed.";
 static const field self::Bar bar5 = invalid-expression "This assertion failed.";
 static const field self::Bar bar6 = invalid-expression "This assertion failed.";
 static method main() → dynamic {
-  core::print(#C3);
+  core::print(#C5);
 }
 
 constants  {
   #C1 = false
-  #C2 = 1
-  #C3 = self::Foo {x:#C2}
+  #C2 = "foo was false"
+  #C3 = "btw foo was false"
+  #C4 = 1
+  #C5 = self::Foo {x:#C4}
 }
 
 Extra constant evaluation status:
 Evaluated: EqualsCall @ org-dartlang-testcase:///const_asserts2.dart:11:50 -> BoolConstant(true)
-Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts2.dart:12:59 -> StringConstant("foo was false")
 Evaluated: EqualsCall @ org-dartlang-testcase:///const_asserts2.dart:13:50 -> BoolConstant(true)
-Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts2.dart:15:73 -> StringConstant("btw foo was false")
-Extra constant evaluation: evaluated: 29, effectively constant: 4
+Extra constant evaluation: evaluated: 27, effectively constant: 2
 
 
 Constructor coverage from constants:

@@ -37,10 +37,10 @@ static method switchStatement(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     function ##0#13#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
     dynamic #t1;
     {
@@ -69,10 +69,10 @@ static method switchStatementWithLabel(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     function ##0#13#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
     dynamic #t7;
     {
@@ -110,10 +110,10 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
     core::int #t13 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     function ##0#13#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
     dynamic #t14;
     #L4:
@@ -185,7 +185,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
     core::int #t20 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #2#0 = o1;
     function ##2#9#initializer() → dynamic
-      return #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #2#9 = ##2#9#initializer(){() → dynamic};
     #L8:
     {
@@ -208,10 +208,10 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
               core::int #t23 = 1.{core::int::unary-}(){() → core::int};
               final synthesized dynamic #0#0 = o2;
               function ##0#2#initializer() → core::int
-                return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+                return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
               late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
               function ##0#13#initializer() → dynamic
-                return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+                return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
               late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
               dynamic #t24;
               #L10:
@@ -323,10 +323,10 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
               core::int #t30 = 1.{core::int::unary-}(){() → core::int};
               final synthesized dynamic #1#0 = o2;
               function ##1#2#initializer() → core::int
-                return #1#0{core::List<dynamic>}.{core::List::length}{core::int};
+                return (#1#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
               late final synthesized core::int #1#2 = ##1#2#initializer(){() → core::int};
               function ##1#13#initializer() → dynamic
-                return #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+                return (#1#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
               late final synthesized dynamic #1#13 = ##1#13#initializer(){() → dynamic};
               dynamic #t31;
               #L16:
@@ -531,7 +531,7 @@ static method switchExpression(dynamic o) → dynamic {
     dynamic #t37;
     final synthesized dynamic #0#0 = o;
     function ##0#9#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #0#9 = ##0#9#initializer(){() → dynamic};
     #L36:
     {
@@ -751,7 +751,7 @@ Evaluated: IsExpression @ org-dartlang-testcase:///switch_encoding.dart:79:16 ->
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:103:7 -> IntConstant(-1)
 Evaluated: IsExpression @ org-dartlang-testcase:///switch_encoding.dart:107:16 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///switch_encoding.dart:194:7 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 558, effectively constant: 11
+Extra constant evaluation: evaluated: 570, effectively constant: 11
 
 
 Constructor coverage from constants:

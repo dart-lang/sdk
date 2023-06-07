@@ -3,11 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_js_interop_checks/src/js_interop.dart'
-    show
-        getJSName,
-        hasAnonymousAnnotation,
-        hasJSInteropAnnotation,
-        hasObjectLiteralAnnotation;
+    show getJSName, hasAnonymousAnnotation, hasJSInteropAnnotation;
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show InlineExtensionIndex;
 import 'package:dart2wasm/js/method_collector.dart';
@@ -443,7 +439,10 @@ class InteropSpecializerFactory {
         if ((kind == InlineClassMemberKind.Constructor ||
             kind == InlineClassMemberKind.Factory)) {
           return _getSpecializerForConstructor(
-              hasObjectLiteralAnnotation(node), node, clsString, invocation);
+              _inlineExtensionIndex.isLiteralConstructor(node),
+              node,
+              clsString,
+              invocation);
         } else {
           final memberSelectorString =
               _getJSString(node, nodeDescriptor.name.text);

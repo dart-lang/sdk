@@ -44,8 +44,8 @@ static method test(dynamic o) → dynamic {
     hoisted core::int? s2;
     hoisted core::int? field2;
     final synthesized dynamic #0#0 = o;
-    late final synthesized core::int? #0#2 = #0#0{self::Class}.{self::Class::field1}{core::int?};
-    late final synthesized core::int? #0#3 = #0#0{self::Class}.{self::Class::field2}{core::int?};
+    late final synthesized core::int? #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field1}{core::int?};
+    late final synthesized core::int? #0#3 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field2}{core::int?};
     {
       hoisted core::int? s1;
       if(#0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t1 = s1 = #0#2 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t2 = s2 = #0#2 in true)) {

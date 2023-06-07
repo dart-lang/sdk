@@ -9,19 +9,23 @@ import 'dart:js_util' as js_util;
 
 extension JSObjectUtilExtension on JSObject {
   @patch
+  @pragma('dart2js:prefer-inline')
   JSBoolean hasProperty(JSAny property) =>
       JS<bool>('bool', '# in #', property, this).toJS;
 
   @patch
+  @pragma('dart2js:prefer-inline')
   JSAny? operator [](JSAny property) =>
       JS<dynamic>('Object|Null', '#[#]', this, property);
 
   @patch
+  @pragma('dart2js:prefer-inline')
   void operator []=(JSAny property, JSAny? value) =>
       JS<void>('', '#[#] = #', this, property, value);
 
   // TODO(joshualitt): Specialize at callsites.
   @patch
+  @pragma('dart2js:prefer-inline')
   JSAny? _callMethod(JSAny method,
       [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]) {
     if (arg1 == null) {
@@ -40,11 +44,13 @@ extension JSObjectUtilExtension on JSObject {
   }
 
   @patch
+  @pragma('dart2js:prefer-inline')
   JSAny? _callMethodVarArgs(JSAny method, [List<JSAny?>? arguments]) =>
       JS<dynamic>(
           'Object|Null', '#[#].apply(#, #)', this, method, this, arguments);
 
   @patch
+  @pragma('dart2js:prefer-inline')
   JSBoolean delete(JSAny property) =>
       JS<bool>('bool', 'delete #[#]', this, property).toJS;
 }
@@ -52,6 +58,7 @@ extension JSObjectUtilExtension on JSObject {
 extension JSFunctionUtilExtension on JSFunction {
   // TODO(joshualitt): Specialize `callAsConstructor`.
   @patch
+  @pragma('dart2js:prefer-inline')
   JSObject _callAsConstructor(
           [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]) =>
       js_util.callConstructor<JSObject>(
@@ -66,6 +73,7 @@ extension JSFunctionUtilExtension on JSFunction {
                 ]);
 
   @patch
+  @pragma('dart2js:prefer-inline')
   JSObject _callAsConstructorVarArgs([List<JSAny?>? arguments]) =>
       js_util.callConstructor<JSObject>(this, arguments);
 }

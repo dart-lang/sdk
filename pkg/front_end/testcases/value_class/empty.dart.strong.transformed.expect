@@ -14,7 +14,7 @@ class EmptyClass extends core::Object {
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///empty.dartEmptyClass".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
-    return "EmptyClass()";
+    return #C1;
   method /*isLegacy*/ copyWith() → dynamic
     return new self::EmptyClass::•();
 }
@@ -39,12 +39,9 @@ class JenkinsSmiHash extends core::Object {
     return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash){(core::int) → core::int}.{core::int::<<}(15){(core::int) → core::int}){(core::num) → core::int}){(core::int) → core::int};
   }
 }
-static const field core::String valueClass = #C1;
+static const field core::String valueClass = #C2;
 
 constants  {
-  #C1 = "valueClass"
+  #C1 = "EmptyClass()"
+  #C2 = "valueClass"
 }
-
-Extra constant evaluation status:
-Evaluated: StringConcatenation @ org-dartlang-testcase:///empty.dart:8:7 -> StringConstant("EmptyClass()")
-Extra constant evaluation: evaluated: 40, effectively constant: 1

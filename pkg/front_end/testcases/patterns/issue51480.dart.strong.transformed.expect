@@ -9,7 +9,7 @@ static method main() → dynamic {
   {
     final synthesized dynamic #0#0 = <core::String, core::int>{"key": 42};
     function ##0#3#initializer() → core::int?
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
     late final synthesized core::int? #0#3 = ##0#3#initializer(){() → core::int?};
     if(!((!(#0#3 == null) || null is{ForNonNullableByDefault} core::int && #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final core::int #t1 = v = #0#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
@@ -23,4 +23,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: LogicalExpression @ org-dartlang-testcase:///issue51480.dart:8:13 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 20, effectively constant: 1
+Extra constant evaluation: evaluated: 21, effectively constant: 1

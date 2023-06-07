@@ -615,20 +615,17 @@ class ClientTypeResolver implements TypeResolver {
         serializationZoneId: serializationZoneId);
     RemoteInstanceImpl remoteType =
         _handleResponse(await _sendRequest(request));
-    switch (remoteType.kind) {
-      case RemoteInstanceKind.namedStaticType:
-        return new ClientNamedStaticTypeImpl(_sendRequest,
-            remoteInstance: remoteType,
-            serializationZoneId: serializationZoneId);
-      case RemoteInstanceKind.staticType:
-        return new ClientStaticTypeImpl(_sendRequest,
-            remoteInstance: remoteType,
-            serializationZoneId: serializationZoneId);
-      default:
-        throw new StateError(
-            'Expected either a StaticType or NamedStaticType but got '
-            '${remoteType.kind}');
-    }
+    return switch (remoteType.kind) {
+      RemoteInstanceKind.namedStaticType => new ClientNamedStaticTypeImpl(
+          _sendRequest,
+          remoteInstance: remoteType,
+          serializationZoneId: serializationZoneId),
+      RemoteInstanceKind.staticType => new ClientStaticTypeImpl(_sendRequest,
+          remoteInstance: remoteType, serializationZoneId: serializationZoneId),
+      _ => throw new StateError(
+          'Expected either a StaticType or NamedStaticType but got '
+          '${remoteType.kind}'),
+    };
   }
 }
 

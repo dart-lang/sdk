@@ -190,6 +190,13 @@ void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub() {
       kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
 }
 
+void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
+                                            Register dst,
+                                            Register tmp) {
+  // Only used in AOT.
+  __ Breakpoint();
+}
+
 // Calls a native function inside a safepoint.
 //
 // On entry:
@@ -1470,14 +1477,21 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmpl(Address(EAX, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
-    // Dirty the card.
+    // Dirty the card. Not atomic: we assume mutable arrays are not shared
+    // between threads.
+    __ pushl(EBX);
     __ subl(EDI, EAX);  // Offset in page.
     __ movl(EAX,
             Address(EAX, target::Page::card_table_offset()));  // Card table.
-    __ shrl(
-        EDI,
-        Immediate(target::Page::kBytesPerCardLog2));  // Index in card table.
-    __ movb(Address(EAX, EDI, TIMES_1, 0), Immediate(1));
+    __ movl(ECX, EDI);
+    __ shrl(EDI,
+            Immediate(target::Page::kBytesPerCardLog2 +
+                      target::kBitsPerWordLog2));  // Word offset.
+    __ shrl(ECX, Immediate(target::Page::kBytesPerCardLog2));
+    __ movl(EBX, Immediate(1));
+    __ shll(EBX, ECX);  // Bit mask. (Shift amount is mod 32.)
+    __ orl(Address(EAX, EDI, TIMES_4, 0), EBX);
+    __ popl(EBX);
     __ popl(ECX);
     __ popl(EAX);
     __ ret();

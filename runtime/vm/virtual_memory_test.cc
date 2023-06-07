@@ -89,11 +89,14 @@ VM_UNIT_TEST_CASE(FreeVirtualMemory) {
   }
 }
 
+#if !defined(DART_TARGET_OS_FUCHSIA)
+// TODO(https://dartbug.com/52579): Reenable on Fuchsia.
+
 static int testFunction(int x) {
   return x * 2;
 }
 
-NO_SANITIZE_UNDEFINED("function")  // See #52440
+NO_SANITIZE_UNDEFINED("function")  // See https://dartbug.com/52440
 VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
   const uword page_size = VirtualMemory::PageSize();
   const uword pointer = reinterpret_cast<uword>(&testFunction);
@@ -120,5 +123,7 @@ VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
   delete vm;
   delete vm2;
 }
+
+#endif  // !defined(DART_TARGET_OS_FUCHSIA)
 
 }  // namespace dart

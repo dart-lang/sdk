@@ -25,7 +25,7 @@ static method method(invalid-type o) → dynamic {
     final synthesized invalid-type #0#0 = o;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
-    late final synthesized core::Object? #0#14 = #0#0{core::Map<core::Object?, core::Object?>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?};
+    late final synthesized core::Object? #0#14 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::Object?, core::Object?>).{core::Map::[]}(#C1){(core::Object?) → core::Object?};
     {
       lowered hoisted core::List<invalid-type> a#case#0;
       lowered hoisted core::Object? a#case#1;

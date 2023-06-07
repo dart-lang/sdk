@@ -90,7 +90,7 @@ class A extends core::Object {
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///copy_with_call_sites.dartA".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
-    return "A()";
+    return #C2;
   method /*isLegacy*/ copyWith() → dynamic
     return new self::A::•();
 }
@@ -134,13 +134,10 @@ class JenkinsSmiHash extends core::Object {
     return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash){(core::int) → core::int}.{core::int::<<}(15){(core::int) → core::int}){(core::num) → core::int}){(core::int) → core::int};
   }
 }
-static const field core::String valueClass = #C2;
+static const field core::String valueClass = #C3;
 
 constants  {
   #C1 = null
-  #C2 = "valueClass"
+  #C2 = "A()"
+  #C3 = "valueClass"
 }
-
-Extra constant evaluation status:
-Evaluated: StringConcatenation @ org-dartlang-testcase:///copy_with_call_sites.dart:26:7 -> StringConstant("A()")
-Extra constant evaluation: evaluated: 106, effectively constant: 1

@@ -721,13 +721,16 @@ class MacroApplications {
         // phase we need to limit the introspectable declarations to those that
         // are part of the super chain of the directly macro annotated class.
         ? new macro.IntrospectableMixinDeclarationImpl(
-            id: macro.RemoteInstance.uniqueId,
-            identifier: identifier,
-            typeParameters: typeParameters,
-            hasBase: builder.isBase,
-            interfaces: interfaces,
-            superclassConstraints: _typeBuildersToAnnotations(
-                builder.libraryBuilder, builder.onTypes))
+                id: macro.RemoteInstance.uniqueId,
+                identifier: identifier,
+                typeParameters: typeParameters,
+                hasBase: builder.isBase,
+                interfaces: interfaces,
+                superclassConstraints: _typeBuildersToAnnotations(
+                    builder.libraryBuilder, builder.onTypes))
+            // This cast is not necessary but LUB doesn't give the desired type
+            // without it.
+            as macro.ParameterizedTypeDeclaration
         : new macro.IntrospectableClassDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
@@ -1048,7 +1051,7 @@ class MacroApplications {
   }
 }
 
-class _StaticTypeImpl extends macro.StaticType {
+class _StaticTypeImpl implements macro.StaticType {
   final MacroApplications macroApplications;
   final DartType type;
 

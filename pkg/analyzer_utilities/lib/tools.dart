@@ -285,7 +285,7 @@ abstract class GeneratedContent {
       var executable = Platform.executable;
       var generateScript = normalize(joinAll(posix.split(generatorPath)));
       print('  $executable $generateScript ${args.join(" ")}');
-      fail('Error codes need to be generated');
+      fail('Generated content needs to be regenerated');
     }
   }
 
@@ -409,6 +409,7 @@ class GeneratedFile extends GeneratedContent {
       // Normalize Windows line endings to Unix line endings so that the
       // comparison doesn't fail on Windows.
       actualContents = actualContents.replaceAll('\r\n', '\n');
+      expectedContents = expectedContents.replaceAll('\r\n', '\n');
       return expectedContents == actualContents;
     } catch (e) {
       // There was a problem reading the file (most likely because it didn't

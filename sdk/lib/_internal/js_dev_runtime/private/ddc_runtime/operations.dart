@@ -633,7 +633,7 @@ callMethod(obj, name, typeArgs, args, named, displayName) {
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
     if (ftype != null && rti.isGenericFunctionType(ftype) && typeArgs == null) {
       // No type arguments were provided, use the default values in this call.
-      typeArgs = getMethodDefaultTypeArgs(type, name);
+      typeArgs = getMethodDefaultTypeArgs(type, symbol);
     }
   }
   // No such method if dart object and ftype is missing.
@@ -745,9 +745,6 @@ cast(obj, type) {
 ///
 /// Will produce a warning/error (if enabled) when the subtype passes but would
 /// fail in sound null safety.
-///
-/// Currently only called from _checkAndCall to test type arguments applied to
-/// dynamic method calls.
 // TODO(48585) Revise argument types after removing old type representation.
 @notNull
 bool _isSubtypeWithWarning(@notNull t1, @notNull t2) {

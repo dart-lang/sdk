@@ -27,7 +27,7 @@ static method J|(core::int i) → self::J
 static method J|_#new#tearOff(core::int i) → self::J
   return self::J|(i);
 static method J|_(core::int i) → self::J {
-  final self::J #this = i;
+  lowered final self::J #this = i;
   return #this;
 }
 static method J|_#_#tearOff(core::int i) → self::J
@@ -37,7 +37,7 @@ static method K|<T extends core::Object? = dynamic>(self::K|::T% i) → self::K<
 static method K|_#new#tearOff<T extends core::Object? = dynamic>(self::K|_#new#tearOff::T% i) → self::K<self::K|_#new#tearOff::T%>
   return self::K|<self::K|_#new#tearOff::T%>(i);
 static method K|_<T extends core::Object? = dynamic>(self::K|_::T% i) → self::K<self::K|_::T%> {
-  final self::K<self::K|_::T%> #this = i;
+  lowered final self::K<self::K|_::T%> #this = i;
   return #this;
 }
 static method K|_#_#tearOff<T extends core::Object? = dynamic>(self::K|_#_#tearOff::T% i) → self::K<self::K|_#_#tearOff::T%>

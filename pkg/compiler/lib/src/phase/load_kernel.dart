@@ -173,7 +173,9 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
   // cases we ignore the implicit platform binary.
   bool platformBinariesIncluded = options.stage.shouldComputeModularAnalysis ||
       options.hasModularAnalysisInputs;
-  if (options.platformBinaries != null && !platformBinariesIncluded) {
+  if (options.platformBinaries != null &&
+      options.stage.shouldReadPlatformBinaries &&
+      !platformBinariesIncluded) {
     var platformUri = options.platformBinaries
         ?.resolve(_getPlatformFilename(options, targetName));
     // Modular analysis can be run on the sdk by providing directly the

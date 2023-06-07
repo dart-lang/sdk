@@ -4026,13 +4026,17 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // Only anonymous factory or inline class literal constructors involving
       // JS interop are allowed to have named parameters. Otherwise, throw an
       // error.
-      final function =
-          _elementMap.getMember(target.parent as ir.Member) as FunctionEntity;
-      if (function is ConstructorEntity &&
-              function.isFactoryConstructor &&
-              _nativeData.isAnonymousJsInteropClass(function.enclosingClass) ||
-          function.isTopLevel &&
-              _nativeData.isJsInteropObjectLiteral(function)) {
+      final member = target.parent as ir.Member;
+      final function = _elementMap.getMember(member) as FunctionEntity;
+      bool isAnonymousFactory = function is ConstructorEntity &&
+          function.isFactoryConstructor &&
+          _nativeData.isAnonymousJsInteropClass(function.enclosingClass);
+      // JS interop checks assert that the only inline class interop member that
+      // has named parameters is an object literal constructor. We could do a
+      // more robust check by visiting all inline classes and recording
+      // descriptors, but that's expensive.
+      bool isObjectLiteralConstructor = member.isInlineClassMember;
+      if (isAnonymousFactory || isObjectLiteralConstructor) {
         // TODO(sra): Have a "CompiledArguments" structure to just update with
         // what values we have rather than creating a map and de-populating it.
         Map<String, HInstruction> namedValues = _visitNamedArguments(arguments);
@@ -5471,10 +5475,18 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       FunctionEntity element, List<HInstruction?> arguments) {
     assert(closedWorld.nativeData.isJsInteropMember(element));
 
-    if (element is ConstructorEntity &&
-            element.isFactoryConstructor &&
-            _nativeData.isAnonymousJsInteropClass(element.enclosingClass) ||
-        element.isTopLevel && _nativeData.isJsInteropObjectLiteral(element)) {
+    bool isAnonymousFactory = element is ConstructorEntity &&
+        element.isFactoryConstructor &&
+        _nativeData.isAnonymousJsInteropClass(element.enclosingClass);
+    ir.Node node = _elementMap.getMemberDefinition(element).node;
+    // JS interop checks assert that the only inline class interop member that
+    // has named parameters is an object literal constructor. We could do a more
+    // robust check by visiting all inline classes and recording descriptors,
+    // but that's expensive.
+    bool isObjectLiteralConstructor = node is ir.Procedure &&
+        node.isInlineClassMember &&
+        node.function.namedParameters.isNotEmpty;
+    if (isAnonymousFactory || isObjectLiteralConstructor) {
       // Constructor that is syntactic sugar for creating a JavaScript object
       // literal.
       int i = 0;
@@ -5487,10 +5499,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // (including factory constructors.)
       // TODO(johnniwinther): can we elide those parameters? This should be
       // consistent with what we do with instance methods.
-      final node =
-          _elementMap.getMemberDefinition(element).node as ir.Procedure;
+      final procedure = node as ir.Procedure;
       List<ir.VariableDeclaration> namedParameters =
-          node.function.namedParameters.toList();
+          procedure.function.namedParameters.toList();
+
       namedParameters.sort(nativeOrdering);
       for (ir.VariableDeclaration variable in namedParameters) {
         String parameterName = variable.name!;

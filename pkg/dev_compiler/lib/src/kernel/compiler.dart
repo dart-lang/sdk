@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' show max, min;
 
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
+    show InlineExtensionIndex;
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart'
     show eraseStaticInteropTypesForJSCompilers;
 import 'package:collection/collection.dart'
@@ -272,6 +274,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Maps uri strings in asserts and elsewhere to hoisted identifiers.
   var _uriContainer = ModuleItemContainer<String>.asArray('I');
+
+  /// Index of inline and extension members in order to filter static interop
+  /// members.
+  // TODO(srujzs): Is there some way to share this from the js_util_optimizer to
+  // avoid having to recompute?
+  final _inlineExtensionIndex = InlineExtensionIndex();
 
   final Class _jsArrayClass;
   final Class _privateSymbolClass;
@@ -934,6 +942,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var nonExternalMethods = <js_ast.Method>[];
     for (var procedure in c.procedures) {
       if (procedure.isExternal) continue;
+      // Don't emit tear-offs for @staticInterop members as they're disallowed.
+      if (_isStaticInteropTearOff(procedure)) continue;
       if (procedure.isFactory && !procedure.isRedirectingFactory) {
         // Skip redirecting factories (they've already been resolved).
         var factory = _emitFactoryConstructor(procedure);
@@ -2985,13 +2995,52 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   void _emitLibraryProcedures(Library library) {
     var procedures = library.procedures
-        .where((p) => !p.isExternal && !p.isAbstract)
+        .where((p) =>
+            !p.isExternal && !p.isAbstract && !_isStaticInteropTearOff(p))
         .toList();
     moduleItems.addAll(procedures
         .where((p) => !p.isAccessor)
         .map(_emitLibraryFunction)
         .toList());
     _emitLibraryAccessors(procedures.where((p) => p.isAccessor).toList());
+  }
+
+  /// Check whether [p] is a tear-off for an external or synthetic static
+  /// interop member.
+  ///
+  /// Users are disallowed from using these tear-offs, so we should avoid
+  /// emitting them.
+  bool _isStaticInteropTearOff(Procedure p) {
+    final extensionMember =
+        _inlineExtensionIndex.getExtensionMemberForTearOff(p);
+    if (extensionMember != null && extensionMember.asProcedure.isExternal) {
+      return true;
+    }
+    final inlineMember = _inlineExtensionIndex.getInlineMemberForTearOff(p);
+    if (inlineMember != null && inlineMember.asProcedure.isExternal) {
+      return true;
+    }
+    final enclosingClass = p.enclosingClass;
+    if (enclosingClass != null && isStaticInteropType(enclosingClass)) {
+      // @staticInterop types can't use generative constructors, so we only
+      // check for tear-offs of factories. The one exception is a tear-off of a
+      // default constructor, which is disallowed on @staticInterop classes.
+      final factoryName = extractConstructorNameFromTearOff(p.name);
+      if (factoryName != null) {
+        if (factoryName.isEmpty &&
+            enclosingClass.constructors.any((constructor) =>
+                constructor.isSynthetic && constructor.name.text.isEmpty)) {
+          return true;
+        }
+        if (enclosingClass.procedures.any((procedure) =>
+            procedure.isFactory &&
+            procedure.isExternal &&
+            procedure.name.text == factoryName)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   void _emitLibraryAccessors(Iterable<Procedure> accessors) {
@@ -6138,10 +6187,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     if (target.isExternal &&
         target.isInlineClassMember &&
-        hasObjectLiteralAnnotation(target)) {
-      // Only JS interop inline class object literal constructors have the
-      // `@ObjectLiteral(...)` annotation.
-      assert(node.arguments.positional.isEmpty);
+        target.function.namedParameters.isNotEmpty) {
+      // JS interop checks assert that only external inline class factories have
+      // named parameters. We could do a more robust check by visiting all
+      // inline classes and recording descriptors, but that's expensive.
+      assert(target.function.positionalParameters.isEmpty);
       return _emitObjectLiteral(
           Arguments(node.arguments.positional,
               types: node.arguments.types, named: node.arguments.named),
@@ -6327,7 +6377,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var code = args[1];
     List<Expression> templateArgs;
     String source;
-    if (code is StringConcatenation) {
+    if (code is ConstantExpression) {
+      templateArgs = args.skip(2).toList();
+      source = (code.constant as StringConstant).value;
+    } else if (code is StringConcatenation) {
       if (code.expressions.every((e) => e is StringLiteral)) {
         templateArgs = args.skip(2).toList();
         source = code.expressions.map((e) => (e as StringLiteral).value).join();
@@ -7396,7 +7449,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return js_ast.Property(symbol, constant);
     }
 
-    var type = node.getType(_staticTypeContext);
+    // Non-nullable is forced here because the type of an instance constant
+    // should never appear as legacy "*" at runtime but the library where the
+    // constant is defined can cause those types to appear here.
+    var type = node
+        .getType(_staticTypeContext)
+        .withDeclaredNullability(Nullability.nonNullable);
     var classRef =
         _emitInterfaceType(type as InterfaceType, emitNullability: false);
     var prototype = js.call('#.prototype', [classRef]);

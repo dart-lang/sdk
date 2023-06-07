@@ -602,22 +602,25 @@ void TimelineEvent::Counter(const char* label, int64_t micros) {
   set_timestamp0(micros);
 }
 
-void TimelineEvent::FlowBegin(const char* label,
-                              int64_t micros) {
+void TimelineEvent::FlowBegin(const char* label, int64_t id, int64_t micros) {
   Init(kFlowBegin, label);
   set_timestamp0(micros);
+  // Overload timestamp1_ with the flow ID.
+  set_timestamp1_or_id(id);
 }
 
-void TimelineEvent::FlowStep(const char* label,
-                             int64_t micros) {
+void TimelineEvent::FlowStep(const char* label, int64_t id, int64_t micros) {
   Init(kFlowStep, label);
   set_timestamp0(micros);
+  // Overload timestamp1_ with the flow ID.
+  set_timestamp1_or_id(id);
 }
 
-void TimelineEvent::FlowEnd(const char* label,
-                            int64_t micros) {
+void TimelineEvent::FlowEnd(const char* label, int64_t id, int64_t micros) {
   Init(kFlowEnd, label);
   set_timestamp0(micros);
+  // Overload timestamp1_ with the flow ID.
+  set_timestamp1_or_id(id);
 }
 
 void TimelineEvent::Metadata(const char* label, int64_t micros) {
@@ -2425,13 +2428,13 @@ void DartTimelineEventHelpers::ReportTaskEvent(
       event->End(name, id, start);
       break;
     case TimelineEvent::kFlowBegin:
-      event->FlowBegin(name, start);
+      event->FlowBegin(name, id, start);
       break;
     case TimelineEvent::kFlowStep:
-      event->FlowStep(name, start);
+      event->FlowStep(name, id, start);
       break;
     case TimelineEvent::kFlowEnd:
-      event->FlowEnd(name, start);
+      event->FlowEnd(name, id, start);
       break;
     case TimelineEvent::kInstant:
       event->Instant(name, start);
@@ -2440,10 +2443,9 @@ void DartTimelineEventHelpers::ReportTaskEvent(
       UNREACHABLE();
   }
   if (flow_id_count > 0) {
-    ASSERT(type == Dart_Timeline_Event_Begin ||
-           type == Dart_Timeline_Event_Instant ||
-           type == Dart_Timeline_Event_Async_Begin ||
-           type == Dart_Timeline_Event_Async_Instant);
+    ASSERT(type == TimelineEvent::kBegin || type == TimelineEvent::kInstant ||
+           type == TimelineEvent::kAsyncBegin ||
+           type == TimelineEvent::kAsyncInstant);
 
     event->SetFlowIds(flow_id_count, flow_ids);
   }

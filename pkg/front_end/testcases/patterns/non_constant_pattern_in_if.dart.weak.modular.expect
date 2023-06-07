@@ -58,7 +58,7 @@ static method test(dynamic value, core::bool expected) → void {
   }
   {
     final synthesized dynamic #3#0 = value;
-    if(#3#0 is{ForNonNullableByDefault} core::Map<core::num, core::Object> && #3#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C4 =={core::String::==}{(core::Object) → core::bool} #3#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?} as{ForNonNullableByDefault} core::Object) {
+    if(#3#0 is{ForNonNullableByDefault} core::Map<core::num, core::Object> && #3#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C4 =={core::String::==}{(core::Object) → core::bool} #3#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?} as{ForNonNullableByDefault,Unchecked} core::Object) {
       matched = true;
     }
   }

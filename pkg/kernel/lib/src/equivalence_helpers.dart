@@ -283,7 +283,7 @@ class ReferenceName {
           parent: new ReferenceName.fromNamedNode(node.enclosingLibrary));
     } else if (node is Member) {
       TreeNode? parent = node.parent;
-      Reference? libraryReference = node.name.libraryName;
+      Reference? libraryReference = node.name.libraryReference;
       String? uri;
 
       if (libraryReference != null) {

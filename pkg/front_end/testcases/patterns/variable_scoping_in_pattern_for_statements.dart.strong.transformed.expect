@@ -23,7 +23,7 @@ static method test2(dynamic x) → dynamic {
     {
       final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       function ##0#6#initializer() → dynamic
-        return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+        return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
       if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = i = #0#6{core::int} in true))))
         throw new core::StateError::•("Pattern matching error");
@@ -42,7 +42,7 @@ static method test3(dynamic x) → dynamic {
     {
       final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       function ##0#6#initializer() → dynamic
-        return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+        return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
       if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t5 = i = #0#6{core::int} in true))))
         throw new core::StateError::•("Pattern matching error");
@@ -85,4 +85,4 @@ constants  {
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///variable_scoping_in_pattern_for_statements.dart:14:13 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///variable_scoping_in_pattern_for_statements.dart:31:28 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 119, effectively constant: 2
+Extra constant evaluation: evaluated: 121, effectively constant: 2

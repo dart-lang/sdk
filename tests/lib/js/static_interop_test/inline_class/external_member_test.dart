@@ -15,7 +15,7 @@ import 'package:expect/minitest.dart';
 external dynamic eval(String code);
 
 @JS()
-inline class External {
+inline class External<T extends Nested> {
   final JSObject obj;
   external External();
 
@@ -24,20 +24,27 @@ inline class External {
   external String renamedField;
   external final String finalField;
 
-  // TODO(srujzs): CFE incorrectly type-checks getters and setters with the same
-  // name. Uncomment these tests once
-  // https://github.com/dart-lang/sdk/issues/51299 is resolved.
-  // external String get getSet;
-  // external set getSet(String val);
-  // @JS('getSet')
-  // external String get renamedGetSet;
-  // @JS('getSet')
-  // external set renamedGetSet(String val);
+  external String get getSet;
+  external set getSet(String val);
+  @JS('getSet')
+  external String get renamedGetSet;
+  @JS('getSet')
+  external set renamedGetSet(String val);
 
   external String method();
   external String differentArgsMethod(String a, [String b = '']);
   @JS('method')
   external String renamedMethod();
+
+  external T get nested;
+}
+
+@JS()
+inline class Nested {
+  final JSObject obj;
+  external Nested();
+
+  external String method();
 }
 
 void main() {
@@ -52,9 +59,15 @@ void main() {
       this.differentArgsMethod = function(a, b) {
         return a + b;
       }
+      this.nested = {
+        method : function() {
+          return 'method';
+        }
+      };
     }
   ''');
-  var external = External();
+  // Type parameter to make sure static type of lowering is correct.
+  final external = External<Nested>();
 
   // Fields.
   expect(external.field, 'field');
@@ -66,15 +79,18 @@ void main() {
   expect(external.finalField, 'finalField');
 
   // Getters and setters.
-  // expect(external.getSet, 'getSet');
-  // external.getSet = 'modified';
-  // expect(external.getSet, 'modified');
-  // expect(external.renamedGetSet, 'modified');
-  // external.renamedGetSet = 'renamedGetSet';
-  // expect(external.renamedGetSet, 'renamedGetSet');
+  expect(external.getSet, 'getSet');
+  external.getSet = 'modified';
+  expect(external.getSet, 'modified');
+  expect(external.renamedGetSet, 'modified');
+  external.renamedGetSet = 'renamedGetSet';
+  expect(external.renamedGetSet, 'renamedGetSet');
 
   // Methods.
   expect(external.method(), 'method');
   expect(external.differentArgsMethod('method'), 'methodundefined');
   expect(external.renamedMethod(), 'method');
+
+  // Nested call to make sure lowering recurses.
+  expect(external.nested.method(), 'method');
 }

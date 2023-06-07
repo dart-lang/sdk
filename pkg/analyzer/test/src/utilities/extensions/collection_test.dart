@@ -25,6 +25,14 @@ class ListExtensionTest {
     elements.addIfNotNull(null);
     expect(elements, [0, 1]);
   }
+
+  test_nextOrNull() {
+    var elements = [0, 1, 2];
+    expect(elements.nextOrNull(0), 1);
+    expect(elements.nextOrNull(1), 2);
+    expect(elements.nextOrNull(2), null);
+    expect(elements.nextOrNull(3), null);
+  }
 }
 
 @reflectiveTest

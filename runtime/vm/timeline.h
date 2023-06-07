@@ -382,10 +382,13 @@ class TimelineEvent {
                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void FlowBegin(const char* label,
+                 int64_t id,
                  int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
   void FlowStep(const char* label,
+                int64_t id,
                 int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
   void FlowEnd(const char* label,
+               int64_t id,
                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void Metadata(const char* label,
@@ -420,9 +423,8 @@ class TimelineEvent {
 
   int64_t TimeOrigin() const { return timestamp0_; }
   int64_t Id() const {
-    ASSERT(event_type() == kBegin || event_type() == kEnd ||
-           event_type() == kAsyncBegin || event_type() == kAsyncEnd ||
-           event_type() == kAsyncInstant);
+    ASSERT(event_type() != kDuration && event_type() != kInstant &&
+           event_type() != kCounter);
     return timestamp1_or_id_;
   }
   int64_t TimeDuration() const;
@@ -590,8 +592,10 @@ class TimelineEvent {
 
   int64_t timestamp0_;
   // For an event of type |kDuration|, this is the end time. For an event of
-  // type |kBegin| or |kEnd|, this is the event ID (which is only referenced by
-  // the MacOS recorder). For an async event, this is the async ID.
+  // type |kFlowBegin|, |kFlowStep|, or |kFlowEnd| this is the flow ID. For an
+  // event of type |kBegin| or |kEnd|, this is the event ID (which is only
+  // referenced by the MacOS recorder). For an async event, this is the async
+  // ID.
   int64_t timestamp1_or_id_;
   intptr_t flow_id_count_;
   // This field is only used by the Perfetto recorders, because Perfetto's trace
@@ -1299,6 +1303,8 @@ class DartTimelineEventHelpers : public AllStatic {
  public:
   // When reporting an event of type |kAsyncBegin|, |kAsyncEnd|, or
   // |kAsyncInstant|, the async ID associated with the event should be passed
+  // through |id|. When reporting an event of type |kFlowBegin|, |kFlowStep|,
+  // or |kFlowEnd|, the flow ID associated with the event should be passed
   // through |id|. When reporting an event of type |kBegin| or |kEnd|, the event
   // ID associated with the event should be passed through |id|. Note that this
   // event ID will only be used by the MacOS recorder.

@@ -10,7 +10,7 @@ import 'package:front_end/src/api_prototype/static_weak_references.dart'
     show StaticWeakReferences;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
-import 'package:kernel/ast.dart' as ast show Statement, StatementVisitor;
+import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -254,94 +254,6 @@ class _SummaryNormalizer implements StatementVisitor {
   }
 }
 
-/// Detects whether the control flow can pass through the function body and
-/// reach its end. Returns 'false' if it can prove that control never reaches
-/// the end. Otherwise, conservatively returns 'true'.
-class _FallthroughDetector extends ast.StatementVisitor<bool> {
-  // This fallthrough detector does not build control flow graph nor detect if
-  // a function has unreachable code. For simplicity, it assumes that all
-  // statements are reachable, so it just inspects the last statements of a
-  // function and checks if control can fall through them or not.
-
-  bool controlCanFallThrough(FunctionNode function) {
-    return function.body!.accept(this);
-  }
-
-  @override
-  bool defaultStatement(ast.Statement node) =>
-      throw "Unexpected statement of type ${node.runtimeType}";
-
-  @override
-  bool visitExpressionStatement(ExpressionStatement node) =>
-      (node.expression is! Throw) && (node.expression is! Rethrow);
-
-  @override
-  bool visitBlock(Block node) =>
-      node.statements.isEmpty || node.statements.last.accept(this);
-
-  @override
-  bool visitAssertBlock(AssertBlock node) =>
-      node.statements.isEmpty || node.statements.last.accept(this);
-
-  @override
-  bool visitEmptyStatement(EmptyStatement node) => true;
-
-  @override
-  bool visitAssertStatement(AssertStatement node) => true;
-
-  @override
-  bool visitLabeledStatement(LabeledStatement node) => true;
-
-  @override
-  bool visitBreakStatement(BreakStatement node) => false;
-
-  @override
-  bool visitWhileStatement(WhileStatement node) => true;
-
-  @override
-  bool visitDoStatement(DoStatement node) => true;
-
-  @override
-  bool visitForStatement(ForStatement node) => true;
-
-  @override
-  bool visitForInStatement(ForInStatement node) => true;
-
-  @override
-  bool visitSwitchStatement(SwitchStatement node) => true;
-
-  @override
-  bool visitContinueSwitchStatement(ContinueSwitchStatement node) => false;
-
-  @override
-  bool visitIfStatement(IfStatement node) {
-    final otherwise = node.otherwise;
-    if (otherwise == null) return true;
-    return node.then.accept(this) || otherwise.accept(this);
-  }
-
-  @override
-  bool visitReturnStatement(ReturnStatement node) => false;
-
-  @override
-  bool visitTryCatch(TryCatch node) =>
-      node.body.accept(this) ||
-      node.catches.any((Catch catch_) => catch_.body.accept(this));
-
-  @override
-  bool visitTryFinally(TryFinally node) =>
-      node.body.accept(this) && node.finalizer.accept(this);
-
-  @override
-  bool visitYieldStatement(YieldStatement node) => true;
-
-  @override
-  bool visitVariableDeclaration(VariableDeclaration node) => true;
-
-  @override
-  bool visitFunctionDeclaration(FunctionDeclaration node) => true;
-}
-
 /// Collects sets of captured variables, as well as variables
 /// modified in loops and try blocks.
 class _VariablesInfoCollector extends RecursiveVisitor {
@@ -541,6 +453,9 @@ Iterable<Name> getSelectors(ClassHierarchy hierarchy, Class cls,
 
 enum FieldSummaryType { kFieldGuard, kInitializer }
 
+/// Handler of a non-local jump (BreakStatement or ContinueSwitchStatement).
+typedef JumpHandler = void Function(List<TypeExpr?> state);
+
 /// Create a type flow summary for a member from the kernel AST.
 class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   final Target target;
@@ -557,7 +472,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       <AsExpression, TypeCheck>{};
   final Map<IsExpression, TypeCheck> isTests = <IsExpression, TypeCheck>{};
   final Map<TreeNode, NarrowNotNull> nullTests = <TreeNode, NarrowNotNull>{};
-  final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
   final Set<Name> _nullMethodsAndGetters = <Name>{};
   final Set<Name> _nullSetters = <Name>{};
 
@@ -585,14 +499,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   // readable names for such joins (foo_0, foo_1 etc.)
   List<int> _variableVersions = const <int>[];
 
-  // State of variables after corresponding LabeledStatement.
-  // Used to collect states from BreakStatements.
-  Map<LabeledStatement, List<List<TypeExpr?>>>?
-      _variableValuesAfterLabeledStatements;
-
-  // Joins corresponding to variables on entry to switch cases.
-  // Used to propagate state from ContinueSwitchStatement to a target case.
-  Map<SwitchCase, List<Join?>>? _joinsAtSwitchCases;
+  // Handlers of non-local jumps, organized by targets
+  // (LabeledStatements / SwitchCases).
+  Map<TreeNode, JumpHandler>? _jumpHandlers;
 
   // Join which accumulates all return values.
   Join? _returnValue;
@@ -638,8 +547,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         new List<TypeExpr?>.filled(_variablesInfo.numVariables, null);
     _variableCells = new List<Join?>.filled(_variablesInfo.numVariables, null);
     _variableVersions = new List<int>.filled(_variablesInfo.numVariables, 0);
-    _variableValuesAfterLabeledStatements = null;
-    _joinsAtSwitchCases = null;
+    _jumpHandlers = null;
     _returnValue = null;
     _receiver = null;
     _currentCondition = null;
@@ -790,8 +698,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       } else {
         _visitWithoutResult(function.body!);
 
-        if (_currentCondition is! EmptyType &&
-            _fallthroughDetector.controlCanFallThrough(function)) {
+        if (_currentCondition is! EmptyType) {
           _returnValue!.values.add(_nullType);
         }
       }
@@ -1123,6 +1030,25 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         assert(_variableCells[i] == joins[i]);
         _variableCells[i] = null;
       }
+    }
+  }
+
+  void _mergeVariableValuesAndConditions(
+      TypeExpr? commonCondition,
+      List<TypeExpr?> variableValues1,
+      TypeExpr? condition1,
+      List<TypeExpr?> variableValues2,
+      TypeExpr? condition2) {
+    if (condition1 is EmptyType) {
+      _currentCondition = condition2;
+      _variableValues = variableValues2;
+    } else if (condition2 is EmptyType) {
+      _currentCondition = condition1;
+      _variableValues = variableValues1;
+    } else {
+      _currentCondition = commonCondition;
+      _mergeVariableValues(variableValues1, variableValues2);
+      _variableValues = variableValues1;
     }
   }
 
@@ -1616,23 +1542,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final conditionAfterElse = _currentCondition;
     final stateAfterElse = _variableValues;
 
-    if (conditionAfterThen is EmptyType) {
-      // 'then' part does not continue,
-      // use condition and variable values from 'else' part.
-      _currentCondition = conditionAfterElse;
-      _variableValues = stateAfterElse;
-    } else if (conditionAfterElse is EmptyType) {
-      // 'else' part does not continue,
-      // use condition and variable values from 'then' part.
-      _currentCondition = conditionAfterThen;
-      _variableValues = stateAfterThen;
-    } else {
-      // Both parts continue,
-      // use condition before branching and merge variable values.
-      _currentCondition = conditionBeforeBranch;
-      _mergeVariableValues(stateAfterThen, _variableValues);
-      _variableValues = stateAfterThen;
-    }
+    _mergeVariableValuesAndConditions(conditionBeforeBranch, stateAfterThen,
+        conditionAfterThen, stateAfterElse, conditionAfterElse);
     return _makeNarrow(v, _staticType(node));
   }
 
@@ -2178,9 +2089,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitBreakStatement(BreakStatement node) {
-    final afterLabels = (_variableValuesAfterLabeledStatements ??= {});
-    final states = (afterLabels[node.target] ??= []);
-    states.add(_variableValues);
+    _jumpHandlers![node.target]!.call(_variableValues);
     _currentCondition = const EmptyType();
     _variableValues = _makeEmptyVariableValues();
     return null;
@@ -2188,8 +2097,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitContinueSwitchStatement(ContinueSwitchStatement node) {
-    _mergeVariableValuesToJoins(
-        _variableValues, _joinsAtSwitchCases![node.target]!);
+    _jumpHandlers![node.target]!.call(_variableValues);
     _currentCondition = const EmptyType();
     _variableValues = _makeEmptyVariableValues();
     return null;
@@ -2291,23 +2199,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final conditionAfterElse = _currentCondition;
     final stateAfterElse = _variableValues;
 
-    if (conditionAfterThen is EmptyType) {
-      // 'then' part does not continue,
-      // use condition and variable values from 'else' part.
-      _currentCondition = conditionAfterElse;
-      _variableValues = stateAfterElse;
-    } else if (conditionAfterElse is EmptyType) {
-      // 'else' part does not continue,
-      // use condition and variable values from 'then' part.
-      _currentCondition = conditionAfterThen;
-      _variableValues = stateAfterThen;
-    } else {
-      // Both parts continue,
-      // use condition before branching and merge variable values.
-      _currentCondition = conditionBeforeBranch;
-      _mergeVariableValues(stateAfterThen, _variableValues);
-      _variableValues = stateAfterThen;
-    }
+    _mergeVariableValuesAndConditions(conditionBeforeBranch, stateAfterThen,
+        conditionAfterThen, stateAfterElse, conditionAfterElse);
 
     return null;
   }
@@ -2315,9 +2208,15 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr? visitLabeledStatement(LabeledStatement node) {
     final conditionOnEntry = _currentCondition;
+    final states = <List<TypeExpr?>>[];
+
+    final handlers = (_jumpHandlers ??= <TreeNode, JumpHandler>{});
+    handlers[node] = states.add;
     _visitWithoutResult(node.body);
-    final states = _variableValuesAfterLabeledStatements?.remove(node);
-    if (states != null) {
+    assert(identical(handlers, _jumpHandlers));
+    handlers.remove(node);
+
+    if (states.isNotEmpty) {
       _currentCondition = conditionOnEntry;
       for (final state in states) {
         _mergeVariableValues(_variableValues, state);
@@ -2346,15 +2245,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final conditionOnEntry = _currentCondition;
     final stateOnEntry = _variableValues;
     final variableValuesAtCaseEntry = <SwitchCase, List<TypeExpr?>>{};
-    Map<SwitchCase, List<Join?>>? joinsAtSwitchCases = _joinsAtSwitchCases;
-    if (joinsAtSwitchCases == null) {
-      _joinsAtSwitchCases = joinsAtSwitchCases = <SwitchCase, List<Join?>>{};
-    }
+    final handlers = (_jumpHandlers ??= <TreeNode, JumpHandler>{});
     for (var switchCase in node.cases) {
       _variableValues = _cloneVariableValues(stateOnEntry);
-      joinsAtSwitchCases[switchCase] =
-          _insertJoinsForModifiedVariables(node, false);
+      final joins = _insertJoinsForModifiedVariables(node, false);
       variableValuesAtCaseEntry[switchCase] = _variableValues;
+      handlers[switchCase] = (List<TypeExpr?> state) {
+        _mergeVariableValuesToJoins(state, joins);
+      };
     }
     bool hasDefault = false;
     for (var switchCase in node.cases) {
@@ -2363,6 +2261,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       switchCase.expressions.forEach(_visit);
       _visitWithoutResult(switchCase.body);
       hasDefault = hasDefault || switchCase.isDefault;
+    }
+    assert(identical(handlers, _jumpHandlers));
+    for (var switchCase in node.cases) {
+      handlers.remove(switchCase);
     }
     if (!hasDefault) {
       _currentCondition = conditionOnEntry;
@@ -2374,14 +2276,16 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr? visitTryCatch(TryCatch node) {
     final joins = _insertJoinsForModifiedVariables(node, true);
-    final stateAfterTry = _cloneVariableValues(_variableValues);
+    final stateDuringTry = _cloneVariableValues(_variableValues);
     final conditionOnEntry = _currentCondition;
     _visitWithoutResult(node.body);
     _restoreVariableCellsAfterTry(joins);
-    List<TypeExpr?>? stateAfterCatch;
     for (var catchClause in node.catches) {
+      final conditionAfterTry = _currentCondition;
+      final stateAfterTry = _variableValues;
+
       _currentCondition = conditionOnEntry;
-      _variableValues = _cloneVariableValues(stateAfterTry);
+      _variableValues = _cloneVariableValues(stateDuringTry);
       if (catchClause.exception != null) {
         _declareVariableWithStaticType(catchClause.exception!);
       }
@@ -2389,28 +2293,46 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _declareVariableWithStaticType(catchClause.stackTrace!);
       }
       _visitWithoutResult(catchClause.body);
-      if (stateAfterCatch == null) {
-        stateAfterCatch = _variableValues;
-      } else {
-        _mergeVariableValues(stateAfterCatch, _variableValues);
-      }
+      _mergeVariableValuesAndConditions(conditionOnEntry, stateAfterTry,
+          conditionAfterTry, _variableValues, _currentCondition);
     }
-    _currentCondition = conditionOnEntry;
-    _variableValues = stateAfterTry;
-    _mergeVariableValues(_variableValues, stateAfterCatch!);
     return null;
   }
 
   @override
   TypeExpr? visitTryFinally(TryFinally node) {
+    final takenJumps = <TreeNode>{};
+    final outerJumpHandlers = _jumpHandlers;
+    if (outerJumpHandlers != null) {
+      final tryJumpHandlers = <TreeNode, JumpHandler>{};
+      for (final target in outerJumpHandlers.keys) {
+        tryJumpHandlers[target] = (List<TypeExpr?> state) {
+          takenJumps.add(target);
+        };
+      }
+      _jumpHandlers = tryJumpHandlers;
+    }
     final joins = _insertJoinsForModifiedVariables(node, true);
-    final stateAfterTry = _cloneVariableValues(_variableValues);
+    final stateDuringTry = _cloneVariableValues(_variableValues);
     final conditionOnEntry = _currentCondition;
     _visitWithoutResult(node.body);
     _restoreVariableCellsAfterTry(joins);
+    final conditionAfterTry = _currentCondition;
+    _jumpHandlers = outerJumpHandlers;
+
     _currentCondition = conditionOnEntry;
-    _variableValues = stateAfterTry;
+    _variableValues = stateDuringTry;
     _visitWithoutResult(node.finalizer);
+    if (outerJumpHandlers != null && _currentCondition is! EmptyType) {
+      for (final target in takenJumps) {
+        outerJumpHandlers[target]!.call(_variableValues);
+      }
+    }
+
+    if (conditionAfterTry is EmptyType) {
+      _currentCondition = const EmptyType();
+      _variableValues = _makeEmptyVariableValues();
+    }
     return null;
   }
 

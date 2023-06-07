@@ -76,30 +76,6 @@ extension JSClassExtension on JSClass {
   external set extFooSet(String bar);
   //           ^
   // [web] JS interop requires JS types when strict mode is enabled, but Type 'String' is not a type or subtype of a type from `dart:js_interop`.
-
-  external static int staticExtFoo();
-  //                  ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'int' is not a type or subtype of a type from `dart:js_interop`.
-
-  external static JSClass staticExtFoo2(dynamic bar);
-  //                      ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'dynamic' is not a type or subtype of a type from `dart:js_interop`.
-
-  external static Function staticExtFoo3();
-  //                       ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'Function' is not a type or subtype of a type from `dart:js_interop`.
-
-  external static JSClass staticExtFoo4(void Function() bar);
-  //                      ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'void Function()' is not a type or subtype of a type from `dart:js_interop`.
-
-  external static double get staticExtFooGet;
-  //                         ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'double' is not a type or subtype of a type from `dart:js_interop`.
-
-  external static set staticExtFooSet(String bar);
-  //                  ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'String' is not a type or subtype of a type from `dart:js_interop`.
 }
 
 @JS()

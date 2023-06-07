@@ -171,7 +171,7 @@ static method duplicateRecordPatternField(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return #0#0{self::Class}.{self::Class::field}{core::int};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     {
       if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:36:28: Error: The field 'field' is already matched in this pattern.
@@ -267,7 +267,7 @@ static method restPatternNotLastInMap(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#4#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #0#4 = ##0#4#initializer(){() → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#4) {
       core::print(0);
@@ -278,7 +278,7 @@ static method restPatternWithSubPatternInMap(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#4#initializer() → dynamic
-      return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #0#4 = ##0#4#initializer(){() → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#4) {
       core::print(0);
@@ -297,4 +297,4 @@ constants  {
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///shared_errors.dart:78:21 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///shared_errors.dart:84:16 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 132, effectively constant: 2
+Extra constant evaluation: evaluated: 135, effectively constant: 2

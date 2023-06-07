@@ -23,6 +23,10 @@ abstract class RefactoringProducer {
   /// the given [_context].
   RefactoringProducer(this._context);
 
+  /// The most deeply nested node whose range completely includes the range of
+  /// characters described by [selectionOffset] and [selectionLength].
+  AstNode? get coveringNode => _context.coveringNode;
+
   /// Return whether this refactor is considered experimental and will only
   /// be included if the user has opted-in.
   bool get isExperimental;
@@ -42,10 +46,6 @@ abstract class RefactoringProducer {
 
   /// Return the search engine used to search outside the resolved library.
   SearchEngine get searchEngine => _context.searchEngine;
-
-  /// Return the node that was selected, or `null` if the selection is not
-  /// valid.
-  AstNode? get selectedNode => _context.selectedNode;
 
   /// Return the selection, or `null` if the selection is not valid.
   Selection? get selection => _context.selection;

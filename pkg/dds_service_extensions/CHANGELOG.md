@@ -1,3 +1,6 @@
+## 1.5.0
+- Added `DdsExtension.postEvent`.
+
 ## 1.4.0
 
 - Added `DdsExtension.getPerfettoVMTimelineWithCpuSamples`.

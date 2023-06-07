@@ -8,7 +8,7 @@ static method main() → dynamic {
   hoisted has-declared-initializer core::int v;
   {
     final synthesized dynamic #0#0 = <core::String, core::int>{"key": 42};
-    late final synthesized core::int? #0#3 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    late final synthesized core::int? #0#3 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
     if(!((!(#0#3 == null) || null is{ForNonNullableByDefault} core::int && #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final dynamic #t1 = v = #0#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }

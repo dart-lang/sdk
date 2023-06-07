@@ -123,50 +123,41 @@ class Arguments implements Serializable {
       {bool alreadyMoved = false}) {
     if (!alreadyMoved) deserializer.moveNext();
     _ArgumentKind kind = _ArgumentKind.values[deserializer.expectInt()];
-    switch (kind) {
-      case _ArgumentKind.nil:
-        return null;
-      case _ArgumentKind.string:
-        deserializer.moveNext();
-        return deserializer.expectString();
-      case _ArgumentKind.bool:
-        deserializer.moveNext();
-        return deserializer.expectBool();
-      case _ArgumentKind.int:
-        deserializer.moveNext();
-        return deserializer.expectInt();
-      case _ArgumentKind.double:
-        deserializer.moveNext();
-        return deserializer.expectDouble();
-      case _ArgumentKind.list:
-        deserializer.moveNext();
-        deserializer.expectList();
-        return [
-          for (bool hasNext = deserializer.moveNext();
+    return switch (kind) {
+      _ArgumentKind.nil => null,
+      _ArgumentKind.string => (deserializer..moveNext()).expectString(),
+      _ArgumentKind.bool => (deserializer..moveNext()).expectBool(),
+      _ArgumentKind.int => (deserializer..moveNext()).expectInt(),
+      _ArgumentKind.double => (deserializer..moveNext()).expectDouble(),
+      _ArgumentKind.list => [
+          for (bool hasNext = (deserializer
+                    ..moveNext()
+                    ..expectList())
+                  .moveNext();
               hasNext;
               hasNext = deserializer.moveNext())
             _deserializeArg(deserializer, alreadyMoved: true),
-        ];
-      case _ArgumentKind.set:
-        deserializer.moveNext();
-        deserializer.expectList();
-        return {
-          for (bool hasNext = deserializer.moveNext();
+        ],
+      _ArgumentKind.set => {
+          for (bool hasNext = (deserializer
+                    ..moveNext()
+                    ..expectList())
+                  .moveNext();
               hasNext;
               hasNext = deserializer.moveNext())
             _deserializeArg(deserializer, alreadyMoved: true),
-        };
-      case _ArgumentKind.map:
-        deserializer.moveNext();
-        deserializer.expectList();
-        return {
-          for (bool hasNext = deserializer.moveNext();
+        },
+      _ArgumentKind.map => {
+          for (bool hasNext = (deserializer
+                    ..moveNext()
+                    ..expectList())
+                  .moveNext();
               hasNext;
               hasNext = deserializer.moveNext())
             _deserializeArg(deserializer, alreadyMoved: true):
                 _deserializeArg(deserializer),
-        };
-    }
+        },
+    };
   }
 
   @override
@@ -237,7 +228,7 @@ class Arguments implements Serializable {
 
 /// A resolved [Identifier], this is used when creating augmentation libraries
 /// to qualify identifiers where needed.
-class ResolvedIdentifier extends Identifier {
+class ResolvedIdentifier implements Identifier {
   /// The import URI for the library that defines the member that is referenced
   /// by this identifier.
   ///

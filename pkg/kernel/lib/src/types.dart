@@ -92,7 +92,7 @@ class Types with StandardBounds {
     }
 
     if (t is InterfaceType) {
-      if (t.className == hierarchy.coreTypes.objectClass.reference &&
+      if (t.classReference == hierarchy.coreTypes.objectClass.reference &&
           s is! FutureOrType) {
         return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
       }
@@ -474,7 +474,7 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   IsSubtypeOf isInterfaceRelated(
       InterfaceType s, InterfaceType t, Types types) {
     List<DartType>? asSupertypeArguments;
-    if (s.className == t.className) {
+    if (s.classReference == t.classReference) {
       asSupertypeArguments = s.typeArguments;
     } else {
       asSupertypeArguments =

@@ -728,7 +728,7 @@ abstract class _TypeSubstitutor implements DartTypeVisitor<DartType> {
     List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new InterfaceType.byReference(
-        node.className, node.nullability, typeArguments);
+        node.classReference, node.nullability, typeArguments);
   }
 
   @override

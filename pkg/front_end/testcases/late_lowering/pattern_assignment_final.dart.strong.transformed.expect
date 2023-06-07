@@ -100,20 +100,20 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
     synthesized dynamic #2#3;
     synthesized core::bool #2#3#isSet = false;
     function #2#3#func() → dynamic
-      return #2#3#isSet ?{dynamic} #2#3 : let final core::bool* #t10 = #2#3#isSet = true in #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic};
+      return #2#3#isSet ?{dynamic} #2#3 : let final core::bool* #t10 = #2#3#isSet = true in #2#3 = (#2#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field2}{dynamic};
     synthesized dynamic #2#9;
     synthesized core::bool #2#9#isSet = false;
     function #2#9#func() → dynamic
-      return #2#9#isSet ?{dynamic} #2#9 : let final core::bool* #t11 = #2#9#isSet = true in #2#9 = (#2#3#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+      return #2#9#isSet ?{dynamic} #2#9 : let final core::bool* #t11 = #2#9#isSet = true in #2#9 = (#2#3#func(){() → dynamic} as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     synthesized dynamic #2#16;
     synthesized core::bool #2#16#isSet = false;
     function #2#16#func() → dynamic
-      return #2#16#isSet ?{dynamic} #2#16 : let final core::bool* #t12 = #2#16#isSet = true in #2#16 = (#2#3#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
+      return #2#16#isSet ?{dynamic} #2#16 : let final core::bool* #t12 = #2#16#isSet = true in #2#16 = (#2#3#func(){() → dynamic} as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     if(!(#2#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t13 = #2#0{self::Class}.{self::Class::field1}{dynamic} in invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:36:17: Error: Late final variable '#definitelyAssignedLateFinal' definitely assigned.
   Class(field1: definitelyAssignedLateFinal, // Error
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#3#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#3#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#9#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:37:17: Error: Final variable 'notDefinitelyAssignedFinal' might already be assigned at this point.
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#3#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#3#func(){() → dynamic} as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#9#func(){() → dynamic} as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:37:17: Error: Final variable 'notDefinitelyAssignedFinal' might already be assigned at this point.
       field2: [[notDefinitelyAssignedFinal, _], // Error
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#16#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#16#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int? #t14 = #t9 = (#2#16#func(){() → dynamic} as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic} as{ForNonNullableByDefault} core::int? in true)))))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#16#func(){() → dynamic} is{ForNonNullableByDefault} core::List<dynamic> && (#2#16#func(){() → dynamic} as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int? #t14 = #t9 = (#2#16#func(){() → dynamic} as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic} as{ForNonNullableByDefault} core::int? in true)))))
       throw new core::StateError::•("Pattern matching error");
     #notDefinitelyAssignedLateFinal#set(#t9){(core::int) → dynamic};
   } =>#2#0;
@@ -125,4 +125,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///pattern_assignment_final.dart:12:14 -> IntConstant(5)
-Extra constant evaluation: evaluated: 172, effectively constant: 1
+Extra constant evaluation: evaluated: 173, effectively constant: 1

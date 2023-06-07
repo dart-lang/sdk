@@ -3288,19 +3288,33 @@ class FrontendServer {
     // definitions (one per line)
     // ...
     // <boundarykey>
+    // definitionTypes (one per line)
+    // ...
+    // <boundarykey>
     // type-definitions (one per line)
+    // ...
+    // <boundarykey>
+    // type-bounds (one per line)
+    // ...
+    // <boundarykey>
+    // type-defaults (one per line)
     // ...
     // <boundarykey>
     // <libraryUri: String>
     // <klass: String>
+    // <method: String>
     // <isStatic: true|false>
     outputParser.expectSources = false;
     inputStreamController.add('compile-expression $boundaryKey\n'
             '$expression\n'
             '$boundaryKey\n'
             '$boundaryKey\n'
+            '$boundaryKey\n'
+            '$boundaryKey\n'
+            '$boundaryKey\n'
             '$library\n'
             '$className\n'
+            '\n'
             '${isStatic != null ? '$isStatic' : ''}\n'
         .codeUnits);
   }

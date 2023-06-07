@@ -15,83 +15,61 @@ extension DeserializerExtensions on Deserializer {
 
     moveNext();
     RemoteInstanceKind kind = RemoteInstanceKind.values[expectInt()];
-    switch (kind) {
-      case RemoteInstanceKind.typeIntrospector:
-      case RemoteInstanceKind.identifierResolver:
-      case RemoteInstanceKind.namedStaticType:
-      case RemoteInstanceKind.staticType:
-      case RemoteInstanceKind.typeDeclarationResolver:
-      case RemoteInstanceKind.typeResolver:
-      case RemoteInstanceKind.typeInferrer:
+    return switch (kind) {
+      RemoteInstanceKind.typeIntrospector ||
+      RemoteInstanceKind.identifierResolver ||
+      RemoteInstanceKind.namedStaticType ||
+      RemoteInstanceKind.staticType ||
+      RemoteInstanceKind.typeDeclarationResolver ||
+      RemoteInstanceKind.typeResolver ||
+      RemoteInstanceKind.typeInferrer =>
         // These are simple wrappers, just pass in the kind
-        return new RemoteInstanceImpl(id: id, kind: kind) as T;
-      case RemoteInstanceKind.classDeclaration:
-        moveNext();
-        return _expectClassDeclaration(id) as T;
-      case RemoteInstanceKind.enumDeclaration:
-        moveNext();
-        return _expectEnumDeclaration(id) as T;
-      case RemoteInstanceKind.enumValueDeclaration:
-        moveNext();
-        return _expectEnumValueDeclaration(id) as T;
-      case RemoteInstanceKind.mixinDeclaration:
-        moveNext();
-        return _expectMixinDeclaration(id) as T;
-      case RemoteInstanceKind.constructorDeclaration:
-        moveNext();
-        return _expectConstructorDeclaration(id) as T;
-      case RemoteInstanceKind.fieldDeclaration:
-        moveNext();
-        return _expectFieldDeclaration(id) as T;
-      case RemoteInstanceKind.functionDeclaration:
-        moveNext();
-        return _expectFunctionDeclaration(id) as T;
-      case RemoteInstanceKind.functionTypeAnnotation:
-        moveNext();
-        return _expectFunctionTypeAnnotation(id) as T;
-      case RemoteInstanceKind.functionTypeParameter:
-        moveNext();
-        return _expectFunctionTypeParameter(id) as T;
-      case RemoteInstanceKind.identifier:
-        moveNext();
-        return _expectIdentifier(id) as T;
-      case RemoteInstanceKind.introspectableClassDeclaration:
-        moveNext();
-        return _expectIntrospectableClassDeclaration(id) as T;
-      case RemoteInstanceKind.introspectableEnumDeclaration:
-        moveNext();
-        return _expectIntrospectableEnumDeclaration(id) as T;
-      case RemoteInstanceKind.introspectableMixinDeclaration:
-        moveNext();
-        return _expectIntrospectableMixinDeclaration(id) as T;
-      case RemoteInstanceKind.methodDeclaration:
-        moveNext();
-        return _expectMethodDeclaration(id) as T;
-      case RemoteInstanceKind.namedTypeAnnotation:
-        moveNext();
-        return _expectNamedTypeAnnotation(id) as T;
-      case RemoteInstanceKind.omittedTypeAnnotation:
-        moveNext();
-        return _expectOmittedTypeAnnotation(id) as T;
-      case RemoteInstanceKind.parameterDeclaration:
-        moveNext();
-        return _expectParameterDeclaration(id) as T;
-      case RemoteInstanceKind.recordFieldDeclaration:
-        moveNext();
-        return _expectRecordFieldDeclaration(id) as T;
-      case RemoteInstanceKind.recordTypeAnnotation:
-        moveNext();
-        return _expectRecordTypeAnnotation(id) as T;
-      case RemoteInstanceKind.typeAliasDeclaration:
-        moveNext();
-        return _expectTypeAliasDeclaration(id) as T;
-      case RemoteInstanceKind.typeParameterDeclaration:
-        moveNext();
-        return _expectTypeParameterDeclaration(id) as T;
-      case RemoteInstanceKind.variableDeclaration:
-        moveNext();
-        return _expectVariableDeclaration(id) as T;
-    }
+        new RemoteInstanceImpl(id: id, kind: kind) as T,
+      RemoteInstanceKind.classDeclaration =>
+        (this..moveNext())._expectClassDeclaration(id) as T,
+      RemoteInstanceKind.enumDeclaration =>
+        (this..moveNext())._expectEnumDeclaration(id) as T,
+      RemoteInstanceKind.enumValueDeclaration =>
+        (this..moveNext())._expectEnumValueDeclaration(id) as T,
+      RemoteInstanceKind.mixinDeclaration =>
+        (this..moveNext())._expectMixinDeclaration(id) as T,
+      RemoteInstanceKind.constructorDeclaration =>
+        (this..moveNext())._expectConstructorDeclaration(id) as T,
+      RemoteInstanceKind.fieldDeclaration =>
+        (this..moveNext())._expectFieldDeclaration(id) as T,
+      RemoteInstanceKind.functionDeclaration =>
+        (this..moveNext())._expectFunctionDeclaration(id) as T,
+      RemoteInstanceKind.functionTypeAnnotation =>
+        (this..moveNext())._expectFunctionTypeAnnotation(id) as T,
+      RemoteInstanceKind.functionTypeParameter =>
+        (this..moveNext())._expectFunctionTypeParameter(id) as T,
+      RemoteInstanceKind.identifier =>
+        (this..moveNext())._expectIdentifier(id) as T,
+      RemoteInstanceKind.introspectableClassDeclaration =>
+        (this..moveNext())._expectIntrospectableClassDeclaration(id) as T,
+      RemoteInstanceKind.introspectableEnumDeclaration =>
+        (this..moveNext())._expectIntrospectableEnumDeclaration(id) as T,
+      RemoteInstanceKind.introspectableMixinDeclaration =>
+        (this..moveNext())._expectIntrospectableMixinDeclaration(id) as T,
+      RemoteInstanceKind.methodDeclaration =>
+        (this..moveNext())._expectMethodDeclaration(id) as T,
+      RemoteInstanceKind.namedTypeAnnotation =>
+        (this..moveNext())._expectNamedTypeAnnotation(id) as T,
+      RemoteInstanceKind.omittedTypeAnnotation =>
+        (this..moveNext())._expectOmittedTypeAnnotation(id) as T,
+      RemoteInstanceKind.parameterDeclaration =>
+        (this..moveNext())._expectParameterDeclaration(id) as T,
+      RemoteInstanceKind.recordFieldDeclaration =>
+        (this..moveNext())._expectRecordFieldDeclaration(id) as T,
+      RemoteInstanceKind.recordTypeAnnotation =>
+        (this..moveNext())._expectRecordTypeAnnotation(id) as T,
+      RemoteInstanceKind.typeAliasDeclaration =>
+        (this..moveNext())._expectTypeAliasDeclaration(id) as T,
+      RemoteInstanceKind.typeParameterDeclaration =>
+        (this..moveNext())._expectTypeParameterDeclaration(id) as T,
+      RemoteInstanceKind.variableDeclaration =>
+        (this..moveNext())._expectVariableDeclaration(id) as T,
+    };
   }
 
   Uri expectUri() => Uri.parse(expectString());
@@ -384,52 +362,39 @@ extension DeserializerExtensions on Deserializer {
   T expectCode<T extends Code>() {
     CodeKind kind = CodeKind.values[expectInt()];
 
-    switch (kind) {
-      case CodeKind.raw:
-        return new Code.fromParts(_readParts()) as T;
-      case CodeKind.comment:
-        return new CommentCode.fromParts(_readParts()) as T;
-      case CodeKind.declaration:
-        return new DeclarationCode.fromParts(_readParts()) as T;
-      case CodeKind.expression:
-        return new ExpressionCode.fromParts(_readParts()) as T;
-      case CodeKind.functionBody:
-        return new FunctionBodyCode.fromParts(_readParts()) as T;
-      case CodeKind.functionTypeAnnotation:
-        return new FunctionTypeAnnotationCode(
-            namedParameters: _readCodeList(),
-            positionalParameters: _readCodeList(),
-            returnType: (this..moveNext()).expectNullableCode(),
-            typeParameters: _readCodeList()) as T;
-      case CodeKind.namedTypeAnnotation:
-        return new NamedTypeAnnotationCode(
-            name: RemoteInstance.deserialize(this),
-            typeArguments: _readCodeList()) as T;
-      case CodeKind.nullableTypeAnnotation:
-        return new NullableTypeAnnotationCode((this..moveNext()).expectCode())
-            as T;
-      case CodeKind.omittedTypeAnnotation:
-        return new OmittedTypeAnnotationCode(RemoteInstance.deserialize(this))
-            as T;
-      case CodeKind.parameter:
-        return new ParameterCode(
-            defaultValue: (this..moveNext()).expectNullableCode(),
-            keywords: _readStringList(),
-            name: (this..moveNext()).expectNullableString(),
-            type: (this..moveNext()).expectNullableCode()) as T;
-      case CodeKind.recordField:
-        return new RecordFieldCode(
-            name: (this..moveNext()).expectNullableString(),
-            type: (this..moveNext()).expectCode()) as T;
-      case CodeKind.recordTypeAnnotation:
-        return new RecordTypeAnnotationCode(
-            namedFields: _readCodeList(),
-            positionalFields: _readCodeList()) as T;
-      case CodeKind.typeParameter:
-        return new TypeParameterCode(
-            bound: (this..moveNext()).expectNullableCode(),
-            name: (this..moveNext()).expectString()) as T;
-    }
+    return switch (kind) {
+      CodeKind.raw => new RawCode.fromParts(_readParts()) as T,
+      CodeKind.comment => new CommentCode.fromParts(_readParts()) as T,
+      CodeKind.declaration => new DeclarationCode.fromParts(_readParts()) as T,
+      CodeKind.expression => new ExpressionCode.fromParts(_readParts()) as T,
+      CodeKind.functionBody =>
+        new FunctionBodyCode.fromParts(_readParts()) as T,
+      CodeKind.functionTypeAnnotation => new FunctionTypeAnnotationCode(
+          namedParameters: _readCodeList(),
+          positionalParameters: _readCodeList(),
+          returnType: (this..moveNext()).expectNullableCode(),
+          typeParameters: _readCodeList()) as T,
+      CodeKind.namedTypeAnnotation => new NamedTypeAnnotationCode(
+          name: RemoteInstance.deserialize(this),
+          typeArguments: _readCodeList()) as T,
+      CodeKind.nullableTypeAnnotation =>
+        new NullableTypeAnnotationCode((this..moveNext()).expectCode()) as T,
+      CodeKind.omittedTypeAnnotation =>
+        new OmittedTypeAnnotationCode(RemoteInstance.deserialize(this)) as T,
+      CodeKind.parameter => new ParameterCode(
+          defaultValue: (this..moveNext()).expectNullableCode(),
+          keywords: _readStringList(),
+          name: (this..moveNext()).expectNullableString(),
+          type: (this..moveNext()).expectNullableCode()) as T,
+      CodeKind.recordField => new RecordFieldCode(
+          name: (this..moveNext()).expectNullableString(),
+          type: (this..moveNext()).expectCode()) as T,
+      CodeKind.recordTypeAnnotation => new RecordTypeAnnotationCode(
+          namedFields: _readCodeList(), positionalFields: _readCodeList()) as T,
+      CodeKind.typeParameter => new TypeParameterCode(
+          bound: (this..moveNext()).expectNullableCode(),
+          name: (this..moveNext()).expectString()) as T,
+    };
   }
 
   T? expectNullableCode<T extends Code>() {

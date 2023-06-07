@@ -6920,7 +6920,7 @@ class AllocateObjectInstr : public AllocationInstr {
   }
 
   static bool WillAllocateNewOrRemembered(const Class& cls) {
-    return Heap::IsAllocatableInNewSpace(cls.target_instance_size());
+    return IsAllocatableInNewSpace(cls.target_instance_size());
   }
 
   virtual const Slot* SlotForInput(intptr_t pos) {
@@ -6993,8 +6993,7 @@ class AllocateClosureInstr : public TemplateAllocation<2> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(
-        compiler::target::Closure::InstanceSize());
+    return IsAllocatableInNewSpace(compiler::target::Closure::InstanceSize());
   }
 
   DECLARE_EMPTY_SERIALIZATION(AllocateClosureInstr, TemplateAllocation)
@@ -7053,7 +7052,7 @@ class AllocateRecordInstr : public TemplateAllocation<0> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(
+    return IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 
@@ -7105,7 +7104,7 @@ class AllocateSmallRecordInstr : public TemplateAllocation<3> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(
+    return IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 

@@ -47,6 +47,9 @@ VirtualMemory* VirtualMemory::ForImagePage(void* pointer, uword size) {
   return memory;
 }
 
+#if !defined(DART_TARGET_OS_FUCHSIA)
+// TODO(52579): Reenable on Fuchsia.
+
 bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
   ASSERT_LESS_OR_EQUAL(size(), target->size());
 
@@ -86,5 +89,7 @@ bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
   return true;
 #endif  // defined(DART_HOST_OS_MACOS)
 }
+
+#endif  // !defined(DART_TARGET_OS_FUCHSIA)
 
 }  // namespace dart

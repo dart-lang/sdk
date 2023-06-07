@@ -1,0 +1,6 @@
+Future<void> h1<X extends Future<A>?>(X x) async {}
+
+class A {}
+
+expectEquals(a, b) {}
+void main() async => await h1<Null>(null);

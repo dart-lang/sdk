@@ -329,10 +329,6 @@ class CheckNameResponse {
     } else if (node is EnumDeclaration) {
       var utils = CorrectionUtils(resolvedUnit);
       var location = utils.prepareEnumNewConstructorLocation(node);
-      if (location == null) {
-        return null;
-      }
-
       var header = 'const ${interfaceElement.name}.$newName();';
       return CiderReplaceMatch(libraryPath, [
         ReplaceInfo(location.prefix + header + location.suffix,

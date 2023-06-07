@@ -23,7 +23,7 @@ class CreateConstructorForFinalFieldsTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
 
-  Future<void> test_excludesLate() async {
+  Future<void> test_class_excludesLate() async {
     await resolveTestCode('''
 class Test {
   final int a;
@@ -40,7 +40,7 @@ class Test {
 ''');
   }
 
-  Future<void> test_flutter() async {
+  Future<void> test_class_flutter() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -66,7 +66,7 @@ class MyWidget extends StatelessWidget {
     });
   }
 
-  Future<void> test_flutter_childLast() async {
+  Future<void> test_class_flutter_childLast() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -92,7 +92,7 @@ class MyWidget extends StatelessWidget {
     });
   }
 
-  Future<void> test_flutter_childrenLast() async {
+  Future<void> test_class_flutter_childrenLast() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -118,7 +118,7 @@ class MyWidget extends StatelessWidget {
     });
   }
 
-  Future<void> test_inTopLevelMethod() async {
+  Future<void> test_class_inTopLevelMethod() async {
     await resolveTestCode('''
 void f() {
   final int v;
@@ -128,7 +128,7 @@ void f() {
     await assertNoFix();
   }
 
-  Future<void> test_lint_sortConstructorsFirst() async {
+  Future<void> test_class_lint_sortConstructorsFirst() async {
     createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
     await resolveTestCode('''
 class Test {
@@ -150,7 +150,7 @@ class Test {
     });
   }
 
-  Future<void> test_simple() async {
+  Future<void> test_class_simple() async {
     await resolveTestCode('''
 class Test {
   final int a;
@@ -165,6 +165,29 @@ class Test {
   final int c;
 
   Test(this.a, this.c);
+}
+''', errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
+  }
+
+  Future<void> test_enum_simple() async {
+    await resolveTestCode('''
+enum E {
+  v(0, 2);
+  final int a;
+  final int b = 1;
+  final int c;
+}
+''');
+    await assertHasFix('''
+enum E {
+  v(0, 2);
+  final int a;
+  final int b = 1;
+  final int c;
+
+  const E(this.a, this.c);
 }
 ''', errorFilter: (error) {
       return error.message.contains("'a'");
@@ -188,7 +211,7 @@ class CreateConstructorForFinalFieldsWithoutNullSafetyTest
   @override
   String get testPackageLanguageVersion => '2.9';
 
-  Future<void> test_flutter() async {
+  Future<void> test_class_flutter() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -214,7 +237,7 @@ class MyWidget extends StatelessWidget {
     });
   }
 
-  Future<void> test_flutter_childLast() async {
+  Future<void> test_class_flutter_childLast() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -240,7 +263,7 @@ class MyWidget extends StatelessWidget {
     });
   }
 
-  Future<void> test_flutter_childrenLast() async {
+  Future<void> test_class_flutter_childrenLast() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -276,7 +299,7 @@ class CreateConstructorForFinalFieldsWithoutSuperParametersTest
   @override
   String get testPackageLanguageVersion => '2.16';
 
-  Future<void> test_flutter() async {
+  Future<void> test_class_flutter() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -302,7 +325,7 @@ class MyWidget extends StatelessWidget {
     });
   }
 
-  Future<void> test_flutter_childLast() async {
+  Future<void> test_class_flutter_childLast() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -328,7 +351,7 @@ class MyWidget extends StatelessWidget {
     });
   }
 
-  Future<void> test_flutter_childrenLast() async {
+  Future<void> test_class_flutter_childrenLast() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';

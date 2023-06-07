@@ -31,8 +31,8 @@ static method test2(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     late final synthesized core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
-    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#7 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     {
       lowered hoisted core::int x#case#0;
       lowered hoisted core::int x#case#1;

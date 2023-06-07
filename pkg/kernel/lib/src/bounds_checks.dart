@@ -173,7 +173,7 @@ DartType instantiateToBounds(DartType type, Class objectClass,
       }
     }
     return new InterfaceType.byReference(
-        type.className,
+        type.classReference,
         type.nullability,
         calculateBounds(type.classNode.typeParameters, objectClass,
             isNonNullableByDefault: isNonNullableByDefault));
@@ -223,7 +223,7 @@ List<DartType> calculateBoundsInternal(
           ? const NeverType.nonNullable()
           : const DynamicType();
     } else if (bound is InterfaceType &&
-        bound.className == objectClass.reference) {
+        bound.classReference == objectClass.reference) {
       DartType defaultType = typeParameters[i].defaultType;
       if (!(defaultType is InterfaceType &&
           defaultType.classNode == objectClass)) {

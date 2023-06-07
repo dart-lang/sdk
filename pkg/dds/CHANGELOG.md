@@ -1,3 +1,10 @@
+# 2.9.0
+- Updated DDS protocol to version 1.6.
+- Add `postEvent RPC.
+
+# 2.8.3
+- Pass-through expression evaluation types, method and class information.
+
 # 2.8.2
 - [DAP] Fixed an issue that could result in unhandled exceptions from in-flight requests when the application/VM Service is shutting down.
 

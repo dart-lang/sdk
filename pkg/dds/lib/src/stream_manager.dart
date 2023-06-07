@@ -187,6 +187,36 @@ class StreamManager {
     );
   }
 
+  /// Send an event to the [stream].
+  ///
+  /// [stream] must be a registered custom stream (i.e., not a stream specified
+  /// as part of the VM service protocol).
+  ///
+  /// If [stream] is not a registered custom stream, an [RPCError] with code
+  /// [kCustomStreamDoesNotExist] will be thrown.
+  ///
+  /// If [stream] is a core stream, an [RPCError] with code
+  /// [kCoreStreamNotAllowed] will be thrown.
+  void postEvent(
+      String stream, String eventKind, Map<String, Object?> eventData) {
+    if (coreStreams.contains(stream)) {
+      throw kCoreStreamNotAllowed;
+    }
+    if (!customStreamListenerKeys.contains(stream)) {
+      throw kCustomStreamDoesNotExist;
+    }
+
+    streamNotify(stream, <String, dynamic>{
+      'streamId': stream,
+      'event': {
+        'kind': 'Extension',
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+        'extensionData': eventData,
+        'extensionKind': eventKind,
+      },
+    });
+  }
+
   /// Subscribes `client` to a stream.
   ///
   /// If `client` is the first client to listen to `stream`, DDS will send a
@@ -386,15 +416,42 @@ class StreamManager {
     RpcErrorCodes.kStreamNotSubscribed,
   );
 
+  static final kCustomStreamDoesNotExist = RpcErrorCodes.buildRpcException(
+    RpcErrorCodes.kCustomStreamDoesNotExist,
+  );
+  static final kCoreStreamNotAllowed = RpcErrorCodes.buildRpcException(
+    RpcErrorCodes.kCoreStreamNotAllowed,
+  );
+
+  static const kEchoStream = '_Echo';
   static const kDebugStream = 'Debug';
   static const kExtensionStream = 'Extension';
+  static const kHeapSnapshotStream = 'HeapSnapshot';
   static const kIsolateStream = 'Isolate';
+  static const kGCStream = 'GC';
   static const kLoggingStream = 'Logging';
   static const kProfilerStream = 'Profiler';
   static const kStderrStream = 'Stderr';
   static const kStdoutStream = 'Stdout';
+  static const kTimelineStream = 'Timeline';
+  static const kVMStream = 'VM';
 
   static const destinationStreamKey = '__destinationStream';
+
+  static const coreStreams = <String>[
+    kEchoStream,
+    kDebugStream,
+    kExtensionStream,
+    kHeapSnapshotStream,
+    kIsolateStream,
+    kGCStream,
+    kLoggingStream,
+    kProfilerStream,
+    kStderrStream,
+    kStdoutStream,
+    kTimelineStream,
+    kVMStream,
+  ];
 
   static Map<String, LoggingRepository> loggingRepositories = {};
 

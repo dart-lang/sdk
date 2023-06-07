@@ -5,8 +5,13 @@ import "dart:core" as core;
 static method main() → dynamic {
   core::bool b = false;
   block {
-    final core::List<core::String> #t1 = <core::String>["ab"];
+    final core::List<core::String> #t1 = <core::String>[#C1];
     if(b)
-      #t1.{core::List::add}{Invariant}("cd"){(core::String) → void};
+      #t1.{core::List::add}{Invariant}(#C2){(core::String) → void};
   } =>#t1;
+}
+
+constants  {
+  #C1 = "ab"
+  #C2 = "cd"
 }

@@ -38,7 +38,7 @@ import "dart:_internal" as _in;
 [622]  {
 [630]    [630] final synthesized dynamic #0#0 = [630] [630] o;
 [-1]    function ##0#2#initializer() → core::int
-[-1]      return [644] [644] [630] [630] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]      return [644] [644] [630]([630] [630] [630] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]    [-1] late final synthesized core::int #0#2 = [-1] [-1] ##0#2#initializer [-1](){() → core::int};
 [-1]    [-1] dynamic #t1;
 [639]    {
@@ -67,7 +67,7 @@ import "dart:_internal" as _in;
 [788]  {
 [796]    [796] final synthesized dynamic #0#0 = [796] [796] o;
 [-1]    function ##0#2#initializer() → core::int
-[-1]      return [810] [810] [796] [796] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]      return [810] [810] [796]([796] [796] [796] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]    [-1] late final synthesized core::int #0#2 = [-1] [-1] ##0#2#initializer [-1](){() → core::int};
 [-1]    [-1] dynamic #t7;
 [805]    {
@@ -105,7 +105,7 @@ import "dart:_internal" as _in;
 [996]    [996] core::int #t13 = [996] [996] [996] [996] 1.{core::int::unary-}[996](){() → core::int};
 [1004]    [1004] final synthesized dynamic #0#0 = [1004] [1004] o;
 [-1]    function ##0#2#initializer() → core::int
-[-1]      return [1018] [1018] [1004] [1004] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]      return [1018] [1018] [1004]([1004] [1004] [1004] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]    [-1] late final synthesized core::int #0#2 = [-1] [-1] ##0#2#initializer [-1](){() → core::int};
 [-1]    [-1] dynamic #t14;
 [996]    #L4:
@@ -197,7 +197,7 @@ import "dart:_internal" as _in;
 [1421]              [1421] core::int #t23 = [1421] [1421] [1421] [1421] 1.{core::int::unary-}[1421](){() → core::int};
 [1429]              [1429] final synthesized dynamic #0#0 = [1429] [1429] o2;
 [-1]              function ##0#2#initializer() → core::int
-[-1]                return [1448] [1448] [1429] [1429] #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]                return [1448] [1448] [1429]([1429] [1429] [1429] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]              [-1] late final synthesized core::int #0#2 = [-1] [-1] ##0#2#initializer [-1](){() → core::int};
 [-1]              [-1] dynamic #t24;
 [1421]              #L10:
@@ -309,7 +309,7 @@ import "dart:_internal" as _in;
 [1973]              [1973] core::int #t30 = [1973] [1973] [1973] [1973] 1.{core::int::unary-}[1973](){() → core::int};
 [1981]              [1981] final synthesized dynamic #1#0 = [1981] [1981] o2;
 [-1]              function ##1#2#initializer() → core::int
-[-1]                return [2000] [2000] [1981] [1981] #1#0{core::List<dynamic>}.{core::List::length}{core::int};
+[-1]                return [2000] [2000] [1981]([1981] [1981] [1981] #1#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]              [-1] late final synthesized core::int #1#2 = [-1] [-1] ##1#2#initializer [-1](){() → core::int};
 [-1]              [-1] dynamic #t31;
 [1973]              #L16:
@@ -746,7 +746,7 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:50
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:70:3 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:75:7 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:103:7 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 522, effectively constant: 4
+Extra constant evaluation: evaluated: 527, effectively constant: 4
 
 
 Constructor coverage from constants:

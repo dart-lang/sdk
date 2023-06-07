@@ -386,6 +386,32 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ ret();
 }
 
+void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
+                                            Register dst,
+                                            Register tmp) {
+  compiler::Label skip_reloc;
+  __ jmp(&skip_reloc);
+  InsertBSSRelocation(relocation);
+  const intptr_t reloc_end = __ CodeSize();
+  __ Bind(&skip_reloc);
+
+  const intptr_t kLeaqLength = 7;
+  __ leaq(dst, compiler::Address::AddressRIPRelative(
+                   -kLeaqLength - compiler::target::kWordSize));
+  ASSERT((__ CodeSize() - reloc_end) == kLeaqLength);
+
+  // dst holds the address of the relocation.
+  __ movq(tmp, compiler::Address(dst, 0));
+
+  // tmp holds the relocation itself: dst - bss_start.
+  // dst = dst + (bss_start - dst) = bss_start
+  __ addq(dst, tmp);
+
+  // dst holds the start of the BSS section.
+  // Load the routine.
+  __ movq(dst, compiler::Address(dst, 0));
+}
+
 void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
     uword function_index,
     Register dst) {
@@ -467,8 +493,19 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ pushq(Immediate(0));  // Reserve a stack slot for the trampoline type.
     __ movq(CallingConventions::kArg3Reg, RSP);
 
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, RAX,
+                           TMP);
+    } else {
+      __ movq(RAX, Immediate(
+                       reinterpret_cast<int64_t>(DLRT_GetFfiCallbackMetadata)));
+    }
+#else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, RAX);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
 
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
@@ -1934,14 +1971,21 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmpq(Address(TMP, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
-    // Dirty the card.
+    // Dirty the card. Not atomic: we assume mutable arrays are not shared
+    // between threads.
+    __ pushq(RAX);
+    __ pushq(RCX);
     __ subq(R13, TMP);  // Offset in page.
     __ movq(TMP,
             Address(TMP, target::Page::card_table_offset()));  // Card table.
-    __ shrq(
-        R13,
-        Immediate(target::Page::kBytesPerCardLog2));  // Index in card table.
-    __ movb(Address(TMP, R13, TIMES_1, 0), Immediate(1));
+    __ shrq(R13, Immediate(target::Page::kBytesPerCardLog2));  // Card index.
+    __ movq(RCX, R13);
+    __ shrq(R13, Immediate(target::kBitsPerWordLog2));  // Word offset.
+    __ movq(RAX, Immediate(1));
+    __ shlq(RAX, RCX);  // Bit mask. (Shift amount is mod 63.)
+    __ orq(Address(TMP, R13, TIMES_8, 0), RAX);
+    __ popq(RCX);
+    __ popq(RAX);
     __ ret();
 
     // Card table not yet allocated.

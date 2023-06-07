@@ -11,7 +11,7 @@ abstract class C extends core::Object {
 extension /* unnamed */ _extension#0 on self::C {
   get _f2 = self::_extension#0|get#_f2;
 }
-external static method _extension#0|get#_f2(self::C #this) → core::int?;
+external static method _extension#0|get#_f2(lowered self::C #this) → core::int?;
 static method testExternalFieldInClass(self::C c) → void {
   if(!(c.{self::C::_f1}{core::int?} == null)) {
     core::int? x = c.{self::C::_f1}{core::int?};

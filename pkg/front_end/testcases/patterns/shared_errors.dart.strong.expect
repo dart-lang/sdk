@@ -170,7 +170,7 @@ static method duplicateRecordPatternField(dynamic o) → dynamic {
   #L3:
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized core::int #0#2 = #0#0{self::Class}.{self::Class::field}{core::int};
+    late final synthesized core::int #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field}{core::int};
     {
       if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:36:28: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
@@ -260,7 +260,7 @@ static method refutablePatternInIrrefutableContext(core::int? x) → dynamic {
 static method restPatternNotLastInMap(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized dynamic #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    late final synthesized dynamic #0#4 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#4) {
       core::print(0);
     }
@@ -269,7 +269,7 @@ static method restPatternNotLastInMap(dynamic o) → dynamic {
 static method restPatternWithSubPatternInMap(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized dynamic #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    late final synthesized dynamic #0#4 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#4) {
       core::print(0);
     }

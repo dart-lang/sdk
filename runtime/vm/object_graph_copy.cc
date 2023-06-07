@@ -1234,7 +1234,7 @@ class FastObjectCopyBase : public ObjectCopyBase {
     const auto cid = UntaggedObject::ClassIdTag::decode(tags);
     const uword size =
         header_size != 0 ? header_size : from.untag()->HeapSize();
-    if (Heap::IsAllocatableInNewSpace(size)) {
+    if (IsAllocatableInNewSpace(size)) {
       const uword alloc = new_space_->TryAllocateNoSafepoint(thread_, size);
       if (alloc != 0) {
         ObjectPtr to(reinterpret_cast<UntaggedObject*>(alloc));
@@ -1449,7 +1449,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     slow_forward_map_.Insert(from, to_, size);
     ObjectPtr to = to_.ptr();
     if ((cid == kArrayCid || cid == kImmutableArrayCid) &&
-        !Heap::IsAllocatableInNewSpace(size)) {
+        !IsAllocatableInNewSpace(size)) {
       to.untag()->SetCardRememberedBitUnsynchronized();
     }
     if (IsExternalTypedDataClassId(cid)) {

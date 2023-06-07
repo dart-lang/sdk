@@ -110,8 +110,8 @@ static method testFor() → dynamic {
     hoisted core::String s;
     {
       final synthesized dynamic #1#0 = (0, "");
-      late final synthesized core::int #1#1 = #1#0{(core::int, core::String)}.$1{core::int};
-      late final synthesized core::String #1#2 = #1#0{(core::int, core::String)}.$2{core::String};
+      late final synthesized core::int #1#1 = (#1#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+      late final synthesized core::String #1#2 = (#1#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
       if(!(#1#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = i = #1#1 in true) && (#1#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t4 = s = #1#2 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
@@ -126,8 +126,8 @@ static method testFor() → dynamic {
     final hoisted core::String s;
     {
       final synthesized dynamic #2#0 = (0, "");
-      late final synthesized core::int #2#1 = #2#0{(core::int, core::String)}.$1{core::int};
-      late final synthesized core::String #2#2 = #2#0{(core::int, core::String)}.$2{core::String};
+      late final synthesized core::int #2#1 = (#2#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+      late final synthesized core::String #2#2 = (#2#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
       if(!(#2#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t7 = i = #2#1 in true) && (#2#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t8 = s = #2#2 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
@@ -164,8 +164,8 @@ static method testFor() → dynamic {
     hoisted core::String s;
     {
       final synthesized dynamic #4#0 = (0, "");
-      late final synthesized core::int #4#1 = #4#0{(core::int, core::String)}.$1{core::int};
-      late final synthesized core::String #4#2 = #4#0{(core::int, core::String)}.$2{core::String};
+      late final synthesized core::int #4#1 = (#4#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+      late final synthesized core::String #4#2 = (#4#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
       if(!(#4#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t16 = i = #4#1 in true) && (#4#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t17 = s = #4#2 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
@@ -180,8 +180,8 @@ static method testFor() → dynamic {
     final hoisted core::String s;
     {
       final synthesized dynamic #5#0 = (0, "");
-      late final synthesized core::int #5#1 = #5#0{(core::int, core::String)}.$1{core::int};
-      late final synthesized core::String #5#2 = #5#0{(core::int, core::String)}.$2{core::String};
+      late final synthesized core::int #5#1 = (#5#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+      late final synthesized core::String #5#2 = (#5#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
       if(!(#5#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t21 = i = #5#1 in true) && (#5#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t22 = s = #5#2 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
@@ -213,8 +213,8 @@ static method testForIn() → dynamic {
     hoisted core::String s;
     {
       final synthesized dynamic #1#0 = #t27;
-      late final synthesized core::int #1#1 = #1#0{(core::int, core::String)}.$1{core::int};
-      late final synthesized core::String #1#2 = #1#0{(core::int, core::String)}.$2{core::String};
+      late final synthesized core::int #1#1 = (#1#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+      late final synthesized core::String #1#2 = (#1#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
       if(!(#1#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t28 = i = #1#1 in true) && (#1#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t29 = s = #1#2 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
@@ -227,8 +227,8 @@ static method testForIn() → dynamic {
     final hoisted core::String s;
     {
       final synthesized dynamic #2#0 = #t30;
-      late final synthesized core::int #2#1 = #2#0{(core::int, core::String)}.$1{core::int};
-      late final synthesized core::String #2#2 = #2#0{(core::int, core::String)}.$2{core::String};
+      late final synthesized core::int #2#1 = (#2#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+      late final synthesized core::String #2#2 = (#2#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
       if(!(#2#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t31 = i = #2#1 in true) && (#2#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t32 = s = #2#2 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
@@ -262,8 +262,8 @@ static method testForIn() → dynamic {
       hoisted core::String s;
       {
         final synthesized dynamic #4#0 = #t38;
-        late final synthesized core::int #4#1 = #4#0{(core::int, core::String)}.$1{core::int};
-        late final synthesized core::String #4#2 = #4#0{(core::int, core::String)}.$2{core::String};
+        late final synthesized core::int #4#1 = (#4#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+        late final synthesized core::String #4#2 = (#4#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
         if(!(#4#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t39 = i = #4#1 in true) && (#4#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t40 = s = #4#2 in true))))
           throw new core::StateError::•("Pattern matching error");
       }
@@ -279,8 +279,8 @@ static method testForIn() → dynamic {
       final hoisted core::String s;
       {
         final synthesized dynamic #5#0 = #t42;
-        late final synthesized core::int #5#1 = #5#0{(core::int, core::String)}.$1{core::int};
-        late final synthesized core::String #5#2 = #5#0{(core::int, core::String)}.$2{core::String};
+        late final synthesized core::int #5#1 = (#5#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+        late final synthesized core::String #5#2 = (#5#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
         if(!(#5#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t43 = i = #5#1 in true) && (#5#2 is{ForNonNullableByDefault} core::String && (let final dynamic #t44 = s = #5#2 in true))))
           throw new core::StateError::•("Pattern matching error");
       }
