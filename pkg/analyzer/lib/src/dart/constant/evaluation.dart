@@ -980,7 +980,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return null;
     }
 
-    if (!_isNonNullableByDefault && hasTypeParameterReference(type)) {
+    if ((!_isNonNullableByDefault || node.isTypeLiteralInConstantPattern) &&
+        hasTypeParameterReference(type)) {
       return super.visitNamedType(node);
     } else {
       if (node.isDeferred) {
@@ -2907,6 +2908,13 @@ class _InstanceCreationEvaluator {
   /// (i.e. whether it is allowed for a call to the Symbol constructor).
   static bool _isValidPublicSymbol(String name) =>
       name.isEmpty || name == "void" || _publicSymbolPattern.hasMatch(name);
+}
+
+extension on NamedType {
+  bool get isTypeLiteralInConstantPattern {
+    final parent = this.parent;
+    return parent is TypeLiteral && parent.parent?.parent is ConstantPattern;
+  }
 }
 
 extension RuntimeExtensions on TypeSystemImpl {

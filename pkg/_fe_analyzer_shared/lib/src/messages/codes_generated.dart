@@ -8313,6 +8313,19 @@ Message _withArgumentsJsInteropStaticInteropNoJSAnnotation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropStaticInteropParameterInitializersAreIgnored =
+    messageJsInteropStaticInteropParameterInitializersAreIgnored;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropStaticInteropParameterInitializersAreIgnored =
+    const MessageCode("JsInteropStaticInteropParameterInitializersAreIgnored",
+        severity: Severity.warning,
+        problemMessage:
+            r"""Initializers for parameters are ignored on static interop external functions.""",
+        correctionMessage:
+            r"""Declare a forwarding non-external function with this initializer, or remove the initializer.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropStaticInteropSyntheticConstructor =
     messageJsInteropStaticInteropSyntheticConstructor;
 

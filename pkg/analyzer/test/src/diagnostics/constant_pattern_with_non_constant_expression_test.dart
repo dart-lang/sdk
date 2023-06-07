@@ -568,6 +568,28 @@ void f<T>(x) {
     ]);
   }
 
+  test_typeLiteral_typeParameter_nested() async {
+    await assertErrorsInCode(r'''
+void f<T>(Object? x) {
+  if (x case const (T)) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          43, 1),
+    ]);
+  }
+
+  test_typeLiteral_typeParameter_nested2() async {
+    await assertErrorsInCode(r'''
+void f<T>(Object? x) {
+  if (x case const (List<T>)) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          43, 7),
+    ]);
+  }
+
   test_unresolvedIdentifier() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {

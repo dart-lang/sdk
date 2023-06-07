@@ -5563,6 +5563,11 @@ JsInteropStaticInteropNoJSAnnotation:
   problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."
   correctionMessage: "Add `@JS` to class '#name'."
 
+JsInteropStaticInteropParameterInitializersAreIgnored:
+  problemMessage: "Initializers for parameters are ignored on static interop external functions."
+  correctionMessage: "Declare a forwarding non-external function with this initializer, or remove the initializer."
+  severity: WARNING
+
 JsInteropStaticInteropSyntheticConstructor:
   problemMessage: "Synthetic constructors on `@staticInterop` classes can not be used."
   correctionMessage: "Declare an external factory constructor for this `@staticInterop` class and use that instead."

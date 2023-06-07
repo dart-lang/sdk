@@ -41,7 +41,8 @@ export '../api_prototype/incremental_kernel_generator.dart'
 export '../api_prototype/kernel_generator.dart'
     show kernelForModule, kernelForProgram;
 
-export '../api_prototype/lowering_predicates.dart' show isExtensionThisName;
+export '../api_prototype/lowering_predicates.dart'
+    show isExtensionThisName, isInlineClassThis;
 
 export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
