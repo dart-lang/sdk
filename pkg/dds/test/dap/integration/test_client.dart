@@ -534,6 +534,16 @@ class DapTestClient {
       }
 
       _receivedEvents.add(message.event);
+    } else if (message is Request) {
+      if (message.command == 'runInTerminal' &&
+          !_receivedResponses.contains('launch')) {
+        throw StateError(
+          'Adapter sent a "runInTerminal" request before it had '
+          'responded to the "launch" request',
+        );
+      }
+
+      _receivedResponses.add(message.command);
     } else if (message is Response) {
       if (message.command == 'initialize' &&
           _receivedEvents.contains('initialized')) {

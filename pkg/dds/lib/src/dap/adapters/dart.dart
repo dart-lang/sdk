@@ -1171,8 +1171,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     await _prepareForLaunchOrAttach(args.noDebug);
 
     // Delegate to the sub-class to launch the process.
-    await launchImpl();
+    await launchAndRespond(sendResponse);
+  }
 
+  /// Overridden by sub-classes that need to control when the response is sent
+  /// during the launch process.
+  Future<void> launchAndRespond(void Function() sendResponse) async {
+    await launchImpl();
     sendResponse();
   }
 
