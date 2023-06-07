@@ -719,6 +719,17 @@ void FUNCTION_NAME(Socket_ReceiveMessage)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, list);
 }
 
+void FUNCTION_NAME(Socket_HasPendingWrite)(Dart_NativeArguments args) {
+#if defined(DART_HOST_OS_WINDOWS)
+  Socket* socket =
+      Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
+  const bool result = SocketBase::HasPendingWrite(socket->fd());
+#else
+  const bool result = false;
+#endif  // defined(DART_HOST_OS_WINDOWS)
+  Dart_SetReturnValue(args, Dart_NewBoolean(result));
+}
+
 void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));

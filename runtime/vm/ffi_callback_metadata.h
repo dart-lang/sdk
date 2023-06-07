@@ -30,7 +30,10 @@ namespace dart {
 // unify the FFI callback implementation across JIT and AOT, even on iOS.
 class FfiCallbackMetadata {
  public:
-  using Trampoline = void*;
+  class Metadata;
+
+  // The address of the allocated trampoline.
+  using Trampoline = uword;
 
   enum class TrampolineType : uint8_t {
     kSync = 0,
@@ -55,10 +58,10 @@ class FfiCallbackMetadata {
   Trampoline CreateSyncFfiCallback(Isolate* isolate,
                                    Zone* zone,
                                    const Function& function,
-                                   Trampoline* sync_list_head);
+                                   Metadata** sync_list_head);
 
   // Deletes all the sync trampolines in the list.
-  void DeleteSyncTrampolines(Trampoline* sync_list_head);
+  void DeleteSyncTrampolines(Metadata** sync_list_head);
 
   // FFI callback metadata for any sync or async trampoline.
   class Metadata {
@@ -71,13 +74,13 @@ class FfiCallbackMetadata {
         // safe because Instructions objects are never moved by the GC.
         uword target_entry_point_;
 
-        Trampoline sync_list_next_;
+        Metadata* sync_list_next_;
 
         TrampolineType trampoline_type_;
       };
 
       // !IsLive()
-      Trampoline free_list_next_;
+      Metadata* free_list_next_;
     };
 
     Metadata()
@@ -86,7 +89,7 @@ class FfiCallbackMetadata {
           trampoline_type_(TrampolineType::kSync) {}
     Metadata(Isolate* target_isolate,
              uword target_entry_point,
-             Trampoline sync_list_next,
+             Metadata* sync_list_next,
              TrampolineType trampoline_type)
         : target_isolate_(target_isolate),
           target_entry_point_(target_entry_point),
@@ -122,7 +125,7 @@ class FfiCallbackMetadata {
 
     // To efficiently delete all the sync callbacks for a isolate, they are
     // stored in a singly-linked list. This is the next link in that list.
-    Trampoline sync_list_next() const {
+    Metadata* sync_list_next() {
       ASSERT(IsLive());
       return sync_list_next_;
     }
@@ -140,7 +143,7 @@ class FfiCallbackMetadata {
   Metadata LookupMetadataForTrampoline(Trampoline trampoline) const;
 
   // The number of trampolines that can be stored on a single page.
-  static intptr_t NumCallbackTrampolinesPerPage() {
+  static constexpr intptr_t NumCallbackTrampolinesPerPage() {
     return (kPageSize - kNativeCallbackSharedStubSize) /
            kNativeCallbackTrampolineSize;
   }
@@ -163,10 +166,35 @@ class FfiCallbackMetadata {
 #endif
   static constexpr intptr_t kPageMask = ~(kPageSize - 1);
 
-  // Offset from the start of the trampoline code page to a specific slot in the
-  // runtime function table.
-  static uword RuntimeFunctionOffset(uword function_index) {
-    return 2 * kPageSize + function_index * compiler::target::kWordSize;
+  // Each time we allocate new virtual memory for trampolines we allocate an
+  // [RX][RW] area:
+  //
+  //   * [RX] 2 pages fully containing [StubCode::FfiCallbackTrampoline()]
+  //   * [RW] pages sufficient to hold
+  //      - `kNumRuntimeFunctions` x [uword] function pointers
+  //      - `NumCallbackTrampolinesPerPage()` x [Metadata] objects
+  static constexpr intptr_t RXMappingSize() { return 2 * kPageSize; }
+  static constexpr intptr_t RWMappingSize() {
+    return Utils::RoundUp(
+        kNumRuntimeFunctions * compiler::target::kWordSize +
+            sizeof(Metadata) * NumCallbackTrampolinesPerPage(),
+        kPageSize);
+  }
+  static constexpr intptr_t MappingSize() {
+    return RXMappingSize() + RWMappingSize();
+  }
+  static constexpr intptr_t MappingAlignment() {
+    return Utils::RoundUpToPowerOfTwo(MappingSize());
+  }
+  static constexpr intptr_t MappingStart(uword address) {
+    const uword mask = MappingAlignment() - 1;
+    return address & ~mask;
+  }
+  static constexpr uword RuntimeFunctionOffset(uword function_index) {
+    return RXMappingSize() + function_index * compiler::target::kWordSize;
+  }
+  static constexpr intptr_t MetadataOffset() {
+    return RuntimeFunctionOffset(kNumRuntimeFunctions);
   }
 
 #if defined(TARGET_ARCH_X64)
@@ -201,18 +229,18 @@ class FfiCallbackMetadata {
   FfiCallbackMetadata();
   ~FfiCallbackMetadata();
   void EnsureStubPageLocked();
-  void AddAllTrampolinesToFreeListLocked(uword page_start);
-  void AddToFreeListLocked(Trampoline trampoline, Metadata* entry);
+  void AddToFreeListLocked(Metadata* entry);
   void FillRuntimeFunction(VirtualMemory* page, uword index, void* function);
   VirtualMemory* AllocateTrampolinePage();
   void EnsureFreeListNotEmptyLocked();
-  Trampoline AllocateTrampolineLocked();
+  Metadata* AllocateTrampolineLocked();
   Trampoline TryAllocateFromFreeListLocked();
   Trampoline CreateFfiCallback(Isolate* isolate,
                                Zone* zone,
                                const Function& function,
-                               Trampoline* sync_list_head);
-  Metadata* LookupEntryLocked(Trampoline trampoline) const;
+                               Metadata** sync_list_head);
+  Metadata* MetadataOfTrampoline(Trampoline trampoline) const;
+  Trampoline TrampolineOfMetadata(Metadata* metadata) const;
 
   static FfiCallbackMetadata* singleton_;
 
@@ -220,11 +248,8 @@ class FfiCallbackMetadata {
   VirtualMemory* stub_page_ = nullptr;
   MallocGrowableArray<VirtualMemory*> trampoline_pages_;
   uword offset_of_first_trampoline_in_page_ = 0;
-  uword offset_of_first_runtime_function_in_page_ = 0;
-  uword offset_of_first_metadata_in_page_ = 0;
-  uword size_of_trampoline_page_ = 0;
-  Trampoline free_list_head_ = nullptr;
-  Trampoline free_list_tail_ = nullptr;
+  Metadata* free_list_head_ = nullptr;
+  Metadata* free_list_tail_ = nullptr;
 
 #if defined(DART_TARGET_OS_FUCHSIA)
   // TODO(https://dartbug.com/52579): Remove.

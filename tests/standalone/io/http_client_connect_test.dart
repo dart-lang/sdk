@@ -422,15 +422,12 @@ Future<void> testHttpAbortAfterClose() async {
   });
 
   final request = await HttpClient().get("127.0.0.1", server.port, "/");
-  request.close().then((response) {
-    request.abort();
-    response.listen((data) {
-      Expect.equals(utf8.decode(data), value);
-    }, onDone: () {
-      asyncEnd();
-      server.close();
-    });
-  });
+  final response = await request.close();
+  request.abort();
+  final data = await response.transform(utf8.decoder).join();
+  Expect.equals(value, data);
+  asyncEnd();
+  server.close();
 }
 
 void main() async {

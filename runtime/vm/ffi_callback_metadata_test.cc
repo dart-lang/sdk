@@ -77,8 +77,8 @@ class FakeMessageHandler : public MessageHandler {
 
 VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
   auto* fcm = FfiCallbackMetadata::Instance();
-  FfiCallbackMetadata::Trampoline tramp1 = nullptr;
-  FfiCallbackMetadata::Trampoline tramp2 = nullptr;
+  FfiCallbackMetadata::Trampoline tramp1 = 0;
+  FfiCallbackMetadata::Trampoline tramp2 = 0;
 
   {
     TestIsolateScope isolate_scope;
@@ -95,33 +95,32 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
     const auto& code = Code::Handle(func.EnsureHasCode());
     EXPECT(!code.IsNull());
 
+    EXPECT_EQ(isolate->ffi_callback_sync_list_head(), nullptr);
     tramp1 = isolate->CreateSyncFfiCallback(zone, func);
-    EXPECT_NE(tramp1, nullptr);
+    FfiCallbackMetadata::Metadata* m1 = isolate->ffi_callback_sync_list_head();
 
-    FfiCallbackMetadata::Metadata m1 = fcm->LookupMetadataForTrampoline(tramp1);
-    EXPECT(m1.IsLive());
-    EXPECT_EQ(m1.target_isolate(), isolate);
-    EXPECT_EQ(m1.target_entry_point(), code.EntryPoint());
-    EXPECT_EQ(static_cast<uint8_t>(m1.trampoline_type()),
-              static_cast<uint8_t>(FfiCallbackMetadata::TrampolineType::kSync));
+    EXPECT_NE(tramp1, 0u);
+    EXPECT_NE(m1, nullptr);
+    EXPECT_EQ(m1->sync_list_next(), nullptr);
 
-    EXPECT_EQ(isolate->ffi_callback_sync_list_head(), tramp1);
-    EXPECT_EQ(m1.sync_list_next(), nullptr);
+    EXPECT(m1->IsLive());
+    EXPECT_EQ(m1->target_isolate(), isolate);
+    EXPECT_EQ(m1->target_entry_point(), code.EntryPoint());
+    EXPECT(m1->trampoline_type() == FfiCallbackMetadata::TrampolineType::kSync);
 
     tramp2 = isolate->CreateSyncFfiCallback(zone, func);
-    EXPECT_NE(tramp2, nullptr);
-    EXPECT_NE(tramp2, tramp1);
+    FfiCallbackMetadata::Metadata* m2 = isolate->ffi_callback_sync_list_head();
 
-    FfiCallbackMetadata::Metadata m2 = fcm->LookupMetadataForTrampoline(tramp2);
-    EXPECT(m2.IsLive());
-    EXPECT_EQ(m2.target_isolate(), isolate);
-    EXPECT_EQ(m2.target_entry_point(), code.EntryPoint());
-    EXPECT_EQ(static_cast<uint8_t>(m2.trampoline_type()),
-              static_cast<uint8_t>(FfiCallbackMetadata::TrampolineType::kSync));
+    EXPECT_NE(tramp2, 0u);
+    EXPECT_NE(m2, nullptr);
+    EXPECT_NE(m2, m1);
+    EXPECT_EQ(m2->sync_list_next(), m1);
+    EXPECT_EQ(m2->sync_list_next()->sync_list_next(), nullptr);
 
-    EXPECT_EQ(isolate->ffi_callback_sync_list_head(), tramp2);
-    EXPECT_EQ(m2.sync_list_next(), tramp1);
-    EXPECT_EQ(m1.sync_list_next(), nullptr);
+    EXPECT(m2->IsLive());
+    EXPECT_EQ(m2->target_isolate(), isolate);
+    EXPECT_EQ(m2->target_entry_point(), code.EntryPoint());
+    EXPECT(m2->trampoline_type() == FfiCallbackMetadata::TrampolineType::kSync);
   }
 
   {
@@ -147,7 +146,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteSyncTrampolines) {
 
   auto* fcm = FfiCallbackMetadata::Instance();
   std::unordered_set<FfiCallbackMetadata::Trampoline> sync_tramps;
-  FfiCallbackMetadata::Trampoline sync_list_head = nullptr;
+  FfiCallbackMetadata::Metadata* sync_list_head = nullptr;
 
   const auto& sync_func = Function::Handle(CreateTestFunction());
   const auto& sync_code = Code::Handle(sync_func.EnsureHasCode());
@@ -170,13 +169,12 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteSyncTrampolines) {
 
   // Verify the list of callbacks.
   uword sync_list_length = 0;
-  for (FfiCallbackMetadata::Trampoline tramp = sync_list_head; tramp != 0;) {
+  for (FfiCallbackMetadata::Metadata* metadata = sync_list_head;
+       metadata != 0;) {
     ++sync_list_length;
-    auto metadata = fcm->LookupMetadataForTrampoline(tramp);
-    EXPECT(metadata.IsLive());
-    EXPECT_EQ(metadata.target_isolate(), isolate);
-    EXPECT_EQ(sync_tramps.count(tramp), 1u);
-    tramp = metadata.sync_list_next();
+    EXPECT(metadata->IsLive());
+    EXPECT_EQ(metadata->target_isolate(), isolate);
+    metadata = metadata->sync_list_next();
   }
   EXPECT_EQ(sync_list_length, sync_tramps.size());
 
@@ -202,7 +200,7 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
   auto* fcm = FfiCallbackMetadata::Instance();
   Random random(seed);
   std::unordered_set<FfiCallbackMetadata::Trampoline> sync_tramps;
-  FfiCallbackMetadata::Trampoline sync_list_head = nullptr;
+  FfiCallbackMetadata::Metadata* sync_list_head = nullptr;
 
   const auto& sync_func = Function::Handle(CreateTestFunction());
   const auto& sync_code = Code::Handle(sync_func.EnsureHasCode());
@@ -244,13 +242,12 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
 
     // Verify the isolate's list of sync callbacks.
     uword sync_list_length = 0;
-    for (FfiCallbackMetadata::Trampoline tramp = sync_list_head; tramp != 0;) {
+    for (FfiCallbackMetadata::Metadata* metadata = sync_list_head;
+         metadata != 0;) {
       ++sync_list_length;
-      auto metadata = fcm->LookupMetadataForTrampoline(tramp);
-      EXPECT(metadata.IsLive());
-      EXPECT_EQ(metadata.target_isolate(), isolate);
-      EXPECT_EQ(sync_tramps.count(tramp), 1u);
-      tramp = metadata.sync_list_next();
+      EXPECT(metadata->IsLive());
+      EXPECT_EQ(metadata->target_isolate(), isolate);
+      metadata = metadata->sync_list_next();
     }
     EXPECT_EQ(sync_list_length, sync_tramps.size());
   }

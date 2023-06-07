@@ -20,6 +20,7 @@
 #include "vm/class_table.h"
 #include "vm/dispatch_table.h"
 #include "vm/exceptions.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/field_table.h"
 #include "vm/fixed_cache.h"
 #include "vm/growable_array.h"
@@ -1242,10 +1243,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     deopt_context_ = value;
   }
 
-  void* CreateSyncFfiCallback(Zone* zone, const Function& function);
+  FfiCallbackMetadata::Trampoline CreateSyncFfiCallback(
+      Zone* zone,
+      const Function& function);
 
   // Visible for testing.
-  void* ffi_callback_sync_list_head() { return ffi_callback_sync_list_head_; }
+  FfiCallbackMetadata::Metadata* ffi_callback_sync_list_head() {
+    return ffi_callback_sync_list_head_;
+  }
 
   intptr_t BlockClassFinalization() {
     ASSERT(defer_finalization_count_ >= 0);
@@ -1637,7 +1642,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   MessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
   DeoptContext* deopt_context_ = nullptr;
-  void* ffi_callback_sync_list_head_ = nullptr;
+  FfiCallbackMetadata::Metadata* ffi_callback_sync_list_head_ = nullptr;
 
   GrowableObjectArrayPtr tag_table_;
 
