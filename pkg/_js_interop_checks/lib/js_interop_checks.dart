@@ -23,6 +23,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropOperatorsNotSupported,
         messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters,
         messageJsInteropStaticInteropGenerativeConstructor,
+        messageJsInteropStaticInteropParameterInitializersAreIgnored,
         messageJsInteropStaticInteropSyntheticConstructor,
         templateJsInteropDartClassExtendsJSClass,
         templateJsInteropJSClassExtendsDartClass,
@@ -70,6 +71,7 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _classHasAnonymousAnnotation = false;
   bool _classHasStaticInteropAnnotation = false;
   bool _inTearoff = false;
+  bool _libraryHasDartJSInteropAnnotation = false;
   bool _libraryHasJSAnnotation = false;
   bool _libraryIsGlobalNamespace = false;
   // TODO(joshualitt): Remove allow list and deprecate non-strict mode on
@@ -284,7 +286,9 @@ class JsInteropChecks extends RecursiveVisitor {
   @override
   void visitLibrary(Library node) {
     _staticTypeContext.enterLibrary(node);
-    _libraryHasJSAnnotation = hasJSInteropAnnotation(node);
+    _libraryHasDartJSInteropAnnotation = hasDartJSInteropAnnotation(node);
+    _libraryHasJSAnnotation =
+        _libraryHasDartJSInteropAnnotation || hasJSInteropAnnotation(node);
     _libraryIsGlobalNamespace = _isLibraryGlobalNamespace(node);
     _nonStrictModeIsAllowed = _canLibraryUseNonStrictMode(node);
 
@@ -359,18 +363,29 @@ class JsInteropChecks extends RecursiveVisitor {
         }
       }
 
-      if (node.isExtensionMember) {
-        final annotatable = _inlineExtensionIndex.getExtensionAnnotatable(node);
-        if (annotatable != null) {
-          // If a @staticInterop member, check that it uses no type parameters.
-          if (hasStaticInteropAnnotation(annotatable) &&
-              !isAllowedCustomStaticInteropImplementation(node)) {
-            _checkStaticInteropMemberUsesNoTypeParameters(node);
-          }
-          // We do not support external extension members with the 'static'
-          // keyword currently.
-          if (_inlineExtensionIndex.getExtensionDescriptor(node)!.isStatic) {
-            report(messageJsInteropExternalExtensionMemberWithStaticDisallowed);
+      if (_classHasStaticInteropAnnotation ||
+          node.isInlineClassMember ||
+          node.isExtensionMember ||
+          node.enclosingClass == null &&
+              (hasDartJSInteropAnnotation(node) ||
+                  _libraryHasDartJSInteropAnnotation)) {
+        _checkNoParamInitializersForStaticInterop(node.function);
+        if (node.isExtensionMember) {
+          final annotatable =
+              _inlineExtensionIndex.getExtensionAnnotatable(node);
+          if (annotatable != null) {
+            // If a @staticInterop member, check that it uses no type
+            // parameters.
+            if (hasStaticInteropAnnotation(annotatable) &&
+                !isAllowedCustomStaticInteropImplementation(node)) {
+              _checkStaticInteropMemberUsesNoTypeParameters(node);
+            }
+            // We do not support external extension members with the 'static'
+            // keyword currently.
+            if (_inlineExtensionIndex.getExtensionDescriptor(node)!.isStatic) {
+              report(
+                  messageJsInteropExternalExtensionMemberWithStaticDisallowed);
+            }
           }
         }
       }
@@ -799,6 +814,23 @@ class JsInteropChecks extends RecursiveVisitor {
           firstNamedParam.fileOffset,
           firstNamedParam.name!.length,
           firstNamedParam.location!.file);
+    }
+  }
+
+  /// Reports a warning if static interop function [node] has any parameters
+  /// that have a declared initializer.
+  void _checkNoParamInitializersForStaticInterop(FunctionNode node) {
+    for (final param in [
+      ...node.positionalParameters,
+      ...node.namedParameters
+    ]) {
+      if (param.hasDeclaredInitializer) {
+        _reporter.report(
+            messageJsInteropStaticInteropParameterInitializersAreIgnored,
+            param.fileOffset,
+            param.name!.length,
+            param.location!.file);
+      }
     }
   }
 
