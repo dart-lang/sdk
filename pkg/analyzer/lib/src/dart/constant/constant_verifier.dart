@@ -771,7 +771,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             );
             var result = initializer.accept(ConstantVisitor(
                 _evaluationEngine, _currentLibrary, subErrorReporter));
-            if (result == null) {
+            // TODO(kallentu): Report the specific error we got from the
+            // evaluator to make it clear to the user what's wrong.
+            if (result is! DartObjectImpl) {
               _errorReporter.reportErrorForToken(
                   CompileTimeErrorCode
                       .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,

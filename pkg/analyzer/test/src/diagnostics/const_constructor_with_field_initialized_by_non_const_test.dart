@@ -50,6 +50,22 @@ int f() {
     ]);
   }
 
+  test_class_instanceField_asExpression() async {
+    await assertErrorsInCode(r'''
+dynamic y = 2;
+class A {
+  const A();
+  final x = y as num;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+          27,
+          5),
+    ]);
+  }
+
   test_class_staticField() async {
     await assertNoErrorsInCode(r'''
 class A {

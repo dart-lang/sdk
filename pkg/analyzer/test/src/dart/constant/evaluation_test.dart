@@ -978,6 +978,22 @@ const x = kIsWeb ? a : b;
     _assertNull('x');
   }
 
+  test_visitConstructorDeclaration_field_asExpression_nonConst() async {
+    await assertErrorsInCode(r'''
+dynamic y = 2;
+class A {
+  const A();
+  final x = y as num;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+          27,
+          5),
+    ]);
+  }
+
   test_visitFunctionReference_explicitTypeArgs_complexExpression() async {
     await resolveTestCode('''
 const b = true;
