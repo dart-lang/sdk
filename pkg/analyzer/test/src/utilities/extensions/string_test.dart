@@ -80,6 +80,23 @@ class IterableOfStringExtensionTest {
   void test_quotedAndCommaSeparatedWithAnd_zero() {
     expect(<String>[].quotedAndCommaSeparatedWithAnd, isEmpty);
   }
+
+  void test_quotedAndCommaSeparatedWithOr_one() {
+    expect(<String>['a'].quotedAndCommaSeparatedWithOr, "'a'");
+  }
+
+  void test_quotedAndCommaSeparatedWithOr_three() {
+    expect(<String>['a', 'b', 'c'].quotedAndCommaSeparatedWithOr,
+        "'a', 'b', or 'c'");
+  }
+
+  void test_quotedAndCommaSeparatedWithOr_two() {
+    expect(<String>['a', 'b'].quotedAndCommaSeparatedWithOr, "'a' or 'b'");
+  }
+
+  void test_quotedAndCommaSeparatedWithOr_zero() {
+    expect(<String>[].quotedAndCommaSeparatedWithOr, isEmpty);
+  }
 }
 
 @reflectiveTest

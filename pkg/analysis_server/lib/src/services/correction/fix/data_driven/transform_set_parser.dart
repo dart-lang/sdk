@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/value_ge
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:yaml/yaml.dart';
 
@@ -278,8 +279,10 @@ class TransformSetParser {
   /// [expectedType], using the [context] to get the key to use in the message.
   Null _reportInvalidValueOneOf(
       YamlNode node, ErrorContext context, List<String> allowedValues) {
-    _reportError(TransformSetErrorCode.invalidValueOneOf, node,
-        [context.key, allowedValues.join(', ')]);
+    _reportError(TransformSetErrorCode.invalidValueOneOf, node, [
+      context.key,
+      allowedValues.quotedAndCommaSeparatedWithOr,
+    ]);
     return null;
   }
 
@@ -344,7 +347,9 @@ class TransformSetParser {
     var firstEntry = entries.firstOrNull;
     if (firstEntry == null) {
       if (required) {
-        var validKeysList = translators.keys.map((key) => "'$key'").join(', ');
+        var validKeysList = translators.keys
+            .expand((keys) => keys)
+            .quotedAndCommaSeparatedWithOr;
         _reportError(TransformSetErrorCode.missingOneOfMultipleKeys, errorNode,
             [validKeysList]);
       }
@@ -387,7 +392,7 @@ class TransformSetParser {
       return;
     }
     if (!validStyles.contains(style)) {
-      var validStylesList = validStyles.map((style) => "'$style'").join(', ');
+      var validStylesList = validStyles.quotedAndCommaSeparatedWithOr;
       _reportError(TransformSetErrorCode.invalidParameterStyle, styleNode,
           [validStylesList]);
       return;
@@ -562,7 +567,7 @@ class TransformSetParser {
     }
     if (!validNullabilityChanges.contains(nullability)) {
       var nullabilityChangeList =
-          validNullabilityChanges.map((value) => value).join(', ');
+          validNullabilityChanges.quotedAndCommaSeparatedWithOr;
       _reportError(TransformSetErrorCode.invalidValueOneOf, nullabilityNode!,
           [_nullabilityKey, nullabilityChangeList]);
       return;
@@ -787,7 +792,7 @@ class TransformSetParser {
           if ([_constructorKey, _constantKey, _methodKey, _fieldKey]
               .contains(elementKey)) {
             var validKeysList =
-                validContainerKeys.map((key) => "'$key'").join(', ');
+                validContainerKeys.quotedAndCommaSeparatedWithOr;
             _reportError(TransformSetErrorCode.missingOneOfMultipleKeys, node,
                 [validKeysList]);
             return null;
