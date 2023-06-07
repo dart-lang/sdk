@@ -990,6 +990,12 @@ class Capture {
   final TreeNode variable;
   late final Context context;
   late final int fieldIndex;
+
+  /// Whether the captured variable is updated after initialization.
+  ///
+  /// If the variable is not updated, we can create a local for the variable
+  /// and use it for reads. If it's updated we need to read it from the
+  /// context.
   bool written = false;
 
   Capture(this.variable);
