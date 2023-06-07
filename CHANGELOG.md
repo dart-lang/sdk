@@ -1,12 +1,15 @@
-## 3.0.4
+## 3.0.4 - 2023-06-07
 
 This is a patch release that:
 
 - Handles formatting nullable record types with no fields (dart_style issue [#1224]).
+- Fixes error when using records when targeting the web in development mode
+(issue [#52480]).
 
 [#1224]: https://github.com/dart-lang/dart_style/issues/1224
+[#52480]: https://github.com/dart-lang/sdk/issues/52480
 
-## 3.0.3
+## 3.0.3 - 2023-02-07
 
 This is a patch release that:
 
@@ -34,7 +37,7 @@ used (issue [#52423]).
 [#52449]: https://github.com/dart-lang/sdk/issues/52449
 [#52386]: https://github.com/dart-lang/sdk/issues/52386
 
-## 3.0.2
+## 3.0.2 - 2023-05-24
 
 This is a patch release that:
 
@@ -50,7 +53,7 @@ leading to higher memory usage. (issue [#52352]).
 [#52352]: https://github.com/dart-lang/sdk/issues/52352
 [#52078]: https://github.com/dart-lang/sdk/issues/52078
 
-## 3.0.1
+## 3.0.1 - 2023-05-17
 
 This is a patch release that:
 
