@@ -8,7 +8,7 @@ class C4 extends core::Object {
     : super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo3() → dynamic {
-    core::print([@vm.inferred-type.metadata=int] self::IC2|foo1());
+    core::print([@vm.inferred-type.metadata=int] self::IC2|foo1(#C1));
     core::print([@vm.inferred-type.metadata=int] self::IC2|bar1());
   }
 }
@@ -21,8 +21,8 @@ inline class IC2 /* declaredRepresentationType = core::int */ {
   lowered final self::IC2 #this = id;
   return #this;
 }
-[@vm.unboxing-info.metadata=()->i]static method IC2|foo1() → core::int
-  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#C1).{core::num::+}(1){(core::num) → core::int};
+[@vm.unboxing-info.metadata=(i)->i]static method IC2|foo1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] lowered final self::IC2 #this) → core::int
+  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#this).{core::num::+}(1){(core::num) → core::int};
 [@vm.unboxing-info.metadata=()->i]static method IC2|bar1() → self::IC2
   return [@vm.inferred-type.metadata=int] self::IC2|([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#C1).{core::num::+}(1){(core::num) → core::int});
 static method main() → dynamic {

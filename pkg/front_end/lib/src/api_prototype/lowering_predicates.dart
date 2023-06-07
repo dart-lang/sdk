@@ -669,6 +669,10 @@ bool isExtensionThisName(String? name) {
   return name == syntheticThisName;
 }
 
+bool isInlineClassThis(VariableDeclaration node) {
+  return node.isLowered && isInlineClassThisName(node.name);
+}
+
 /// Returns `true` if [name] is the name of the synthetic parameter holding the
 /// `this` value in the encoding of inline class instance members.
 bool isInlineClassThisName(String? name) {
