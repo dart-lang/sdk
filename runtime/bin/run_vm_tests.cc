@@ -277,6 +277,12 @@ static void CleanupIsolateGroup(void* callback_data) {
   delete isolate_data;
 }
 
+static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
+  info->version = DART_EMBEDDER_INFORMATION_CURRENT_VERSION;
+  info->name = "Run VM Tests";
+  bin::Process::GetRSSInformation(&(info->max_rss), &(info->current_rss));
+}
+
 void ShiftArgs(int* argc, const char** argv) {
   // Remove the first flag from the list by shifting all arguments down.
   for (intptr_t i = 1; i < *argc - 1; i++) {
@@ -392,6 +398,8 @@ static int Main(int argc, const char** argv) {
     free(error);
     return 1;
   }
+
+  Dart_SetEmbedderInformationCallback(&EmbedderInformationCallback);
 
   // Apply the filter to all registered tests.
   TestCaseBase::RunAll();

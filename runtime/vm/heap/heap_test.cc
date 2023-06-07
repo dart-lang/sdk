@@ -860,4 +860,61 @@ ISOLATE_UNIT_TEST_CASE(WeakSmi) {
   EXPECT(old_finalizer.value() == Smi::New(42));
 }
 
+#if !defined(PRODUCT) && defined(DART_HOST_OS_LINUX)
+ISOLATE_UNIT_TEST_CASE(SweepDontNeed) {
+  auto gc_with_fragmentation = [&] {
+    HANDLESCOPE(thread);
+
+    EXPECT(IsAllocatableViaFreeLists(Array::InstanceSize(128)));
+    const intptr_t num_elements = 100 * MB / Array::InstanceSize(128);
+    Array& list = Array::Handle();
+    {
+      HANDLESCOPE(thread);
+      list = Array::New(num_elements);
+      Array& element = Array::Handle();
+      for (intptr_t i = 0; i < num_elements; i++) {
+        element = Array::New(128);
+        list.SetAt(i, element);
+      }
+    }
+
+    GCTestHelper::CollectAllGarbage();
+    GCTestHelper::WaitForGCTasks();
+    Page::ClearCache();
+    const intptr_t before = Service::CurrentRSS();
+    EXPECT(before > 0);  // Or RSS hook is not installed.
+
+    for (intptr_t i = 0; i < num_elements; i++) {
+      // Let there be one survivor every 150 KB. Bigger than the largest virtual
+      // memory page size (64 KB on ARM64 Linux).
+      intptr_t m = 150 * KB / Array::InstanceSize(128);
+      if ((i % m) != 0) {
+        list.SetAt(i, Object::null_object());
+      }
+    }
+
+    GCTestHelper::CollectAllGarbage();
+    GCTestHelper::WaitForGCTasks();
+    Page::ClearCache();
+    const intptr_t after = Service::CurrentRSS();
+    EXPECT(after > 0);  // Or RSS hook is not installed.
+
+    const intptr_t delta = after - before;
+    OS::PrintErr("%" Pd " -> %" Pd " (%" Pd ")\n", before, after, delta);
+    return delta;
+  };
+
+  FLAG_dontneed_on_sweep = false;
+  const intptr_t delta_normal = gc_with_fragmentation();
+  // EXPECT(delta_normal == 0); Roughly, but there may be noise.
+
+  FLAG_dontneed_on_sweep = true;
+  const intptr_t delta_dontneed = gc_with_fragmentation();
+  // Free at least half. Various with noise and virtual memory page size.
+  EXPECT(delta_dontneed < -50 * MB);
+
+  EXPECT(delta_dontneed < delta_normal);  // More negative.
+}
+#endif  // !defined(PRODUCT) && !defined(DART_HOST_OS_LINUX)
+
 }  // namespace dart

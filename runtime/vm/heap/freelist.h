@@ -39,6 +39,7 @@ class FreeListElement {
 
   static void Init();
 
+  static constexpr intptr_t kLargeHeaderSize = 3 * kWordSize;
   static intptr_t HeaderSizeFor(intptr_t size);
 
   // Used to allocate class for free list elements in Object::InitOnce.
