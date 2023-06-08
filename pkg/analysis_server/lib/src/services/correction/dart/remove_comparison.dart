@@ -119,12 +119,12 @@ class RemoveComparison extends CorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       final body = node.thenStatement;
       if (body is Block) {
-        final bodyCode = utils.getRangeText(
+        final text = utils.getRangeText(
           utils.getLinesRange(
             range.endStart(body.leftBracket, body.rightBracket),
           ),
         );
-        final unIndented = utils.indentLeft(bodyCode);
+        final unIndented = utils.indentLeft(text);
         builder.addSimpleReplacement(
           utils.getLinesRangeStatements([node]),
           unIndented,

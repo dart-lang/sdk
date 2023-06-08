@@ -361,7 +361,7 @@ void f(String s) {
 ''');
   }
 
-  Future<void> test_ifStatement_thenBlock_emptyInline() async {
+  Future<void> test_ifStatement_thenBlock_empty_sameLine() async {
     await resolveTestCode('''
 void f(String s) {
   if (s != null) {}
