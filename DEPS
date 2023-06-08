@@ -138,7 +138,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "2956b1a705953f880a5dae9d3a0969df0fc45e99", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "449478c7430a4a6fa0d83ba369c7389ea2fecdc8",
+  "dartdoc_rev": "2a395741bce506eb24cdc4218e4d6478beabbee6",
   "ffi_rev": "f582ca022042323af061f35ccd24b6c4d38f7bd1",
   "file_rev": "5d9a6027756b5846e8f5380f983390f61f564a75",
   "fixnum_rev": "d9b9a2a288d5eb467fb1597e80beb063b05cd4f6",
@@ -146,10 +146,10 @@ vars = {
   "html_rev": "b3b820bc36ed17673268360d8b569bdc66c22123",
   "http_rev": "5312366ce3b5dc2abc19f3a649332ad21ad77892",
   "http_multi_server_rev": "a209cd59d99b52ff08b32ba37bdc9fc1a79bc9f2",
-  "http_parser_rev": "1ef3e56ebc5e505dbf375f2e27faa40956eb0da1",
+  "http_parser_rev": "19466c0daf9138ab20877f34dbcf4479b31d33d6",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "73467f3651669af4870260fea4e99d7ba6ccb7ec",
-  "leak_tracker_rev": "f17da619a987aec1b89b0e29ec198a5e3361fea1",
+  "leak_tracker_rev": "fc45becc478aa34f49dcbbc108b9f7c785aded31",
   "linter_rev": "27b46ce246204a2c0170a4bd5b23b94095e89a22", # disable rev_sdk_deps.dart
   "lints_rev": "4b79906085d48fc4eee241a80e1a1b177dbdaf23",
   "logging_rev": "f2fe2ac2a61a269b2e0ce65be330f7af1bc67428",
@@ -159,8 +159,8 @@ vars = {
   "mockito_rev": "cca4858ad0f1e3930ebdcc6faf4a918616cca48c",
   "native_rev": "78cf286e15aec57b51a1bbbbcaada5216ddc626a",
   "package_config_rev": "203de2022af26b3ab2bcec18cc49614d9e502897",
-  "path_rev": "f8d15c2775835fd61ea5e06bb0ab99232f5ec446",
-  "pool_rev": "a10a0f918802f7b3856cb1f4c78f9073f28a0dd8",
+  "path_rev": "592505f67d0563f72c933c2ba100ea7d4f3cb873",
+  "pool_rev": "c6b1b2c22663c084a82c9bfe409c196fb38eea53",
   "protobuf_rev": "da6953c65a93f02908f79d7d8402af843a60dcff",
   "pub_rev": "078c7fea0be2656debc675646806da14fa94f853", # disable rev_sdk_deps.dart
   "pub_semver_rev": "3930557ee0b20ef528713952c318139409edadb4",
@@ -173,13 +173,13 @@ vars = {
   "stream_channel_rev": "b1d3384638064a4f25beacef3be770e2c4534408",
   "string_scanner_rev": "6bb314f2176598a5ecc4770a3bbd42626e18b576",
   "sync_http_rev": "c3d6ad48ec997c56b7f076bc9f8b4134c4a9225c",
-  "term_glyph_rev": "9d8956f4a355cc8c7e4695438266852488e3bbd4",
+  "term_glyph_rev": "4daa34eea4bd6d9780aaeadbf6665af3ebb402fd",
   "test_rev": "7a6c98d015a62daaee35bfdb1288ae659d31abc6",
   "test_descriptor_rev": "be7ce0751d85abd1ef605d14d359f499e1ba8fe2",
   "test_process_rev": "5ff212250f6cc5f850b26295e7c8123bd5238ea3",
   "test_reflective_loader_rev": "40d61b16647cd61b02d806fea46362ef07e7c502",
   "tools_rev": "8d6e8b82e3eef8b2f5e3ec9bdd3dd1a2ad3e13f5",
-  "typed_data_rev": "693f48e3d1d528f6f26d7069a2ad29b460650455",
+  "typed_data_rev": "8d29573ab6fd26a272dc846255eda66a01abae01",
   "usage_rev": "6ee09084596f9829371bb836f9d1ca05820f29ea",
   "vector_math_rev": "a3aca093bcffdee641dd9ef1f2cf3707cbb843bd",
   "watcher_rev": "3f17faa2d09dca3e23bc07a01f2045ec0cd2837d",
