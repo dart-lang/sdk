@@ -231,6 +231,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```dart
   /// final mark = DateTime.timestamp();
   /// ```
+  @Since("3.0")
   DateTime.timestamp() : this._nowUtc();
 
   /// Constructs a new [DateTime] instance based on [formattedString].
