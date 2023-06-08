@@ -433,16 +433,18 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       } else if (member is NamedCompilationUnitMember) {
         rule.reportLintForToken(member.name, arguments: [member.nameForError]);
+      } else if (member is MethodDeclaration) {
+        rule.reportLintForToken(member.name, arguments: [member.name.lexeme]);
       } else if (member is VariableDeclaration) {
         rule.reportLintForToken(member.name, arguments: [member.nameForError]);
       } else if (member is ExtensionDeclaration) {
-        var memberName = member.name;
+        var name = member.name;
         rule.reportLintForToken(
-            memberName ?? member.firstTokenAfterCommentAndMetadata,
-            arguments: [member.nameForError]);
+          name ?? member.extensionKeyword,
+          arguments: [name?.lexeme ?? '<unnamed>'],
+        );
       } else {
-        rule.reportLintForToken(member.firstTokenAfterCommentAndMetadata,
-            arguments: [member.nameForError]);
+        throw UnimplementedError('(${member.runtimeType}) $member');
       }
     }
   }

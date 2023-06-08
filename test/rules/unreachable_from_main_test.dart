@@ -782,7 +782,7 @@ class C {
   static int get g => 7;
 }
 ''', [
-      lint(34, 6),
+      lint(49, 1),
     ]);
   }
 
@@ -796,7 +796,7 @@ class C {
   static void f() {}
 }
 ''', [
-      lint(34, 6),
+      lint(46, 1),
     ]);
   }
 
@@ -871,7 +871,7 @@ class C {
   static set s(int value) {}
 }
 ''', [
-      lint(34, 6),
+      lint(45, 1),
     ]);
   }
 
