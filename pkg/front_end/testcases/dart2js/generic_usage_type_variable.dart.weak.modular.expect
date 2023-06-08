@@ -75,9 +75,9 @@ static field core::List<void> v2 = <void>[];
 static final field core::String v3 = throw "Anything";
 static const field core::List<self::C> v4 = #C5;
 static const field core::Map<core::Type, core::Type> v5 = #C7;
-static method E|foo(lowered final dynamic #this, dynamic t) → dynamic
+static extension-member method E|foo(lowered final dynamic #this, dynamic t) → dynamic
   return t;
-static method E|get#foo(lowered final dynamic #this) → (dynamic) → dynamic
+static extension-member method E|get#foo(lowered final dynamic #this) → (dynamic) → dynamic
   return (dynamic t) → dynamic => self::E|foo(#this, t);
 static method main() → dynamic {
   core::List<self::C> v8 = <self::C>[];

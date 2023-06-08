@@ -683,6 +683,10 @@ class RegularFieldEncoding implements FieldEncoding {
       _field
         ..isStatic = true
         ..isExtensionMember = true;
+    } else if (fieldBuilder.isInlineClassMember) {
+      _field
+        ..isStatic = fieldBuilder.isStatic
+        ..isInlineClassMember = true;
     } else {
       bool isInstanceMember =
           !fieldBuilder.isStatic && !fieldBuilder.isTopLevel;
@@ -1081,15 +1085,19 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   @override
   void build(
       SourceLibraryBuilder libraryBuilder, SourceFieldBuilder fieldBuilder) {
-    bool isInstanceMember;
+    bool isInstanceMember = !fieldBuilder.isStatic && !fieldBuilder.isTopLevel;
     bool isExtensionMember = fieldBuilder.isExtensionMember;
+    bool isInlineClassMember = fieldBuilder.isInlineClassMember;
     if (isExtensionMember) {
       _field
         ..isStatic = true
         ..isExtensionMember = isExtensionMember;
       isInstanceMember = false;
+    } else if (isInlineClassMember) {
+      _field
+        ..isStatic = fieldBuilder.isStatic
+        ..isInlineClassMember = true;
     } else {
-      isInstanceMember = !fieldBuilder.isStatic && !fieldBuilder.isTopLevel;
       _field
         ..isStatic = !isInstanceMember
         ..isExtensionMember = false;
@@ -1097,18 +1105,20 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     if (_lateIsSetField != null) {
       _lateIsSetField!
         ..isStatic = !isInstanceMember
-        ..isStatic = _field.isStatic
         ..isExtensionMember = isExtensionMember
+        ..isInlineClassMember = isInlineClassMember
         ..type = libraryBuilder.loader
             .createCoreType('bool', Nullability.nonNullable);
     }
     _lateGetter
       ..isStatic = !isInstanceMember
-      ..isExtensionMember = isExtensionMember;
+      ..isExtensionMember = isExtensionMember
+      ..isInlineClassMember = isInlineClassMember;
     if (_lateSetter != null) {
       _lateSetter!
         ..isStatic = !isInstanceMember
-        ..isExtensionMember = isExtensionMember;
+        ..isExtensionMember = isExtensionMember
+        ..isInlineClassMember = isInlineClassMember;
     }
   }
 

@@ -30,7 +30,7 @@ extension /* unnamed */ _extension#0<T extends core::Object? = dynamic> on self:
   get member = self::_extension#0|get#member;
 }
 static field core::int counter = 0;
-static method _extension#0|get#member<T extends core::Object? = dynamic>(lowered final self::I<self::_extension#0|get#member::T%> #this) → core::num {
+static extension-member method _extension#0|get#member<T extends core::Object? = dynamic>(lowered final self::I<self::_extension#0|get#member::T%> #this) → core::num {
   self::counter = self::counter.{core::num::+}(1){(core::num) → core::int};
   return self::_extension#0|get#member::T% =={core::Type::==}{(core::Object) → core::bool} #C1 ?{core::num} 0.5 : 1.{core::int::unary-}(){() → core::int};
 }

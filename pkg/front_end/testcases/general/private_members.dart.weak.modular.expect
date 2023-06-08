@@ -50,12 +50,12 @@ static method main() → dynamic {
   self::_Extension|_privateField = self::_Extension|_privateField;
   self::_Extension|_privateFinalField;
 }
-static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateMethod(lowered final core::int #this) → void {}
-static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateMethod(lowered final core::int #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateMethod(lowered final core::int #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateMethod(lowered final core::int #this) → () → void
   return () → void => self::_Extension|_privateMethod(#this);
-static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateGetter(lowered final core::int #this) → core::int
+static extension-member method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateGetter(lowered final core::int #this) → core::int
   return 42;
-static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|set#_privateSetter(lowered final core::int #this, core::int value) → void {}
+static extension-member method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|set#_privateSetter(lowered final core::int #this, core::int value) → void {}
 
 constants  {
   #C1 = constructor-tearoff self::_Class::_privateRedirectingFactory

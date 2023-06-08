@@ -135,6 +135,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
   final Set<Constant> seenConstants = <Constant>{};
+
+  Map<Reference, ExtensionMemberDescriptor>? _extensionsMembers;
+  Map<Reference, InlineClassMemberDescriptor>? _inlineClassMembers;
+
   bool classTypeParametersAreInScope = false;
 
   /// The compilation stage at which this verification is performed.
@@ -364,6 +368,49 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     super.visitLibrary(node);
     currentLibrary = null;
     exitTreeNode(node);
+    _extensionsMembers = null;
+    _inlineClassMembers = null;
+  }
+
+  Map<Reference, ExtensionMemberDescriptor> _computeExtensionMembers(
+      Library library) {
+    if (_extensionsMembers == null) {
+      Map<Reference, ExtensionMemberDescriptor> map = _extensionsMembers = {};
+      for (Extension extension in library.extensions) {
+        for (ExtensionMemberDescriptor descriptor in extension.members) {
+          map[descriptor.member] = descriptor;
+          Member member = descriptor.member.asMember;
+          if (!member.isExtensionMember) {
+            problem(
+                member,
+                "Member $member (${descriptor}) from $extension is not marked "
+                "as an extension member.");
+          }
+        }
+      }
+    }
+    return _extensionsMembers!;
+  }
+
+  Map<Reference, InlineClassMemberDescriptor> _computeInlineClassMembers(
+      Library library) {
+    if (_inlineClassMembers == null) {
+      Map<Reference, InlineClassMemberDescriptor> map =
+          _inlineClassMembers = {};
+      for (InlineClass inlineClass in library.inlineClasses) {
+        for (InlineClassMemberDescriptor descriptor in inlineClass.members) {
+          map[descriptor.member] = descriptor;
+          Member member = descriptor.member.asMember;
+          if (!member.isInlineClassMember) {
+            problem(
+                member,
+                "Member $member (${descriptor}) from $inlineClass is not "
+                "marked as an inline class member.");
+          }
+        }
+      }
+    }
+    return _inlineClassMembers!;
   }
 
   @override
@@ -371,6 +418,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name, node.fileUri);
     currentExtension = node;
+    _computeExtensionMembers(node.enclosingLibrary);
     declareTypeParameters(node.typeParameters);
     final TreeNode? oldParent = enterParent(node);
     node.visitChildren(this);
@@ -385,6 +433,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name, node.fileUri);
     currentInlineClass = node;
+    _computeInlineClassMembers(node.enclosingLibrary);
     declareTypeParameters(node.typeParameters);
     final TreeNode? oldParent = enterParent(node);
     node.visitChildren(this);
@@ -426,6 +475,30 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitTreeNode(node);
   }
 
+  void _findExtensionMember(Member node) {
+    assert(node.isExtensionMember);
+    Map<Reference, ExtensionMemberDescriptor> extensionMembers =
+        _computeExtensionMembers(node.enclosingLibrary);
+    if (!extensionMembers.containsKey(node.reference)) {
+      problem(
+          node,
+          "Extension member $node is not found in any extension of the "
+          "enclosing library.");
+    }
+  }
+
+  void _findInlineClassMember(Member node) {
+    assert(node.isInlineClassMember);
+    Map<Reference, InlineClassMemberDescriptor> inlineClassMembers =
+        _computeInlineClassMembers(node.enclosingLibrary);
+    if (!inlineClassMembers.containsKey(node.reference)) {
+      problem(
+          node,
+          "Inline class member $node is not found in any inline class of the "
+          "enclosing library.");
+    }
+  }
+
   @override
   void visitField(Field node) {
     enterTreeNode(node);
@@ -462,6 +535,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         }
       }
     }
+    if (node.isExtensionMember) {
+      _findExtensionMember(node);
+    }
+    if (node.isInlineClassMember) {
+      _findInlineClassMember(node);
+    }
     classTypeParametersAreInScope = !node.isStatic;
     node.initializer?.accept(this);
     node.type.accept(this);
@@ -476,6 +555,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitProcedure(Procedure node) {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name.text, node.fileUri);
+    if (node.isExtensionMember) {
+      _findExtensionMember(node);
+    }
+    if (node.isInlineClassMember) {
+      _findInlineClassMember(node);
+    }
 
     if (node.isRedirectingFactory &&
         node.function.redirectingFactoryTarget == null) {
@@ -563,6 +648,13 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     fileUri = checkLocation(node, node.name.text, node.fileUri);
     currentMember = node;
     classTypeParametersAreInScope = true;
+    if (node.isExtensionMember) {
+      _findExtensionMember(node);
+    }
+    if (node.isInlineClassMember) {
+      _findInlineClassMember(node);
+    }
+
     // The constructor member needs special treatment due to parameters being
     // in scope in the initializer list.
     TreeNode? oldParent = enterParent(node);

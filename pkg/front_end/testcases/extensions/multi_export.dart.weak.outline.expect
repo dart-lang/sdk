@@ -71,7 +71,7 @@ extension Extension<T extends mul::Class> on T {
   method method = mul::Extension|method;
   tearoff method = mul::Extension|get#method;
 }
-static method Extension|method<T extends mul::Class>(lowered final mul::Extension|method::T #this) → dynamic
+static extension-member method Extension|method<T extends mul::Class>(lowered final mul::Extension|method::T #this) → dynamic
   ;
-static method Extension|get#method<T extends mul::Class>(lowered final mul::Extension|get#method::T #this) → () → dynamic
+static extension-member method Extension|get#method<T extends mul::Class>(lowered final mul::Extension|get#method::T #this) → () → dynamic
   return () → dynamic => mul::Extension|method<mul::Extension|get#method::T>(#this);

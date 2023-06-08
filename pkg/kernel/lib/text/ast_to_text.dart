@@ -1134,6 +1134,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeModifier(node.isAbstract, 'abstract');
     writeModifier(node.isForwardingStub, 'forwarding-stub');
     writeModifier(node.isForwardingSemiStub, 'forwarding-semi-stub');
+    writeModifier(node.isExtensionMember, 'extension-member');
+    writeModifier(node.isInlineClassMember, 'inline-class-member');
     switch (node.stubKind) {
       case ProcedureStubKind.Regular:
       case ProcedureStubKind.AbstractForwardingStub:
