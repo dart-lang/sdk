@@ -112,6 +112,9 @@ class AbstractContextTest with ResourceProviderMixin {
     driverFor(file).changeFile(path);
   }
 
+  /// Returns the existing analysis context that should be used to analyze the
+  /// given [file], or throw [StateError] if the [file] is not analyzed in any
+  /// of the created analysis contexts.
   AnalysisContext contextFor(File file) {
     return _contextFor(file);
   }
@@ -159,24 +162,11 @@ class AbstractContextTest with ResourceProviderMixin {
     newFile(analysisOptionsPath, buffer.toString());
   }
 
+  /// Returns the existing analysis driver that should be used to analyze the
+  /// given [file], or throw [StateError] if the [file] is not analyzed in any
+  /// of the created analysis contexts.
   AnalysisDriver driverFor(File file) {
     return _contextFor(file).driver;
-  }
-
-  /// Return the existing analysis context that should be used to analyze the
-  /// given [path], or throw [StateError] if the [path] is not analyzed in any
-  /// of the created analysis contexts.
-  DriverBasedAnalysisContext getContext(String path) {
-    path = convertPath(path);
-    return _analysisContextCollection!.contextFor(path);
-  }
-
-  /// Return the existing analysis driver that should be used to analyze the
-  /// given [path], or throw [StateError] if the [path] is not analyzed in any
-  /// of the created analysis contexts.
-  AnalysisDriver getDriver(String path) {
-    var context = getContext(path);
-    return context.driver;
   }
 
   Future<ResolvedUnitResult> getResolvedUnit(String path) async =>
@@ -188,9 +178,9 @@ class AbstractContextTest with ResourceProviderMixin {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
-    path = convertPath(path);
-    _addAnalyzedFileToDrivers(path);
-    return super.newFile(path, content);
+    final file = super.newFile(path, content);
+    _addAnalyzedFileToDrivers(file);
+    return file;
   }
 
   Future<ResolvedUnitResult> resolveFile(File file) async {
@@ -298,7 +288,8 @@ class AbstractContextTest with ResourceProviderMixin {
     }
   }
 
-  void _addAnalyzedFileToDrivers(String path) {
+  void _addAnalyzedFileToDrivers(File file) {
+    final path = file.path;
     var collection = _analysisContextCollection;
     if (collection != null) {
       for (var analysisContext in collection.contexts) {
