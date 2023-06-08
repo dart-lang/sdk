@@ -11095,6 +11095,70 @@ Remove the annotation:
 class C {}
 {% endprettify %}
 
+### invalid_visible_outside_template_annotation
+
+_The annotation 'visibleOutsideTemplate' can only be applied to a member of a
+class, enum, or mixin that is annotated with 'visibleForTemplate'._
+
+#### Description
+
+The analyzer produces this diagnostic when the `@visibleOutsideTemplate`
+annotation is used incorrectly. This annotation is only meant to annotate
+members of a class, enum, or mixin that has the `@visibleForTemplate`
+annotation, to opt those members out of the visibility restrictions that
+`@visibleForTemplate` imposes.
+
+#### Examples
+
+The following code produces this diagnostic because there is no
+`@visibleForTemplate` annotation at the class level:
+
+{% prettify dart tag=pre+code %}
+import 'package:angular_meta/angular_meta.dart';
+
+class C {
+  [!@visibleOutsideTemplate!]
+  int m() {
+    return 1;
+  }
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the annotation is on
+a class declaration, not a member of a class, enum, or mixin:
+
+{% prettify dart tag=pre+code %}
+import 'package:angular_meta/angular_meta.dart';
+
+[!@visibleOutsideTemplate!]
+class C {}
+{% endprettify %}
+
+#### Common fixes
+
+If the class is only visible so that templates can reference it, then add
+the `@visibleForTemplate` annotation to the class:
+
+{% prettify dart tag=pre+code %}
+import 'package:angular_meta/angular_meta.dart';
+
+@visibleForTemplate
+class C {
+  @visibleOutsideTemplate
+  int m() {
+    return 1;
+  }
+}
+{% endprettify %}
+
+If the `@visibleOutsideTemplate` annotation is on anything other than a
+member of a class, enum, or mixin with the `@visibleForTemplate`
+annotation, remove the annotation:
+
+{% prettify dart tag=pre+code %}
+class C {}
+{% endprettify %}
+
 ### invocation_of_extension_without_call
 
 _The extension '{0}' doesn't define a 'call' method so the override can't be

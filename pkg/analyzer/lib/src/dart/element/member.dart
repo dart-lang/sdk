@@ -597,6 +597,9 @@ abstract class Member implements Element {
   bool get hasVisibleForTesting => _declaration.hasVisibleForTesting;
 
   @override
+  bool get hasVisibleOutsideTemplate => _declaration.hasVisibleOutsideTemplate;
+
+  @override
   int get id => _declaration.id;
 
   @override

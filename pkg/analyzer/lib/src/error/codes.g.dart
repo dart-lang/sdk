@@ -6452,6 +6452,15 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const WarningCode INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION =
+      WarningCode(
+    'INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION',
+    "The annotation 'visibleOutsideTemplate' can only be applied to a member "
+        "of a class, enum, or mixin that is annotated with "
+        "'visibleForTemplate'.",
+  );
+
   ///  Parameters:
   ///  0: the name of the member
   static const WarningCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE =

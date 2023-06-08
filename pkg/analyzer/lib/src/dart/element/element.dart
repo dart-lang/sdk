@@ -2052,6 +2052,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// visible for testing.
   static const String _visibleForTestingVariableName = 'visibleForTesting';
 
+  /// The name of the top-level variable used to mark a method as being
+  /// visible outside of template files.
+  static const String _visibleOutsideTemplateVariableName =
+      'visibleOutsideTemplate';
+
   @override
   Element? element;
 
@@ -2197,6 +2202,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   bool get isVisibleForTesting =>
       _isPackageMetaGetter(_visibleForTestingVariableName);
+
+  @override
+  bool get isVisibleOutsideTemplate => _isTopGetter(
+      libraryName: _angularMetaLibName,
+      name: _visibleOutsideTemplateVariableName);
 
   @override
   LibraryElement get library => compilationUnit.library;
@@ -2637,6 +2647,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleForTesting) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasVisibleOutsideTemplate {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isVisibleOutsideTemplate) {
         return true;
       }
     }
@@ -5260,6 +5282,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get hasVisibleForTesting => false;
 
   @override
+  bool get hasVisibleOutsideTemplate => false;
+
+  @override
   bool get isPrivate {
     throw UnimplementedError();
   }
@@ -5271,6 +5296,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get isSynthetic => true;
 
   bool get isVisibleForTemplate => false;
+
+  bool get isVisibleOutsideTemplate => false;
 
   @override
   ElementKind get kind => ElementKind.ERROR;

@@ -437,6 +437,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   void writeTestPackageConfig(
     PackageConfigFileBuilder config, {
     String? languageVersion,
+    bool angularMeta = false,
     bool ffi = false,
     bool js = false,
     bool meta = false,
@@ -449,6 +450,14 @@ class PubPackageResolutionTest extends ContextResolutionTest {
       rootPath: testPackageRootPath,
       languageVersion: languageVersion ?? testPackageLanguageVersion,
     );
+
+    if (angularMeta) {
+      var angularMetaPath = '/packages/angular_meta';
+      MockPackages.addAngularMetaPackageFiles(
+        getFolder(angularMetaPath),
+      );
+      config.add(name: 'angular_meta', rootPath: angularMetaPath);
+    }
 
     if (ffi) {
       var ffiPath = '/packages/ffi';

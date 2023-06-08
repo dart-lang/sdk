@@ -2070,6 +2070,17 @@ class _InvalidAccessVerifier {
     return false;
   }
 
+  bool _hasVisibleOutsideTemplate(Element element) {
+    if (element.hasVisibleOutsideTemplate) {
+      return true;
+    }
+    if (element is PropertyAccessorElement &&
+        element.variable.hasVisibleOutsideTemplate) {
+      return true;
+    }
+    return false;
+  }
+
   bool _inCommentReference(SimpleIdentifier identifier) {
     var parent = identifier.parent;
     return parent is CommentReference || parent?.parent is CommentReference;
@@ -2091,16 +2102,20 @@ class _InvalidAccessVerifier {
 
   /// Check if @visibleForTemplate is applied to the given [Element].
   ///
-  /// [ClassElement] and [EnumElement] are excluded from the @visibleForTemplate
-  /// access checks. Instead, the access restriction is cascaded to the
-  /// corresponding class members and enum constants. For other types of
-  /// elements, check if they are annotated based on `hasVisibleForTemplate`
-  /// value.
-  bool _isVisibleForTemplateApplied(Element? element) {
-    if (element is ClassElement || element is EnumElement) {
+  /// [ClassElement], [EnumElement] and [MixinElement] are excluded from the
+  /// @visibleForTemplate access checks. Instead, the access restriction is
+  /// cascaded to all the corresponding members not annotated by
+  /// @visibleOutsideTemplate.
+  /// For other types of elements, check if they are annotated based on
+  /// `hasVisibleForTemplate` value.
+  bool _isVisibleForTemplateApplied(Element element) {
+    if (element is ClassElement ||
+        element is EnumElement ||
+        element is MixinElement) {
       return false;
     } else {
-      return _hasVisibleForTemplate(element);
+      return _hasVisibleForTemplate(element) &&
+          !_hasVisibleOutsideTemplate(element);
     }
   }
 }
