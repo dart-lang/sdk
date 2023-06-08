@@ -5,8 +5,11 @@ This is a patch release that:
 - Handles formatting nullable record types with no fields (dart_style issue [#1224]).
 - Fixes error when using records when targeting the web in development mode
 (issue [#52480]).
+- Fixes a bad cast in the frontend which can manifest as a crash in the dart2js
+`ListFactorySpecializer` during Flutter web builds (issue [#52403]).
 
 [#1224]: https://github.com/dart-lang/dart_style/issues/1224
+[#52403]: https://github.com/dart-lang/sdk/issues/52403
 [#52480]: https://github.com/dart-lang/sdk/issues/52480
 
 ## 3.0.3 - 2023-02-07
