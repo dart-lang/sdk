@@ -148,7 +148,34 @@ abstract class ContextResolutionTest
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
   AnalysisContextCollectionImpl get analysisContextCollection {
-    return _analysisContextCollection!;
+    var collection = _analysisContextCollection;
+    if (collection != null) {
+      return collection;
+    }
+
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+      additionalLibraries: additionalMockSdkLibraries,
+    );
+
+    collection = AnalysisContextCollectionImpl(
+      byteStore: _byteStore,
+      declaredVariables: _declaredVariables,
+      enableIndex: true,
+      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
+      resourceProvider: resourceProvider,
+      retainDataForTesting: retainDataForTesting,
+      sdkPath: sdkRoot.path,
+      sdkSummaryPath: sdkSummaryFile?.path,
+      librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
+      updateAnalysisOptions2: updateAnalysisOptions,
+    );
+
+    _analysisContextCollection = collection;
+    verifyCreatedCollection();
+
+    return collection;
   }
 
   List<String> get collectionIncludedPaths;
@@ -287,37 +314,7 @@ abstract class ContextResolutionTest
   void verifyCreatedCollection() {}
 
   DriverBasedAnalysisContext _contextFor(File file) {
-    _createAnalysisContexts();
-
-    return _analysisContextCollection!.contextFor(file.path);
-  }
-
-  /// Create all analysis contexts in [collectionIncludedPaths].
-  void _createAnalysisContexts() {
-    if (_analysisContextCollection != null) {
-      return;
-    }
-
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-      additionalLibraries: additionalMockSdkLibraries,
-    );
-
-    _analysisContextCollection = AnalysisContextCollectionImpl(
-      byteStore: _byteStore,
-      declaredVariables: _declaredVariables,
-      enableIndex: true,
-      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
-      resourceProvider: resourceProvider,
-      retainDataForTesting: retainDataForTesting,
-      sdkPath: sdkRoot.path,
-      sdkSummaryPath: sdkSummaryFile?.path,
-      librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
-      updateAnalysisOptions2: updateAnalysisOptions,
-    );
-
-    verifyCreatedCollection();
+    return analysisContextCollection.contextFor(file.path);
   }
 }
 
