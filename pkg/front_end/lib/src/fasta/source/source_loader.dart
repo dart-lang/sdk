@@ -3137,7 +3137,10 @@ abstract class Enum {
 }
 
 abstract class _Enum {
+  final int index;
   final String _name;
+
+  const _Enum(this.index, this._name);
 }
 
 class String {}
