@@ -44,6 +44,7 @@ Future<List<Asset>> build(
     logger: logger,
     dartExecutable: dartExecutable,
   ).build(
+    buildMode: BuildMode.release,
     linkModePreference: linkModePreference,
     target: Target.current,
     workingDirectory: packageUri,

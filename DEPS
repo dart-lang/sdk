@@ -157,7 +157,7 @@ vars = {
   "matcher_rev": "7e1011772566a8d1817c725a71f091e2791721c8",
   "mime_rev": "24448401f621b9e154d165c900a3c8decd8a23f4",
   "mockito_rev": "cca4858ad0f1e3930ebdcc6faf4a918616cca48c",
-  "native_rev": "973f3ed93dace19864903e17e771a44a2d9955b7",
+  "native_rev": "78cf286e15aec57b51a1bbbbcaada5216ddc626a",
   "package_config_rev": "203de2022af26b3ab2bcec18cc49614d9e502897",
   "path_rev": "f8d15c2775835fd61ea5e06bb0ab99232f5ec446",
   "pool_rev": "a10a0f918802f7b3856cb1f4c78f9073f28a0dd8",
