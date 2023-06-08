@@ -7,10 +7,7 @@ export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 
 export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 export 'package:kernel/src/redirecting_factory_body.dart'
-    show
-        expressionValueWrappedFinalizableName,
-        getRedirectingFactoryBody,
-        isRedirectingFactoryField;
+    show expressionValueWrappedFinalizableName, isRedirectingFactoryField;
 
 export '../api_prototype/compiler_options.dart'
     show

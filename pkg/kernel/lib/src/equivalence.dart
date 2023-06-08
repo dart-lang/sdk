@@ -2304,6 +2304,24 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkRedirectingFactoryTarget(EquivalenceVisitor visitor,
+      RedirectingFactoryTarget? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! RedirectingFactoryTarget) return false;
+    if (other is! RedirectingFactoryTarget) return false;
+    bool result = true;
+    if (!checkRedirectingFactoryTarget_targetReference(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRedirectingFactoryTarget_typeArguments(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRedirectingFactoryTarget_errorMessage(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    return result;
+  }
+
   bool checkFunctionNode(
       EquivalenceVisitor visitor, FunctionNode? node, Object? other) {
     if (identical(node, other)) return true;
@@ -2339,6 +2357,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFunctionNode_futureValueType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkFunctionNode_redirectingFactoryTarget(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFunctionNode_lazyBuilder(visitor, node, other)) {
@@ -6746,6 +6767,31 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, FunctionNode node, FunctionNode other) {
     return visitor.checkNodes(
         node.futureValueType, other.futureValueType, 'futureValueType');
+  }
+
+  bool checkRedirectingFactoryTarget_targetReference(EquivalenceVisitor visitor,
+      RedirectingFactoryTarget node, RedirectingFactoryTarget other) {
+    return visitor.checkReferences(
+        node.targetReference, other.targetReference, 'targetReference');
+  }
+
+  bool checkRedirectingFactoryTarget_typeArguments(EquivalenceVisitor visitor,
+      RedirectingFactoryTarget node, RedirectingFactoryTarget other) {
+    return visitor.checkLists(node.typeArguments, other.typeArguments,
+        visitor.checkNodes, 'typeArguments');
+  }
+
+  bool checkRedirectingFactoryTarget_errorMessage(EquivalenceVisitor visitor,
+      RedirectingFactoryTarget node, RedirectingFactoryTarget other) {
+    return visitor.checkValues(
+        node.errorMessage, other.errorMessage, 'errorMessage');
+  }
+
+  bool checkFunctionNode_redirectingFactoryTarget(
+      EquivalenceVisitor visitor, FunctionNode node, FunctionNode other) {
+    'redirectingFactoryTarget';
+    return checkRedirectingFactoryTarget(
+        visitor, node.redirectingFactoryTarget, other.redirectingFactoryTarget);
   }
 
   bool checkFunctionNode_lazyBuilder(

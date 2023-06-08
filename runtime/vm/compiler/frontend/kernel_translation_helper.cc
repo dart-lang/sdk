@@ -980,6 +980,28 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
       helper_->SkipOptionalDartType();  // read future value type.
       if (++next_read_ == field) return;
       FALL_THROUGH;
+    case kRedirectingFactoryTarget: {
+      Tag tag = helper_->ReadTag();  // read tag.
+      if (tag == kSomething) {
+        helper_->ReadCanonicalNameReference();  // read target.
+        tag = helper_->ReadTag();
+        if (tag == kSomething) {
+          helper_->SkipListOfDartTypes();  // read type arguments.
+        } else {
+          ASSERT(tag == kNothing);
+        }
+        tag = helper_->ReadTag();
+        if (tag == kSomething) {
+          helper_->ReadStringReference();  // read error message.
+        } else {
+          ASSERT(tag == kNothing);
+        }
+      } else {
+        ASSERT(tag == kNothing);
+      }
+      if (++next_read_ == field) return;
+    }
+      FALL_THROUGH;
     case kBody:
       if (helper_->ReadTag() == kSomething)
         helper_->SkipStatement();  // read body.

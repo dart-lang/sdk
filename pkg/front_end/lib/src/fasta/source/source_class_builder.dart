@@ -45,8 +45,7 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
-import 'package:kernel/src/redirecting_factory_body.dart'
-    show RedirectingFactoryBody, redirectingName;
+import 'package:kernel/src/redirecting_factory_body.dart' show redirectingName;
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
 import '../names.dart' show equalsName;
@@ -943,7 +942,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         .format(
             message.withLocation(fileUri, charOffset, length), Severity.error)
         .plain;
-    factory.body = new RedirectingFactoryBody.error(text);
+    factory.setRedirectingFactoryError(text);
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {

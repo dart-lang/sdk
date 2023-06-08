@@ -1876,6 +1876,7 @@ class BinaryBuilder {
       debugPath.add(name.text);
       return true;
     }());
+
     int functionNodeSize = endOffset - _byteOffset;
     // Read small factories up front. Postpone everything else.
     bool readFunctionNodeNow =
@@ -2053,6 +2054,25 @@ class BinaryBuilder {
     List<VariableDeclaration> named = readAndPushVariableDeclarationList();
     DartType returnType = readDartType();
     DartType? futureValueType = readDartTypeOption();
+    RedirectingFactoryTarget? redirectingFactoryTarget;
+    if (readAndCheckOptionTag()) {
+      Reference? targetReference = readNullableMemberReference();
+      List<DartType>? typeArguments;
+      if (readAndCheckOptionTag()) {
+        typeArguments = readDartTypeList();
+      }
+      if (readAndCheckOptionTag()) {
+        assert(targetReference == null && typeArguments == null);
+        String errorMessage = readStringReference();
+        redirectingFactoryTarget =
+            new RedirectingFactoryTarget.error(errorMessage);
+      } else {
+        assert(targetReference != null && typeArguments != null);
+        redirectingFactoryTarget = new RedirectingFactoryTarget.byReference(
+            targetReference!, typeArguments!);
+      }
+    }
+
     int oldLabelStackBase = labelStackBase;
     int oldSwitchCaseStackBase = switchCaseStackBase;
 
@@ -2078,7 +2098,8 @@ class BinaryBuilder {
         dartAsyncMarker: dartAsyncMarker,
         futureValueType: futureValueType)
       ..fileOffset = offset
-      ..fileEndOffset = endOffset;
+      ..fileEndOffset = endOffset
+      ..redirectingFactoryTarget = redirectingFactoryTarget;
 
     if (lazyLoadBody) {
       _setLazyLoadFunction(result, oldLabelStackBase, oldSwitchCaseStackBase,

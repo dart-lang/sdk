@@ -43,9 +43,8 @@ import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
 import 'package:kernel/src/redirecting_factory_body.dart'
     show
         EnsureLoaded,
-        RedirectingFactoryBody,
         RedirectionTarget,
-        getRedirectingFactoryBody,
+        getRedirectingFactoryTarget,
         getRedirectionTarget;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -1440,13 +1439,13 @@ class BodyBuilder extends StackListenerImpl
       return null;
     }
 
-    RedirectingFactoryBody? redirectingFactoryBody =
-        getRedirectingFactoryBody(resolvedTarget);
-    if (redirectingFactoryBody != null) {
+    RedirectingFactoryTarget? redirectingFactoryTarget =
+        getRedirectingFactoryTarget(resolvedTarget);
+    if (redirectingFactoryTarget != null) {
       // If the redirection target is itself a redirecting factory, it means
       // that it is unresolved.
-      assert(redirectingFactoryBody.isError);
-      String errorMessage = redirectingFactoryBody.errorMessage!;
+      assert(redirectingFactoryTarget.isError);
+      String errorMessage = redirectingFactoryTarget.errorMessage!;
       replacementNode = new InvalidExpression(errorMessage)
         ..fileOffset = fileOffset;
     } else {

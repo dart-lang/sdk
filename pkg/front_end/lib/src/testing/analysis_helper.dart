@@ -50,7 +50,7 @@ class StaticTypeVisitorBase extends RecursiveVisitor {
 
   @override
   void visitProcedure(Procedure node) {
-    if (node.kind == ProcedureKind.Factory && isRedirectingFactory(node)) {
+    if (node.kind == ProcedureKind.Factory && node.isRedirectingFactory) {
       // Don't visit redirecting factories.
       return;
     }

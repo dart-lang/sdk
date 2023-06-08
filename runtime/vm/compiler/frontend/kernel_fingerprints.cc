@@ -890,6 +890,16 @@ void KernelFingerprintHelper::CalculateFunctionNodeFingerprint() {
   CalculateDartTypeFingerprint();                    // read return type.
   CalculateOptionalDartTypeFingerprint();            // read future value type.
 
+  if (ReadTag() == kSomething) {   // read redirecting factory target
+    ReadCanonicalNameReference();  // read member reference
+    if (ReadTag() == kSomething) {
+      SkipListOfDartTypes();  // read type arguments
+    }
+    if (ReadTag() == kSomething) {
+      ReadStringReference();  // read error message
+    }
+  }
+
   if (ReadTag() == kSomething) {
     CalculateStatementFingerprint();  // Read body.
   }

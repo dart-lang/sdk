@@ -66,43 +66,17 @@ const String letName = "#redirecting_factory";
 /// the redirection target in a factory method body.
 const String varNamePrefix = "#typeArg";
 
-class RedirectingFactoryBody extends ReturnStatement {
-  RedirectingFactoryBody._internal(Expression value) : super(value);
-  RedirectingFactoryBody._internalTransformed(Expression value, this.usedValue)
-      : super(value);
-
-  RedirectingFactoryBody(
-      Member target, List<DartType> typeArguments, FunctionNode function)
-      : this._internal(_makeForwardingCall(target, typeArguments, function));
-
-  RedirectingFactoryBody.error(String errorMessage)
-      : this._internal(new InvalidExpression(errorMessage));
-
-  Expression? usedValue;
-
-  Member? get target {
-    final Expression? value = usedValue ?? this.expression;
-    if (value is StaticInvocation) {
-      return value.target;
-    } else if (value is ConstructorInvocation) {
-      return value.target;
-    }
-    return null;
+// TODO(johnniwinther): Clean up this library and remove [RedirectingFactory].
+class RedirectingFactoryBody {
+  static ReturnStatement createRedirectingFactoryBody(
+      Member target, List<DartType> typeArguments, FunctionNode function) {
+    return new ReturnStatement(
+        _makeForwardingCall(target, typeArguments, function));
   }
 
-  String? get errorMessage {
-    final Expression? value = usedValue ?? this.expression;
-    return value is InvalidExpression ? value.message : null;
-  }
-
-  bool get isError => errorMessage != null;
-
-  List<DartType>? get typeArguments {
-    final Expression? value = usedValue ?? this.expression;
-    if (value is InvocationExpression) {
-      return value.arguments.types;
-    }
-    return null;
+  static ReturnStatement createRedirectingFactoryErrorBody(
+      String errorMessage) {
+    return ReturnStatement(new InvalidExpression(errorMessage));
   }
 
   static Expression _makeForwardingCall(
@@ -128,112 +102,10 @@ class RedirectingFactoryBody extends ReturnStatement {
           ' ${target.runtimeType} $target';
     }
   }
-
-  static void restoreFromDill(Procedure factory) {
-    // This is a hack / workaround for storing redirecting constructors in
-    // dill files.
-    // See `SourceClassBuilder._addRedirectingConstructor` in
-    // [source_class_builder.dart](source_class_builder.dart) and
-    // `SourceFactoryBuilder` in
-    // [source_factory_builder.dart](source_factory_builder.dart).
-    FunctionNode function = factory.function;
-    Statement? body = function.body;
-    if (body is ReturnStatement) {
-      Expression value = body.expression!;
-      if (value is StaticInvocation || value is ConstructorInvocation) {
-        // Unmodified encoding by the CFE.
-        function.body = new RedirectingFactoryBody._internal(value)
-          ..parent = function;
-        return;
-      }
-      if (value is BlockExpression) {
-        if (value.body.statements.isNotEmpty &&
-            value.body.statements.first is VariableDeclaration) {
-          VariableDeclaration variableDeclaration =
-              value.body.statements.first as VariableDeclaration;
-          if (variableDeclaration.name ==
-              expressionValueWrappedFinalizableName) {
-            // Transformed by the FFI finalizable transformation.
-            Expression usedValue = variableDeclaration.initializer!;
-            function.body = new RedirectingFactoryBody._internalTransformed(
-                value, usedValue)
-              ..parent = function;
-            return;
-          }
-        }
-      }
-    }
-    throw 'Unexpected shape of redirecting factory body: '
-        '${body.runtimeType}: $body';
-  }
-
-  static bool hasRedirectingFactoryBodyShape(Procedure factory) {
-    final FunctionNode function = factory.function;
-    final Statement? body = function.body;
-    if (body is! ReturnStatement) return false;
-    final Expression? value = body.expression;
-    if (body is InvalidExpression) {
-      return true;
-    } else if (value is StaticInvocation || value is ConstructorInvocation) {
-      // Verify that invocation forwards all arguments.
-      final Arguments args = (value as InvocationExpression).arguments;
-      if (args.positional.length != function.positionalParameters.length) {
-        return false;
-      }
-      int i = 0;
-      for (Expression arg in args.positional) {
-        if (arg is! VariableGet) {
-          return false;
-        }
-        if (arg.variable != function.positionalParameters[i]) {
-          return false;
-        }
-        ++i;
-      }
-      if (args.named.length != function.namedParameters.length) {
-        return false;
-      }
-      i = 0;
-      for (NamedExpression arg in args.named) {
-        final Expression value = arg.value;
-        if (value is! VariableGet) {
-          return false;
-        }
-        final VariableDeclaration param = function.namedParameters[i];
-        if (value.variable != param) {
-          return false;
-        }
-        if (arg.name != param.name) {
-          return false;
-        }
-        ++i;
-      }
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @override
-  String toString() {
-    return "RedirectingFactoryBody(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
-bool isRedirectingFactory(Member? member, {EnsureLoaded? helper}) {
-  assert(helper == null || helper.isLoaded(member));
-  return member is Procedure && member.function.body is RedirectingFactoryBody;
-}
-
-RedirectingFactoryBody? getRedirectingFactoryBody(Member? member) {
-  return isRedirectingFactory(member)
-      ? member!.function!.body as RedirectingFactoryBody
-      : null;
+RedirectingFactoryTarget? getRedirectingFactoryTarget(Member? member) {
+  return member?.function?.redirectingFactoryTarget;
 }
 
 class RedirectionTarget {
@@ -254,13 +126,14 @@ RedirectionTarget getRedirectionTarget(Procedure factory, EnsureLoaded helper) {
   // reach either a non-redirecting factory or an error eventually.
   Member target = factory;
   for (;;) {
-    RedirectingFactoryBody? body = getRedirectingFactoryBody(target);
-    if (body == null || body.isError) {
+    RedirectingFactoryTarget? redirectingFactoryTarget =
+        getRedirectingFactoryTarget(target);
+    if (redirectingFactoryTarget == null || redirectingFactoryTarget.isError) {
       return new RedirectionTarget(target, typeArguments);
     }
-    Member nextMember = body.target!;
+    Member nextMember = redirectingFactoryTarget.target!;
     helper.ensureLoaded(nextMember);
-    List<DartType>? nextTypeArguments = body.typeArguments;
+    List<DartType>? nextTypeArguments = redirectingFactoryTarget.typeArguments;
     if (nextTypeArguments != null) {
       Substitution sub = Substitution.fromPairs(
           target.function!.typeParameters, typeArguments);

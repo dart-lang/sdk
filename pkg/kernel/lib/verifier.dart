@@ -477,17 +477,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name.text, node.fileUri);
 
-    // TODO(cstefantsova): Investigate why some redirecting factory bodies
-    // retain the shape, but aren't of the RedirectingFactoryBody type.
-    bool hasBody = isRedirectingFactory(node) ||
-        RedirectingFactoryBody.hasRedirectingFactoryBodyShape(node);
-    bool hasFlag = node.isRedirectingFactory;
-    if (hasFlag && !hasBody) {
+    if (node.isRedirectingFactory &&
+        node.function.redirectingFactoryTarget == null) {
       problem(
           node,
-          "Procedure '${node.name}' doesn't have a body "
-          "of a redirecting factory, but has the "
-          "'isRedirectingFactory' bit set.");
+          "Procedure '${node.name}' doesn't have a redirecting "
+          "factory target, but has the 'isRedirectingFactory' bit set.");
+    } else if (!node.isRedirectingFactory &&
+        node.function.redirectingFactoryTarget != null) {
+      problem(
+          node,
+          "Procedure '${node.name}' has redirecting factory target, but "
+          "doesn't have the 'isRedirectingFactory' bit set.");
     }
 
     currentMember = node;

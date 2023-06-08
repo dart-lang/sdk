@@ -4098,6 +4098,10 @@ class FunctionNode extends TreeNode {
   /// type.
   DartType? futureValueType;
 
+  /// If the function is a redirecting factory constructor, this holds
+  /// the target and type arguments of the redirection.
+  RedirectingFactoryTarget? redirectingFactoryTarget;
+
   void Function()? lazyBuilder;
 
   void _buildLazy() {
@@ -4225,6 +4229,10 @@ class FunctionNode extends TreeNode {
     visitList(namedParameters, v);
     returnType.accept(v);
     futureValueType?.accept(v);
+    redirectingFactoryTarget?.target?.acceptReference(v);
+    if (redirectingFactoryTarget?.typeArguments != null) {
+      visitList(redirectingFactoryTarget!.typeArguments!, v);
+    }
     body?.accept(v);
   }
 
@@ -4236,6 +4244,9 @@ class FunctionNode extends TreeNode {
     returnType = v.visitDartType(returnType);
     if (futureValueType != null) {
       futureValueType = v.visitDartType(futureValueType!);
+    }
+    if (redirectingFactoryTarget?.typeArguments != null) {
+      v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);
     }
     if (body != null) {
       body = v.transform(body!);
@@ -4251,6 +4262,9 @@ class FunctionNode extends TreeNode {
     returnType = v.visitDartType(returnType, cannotRemoveSentinel);
     if (futureValueType != null) {
       futureValueType = v.visitDartType(futureValueType!, cannotRemoveSentinel);
+    }
+    if (redirectingFactoryTarget?.typeArguments != null) {
+      v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);
     }
     if (body != null) {
       body = v.transformOrRemoveStatement(body!);
@@ -4275,6 +4289,44 @@ enum AsyncMarker {
   SyncStar,
   Async,
   AsyncStar,
+}
+
+/// The target constructor and passed type arguments of a redirecting factory,
+/// or if erroneous, the message for the error.
+class RedirectingFactoryTarget {
+  /// The reference to the target constructor if this is a valid redirecting
+  /// factory. `null` otherwise.
+  final Reference? targetReference;
+
+  /// The type arguments passed to the target constructor if this is a valid
+  /// redirecting factory. `null` otherwise.
+  final List<DartType>? typeArguments;
+
+  /// The message for the error, if this is an erroneous redirection. `null`
+  /// otherwise.
+  final String? errorMessage;
+
+  RedirectingFactoryTarget(Member target, List<DartType> typeArguments)
+      : this.byReference(target.reference, typeArguments);
+
+  RedirectingFactoryTarget.byReference(
+      Reference this.targetReference, List<DartType> this.typeArguments)
+      : errorMessage = null;
+
+  RedirectingFactoryTarget.error(String this.errorMessage)
+      : targetReference = null,
+        typeArguments = null;
+
+  /// The target constructor if this is a valid redirecting factory. `null`
+  /// otherwise.
+  Member? get target => targetReference?.asMember;
+
+  /// If `true`, this is an erroneous redirection.
+  bool get isError => errorMessage != null;
+
+  @override
+  String toString() => 'RedirectingFactoryTarget('
+      '${isError ? '$errorMessage' : '$target,$typeArguments'})';
 }
 
 // ------------------------------------------------------------------------
