@@ -414,37 +414,30 @@ class _ProgramInfoBuilder {
     switch (node.type) {
       case 'Code':
         final owner = node['owner_']!;
-        if (owner.type != 'Type') {
-          final ownerNode =
-              owner.type == 'Null' ? program.stubs : getInfoNodeFor(owner)!;
-          if (owner.type == 'Function') {
-            // For normal functions we just attribute Code object and all
-            // objects dominated by it to the function itself.
-            return ownerNode;
-          }
-
-          // For stubs we create a dummy functionNode that is going to own
-          // all objects dominated by it.
-          return makeInfoNode(node.index,
-              name: node.name, parent: ownerNode, type: NodeType.functionNode);
+        if (owner.type == 'Function') {
+          // For normal functions we just attribute Code object and all
+          // objects dominated by it to the function itself.
+          return getInfoNodeFor(owner)!;
         }
-        break;
+        // For all stub types, we create a dummy functionNode that is going to
+        // own all objects dominated by it.
+        final ownerNode =
+            owner.type == 'Class' ? getInfoNodeFor(owner)! : program.stubs;
+        return makeInfoNode(node.index,
+            name: node.name, parent: ownerNode, type: NodeType.functionNode);
 
       case 'Function':
-        if (node.name != '<anonymous signature>') {
-          var owner = node['owner_']!;
+        var owner = node['owner_']!;
 
-          // Artificial nodes may not have a data_ field.
-          var data = node['data_'];
-          if (data != null && data.type == 'ClosureData') {
-            owner = data['parent_function_']!;
-          }
-          return makeInfoNode(node.index,
-              name: node.name,
-              parent: getInfoNodeFor(owner)!,
-              type: NodeType.functionNode);
+        // Artificial nodes may not have a data_ field.
+        var data = node['data_'];
+        if (data != null && data.type == 'ClosureData') {
+          owner = data['parent_function_']!;
         }
-        break;
+        return makeInfoNode(node.index,
+            name: node.name,
+            parent: getInfoNodeFor(owner)!,
+            type: NodeType.functionNode);
 
       case 'PatchClass':
         return getInfoNodeFor(node['patched_class_']!);

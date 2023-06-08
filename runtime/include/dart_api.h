@@ -1210,7 +1210,7 @@ DART_EXPORT void* Dart_CurrentIsolateGroupData(void);
  * It is the responsibility of the caller to free the returned ID.
  */
 typedef int64_t Dart_IsolateGroupId;
-DART_EXPORT Dart_IsolateGroupId Dart_CurrentIsolateGroupId();
+DART_EXPORT Dart_IsolateGroupId Dart_CurrentIsolateGroupId(void);
 
 /**
  * Returns the callback data associated with the specified isolate group. This
@@ -1294,12 +1294,12 @@ typedef void (*Dart_HeapSamplingDeleteCallback)(void* data);
 /**
  * Starts the heap sampling profiler for each thread in the VM.
  */
-DART_EXPORT void Dart_EnableHeapSampling();
+DART_EXPORT void Dart_EnableHeapSampling(void);
 
 /*
  * Stops the heap sampling profiler for each thread in the VM.
  */
-DART_EXPORT void Dart_DisableHeapSampling();
+DART_EXPORT void Dart_DisableHeapSampling(void);
 
 /* Registers callbacks are invoked once per sampled allocation upon object
  * allocation and garbage collection.

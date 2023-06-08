@@ -1224,14 +1224,21 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       }
       int result =
           nativeWrite(bufferAndStart.buffer, bufferAndStart.start, bytes);
-      // The result may be negative, if we forced a short write for testing
-      // purpose. In such case, don't mark writeAvailable as false, as we don't
-      // know if we'll receive an event. It's better to just retry.
-      if ((result >= 0 && result < bytes) || hasPendingWrite()) {
-        writeAvailable = false;
+      if (result >= 0) {
+        // If write succeeded only partially or is pending then we should
+        // pause writing and wait for the write event to arrive from the
+        // event handler. If the write has fully completed then we should
+        // continue writing.
+        writeAvailable = (result == bytes) && !hasPendingWrite();
+      } else {
+        // Negative result indicates that we forced a short write for testing
+        // purpose. We are not guaranteed to get a writeEvent in this case
+        // unless there is a pending write - which will trigger an event
+        // when it completes. So the caller should continue writing into
+        // this socket.
+        result = -result;
+        writeAvailable = !hasPendingWrite();
       }
-      // Negate the result, as stated above.
-      if (result < 0) result = -result;
       return result;
     } catch (e) {
       StackTrace st = StackTrace.current;
