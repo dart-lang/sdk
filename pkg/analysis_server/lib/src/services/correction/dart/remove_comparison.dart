@@ -117,42 +117,23 @@ class RemoveComparison extends CorrectionProducer {
 
   Future<void> _ifStatement(IfStatement node, ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
-      var nodeRange = utils.getLinesRangeStatements([node]);
-
-      String bodyCode;
-      var body = node.thenStatement;
+      final body = node.thenStatement;
       if (body is Block) {
-        var statements = body.statements;
-        if (statements.isEmpty) {
-          bodyCode = switch (body.rightBracket.precedingComments) {
-            final comments? =>
-              utils.getRangeText(utils.getLinesRange(range.token(comments))),
-            _ => ''
-          };
-        } else {
-          bodyCode = utils.getRangeText(
-            utils.getLinesRange(
-              range.startEnd(
-                statements.first.beginToken.precedingComments ??
-                    statements.first,
-                body.rightBracket.precedingComments ?? statements.last,
-              ),
-            ),
-          );
-        }
-      } else {
-        bodyCode = utils.getRangeText(
+        final bodyCode = utils.getRangeText(
           utils.getLinesRange(
-            range.startEnd(
-              body.beginToken.precedingComments ?? body.beginToken,
-              body,
-            ),
+            range.endStart(body.leftBracket, body.rightBracket),
           ),
         );
+        final unIndented = utils.indentLeft(bodyCode);
+        builder.addSimpleReplacement(
+          utils.getLinesRangeStatements([node]),
+          unIndented,
+        );
+      } else {
+        final text = _textWithLeadingComments(body);
+        final unIndented = utils.indentLeft(text);
+        builder.addSimpleReplacement(range.node(node), unIndented);
       }
-
-      bodyCode = utils.indentSourceLeftRight(bodyCode);
-      builder.addSimpleReplacement(nodeRange, bodyCode);
     });
   }
 
